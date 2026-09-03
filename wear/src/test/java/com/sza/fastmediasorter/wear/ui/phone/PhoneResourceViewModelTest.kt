@@ -95,6 +95,8 @@ class PhoneResourceViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         every { preferences.fileListViewMode } returns flowOf(WearViewMode.LIST)
+        // S2473: read on construction for the refine overlay's fade, same as the device browser.
+        every { preferences.isAnimationsDisabled } returns flowOf(false)
         // The action menu builds a Uri for the entry's copy, and android.net.Uri is a stub in a unit test.
         mockkStatic(Uri::class)
         every { Uri.fromFile(any()) } returns mockk(relaxed = true)

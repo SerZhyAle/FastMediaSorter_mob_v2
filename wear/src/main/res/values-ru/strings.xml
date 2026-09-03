@@ -562,4 +562,11 @@
     <string name="wear_background_playback_desc">Звук продолжает играть после выхода из приложения</string>
     <string name="wear_background_playback_channel_name">Воспроизведение в фоне</string>
     <string name="wear_background_playback_needs_notifications">Включите уведомления, чтобы воспроизведение продолжалось в фоне</string>
+    <string name="wear_refine_menu_title">Уточнить список</string>
+    <string name="wear_refine_menu_sort_group">Сортировка</string>
+    <string name="wear_refine_menu_filter_group">Показывать только</string>
+    <string name="wear_refine_menu_filter_single_type">В этом списке файлы одного типа, фильтровать нечего.</string>
+    <string name="wear_refine_menu_clear_search">Очистить поиск: %1$s</string>
+    <string name="wear_navigate_back">Назад</string>
+    <string name="wear_minimize_to_background">Свернуть в фон</string>
 </resources>

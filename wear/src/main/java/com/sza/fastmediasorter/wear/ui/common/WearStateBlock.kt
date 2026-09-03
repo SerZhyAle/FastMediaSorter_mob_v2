@@ -106,6 +106,11 @@ fun WearStateBlock(
             Text(
                 text = text,
                 style = MaterialTheme.typography.body1,
+                color = if (kind == WearStateKind.ERROR) {
+                    MaterialTheme.colors.error
+                } else {
+                    MaterialTheme.colors.onSurface
+                },
                 textAlign = TextAlign.Center,
                 modifier = Modifier
                     .padding(MESSAGE_PADDING)

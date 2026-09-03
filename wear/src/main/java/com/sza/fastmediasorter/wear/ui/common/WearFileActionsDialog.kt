@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -7,16 +8,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
@@ -50,11 +51,10 @@ fun WearFileActionsDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
+        val listState = rememberWearListState()
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
+            state = listState
         ) {
             item {
                 val title = stringResource(R.string.wear_file_actions_for, file.name)
@@ -70,7 +70,11 @@ fun WearFileActionsDialog(
 
             items(ACTION_ORDER.filter { it in allowed }) { kind ->
                 val label = stringResource(labelOf(kind))
-                ActionChip(label = label, onClick = { onPick(kind) })
+                ActionChip(
+                    label = label,
+                    iconRes = iconOf(kind),
+                    onClick = { onPick(kind) }
+                )
             }
 
             // Unmarking is list membership rather than a file operation, so it never passes through
@@ -88,10 +92,22 @@ fun WearFileActionsDialog(
 }
 
 @Composable
-private fun ActionChip(label: String, onClick: () -> Unit) {
+private fun ActionChip(
+    label: String,
+    @DrawableRes iconRes: Int? = null,
+    onClick: () -> Unit
+) {
     Chip(
         onClick = onClick,
         label = { Text(label) },
+        icon = iconRes?.let {
+            {
+                Icon(
+                    painter = painterResource(it),
+                    contentDescription = null
+                )
+            }
+        },
         modifier = Modifier
             .fillMaxWidth()
             .semantics { contentDescription = label },
@@ -108,6 +124,17 @@ private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
     WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
 }
+
+@DrawableRes
+private fun iconOf(kind: WearFileOperationKind): Int = when (kind) {
+    WearFileOperationKind.SEND_TO_PHONE -> R.drawable.ic_copy
+    WearFileOperationKind.MOVE_TO_PHONE -> R.drawable.ic_move
+    WearFileOperationKind.DELETE -> R.drawable.ic_delete
+    WearFileOperationKind.RENAME -> R.drawable.ic_edit
+    WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
+}
+
 
 private val TITLE_GAP = 8.dp
 

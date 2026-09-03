@@ -28,11 +28,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
@@ -41,9 +39,9 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 import java.text.DateFormat
@@ -59,7 +57,7 @@ private val SYNC_CELL_TOP_PADDING = 8.dp
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    listState: ScalingLazyListState = rememberScalingLazyListState(),
+    listState: ScalingLazyListState = rememberWearListState(),
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -77,12 +75,10 @@ fun SettingsScreen(
                 SettingsRoutes.OTHER to stringResource(R.string.settings_group_other),
                 SettingsRoutes.ABOUT to stringResource(R.string.about)
             )
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState,
-                contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(GRID_GAP),
-                scalingParams = WearGridScalingParams
+                verticalArrangement = Arrangement.spacedBy(GRID_GAP)
             ) {
                 item {
                     Text(

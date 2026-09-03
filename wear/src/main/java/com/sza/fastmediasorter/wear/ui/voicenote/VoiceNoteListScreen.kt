@@ -27,10 +27,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -44,8 +42,9 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import java.util.Date
 
 private val TITLE_VERTICAL_PADDING = 8.dp
@@ -66,7 +65,7 @@ fun VoiceNoteListScreen(
     viewModel: VoiceNoteListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
     var actionsFor by remember { mutableStateOf<VoiceNote?>(null) }
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
 
@@ -130,10 +129,9 @@ private fun NoteListContent(
     onPlayNote: (VoiceNote) -> Unit,
     onOpenActions: (VoiceNote) -> Unit
 ) {
-    ScalingLazyColumn(
+    WearListColumn(
         modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
+        state = listState
     ) {
         item {
             Text(

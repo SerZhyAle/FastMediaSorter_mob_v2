@@ -15,10 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -26,13 +24,13 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val ROW_SPACING = 4.dp
@@ -41,7 +39,7 @@ private val TITLE_BOTTOM_PADDING = 8.dp
 @Composable
 fun MediaTypesSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -72,12 +70,9 @@ fun MediaTypesSettingsScreen(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item { SettingsHeading(R.string.media_types) }
                 items(packSettingsRows(typeToggles, columns)) { row ->

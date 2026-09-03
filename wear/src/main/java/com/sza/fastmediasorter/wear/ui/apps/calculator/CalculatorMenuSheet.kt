@@ -12,8 +12,6 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -21,11 +19,11 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorFunction
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 
 private val TITLE_VERTICAL_PADDING = 12.dp
-private val LIST_SIDE_PADDING = 8.dp
 
 /**
  * The single entrance to everything the keypad does not carry: every function, the memory cell and
@@ -74,7 +72,7 @@ fun CalculatorMenuSheet(
     actions: CalculatorMenuActions,
     viewMode: WearViewMode
 ) {
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     BoxWithConstraints(
         modifier = Modifier
@@ -97,11 +95,9 @@ fun CalculatorMenuSheet(
             backgroundColor = colorResource(R.color.wear_calc_function_tint),
             contentColor = MaterialTheme.colors.onSurface
         )
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = PaddingValues(horizontal = LIST_SIDE_PADDING),
-            scalingParams = WearGridScalingParams
+            state = listState
         ) {
             item {
                 Text(

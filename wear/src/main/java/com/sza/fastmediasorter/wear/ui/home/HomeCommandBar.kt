@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -31,17 +30,18 @@ private val COMMAND_GAP = 8.dp
  * They live here rather than among the sections so they neither compete with content for space nor
  * move when the view mode changes - the owner ruling recorded in the strategic spec.
  *
- * S1975: the order and the spacing are decided in this row, never at the call site, so a third
- * command stays a one-line change and cannot silently reorder the two that already exist. Settings
+ * S1975: the order and the spacing are decided in this row, never at the call site, so a future
+ * command stays a one-line change and cannot silently reorder the ones that already exist. Settings
  * keeps the first position because focus traversal follows the row and the frequent command has to
- * be met before the terminal one (ADR-2). Both wear the same secondary colours: making the terminal
- * command the loudest target of the row is precisely the accidental tap the risk register asks not
- * to invite (ADR-4).
+ * be met first (ADR-2). The commands wear the same secondary colours: making one of them the loudest
+ * target of the row is precisely the accidental tap the risk register asks not to invite (ADR-4).
+ *
+ * S2472: the close command left this row for the edge affordance, which now owns closing (and
+ * minimizing) from the same place every other screen keeps its back control.
  */
 @Composable
 fun HomeCommandBar(
-    onSettingsClick: () -> Unit,
-    onCloseClick: () -> Unit
+    onSettingsClick: () -> Unit
 ) {
     Row(
         modifier = Modifier
@@ -53,11 +53,6 @@ fun HomeCommandBar(
             icon = Icons.Filled.Settings,
             labelRes = R.string.settings,
             onClick = onSettingsClick
-        )
-        CommandButton(
-            icon = Icons.Filled.Close,
-            labelRes = R.string.wear_close_app,
-            onClick = onCloseClick
         )
     }
 }

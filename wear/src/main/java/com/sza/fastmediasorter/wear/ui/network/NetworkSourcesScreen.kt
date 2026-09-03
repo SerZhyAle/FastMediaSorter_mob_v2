@@ -19,9 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -33,11 +31,12 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ConnectionTestState
@@ -60,6 +59,7 @@ fun NetworkSourcesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val listState = rememberWearListState()
     val viewMode by viewModel.viewMode.collectAsState()
     val connectionTestState by viewModel.connectionTestState.collectAsState()
 
@@ -77,8 +77,6 @@ fun NetworkSourcesScreen(
     }
 
     Timber.d("NetworkSourcesScreen composing with state: $uiState, sync: $syncState")
-
-    val listState = rememberScalingLazyListState()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -352,11 +350,9 @@ private fun SourcesListContent(
     // the same rule the home screen applies, so the two screens cannot drift apart (strategic ADR-1).
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
+            state = listState
         ) {
             item {
                 Text(

@@ -26,9 +26,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -65,11 +63,10 @@ internal fun ReceiverListDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
+        val listState = rememberWearListState()
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
+            state = listState
         ) {
             item {
                 Text(

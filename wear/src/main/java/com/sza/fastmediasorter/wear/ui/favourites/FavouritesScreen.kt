@@ -27,11 +27,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -49,13 +47,13 @@ import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -80,7 +78,7 @@ fun FavouritesScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val viewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
@@ -234,11 +232,9 @@ private fun FavouritesList(
     // lists decide it - the geometry question has one answer in this app, not three.
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
+            state = listState
         ) {
             item {
                 Text(

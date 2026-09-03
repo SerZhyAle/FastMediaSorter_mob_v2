@@ -562,4 +562,11 @@
     <string name="wear_background_playback_desc">Audio keeps playing after you leave the app</string>
     <string name="wear_background_playback_channel_name">Background playback</string>
     <string name="wear_background_playback_needs_notifications">Turn on notifications to let playback continue in the background</string>
+    <string name="wear_refine_menu_title">Refine list</string>
+    <string name="wear_refine_menu_sort_group">Sort</string>
+    <string name="wear_refine_menu_filter_group">Show only</string>
+    <string name="wear_refine_menu_filter_single_type">This list holds one kind of file, so there is nothing to filter by.</string>
+    <string name="wear_refine_menu_clear_search">Clear search: %1$s</string>
+    <string name="wear_navigate_back">Go back</string>
+    <string name="wear_minimize_to_background">Minimize to background</string>
 </resources>

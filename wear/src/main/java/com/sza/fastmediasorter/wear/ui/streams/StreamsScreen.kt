@@ -19,8 +19,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Close
+
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
@@ -45,10 +45,8 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -67,18 +65,19 @@ import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
@@ -143,10 +142,7 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // S1945: the default `initialCenterItemIndex = 1` centers the list's 2nd item at open and leaves
-    // the 1st before it - exactly where the now-pinned toolbar paints. Centering item 0 instead keeps
-    // the first channel out from under the toolbar without touching the (unaffected) scroll behaviour.
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+    val listState = rememberWearListState()
 
     // S1954: the player is the other place a channel can be marked, and coming back from it does not
     // re-emit the catalogue - so the pinned order is re-read here rather than only on a catalogue change.
@@ -301,7 +297,7 @@ private fun StreamsMainContent(
         if (uiState.displayChannels.isEmpty() && !stillArriving) {
             StreamsStateBlock(uiState = uiState, actions = actions)
         } else {
-            ScalingLazyColumn(
+            WearListColumn(
                 // S2049: the only list-like screen in the module with no rotary hookup - the crown
                 // already scrolls the player and steps the calculator, so its silence here read as a
                 // real gap, not a deliberate one. Plain scroll, not a stepped action: nothing here
@@ -310,20 +306,13 @@ private fun StreamsMainContent(
                     .fillMaxSize()
                     .rotaryActionScroll(listState),
                 state = listState,
+                // S1945: start rule is owned by WearListColumn (S2466).
                 contentPadding = PaddingValues(
                     start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
                     top = screenInsets.calculateTopPadding() + TOOLBAR_ROW_HEIGHT,
                     end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
-                    bottom = screenInsets.calculateBottomPadding()
-                ),
-                // S1945: matching autoCentering's itemIndex to the state's initialCenterItemIndex
-                // (both 0) measured no change at all - centering targets a scaled viewport position,
-                // not a plain top offset, so it keeps fighting contentPadding.top regardless of which
-                // item it targets. Disabling it outright is the library's own documented alternative
-                // for a developer-picked position (ScalingLazyColumn.kt:237-239): with it off,
-                // contentPadding is what places items.
-                autoCentering = null,
-                scalingParams = WearGridScalingParams
+                    bottom = screenInsets.calculateBottomPadding() + GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+                )
             ) {
                 streamsSearchState(uiState = uiState, onClearSearch = actions.onClearSearch)
 
@@ -570,11 +559,12 @@ private fun StreamsControlHeader(
             }
         ) {
             Icon(
-                imageVector = Icons.AutoMirrored.Filled.Sort,
+                painter = painterResource(R.drawable.ic_sort),
                 contentDescription = stringResource(R.string.wear_streams_sort),
                 modifier = Modifier.size(20.dp)
             )
         }
+
     }
 }
 
@@ -590,11 +580,10 @@ private fun StreamSearchDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
+        val listState = rememberWearListState()
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
+            state = listState
         ) {
             item {
                 Text(
@@ -666,17 +655,16 @@ private fun StreamFilterDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
+        val listState = rememberWearListState()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
                 viewMode = viewMode,
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = true
             )
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets()
+                state = listState
             ) {
                 item {
                     Text(
@@ -792,17 +780,16 @@ private fun StreamSortDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
+        val listState = rememberWearListState()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
                 viewMode = viewMode,
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = true
             )
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets()
+                state = listState
             ) {
                 item {
                     Text(

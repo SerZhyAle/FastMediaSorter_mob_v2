@@ -1,16 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
-import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.PhoneAndroid
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material.Chip
@@ -21,6 +15,7 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+
 
 /**
  * Every action this menu can run, in the order it draws them, each beside what it calls.
@@ -73,8 +68,10 @@ internal fun FileActionsDialog(
     state: FileActionsDialogState,
     callbacks: FileActionsCallbacks
 ) {
+    timber.log.Timber.d("S2474: FileActionsDialog selectedCount=%d", state.selectedCount)
     Alert(
         title = {
+
             Text(
                 text = stringResource(R.string.wear_file_op_title, state.selectedCount),
                 textAlign = TextAlign.Center,
@@ -104,7 +101,7 @@ private fun ActionChip(
         label = { Text(text = stringResource(kind.labelRes())) },
         icon = {
             Icon(
-                imageVector = kind.icon(),
+                painter = painterResource(kind.iconRes()),
                 contentDescription = null
             )
         },
@@ -157,11 +154,13 @@ private fun WearFileOperationKind.labelRes(): Int = when (this) {
     WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
 }
 
-private fun WearFileOperationKind.icon(): ImageVector = when (this) {
-    WearFileOperationKind.SEND_TO_PHONE -> Icons.AutoMirrored.Filled.Send
-    WearFileOperationKind.MOVE_TO_PHONE -> Icons.Default.PhoneAndroid
-    WearFileOperationKind.RENAME -> Icons.Default.Edit
-    WearFileOperationKind.DELETE -> Icons.Default.Delete
-    WearFileOperationKind.OPEN_ON_PHONE -> Icons.AutoMirrored.Filled.OpenInNew
-    WearFileOperationKind.SEND_TO_RECEIVER -> Icons.Default.Share
+@DrawableRes
+private fun WearFileOperationKind.iconRes(): Int = when (this) {
+    WearFileOperationKind.SEND_TO_PHONE -> R.drawable.ic_copy
+    WearFileOperationKind.MOVE_TO_PHONE -> R.drawable.ic_move
+    WearFileOperationKind.RENAME -> R.drawable.ic_edit
+    WearFileOperationKind.DELETE -> R.drawable.ic_delete
+    WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
 }
+

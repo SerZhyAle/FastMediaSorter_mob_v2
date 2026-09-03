@@ -562,4 +562,11 @@
     <string name="wear_background_playback_desc">Звук продовжує грати після виходу із застосунку</string>
     <string name="wear_background_playback_channel_name">Відтворення у фоні</string>
     <string name="wear_background_playback_needs_notifications">Увімкніть сповіщення, щоб відтворення тривало у фоні</string>
+    <string name="wear_refine_menu_title">Уточнити список</string>
+    <string name="wear_refine_menu_sort_group">Сортування</string>
+    <string name="wear_refine_menu_filter_group">Показувати лише</string>
+    <string name="wear_refine_menu_filter_single_type">У цьому списку файли одного типу, фільтрувати нічого.</string>
+    <string name="wear_refine_menu_clear_search">Очистити пошук: %1$s</string>
+    <string name="wear_navigate_back">Назад</string>
+    <string name="wear_minimize_to_background">Згорнути у фон</string>
 </resources>

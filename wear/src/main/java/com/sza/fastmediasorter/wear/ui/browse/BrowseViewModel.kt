@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.wear.util.MediaMimeTypes
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -316,6 +317,8 @@ class BrowseViewModel @Inject constructor(
                 withContext(Dispatchers.Main) {
                     publishLoaded(mediaFiles)
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 Timber.d("S2278: browse network load catch entered, cancellation cure routes it")
                 e.errorUnlessCancellation("Exception loading network files")
@@ -406,11 +409,7 @@ class BrowseViewModel @Inject constructor(
 
     fun setSortOrder(order: BrowseSortOrder) = updateRefine { it.copy(sortOrder = order) }
 
-    fun setShowSearchDialog(show: Boolean) = updateRefine { it.copy(showSearchDialog = show) }
-
-    fun setShowFilterDialog(show: Boolean) = updateRefine { it.copy(showFilterDialog = show) }
-
-    fun setShowSortDialog(show: Boolean) = updateRefine { it.copy(showSortDialog = show) }
+    fun setShowRefineMenu(show: Boolean) = updateRefine { it.copy(showRefineMenu = show) }
 
     fun setSearchInputUnavailable(unavailable: Boolean) =
         updateRefine { it.copy(searchInputUnavailable = unavailable) }

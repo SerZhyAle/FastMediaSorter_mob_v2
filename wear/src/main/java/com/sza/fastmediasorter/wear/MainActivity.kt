@@ -17,6 +17,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +25,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -66,7 +68,10 @@ import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WearAppBackground
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
@@ -517,26 +522,60 @@ fun MainNavigation(
                 SyncResultScreen(navController = navController, added = added, updated = updated)
             }
 
-            playerRoutes()
+            playerRoutes(navController = navController)
 
             settingsRoutes(navController = navController)
+        }
+
+        // S2472: the universal back affordance, drawn above the host so every navigation route
+        // carries it without any screen wiring it itself (strategic ADR-1). Home and the players
+        // own different roles for the same control, and the interactive mini-programs are ruled out
+        // by the owner, so the decision lives in one named predicate rather than in twenty screens.
+        if (showsNavBackAffordance(currentRoute)) {
+            WearBackAffordance(
+                role = WearBackAffordanceRole.Back,
+                onClick = {
+                    Timber.d("S2472: nav back affordance tapped on %s", currentRoute)
+                    navController.popBackStack()
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterStart)
+                    .padding(start = wearRingInset())
+            )
         }
     }
 }
 
 /**
+ * S2472: which routes draw the shared back arrow. The players get their back command inside their
+ * own control cluster (it must hide with those controls), home gets the close/minimize role, and
+ * the game board and calculator are surfaces whose every pixel is the interaction itself - an edge
+ * control there steals the gesture the screen exists for.
+ */
+private fun showsNavBackAffordance(route: String?): Boolean =
+    route != null &&
+        route != WearRoutes.HOME &&
+        route !in PLAYER_ROUTES &&
+        route != WearRoutes.GAME &&
+        route != WearRoutes.CALCULATOR
+
+/**
  * S2161: the three playback destinations, lifted out of [MainNavigation] for the same reason S1944
  * lifted the settings block - the host sat at detekt's length ceiling and this ticket adds a line to
- * it. All three take the same single file-id argument and need nothing from the host.
+ * it. All three take the same single file-id argument; S2472 additionally hands each player the
+ * back action, so the controller travels in here with them.
  */
-private fun NavGraphBuilder.playerRoutes() {
+private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
     composable(
         route = WearRoutes.AUDIO_PLAYER_PATTERN,
         arguments = listOf(
             navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
         )
     ) {
-        AudioPlayerScreen()
+        AudioPlayerScreen(onBack = {
+            Timber.d("S2472: audio player back tapped")
+            navController.popBackStack()
+        })
     }
 
     composable(
@@ -545,7 +584,10 @@ private fun NavGraphBuilder.playerRoutes() {
             navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
         )
     ) {
-        VideoPlayerScreen()
+        VideoPlayerScreen(onBack = {
+            Timber.d("S2472: video player back tapped")
+            navController.popBackStack()
+        })
     }
 
     composable(
@@ -554,7 +596,10 @@ private fun NavGraphBuilder.playerRoutes() {
             navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
         )
     ) {
-        ImageViewerScreen()
+        ImageViewerScreen(onBack = {
+            Timber.d("S2472: image viewer back tapped")
+            navController.popBackStack()
+        })
     }
 }
 

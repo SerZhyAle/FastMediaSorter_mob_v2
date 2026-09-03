@@ -43,3 +43,26 @@ internal fun rememberCloseAppAction(): () -> Unit {
         }
     }
 }
+
+/**
+ * S2472: the home screen's minimize command, paired with [rememberCloseAppAction].
+ *
+ * moveTaskToBack, the same call the host's HOME BackHandler already uses for the same meaning: the
+ * app leaves the foreground and nothing else changes. The playback service is deliberately not
+ * touched - sending the app away while its sound keeps going is the entire point of the chevron,
+ * and the close action above stays the one gesture that means "finished" (S2166 ADR-4).
+ */
+@Composable
+internal fun rememberMinimizeAppAction(): () -> Unit {
+    val context = LocalContext.current
+    return remember(context) {
+        {
+            val activity = context as? Activity
+            if (activity == null) {
+                Timber.w("Minimize app: composition host is not an Activity, nothing to send back")
+            } else {
+                activity.moveTaskToBack(true)
+            }
+        }
+    }
+}

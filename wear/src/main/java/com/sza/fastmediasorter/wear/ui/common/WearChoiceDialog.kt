@@ -7,8 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
@@ -43,18 +41,16 @@ fun <T> WearChoiceDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
+        val listState = rememberWearListState()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
                 viewMode = viewMode,
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = fixedEnumeration
             )
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item {
                     Text(

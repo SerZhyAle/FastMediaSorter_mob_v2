@@ -20,10 +20,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -36,11 +34,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForEntry
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
 private val TITLE_PADDING_VERTICAL = 12.dp
@@ -68,7 +67,7 @@ fun WearFolderWalkScreen(
         }
     }
 
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     WearScreenScaffold(
         // The list insets itself instead, so rows scroll under the rim rather than inside a
@@ -106,10 +105,9 @@ private fun FolderWalkList(
     onOpenFile: (Uri, String?) -> Unit,
     onLoadMore: () -> Unit
 ) {
-    ScalingLazyColumn(
+    WearListColumn(
         modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
+        state = listState
     ) {
         item {
             LevelTitle(title = content.title)

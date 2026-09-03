@@ -33,8 +33,10 @@
          rows appear grouped in the map's group order and in row order within each group. The
          wearViewMode / wearFileListViewMode / wearBackgroundMode_ prefixes match by occurrence,
          not as quoted whole tags.
-     11. S2461 version field: appVersionName is declared in both WearSettingsPayload copies AND
-         carries a row in both WearSettingsPayloadDecoder EXPECTED tables.
+     11. S2464 decoder contract table parity: every property in WearSettingsPayload has an exact
+         matching entry in WearSettingsPayloadDecoder.EXPECTED with corresponding JsonKind matching
+         its Kotlin type, no extra rows exist in EXPECTED, and the EXPECTED tables between phone and
+         watch agree in keys, order and JsonKind.
      12. S2461 sync-time writer: markSynced is called only from the mirror store and
          MergeWearSettingsReportUseCase, across app_v2/src/main and app_v2/src/wearGms.
 
@@ -182,6 +184,55 @@ function Get-RowPosition {
         return [pscustomobject]@{ Draw = $inv.Index; Literal = $literal; Helper = $declName; Invoked = $true }
     }
     return [pscustomobject]@{ Draw = $literal; Literal = $literal; Helper = $declName; Invoked = $false }
+}
+
+# S2464: parses property names and their Kotlin types from data class WearSettingsPayload(...).
+function Read-PayloadFields {
+    param([string]$Source)
+
+    $match = [regex]::Match($Source, '(?s)data\s+class\s+WearSettingsPayload\s*\((?<params>.*?)\)\s*(?:\{|$)')
+    if (-not $match.Success) { return [ordered]@{} }
+    $paramsBlock = $match.Groups['params'].Value
+    $fields = [ordered]@{}
+    foreach ($line in ($paramsBlock -split "`n")) {
+        $cleanLine = $line.Trim()
+        if ($cleanLine.StartsWith('//') -or $cleanLine.StartsWith('/*') -or [string]::IsNullOrWhiteSpace($cleanLine)) { continue }
+        $cleanLine = $cleanLine -replace '//.*$', ''
+        $serMatch = [regex]::Match($cleanLine, '@SerializedName\("(?<name>[^"]+)"\)')
+        $valMatch = [regex]::Match($cleanLine, 'val\s+(?<name>\w+)\s*:\s*(?<type>.+?)(?:\s*=\s*.*|\s*,\s*$|\s*$)')
+        if ($valMatch.Success) {
+            $wireName = if ($serMatch.Success) { $serMatch.Groups['name'].Value } else { $valMatch.Groups['name'].Value }
+            $propType = $valMatch.Groups['type'].Value.Trim()
+            $fields[$wireName] = $propType
+        }
+    }
+    return $fields
+}
+
+# S2464: parses the EXPECTED map entries from WearSettingsPayloadDecoder.kt (field name -> JsonKind name).
+function Read-DecoderExpected {
+    param([string]$Source)
+
+    $match = [regex]::Match($Source, '(?s)EXPECTED\s*:\s*Map<String,\s*JsonKind>\s*=\s*linkedMapOf\((?<entries>.*?)\)')
+    if (-not $match.Success) { return [ordered]@{} }
+    $entriesBlock = $match.Groups['entries'].Value
+    $expected = [ordered]@{}
+    foreach ($m in [regex]::Matches($entriesBlock, '"(?<name>[^"]+)"\s+to\s+JsonKind\.(?<kind>[A-Z_]+)')) {
+        $expected[$m.Groups['name'].Value] = $m.Groups['kind'].Value
+    }
+    return $expected
+}
+
+# S2464: maps a Kotlin type from WearSettingsPayload to its corresponding JsonKind enum name.
+function Get-ExpectedJsonKind {
+    param([string]$KotlinType)
+
+    $base = $KotlinType.TrimEnd('?').Trim()
+    if ($base -eq 'Boolean') { return 'BOOLEAN' }
+    if ($base -in @('Int', 'Long', 'Float', 'Double', 'Short', 'Byte', 'Number')) { return 'NUMBER' }
+    if ($base -eq 'String') { return 'STRING' }
+    if ($base -match '^(?:Map|JsonObject|Set|List)<?') { return 'OBJECT' }
+    return 'UNKNOWN'
 }
 
 $phoneEntries = Read-RegistryEntries -Source $text.PhoneRegistry -Label 'phone'
@@ -394,20 +445,62 @@ foreach ($group in $phoneMap.Keys) {
     }
 }
 
-# 11. S2461: the app-version field must ride the contract on both sides AND be listed in both decoder
-#     tables. A field present in the model but missing from its EXPECTED table is dropped on arrival and
-#     decodes as null, so the companion window reports "version unknown" forever while the wire is fine -
-#     which is exactly what happened while S2461 was being implemented.
-$versionField = 'appVersionName'
-foreach ($side in @(
-    @{ Name = 'phone'; Payload = 'PhonePayload'; Decoder = 'PhoneDecoder' },
-    @{ Name = 'watch'; Payload = 'WatchPayload'; Decoder = 'WatchDecoder' }
-)) {
-    if ($text[$side.Payload] -notmatch "(?m)^\s*(?:@SerializedName\(""$versionField""\)\s*)?val\s+$versionField\b") {
-        $findings += "S2461: '$versionField' has no field in the $($side.Name) WearSettingsPayload - the pair can no longer report which build accepted a sync."
+# 11. S2464: every field in WearSettingsPayload must be listed in WearSettingsPayloadDecoder.EXPECTED
+#     with matching JsonKind, no extra rows in EXPECTED, and phone/watch decoders in full symmetry.
+#     A field present in the model but missing from its EXPECTED table is dropped on arrival and
+#     decodes as null, so the new capability fails silently across builds (S2461/S2462 finding).
+$sides = @(
+    @{ Name = 'phone'; PayloadKey = 'PhonePayload'; DecoderKey = 'PhoneDecoder' },
+    @{ Name = 'watch'; PayloadKey = 'WatchPayload'; DecoderKey = 'WatchDecoder' }
+)
+foreach ($side in $sides) {
+    $payloadFields = Read-PayloadFields -Source $text[$side.PayloadKey]
+    $decoderExpected = Read-DecoderExpected -Source $text[$side.DecoderKey]
+
+    if ($payloadFields.Count -eq 0) {
+        $findings += "S2464: could not parse any fields from $($side.Name) WearSettingsPayload."
+        continue
     }
-    if ($text[$side.Decoder] -notmatch "(?m)^\s*""$versionField""\s+to\s+JsonKind\.STRING\s*,?\s*$") {
-        $findings += "S2461: '$versionField' has no row in the $($side.Name) WearSettingsPayloadDecoder EXPECTED table - it would arrive on the wire and decode as null, leaving the companion window reading 'version unknown'."
+    if ($decoderExpected.Count -eq 0) {
+        $findings += "S2464: could not parse EXPECTED map from $($side.Name) WearSettingsPayloadDecoder."
+        continue
+    }
+
+    # 11a. Every field in WearSettingsPayload must have a matching EXPECTED entry with correct JsonKind
+    foreach ($fName in $payloadFields.Keys) {
+        if (-not $decoderExpected.Contains($fName)) {
+            $findings += "S2464: '$fName' is declared in $($side.Name) WearSettingsPayload but missing from WearSettingsPayloadDecoder.EXPECTED table."
+        } else {
+            $expKind = Get-ExpectedJsonKind -KotlinType $payloadFields[$fName]
+            $actKind = $decoderExpected[$fName]
+            if ($expKind -eq 'UNKNOWN') {
+                $findings += "S2464: '$fName' in $($side.Name) WearSettingsPayload has unsupported Kotlin type '$($payloadFields[$fName])'."
+            } elseif ($expKind -ne $actKind) {
+                $findings += "S2464: '$fName' is declared as '$($payloadFields[$fName])' in $($side.Name) WearSettingsPayload (expected JsonKind.$expKind) but WearSettingsPayloadDecoder.EXPECTED declares JsonKind.$actKind."
+            }
+        }
+    }
+
+    # 11b. Every entry in EXPECTED must correspond to a declared WearSettingsPayload field
+    foreach ($expName in $decoderExpected.Keys) {
+        if (-not $payloadFields.Contains($expName)) {
+            $findings += "S2464: '$expName' is in $($side.Name) WearSettingsPayloadDecoder.EXPECTED but has no matching field in WearSettingsPayload."
+        }
+    }
+}
+
+# 11c. Phone and watch EXPECTED tables must be identical in keys, order, and JsonKind
+$phoneExpected = Read-DecoderExpected -Source $text.PhoneDecoder
+$watchExpected = Read-DecoderExpected -Source $text.WatchDecoder
+if (@($phoneExpected.Keys).Count -gt 0 -and @($watchExpected.Keys).Count -gt 0) {
+    if ((@($phoneExpected.Keys) -join '|') -ne (@($watchExpected.Keys) -join '|')) {
+        $findings += "S2464: WearSettingsPayloadDecoder.EXPECTED field sequence differs between phone [$(@($phoneExpected.Keys) -join ', ')] and watch [$(@($watchExpected.Keys) -join ', ')]."
+    } else {
+        foreach ($k in $phoneExpected.Keys) {
+            if ($phoneExpected[$k] -ne $watchExpected[$k]) {
+                $findings += "S2464: WearSettingsPayloadDecoder.EXPECTED for '$k' differs in JsonKind: phone JsonKind.$($phoneExpected[$k]) vs watch JsonKind.$($watchExpected[$k])."
+            }
+        }
     }
 }
 

@@ -8,9 +8,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
@@ -22,11 +24,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.AutoCenteringParams
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -40,11 +39,15 @@ import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberMinimizeAppAction
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -61,34 +64,43 @@ fun HomeScreen(
     Timber.d("HomeScreen composing")
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+    val isBackgroundPlaybackActive by viewModel.isBackgroundPlaybackActive.collectAsStateWithLifecycle()
+    val listState = rememberWearListState()
     // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
     // the action would be rebuilt every time the bar scrolls back into composition.
     val closeApp = rememberCloseAppAction()
+    val minimizeApp = rememberMinimizeAppAction()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
+        // S2472: the home affordance, in the same left-middle band every other screen draws it in.
+        // The cross and the chevron are one control, not two: which face it wears follows the live
+        // playback state, and each face carries its own action - close stops the sound, minimize
+        // keeps it - so the sign can never promise what the tap does not do.
+        WearBackAffordance(
+            role = if (isBackgroundPlaybackActive) {
+                WearBackAffordanceRole.Minimize
+            } else {
+                WearBackAffordanceRole.Close
+            },
+            onClick = {
+                Timber.d("S2472: home affordance tapped, backgroundActive=%b", isBackgroundPlaybackActive)
+                if (isBackgroundPlaybackActive) minimizeApp() else closeApp()
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = wearRingInset())
+        )
         // The column count comes from the width this composable actually gets, never from the mode
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams,
-                // One setting written twice: the state index says where to open, this says which
-                // index may reach the centre at all. AutoCenteringParams defaults to 1 and pads
-                // nothing below it, so setting the state alone leaves the request unhonoured.
-                //
-                // Top space is owned by autoCentering, but not exclusively: wearScreenInsets()
-                // is a uniform inset on a round display, so its top share stacks on top of the
-                // centring padding. Whether that stack is visible is a round-display measurement
-                // (S2003 §3.3), so no number is guessed here - the device pass settles it.
-                autoCentering = AutoCenteringParams(itemIndex = 0)
+                state = listState
             ) {
                 lastUsedItems(
                     shortcuts = uiState.lastUsedResources,
@@ -104,8 +116,7 @@ fun HomeScreen(
 
                 item {
                     HomeCommandBar(
-                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) },
-                        onCloseClick = closeApp
+                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) }
                     )
                 }
             }

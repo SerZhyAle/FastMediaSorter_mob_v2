@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
@@ -51,9 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -65,7 +64,9 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
@@ -99,12 +100,13 @@ private const val PROGRESS_BAR_CORNER_PERCENT = 50
  */
 @Composable
 fun AudioPlayerScreen(
-    viewModel: AudioPlayerViewModel = hiltViewModel()
+    viewModel: AudioPlayerViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
     // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
@@ -117,6 +119,7 @@ fun AudioPlayerScreen(
     KeepScreenOnEffect(enabled = uiState.isPlaying || uiState.isDimmed)
 
     WearScreenScaffold(
+        scrollState = listState,
         // Both the clock and the scroll indicator are drawn by the scaffold above the content, so an
         // overlay alone cannot hide them - they have to be withheld, or the dark screen keeps two lit
         // elements on it.
@@ -147,6 +150,7 @@ fun AudioPlayerScreen(
                         viewModel.onVolumeStep(step > 0)
                     },
                     actions = AudioPlayerActions(
+                        onBack = onBack,
                         onPlayPause = viewModel::togglePlayPause,
                         onToggleFavorite = viewModel::toggleFavorite,
                         onSkipNext = viewModel::skipToNext,
@@ -194,6 +198,7 @@ private fun DimOverlay(onExit: () -> Unit) {
 }
 
 private data class AudioPlayerActions(
+    val onBack: () -> Unit,
     val onPlayPause: () -> Unit,
     val onToggleFavorite: () -> Unit,
     val onSkipNext: () -> Unit,
@@ -215,11 +220,12 @@ private fun AudioPlayerContent(
     // the control row used to be pushed past the bottom edge, where it could not be reached at all.
     // The rotary binding sits on the same container deliberately: it consumes the event, so the bezel
     // cannot scroll this list and change the playback position at the same time. Touch still scrolls.
-    ScalingLazyColumn(
+    WearListColumn(
         modifier = Modifier
             .fillMaxSize()
             .rotaryActionSteps(onRotaryStep),
-        state = listState
+        state = listState,
+        centered = true
     ) {
         item {
             TrackInfoSection(uiState = uiState)
@@ -274,6 +280,7 @@ private fun AudioPlayerContent(
             SecondaryControls(
                 isFavorite = isFavorite,
                 positionText = uiState.positionText,
+                onBack = actions.onBack,
                 onToggleFavorite = actions.onToggleFavorite,
                 onToggleDimmed = actions.onToggleDimmed
             )
@@ -562,20 +569,32 @@ private fun PlaybackControls(
  * control that appears and disappears is the harder thing to learn. The set marker rides along here
  * because the buttons that move it now sit in the row above, and dropping it would leave a wrapping
  * folder without the landmark S1683 added it for.
+ *
+ * S2472: the back command opens the row. This screen's controls are permanent list rows, so its back
+ * button is permanent too - the affordance follows the window's logic, and this window never hides
+ * its controls.
  */
 @Composable
 private fun SecondaryControls(
     isFavorite: Boolean,
     positionText: String,
+    onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
     onToggleDimmed: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+    val backDesc = stringResource(R.string.wear_navigate_back)
 
     Row(
         horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        PlayerCommandButton(
+            onClick = onBack,
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = backDesc
+        )
+
         PlayerCommandButton(
             onClick = onToggleFavorite,
             icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,

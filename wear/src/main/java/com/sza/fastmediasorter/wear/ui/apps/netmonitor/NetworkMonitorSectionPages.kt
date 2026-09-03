@@ -20,11 +20,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
@@ -44,9 +42,10 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearWifiDetails
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatTrafficTotal
 import com.sza.fastmediasorter.wear.domain.netmonitor.signalFraction
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import java.util.Date
 import java.util.Locale
 
@@ -72,7 +71,7 @@ data class NetworkMonitorSectionActions(
 )
 
 /**
- * Renders the detail page for the given section inside a scrollable [ScalingLazyColumn].
+ * Renders the detail page for the given section inside a scrollable [WearListColumn].
  */
 @Composable
 fun NetworkMonitorSectionPage(
@@ -81,19 +80,17 @@ fun NetworkMonitorSectionPage(
     canRequestPermissions: Boolean,
     actions: NetworkMonitorSectionActions,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(SECTION_ITEM_SPACING),
-            scalingParams = WearGridScalingParams
+            verticalArrangement = Arrangement.spacedBy(SECTION_ITEM_SPACING)
         ) {
             item {
                 Text(
@@ -624,21 +621,7 @@ private fun Boolean?.asYesNo(): String? = this?.let {
 private fun WearNetworkTransport?.asLabel(): String? = this?.let { stringResource(it.labelRes()) }
 
 @Composable
-private fun LabelValue(labelRes: Int, value: String?) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = ROW_SPACING),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = stringResource(labelRes),
-            style = MaterialTheme.typography.caption2,
-            color = MaterialTheme.colors.onSurfaceVariant,
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = value ?: stringResource(R.string.wear_netmon_unavailable),
-            style = MaterialTheme.typography.body2,
-            textAlign = TextAlign.Center
-        )
-    }
-}
+private fun LabelValue(labelRes: Int, value: String?) = WearInformationRow(
+    labelRes = labelRes,
+    value = value ?: stringResource(R.string.wear_netmon_unavailable)
+)

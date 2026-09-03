@@ -14,9 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -26,8 +24,9 @@ import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
 /**
@@ -38,7 +37,7 @@ import timber.log.Timber
 @Composable
 fun PermissionsScreen(
     onPermissionsGranted: () -> Unit,
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     // Define required permissions based on API level
     val mediaPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -76,10 +75,10 @@ fun PermissionsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets()
+            centered = true
         ) {
             item {
                 Icon(

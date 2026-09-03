@@ -251,6 +251,23 @@ function Find-WindowInsetsLines([string]$Text) {
     return $hits
 }
 
+$script:WearListStartRx = [regex]'\b(?:ScalingLazyColumn|rememberScalingLazyListState)\s*\('
+
+function Measure-WearListStartText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    return $script:WearListStartRx.Matches($Text).Count
+}
+
+function Find-WearListStartLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $lines = $Text -split "`r?`n"
+    $hits = @()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($script:WearListStartRx.IsMatch($lines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
 # S1363: a broad `catch (e: Exception)` in coroutine code also catches CancellationException.
 # Cancelling a job then reads as a failure: it is logged at error level, converted into a
 # domain failure result, and never rethrown, so the parent job believes the child completed
@@ -1281,6 +1298,21 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-InlineDeliveryBlockText $t }
             LocateInText = { param($t) Find-InlineDeliveryBlockLines $t }
             FailMessage  = 'a build path resolving a delivery sink or the archiver itself instead of calling the one script that holds the delivery block. Repeating it means the next change to delivery is either made 26 times or diverges - which is how the watch shipped while its Drive copy stayed a month stale and looked current (S1707). Call scripts/utils/publish-artifact.ps1 with -Path and -Name; it covers both sinks, takes several artifacts for one archive, and skips a sink it cannot reach without failing the build. Use -NoZip / -NoCommander for a path that legitimately delivers less (S2332).'
+        },
+        # S2466: direct ScalingLazyColumn or rememberScalingLazyListState in the wear module.
+        # WearListColumn and rememberWearListState enforce consistent round-screen top-edge
+        # placement (initialCenterItemIndex = 0, autoCentering = null) and content padding
+        # across all wear screens, dialogs, sheets, and overlays.
+        [pscustomobject]@{
+            Name         = 'wear-list-start'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src/main')
+            PathFilter   = '^wear/src/main/'
+            Baseline     = 'wear-list-start-baseline.txt'
+            ExcludeNames = @('WearListColumn.kt')
+            CountInText  = { param($t) Measure-WearListStartText $t }
+            LocateInText = { param($t) Find-WearListStartLines $t }
+            FailMessage  = 'direct ScalingLazyColumn or rememberScalingLazyListState in wear module. Use WearListColumn and rememberWearListState to enforce consistent round-screen top-edge placement and content padding (S2466).'
         }
     )
 }

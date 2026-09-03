@@ -73,6 +73,9 @@ class BrowseViewModelRefineTest {
         every { preferences.isVideoEnabled } returns flowOf(true)
         every { preferences.isImagesEnabled } returns flowOf(true)
         every { preferences.fileListViewMode } returns flowOf(WearViewMode.LIST)
+        // S2473: read on construction for the refine overlay's fade. Unstubbed it throws before any
+        // case runs, which is how this whole class went red at once.
+        every { preferences.isAnimationsDisabled } returns flowOf(false)
         // S2199: the ViewModel reads the remembered refine state on construction. Stubbed as "nothing
         // remembered" so these cases keep asserting the refine behaviour itself rather than a restore.
         every { preferences.browseContentTypes } returns flowOf(emptySet())
@@ -216,5 +219,38 @@ class BrowseViewModelRefineTest {
         vm.setSortOrder(BrowseSortOrder.DEFAULT)
 
         assertEquals(fixture.map { it.name }, shownNames(vm.uiState.value))
+    }
+
+    /**
+     * S2473: sort and filter arrive from one surface now, so a pick in either group must leave the
+     * query alone - on the merged menu they are three rows of one list rather than three dialogs.
+     */
+    @Test
+    fun `a pick on the refine menu leaves the active query in place`() = runTest {
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.setSearchQuery("alpha")
+
+        vm.setSortOrder(BrowseSortOrder.NAME_DESC)
+        vm.setContentTypes(emptySet())
+
+        assertEquals("alpha", vm.refineState.value.searchQuery)
+        assertEquals(listOf("alpha song.mp3"), shownNames(vm.uiState.value))
+    }
+
+    /** S2473: the menu's own flag opens and closes without touching what is being refined. */
+    @Test
+    fun `opening and closing the refine menu changes no refinement`() = runTest {
+        val vm = viewModel()
+        advanceUntilIdle()
+        vm.setSortOrder(BrowseSortOrder.NAME_ASC)
+
+        vm.setShowRefineMenu(true)
+        val whileOpen = vm.refineState.value
+        vm.setShowRefineMenu(false)
+
+        assertTrue(whileOpen.showRefineMenu)
+        assertEquals(BrowseSortOrder.NAME_ASC, vm.refineState.value.sortOrder)
+        assertEquals(false, vm.refineState.value.showRefineMenu)
     }
 }

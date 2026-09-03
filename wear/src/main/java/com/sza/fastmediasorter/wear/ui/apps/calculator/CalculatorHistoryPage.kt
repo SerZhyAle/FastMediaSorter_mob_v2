@@ -17,19 +17,18 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorHistoryEntry
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 
 private val TITLE_VERTICAL_PADDING = 12.dp
-private val LIST_SIDE_PADDING = 8.dp
 private val EMPTY_TEXT_PADDING = 16.dp
 
 /**
@@ -45,7 +44,7 @@ fun CalculatorHistoryPage(
     onClearHistory: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     // S1719: the crown steps the history's type size, mirroring the phone's pinch through the same
     // five sizes. The rotary helper consumes the event by design, so the crown no longer scrolls this
@@ -60,10 +59,9 @@ fun CalculatorHistoryPage(
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = PaddingValues(horizontal = LIST_SIDE_PADDING)
+            state = listState
         ) {
             item {
                 Text(

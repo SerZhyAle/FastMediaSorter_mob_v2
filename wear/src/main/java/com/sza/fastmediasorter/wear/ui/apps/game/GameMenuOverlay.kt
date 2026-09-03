@@ -2,22 +2,19 @@ package com.sza.fastmediasorter.wear.ui.apps.game
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-
-private val LIST_SIDE_PADDING = 8.dp
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 
 /**
  * S1966: the menu's callbacks travel as one object rather than four parameters, the shape this
@@ -42,21 +39,20 @@ private enum class GameMenuEntry { SKIP_TURN, RESTART_LEVEL, NEW_GAME, RULES, EX
  * game rather than closing the menu - which is exactly why the close row exists. Without it the only
  * ways out of the menu would be its three actions, and one of those exits the game.
  *
- * A [ScalingLazyColumn] rather than a plain column: on round glass an unscaled outer row runs off
+ * A [WearListColumn] rather than a plain column: on round glass an unscaled outer row runs off
  * the edge, and the scaling list is what keeps the first and last rows tappable.
  */
 @Composable
 fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colors.background)
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = PaddingValues(horizontal = LIST_SIDE_PADDING)
+            state = listState
         ) {
             items(GameMenuEntry.entries.size) { index ->
                 val entry = GameMenuEntry.entries[index]

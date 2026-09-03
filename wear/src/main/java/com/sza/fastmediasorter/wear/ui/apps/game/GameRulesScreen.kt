@@ -13,15 +13,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 
 import androidx.compose.runtime.LaunchedEffect
 import timber.log.Timber
@@ -40,7 +39,7 @@ private val ITEM_HORIZONTAL_PADDING = 8.dp
  */
 @Composable
 fun GameRulesScreen(
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     LaunchedEffect(Unit) {
         Timber.d("S2350: game rules screen opened")
@@ -52,11 +51,10 @@ fun GameRulesScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            centered = true
         ) {
             item {
                 Text(

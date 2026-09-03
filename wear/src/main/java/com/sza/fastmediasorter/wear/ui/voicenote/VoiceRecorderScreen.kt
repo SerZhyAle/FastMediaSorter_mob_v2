@@ -28,8 +28,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -44,8 +42,9 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingErrorReason
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 
@@ -70,7 +69,7 @@ fun VoiceRecorderScreen(
     viewModel: VoiceRecorderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
     val permissionsState = rememberMultiplePermissionsState(recorderPermissions())
     // Only the microphone gates recording. A denied POST_NOTIFICATIONS costs the ongoing
     // notification and nothing else, so it must not stand between the user and a recording.
@@ -84,11 +83,11 @@ fun VoiceRecorderScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(SECTION_GAP)
+            verticalArrangement = Arrangement.spacedBy(SECTION_GAP),
+            centered = true
         ) {
             item { RecorderStatus(state = uiState.recording) }
             item {

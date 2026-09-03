@@ -604,11 +604,7 @@ class PhoneResourceViewModel @Inject constructor(
 
     fun setSortOrder(order: BrowseSortOrder) = updateRefine { it.copy(sortOrder = order) }
 
-    fun setShowSearchDialog(show: Boolean) = updateRefine { it.copy(showSearchDialog = show) }
-
-    fun setShowFilterDialog(show: Boolean) = updateRefine { it.copy(showFilterDialog = show) }
-
-    fun setShowSortDialog(show: Boolean) = updateRefine { it.copy(showSortDialog = show) }
+    fun setShowRefineMenu(show: Boolean) = updateRefine { it.copy(showRefineMenu = show) }
 
     fun setSearchInputUnavailable(unavailable: Boolean) =
         updateRefine { it.copy(searchInputUnavailable = unavailable) }

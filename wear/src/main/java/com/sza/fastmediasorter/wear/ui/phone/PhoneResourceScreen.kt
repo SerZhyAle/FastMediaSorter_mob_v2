@@ -39,11 +39,9 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -69,28 +67,31 @@ import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
-import com.sza.fastmediasorter.wear.ui.common.WearChoiceDialog
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearRefineControlHeader
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderActions
+import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderHeight
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderLabels
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderState
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuActions
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuScreen
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuState
 import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.WearSearchDialog
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.labelForContentType
-import com.sza.fastmediasorter.wear.ui.common.labelForSortOrder
 import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberOverlayVisibleOnIdle
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -124,7 +125,7 @@ fun PhoneResourceScreen(
         }
     }
 
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
     // that dropped it costs nothing, while a ViewModel that carried it would replay it.
@@ -143,6 +144,11 @@ fun PhoneResourceScreen(
     )
 
     val refineState by viewModel.refineState.collectAsStateWithLifecycle()
+
+    val overlayVisible = rememberOverlayVisibleOnIdle(listState)
+
+    // S2473: hoisted for the header's own search icon, which now starts the input directly.
+    val launchSearchInput = rememberPhoneSearchInput(viewModel)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -165,20 +171,26 @@ fun PhoneResourceScreen(
                 onActionEntry = { actionEntry = it }
             )
 
-            // Same arrangement as the browse screen (strategic 5.3): over the list, not in it, so it
-            // survives a scroll and stays reachable when a query is what emptied the list.
-            PhoneRefineHeader(
-                refine = refineState,
-                showFilter = viewModel.presentContentTypes().size > 1,
-                viewModel = viewModel,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(wearScreenInsets())
-            )
+            // S2471: the refine header is only shown when there is content to refine or when active
+            // filters produced no matches. When the phone is unavailable, disconnected, or loading,
+            // drawing the header would obscure the central error and retry message.
+            // S2473: and only while the list is standing still - the same rule the device browser
+            // follows, read from the same helper so the two surfaces cannot drift apart.
+            val refinable = state is PhoneResourceUiState.Content || state is PhoneResourceUiState.NoMatches
+            if (refinable && overlayVisible) {
+                PhoneRefineHeader(
+                    refine = refineState,
+                    viewModel = viewModel,
+                    launchSearchInput = launchSearchInput,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(wearScreenInsets())
+                )
+            }
         }
     }
 
-    PhoneRefineDialogsHost(refine = refineState, viewModel = viewModel, viewMode = fileListViewMode)
+    PhoneRefineMenuHost(refine = refineState, viewModel = viewModel)
 
     PhoneFileDialogs(
         viewModel = viewModel,
@@ -219,7 +231,8 @@ private fun PhoneResourceStateBranch(
     when (val current = state) {
         is PhoneResourceUiState.Loading -> CenteredMessage(
             text = stringResource(R.string.phone_resource_loading),
-            showProgress = true
+            showProgress = true,
+            state = listState
         )
 
         is PhoneResourceUiState.Content -> Box(modifier = Modifier.fillMaxSize()) {
@@ -249,6 +262,9 @@ private fun PhoneResourceStateBranch(
         }
 
         is PhoneResourceUiState.NoMatches -> WearStateBlock(
+            // S2471: the refine header sits above the block in NoMatches state, so add top padding
+            // so the message is centered below the buttons without collision.
+            modifier = Modifier.padding(top = WearRefineHeaderHeight),
             kind = WearStateKind.EMPTY,
             // Deliberately not the "your phone has nothing to show" copy and deliberately without
             // Retry: the folder has entries, the wearer's own narrowing is hiding them, and
@@ -281,12 +297,15 @@ private fun PhoneResourceStateBranch(
             onBack = { navController.popBackStack() }
         )
 
-        is PhoneResourceUiState.Unavailable -> WearStateBlock(
-            kind = WearStateKind.UNAVAILABLE,
-            message = stringResource(current.reason.toMessageRes()),
-            onRetry = viewModel::retry,
-            onBack = { navController.popBackStack() }
-        )
+        is PhoneResourceUiState.Unavailable -> {
+            Timber.d("S2471: PhoneResourceScreen rendering Unavailable state block")
+            WearStateBlock(
+                kind = WearStateKind.UNAVAILABLE,
+                message = stringResource(current.reason.toMessageRes()),
+                onRetry = viewModel::retry,
+                onBack = { navController.popBackStack() }
+            )
+        }
 
         // S2275: no Retry. Nothing is connected to ask, so the button would repeat the same answer -
         // the reason the NoResourceForType branch above refuses one too.
@@ -302,8 +321,8 @@ private fun PhoneResourceStateBranch(
 @Composable
 private fun PhoneRefineHeader(
     refine: BrowseRefineState,
-    showFilter: Boolean,
     viewModel: PhoneResourceViewModel,
+    launchSearchInput: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -313,22 +332,19 @@ private fun PhoneRefineHeader(
         WearRefineControlHeader(
             state = WearRefineHeaderState(
                 searchActive = refine.searchQuery.isNotBlank(),
-                filterActive = refine.contentTypes.isNotEmpty(),
-                sortActive = refine.sortOrder != BrowseSortOrder.DEFAULT,
-                showFilter = showFilter
+                refineActive = refine.contentTypes.isNotEmpty() ||
+                    refine.sortOrder != BrowseSortOrder.DEFAULT
             ),
             labels = WearRefineHeaderLabels(
                 search = stringResource(R.string.wear_browse_search),
-                filter = stringResource(R.string.wear_browse_filter),
-                sort = stringResource(R.string.wear_browse_sort)
+                refine = stringResource(R.string.wear_refine_menu_title)
             ),
             actions = WearRefineHeaderActions(
                 onSearchClick = {
                     viewModel.setSearchInputUnavailable(false)
-                    viewModel.setShowSearchDialog(true)
+                    launchSearchInput()
                 },
-                onFilterClick = { viewModel.setShowFilterDialog(true) },
-                onSortClick = { viewModel.setShowSortDialog(true) }
+                onRefineClick = { viewModel.setShowRefineMenu(true) }
             )
         )
 
@@ -375,61 +391,36 @@ private fun rememberPhoneSearchInput(viewModel: PhoneResourceViewModel): () -> U
     }
 }
 
-/** S2136: the three dialogs behind the refine header. Five sort orders here, not seven (ADR-5). */
+/**
+ * S2473: the one surface behind the refine icon. Five sort orders here, not seven (ADR-5).
+ *
+ * The same menu the device browser opens, fed from this screen's own ViewModel - the two surfaces
+ * drifted apart once already over the filter rule, and sharing the surface is what stops a third
+ * copy of it appearing.
+ */
 @Composable
-private fun PhoneRefineDialogsHost(
+private fun PhoneRefineMenuHost(
     refine: BrowseRefineState,
-    viewModel: PhoneResourceViewModel,
-    viewMode: WearViewMode
+    viewModel: PhoneResourceViewModel
 ) {
-    // Remembered here rather than by the screen, for the reason the browse screen gives: it answers
-    // this dialog alone.
-    val onLaunchInput = rememberPhoneSearchInput(viewModel)
-    if (refine.showSearchDialog) {
-        WearSearchDialog(
-            title = stringResource(R.string.wear_browse_search),
-            inputLabel = stringResource(R.string.wear_browse_search_hint),
-            clearLabel = stringResource(R.string.wear_browse_clear_search),
-            currentQuery = refine.searchQuery,
-            onLaunchInput = onLaunchInput,
-            onClear = {
-                viewModel.setSearchQuery("")
-                viewModel.setShowSearchDialog(false)
-            },
-            onDismiss = { viewModel.setShowSearchDialog(false) }
-        )
-    }
-
-    if (refine.showSortDialog) {
-        WearChoiceDialog(
-            title = stringResource(R.string.wear_browse_sort),
-            options = viewModel.availableSortOrders(),
-            selected = refine.sortOrder,
-            labelOf = { stringResource(labelForSortOrder(it)) },
-            onSelected = viewModel::setSortOrder,
-            onDismiss = { viewModel.setShowSortDialog(false) },
-            viewMode = viewMode
-        )
-    }
-
-    if (refine.showFilterDialog) {
-        val allTypes = stringResource(R.string.wear_browse_filter_type_all)
-        WearChoiceDialog(
-            title = stringResource(R.string.wear_browse_filter),
-            // A null option is the "all types" row that clears the set, so the generic dialog never
-            // has to learn what "everything" means for this list.
-            options = listOf(null) + viewModel.presentContentTypes(),
-            selected = refine.contentTypes.singleOrNull(),
-            labelOf = { type ->
-                if (type == null) allTypes else stringResource(labelForContentType(type))
-            },
-            onSelected = { type ->
+    if (!refine.showRefineMenu) return
+    WearRefineMenuScreen(
+        state = WearRefineMenuState(
+            sortOptions = viewModel.availableSortOrders(),
+            sortSelected = refine.sortOrder,
+            filterOptions = viewModel.presentContentTypes(),
+            filterSelected = refine.contentTypes.singleOrNull(),
+            searchQuery = refine.searchQuery
+        ),
+        actions = WearRefineMenuActions(
+            onSortSelected = viewModel::setSortOrder,
+            onFilterSelected = { type ->
                 viewModel.setContentTypes(if (type == null) emptySet() else setOf(type))
             },
-            onDismiss = { viewModel.setShowFilterDialog(false) },
-            viewMode = viewMode
+            onClearSearch = { viewModel.setSearchQuery("") },
+            onDismiss = { viewModel.setShowRefineMenu(false) }
         )
-    }
+    )
 }
 
 /**
@@ -602,11 +593,9 @@ private fun PhoneResourceList(
                 canProduceThumbnails = columns != SINGLE_COLUMN
             )
         }
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
+            state = listState
         ) {
             item {
                 val titleText = when (presentation.title) {
@@ -792,10 +781,14 @@ private fun EntryIcon(
 }
 
 @Composable
-private fun CenteredMessage(text: String, showProgress: Boolean) {
-    ScalingLazyColumn(
+private fun CenteredMessage(
+    text: String,
+    showProgress: Boolean,
+    state: ScalingLazyListState = rememberWearListState()
+) {
+    WearListColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = wearScreenInsets()
+        state = state
     ) {
         if (showProgress) {
             item { CircularProgressIndicator(modifier = Modifier.padding(vertical = 8.dp)) }

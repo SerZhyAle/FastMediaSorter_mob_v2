@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -7,15 +9,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.material.LocalTextStyle
 import androidx.wear.compose.material.Text
 
 private const val CEILING_SP = 16f
 private const val FLOOR_SP = 11f
 private const val STEP_SP = 1f
+
+/**
+ * Half of this lands inside the glyph, so it is the largest width that still leaves the counter of an
+ * "e" open at [WearCaptionScale.Floor] - the size the caption reaches before it truncates.
+ */
+private val OUTLINE_WIDTH = 1.dp
 
 /**
  * The size rules every watch list row and cell caption obeys.
@@ -69,8 +84,13 @@ object WearCaptionScale {
  *
  * @param color overrides that inherited colour. The default [Color.Unspecified] is Compose's own
  * "keep whatever the ambient style says", so a caller that does not ask is unaffected. A caption
- * drawn over a plate has to state its colour, because the slot it inherits from knows nothing about
- * the plate now behind it (S2177).
+ * drawn over a picture has to state its colour, because the slot it inherits from knows nothing about
+ * what is now behind it (S2177).
+ * @param outlineColor turns on a second, lower drawing pass that strokes the same glyphs, so the
+ * caption reads over an arbitrary picture without anything being drawn behind it (S2467). Both passes
+ * take their size from the one [WearCaptionScale] state below, which is the whole reason this lives
+ * here and not in the calling cell: two separate calls would each shrink on their own measurement and
+ * the outline would slide off the fill on the first long file name.
  */
 @Composable
 fun WearCaptionText(
@@ -78,21 +98,58 @@ fun WearCaptionText(
     modifier: Modifier = Modifier,
     maxLines: Int = 1,
     textAlign: TextAlign? = null,
-    color: Color = Color.Unspecified
+    color: Color = Color.Unspecified,
+    outlineColor: Color = Color.Unspecified
 ) {
     var size by remember(text, maxLines) { mutableStateOf(WearCaptionScale.Ceiling) }
-    Text(
-        text = text,
-        color = color,
-        fontSize = size,
-        maxLines = maxLines,
-        overflow = TextOverflow.Ellipsis,
-        textAlign = textAlign,
-        modifier = modifier,
-        onTextLayout = { result ->
-            if (result.hasVisualOverflow) {
-                WearCaptionScale.nextSmaller(size)?.let { smaller -> size = smaller }
-            }
+    val shrinkOnOverflow: (TextLayoutResult) -> Unit = { result ->
+        if (result.hasVisualOverflow) {
+            WearCaptionScale.nextSmaller(size)?.let { smaller -> size = smaller }
         }
+    }
+    if (outlineColor == Color.Unspecified) {
+        Text(
+            text = text,
+            color = color,
+            fontSize = size,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = textAlign,
+            modifier = modifier,
+            onTextLayout = shrinkOnOverflow
+        )
+        return
+    }
+    val outlineStyle = LocalTextStyle.current.copy(
+        drawStyle = Stroke(
+            width = with(LocalDensity.current) { OUTLINE_WIDTH.toPx() },
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round
+        )
     )
+    Box(modifier = modifier) {
+        // The stroke pass reports no layout on purpose. Both passes read the same `size`, so letting
+        // each report an overflow would step the scale twice per frame and the caption would jump two
+        // sizes down at once instead of one.
+        Text(
+            text = text,
+            color = outlineColor,
+            fontSize = size,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = textAlign,
+            modifier = Modifier.fillMaxWidth(),
+            style = outlineStyle
+        )
+        Text(
+            text = text,
+            color = color,
+            fontSize = size,
+            maxLines = maxLines,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = textAlign,
+            modifier = Modifier.fillMaxWidth(),
+            onTextLayout = shrinkOnOverflow
+        )
+    }
 }

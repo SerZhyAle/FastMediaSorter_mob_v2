@@ -14,13 +14,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.Button
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Card
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -29,9 +27,10 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val ROW_SPACING = 4.dp
@@ -49,7 +48,7 @@ fun NetworkMonitorSummaryScreen(
     viewModel: NetworkMonitorViewModel,
     onNavigateToSection: (String) -> Unit,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = state.snapshot
@@ -59,12 +58,10 @@ fun NetworkMonitorSummaryScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
-            scalingParams = WearGridScalingParams
+            verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
         ) {
             item {
                 Text(
@@ -126,30 +123,17 @@ private fun SummaryHeaderCard(
                 textAlign = TextAlign.Center
             )
 
-            SummaryAddressLine(
+            WearInformationRow(
                 labelRes = R.string.wear_netmon_field_local_ip,
-                value = snapshot?.localIp,
-                color = MaterialTheme.colors.onSurface
+                value = snapshot?.localIp ?: stringResource(R.string.wear_netmon_unavailable)
             )
 
-            SummaryAddressLine(
+            WearInformationRow(
                 labelRes = R.string.wear_netmon_field_external_ip,
-                value = externalIp,
-                color = MaterialTheme.colors.onSurfaceVariant
+                value = externalIp ?: stringResource(R.string.wear_netmon_unavailable)
             )
         }
     }
-}
-
-@Composable
-private fun SummaryAddressLine(labelRes: Int, value: String?, color: androidx.compose.ui.graphics.Color) {
-    Text(
-        text = stringResource(labelRes) + ": " +
-            (value ?: stringResource(R.string.wear_netmon_unavailable)),
-        style = MaterialTheme.typography.caption2,
-        color = color,
-        textAlign = TextAlign.Center
-    )
 }
 
 @Composable
@@ -159,28 +143,10 @@ private fun SectionButton(
     onClick: () -> Unit
 ) {
     val factText = fact.render()
-    Chip(
+    Button(
         onClick = onClick,
-        colors = ChipDefaults.secondaryChipColors(),
-        label = {
-            Text(
-                text = stringResource(section.titleRes()),
-                style = MaterialTheme.typography.body2,
-                maxLines = 1
-            )
-        },
-        secondaryLabel = factText?.let { text ->
-            {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.caption3,
-                    color = MaterialTheme.colors.onSurfaceVariant,
-                    maxLines = 1
-                )
-            }
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
+        colors = ButtonDefaults.secondaryButtonColors()
+    ) { Text(text = listOfNotNull(stringResource(section.titleRes()), factText).joinToString(": ")) }
 }
 
 /** Where a named fact becomes words. Null means the button carries its name alone. */

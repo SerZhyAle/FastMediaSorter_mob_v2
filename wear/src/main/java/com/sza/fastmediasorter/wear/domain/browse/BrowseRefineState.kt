@@ -36,9 +36,14 @@ data class BrowseRefineState(
      */
     val contentTypes: Set<WearContentType> = emptySet(),
     val sortOrder: BrowseSortOrder = BrowseSortOrder.DEFAULT,
-    val showSearchDialog: Boolean = false,
-    val showFilterDialog: Boolean = false,
-    val showSortDialog: Boolean = false,
+
+    /**
+     * S2473: whether the refine menu is open over the list.
+     *
+     * One flag where there were three, because there is now one surface: sort and filter share it,
+     * and search no longer has a surface at all - its icon starts the watch's text input directly.
+     */
+    val showRefineMenu: Boolean = false,
 
     /**
      * No activity answered the request for text or speech input. The screen has to say so, because

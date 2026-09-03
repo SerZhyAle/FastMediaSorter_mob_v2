@@ -77,17 +77,24 @@ The watch app layout is declared and verified against three watch screen shape p
 - **DI**:
   - ✅ `WearAppModule` - Hilt module for repositories and ExoPlayer
 
-#### Search, filter and sort inside a resource (S2136)
+#### Search, filter and sort inside a resource (S2136, reshaped by S2473)
 
-Every screen that lists the contents of a resource carries a row of three icons above the list: search,
-filter by content type, and sort. All four content routes have it - local category, phone category,
-network source (`BrowseScreen`) and the phone's own folder listing (`PhoneResourceScreen`).
+Every screen that lists the contents of a resource carries two small outlined icons above the list:
+search, and refine. All four content routes have it - local category, phone category, network source
+(`BrowseScreen`) and the phone's own folder listing (`PhoneResourceScreen`). The icons are drawn without
+a plate so the list stays readable under them, and they fade out while the list is being scrolled,
+returning on their own when it stops.
 
-- **Search** matches a substring of the file name, ignoring case. The text arrives from the watch's own
-  input path, so the keyboard and the microphone both work; a watch that offers neither says so under the
-  icons rather than silently returning everything.
-- **Filter** narrows by content type, and the icon appears only when the loaded list actually holds more
-  than one type - a category screen already lists one kind, so the button would have nothing to offer.
+- **Search** matches a substring of the file name, ignoring case. Tapping it goes straight to the watch's
+  own input path, so the keyboard and the microphone both work; a watch that offers neither says so under
+  the icons rather than silently returning everything. An active query is cleared from the refine menu,
+  which is also where it is shown back.
+- **Refine** opens one full-screen menu carrying both the sort orders and the content-type filter, each
+  as a one-column list with the whole label visible. It never borrows the file list's own view mode, so a
+  wearer browsing in tiles still gets a readable menu.
+- **Filter** narrows by content type, and its group appears only when the loaded list actually holds more
+  than one type - a category screen already lists one kind. Where there is nothing to filter by, the menu
+  says so in a sentence instead of dropping the group without explanation.
 - **Sort** offers only the orders whose key the item carries. `BrowseScreen` shows seven - the source's
   own order, plus name, date and size in both directions. The phone-folder route shows five: the wire
   protocol between the phone and the watch carries no date, so the two date orders would be choices with
@@ -100,9 +107,9 @@ network source (`BrowseScreen`) and the phone's own folder listing (`PhoneResour
   that holds nothing - and the icon row stays on screen in that state, because clearing the query is what
   the user needs next.
 
-The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDialog`, `WearChoiceDialog`,
-`WearSearchInputLauncher`, `WearRefineLabels`); the narrowing itself is a pure function in
-`domain/browse/BrowseListProjection`, covered by unit tests.
+The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearRefineMenuScreen`,
+`WearChoiceDialog`, `WearOverlayVisibility`, `WearSearchInputLauncher`, `WearRefineLabels`); the
+narrowing itself is a pure function in `domain/browse/BrowseListProjection`, covered by unit tests.
 
 ### 4. Player Screens (Phase 0 ✅)
 

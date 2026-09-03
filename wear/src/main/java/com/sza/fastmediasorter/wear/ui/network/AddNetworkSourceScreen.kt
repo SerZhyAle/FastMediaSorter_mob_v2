@@ -27,8 +27,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -36,8 +34,9 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.AddNetworkSourceUiState
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.AddNetworkSourceViewModel
 import timber.log.Timber
@@ -63,7 +62,7 @@ fun AddNetworkSourceScreen(
     var editingField by remember { mutableStateOf<AddField?>(null) }
     var editingValue by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     Timber.d("AddNetworkSourceScreen composing for protocol ${uiState.protocol}")
 
@@ -90,12 +89,9 @@ fun AddNetworkSourceScreen(
             scrollState = listState,
             positionIndicator = { PositionIndicator(listState) }
         ) {
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                horizontalAlignment = Alignment.CenterHorizontally,
-                contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                state = listState
             ) {
                 item {
                     Text(

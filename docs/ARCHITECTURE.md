@@ -555,3 +555,10 @@ The watch module has exactly one component for each of these two jobs. Both live
 
 - **`WearStateBlock`** - the empty, unavailable and error states of any browsing screen, carrying up to two chips: a retry where retrying changes something, and a back that is always there. A screen decides which case it is in and whether retry is meaningful; it does not decide how the case looks.
 - **`WearFileActionsDialog`** - the long-press menu over one file, on every surface where a file is visible. It renders the set of `WearFileOperationKind` it is handed and holds no list of its own, because the single answer to "what may this file be asked to do" is `WearFileCapabilityPolicy` (strategic ADR-4 of S2004). The multi-select menu in `ui/browse/FileActionsDialog.kt` is a different question - actions over a selection - and deliberately offers a narrower set.
+
+## Wear List Top-Edge Placement (S2466)
+
+Every list-like surface in the watch module uses `WearListColumn` and `rememberWearListState()` from `wear.ui.common`. Direct calls to `ScalingLazyColumn` or `rememberScalingLazyListState` in `wear/src/main` are banned by the `wear-list-start` gate (`scripts/quality/lib/source-matchers.ps1`).
+
+- **Scrollable lists, menus, and dialogs (Class A & B, default `centered = false`)**: Content starts flush at the top edge (`initialCenterItemIndex = 0`, `autoCentering = null`) with standard `wearListDefaultContentPadding()`. This eliminates the 133–161 px blank top gap caused by Wear Compose auto-centering on round screens.
+- **Fixed control panels (Class C, `centered = true`)**: `AudioPlayerScreen`, `VoiceRecorderScreen`, `AboutSettingsScreen`, `SyncResultScreen`, `PermissionsScreen`, and `GameRulesScreen` use auto-centering to keep controls balanced vertically on the round display while scrolling when taller than the viewport.

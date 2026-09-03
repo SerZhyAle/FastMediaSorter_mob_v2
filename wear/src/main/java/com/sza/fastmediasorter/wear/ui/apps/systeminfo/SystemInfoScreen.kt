@@ -1,9 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -15,53 +13,37 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CompactChip
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
+
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoField
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoValue
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.util.GridColumnFit
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val SECTION_TOP_PADDING = 10.dp
-private val ROW_HORIZONTAL_PADDING = 12.dp
-private val ROW_NARROW_HORIZONTAL_PADDING = 2.dp
 private val ROW_VERTICAL_PADDING = 2.dp
-
-/**
- * Longest **value** that still reads in half a watch screen.
- *
- * The value decides and the label does not, because they fail differently: a label is fixed
- * vocabulary the author can see, and one that wraps to two lines is still read, while a value is
- * whatever the device answered - a model string or a build number - and one broken across lines
- * reads as two values. Measured on a 150 dp watch: at two columns a cell is about 70 dp, which holds
- * roughly fourteen `caption2` characters.
- *
- * The first attempt compared the longer of label and value against 12 and made almost every field
- * full-width, so the two-column layout never engaged at all on a real screen (device pass 2026-08-26,
- * where "Model", "Wear OS version" and "API level" each took a row of their own).
- */
-private const val NARROW_VALUE_CHARS = 14
 
 /**
  * What the watch can say about itself, in the same shape the phone's report uses: a section title, then
@@ -74,7 +56,7 @@ private const val NARROW_VALUE_CHARS = 14
 @Composable
 fun SystemInfoScreen(
     viewModel: SystemInfoViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // Hoisted out of the row rather than remembered inside it: a ScalingLazyColumn recycles the
@@ -87,16 +69,11 @@ fun SystemInfoScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val columns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
-            val rows = packSettingsRows(reportItems(uiState.sections, expanded), columns)
-            ScalingLazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                verticalArrangement = Arrangement.spacedBy(2.dp),
-                scalingParams = WearGridScalingParams
-            ) {
+        WearListColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
                 item {
                     Text(
                         text = stringResource(R.string.system_info_title),
@@ -121,11 +98,13 @@ fun SystemInfoScreen(
                         RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
                     }
                 }
-                items(rows) { row -> WearSettingsRow(row) }
+                items(packSettingsRows(reportItems(uiState.sections, expanded), 1)) { row ->
+                    WearSettingsRow(row)
+                }
             }
         }
     }
-}
+
 
 /**
  * A button rather than a pull-to-refresh gesture: wear-compose is pinned at 1.2.1 here, which ships no
@@ -136,17 +115,16 @@ private fun RefreshChip(enabled: Boolean, onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
         enabled = enabled,
-        label = {
-            Text(
-                text = stringResource(R.string.system_info_refresh),
-                style = MaterialTheme.typography.caption2,
-                modifier = Modifier.fillMaxWidth(),
-                textAlign = TextAlign.Center
+        label = { Text(stringResource(R.string.system_info_refresh)) },
+        icon = {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
             )
         },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(bottom = TITLE_BOTTOM_PADDING)
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.secondaryChipColors()
     )
 }
 
@@ -156,7 +134,6 @@ private fun RefreshChip(enabled: Boolean, onClick: () -> Unit) {
  * `packSettingsRows` flushes its current run at every full-width item, so marking each title
  * full-width groups the fields under it without the packer learning what a section is (S2008).
  */
-@Composable
 private fun reportItems(
     sections: List<WearSystemInfoSection>,
     expanded: MutableMap<Int, Boolean>
@@ -170,7 +147,7 @@ private fun reportItems(
         section.fields.forEach { field ->
             val enumerated = field.value as? WearSystemInfoValue.Enumerated
             if (enumerated == null) {
-                add(WearSettingsItem(fullWidth = isWide(field)) { narrow -> SystemInfoRow(field, narrow) })
+                add(WearSettingsItem(fullWidth = true) { SystemInfoRow(field) })
             } else {
                 add(
                     WearSettingsItem(fullWidth = true) {
@@ -200,33 +177,15 @@ private fun EnumeratedRow(
     open: Boolean,
     onToggle: () -> Unit
 ) {
-    val label = stringResource(labelRes)
     val hint = stringResource(
         if (open) R.string.system_info_collapse_hint else R.string.system_info_expand_hint
     )
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onToggle)
-            .padding(horizontal = ROW_HORIZONTAL_PADDING, vertical = ROW_VERTICAL_PADDING)
-            // One description for the whole control, on the same reasoning as the plain pair below: a
-            // reader that announced the count apart from its name would read out a number that no
-            // longer says what it counts.
-            .semantics(mergeDescendants = true) {
-                contentDescription = "$label: ${entries.size}. $hint"
-            }
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.caption2,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = entries.size.toString(),
-            style = MaterialTheme.typography.body2,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
+    Column(modifier = Modifier.fillMaxWidth()) {
+        WearInformationRow(
+            labelRes = labelRes,
+            value = entries.size.toString(),
+            onClick = onToggle,
+            accessibilitySuffix = hint
         )
         if (open) {
             entries.forEach { entry ->
@@ -255,21 +214,10 @@ private fun SectionEmptyReason(@StringRes reasonRes: Int) {
         color = MaterialTheme.colors.onSurfaceVariant,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = ROW_HORIZONTAL_PADDING, vertical = ROW_VERTICAL_PADDING),
+            .padding(vertical = ROW_VERTICAL_PADDING),
         textAlign = TextAlign.Center
     )
 }
-
-/**
- * Whether a field needs a row to itself, decided from the value it actually resolved to.
- *
- * S1949 fixed this per control at authoring time, against the longest label across the locales, which
- * is right for a control whose label is the only text it holds. Half of a row here is read off the
- * device - a model number, an OS string, a byte count - so no author can measure it, and reading the
- * resolved value keeps the rule correct in every locale without a thirteen-file audit.
- */
-@Composable
-private fun isWide(field: WearSystemInfoField): Boolean = valueOf(field).length > NARROW_VALUE_CHARS
 
 @Composable
 private fun SectionTitle(titleRes: Int) {
@@ -293,43 +241,6 @@ private fun valueOf(field: WearSystemInfoField): String = when (val fieldValue =
     is WearSystemInfoValue.Enumerated -> fieldValue.entries.size.toString()
 }
 
-/**
- * @param narrow true when the pair is sharing its row. It is drawn a type step down and with almost no
- * horizontal padding, because at two columns the cell is about 70 dp and the full-width padding of
- * 12 dp a side would spend a third of it on margin.
- */
 @Composable
-private fun SystemInfoRow(field: WearSystemInfoField, narrow: Boolean = false) {
-    val label = stringResource(field.labelRes)
-    val value = valueOf(field)
-    val sidePadding = if (narrow) ROW_NARROW_HORIZONTAL_PADDING else ROW_HORIZONTAL_PADDING
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = sidePadding, vertical = ROW_VERTICAL_PADDING)
-            // One description for the pair: announced as two separate stops, the user has to hold the
-            // label in mind while the reader moves on to a number that no longer names itself.
-            .semantics(mergeDescendants = true) { contentDescription = "$label: $value" }
-    ) {
-        Text(
-            text = label,
-            style = if (narrow) {
-                MaterialTheme.typography.caption3
-            } else {
-                MaterialTheme.typography.caption2
-            },
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-        Text(
-            text = value,
-            style = if (narrow) {
-                MaterialTheme.typography.caption2
-            } else {
-                MaterialTheme.typography.body2
-            },
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
-    }
-}
+private fun SystemInfoRow(field: WearSystemInfoField) =
+    WearInformationRow(labelRes = field.labelRes, value = valueOf(field))

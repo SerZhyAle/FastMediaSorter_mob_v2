@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
@@ -87,6 +88,7 @@ private val PROGRESS_BAR_SPACING = 4.dp
 private const val PROGRESS_BAR_CORNER_PERCENT = 50
 
 private data class VideoPlayerActions(
+    val onBack: () -> Unit,
     val onScreenTap: () -> Unit,
     val onPlayPause: () -> Unit,
     val onSkipNext: () -> Unit,
@@ -105,7 +107,8 @@ private data class VideoPlayerActions(
  */
 @Composable
 fun VideoPlayerScreen(
-    viewModel: VideoPlayerViewModel = hiltViewModel()
+    viewModel: VideoPlayerViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
@@ -134,6 +137,7 @@ fun VideoPlayerScreen(
                     uiState = uiState,
                     player = viewModel.getPlayer(),
                     actions = VideoPlayerActions(
+                        onBack = onBack,
                         onScreenTap = viewModel::onScreenTap,
                         onPlayPause = viewModel::togglePlayPause,
                         onSkipNext = viewModel::skipToNext,
@@ -494,10 +498,24 @@ private fun VideoControls(
 
         Spacer(modifier = Modifier.height(SECONDARY_ROW_SPACING))
 
-        FavoriteButton(
-            isFavorite = uiState.isFavorite,
-            onToggleFavorite = actions.onToggleFavorite
-        )
+        // S2472: back joins the favorite mark on the panel's secondary row - a child of this column,
+        // so the panel's own show/hide carries it and no visibility rule of its own exists. The
+        // transport row above stays five commands wide, which a round screen cannot widen.
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(SECONDARY_ROW_SPACING),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            PlayerCommandButton(
+                onClick = actions.onBack,
+                icon = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.wear_navigate_back)
+            )
+
+            FavoriteButton(
+                isFavorite = uiState.isFavorite,
+                onToggleFavorite = actions.onToggleFavorite
+            )
+        }
 
         if (uiState.hasSet) {
             Spacer(modifier = Modifier.height(2.dp))

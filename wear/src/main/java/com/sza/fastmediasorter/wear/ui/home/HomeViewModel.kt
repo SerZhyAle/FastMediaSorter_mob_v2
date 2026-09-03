@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveLastUsedResourceUseCase
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -30,8 +31,25 @@ private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
-    private val resolveLastUsedResource: ResolveLastUsedResourceUseCase
+    private val resolveLastUsedResource: ResolveLastUsedResourceUseCase,
+    nowPlayingRepository: WearNowPlayingRepository
 ) : ViewModel() {
+
+    /**
+     * S2472: whether sound is alive right now, for the home affordance's cross/chevron choice.
+     *
+     * False until the store answers on purpose: a chevron drawn on a guess would promise the user
+     * their playback survived when it may not have. The flag this reads is the one the playback
+     * service itself keeps truthful across the hand-off (it clears the flag in its own teardown),
+     * so composition never has to poll anything.
+     */
+    val isBackgroundPlaybackActive: StateFlow<Boolean> = nowPlayingRepository.nowPlaying
+        .map { it.isPlaying }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),
+            initialValue = false
+        )
 
     val uiState: StateFlow<HomeUiState> = combine(
         resolveLastUsedResource(),

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
@@ -77,7 +78,8 @@ private const val DISMISS_BAND_FRACTION = 0.36f
  */
 @Composable
 fun ImageViewerScreen(
-    viewModel: ImageViewerViewModel = hiltViewModel()
+    viewModel: ImageViewerViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
@@ -100,6 +102,7 @@ fun ImageViewerScreen(
                     uiState = uiState,
                     isFavorite = isFavorite,
                     actions = ImageViewerActions(
+                        onBack = onBack,
                         onSwipeLeft = viewModel::navigateToNext,
                         onSwipeRight = viewModel::navigateToPrevious,
                         onToggleSlideshow = viewModel::toggleSlideshow,
@@ -116,6 +119,7 @@ fun ImageViewerScreen(
 
 /** The image viewer's callbacks, bundled the way the audio and video players already bundle theirs. */
 private data class ImageViewerActions(
+    val onBack: () -> Unit,
     val onSwipeLeft: () -> Unit,
     val onSwipeRight: () -> Unit,
     val onToggleSlideshow: () -> Unit,
@@ -199,10 +203,7 @@ private fun ImageViewerContent(
             ImageBottomPanel(
                 uiState = uiState,
                 isFavorite = isFavorite,
-                onToggleFavorite = actions.onToggleFavorite,
-                onToggleSlideshow = actions.onToggleSlideshow,
-                onToggleShuffle = actions.onToggleShuffle,
-                onToggleScaleMode = actions.onToggleScaleMode,
+                actions = actions,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
         }
@@ -214,15 +215,14 @@ private fun ImageViewerContent(
  *
  * Extracted from the content composable in S2006 - once the panel became conditional the caller
  * crossed detekt's LongMethod ceiling, and a panel that can be hidden is its own thing anyway.
+ * Takes the actions bundle rather than one callback per command, which S2472's back command pushed
+ * past detekt's parameter ceiling - the bundle is the reason the bundle exists.
  */
 @Composable
 private fun ImageBottomPanel(
     uiState: ImageViewerUiState,
     isFavorite: Boolean,
-    onToggleFavorite: () -> Unit,
-    onToggleSlideshow: () -> Unit,
-    onToggleShuffle: () -> Unit,
-    onToggleScaleMode: () -> Unit,
+    actions: ImageViewerActions,
     modifier: Modifier = Modifier
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
@@ -283,13 +283,14 @@ private fun ImageBottomPanel(
 
         ImageCommandRow(
             uiState = uiState,
-            onToggleSlideshow = onToggleSlideshow,
-            onToggleShuffle = onToggleShuffle,
-            onToggleScaleMode = onToggleScaleMode
+            onBack = actions.onBack,
+            onToggleSlideshow = actions.onToggleSlideshow,
+            onToggleShuffle = actions.onToggleShuffle,
+            onToggleScaleMode = actions.onToggleScaleMode
         )
 
         PlayerCommandButton(
-            onClick = onToggleFavorite,
+            onClick = actions.onToggleFavorite,
             icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = favoriteDesc,
             modifier = Modifier.padding(top = FAVORITE_ROW_TOP_PADDING),
@@ -298,10 +299,11 @@ private fun ImageBottomPanel(
     }
 }
 
-/** The image viewer's own command row: slideshow, traversal order and fit, in that order. */
+/** The image viewer's own command row: back, slideshow, traversal order and fit, in that order. */
 @Composable
 private fun ImageCommandRow(
     uiState: ImageViewerUiState,
+    onBack: () -> Unit,
     onToggleSlideshow: () -> Unit,
     onToggleShuffle: () -> Unit,
     onToggleScaleMode: () -> Unit
@@ -323,6 +325,14 @@ private fun ImageCommandRow(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        // S2472: the row lives inside the panel, which this screen shows only while controls are
+        // shown - so the back command hides with them without a visibility rule of its own.
+        PlayerCommandButton(
+            onClick = onBack,
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.wear_navigate_back)
+        )
+
         PlayerCommandButton(
             onClick = onToggleSlideshow,
             icon = if (uiState.isSlideshowActive) Icons.Filled.Pause else Icons.Filled.PlayArrow,

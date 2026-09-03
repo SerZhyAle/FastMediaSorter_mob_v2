@@ -22,10 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -38,9 +36,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -55,7 +53,7 @@ fun AppsScreen(
     viewModel: AppsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -66,11 +64,9 @@ fun AppsScreen(
         // the home screen never disagree about how many columns fit the same display.
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item {
                     Text(
@@ -187,16 +183,19 @@ private fun AppCell(
  * Icons stay here rather than on the program record, matching the home screen's own reason: the
  * domain layer carries no drawing concern.
  *
- * The network monitor reuses the Wi-Fi glyph the home screen already gives to Resources, because on a
- * watch both mean the same thing to look at - the radio - and inventing a second one would tell the
- * user they are different. System information takes the watch glyph for the same reason: a report
- * about this watch is what that glyph already means, and the module ships no information drawable.
+ * S2474: every sub-app on the watch reuses the exact same icon as its counterpart in the phone app
+ * (InternalRouteCatalog in app_v2), ensuring visual recognition across both form factors.
  */
 @DrawableRes
-private fun iconFor(id: WearAppId): Int = when (id) {
-    WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
-    WearAppId.NETWORK_MONITOR -> R.drawable.ic_wifi
-    WearAppId.GAME -> R.drawable.ic_app_game
-    WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
-    WearAppId.SYSTEM_INFO -> R.drawable.ic_watch
+private fun iconFor(id: WearAppId): Int {
+    timber.log.Timber.d("S2474: AppsScreen.iconFor id=%s", id)
+    return when (id) {
+        WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
+        WearAppId.NETWORK_MONITOR -> R.drawable.ic_network_monitor
+        WearAppId.GAME -> R.drawable.ic_app_game
+        WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
+        WearAppId.SYSTEM_INFO -> R.drawable.ic_info
+    }
 }
+
+

@@ -286,6 +286,11 @@ docs/SETTINGS_REFERENCE_noLegal.md
 # Agent continuity layer artifacts (S0268)
 dev/agent-continuity/
 
+# Device fleet roster carries real serials, model numbers and which watch pairs with which
+# personal phone - not for the public repo. The path stays real and referenced from every rule
+# and skill (CLAUDE.md Rule 35); only its tracking in git is withheld.
+docs/DEVICE_FLEET.md
+
 # Secrets and signing material - pre-empt the leak, never catch it afterwards.
 *.pfx
 *.snk

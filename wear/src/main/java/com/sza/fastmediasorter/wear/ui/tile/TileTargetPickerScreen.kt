@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.tile
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,10 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -27,8 +26,9 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import kotlinx.coroutines.flow.collectLatest
 
 /**
@@ -40,7 +40,7 @@ fun TileTargetPickerScreen(
     viewModel: TileTargetPickerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     LaunchedEffect(Unit) {
         viewModel.doneEvent.collectLatest {
@@ -49,7 +49,7 @@ fun TileTargetPickerScreen(
     }
 
     WearScreenScaffold(
-        contentPadding = wearScreenInsets(),
+        contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
@@ -69,10 +69,9 @@ private fun PickerListContent(
     onSelectResource: (NetworkSource) -> Unit,
     onSelectStream: (WearStreamChannel) -> Unit
 ) {
-    ScalingLazyColumn(
+    WearListColumn(
         modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
+        state = listState
     ) {
         item {
             PickerHeader(kind = uiState.kind)

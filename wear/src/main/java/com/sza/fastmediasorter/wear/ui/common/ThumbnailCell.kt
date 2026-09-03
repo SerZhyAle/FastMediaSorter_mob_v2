@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -33,12 +32,10 @@ private const val SQUARE_RATIO = 1f
 private val CELL_MIN_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val FALLBACK_INSET = 8.dp
 
-private const val PLATE_ALPHA = 0.6f
-private const val PLATE_LINE_SPACING = 1.25f
-private const val PLATE_MAX_LINES = 4
-private val PLATE_INSET = 3.dp
-private val PLATE_MARGIN = 2.dp
-private val PlateColor = Color.Black.copy(alpha = PLATE_ALPHA)
+private const val CAPTION_LINE_SPACING = 1.25f
+private const val CAPTION_MAX_LINES = 4
+private val CAPTION_INSET = 3.dp
+private val CAPTION_MARGIN = 2.dp
 
 /**
  * How a cell places its caption.
@@ -114,7 +111,7 @@ fun ThumbnailCell(
         if (captionOverIcon) {
             BoxWithConstraints(modifier = square, contentAlignment = Alignment.Center) {
                 CellPicture(thumbnail = thumbnail, fallback = fallback)
-                CaptionPlate(caption = caption, maxLines = linesFitting(maxHeight))
+                CaptionOverlay(caption = caption, maxLines = linesFitting(maxHeight))
             }
         } else {
             Box(modifier = square, contentAlignment = Alignment.Center) {
@@ -137,38 +134,40 @@ fun ThumbnailCell(
  *
  * Measured at [WearCaptionScale.Floor] rather than at the ceiling because the caption shrinks toward
  * that floor before it truncates, so the floor is the size at which the most lines are actually
- * reachable. The [PLATE_MAX_LINES] ceiling is not taste: a fifth line in the densest three-column
+ * reachable. The [CAPTION_MAX_LINES] ceiling is not taste: a fifth line in the densest three-column
  * cell needs a size below that floor, and below it a caption on round glass reads worse than a
  * truncated one - the finding S2129 already paid for.
  */
 @Composable
 private fun linesFitting(available: Dp): Int {
     val lineHeight = with(LocalDensity.current) {
-        (WearCaptionScale.Floor.value * PLATE_LINE_SPACING).sp.toDp()
+        (WearCaptionScale.Floor.value * CAPTION_LINE_SPACING).sp.toDp()
     }
-    val usable = available - PLATE_INSET * 2
-    return (usable / lineHeight).toInt().coerceIn(1, PLATE_MAX_LINES)
+    val usable = available - CAPTION_INSET * 2
+    return (usable / lineHeight).toInt().coerceIn(1, CAPTION_MAX_LINES)
 }
 
 /**
- * The caption written on the glyph, on a plate that covers the text and nothing else.
+ * The caption written on the glyph itself, white with a black stroke and nothing drawn behind it.
  *
- * Full-bleed tinting would hide what the owner asked the icon to keep doing - the glyph still tells
- * one type from another by its colour and its edges, now read above and below the plate rather than
- * behind the text.
+ * A plate under the text used to carry the contrast, and it covered exactly the part of the glyph the
+ * caption ran across - on a long file name that is most of the cell, leaving the owner unable to tell
+ * one file type or source from another (S2467). The stroke buys the same readability out of the
+ * glyphs' own edges, so the picture under them stays whole. The padding is the caption's own breathing
+ * room against the cell edge and outlives the plate that once used it.
  */
 @Composable
-private fun CaptionPlate(caption: String, maxLines: Int) {
+private fun CaptionOverlay(caption: String, maxLines: Int) {
     WearCaptionText(
         text = caption,
         maxLines = maxLines,
         textAlign = TextAlign.Center,
         color = Color.White,
+        outlineColor = Color.Black,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = PLATE_MARGIN)
-            .background(PlateColor, WearCellShape)
-            .padding(PLATE_INSET)
+            .padding(horizontal = CAPTION_MARGIN)
+            .padding(CAPTION_INSET)
     )
 }
 

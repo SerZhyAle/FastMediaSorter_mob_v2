@@ -18,9 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -29,14 +27,15 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportRefusalReasons
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
 @Composable
 fun AboutSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
@@ -47,11 +46,10 @@ fun AboutSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            centered = true
         ) {
             item {
                 Text(

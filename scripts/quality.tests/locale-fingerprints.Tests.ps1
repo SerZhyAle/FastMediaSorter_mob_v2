@@ -80,9 +80,9 @@ Assert-Equal "Identity with a slot" 'app_v2|main|strings.xml|n_items|other' (Get
 Assert-Equal "Empty slot collapses to the short form" 'app_v2|vr|strings.xml|k' (Get-LocaleUnitId -Module app_v2 -Set vr -File strings.xml -Key k -Slot '')
 
 # -Module is mandatory so no caller can rebuild the pre-S1858 format by omitting it.
-$moduleOmitted = $false
-try { Get-LocaleUnitId -Set main -File strings.xml -Key app_name -ErrorAction Stop | Out-Null }
-catch { $moduleOmitted = $true }
+$pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
+$bindingErr = & $pwshExe -NoProfile -NonInteractive -Command ". '$repoRoot/scripts/quality/lib/locale-fingerprints.ps1'; Get-LocaleUnitId -Set main -File strings.xml -Key app_name" 2>&1
+$moduleOmitted = ($LASTEXITCODE -ne 0) -or ($bindingErr -match 'Missing an argument|ParameterBindingException|Cannot bind')
 Assert-Equal "Omitting -Module is a binding error" $true $moduleOmitted
 
 Write-Host "`n=== Test 4: schema version marker round trip (S1858) ===" -ForegroundColor Cyan

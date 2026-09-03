@@ -22,9 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
@@ -38,12 +36,12 @@ import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
@@ -69,7 +67,7 @@ fun LocalHomeScreen(
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
 
     val categories = BrowseCategoryCatalog.categoriesFor(
         WearCategoryOrigin.LOCAL,
@@ -104,11 +102,9 @@ fun LocalHomeScreen(
         // Same rule as the home screen: the mode is a request and the measured width is the answer.
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(settings.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item {
                     Text(
