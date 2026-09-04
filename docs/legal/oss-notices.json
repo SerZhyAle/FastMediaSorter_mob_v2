@@ -423,6 +423,31 @@
       "note": null
     },
     {
+      "coordinate": "androidx.concurrent:concurrent-futures-ktx",
+      "modules": [
+        "wear"
+      ],
+      "name": "AndroidX Concurrent Futures KTX",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "androidx.constraintlayout:constraintlayout",
       "modules": [
         "app_v2"
@@ -1030,7 +1055,8 @@
     {
       "coordinate": "androidx.media3:media3-session",
       "modules": [
-        "app_v2"
+        "app_v2",
+        "wear"
       ],
       "name": "AndroidX Media3 Session",
       "spdx": "Apache-2.0",
@@ -1385,6 +1411,31 @@
         "wear"
       ],
       "name": "AndroidX Wear Input",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
+      "coordinate": "androidx.wear:wear-remote-interactions",
+      "modules": [
+        "wear"
+      ],
+      "name": "AndroidX Wear Remote Interactions",
       "spdx": "Apache-2.0",
       "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
       "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
@@ -2475,6 +2526,29 @@
       "shippedIn": [
         "legacy",
         "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": false,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
+      "coordinate": "com.google.android.gms:play-services-auth-blockstore",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "Google Play services Auth Block Store",
+      "spdx": "Android Software Development Kit License",
+      "licenseUrl": "https://developer.android.com/studio/terms.html",
+      "sourceUrl": "https://developers.google.com/android/guides/setup",
+      "oss": false,
+      "shippedIn": [
+        "legacy",
         "noLegal",
         "photos",
         "standard",

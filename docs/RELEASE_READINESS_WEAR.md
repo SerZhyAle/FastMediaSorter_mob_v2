@@ -22,8 +22,10 @@ Owner policy, inherited from the phone standard and narrowed here:
 3. **The verdict names the artifact it judged** - file name, `versionName` and `versionCode` for the APK and the bundle alike. A report that does not name its artifact cannot be attached to a release.
 4. **The release build installs and starts on a watch**, by its own launcher component rather than by the phone's.
 5. **Every declared screen was reached and recognised.** The screen list is data, walked in a fixed order, each screen reached by label or resource-id and never by a remembered coordinate. Each screen is recognised by a token that belongs to it and not to the screen it was opened from.
-6. **The process log carries no crash, ANR or app error** for the watch process across the walk, judged from a buffer cleared immediately before launch.
-7. **Nothing is left unobserved.** A screen the run could not decide - a dump that failed, or a state-dependent screen absent on a clean install - blocks the pass until a human clears it.
+6. **The declared list still matches the application.** Every entry names the screen it opens and the string resource it expects; `scripts/quality/assert-wear-walk-contract.ps1` fails when that resource stops resolving, stops containing the expected token, or is referenced by no composable. Nothing else connects the list to the module, and a walk entry that has drifted reports a working screen as broken (S2547).
+7. **The walk states its own coverage.** Every screen in the module is either walked or listed with a recorded reason it is not, and the verdict prints both counts. The walk is not a complete tour of the application and never claimed to be; what it must not do is leave the size of the gap unstated, because `clip-check` - which decides WO-V16 - runs only on a screen the walk actually opened.
+8. **The process log carries no crash, ANR or app error** for the watch process across the walk, judged from a buffer cleared immediately before launch.
+9. **No DECLARED screen is left undecided.** A screen the run could not decide - a dump that failed, or a state-dependent screen absent on a clean install - blocks the pass until a human clears it. A screen excluded under criterion 7 is out of scope by decision and does not block; a screen the walk could not observe because the display was asleep is not a verdict at all, and the walk returns 2 rather than reporting screens it never saw.
 
 ## What this gate deliberately does not cover
 

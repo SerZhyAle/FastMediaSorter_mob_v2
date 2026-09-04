@@ -98,6 +98,7 @@ A value is read together with the caption that names it, so the two must stay ad
 - **The row's slack falls after the value, never between the pair.** Where a trailing element must stay pinned to the row's end, put the weighted spacer *after* the value - the shape `view_settings_selection_row.xml` already uses.
 - **Never `android:gravity="end"` on a value**, and in `ConstraintLayout` never pin a value to the parent's end without also constraining its start to the caption.
 - **A shared label column is sized by the longest caption in the group, never by the container width**, and drops itself when it does not fit - see `SettingsValueRowGroup`. Proximity outranks a straight column of glyphs: when the two conflict, proximity wins.
+- **Only a visible, participating child sizes that column** (S2389). A child that is `GONE` at measure time is skipped, so a row hidden until it has something to show cannot switch the block's alignment off from behind the scenes. A sub-row that belongs to the row above it rather than to the block opts out with `app:layout_excludeFromLabelColumn="true"`, a child attribute of the group. Opt a sub-row out whenever its caption or its value is unrelated in length to its neighbours': the gesture-target rows carry a long caption and a long placeholder value beside four-character direction captions, and counting them collapses the column for the whole block the moment the first target is assigned. The attribute is explicit and never inferred - the same sub-row is indented in the launcher dialog and flush in the gesture-config dialog, so any rule read off the margin would catch one and miss the other.
 
 Reference layouts: `view_settings_selection_row.xml`, `view_settings_toggle_row.xml`, `view_settings_dropdown_row.xml`.
 
@@ -304,6 +305,15 @@ Rules:
 - Read colours inside a Composable from `MaterialTheme.colorScheme`, never as a literal `Color(0xFF..)` - the literal is the Compose equivalent of the hardcoded layout hex Rule 19 already forbids.
 - A role the wrapper cannot resolve falls back to the Compose baseline for that role. When a new role starts mattering on screen, add the matching `?attr/` to the theme and the accent overlays rather than hardcoding it in the Composable.
 
+## Launcher Desktop Surface Colours (S2539)
+
+The launcher desktop (desktop shortcut cells, status strip, tray indicators, and embedded gadgets) uses dedicated theme attributes rather than generic `?attr/colorOnSurface` and `?attr/colorOnSurfaceVariant` so that labels and captions follow the active palette accent overlay (`ThemeOverlay.FastMediaSorter.DarkGreen`, `DarkBlue`, `DarkRed`, `LightGreen`, `LightBlue`, `LightRed`, as well as base day/night themes) while maintaining contrast over custom wallpapers:
+
+- `launcherDesktopText`: primary label and accent text on the launcher desktop (cell titles, clock, speed/altitude readings, gadget main values). Uses `@color/text_color_primary` in default theme and color-matched tinted variants in accent overlays.
+- `launcherDesktopTextSecondary`: secondary label text and captions on the launcher desktop (cell sub-labels, gadget subtitles, signal chip counters, status secondary items). Uses `@color/text_color_secondary` in default theme and softer tinted variants in accent overlays.
+
+Both attributes are paired with `OutlinedTextView` / `OutlinedTextClock` stroke outline (`@color/black` / `#CC000000`) so that tinted text remains legible across arbitrary light/dark wallpapers. Non-desktop launcher surfaces (modal dialogs, sheets, and drawer fragments with opaque card backgrounds) continue to use standard Material3 `?attr/colorOnSurface` tokens.
+
 ## Dialog Result Delivery (MANDATORY)
 
 A `DialogFragment` never holds its result callback in a field. `FragmentManager` rebuilds a restored dialog through the no-argument constructor, so any handler the caller assigned after construction is null on the rebuilt instance - the user confirms, nothing happens, and nothing is logged. The recreation does not need a rotation to happen: a theme change, a language change, a font-size change, "don't keep activities" and process death all trigger it, and most hosts here declare `configChanges` for orientation, so rotation is in fact the one trigger that does NOT reproduce it.
@@ -373,7 +383,7 @@ Dedicated screen for internet audio/video/RTSP sources. Architectural boundaries
 - **Data flow**: `StreamsViewModel` -> `ImportStreamCatalogUseCase` (with `StreamCatalogCsvParser`, `StreamMediaKindClassifier`, `FaviconAtlasStore`) -> `StreamSourceRepository` -> `StreamSourceDao` / `StreamSourceEntity` (Room). The catalog ships as a mutable GitHub Release asset (`delivery/stream-catalog/`), fetched over HTTP, parsed, and merged de-duplicated by URL.
 - **Play-outcome side channel (S1502, re-keyed by S1832)**: the green/red/amber row status is NOT part of the list state. It lives in its own table, and since S1832 that table is `stream_user_state`, keyed by the channel's derived identity rather than by the catalog row id, so the history survives a prune and a later re-import. `stream_play_outcome` was dropped in schema 53 after `MIGRATION_51_52` copied every outcome across. Reads go `StreamSourceDao.observePlayOutcomesByRowId()`, which joins identity back to the current row id so every consumer keeps the map-keyed-by-id contract it was written against, -> `StreamSourceRepository.observePlayOutcomes()` -> `ObserveStreamPlayOutcomesUseCase` -> a `StreamsViewModel.playOutcomes` StateFlow the Activity pushes into all four adapters, which repaint only the affected rows. Writes and the clear-all action go through `StreamUserStateDao`. The split exists because Room invalidates per table, not per column: while the outcome sat on the catalog row, every finished reachability probe re-emitted all ~20k rows and forced a full filter, sort and diff pass. The one-shot read for the channel-info window goes through `GetStreamPlayOutcomeUseCase` instead, since that surface renders once and observes nothing.
 - **Catalog import**: `ImportStreamCatalogUseCase` enforces a connect+read timeout; fails fast on dead/slow-trickle host instead of blocking indefinitely.
-- **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575).
+- **Flavor scope**: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos/foss - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575; foss carries no streaming stack because it ships no proprietary SDKs).
 - **Public cleartext**: `android:usesCleartextTraffic` allowed for internet radio (most streams are http://).
 
 ## Cast (Chromecast) Path
@@ -555,3 +565,10 @@ The watch module has exactly one component for each of these two jobs. Both live
 
 - **`WearStateBlock`** - the empty, unavailable and error states of any browsing screen, carrying up to two chips: a retry where retrying changes something, and a back that is always there. A screen decides which case it is in and whether retry is meaningful; it does not decide how the case looks.
 - **`WearFileActionsDialog`** - the long-press menu over one file, on every surface where a file is visible. It renders the set of `WearFileOperationKind` it is handed and holds no list of its own, because the single answer to "what may this file be asked to do" is `WearFileCapabilityPolicy` (strategic ADR-4 of S2004). The multi-select menu in `ui/browse/FileActionsDialog.kt` is a different question - actions over a selection - and deliberately offers a narrower set.
+
+## Wear List Top-Edge Placement (S2466)
+
+Every list-like surface in the watch module uses `WearListColumn` and `rememberWearListState()` from `wear.ui.common`. Direct calls to `ScalingLazyColumn` or `rememberScalingLazyListState` in `wear/src/main` are banned by the `wear-list-start` gate (`scripts/quality/lib/source-matchers.ps1`).
+
+- **Scrollable lists, menus, and dialogs (Class A & B, default `centered = false`)**: Content starts flush at the top edge (`initialCenterItemIndex = 0`, `autoCentering = null`) with standard `wearListDefaultContentPadding()`. This eliminates the 133-161 px blank top gap caused by Wear Compose auto-centering on round screens.
+- **Fixed control panels (Class C, `centered = true`)**: `AudioPlayerScreen`, `VoiceRecorderScreen`, `AboutSettingsScreen`, `SyncResultScreen`, `PermissionsScreen`, and `GameRulesScreen` use auto-centering to keep controls balanced vertically on the round display while scrolling when taller than the viewport.

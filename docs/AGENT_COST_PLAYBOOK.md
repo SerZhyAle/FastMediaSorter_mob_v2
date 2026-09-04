@@ -67,6 +67,50 @@ Counter-metric: partial reads raise the risk of an `old_string` that is unique i
 
 ---
 
+## Always-loaded context budget
+
+`CLAUDE.md`, `AGENTS.md` and the active agent definition are injected into **every** request. Their
+bytes are not billed to the session that needed them - they are billed to the whole corpus, forever.
+Enforcement is `scripts/quality/assert-always-loaded-budget.ps1`, in the fast-gate batch and in
+`post-change.ps1`, with one ceiling per file in `always-loaded-budget-baseline.txt` beside it. The
+ceiling drops on a run that passed (`-UpdateBaseline`) and the gate refuses to raise one.
+
+Measured 2026-09-04 (S2513, 78850 deduplicated requests over 770 sessions): the fixed preamble is
+**75702 tokens per request and 37.8% of all billed `cache_read`**, against 23.3% five weeks earlier.
+The share grew from both ends - the preamble gained 18% while the average request shrank 27%, because
+the earlier accumulation tickets worked and what they left behind is the floor. Inside the floor the
+growth sits in one file: `CLAUDE.md` reached 67251 B, a 2.35x gain in 35 days at ~770 B/day, which is
+24.6% of the floor and 9.3% of the whole bill.
+
+Why a ratchet and not a rule or a cleanup: both were tried. The rule form is ungated, and the
+2026-07-31 audit measured ungated rules holding at 1-8% against ~99% for gated ones. The cleanup form
+ran three times - S1340 compressed `CLAUDE.md` on 2026-08-01, and `MEMORY.md` was compacted twice -
+and all three were undone, within a month and within a week respectively. Regrowth stopped only where
+a ratchet judged the file.
+
+**What the ceiling is for, and what it is not for.** It budgets the weight of the RATIONALE, never
+the number of rules. 25.9% of `CLAUDE.md` - 17398 B across 86 sentences - is incident narrative:
+dates, measured values, ticket ids. That text is needed when a rule is broken and when it is about to
+be changed, and in no other request. So it moves into the refusal text of the gate that enforces the
+rule, which is read exactly at the moment of a violation and never otherwise. A rule whose
+enforcement is not mechanical keeps its rationale where it is - there the rationale IS the mechanism.
+Deleting a rule to fit a ceiling is forbidden outright (S2517 ADR-4): it silently returns the exact
+cost the gates exist to avoid.
+
+The upper bound on what any repo-side change can recover is **14.0% of the bill** - 28.1k of the
+75.7k-token floor is repo- or owner-authored, the rest is the harness's own system prompt and tool
+schemas. A proposal promising more than that has an arithmetic error. And this is a bill lever only:
+context correlates with turn latency at +0.065 against +0.681 for output volume (2026-08-28), so
+nothing here is a speed improvement and it must not be sold as one.
+
+---
+
+### Path-scoped rules are the lever the budget gate points at (S2521)
+
+Claude Code loads `.claude/rules/*.md` lazily when the file carries `paths:` frontmatter: the rule enters context the first time Claude reads a file matching one of its globs, and not before (`code.claude.com/docs/en/memory`, "Path-specific rules"). `@path` imports do NOT do this - an imported file is expanded at launch and costs exactly what inline text costs - and a rules file without `paths:` is loaded at launch too. Block-level HTML comments in `CLAUDE.md` are stripped before injection, so a maintainer note in a comment costs nothing; the budget gate measures the injected bytes, not the file.
+
+Measured 2026-09-04 on the first split: `CLAUDE.md` went from 65 383 B to the size the baseline now records, with every numbered statement and every rule number kept in place. Four detail files exist - `spec-catalog.md` (`PLAN/**`), `android-source.md` (`app_v2/**`, `wear/**`), `agent-chat.md` (the chat and identity scripts), `command-authoring.md` (`.claude/commands/**` and its neighbours). The rule for a new one: the statement stays in `CLAUDE.md` with its number, the mechanism and the incident go to the detail file, and `paths` names the files a session must have read before the detail can matter. A runtime without lazy loading reads all of them at start (`AGENTS.md` section 1), which is why the detail files carry no statement of their own - a runtime that misses them misses only the reasons.
+
 ## Agent-memory hygiene
 
 Three rules, written portably because they hold in any project with a persistent agent memory.

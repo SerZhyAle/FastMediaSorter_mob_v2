@@ -11,6 +11,16 @@ permalink: /docs/WEAR_OS_STATUS.html
 
 ---
 
+## 📐 Verified Watch Shapes (WO-V16 Compliance, S2273)
+
+The watch app layout is declared and verified against three watch screen shape profiles in `scripts/devtest/wear-shape-profiles.json`:
+
+1. **`small-round` (192 dp, 153.6 dp content box)** - `Wear OS small round 1.2"`, `reviewedByPlay = true`. The Play Store WO-V16 baseline floor. Every fixed-width row is sized against this content box.
+2. **`large-round` (227 dp, 181.6 dp content box)** - `Wear OS large round 1.39"`, `reviewedByPlay = true`.
+3. **`xl-round` (240 dp, 192.0 dp content box)** - `Wear OS XL round`, `reviewedByPlay = false`. Regression control shape.
+
+---
+
 ## 📊 Implementation Summary
 
 | Phase | Name                    | Completion | Status                                          |
@@ -67,17 +77,24 @@ permalink: /docs/WEAR_OS_STATUS.html
 - **DI**:
   - ✅ `WearAppModule` - Hilt module for repositories and ExoPlayer
 
-#### Search, filter and sort inside a resource (S2136)
+#### Search, filter and sort inside a resource (S2136, reshaped by S2473)
 
-Every screen that lists the contents of a resource carries a row of three icons above the list: search,
-filter by content type, and sort. All four content routes have it - local category, phone category,
-network source (`BrowseScreen`) and the phone's own folder listing (`PhoneResourceScreen`).
+Every screen that lists the contents of a resource carries two small outlined icons above the list:
+search, and refine. All four content routes have it - local category, phone category, network source
+(`BrowseScreen`) and the phone's own folder listing (`PhoneResourceScreen`). The icons are drawn without
+a plate so the list stays readable under them, and they fade out while the list is being scrolled,
+returning on their own when it stops.
 
-- **Search** matches a substring of the file name, ignoring case. The text arrives from the watch's own
-  input path, so the keyboard and the microphone both work; a watch that offers neither says so under the
-  icons rather than silently returning everything.
-- **Filter** narrows by content type, and the icon appears only when the loaded list actually holds more
-  than one type - a category screen already lists one kind, so the button would have nothing to offer.
+- **Search** matches a substring of the file name, ignoring case. Tapping it goes straight to the watch's
+  own input path, so the keyboard and the microphone both work; a watch that offers neither says so under
+  the icons rather than silently returning everything. An active query is cleared from the refine menu,
+  which is also where it is shown back.
+- **Refine** opens one full-screen menu carrying both the sort orders and the content-type filter, each
+  as a one-column list with the whole label visible. It never borrows the file list's own view mode, so a
+  wearer browsing in tiles still gets a readable menu.
+- **Filter** narrows by content type, and its group appears only when the loaded list actually holds more
+  than one type - a category screen already lists one kind. Where there is nothing to filter by, the menu
+  says so in a sentence instead of dropping the group without explanation.
 - **Sort** offers only the orders whose key the item carries. `BrowseScreen` shows seven - the source's
   own order, plus name, date and size in both directions. The phone-folder route shows five: the wire
   protocol between the phone and the watch carries no date, so the two date orders would be choices with
@@ -90,9 +107,9 @@ network source (`BrowseScreen`) and the phone's own folder listing (`PhoneResour
   that holds nothing - and the icon row stays on screen in that state, because clearing the query is what
   the user needs next.
 
-The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDialog`, `WearChoiceDialog`,
-`WearSearchInputLauncher`, `WearRefineLabels`); the narrowing itself is a pure function in
-`domain/browse/BrowseListProjection`, covered by unit tests.
+The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearRefineMenuScreen`,
+`WearChoiceDialog`, `WearOverlayVisibility`, `WearSearchInputLauncher`, `WearRefineLabels`); the
+narrowing itself is a pure function in `domain/browse/BrowseListProjection`, covered by unit tests.
 
 ### 4. Player Screens (Phase 0 ✅)
 
@@ -197,7 +214,31 @@ The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDi
 - ✅ Full SMB, FTP, SFTP connection and directory listing
 - ✅ Streaming playback via Media3 ExoPlayer from network sources
 - ✅ Network source transfer from companion phone app
-- ✅ Store release build hides watch credential entry (WO-P6 compliant, S1707)
+- ✅ The `standard` flavor hides watch credential entry in both build types (WO-P6 compliant, S1707; S2486 moved the gate off the build type, which had left the sideload release hiding it too)
+
+### Resource merge semantics (S2502)
+
+Before this ticket the exchange was a blind upsert in one direction and a blind skip in the other: an
+incoming record overwrote the watch's copy without looking at it, and the watch-to-phone leg could add a
+resource but never update one. An edit therefore disappeared silently depending on which leg ran.
+
+- Both sides now record when each resource was last edited, and that stamp travels with the record.
+- The later edit wins, judged over the **whole record**, not field by field - a resource is one
+  connection configuration, and merging its parts separately would assemble a row neither side entered.
+- The comparison is made in the receiver's time base. The exchange measures the two devices' clock
+  offset itself, as the difference between the time the payload says it was sent and the time delivery
+  was taken, so the offset never has to be known in advance.
+- A side that sends **no** stamps at all is applied rather than rejected - that is exactly the behaviour
+  that shipped before, so an older phone or watch keeps exchanging with a newer one.
+- A resource present on only one side is added, never removed.
+- **Deletion is carried across since S2507**, by an explicit tombstone rather than by absence - a
+  missing record still means "created only on the other side, add it". The tombstone is ranked against
+  the stored edit time by this same rule, so the later of a deletion and an edit wins.
+
+The ranking rule is `WearRecordMergeResolver`, one copy per module because the two modules share no
+artifact; `scripts/quality/assert-wear-record-merge-parity.ps1` is what keeps the copies from drifting.
+The phone keeps its stamps beside the resources table rather than inside it, so no database version bump
+and no migration are involved.
 
 ---
 
@@ -206,7 +247,7 @@ The shared pieces live in `ui/common/` (`WearRefineControlHeader`, `WearSearchDi
 | Feature                 | Status | Notes                               |
 | ----------------------- | ------ | ----------------------------------- |
 | **Local Music Browse**  | ✅     | MediaStore query                    |
-| **Audio Playback**      | ✅     | Media3 ExoPlayer with seek controls |
+| **Audio Playback**      | ✅     | Media3 foreground playback service, seek controls, and optional background audio |
 | **Local Video Browse**  | ✅     | MediaStore query                    |
 | **Video Playback**      | ✅     | ExoPlayer + battery warning         |
 | **Local Photo Browse**  | ✅     | MediaStore query                    |
@@ -227,7 +268,7 @@ Everything below was measured or watched on the owner's Galaxy Watch 7, not infe
 | Rotary seek | audio, video | The bezel moves the position inside the file by 10 seconds a step and never changes the file. A watch without a bezel loses nothing - every action is also a button. |
 | Album art | audio | Shown full-bleed behind the controls when the file carries one. A MediaStore album-art uri exists for every track that belongs to an album, so the fallback keys on the image failing to load, not on the uri being absent. |
 | Brand background | audio | The waves-and-particles animation, at the same speed as the phone and the website with fewer elements. It stops when playback pauses: measured 1277 CPU ticks per ten seconds running against 3 stopped. |
-| Screen-off mode | audio | A button blanks the screen and any touch restores it. Playback continues, because the display is never allowed to time out for real - `ON_STOP` pauses playback by S0902 design. |
+| Screen-off mode | audio | A button blanks the screen and any touch restores it. With Background playback enabled, audio files and streams also continue after the app is minimized or the display times out; notification controls remain available. Video and slideshows still pause when their host stops. |
 | Clock | all three players | HH:MM at top centre, from the Wear scaffold, in every state except the blanked screen. |
 | Localization | browse, all three players | Titles and player literals come from resources in EN/RU/UK. The list title used to stay English under a Russian interface. |
 | Touch targets | all three players | Every control is 48.dp, the Wear OS minimum. Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button. |
@@ -410,7 +451,7 @@ and no channel.
 - `REFUSED_NO_NOTIFICATION` and silence must not be merged: one is fixed on the phone's settings
   screen, the other by bringing the phone closer.
 - Phone side: the dispatcher branch and `OpenOnPhoneNotifier` live in `src/wearGms`, beside the eleven
-  existing handlers, because the four flavors that mount `src/wearStub` must gain no GMS reference. The
+  existing handlers, because the flavors that mount `src/wearStub` must gain no GMS reference. The
   path constants and the payload models sit in `src/main` with the other eleven - a `const val` and a
   `data class` name no GMS type.
 - Foreground is read from `ProcessLifecycleOwner`, never from a task query, and a refused direct launch
@@ -470,9 +511,71 @@ recorder** and **system information**.
   is drawn in the header (S2008); the scaling lives in the config `GameViewModel` builds, never in the
   generator, so the mirror stays exact. The board is capped by `wearMaxSquareSide()` and by the height
   left under the header - a square of the full content width puts its corners outside a round glass.
+  The seed is drawn by `domain/game/GameSeedSource.kt` from the wall clock plus a nonce, never from
+  the level number (S2494): deriving it from the number made every entry into level 1 the same board
+  and every restart the same second try, which is the phone's behaviour reversed. The generator is
+  untouched by this - the same config and seed still produce the same board on both devices, so ADR-1
+  holds; only the source of the seed moved. A restored save never passes through generation at all and
+  keeps the seed it was written with. Each new board opens with a guide arrow drawn from the player to
+  the exit `domain/game/GameGuideArrow.kt` picks by Manhattan distance, the phone's rule; the window is
+  keyed on the pair level-number-plus-seed rather than on the level number, because a restart draws a
+  new board under the same number, and it is drawn between the cells and the actors so the figures stay
+  on top of it.
+- **Voice recorder** records a note through a foreground service, so the session outlives the screen
+  going dark (S1862). Since S2161 the screen shows the running state in its own tone on the status dot
+  and the elapsed counter - deliberately not `MaterialTheme.colors.error`, which already means "something
+  is wrong" across the module, so a running recording drawn in it would say the opposite of the truth.
+  The tone is a third signal beside the glyph and the words, never a replacement: the state still reads
+  with colour off and still speaks to TalkBack as one stop. A finished note plays on the watch itself -
+  from the recorder screen for the note just recorded, and from any row of the note list, where a plain
+  tap plays. Playback reuses the existing audio player through `PrepareVoiceNotePlaybackUseCase` and the
+  same `playerRouteFor` the folder walk uses; there is no second player (ADR-2). On API 29 and above a
+  stopped recording is published into the watch's shared audio collection, so it appears among the other
+  audio files instead of staying inside the app - the private file is deleted only after the publication
+  is confirmed, because a voice recording cannot be made again (ADR-3). A note that could not be
+  published stays private and is still listed, playable and sendable. On API 28 it stays private by
+  decision, no write permission being declared for it (ADR-4). The note list is not replaced by the audio
+  collection: it remains the only place a note's delivery state - waiting, sent, failed - is visible.
+  Since S2495 the publication also writes the recording's own title, built from the time it was recorded
+  in the watch's date format, so a player no longer shows the platform's filename stamp.
+- **Voice notes as files** (S2495). A long press on a note opens the module's shared file-actions dialog
+  rather than a menu of the note list's own, so what a note offers is decided by `WearFileCapabilityPolicy`
+  and matches what an ordinary app-owned file offers - rename included, which is what tells two notes apart
+  when both are named after the second they were recorded in. Two of the policy's operations are withheld
+  by name: moving to the phone needs the send and the source removal sequenced behind one result, and
+  sending to a receiver needs the receiver picker and the batch run state, and both of those live in the
+  browse screen's operations manager, which the note list does not bind. Withheld rather than offered and
+  refused, which is the rule the policy already applies everywhere else. A published note exists twice, as
+  the private file the index knows and as a row in the shared collection, and a rename moves both or
+  neither: the row is asked first because it is the half that can refuse, the private file and the index
+  then move together, and a failure on that second half puts the row back under its old name. The note is
+  addressed by its private file rather than by the published row - the index knows it that way, and an
+  app-owned file needs no system write confirmation for the owner to rename his own recording.
+  Voice notes also have their own entry in the local group now, beside the folder-browse chip, which since
+  the same ticket takes part in the row layout instead of always claiming a full-width line of its own.
 - **System information** reports what this watch is, so it sits here rather than in Settings, where it
-  was until S2008. Its five sections pack two fields per row through the same `packSettingsRows` the
+  was until S2008. Its sections pack two fields per row through the same `packSettingsRows` the
   settings screens use (S1949), with a pair too wide for half a screen keeping a row of its own.
+  Since S2165 the content is selected by one criterion - a fact the watch's own settings screens do not
+  show - and the screen is assembled from contributors rather than from one interface with a property
+  per fact: `domain/systeminfo/WearSystemInfoContributor.kt` declares the seam, `WearSystemInfoOrder`
+  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`. Three
+  consequences worth knowing before editing it:
+  - **A section that cannot be filled says why instead of disappearing**, on the S2130/S1584 pattern and
+    matching the form S2156 settled for the network monitor. A single missing *field* still just
+    vanishes.
+  - **A set the user counts more often than reads is collapsed to its size** and expands on tap - the
+    sensor inventory, the capability set of the pair. Poured in whole they would turn the two-column
+    report into one long column.
+  - **The report is re-read on demand, never on a timer.** Thermal state, battery voltage and uptime
+    move while the screen is open, so there is a refresh chip under the title; a watch polling on a
+    timer would spend battery on a screen opened because the battery is misbehaving.
+  Every Data Layer lookup it makes is bounded by `withTimeoutOrNull` - an unresponsive Play Services
+  used to hold the whole screen, which is the one case the report exists to survive. The storage
+  section measures the app's own footprint through `StorageStatsManager`, not the volume: the `StatFs`
+  reading it replaced reported the whole `/data` partition while its comment claimed otherwise, which is
+  why it repeated what the watch's settings already show. The `noLegal` build adds one further section
+  (the signing-certificate fingerprint) from `wear/src/noLegal/`; `standard` leaves that slot empty.
 - **Calculator** keeps counting on the keypad and every function behind the single menu key; its
   history and memory are written on every change, because a watch program is dismissed by a gesture
   that gives no reliable exit callback.
@@ -539,6 +642,50 @@ not exist for the phone at all.
 
 ---
 
+## 🔁 Two-Way Resource Sync (S2502)
+
+Settings got the later-edit-wins rule in S2093; resources did not. The phone-to-watch leg overwrote a
+stored source whole, by id, with no comparison, and the watch-to-phone leg could only ADD - on any match
+it skipped, so a watch edit to a resource the phone already had was dropped in silence. Under S2484's
+single sync button both legs run in one action, and which leg ran first decided whose edit survived.
+
+- A resource now carries an edit time on both sides. On the watch it is `NetworkSource.lastEditedAt`,
+  stamped by the repository's `addSource` / `updateSource` - the user-edit path - while `upsertSource`,
+  the import path, stores whatever stamp the merge resolved. On the phone it lives in
+  `WearResourceStampStore`, keyed by resource id, beside the settings mirror rather than in the
+  `resources` table: a column would demand a database version bump and a migration for a value nothing
+  outside this exchange reads (strategic ADR-1).
+- The rule is `WearRecordMergeResolver`, one copy per module, and it judges a resource **whole**, unlike
+  a settings field - a connection's address, credentials, share and path are only meaningful together,
+  so merging them separately would assemble a record neither side ever entered.
+- Both legs identify a record by resource id first and by the address tuple only on a miss. The watch
+  stores the id the phone assigned and returns it in its export, so the two legs finally agree on what
+  "the same resource" means before they compare any time (strategic ADR-3).
+- The clock offset is measured, never assumed: the push leg already carried `WearSyncPayload.sentAt`, and
+  `WearSourcesExportPayload` gained its own `sentAt` for the reverse leg, because the phone's event bus
+  hands the consumer that payload alone and the envelope's timestamp never reaches it.
+- A side that sends no stamps at all is applied exactly as it was before this ticket, so an older phone
+  or watch keeps working. A side that stamps some records but not this one loses to a stored record that
+  carries a stamp - an unstamped record states no age, and a stamped one was deliberately changed here.
+- Deletion is propagated since S2507. Each side records a tombstone - the resource id and the moment it
+  was deleted - and sends it in a separate list beside the ordinary records, so absence never means
+  deletion and a one-sided resource is still added. A tombstone ranks against the stored edit time
+  through the same corrected clock, so a deletion and a later edit resolve to the later action on both
+  legs. A payload that carries no tombstone list removes nothing, which is how an older build behaves.
+  Tombstones are never cleared automatically: the transport carries no acknowledgement that would prove
+  an offline copy has seen the deletion, so an expiry would let that copy resurrect the resource.
+- A source the watch created itself carries a `UUID` the phone never issued, and the phone stores it
+  under a database id of its own. An ordinary record survives that renaming through the address-tuple
+  fallback above, but a tombstone carries no address - so the phone records the mapping at the moment it
+  renames the record and resolves an incoming tombstone through it (`WearResourceIdAliasStore`, S2507
+  ADR-3). Without it a resource created and deleted on the watch stayed on the phone and both sides
+  converged on it existing.
+- `scripts/quality/assert-wear-record-merge-parity.ps1` runs in `scripts/post-change.ps1` and `.\a.ps1
+  fg`, and fails when the two resolver copies stop matching line for line. If they disagree the exchange
+  never converges - each side keeps its own version and believes it won.
+
+---
+
 ## 🛠️ Technical Details for Developers
 
 - **Install package (`applicationId`)**: `com.sza.fastmediasorter` - the phone app's identity, required for Data Layer delivery (S1681)
@@ -560,7 +707,7 @@ not exist for the phone at all.
 - **Compile Status**: ✅ BUILD SUCCESSFUL (debug APK, release APK, release AAB bundle)
 - **Module**: `:wear`
 - **Output Artifacts**:
-  - `wear/build/outputs/apk/<flavor>/debug/` - Debug APK (with direct network credential input for development)
+  - `wear/build/outputs/apk/<flavor>/debug/` - Debug APK (direct network credential input in the `noLegal` flavor only, since S2486)
   - `wear/build/outputs/apk/<flavor>/release/` - Release APK (sideloadable release build)
   - `wear/build/outputs/bundle/<flavor>/release/wear-<flavor>-release.aab` - Play Store release bundle (WO-P6 compliant); the store track takes the `standard` one
   - `<flavor>` is `standard` or `noLegal` - the module gained its own flavor dimension in S2090, and `standard` is what Play accepts
@@ -586,4 +733,3 @@ not exist for the phone at all.
 ---
 
 **Note**: This status document reflects code and artifact verification as of 2026-08-17. All listed features are implemented and tested in the codebase.
-

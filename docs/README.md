@@ -56,7 +56,7 @@ Features include:
 
 ## Product Flavors 🎯
 
-FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets (Standard, Lite, Photos, Legacy) plus two headset and sideload builds, VR and noLegal. The canonical capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
+FastMediaSorter v2 ships **seven flavors** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The canonical capability grid is generated from the build in [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md):
 
 | Flavor | Description | Notes |
 |--------|-------------|-------|
@@ -64,6 +64,7 @@ FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets 
 | **Lite** | Lightweight release | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
 | **Photos** | Photo-first release | Images only, with SMB/FTP/SFTP and cloud; no video and no audio |
 | **Legacy** | Compatibility-focused release | Same feature set as Standard, including SMB/FTP/SFTP and cloud (Google Drive, Dropbox, OneDrive); built for Android 6/7 (API 23+) |
+| **FOSS** | F-Droid catalogue release | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
 | **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
 | **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
@@ -73,6 +74,7 @@ FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets 
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for Android 6/7 devices (API 23+) - includes network and cloud
+- **FOSS**: Choose this from the F-Droid catalogue when you want a build free of proprietary SDKs
 - **VR**: Choose this for an XR headset - the store build without Cast and Wear support
 - **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 

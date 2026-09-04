@@ -176,7 +176,8 @@ Enable Wear OS app to connect to network storage (SMB, FTP, SFTP, Google Drive) 
 Home Screen → Network Storage
   ├── Sources List (SMB, FTP, SFTP)
   ├── Sync / Transfer from Companion Phone App (Release & Debug)
-  └── Add Source directly (Debug builds only; hidden in Play Store release per WO-P6)
+  └── Add Source directly (noLegal flavor only, debug and release; hidden in the store-distributed
+      standard flavor per WO-P6 - S2486 moved the gate from the build type to the flavor)
 ```
 
 #### Implementation

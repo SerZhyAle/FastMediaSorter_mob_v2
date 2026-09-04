@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-08-23*
+*Last updated: 2026-09-02*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -42,6 +42,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **File Manager Mode** `[Standard / VR]`: Show hidden files and bypass media-only filters to handle mixed folders, archives, APKs, EXEs, and other non-media content.
 - **Move whole folders, not just files** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Select subfolders the way you select files and copy or move them across protocols, and a transfer sent to the background stays on a tappable strip you can reopen.
 - **SD cards and plugged-in drives** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Removable storage and mounted external drives appear as browsable sources instead of staying invisible.
+- **Reconnect a folder through the system chooser** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A folder you added by typing its path can be reconnected through Android's own folder window, keeping its name, place in the list, PIN, icon and favorites - and gaining the documents a typed path can never read.
+- **The app tells you what a folder cannot show** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: When a connection can only reach photos, video and audio, the list says so and points at the fix, instead of quietly leaving documents out of the count.
 
 ## 5. Replace several media viewers and editors
 - **Image viewer with real file actions** `[Standard / VR]`: Crop, rotate, flip, adjust colors, speed-control GIFs, and export GIF frames without switching to a separate image utility.

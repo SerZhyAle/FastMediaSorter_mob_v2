@@ -29,7 +29,7 @@
   },
   "dialog_playback_control": {
     "category": "session-scoped",
-    "reason": "In-player quick-controls panel (volume/brightness/hue/speed/mute/section-tab buttons); its one plausible setting (switchVrOverrideFormatType, a stereo-mode override) is session-scoped in the player ViewModel per an existing code comment. Not a settings surface."
+    "reason": "In-player quick-controls panel (volume/balance/brightness/hue/speed/mute/section-tab buttons); its one plausible setting (switchVrOverrideFormatType, a stereo-mode override) is session-scoped in the player ViewModel per an existing code comment. Not a settings surface."
   },
   "dialog_slideshow_settings": {
     "category": "unsupported-widget",

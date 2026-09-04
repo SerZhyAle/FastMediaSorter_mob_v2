@@ -186,7 +186,6 @@ _Available in: Standard, Legacy, VR_
 | Background audio playback | Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar. |
 | Deletion and renaming in player | Settings for deleting and renaming files while inside the player. |
 | Player interface and commands | Settings for the player's visual interface, control buttons, and command layout. |
-| Send file to.. | Settings for the "Send file to.." commands shown in the player. |
 | Sorting, slideshow and playback order | Settings for file sort order, slideshow behavior, and playback sequence. |
 | Touch zones and on-screen hints | Settings for the player's tap-zone layout and on-screen usage hints. |
 | Allow delete | Allows deleting the current file directly from inside the player. |
@@ -201,6 +200,7 @@ _Available in: Standard, Legacy, VR_
 | Hide OS UI in fullscreen | Hides the status bar and navigation bar when the player is in fullscreen mode. |
 | Show 3D content from one eye | Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing. |
 | Play video/audio in slideshow to end | Waits for video or audio to finish playing before advancing to the next slide in a slideshow. |
+| Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during playback. |
 | Show "Black Screen" button | Shows a button in the player that blanks the screen while audio continues playing. |
 | Show command panel by default | Keeps the player command panel visible by default instead of hiding it after a timeout. |
 | Show now-playing panel | Shows a persistent now-playing panel at the bottom of the file browser. |
@@ -239,6 +239,7 @@ _Available in: Standard, Legacy, VR_
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
 | Edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
 | Screen recording | Settings for recording video of the screen and choosing where recordings are saved. |
+| Send file to.. | Settings for the "Send file to.." commands shown in the player. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
 | Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
 | Wear OS | Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window. |
@@ -434,16 +435,18 @@ _Reached from Wear OS watch app -> Settings._
 |---|---|
 | Auto rotation | Lets the watch screen follow the wrist. Watch-only: the row is absent on a watch with no rotation sensor. |
 | Watch Background | Chooses what the watch draws behind the app screens: the branded waves-and-particles animation, or an image picked on the phone. The picked image is cropped and scaled to the watch frame on the phone and travels the file channel, so the watch receives a ready frame and never resizes anything. When the image is missing or has not arrived, the watch draws the animation instead. A constant dim sits between the background and the content so text stays readable over a light picture, and the background is not drawn while the app is away from the foreground or in ambient mode. |
+| Keep playing in background | Keeps audio playing on Wear OS after the app is minimized, with a notification to control it. Off by default. |
 | Disable animations | On Wear OS, removes the video controls panel transition while keeping the same controls available immediately. |
 | Download album art | Downloads and displays cover art for audio tracks on Wear OS. |
-| Enable audio | Enables playback and browsing of audio files on Wear OS. |
-| Enable documents | Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike. |
-| Enable images | Enables viewing and browsing of image files on Wear OS. |
+| Audio | Enables playback and browsing of audio files on Wear OS. |
+| Documents | Enables browsing of document files on Wear OS, on the watch storage and on the paired phone alike. |
+| Images | Enables viewing and browsing of image files on Wear OS. |
 | Enable slideshow | Enables automatic slideshow presentation of media files on Wear OS. |
-| Enable video | Enables playback and browsing of video files on Wear OS. |
+| Video | Enables playback and browsing of video files on Wear OS. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
+| Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during video and image playback on Wear OS. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |
-| Show Streams | Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched. |
+| Streams | Shows or hides the Streams section on the watch home screen. Off leaves the other media sections untouched. |
 | Screens view | Chooses how the watch navigation screens, including Settings, are laid out: a list, or a grid of two or three columns. |
 | Voice note delivery | Chooses what happens to a voice note recorded on the watch once it is stopped: send it to the phone straight away, or keep it on the watch until it is sent by hand. Either way the note stays on the watch until it is deleted, and a note taken while the phone is out of reach waits and leaves on its own when the link returns. |

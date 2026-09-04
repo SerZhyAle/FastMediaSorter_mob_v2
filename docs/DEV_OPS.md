@@ -61,6 +61,8 @@
 | `.\a.ps1 fw`   | Fast Kotlin compile check, **`wear` module** |
 | `.\a.ps1 fwr`  | Fast resources/manifest check, **`wear` module** |
 | `.\a.ps1 fwu`  | Fast unit-test suite, **`wear` module** |
+| `.\a.ps1 faw`  | Fast instrumented-test compile check, **`wear` module** (S2355) |
+| `.\a.ps1 fwm`  | Connected Room migration test run on watch, **`wear` module** (S2355) |
 | `.\a.ps1 flr`  | Fast lint-rules detector test suite (`:lint-rules:test`); `-Tests <filter>` narrows it |
 | `.\a.ps1 dc`   | Clean + debug build |
 | `.\a.ps1 cls`  | Clean Gradle caches |
@@ -69,6 +71,8 @@
 | `.\a.ps1 adb-devices` / `adb-shot` / `adb-log` / `adb-current` / `adb-launch` / `adb-logcat-clear` | Fixed-verb device shortcuts |
 
 ## DEVICE OPS (ad-hoc)
+
+**Which device answered decides what these verbs may do to it: `docs/DEVICE_FLEET.md` (CLAUDE.md Rule 35).** This section is the mechanics - discovery, verbs, exit codes - and never the permission; the roster there is the only home of a per-device grant, so read it and match the serial before the first call.
 
 `scripts/devtest/adb.ps1` is the quick swiss-army for one-off work against a connected
 emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PATH),
@@ -188,8 +192,8 @@ Two properties of the switch are worth knowing before reading a report:
 .\a.ps1 fr                      # XML/resources/manifest/navigation changes
 .\a.ps1 fc                      # Small mixed code + resource changes
 
-# PER-FLAVOR PROOF - all six flavors, no dedicated letter needed
-.\a.ps1 fc -Flavor Lite         # also: Standard | NoLegal | Photos | Legacy | Vr
+# PER-FLAVOR PROOF - every flavor, no dedicated letter needed
+.\a.ps1 fc -Flavor Lite         # also: Standard | NoLegal | Photos | Legacy | Vr | Foss
 .\a.ps1 fc -Flavor Legacy       # covers minSdk 23
 .\a.ps1 fc -Flavor Vr           # the only check that compiles src/vr
 
@@ -197,6 +201,8 @@ Two properties of the switch are worth knowing before reading a report:
 .\a.ps1 fw                      # Kotlin changes under wear/
 .\a.ps1 fwr                     # resources/manifest changes under wear/
 .\a.ps1 fwu                     # unit tests under wear/src/test
+.\a.ps1 faw                     # instrumented tests compile under wear/src/androidTest (S2355)
+.\a.ps1 fwm                     # Room migration tests run on connected watch (S2355)
 
 # UNIT TESTS
 .\a.ps1 fu
@@ -215,10 +221,10 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests
 2. `.\a.ps1 fr` for resource / manifest edits.
 3. `.\a.ps1 fc` for small mixed edits.
 4. `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "..."` for focused logic changes.
-5. `.\a.ps1 fc -Flavor <name>` per affected flavor when a change touches flavor-visible resources or flavor source sets. This is what satisfies a spec demanding proof on "every affected variant" - all six flavors are reachable and each call takes `BUILD.LOCK`, so the requirement never needs a direct `gradlew` call or a deferral (S1589; S1568 deferred it only because the flag was undocumented).
+5. `.\a.ps1 fc -Flavor <name>` per affected flavor when a change touches flavor-visible resources or flavor source sets. This is what satisfies a spec demanding proof on "every affected variant" - every flavor is reachable and each call takes `BUILD.LOCK`, so the requirement never needs a direct `gradlew` call or a deferral (S1589; S1568 deferred it only because the flag was undocumented).
 6. `.\a.ps1 d` only when you need APK packaging / installable artifact proof.
 
-**Pick the rung by module first, not by change type (S1807).** Every rung above checks `app_v2`. A change under `wear/` is proved by `.\a.ps1 fw` (Kotlin), `.\a.ps1 fwr` (resources/manifest) and `.\a.ps1 fwu` (unit tests); the phone target exits 0 without compiling a single watch file, so quoting it under a wear ticket records a verdict about the other module. A change touching both modules needs one rung from each column.
+**Pick the rung by module first, not by change type (S1807).** Every rung above checks `app_v2`. A change under `wear/` is proved by `.\a.ps1 fw` (Kotlin), `.\a.ps1 fwr` (resources/manifest), `.\a.ps1 fwu` (unit tests), `.\a.ps1 faw` (instrumented test compile) and `.\a.ps1 fwm` (connected Room migration tests); the phone target exits 0 without compiling a single watch file, so quoting it under a wear ticket records a verdict about the other module. A change touching both modules needs one rung from each column.
 
 `.\a.ps1 dav` is the slow artifact path. It keeps timestamped in-app versioning, but each unique override creates a fresh configuration-cache entry by design.
 
@@ -322,7 +328,7 @@ A coordination resource is a **pair: type plus domain**, not one global word. Bo
 
 | Domain | Covers | Derived from |
 | --- | --- | --- |
-| `Build.Phone` | gradle work on `app_v2`, all six flavors | the module the entry point builds |
+| `Build.Phone` | gradle work on `app_v2`, every flavor | the module the entry point builds |
 | `Build.Wear` | gradle work on `wear` | the module the entry point builds |
 | `Code.Phone` | edits under `app_v2/` | the changed path set |
 | `Code.Wear` | edits under `wear/` | the changed path set |
@@ -337,6 +343,8 @@ A coordination resource is a **pair: type plus domain**, not one global word. Bo
 
 Two sessions contend only where their domains overlap. A watch edit, a phone edit and a scripts edit therefore proceed at the same time, and so do `.\a.ps1 fw` and `.\a.ps1 fk` - measured 2026-08-27 at 12 s wall for both, with no queue wait and no cache-contention message in either log.
 
+- **A run that must outlive the session takes no lock of its own** (S2400). `scripts/utils/start-detached.ps1` starts a command as a hidden, parent-independent process with its log and exit marker under `temp/<ticket|scratch>/` - the route for a full Maestro sweep or any job longer than the session, since the harness's background task dies with the session. The launcher acquires nothing: whatever build or code domain the command needs, the caller takes and releases it, exactly as for a foreground run. Classification of what may go to the background at all: `docs/BUILD_TEST_FAST_PATH.md` "Verdict or work".
+
 **The domain is derived, not declared** (ADR-1). `enter-code-lock.ps1 -Files "<changed paths>"` maps the set through `Resolve-CodeDomainsForPaths`; a gradle entry point derives its domain from the module it already builds (`check-standard-fast.ps1` from `-Module`, now via the registry row in `scripts/utils/gradle-modules.ps1`, so a module with no domain of its own widens to both rather than defaulting to the phone's; `assert-detekt.ps1` from `-Module`, or both domains when it runs without one). `-Domain` exists as an escape hatch and is second-class on purpose: a wrongly declared domain silently removes protection while still looking like working coordination, whereas a wrongly derived one is visible in the file set the call already prints.
 
 **Anything that does not decompose takes the full set** (ADR-2), so the failure direction is over-protection rather than under-protection: a build file in either module or at the root, a path the table does not recognise, a module added later, or a call that names no file set at all. A module's own `build.gradle.kts` deliberately belongs to the full set rather than to its module - the configuration phase processes every subproject, so a broken build file in one module fails a check requested for the other. The shared static-analysis config (`gradle/`, `lint-rules/`, `config/detekt/detekt.yml` and its siblings) is judged the same way; the per-module detekt **baselines** are the one carve-out, because `baseline-app_v2*` and `baseline-wear*` are named for their module and read by that module's check alone. That carve-out is not cosmetic: regenerating a baseline is a by-product of most Kotlin closures, so failing closed on it bought no protection and silently cost the split on the majority of tickets - observed 2026-08-31, a one-file `app_v2` edit plus its baseline took all three code domains. Over-protection is the safe direction to be wrong, but only where it protects something.
@@ -348,11 +356,11 @@ Two sessions contend only where their domains overlap. A watch edit, a phone edi
 The two types, and how each is taken:
 
 - **Build domains** - acquired by `Enter-BuildLockOrExit -Domain <..>` before any direct `gradlew`/`gradlew.bat` invocation, released by `Exit-AgentLock -Name Build -Domains <..>` after (success or failure). A caller that names no domain still takes both, so a script nobody has taught its module keeps serialising exactly as it did before the split. Since S1432 a busy domain **queues** the caller instead of refusing: it takes a ticket, reports its position and starts when its turn comes. Pass `-NoWait` (or set `FMS_LOCK_NO_WAIT=1`) where an immediate answer matters more than a turn.
-- **Code domains** - acquired via `scripts/utils/enter-code-lock.ps1 -Files "<changed paths>" -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy domain queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. Auto-releases from `post-change.ps1`'s closure, which frees exactly the domains the run actually holds - the union of what its change set maps to and what this session owns - so a scripts-only closure by a session that took the full set does not leave two domains held for nobody. That release is owner-checked per domain, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `scripts/utils/exit-code-lock.ps1` itself when the edit is done.
+- **Code domains** - acquired via `scripts/utils/enter-code-lock.ps1 -Files "<changed paths>" -Reason "<ticket/skill>"` before a multi-file source edit (Kotlin/XML/build-file). Since S1432 a busy domain queues the caller and **exits 4** ("queued, not yet your turn") rather than waving the edit through. **The caller releases it, and `post-change.ps1` is only the backstop** (S2419): the window closes the moment the step's last file is written, released by the caller's own `scripts/utils/exit-code-lock.ps1` - the verification predicates, `plan-tick.ps1`, the phase's `Project compiles` build (already serialised by `Build.*`), the unit suite and the whole gate batch run outside it. Until 2026-09-03 every text promised the facade's trailing `finally` instead, and measured over `temp/AGENT-CHAT` for 2026-09-02 21:30 .. 2026-09-03 01:20 that cost a 95 s median hold on `Code.Scripts` with a 703 s maximum, all 51 queue waits in the window on that one domain, at a depth of ten - while the closure's own gate batch was 19.0-48.8 s of it. `post-change.ps1` still releases, now before its gates rather than after them, but only as the backstop for a run that ended early; it frees exactly the domains the run actually holds - the union of what its change set maps to and what this session owns - so a scripts-only closure by a session that took the full set does not leave two domains held for nobody. That release is owner-checked per domain, so it never removes a lock belonging to another live session; a skill that skips the facade (`/skill-fix`) must call `exit-code-lock.ps1` itself when the edit is done.
 
 **A gradle task name in a repository script carries its module segment** (S2172). Write `:app_v2:assembleStandardDebug`, never `assembleStandardDebug`. This is not a spelling preference: an unqualified name is expanded by Gradle across **every** project in the build that declares it, so its meaning is set by the composition of the build rather than by the script that passes it. When S2090 gave the watch its own `standard` / `noLegal` dimension, forty call sites silently began building the watch as well, and not one of them was edited - measured 2026-08-27, `gradlew assembleStandardDebug --dry-run` scheduled 48 `:wear:` tasks beside 53 `:app_v2:` ones, while `:app_v2:assembleStandardDebug` scheduled none. This is the one way a correctly derived `-Domain` still under-protects, because the domain follows the module the entry point *believes* it builds: the caller holds `Build.Phone` and writes into `wear/build/**`, so a sibling's watch build dies on a locked `R.jar` with an error that reads as broken code rather than as contention. A watch artifact built by a phone task also inherits the phone's `versionCode`. Gate: `scripts/quality/assert-qualified-gradle-tasks.ps1`, in the fast-gates batch and so in every closure. S2175 extended the same gate to `.github/workflows/*.yml` - the CI workflows called `gradlew` with the identical unqualified shape, and a `.ps1`-only scanner could not see it.
 
-**Releasing a wedged lock:** `..ps1 ub` (build) and `..ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `..ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime, not the pid - a code-domain pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
+**Releasing a wedged lock:** `..ps1 ub` (build) and `..ps1 uc` (code) are the launcher shortcuts for `scripts/utils/clear-agent-lock.ps1`. Both are conservative - a lock whose holder is still live is refused, and the holder's pid, age, reason and session id are printed instead, because clearing it would hand the turn to the next agent mid-edit. `..ps1 uc -Force` overrides once the holder is confirmed gone (check the session's transcript mtime - the `subagents/` subtree included, S2408 - not the pid, since a code-domain pid can be recycled), and drops the whole queue with it, including any ticket your own background waiter is holding.
 
 #### Device leases - S1926
 
@@ -377,7 +385,7 @@ Exit codes match the ticket lease exactly, because it is the ticket lease's shap
 
 Like every other lock here, this is **advisory**: it coordinates consenting callers and does not stop a raw `adb` command, exactly as `BUILD.LOCK` does not stop a raw `gradlew`.
 
-**The queue (S1432).** Each DOMAIN has its own queue directory `temp/<DOMAIN>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 3 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
+**The queue (S1432).** Each DOMAIN has its own queue directory `temp/<DOMAIN>.QUEUE` holding one ticket file per waiter, numbered in order. The head of the queue owns the turn: a free lock is **not** enough to acquire, because a live head that has not yet spent its reservation window (5 min for Build, 1 for Code) still owns it - that window is what survives the gap between "your turn" and the moment gradle actually starts. Ownership of a ticket belongs to an agent **session**, not a process. A ticket whose owner has gone quiet, or which passed its ceiling (60 min Build, 20 min Code), is evicted by whoever reads the queue next. Every timing lives in one table, `$Script:AgentLockTimings`.
 
 **Queue fairness and liveness (S1448).** Four rules make the queue actually hand out turns in order, each of them fixing an observed starvation where a session sat still for tens of minutes without a single error:
 
@@ -385,10 +393,14 @@ Like every other lock here, this is **advisory**: it coordinates consenting call
 - **The turn is decided by ticket identity, never by session identity.** A caller holding no ticket is answered from the lock and the head's reservation; it can no longer inherit the turn just because the head happens to belong to its own session. `enter-code-lock.ps1` therefore takes its place in the queue **before** it asks for the lock, exactly as `Enter-BuildLockOrExit` already did - so a session that releases and immediately wants the lock back queues behind whoever was already waiting. A re-entrant call from a session that already holds the lock is recognised and returns 0 without queueing.
 - **A superset request tops up rather than re-queuing, but only in one direction** (S2200). The re-entrancy check above only fired when the requested set was *identical* to what the session already held - a session holding `Code.Wear` alone that then also needs `Code.Phone` fell through to the ordinary acquire path, which has no self-ownership check at all: it saw its own `Code.Wear` lock as "busy" and queued behind it, a wait nothing can ever end from the outside. `Enter-AgentLockDomain` still has no such check; instead `enter-code-lock.ps1` now splits the request into `Held` (already this session's) and `Missing` before touching the queue. Safety of granting `Missing` without releasing `Held` depends on canonical rank, not on self-ownership alone: it is safe exactly when every held domain outranks every missing one (`Code.Phone` < `Code.Wear` < `Code.Scripts`) - continuing upward through the table is equivalent to a fresh multi-domain acquire that already completed its first steps, so it inherits that acquire's deadlock-freedom. The other direction - holding a higher-ranked domain while a lower-ranked one is still missing - is refused outright (exit 4, nothing enqueued) with a message naming the self-collision and the recourse (`exit-code-lock.ps1` then retake the full set), because granting it would let a symmetric session holding the low-ranked domain deadlock against this one. `scripts/utils/agent-lock.ps1`'s `Resolve-AgentLockTopUp` is the single place this split is decided.
 - **A waiting ticket carries its own heartbeat.** Liveness reads `lastSeenAt` first (stamped by `wait-for-lock-turn.ps1` on every poll), the owning session's transcript second, the enqueue time last. The transcript alone punished exactly the behaviour the contract demands: a session that queues, backgrounds the waiter and goes off to do lock-free work writes nothing, looked dead at the 15-minute mark, and was evicted from a place it had earned. **An abandoned head does not age out** (S2098, correcting what this line claimed before): `TicketCeilingMinutes` is declared for `Build` and `Code` but read by no queue consumer - only `ticket-lease.ps1` and `device-lease.ps1` apply the field, and `Remove-StaleAgentLockTickets` judges the owner, never the ticket's age. That is deliberate. A legitimate wait behind one long build, or behind several queued builds, outlasts both numbers, so applying them would evict a session waiting exactly as the contract demands - `scripts/utils/test-agent-lock-queue.ps1` asserts that survival. The remedy for a dropped intent is therefore explicit withdrawal, below, not a timer.
-- **One head does age out: the one that was told to go and never went** (S2194). `Remove-StaleAgentLockTickets` carries a second, narrow reason to drop a ticket - **forfeit** - and it applies only to a queue **head** whose `turnGrantedAt` is older than that domain's `ReservationMinutes`, which does not hold the lock, and which is not the sweeping session's own. It is not the ticket-age timer the bullet above rules out: it reads `ReservationMinutes`, never `TicketCeilingMinutes` or `SessionStaleMinutes`, and it judges an **already-granted turn** rather than a wait, so a ticket that was never granted one survives any amount of waiting - `test-agent-lock-queue.ps1` asserts both boundaries. Safe because it fires only after the reservation expired, at which point the head holds no privilege anyway: `Test-AgentLockTurn` is already answering "your turn" to whoever asks. Leaving it in place is what costs - every remaining waiter is told to go at once and they race for the lock file, so a later arrival can overtake an earlier one, and every inspector reports a waiter who does not exist.
+- **One head does age out: the one that was told to go and never went** (S2194). `Remove-StaleAgentLockTickets` carries a second, narrow reason to drop a ticket - **forfeit** - and it applies only to a queue **head** whose `turnGrantedAt` is older than that domain's `ReservationMinutes`, which does not hold the lock, and which is not the sweeping session's own. It is not the ticket-age timer the bullet above rules out: it reads `ReservationMinutes`, never `TicketCeilingMinutes` or `SessionStaleMinutes`, and it judges an **already-granted turn** rather than a wait, so a ticket that was never granted one survives any amount of waiting - `test-agent-lock-queue.ps1` asserts both boundaries. Safe because it fires only after the reservation expired, at which point the head holds no privilege anyway: `Test-AgentLockTurn` is already answering "your turn" to whoever asks. **That safety argument assumed a FREE lock and never said so, which is the hole S2421 closed.** Under a live lock held by a third session the head could not enter however hard it tried, so "granted and never taken" is simply false - measured 2026-09-03, a waiter that had polled every 5 s for 292 s lost its `Code.Scripts` place to a session that was never in the queue, and the ticket behind it went the same way on the next sweep. Two changes, both required: the forfeit is not considered at all while a live foreign lock exists, and `turnGrantedAt` is cleared on every observation of a held lock, because it records that a free lock was **observed** rather than that it stayed free - `Set-AgentTicketTurnGranted` is one-shot, so without the reset the stamp is already spent when the lock frees and the exemption would buy the head a zero-length window. Leaving it in place is what costs - every remaining waiter is told to go at once and they race for the lock file, so a later arrival can overtake an earlier one, and every inspector reports a waiter who does not exist.
 - **The refusal names the blocker that exists.** A lock that is held reports its holder; a lock that is free while a foreign ticket owns the head says so and names the head's session, reason, wait and reservation window. `enter-code-lock.ps1` no longer prints a `Holder:` line built from an absent lock file - the observed `Holder: session  (age 0s, reason: '')` sent readers hunting for a holder that was not there.
 
 `lock-status.ps1 -Queue` surfaces the pathology directly: each ticket carries `heldByLockHolder`, the JSON payload carries `headOwnedByHolder`, and a text row owned by the current holder is suffixed `<- holds the lock`.
+
+**The stalled holder - a signal, not a rule (S2413).** A holder that simply stops moving is invisible to everything above: it is not stale, so nothing evicts it, and every reader sees only half the picture. `Get-AgentLockStatus` measures the owner's silence but spends it on one held/stale answer, so the ten minutes between "still working" and "reclaimable" have no name; `agent-chat.ps1 -Verb Status` knows the silence but not the locks, and judges it against a window three times larger (45 min, from `SpecTicket.SessionStaleMinutes`), so it prints `live`; `monitor-spec-queue.ps1` prints both halves in two different sections and joins neither. Measured 2026-09-03: a session stopped at 00:19 while holding all three code domains taken at 00:17, two sessions queued behind it, and the owner spotted it by eye at 00:29. `Get-AgentLockStall -Name <domain>` is that missing join - **held, a queue behind it, and the owner quiet longer than that domain's `LockStaleMinutes`** - and `Get-AgentLockStalls` runs it over the table. Three exclusions keep it from being noise: a build domain is never reported, because a dead pid already makes the lock stale and the next claimant reclaims it unaided; an empty queue is never reported, because a quiet holder blocking nobody harms nobody; and the holder's own leftover ticket is not counted as a waiter, that being the `heldByLockHolder` shape above. The threshold comes from `$Script:AgentLockTimings` (10 min for code) and is deliberately *below* the same domain's `SessionStaleMinutes` (15), so the warning arrives before the lock is even reclaimable - which is the whole point of a warning. A live holder **process** does not clear the verdict; it is printed beside it, because "hung" and "gone" cost the queue the same and differ only in what to do next. Quiet time is `Get-AgentOwnerQuietMinutes`, reading exactly the marks `Get-AgentTicketLiveness` judges by - transcript write including the subagent subtree, heartbeat, newest chat line - so the signal and the eviction can never disagree about one owner (S1621).
+
+It is drawn wherever someone already looks, and only when non-empty: a red `STALLED` line under `lock-status.ps1 -Queue` (plus a `stall` property in `-Json`), a `stalls` array in `Get-DevMonitorSnapshot` from which both `monitor-spec-queue.ps1` and the monitor page render one section above the locks, and a line in `enter-code-lock.ps1`'s exit-4 refusal beside the holder's chat lines - the waiting session learns it is queued behind a dead holder before the operator does. **Nothing branches on it.** No lock, queue or lease reads the verdict, the refusal's exit code is unchanged, and waiting remains the correct response: the lock still goes stale on its own and the waiter still takes it. The signal only names what a human was previously left to spot.
 
 ```powershell
 # Who holds it, who is waiting, in what order (this session's own ticket is marked '>')
@@ -396,13 +408,18 @@ pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Build.Wear -Queue
 # A bare Build or Code prints one section per domain of the set, each naming its own domain
 pwsh -NoProfile -File scripts/utils/lock-status.ps1 -Name Code -Queue -Json
 
-# Wait for your turn OUT OF BAND: run this as a background task and keep working
-pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code.Phone -Reason "S0900 edit"
+# Wait for your turn OUT OF BAND: run this as a background task and keep working.
+# -Acquire takes the lock in the waiter itself, so its exit means the lock is already yours.
+pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name Code.Phone -Reason "S0900 edit" -Acquire
 ```
 
 **All five domains at a glance:** `.\a.ps1 rm` (`scripts/utils/monitor-spec-queue.ps1`) prints one line per domain with its holder and the tickets behind it, collapsing the idle domains into a single `free` line. Two properties are worth knowing before reading it. It **writes nothing** - unlike `lock-status.ps1`, it never evicts a stale ticket, so a queue entry it shows may be one the next acquire would sweep away; that is why every ticket row carries both its wait and its last heartbeat, and a long wait with a cold heartbeat is an abandoned intent, not a working sibling. And it takes the domain names from `agent-lock-domains.ps1` rather than listing them, which is the fix for what S2170 found: the section had kept naming the two pre-split files that nothing writes any more, so it reported "free" while three domains were held.
 
 `wait-for-lock-turn.ps1` takes a ticket, blocks, and **exits** the moment the turn arrives - its exit is the "your turn" signal, which is the only channel through which an external event returns an agent to work. The ticket deliberately survives that exit: the caller inherits it, protected by the reservation window, and passes it to `Enter-AgentLock -Ticket`. Exit codes: **0** granted, **2** timed out, **3** ticket evicted while waiting, **4** could not enqueue. Do not read the verdict from the exit code a background task reports - that is the exit of the last command in the launch line, and it has already turned a refused build into an apparently green one. Read the marker instead: `temp/<DOMAIN>.TURN-<sessionId>.json`, one per domain of the set, carrying `outcome` (`granted` / `timeout` / `evicted` / `enqueue-failed`), the ticket number and how long the wait took.
+
+**Let the waiter take the lock: `-Acquire`.** Without it the waiter exits on the grant and the lock is claimed by the caller's NEXT call - a model round trip, and that round trip is spent out of the head's reservation window while the lock sits free. Measured on `Code.Scripts` 2026-09-03 from the agent chat: the two handovers where the granted head had to come back through a chat turn left the free lock idle 3m03s and 3m07s, the full `ReservationMinutes`, after which S2194 forfeited the head and the queue moved on; the handovers where the winner was already polling took 9-16 s. `-Acquire` chains `Enter-AgentLock` onto the poll that observed the turn, so a freed domain is held again within one poll interval (5 s) at no token cost, and the caller's `enter-code-lock` re-run becomes a re-entrant no-op - the release is still owed exactly as before. The marker's `outcome` reads `acquired` rather than `granted`. It degrades to a plain wait, with a warning, in the two cases where the lock would outlive the process that took it: a **Build** domain, whose staleness is judged by the acquiring PID (the waiter exits at once, so the lock would read as dead on arrival), and a **`pid-<PID>` session identity**, which makes every later process of the same session a stranger to the lock it just took.
+
+**Carry the ticket in the handoff (S2403).** `enter-code-lock`'s exit-4 message writes `temp/LOCK-HANDOFF/HANDOFF-<..>.json` and prints both follow-up commands with `-Handoff <path>` - the waiter command and the post-grant re-run of `enter-code-lock`. Pass the printed path verbatim. In a runtime with no session id the waiter and the re-run are different pwsh processes and strangers to the first ticket's pid identity, so without the handoff each takes a SECOND ticket for the same intent and the waiter then waits out the reservation window behind its own dead first ticket - observed live as `#1` (enter-code-lock) beside `#2` (waiter) and a grant 3 minutes after the lock freed. An absent, expired or consumed handoff degrades to a fresh ticket, which is the pre-S2403 behaviour.
 
 **Withdrawing a dropped intent (S2098).** The queue has an operation for cancelling your own request, and it is the only remedy for an abandoned ticket:
 
@@ -427,15 +444,19 @@ JAVA_HOME snapshot was stale - refreshed from the persisted User value.
 
 Three properties make this a refresh rather than a silent JVM swap, and all three are deliberate. It **reads the persisted variable rather than choosing a JDK** - it never scans the disk, never reaches for the Android Studio `jbr`, and can only return a value the operator persisted themselves, which is the very value the stale snapshot is a snapshot of. It is **loud**, printing both values and the scope. It **writes nothing outside the current process** - no `setx`, no registry. When there is nothing to refresh (no persisted value, one equal to the snapshot, or one that is itself unusable) the original refusal and its exit 3 are unchanged. The repair buys the session, not a cure: the environment the session inherits still wants fixing, or the next session starts stale too.
 
-Staleness is judged by the holder's own liveness, never by a guessed timeout while the holder is still working. `BUILD.LOCK` has a real process, so it is judged by PID liveness (with a start-time check against PID reuse). `CODE.LOCK` has no process - an editing turn is not one continuous process - so since S1432 it is judged by its owning **session**: a live owner keeps the lock however long the edit takes, because expiring a working session by the clock would hand its turn to the next agent mid-edit. A lock written before S1432 carries no session id and still expires by wall clock, so old files read correctly. A build script that finds `CODE.LOCK` fresh still only warns - it never refuses - so a session that legitimately needs to build while someone else edits cannot be deadlocked.
+Staleness is judged by the holder's own liveness, never by a guessed timeout while the holder is still working. `BUILD.LOCK` has a real process, so it is judged by PID liveness (with a start-time check against PID reuse). `CODE.LOCK` has no process - an editing turn is not one continuous process - so since S1432 it is judged by its owning **session**: a live owner keeps the lock however long the edit takes, because expiring a working session by the clock would hand its turn to the next agent mid-edit.
+
+**What counts as a live session, in order (S2408 fixes the order and adds the first entry).** `Get-AgentTicketLiveness` asks, strongest first: (1) is the owner's own process running, when the id names one (`host-` or `pid-`) - checked against the record's own write time so a recycled pid cannot revive a dead owner; (2) the ticket's `lastSeenAt` heartbeat; (3) the session transcript's write time, which since S2408 means the newest of `<session>.jsonl` **and** `<session>/subagents/**/*.jsonl`; (4) the newest chat line (S2372 ADR-7); (5) the enqueue time. Every one of them can only answer "live" - none of them can make a holder stale that the clock would have kept - so adding a signal never adds an eviction. The subagent subtree is there because a session that delegates writes nothing to its own transcript for the whole run: measured 2026-09-03, a six-minute gap on a session editing continuously, and the day before, eleven such minutes cost a live session its `Code.Scripts` lock at the ten-minute window while a sibling took the domain on top of it. `Get-LeaseQuietMinutes` reads signals 1 and 3 through the same two helpers (`Test-AgentIdentityProcessAlive`, `Get-AgentSessionTranscriptLastWrite`), so the lease and the lock cannot disagree about one session (S1621). A lock written before S1432 carries no session id and still expires by wall clock, so old files read correctly. A build script that finds `CODE.LOCK` fresh still only warns - it never refuses - so a session that legitimately needs to build while someone else edits cannot be deadlocked.
+
+**Unnamed holders carry a `pid-NNNN` owner (S2371).** A session whose environment has no session id is stamped on the lock through the same accessor the queue ticket uses, so the lock and the ticket of one acquisition name the same `pid-NNNN` identity instead of diverging into `null` versus `pid-NNNN` - the divergence made a session unable to recognise its own lock and queue behind itself. A pid identity lives exactly one pwsh process, while acquire and release are deliberately different processes, so the owner-checked release treats an unnamed holder's lock as releasable by an unnamed caller (the pre-S2371 advisory semantics - a null owner was releasable by anyone) and as untouchable by a NAMED session until staleness takes it. Liveness for a pid owner has no transcript and degrades to the heartbeat/wall-clock chain, which also bounds how long an abandoned unnamed hold can block a domain.
 
 A third shared file follows the same family but keys ownership differently (S1396): the round state of `/spec-next` and `/spec-do`. Its owner is an agent session, not an OS process, so PID liveness cannot apply - `scripts/spec_catalog/spec-next-session.ps1` stamps `owner.sessionId` from `CLAUDE_CODE_SESSION_ID` and reads liveness off that session's transcript write time (`-StaleMinutes`, default 45). Every verb warns and writes anyway, the `CODE.LOCK` model. No session id in the environment -> ownership is undefined and all of it is a no-op.
 
 **Parallel picker sessions (S1437).** Two or three `/spec-next` / `/spec-do` sessions now run at once in one working tree. Three things make that safe, and each replaced a different blocker:
 
 - **Round state is per session** - `temp/spec-next-session.<sessionId>.json`, one file each. The old single file's `-Verb Init` refusal (exit 4) is gone; that code is retired and not reused. A pre-S1437 `temp/spec-next-session.json` is adopted into the per-session path on the first `Resume`.
-- **A ticket lease stops two sessions working the same ticket** - `scripts/spec_catalog/ticket-lease.ps1`, one file per lease under `temp/SPEC-TICKET.LEASES/`. A claim is an atomic `CreateNew`, so of two sessions racing for one ticket exactly one wins; the loser gets **exit 3**, which is a normal outcome - it re-ranks with that id excluded and takes the next ticket, it does not wait. Release is owner-checked (**exit 4** refuses to free a live sibling's lease). Expiry follows the owning session's liveness with an independent 480-minute ceiling, and a stale lease is swept by whoever reads next - no watchdog, same as the queue. **S1448 widened what counts as alive**, because a preflight once offered S1436 as unleased while the owning session was demonstrably working it: a lease now carries its own `lastSeenAt`, refreshed on every verb its owner runs, and a session holding any code or build domain with a reason naming the ticket id counts as live on that evidence alone - the evidence is scanned across **every** domain, plus the two pre-split names, because after S2109 a session holding `Code.Wear` writes no file under the bare name and a check looking only there would read a working session as abandoned and sweep it. The 480-minute ceiling still judges `claimedAt` and neither signal extends it. `spec-next-preflight.ps1` consumes the lease set as an extra exclusion source and leaves its five sort keys alone, so the owner's release-plan order still decides who gets what.
-- **A killed flow leaves its leases behind, and the sweep will not take them for 45 minutes** - deliberately, because that window is sized for a working session that writes nothing while it thinks. `.\a.ps1 ul` (`ticket-lease.ps1 -Verb Clean`) judges on live evidence instead: a lease survives only while a running headless child names its ticket, its owner holds any code or build domain naming it, this session owns it, or its owner's transcript moved within `-QuietMinutes` (2). Everything else is litter and goes, with the reason printed per lease. `-Force` drops the lot. Use it after `.\a.ps1 rs -Kill`, never as a way to take a ticket a sibling is working.
+- **A ticket lease stops two sessions working the same ticket** - `scripts/spec_catalog/ticket-lease.ps1`, one file per lease under `temp/SPEC-TICKET.LEASES/`. A claim is an atomic `CreateNew`, so of two sessions racing for one ticket exactly one wins; the loser gets **exit 3**, which is a normal outcome - it re-ranks with that id excluded and takes the next ticket, it does not wait. Release is owner-checked (**exit 4** refuses to free a live sibling's lease). Expiry follows the owning session's liveness with an independent 480-minute ceiling, and a stale lease is swept by whoever reads next - no watchdog, same as the queue. **S1448 widened what counts as alive**, because a preflight once offered S1436 as unleased while the owning session was demonstrably working it: a lease now carries its own `lastSeenAt`, refreshed on every verb its owner runs, and a session holding any code or build domain with a reason naming the ticket id counts as live on that evidence alone - the evidence is scanned across **every** domain, plus the two pre-split names, because after S2109 a session holding `Code.Wear` writes no file under the bare name and a check looking only there would read a working session as abandoned and sweep it. The 480-minute ceiling still judges `claimedAt` and neither signal extends it. `spec-next-preflight.ps1` consumes the lease set as an extra exclusion source and leaves its five sort keys alone, so the owner's release-plan order still decides who gets what. **S2404 gave the claim a handoff for no-session-id runtimes** (ZCode, a plain shell, cron), where every pwsh invocation is its own "session" and the claiming pid is unreachable from the next one: every successful Claim writes `temp/LEASE-HANDOFF/LEASE-HANDOFF-<Sxxxx>-<stamp>-<pid>.json` and prints the path (a `lease handoff:` line through `spec-preamble.ps1`), and later invocations pass `-Handoff <path>` so a re-claim refreshes the heartbeat as `already-mine` and a release proves succession instead of hitting **exit 4** until the 45-minute window expires; an expired or foreign handoff is ignored and today's semantics apply. `spec-preamble.ps1` both prints that path and **accepts** one, because it is the single call `/spec-dev` claims through: with the CLI alone repaired, two preamble runs under different pid identities still measured exit 0 then exit 3, which is the ticket's own symptom surviving on the path most drivers use.
+- **A killed flow leaves its leases behind, and `.\a.ps1 ul` (`ticket-lease.ps1 -Verb Clean`) is what clears them** - with two keep-signals the plain sweep does not have: a running headless child naming the ticket, and the owner holding any code or build domain naming it. Everything else is judged by **the same verdict and the same window as Claim** (`SessionStaleMinutes`, 45), which is **S2407** and is the correction of a real incident: Clean used to carry a two-minute window of its own, so one script answered "held by a live session" (Claim, exit 3) and "litter" (Clean) about one lease at one moment, and a live interactive VS Code session - mid-generation, holding no lock because it had just released one for its siblings, with no headless child to vouch for it - lost S2406 to a sibling that had read its chat and seen it speak two minutes earlier. A chat line still only ever **extends** a life (S2372 ADR-7): a lease the shared verdict calls stale is kept anyway while any single signal - heartbeat, transcript or chat - is inside the window. Each drop prints the session it was taken from and that session's last chat lines, and posts `dropped Sxxxx held by <name>` so the victim reads it at its own next refusal. **`-QuietMinutes` below 45 is refused (exit 2)** unless `-Force` is also passed, because narrowing the window redefines "dead" for somebody else's lease; `-Force` alone is the right tool after `.\a.ps1 rs -Kill`, since its contract is a supervisor that watched the processes exit. Never a way to take a ticket a sibling is working.
 
 - **Catalog journal writes are serialized** - `Enter-CatalogLock` / `Exit-CatalogLock` (and the `Invoke-CatalogTransaction` wrapper) in `scripts/spec_catalog/_lib.ps1` hold a named system mutex across **read -> mutate -> write** in every mutator, id allocation included. The write was already atomic by temp-file rename; the failure it fixes is the lost update, where two processes hold the same snapshot and the later write silently drops the earlier change. A mutex rather than a lock file because a journal rewrite is milliseconds, and it dies with its process so a crashed holder cannot wedge the catalog.
 
@@ -457,6 +478,94 @@ pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -
 ```
 
 **Resuming across a context reset.** A reset gives the resuming agent a *new* session id, so the round it is resuming is always filed under the old one - and to a liveness test that old session looks alive, because its transcript was written seconds ago. Liveness alone therefore cannot tell "just stopped, waiting to be picked up" from "a sibling working right now". `-Verb Handoff` (which the threshold stop already runs) stamps `handoffAt` on the state, and `-Verb Resume` adopts only a round that is either stamped or whose owner has genuinely gone stale. Without that marker resume would either lose the round or steal a sibling's - there is no third answer available.
+
+#### Agent chat - S2372
+
+The fourth coordination layer, and the only one with no rights: it grants nothing, forbids nothing and owns nothing - it tells. The locks, queues and leases answer "busy or free"; the chat answers "busy with what, since when, and is the holder still talking".
+
+Two streams, deliberately separate, under `temp/AGENT-CHAT/` (one file per message, atomic create, never a shared file with five appenders):
+
+- `progress/` - what a session is doing now: `kind` from a closed list (`session`, `phase`, `lock`, `wait`, `ticket`, `status`, `verdict`, `check`, `build`, `device`, `abandon`, `heartbeat`, `note`), ticket, phase, domains, one line of prose. Kept 180 minutes - a successful ticket run fits in 90 (max over 326 journal rows, 2026-09-02) and the successor of a dead session arrives no sooner than the lease's 45-minute stale window, so the last trace outlives both. The last message of a session that died is where it stopped.
+- `findings/` - a result: a measurement, an answer, an environment state. Carries a `topic`, evidence (command, exit code, artifact) and a **scope** - up to 16 repository paths whose change makes it wrong. A finding is dead when anything in its scope was written after it, when its TTL passed (default `SpecTicket.TicketCeilingMinutes`, 480), or when the device it names is not in `adb devices` (adb missing counts as gone). The clock is never the truth; the scope is. Measured 2026-09-02: enumerating `app_v2/src` (4,881 files) costs 241 ms, against the 14-32 s a fast check a finding lets a session skip costs (S2451 re-measured `fg` at 32 s).
+
+Who writes, without costing a token: `Enter-AgentLock` / `Exit-AgentLock` (`lock`), `enter-code-lock.ps1` and `Enter-BuildLockOrExit` when queued (`wait`), `ticket-lease.ps1` (`ticket`), `update.ps1` (`status`), `post-change.ps1` (`verdict`), `assert-release-scope-gates.ps1` on green (finding `gates:release-scope`, scope `app_v2/src`, `wear/src`, `scripts`, `docs`, etc.), `device-ready.ps1` on READY (finding `device:<serial>`, TTL 60, carrying its canonical request string, dies with the serial), and the `post-agent-chat-session.ps1` hook at session start and end (`session`). The model owes three lines: a phase start (`/spec-dev`), a stage boundary (`/spec-all`), giving work up (`-Kind abandon`).
+
+Who reads, and where: the refusal is the moment - `enter-code-lock.ps1` (exit 4) and `ticket-lease.ps1 -Verb Claim` (exit 3) print the holder's last three lines under their own verdict; `spec-next-preflight.ps1` adds `last_chat` to every `leased_ids` entry; `monitor-spec-queue.ps1` (`.\a.ps1 rm`) has an "agent chat" section. Nothing polls.
+
+```powershell
+# What is everyone doing (one row per agent in the window; SILENT past SpecTicket.SessionStaleMinutes)
+pwsh -NoProfile -File ./a.ps1 chat -Verb Status
+
+# The last lines of one holder (the id the refusal printed)
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Read -AgentId <id> -Last 5
+
+# Check live device or release-scope findings (-Query searches by bare keyword)
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Find -Topic "device:*"
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Find -Topic "gates:release-scope"
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Find -Query "release-scope"
+
+# Post the three lines only the model knows
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Post -Kind phase -Ticket S1234 -Phase 02 -Note "writers"
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Post -Kind abandon -Ticket S1234 -Note "drift needs the owner"
+
+# A finding of your own: scope and/or TTL is mandatory - a record nothing can invalidate is refused
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Post -Finding -Kind check -Topic "catalog:app_v2" -Scope app_v2/src/main/java -Note "catalog_sync fresh" -EvidenceCommand "catalog_sync.ps1" -EvidenceExit 0
+```
+
+Exit codes of `agent-chat.ps1`: **0** done, **1** refused input (unknown kind, a finding with neither scope nor TTL, a scope over 16 paths), **2** usage or store unreachable.
+
+**Opt-in reuse (S2409).** A consumer calls `Get-AgentChatCoveringFinding` (in `scripts/utils/agent-chat-store.ps1`) to check if an alive finding matching its canonical request string exists. `device-ready.ps1 -ReuseFinding` reuses any live READY finding for the requested device and options. `assert-release-scope-gates.ps1 -ReuseFinding` reuses only findings written by the caller's own session (`-OwnAgentOnly`).
+
+**Trust rule (CLAUDE.md Rule 34).** The chat decides nothing. No lock, queue or lease consults it to grant anything - the correctness of the existing coordination rests on atomic acquisition, and a decision taken on the content of a file another process writes reopens exactly the race five tickets closed. No verdict that reaches a spec or a gate may rest on a finding someone else wrote: a ticket's closure runs its own checks. What a finding may do is spare an agent cheap idempotent **work** - a release-scope gate run whose scope is intact, a READY device probe - and the agent that skipped names the finding in its output. *A finding relieves you of work, never of the report.*
+
+**Identity.** One chain in `scripts/utils/agent-identity.ps1`: `FMS_AGENT_ID`, then `CLAUDE_CODE_SESSION_ID`, then the ancestor host process `host-<name>-<pid>-<startTicks>` (S2408), then `pid-<PID>`; `runtime`, `model` and `instance` come from `FMS_AGENT_RUNTIME` / `FMS_AGENT_MODEL` / `FMS_QUEUE_INSTANCE` or read `unknown`, never empty. `Get-AgentSessionId` in the lock library reads the same chain, so a lock, a queue ticket, a lease and a chat line name one agent identically (the S2371 lesson) - and since S2408 so do `New-AgentLockTicket`, the post-acquire ticket sweep, `lock-status.ps1`, `wait-for-lock-turn.ps1`, `wait-for-ticket-work.ps1`, `withdraw-lock-ticket.ps1` and `session-bootstrap.ps1`, each of which used to read the raw variable and substitute its own `pid-<PID>`. A subagent inherits its parent's session id (measured 2026-09-02) and so is its parent unless it sets `FMS_AGENT_ID`.
+
+**The host walk, and what it costs.** Step 3 exists because step 4 cannot identify a session: a runtime that starts a fresh shell per command gets a new pid each time, and one measured hour on 2026-09-02 produced 46 identities and 46 nicknames for a single session - whose lease looked dead within a minute, whose ticket a sibling then took, and whose every release was forced. The walk climbs `(Get-Process -Id $PID).Parent` past shells and interpreters (`pwsh`, `cmd`, `bash`, `node`, `python`, `git`, `conhost`..) to the first process that outlives a command. Reaching a machine-wide process (`explorer`, `svchost`, `services`..) **adopts the ancestor one step below it** (S2417), because that ancestor is the root of a single session's tree and not the machine's - the owner's three `a.ps1 r1/r2/r3` queue runners, all started from one `explorer`, give three different roots. The machine-wide process itself is still never the identity, so one identity for every session on the box remains impossible. Only a walk with nothing to adopt returns the pid fallback: a trail that ended because the parent had already exited, or the depth bound - adopting there would mint a `host-` id that lives one command. Every identity carries the outcome as `hostWalk` (`resolved`, `adopted-below-<name>`, `no-host-below-<name>`, `no-host-trail-lost`, `no-host-depth`, `disabled`, `not-reached`), and since the identity object is embedded whole in every chat message the outcome lands in files that outlive the process - which is exactly what the S2417 investigation lacked, both failing processes having exited before anyone looked. `startTicks` stops a recycled pid from naming the wrong process. Measured on the owner's machine: the whole warm walk 0.42 ms average, against 118 ms for a **single** step through `Get-CimInstance` - which is why it is the property, not CIM. Two chats inside one host process share one identity: accepted, and the reason a hookless runtime should still set `FMS_AGENT_ID` first. `FMS_AGENT_HOST_WALK=0` disables the walk.
+
+```powershell
+# Which of the four steps am I on right now?
+pwsh -NoProfile -File scripts/utils/agent-chat.ps1 -Verb Whoami
+```
+
+**Nickname (owner ruling 2026-09-02).** An id is a uuid or a pid, and the owner reading the chat cannot tell two of those apart, so every agent speaks under a readable name: `<adjective>-<animal>-<MMdd>-<HHmm>` (32 x 32 words plus the minute it was taken, e.g. `brisk-otter-0902-2231`). It is taken once per session, at the first identity resolution - the session-start hook for Claude Code, the first script run for anyone else - and kept in `temp/AGENT-CHAT/names/<id>.json` (created with `FileMode.CreateNew`, so two processes of one session cannot take two names), which is why every later process of the session answers with the same name. `FMS_AGENT_NAME` overrides it; `.\a.ps1 chat -Verb Whoami` prints yours. Every chat line, `-Verb Status`, the monitor and the refusal context print the name with the id beside it in brackets; scripts keep comparing ids only, because two agents can draw the same name in the same minute and identity comparison is exactly where S2371 already diverged. Name files nobody has touched for seven days are swept with the rest.
+
+**Liveness.** The owner's newest chat message is the fourth signal in `Get-AgentTicketLiveness` and in the lease's quiet-time - after the ticket heartbeat and the transcript, before the enqueue time. It can only extend a life, never shorten one: a Claude Code session in a half-hour of reading writes no chat line and is still judged by its transcript; a runtime without a transcript is judged by what it said rather than by the clock alone.
+
+**Any runtime.** Files plus one script are the whole transport. Claude Code's hooks are an accelerator: they post session start and end for free. A runtime without hooks posts those two lines itself (`AGENTS.md` section 9.1) and gets everything else - every lock, lease, status and verdict line - from the scripts it already runs. The rule is numbered in `CLAUDE.md` so `assert-rule-digest-sync.ps1` refuses a digest that forgets it; no second gate exists for that.
+
+**Sweeping.** Every write and every read starts with the sweep: progress past retention, findings past expiry, both streams past their caps (400 / 200, oldest first), stale `.tmp` files. The TURN-marker pile (S2405) is the precedent this exists to avoid. Contract suite: `scripts/utils/agent-chat.tests/Run-Tests.ps1`; hook suite: `.claude/hooks/tests/Run-PostAgentChatSession-Tests.ps1`.
+
+
+#### Development monitor page - S2406
+
+The second render of the queue monitor: what `.\a.ps1 rm` prints, in a browser tab that stays current on its own. It exists because the terminal snapshot is longer than a screen the moment three instances and a handful of agents are busy, and because a page can say "silent", "stale" and "queued" in a colour and a word where the terminal has only a number. English throughout, one monospace face, tables and rows, no animation - the owner's ruling of 2026-09-02 - and a lot of data: every section of the terminal plus the agents with their nickname, lease and phase, the current package of `PLAN/RELEASE_QUEUE.md` in file order with the `[taken ..]` marker, the newest chat lines and the alive findings.
+
+One collector, two renders (S1621): `scripts/utils/dev-monitor-snapshot.ps1` is the only code that reads the sources - leases (judged by the same `Get-AgentTicketLiveness` the lease script uses, in-process instead of through a child pwsh), locks and queues, chat, journals, stop flags, headless children, the release queue - and returns one object (`schema` 1) with its own `durationMs`. `monitor-spec-queue.ps1` prints it; `-Json` emits it verbatim; the page renders it. It writes nothing: every chat read passes `-NoSweep`, no lock, no chat post, no child process. Measured 2026-09-02 on the live tree: 476-518 ms cold, 209-230 ms warm (median 229), against a 1000 ms budget - one third of the 3 s interval - and the 1176 ms the old terminal snapshot took with its 434 ms lease child.
+
+Two files under `temp/monitor/`, both written by `scripts/utils/dev-monitor-writer.ps1`:
+
+- `index.html` - the shell: inline CSS, inline renderer, no external reference. Written once per writer start.
+- `snapshot.js` - the data: `window.__devMonitor({..})`, replaced every 3 s through a temp name and `Move-Item`, so the browser never reads a half file.
+
+Why two files and no server: `fetch` and XHR from a `file://` page are refused by CORS in Chrome, Edge and Firefox, but a classic `<script src>` from the same directory is not. The shell appends `<script src="snapshot.js?t=<now>">` every interval and repaints the tables in place - no reload, no flicker, no lost scroll position, and no process whose death would blank the page; a dead writer leaves the last snapshot and an honest age. Two consecutive load failures fall back to `location.reload()`. The header recomputes the snapshot age from the page's own clock every second and says `fresh`, `writer silent` (three intervals without a new snapshot) or `writer stopped` (the writer's last snapshot said so) - a word beside the colour, so it reads without colour.
+
+```powershell
+pwsh -NoProfile -File ./a.ps1 rmw             # start the detached writer, open the page once
+pwsh -NoProfile -File ./a.ps1 rmw -Status     # pid, page path, snapshot age
+pwsh -NoProfile -File ./a.ps1 rmw -Stop       # STOP flag, then Stop-Process after three intervals
+pwsh -NoProfile -File ./a.ps1 rm -Json        # the snapshot object, for any other viewer
+pwsh -NoProfile -File scripts/utils/dev-monitor-writer.ps1 -Once -OutDir temp/scratch/monitor   # one shell + one snapshot, no loop
+```
+
+The writer runs through `start-detached.ps1 -OutDir temp/monitor` (S2400), so it outlives the shell and the session that started it; `writer.pid` refuses a second instance (a second `rmw` prints the running pid and opens the page again); `-Stop` creates the `STOP` flag the loop reads between ticks. It takes no lock and posts nothing to the chat - it is a viewer, not an agent - and writes nothing outside its directory. Exit codes of the writer: **0** done, **1** could not start (launcher failed, no first snapshot within 15 s, another writer alive), **2** `temp/` missing. Contract suites: `scripts/utils/dev-monitor-snapshot.tests/` (snapshot fields, read-only proof, terminal `-Json` parity) and `scripts/utils/dev-monitor-writer.tests/` (shell self-containment and no-animation, start / second start / ticks / stop lifecycle, nothing new at the top level of `temp/`).
+
+#### Rule 23 history - the measurements behind the domain test, the content-tree decision and the edit-only window (moved off CLAUDE.md by S2521)
+
+The rule itself is `CLAUDE.md` Rule 23; this is the text it used to carry inline, kept verbatim so a reader who wants the reason finds it where the mechanism is documented rather than paying for it on every request.
+
+Five domains exist and `scripts/utils/agent-lock-domains.ps1` is their only home: `Build.Phone` and `Build.Wear` for gradle, `Code.Phone`, `Code.Wear` and `Code.Scripts` for edits - so a watch edit and a phone edit proceed at once, and so does a scripts edit beside either. Pass the changed set and let it map: `enter-code-lock.ps1 -Files "<paths>" -Reason "<ticket/skill>"`; a gradle entry point derives its domain from the module it already builds, and every script invoking `gradlew`/`gradlew.bat` acquires via `Enter-BuildLockOrExit -Domain <..>` and releases the same set after success or failure. `enter-code-lock.ps1` exits **4** meaning "queued, not yet your turn - do not edit sources yet". **The waiting contract, which no script can enforce for you:** when queued, run `pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name <domain> -Reason "<why>"` as a **background** task - its exit is the "your turn" signal, a multi-domain wait is granted only when you are head in *every* domain of your set - and keep working on what needs no lock: reading, research, specs, catalog, log analysis. The exit-4 message prints both follow-up commands with `-Handoff <path>` (S2403): pass that path - in a runtime with no session id the waiter and the post-grant re-run are strangers to the first ticket, and without the handoff each takes a second ticket for the same intent and the waiter waits out the reservation window behind its own dead first ticket. **The test is not "is it source" but "is this path already serialised by something finer" (S2338)** - the domain lock exists to order what nothing else orders, so a path another mechanism already makes exclusive does not need it, and a path nothing else covers does. By that test: sources, resources, build files, repository scripts, `.claude/`, `.github/`, documentation under `docs/` and notes under `dev/` need the lock, because they are hand-edited with nothing finer over them - and so do the content trees `play/`, `fastlane/`, `store_assets/`, `delivery/` and `maestro/` plus the root site pages, documents and icons, which since S2342 take `Code.Scripts` instead of falling through to the full set: none of them compiles, links or packs into an APK, so serialising phone and watch work against a store-listing edit protected nothing, and measured 2026-09-02 that was 8 of the 11 recent full-set acquisitions. Fail-closed keeps the rest: `corex/` and the modules `benchmark/` and `watchface/` still take every code domain, the last two because giving a module a code domain without a `Build.*` domain is a boundary decision this did not make. `PLAN/` does **not**, and is the table's one exemption: a spec file and its phase folder belong to exactly one ticket, held exclusively by `ticket-lease.ps1`, and the journals plus both release files are written only through the catalog mutators, which all hold the catalog's own mutex. A PLAN-only changed set therefore resolves to no domain at all and `enter-code-lock.ps1` exits 0 with nothing to release - measured 2026-09-02, that is 55% of recent closures, each of which used to take a domain that protected nothing. **The window is the edit and nothing else (S2419):** it opens immediately before the first edit of a step and closes the moment that step's last file is written, released by your own `exit-code-lock.ps1` rather than by whatever runs next. Everything after that edge runs unlocked - the verification predicates, `plan-tick.ps1` (a `PLAN/` write takes no domain anyway), the phase's `Project compiles` build, which `Build.*` already serialises on its own, the unit suite, the `post-change.ps1` gate batch, the dev log, the catalog. "Release it right after" was the whole of this rule until 2026-09-03 and did not say after *what*, so three texts each answered differently and all three answered "after the closure": `/spec-dev` step 6a and its reference both promised `post-change.ps1` would release at step 10, and this script's own help repeated it. Measured over `temp/AGENT-CHAT` for 2026-09-02 21:30 .. 2026-09-03 01:20 - 112 lock events, 51 closed acquire/release pairs - that cost a 95 s median hold on `Code.Scripts` with a 703 s maximum, of which the closure's own gate batch was 19.0-48.8 s; all 51 queue waits in the window were on that one domain and it reached ten deep. `post-change.ps1` still releases, since S2419 before its gates instead of after them, but only as the backstop for a run that ended early. Withdraw a dropped intent with `pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name <domain>`, or `.\a.ps1 uqb` / `uqc`; only the granted-but-unclaimed head self-heals (S2194). Inspect the order with `lock-status.ps1 -Name <domain> -Queue`, which prints one section per domain when given a bare `Build` or `Code`. A pre-split `temp/BUILD.LOCK` or `temp/CODE.LOCK` still holds **every** domain of its type until its owner releases it. Ticket ownership, eviction, the head-of-queue reservation, the outcome marker (never trust a background task's exit code) and re-entrancy: `docs/DEV_OPS.md` "Concurrent-agent locks".
+
+The lock window text above superseded "release it right after", which had been the whole of the rule until 2026-09-03 and did not say after *what*.
 
 ### Shared-state mutation audit (S0703)
 
@@ -750,6 +859,24 @@ The rules live in the shared registry (`scripts/quality/lib/source-matchers.ps1`
 Every ratchet baseline in this repository is enforced by the same runner in two different senses, and the difference is the whole point:
 
 - **The per-ticket closure judges the named file set.** `post-change.ps1 -ScopeToFile` hands the runner `-ChangedFiles`, which puts it in delta mode: each file's working copy is counted against its own `HEAD` version, and only growth fails. This is what keeps a closure from going red on a sibling session's in-flight work (S1338).
+### The gate placement review (S2537)
+
+`assert-release-scope-gates.ps1` ends with `measure-gate-frequency.ps1 -Placement`, printed as a report and never as a gate. It reads `temp/metrics/gate-executions.jsonl` and gives every gate its executions, findings, **median** run, typical total (median x executions) and cost per finding, marking the rows worth re-judging by CLAUDE.md Rule 33. It is advisory on purpose: the runner collapses every non-zero code to FAIL, and a candidate is a row a human then judges by the four-part test, whose exceptions - later work builds on the defect, the evidence exists only at the moment of the change, agents read the artifact between releases - no arithmetic over this journal can see.
+
+**Read it by the median.** Ranked by the mean, `detekt-gate` was the largest cost in the repository: 86 398 s over 751 runs, 54% of all closure gate time. Its median is 11 ms - the clean-verdict cache answers almost every call - and 88.9% of that sum came from ten runs, one journalled at 34 711 s (9.6 hours), which is a stall and not analysis (parked as S2538). The cost floor is therefore applied to median x executions and never to the observed sum, so one stall can neither nominate a gate nor hide one. The observed sum is still printed beside it, because the gap between the two IS the stall signal.
+
+Measured over 2026-08-24..2026-09-04 (69 647 records), the honest per-closure ranking is `settings-doc-sync-gate` 42.5 s, `script-suite-regression` 13.7 s, `catalog-sync` 10.6 s, `fgs-notification-gate` 5.7 s over 1022 closures, `resource-link-gate` 5.8 s, `ctor-arg-slots-gate` 5.1 s. `settings-doc-sync-gate` takes the `Build.Phone` domain lock for its manifest-regeneration stage, which is why its p90 is 154 s and its maximum 564 s against that 42.5 s median: a rank-and-file closure queues behind a sibling session's build.
+
+### A closure step waits under a ceiling (S2538)
+
+**No step of a closure waits without a limit, and an exhausted limit is exit 2 - never PASS and never FAIL.** The contract is S1338's, written after one `post-change.ps1` run hung for three hours and still reported PASS; `scripts/utils/process-timeout.ps1` bounds the process, and S2538 extended the same rule to the two places the closure waits for something other than a process.
+
+**The ceiling sits on the join, because the child already carries its own.** `assert-detekt.ps1` caps its `Build.Phone` queue wait at 900 s and its gradle run at 600 s, so the detekt child cannot exceed roughly 1500 s - and yet `detekt-gate` was journalled twice at **34 711 s (9.6 hours)**. That time was not spent in detekt. It was spent in `Receive-Job -Wait`, which had no ceiling, so a gate obeying its own limit was awaited by a closure that had none. Both joins now wait at most 1800 s - `Wait-Job -Timeout`, because `Receive-Job` carries no `-Timeout` on pwsh 7 - in `scripts/quality/lib/gate-pool.ps1` for the sixteen pooled gates and at the `detekt-gate` call site for detekt. A `MISSING` row for `detekt-gate` therefore means the join timed out, not that a gate is absent.
+
+**The journalled duration is the work, not the wait.** A pooled child times itself and hands the number back through `Get-PooledElapsedMs`; the detekt job now does the same. Without it the wrapper's stopwatch measured the join - 11 ms on a healthy closure, because the job had long finished, and hours on a stalled one. Both numbers describe waiting, and the column is read as the cost of the analysis.
+
+**A row names the run that wrote it.** `runId` in each telemetry record answers what the two stalls could not: they were journalled as a `PASS` row and a `FAIL` row for the same gate 23 ms apart with identical durations, and nothing distinguished one run reporting twice from two runs released by one event. `measure-gate-frequency.ps1 -Placement` now names any gate a single run reported more than once, and stays silent for the history written before the field existed.
+
 - **The release-scope run judges the whole tree.** `assert-release-scope-gates.ps1` invokes the same runner with no `-ChangedFiles` at all, so it compares each rule's project-wide count against its committed baseline. `/spec-prerelease` step 0.4 is the only mandatory path that reaches it.
 
 **Why the second run had to exist.** Delta mode is fail-closed for a brand-new file - absent from `HEAD`, so every hit in it counts as new - which makes the predicate look airtight. It is not, because a file the author never names is judged by neither mode. Measured 2026-08-27: `layout-hardcoded-dimens` stood at 1899 against a baseline of 1893 in **committed** `HEAD`, with all five layout directories clean in the working tree. The six literals sat in three layout files created after the baseline commit, and every closure that carried them was green. No per-file logic can close that hole - only a run that looks at files nobody named.
@@ -894,8 +1021,17 @@ compiles the instrumented set; it does not run it. **`.\a.ps1 fam` runs it** - e
 comparison happens before a user's phone performs it.
 
 ```powershell
-.\a.ps1 fam          # needs a connected device or emulator; long, background it
+.\a.ps1 fam -DeviceId emulator-5554   # needs a connected device or emulator; long, background it
 ```
+
+**Name the device (S2363).** AGP's connected task carries no device argument and installs on every
+device `adb devices` reports, so with the owner's phone plugged in beside the emulator it went to the
+phone too - on 2026-09-02 it tried to install the app there and to uninstall the test APK, and the whole
+run failed on the phone's refusal. `fam` and `fwm` now take `-DeviceId <serial>` (defaulting to
+`ANDROID_SERIAL`), pin the run to it, and print `Device: <serial>` in the banner. With several devices
+attached and none named, the target **refuses and lists them** rather than fanning out - the target
+device is resolved through `scripts/devtest/device-ready.ps1`, which is also what knows about a device
+a sibling session leased. One attached device is still used without being named.
 
 Static half, in every closure that touches `data/local/db`, an exported schema or `DatabaseModule.kt`:
 `assert-migration-schema-conformance.ps1` (the SQL against the schema JSON) and
@@ -916,6 +1052,8 @@ pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial
 - **A watch must be attached.** The prepare step reads `ro.build.characteristics` and refuses anything without `watch`, because both modules publish under one application id and a run that landed on the phone would report a confident verdict about the wrong build.
 - Run artifacts land in `temp/scratch/wear-prerelease/`: `artifact.json` (what was built and judged), `walk.json` (per-screen outcome plus the log audit's code), `wear_session.log`, and a screenshot and UI dump per screen.
 - The content gates common to both modules run from `scripts/quality/assert-prerelease-content-gates.ps1`, which the phone sweep calls as well - adding a gate there covers the watch without editing either command file.
+- The declared screen list `scripts/devtest/wear-prerelease-screens.json` is gated by `scripts/quality/assert-wear-walk-contract.ps1` with the ratchet baseline `scripts/quality/wear-walk-contract-baseline.txt`. It binds every entry to the screen it opens and the string resource it expects, and refuses a `*Screen` that is neither walked nor excluded with a reason. It runs per ticket in `..ps1 fg`, not on the sweep: the subject is a wear string, so a rename has to fail in the ticket that made it (S2547).
+- The walk refuses to report screens it could not have seen: it requires `mWakefulness=Awake`, manages ambient mode for the duration and restores it, and returns 2 rather than a list of failures when the watch will not wake.
 
 ## OCR OVERLAY ACCURACY CORPUS (S1716)
 
@@ -1144,6 +1282,57 @@ Two facts a reader cannot derive from the commands:
 - **Documentation prose carries no gate on purpose.** Measured 2026-08-14 (S1544): 134 of 137 files under `docs/` were clean without one, and the three that were not are the gitignored `FEATURES_noLegal*` showcases, which are never published. A gate would cost every run and defend a surface where nothing accumulates. S1340 §5 forbids growing the `assert-*` inventory for cosmetics, and this ticket shrank the script count by four rather than adding to it.
 - **The `ResourceValue` area skips values that are wholly machine-readable** - a URL, a path, a bare format placeholder - because a literal `...` inside an address is part of the address. That path test demands printable ASCII end to end: Chinese and Japanese set no spaces between words, so "no whitespace and contains a slash" on its own matched whole CJK sentences and left them unfixed.
 
+## THE PROCESS HARNESS COMES FROM THE CANON (S2402)
+
+The ticket journal and its closing gates, the domain locks, ticket leases, agent identity, the agent
+chat, the change journal, the document registry, the batch queue runner, the capability ledger and
+the command-alias generator are no longer authored here. They ship with the `sza` canon plugin as
+`tools/harness/`, and this repository consumes them - the same move Rule 24 records for the guard
+hooks, with a bigger subject.
+
+**Nothing you type changes.** Every path those scripts had is still there and still works:
+`scripts/spec_catalog/select.ps1`, `scripts/utils/enter-code-lock.ps1`, `scripts/add_to_dev_log.ps1`
+and the other 74 are **generated forwarders** (77 in `scripts/utils/sza-forwarders.manifest.txt`),
+each a block of resolution plus a call - 30 to 113 lines, most of them near the upper end since S2452
+made the third candidate resolve lazily and in a child scope. The
+forwarder is what resolves the shipped copy, because the plugin cache path carries both the home
+directory and the plugin version - `~/.claude/plugins/cache/sza-unified-rules/sza/<version>/tools/harness`
+- so no call site could name it and stay correct across an update. Resolution order, first hit wins:
+`SZA_HARNESS_ROOT`, the plugin cache's newest version, then `SZA_CANON_ROOT`. A forwarder that
+resolves none of the three exits **2** naming all three and printing
+`claude plugin update sza@sza-unified-rules`.
+
+**The third candidate's machine default is written in exactly one place** - `Get-CanonRoot` in
+`scripts/utils/project-paths.ps1`, currently `P:\WEB\sza-unified-rules`. Move the canon checkout and
+that function is the only edit; a forwarder asks for the value rather than knowing it, and only when
+candidates 1-2 both miss, which on this machine they never do. It used to be written in 76 places,
+74 of them files marked `GENERATED - do not edit`, which is what S2452 measured and removed.
+
+**What this repository configures lives in `.sza-profile.json` at the root, and nowhere else.** The
+roots under `PLAN/` and `temp/`, the `Sxxxx` grammar, the thirteen statuses, the five lock domains
+with their path rules, the `Timber.d("Sxxxx: ..")` probe shape, the queue runner's model policy, the
+status -> command map, the ledger's `flavors` dimension and the site's locales are all fields there.
+Editing a harness script body is the wrong move twice over: it is overwritten by the next plugin
+update, and it never reaches the other projects.
+
+- **Regenerate the forwarders** after a plugin update that adds or renames a harness script:
+  `pwsh -NoProfile -File scripts/utils/install-sza-forwarders.ps1`. The set it writes is
+  `scripts/utils/sza-forwarders.manifest.txt` (local path | harness path, one per line); `-Restore`
+  puts the pre-forwarder copies back from `temp/sza-forwarders-backup/`, and `-WhatIf` lists without
+  writing.
+- **A forwarder serves two shapes**, because half this set is dot-sourced as a library and half is
+  invoked as a CLI: it branches on `$MyInvocation.InvocationName -eq '.'`. It also maps a child that
+  THROWS to exit 1, since such a child never reaches its own `exit` and would otherwise report
+  success.
+- **The `*.tests` suites stayed here** and are the consumer's proof: they exercise the shipped layer
+  through this repository's paths, statuses and fixtures. `pwsh -NoProfile -File
+  scripts/quality/run-script-suites.ps1 -ChangedFiles "<the changed set>"`. A suite that asserts on
+  its subject's SOURCE TEXT must read the shipped file, not the forwarder - `agent-lock.tests` shows
+  the shape.
+- **The layer's own gate** is `assert-portable.ps1` (External: it ships with the canon plugin under
+  `tools/harness/`, it is not a script of this repository): it refuses a harness script whose code
+  lines name a product path, an environment prefix, a log call or a build-system marker.
+
 ## PORTABLE PATHS (S2326)
 
 `scripts/utils/project-paths.ps1` is the one place a repository script learns where anything is. Dot-source it (`. "$PSScriptRoot\..\utils\project-paths.ps1"`) and ask by role; do not write a path literal. Moving the tree to another drive letter or another directory name must require editing no script - the working case is a RAM disk, where `P:\ANDROID\FastMediaSorter_mob_v2` becomes `M:\FastMediaSorter_mob_v2`.
@@ -1265,6 +1454,17 @@ A suite named `<subject>.tests/Run-Tests.ps1` is the repository's unit of script
 - **By hand:** `.\a.ps1 fs` for the full sweep, `.\a.ps1 fs -ChangedFiles "<paths>"` for the neighbours of a change, `.\a.ps1 fs -ListOnly` to see the selection without running anything.
 - **Re-entry is guarded.** The runner exports `FMS_SCRIPT_SUITE_RUNNER=1` around each child, and an inner run reports itself skipped. Without it a suite that drives the closure facade would re-enter the facade's own gate and recurse.
 
+### A discovered suite must also be known to git - S2411
+
+Placement being the whole registration cuts the other way too: a suite is registered on the machine that placed it and nowhere else. Nothing in the closure path stages anything - neither `post-change.ps1` nor `close-and-log.ps1` runs `git add` - and `/git` assembles a commit by naming files inside groups built from the changed set, where a new untracked directory appears as the single folded line `?? dir/` and is lost. Once missed it stays missed, because `git commit -a` stages edits to **tracked** files only. Measured 2026-09-03: eight of 65 runners existed on the owner's machine alone. The damage is not an absent test but a lying one - in a fresh clone or the release worktree the runner discovers a smaller set and prints the same green verdict.
+
+- **`scripts/quality/assert-suite-tracked.ps1`** asks git about every runner the discovery selected and refuses the ones the index does not know, printing the exact `git add` that clears each.
+- **It asks about the index, not about `HEAD`.** "Present in the last commit" is unsatisfiable at the moment the check runs: the suite is written by the very ticket now closing and the owner commits afterwards. `git add` is the minimal irreversible step - after it the next commit carries the file by itself.
+- **The list comes from `run-script-suites.ps1 -ListOnly -Json`, never from its own walk.** A second walk would judge a set different from the one that executes, which is the divergence S1621 forbids. The measurement that opened this ticket made that mistake in miniature: it searched for the literal `Run-Tests.ps1`, Windows matched `run-tests.ps1` case-insensitively and git did not, and two tracked suites were reported as missing.
+- **Two call sites, split by what each can see.** `post-change.ps1` (gate `suite-tracked`) runs it only when the changed set itself carries a runner, so the refusal names the session that wrote it and can never fire over a sibling's work in flight. `assert-release-scope-gates.ps1` runs it over the whole tree, where the accumulated debt is visible but attributable to nobody.
+- **Exit codes.** 0 every discovered runner is in the index (or `-Gate` was absent); 1 at least one is not, with `-Gate`; 2 git is absent, the target is not a work tree, or the runner produced no list. The last is deliberate - collapsing "could not look" into "found a defect" is the failure this whole section is about.
+- **Staging is the author's, not the gate's.** The refusal prints the command and stops there: closing a ticket touches the git index nowhere else, and this is not the place to make it start.
+
 
 ## BUILD TYPES
 
@@ -1274,9 +1474,89 @@ A suite named `<subject>.tests/Run-Tests.ps1` is the repository's unit of script
 | `staging` | - | - | ✓ | `.staging` | `initWith(release)` - release proguard, shrink disabled; `matchingFallbacks=["release"]` |
 | `release` | ✓ | ✓ | - | - | `debugSymbolLevel=FULL`; keystore via `.secrets/keystore.properties` (root fallback supported) |
 
+## BUILD VERSIONING (S1873)
+
+The version a user reads on the device is the time that build was produced. Not a constant somebody
+remembered to update - the actual minute.
+
+**The two fields.**
+
+- `versionName` - `Y.YM.MDDH.Hmm`, byte-identical for `app_v2` and `wear`. `2.60.9030.953` is
+  2026-09-03 09:53. This is the string on the About screen and in a support log.
+- `versionCode` - `yyMMddHH` plus the first digit of the minute for `app_v2` (9 digits), and
+  `yyMMddHH` for `wear` (8 digits), so `wear = floor(app / 10)`. The two MUST differ: both modules
+  publish under one `applicationId` (S1681) and Play refuses a release that repeats a code. The
+  minute is truncated to one digit because `yyMMddHHmm` overflows Int32 - two artifacts built inside
+  the same ten-minute block therefore share a code while their names still differ.
+
+**Three sources, one order.** Resolved in `app_v2/build.gradle.kts` and `wear/build.gradle.kts`:
+
+1. `-Pfms.versionCode` / `-Pfms.versionName` passed on the command line. Always wins. This is how a
+   multi-module release keeps one timestamp across two gradle invocations seconds apart - the
+   orchestrator resolves the stamp once and passes it to both.
+2. The in-build stamp in `gradle/build-version-stamp.gradle.kts`, applied when **this invocation
+   packages an artifact** and no property was passed. It covers the paths no wrapper script reaches:
+   a raw `gradlew`, a CI job, the IDE's Run button.
+3. The checked-in `defaultAppVersionCode` / `defaultAppVersionName`. Nothing writes these any more,
+   so they are a deliberately non-releasable **sentinel**: an artifact carrying one is an artifact
+   nobody stamped.
+
+**Which invocations get a stamp.** Source 2 fires when a requested task name contains `assemble`,
+`bundle`, `install`, `package`, `connected` or `baselineprofile`, and not `uninstall`. `connected`
+and `baselineprofile` are in that list because those tasks install what they build on a real device.
+Task options and their values are excluded first - `--tests "*ApkInstallFailureTest*"` is a pattern,
+not a task, and matching it made a unit-test run pay a packaging build's cache invalidation.
+
+Compile-only work - `fk`, `fkn`, `fc`, `fr`, `fw`, `fwr`, `fwu`, lint, unit tests - matches nothing
+in that list, keeps the sentinel, and keeps its configuration-cache entry. That is deliberate: a
+stamp changes `BuildConfig`, and `BuildConfig` constants are inlined at every use site, so a moving
+version recompiles everything that reads it. Measured: an unstamped repeat is 3.3 s, a stamped
+packaging build 111 s. The fast checks cannot pay that, and they package nothing.
+
+**Why a `ValueSource` and not a clock read.** The configuration cache serialises a configuration-time
+value into its entry and replays it. Measured 2026-09-03: a `System.currentTimeMillis()` read in the
+build script returned the identical value seventy seconds later, with `Reusing configuration cache`
+and no warning - the original defect, minus the symptom that made it findable. A `ValueSource` is
+re-obtained before an entry is reused, and Gradle invalidates the entry itself when the value moves:
+`cannot be reused because a build logic input of type 'BuildClockValueSource' has changed`. The raw
+stamp is memoised on the root project, so one invocation building both modules reads the clock once
+and cannot straddle a minute boundary between them.
+
+**Reading a produced artifact's version.** AGP writes `output-metadata.json` beside every artifact,
+and it cannot disagree with the file it describes:
+
+```powershell
+Get-Content app_v2\build\outputs\apk\standard\debug\output-metadata.json | ConvertFrom-Json |
+    Select-Object -ExpandProperty elements | Select-Object versionName, versionCode
+```
+
+That file - never the build script - is what `-ReuseVersion`, `publish-github-release.ps1` and
+`publish-play-release.py` read.
+
+**The two gates, and what each judges.**
+
+- `scripts/quality/assert-artifact-version-fresh.ps1` judges a **produced artifact**: it rejects a
+  `versionName` whose encoded time is far from the file's write time, and rejects a `versionCode`
+  equal to the module's sentinel. Three exit codes, because "found a defect" and "could not look"
+  are different answers: **0** fresh, **1** stale, **2** could not verify. It is the only check in
+  the repository that judges a result rather than an intention, so it also catches a packaging path
+  that does not exist yet.
+- `scripts/quality/assert-module-version-parity.ps1` judges the **two checked-in constants**: the
+  names must match byte for byte and the codes must satisfy `wear = floor(app / 10)`. Nothing writes
+  those constants now, so a violation is a hand edit and the fix is a hand edit.
+
+**Never write a version into a build file.** Fifteen scripts used to rewrite the constants in place
+with a regex; that is retired (ADR-4). A rewritten constant cannot be told apart from historical
+residue, the mutation left the working tree dirty, and the release flow needed a step to revert it.
+The formula lives in exactly two places that are kept byte-compatible - `Get-BuildVersionStamp` in
+`scripts/utils/build-version-stamp.ps1` for scripts, and `gradle/build-version-stamp.gradle.kts`
+inside the build.
+
 ## FEATURE FLAGS (BuildConfig)
 
 [`docs/FLAVOR_MATRIX.md`](FLAVOR_MATRIX.md) is the canonical, generated answer to "which capability is available in which flavor" - rendered from the `productFlavors` block by `scripts/docs/generate-flavor-matrix.ps1`, together with the machine-readable `docs/flavors/flavor-matrix.json`. The two tables below are a working summary of it and are checked against it cell by cell by `scripts/quality/assert-flavor-matrix-docs.ps1` (in `.\a.ps1 fg` and in `post-change.ps1`), so an inverted marker fails instead of drifting. Change `app_v2/build.gradle.kts`, then regenerate; never fix a disagreement by editing the generated table.
+
+That gate reads glyph table CELLS and, by its own manifest, never looks at prose - which is how the seventh flavor `foss` left thirteen documents and `a.ps1`'s help text still saying six, twice over after S1392. The sentences are covered by `scripts/quality/assert-flavor-count-prose.ps1` (in `.\a.ps1 fg`), which resolves two lexical claims against the same generated JSON: a numeral standing next to a flavor noun under an all-quantifier, and a list presented as the complete set - a `-Flavor A|B|C` value list, or a parenthesised name list right after an all-quantifier. A deliberate subset is not a finding, so naming four flavors that carry Streams stays legal. When a sentence only means "every flavor", drop the number rather than correcting it: text with no count cannot go stale.
 
 ### Core feature matrix
 
