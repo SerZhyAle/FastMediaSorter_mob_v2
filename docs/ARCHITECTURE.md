@@ -305,6 +305,15 @@ Rules:
 - Read colours inside a Composable from `MaterialTheme.colorScheme`, never as a literal `Color(0xFF..)` - the literal is the Compose equivalent of the hardcoded layout hex Rule 19 already forbids.
 - A role the wrapper cannot resolve falls back to the Compose baseline for that role. When a new role starts mattering on screen, add the matching `?attr/` to the theme and the accent overlays rather than hardcoding it in the Composable.
 
+## Launcher Desktop Surface Colours (S2539)
+
+The launcher desktop (desktop shortcut cells, status strip, tray indicators, and embedded gadgets) uses dedicated theme attributes rather than generic `?attr/colorOnSurface` and `?attr/colorOnSurfaceVariant` so that labels and captions follow the active palette accent overlay (`ThemeOverlay.FastMediaSorter.DarkGreen`, `DarkBlue`, `DarkRed`, `LightGreen`, `LightBlue`, `LightRed`, as well as base day/night themes) while maintaining contrast over custom wallpapers:
+
+- `launcherDesktopText`: primary label and accent text on the launcher desktop (cell titles, clock, speed/altitude readings, gadget main values). Uses `@color/text_color_primary` in default theme and color-matched tinted variants in accent overlays.
+- `launcherDesktopTextSecondary`: secondary label text and captions on the launcher desktop (cell sub-labels, gadget subtitles, signal chip counters, status secondary items). Uses `@color/text_color_secondary` in default theme and softer tinted variants in accent overlays.
+
+Both attributes are paired with `OutlinedTextView` / `OutlinedTextClock` stroke outline (`@color/black` / `#CC000000`) so that tinted text remains legible across arbitrary light/dark wallpapers. Non-desktop launcher surfaces (modal dialogs, sheets, and drawer fragments with opaque card backgrounds) continue to use standard Material3 `?attr/colorOnSurface` tokens.
+
 ## Dialog Result Delivery (MANDATORY)
 
 A `DialogFragment` never holds its result callback in a field. `FragmentManager` rebuilds a restored dialog through the no-argument constructor, so any handler the caller assigned after construction is null on the rebuilt instance - the user confirms, nothing happens, and nothing is logged. The recreation does not need a rotation to happen: a theme change, a language change, a font-size change, "don't keep activities" and process death all trigger it, and most hosts here declare `configChanges` for orientation, so rotation is in fact the one trigger that does NOT reproduce it.

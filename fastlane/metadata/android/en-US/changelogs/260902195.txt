@@ -1,0 +1,8 @@
+Wear OS release.
+
+• Voice notes on the watch: record, listen, rename, send to the phone.
+• Audio keeps playing after you leave the app; the home screen shows what is sounding.
+• The image viewer opens on the picture - tap the sides to page, the middle for controls.
+• The channel you played last sits on the home screen.
+• An edit or deletion of a network source now reaches the other device.
+• Lists reopen where you left them.

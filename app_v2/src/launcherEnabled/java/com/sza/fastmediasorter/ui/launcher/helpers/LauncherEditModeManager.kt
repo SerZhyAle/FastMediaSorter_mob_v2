@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -100,6 +101,7 @@ class LauncherEditModeManager(
             // list the projection runs against, so the two directions cannot disagree about a fold.
             LauncherGridGeometry.storedSlotFor(it, cells, viewModel.sections.collapsedTargetsFor(cells))
         }
+        Timber.d("S2387: showQuickMenu slot=$slot lastPress=(${desktop.lastPressX}, ${desktop.lastPressY})")
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.
         quickMenu?.dismiss()

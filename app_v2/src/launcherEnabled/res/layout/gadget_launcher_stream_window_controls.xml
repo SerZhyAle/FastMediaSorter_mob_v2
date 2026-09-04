@@ -29,7 +29,7 @@
         android:contentDescription="@string/launcher_stream_overlay_mute"
         android:foreground="?attr/selectableItemBackground"
         android:src="@drawable/ic_gesture_action_volume_mute"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/launcherDesktopText" />
 
     <ImageView
         android:id="@+id/streamWindowOverlayStop"
@@ -41,7 +41,7 @@
         android:contentDescription="@string/launcher_stream_overlay_stop"
         android:foreground="?attr/selectableItemBackground"
         android:src="@drawable/ic_stop"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/launcherDesktopText" />
 
     <ImageView
         android:id="@+id/streamWindowOverlayPlayPause"
@@ -53,7 +53,7 @@
         android:contentDescription="@string/launcher_stream_overlay_play_pause"
         android:foreground="?attr/selectableItemBackground"
         android:src="@drawable/ic_play"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/launcherDesktopText" />
 
     <ImageView
         android:id="@+id/streamWindowOverlayPip"
@@ -65,7 +65,7 @@
         android:contentDescription="@string/launcher_stream_overlay_pip"
         android:foreground="?attr/selectableItemBackground"
         android:src="@drawable/ic_picture_in_picture"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/launcherDesktopText" />
 
     <ImageView
         android:id="@+id/streamWindowOverlayFullscreen"
@@ -77,6 +77,6 @@
         android:contentDescription="@string/launcher_stream_overlay_fullscreen"
         android:foreground="?attr/selectableItemBackground"
         android:src="@drawable/ic_fullscreen"
-        app:tint="?attr/colorOnSurface" />
+        app:tint="?attr/launcherDesktopText" />
 
 </FrameLayout>

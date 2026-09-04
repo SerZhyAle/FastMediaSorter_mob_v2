@@ -82,7 +82,7 @@
                 android:layout_gravity="bottom|end"
                 android:importantForAccessibility="no"
                 android:visibility="gone"
-                app:tint="?attr/colorOnSurface"
+                app:tint="?attr/launcherDesktopText"
                 tools:src="@drawable/ic_slideshow"
                 tools:visibility="visible" />
 
@@ -102,7 +102,7 @@
             android:paddingTop="@dimen/launcher_cell_label_plate_padding_vertical"
             android:paddingEnd="@dimen/launcher_cell_label_plate_padding_horizontal"
             android:paddingBottom="@dimen/launcher_cell_label_plate_padding_vertical"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textSize="@dimen/launcher_cell_label_text_size"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Photos" />

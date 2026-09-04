@@ -79,6 +79,7 @@ import com.sza.fastmediasorter.widget.ResourceShortcutPinManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import java.lang.ref.WeakReference
 import javax.inject.Inject
 
@@ -506,6 +507,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             isTouchOnInteractiveCell = { event ->
                 binding.launcherDesktop.hasChildAtScreenPosition(event.rawX, event.rawY)
             },
+            gestureArea = binding.launcherRoot,
+            isGestureStartAllowed = { event ->
+                !binding.launcherDesktop.hasGadgetAtScreenPosition(event.rawX, event.rawY)
+            },
             onSwipe = { direction ->
                 val settings = viewModel.launcherDesktopSettings.value
                 lifecycleScope.launch {
@@ -531,6 +536,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
                         if (isLeft) pagingManager.next() else pagingManager.previous()
                     } else {
+                        Timber.d("S2534: dispatch desktop swipe from an eligible launcher surface")
                         swipeActionHandler.handle(action, payload)
                     }
                 }

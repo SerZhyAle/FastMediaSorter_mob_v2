@@ -8,13 +8,14 @@ import android.view.ViewConfiguration
 import kotlin.math.abs
 
 /**
- * Recognizes directional swipes on free desktop space.
+ * Recognizes directional swipes from an eligible surface in its gesture area.
  *
  * Yields to scrolling: an upward swipe fires only at the lower desktop boundary, and a downward
  * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling.
  *
  * The Activity forwards its raw event stream before child dispatch, because the device can route a desktop
- * touch around the NestedScrollView. A gesture still starts only within the scroll viewport.
+ * touch around the NestedScrollView. Each host supplies the area and eligibility policy that match
+ * its own child interactions.
  */
 class LauncherAllAppsGestureManager(
     private val container: View,
@@ -23,6 +24,10 @@ class LauncherAllAppsGestureManager(
     private val isTouchOnInteractiveCell: (MotionEvent) -> Boolean,
     private val onSwipe: (DesktopSwipeDirection) -> Unit,
     private val onDoubleTap: (() -> Unit)? = null,
+    private val gestureArea: View = viewport,
+    private val isGestureStartAllowed: (MotionEvent) -> Boolean = { event ->
+        !isTouchOnInteractiveCell(event)
+    },
 ) {
 
     enum class DesktopSwipeDirection {
@@ -36,7 +41,7 @@ class LauncherAllAppsGestureManager(
 
     private val viewportBounds = Rect()
 
-    private var gestureStartedOnFreeDesktop = false
+    private var gestureStartedOnEligibleSurface = false
 
     private val detector = GestureDetector(
         container.context,
@@ -57,12 +62,13 @@ class LauncherAllAppsGestureManager(
     /** Receives the Activity's raw event stream without changing normal child dispatch. */
     fun onTouchEvent(event: MotionEvent) {
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
-            gestureStartedOnFreeDesktop = isTouchWithinViewport(event) && !isTouchOnInteractiveCell(event)
+            gestureStartedOnEligibleSurface =
+                isTouchWithinGestureArea(event) && isGestureStartAllowed(event)
         }
-        if (!gestureStartedOnFreeDesktop) return
+        if (!gestureStartedOnEligibleSurface) return
         detector.onTouchEvent(event)
         if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
-            gestureStartedOnFreeDesktop = false
+            gestureStartedOnEligibleSurface = false
         }
     }
 
@@ -86,8 +92,8 @@ class LauncherAllAppsGestureManager(
         return true
     }
 
-    private fun isTouchWithinViewport(event: MotionEvent): Boolean =
-        viewport.getGlobalVisibleRect(viewportBounds) &&
+    private fun isTouchWithinGestureArea(event: MotionEvent): Boolean =
+        gestureArea.getGlobalVisibleRect(viewportBounds) &&
             viewportBounds.contains(event.rawX.toInt(), event.rawY.toInt())
 
     private fun classifyDirection(

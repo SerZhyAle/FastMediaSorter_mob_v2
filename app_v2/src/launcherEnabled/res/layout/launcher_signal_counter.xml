@@ -11,5 +11,5 @@
     android:focusable="true"
     android:gravity="center"
     android:maxLines="1"
-    android:textColor="?attr/colorOnSurface"
+    android:textColor="?attr/launcherDesktopText"
     android:textSize="@dimen/launcher_cell_label_text_size" />

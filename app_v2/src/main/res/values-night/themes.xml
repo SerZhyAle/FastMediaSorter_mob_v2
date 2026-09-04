@@ -29,6 +29,9 @@
         <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
         <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
         <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
+        <!-- S2539: launcher desktop foregrounds for night mode. -->
+        <item name="launcherDesktopText">@color/white</item>
+        <item name="launcherDesktopTextSecondary">#FFCAC4D0</item>
         <item name="colorOnSurfaceVariant">#FFCAC4D0</item>
         <item name="android:textColorSecondary">@color/text_color_secondary</item>
         <item name="colorOutline">#FF938F99</item>

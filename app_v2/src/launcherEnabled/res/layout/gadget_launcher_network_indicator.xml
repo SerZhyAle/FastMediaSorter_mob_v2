@@ -30,7 +30,7 @@
             android:contentDescription="@string/launcher_gadget_network_indicator"
             android:focusable="true"
             android:maxWidth="48dp"
-            android:tint="?attr/colorOnSurface"
+            android:tint="?attr/launcherDesktopText"
             tools:ignore="UseAppTint"
             tools:src="@drawable/ic_network_monitor" />
 
@@ -51,7 +51,7 @@
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/launcherDesktopText"
                 android:textStyle="bold"
                 app:otv_outlineScale="@dimen/outline_text_stroke_scale"
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
@@ -64,7 +64,7 @@
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Local address" />

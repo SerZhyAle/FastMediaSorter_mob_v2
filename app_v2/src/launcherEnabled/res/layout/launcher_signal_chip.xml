@@ -13,4 +13,4 @@
     android:focusable="true"
     android:padding="@dimen/launcher_signal_chip_padding"
     android:scaleType="fitCenter"
-    android:tint="?attr/colorOnSurface" />
+    android:tint="?attr/launcherDesktopText" />

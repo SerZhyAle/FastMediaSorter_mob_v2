@@ -50,7 +50,7 @@
             android:layout_height="@dimen/settings_help_icon_size"
             android:importantForAccessibility="no"
             app:srcCompat="@drawable/ic_arrow_drop_down"
-            app:tint="?attr/colorOnSurfaceVariant" />
+            app:tint="?attr/launcherDesktopTextSecondary" />
 
         <!-- S1743: no minimum height of its own any more. The 48dp target lives on the root, which keeps
              the whole square tappable, so repeating it here would only stop the plate from being thin. -->
@@ -63,7 +63,7 @@
             android:gravity="center_vertical"
             android:maxLines="1"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textStyle="bold"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="App functions" />
@@ -80,7 +80,7 @@
             android:focusable="true"
             android:visibility="gone"
             app:srcCompat="@drawable/ic_more_vert"
-            app:tint="?attr/colorOnSurfaceVariant" />
+            app:tint="?attr/launcherDesktopTextSecondary" />
 
     </LinearLayout>
 

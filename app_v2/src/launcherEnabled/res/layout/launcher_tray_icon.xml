@@ -5,6 +5,7 @@
      (strategic §7). The badge takes the bottom-end corner and the mark the top-end one, so the SIM
      data-type letter and the roaming ring never compete for the same place (ADR-8). -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -13,6 +14,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:importantForAccessibility="no"
+        app:tint="?attr/launcherDesktopText"
         tools:src="@drawable/ic_wifi" />
 
     <TextView
@@ -25,7 +27,7 @@
         android:includeFontPadding="false"
         android:paddingStart="1dp"
         android:paddingEnd="1dp"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?attr/launcherDesktopText"
         android:textSize="@dimen/launcher_tray_badge_text_size"
         android:visibility="gone"
         tools:text="6"

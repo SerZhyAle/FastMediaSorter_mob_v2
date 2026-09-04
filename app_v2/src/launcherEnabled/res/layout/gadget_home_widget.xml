@@ -43,7 +43,7 @@
             android:ellipsize="end"
             android:gravity="center"
             android:maxLines="2"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textSize="12sp"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Camera photos" />

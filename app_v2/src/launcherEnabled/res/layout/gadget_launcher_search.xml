@@ -29,7 +29,7 @@
                 android:layout_height="@dimen/settings_icon_size"
                 android:contentDescription="@null"
                 android:src="@drawable/ic_search"
-                app:tint="?attr/colorOnSurfaceVariant" />
+                app:tint="?attr/launcherDesktopTextSecondary" />
 
             <EditText
                 android:id="@+id/gadgetSearchInput"
@@ -46,8 +46,8 @@
                 android:maxLines="1"
                 android:paddingStart="@dimen/margin_small"
                 android:paddingEnd="0dp"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopText"
+                android:textColorHint="?attr/launcherDesktopTextSecondary"
                 android:textSize="14sp" />
 
         </LinearLayout>
@@ -59,7 +59,7 @@
             android:ellipsize="end"
             android:maxLines="2"
             android:paddingTop="@dimen/margin_tiny"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="11sp"
             android:visibility="gone"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"

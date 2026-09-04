@@ -102,9 +102,31 @@ class LauncherTaskbarManager(
         binding.taskbarPinned.adapter = pinnedAdapter
         binding.taskbarRecents.addOnLayoutChangeListener(recentsLayoutListener)
 
-        lifecycleOwner.collectOnLifecycle(recents) { recentsAdapter.submitIcons(it) }
+        lifecycleOwner.collectOnLifecycle(recents) { submitRecents(it) }
         lifecycleOwner.collectOnLifecycle(pinned) { pinnedAdapter.submitIcons(it) }
         lifecycleOwner.collectOnLifecycle(composition) { apply(it) }
+    }
+
+    /**
+     * S2393: the rightmost recents cell is always the freshest launch (owner requirement).
+     *
+     * The journal hands its newest entry first and the row draws position 0 at the left edge, so the
+     * strip is reversed here rather than upstream - "newest first" is the order every other reader of
+     * the journal expects, and which end of a row a launch lands on is a rendering decision.
+     *
+     * Reversing alone is not enough: RecyclerView keeps the anchor the user was looking at, so on a
+     * row narrower than the list the fresh end stays off screen until something scrolls to it. The
+     * scroll waits for the commit callback because the diff is asynchronous - `itemCount` is still the
+     * previous list's until then.
+     */
+    private fun submitRecents(icons: List<LauncherTaskbarIcon>) {
+        Timber.d("S2393: recents strip submit, size=%d", icons.size)
+        recentsAdapter.submitIcons(icons.reversed()) {
+            val last = recentsAdapter.itemCount - 1
+            if (last >= 0) {
+                binding.taskbarRecents.scrollToPosition(last)
+            }
+        }
     }
 
     /** Symmetric with the listener [bind] attaches - the bar outlives no window, but nothing here relies on it. */

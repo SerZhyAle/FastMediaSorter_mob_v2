@@ -47,10 +47,16 @@ class LauncherTaskbarIconAdapter(
     private var icons: List<LauncherTaskbarIcon> = emptyList()
     private var editMode: Boolean = false
 
-    /** Replaces the strip's icons, preserving the current edit state. */
-    fun submitIcons(list: List<LauncherTaskbarIcon>) {
+    /**
+     * Replaces the strip's icons, preserving the current edit state.
+     *
+     * S2393: [onCommitted] runs once the new rows are on screen. A caller that has to act on the
+     * strip's new length - scrolling to its last cell, say - cannot do it on return from here,
+     * because ListAdapter diffs on a background thread and the adapter still reports the old count.
+     */
+    fun submitIcons(list: List<LauncherTaskbarIcon>, onCommitted: (() -> Unit)? = null) {
         icons = list
-        rebuild()
+        rebuild(onCommitted)
     }
 
     /** Toggles the unpin badges and the trailing "+"; a no-op change is skipped. */
@@ -60,9 +66,9 @@ class LauncherTaskbarIconAdapter(
         rebuild()
     }
 
-    private fun rebuild() {
+    private fun rebuild(onCommitted: (() -> Unit)? = null) {
         val rows = icons.map { LauncherTaskbarRow.Icon(it, editMode) }
-        submitList(if (editMode) rows + LauncherTaskbarRow.Add else rows)
+        submitList(if (editMode) rows + LauncherTaskbarRow.Add else rows) { onCommitted?.invoke() }
     }
 
     override fun getItemViewType(position: Int): Int =

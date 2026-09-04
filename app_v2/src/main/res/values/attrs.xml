@@ -18,6 +18,9 @@
     <attr name="launcherStartRowGroup2" format="color" />
     <attr name="launcherStartRowGroup3" format="color" />
     <attr name="launcherStartRowGroup4" format="color" />
+    <!-- S2539: foreground colours of the launcher desktop labels and gadgets following the theme. -->
+    <attr name="launcherDesktopText" format="color" />
+    <attr name="launcherDesktopTextSecondary" format="color" />
 
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">

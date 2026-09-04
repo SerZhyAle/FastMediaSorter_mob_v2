@@ -5,6 +5,7 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import com.sza.fastmediasorter.R
 import kotlin.math.floor
 
 /**
@@ -74,7 +75,14 @@ class LauncherDesktopLayout @JvmOverloads constructor(
                 MeasureSpec.makeMeasureSpec(bounds.height, MeasureSpec.EXACTLY),
             )
         }
-        setMeasuredDimension(width, paddingTop + rows * cellSize + paddingBottom)
+        val gridHeight = paddingTop + rows * cellSize + paddingBottom
+        val minHeight = MeasureSpec.getSize(heightMeasureSpec)
+        val height = when (MeasureSpec.getMode(heightMeasureSpec)) {
+            MeasureSpec.EXACTLY -> minHeight
+            MeasureSpec.AT_MOST -> gridHeight.coerceAtMost(minHeight)
+            else -> gridHeight
+        }
+        setMeasuredDimension(width, maxOf(gridHeight, height))
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
@@ -152,6 +160,22 @@ class LauncherDesktopLayout @JvmOverloads constructor(
         return (0 until childCount).any { index ->
             getChildAt(index).let { child ->
                 child.visibility == VISIBLE &&
+                    localX >= child.left && localX < child.right &&
+                    localY >= child.top && localY < child.bottom
+            }
+        }
+    }
+
+    /** True when a screen coordinate lands on a rendered gadget, whose child controls own gestures. */
+    fun hasGadgetAtScreenPosition(screenX: Float, screenY: Float): Boolean {
+        val location = IntArray(2)
+        getLocationOnScreen(location)
+        val localX = screenX - location[0]
+        val localY = screenY - location[1]
+        return (0 until childCount).any { index ->
+            getChildAt(index).let { child ->
+                child.id == R.id.cardLauncherGadget &&
+                    child.visibility == VISIBLE &&
                     localX >= child.left && localX < child.right &&
                     localY >= child.top && localY < child.bottom
             }

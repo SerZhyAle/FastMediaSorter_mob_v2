@@ -48,7 +48,7 @@
         android:minHeight="28dp"
         android:paddingStart="@dimen/margin_small"
         android:paddingEnd="@dimen/margin_small"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?attr/launcherDesktopText"
         android:textSize="13sp"
         android:textStyle="bold"
         app:otv_outlineWidth="@dimen/launcher_cell_outline_width"

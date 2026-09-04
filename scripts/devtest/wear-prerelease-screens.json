@@ -76,8 +76,8 @@
       "expect": "Audio",
       "screen": "LocalHomeScreen",
       "expectRes": "wear_phone_audio",
-      "backAfter": 0,
-      "note": "The category chips are each gated by their media-type switch; all ship enabled. S2555: the chip is written by BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) = wear_phone_audio = 'Audio', not by the content-type word 'Music' - and the next entry taps that same 'Audio' label, so the two agree or neither works."
+      "backAfter": 1,
+      "note": "The category chips are each gated by their media-type switch; all ship enabled. S2555: the chip is written by BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) = wear_phone_audio = 'Audio', not by the content-type word 'Music' - and the next entry USED to tap that same 'Audio' label. S2555: backAfter was 0 precisely because 'local-browse' followed and tapped from this screen; when that entry moved to excluded[] the 0 was orphaned and the walk never left LocalHomeScreen again - all twelve entries after it failed their tap on a Home label that was not on screen. An entry's backAfter describes where it LEAVES the app, so removing its successor is an edit to this field too."
     },
     {
       "id": "streams",

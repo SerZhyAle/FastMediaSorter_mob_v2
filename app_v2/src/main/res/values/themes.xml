@@ -29,6 +29,9 @@
         <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
         <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
         <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
+        <!-- S2539: launcher desktop foregrounds following the theme. -->
+        <item name="launcherDesktopText">@color/black</item>
+        <item name="launcherDesktopTextSecondary">#FF655E6A</item>
         <item name="colorOnSurfaceVariant">#FF655E6A</item>
         <item name="android:textColorSecondary">#FF655E6A</item>
         <item name="colorOutline">#FF6F6875</item>
@@ -82,6 +85,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkGreen theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_green_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_green_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkBlue" parent="">
@@ -112,6 +118,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkBlue theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_blue_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_blue_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkRed" parent="">
@@ -142,6 +151,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkRed theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_red_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_red_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightGreen" parent="">
@@ -172,6 +184,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightGreen theme. -->
+        <item name="launcherDesktopText">@color/theme_light_green_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_green_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightBlue" parent="">
@@ -202,6 +217,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightBlue theme. -->
+        <item name="launcherDesktopText">@color/theme_light_blue_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_blue_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightRed" parent="">
@@ -232,6 +250,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightRed theme. -->
+        <item name="launcherDesktopText">@color/theme_light_red_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_red_on_surface_variant</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips

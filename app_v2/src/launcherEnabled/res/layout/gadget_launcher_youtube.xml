@@ -37,7 +37,7 @@
                 android:paddingStart="@dimen/margin_small"
                 android:paddingEnd="@dimen/margin_small"
                 android:text="@string/launcher_gadget_youtube"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/launcherDesktopText"
                 android:textSize="14sp"
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 android:textStyle="bold"

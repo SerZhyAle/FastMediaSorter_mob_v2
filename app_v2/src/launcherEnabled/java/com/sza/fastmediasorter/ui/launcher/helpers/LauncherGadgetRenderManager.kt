@@ -44,6 +44,7 @@ class LauncherGadgetRenderManager(
      * so the shortcut's unavailable path cannot double as this one.
      */
     fun bindGadget(cellUi: LauncherCellUi, container: FrameLayout) {
+        Timber.d("S2539: LauncherGadgetRenderManager bindGadget with theme text")
         val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
         val gadget = decoded?.first?.let { gadgetRegistry.byKey(it) }
         if (gadget == null) {

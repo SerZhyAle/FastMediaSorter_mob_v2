@@ -213,8 +213,8 @@ class LauncherCellViewBinder(
      * (S1288). The two rules are a maximum rather than a sum: on a desktop already taller than the
      * screen the spare rows win and the behaviour is what it always was.
      *
-     * At rest it is exactly as tall as its content: empty squares are an editing affordance, not part
-     * of the desktop, so [viewportRows] is deliberately ignored outside edit mode.
+     * S2387: at rest, the canvas spans at least [viewportRows] so long-press and slot targeting work
+     * anywhere on visible desktop space below all shortcuts, while empty slot affordances remain edit-only.
      */
     private fun rowsToShow(
         plan: List<LauncherGridGeometry.RenderedCell>,
@@ -222,7 +222,7 @@ class LauncherCellViewBinder(
         viewportRows: Int,
     ): Int {
         val occupied = LauncherGridGeometry.rowsForRendered(plan)
-        if (!editMode) return occupied
+        if (!editMode) return maxOf(occupied, viewportRows)
         return maxOf(occupied + SPARE_EDIT_ROWS, viewportRows)
     }
 

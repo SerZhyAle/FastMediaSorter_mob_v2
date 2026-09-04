@@ -41,7 +41,7 @@
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="SelectableText"
@@ -84,8 +84,8 @@
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:maxLines="2"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopText"
+                android:textColorHint="?attr/launcherDesktopTextSecondary"
                 android:textSize="14sp" />
 
             <!-- The clipboard is read here and nowhere else: an explicit tap is the whole reason this
@@ -113,7 +113,7 @@
             android:ellipsize="end"
             android:paddingTop="@dimen/margin_tiny"
             android:scrollbars="vertical"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textIsSelectable="true"
             android:textSize="13sp"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
@@ -125,7 +125,7 @@
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="11sp"
             android:visibility="gone"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"

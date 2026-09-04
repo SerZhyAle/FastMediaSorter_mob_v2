@@ -82,12 +82,15 @@ class LauncherAllAppsGestureManagerTest {
     }
 
     @Test
-    fun `swipe starting on a desktop cell does not dispatch`() {
-        val harness = GestureHarness(startsOnInteractiveCell = true)
+    fun `swipe starting on an eligible interactive cell dispatches`() {
+        val harness = GestureHarness(
+            startsOnInteractiveCell = true,
+            isGestureStartAllowed = true,
+        )
 
         harness.swipe(fromX = 100f, fromY = 300f, toX = 100f, toY = 100f)
 
-        assertTrue(harness.swipes.isEmpty())
+        assertEquals(listOf(LauncherAllAppsGestureManager.DesktopSwipeDirection.UP), harness.swipes)
     }
 
     @Test
@@ -100,7 +103,7 @@ class LauncherAllAppsGestureManagerTest {
     }
 
     @Test
-    fun `double tap on desktop cell does not dispatch callback`() {
+    fun `double tap on excluded gadget does not dispatch callback`() {
         val harness = GestureHarness(startsOnInteractiveCell = true)
 
         harness.doubleTap()
@@ -113,6 +116,7 @@ class LauncherAllAppsGestureManagerTest {
         canScrollUp: Boolean = false,
         isEnabled: Boolean = true,
         startsOnInteractiveCell: Boolean = false,
+        isGestureStartAllowed: Boolean? = null,
     ) {
         val container = View(context)
         val swipes = mutableListOf<LauncherAllAppsGestureManager.DesktopSwipeDirection>()
@@ -139,6 +143,7 @@ class LauncherAllAppsGestureManagerTest {
             isTouchOnInteractiveCell = { startsOnInteractiveCell },
             onSwipe = swipes::add,
             onDoubleTap = { doubleTaps++ },
+            isGestureStartAllowed = { isGestureStartAllowed ?: !startsOnInteractiveCell },
         )
 
         fun swipe(fromX: Float, fromY: Float, toX: Float, toY: Float) {

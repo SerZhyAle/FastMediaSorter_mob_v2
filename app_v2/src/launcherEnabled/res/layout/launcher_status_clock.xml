@@ -11,7 +11,7 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-    android:textColor="?attr/colorOnSurface"
+    android:textColor="?attr/launcherDesktopText"
     android:textSize="14sp"
     app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
     tools:text="12:45" />
