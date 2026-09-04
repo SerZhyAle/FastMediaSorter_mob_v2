@@ -19,8 +19,30 @@
     public <init>(net.engio.mbassy.subscription.SubscriptionContext);
 }
 
-# Keep all inner classes used in SMBJ
--keepattributes InnerClasses,Signature
+# Keep all inner classes used in SMBJ and annotations/signatures
+-keepattributes Signature, *Annotation*, EnclosingMethod, InnerClasses
+
+# ===== Gson Serialization & Reflection =====
+-dontwarn sun.misc.**
+-keep class * implements com.google.gson.TypeAdapter
+-keep class * implements com.google.gson.TypeAdapterFactory
+-keep class * implements com.google.gson.JsonSerializer
+-keep class * implements com.google.gson.JsonDeserializer
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
+-keepclassmembers,allowobfuscation class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# Keep all Kotlin data class constructor parameter names used by Gson
+-keepclassmembers class * {
+    public <init>(...);
+}
+-keep class kotlin.Metadata { *; }
+-keepclassmembers class kotlin.Metadata {
+    public <methods>;
+}
+
 
 # ===== Missing Runtime Classes (not available on Android) =====
 # javax.el - Expression Language (used by mbassy but not on Android)
