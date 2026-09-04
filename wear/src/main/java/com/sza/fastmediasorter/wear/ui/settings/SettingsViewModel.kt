@@ -11,7 +11,10 @@ import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearOpenUrlOnPhoneOutcome
+import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,6 +47,7 @@ private const val INDEX_LAST_SYNC = 13
 private const val INDEX_DOCUMENTS = 14
 private const val INDEX_DISABLE_ANIMATIONS = 15
 private const val INDEX_BACKGROUND_PLAYBACK = 16
+private const val INDEX_PANEL_AUTO_HIDE = 17
 
 /**
  * ViewModel for Settings screen.
@@ -54,7 +58,8 @@ class SettingsViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
     private val preferencesRepository: WearPreferencesRepository,
     private val logReportClient: WearLogReportClient,
-    private val reportWearSettingsUseCase: ReportWearSettingsUseCase
+    private val reportWearSettingsUseCase: ReportWearSettingsUseCase,
+    private val openUrlOnPhoneRepository: WearOpenUrlOnPhoneRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -69,6 +74,16 @@ class SettingsViewModel @Inject constructor(
 
     /** State of the "send logs" action, separate from the settings values the screen renders. */
     val logReportState: StateFlow<WearLogReportState> = _logReportState.asStateFlow()
+
+    private val _watchPortalState = MutableStateFlow<WearPortalLinkState>(WearPortalLinkState.Idle)
+
+    /** S2496: outcome of the last attempt to open the portal in the watch's own browser. */
+    val watchPortalState: StateFlow<WearPortalLinkState> = _watchPortalState.asStateFlow()
+
+    private val _phonePortalState = MutableStateFlow<WearPortalLinkState>(WearPortalLinkState.Idle)
+
+    /** S2496: outcome of the last attempt to open the portal on the paired phone. */
+    val phonePortalState: StateFlow<WearPortalLinkState> = _phonePortalState.asStateFlow()
 
     init {
         loadSettings()
@@ -107,7 +122,8 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.lastSettingsSyncAt,
                     preferencesRepository.isDocumentsEnabled,
                     preferencesRepository.isAnimationsDisabled,
-                    preferencesRepository.backgroundPlaybackEnabled
+                    preferencesRepository.backgroundPlaybackEnabled,
+                    preferencesRepository.panelAutoHideSeconds
                 )
             ) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
@@ -127,6 +143,7 @@ class SettingsViewModel @Inject constructor(
                 val documents = values[INDEX_DOCUMENTS] as Boolean
                 val disableAnimations = values[INDEX_DISABLE_ANIMATIONS] as Boolean
                 val backgroundPlayback = values[INDEX_BACKGROUND_PLAYBACK] as Boolean
+                val panelAutoHide = values[INDEX_PANEL_AUTO_HIDE] as Int
                 _uiState.value.copy(
                     backgroundMode = background,
                     lastSyncedAtEpochMillis = lastSync,
@@ -136,6 +153,7 @@ class SettingsViewModel @Inject constructor(
                     isDocumentsEnabled = documents,
                     isSlideshowEnabled = slideshow,
                     slideshowIntervalSeconds = interval,
+                    panelAutoHideSeconds = panelAutoHide,
                     downloadAlbumArt = albumArt,
                     viewMode = viewMode,
                     streamsSectionEnabled = streamsSection,
@@ -204,6 +222,12 @@ class SettingsViewModel @Inject constructor(
     fun setSlideshowInterval(seconds: Int) {
         viewModelScope.launch {
             preferencesRepository.setSlideshowIntervalSeconds(seconds)
+        }
+    }
+
+    fun setPanelAutoHideSeconds(seconds: Int) {
+        viewModelScope.launch {
+            preferencesRepository.setPanelAutoHideSeconds(seconds)
         }
     }
 
@@ -277,6 +301,42 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2496: records what the watch's own browser did with the portal address.
+     *
+     * The screen owns the intent because only a Composable holds an Activity context, but it does not
+     * own the verdict: a refusal used to end in a Timber line and nothing on screen, which is exactly
+     * the silent press strategic section 1 calls the screen's second break.
+     */
+    fun onWatchPortalOpened(launched: Boolean) {
+        Timber.d("S2496: watch portal link pressed, browser launched=$launched")
+        _watchPortalState.value = if (launched) {
+            WearPortalLinkState.Idle
+        } else {
+            WearPortalLinkState.Finished(WearPortalLinkOutcome.NO_WATCH_BROWSER)
+        }
+    }
+
+    /**
+     * S2496: asks the paired phone to open the portal.
+     *
+     * A second press while one request is in flight is refused for the same reason [sendLogReport]
+     * refuses it - the two would carry the same address and the later could only overwrite the
+     * outcome of the earlier.
+     */
+    fun openPortalOnPhone() {
+        if (_phonePortalState.value is WearPortalLinkState.Busy) {
+            return
+        }
+        Timber.d("S2496: phone portal link pressed")
+        _phonePortalState.value = WearPortalLinkState.Busy
+        viewModelScope.launch {
+            val outcome = openUrlOnPhoneRepository.openOnPhone(WearPortalLinks.WEB_PORTAL_URL)
+            Timber.d("S2496: phone portal request finished with $outcome")
+            _phonePortalState.value = WearPortalLinkState.Finished(outcome.toLinkOutcome())
+        }
+    }
+
     fun toggleAlbumArt() {
         viewModelScope.launch {
             preferencesRepository.setDownloadAlbumArt(!_uiState.value.downloadAlbumArt)
@@ -337,4 +397,44 @@ sealed interface WearLogReportState {
 
     /** The round trip ended, carrying the outcome the row turns into a message. */
     data class Finished(val outcome: WearLogReportOutcome) : WearLogReportState
+}
+
+/** S2496: what a portal link row is doing right now. */
+sealed interface WearPortalLinkState {
+
+    /** Nothing pressed yet, or the press succeeded and needs no words. */
+    data object Idle : WearPortalLinkState
+
+    /** A request is in flight; the row refuses a second press. */
+    data object Busy : WearPortalLinkState
+
+    /** The attempt ended, carrying the outcome the row turns into a message. */
+    data class Finished(val outcome: WearPortalLinkOutcome) : WearPortalLinkState
+}
+
+/**
+ * S2496: what a portal link row tells the user.
+ *
+ * One type for both rows even though the two failures arise on different sides: the row renders a
+ * message and nothing else, so a second enum would only duplicate the rendering.
+ */
+enum class WearPortalLinkOutcome {
+
+    /** The phone is showing the portal. */
+    OPENED_ON_PHONE,
+
+    /** The watch has no application willing to open an https address. */
+    NO_WATCH_BROWSER,
+
+    /** No phone was reachable over the bridge. */
+    NO_CONNECTED_PHONE,
+
+    /** A phone was reachable but did not take the address. */
+    PHONE_FAILED
+}
+
+private fun WearOpenUrlOnPhoneOutcome.toLinkOutcome(): WearPortalLinkOutcome = when (this) {
+    WearOpenUrlOnPhoneOutcome.OPENED -> WearPortalLinkOutcome.OPENED_ON_PHONE
+    WearOpenUrlOnPhoneOutcome.NO_CONNECTED_PHONE -> WearPortalLinkOutcome.NO_CONNECTED_PHONE
+    WearOpenUrlOnPhoneOutcome.FAILED -> WearPortalLinkOutcome.PHONE_FAILED
 }

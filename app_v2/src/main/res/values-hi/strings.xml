@@ -3042,6 +3042,7 @@
     <string name="calculator_keypad_mode_large">बड़ी चाबियाँ</string>
     <string name="calculator_keypad_mode_compact">संक्षिप्त, नीचे दाएँ</string>
     <string name="wear_background_mode_animation">ब्रांडेड एनीमेशन</string>
+    <string name="wear_background_mode_still">स्थिर ब्रांडेड पृष्ठभूमि</string>
     <string name="wear_background_mode_image">आपकी छवि</string>
     <string name="wear_background_pick_image">छवि चुनें</string>
     <string name="wear_background_preview">घड़ी की पृष्ठभूमि का पूर्वावलोकन</string>

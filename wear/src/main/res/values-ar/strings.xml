@@ -16,9 +16,9 @@
     <string name="permission_rationale">الإذن مطلوب لعرض ملفات الوسائط الخاصة بك</string>
     <string name="settings">الإعدادات</string>
     <string name="media_types">أنواع الوسائط</string>
-    <string name="enable_audio">تفعيل الصوت</string>
-    <string name="enable_video">تفعيل الفيديو</string>
-    <string name="enable_images">تفعيل الصور</string>
+    <string name="enable_audio">الصوت</string>
+    <string name="enable_video">الفيديو</string>
+    <string name="enable_images">الصور</string>
     <string name="slideshow_settings">عرض الشرائح</string>
     <string name="enable_slideshow">تفعيل عرض الشرائح</string>
     <string name="slideshow_interval">الفاصل الزمني: %ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">مستندات</string>
     <string name="screen_settings_title">الشاشة</string>
     <string name="screen_settings_view_mode">عرض الشاشات</string>
-    <string name="wear_streams_section_enabled">إظهار البث</string>
+    <string name="wear_streams_section_enabled">البث</string>
     <string name="wear_resources_empty_hint">لم يصل شيء من الهاتف بعد. افتح تطبيق الساعة المرافق على الهاتف واختر الموارد لإرسالها إلى هنا.</string>
     <string name="screen_settings_keep_awake">إبقاء الشاشة قيد التشغيل</string>
     <string name="about_send_logs">إرسال السجلات إلى المطوّر</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">في انتظار الهاتف</string>
     <string name="wear_voice_note_state_sent">تم إرسالها إلى الهاتف</string>
     <string name="wear_voice_note_state_failed">لم يتم إرسالها</string>
-    <string name="wear_voice_note_send">إرسال إلى الهاتف</string>
-    <string name="wear_voice_note_delete">حذف الملاحظة</string>
     <string name="wear_voice_note_delete_confirm">هل تريد حذف هذه الملاحظة؟ التسجيل يذهب معها.</string>
     <string name="wear_voice_note_empty">لا توجد ملاحظات حتى الآن. سجل واحدًا وسيظهر هنا.</string>
     <string name="wear_voice_note_result_sent">منتهي. المذكرة موجودة على الهاتف.</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">عرض التدفقات</string>
     <string name="wear_setting_background_mode">مشاهدة الخلفية</string>
     <string name="wear_background_mode_animation">الرسوم المتحركة ذات العلامات التجارية</string>
-    <string name="wear_background_mode_image">صورتك</string>
+    <string name="wear_background_mode_still">خلفية العلامة التجارية الثابتة</string>
+    <string name="wear_background_mode_image">صورة من الهاتف</string>
     <string name="wear_content_type_document">وثيقة</string>
     <string name="wear_content_type_folder">مجلد</string>
     <string name="wear_browse_search">البحث في الملفات</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">التاريخ (الأحدث أولاً)</string>
     <string name="wear_browse_sort_size_asc">الحجم (الأصغر أولاً)</string>
     <string name="wear_browse_sort_size_desc">الحجم (الأكبر أولاً)</string>
-    <string name="enable_documents">تمكين المستندات</string>
-    <string name="wear_settings_sections">الأقسام</string>
+    <string name="enable_documents">المستندات</string>
     <string name="phone_resource_no_resource_for_type">لم يتم إعداد أي مورد هاتف لاستيعاب هذا النوع.</string>
     <string name="wear_folder_load_more">عرض المزيد</string>
     <string name="wear_file_op_outcome_needs_consent">لم يتم تأكيده - لم يتغير شيء</string>

@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -13,8 +14,14 @@ import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.domain.game.GameBoard
 import com.sza.fastmediasorter.wear.domain.game.GameCell
 import com.sza.fastmediasorter.wear.domain.game.GameEnemyType
+import com.sza.fastmediasorter.wear.domain.game.GameGuideArrow
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
 import com.sza.fastmediasorter.wear.domain.game.GamePosition
+import com.sza.fastmediasorter.wear.ui.theme.LocalWearAppColors
+import kotlin.math.PI
+import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 
 /** Share of a cell left as a gap, so neighbouring tiles read as separate squares on a small screen. */
 private const val CELL_GAP_FRACTION = 0.08f
@@ -30,6 +37,16 @@ private const val SHADOW_ALPHA = 0.55f
 private const val HALF = 0.5f
 
 /**
+ * S2494: the start-of-level arrow, in the phone's proportions.
+ *
+ * Every one of them is a share of the cell rather than a dp, so the hint keeps its weight on a 9x9
+ * board squeezed onto the smallest glass the module supports.
+ */
+private const val ARROW_HEAD_ANGLE = 0.5f
+private const val ARROW_HEAD_FACTOR = 0.45f
+private const val ARROW_WIDTH_FACTOR = 0.12f
+
+/**
  * Every colour on the board, resolved from the theme before the draw scope opens.
  *
  * A [DrawScope] cannot read a composition local, so the palette has to cross that boundary as a
@@ -41,18 +58,24 @@ private class BoardPalette(
     val exit: Color,
     val player: Color,
     val kryvavitsa: Color,
-    val shadow: Color
+    val shadow: Color,
+    val guideArrow: Color
 )
 
 /**
  * The whole board at once - the owner ruled the game is played by swiping across it, which only
  * works while every cell is on screen, so this never scrolls and never zooms.
+ *
+ * @param showGuideArrow S2494: whether the start-of-level hint towards the nearest exit is drawn.
+ * The window it is shown in belongs to the screen, not to the board - passing the flag in keeps the
+ * canvas free of a timer and leaves one place to disable the hint should it ever become a setting.
  */
 @Composable
 fun GameBoardCanvas(
     level: GameLevelState,
     contentDescription: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showGuideArrow: Boolean = false
 ) {
     val palette = BoardPalette(
         floor = MaterialTheme.colors.surface,
@@ -60,14 +83,56 @@ fun GameBoardCanvas(
         exit = MaterialTheme.colors.secondary,
         player = MaterialTheme.colors.primary,
         kryvavitsa = MaterialTheme.colors.error,
-        shadow = MaterialTheme.colors.onSurface.copy(alpha = SHADOW_ALPHA)
+        shadow = MaterialTheme.colors.onSurface.copy(alpha = SHADOW_ALPHA),
+        guideArrow = LocalWearAppColors.current.guideArrow
     )
     Canvas(
         modifier = modifier.semantics { this.contentDescription = contentDescription }
     ) {
         val metrics = metricsFor(level.board, size)
         drawCells(level.board, metrics, palette)
+        // Between the tiles and the figures: the hint must not cover the player or the exit it
+        // points at, which is the whole reason it is drawn at all (strategic §7).
+        if (showGuideArrow) {
+            drawGuideArrow(level, metrics, palette)
+        }
         drawActors(level, metrics, palette)
+    }
+}
+
+private fun DrawScope.drawGuideArrow(
+    level: GameLevelState,
+    metrics: BoardMetrics,
+    palette: BoardPalette
+) {
+    val target = GameGuideArrow.targetFor(level) ?: return
+    val start = centreOf(level.player.position, metrics)
+    val end = centreOf(target, metrics)
+    // The player is standing on the exit: there is no direction left to point at.
+    if (start == end) {
+        return
+    }
+    val width = metrics.cell * ARROW_WIDTH_FACTOR
+    drawLine(
+        color = palette.guideArrow,
+        start = start,
+        end = end,
+        strokeWidth = width,
+        cap = StrokeCap.Round
+    )
+    val backAngle = atan2(end.y - start.y, end.x - start.x) + PI.toFloat()
+    val headLength = metrics.cell * ARROW_HEAD_FACTOR
+    listOf(backAngle - ARROW_HEAD_ANGLE, backAngle + ARROW_HEAD_ANGLE).forEach { angle ->
+        drawLine(
+            color = palette.guideArrow,
+            start = end,
+            end = Offset(
+                x = end.x + headLength * cos(angle),
+                y = end.y + headLength * sin(angle)
+            ),
+            strokeWidth = width,
+            cap = StrokeCap.Round
+        )
     }
 }
 

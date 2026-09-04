@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -42,8 +41,6 @@ import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -60,16 +57,18 @@ import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForEntry
+import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
-import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearRefineControlHeader
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderActions
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderHeight
@@ -78,7 +77,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderState
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuActions
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuScreen
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuState
-import com.sza.fastmediasorter.wear.ui.common.WearRowDensity
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
@@ -87,7 +85,6 @@ import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.rememberOverlayVisibleOnIdle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
-import com.sza.fastmediasorter.wear.ui.common.rowDensityFor
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
@@ -125,7 +122,7 @@ fun PhoneResourceScreen(
         }
     }
 
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialItemIndex = 1)
 
     // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
     // that dropped it costs nothing, while a ViewModel that carried it would replay it.
@@ -198,7 +195,7 @@ fun PhoneResourceScreen(
         onClose = { actionEntry = null },
         onRename = { entry ->
             renameEntry.value = entry
-            requestRename()
+            requestRename(entry.name)
         }
     )
 }
@@ -587,12 +584,6 @@ private fun PhoneResourceList(
         // Decided here, for the whole loaded page, rather than per row: a picture that lands mid-scroll
         // must not re-size the glyph under the reading finger (strategic ADR-3). Only the cell path
         // ever swaps a glyph for a thumbnail, so the column count is what answers that question.
-        val density = remember(items, columns) {
-            rowDensityFor(
-                types = items.map { contentTypeForEntry(it.mimeType, it.isDirectory) },
-                canProduceThumbnails = columns != SINGLE_COLUMN
-            )
-        }
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState
@@ -615,7 +606,6 @@ private fun PhoneResourceList(
             entryItems(
                 items = items,
                 columns = columns,
-                density = density,
                 thumbnails = presentation.thumbnails,
                 onRequestThumbnail = presentation.onRequestThumbnail,
                 onEntryClick = onEntryClick,
@@ -669,7 +659,6 @@ private fun PinnedOpenStatus(
 private fun ScalingLazyListScope.entryItems(
     items: List<WearPhoneResourceItem>,
     columns: Int,
-    density: WearRowDensity,
     thumbnails: Map<String, WearThumbnail>,
     onRequestThumbnail: (String) -> Unit,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
@@ -680,7 +669,12 @@ private fun ScalingLazyListScope.entryItems(
             if (!entry.isDirectory) {
                 onRequestThumbnail(entry.token)
             }
-            EntryChip(entry = entry, density = density, onEntryClick = onEntryClick)
+            EntryChip(
+                entry = entry,
+                thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
+                onEntryClick = onEntryClick,
+                onEntryLongClick = onEntryLongClick
+            )
         }
     } else {
         items(items.chunked(columns)) { rowEntries ->
@@ -707,17 +701,15 @@ private fun EntryRow(
     onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
     val longPressLabel = stringResource(R.string.wear_file_op_actions)
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
-    ) {
+    CenteredGridRow(columns = columns, itemCount = entries.size, gap = GRID_GAP) {
         entries.forEach { entry ->
+            Timber.d("S2476: PhoneResourceScreen rendering item caption %s", entry.displayName)
             if (!entry.isDirectory) {
                 onRequestThumbnail(entry.token)
             }
             ThumbnailCell(
                 thumbnail = thumbnails[entry.token] ?: WearThumbnail.Unavailable,
-                caption = entry.name,
+                caption = entry.displayName,
                 onClick = { onEntryClick(entry) },
                 // This screen has no multi-select mode to reach the menu a second way, so the gesture
                 // is announced instead: without the label TalkBack never offers it at all.
@@ -732,41 +724,39 @@ private fun EntryRow(
                 EntryIcon(entry = entry, modifier = glyphModifier)
             }
         }
-        repeat(columns - entries.size) {
-            Spacer(modifier = Modifier.weight(1f))
-        }
     }
 }
 
 @Composable
 private fun EntryChip(
     entry: WearPhoneResourceItem,
-    density: WearRowDensity,
-    onEntryClick: (WearPhoneResourceItem) -> Unit
+    thumbnail: WearThumbnail,
+    onEntryClick: (WearPhoneResourceItem) -> Unit,
+    onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
-    Chip(
+    val longPressLabel = stringResource(R.string.wear_file_op_actions)
+    SingleColumnTileCell(
+        thumbnail = thumbnail,
+        caption = entry.displayName,
         onClick = { onEntryClick(entry) },
-        label = { Text(text = entry.name) },
-        icon = { EntryIcon(entry = entry, modifier = Modifier.size(density.leadingIconSize)) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = entry.name },
-        colors = ChipDefaults.primaryChipColors()
+        onLongClick = { onEntryLongClick(entry) },
+        modifier = Modifier.semantics { onLongClick(label = longPressLabel, action = null) },
+        fallback = { glyphModifier ->
+            EntryIcon(entry = entry, modifier = glyphModifier)
+        }
     )
 }
 
 /**
- * The chip path sizes the glyph from the list's density; the cell path is handed the placeholder
- * modifier instead, so the same glyph is a chip icon in one place and a full-cell glyph in the other.
+ * S2129: the glyph comes from the entry's own type rather than a folder/file switch. A list of
+ * audio files drew the same blank sheet on every row, which told the owner nothing and left the
+ * name as the only way to tell one row from the next.
  */
 @Composable
 private fun EntryIcon(
     entry: WearPhoneResourceItem,
-    modifier: Modifier = Modifier.size(WearListMetrics.LeadingIconNormal)
+    modifier: Modifier = Modifier
 ) {
-    // S2129: the glyph comes from the entry's own type rather than a folder/file switch. A list of
-    // audio files drew the same blank sheet on every row, which told the owner nothing and left the
-    // name as the only way to tell one row from the next.
     val type = contentTypeForEntry(entry.mimeType, entry.isDirectory)
     Icon(
         painter = painterResource(ContentTypeCatalog.iconFor(type)),

@@ -42,6 +42,16 @@ class ResolveWearBackgroundUseCaseTest {
     }
 
     @Test
+    fun `branded still yields branded still even when a frame is sitting there`() {
+        runTest {
+            writeFrame(bytes = 1)
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.BRANDED_STILL)
+
+            assertEquals(WearBackground.BrandedStill, background().first())
+        }
+    }
+
+    @Test
     fun `image mode with a readable frame yields that frame`() {
         runTest {
             val frame = writeFrame(bytes = 1)

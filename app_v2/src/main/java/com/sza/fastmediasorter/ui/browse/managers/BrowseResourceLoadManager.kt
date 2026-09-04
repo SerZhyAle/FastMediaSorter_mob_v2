@@ -157,10 +157,18 @@ class BrowseResourceLoadManager(
             Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
 
             val isNetworkResource = resource.type in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)
-            if (!skipAvailabilityCheck && !isNetworkResource && resource.fileCount == 0 && !resource.isWritable) {
+            if (!skipAvailabilityCheck && (
+                (!isNetworkResource && resource.fileCount == 0 && !resource.isWritable) ||
+                (resource.type == ResourceType.WEAR_WATCH && !resource.isAvailable)
+            )) {
                 Timber.w("BrowseResourceLoadManager.loadResource: unavailable resource")
+                val errorMessage = if (resource.type == ResourceType.WEAR_WATCH) {
+                    context.getString(R.string.paired_watch_not_connected)
+                } else {
+                    context.getString(R.string.error_resource_unavailable, resource.name)
+                }
                 sendEvent(BrowseEvent.ShowError(
-                    message = context.getString(R.string.error_resource_unavailable, resource.name),
+                    message = errorMessage,
                     details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"
                 ))
                 setLoading(false)

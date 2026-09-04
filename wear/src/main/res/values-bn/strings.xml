@@ -16,9 +16,9 @@
     <string name="permission_rationale">আপনার মিডিয়া ফাইল দেখাতে অনুমতি প্রয়োজন</string>
     <string name="settings">সেটিংস</string>
     <string name="media_types">মিডিয়া টাইপ</string>
-    <string name="enable_audio">অডিও সক্রিয় করুন</string>
-    <string name="enable_video">ভিডিও সক্রিয় করুন</string>
-    <string name="enable_images">ছবি সক্রিয় করুন</string>
+    <string name="enable_audio">অডিও</string>
+    <string name="enable_video">ভিডিও</string>
+    <string name="enable_images">ছবি</string>
     <string name="slideshow_settings">স্লাইডশো</string>
     <string name="enable_slideshow">স্লাইডশো সক্রিয় করুন</string>
     <string name="slideshow_interval">ব্যবধান: %ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">ডকুমেন্ট</string>
     <string name="screen_settings_title">স্ক্রিন</string>
     <string name="screen_settings_view_mode">স্ক্রিন ভিউ</string>
-    <string name="wear_streams_section_enabled">স্ট্রিম দেখান</string>
+    <string name="wear_streams_section_enabled">স্ট্রিম</string>
     <string name="wear_resources_empty_hint">ফোন থেকে এখনো কিছু আসেনি। ফোনে Wear-companion খুলুন এবং এখানে পাঠানোর জন্য রিসোর্স বেছে নিন।</string>
     <string name="screen_settings_keep_awake">স্ক্রিন চালু রাখুন</string>
     <string name="about_send_logs">ডেভেলপারের কাছে লগ পাঠান</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">ফোনের অপেক্ষায়</string>
     <string name="wear_voice_note_state_sent">ফোনে পাঠানো হয়েছে</string>
     <string name="wear_voice_note_state_failed">পাঠানো হয়নি</string>
-    <string name="wear_voice_note_send">ফোনে পাঠান</string>
-    <string name="wear_voice_note_delete">নোট মুছুন</string>
     <string name="wear_voice_note_delete_confirm">এই নোটটি মুছবেন? রেকর্ডিং এর সাথে যায়।</string>
     <string name="wear_voice_note_empty">এখনও কোন নোট নেই. একটি রেকর্ড করুন এবং এটি এখানে প্রদর্শিত হবে।</string>
     <string name="wear_voice_note_result_sent">সম্পন্ন নোটটি ফোনে রয়েছে।</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">স্ট্রীম দেখান</string>
     <string name="wear_setting_background_mode">ঘড়ির পটভূমি</string>
     <string name="wear_background_mode_animation">ব্র্যান্ডেড অ্যানিমেশন</string>
-    <string name="wear_background_mode_image">আপনার ইমেজ</string>
+    <string name="wear_background_mode_still">স্থির ব্র্যান্ডেড পটভূমি</string>
+    <string name="wear_background_mode_image">ফোন থেকে ছবি</string>
     <string name="wear_content_type_document">দলিল</string>
     <string name="wear_content_type_folder">ফোল্ডার</string>
     <string name="wear_browse_search">ফাইল অনুসন্ধান করুন</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">তারিখ (নতুন প্রথম)</string>
     <string name="wear_browse_sort_size_asc">আকার (প্রথমে ছোট)</string>
     <string name="wear_browse_sort_size_desc">আকার (প্রথম বৃহত্তম)</string>
-    <string name="enable_documents">নথি সক্রিয় করুন</string>
-    <string name="wear_settings_sections">বিভাগসমূহ</string>
+    <string name="enable_documents">নথি</string>
     <string name="phone_resource_no_resource_for_type">এই ধরনের ধারণ করার জন্য কোনো ফোন রিসোর্স সেট আপ করা হয়নি।</string>
     <string name="wear_folder_load_more">আরও দেখান</string>
     <string name="wear_file_op_outcome_needs_consent">নিশ্চিত করা হয়নি - কিছুই পরিবর্তন হয়নি</string>

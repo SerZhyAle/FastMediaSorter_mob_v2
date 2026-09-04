@@ -7,16 +7,17 @@ import com.sza.fastmediasorter.wear.data.db.VoiceNoteEntity
 import com.sza.fastmediasorter.wear.data.recorder.VoiceNoteFileFactory
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import io.mockk.verify
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.runBlocking
+import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
-import io.mockk.mockkStatic
-import io.mockk.unmockkStatic
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,6 +73,10 @@ class VoiceNoteRepositoryImplTest {
 
         override suspend fun updatePublishedAddress(id: Long, address: String) {
             rows[id]?.let { rows[id] = it.copy(publishedAddress = address) }
+        }
+
+        override suspend fun updateName(id: Long, fileName: String, absolutePath: String) {
+            rows[id]?.let { rows[id] = it.copy(fileName = fileName, absolutePath = absolutePath) }
         }
 
         override suspend fun deleteById(id: Long) {
@@ -141,9 +146,45 @@ class VoiceNoteRepositoryImplTest {
         assertNull(dao.getById(1L))
     }
 
+    /**
+     * S2495: the file and the index are one fact written twice, so the assertion checks both - a
+     * rename that moved the file and left the index naming the old path is a note the list can no
+     * longer open, which strategic §7 rates as this ticket's highest risk.
+     */
+    @Test
+    fun `renaming a note moves the file and the index together`() = runBlocking {
+        val file = temporaryFolder.newFile("audio_260826_101503.m4a")
+        val dao = FakeVoiceNoteDao(listOf(entityFor(file)))
+        val repository = VoiceNoteRepositoryImpl(context, dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
+
+        val renamed = repository.rename(1L, "shopping list.m4a")
+
+        assertFalse("the old file survived the rename", file.exists())
+        assertTrue("the new file was never written", File(file.parentFile, "shopping list.m4a").exists())
+        assertEquals("shopping list.m4a", renamed?.fileName)
+        assertEquals("shopping list.m4a", dao.getById(1L)?.fileName)
+        assertEquals(File(file.parentFile, "shopping list.m4a").absolutePath, dao.getById(1L)?.absolutePath)
+    }
+
+    /** A name already taken is refused outright rather than suffixed onto a third name. */
+    @Test
+    fun `renaming onto an existing name changes neither the file nor the index`() = runBlocking {
+        val file = temporaryFolder.newFile("audio_260826_101504.m4a")
+        val occupied = temporaryFolder.newFile("taken.m4a")
+        val dao = FakeVoiceNoteDao(listOf(entityFor(file)))
+        val repository = VoiceNoteRepositoryImpl(context, dao, factoryWithFreeSpace(FREE_ABOVE_THRESHOLD))
+
+        val renamed = repository.rename(1L, occupied.name)
+
+        assertNull("a refused rename must report nothing renamed", renamed)
+        assertTrue("the note lost its file to a name that was already taken", file.exists())
+        assertEquals(file.name, dao.getById(1L)?.fileName)
+    }
+
     @Test
     fun `recording is refused when the watch is below the headroom`() = runBlocking {
-        val repository = VoiceNoteRepositoryImpl(context, FakeVoiceNoteDao(), factoryWithFreeSpace(FREE_BELOW_THRESHOLD))
+        val repository =
+            VoiceNoteRepositoryImpl(context, FakeVoiceNoteDao(), factoryWithFreeSpace(FREE_BELOW_THRESHOLD))
         assertFalse(repository.hasRoomToRecord())
     }
 

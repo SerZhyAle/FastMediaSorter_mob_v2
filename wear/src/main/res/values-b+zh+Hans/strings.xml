@@ -16,9 +16,9 @@
     <string name="permission_rationale">需要权限才能显示你的媒体文件</string>
     <string name="settings">设置</string>
     <string name="media_types">媒体类型</string>
-    <string name="enable_audio">启用音频</string>
-    <string name="enable_video">启用视频</string>
-    <string name="enable_images">启用图片</string>
+    <string name="enable_audio">音频</string>
+    <string name="enable_video">视频</string>
+    <string name="enable_images">图片</string>
     <string name="slideshow_settings">幻灯片放映</string>
     <string name="enable_slideshow">启用幻灯片放映</string>
     <string name="slideshow_interval">间隔：%ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">文档</string>
     <string name="screen_settings_title">屏幕</string>
     <string name="screen_settings_view_mode">屏幕视图</string>
-    <string name="wear_streams_section_enabled">显示直播源</string>
+    <string name="wear_streams_section_enabled">直播源</string>
     <string name="wear_resources_empty_hint">尚未从手机接收到任何内容。请在手机上打开\"手表伴侣\"，选择要发送到这里的资源。</string>
     <string name="screen_settings_keep_awake">保持屏幕常亮</string>
     <string name="about_send_logs">将日志发送给开发者</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">等待电话</string>
     <string name="wear_voice_note_state_sent">发送至手机</string>
     <string name="wear_voice_note_state_failed">未发送</string>
-    <string name="wear_voice_note_send">发送至手机</string>
-    <string name="wear_voice_note_delete">删除注释</string>
     <string name="wear_voice_note_delete_confirm">删除此注释？录音也随之而来。</string>
     <string name="wear_voice_note_empty">还没有笔记。记录一个，它会显示在这里。</string>
     <string name="wear_voice_note_result_sent">完毕。便条在电话里。</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">显示流</string>
     <string name="wear_setting_background_mode">手表背景</string>
     <string name="wear_background_mode_animation">品牌动画</string>
-    <string name="wear_background_mode_image">你的形象</string>
+    <string name="wear_background_mode_still">静态品牌背景</string>
+    <string name="wear_background_mode_image">来自手机的照片</string>
     <string name="wear_content_type_document">文档</string>
     <string name="wear_content_type_folder">文件夹</string>
     <string name="wear_browse_search">搜索文件</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">日期（最新的在前）</string>
     <string name="wear_browse_sort_size_asc">尺寸（最小的在前）</string>
     <string name="wear_browse_sort_size_desc">尺寸（最大的在前）</string>
-    <string name="enable_documents">启用文档</string>
-    <string name="wear_settings_sections">部分</string>
+    <string name="enable_documents">文档</string>
     <string name="phone_resource_no_resource_for_type">没有设置电话资源来保存此类型。</string>
     <string name="wear_folder_load_more">显示更多</string>
     <string name="wear_file_op_outcome_needs_consent">未确认 - 没有任何改变</string>

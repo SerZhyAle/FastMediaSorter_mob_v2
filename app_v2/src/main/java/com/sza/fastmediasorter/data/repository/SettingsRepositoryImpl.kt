@@ -132,6 +132,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN = booleanPreferencesKey("hide_system_ui_in_fullscreen")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
+        private val KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS = intPreferencesKey("player_panel_auto_hide_seconds")
         private val KEY_OPEN_VIDEO_IN_FULLSCREEN = booleanPreferencesKey("open_video_in_fullscreen")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
         private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
@@ -448,6 +449,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
+                    playerPanelAutoHideSeconds = preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] ?: 15,
                     openVideoInFullscreen = preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
@@ -734,6 +736,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
                 preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
                 preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
+                preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] = settings.playerPanelAutoHideSeconds
                 preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] = settings.openVideoInFullscreen
                 preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
                 preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun

@@ -19,9 +19,9 @@
     <!-- Settings strings -->
     <string name="settings">Настройки</string>
     <string name="media_types">Типы медиа</string>
-    <string name="enable_audio">Включить аудио</string>
-    <string name="enable_video">Включить видео</string>
-    <string name="enable_images">Включить изображения</string>
+    <string name="enable_audio">Аудио</string>
+    <string name="enable_video">Видео</string>
+    <string name="enable_images">Изображения</string>
     <string name="slideshow_settings">Слайд-шоу</string>
     <string name="enable_slideshow">Включить слайд-шоу</string>
     <string name="slideshow_interval">Интервал: %dс</string>
@@ -147,7 +147,7 @@
     <string name="wear_phone_documents">Документы</string>
     <string name="screen_settings_title">Экран</string>
     <string name="screen_settings_view_mode">Вид экранов</string>
-    <string name="wear_streams_section_enabled">Показывать трансляции</string>
+    <string name="wear_streams_section_enabled">Трансляции</string>
     <string name="wear_resources_empty_hint">С телефона сюда пока ничего не передали. Откройте на телефоне Wear-компаньон и отметьте нужные ресурсы.</string>
     <string name="screen_settings_keep_awake">Не гасить экран</string>
     <string name="about_send_logs">Отправить логи разработчику</string>
@@ -319,8 +319,6 @@
     <string name="wear_voice_note_state_pending">Ждёт телефон</string>
     <string name="wear_voice_note_state_sent">Отправлена на телефон</string>
     <string name="wear_voice_note_state_failed">Не отправлена</string>
-    <string name="wear_voice_note_send">Отправить на телефон</string>
-    <string name="wear_voice_note_delete">Удалить заметку</string>
     <string name="wear_voice_note_delete_confirm">Удалить заметку? Запись удалится вместе с ней.</string>
     <string name="wear_voice_note_empty">Заметок пока нет. Запишите - и она появится здесь.</string>
     <string name="wear_voice_note_result_sent">Готово. Заметка на телефоне.</string>
@@ -396,7 +394,8 @@
     <string name="wear_setting_streams_section">Показывать трансляции</string>
     <string name="wear_setting_background_mode">Фон на часах</string>
     <string name="wear_background_mode_animation">Фирменная анимация</string>
-    <string name="wear_background_mode_image">Своё изображение</string>
+    <string name="wear_background_mode_still">Неподвижный фирменный фон</string>
+    <string name="wear_background_mode_image">Фото с телефона</string>
     <string name="wear_content_type_document">Документ</string>
     <string name="wear_content_type_folder">Папка</string>
     <string name="wear_browse_search">Поиск файлов</string>
@@ -414,8 +413,7 @@
     <string name="wear_browse_sort_date_desc">Дата (сначала новые)</string>
     <string name="wear_browse_sort_size_asc">Размер (сначала маленькие)</string>
     <string name="wear_browse_sort_size_desc">Размер (сначала большие)</string>
-    <string name="enable_documents">Включить документы</string>
-    <string name="wear_settings_sections">Разделы</string>
+    <string name="enable_documents">Документы</string>
     <string name="phone_resource_no_resource_for_type">Ни один ресурс телефона не настроен на этот тип.</string>
     <string name="wear_folder_load_more">Показать ещё</string>
     <string name="wear_file_op_outcome_needs_consent">Не подтверждено - ничего не изменилось</string>
@@ -480,7 +478,6 @@
     <string name="wear_game_rules_legend_shadow">Тень: тёмный круг</string>
     <string name="wear_game_rules_legend_exit">Выход: зелёный квадрат</string>
     <string name="wear_game_rules_legend_wall">Стена: коричневый квадрат</string>
-    <string name="wear_voice_note_play">Воспроизвести</string>
     <string name="system_info_empty_unsupported">На этих часах нет такого оборудования</string>
     <string name="system_info_empty_unreadable">Часы не ответили</string>
     <string name="system_info_refresh">Обновить</string>
@@ -569,4 +566,22 @@
     <string name="wear_refine_menu_clear_search">Очистить поиск: %1$s</string>
     <string name="wear_navigate_back">Назад</string>
     <string name="wear_minimize_to_background">Свернуть в фон</string>
+    <string name="wear_playback_mode_sequential">Последовательно</string>
+    <string name="wear_playback_mode_shuffle">Вперемешку</string>
+    <string name="wear_playback_mode_loop">По кругу</string>
+    <string name="wear_sync_now">Синхронизировать</string>
+    <string name="wear_sync_now_description">Синхронизировать часы и телефон</string>
+    <string name="wear_voice_note_play_last">Слушать последнюю</string>
+    <string name="about_web_portal_on_phone">Открыть на телефоне</string>
+    <string name="about_web_portal_no_browser">На часах нет браузера. Нажмите «Открыть на телефоне»</string>
+    <string name="about_web_portal_phone_opened">Открыто. Посмотрите на телефон</string>
+    <string name="about_web_portal_no_phone">Телефон не подключён. Поднесите его ближе</string>
+    <string name="about_web_portal_phone_failed">Не удалось передать на телефон. Попробуйте ещё раз</string>
+    <string name="wear_player_stream_pin">Закрепить поток</string>
+    <string name="wear_player_stream_unpin">Открепить поток</string>
+    <string name="wear_browse_voice_notes">Голосовые заметки</string>
+    <string name="wear_voice_note_rename_failed">Не удалось переименовать заметку</string>
+    <string name="panel_auto_hide_label">Автоскрытие: %dс</string>
+    <string name="panel_auto_hide_decrease">Уменьшить время автоскрытия</string>
+    <string name="panel_auto_hide_increase">Увеличить время автоскрытия</string>
 </resources>

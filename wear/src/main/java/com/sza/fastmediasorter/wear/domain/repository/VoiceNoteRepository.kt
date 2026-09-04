@@ -36,6 +36,15 @@ interface VoiceNoteRepository {
     /** S2161: records the published MediaStore address for a note. */
     suspend fun updatePublishedAddress(id: Long, publishedAddress: String)
 
+    /**
+     * S2495: renames the note's private file and follows it in the index, or changes neither.
+     *
+     * Returns the note as it now stands, or null when the row is gone or the file refused to move.
+     * The two are done here rather than by the caller because a renamed file whose index still names
+     * the old path is a note the list can no longer open - strategic §7 rates that split first.
+     */
+    suspend fun rename(id: Long, newName: String): VoiceNote?
+
     /** Removes the row AND the file - a note kept until deleted by hand must free its bytes then. */
     suspend fun delete(id: Long)
 

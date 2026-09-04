@@ -69,6 +69,18 @@ class SftpEndpointResolver @Inject constructor(
     }
 
     /**
+     * S2488: the whole candidate group in send order - the endpoint reachable now first, the remaining
+     * candidates behind it in contract order. Never empty: a host that belongs to no multi-path group
+     * returns a single-element list holding the requested pair. Delegates the choice to [resolve], so
+     * the per-network cache is shared and a second call costs no extra probe round.
+     */
+    suspend fun orderedEndpoints(host: String, port: Int): List<HostPort> {
+        val candidates = candidatesFor(HostPort(host, port))
+        val winner = resolve(host, port)
+        return (listOf(winner) + candidates).distinct()
+    }
+
+    /**
      * Non-suspending, cache-only variant for synchronous call sites (ExoPlayer data-source factories on
      * the player thread, which must not block on a DB read or a probe). Returns the winner already probed
      * for this network, or the requested endpoint unchanged when none is cached yet - the browse/scan path

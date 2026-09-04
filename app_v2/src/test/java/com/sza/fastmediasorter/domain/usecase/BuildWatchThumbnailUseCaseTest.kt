@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
@@ -48,7 +49,13 @@ class BuildWatchThumbnailUseCaseTest {
 
     @Before
     fun setUp() {
-        useCase = BuildWatchThumbnailUseCase(RuntimeEnvironment.getApplication())
+        // S2489 added the cache repository to the constructor without updating this test, which left
+        // the whole app_v2 unit source set non-compiling. Relaxed: these cases assert the ceiling and
+        // the decline, and a cache that answers null sends every one of them down the decode path.
+        useCase = BuildWatchThumbnailUseCase(
+            RuntimeEnvironment.getApplication(),
+            mockk(relaxed = true)
+        )
     }
 
     @Test

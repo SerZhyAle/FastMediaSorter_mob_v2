@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.data.network.sftp
 
+import com.sza.fastmediasorter.wear.data.network.FakeWearNetworkChannelMonitor
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import kotlinx.coroutines.test.runTest
@@ -18,7 +20,8 @@ class SftpConnectionTestTest {
      */
     @Test
     fun `testSftp reports the real connect failure rather than an unsupported stub`() = runTest {
-        val result = SftpConnectionTest().testSftp(makeSource(port = UNUSED_LOOPBACK_PORT))
+        val resolver = WearEndpointResolver(FakeWearNetworkChannelMonitor())
+        val result = SftpConnectionTest(resolver).testSftp(makeSource(port = UNUSED_LOOPBACK_PORT))
 
         assertTrue(result.isFailure)
         val exception = result.exceptionOrNull()

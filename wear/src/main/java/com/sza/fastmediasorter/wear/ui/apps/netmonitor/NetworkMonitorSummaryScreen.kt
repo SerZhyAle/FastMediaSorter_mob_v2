@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,11 +13,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Button
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Card
 import androidx.wear.compose.material.MaterialTheme
@@ -27,10 +28,15 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearCellShape
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val ROW_SPACING = 4.dp
@@ -41,16 +47,17 @@ private val CARD_LINE_SPACING = 2.dp
  * Root Dashboard screen of the Wear Network Monitor.
  *
  * Renders the top summary card (active connection, local IP, external IP / reachability)
- * and a scrollable list of section Chips showing section name and live status fact.
+ * and a grid of square section tiles showing section name and live status fact.
  */
 @Composable
 fun NetworkMonitorSummaryScreen(
     viewModel: NetworkMonitorViewModel,
     onNavigateToSection: (String) -> Unit,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S2470: Network Monitor compact overview shown")
     val snapshot = state.snapshot
 
     WearScreenScaffold(
@@ -58,36 +65,61 @@ fun NetworkMonitorSummaryScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        WearListColumn(
-            modifier = modifier.fillMaxSize(),
-            state = listState,
-            verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_netmon_summary),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = TITLE_BOTTOM_PADDING),
-                    textAlign = TextAlign.Center
-                )
-            }
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            val availableWidthDp = maxWidth.value.toInt()
+            val columns = GridColumnFit.columnsFor(state.viewMode, availableWidthDp)
+            val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
+            Timber.d("S2156: Network monitor sections=%d columns=%d", nonSummarySections.size, columns)
+            WearListColumn(
+                modifier = modifier.fillMaxSize(),
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_netmon_summary),
+                        style = MaterialTheme.typography.title3,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = TITLE_BOTTOM_PADDING),
+                        textAlign = TextAlign.Center
+                    )
+                }
 
-            item {
-                SummaryHeaderCard(
-                    snapshot = snapshot,
-                    externalIp = state.externalIp,
-                    onCopyIp = { label, ip -> viewModel.copyToClipboard(label, ip) }
-                )
-            }
+                item {
+                    SummaryHeaderCard(
+                        snapshot = snapshot,
+                        externalIp = state.externalIp,
+                        onCopyIp = { label, ip -> viewModel.copyToClipboard(label, ip) }
+                    )
+                }
 
-            items(state.sections.filter { it != WearNetworkSection.Summary }) { section ->
-                SectionButton(
-                    section = section,
-                    fact = state.sectionFacts[section] ?: WearSectionFact.None,
-                    onClick = { onNavigateToSection(section.key) }
-                )
+                if (columns == 1) {
+                    items(nonSummarySections) { section ->
+                        SectionTile(
+                            section = section,
+                            fact = state.sectionFacts[section] ?: WearSectionFact.None,
+                            onClick = { onNavigateToSection(section.key) }
+                        )
+                    }
+                } else {
+                    items(nonSummarySections.chunked(columns)) { rowSections ->
+                        CenteredGridRow(
+                            columns = columns,
+                            itemCount = rowSections.size,
+                            gap = ROW_SPACING
+                        ) {
+                            rowSections.forEach { section ->
+                                SectionTile(
+                                    section = section,
+                                    fact = state.sectionFacts[section] ?: WearSectionFact.None,
+                                    modifier = Modifier.weight(1f),
+                                    onClick = { onNavigateToSection(section.key) }
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
@@ -137,16 +169,33 @@ private fun SummaryHeaderCard(
 }
 
 @Composable
-private fun SectionButton(
+private fun SectionTile(
     section: WearNetworkSection,
     fact: WearSectionFact,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    val title = stringResource(section.titleRes())
     val factText = fact.render()
-    Button(
+    val fullText = if (factText.isNullOrEmpty()) title else "$title: $factText"
+
+    RectangularButton(
         onClick = onClick,
-        colors = ButtonDefaults.secondaryButtonColors()
-    ) { Text(text = listOfNotNull(stringResource(section.titleRes()), factText).joinToString(": ")) }
+        colors = ButtonDefaults.secondaryButtonColors(),
+        shape = WearCellShape,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = fullText,
+            style = MaterialTheme.typography.caption2,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+        )
+    }
 }
 
 /** Where a named fact becomes words. Null means the button carries its name alone. */

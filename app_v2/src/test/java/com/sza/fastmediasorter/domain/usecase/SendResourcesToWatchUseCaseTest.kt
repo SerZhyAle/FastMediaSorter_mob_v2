@@ -3,13 +3,17 @@ package com.sza.fastmediasorter.domain.usecase
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
+import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
+import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.domain.networkmonitor.ReachableEndpointProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.testing.fakes.FakeWearResourceTombstoneStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
@@ -32,6 +36,9 @@ class SendResourcesToWatchUseCaseTest {
     private lateinit var credentialsRepository: FakeNetworkCredentialsRepository
     private lateinit var wearableRepository: FakeWearableDataLayerRepository
     private lateinit var selectionRepository: WearResourceSelectionRepositoryImpl
+    private lateinit var endpointProvider: FakeReachableEndpointProvider
+    private lateinit var stampStore: FakeWearResourceStampStore
+    private lateinit var tombstoneStore: FakeWearResourceTombstoneStore
     private lateinit var useCase: SendResourcesToWatchUseCase
 
     @Before
@@ -40,11 +47,17 @@ class SendResourcesToWatchUseCaseTest {
         credentialsRepository = FakeNetworkCredentialsRepository()
         wearableRepository = FakeWearableDataLayerRepository()
         selectionRepository = WearResourceSelectionRepositoryImpl(RuntimeEnvironment.getApplication())
+        endpointProvider = FakeReachableEndpointProvider()
+        stampStore = FakeWearResourceStampStore()
+        tombstoneStore = FakeWearResourceTombstoneStore()
         useCase = SendResourcesToWatchUseCase(
             resourceRepository,
             credentialsRepository,
             wearableRepository,
-            selectionRepository
+            selectionRepository,
+            endpointProvider,
+            stampStore,
+            tombstoneStore
         )
     }
 
@@ -172,6 +185,42 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals(listOf("2", "4"), payload.sources.map { it.id })
     }
 
+    // S2502: the watch ranks incoming records by this stamp, so a resource that was never edited must
+    // ship null rather than a zero, which would rank it as the oldest record that can exist.
+
+    @Test
+    fun `a stored edit stamp ships with its resource`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        select(1L)
+        stampStore.writeStamp("1", 1_700_000_000_000L)
+
+        useCase()
+
+        val payload = Gson().fromJson(
+            wearableRepository.putCalls.single().payload.decodeToString(),
+            WearSyncPayload::class.java
+        )
+        assertEquals(1_700_000_000_000L, payload.sources.single().lastEditedAt)
+    }
+
+    @Test
+    fun `a resource with no stored stamp ships null, not zero`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        select(1L)
+
+        useCase()
+
+        val payload = Gson().fromJson(
+            wearableRepository.putCalls.single().payload.decodeToString(),
+            WearSyncPayload::class.java
+        )
+        assertEquals(null, payload.sources.single().lastEditedAt)
+    }
+
     @Test
     fun `empty selection sends nothing and never writes to the data layer`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
@@ -185,6 +234,83 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals(0, result.getOrThrow().skipped)
         assertTrue(wearableRepository.putCalls.isEmpty())
     }
+
+    // S2488: the four cases below cover the endpoint substitution and both of its exclusions.
+
+    @Test
+    fun `SFTP resource sends the reachable endpoint instead of the credentials row`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SFTP, credId = "cred-1"))
+        select(1L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        endpointProvider.result = listOf(HostPort("192.168.1.70", 61423), HostPort("192.168.1.1", 445))
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        val source = sentSources().single()
+        assertEquals("192.168.1.70", source.server)
+        assertEquals(61423, source.port)
+    }
+
+    @Test
+    fun `SFTP resource sends the requested pair unchanged when it is the reachable one`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SFTP, credId = "cred-1"))
+        select(1L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        endpointProvider.result = listOf(HostPort("192.168.1.1", 445))
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        val source = sentSources().single()
+        assertEquals("192.168.1.1", source.server)
+        assertEquals(445, source.port)
+    }
+
+    @Test
+    fun `SMB resource sends the credentials row and never asks the provider`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        select(1L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        endpointProvider.result = listOf(HostPort("10.0.0.9", 2222))
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, endpointProvider.calls)
+        val source = sentSources().single()
+        assertEquals("192.168.1.1", source.server)
+        assertEquals(445, source.port)
+    }
+
+    @Test
+    fun `a throwing provider falls back to the credentials row and still sends the others`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(
+            makeResource(id = 1, type = ResourceType.SFTP, credId = "cred-1"),
+            makeResource(id = 2, type = ResourceType.SMB, credId = "cred-2")
+        )
+        select(1L, 2L)
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        credentialsRepository.byCredentialId["cred-2"] = makeCredentials("cred-2", "pass2")
+        endpointProvider.failure = IllegalStateException("resolver unavailable")
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(2, result.getOrThrow().sent)
+        val sftp = sentSources().first { it.type == "SFTP" }
+        assertEquals("192.168.1.1", sftp.server)
+        assertEquals(445, sftp.port)
+    }
+
+    private fun sentSources() = Gson().fromJson(
+        wearableRepository.putCalls.single().payload.decodeToString(),
+        WearSyncPayload::class.java
+    ).sources
 
     private fun makeResource(id: Long, type: ResourceType, credId: String?) = MediaResource(
         id = id,
@@ -209,6 +335,37 @@ class SendResourcesToWatchUseCaseTest {
     }
 }
 
+private class FakeWearResourceStampStore : WearResourceStampStore {
+
+    val stamps = mutableMapOf<String, Long>()
+
+    override fun readStamps(): Map<String, Long> = stamps.toMap()
+
+    override fun stampEdit(resourceId: String) {
+        stamps[resourceId] = System.currentTimeMillis()
+    }
+
+    override fun writeStamp(resourceId: String, atEpochMillis: Long) {
+        stamps[resourceId] = atEpochMillis
+    }
+
+    override fun forget(resourceId: String) {
+        stamps.remove(resourceId)
+    }
+}
+
+private class FakeReachableEndpointProvider : ReachableEndpointProvider {
+    var result: List<HostPort> = emptyList()
+    var failure: Throwable? = null
+    var calls = 0
+
+    override suspend fun orderedEndpoints(host: String, port: Int): List<HostPort> {
+        calls++
+        failure?.let { throw it }
+        return result.ifEmpty { listOf(HostPort(host, port)) }
+    }
+}
+
 private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
     var connectedNodes: List<WearNode> = emptyList()
     val putCalls = mutableListOf<PutCall>()
@@ -222,7 +379,10 @@ private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
     override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) = Unit
 
     // Required by the interface but not exercised in these tests.
-    override suspend fun putEnvelopeDataItem(path: String, envelope: com.sza.fastmediasorter.domain.model.WearEventEnvelope) = Unit
+    override suspend fun putEnvelopeDataItem(
+        path: String,
+        envelope: com.sza.fastmediasorter.domain.model.WearEventEnvelope
+    ) = Unit
 }
 
 private data class PutCall(
@@ -234,9 +394,17 @@ private class FakeNetworkCredentialsRepository : NetworkCredentialsRepository {
     val byCredentialId = mutableMapOf<String, NetworkCredentialsEntity>()
 
     override suspend fun insert(credentials: NetworkCredentialsEntity): Long = 0
-    override suspend fun getById(id: Long): NetworkCredentialsEntity? = byCredentialId.values.firstOrNull { it.id == id }
-    override suspend fun getByCredentialId(credentialId: String): NetworkCredentialsEntity? = byCredentialId[credentialId]
-    override suspend fun getByTypeServerAndPort(type: String, server: String, port: Int): NetworkCredentialsEntity? = null
+    override suspend fun getById(
+        id: Long
+    ): NetworkCredentialsEntity? = byCredentialId.values.firstOrNull { it.id == id }
+    override suspend fun getByCredentialId(
+        credentialId: String
+    ): NetworkCredentialsEntity? = byCredentialId[credentialId]
+    override suspend fun getByTypeServerAndPort(
+        type: String,
+        server: String,
+        port: Int
+    ): NetworkCredentialsEntity? = null
     override suspend fun getByServerAndShare(server: String, shareName: String): NetworkCredentialsEntity? = null
     override suspend fun getCredentialsByHost(host: String): NetworkCredentialsEntity? = null
     override suspend fun getByTypeAndAccountId(type: String, accountId: String): NetworkCredentialsEntity? = null
@@ -276,5 +444,7 @@ private class FakeResourceRepository : ResourceRepository {
     override suspend fun updateIcon(resourceId: Long, iconId: String?) = Unit
     override suspend fun updateLastViewedFile(resourceId: Long, path: String?) = Unit
     override suspend fun updateLastScrollPosition(resourceId: Long, position: Int) = Unit
-    override suspend fun backfillMissingIcons(resolveIcon: (path: String, profileName: String, typeName: String) -> String?): Int = 0
+    override suspend fun backfillMissingIcons(
+        resolveIcon: (path: String, profileName: String, typeName: String) -> String?
+    ): Int = 0
 }

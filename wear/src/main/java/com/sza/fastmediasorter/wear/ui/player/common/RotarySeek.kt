@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
+import androidx.compose.foundation.ScrollState
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import kotlinx.coroutines.launch
 
@@ -73,6 +74,18 @@ fun Modifier.rotaryActionScroll(listState: ScalingLazyListState): Modifier {
     val coroutineScope = rememberCoroutineScope()
     return this.rotaryAction(focusRequester) { delta ->
         coroutineScope.launch { listState.scrollBy(delta) }
+    }
+}
+
+/**
+ * Rotary scroll overload for a plain [ScrollState] container, such as an inscribed square scroll box.
+ */
+@Composable
+fun Modifier.rotaryActionScroll(scrollState: ScrollState): Modifier {
+    val focusRequester = rememberRotaryFocus()
+    val coroutineScope = rememberCoroutineScope()
+    return this.rotaryAction(focusRequester) { delta ->
+        coroutineScope.launch { scrollState.scrollBy(delta) }
     }
 }
 

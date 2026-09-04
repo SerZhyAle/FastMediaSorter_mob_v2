@@ -43,6 +43,9 @@ class ListPhoneResourcePageUseCaseTest {
     // producer is stubbed to decline - the state in which the watch draws a type icon.
     private val buildWatchThumbnail: BuildWatchThumbnailUseCase = mockk()
 
+    private val mediaStoreRepository: com.sza.fastmediasorter.domain.repository.MediaStoreRepository =
+        mockk(relaxed = true)
+
     private lateinit var useCase: ListPhoneResourcePageUseCase
 
     @Before
@@ -53,6 +56,7 @@ class ListPhoneResourcePageUseCaseTest {
             resourceRepository,
             scannerFactory,
             buildWatchThumbnail,
+            mediaStoreRepository,
             // S1860: the scan is started in this scope rather than in the caller's job. Its own
             // scheduler is never advanced, so a stub that delays never finishes - which is exactly
             // the blocking scanner the timeout exists for, expressed without a real wait.

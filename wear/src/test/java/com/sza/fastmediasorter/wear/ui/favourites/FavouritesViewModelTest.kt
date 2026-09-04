@@ -171,6 +171,8 @@ class FavouritesViewModelTest {
         assertEquals(WearViewMode.GRID_2, collected.last())
     }
 
+    private val thumbnailRepository: com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository = mockk(relaxed = true)
+
     private fun build() = FavouritesViewModel(
         repository,
         toggleFavorite,
@@ -178,6 +180,7 @@ class FavouritesViewModelTest {
         capabilityPolicy,
         performFileOperation,
         sendToReceivers,
+        thumbnailRepository,
         preferences
     )
 

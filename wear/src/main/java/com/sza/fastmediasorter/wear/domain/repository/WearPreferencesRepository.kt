@@ -33,6 +33,10 @@ interface WearPreferencesRepository {
     suspend fun setSlideshowEnabled(enabled: Boolean)
     suspend fun setSlideshowIntervalSeconds(seconds: Int)
 
+    /** S2505: player panel auto-hide duration in seconds. */
+    val panelAutoHideSeconds: Flow<Int>
+    suspend fun setPanelAutoHideSeconds(seconds: Int)
+
     // Album art settings
     val downloadAlbumArt: Flow<Boolean>
     suspend fun setDownloadAlbumArt(enabled: Boolean)
@@ -137,6 +141,16 @@ interface WearPreferencesRepository {
      */
     val lastUsedResources: Flow<List<LastUsedResource>>
     suspend fun setLastUsedResource(id: String, name: String)
+
+    /**
+     * S2499: pushes a channel onto the same history, so the home row orders folders and channels by
+     * one recency instead of merging two.
+     *
+     * [normalizedUrl] is already normalized by the caller, and by `normalizeWearStreamUrl`
+     * specifically: it is the spelling the launch-target resolver compares the channel catalog
+     * against, and reopening this shortcut goes through that resolver.
+     */
+    suspend fun setLastUsedStream(normalizedUrl: String, name: String)
     suspend fun clearLastUsedResource()
 
     /** S1781: the Streams section ships on and can be switched off from the Media types settings. */

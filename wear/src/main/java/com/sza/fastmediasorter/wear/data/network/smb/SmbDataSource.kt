@@ -9,6 +9,7 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
@@ -25,7 +26,9 @@ import java.util.concurrent.TimeUnit
  * SMB data source for accessing files on SMB/CIFS network shares.
  * Uses SMBJ library for SMB protocol communication.
  */
-class SmbDataSource {
+class SmbDataSource(
+    private val endpointResolver: WearEndpointResolver
+) {
 
     private var connection: Connection? = null
     private var session: Session? = null
@@ -44,9 +47,12 @@ class SmbDataSource {
     /**
      * Connect to SMB server and authenticate.
      */
-    suspend fun connect(source: NetworkSource): Result<Unit> {
+    suspend fun connect(sourceIn: NetworkSource): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                // S2488: SMB carries no imported alternates today, so the group is one element and the
+                // source comes back untouched - the wiring is what lets a future group work.
+                val source = endpointResolver.resolve(sourceIn)
                 Timber.d("Connecting to SMB: ${source.server}:${source.port}")
 
                 // Disconnect if already connected

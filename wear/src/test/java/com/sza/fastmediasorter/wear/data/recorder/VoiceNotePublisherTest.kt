@@ -15,6 +15,8 @@ import io.mockk.unmockkStatic
 import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
@@ -22,6 +24,9 @@ import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import java.io.ByteArrayOutputStream
 import java.io.IOException
+import java.text.DateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * S2161: decision table tests for [VoiceNotePublisher].
@@ -68,6 +73,56 @@ class VoiceNotePublisherTest {
 
         assertNull(result)
         verify(exactly = 0) { contentResolver.insert(any(), any()) }
+        // S2495: the title column is put into the values block before the insert, so a column added
+        // there must not reach a row the API level forbids publishing at all.
+        verify(exactly = 0) { anyConstructed<ContentValues>().put(MediaStore.Audio.Media.TITLE, any<String>()) }
+    }
+
+    @Test
+    fun `readable title is not the file name and carries no raw timestamp stamp`() {
+        val file = temporaryFolder.newFile("audio_260903_155943.m4a").apply { writeText("audio content") }
+
+        val title = VoiceNotePublisher.readableTitle(file)
+
+        assertNotEquals(file.name, title)
+        assertFalse("title still carries the raw stamp: $title", title.contains("260903_155943"))
+    }
+
+    @Test
+    fun `readable title falls back to the file clock when the name carries no stamp`() {
+        val file = temporaryFolder.newFile("renamed-by-hand.m4a").apply { writeText("audio content") }
+        file.setLastModified(FIXED_MODIFICATION_MILLIS)
+
+        val title = VoiceNotePublisher.readableTitle(file)
+
+        assertEquals(
+            DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
+                .format(Date(FIXED_MODIFICATION_MILLIS)),
+            title
+        )
+    }
+
+    @Test
+    fun `successful publish writes a title distinct from the display name`() {
+        val fakeUri = mockk<Uri>(relaxed = true)
+        every { contentResolver.insert(any(), any()) } returns fakeUri
+        every { contentResolver.openOutputStream(fakeUri) } returns ByteArrayOutputStream()
+        every { contentResolver.update(fakeUri, any(), any(), any()) } returns 1
+        val titles = mutableListOf<String>()
+        every {
+            anyConstructed<ContentValues>().put(MediaStore.Audio.Media.TITLE, capture(titles))
+        } returns Unit
+
+        val publisher = VoiceNotePublisher(
+            contentResolver = contentResolver,
+            sdkIntProvider = { Build.VERSION_CODES.Q }
+        )
+        val file = temporaryFolder.newFile("audio_260903_155943.m4a").apply { writeText("sample audio data") }
+
+        publisher.publish(file)
+
+        assertEquals(1, titles.size)
+        assertNotEquals(file.name, titles.single())
     }
 
     @Test
@@ -159,5 +214,10 @@ class VoiceNotePublisherTest {
                 null
             )
         }
+    }
+
+    private companion object {
+        /** An arbitrary fixed instant; the assertion compares against the same formatter, not a literal. */
+        const val FIXED_MODIFICATION_MILLIS = 1_756_900_000_000L
     }
 }

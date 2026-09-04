@@ -21,16 +21,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.LocalTextStyle
 import androidx.wear.compose.material.Text
+import timber.log.Timber
 
 private const val CEILING_SP = 16f
 private const val FLOOR_SP = 11f
 private const val STEP_SP = 1f
 
 /**
- * Half of this lands inside the glyph, so it is the largest width that still leaves the counter of an
- * "e" open at [WearCaptionScale.Floor] - the size the caption reaches before it truncates.
+ * The owner requested double the first-pass width after bright type icons still overwhelmed the white
+ * fill. The on-watch handoff checks that this wider stroke remains legible at [WearCaptionScale.Floor].
  */
-private val OUTLINE_WIDTH = 1.dp
+private val OUTLINE_WIDTH = 2.dp
 
 /**
  * The size rules every watch list row and cell caption obeys.
@@ -120,6 +121,7 @@ fun WearCaptionText(
         )
         return
     }
+    Timber.d("S2467: WearCaptionText draws the 2 dp outlined caption")
     val outlineStyle = LocalTextStyle.current.copy(
         drawStyle = Stroke(
             width = with(LocalDensity.current) { OUTLINE_WIDTH.toPx() },

@@ -29,6 +29,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory,
     private val buildWatchThumbnail: BuildWatchThumbnailUseCase,
+    private val mediaStoreRepository: com.sza.fastmediasorter.domain.repository.MediaStoreRepository,
     // S1860: the scan runs here rather than in the caller's job, so a scanner blocked on a dead host
     // can be abandoned. See `withinScanBudget`.
     @ApplicationScope private val applicationScope: CoroutineScope
@@ -61,6 +62,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
      * draws its type glyph either way, and a failure status would be reported to the owner as one.
      */
     private suspend fun thumbnailFor(request: WearPhoneResourceRequest): WearPhoneResourcePage {
+        Timber.d("S2489: Phone generating watch thumbnail for token %s", request.itemToken)
         val token = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -105,22 +107,22 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     /**
      * The file a token addresses, or null when the resource no longer holds it.
      *
-     * A scan is the only way back from a token to a file: the token is stateless by design, so there
-     * is no server-side table to look the item up in. A path token scans the folder it names; a
-     * MediaStore token scans the resource root, because an element of a virtual resource has no path
-     * inside that resource and is separated from its same-named siblings only by its store id.
+     * A MediaStore id is resolved directly via MediaStoreRepository first. Otherwise, the folder
+     * path named by relativePath is scanned.
      */
     // S1911: same plugin boundary as the listing paths - any host or provider failure becomes one
     // domain answer, and only CancellationException is let through.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun locateFile(token: PhoneResourceToken, resource: MediaResource): MediaFile? {
-        val byMediaStoreId = token.mediaStoreId != null
-        val scanPath = if (byMediaStoreId) {
-            resource.path
-        } else {
-            PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
-                .resolveAgainst(resource)
+        if (token.mediaStoreId != null) {
+            val file = runCatching { mediaStoreRepository.getFileByMediaStoreId(token.mediaStoreId) }.getOrNull()
+            if (file != null) {
+                return file
+            }
         }
+
+        val scanPath = PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
+            .resolveAgainst(resource)
 
         val children = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
             ?.let { scanner ->
@@ -142,7 +144,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
 
         val visible = children?.visibleTo(resource)?.filterNot { it.isDirectory }.orEmpty()
-        return if (byMediaStoreId) {
+        return if (token.mediaStoreId != null) {
             visible.firstOrNull { it.mediaStoreIdOrNull() == token.mediaStoreId }
         } else {
             visible.firstOrNull { it.name == token.relativePath.substringAfterLast('/') }

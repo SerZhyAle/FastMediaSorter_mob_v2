@@ -23,7 +23,6 @@ import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import timber.log.Timber
 
 private val PAGE_PADDING = 8.dp
 
@@ -51,7 +50,6 @@ fun NetworkMonitorScreen(
         WearNetworkSection.Summary
     }
 
-    Timber.d("S2156: monitor entered, section=${targetSection.key}, sections=${state.sections.size}")
 
     if (targetSection == WearNetworkSection.Summary) {
         if (state.sections.isEmpty()) {

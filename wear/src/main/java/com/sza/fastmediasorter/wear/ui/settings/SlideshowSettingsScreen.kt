@@ -25,8 +25,6 @@ import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-import androidx.wear.compose.material.ToggleChip
-import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
@@ -34,6 +32,8 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -58,7 +58,7 @@ private val SLIDESHOW_INTERVALS = intArrayOf(
 @Composable
 fun SlideshowSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -68,23 +68,21 @@ fun SlideshowSettingsScreen(
     // rather than by omission, and a narrow setting added here joins rows without further work.
     val items = listOf(
         WearSettingsItem(fullWidth = true) { _ ->
-            ToggleChip(
+            WearSettingsToggleCell(
+                label = stringResource(R.string.enable_slideshow),
                 checked = uiState.isSlideshowEnabled,
-                onCheckedChange = { viewModel.toggleSlideshow() },
-                label = { Text(stringResource(R.string.enable_slideshow)) },
-                toggleControl = {
-                    androidx.wear.compose.material.Icon(
-                        imageVector = ToggleChipDefaults.switchIcon(uiState.isSlideshowEnabled),
-                        contentDescription = null
-                    )
-                },
-                colors = ToggleChipDefaults.toggleChipColors()
+                onToggle = viewModel::toggleSlideshow
             )
         },
         WearSettingsItem(fullWidth = true) { _ ->
-            SlideshowIntervalStepper(
-                currentSeconds = uiState.slideshowIntervalSeconds,
-                onIntervalChanged = viewModel::setSlideshowInterval
+            val currentIndex = SLIDESHOW_INTERVALS.indexOfFirst { it == uiState.slideshowIntervalSeconds }.coerceAtLeast(0)
+            WearSettingsStepperCell(
+                values = SLIDESHOW_INTERVALS,
+                currentValue = uiState.slideshowIntervalSeconds,
+                labelText = stringResource(R.string.slideshow_interval_label, SLIDESHOW_INTERVALS[currentIndex]),
+                decreaseDescription = stringResource(R.string.slideshow_interval_decrease),
+                increaseDescription = stringResource(R.string.slideshow_interval_increase),
+                onValueChanged = viewModel::setSlideshowInterval
             )
         }
     )
@@ -111,46 +109,5 @@ fun SlideshowSettingsScreen(
                 items(packSettingsRows(items, columns)) { row -> WearSettingsRow(row) }
             }
         }
-    }
-}
-
-@Composable
-private fun SlideshowIntervalStepper(
-    currentSeconds: Int,
-    onIntervalChanged: (Int) -> Unit
-) {
-    val currentIndex = SLIDESHOW_INTERVALS.indexOfFirst { it == currentSeconds }.coerceAtLeast(0)
-    val labelText = stringResource(R.string.slideshow_interval_label, SLIDESHOW_INTERVALS[currentIndex])
-    val decreaseDescription = stringResource(R.string.slideshow_interval_decrease)
-    val increaseDescription = stringResource(R.string.slideshow_interval_increase)
-
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        RectangularButton(
-            onClick = { if (currentIndex > 0) onIntervalChanged(SLIDESHOW_INTERVALS[currentIndex - 1]) },
-            enabled = currentIndex > 0,
-            modifier = Modifier.size(36.dp).semantics { contentDescription = decreaseDescription },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) { Text(text = "−", style = MaterialTheme.typography.button) }
-        Text(
-            text = labelText,
-            modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
-                .semantics { contentDescription = labelText },
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.caption1
-        )
-        RectangularButton(
-            onClick = {
-                if (currentIndex < SLIDESHOW_INTERVALS.lastIndex) {
-                    onIntervalChanged(SLIDESHOW_INTERVALS[currentIndex + 1])
-                }
-            },
-            enabled = currentIndex < SLIDESHOW_INTERVALS.lastIndex,
-            modifier = Modifier.size(36.dp).semantics { contentDescription = increaseDescription },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) { Text(text = "+", style = MaterialTheme.typography.button) }
     }
 }

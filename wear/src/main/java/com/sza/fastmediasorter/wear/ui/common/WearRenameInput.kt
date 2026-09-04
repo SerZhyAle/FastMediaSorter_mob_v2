@@ -22,7 +22,7 @@ private const val KEY_NEW_NAME = "wear_file_op_new_name"
  * one copy and left broken in the others.
  */
 @Composable
-fun rememberWearRenameInput(onName: (String) -> Unit): () -> Unit {
+fun rememberWearRenameInput(onName: (String) -> Unit): (String?) -> Unit {
     val hint = stringResource(R.string.wear_file_op_rename_hint)
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -32,7 +32,7 @@ fun rememberWearRenameInput(onName: (String) -> Unit): () -> Unit {
             onName(newName)
         }
     }
-    return { launchRenameInput(hint) { launcher.launch(it) } }
+    return { initialName -> launchRenameInput(hint, initialName) { launcher.launch(it) } }
 }
 
 /**
@@ -49,12 +49,19 @@ private fun newNameFrom(data: Intent): String? {
         }
 }
 
-private fun launchRenameInput(hint: String, launch: (Intent) -> Unit) {
+private fun launchRenameInput(hint: String, initialName: String?, launch: (Intent) -> Unit) {
     val remoteInput = RemoteInput.Builder(KEY_NEW_NAME)
         .setLabel(hint)
         .build()
     val intent = RemoteInputIntentHelper.createActionRemoteInputIntent()
     RemoteInputIntentHelper.putRemoteInputsExtra(intent, listOf(remoteInput))
+    if (!initialName.isNullOrBlank()) {
+        val bundle = android.os.Bundle().apply {
+            putCharSequence(KEY_NEW_NAME, initialName)
+        }
+        RemoteInput.addResultsToIntent(arrayOf(remoteInput), intent, bundle)
+        intent.putExtra(Intent.EXTRA_TEXT, initialName)
+    }
     try {
         launch(intent)
     } catch (_: ActivityNotFoundException) {

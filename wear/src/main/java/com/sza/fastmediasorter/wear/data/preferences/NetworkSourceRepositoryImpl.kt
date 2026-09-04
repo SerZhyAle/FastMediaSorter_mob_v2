@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceMerge
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +35,7 @@ class NetworkSourceRepositoryImpl(
 
     private val gson = Gson()
     private val sourcesKey = "network_sources"
+    private val tombstonesKey = "network_source_tombstones"
     private val sourcesFlow = MutableStateFlow(readSourcesFromPrefs())
 
     override suspend fun getAllSources(): List<NetworkSource> = withContext(Dispatchers.IO) {
@@ -48,10 +50,13 @@ class NetworkSourceRepositoryImpl(
         sourcesFlow.value.firstOrNull { it.id == id } ?: readSourcesFromPrefs().firstOrNull { it.id == id }
     }
 
+    // S2502: this method and [updateSource] are the user-edit path, so they stamp the moment the write
+    // happens. `upsertSource` deliberately does not - it is the import path and must carry the stamp
+    // the merge resolved, or every imported record would look freshly edited on the next exchange.
     override suspend fun addSource(source: NetworkSource) = withContext(Dispatchers.IO) {
         try {
             val sources = sourcesFlow.value.toMutableList()
-            sources.add(source)
+            sources.add(source.copy(lastEditedAt = System.currentTimeMillis()))
             saveSources(sources)
             Timber.d("Added network source: ${source.name}")
         } catch (e: Exception) {
@@ -65,7 +70,9 @@ class NetworkSourceRepositoryImpl(
             val sources = sourcesFlow.value.toMutableList()
             val index = sources.indexOfFirst { it.id == source.id }
             if (index != -1) {
-                sources[index] = source
+                // S2502: see the note on addSource - the user-edit path stamps, the import path does not.
+                sources[index] = source.copy(lastEditedAt = System.currentTimeMillis())
+                Timber.d("S2502: watch edit stamped for source ${source.id}")
                 saveSources(sources)
                 Timber.d("Updated network source: ${source.name}")
             } else {
@@ -111,6 +118,30 @@ class NetworkSourceRepositoryImpl(
         }
     }
 
+    override suspend fun deleteSourceWithTombstone(id: String, deletedAt: Long) {
+        // S2507: the deletion event is stored before the ordinary record goes, so an interruption
+        // between the two leaves evidence of the delete rather than a silently resurrectable source.
+        recordTombstone(WearSourceTombstonePayload(id = id, deletedAt = deletedAt))
+        deleteSource(id)
+    }
+
+    override suspend fun getTombstones(): List<WearSourceTombstonePayload> = withContext(Dispatchers.IO) {
+        readTombstonesFromPrefs()
+    }
+
+    override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) = withContext(Dispatchers.IO) {
+        val updated = readTombstonesFromPrefs().filterNot { it.id == tombstone.id } + tombstone
+        saveTombstones(updated)
+    }
+
+    override suspend fun removeTombstone(id: String) = withContext(Dispatchers.IO) {
+        val current = readTombstonesFromPrefs()
+        val updated = current.filterNot { it.id == id }
+        if (updated.size != current.size) {
+            saveTombstones(updated)
+        }
+    }
+
     override suspend fun testConnection(source: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
         try {
             when (source.type) {
@@ -138,6 +169,21 @@ class NetworkSourceRepositoryImpl(
         val json = gson.toJson(sources)
         encryptedPrefs.edit().putString(sourcesKey, json).apply()
         sourcesFlow.value = sources
+    }
+
+    private fun saveTombstones(tombstones: List<WearSourceTombstonePayload>) {
+        encryptedPrefs.edit().putString(tombstonesKey, gson.toJson(tombstones)).apply()
+    }
+
+    private fun readTombstonesFromPrefs(): List<WearSourceTombstonePayload> {
+        return try {
+            val json = encryptedPrefs.getString(tombstonesKey, null) ?: return emptyList()
+            val type = TypeToken.getParameterized(List::class.java, WearSourceTombstonePayload::class.java).type
+            gson.fromJson<List<WearSourceTombstonePayload>>(json, type) ?: emptyList()
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to load network source tombstones")
+            emptyList()
+        }
     }
 
     private fun readSourcesFromPrefs(): List<NetworkSource> {

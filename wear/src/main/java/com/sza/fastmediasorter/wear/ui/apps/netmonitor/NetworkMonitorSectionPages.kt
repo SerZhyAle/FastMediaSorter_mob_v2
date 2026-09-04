@@ -80,7 +80,7 @@ fun NetworkMonitorSectionPage(
     canRequestPermissions: Boolean,
     actions: NetworkMonitorSectionActions,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -265,8 +265,7 @@ private fun WifiFields(
         }
         Button(
             onClick = { NetworkMonitorActions.openWifiSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_open_settings))
         }
@@ -321,8 +320,7 @@ private fun SignalTrend(samples: List<Int>, onRestart: () -> Unit) {
 
         Button(
             onClick = onRestart,
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_restart_window))
         }
@@ -351,8 +349,7 @@ private fun MobileFields(snapshot: WearNetworkSnapshot?, hasMobileHardware: Bool
         }
         Button(
             onClick = { NetworkMonitorActions.openWirelessSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_open_settings))
         }
@@ -377,8 +374,7 @@ private fun BluetoothFields(snapshot: WearNetworkSnapshot?) {
         )
         Button(
             onClick = { NetworkMonitorActions.openBluetoothSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_open_settings))
         }
@@ -444,8 +440,7 @@ private fun ScalingLazyListScope.gnssSectionContent(
         val context = LocalContext.current
         Button(
             onClick = { NetworkMonitorActions.openLocationSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_open_settings))
         }
@@ -503,8 +498,7 @@ private fun TrafficFields(
         )
         Button(
             onClick = onResetTotals,
-            colors = ButtonDefaults.secondaryButtonColors(),
-            modifier = Modifier.fillMaxWidth()
+            colors = ButtonDefaults.secondaryButtonColors()
         ) {
             Text(stringResource(R.string.wear_netmon_action_reset_counters))
         }
@@ -547,8 +541,7 @@ private fun InternetFields(
         } else {
             Button(
                 onClick = onProbe,
-                colors = ButtonDefaults.primaryButtonColors(),
-                modifier = Modifier.fillMaxWidth()
+                colors = ButtonDefaults.primaryButtonColors()
             ) {
                 Text(stringResource(R.string.wear_netmon_action_probe))
             }

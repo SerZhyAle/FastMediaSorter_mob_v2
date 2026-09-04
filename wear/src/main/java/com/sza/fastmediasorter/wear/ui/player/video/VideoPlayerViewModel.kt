@@ -10,9 +10,11 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -48,6 +50,8 @@ import javax.inject.Inject
 
 private const val PREFS_NAME = "wear_video_prefs"
 private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
+private const val MAX_AUTO_HIDE_SECONDS = 600
+private const val MILLIS_PER_SECOND = 1000L
 
 /**
  * ViewModel for the video player screen.
@@ -66,7 +70,9 @@ class VideoPlayerViewModel @Inject constructor(
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val toggleStreamPinUseCase: com.sza.fastmediasorter.wear.domain.usecase.ToggleStreamPinUseCase,
     private val nowPlayingRepository: WearNowPlayingRepository,
+    val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -147,7 +153,10 @@ class VideoPlayerViewModel @Inject constructor(
                     // A set of one is excluded, because restarting the only file is the endless loop
                     // S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
-                    if (isSlideshowEnabled && setSize > 1) {
+                    if (_uiState.value.playbackMode == WearPlaybackMode.LOOP) {
+                        exoPlayer.seekTo(0)
+                        exoPlayer.play()
+                    } else if (isSlideshowEnabled && setSize > 1) {
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -192,6 +201,31 @@ class VideoPlayerViewModel @Inject constructor(
     init {
         Timber.d("VideoPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
+
+        val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
+        fileOperations.bind(
+            scope = viewModelScope,
+            currentFile = currentFileFlow,
+            isNetworkSource = { networkSelection != null }
+        )
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                currentFileFlow.value = state.mediaFile
+            }
+        }
+        viewModelScope.launch {
+            fileOperations.operationResult.collect { result ->
+                when (result) {
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
+                        playFile(result.nextFile)
+                    }
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
+                        _uiState.update { it.copy(closeScreen = true) }
+                    }
+                    com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Stay, null -> {}
+                }
+            }
+        }
 
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
@@ -243,8 +277,14 @@ class VideoPlayerViewModel @Inject constructor(
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.NEXT -> {
+                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.NEXT, invoking skipToNext()")
+                        skipToNext()
+                    }
+                    WearPlaybackCommand.PREVIOUS -> {
+                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.PREVIOUS, invoking skipToPrevious()")
+                        skipToPrevious()
+                    }
                     WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
@@ -255,8 +295,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleShuffle() {
-        val enabled = !_uiState.value.isShuffleEnabled
-        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+        togglePlaybackMode()
     }
 
     private fun loadVideoFile() {
@@ -342,7 +381,12 @@ class VideoPlayerViewModel @Inject constructor(
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
             if (selectedMedia != null) {
-                _uiState.update { it.copy(mediaFile = selectedMedia.file) }
+                _uiState.update {
+                    it.copy(
+                        mediaFile = selectedMedia.file,
+                        isStream = selectedMedia.sourceId == SOURCE_ID_STREAM
+                    )
+                }
                 refreshFavoriteState()
                 if (selectedMedia.isNetworkSource) {
                     // S1683: remembered so paging can re-enter the download path with the same source id.
@@ -441,7 +485,11 @@ class VideoPlayerViewModel @Inject constructor(
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
         controlsHideJob = viewModelScope.launch {
-            if (awaitPanelHide(isActive = exoPlayer.isPlaying)) {
+            val autoHideSec = preferencesRepository.panelAutoHideSeconds.first()
+                .coerceIn(1, MAX_AUTO_HIDE_SECONDS)
+            val hideDelayMs = autoHideSec * MILLIS_PER_SECOND
+            Timber.d("S2505: VideoPlayerViewModel scheduleHideControls delayMillis=$hideDelayMs")
+            if (awaitPanelHide(isActive = exoPlayer.isPlaying, delayMillis = hideDelayMs)) {
                 _uiState.update { it.copy(showControls = false) }
             }
         }
@@ -516,6 +564,23 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    fun togglePlaybackMode() {
+        val nextMode = _uiState.value.playbackMode.next()
+        val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
+        _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
+    fun togglePin() {
+        val identity = currentFavoriteIdentity() ?: return
+        if (_uiState.value.isStream) {
+            viewModelScope.launch {
+                val marked = toggleStreamPinUseCase.toggle(identity.filePath, _uiState.value.isPinned)
+                _uiState.update { it.copy(isPinned = marked) }
+            }
+        }
+    }
+
     fun toggleFavorite() {
         val identity = currentFavoriteIdentity() ?: return
         viewModelScope.launch {
@@ -532,12 +597,17 @@ class VideoPlayerViewModel @Inject constructor(
     private fun refreshFavoriteState() {
         val identity = currentFavoriteIdentity()
         if (identity == null) {
-            _uiState.update { it.copy(isFavorite = false) }
+            _uiState.update { it.copy(isFavorite = false, isPinned = false) }
             return
         }
         viewModelScope.launch {
             val marked = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
-            _uiState.update { it.copy(isFavorite = marked) }
+            val pinned = if (_uiState.value.isStream) {
+                toggleStreamPinUseCase.isPinned(identity.filePath)
+            } else {
+                false
+            }
+            _uiState.update { it.copy(isFavorite = marked, isPinned = pinned) }
         }
     }
 

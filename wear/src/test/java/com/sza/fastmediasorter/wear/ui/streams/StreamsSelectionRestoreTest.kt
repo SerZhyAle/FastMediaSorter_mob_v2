@@ -2,11 +2,11 @@ package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
@@ -114,8 +114,9 @@ class StreamsSelectionRestoreTest {
         every { preferences.streamsSelectedLanguage } returns flowOf(storedLanguage)
         val atlasStore = mockk<WearFaviconAtlasStore>(relaxed = true)
         every { atlasStore.atlasFile() } returns null
-        val favorites = mockk<WearFavoritesRepository>(relaxed = true)
-        coEvery { favorites.getFavorites() } returns emptyList()
+        val streamPinsRepository = mockk<WearStreamPinsRepository>(relaxed = true)
+        every { streamPinsRepository.observeWatchPins() } returns MutableStateFlow(emptySet())
+        every { streamPinsRepository.getWatchPins() } returns emptySet()
         val phonePins = mockk<WearPhonePinsRepository>()
         every { phonePins.observe() } returns MutableStateFlow(emptySet())
         return StreamsViewModel(
@@ -127,8 +128,9 @@ class StreamsSelectionRestoreTest {
                 selectedMediaManager = mockk<SelectedMediaManager>(relaxed = true),
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
                 usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+                preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
             ),
-            favoritesRepository = favorites,
+            streamPinsRepository = streamPinsRepository,
             phonePinsRepository = phonePins,
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
         )

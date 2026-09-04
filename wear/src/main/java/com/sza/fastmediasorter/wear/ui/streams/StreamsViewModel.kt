@@ -5,12 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
-import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamUsage
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
@@ -42,7 +41,7 @@ import javax.inject.Inject
 private const val PROJECTION_INPUT_PAUSE_MS = 150L
 
 /**
- * S1708/S1871: ViewModel for the Wear OS streams list screen.
+ * S1708/S1871/S2497: ViewModel for the Wear OS streams list screen.
  */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -52,7 +51,7 @@ class StreamsViewModel @Inject constructor(
     private val faviconAtlasStore: WearFaviconAtlasStore,
     private val preferencesRepository: WearPreferencesRepository,
     private val preparePlayback: PrepareWearStreamPlaybackUseCase,
-    private val favoritesRepository: WearFavoritesRepository,
+    private val streamPinsRepository: WearStreamPinsRepository,
     private val phonePinsRepository: WearPhonePinsRepository,
     private val usageRepository: WearStreamUsageRepository
 ) : ViewModel() {
@@ -90,7 +89,8 @@ class StreamsViewModel @Inject constructor(
                     withContext(Dispatchers.Default) { computeDisplayChannels(inputs) }
                 }
                 .collect { display ->
-                    _uiState.update { it.copy(displayChannels = display) }
+                    Timber.d("S2528: streams display channels projected count=%d", display.size)
+                    _uiState.update { it.copy(displayChannels = display, isLoading = false) }
                 }
         }
 
@@ -101,6 +101,14 @@ class StreamsViewModel @Inject constructor(
             phonePinsRepository.observe().collect { identities ->
                 _uiState.update { it.copy(phonePinnedIdentities = identities) }
                 projectionInputs.update { it.copy(phonePinnedIdentities = identities) }
+            }
+        }
+
+        // S2497: watch-authored pins are observed reactively from the watch pins repository.
+        viewModelScope.launch {
+            streamPinsRepository.observeWatchPins().collect { identities ->
+                _uiState.update { it.copy(pinnedStreamIds = identities) }
+                projectionInputs.update { it.copy(pinnedIdentities = identities) }
             }
         }
 
@@ -320,7 +328,7 @@ class StreamsViewModel @Inject constructor(
      * both entrances must share one answer. The list still supplies what it was showing, which is
      * what keeps paging inside the user's current view.
      */
-    fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
+    suspend fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
         val target = preparePlayback(channel, _uiState.value.displayChannels)
         return StreamPlaybackTarget(fileId = target.fileId, isVideo = target.isVideo)
     }
@@ -331,19 +339,10 @@ class StreamsViewModel @Inject constructor(
     )
 
     /**
-     * S1954: the marked channels, as the normalized addresses the projection compares against.
-     *
-     * Only stream favourites are taken: the same store holds file marks, whose `filePath` is a path
-     * and would never match an address anyway, but filtering by source id says so on purpose.
-     *
-     * S2039: the stored path is normalized on the way out, because it is stored in whatever spelling
-     * the writer used - an earlier build wrote the raw catalogue address. Comparing the raw form here
-     * is what made a marked station silently never pin.
+     * S2497: the watch-pinned channels, as the folded identities the projection compares against.
      */
-    private suspend fun loadPinnedStreamIds(): Set<String> =
-        favoritesRepository.getFavorites()
-            .filter { it.sourceId == SOURCE_ID_STREAM }
-            .mapTo(mutableSetOf()) { foldWearStreamIdentity(it.filePath) }
+    private fun loadPinnedStreamIds(): Set<String> =
+        streamPinsRepository.getWatchPins()
 }
 
 /**

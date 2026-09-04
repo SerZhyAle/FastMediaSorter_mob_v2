@@ -19,9 +19,9 @@
     <!-- Settings strings -->
     <string name="settings">Settings</string>
     <string name="media_types">Media Types</string>
-    <string name="enable_audio">Enable Audio</string>
-    <string name="enable_video">Enable Video</string>
-    <string name="enable_images">Enable Images</string>
+    <string name="enable_audio">Audio</string>
+    <string name="enable_video">Video</string>
+    <string name="enable_images">Images</string>
     <string name="slideshow_settings">Slideshow</string>
     <string name="enable_slideshow">Enable Slideshow</string>
     <string name="slideshow_interval">Interval: %ds</string>
@@ -147,7 +147,7 @@
     <string name="wear_phone_documents">Documents</string>
     <string name="screen_settings_title">Screen</string>
     <string name="screen_settings_view_mode">Screens view</string>
-    <string name="wear_streams_section_enabled">Show Streams</string>
+    <string name="wear_streams_section_enabled">Streams</string>
     <string name="wear_resources_empty_hint">Nothing has arrived from the phone yet. On the phone open Wear-companion and pick the resources to send here.</string>
     <string name="screen_settings_keep_awake">Keep screen on</string>
     <string name="about_send_logs">Send logs to developer</string>
@@ -319,8 +319,6 @@
     <string name="wear_voice_note_state_pending">Waiting for the phone</string>
     <string name="wear_voice_note_state_sent">Sent to the phone</string>
     <string name="wear_voice_note_state_failed">Not sent</string>
-    <string name="wear_voice_note_send">Send to phone</string>
-    <string name="wear_voice_note_delete">Delete note</string>
     <string name="wear_voice_note_delete_confirm">Delete this note? The recording goes with it.</string>
     <string name="wear_voice_note_empty">No notes yet. Record one and it shows up here.</string>
     <string name="wear_voice_note_result_sent">Done. The note is on the phone.</string>
@@ -396,7 +394,8 @@
     <string name="wear_setting_streams_section">Show Streams</string>
     <string name="wear_setting_background_mode">Watch Background</string>
     <string name="wear_background_mode_animation">Branded animation</string>
-    <string name="wear_background_mode_image">Your image</string>
+    <string name="wear_background_mode_still">Branded still</string>
+    <string name="wear_background_mode_image">Photo from phone</string>
     <string name="wear_content_type_document">Document</string>
     <string name="wear_content_type_folder">Folder</string>
     <string name="wear_browse_search">Search files</string>
@@ -414,8 +413,7 @@
     <string name="wear_browse_sort_date_desc">Date (newest first)</string>
     <string name="wear_browse_sort_size_asc">Size (smallest first)</string>
     <string name="wear_browse_sort_size_desc">Size (largest first)</string>
-    <string name="enable_documents">Enable Documents</string>
-    <string name="wear_settings_sections">Sections</string>
+    <string name="enable_documents">Documents</string>
     <string name="phone_resource_no_resource_for_type">No phone resource is set up to hold this type.</string>
     <string name="wear_folder_load_more">Show more</string>
     <string name="wear_file_op_outcome_needs_consent">Not confirmed - nothing changed</string>
@@ -480,7 +478,6 @@
     <string name="wear_game_rules_legend_shadow">Shadow: dark circle</string>
     <string name="wear_game_rules_legend_exit">Exit: green square</string>
     <string name="wear_game_rules_legend_wall">Wall: brown square</string>
-    <string name="wear_voice_note_play">Play</string>
     <string name="system_info_empty_unsupported">No such hardware on this watch</string>
     <string name="system_info_empty_unreadable">This watch would not answer</string>
     <string name="system_info_refresh">Refresh</string>
@@ -569,4 +566,22 @@
     <string name="wear_refine_menu_clear_search">Clear search: %1$s</string>
     <string name="wear_navigate_back">Go back</string>
     <string name="wear_minimize_to_background">Minimize to background</string>
+    <string name="wear_playback_mode_sequential">Sequential playback</string>
+    <string name="wear_playback_mode_shuffle">Shuffle playback</string>
+    <string name="wear_playback_mode_loop">Loop playback</string>
+    <string name="wear_sync_now">Sync</string>
+    <string name="wear_sync_now_description">Synchronize watch and phone</string>
+    <string name="wear_voice_note_play_last">Play last</string>
+    <string name="about_web_portal_on_phone">Open on phone</string>
+    <string name="about_web_portal_no_browser">No browser on this watch. Use \"Open on phone\"</string>
+    <string name="about_web_portal_phone_opened">Opened. Look at your phone</string>
+    <string name="about_web_portal_no_phone">Phone not connected. Bring it closer</string>
+    <string name="about_web_portal_phone_failed">Could not reach the phone. Try again</string>
+    <string name="wear_player_stream_pin">Pin stream</string>
+    <string name="wear_player_stream_unpin">Unpin stream</string>
+    <string name="wear_browse_voice_notes">Voice notes</string>
+    <string name="wear_voice_note_rename_failed">Could not rename the note</string>
+    <string name="panel_auto_hide_label">Auto-hide: %ds</string>
+    <string name="panel_auto_hide_decrease">Decrease auto-hide duration</string>
+    <string name="panel_auto_hide_increase">Increase auto-hide duration</string>
 </resources>

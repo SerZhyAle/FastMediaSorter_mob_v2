@@ -796,7 +796,13 @@ function Get-SourceRules {
         # all - is never judged by this dimension.
         (New-RegexRule -Name 'compose-island' `
                 -Pattern ([regex]'setContent\s*\{') `
-                -FailMessage 'new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. Removing an island lowers this baseline; raising it is a boundary decision, not a build fix.'),
+                -FailMessage ('new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. ' +
+                    'Removing an island lowers this baseline; raising it is a boundary decision, not a build fix. ' +
+                    'Why this is a gate and not taste (S2517 moved this off the always-loaded rules page): 404169 of app_v2''s lines are View, ' +
+                    'and the sixth island appeared five days after an audit counted five, with nobody having decided to grow the set (S1694). ' +
+                    'Islands leave OPPORTUNISTICALLY, when another ticket reaches them, never as a campaign. Removing Compose from ' +
+                    'app_v2/build.gradle.kts altogether has one precondition recorded in docs/ARCHITECTURE.md: Icons.Default.Pause / SkipNext / ' +
+                    'SkipPrevious exist only in the extended icon set and must become vector drawables first (S0385).')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.

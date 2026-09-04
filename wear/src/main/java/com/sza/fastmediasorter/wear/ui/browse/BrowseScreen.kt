@@ -14,9 +14,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -40,7 +37,6 @@ import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
-import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -49,6 +45,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
@@ -80,7 +77,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorBar
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorViewModel
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeReadout
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -144,7 +141,8 @@ fun BrowseScreen(
         viewModel.fileOperations.clearFileSelection()
     }
 
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialItemIndex = 1)
+    Timber.d("S2466: BrowseScreen composing with prescroll")
 
     val refineState by viewModel.refineState.collectAsStateWithLifecycle()
     val refineUi = rememberBrowseRefineUi(viewModel, refineState)
@@ -170,7 +168,8 @@ fun BrowseScreen(
             navController = navController,
             mediaType = mediaType,
             selectedIds = operations.selectedIds,
-            running = operations.run.running
+            running = operations.run.running,
+            onShowActions = { showActions = true }
         ),
         stateActions = BrowseStateActions(
             onRetry = viewModel::loadMediaFiles,
@@ -178,29 +177,67 @@ fun BrowseScreen(
         )
     )
 
-    BrowseDialogsHost(
-        state = BrowseDialogsState(
-            // Keyed to the selection they act on, following the precedent's
-            // `pendingActionSource?.let {}`: back can empty the selection underneath a dialog, and a
-            // menu left standing over nothing offers no actions and no way out.
-            showActions = showActions && operations.selectedIds.isNotEmpty(),
-            showDeleteConfirm = showDeleteConfirm && operations.selectedIds.isNotEmpty(),
-            showReceivers = showReceivers && operations.selectedIds.isNotEmpty(),
-            selectedCount = operations.selectedIds.size,
-            allowedOperations = operations.allowedOperations,
-            receivers = operations.receivers,
-            run = operations.run
+    BrowseScreenDialogs(
+        uiState = uiState,
+        operations = operations,
+        visibilities = BrowseDialogVisibilities(
+            showActions = showActions,
+            showDeleteConfirm = showDeleteConfirm,
+            showReceivers = showReceivers,
+            onActionsVisibilityChange = { showActions = it },
+            onDeleteVisibilityChange = { showDeleteConfirm = it },
+            onReceiversVisibilityChange = { showReceivers = it }
         ),
         viewModel = viewModel,
-        onActionsVisibilityChange = { showActions = it },
-        onDeleteVisibilityChange = { showDeleteConfirm = it },
-        onReceiversVisibilityChange = { showReceivers = it },
-        onRequestRename = requestRename
+        requestRename = { initialName -> requestRename(initialName) }
     )
 
     BrowseRefineMenuHost(refine = refineState, viewModel = viewModel)
 
     MediaStoreConsentPrompt(viewModel = viewModel)
+}
+
+private data class BrowseDialogVisibilities(
+    val showActions: Boolean,
+    val showDeleteConfirm: Boolean,
+    val showReceivers: Boolean,
+    val onActionsVisibilityChange: (Boolean) -> Unit,
+    val onDeleteVisibilityChange: (Boolean) -> Unit,
+    val onReceiversVisibilityChange: (Boolean) -> Unit
+)
+
+@Composable
+private fun BrowseScreenDialogs(
+    uiState: BrowseUiState,
+    operations: BrowseOperationsUi,
+    visibilities: BrowseDialogVisibilities,
+    viewModel: BrowseViewModel,
+    requestRename: (String?) -> Unit
+) {
+    val totalCount = (uiState as? BrowseUiState.Success)?.files?.size ?: 0
+    val selectedFileName = (uiState as? BrowseUiState.Success)
+        ?.files
+        ?.firstOrNull { it.id in operations.selectedIds }
+        ?.name
+
+    BrowseDialogsHost(
+        state = BrowseDialogsState(
+            showActions = visibilities.showActions && operations.selectedIds.isNotEmpty(),
+            showDeleteConfirm = visibilities.showDeleteConfirm && operations.selectedIds.isNotEmpty(),
+            showReceivers = visibilities.showReceivers && operations.selectedIds.isNotEmpty(),
+            selectedCount = operations.selectedIds.size,
+            totalCount = totalCount,
+            selectedFileName = selectedFileName,
+            allowedOperations = operations.allowedOperations,
+            receivers = operations.receivers,
+            run = operations.run
+        ),
+        viewModel = viewModel,
+        onActionsVisibilityChange = visibilities.onActionsVisibilityChange,
+        onDeleteVisibilityChange = visibilities.onDeleteVisibilityChange,
+        onReceiversVisibilityChange = visibilities.onReceiversVisibilityChange,
+        onRequestRename = requestRename
+    )
 }
 
 /**
@@ -355,7 +392,7 @@ private fun BrowseRefineMenuHost(
  * turns into, and a user who looked away must still find the outcome where the progress was.
  */
 @Composable
-private fun OperationRunDialog(
+internal fun OperationRunDialog(
     run: WearFileOperationRunState,
     onCancel: () -> Unit,
     onDismiss: () -> Unit
@@ -544,8 +581,14 @@ private fun MediaListContent(
             )
         ) {
             item {
+                val formattedCount = if (data.files.size > MAX_COUNTER_DISPLAY_COUNT) {
+                    "###"
+                } else {
+                    data.files.size.toString()
+                }
+                val headerTitle = if (data.files.isNotEmpty()) "$title ($formattedCount)" else title
                 Text(
-                    text = title,
+                    text = headerTitle,
                     style = MaterialTheme.typography.title2,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -554,46 +597,8 @@ private fun MediaListContent(
                 )
             }
 
-            // S2140: unconditional, and second so it is read before the eye reaches the files. This is
-            // the last screen before a tap starts playback, which is the moment the warning is for -
-            // the category screens above deliberately do not carry it (strategic ADR-3).
-            item {
-                VolumeIndicatorBar(level = volume.level, max = volume.max)
-            }
-
             // Offered only once a selection exists: on an untouched list they would be controls with
             // nothing to act on.
-            if (selection.selectedIds.isNotEmpty()) {
-                item {
-                    Chip(
-                        onClick = selection.onActionsClick,
-                        label = { Text(text = stringResource(R.string.wear_file_op_actions)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ChipDefaults.primaryChipColors()
-                    )
-                }
-                item {
-                    Chip(
-                        onClick = selection.onSelectAll,
-                        label = { Text(text = stringResource(R.string.wear_select_all)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.SelectAll,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ChipDefaults.secondaryChipColors()
-                    )
-                }
-            }
-
             mediaFileItems(
                 files = data.files,
                 columns = columns,
@@ -602,6 +607,12 @@ private fun MediaListContent(
                 selectedIds = selection.selectedIds,
                 actions = actions
             )
+        }
+
+        // S2477: Volume side bar fixed at right edge instead of taking a row in the list
+        if (volume.max > 0) {
+            Timber.d("S2477: BrowseScreen rendering right side volume bar")
+            VolumeIndicatorSideBar(level = volume.level, max = volume.max)
         }
     }
 }
@@ -648,6 +659,8 @@ private data class BrowseDialogsState(
     val showDeleteConfirm: Boolean,
     val showReceivers: Boolean,
     val selectedCount: Int,
+    val totalCount: Int,
+    val selectedFileName: String?,
     val allowedOperations: Set<WearFileOperationKind>,
     val receivers: List<WearSendToReceiverEntry>,
     val run: WearFileOperationRunState
@@ -666,15 +679,19 @@ private fun BrowseDialogsHost(
     onActionsVisibilityChange: (Boolean) -> Unit,
     onDeleteVisibilityChange: (Boolean) -> Unit,
     onReceiversVisibilityChange: (Boolean) -> Unit,
-    onRequestRename: () -> Unit
+    onRequestRename: (String?) -> Unit
 ) {
     if (state.showActions) {
         FileActionsDialog(
             state = FileActionsDialogState(
                 selectedCount = state.selectedCount,
+                totalCount = state.totalCount,
                 allowedOperations = state.allowedOperations
             ),
             callbacks = FileActionsCallbacks(
+                onSelectAllRequested = {
+                    viewModel.fileOperations.selectAll()
+                },
                 onSendToRequested = {
                     onActionsVisibilityChange(false)
                     onReceiversVisibilityChange(true)
@@ -689,12 +706,16 @@ private fun BrowseDialogsHost(
                 },
                 onRenameRequested = {
                     onActionsVisibilityChange(false)
-                    onRequestRename()
+                    onRequestRename(state.selectedFileName)
                 },
                 onDeleteRequested = {
                     onActionsVisibilityChange(false)
                     onDeleteVisibilityChange(true)
-                }
+                },
+                // Closes the menu and leaves the selection standing: the set was gathered one file
+                // at a time, and a touch near the rim that meant "not this operation" must not cost
+                // it. The screen's own BackHandler still clears it on the next back.
+                onDismiss = { onActionsVisibilityChange(false) }
             )
         )
     }
@@ -739,7 +760,8 @@ private fun browseFileActions(
     navController: NavController,
     mediaType: MediaType,
     selectedIds: Set<Long>,
-    running: Boolean
+    running: Boolean,
+    onShowActions: () -> Unit
 ): MediaFileActions = MediaFileActions(
     // A run in flight owns the list: letting a tap re-select or open a player while files are being
     // moved would act on rows that are already gone.
@@ -755,7 +777,9 @@ private fun browseFileActions(
     },
     onFileLongClick = { file ->
         if (!running) {
+            Timber.d("S2491: BrowseScreen long click on file=%s", file.name)
             viewModel.fileOperations.enterSelection(file)
+            onShowActions()
         }
     },
     onThumbnailNeeded = viewModel::thumbnailFor

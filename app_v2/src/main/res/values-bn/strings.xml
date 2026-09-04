@@ -3044,6 +3044,7 @@
     <string name="calculator_keypad_mode_large">বড় চাবি</string>
     <string name="calculator_keypad_mode_compact">কমপ্যাক্ট, নীচে ডানদিকে</string>
     <string name="wear_background_mode_animation">ব্র্যান্ডেড অ্যানিমেশন</string>
+    <string name="wear_background_mode_still">স্থির ব্র্যান্ডেড পটভূমি</string>
     <string name="wear_background_mode_image">আপনার ইমেজ</string>
     <string name="wear_background_pick_image">ইমেজ চয়ন করুন</string>
     <string name="wear_background_preview">ঘড়ির পটভূমির পূর্বরূপ</string>

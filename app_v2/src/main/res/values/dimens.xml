@@ -148,6 +148,9 @@
     <dimen name="resource_path_text_size">12sp</dimen>
     <dimen name="resource_badge_size">24dp</dimen>
     <dimen name="resource_indicator_text_size">14sp</dimen>
+    <!-- Wear resource picker: a group header is a label row, not a tappable target, so it sits
+         below touch_target_min_height on purpose - the row it heads carries that height. -->
+    <dimen name="wear_resource_group_header_min_height">44dp</dimen>
 
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">8dp</dimen>

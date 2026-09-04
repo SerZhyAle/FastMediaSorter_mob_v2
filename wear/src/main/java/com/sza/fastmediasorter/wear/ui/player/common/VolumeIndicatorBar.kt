@@ -3,9 +3,11 @@ package com.sza.fastmediasorter.wear.ui.player.common
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,10 +22,12 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import timber.log.Timber
 
 private val VOLUME_BAR_HEIGHT = 4.dp
 private val VOLUME_BAR_VERTICAL_PADDING = 6.dp
 private const val VOLUME_BAR_CORNER_PERCENT = 50
+private const val SIDE_BAR_HEIGHT_FRACTION = 0.4f
 
 /**
  * S2140: the current media volume, drawn and never changed here.
@@ -73,6 +77,47 @@ internal fun VolumeIndicatorBar(
                     .height(VOLUME_BAR_HEIGHT)
                     .clip(shape)
                     .background(MaterialTheme.colors.primary)
+            )
+        }
+    }
+}
+
+/**
+ * S2477: vertical side bar for volume on Wear OS screens, pinned to the right edge of the screen.
+ * Replaces the list-item volume header to keep file lists uncluttered on round watch displays.
+ */
+@Composable
+internal fun VolumeIndicatorSideBar(
+    level: Int,
+    max: Int,
+    modifier: Modifier = Modifier
+) {
+    Timber.d("S2477: VolumeIndicatorSideBar level=%d, max=%d", level, max)
+    val readout = stringResource(R.string.wear_audio_volume_level, level, max)
+    val filled = if (max > 0) (level.toFloat() / max).coerceIn(0f, 1f) else 0f
+    val shape = RoundedCornerShape(percent = VOLUME_BAR_CORNER_PERCENT)
+
+    Box(
+        modifier = modifier
+            .fillMaxHeight()
+            .padding(end = 4.dp)
+            .semantics(mergeDescendants = true) { contentDescription = readout },
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .fillMaxHeight(SIDE_BAR_HEIGHT_FRACTION)
+                .clip(shape)
+                .background(Color.DarkGray.copy(alpha = 0.6f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(filled)
+                    .clip(shape)
+                    .background(MaterialTheme.colors.primary)
+                    .align(Alignment.BottomCenter)
             )
         }
     }

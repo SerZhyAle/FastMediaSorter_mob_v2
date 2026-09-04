@@ -1,34 +1,26 @@
 package com.sza.fastmediasorter.wear.ui.network
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
-import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearCaptionText
-import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
-private const val CHIP_LABEL_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 
 /**
@@ -77,38 +69,23 @@ private fun SourceChip(
     source: SourceItem,
     actions: NetworkSourcesActions
 ) {
-    // A library Chip owns its clickable and applies the caller's modifier outside it, so no detector
-    // passed in from here can ever see the press - the row has to carry both gestures itself (S1953).
-    LongPressChip(
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = source.name,
+        secondaryText = source.server,
         onClick = {
             actions.onSourceClick(source.id, source.name)
         },
         onLongClick = {
             actions.onSourceLongPress(source)
         },
-        label = {
-            // Two lines inside a fixed 52 dp chip is exactly where a raised caption stops fitting
-            // (strategic §7), so the name goes through the scale and shrinks to the floor instead
-            // of being clipped at the ceiling.
-            WearCaptionText(
-                text = "${source.name}\n${source.server}",
-                maxLines = CHIP_LABEL_LINES
-            )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(id = iconFor(source)),
                 contentDescription = null,
-                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
+                modifier = glyphModifier,
                 tint = Color.Unspecified
             )
-        },
-        secondaryLabel = {
-            // No explicit style: the chip's secondary slot already provides caption2, and restating
-            // it here only risked the two drifting apart. The subtitle deliberately stays off the
-            // caption scale - see the slot comment in LongPressChip.
-            Text(text = stringResource(R.string.hold_to_delete))
         }
     )
 }
@@ -120,19 +97,13 @@ private fun SourceRow(
     columns: Int,
     actions: NetworkSourcesActions
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
-    ) {
+    CenteredGridRow(columns = columns, itemCount = sources.size, gap = GRID_GAP) {
         sources.forEach { source ->
             SourceCell(
                 source = source,
                 modifier = Modifier.weight(1f),
                 actions = actions
             )
-        }
-        repeat(columns - sources.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

@@ -24,22 +24,27 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,6 +55,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -69,17 +75,19 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
-import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
 /** Wear's minimum comfortable touch target - the same 48 dp the transport buttons use. */
 /** The play/pause control is the one command drawn larger than the shared default. */
-private val PLAY_PAUSE_TARGET_SIZE = 56.dp
 private val SECONDARY_ROW_SPACING = 4.dp
 
 private val PROGRESS_BAR_HEIGHT = 4.dp
@@ -96,9 +104,11 @@ private data class VideoPlayerActions(
     val seek: PlayerSeekActions,
     val onRotaryStep: (Int) -> Unit,
     val onToggleScaleMode: () -> Unit,
-    val onToggleShuffle: () -> Unit,
+    val onTogglePlaybackMode: () -> Unit,
     val onPanDelta: (Float, Float) -> Unit,
-    val onToggleFavorite: () -> Unit
+    val onToggleFavorite: () -> Unit,
+    val onTogglePin: () -> Unit,
+    val onFileOperations: () -> Unit
 )
 
 /**
@@ -111,15 +121,27 @@ fun VideoPlayerScreen(
     onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    var showActions by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.closeScreen) {
+        if (uiState.closeScreen) {
+            onBack()
+        }
+    }
+
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.onHostStopped()
     }
 
-    KeepScreenOnEffect(enabled = uiState.isPlaying)
-
-    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
+    WearScreenScaffold(
+        showTimeText = uiState.showControls,
+        contentPadding = PaddingValues(0.dp)
+    ) {
         when {
             uiState.showBatteryWarning -> {
                 BatteryWarningDialog(
@@ -153,14 +175,29 @@ fun VideoPlayerScreen(
                             viewModel.onVolumeStep(up = step > 0)
                         },
                         onToggleScaleMode = viewModel::toggleScaleMode,
-                        onToggleShuffle = viewModel::toggleShuffle,
+                        onTogglePlaybackMode = viewModel::togglePlaybackMode,
                         onPanDelta = viewModel::onPanDelta,
-                        onToggleFavorite = viewModel::toggleFavorite
+                        onToggleFavorite = viewModel::toggleFavorite,
+                        onTogglePin = viewModel::togglePin,
+                        onFileOperations = { showActions = true }
                     )
                 )
             }
         }
     }
+
+    com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost(
+        operations = viewModel.fileOperations,
+        visibilities = com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities(
+            showActions = showActions,
+            showDeleteConfirm = showDeleteConfirm,
+            showReceivers = showReceivers,
+            onActionsVisibilityChange = { showActions = it },
+            onDeleteVisibilityChange = { showDeleteConfirm = it },
+            onReceiversVisibilityChange = { showReceivers = it }
+        ),
+        currentFileName = uiState.mediaFile?.name
+    )
 }
 
 @Composable
@@ -339,48 +376,50 @@ private fun VideoPlayerContent(
 private fun PlayPauseButton(
     isPlaying: Boolean,
     description: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier
 ) {
+    Timber.d("S2529: VideoPlayerScreen PlayPauseButton composed, isPlaying=$isPlaying")
     PlayerCommandButton(
         onClick = onClick,
         icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
         contentDescription = description,
-        modifier = Modifier.size(PLAY_PAUSE_TARGET_SIZE),
-        checked = true
+        modifier = modifier,
+        checked = true,
+        iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.VIDEO))
     )
 }
 
 @Composable
 private fun VideoActionButtons(
     isPlaying: Boolean,
-    scaleMode: VideoScaleMode,
-    isShuffleEnabled: Boolean,
+    playbackMode: WearPlaybackMode,
     actions: VideoPlayerActions
 ) {
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
-    val shuffleDesc = stringResource(
-        if (isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    val playbackModeIcon = when (playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeDesc = stringResource(
+        when (playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
     )
-    // S2140: seeking moved off the bezel onto a long press here, and the labels are what TalkBack reads
-    // in place of "double tap and hold".
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // S2140: drawn whether or not a set exists, unlike before. The bezel used to carry seeking and
-        // did not care about the set, so hiding these two with the set cost nothing; now they carry it,
-        // and hiding them would take seeking away from exactly the single file and the stream that the
-        // bezel used to serve. The tap is the part that stays conditional - skipToPrevious/skipToNext
-        // already return early on a set of one, so a tap without a set does nothing rather than wrong.
+    PlayerCommandGrid { targetSize ->
         PlayerCommandButton(
             onClick = actions.onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
             contentDescription = previousDesc,
+            modifier = Modifier.size(targetSize),
             onLongClick = actions.seek.onSeekBackward,
             onLongClickLabel = seekBackwardDesc
         )
@@ -388,35 +427,25 @@ private fun VideoActionButtons(
         PlayPauseButton(
             isPlaying = isPlaying,
             description = playPauseDesc,
-            onClick = actions.onPlayPause
+            onClick = actions.onPlayPause,
+            modifier = Modifier.size(targetSize)
+        )
+
+        PlayerCommandButton(
+            onClick = actions.onTogglePlaybackMode,
+            icon = playbackModeIcon,
+            contentDescription = playbackModeDesc,
+            modifier = Modifier.size(targetSize),
+            checked = playbackMode != WearPlaybackMode.SEQUENTIAL
         )
 
         PlayerCommandButton(
             onClick = actions.onSkipNext,
             icon = Icons.Filled.SkipNext,
             contentDescription = nextDesc,
+            modifier = Modifier.size(targetSize),
             onLongClick = actions.seek.onSeekForward,
             onLongClickLabel = seekForwardDesc
-        )
-
-        val scaleIcon = if (scaleMode == VideoScaleMode.CROP_PAN) {
-            Icons.Filled.AspectRatio
-        } else {
-            Icons.Filled.CropFree
-        }
-        PlayerCommandButton(
-            onClick = actions.onToggleScaleMode,
-            icon = scaleIcon,
-            contentDescription = stringResource(R.string.wear_scale_mode),
-            checked = scaleMode == VideoScaleMode.CROP_PAN
-        )
-
-        PlayerCommandButton(
-            onClick = actions.onToggleShuffle,
-            // Shape as well as tint - the accessibility constraint asks for two signals.
-            icon = if (isShuffleEnabled) Icons.Filled.Shuffle else Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = shuffleDesc,
-            checked = isShuffleEnabled
         )
     }
 }
@@ -427,20 +456,32 @@ private fun VideoActionButtons(
  * reason (S1701), so the star sits in the same place in both players.
  *
  * The filled and outlined hearts differ in shape, not only in colour, so the state survives a screen
- * that renders the highlight faintly.
+ * that renders the highlight faintly. S2497: a stream swaps the heart for a pin - the list orders by
+ * the same mark, so "favourite" would name an action the wearer cannot get - and keeps the same
+ * filled/outlined split for the same reason.
  */
 @Composable
 private fun FavoriteButton(
     isFavorite: Boolean,
-    onToggleFavorite: () -> Unit
+    onToggleFavorite: () -> Unit,
+    modifier: Modifier
 ) {
     val description = stringResource(
-        if (isFavorite) R.string.wear_player_favorite_remove else R.string.wear_player_favorite_add
+        if (isFavorite) {
+            R.string.wear_player_favorite_remove
+        } else {
+            R.string.wear_player_favorite_add
+        }
     )
     PlayerCommandButton(
         onClick = onToggleFavorite,
-        icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+        icon = if (isFavorite) {
+            Icons.Filled.Favorite
+        } else {
+            Icons.Filled.FavoriteBorder
+        },
         contentDescription = description,
+        modifier = modifier,
         checked = isFavorite
     )
 }
@@ -491,40 +532,81 @@ private fun VideoControls(
 
         VideoActionButtons(
             isPlaying = uiState.isPlaying,
-            scaleMode = uiState.scaleMode,
-            isShuffleEnabled = uiState.isShuffleEnabled,
+            playbackMode = uiState.playbackMode,
             actions = actions
         )
 
         Spacer(modifier = Modifier.height(SECONDARY_ROW_SPACING))
 
-        // S2472: back joins the favorite mark on the panel's secondary row - a child of this column,
-        // so the panel's own show/hide carries it and no visibility rule of its own exists. The
-        // transport row above stays five commands wide, which a round screen cannot widen.
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(SECONDARY_ROW_SPACING),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        VideoControlsSecondaryRow(
+            uiState = uiState,
+            actions = actions
+        )
+    }
+}
+
+@Composable
+private fun VideoControlsSecondaryRow(
+    uiState: VideoPlayerUiState,
+    actions: VideoPlayerActions
+) {
+    val pinDesc = stringResource(
+        if (uiState.isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
+    )
+    val fileOpDesc = stringResource(R.string.wear_file_op_actions)
+
+    PlayerCommandGrid { targetSize ->
+        PlayerCommandButton(
+            onClick = actions.onBack,
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.wear_navigate_back),
+            modifier = Modifier.size(targetSize)
+        )
+
+        FavoriteButton(
+            isFavorite = uiState.isFavorite,
+            onToggleFavorite = actions.onToggleFavorite,
+            modifier = Modifier.size(targetSize)
+        )
+
+        if (uiState.isStream) {
             PlayerCommandButton(
-                onClick = actions.onBack,
-                icon = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.wear_navigate_back)
+                onClick = actions.onTogglePin,
+                icon = if (uiState.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription = pinDesc,
+                modifier = Modifier.size(targetSize),
+                checked = uiState.isPinned
             )
-
-            FavoriteButton(
-                isFavorite = uiState.isFavorite,
-                onToggleFavorite = actions.onToggleFavorite
-            )
-        }
-
-        if (uiState.hasSet) {
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = uiState.positionText,
-                style = MaterialTheme.typography.caption3,
-                color = Color.Gray
+        } else {
+            PlayerCommandButton(
+                onClick = actions.onFileOperations,
+                icon = Icons.Default.MoreVert,
+                contentDescription = fileOpDesc,
+                modifier = Modifier.size(targetSize)
             )
         }
+
+        val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
+            Icons.Filled.AspectRatio
+        } else {
+            Icons.Filled.CropFree
+        }
+        PlayerCommandButton(
+            onClick = actions.onToggleScaleMode,
+            icon = scaleIcon,
+            contentDescription = stringResource(R.string.wear_scale_mode),
+            modifier = Modifier.size(targetSize),
+            checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+        )
+    }
+
+    if (uiState.hasSet && !uiState.isStream) {
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = uiState.positionText,
+            style = MaterialTheme.typography.caption3,
+            color = Color.Gray
+        )
     }
 }
 

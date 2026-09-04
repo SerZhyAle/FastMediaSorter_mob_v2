@@ -247,6 +247,47 @@ try {
     $refused = Invoke-Cli @('-Verb', 'Claim', '-Id', 'S9906', '-Reason', 'lease-tests')
     Assert-That 'case 16: claim refused while a live sibling holds it (exit 3)' ($refused.Exit -eq 3) $refused.Text
     Assert-That 'case 16: the refusal states that a fresh chat row means alive' ($refused.Text -match 'do not run Clean with a lowered -QuietMinutes') $refused.Text
+
+    Write-Host 'Release -Force process liveness check (S2500)'
+    # 17a: Live owner process (our own PID) -> Release -Force MUST be refused (exit 4)
+    $now = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+    Write-LeaseFile 'S9907' ([pscustomobject]@{
+        schema         = 1
+        id             = 'S9907'
+        sessionId      = 'session-live-proc'
+        host           = $env:COMPUTERNAME
+        pid            = $PID
+        reason         = 'lease-tests'
+        claimedAt      = $now
+        lastSeenAt     = $now
+        transcriptPath = ''
+    })
+    Set-Identity 'session-B'
+    $relForceLive = Invoke-Cli @('-Verb', 'Release', '-Id', 'S9907', '-Force', '-Json')
+    $relForceLiveObj = Get-JsonPayload $relForceLive.Text
+    Assert-That 'case 17a: Release -Force refused when owner process is still running (exit 4)' ($relForceLive.Exit -eq 4) $relForceLive.Text
+    Assert-That 'case 17a: processAlive flag is true in refusal' ($null -ne $relForceLiveObj -and $relForceLiveObj.processAlive -eq $true) $relForceLive.Text
+    Assert-That 'case 17a: lease file retained' ($null -ne (Get-LeaseFile 'S9907')) 'S9907 was removed despite live process'
+
+    # 17b: Dead owner process (PID 999999) with recent timestamp -> Release without -Force refused, with -Force succeeds
+    Write-LeaseFile 'S9908' ([pscustomobject]@{
+        schema         = 1
+        id             = 'S9908'
+        sessionId      = 'session-dead-proc'
+        host           = $env:COMPUTERNAME
+        pid            = 999999
+        reason         = 'lease-tests'
+        claimedAt      = $now
+        lastSeenAt     = $now
+        transcriptPath = ''
+    })
+    $relDeadNoForce = Invoke-Cli @('-Verb', 'Release', '-Id', 'S9908', '-Json')
+    Assert-That 'case 17b: Release without -Force on dead process with fresh timestamp refused (exit 4)' ($relDeadNoForce.Exit -eq 4) $relDeadNoForce.Text
+    $relDeadForce = Invoke-Cli @('-Verb', 'Release', '-Id', 'S9908', '-Force', '-Json')
+    $relDeadForceObj = Get-JsonPayload $relDeadForce.Text
+    Assert-That 'case 17b: Release -Force on dead owner process succeeds (exit 0)' ($relDeadForce.Exit -eq 0) $relDeadForce.Text
+    Assert-That 'case 17b: forced flag is true' ($null -ne $relDeadForceObj -and $relDeadForceObj.forced -eq $true) $relDeadForce.Text
+    Assert-That 'case 17b: lease file removed' ($null -eq (Get-LeaseFile 'S9908')) 'S9908 was not removed'
 }
 finally {
     if ($script:fail -eq 0) {

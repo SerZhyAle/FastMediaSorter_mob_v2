@@ -1,0 +1,34 @@
+# Ratchet baseline for assert-always-loaded-budget.ps1 (S2517).
+#
+# Format: <repo-relative path>|<ceiling bytes>|<stretch bytes>|<where the text goes instead>
+#
+# A ceiling goes DOWN on a run that passed and never up. Lower it with -UpdateBaseline; do not
+# hand-edit a number upward, and never drop a rule to fit under one (S2517 ADR-4).
+#
+# A stretch at or above the ceiling means no target below the ceiling has been set yet. S2517
+# section 6 item 4 defers that number until after the first rationale move, because before it any
+# target is assigned blind.
+#
+# Seeded 2026-09-04 at the sizes measured that day. The floor those sizes sit in was 75702 tokens
+# per request, 37.8% of all billed cache_read (S2513).
+#
+# MEMORY.md is deliberately absent: it is always-loaded too, but assert-memory-budget.ps1 already
+# judges it and carries three correctness checks that only make sense for a memory directory.
+# Judging it twice would produce two verdicts on one file.
+
+# Stretch targets, reset 2026-09-04 by S2521. The first move (S2517) set 57717 for CLAUDE.md as
+# "the page minus the 7666 B held behind canon-shipped gates". S2521 then found the lever the
+# docs prescribe for an oversized page - .claude/rules/*.md with paths: frontmatter, loaded only
+# when Claude reads a matching file - and moved section 4, most of section 3, Rule 34's body and
+# the Android-source rationale there, 65383 -> 41531 injected bytes with every rule number and
+# statement kept. The canon-gate text S2520 targets now lives in .claude/rules/spec-catalog.md
+# and is paid only by sessions that read PLAN/, so the old stretch no longer describes anything;
+# no target below the new ceiling is set until the next measured move (stretch = ceiling).
+#
+# Bytes are INJECTED bytes: block-level HTML comments are stripped by Claude Code before a
+# memory file enters context, so the gate strips them too (S2521). AGENTS.md is measured the
+# same way for consistency, although non-Claude runtimes read it raw.
+
+CLAUDE.md|41531|41531|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
+AGENTS.md|45008|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
+.claude/agents/android-rd-specialist.md|9762|9762|CLAUDE.md when the line is a project rule, or the skill that needs it

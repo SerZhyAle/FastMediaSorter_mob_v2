@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteDeltaItem
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
@@ -170,6 +171,10 @@ private class TileContentFakeNetworkSourceRepository : NetworkSourceRepository {
     override suspend fun updateSource(source: NetworkSource) {}
     override suspend fun upsertSource(source: NetworkSource) {}
     override suspend fun deleteSource(id: String) {}
+    override suspend fun deleteSourceWithTombstone(id: String, deletedAt: Long) {}
+    override suspend fun getTombstones(): List<WearSourceTombstonePayload> = emptyList()
+    override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) {}
+    override suspend fun removeTombstone(id: String) {}
     override suspend fun testConnection(source: NetworkSource): Result<Boolean> = Result.success(true)
 }
 

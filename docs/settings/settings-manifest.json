@@ -2971,6 +2971,16 @@
       "titleUk": "Відтворювати відео/аудіо в слайдшоу до кінця"
     },
     {
+      "key": "rowPlayerPanelAutoHide",
+      "sectionId": "playback",
+      "destination": "PLAYBACK",
+      "layout": "fragment_settings_playback",
+      "kind": "INPUT_ROW",
+      "titleEn": "Player panel auto-hide duration (s)",
+      "titleRu": "Автоскрытие панели плеера (сек)",
+      "titleUk": "Автоприховування панелі плеєра (сек)"
+    },
+    {
       "key": "rowShowBlackScreenButton",
       "sectionId": "playback",
       "destination": "PLAYBACK",
@@ -3286,9 +3296,9 @@
       "destination": "MEDIA",
       "layout": "wear_media_types_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Enable audio",
-      "titleRu": "Включить аудио",
-      "titleUk": "Увімкнути аудіо"
+      "titleEn": "Audio",
+      "titleRu": "Аудио",
+      "titleUk": "Аудіо"
     },
     {
       "key": "wearEnableDocuments",
@@ -3296,9 +3306,9 @@
       "destination": "MEDIA",
       "layout": "wear_media_types_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Enable documents",
-      "titleRu": "Включить документы",
-      "titleUk": "Увімкнути документи"
+      "titleEn": "Documents",
+      "titleRu": "Документы",
+      "titleUk": "Документи"
     },
     {
       "key": "wearEnableImages",
@@ -3306,9 +3316,9 @@
       "destination": "MEDIA",
       "layout": "wear_media_types_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Enable images",
-      "titleRu": "Включить изображения",
-      "titleUk": "Увімкнути зображення"
+      "titleEn": "Images",
+      "titleRu": "Изображения",
+      "titleUk": "Зображення"
     },
     {
       "key": "wearEnableSlideshow",
@@ -3326,9 +3336,9 @@
       "destination": "MEDIA",
       "layout": "wear_media_types_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Enable video",
-      "titleRu": "Включить видео",
-      "titleUk": "Увімкнути відео"
+      "titleEn": "Video",
+      "titleRu": "Видео",
+      "titleUk": "Відео"
     },
     {
       "key": "wearFileListViewMode",
@@ -3351,6 +3361,16 @@
       "titleUk": "Не гасити екран"
     },
     {
+      "key": "wearPanelAutoHide",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "SPINNER",
+      "titleEn": "Player panel auto-hide duration (s)",
+      "titleRu": "Автоскрытие панели плеера (сек)",
+      "titleUk": "Автоприховування панелі плеєра (сек)"
+    },
+    {
       "key": "wearSlideshowInterval",
       "sectionId": "wear",
       "destination": "MEDIA",
@@ -3366,9 +3386,9 @@
       "destination": "MEDIA",
       "layout": "wear_media_types_settings",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Show Streams",
-      "titleRu": "Показывать трансляции",
-      "titleUk": "Показувати трансляції"
+      "titleEn": "Streams",
+      "titleRu": "Трансляции",
+      "titleUk": "Трансляції"
     },
     {
       "key": "wearViewMode",

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/rowRoot"
     android:layout_width="match_parent"
@@ -7,7 +8,7 @@
     android:background="@drawable/item_focus_selector"
     android:focusable="true"
     android:gravity="center_vertical"
-    android:minHeight="48dp"
+    android:minHeight="@dimen/touch_target_min_height"
     android:orientation="horizontal"
     android:paddingStart="@dimen/margin_small"
     android:paddingEnd="@dimen/margin_small">
@@ -18,6 +19,16 @@
         android:layout_height="wrap_content"
         android:clickable="false"
         android:focusable="false" />
+
+    <ImageView
+        android:id="@+id/ivResourceIcon"
+        android:layout_width="@dimen/icon_size_small"
+        android:layout_height="@dimen/icon_size_small"
+        android:layout_marginStart="@dimen/margin_small"
+        android:layout_marginEnd="@dimen/margin_small"
+        android:contentDescription="@null"
+        app:tint="?attr/colorPrimary"
+        tools:src="@drawable/ic_folder" />
 
     <LinearLayout
         android:layout_width="0dp"

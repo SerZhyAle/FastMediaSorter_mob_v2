@@ -25,7 +25,10 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
     private val mediaStoreRepository: MediaStoreRepository
 ) {
 
-    suspend operator fun invoke(request: WearPhoneResourceRequest): PhoneResourceChannel {
+    suspend operator fun invoke(
+        request: WearPhoneResourceRequest,
+        forWatchTransfer: Boolean = true
+    ): PhoneResourceChannel {
         val item = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -39,13 +42,14 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             !resource.isDeliverable() -> PhoneResourceChannel.Rejected(
                 WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA
             )
-            else -> approveOrReject(resource, item)
+            else -> approveOrReject(resource, item, forWatchTransfer)
         }
     }
 
     private suspend fun approveOrReject(
         resource: MediaResource,
-        item: PhoneResourceToken
+        item: PhoneResourceToken,
+        forWatchTransfer: Boolean
     ): PhoneResourceChannel {
         val file = resolveFile(resource, item)
             ?: return PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
@@ -54,9 +58,9 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
 
         return when {
             !readable -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
-            mediaType !in RENDERABLE_ON_WATCH ->
+            forWatchTransfer && mediaType !in RENDERABLE_ON_WATCH ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
-            file.length() > WEAR_FILE_TRANSFER_MAX_BYTES ->
+            forWatchTransfer && file.length() > WEAR_FILE_TRANSFER_MAX_BYTES ->
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.TRANSFER_REJECTED)
             else -> PhoneResourceChannel.Approved(
                 name = file.name,

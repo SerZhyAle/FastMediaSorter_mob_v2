@@ -241,6 +241,26 @@ class OpenPhoneResourceChannelUseCaseTest {
         assertTrue("distinct files must not report one size", one.sizeBytes != two.sizeBytes)
     }
 
+    @Test
+    fun `a document file is approved when requested for phone open`() = runTest {
+        writeFile("notes.txt")
+        stubResource(resource())
+
+        val approved = useCase(request("1:notes.txt"), forWatchTransfer = false) as PhoneResourceChannel.Approved
+        assertEquals("notes.txt", approved.name)
+    }
+
+    @Test
+    fun `a file over the transfer cap is approved when requested for phone open`() = runTest {
+        val big = File(root, "huge.jpg")
+        RandomAccessFile(big, "rw").use { it.setLength(WEAR_FILE_TRANSFER_MAX_BYTES + 1) }
+        stubResource(resource())
+
+        val approved = useCase(request("1:huge.jpg"), forWatchTransfer = false) as PhoneResourceChannel.Approved
+        assertEquals("huge.jpg", approved.name)
+    }
+
+
     private fun writeFile(name: String, body: String = "x") = File(root, name).apply { writeText(body) }
 
     private fun writeFileIn(folder: String, name: String, body: String = "x") =

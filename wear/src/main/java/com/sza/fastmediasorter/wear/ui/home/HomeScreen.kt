@@ -1,17 +1,14 @@
 package com.sza.fastmediasorter.wear.ui.home
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -19,38 +16,34 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.PositionIndicator
-import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
-import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
 import com.sza.fastmediasorter.wear.ui.common.rememberMinimizeAppAction
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
@@ -70,30 +63,13 @@ fun HomeScreen(
     // the action would be rebuilt every time the bar scrolls back into composition.
     val closeApp = rememberCloseAppAction()
     val minimizeApp = rememberMinimizeAppAction()
+    val shortcutClickScope = rememberCoroutineScope()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        // S2472: the home affordance, in the same left-middle band every other screen draws it in.
-        // The cross and the chevron are one control, not two: which face it wears follows the live
-        // playback state, and each face carries its own action - close stops the sound, minimize
-        // keeps it - so the sign can never promise what the tap does not do.
-        WearBackAffordance(
-            role = if (isBackgroundPlaybackActive) {
-                WearBackAffordanceRole.Minimize
-            } else {
-                WearBackAffordanceRole.Close
-            },
-            onClick = {
-                Timber.d("S2472: home affordance tapped, backgroundActive=%b", isBackgroundPlaybackActive)
-                if (isBackgroundPlaybackActive) minimizeApp() else closeApp()
-            },
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(start = wearRingInset())
-        )
         // The column count comes from the width this composable actually gets, never from the mode
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -102,16 +78,23 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
+                // S2499: a shortcut is resolved before it is navigated to - a channel has no address
+                // until playback preparation has run. A target that stopped resolving between the
+                // draw and the tap leaves the screen where it is, which the ViewModel logs.
                 lastUsedItems(
                     shortcuts = uiState.lastUsedResources,
                     columns = columns,
-                    onSectionClick = { section -> navController.navigate(section.route) }
+                    onSectionClick = { section ->
+                        shortcutClickScope.launch {
+                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
+                        }
+                    }
                 )
 
                 sectionItems(
                     sections = uiState.sections,
                     columns = columns,
-                    onSectionClick = { section -> navController.navigate(section.route) }
+                    onSectionClick = { section -> section.route?.let(navController::navigate) }
                 )
 
                 item {
@@ -121,6 +104,30 @@ fun HomeScreen(
                 }
             }
         }
+        // S2472: the home affordance, in the same left-middle band every other screen draws it in.
+        // The cross and the chevron are one control, not two: which face it wears follows the live
+        // playback state, and each face carries its own action - close stops the sound, minimize
+        // keeps it - so the sign can never promise what the tap does not do.
+        //
+        // Declared AFTER the list, and that order is the whole of whether it works: siblings of a Box
+        // are hit-tested back to front, so the full-size scrolling column declared after this control
+        // takes every pointer over it and the cross is drawn but dead - the state the owner reported
+        // on 2026-09-04, where the node was not even in the uiautomator tree. The host's own arrow
+        // sits after the NavHost for the same reason, which is why Back worked while Close did not.
+        WearBackAffordance(
+            role = if (isBackgroundPlaybackActive) {
+                WearBackAffordanceRole.Minimize
+            } else {
+                WearBackAffordanceRole.Close
+            },
+            onClick = {
+                Timber.d("S2472: home affordance tapped, backgroundActive=$isBackgroundPlaybackActive")
+                if (isBackgroundPlaybackActive) minimizeApp() else closeApp()
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = wearBackAffordanceInset())
+        )
     }
 }
 
@@ -181,23 +188,22 @@ private fun HomeSectionChip(
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
     val glyph = glyphFor(section)
-    Chip(
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = label) },
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(glyph.painterRes),
-                contentDescription = label,
-                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
-                tint = if (glyph.ownsItsColour) Color.Unspecified else LocalContentColor.current
+                contentDescription = null,
+                modifier = glyphModifier,
+                tint = if (glyph.ownsItsColour) {
+                    Color.Unspecified
+                } else {
+                    sectionTint(contentTypeFor(section.id))
+                }
             )
-        },
-        // A section announces its own name - the dynamic resource name where it has one - so the
-        // reading never degrades to a position in the list.
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -215,9 +221,10 @@ private fun HomeSectionRow(
     columns: Int,
     onSectionClick: (HomeSection) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = sections.size,
+        gap = GRID_GAP
     ) {
         sections.forEach { section ->
             HomeSectionCell(
@@ -225,9 +232,6 @@ private fun HomeSectionRow(
                 modifier = Modifier.weight(1f),
                 onClick = { onSectionClick(section) }
             )
-        }
-        repeat(columns - sections.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -305,7 +309,9 @@ private fun sectionTint(type: WearContentType?): Color =
  */
 private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     HomeSectionId.FAVOURITES -> null
-    HomeSectionId.STREAMS -> WearContentType.STREAM
+    // S2499: a recent channel is a channel, so it takes the same tone the Streams section does.
+    HomeSectionId.STREAMS,
+    HomeSectionId.LAST_USED_STREAM -> WearContentType.STREAM
     HomeSectionId.LAST_USED_RESOURCE,
     HomeSectionId.RESOURCES,
     HomeSectionId.PHONE,
@@ -322,6 +328,9 @@ private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
 @DrawableRes
 private fun iconFor(id: HomeSectionId): Int = when (id) {
     HomeSectionId.LAST_USED_RESOURCE -> R.drawable.ic_history
+    // S2499: the streams glyph rather than the history one - one entity wears one glyph, and the
+    // history glyph is exactly what would make a recent channel indistinguishable from a folder.
+    HomeSectionId.LAST_USED_STREAM -> R.drawable.ic_cast
     HomeSectionId.FAVOURITES -> R.drawable.ic_resource_favorites
     // ic_resource is the phone's canonical umbrella glyph for "a source registered in this app",
     // which is what this section lists. ic_wifi described the transport, not the entity (S1952).

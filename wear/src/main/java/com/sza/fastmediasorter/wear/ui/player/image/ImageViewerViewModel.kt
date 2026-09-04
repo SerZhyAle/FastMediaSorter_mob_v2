@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
@@ -41,6 +42,7 @@ class ImageViewerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val favoritesRepository: WearFavoritesRepository,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -65,6 +67,32 @@ class ImageViewerViewModel @Inject constructor(
 
     init {
         Timber.d("ImageViewerViewModel initialized with fileId: $fileId")
+
+        val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
+        fileOperations.bind(
+            scope = viewModelScope,
+            currentFile = currentFileFlow,
+            isNetworkSource = { networkSelection != null }
+        )
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                currentFileFlow.value = state.mediaFile
+            }
+        }
+        viewModelScope.launch {
+            fileOperations.operationResult.collect { result ->
+                when (result) {
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
+                        playbackSetManager.moveTo(result.nextFile.id)
+                        loadImageFile()
+                    }
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
+                        _uiState.update { it.copy(closeScreen = true) }
+                    }
+                    com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Stay, null -> {}
+                }
+            }
+        }
 
         seedScaleMode()
 
@@ -108,9 +136,15 @@ class ImageViewerViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setImageScaleMode(next) }
     }
 
+    fun togglePlaybackMode() {
+        val nextMode = _uiState.value.playbackMode.next()
+        val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
+        _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
     fun toggleShuffle() {
-        val enabled = !_uiState.value.isShuffleEnabled
-        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+        togglePlaybackMode()
     }
 
     private fun loadImageFile() {
@@ -226,8 +260,13 @@ class ImageViewerViewModel @Inject constructor(
     fun startSlideshow() {
         Timber.d("Starting slideshow")
         slideshowController?.start()
-        _uiState.update { it.copy(isSlideshowActive = true) }
-        scheduleHideControls()
+        // S2480: the press has to produce a visible result. Starting the controller alone left the
+        // same picture on screen for a whole interval under an unchanged panel, which read as the
+        // button doing nothing - so the next picture comes up at once and the panel goes with it.
+        Timber.d("S2480: slideshow start advances and clears the panel")
+        controlsHideJob?.cancel()
+        _uiState.update { it.copy(isSlideshowActive = true, showControls = false) }
+        navigateToNext()
     }
 
     fun stopSlideshow() {
@@ -235,6 +274,8 @@ class ImageViewerViewModel @Inject constructor(
         slideshowController?.stop()
         _uiState.update { it.copy(isSlideshowActive = false) }
         showControls()
+        // Stopping a slideshow leaves the panel on a countdown, not on screen for good.
+        scheduleHideControls()
     }
 
     /** A tap on the picture is the only way back to a hidden panel, so it toggles rather than reveals. */
@@ -253,10 +294,20 @@ class ImageViewerViewModel @Inject constructor(
         _uiState.update { it.copy(showControls = true) }
     }
 
+    /**
+     * S2480: the countdown runs whether or not a slideshow does. An image has no playing state, so
+     * having one on screen is itself the active condition - the same reasoning the screen already
+     * applies to keeping the display awake. Tying it to the slideshow left a hand-paged viewer
+     * showing its panel forever, which is what the owner reported.
+     */
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
+        Timber.d("S2480: panel hide countdown started")
         controlsHideJob = viewModelScope.launch {
-            if (awaitPanelHide(isActive = _uiState.value.isSlideshowActive)) {
+            val hideDelayMs = preferencesRepository.panelAutoHideSeconds.first().coerceIn(1, 600) * 1000L
+            Timber.d("S2505: ImageViewerViewModel scheduleHideControls delayMillis=$hideDelayMs")
+            if (awaitPanelHide(isActive = true, delayMillis = hideDelayMs)) {
+                Timber.d("S2480: panel hidden by countdown")
                 _uiState.update { it.copy(showControls = false) }
             }
         }
@@ -274,12 +325,24 @@ class ImageViewerViewModel @Inject constructor(
         val next = playbackSetManager.next() ?: return
         showFile(next)
         syncSlideshowToSet()
+        restartHideCountdownIfShown()
     }
 
     fun navigateToPrevious() {
         val previous = playbackSetManager.previous() ?: return
         showFile(previous)
         syncSlideshowToSet()
+        restartHideCountdownIfShown()
+    }
+
+    /**
+     * S2480: paging is a touch, so it postpones the hide - but only when the panel is already up.
+     * A zone tap on a hidden panel must page without bringing the buttons back over the picture.
+     */
+    private fun restartHideCountdownIfShown() {
+        if (_uiState.value.showControls) {
+            scheduleHideControls()
+        }
     }
 
     /**

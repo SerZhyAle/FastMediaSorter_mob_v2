@@ -41,10 +41,14 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
+import timber.log.Timber
 import java.util.Date
 
 private val TITLE_VERTICAL_PADDING = 8.dp
@@ -54,10 +58,13 @@ private val ROW_LABEL_GAP = 6.dp
 private val PROGRESS_STROKE = 2.dp
 
 /**
- * S1862 / S2161: the notes this watch holds, with sending, deleting and playback on the watch.
+ * S1862 / S2161: the notes this watch holds, with sending, renaming, deleting and playback.
  *
- * A single tap plays the voice note directly. Long press opens the action sheet where Play, Send and
- * Delete are available.
+ * A single tap plays the voice note directly. S2495: long press opens the module's shared file-actions
+ * dialog rather than a menu of this screen's own, so what a note offers is decided by the capability
+ * policy and matches what an ordinary app-owned file offers. Play left that menu with the change and
+ * is the tap - it was the only entry the shared dialog has no operation for, and it was already the
+ * easier gesture.
  */
 @Composable
 fun VoiceNoteListScreen(
@@ -65,8 +72,7 @@ fun VoiceNoteListScreen(
     viewModel: VoiceNoteListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
-    var actionsFor by remember { mutableStateOf<VoiceNote?>(null) }
+    val listState = rememberWearListState(initialItemIndex = 1)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
 
     WearScreenScaffold(
@@ -78,26 +84,41 @@ fun VoiceNoteListScreen(
             uiState = uiState,
             listState = listState,
             onPlayNote = onPlayNote,
-            onOpenActions = { note -> actionsFor = note }
+            onOpenActions = viewModel::openActions
         )
     }
 
-    actionsFor?.let { note ->
-        NoteActionsDialog(
-            note = note,
-            onPlay = {
-                onPlayNote(note)
-                actionsFor = null
+    // S2495: remembered outside the dialog, because the dialog is dismissed the moment Rename is
+    // picked and the watch's text entry outlives it by a whole screen.
+    var renameFor by remember { mutableStateOf<VoiceNote?>(null) }
+    val launchRenameInput = rememberWearRenameInput { newName ->
+        renameFor?.let { note -> viewModel.rename(note.id, newName) }
+        renameFor = null
+    }
+
+    uiState.actions?.let { actions ->
+        WearFileActionsDialog(
+            file = actions.file,
+            allowed = actions.allowed,
+            onPick = { kind ->
+                viewModel.dismissActions()
+                when (kind) {
+                    WearFileOperationKind.SEND_TO_PHONE -> viewModel.send(actions.note.id)
+                    WearFileOperationKind.DELETE -> deleteFor = actions.note
+                    WearFileOperationKind.RENAME -> {
+                        renameFor = actions.note
+                        launchRenameInput(actions.note.fileName)
+                    }
+                    // Everything else is withheld by the ViewModel and never reaches this menu.
+                    else -> Timber.w("Voice note action %s is not served by the note list", kind)
+                }
             },
-            onSend = {
-                viewModel.send(note.id)
-                actionsFor = null
-            },
-            onDelete = {
-                deleteFor = note
-                actionsFor = null
-            }
+            onDismiss = viewModel::dismissActions
         )
+    }
+
+    if (uiState.lastRenameFailed) {
+        RenameFailedDialog(onDismiss = viewModel::acknowledgeRenameFailure)
     }
 
     deleteFor?.let { note ->
@@ -208,42 +229,25 @@ private fun NoteRow(
     )
 }
 
+/**
+ * S2495: shown when a rename left the note's two halves as they were.
+ *
+ * Reported rather than swallowed: a rename that silently did nothing reads as a watch that ignored
+ * the tap, and the owner's next move would be to try again on a name that will refuse again.
+ */
 @Composable
-private fun NoteActionsDialog(
-    note: VoiceNote,
-    onPlay: () -> Unit,
-    onSend: () -> Unit,
-    onDelete: () -> Unit
-) {
+private fun RenameFailedDialog(onDismiss: () -> Unit) {
     Alert(
         title = {
             Text(
-                text = noteTimeLabel(note),
+                text = stringResource(R.string.wear_voice_note_rename_failed),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
+                style = MaterialTheme.typography.body2
             )
         }
     ) {
         item {
-            DialogChip(
-                labelRes = R.string.wear_voice_note_play,
-                onClick = onPlay,
-                primary = true
-            )
-        }
-        item {
-            DialogChip(
-                labelRes = R.string.wear_voice_note_send,
-                onClick = onSend,
-                primary = false
-            )
-        }
-        item {
-            DialogChip(
-                labelRes = R.string.wear_voice_note_delete,
-                onClick = onDelete,
-                primary = false
-            )
+            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
         }
     }
 }

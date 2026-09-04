@@ -6,7 +6,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -18,9 +18,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Keyboard
 import androidx.compose.material.icons.filled.Refresh
@@ -28,14 +28,14 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
@@ -63,6 +63,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -73,11 +74,12 @@ import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
+import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
@@ -116,7 +118,10 @@ private data class StreamsControlState(
     val filterKind: StreamFilterKind,
     val sortOrder: StreamSortOrder,
     val selectedTopic: String?,
-    val selectedLanguage: String?
+    val selectedLanguage: String?,
+    val visibleChannelCount: Int,
+    val totalChannelCount: Int,
+    val showCounter: Boolean
 )
 
 private data class StreamsFilterDialogState(
@@ -180,14 +185,20 @@ fun StreamsScreen(
         )
     }
 
+    val channelClickScope = rememberCoroutineScope()
     val actions = StreamsActions(
         onRefresh = { viewModel.refreshCatalog() },
+        // S2499: preparation became suspending when it started writing the home screen's recent row,
+        // so the tap runs in the screen's scope. The two player addresses and the choice between them
+        // are unchanged.
         onChannelClick = { channel ->
-            val target = viewModel.prepareStreamPlayback(channel)
-            if (target.isVideo) {
-                navController.navigate(WearRoutes.videoPlayer(target.fileId))
-            } else {
-                navController.navigate(WearRoutes.audioPlayer(target.fileId))
+            channelClickScope.launch {
+                val target = viewModel.prepareStreamPlayback(channel)
+                if (target.isVideo) {
+                    navController.navigate(WearRoutes.videoPlayer(target.fileId))
+                } else {
+                    navController.navigate(WearRoutes.audioPlayer(target.fileId))
+                }
             }
         },
         onSearchClick = { viewModel.setShowSearchDialog(true) },
@@ -288,7 +299,7 @@ private fun StreamsMainContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
         val screenInsets = wearScreenInsets()
-        val stillArriving = uiState.isLoading && uiState.channels.isEmpty()
+        val stillArriving = uiState.isLoading && uiState.displayChannels.isEmpty()
 
         // The empty and failed cases take the whole screen rather than a row inside the list, which
         // is what every other browse screen does and what the shared block is shaped for. The control
@@ -344,7 +355,12 @@ private fun StreamsMainContent(
                 filterKind = uiState.filterKind,
                 sortOrder = uiState.sortOrder,
                 selectedTopic = uiState.selectedTopic,
-                selectedLanguage = uiState.selectedLanguage
+                selectedLanguage = uiState.selectedLanguage,
+                visibleChannelCount = uiState.displayChannels.size,
+                totalChannelCount = uiState.channels.size,
+                showCounter = uiState.displayChannels.isNotEmpty() &&
+                    !uiState.isLoading &&
+                    uiState.error == null
             ),
             onSearchClick = actions.onSearchClick,
             onFilterClick = actions.onFilterClick,
@@ -510,6 +526,12 @@ private fun StreamsControlHeader(
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (state.showCounter) {
+            StreamListCounter(
+                visibleChannelCount = state.visibleChannelCount,
+                totalChannelCount = state.totalChannelCount
+            )
+        }
         RectangularButton(
             onClick = {
                 onSearchClick()
@@ -564,7 +586,29 @@ private fun StreamsControlHeader(
                 modifier = Modifier.size(20.dp)
             )
         }
+    }
+}
 
+@Composable
+private fun StreamListCounter(
+    visibleChannelCount: Int,
+    totalChannelCount: Int
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = visibleChannelCount.toString(),
+            style = MaterialTheme.typography.caption3
+        )
+        Spacer(
+            modifier = Modifier
+                .width(14.dp)
+                .height(1.dp)
+                .background(Color.Gray)
+        )
+        Text(
+            text = totalChannelCount.toString(),
+            style = MaterialTheme.typography.caption3
+        )
     }
 }
 
@@ -859,35 +903,21 @@ private fun StreamChip(
         value = getFaviconTile(channel.faviconIndex)
     }
 
-    Chip(
+    val bmp = faviconBitmap
+    val thumbnail = if (bmp != null) WearThumbnail.Ready(bmp) else WearThumbnail.Unavailable
+
+    SingleColumnTileCell(
+        thumbnail = thumbnail,
+        caption = channel.name,
         onClick = onClick,
-        label = {
-            Text(
-                text = channel.name,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+        colors = ChipDefaults.primaryChipColors(),
+        fallback = { glyphModifier ->
+            Icon(
+                painter = painterResource(R.drawable.ic_cast),
+                contentDescription = null,
+                modifier = glyphModifier
             )
-        },
-        icon = {
-            val bmp = faviconBitmap
-            if (bmp != null) {
-                Image(
-                    bitmap = bmp.asImageBitmap(),
-                    contentDescription = channel.name,
-                    modifier = Modifier.size(CELL_ICON_SIZE)
-                )
-            } else {
-                Icon(
-                    painter = painterResource(R.drawable.ic_cast),
-                    contentDescription = channel.name,
-                    modifier = Modifier.size(CELL_ICON_SIZE)
-                )
-            }
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = channel.name },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -898,9 +928,10 @@ private fun StreamRow(
     getFaviconTile: suspend (Int?) -> Bitmap?,
     onChannelClick: (WearStreamChannel) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = channels.size,
+        gap = GRID_GAP
     ) {
         channels.forEach { channel ->
             StreamCell(
@@ -909,9 +940,6 @@ private fun StreamRow(
                 getFaviconTile = getFaviconTile,
                 onClick = { onChannelClick(channel) }
             )
-        }
-        repeat(columns - channels.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

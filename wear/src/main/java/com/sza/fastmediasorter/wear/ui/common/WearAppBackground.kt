@@ -45,6 +45,11 @@ fun WearAppBackground(
                 running = running
             )
 
+            is WearBackground.BrandedStill -> WaveParticleBackground(
+                modifier = Modifier.fillMaxSize(),
+                running = false
+            )
+
             is WearBackground.Image -> DeliveredFrame(image = background)
         }
         Box(

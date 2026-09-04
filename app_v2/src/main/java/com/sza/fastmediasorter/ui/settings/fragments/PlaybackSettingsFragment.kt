@@ -201,6 +201,19 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(defaultShowCommandPanel = isChecked))
         }
 
+        binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, viewModel.settings.value.playerPanelAutoHideSeconds)
+        binding.rowPlayerPanelAutoHide.setOnCommitListener { value ->
+            val seconds = value.toString().toIntOrNull() ?: 15
+            val clampedSeconds = seconds.coerceIn(1, 600)
+            if (seconds != clampedSeconds) {
+                binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, clampedSeconds)
+            }
+            val current = viewModel.settings.value
+            if (clampedSeconds != current.playerPanelAutoHideSeconds) {
+                viewModel.updateSettings(current.copy(playerPanelAutoHideSeconds = clampedSeconds))
+            }
+        }
+
         binding.rowSmallControls.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
@@ -477,6 +490,12 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             val currentSlideshow = binding.etSlideshowInterval.text.toString().toIntOrNull()
             if (currentSlideshow != settings.slideshowInterval) {
                 binding.etSlideshowInterval.text = getString(R.string.number_format, settings.slideshowInterval)
+            }
+
+            // Player panel auto-hide duration
+            val currentAutoHide = binding.rowPlayerPanelAutoHide.text.toString().toIntOrNull()
+            if (currentAutoHide != settings.playerPanelAutoHideSeconds) {
+                binding.rowPlayerPanelAutoHide.text = getString(R.string.number_format, settings.playerPanelAutoHideSeconds)
             }
 
             // Switches (only update if value changed; setCheckedSilently avoids listener re-entry)

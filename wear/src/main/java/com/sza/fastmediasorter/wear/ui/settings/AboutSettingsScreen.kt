@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.settings
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,6 +26,8 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportRefusalReasons
+import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
+import com.sza.fastmediasorter.wear.ui.common.WearLinkRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -39,6 +40,8 @@ fun AboutSettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
+    val watchPortalState by viewModel.watchPortalState.collectAsStateWithLifecycle()
+    val phonePortalState by viewModel.phonePortalState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     WearScreenScaffold(
@@ -76,21 +79,29 @@ fun AboutSettingsScreen(
                 )
             }
             item {
-                Chip(
+                WearLinkRow(
+                    label = stringResource(R.string.about_web_portal),
                     onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/")
-                        )
-                        try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))
+                        val launched = try {
                             context.startActivity(intent)
+                            true
                         } catch (e: ActivityNotFoundException) {
+                            // Not swallowed: the verdict goes to the view model, which turns it into
+                            // the on-screen hint pointing at the row below.
                             Timber.w(e, "No browser to open Wear web portal")
+                            false
                         }
+                        viewModel.onWatchPortalOpened(launched)
                     },
-                    label = { Text(text = stringResource(R.string.about_web_portal)) },
-                    colors = ChipDefaults.primaryChipColors(),
-                    modifier = Modifier.fillMaxWidth()
+                    message = portalMessage(watchPortalState)
+                )
+            }
+            item {
+                WearLinkRow(
+                    label = stringResource(R.string.about_web_portal_on_phone),
+                    onClick = viewModel::openPortalOnPhone,
+                    message = portalMessage(phonePortalState)
                 )
             }
             item {
@@ -144,6 +155,25 @@ private fun SendLogsRow(
             )
         }
     }
+}
+
+/**
+ * S2496: the sentence a portal row shows under itself, or null when it has nothing to say.
+ *
+ * A successful watch launch says nothing on purpose - the browser is already covering the screen, so
+ * a message would only be read after coming back to a row the user has finished with.
+ */
+@Composable
+private fun portalMessage(state: WearPortalLinkState): String? {
+    val outcome = (state as? WearPortalLinkState.Finished)?.outcome ?: return null
+    return stringResource(
+        when (outcome) {
+            WearPortalLinkOutcome.OPENED_ON_PHONE -> R.string.about_web_portal_phone_opened
+            WearPortalLinkOutcome.NO_WATCH_BROWSER -> R.string.about_web_portal_no_browser
+            WearPortalLinkOutcome.NO_CONNECTED_PHONE -> R.string.about_web_portal_no_phone
+            WearPortalLinkOutcome.PHONE_FAILED -> R.string.about_web_portal_phone_failed
+        }
+    )
 }
 
 private fun outcomeMessageRes(outcome: WearLogReportOutcome): Int = when (outcome) {

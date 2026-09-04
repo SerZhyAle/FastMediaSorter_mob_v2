@@ -16,9 +16,9 @@
     <string name="permission_rationale">Berechtigung erforderlich, um deine Mediendateien anzuzeigen</string>
     <string name="settings">Einstellungen</string>
     <string name="media_types">Medientypen</string>
-    <string name="enable_audio">Audio aktivieren</string>
-    <string name="enable_video">Video aktivieren</string>
-    <string name="enable_images">Bilder aktivieren</string>
+    <string name="enable_audio">Audio</string>
+    <string name="enable_video">Video</string>
+    <string name="enable_images">Bilder</string>
     <string name="slideshow_settings">Diashow</string>
     <string name="enable_slideshow">Diashow aktivieren</string>
     <string name="slideshow_interval">Intervall: %ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">Dokumente</string>
     <string name="screen_settings_title">Bildschirm</string>
     <string name="screen_settings_view_mode">Bildschirmansicht</string>
-    <string name="wear_streams_section_enabled">Streams anzeigen</string>
+    <string name="wear_streams_section_enabled">Streams</string>
     <string name="wear_resources_empty_hint">Vom Telefon ist noch nichts angekommen. Öffne auf dem Telefon Wear-Begleiter und wähle die Ressourcen aus, die hierher gesendet werden sollen.</string>
     <string name="screen_settings_keep_awake">Bildschirm eingeschaltet lassen</string>
     <string name="about_send_logs">Protokolle an den Entwickler senden</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">Warten auf das Telefon</string>
     <string name="wear_voice_note_state_sent">Ans Telefon gesendet</string>
     <string name="wear_voice_note_state_failed">Nicht gesendet</string>
-    <string name="wear_voice_note_send">An Telefon senden</string>
-    <string name="wear_voice_note_delete">Notiz löschen</string>
     <string name="wear_voice_note_delete_confirm">Diese Notiz löschen? Die Aufnahme gehört dazu.</string>
     <string name="wear_voice_note_empty">Noch keine Notizen. Nehmen Sie eins auf und es wird hier angezeigt.</string>
     <string name="wear_voice_note_result_sent">Erledigt. Die Notiz liegt am Telefon.</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">Streams anzeigen</string>
     <string name="wear_setting_background_mode">Hintergrund ansehen</string>
     <string name="wear_background_mode_animation">Markenanimation</string>
-    <string name="wear_background_mode_image">Dein Bild</string>
+    <string name="wear_background_mode_still">Statischer Marken-Hintergrund</string>
+    <string name="wear_background_mode_image">Foto vom Telefon</string>
     <string name="wear_content_type_document">Dokumentieren</string>
     <string name="wear_content_type_folder">Ordner</string>
     <string name="wear_browse_search">Dateien durchsuchen</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">Datum (neuestes zuerst)</string>
     <string name="wear_browse_sort_size_asc">Größe (Kleinste zuerst)</string>
     <string name="wear_browse_sort_size_desc">Größe (größte zuerst)</string>
-    <string name="enable_documents">Dokumente aktivieren</string>
-    <string name="wear_settings_sections">Abschnitte</string>
+    <string name="enable_documents">Dokumente</string>
     <string name="phone_resource_no_resource_for_type">Für diesen Typ ist keine Telefonressource eingerichtet.</string>
     <string name="wear_folder_load_more">Mehr anzeigen</string>
     <string name="wear_file_op_outcome_needs_consent">Nicht bestätigt - es hat sich nichts geändert</string>

@@ -28,17 +28,44 @@ data class WearNetworkSourcePayload(
     // S2129: the resource's own `ico-NN-NNN` id, resolved to a vector on the watch (ADR-1).
     // Null on a resource that never got one, and absent from an older phone's payload - both
     // cases leave the watch on its type-derived glyph rather than refusing the source.
-    @SerializedName("iconId") val iconId: String? = null
+    @SerializedName("iconId") val iconId: String? = null,
+    // S2487: per-resource allowed media types and allFiles flag from phone resource configuration
+    @SerializedName("supportedMediaTypes") val supportedMediaTypes: List<String>? = null,
+    @SerializedName("allFiles") val allFiles: Boolean? = null,
+    // S2488: ordered connection endpoints for this source, first element being the one the phone found
+    // reachable when it sent. Nullable because Gson leaves an absent field null whatever the Kotlin
+    // default says; `server`/`port` stay authoritative for a payload that carries no list.
+    @SerializedName("endpoints") val endpoints: List<WearEndpointPayload>? = null,
+    // S2502: when the sender last edited this record, in the sender's own time base. Absent on a
+    // payload from a side that predates the stamp, and the receiver then applies the record exactly
+    // as it did before this ticket rather than refusing it.
+    @SerializedName("lastEditedAt") val lastEditedAt: Long? = null
+)
+
+/** S2488: one connection endpoint of a source's address group. */
+data class WearEndpointPayload(
+    @SerializedName("host") val host: String,
+    @SerializedName("port") val port: Int
 )
 
 /**
  * Top-level sync envelope sent from phone to watch via DataClient.putDataItem.
  */
 data class WearSyncPayload(
-    @SerializedName("version") val version: Int = 1,
+    // S2488: raised to 2 with the `endpoints` field. S2502 raised it to 3 with `lastEditedAt`.
+    // Neither side branches on it - it records the contract generation rather than gating anything,
+    // and in particular the merge rule reads the presence of the stamps themselves, not this number.
+    @SerializedName("version") val version: Int = 3,
     // Epoch ms - used to reject stale replays (> 24 h)
     @SerializedName("sentAt") val sentAt: Long,
     // e.g. "Pixel 8 Pro" - shown on watch during transfer
     @SerializedName("phoneName") val phoneName: String,
-    @SerializedName("sources") val sources: List<WearNetworkSourcePayload>
+    @SerializedName("sources") val sources: List<WearNetworkSourcePayload>,
+    @SerializedName("tombstones") val tombstones: List<WearSourceTombstonePayload> = emptyList()
+)
+
+/** A deleted resource event that must survive a later exchange. */
+data class WearSourceTombstonePayload(
+    @SerializedName("id") val id: String,
+    @SerializedName("deletedAt") val deletedAt: Long
 )

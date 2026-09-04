@@ -33,15 +33,33 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
+import com.sza.fastmediasorter.wear.ui.common.WearSettingsStepperCell
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
+private const val THREE_SECONDS = 3
+private const val FIVE_SECONDS = 5
+private const val TEN_SECONDS = 10
+private const val FIFTEEN_SECONDS = 15
+private const val TWENTY_SECONDS = 20
+private const val THIRTY_SECONDS = 30
+private const val SIXTY_SECONDS = 60
+private val PANEL_AUTO_HIDE_INTERVALS = intArrayOf(
+    THREE_SECONDS,
+    FIVE_SECONDS,
+    TEN_SECONDS,
+    FIFTEEN_SECONDS,
+    TWENTY_SECONDS,
+    THIRTY_SECONDS,
+    SIXTY_SECONDS,
+)
+
 @Composable
 fun OtherSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val items = otherSettingsItems(uiState = uiState, viewModel = viewModel)
@@ -106,43 +124,39 @@ private fun otherSettingsItems(
     val keepOnWatchLabel = stringResource(R.string.wear_voice_note_policy_manual)
     return buildList {
         add(
-            WearSettingsItem { narrow ->
+            WearSettingsItem { _ ->
                 WearSettingsToggleCell(
                     label = albumArtLabel,
                     checked = uiState.downloadAlbumArt,
-                    narrow = narrow,
                     onToggle = { viewModel.toggleAlbumArt() }
                 )
             }
         )
         add(
-            WearSettingsItem { narrow ->
+            WearSettingsItem { _ ->
                 WearSettingsToggleCell(
                     label = disableAnimationsLabel,
                     checked = uiState.isAnimationsDisabled,
-                    narrow = narrow,
                     onToggle = { viewModel.toggleDisableAnimations() }
                 )
             }
         )
         if (uiState.hasAutoRotationSensor) {
             add(
-                WearSettingsItem { narrow ->
+                WearSettingsItem { _ ->
                     WearSettingsToggleCell(
                         label = autoRotationLabel,
                         checked = uiState.isAutoRotationEnabled,
-                        narrow = narrow,
                         onToggle = { viewModel.toggleAutoRotation() }
                     )
                 }
             )
         }
         add(
-            WearSettingsItem { narrow ->
+            WearSettingsItem { _ ->
                 WearSettingsToggleCell(
                     label = backgroundPlaybackLabel,
                     checked = uiState.backgroundPlaybackEnabled,
-                    narrow = narrow,
                     // S2166 (strategic criterion 9): switching it ON asks for the notification
                     // permission first, because the service's only control surface is its
                     // notification - a session the owner cannot pause without reopening the app is
@@ -164,6 +178,7 @@ private fun otherSettingsItems(
             add(settingsNoticeRow(notificationsNeededLabel))
         }
         addAll(voiceNoteSendPolicyRows(uiState, viewModel, sendAutomaticallyLabel, keepOnWatchLabel))
+        add(panelAutoHideRow(uiState, viewModel))
     }
 }
 
@@ -190,22 +205,40 @@ private fun voiceNoteSendPolicyRows(
     sendAutomaticallyLabel: String,
     keepOnWatchLabel: String
 ): List<WearSettingsItem> = listOf(
-    WearSettingsItem(fullWidth = true) { narrow ->
+    WearSettingsItem(fullWidth = true) { _ ->
         WearSettingsToggleCell(
             label = sendAutomaticallyLabel,
             checked = uiState.voiceNoteSendPolicy == VoiceNoteSendPolicy.AUTOMATIC,
-            narrow = narrow,
             onToggle = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.AUTOMATIC) },
             radio = true
         )
     },
-    WearSettingsItem(fullWidth = true) { narrow ->
+    WearSettingsItem(fullWidth = true) { _ ->
         WearSettingsToggleCell(
             label = keepOnWatchLabel,
             checked = uiState.voiceNoteSendPolicy == VoiceNoteSendPolicy.MANUAL,
-            narrow = narrow,
             onToggle = { viewModel.setVoiceNoteSendPolicy(VoiceNoteSendPolicy.MANUAL) },
             radio = true
         )
     }
 )
+
+/**
+ * Stepper row for player panel auto-hide interval.
+ */
+@Composable
+private fun panelAutoHideRow(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+): WearSettingsItem = WearSettingsItem(fullWidth = true) { _ ->
+    val currentIndex = PANEL_AUTO_HIDE_INTERVALS.indexOfFirst { it == uiState.panelAutoHideSeconds }.coerceAtLeast(0)
+    WearSettingsStepperCell(
+        values = PANEL_AUTO_HIDE_INTERVALS,
+        currentValue = uiState.panelAutoHideSeconds,
+        labelText = stringResource(R.string.panel_auto_hide_label, PANEL_AUTO_HIDE_INTERVALS[currentIndex]),
+        decreaseDescription = stringResource(R.string.panel_auto_hide_decrease),
+        increaseDescription = stringResource(R.string.panel_auto_hide_increase),
+        onValueChanged = viewModel::setPanelAutoHideSeconds
+    )
+}
+

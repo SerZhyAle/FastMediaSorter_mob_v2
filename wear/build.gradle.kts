@@ -134,10 +134,16 @@ android {
 
     // S2090: the watch gets the same two-variant split the phone has had for years. Until this block
     // existed there was nowhere to put a capability Play refuses on a watch, so the only available
-    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013. The dimension
-    // is deliberately empty of source sets: no class and no manifest overlay lives under
-    // wear/src/noLegal yet, and the first Play-blocked capability creates both. See
-    // dev/FLAVOR_DEVELOPMENT_RULES.md for the shape that capability must take.
+    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013.
+    //
+    // Both flavor source sets now carry code. S2165 filled wear/src/noLegal with the extended
+    // system-information contributor, and S2486 added wear/src/standard alongside it: a two-sided
+    // @Binds contract has no implementation unless BOTH flavors declare one, so the withholding answer
+    // is a real class in its own set rather than a default in src/main, which would diverge silently
+    // from the flavor that overrides it. Neither set carries an AndroidManifest.xml, because neither
+    // capability declares a permission - a flavor manifest is picked up by convention the day one does.
+    // See dev/FLAVOR_DEVELOPMENT_RULES.md Rule 8 for the shape a new capability must take, and note
+    // that the ban on placeholder content in these sets still stands.
     flavorDimensions += listOf("version")
 
     productFlavors {
@@ -258,6 +264,13 @@ dependencies {
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("androidx.wear:wear:1.3.0")
     implementation("androidx.wear:wear-input:1.1.0")
+
+    // S2496: RemoteActivityHelper - hands an ACTION_VIEW to the Wear OS companion so a link opens on
+    // the paired phone. It ships in this artifact alone; androidx.wear:wear above does not carry it.
+    // The -ktx artifact is what awaits its ListenableFuture: hand-rolling that bridge over
+    // addListener leaves the future uncancelled when the calling scope dies.
+    implementation("androidx.wear:wear-remote-interactions:1.1.0")
+    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
 
     // S1955: tiles for the system carousel. The tile service and its layout library split at 1.2 and are
     // both maintained; both declare minSdk 23, so neither moves this module's floor of 28.

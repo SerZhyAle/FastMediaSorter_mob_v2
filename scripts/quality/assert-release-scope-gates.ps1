@@ -228,6 +228,30 @@ else {
     }
 }
 
+# S2537: the gate PLACEMENT review, run here and nowhere else. Rule 33 sorted every gate into a
+# scope once, and nothing re-sorted them since - the per-ticket set grew one gate per ticket, each
+# addition locally right, and by 2026-09-04 a typical closure paid tens of seconds for steps nobody
+# had re-costed. The release boundary is where that gets re-read, because it is the only moment the
+# whole set is in view at once.
+#
+# A REPORT, never a gate, and deliberately outside the table above: the runner collapses every
+# non-zero code to FAIL, and a candidate row is not a defect - it is a row a human then judges by
+# the four-part test, whose exceptions no arithmetic over the journal can see. Blocking a ship on
+# one would be failing a release for bookkeeping. Its own failure is swallowed for the same reason:
+# an absent journal must not turn a clean release scope red.
+if (-not $Json) {
+    try {
+        Write-Host ''
+        Write-Host 'gate placement review (S2537 - advisory, affects no verdict):' -ForegroundColor Cyan
+        # It writes to the host itself, so it is called rather than piped - a pipeline here would
+        # capture nothing and print nothing.
+        & (Join-Path $PSScriptRoot 'measure-gate-frequency.ps1') -Placement
+    }
+    catch {
+        Write-Host "  placement review unavailable: $($_.Exception.Message)" -ForegroundColor DarkGray
+    }
+}
+
 $batchStopwatch.Stop()
 $batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
 
@@ -241,6 +265,15 @@ $failed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count
 if ($failed -gt 0) {
     Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 1 -ElapsedMs $batchMs
     $names = (@($results | Where-Object { $_.Status -ne 'PASS' } | ForEach-Object { $_.Gate }) -join ', ')
+    Write-Host @'
+  Why these gates run HERE and not in every closure (S2517 moved this off the always-loaded rules
+  page): a gate is placed by its subject, and the subject of each of these is the tree as a whole,
+  not the change in front of you. Measured 2026-08-22 (S1939): three tree-scope gates produced 68 of
+  the 191 red lines across 53 fast-gate runs, and assert-device-profile-matrix spent 33 minutes of
+  closure time in one month to report a single finding - a per-ticket placement charges every
+  session for debt none of them owns. A new gate names its scope class at birth; unnamed still means
+  per ticket, which is how the imbalance arose.
+'@
     Write-Error ("assert-release-scope-gates: FAIL - $failed gate(s) found a defect in the release scope: " +
         "$names. Each printed its own remediation above; fix and re-run until this exits 0. " +
         'The release does not ship on a red scope.') -ErrorAction Continue

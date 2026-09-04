@@ -176,8 +176,6 @@ class PlayerMediaLoaderManager(
     }
 
     companion object {
-        private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
-
         // S0346 Pillar B: how long the next track may take to start before the user gets a
         // "loading next track" toast. Approximate per strategic spec; tuned on the car scenario.
         private const val AUDIO_READINESS_FEEDBACK_THRESHOLD_MS = 2000L
@@ -1062,13 +1060,15 @@ class PlayerMediaLoaderManager(
             
             showAudioFileInfo(currentFile)
         } else {
-            // For video: auto-hide controls after 15 seconds
-            binding.playerView.controllerShowTimeoutMs = VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS.toInt()
+            // For video: auto-hide controls after configured delay
+            val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000
+            Timber.d("S2505: PlayerMediaLoaderManager controllerShowTimeoutMs=$delayMs")
+            binding.playerView.controllerShowTimeoutMs = delayMs
 
             // S1005: reveal the transport controller when a video opens (mirrors the audio branch). The
             // unified player has no tap gesture that shows the controller for video (VideoTouchDelegate
             // reveal is disabled), so without this the controls never appear on open; auto-hide still
-            // fires after VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS and a center-tap re-reveals them.
+            // fires after the configured timeout and a center-tap re-reveals them.
             binding.playerView.showController()
 
             // Restore PlayerView's video/content layer for real video playback.

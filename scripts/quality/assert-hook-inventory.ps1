@@ -194,6 +194,18 @@ foreach ($a in $advisories) { Write-Host "hook-inventory: ADVISORY - $a" }
 if ($failures.Count -gt 0) {
     foreach ($f in $failures) { Write-Host "hook-inventory: FAIL - $f" }
     Write-Host "hook-inventory: expected: 0 | actual: $($failures.Count) divergence(s). Fix docs/AGENT_HOOKS.md or the registration - CLAUDE.md Rule 29."
+    Write-Host @'
+  Registering, removing or re-registering a hook edits the inventory in the SAME change. A hook
+  changes what your tool calls do - refusing one, rewriting its input, attaching context - and a
+  hook nobody documented is indistinguishable from a broken tool: the call behaves oddly and there
+  is nothing to read. The two halves are judged differently on purpose. The project half travels
+  with the repository, so it is judged strictly. The global half is per-machine and simply absent
+  on a fresh checkout, so it is judged only where it is readable - failing on a file that cannot
+  exist here would make the gate unpassable for everyone but this workstation.
+'@
+    # The reason must sit immediately before the exit: assert-exit-contract.ps1 walks back a bounded
+    # number of lines looking for a printed reason, and the block above is longer than that window.
+    Write-Error ("hook-inventory: FAIL - {0} divergence(s) between docs/AGENT_HOOKS.md and the live registrations." -f $failures.Count) -ErrorAction Continue
     if ($Gate) { exit 1 }
     exit 0
 }

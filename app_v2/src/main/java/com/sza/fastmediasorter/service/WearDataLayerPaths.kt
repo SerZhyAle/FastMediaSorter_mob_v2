@@ -140,6 +140,9 @@ object WearDataLayerPaths {
      */
     const val BACKGROUND_IMAGE_EDGE_PX = 480
 
+    /** Message, watch → phone. Carries stream pins delta payload (S2497). */
+    const val STREAM_PINS_DELTA = "/fms/watch/stream_pins_delta"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -150,6 +153,9 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
+    const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"
 
     /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
     const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"

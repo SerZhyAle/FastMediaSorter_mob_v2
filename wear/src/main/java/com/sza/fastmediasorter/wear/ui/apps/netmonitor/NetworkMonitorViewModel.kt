@@ -5,11 +5,13 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.sectionsFor
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkMonitorRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +54,7 @@ private data class MonitorLocalState(
 @HiltViewModel
 class NetworkMonitorViewModel @Inject constructor(
     private val repository: WearNetworkMonitorRepository,
+    private val preferencesRepository: WearPreferencesRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -77,9 +80,10 @@ class NetworkMonitorViewModel @Inject constructor(
 
     val uiState: StateFlow<NetworkMonitorUiState> = combine(
         repository.snapshots(),
+        preferencesRepository.viewMode,
         localState
-    ) { snapshot, local ->
-        record(snapshot, local)
+    ) { snapshot, viewMode, local ->
+        record(snapshot, viewMode, local)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialState)
 
     fun probeConnection(host: String = "1.1.1.1") {
@@ -92,7 +96,6 @@ class NetworkMonitorViewModel @Inject constructor(
 
     /** Drops the signal window so the graph starts measuring again from now. */
     fun restartSignalWindow() {
-        Timber.d("S2156: signal window restarted, dropped=${signalWindow.size}")
         signalWindow.clear()
         localState.update { it.copy(signalEpoch = it.signalEpoch + 1) }
     }
@@ -100,7 +103,6 @@ class NetworkMonitorViewModel @Inject constructor(
     /** Moves the traffic origin to the current totals; the live rates are untouched. */
     fun resetTrafficTotals() {
         val rate = uiState.value.snapshot?.trafficRate ?: return
-        Timber.d("S2156: traffic counters reset at rx=${rate.totalRxBytes} tx=${rate.totalTxBytes}")
         localState.update { it.copy(trafficOrigin = rate.totalRxBytes to rate.totalTxBytes) }
     }
 
@@ -173,6 +175,7 @@ class NetworkMonitorViewModel @Inject constructor(
 
     private fun record(
         snapshot: WearNetworkSnapshot,
+        viewMode: WearViewMode,
         local: MonitorLocalState
     ): NetworkMonitorUiState {
         if (history.isEmpty() || history.last().activeTransport != snapshot.activeTransport) {
@@ -199,6 +202,7 @@ class NetworkMonitorViewModel @Inject constructor(
             capabilities = capabilities,
             snapshot = snapshot,
             sectionFacts = facts,
+            viewMode = viewMode,
             permissionsMissing = !repository.permissionsGranted(),
             history = history.toList(),
             signalHistory = signalWindow.toList(),
@@ -241,7 +245,6 @@ class NetworkMonitorViewModel @Inject constructor(
         externalIpTransport = transport
         viewModelScope.launch {
             val resolved = repository.resolveExternalIp()
-            Timber.d("S2156: external ip lookup on $transport answered=${resolved != null}")
             localState.update { it.copy(externalIp = resolved) }
         }
     }

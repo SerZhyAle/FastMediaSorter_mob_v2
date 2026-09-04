@@ -26,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -67,7 +66,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
         isNetworkSource: Boolean
     ): WearFileOperationResult {
         val storageClass = capabilityPolicy.classify(file, isNetworkSource)
-        Timber.d("S2142: file operation %s on a %s file", operation.kind(), storageClass)
         if (operation.kind() !in capabilityPolicy.allowedOperations(storageClass)) {
             return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
         }
@@ -114,7 +112,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
         entry: WearSendToReceiverEntry,
         sendIntent: Intent
     ): WearFileOperationResult {
-        Timber.d("S2142: send-to served on the watch, receiver=%s", entry.id)
         val staged = stager.stage(file)
             ?: return WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
         return try {
@@ -147,7 +144,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
         file: WearMediaFile,
         entry: WearSendToReceiverEntry
     ): WearFileOperationResult {
-        Timber.d("S2142: send-to routed through the phone, receiver=%s", entry.id)
         val refusal = preflightRefusal(file)
         if (refusal != null) {
             return WearFileOperationResult(file.name, refusal, destination = entry.title)
@@ -287,7 +283,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
         storageClass: WearFileStorageClass
     ): WearFileOperationResult {
         if (storageClass == WearFileStorageClass.MEDIA_STORE) {
-            Timber.d("S2142: MediaStore delete asks the owner to confirm %s", file.name)
             return mediaStoreWriter.delete(file.uri).toOperationResult(file.name)
         }
         val target = stager.localFileOf(file)
@@ -312,7 +307,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
         storageClass: WearFileStorageClass
     ): WearFileOperationResult {
         if (storageClass == WearFileStorageClass.MEDIA_STORE) {
-            Timber.d("S2142: MediaStore rename asks the owner to confirm %s", file.name)
             return mediaStoreWriter.rename(file.uri, newName).toOperationResult(file.name)
         }
         val target = stager.localFileOf(file)

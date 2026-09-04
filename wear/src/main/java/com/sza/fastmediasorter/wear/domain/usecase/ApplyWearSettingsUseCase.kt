@@ -96,6 +96,9 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "backgroundPlaybackEnabled", payload.backgroundPlaybackEnabled) {
             preferencesRepository.setBackgroundPlaybackEnabled(it)
         }
+        apply(resolver, "panelAutoHideSeconds", payload.panelAutoHideSeconds) {
+            preferencesRepository.setPanelAutoHideSeconds(it)
+        }
     }
 
     // S1814: the language is a PHONE_ONLY registry entry, so it is inherited rather than merged - the

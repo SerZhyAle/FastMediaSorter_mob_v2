@@ -59,4 +59,7 @@ object WearBackgroundPlaybackPolicy {
      */
     fun stopsBackgroundSession(reason: HostTeardownReason): Boolean =
         reason == HostTeardownReason.ExplicitExit
+
+    /** A paused session has no audible work that justifies a foreground service. */
+    fun keepsBackgroundSession(isPlaying: Boolean): Boolean = isPlaying
 }

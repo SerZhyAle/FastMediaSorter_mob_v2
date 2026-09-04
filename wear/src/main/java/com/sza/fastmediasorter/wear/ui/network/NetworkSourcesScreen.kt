@@ -27,7 +27,6 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
-import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -59,7 +58,7 @@ fun NetworkSourcesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialItemIndex = 1)
     val viewMode by viewModel.viewMode.collectAsState()
     val connectionTestState by viewModel.connectionTestState.collectAsState()
 
@@ -99,6 +98,7 @@ fun NetworkSourcesScreen(
                     syncState = syncState,
                     listState = listState,
                     viewMode = viewMode,
+                    offersCredentialEntry = viewModel.offersCredentialEntry,
                     actions = NetworkSourcesActions(
                         onSourceClick = { sourceId, sourceName ->
                             Timber.d("Source selected: $sourceName (ID: $sourceId)")
@@ -139,6 +139,7 @@ fun NetworkSourcesScreen(
                     onBack = { navController.popBackStack() },
                     extraActions = emptyResourceActions(
                         syncState = syncState,
+                        offersCredentialEntry = viewModel.offersCredentialEntry,
                         onSyncClick = { viewModel.requestSyncFromPhone() },
                         onAddClick = { navController.navigate(WearRoutes.ADD_NETWORK_SOURCE) }
                     )
@@ -343,6 +344,7 @@ private fun SourcesListContent(
     syncState: SyncState,
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
+    offersCredentialEntry: Boolean,
     actions: NetworkSourcesActions,
     exportState: ExportState = ExportState.Idle
 ) {
@@ -386,7 +388,7 @@ private fun SourcesListContent(
                 }
             }
 
-            if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+            if (NetworkSourceEntry.isOffered(offersCredentialEntry)) {
                 item {
                     Chip(
                         onClick = actions.onAddClick,
@@ -418,13 +420,14 @@ private fun SourcesListContent(
  * The two ways out of an empty Resources list, in the order they are worth trying.
  *
  * Pulling the phone's sources over is the answer for almost everyone and stays first. Typing a
- * source in by hand is offered only where [NetworkSourceEntry.isOffered] allows it, which today is
- * debug builds - so a release build shows one offer and Back, and the extra chip is a debug-only
- * shape rather than the one that ships.
+ * source in by hand is offered only where [NetworkSourceEntry.isOffered] allows it, which since S2486
+ * is the `noLegal` flavor in both build types - so the store build shows one offer and Back, and the
+ * extra chip is a sideload-only shape rather than the one Play reviews.
  */
 @Composable
 private fun emptyResourceActions(
     syncState: SyncState,
+    offersCredentialEntry: Boolean,
     onSyncClick: () -> Unit,
     onAddClick: () -> Unit
 ): List<WearStateExtraAction> = buildList {
@@ -437,7 +440,7 @@ private fun emptyResourceActions(
             enabled = syncState !is SyncState.Pending
         )
     )
-    if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+    if (NetworkSourceEntry.isOffered(offersCredentialEntry)) {
         add(
             WearStateExtraAction(
                 label = stringResource(R.string.add_network_source),

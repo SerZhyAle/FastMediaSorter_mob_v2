@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
+import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -10,6 +12,7 @@ import com.sza.fastmediasorter.wear.util.formatWearDuration
 data class AudioPlayerUiState(
     val isLoading: Boolean = true,
     val mediaFile: WearMediaFile? = null,
+    val isStream: Boolean = false,
     val isPlaying: Boolean = false,
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
@@ -24,6 +27,7 @@ data class AudioPlayerUiState(
     val setSize: Int = 0,
     // S1701: playback order of the browsed set, remembered between launches.
     val isShuffleEnabled: Boolean = false,
+    val playbackMode: WearPlaybackMode = WearPlaybackMode.SEQUENTIAL,
     /**
      * S1701: the system media volume, read back after each change rather than counted here.
      *
@@ -45,10 +49,16 @@ data class AudioPlayerUiState(
      * channel actually stopped or disturbed a stream. A reason rather than a message, because the
      * screen owns the wording and the locale.
      */
-    val channelReason: StreamChannelReason? = null
+    val channelReason: StreamChannelReason? = null,
+    val closeScreen: Boolean = false
 ) {
     val positionText: String
-        get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
+        get() = if (setSize > 0) {
+            val totalStr = if (setSize > MAX_COUNTER_DISPLAY_COUNT) "###" else setSize.toString()
+            "${setIndex + 1}/$totalStr"
+        } else {
+            ""
+        }
 
     val progress: Float
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f

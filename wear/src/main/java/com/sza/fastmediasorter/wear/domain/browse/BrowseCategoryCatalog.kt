@@ -44,6 +44,14 @@ object BrowseCategoryCatalog {
     const val TOKEN_BROWSE = "browse"
 
     /**
+     * S2495: the watch's own voice notes, reached by the recorder's note list rather than by a media
+     * query. Like [TOKEN_BROWSE] it is not a route argument - the note list reads the app's own index
+     * and carries no media type - and like the navigational entries it is not switchable in settings:
+     * it is a way of looking at one store, not a content type a user may turn off.
+     */
+    const val TOKEN_VOICE_NOTES = "voice_notes"
+
+    /**
      * The types a user may switch off in settings.
      *
      * The navigational entries - recents, all, browse - are not in here: they are ways of looking at
@@ -59,7 +67,10 @@ object BrowseCategoryCatalog {
 
     /**
      * The full ordered vocabulary, in the order the owner named it on the Phone screen: recents,
-     * video, audio, images, documents, all, browse.
+     * video, audio, images, documents, all, voice notes, browse.
+     *
+     * Voice notes sit immediately before browse so the two land in one row of a multi-column view,
+     * which is the arrangement the owner asked for (S2495 strategic §5.1 pillar 6).
      */
     private val VOCABULARY: List<WearBrowseCategory> = listOf(
         WearBrowseCategory(WearContentType.OTHER, TOKEN_RECENTS, WearListShape.FLAT_MEDIA),
@@ -68,6 +79,7 @@ object BrowseCategoryCatalog {
         WearBrowseCategory(WearContentType.IMAGE, TOKEN_PHOTOS, WearListShape.FLAT_MEDIA),
         WearBrowseCategory(WearContentType.DOCUMENT, TOKEN_DOCUMENTS, WearListShape.FLAT_MEDIA),
         WearBrowseCategory(WearContentType.OTHER, TOKEN_ALL, WearListShape.FLAT_MEDIA),
+        WearBrowseCategory(WearContentType.OTHER, TOKEN_VOICE_NOTES, WearListShape.FLAT_MEDIA),
         WearBrowseCategory(WearContentType.FOLDER, TOKEN_BROWSE, WearListShape.FOLDER_WALK)
     )
 
@@ -82,6 +94,49 @@ object BrowseCategoryCatalog {
         allowedTypes: Set<WearContentType>
     ): List<WearBrowseCategory> = VOCABULARY.filter { category ->
         isPresentable(category, origin) && isEnabled(category.type, allowedTypes)
+    }
+
+    /**
+     * S2487: The categories a specific network source offers based on its phone-configured
+     * `supportedMediaTypes` and `allFiles` flag, narrowed by what the user left enabled in Wear settings.
+     */
+    fun categoriesForSource(
+        source: com.sza.fastmediasorter.wear.domain.model.NetworkSource?,
+        allowedTypes: Set<WearContentType>
+    ): List<WearBrowseCategory> {
+        if (source == null) {
+            return categoriesFor(WearCategoryOrigin.NETWORK_SOURCE, allowedTypes)
+        }
+        val supportedTypes = mutableSetOf<WearContentType>()
+        if (source.allFiles) {
+            supportedTypes.addAll(DISABLEABLE_TYPES)
+        } else if (!source.supportedMediaTypes.isNullOrEmpty()) {
+            for (typeStr in source.supportedMediaTypes) {
+                when (typeStr.uppercase()) {
+                    "AUDIO" -> supportedTypes.add(WearContentType.MUSIC)
+                    "VIDEO" -> supportedTypes.add(WearContentType.VIDEO)
+                    "IMAGE", "GIF" -> supportedTypes.add(WearContentType.IMAGE)
+                    "TEXT", "PDF", "EPUB", "OFFICE_DOCUMENT", "DOCUMENT" -> supportedTypes.add(WearContentType.DOCUMENT)
+                }
+            }
+        } else {
+            supportedTypes.addAll(NETWORK_PRESENTABLE_TYPES)
+        }
+
+        return VOCABULARY.filter { category ->
+            val isSupportedBySource = when (category.token) {
+                TOKEN_ALL, TOKEN_BROWSE -> source.allFiles
+                TOKEN_RECENTS -> false
+                // S2495: stated rather than left to the type test, which only refuses it by accident.
+                TOKEN_VOICE_NOTES -> false
+                TOKEN_MUSIC -> WearContentType.MUSIC in supportedTypes
+                TOKEN_VIDEOS -> WearContentType.VIDEO in supportedTypes
+                TOKEN_PHOTOS -> WearContentType.IMAGE in supportedTypes
+                TOKEN_DOCUMENTS -> WearContentType.DOCUMENT in supportedTypes
+                else -> category.type in supportedTypes
+            }
+            isSupportedBySource && isEnabled(category.type, allowedTypes)
+        }
     }
 
     /** The token [category] travels by, which is also its identity in this vocabulary. */
@@ -126,12 +181,17 @@ object BrowseCategoryCatalog {
      *   types it can filter a single listing down to.
      *
      * The paired phone has all seven because the phone answers with both list shapes already.
+     *
+     * S2495: voice notes are the exception that belongs to one origin only. The notes are recorded on
+     * this watch and indexed by this app, so neither the paired phone nor a network share holds any -
+     * an entry offered there would open a list that is empty by construction, not by circumstance.
      */
     private fun isPresentable(category: WearBrowseCategory, origin: WearCategoryOrigin): Boolean =
         when (origin) {
-            WearCategoryOrigin.PHONE -> true
+            WearCategoryOrigin.PHONE -> category.token != TOKEN_VOICE_NOTES
             WearCategoryOrigin.LOCAL -> true
-            WearCategoryOrigin.NETWORK_SOURCE -> category.type in NETWORK_PRESENTABLE_TYPES
+            WearCategoryOrigin.NETWORK_SOURCE ->
+                category.token != TOKEN_VOICE_NOTES && category.type in NETWORK_PRESENTABLE_TYPES
         }
 
     /** What a network share can show: the three media types a single directory listing can filter. */

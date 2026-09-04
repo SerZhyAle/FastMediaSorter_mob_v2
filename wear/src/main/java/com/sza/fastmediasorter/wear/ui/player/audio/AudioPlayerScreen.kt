@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,20 +21,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -52,7 +60,6 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
-import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -62,13 +69,21 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
-import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import timber.log.Timber
 
@@ -77,8 +92,6 @@ private const val ANIMATION_SCRIM_ALPHA = 0.37f
 
 /** A cover artwork made 33% more visible per S1866, keeping text readable. */
 private const val COVER_SCRIM_ALPHA = 0.47f
-
-private val CONTROL_ROW_SPACING = 4.dp
 
 /** The error glyph is a mark, not a command, so it carries no press target. */
 private val ERROR_GLYPH_SIZE = 48.dp
@@ -94,6 +107,9 @@ private val PROGRESS_BAR_SPACING = 6.dp
 /** A fully rounded cap on a bar this thin reads as a track rather than as a rectangle. */
 private const val PROGRESS_BAR_CORNER_PERCENT = 50
 
+private const val DRAG_THRESHOLD_UP_PX = -10f
+private const val DRAG_THRESHOLD_DOWN_PX = 10f
+
 /**
  * Audio player screen for Wear OS.
  * Shows album art, track info, progress, and playback controls.
@@ -105,6 +121,7 @@ fun AudioPlayerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val isPinned by viewModel.isPinned.collectAsState()
     // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
     val listState = rememberWearListState()
 
@@ -114,7 +131,17 @@ fun AudioPlayerScreen(
         viewModel.onHostStopped()
     }
 
-    Timber.d("AudioPlayerScreen composing, isPlaying: ${uiState.isPlaying}")
+    Timber.d("S2481: AudioPlayerScreen composed")
+
+    var showActions by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
+
+    LaunchedEffect(uiState.closeScreen) {
+        if (uiState.closeScreen) {
+            onBack()
+        }
+    }
 
     KeepScreenOnEffect(enabled = uiState.isPlaying || uiState.isDimmed)
 
@@ -142,7 +169,7 @@ fun AudioPlayerScreen(
                 AudioPlayerContent(
                     uiState = uiState,
                     isFavorite = isFavorite,
-                    listState = listState,
+                    isPinned = isPinned,
                     onRotaryStep = { step ->
                         // S1701 (ADR-1): the bezel now serves volume, the Wear OS media convention. It no
                         // longer seeks - phase 02 gave the screen a progress bar, which is a better way to
@@ -153,10 +180,12 @@ fun AudioPlayerScreen(
                         onBack = onBack,
                         onPlayPause = viewModel::togglePlayPause,
                         onToggleFavorite = viewModel::toggleFavorite,
+                        onTogglePin = viewModel::togglePin,
                         onSkipNext = viewModel::skipToNext,
                         onSkipPrevious = viewModel::skipToPrevious,
                         onToggleDimmed = viewModel::toggleDimmed,
-                        onToggleShuffle = viewModel::toggleShuffle,
+                        onTogglePlaybackMode = viewModel::togglePlaybackMode,
+                        onFileOperations = { showActions = true },
                         seek = PlayerSeekActions(
                             onSeekTo = viewModel::seekTo,
                             onSeekBackward = viewModel::seekBackward,
@@ -170,6 +199,19 @@ fun AudioPlayerScreen(
             DimOverlay(onExit = viewModel::toggleDimmed)
         }
     }
+
+    PlayerDialogsHost(
+        operations = viewModel.fileOperations,
+        visibilities = PlayerDialogVisibilities(
+            showActions = showActions,
+            showDeleteConfirm = showDeleteConfirm,
+            showReceivers = showReceivers,
+            onActionsVisibilityChange = { showActions = it },
+            onDeleteVisibilityChange = { showDeleteConfirm = it },
+            onReceiversVisibilityChange = { showReceivers = it }
+        ),
+        currentFileName = uiState.mediaFile?.name
+    )
 }
 
 /**
@@ -201,10 +243,12 @@ private data class AudioPlayerActions(
     val onBack: () -> Unit,
     val onPlayPause: () -> Unit,
     val onToggleFavorite: () -> Unit,
+    val onTogglePin: () -> Unit,
     val onSkipNext: () -> Unit,
     val onSkipPrevious: () -> Unit,
     val onToggleDimmed: () -> Unit,
-    val onToggleShuffle: () -> Unit,
+    val onTogglePlaybackMode: () -> Unit,
+    val onFileOperations: () -> Unit,
     val seek: PlayerSeekActions
 )
 
@@ -212,51 +256,41 @@ private data class AudioPlayerActions(
 private fun AudioPlayerContent(
     uiState: AudioPlayerUiState,
     isFavorite: Boolean,
-    listState: ScalingLazyListState,
+    isPinned: Boolean,
     onRotaryStep: (Int) -> Unit,
     actions: AudioPlayerActions
 ) {
-    // S1683: this content is taller than a watch display, so it scrolls instead of being clipped -
-    // the control row used to be pushed past the bottom edge, where it could not be reached at all.
-    // The rotary binding sits on the same container deliberately: it consumes the event, so the bezel
-    // cannot scroll this list and change the playback position at the same time. Touch still scrolls.
-    WearListColumn(
+    // S2477: The audio player elements are fitted onto a single screen without vertical list scrolling.
+    // Vertical drag gesture / rotary wheel controls volume level.
+    Timber.d("S2477: AudioPlayerContent single-screen layout composed")
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .rotaryActionSteps(onRotaryStep),
-        state = listState,
-        centered = true
+            .rotaryActionSteps(onRotaryStep)
+            .pointerInput(Unit) {
+                detectVerticalDragGestures { change, dragAmount ->
+                    change.consume()
+                    if (dragAmount < DRAG_THRESHOLD_UP_PX) {
+                        onRotaryStep(1)
+                    } else if (dragAmount > DRAG_THRESHOLD_DOWN_PX) {
+                        onRotaryStep(-1)
+                    }
+                }
+            }
     ) {
-        item {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(wearScreenInsets()),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceEvenly
+        ) {
             TrackInfoSection(uiState = uiState)
-        }
-        uiState.channelReason?.let { reason ->
-            item {
+
+            uiState.channelReason?.let { reason ->
                 StreamChannelNotice(reason = reason)
             }
-        }
-        // S1701: the volume readout, present only while the bezel is being turned and for a moment
-        // after. It is its own item rather than an overlay so it cannot displace the control rows or
-        // the progress bar, and nothing about it runs while it is hidden - strategic 3.2 protects the
-        // budget the wave drawing already spends.
-        if (uiState.isVolumeVisible) {
-            item {
-                val readout = stringResource(
-                    R.string.wear_audio_volume_level,
-                    uiState.volumeLevel,
-                    uiState.volumeMax,
-                )
-                Text(
-                    text = readout,
-                    style = MaterialTheme.typography.caption1,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .semantics { contentDescription = readout },
-                )
-            }
-        }
-        item {
+
             PlaybackTimeRow(
                 currentPosition = uiState.currentPositionFormatted,
                 duration = uiState.durationFormatted,
@@ -264,26 +298,38 @@ private fun AudioPlayerContent(
                 durationMs = uiState.durationMs,
                 onSeekTo = actions.seek.onSeekTo
             )
-        }
-        item {
+
             PlaybackControls(
                 isPlaying = uiState.isPlaying,
-                isShuffleEnabled = uiState.isShuffleEnabled,
+                playbackMode = uiState.playbackMode,
                 onPlayPause = actions.onPlayPause,
                 onSkipNext = actions.onSkipNext,
                 onSkipPrevious = actions.onSkipPrevious,
-                onToggleShuffle = actions.onToggleShuffle,
+                onTogglePlaybackMode = actions.onTogglePlaybackMode,
                 seek = actions.seek
             )
-        }
-        item {
+
             SecondaryControls(
                 isFavorite = isFavorite,
-                positionText = uiState.positionText,
-                onBack = actions.onBack,
-                onToggleFavorite = actions.onToggleFavorite,
-                onToggleDimmed = actions.onToggleDimmed
+                isPinned = isPinned,
+                isStream = uiState.isStream,
+                actions = actions
             )
+
+            if (!uiState.isStream && uiState.positionText.isNotEmpty()) {
+                Text(
+                    text = uiState.positionText,
+                    style = MaterialTheme.typography.caption2,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+
+        // S2477: Right side bar for volume overlay when volume is visible/changing
+        if (uiState.isVolumeVisible) {
+            VolumeIndicatorSideBar(level = uiState.volumeLevel, max = uiState.volumeMax)
         }
     }
 }
@@ -311,7 +357,7 @@ private fun TrackInfoSection(uiState: AudioPlayerUiState) {
         }
         val title = uiState.trackTitle
             ?: uiState.mediaFile?.title?.takeIf { it.isNotBlank() }
-            ?: uiState.mediaFile?.name
+            ?: uiState.mediaFile?.displayName
             ?: "Unknown"
         Text(
             text = title,
@@ -321,7 +367,7 @@ private fun TrackInfoSection(uiState: AudioPlayerUiState) {
             textAlign = TextAlign.Center,
             modifier = Modifier.fillMaxWidth()
         )
-        val fileName = uiState.mediaFile?.name
+        val fileName = uiState.mediaFile?.displayName
         if (fileName != null && title != fileName) {
             Text(
                 text = fileName,
@@ -505,34 +551,38 @@ private fun RowScope.SeekBar(
 @Composable
 private fun PlaybackControls(
     isPlaying: Boolean,
-    isShuffleEnabled: Boolean,
+    playbackMode: WearPlaybackMode,
     onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
-    onToggleShuffle: () -> Unit,
+    onTogglePlaybackMode: () -> Unit,
     seek: PlayerSeekActions
 ) {
+    Timber.d("S2529: AudioPlayerScreen PlaybackControls composed, isPlaying=$isPlaying")
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
-    // S2140: seeking came back to this row as a long press. The two labels are what TalkBack reads
-    // instead of "double tap and hold", so the second command on these buttons is discoverable.
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
-    // The description names the action the press performs, and it changes with the state, so a screen
-    // reader announces playing versus paused - the icon alone states it only to someone looking.
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
-    val shuffleDesc = stringResource(
-        if (isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    val playbackModeIcon = when (playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeDesc = stringResource(
+        when (playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
     )
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    PlayerCommandGrid { targetSize ->
         PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
             contentDescription = previousDesc,
+            modifier = Modifier.size(targetSize),
             onLongClick = seek.onSeekBackward,
             onLongClickLabel = seekBackwardDesc
         )
@@ -541,24 +591,26 @@ private fun PlaybackControls(
             onClick = onPlayPause,
             icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
             contentDescription = playPauseDesc,
-            checked = true
+            modifier = Modifier.size(targetSize),
+            checked = true,
+            iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.MUSIC))
+        )
+
+        PlayerCommandButton(
+            onClick = onTogglePlaybackMode,
+            icon = playbackModeIcon,
+            contentDescription = playbackModeDesc,
+            modifier = Modifier.size(targetSize),
+            checked = playbackMode != WearPlaybackMode.SEQUENTIAL
         )
 
         PlayerCommandButton(
             onClick = onSkipNext,
             icon = Icons.Filled.SkipNext,
             contentDescription = nextDesc,
+            modifier = Modifier.size(targetSize),
             onLongClick = seek.onSeekForward,
             onLongClickLabel = seekForwardDesc
-        )
-
-        PlayerCommandButton(
-            onClick = onToggleShuffle,
-            // The two orders differ in shape, not only in tint: a state told apart by colour alone is
-            // not told apart on a watch at arm's length.
-            icon = if (isShuffleEnabled) Icons.Filled.Shuffle else Icons.AutoMirrored.Filled.ArrowForward,
-            contentDescription = shuffleDesc,
-            checked = isShuffleEnabled
         )
     }
 }
@@ -577,49 +629,62 @@ private fun PlaybackControls(
 @Composable
 private fun SecondaryControls(
     isFavorite: Boolean,
-    positionText: String,
-    onBack: () -> Unit,
-    onToggleFavorite: () -> Unit,
-    onToggleDimmed: () -> Unit
+    isPinned: Boolean,
+    isStream: Boolean,
+    actions: AudioPlayerActions
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
-    val backDesc = stringResource(R.string.wear_navigate_back)
+    val pinDesc = stringResource(
+        if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
+    )
+    val fileOpDesc = stringResource(R.string.wear_file_op_actions)
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(CONTROL_ROW_SPACING),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
+    PlayerCommandGrid { targetSize ->
         PlayerCommandButton(
-            onClick = onBack,
+            onClick = actions.onBack,
             icon = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = backDesc
+            contentDescription = stringResource(R.string.wear_navigate_back),
+            modifier = Modifier.size(targetSize)
         )
 
         PlayerCommandButton(
-            onClick = onToggleFavorite,
+            onClick = actions.onToggleFavorite,
             icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
             contentDescription = favoriteDesc,
+            modifier = Modifier.size(targetSize),
             checked = isFavorite
         )
 
-        ScreenOffButton(onToggleDimmed = onToggleDimmed)
+        if (isStream) {
+            PlayerCommandButton(
+                onClick = actions.onTogglePin,
+                icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                contentDescription = pinDesc,
+                modifier = Modifier.size(targetSize),
+                checked = isPinned
+            )
+        } else {
+            PlayerCommandButton(
+                onClick = actions.onFileOperations,
+                icon = Icons.Default.MoreVert,
+                contentDescription = fileOpDesc,
+                modifier = Modifier.size(targetSize)
+            )
+        }
 
-        Text(
-            text = positionText,
-            style = MaterialTheme.typography.caption3,
-            color = Color.Gray
-        )
+        ScreenOffButton(onToggleDimmed = actions.onToggleDimmed, modifier = Modifier.size(targetSize))
     }
 }
 
 @Composable
-private fun ScreenOffButton(onToggleDimmed: () -> Unit) {
+private fun ScreenOffButton(onToggleDimmed: () -> Unit, modifier: Modifier) {
     val screenOffDesc = stringResource(R.string.wear_screen_off)
 
     PlayerCommandButton(
         onClick = onToggleDimmed,
         icon = Icons.Filled.DarkMode,
-        contentDescription = screenOffDesc
+        contentDescription = screenOffDesc,
+        modifier = modifier
     )
 }
 

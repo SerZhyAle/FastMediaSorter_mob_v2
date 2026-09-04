@@ -5,16 +5,20 @@ import android.os.Build
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -90,44 +94,79 @@ fun VoiceRecorderScreen(
             centered = true
         ) {
             item { RecorderStatus(state = uiState.recording) }
-            item {
-                RecorderActionChip(
-                    state = uiState.recording,
-                    startAllowed = microphoneGranted && uiState.hasRoomToRecord,
-                    onStart = viewModel::startRecording,
-                    onStop = viewModel::stopRecording
-                )
-            }
-            // S2161: play-back control visible when idle and a note exists. Hidden while recording
-            // so the recording state's own controls stay unambiguous (strategic §5.3).
-            val recentNote = uiState.mostRecentNote
-            if (uiState.recording is VoiceRecordingState.Idle && recentNote != null) {
-                item {
-                    SecondaryChip(
-                        labelRes = R.string.wear_voice_note_play,
-                        onClick = { onPlayNote(recentNote) }
-                    )
-                }
-            }
+            // The reasons an action is unavailable are read before the actions themselves, so the
+            // chips below can share one width without a paragraph of text stretching it (S2495).
             if (!microphoneGranted) {
                 item { BlockerText(textRes = R.string.wear_voice_note_permission_required) }
-                item {
-                    SecondaryChip(
-                        labelRes = R.string.wear_voice_note_permission_grant,
-                        onClick = permissionsState::launchMultiplePermissionRequest
-                    )
-                }
             }
             if (!uiState.hasRoomToRecord) {
                 item { BlockerText(textRes = R.string.wear_voice_note_no_space) }
             }
             item {
-                SecondaryChip(
-                    labelRes = R.string.wear_voice_note_open_list,
-                    onClick = { navController.navigate(WearRoutes.VOICE_NOTES) }
+                RecorderActions(
+                    uiState = uiState,
+                    microphoneGranted = microphoneGranted,
+                    onStart = viewModel::startRecording,
+                    onStop = viewModel::stopRecording,
+                    onPlayNote = onPlayNote,
+                    onGrant = permissionsState::launchMultiplePermissionRequest,
+                    onOpenList = { navController.navigate(WearRoutes.VOICE_NOTES) }
                 )
             }
         }
+    }
+}
+
+/**
+ * S2495: every chip here is as wide as the widest of them and no wider, following the action layout
+ * S2491 established for file operations. A wear `Chip` fills its parent by default, which on a round
+ * face stretches a two-word label across the whole chord - the shape the owner asked to be rid of.
+ * One `IntrinsicSize.Min` column is what makes the chips agree on a width; sizing each one separately
+ * would give a ragged stack instead.
+ */
+@Composable
+private fun RecorderActions(
+    uiState: VoiceRecorderUiState,
+    microphoneGranted: Boolean,
+    onStart: () -> Unit,
+    onStop: () -> Unit,
+    onPlayNote: (VoiceNote) -> Unit,
+    onGrant: () -> Unit,
+    onOpenList: () -> Unit
+) {
+    Column(
+        modifier = Modifier.width(IntrinsicSize.Min),
+        verticalArrangement = Arrangement.spacedBy(SECTION_GAP),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        RecorderActionChip(
+            state = uiState.recording,
+            startAllowed = microphoneGranted && uiState.hasRoomToRecord,
+            onStart = onStart,
+            onStop = onStop
+        )
+        // S2161: play-back control visible when idle and a note exists. Hidden while recording
+        // so the recording state's own controls stay unambiguous (strategic §5.3).
+        val recentNote = uiState.mostRecentNote
+        if (uiState.recording is VoiceRecordingState.Idle && recentNote != null) {
+            SecondaryChip(
+                labelRes = R.string.wear_voice_note_play_last,
+                icon = Icons.Default.PlayArrow,
+                onClick = { onPlayNote(recentNote) }
+            )
+        }
+        if (!microphoneGranted) {
+            SecondaryChip(
+                labelRes = R.string.wear_voice_note_permission_grant,
+                icon = Icons.Default.Mic,
+                onClick = onGrant
+            )
+        }
+        SecondaryChip(
+            labelRes = R.string.wear_voice_note_open_list,
+            icon = Icons.AutoMirrored.Filled.List,
+            onClick = onOpenList
+        )
     }
 }
 
@@ -217,6 +256,7 @@ private fun RecorderActionChip(
                 modifier = Modifier.size(ACTION_ICON_SIZE)
             )
         },
+        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.primaryChipColors()
     )
@@ -238,11 +278,22 @@ private fun BlockerText(@StringRes textRes: Int) {
 @Composable
 private fun SecondaryChip(
     @StringRes labelRes: Int,
+    icon: ImageVector? = null,
     onClick: () -> Unit
 ) {
     Chip(
         onClick = onClick,
         label = { Text(text = stringResource(labelRes)) },
+        icon = icon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(ACTION_ICON_SIZE)
+                )
+            }
+        },
+        // Fills the intrinsic-width column above, so every chip ends up the width of the widest.
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.secondaryChipColors()
     )

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -31,14 +32,12 @@ import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -57,7 +56,7 @@ private val SYNC_CELL_TOP_PADDING = 8.dp
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    listState: ScalingLazyListState = rememberWearListState(),
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1),
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -120,23 +119,31 @@ private fun ScalingLazyListScope.settingsItems(
     }
 
     items(destinations.chunked(columns)) { rowDestinations ->
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+        com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+            columns = columns,
+            itemCount = rowDestinations.size,
+            gap = GRID_GAP
         ) {
             rowDestinations.forEach { (route, label) ->
                 Column(
-                    modifier = Modifier.weight(1f).semantics { contentDescription = label },
+                    modifier = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = label },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    RectangularButton(
-                        onClick = { onClick(route) },
-                        modifier = Modifier.size(CELL_BUTTON_SIZE),
-                        colors = ButtonDefaults.primaryButtonColors()
+                    Column(
+                        modifier = Modifier
+                            .size(CELL_BUTTON_SIZE)
+                            .clickable {
+                                Timber.d("S2478: opened settings destination $route from the icon grid")
+                                onClick(route)
+                            },
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         Icon(
                             imageVector = iconFor(route),
-                            contentDescription = label,
+                            contentDescription = null,
                             modifier = Modifier.size(CELL_ICON_SIZE)
                         )
                     }
@@ -151,7 +158,6 @@ private fun ScalingLazyListScope.settingsItems(
                     )
                 }
             }
-            repeat(columns - rowDestinations.size) { Spacer(modifier = Modifier.weight(1f)) }
         }
     }
 }

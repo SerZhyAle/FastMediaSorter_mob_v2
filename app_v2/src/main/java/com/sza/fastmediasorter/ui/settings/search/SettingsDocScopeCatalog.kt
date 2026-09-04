@@ -137,25 +137,25 @@ object SettingsDocScopeCatalog {
             key = "wearEnableAudio",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
-            titleEn = "Enable audio",
-            titleRu = "Включить аудио",
-            titleUk = "Увімкнути аудіо"
+            titleEn = "Audio",
+            titleRu = "Аудио",
+            titleUk = "Аудіо"
         ),
         WearDocEntry(
             key = "wearEnableDocuments",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
-            titleEn = "Enable documents",
-            titleRu = "Включить документы",
-            titleUk = "Увімкнути документи"
+            titleEn = "Documents",
+            titleRu = "Документы",
+            titleUk = "Документи"
         ),
         WearDocEntry(
             key = "wearEnableImages",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
-            titleEn = "Enable images",
-            titleRu = "Включить изображения",
-            titleUk = "Увімкнути зображення"
+            titleEn = "Images",
+            titleRu = "Изображения",
+            titleUk = "Зображення"
         ),
         WearDocEntry(
             key = "wearEnableSlideshow",
@@ -169,9 +169,9 @@ object SettingsDocScopeCatalog {
             key = "wearEnableVideo",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
-            titleEn = "Enable video",
-            titleRu = "Включить видео",
-            titleUk = "Увімкнути відео"
+            titleEn = "Video",
+            titleRu = "Видео",
+            titleUk = "Відео"
         ),
         // S1781: the watch's Screen section - one view shared by the home screen and the Resources
         // page, and a keep-awake flag that covers everything except the three players.
@@ -238,9 +238,9 @@ object SettingsDocScopeCatalog {
             key = "wearStreamsSection",
             layout = "wear_media_types_settings",
             kind = "TOGGLE_ROW",
-            titleEn = "Show Streams",
-            titleRu = "Показывать трансляции",
-            titleUk = "Показувати трансляції"
+            titleEn = "Streams",
+            titleRu = "Трансляции",
+            titleUk = "Трансляції"
         ),
         // S2093: a real watch row since S1718, likewise never published. ADR-2 keeps it watch-only -
         // it describes one physical watch and does not exist at all without a rotation sensor.
@@ -267,6 +267,14 @@ object SettingsDocScopeCatalog {
             titleEn = "Keep playing in background",
             titleRu = "Продолжать воспроизведение в фоне",
             titleUk = "Продовжувати відтворення у фоні"
+        ),
+        WearDocEntry(
+            key = "wearPanelAutoHide",
+            layout = "wear_other_settings",
+            kind = "SPINNER",
+            titleEn = "Player panel auto-hide duration (s)",
+            titleRu = "Автоскрытие панели плеера (сек)",
+            titleUk = "Автоприховування панелі плеєра (сек)"
         )
     )
 }

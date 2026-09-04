@@ -42,7 +42,6 @@ class WearSendToNotifier @Inject constructor(
      * to bring the phone closer would send them after the wrong fix (strategic 11 criterion 9).
      */
     fun notifyPendingSend(fileName: String, savedPath: String, receiverId: String): Boolean {
-        Timber.d("S2142: phone offering watch errand for %s, receiver=%s", fileName, receiverId)
         val manager = NotificationManagerCompat.from(context)
         if (!manager.areNotificationsEnabled()) {
             Timber.i("Send to from watch: POST_NOTIFICATIONS not granted, nothing was offered")

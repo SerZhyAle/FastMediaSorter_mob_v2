@@ -63,7 +63,6 @@ class WearSendToReceiversRepository @Inject constructor(
         writeAtomically(receiversFile, json.toByteArray(Charsets.UTF_8))
         _receivers.value = usableEntries
         Timber.d("WearSendToReceiversRepository: stored ${usableEntries.size} send-to receiver(s)")
-        Timber.d("S2142: receiver list arrived from the phone, ${usableEntries.size} usable")
     }
 
     /**

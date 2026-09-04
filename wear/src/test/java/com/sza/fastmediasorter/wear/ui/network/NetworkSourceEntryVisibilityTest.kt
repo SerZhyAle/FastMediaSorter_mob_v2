@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.network
 
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -19,13 +20,13 @@ import org.junit.Test
 class NetworkSourceEntryVisibilityTest {
 
     @Test
-    fun `entry is offered in a debug build`() {
-        assertTrue(NetworkSourceEntry.isOffered(isDebugBuild = true))
+    fun `entry is offered when credential entry is enabled`() {
+        assertTrue(NetworkSourceEntry.isOffered(offersCredentialEntry = true))
     }
 
     @Test
-    fun `entry is withheld in a store build`() {
-        assertFalse(NetworkSourceEntry.isOffered(isDebugBuild = false))
+    fun `entry is withheld when credential entry is disabled`() {
+        assertFalse(NetworkSourceEntry.isOffered(offersCredentialEntry = false))
     }
 
     /**
@@ -37,8 +38,8 @@ class NetworkSourceEntryVisibilityTest {
     fun `a stored source stays readable whichever way the gate is set`() = runTest {
         val repository = StoredSourceRepository(SAVED_SOURCE)
 
-        for (isDebugBuild in listOf(true, false)) {
-            NetworkSourceEntry.isOffered(isDebugBuild)
+        for (offersCredentialEntry in listOf(true, false)) {
+            NetworkSourceEntry.isOffered(offersCredentialEntry)
 
             assertEquals(listOf(SAVED_SOURCE), repository.getAllSources())
             assertNotNull(repository.getSourceById(SAVED_SOURCE.id))
@@ -61,6 +62,14 @@ class NetworkSourceEntryVisibilityTest {
         override suspend fun upsertSource(source: NetworkSource) = Unit
 
         override suspend fun deleteSource(id: String) = Unit
+
+        override suspend fun deleteSourceWithTombstone(id: String, deletedAt: Long) = Unit
+
+        override suspend fun getTombstones(): List<WearSourceTombstonePayload> = emptyList()
+
+        override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) = Unit
+
+        override suspend fun removeTombstone(id: String) = Unit
 
         override suspend fun testConnection(source: NetworkSource): Result<Boolean> = Result.success(true)
     }

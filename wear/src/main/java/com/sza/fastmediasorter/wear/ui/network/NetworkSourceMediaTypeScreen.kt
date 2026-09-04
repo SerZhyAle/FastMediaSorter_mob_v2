@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.network
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,7 +20,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -31,9 +28,9 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
-import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -41,13 +38,13 @@ import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourceMediaTypeViewModel
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
 
 /**
@@ -72,15 +69,19 @@ fun NetworkSourceMediaTypeScreen(
     navController: NavController,
     sourceId: String,
     sourceName: String,
+    mediaTypeViewModel: NetworkSourceMediaTypeViewModel = hiltViewModel(),
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val source by mediaTypeViewModel.source.collectAsStateWithLifecycle()
+    val listState = rememberWearListState(initialItemIndex = 1)
 
-    val categories = BrowseCategoryCatalog.categoriesFor(
-        WearCategoryOrigin.NETWORK_SOURCE,
-        settings.allowedContentTypes()
-    )
+    val categories = remember(source, settings.allowedContentTypes()) {
+        BrowseCategoryCatalog.categoriesForSource(
+            source = source,
+            allowedTypes = settings.allowedContentTypes()
+        )
+    }
 
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
@@ -165,19 +166,20 @@ private fun CategoryChip(
     category: WearBrowseCategory,
     onClick: () -> Unit
 ) {
-    Chip(
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = stringResource(BrowseCategoryPresentation.labelFor(category))) },
-        icon = {
+        colors = ChipDefaults.primaryChipColors(),
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE),
+                modifier = glyphModifier,
                 tint = BrowseCategoryPresentation.tintFor(category.type)
             )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -188,9 +190,10 @@ private fun CategoryRow(
     columns: Int,
     onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = categories.size,
+        gap = GRID_GAP
     ) {
         categories.forEach { category ->
             CategoryCell(
@@ -198,9 +201,6 @@ private fun CategoryRow(
                 modifier = Modifier.weight(1f),
                 onClick = { onCategoryClick(category) }
             )
-        }
-        repeat(columns - categories.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

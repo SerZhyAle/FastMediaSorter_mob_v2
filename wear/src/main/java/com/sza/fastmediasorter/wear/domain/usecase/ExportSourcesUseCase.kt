@@ -38,17 +38,32 @@ class ExportSourcesUseCase @Inject constructor(
                 basePath = source.basePath,
                 domain = source.domain,
                 sshPrivateKey = source.sshPrivateKey,
-                hostKeyFingerprint = source.hostKeyFingerprint
+                hostKeyFingerprint = source.hostKeyFingerprint,
+                iconId = source.iconId,
+                supportedMediaTypes = source.supportedMediaTypes,
+                allFiles = source.allFiles,
+                // S2502: without this the phone leg would carry no edit time and the exchange would
+                // rank records in one direction only, which is the asymmetry the ticket removes.
+                lastEditedAt = source.lastEditedAt
             )
         }
+        // S2502: one reading for both, so the payload's own send time and the envelope's cannot drift
+        // apart and describe two different moments for one exchange.
+        val sentAt = System.currentTimeMillis()
+        Timber.d("S2502: watch export leg built ${payloads.size} record(s) with sentAt=$sentAt")
         val payload = WearSourcesExportPayload(
             sources = payloads,
-            watchName = Build.MODEL
+            watchName = Build.MODEL,
+            sentAt = sentAt,
+            // S2507: the deletions this watch made. Without them the phone cannot tell a resource the
+            // user removed here from one it has never seen, and hands the removed one straight back.
+            tombstones = networkSourceRepository.getTombstones()
         )
+        Timber.d("S2507: watch export leg carries ${payload.tombstones.size} tombstone(s)")
         val envelopeBytes = envelopeCodec.encode(
             WearEventEnvelope(
                 eventType = WearDataLayerPaths.EVENT_SOURCES_EXPORT,
-                sentAt = System.currentTimeMillis(),
+                sentAt = sentAt,
                 data = gson.toJson(payload).toByteArray()
             )
         )

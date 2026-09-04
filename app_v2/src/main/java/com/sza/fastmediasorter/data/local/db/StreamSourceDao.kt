@@ -129,9 +129,17 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE id = :id")
     suspend fun pin(id: String, newSortIndex: Int)
 
+    /** S2497: pin by channel identityKey when syncing from watch. */
+    @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE identityKey = :identityKey")
+    suspend fun pinByIdentity(identityKey: String, newSortIndex: Int)
+
     /** S0770: drop a channel's pin so it leaves the main-window streams panel; the catalog row stays. */
     @Query("UPDATE stream_sources SET pinned = 0 WHERE id = :id")
     suspend fun unpin(id: String)
+
+    /** S2497: unpin by channel identityKey when syncing from watch. */
+    @Query("UPDATE stream_sources SET pinned = 0 WHERE identityKey = :identityKey")
+    suspend fun unpinByIdentity(identityKey: String)
 
     /**
      * S0660: in-place edit of a user channel. Scoped to MANUAL rows so a CATALOG/IMPORTED row can

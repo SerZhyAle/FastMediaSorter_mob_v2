@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,12 +31,11 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_BOTTOM_PADDING = 8.dp
-private val ROW_SPACING = 4.dp
 
 @Composable
 fun ScreenSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
@@ -54,11 +52,10 @@ fun ScreenSettingsScreen(
     // at stays a phone choice, because choosing one means opening a gallery.
     val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
     val backgroundItems = WearBackgroundMode.entries.map { mode ->
-        WearSettingsItem { narrow ->
+        WearSettingsItem { _ ->
             BackgroundModeRow(
                 mode = mode,
                 groupLabel = backgroundLabel,
-                narrow = narrow,
                 selected = uiState.backgroundMode == mode,
                 onSelect = { viewModel.setBackgroundMode(mode) }
             )
@@ -66,11 +63,10 @@ fun ScreenSettingsScreen(
     }
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
     val keepAwakeItems = listOf(
-        WearSettingsItem { narrow ->
+        WearSettingsItem { _ ->
             WearSettingsToggleCell(
                 label = keepAwakeLabel,
                 checked = uiState.keepScreenAwakeOutsidePlayers,
-                narrow = narrow,
                 onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() }
             )
         }
@@ -114,11 +110,10 @@ private fun viewModeItems(
     selectedMode: WearViewMode,
     onSelect: (WearViewMode) -> Unit
 ): List<WearSettingsItem> = WearViewMode.entries.map { mode ->
-    WearSettingsItem { narrow ->
+    WearSettingsItem { _ ->
         ViewModeRow(
             mode = mode,
             groupLabel = groupLabel,
-            narrow = narrow,
             selected = selectedMode == mode,
             onSelect = { onSelect(mode) }
         )
@@ -139,7 +134,6 @@ private fun GroupCaption(text: String) {
 private fun ViewModeRow(
     mode: WearViewMode,
     groupLabel: String,
-    narrow: Boolean,
     selected: Boolean,
     onSelect: () -> Unit
 ) {
@@ -147,7 +141,6 @@ private fun ViewModeRow(
     WearSettingsToggleCell(
         label = label,
         checked = selected,
-        narrow = narrow,
         // A radio row reports the choice it makes, so re-tapping the active mode is a no-op rather
         // than a way to end up with no view mode at all.
         onToggle = { if (!selected) onSelect() },
@@ -169,7 +162,6 @@ private fun ViewModeRow(
 private fun BackgroundModeRow(
     mode: WearBackgroundMode,
     groupLabel: String,
-    narrow: Boolean,
     selected: Boolean,
     onSelect: () -> Unit
 ) {
@@ -177,7 +169,6 @@ private fun BackgroundModeRow(
     WearSettingsToggleCell(
         label = label,
         checked = selected,
-        narrow = narrow,
         onToggle = { if (!selected) onSelect() },
         radio = true,
         accessibilityLabel = "$groupLabel: $label"
@@ -186,6 +177,7 @@ private fun BackgroundModeRow(
 
 private fun backgroundLabelResFor(mode: WearBackgroundMode): Int = when (mode) {
     WearBackgroundMode.BRANDED_ANIMATION -> R.string.wear_background_mode_animation
+    WearBackgroundMode.BRANDED_STILL -> R.string.wear_background_mode_still
     WearBackgroundMode.IMAGE -> R.string.wear_background_mode_image
 }
 

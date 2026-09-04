@@ -178,6 +178,7 @@ data class AppSettings(
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
+    val playerPanelAutoHideSeconds: Int = 15, // seconds (default 15, range 1-600)
     // S0820: video files opened from Browse enter fullscreen immediately when this is on;
     // per-resource showCommandPanel override still wins.
     val openVideoInFullscreen: Boolean = true,

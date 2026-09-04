@@ -24,6 +24,10 @@ class WearResourceSelectionRepositoryImpl @Inject constructor(
             context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         }
 
+    fun hasSavedSelection(): Boolean = StrictModeHelper.allowDiskReads {
+        prefs.contains(KEY_SELECTED_IDS)
+    }
+
     fun getSelectedIds(): Set<Long> = StrictModeHelper.allowDiskReads {
         prefs.getStringSet(KEY_SELECTED_IDS, emptySet())
             .orEmpty()

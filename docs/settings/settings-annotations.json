@@ -1309,6 +1309,11 @@
     "ru": "Ждёт окончания воспроизведения видео или аудио перед переходом к следующему слайду в слайдшоу.",
     "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
   },
+  "rowPlayerPanelAutoHide": {
+    "en": "Sets the delay in seconds before the player controls panel automatically hides during playback.",
+    "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении.",
+    "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення."
+  },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
@@ -1668,6 +1673,11 @@
     "en": "Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless.",
     "ru": "Держит экран часов включённым на каждом экране вне проигрывателей, включая заставку и экран разрешений; аудио, видео и просмотр изображений удерживают его в любом случае.",
     "uk": "Тримає екран годинника увімкненим на кожному екрані поза програвачами, включно із заставкою та екраном дозволів; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
+  },
+  "wearPanelAutoHide": {
+    "en": "Sets the delay in seconds before the player controls panel automatically hides during video and image playback on Wear OS.",
+    "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении видео и картинок на Wear OS.",
+    "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення відео та картинок на Wear OS."
   },
   "wearSlideshowInterval": {
     "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",

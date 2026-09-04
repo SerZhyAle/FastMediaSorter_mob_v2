@@ -142,4 +142,14 @@ class WearBackgroundPlaybackPolicyTest {
     fun `every teardown reason has a case above`() {
         assertEquals(4, HostTeardownReason.entries.size)
     }
+
+    @Test
+    fun `a playing session keeps the background service`() {
+        assertEquals(true, WearBackgroundPlaybackPolicy.keepsBackgroundSession(isPlaying = true))
+    }
+
+    @Test
+    fun `a paused session releases the background service`() {
+        assertEquals(false, WearBackgroundPlaybackPolicy.keepsBackgroundSession(isPlaying = false))
+    }
 }

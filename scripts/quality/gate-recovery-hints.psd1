@@ -43,6 +43,11 @@
         Fix   = 'The always-loaded agent-memory index is over its ceiling, and every turn of every session pays for the overshoot. Split the biggest SECTION into a second-level .claude/agent-memory/android-rd-specialist/INDEX_<topic>.md and leave one pointer line behind - measure first (bytes per section), never trim a hook mid-sentence, because a squeezed pointer costs its bytes while saying nothing. Raising the ceiling is refused by the gate itself.'
     }
 
+    'always-loaded-budget-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-always-loaded-budget.ps1 -Gate'
+        Fix   = 'A file injected into EVERY request is over its ceiling, so the overshoot is billed to the whole corpus rather than to the change that added it. Move the RATIONALE, not the rule: incident narrative - dates, measured values, ticket ids - belongs in the refusal text of the gate that enforces the rule, where it is read exactly when the rule is broken. A rule with no mechanical gate keeps its rationale, because there the rationale IS the mechanism. Deleting a rule to fit the ceiling is forbidden (S2517 ADR-4). Once the file is smaller, run the same script with -UpdateBaseline; raising a ceiling is refused by the gate itself.'
+    }
+
     'doc-script-references' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-script-references.ps1 -Docs'
         Fix   = 'A document names a .ps1 that does not exist. Correct the path, or say so on its line: External: for a script shipped outside this repository, Historical: for a retired one. Adding the line to doc-script-reference-baseline.txt is not a fix.'

@@ -239,6 +239,31 @@ if (-not $Quiet -and $actual -gt 0) {
     Write-Host ''
 }
 
+# S2517: the incident behind the probe-line-shape rule is printed HERE rather than carried on the
+# always-loaded rules page, because it is needed exactly when the rule has just been broken and on
+# no other request. Printed only when that rule is the one that fired.
+if (-not $Quiet -and ($findings | Where-Object { $_.Reason -like 'probe shares its line*' })) {
+    Write-Host @'
+Why a probe must own its line, whole (owner ruling 2026-09-02):
+
+  A probe is removed in BULK - 176 files in one sweep at the release of 2.60.9021.951 - and a bulk
+  delete is only safe when dropping the line drops exactly the probe and nothing else. It did not:
+  `}.also { Timber.d("S2354: ..") }` was ALSO the closing brace of a `when`, and `).also { .. }`
+  closed an argument list. Removing those lines broke the build with `Unresolved reference 'gcd'`
+  several hundred lines away from anything the sweep had aimed at.
+
+  Forbidden shapes, all measured that day:
+    }.also { Timber.d(..) }            - the line is also a block terminator
+    ).also { Timber.d(..) }            - the line also closes an argument list
+    if (cond) Timber.d(..)             - the line also carries the condition
+    LaunchedEffect(x) { Timber.d(..) } - the line also opens the effect
+    any Timber.d( whose arguments continue on the next line
+
+  Correct shape: one Timber.d("Sxxxx: ..") statement, alone on its own line, ending in `)`.
+
+'@
+}
+
 if (-not $Quiet -and $scoped -and $outOfScope.Count -gt 0) {
     # Reported, never hidden: a finding outside the changed set is still real, it just is not this
     # caller's to fix. Silently dropping it would make the scoped run read as "the tree is clean".

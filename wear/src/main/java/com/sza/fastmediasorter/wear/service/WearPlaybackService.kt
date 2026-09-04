@@ -12,6 +12,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
@@ -19,6 +20,7 @@ import androidx.media3.session.MediaSessionService
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
+import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
@@ -75,6 +77,7 @@ class WearPlaybackService : MediaSessionService() {
 
     private var player: ExoPlayer? = null
     private var mediaSession: MediaSession? = null
+    private var isStopping = false
 
     /**
      * The hold outlives the screen that opened the stream, so it hangs on the service's own scope and
@@ -120,6 +123,11 @@ class WearPlaybackService : MediaSessionService() {
             } else {
                 streamPlaybackSession.stop()
                 progressTicker?.stop()
+                if (!WearBackgroundPlaybackPolicy.keepsBackgroundSession(isPlaying)) {
+                    Timber.d("S2166: paused background session releases foreground service")
+                    stopPlaybackAndSelf()
+                    return
+                }
             }
             backgroundSessionState.updateProgress(currentPositionMs(), isPlaying)
             publishPlaybackState(isPlaying)
@@ -191,7 +199,6 @@ class WearPlaybackService : MediaSessionService() {
                 isPlaying = true
             )
         )
-        Timber.d("S2166: background playback service accepted the handed-off audio item")
         exoPlayer.setMediaItem(MediaItem.fromUri(uri))
         exoPlayer.prepare()
         exoPlayer.seekTo(positionMs)
@@ -264,7 +271,12 @@ class WearPlaybackService : MediaSessionService() {
             .setUsage(C.USAGE_MEDIA)
             .build()
         val handleAudioFocus = true
-        return ExoPlayer.Builder(this)
+        val renderersFactory = DefaultRenderersFactory(this)
+            .setEnableDecoderFallback(true)
+        val mediaSourceFactory = com.sza.fastmediasorter.wear.data.network.WearStreamDataSourceFactoryProvider
+            .createMediaSourceFactory(this)
+        return ExoPlayer.Builder(this, renderersFactory)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, handleAudioFocus)
             .setHandleAudioBecomingNoisy(true)
             .build()
@@ -294,6 +306,10 @@ class WearPlaybackService : MediaSessionService() {
      * a session passes through here: the end of the set, an error, the stop command and task removal.
      */
     private fun stopPlaybackAndSelf() {
+        if (isStopping) {
+            return
+        }
+        isStopping = true
         serviceScope.launch { nowPlayingRepository.clearPlayingFlag() }
         player?.stop()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)

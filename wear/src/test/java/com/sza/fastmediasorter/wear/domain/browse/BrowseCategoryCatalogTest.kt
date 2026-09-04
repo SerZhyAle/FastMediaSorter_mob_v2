@@ -122,12 +122,16 @@ class BrowseCategoryCatalogTest {
     }
 
     /**
-     * S2201 completed this origin: it offers the same seven entries as the paired phone, in the order
-     * the owner named them. Until the folder walk existed it stopped at six, and the assertion below
-     * is what would catch a later change silently dropping one back out.
+     * S2201 completed this origin, and S2495 added the eighth entry: the watch's own store is now the
+     * only origin offering more than the paired phone, because the notes it lists exist nowhere else.
+     * Until the folder walk existed it stopped at six, and the assertion below is what would catch a
+     * later change silently dropping one back out.
+     *
+     * Voice notes sit immediately before browse deliberately: the order is what puts the two in one
+     * row of a three-column view, which is the arrangement the owner asked for.
      */
     @Test
-    fun `the watch own store offers the seven entries the owner named, in order`() {
+    fun `the watch own store offers the eight entries the owner named, in order`() {
         val tokens = BrowseCategoryCatalog
             .categoriesFor(WearCategoryOrigin.LOCAL, ALL_TYPES)
             .map { it.token }
@@ -140,9 +144,44 @@ class BrowseCategoryCatalogTest {
                 BrowseCategoryCatalog.TOKEN_PHOTOS,
                 BrowseCategoryCatalog.TOKEN_DOCUMENTS,
                 BrowseCategoryCatalog.TOKEN_ALL,
+                BrowseCategoryCatalog.TOKEN_VOICE_NOTES,
                 BrowseCategoryCatalog.TOKEN_BROWSE
             ),
             tokens
+        )
+    }
+
+    /**
+     * S2495: the notes are recorded on this watch and indexed by this app. An entry offered to the
+     * paired phone or to a network share would open a list that is empty by construction rather than
+     * by circumstance, which reads to a user as a broken screen and not as an absence of content.
+     */
+    @Test
+    fun `only the watch own store offers voice notes`() {
+        WearCategoryOrigin.entries.forEach { origin ->
+            val offered = BrowseCategoryCatalog
+                .categoriesFor(origin, ALL_TYPES)
+                .map { it.token }
+                .contains(BrowseCategoryCatalog.TOKEN_VOICE_NOTES)
+
+            assertEquals(
+                "origin $origin disagrees about offering voice notes",
+                origin == WearCategoryOrigin.LOCAL,
+                offered
+            )
+        }
+    }
+
+    /** A user switching a media type off must not lose an entry no setting claims to control. */
+    @Test
+    fun `voice notes survive every content type being switched off`() {
+        val tokens = BrowseCategoryCatalog
+            .categoriesFor(WearCategoryOrigin.LOCAL, emptySet())
+            .map { it.token }
+
+        assertTrue(
+            "voice notes vanished with the media types, though no setting turns them off",
+            tokens.contains(BrowseCategoryCatalog.TOKEN_VOICE_NOTES)
         )
     }
 
@@ -191,5 +230,51 @@ class BrowseCategoryCatalogTest {
             "a category a share cannot serve reached the network origin",
             network.all { it in local }
         )
+    }
+
+    @Test
+    fun `categoriesForSource returns single category for audio-only resource`() {
+        val source = com.sza.fastmediasorter.wear.domain.model.NetworkSource(
+            type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
+            name = "Audio Library",
+            server = "192.168.1.10",
+            username = "user",
+            password = "pass",
+            supportedMediaTypes = listOf("AUDIO")
+        )
+        val categories = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES)
+        assertEquals(1, categories.size)
+        assertEquals(BrowseCategoryCatalog.TOKEN_MUSIC, categories.first().token)
+    }
+
+    @Test
+    fun `categoriesForSource includes documents when supported by source`() {
+        val source = com.sza.fastmediasorter.wear.domain.model.NetworkSource(
+            type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
+            name = "Docs Library",
+            server = "192.168.1.10",
+            username = "user",
+            password = "pass",
+            supportedMediaTypes = listOf("PDF", "TEXT")
+        )
+        val categories = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES)
+        assertEquals(1, categories.size)
+        assertEquals(BrowseCategoryCatalog.TOKEN_DOCUMENTS, categories.first().token)
+    }
+
+    @Test
+    fun `categoriesForSource includes all and browse when allFiles is true`() {
+        val source = com.sza.fastmediasorter.wear.domain.model.NetworkSource(
+            type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
+            name = "Full Share",
+            server = "192.168.1.10",
+            username = "user",
+            password = "pass",
+            allFiles = true
+        )
+        val tokens = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES).map { it.token }
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_ALL))
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_BROWSE))
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_DOCUMENTS))
     }
 }

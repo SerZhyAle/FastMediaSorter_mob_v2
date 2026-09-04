@@ -54,7 +54,9 @@ data class WearSettingsPayload(
     // Nullable because the pair updates as two builds at different times: a partner that predates this
     // field omits it and is served exactly as before. The envelope's schemaVersion is deliberately not
     // raised (ADR-1) - a hard version check would turn a mismatched pair into a refusal to sync.
-    @SerializedName("appVersionName") val appVersionName: String? = null
+    @SerializedName("appVersionName") val appVersionName: String? = null,
+    // S2505: player panel auto-hide duration in seconds.
+    @SerializedName("panelAutoHideSeconds") val panelAutoHideSeconds: Int? = null
 ) {
     /**
      * S2000: the watch's `WearBackgroundMode` entries, mirrored as strings.
@@ -65,6 +67,7 @@ data class WearSettingsPayload(
      */
     companion object {
         const val BACKGROUND_MODE_BRANDED_ANIMATION = "BRANDED_ANIMATION"
+        const val BACKGROUND_MODE_BRANDED_STILL = "BRANDED_STILL"
         const val BACKGROUND_MODE_IMAGE = "IMAGE"
     }
 }

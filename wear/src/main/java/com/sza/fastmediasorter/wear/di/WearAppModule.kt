@@ -14,6 +14,7 @@ import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteMigrations
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.data.network.WearNetworkChannelMonitorImpl
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpConnectionTest
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
@@ -32,6 +33,7 @@ import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearLocalFolderRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearOpenOnPhoneRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearOpenUrlOnPhoneRepositoryImpl
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearHardwareDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearHealthDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
@@ -51,6 +53,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkChannelMonitor
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenOnPhoneRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
 import dagger.Module
@@ -114,7 +117,12 @@ object WearAppModule {
             .setUsage(androidx.media3.common.C.USAGE_MEDIA)
             .build()
         val handleAudioFocus = true
-        return androidx.media3.exoplayer.ExoPlayer.Builder(context)
+        val renderersFactory = androidx.media3.exoplayer.DefaultRenderersFactory(context)
+            .setEnableDecoderFallback(true)
+        val mediaSourceFactory = com.sza.fastmediasorter.wear.data.network.WearStreamDataSourceFactoryProvider
+            .createMediaSourceFactory(context)
+        return androidx.media3.exoplayer.ExoPlayer.Builder(context, renderersFactory)
+            .setMediaSourceFactory(mediaSourceFactory)
             .setAudioAttributes(audioAttributes, handleAudioFocus)
             .setHandleAudioBecomingNoisy(true)
             .build()
@@ -123,9 +131,10 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideWearMediaRepository(
-        contentResolver: android.content.ContentResolver
+        contentResolver: android.content.ContentResolver,
+        preferencesRepository: WearPreferencesRepository
     ): WearMediaRepository {
-        return WearMediaRepositoryImpl(contentResolver)
+        return WearMediaRepositoryImpl(contentResolver, preferencesRepository)
     }
 
     @Provides
@@ -209,25 +218,29 @@ object WearAppModule {
 
     @Provides
     @Singleton
-    fun provideSmbDataSource(): SmbDataSource {
-        return SmbDataSource()
+    fun provideSmbDataSource(endpointResolver: WearEndpointResolver): SmbDataSource {
+        return SmbDataSource(endpointResolver)
     }
 
     @Provides
     @Singleton
-    fun provideFtpConnectionTest(): FtpConnectionTest = FtpConnectionTest()
+    fun provideFtpConnectionTest(endpointResolver: WearEndpointResolver): FtpConnectionTest =
+        FtpConnectionTest(endpointResolver)
 
     @Provides
     @Singleton
-    fun provideSftpConnectionTest(): SftpConnectionTest = SftpConnectionTest()
+    fun provideSftpConnectionTest(endpointResolver: WearEndpointResolver): SftpConnectionTest =
+        SftpConnectionTest(endpointResolver)
 
     @Provides
     @Singleton
-    fun provideFtpDataSource(): FtpDataSource = FtpDataSource()
+    fun provideFtpDataSource(endpointResolver: WearEndpointResolver): FtpDataSource =
+        FtpDataSource(endpointResolver)
 
     @Provides
     @Singleton
-    fun provideSftpDataSource(): SftpDataSource = SftpDataSource()
+    fun provideSftpDataSource(endpointResolver: WearEndpointResolver): SftpDataSource =
+        SftpDataSource(endpointResolver)
 
     @Provides
     @Singleton
@@ -261,6 +274,12 @@ object WearAppModule {
     fun provideWearOpenOnPhoneRepository(
         impl: WearOpenOnPhoneRepositoryImpl
     ): WearOpenOnPhoneRepository = impl
+
+    @Provides
+    @Singleton
+    fun provideWearOpenUrlOnPhoneRepository(
+        impl: WearOpenUrlOnPhoneRepositoryImpl
+    ): WearOpenUrlOnPhoneRepository = impl
 
     @Provides
     @Singleton

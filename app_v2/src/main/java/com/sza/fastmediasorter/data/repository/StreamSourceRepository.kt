@@ -103,6 +103,21 @@ class StreamSourceRepository @Inject constructor(
             dao.pin(id, newSortIndex)
         }
 
+    /**
+     * S2497: pins a channel directly by its folded identityKey when requested by the watch sync.
+     */
+    suspend fun pinByIdentity(identityKey: String) =
+        db.withTransaction {
+            val newSortIndex = (streamUserStateDao.minSortIndex() ?: 0) - 1
+            streamUserStateDao.setPin(
+                identityKey = identityKey,
+                pinned = true,
+                sortIndex = newSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.pinByIdentity(identityKey, newSortIndex)
+        }
+
     /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
     suspend fun pinnedSnapshot(): List<StreamSourceEntity> = dao.pinnedSnapshot()
 
@@ -150,6 +165,21 @@ class StreamSourceRepository @Inject constructor(
                 atMillis = System.currentTimeMillis()
             )
             dao.unpin(id)
+        }
+
+    /**
+     * S2497: unpins a channel directly by its folded identityKey when requested by the watch sync.
+     */
+    suspend fun unpinByIdentity(identityKey: String) =
+        db.withTransaction {
+            val keptSortIndex = streamUserStateDao.stateFor(identityKey)?.sortIndex ?: 0
+            streamUserStateDao.setPin(
+                identityKey = identityKey,
+                pinned = false,
+                sortIndex = keptSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.unpinByIdentity(identityKey)
         }
 
     /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */

@@ -13,6 +13,9 @@ import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldDiff
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.domain.model.WearSyncLeg
+import com.sza.fastmediasorter.domain.model.WearSyncLegResult
+import com.sza.fastmediasorter.domain.model.WearSyncOutcome
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
@@ -33,6 +36,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -46,6 +50,19 @@ sealed class WearSyncUiState {
     data object NothingSelected : WearSyncUiState()
     data object SettingsPushed : WearSyncUiState()
     data class Error(val message: String) : WearSyncUiState()
+}
+
+/**
+ * S2484: the state of one unified exchange, kept apart from [WearSyncUiState].
+ *
+ * A separate flow rather than three more cases on the shared state, because both legacy controls
+ * write [WearSyncUiState] without marking which of them wrote it. Sequential taps hid that; a
+ * fan-out exposes it at once, with one leg's completion overwriting the other's progress.
+ */
+sealed class UnifiedSyncState {
+    data object Idle : UnifiedSyncState()
+    data object Running : UnifiedSyncState()
+    data class Finished(val outcome: WearSyncOutcome) : UnifiedSyncState()
 }
 
 /**
@@ -129,6 +146,9 @@ class WearSyncViewModel @Inject constructor(
     private val _pendingWatchSources = MutableStateFlow<WearSourcesExportPayload?>(null)
     val pendingWatchSources: StateFlow<WearSourcesExportPayload?> = _pendingWatchSources.asStateFlow()
 
+    private val _unifiedSyncState = MutableStateFlow<UnifiedSyncState>(UnifiedSyncState.Idle)
+    val unifiedSyncState: StateFlow<UnifiedSyncState> = _unifiedSyncState.asStateFlow()
+
     private val _watchPlaybackState = MutableStateFlow<WearPlaybackStatePayload?>(null)
     val watchPlaybackState: StateFlow<WearPlaybackStatePayload?> = _watchPlaybackState.asStateFlow()
 
@@ -176,7 +196,14 @@ class WearSyncViewModel @Inject constructor(
         }
         viewModelScope.launch {
             WearSyncEvents.watchSourcesReceivedFlow.collect { payload ->
-                _pendingWatchSources.value = payload
+                // S2484 ADR-5: the accept card guards against data the phone did not ask for. Inside
+                // an exchange the owner started that condition does not hold, so asking again would
+                // turn the one promised tap into two.
+                if (_unifiedSyncState.value is UnifiedSyncState.Running) {
+                    applyWatchSourcesDuringUnifiedSync(payload)
+                } else {
+                    _pendingWatchSources.value = payload
+                }
             }
         }
         viewModelScope.launch {
@@ -244,6 +271,86 @@ class WearSyncViewModel @Inject constructor(
                 }
         }
     }
+
+    /**
+     * S2484: the whole exchange behind one control - strategic 2 goal 1.
+     *
+     * The resources leg is folded only after the watch acknowledges it, because the use case returns
+     * as soon as Play Services accepts the bytes; reporting success there would repeat the S1682
+     * defect inside the combined outcome. The settings leg needs no such wait - it travels as a Data
+     * Item the watch applies and answers on its own.
+     */
+    fun syncEverything(settings: WearSettingsPayload) {
+        if (_unifiedSyncState.value is UnifiedSyncState.Running) {
+            return
+        }
+        val merged = withBackgroundMode(settings)
+        rememberSettings(merged)
+        inboundResourcesLeg = null
+        _unifiedSyncState.value = UnifiedSyncState.Running
+        viewModelScope.launch {
+            val acked = awaitResourcesAck(outbound.syncEverything(merged))
+            val inbound = inboundResourcesLeg
+            val complete = if (inbound == null) {
+                acked
+            } else {
+                acked.withLeg(WearSyncLeg.RESOURCES_IN, inbound)
+            }
+            _unifiedSyncState.value = UnifiedSyncState.Finished(complete)
+        }
+    }
+
+    fun resetUnifiedSync() {
+        _unifiedSyncState.value = UnifiedSyncState.Idle
+    }
+
+    /**
+     * Turns "the bytes were accepted locally" into "the watch applied them", or into a failure when
+     * no acknowledgement arrives. A leg that sent nothing is passed through untouched - no ack can
+     * ever arrive for it, so waiting would report a watch failure for an empty selection (S1781).
+     */
+    private suspend fun awaitResourcesAck(outcome: WearSyncOutcome): WearSyncOutcome {
+        if (outcome.legs[WearSyncLeg.RESOURCES_OUT] !is WearSyncLegResult.Succeeded) {
+            return outcome
+        }
+        val ack = withTimeoutOrNull(ACK_TIMEOUT_MS) { WearSyncEvents.ackFlow.first() }
+        val applied = if (ack == null) {
+            Timber.w("Unified sync: the watch did not acknowledge the resources within $ACK_TIMEOUT_MS ms")
+            WearSyncLegResult.Failed(context.getString(R.string.wear_sync_no_ack))
+        } else {
+            WearSyncLegResult.Succeeded(parseAppliedCount(ack))
+        }
+        return outcome.withLeg(WearSyncLeg.RESOURCES_OUT, applied)
+    }
+
+    /**
+     * S2484 ADR-5: resources arriving from the watch inside a user-started exchange are applied at
+     * once, and the pending card is left for the unsolicited case that still needs it.
+     */
+    private suspend fun applyWatchSourcesDuringUnifiedSync(payload: WearSourcesExportPayload) {
+        val result = importWatchSourcesUseCase(payload).fold(
+            // S2502: a record the watch edited later now comes back as `updated` rather than `added`,
+            // and counting only the additions would report 0 for a leg that did change resources -
+            // the exact silence this ticket exists to end. The leg's count is records it changed.
+            onSuccess = { WearSyncLegResult.Succeeded(it.added + it.updated) },
+            onFailure = { error ->
+                Timber.e(error, "Unified sync: the inbound resources leg failed")
+                WearSyncLegResult.Failed(context.getString(R.string.wear_sync_failed))
+            }
+        )
+        val current = _unifiedSyncState.value
+        if (current is UnifiedSyncState.Finished) {
+            _unifiedSyncState.value = UnifiedSyncState.Finished(
+                current.outcome.withLeg(WearSyncLeg.RESOURCES_IN, result)
+            )
+        } else {
+            inboundResourcesLeg = result
+        }
+    }
+
+    // Holds the inbound leg's verdict when it lands before the outbound legs have finished, so the
+    // outcome can carry it rather than dropping whichever half arrived first.
+    private var inboundResourcesLeg: WearSyncLegResult? = null
 
     private fun startAckTimeout() {
         ackTimeoutJob = viewModelScope.launch {
@@ -390,7 +497,10 @@ class WearSyncViewModel @Inject constructor(
         viewModelScope.launch {
             importWatchSourcesUseCase(payload)
                 .onSuccess { result ->
-                    Timber.i("Watch import accepted: added=${result.added} skipped=${result.skipped}")
+                    Timber.i(
+                        "Watch import accepted: added=${result.added} " +
+                            "updated=${result.updated} skipped=${result.skipped}"
+                    )
                 }
                 .onFailure { e ->
                     Timber.e(e, "Watch import failed")

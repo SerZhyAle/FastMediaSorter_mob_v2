@@ -122,7 +122,8 @@ class WearSettingsPayloadDecoder(private val gson: Gson = Gson()) {
             // silently broken the version display it exists for.
             "appVersionName" to JsonKind.STRING,
             "fieldTimestamps" to JsonKind.OBJECT,
-            "capabilities" to JsonKind.OBJECT
+            "capabilities" to JsonKind.OBJECT,
+            "panelAutoHideSeconds" to JsonKind.NUMBER
         )
 
         /** Every contract key, for a caller that has no decode result and must assume the old behaviour. */

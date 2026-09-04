@@ -1,8 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.common
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
@@ -145,10 +142,7 @@ private fun <T> WearChoiceGridRow(
     onSelected: (T) -> Unit,
     unselectedColors: ChipColors?
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
-    ) {
+    CenteredGridRow(columns = columns, itemCount = options.size, gap = GRID_GAP) {
         options.forEach { option ->
             val isSelected = option == selected
             Chip(
@@ -177,9 +171,6 @@ private fun <T> WearChoiceGridRow(
                     .semantics { this.selected = isSelected },
                 colors = chipColorsFor(isSelected, unselectedColors)
             )
-        }
-        repeat(columns - options.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

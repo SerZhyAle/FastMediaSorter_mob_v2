@@ -8,14 +8,18 @@ import android.net.Uri
 import android.util.Base64
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.repository.ThumbnailCacheRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 import java.io.InputStream
+import java.util.UUID
 import javax.inject.Inject
 
 /** Longest edge of the produced picture. A watch cell never draws more than this. */
@@ -46,11 +50,43 @@ private const val FIRST_FRAME_US = 0L
  * renders as a type icon rather than an error.
  */
 class BuildWatchThumbnailUseCase @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val thumbnailCacheRepository: ThumbnailCacheRepository
 ) {
 
     suspend operator fun invoke(file: MediaFile): String? = withContext(Dispatchers.IO) {
-        decodePreview(file)?.let { encodeWithinCeiling(it) }
+        val cachedFile = thumbnailCacheRepository.getCachedThumbnail(file.path)
+        if (cachedFile != null && cachedFile.exists()) {
+            val cachedBitmap = BitmapFactory.decodeFile(cachedFile.absolutePath)
+            if (cachedBitmap != null) {
+                return@withContext encodeWithinCeiling(cachedBitmap)
+            }
+        }
+
+        val decoded = decodePreview(file)
+        if (decoded != null) {
+            saveToCache(file.path, decoded)
+            encodeWithinCeiling(decoded)
+        } else {
+            null
+        }
+    }
+
+    private suspend fun saveToCache(filePath: String, bitmap: Bitmap) {
+        try {
+            val tempFile = File(context.cacheDir, "watch_thumb_${UUID.randomUUID()}.jpg")
+            FileOutputStream(tempFile).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, FIRST_QUALITY, out)
+            }
+            thumbnailCacheRepository.saveThumbnail(filePath, tempFile)
+            tempFile.delete()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: IOException) {
+            Timber.w(e, "Failed to save watch thumbnail to ThumbnailCacheRepository for %s", filePath)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "Failed to save watch thumbnail to ThumbnailCacheRepository for %s", filePath)
+        }
     }
 
     private fun decodePreview(file: MediaFile): Bitmap? = when {

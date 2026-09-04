@@ -1953,6 +1953,22 @@ scripts/quality/assert-allfeatures-sync.ps1
   Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
 ```
 
+### assert-always-loaded-budget.ps1
+Ratchet gate: every text file that is injected into EVERY request must stay under a ceiling that only ever goes down (S2517).
+
+```
+scripts/quality/assert-always-loaded-budget.ps1
+  Ratchet gate: every text file that is injected into EVERY request must stay under a ceiling that only ever goes down (S2517).
+  Params:
+    -Path                   [String]
+    -BaselineFile           [String]
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+    -RepoRoot               [String]
+  Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
+```
+
 ### assert-appsettings-persistence.ps1
 S2243: every field of AppSettings is persisted in settings stores or SettingsRepositoryImpl.
 
@@ -1996,9 +2012,10 @@ Fail when a Kotlin primary constructor approaches the 255 argument-slot ceiling.
 scripts/quality/assert-ctor-arg-slots.ps1
   Fail when a Kotlin primary constructor approaches the 255 argument-slot ceiling.
   Params:
-    -Gate           [SwitchParameter]
-    -WarnAt         [Int32] = 20
-    -Quiet          [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -WarnAt               [Int32] = 20
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String]
   Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
 ```
 
@@ -3022,6 +3039,18 @@ scripts/quality/assert-wear-mirrored-strings.ps1
   Exit: 0 - every declared pair is in step; or a divergence was reported without -Gate, matching the; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: the declaration is missing, parses to zero pairs, or a strings.xml under
 ```
 
+### assert-wear-record-merge-parity.ps1
+S2502: fails when the two WearRecordMergeResolver copies stop agreeing.
+
+```
+scripts/quality/assert-wear-record-merge-parity.ps1
+  S2502: fails when the two WearRecordMergeResolver copies stop agreeing.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, the two copies agree; 1 - the copies diverge; the first differing line is named; 2 - cannot verify: one of the two files is missing
+```
+
 ### assert-wear-route-literals.ps1
 Rejects raw Wear navigation route and argument literals outside route registries.
 
@@ -3149,9 +3178,15 @@ Reports actual quality-gate frequency from machine-readable gate telemetry.
 scripts/quality/measure-gate-frequency.ps1
   Reports actual quality-gate frequency from machine-readable gate telemetry.
   Params:
-    -Filter         [String] = ''
-    -Json           [SwitchParameter]
-    -Help           [SwitchParameter]
+    -Filter                     [String] = ''
+    -Placement                  [SwitchParameter]
+    -MinExecutions              [Int32] = 20
+    -MinTotalSeconds            [Int32] = 600
+    -MaxSecondsPerCatch         [Int32] = 300
+    -Journal                    [String] = ''
+    -Json                       [SwitchParameter]
+    -Help                       [SwitchParameter]
+  Exit: 0 the report was produced.; 2 could not verify - the telemetry journal is absent, or holds no record matching -Filter.
 ```
 
 ### measure-hotspots.ps1
@@ -3347,6 +3382,18 @@ set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal b
 scripts/quality.tests/set-android-string-remove.Tests.ps1
   set-android-string-remove.Tests.ps1 (S1568) - regression tests for the removal branch.
   (no param block)
+```
+
+## scripts\quality\assert-always-loaded-budget.tests
+
+### Run-Tests.ps1
+Contract suite for assert-always-loaded-budget.ps1 (S2517 ratchet, S2521 rules checks).
+
+```
+scripts/quality/assert-always-loaded-budget.tests/Run-Tests.ps1
+  Contract suite for assert-always-loaded-budget.ps1 (S2517 ratchet, S2521 rules checks).
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed; 2 could not run - gate script missing
 ```
 
 ## scripts\quality\assert-detekt.tests
@@ -3769,6 +3816,18 @@ scripts/quality/lib/room-databases.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2355) - regression suite for the Room database registry.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\measure-gate-frequency.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/measure-gate-frequency.ps1
+
+```
+scripts/quality/measure-gate-frequency.tests/Run-Tests.ps1
+  Subject: scripts/quality/measure-gate-frequency.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\quality\nested-worktrees.tests

@@ -15,6 +15,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -27,6 +28,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.core.content.ContextCompat
@@ -71,7 +73,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearAppBackground
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
-import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
@@ -148,6 +150,15 @@ private val PLAYER_ROUTES = setOf(
     WearRoutes.AUDIO_PLAYER_PATTERN,
     WearRoutes.VIDEO_PLAYER_PATTERN,
     WearRoutes.IMAGE_VIEWER_PATTERN
+)
+
+private val SETTINGS_ROUTES = setOf(
+    WearRoutes.SETTINGS,
+    SettingsRoutes.MEDIA_TYPES,
+    SettingsRoutes.SLIDESHOW,
+    SettingsRoutes.SCREEN,
+    SettingsRoutes.OTHER,
+    SettingsRoutes.ABOUT
 )
 
 @AndroidEntryPoint
@@ -469,12 +480,20 @@ fun MainNavigation(
         initialValue = WearBackground.BrandedAnimation
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        WearAppBackground(
-            background = background,
-            running = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
-                currentRoute !in PLAYER_ROUTES
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black)
+    ) {
+        val showWallpaper = showsWallpaper(currentRoute)
+        Timber.d("S2475: wallpaper scope evaluated route=%s showWallpaper=%b background=%s", currentRoute, showWallpaper, background)
+        if (showWallpaper) {
+            WearAppBackground(
+                background = background,
+                running = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
+                    currentRoute !in PLAYER_ROUTES
+            )
+        }
         SwipeDismissableNavHost(
             navController = navController,
             startDestination = WearRoutes.HOME,
@@ -535,12 +554,12 @@ fun MainNavigation(
             WearBackAffordance(
                 role = WearBackAffordanceRole.Back,
                 onClick = {
-                    Timber.d("S2472: nav back affordance tapped on %s", currentRoute)
+                    Timber.d("S2472: nav back affordance tapped on $currentRoute")
                     navController.popBackStack()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterStart)
-                    .padding(start = wearRingInset())
+                    .padding(start = wearBackAffordanceInset())
             )
         }
     }
@@ -559,6 +578,8 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route != WearRoutes.GAME &&
         route != WearRoutes.CALCULATOR
 
+private fun showsWallpaper(route: String?): Boolean = route !in SETTINGS_ROUTES
+
 /**
  * S2161: the three playback destinations, lifted out of [MainNavigation] for the same reason S1944
  * lifted the settings block - the host sat at detekt's length ceiling and this ticket adds a line to
@@ -573,7 +594,6 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
         )
     ) {
         AudioPlayerScreen(onBack = {
-            Timber.d("S2472: audio player back tapped")
             navController.popBackStack()
         })
     }
@@ -585,7 +605,6 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
         )
     ) {
         VideoPlayerScreen(onBack = {
-            Timber.d("S2472: video player back tapped")
             navController.popBackStack()
         })
     }
@@ -597,7 +616,6 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
         )
     ) {
         ImageViewerScreen(onBack = {
-            Timber.d("S2472: image viewer back tapped")
             navController.popBackStack()
         })
     }

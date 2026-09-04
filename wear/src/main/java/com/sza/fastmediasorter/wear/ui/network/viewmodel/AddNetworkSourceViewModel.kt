@@ -4,15 +4,20 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -20,8 +25,24 @@ import javax.inject.Inject
 @HiltViewModel
 class AddNetworkSourceViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    restrictedCapabilities: WearRestrictedCapabilities,
+    preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {
+
+    /**
+     * S2486: the same stored view the sources list and the home screen read, so the add form lays out in
+     * the number of columns the user already chose instead of staying a single tall list of its own.
+     */
+    val viewMode: StateFlow<WearViewMode> = preferencesRepository.viewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(VIEW_MODE_SUBSCRIPTION_MS), WearViewMode.LIST)
+
+    /**
+     * S2486: the screen's own half of the gate. The entry point is already hidden where this is false,
+     * but both routes to this screen stay registered for back-stack entries an older build saved, and
+     * de-registering them would trade a review finding for a navigation crash.
+     */
+    val offersCredentialEntry: Boolean = restrictedCapabilities.offersCredentialEntry
 
     private val _uiState = MutableStateFlow(AddNetworkSourceUiState())
     val uiState: StateFlow<AddNetworkSourceUiState> = _uiState.asStateFlow()

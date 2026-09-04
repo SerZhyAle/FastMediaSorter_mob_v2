@@ -3045,6 +3045,7 @@
     <string name="calculator_keypad_mode_large">Chaves grandes</string>
     <string name="calculator_keypad_mode_compact">Compacto, canto inferior direito</string>
     <string name="wear_background_mode_animation">Animação de marca</string>
+    <string name="wear_background_mode_still">Fundo de marca estático</string>
     <string name="wear_background_mode_image">Sua imagem</string>
     <string name="wear_background_pick_image">Escolha a imagem</string>
     <string name="wear_background_preview">Pré-visualização do fundo do relógio</string>

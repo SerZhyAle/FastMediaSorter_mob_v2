@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.databinding.LauncherTaskbarBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
+import timber.log.Timber
 
 /**
  * S0404: owns the taskbar's two icon strips and the visibility of its three configurable blocks.
@@ -60,7 +61,12 @@ class LauncherTaskbarManager(
         onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
         onIconLongClick = { anchor, icon ->
             val command = LauncherCellCommand.decode(icon.id)
-            if (command == null) false else recentMenuManager.show(anchor, command)
+            if (command == null) {
+                false
+            } else {
+                Timber.d("S2391: recents icon long press for %s", command)
+                recentMenuManager.show(anchor, command)
+            }
         },
     )
 

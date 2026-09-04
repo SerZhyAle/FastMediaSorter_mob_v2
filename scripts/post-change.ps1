@@ -580,6 +580,12 @@ $runsDocHouseStyle = Test-AnyChangedFile '^docs/.*\.md$'
 # section is supposed to LAND, so a closure that only touches one of those is precisely the moment
 # to confirm the top-level index actually came down.
 $runsMemoryBudgetGate = Test-AnyChangedFile '^\.claude/agent-memory/.*\.md$'
+# S2517 always-loaded budget. Same placement argument as the line above and the same subject seen
+# from the other side: a file injected into every request is billed to the whole corpus, so the
+# closure that GREW it is the one that has to answer for it. The baseline beside the gate is the
+# list of judged files, but the trigger has to be a path pattern here - an unchanged always-loaded
+# file cannot have crossed its ceiling during this change.
+$runsAlwaysLoadedBudget = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|\.claude/agents/.*\.md)$'
 # S0383 neuroslop ratchet gate. Covers Kotlin (trivial comments / swallowing catch /
 # unsafe Flow collects) and Xml (hardcoded layout colors, build-invisible string-resource
 # quotes). Baselines only ratchet DOWN. The live set is whatever source-matchers.ps1
@@ -850,6 +856,7 @@ if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-Cha
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocHouseStyle += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvMemoryBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-memory-budget.ps1"), '-Gate')
+$argvAlwaysLoadedBudget = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-always-loaded-budget.ps1"), '-Gate', '-Quiet')
 $argvBaselineAbsorption = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-detekt-baseline-absorption.ps1"), '-Gate')
 $argvBaselineSplitSync = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/split-detekt-baseline.ps1"), '-Gate')
 
@@ -919,6 +926,7 @@ if ($runsDocPinDrift) { Start-PooledGate @argvDocPinDrift }
 if ($runsDocScriptReferences) { Start-PooledGate @argvDocScriptRefs }
 if ($runsDocHouseStyle) { Start-PooledGate @argvDocHouseStyle }
 if ($runsMemoryBudgetGate) { Start-PooledGate @argvMemoryBudget }
+if ($runsAlwaysLoadedBudget) { Start-PooledGate @argvAlwaysLoadedBudget }
 if ($runsBaselineAbsorptionGate) { Start-PooledGate @argvBaselineAbsorption }
 if ($runsBaselineSplitSyncGate) { Start-PooledGate @argvBaselineSplitSync }
 
@@ -1045,6 +1053,13 @@ if ($runsMemoryBudgetGate) {
 }
 else {
     Skip-Step "memory-budget-gate" "not applicable - no changed file lives under .claude/agent-memory"
+}
+
+if ($runsAlwaysLoadedBudget) {
+    Invoke-Gate "always-loaded-budget-gate" { Invoke-GateChild @argvAlwaysLoadedBudget }
+}
+else {
+    Skip-Step "always-loaded-budget-gate" "not applicable - no changed file is injected into every request"
 }
 
 # S1356: fatal, never advisory. The whole defect was that absorbing another ticket's debt produced
@@ -1531,10 +1546,17 @@ else {
 # S1639: FATAL rather than advisory. The registry beside the gate already carries every finding the tree
 # holds today, so a failure here is new by construction and belongs to the change being closed.
 if ($runsCtorSlotGate) {
-    # Deliberately project-wide even under -ScopeToFile: the count is a property of the whole class, so
-    # a one-line addition in the changed file is judged against every parameter the class already has.
+    # The count is a property of the whole CLASS, so a one-line addition must still be judged against
+    # every parameter the class already has - which is why this used to run project-wide under
+    # -ScopeToFile as well. S2537: the scoped run reads each named file WHOLE, so that requirement is
+    # met without walking both source trees. What a scoped run gives up is a class in a file this
+    # change did not touch, and a constructor in an untouched file has not grown. Measured 2026-09-04:
+    # 3.51 s project-wide against 0.10 s for one changed Kotlin file and 0.06 s for a set with none,
+    # same verdict, over 344 closures that had found nothing in the whole journal window.
     Invoke-Gate "ctor-arg-slots-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-ctor-arg-slots.ps1") -Gate -Quiet
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-ctor-arg-slots.ps1"), '-Gate', '-Quiet')
+        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
     }
 }
 else {
@@ -1586,6 +1608,12 @@ if ($runsResourceLinkGate) {
     $resourceLinkPaths = @($normChangedFiles | Where-Object { $_ -match '(^|/)src/.*\.xml$' })
     $resourceLinkResolution = Resolve-GradleModulesForPaths -Path $resourceLinkPaths
     Write-Host "  resource-link: module(s) $($resourceLinkResolution.Modules -join ', ')" -ForegroundColor DarkGray
+    # S1915, and S2517 moved the reasoning here off the always-loaded rules page: the validation
+    # ladder's layout/manifest rung says "target build passes", and until this gate existed the
+    # closure only ASKED for that rung instead of running it. S1881 is the incident - a layout
+    # change closed green on `fk`, which compiles Kotlin and links nothing, and the aapt error
+    # surfaced later in someone else's build. Nothing else in this facade runs aapt. Measured cost
+    # 1.9-41.8 s per flavor, all foreground (docs/BUILD_TEST_FAST_PATH.md).
     Invoke-Gate "resource-link-gate" {
         # Refuse rather than guess a task name. Guessing ends one of two ways - gradle fails to find
         # the task and reports it worse than this line does, or the task happens to exist and the

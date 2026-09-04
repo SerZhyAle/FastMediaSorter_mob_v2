@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkCapabilities
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
@@ -47,6 +48,7 @@ enum class WearFactKind {
  * @param sections the list of sections available on this watch.
  * @param capabilities hardware capabilities of the watch.
  * @param sectionFacts live short fact per section, named and not yet worded.
+ * @param viewMode preferred layout column configuration (LIST, GRID_2, GRID_3).
  * @param history the readings taken during this visit, newest last.
  * @param signalHistory the Wi-Fi signal window, oldest first, cleared by the section's own action.
  * @param externalIp the address the watch is seen under from outside, null until it answers.
@@ -57,6 +59,7 @@ data class NetworkMonitorUiState(
     val capabilities: WearNetworkCapabilities? = null,
     val snapshot: WearNetworkSnapshot? = null,
     val sectionFacts: Map<WearNetworkSection, WearSectionFact> = emptyMap(),
+    val viewMode: WearViewMode = WearViewMode.LIST,
     val permissionsMissing: Boolean = false,
     val history: List<WearNetworkSnapshot> = emptyList(),
     val signalHistory: List<Int> = emptyList(),

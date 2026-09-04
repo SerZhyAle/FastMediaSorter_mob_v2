@@ -15,6 +15,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.ScalingParams
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 /**
  * Creates and remembers a [ScalingLazyListState] for use with [WearListColumn].
@@ -22,9 +23,16 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
  * Contract: [rememberWearListState] and [WearListColumn] are taken together as a pair.
  * The returned state should be passed to [WearListColumn] and, where applicable, forwarded
  * to the screen scaffold (`WearScreenScaffold`) and position indicator unchanged.
+ *
+ * @param initialItemIndex initial anchor item index (S2466). Default is 0. Screens with a leading title
+ * item (such as origin home screens, apps, file lists, settings, etc.) pass 1 so the list opens
+ * with the first data row at the top edge ("start on second row"), leaving the title accessible by scrolling up.
  */
 @Composable
-fun rememberWearListState(): ScalingLazyListState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+fun rememberWearListState(initialItemIndex: Int = 0): ScalingLazyListState {
+    Timber.d("S2466: rememberWearListState initialItemIndex=%d", initialItemIndex)
+    return rememberScalingLazyListState(initialCenterItemIndex = initialItemIndex)
+}
 
 /**
  * Default content padding for [WearListColumn], augmenting [wearScreenInsets] with extra

@@ -3043,6 +3043,7 @@
     <string name="calculator_keypad_mode_large">مفاتيح كبيرة</string>
     <string name="calculator_keypad_mode_compact">المدمجة، أسفل اليمين</string>
     <string name="wear_background_mode_animation">الرسوم المتحركة ذات العلامات التجارية</string>
+    <string name="wear_background_mode_still">خلفية العلامة التجارية الثابتة</string>
     <string name="wear_background_mode_image">صورتك</string>
     <string name="wear_background_pick_image">اختر الصورة</string>
     <string name="wear_background_preview">معاينة خلفية الساعة</string>

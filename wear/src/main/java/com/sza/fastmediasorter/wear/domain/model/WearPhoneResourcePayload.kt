@@ -92,3 +92,13 @@ data class WearPhoneResourcePage(
     val items: List<WearPhoneResourceItem> = emptyList(),
     val nextPageToken: String? = null
 )
+
+/**
+ * S2476: returns the file name without extension for compact display on watch screens.
+ */
+val WearPhoneResourceItem.displayName: String
+    get() {
+        if (isDirectory) return name
+        val dot = name.lastIndexOf('.')
+        return if (dot > 0) name.substring(0, dot) else name
+    }

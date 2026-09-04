@@ -3045,6 +3045,7 @@
     <string name="calculator_keypad_mode_large">Große Schlüssel</string>
     <string name="calculator_keypad_mode_compact">Kompakt, unten rechts</string>
     <string name="wear_background_mode_animation">Branded animation</string>
+    <string name="wear_background_mode_still">Statischer Marken-Hintergrund</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>
     <string name="wear_background_preview">Preview of the watch background</string>

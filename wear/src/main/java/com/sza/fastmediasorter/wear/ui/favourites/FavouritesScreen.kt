@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.favourites
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,7 +25,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
-import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
@@ -40,11 +36,11 @@ import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
-import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
 import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -78,7 +74,8 @@ fun FavouritesScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val viewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
+    val listState = rememberWearListState(initialItemIndex = 1)
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
@@ -126,28 +123,77 @@ fun FavouritesScreen(
                 onBack = { navController.popBackStack() }
             )
 
-            is FavouritesUiState.Content -> FavouritesList(
-                unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable,
-                records = current.records,
-                listState = listState,
-                viewMode = viewMode,
-                onOpen = viewModel::open,
-                onUnmark = viewModel::unmark,
-                onLongPress = { record -> actionRecord = record }
+            is FavouritesUiState.Content -> {
+                val unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+                    WearListColumn(modifier = Modifier.fillMaxSize(), state = listState) {
+                        favouritesHeader(unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable)
+                        recordItems(
+                            records = current.records,
+                            columns = columns,
+                            thumbnails = thumbnails,
+                            onRequestThumbnail = viewModel::requestThumbnail,
+                            onOpen = viewModel::open,
+                            onUnmark = viewModel::unmark,
+                            onLongPress = { record -> actionRecord = record }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    FavouriteDialogs(
+        viewModel = viewModel,
+        actionRecord = actionRecord,
+        onCloseAction = { actionRecord = null },
+        onRenameRequested = { record ->
+            renameRecord.value = record
+            requestRename(record.displayName)
+        }
+    )
+}
+
+private fun ScalingLazyListScope.favouritesHeader(unopenableNotice: Boolean) {
+    item {
+        Text(
+            text = stringResource(R.string.wear_section_favourites),
+            style = MaterialTheme.typography.title3,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    if (unopenableNotice) {
+        item {
+            Text(
+                text = stringResource(R.string.wear_favourites_unopenable),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.error,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                textAlign = TextAlign.Center
             )
         }
     }
+}
+
+@Composable
+private fun FavouriteDialogs(
+    viewModel: FavouritesViewModel,
+    actionRecord: WearFavoriteRecord?,
+    onCloseAction: () -> Unit,
+    onRenameRequested: (WearFavoriteRecord) -> Unit
+) {
+    var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    var sendToRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
 
     actionRecord?.let { record ->
         FavouriteActionsMenu(
             record = record,
             viewModel = viewModel,
-            onClose = { actionRecord = null },
+            onClose = onCloseAction,
             onDelete = { deleteRecord = record },
-            onRename = {
-                renameRecord.value = record
-                requestRename()
-            },
+            onRename = { onRenameRequested(record) },
             onSendTo = { sendToRecord = record }
         )
     }
@@ -218,72 +264,22 @@ private fun FavouriteActionsMenu(
     )
 }
 
-@Composable
-private fun FavouritesList(
-    unopenableNotice: Boolean,
-    records: List<WearFavoriteRecord>,
-    listState: ScalingLazyListState,
-    viewMode: WearViewMode,
-    onOpen: (WearFavoriteRecord) -> Unit,
-    onUnmark: (WearFavoriteRecord) -> Unit,
-    onLongPress: (WearFavoriteRecord) -> Unit
-) {
-    // The column count comes from the width this composable actually gets, exactly as both other file
-    // lists decide it - the geometry question has one answer in this app, not three.
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        WearListColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_section_favourites),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            if (unopenableNotice) {
-                item {
-                    Text(
-                        text = stringResource(R.string.wear_favourites_unopenable),
-                        style = MaterialTheme.typography.caption2,
-                        color = MaterialTheme.colors.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            recordItems(
-                records = records,
-                columns = columns,
-                onOpen = onOpen,
-                onUnmark = onUnmark,
-                onLongPress = onLongPress
-            )
-        }
-    }
-}
-
 /** One column keeps the chip; more than one draws the cell both other watch file lists use. */
 private fun ScalingLazyListScope.recordItems(
     records: List<WearFavoriteRecord>,
     columns: Int,
+    thumbnails: Map<String, WearThumbnail>,
+    onRequestThumbnail: (WearFavoriteRecord) -> Unit,
     onOpen: (WearFavoriteRecord) -> Unit,
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(records) { record ->
+            onRequestThumbnail(record)
             FavouriteChip(
                 record = record,
+                thumbnail = thumbnails[record.identity] ?: WearThumbnail.Unavailable,
                 onOpen = onOpen,
                 onUnmark = onUnmark,
                 onLongPress = onLongPress
@@ -291,13 +287,15 @@ private fun ScalingLazyListScope.recordItems(
         }
     } else {
         items(records.chunked(columns)) { rowRecords ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+            CenteredGridRow(
+                columns = columns,
+                itemCount = rowRecords.size,
+                gap = GRID_GAP
             ) {
                 rowRecords.forEach { record ->
+                    onRequestThumbnail(record)
                     ThumbnailCell(
-                        thumbnail = WearThumbnail.Unavailable,
+                        thumbnail = thumbnails[record.identity] ?: WearThumbnail.Unavailable,
                         caption = record.displayName,
                         onClick = { onOpen(record) },
                         modifier = Modifier.weight(1f),
@@ -314,9 +312,6 @@ private fun ScalingLazyListScope.recordItems(
                         )
                     }
                 }
-                repeat(columns - rowRecords.size) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
             }
         }
     }
@@ -325,26 +320,29 @@ private fun ScalingLazyListScope.recordItems(
 @Composable
 private fun FavouriteChip(
     record: WearFavoriteRecord,
+    thumbnail: WearThumbnail,
     onOpen: (WearFavoriteRecord) -> Unit,
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
-    LongPressChip(
+    SingleColumnTileCell(
+        thumbnail = thumbnail,
+        caption = record.displayName,
         onClick = { onOpen(record) },
         onLongClick = { onLongPress(record) },
-        label = { Text(text = record.displayName) },
-        secondaryLabel = if (record.mimeType == null) {
-            { Text(text = stringResource(R.string.wear_favourites_unopenable)) }
+        secondaryText = if (record.mimeType == null) {
+            stringResource(R.string.wear_favourites_unopenable)
         } else {
             null
         },
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 imageVector = record.icon(),
-                contentDescription = null
+                contentDescription = null,
+                modifier = glyphModifier,
+                tint = MaterialTheme.colors.onSurfaceVariant
             )
-        },
-        modifier = Modifier.fillMaxWidth()
+        }
     )
     Chip(
         onClick = { onUnmark(record) },

@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
@@ -55,6 +56,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
 
         val SLIDESHOW_ENABLED = booleanPreferencesKey("wear_slideshow_enabled")
         val SLIDESHOW_INTERVAL = intPreferencesKey("wear_slideshow_interval_seconds")
+        val PANEL_AUTO_HIDE_SECONDS = intPreferencesKey("wear_panel_auto_hide_seconds")
 
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
         val WEAR_DISABLE_ANIMATIONS = booleanPreferencesKey("wear_disable_animations")
@@ -187,6 +189,16 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setSlideshowIntervalSeconds(seconds: Int) {
         stampedEdit("slideshowIntervalSeconds") { prefs ->
             prefs[PreferencesKeys.SLIDESHOW_INTERVAL] = seconds
+        }
+    }
+
+    override val panelAutoHideSeconds: Flow<Int> = context.dataStore.data.map { prefs ->
+        prefs[PreferencesKeys.PANEL_AUTO_HIDE_SECONDS] ?: 15
+    }
+
+    override suspend fun setPanelAutoHideSeconds(seconds: Int) {
+        stampedEdit("panelAutoHideSeconds") { prefs ->
+            prefs[PreferencesKeys.PANEL_AUTO_HIDE_SECONDS] = seconds
         }
     }
 
@@ -390,12 +402,22 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         return if (id == null || name == null) emptyList() else listOf(LastUsedResource(id, name))
     }
 
-    override suspend fun setLastUsedResource(id: String, name: String) {
+    override suspend fun setLastUsedResource(id: String, name: String) =
+        pushLastUsed(LastUsedResource(id, name, LastUsedKind.RESOURCE))
+
+    override suspend fun setLastUsedStream(normalizedUrl: String, name: String) =
+        pushLastUsed(LastUsedResource(normalizedUrl, name, LastUsedKind.STREAM))
+
+    /**
+     * S2499: one body for both kinds, so the legacy fallback and the complication refresh cannot end
+     * up applying to a folder and not to a channel.
+     */
+    private suspend fun pushLastUsed(entry: LastUsedResource) {
         context.dataStore.edit { prefs ->
             val current = prefs[PreferencesKeys.LAST_USED_RESOURCES]
                 ?.let { LastUsedResourceHistory.decode(it) }
                 ?: legacyLastUsedResource(prefs)
-            val pushed = LastUsedResourceHistory.push(current, LastUsedResource(id, name))
+            val pushed = LastUsedResourceHistory.push(current, entry)
             prefs[PreferencesKeys.LAST_USED_RESOURCES] = LastUsedResourceHistory.encode(pushed)
         }
         requestWearComplicationRefreshUseCase?.invoke(WearComplicationKind.LAST_RESOURCE)

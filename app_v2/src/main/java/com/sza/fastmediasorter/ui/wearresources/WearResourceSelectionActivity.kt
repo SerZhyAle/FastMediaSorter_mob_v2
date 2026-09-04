@@ -9,6 +9,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityWearResourceSelectionBinding
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -20,9 +21,10 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
 
     private val viewModel: WearResourceSelectionViewModel by viewModels()
 
-    private val adapter = WearResourceSelectionAdapter { resource, selected ->
-        viewModel.setSelected(resource.id, selected)
-    }
+    private val adapter = WearResourceSelectionAdapter(
+        onCategoryToggle = { category -> viewModel.toggleCategoryExpanded(category) },
+        onSelectionChanged = { resource, selected -> viewModel.setSelected(resource.id, selected) }
+    )
 
     /** S0289: multimodal surface marker - the picker is reached from the settings host. */
     @Suppress("unused")
@@ -47,7 +49,8 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.uiState.collect { state ->
-                    adapter.submitList(state.resources)
+                    val items = buildAdapterItems(state)
+                    adapter.submitList(items)
                     adapter.setSelectedIds(state.selectedIds)
                     val empty = state.isLoaded && state.resources.isEmpty()
                     binding.tvEmpty.isVisible = empty
@@ -56,6 +59,36 @@ class WearResourceSelectionActivity : BaseActivity<ActivityWearResourceSelection
                 }
             }
         }
+    }
+
+    private fun buildAdapterItems(state: WearResourceSelectionUiState): List<WearResourceAdapterItem> {
+        val result = mutableListOf<WearResourceAdapterItem>()
+        val categories = listOf(
+            ResourceCategory.VIRTUAL to R.string.wear_resource_group_virtual,
+            ResourceCategory.INTERNAL to R.string.wear_resource_group_internal,
+            ResourceCategory.EXTERNAL to R.string.wear_resource_group_external
+        )
+
+        for ((category, titleRes) in categories) {
+            val groupResources = state.resources.filter { it.getResourceCategory() == category }
+            if (groupResources.isNotEmpty()) {
+                val isExpanded = category in state.expandedCategories
+                result.add(
+                    WearResourceAdapterItem.Header(
+                        category = category,
+                        titleRes = titleRes,
+                        isExpanded = isExpanded,
+                        count = groupResources.size
+                    )
+                )
+                if (isExpanded) {
+                    groupResources.forEach { resource ->
+                        result.add(WearResourceAdapterItem.ResourceRow(resource))
+                    }
+                }
+            }
+        }
+        return result
     }
 
     override fun getInitialFocusView(): View? =

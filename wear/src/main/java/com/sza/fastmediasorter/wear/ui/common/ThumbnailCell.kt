@@ -176,7 +176,7 @@ private fun CaptionOverlay(caption: String, maxLines: Int) {
  * flash a spinner per item while a folder resolves, and the icon is already the honest placeholder.
  */
 @Composable
-private fun CellPicture(
+internal fun CellPicture(
     thumbnail: WearThumbnail,
     fallback: @Composable (Modifier) -> Unit
 ) {

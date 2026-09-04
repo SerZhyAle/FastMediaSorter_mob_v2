@@ -20,6 +20,9 @@ data class SettingsUiState(
     // Slideshow
     val isSlideshowEnabled: Boolean = false,
     val slideshowIntervalSeconds: Int = 5,
+
+    /** S2505: player panel auto-hide duration in seconds. */
+    val panelAutoHideSeconds: Int = 15,
     
     // Album art
     val downloadAlbumArt: Boolean = false,

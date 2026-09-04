@@ -12,6 +12,13 @@
 
     Behaviour, baseline file and exit codes are identical to the standalone version.
 
+    THIS FILE BEING IN NO RUNNER DOES NOT MEAN THE RULE IS UNGATED (S2517 moved this note here
+    from the always-loaded rules page, because this file is where the mistake is made). Every
+    closure judges the rule through the `neuroslop-gate` umbrella in scripts/post-change.ps1:
+    assert-neuroslop.ps1 forwards to assert-source-gates.ps1 with no -Only filter, so all two
+    dozen lexical dimensions are judged, not just the neuroslop nine. On 2026-08-22 an audit
+    read this file's absence from the runner list as the rule being unenforced, and was wrong.
+
 .NOTES
     Exit codes: 0 at or below baseline, 1 above baseline under -Gate, 2 cannot verify.
 #>

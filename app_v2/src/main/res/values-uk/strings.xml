@@ -3450,6 +3450,7 @@
     <string name="calculator_keypad_mode_large">Великі кнопки</string>
     <string name="calculator_keypad_mode_compact">Компактна, справа внизу</string>
     <string name="wear_background_mode_animation">Фірмова анімація</string>
+    <string name="wear_background_mode_still">Нерухомий фірмовий фон</string>
     <string name="wear_background_mode_image">Власне зображення</string>
     <string name="wear_background_pick_image">Вибрати зображення</string>
     <string name="wear_background_preview">Попередній перегляд фону на годиннику</string>
@@ -3651,4 +3652,11 @@
     <string name="wear_settings_watch_version">Програма на годиннику: %1$s</string>
     <string name="wear_settings_watch_version_unknown">Програма на годиннику: версія невідома</string>
     <string name="wear_settings_watch_version_mismatch">На годиннику: %1$s, на телефоні: %2$s</string>
+    <string name="wear_resource_group_virtual">Віртуальні ресурси</string>
+    <string name="wear_resource_group_internal">Внутрішні ресурси</string>
+    <string name="wear_resource_group_external">Зовнішні ресурси</string>
+    <string name="wear_sync_now">Синхронізувати</string>
+    <string name="wear_sync_now_description">Синхронізувати годинник і телефон</string>
+    <string name="player_panel_auto_hide_seconds">Автоприховування панелі плеєра (сек)</string>
+    <string name="wear_settings_panel_auto_hide">Автоприховування панелі плеєра (сек)</string>
 </resources>

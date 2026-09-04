@@ -116,6 +116,7 @@ class WearSettingsPayloadDecoderTest {
             "documentsEnabled" to "true",
             "disableAnimations" to "false",
             "backgroundPlaybackEnabled" to "true",
+            "panelAutoHideSeconds" to "15",
             "appVersionName" to "\"2.60.8250.134\"",
             "fieldTimestamps" to "{\"audioEnabled\":1}",
             "capabilities" to "{\"autoRotationSensor\":true}"

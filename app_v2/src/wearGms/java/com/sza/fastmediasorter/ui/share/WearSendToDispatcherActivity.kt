@@ -10,7 +10,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.share.helpers.WearSendToErrandManager
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -42,7 +41,6 @@ class WearSendToDispatcherActivity : AppCompatActivity() {
             finish()
             return
         }
-        Timber.d("S2142: watch send-to errand tapped on the phone, receiver=%s", receiverId)
         lifecycleScope.launch {
             val sent = errandManager.run(this@WearSendToDispatcherActivity, savedPath, receiverId)
             if (!sent) {

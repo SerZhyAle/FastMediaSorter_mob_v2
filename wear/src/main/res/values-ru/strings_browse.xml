@@ -5,4 +5,8 @@
     <string name="browse_network_source_not_found">Этот сетевой источник больше недоступен. Вернитесь и выберите другой.</string>
     <string name="browse_network_connection_failed">Не удалось подключиться к источнику. Проверьте соединение и повторите.</string>
     <string name="browse_load_failed">Не удалось загрузить файлы. Повторите попытку.</string>
+    <string name="browse_network_error_refused">Подключение отклонено. Проверьте, раздаёт ли компьютер файлы.</string>
+    <string name="browse_network_error_timeout">Нет ответа. Проверьте сеть и попробуйте снова.</string>
+    <string name="browse_network_error_auth">Неверный логин или пароль. Обновите ресурс на телефоне.</string>
+    <string name="browse_network_error_unknown_host">Компьютер не найден в этой сети. Проверьте подключение к Wi-Fi.</string>
 </resources>

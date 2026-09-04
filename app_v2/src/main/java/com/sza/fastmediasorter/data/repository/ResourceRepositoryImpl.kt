@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.data.repository
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ResourceEntity
+import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
 import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -35,7 +36,9 @@ class ResourceRepositoryImpl @Inject constructor(
     private val storageVolumeRepository: StorageVolumeRepository,
     // S1861: the interface, so this class in src/main stays free of a build-variant check - the
     // flavors with no Wear companion bind the inert wearStub twin instead.
-    private val wearWatchMediaScanner: WearWatchMediaScanner
+    private val wearWatchMediaScanner: WearWatchMediaScanner,
+    // S2502: records when each resource was last edited, which is what the watch exchange ranks by.
+    private val wearResourceStampStore: WearResourceStampStore
 ) : ResourceRepository {
 
     override fun getAllResources(): Flow<List<MediaResource>> {
@@ -299,14 +302,22 @@ class ResourceRepositoryImpl @Inject constructor(
         }
     }
     
+    // S2502: the repository is the single point every resource edit passes through, so stamping here
+    // covers every screen, dialog and bulk operation without enumerating them - and no later surface
+    // can add an untracked edit path. The watch importer overwrites this stamp with the merged one
+    // immediately after its own write, so the unconditional stamp is deliberate, not an oversight.
     override suspend fun addResource(resource: MediaResource): Long {
-        return resourceDao.insert(resource.toEntity())
+        val id = resourceDao.insert(resource.toEntity())
+        wearResourceStampStore.stampEdit(id.toString())
+        Timber.d("S2502: phone edit stamped for resource $id")
+        return id
     }
-    
+
     override suspend fun updateResource(resource: MediaResource) {
         val entity = resource.toEntity().withStoredAvailabilityIfVolumeBound()
         Timber.d("🔶 SORT_DEBUG Repository.updateResource: id=${entity.id}, name=${entity.name}, sortMode=${entity.sortMode}, displayMode=${entity.displayMode}")
         resourceDao.update(entity)
+        wearResourceStampStore.stampEdit(entity.id.toString())
         Timber.d("🔶 SORT_DEBUG Repository.updateResource: COMPLETED for id=${entity.id}, sortMode=${entity.sortMode}")
     }
     
@@ -326,6 +337,9 @@ class ResourceRepositoryImpl @Inject constructor(
     
     override suspend fun deleteResource(resourceId: Long) {
         resourceDao.deleteById(resourceId)
+        // S2502: a stamp whose resource is gone would otherwise sit in the map for the life of the
+        // install, and a reused row id would inherit an edit time that belongs to something else.
+        wearResourceStampStore.forget(resourceId.toString())
     }
 
     override suspend fun deleteResourceIfHidden(resourceId: Long) {

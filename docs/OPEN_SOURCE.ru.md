@@ -31,6 +31,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | Jetpack Compose UI | `androidx.compose.ui:ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Jetpack Compose UI Graphics | `androidx.compose.ui:ui-graphics` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Jetpack Compose UI Tooling Preview | `androidx.compose.ui:ui-tooling-preview` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Concurrent Futures KTX | `androidx.concurrent:concurrent-futures-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX ConstraintLayout | `androidx.constraintlayout:constraintlayout` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/androidx/constraintlayout) |
 | AndroidX Core KTX | `androidx.core:core-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Credentials | `androidx.credentials:credentials` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -70,6 +71,7 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX ViewPager2 | `androidx.viewpager2:viewpager2` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Wear | `androidx.wear:wear` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Wear Input | `androidx.wear:wear-input` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Wear Remote Interactions | `androidx.wear:wear-remote-interactions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Wear Compose Foundation | `androidx.wear.compose:compose-foundation` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Wear Compose Material | `androidx.wear.compose:compose-material` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | Wear Compose Navigation | `androidx.wear.compose:compose-navigation` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |

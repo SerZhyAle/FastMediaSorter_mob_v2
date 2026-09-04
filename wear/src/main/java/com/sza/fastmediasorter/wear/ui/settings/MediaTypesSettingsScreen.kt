@@ -39,7 +39,7 @@ private val TITLE_BOTTOM_PADDING = 8.dp
 @Composable
 fun MediaTypesSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -54,8 +54,7 @@ fun MediaTypesSettingsScreen(
             label = stringResource(settingsLabelFor(type)),
             onToggle = { viewModel.toggleType(type) }
         )
-    }
-    val sectionToggles = listOf(
+    } + listOf(
         mediaTypeItem(
             checked = uiState.streamsSectionEnabled,
             label = stringResource(R.string.wear_streams_section_enabled),
@@ -76,10 +75,6 @@ fun MediaTypesSettingsScreen(
             ) {
                 item { SettingsHeading(R.string.media_types) }
                 items(packSettingsRows(typeToggles, columns)) { row ->
-                    WearSettingsRow(row)
-                }
-                item { SettingsHeading(R.string.wear_settings_sections) }
-                items(packSettingsRows(sectionToggles, columns)) { row ->
                     WearSettingsRow(row)
                 }
             }
@@ -116,11 +111,10 @@ private fun mediaTypeItem(
     checked: Boolean,
     label: String,
     onToggle: () -> Unit
-): WearSettingsItem = WearSettingsItem { narrow ->
+): WearSettingsItem = WearSettingsItem { _ ->
     WearSettingsToggleCell(
         label = label,
         checked = checked,
-        narrow = narrow,
         onToggle = onToggle
     )
 }

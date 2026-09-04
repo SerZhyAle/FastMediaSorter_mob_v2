@@ -6,6 +6,7 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
@@ -20,10 +21,15 @@ import javax.inject.Inject
 
 private const val CONNECT_TIMEOUT_MS = 30_000
 
-class SftpDataSource @Inject constructor() {
+class SftpDataSource @Inject constructor(
+    private val endpointResolver: WearEndpointResolver
+) {
 
-    suspend fun listDirectory(source: NetworkSource, path: String): List<WearMediaFile> =
+    suspend fun listDirectory(sourceIn: NetworkSource, path: String): List<WearMediaFile> =
         withContext(Dispatchers.IO) {
+            // S2488: the address group is narrowed to the one answering now before anything is opened,
+            // and the resolved copy is what the URI below is built from.
+            val source = endpointResolver.resolve(sourceIn)
             var session: Session? = null
             var channel: ChannelSftp? = null
             try {
@@ -57,8 +63,9 @@ class SftpDataSource @Inject constructor() {
      * Open a file for reading. The caller owns the returned stream and closes it; the channel and
      * the session are torn down with it.
      */
-    suspend fun getFileStream(source: NetworkSource, path: String): Result<InputStream> =
+    suspend fun getFileStream(sourceIn: NetworkSource, path: String): Result<InputStream> =
         withContext(Dispatchers.IO) {
+            val source = endpointResolver.resolve(sourceIn)
             var session: Session? = null
             var channel: ChannelSftp? = null
             try {

@@ -1,10 +1,13 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.first
@@ -27,6 +30,12 @@ class ResolveLastUsedResourceUseCaseTest {
 
     private val preferences: WearPreferencesRepository = mockk()
     private val sources: NetworkSourceRepository = mockk()
+
+    // S2499: empty by default, so every case written before the channel store existed still describes
+    // a watch with no channels rather than a watch whose channel store was never asked.
+    private val channels: WearStreamChannelRepository = mockk {
+        every { observeChannels() } returns flowOf(emptyList())
+    }
 
     @Test
     fun `a remembered source that is still listed resolves to itself`() {
@@ -91,8 +100,63 @@ class ResolveLastUsedResourceUseCaseTest {
         }
     }
 
+    @Test
+    fun `a remembered channel that is still catalogued resolves to itself`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel()))
+            every { sources.observeSources() } returns flowOf(emptyList())
+            every { channels.observeChannels() } returns flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME)))
+
+            assertEquals(listOf(rememberedChannel()), useCase().first())
+        }
+    }
+
+    @Test
+    fun `a channel takes the caption the catalog carries now`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel(name = "old name")))
+            every { sources.observeSources() } returns flowOf(emptyList())
+            every { channels.observeChannels() } returns flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME)))
+
+            assertEquals(CHANNEL_NAME, useCase().first().single().name)
+        }
+    }
+
+    @Test
+    fun `a channel the catalog no longer lists is dropped`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel()))
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID)))
+            every { channels.observeChannels() } returns flowOf(listOf(channel(OTHER_URL, OTHER_CHANNEL_NAME)))
+
+            assertTrue(useCase().first().isEmpty())
+        }
+    }
+
+    @Test
+    fun `a channel and a resource resolve together in the stored order`() {
+        runTest {
+            val remembered = listOf(rememberedChannel(), LastUsedResource(SOURCE_ID, SOURCE_NAME))
+            every { preferences.lastUsedResources } returns flowOf(remembered)
+            every { sources.observeSources() } returns flowOf(listOf(source(SOURCE_ID)))
+            every { channels.observeChannels() } returns flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME)))
+
+            assertEquals(remembered, useCase().first())
+        }
+    }
+
     // A property, not a function: `useCase()` has to reach the use case's own invoke operator.
-    private val useCase get() = ResolveLastUsedResourceUseCase(preferences, sources)
+    private val useCase get() = ResolveLastUsedResourceUseCase(preferences, sources, channels)
+
+    private fun rememberedChannel(name: String = CHANNEL_NAME) =
+        LastUsedResource(CHANNEL_URL, name, LastUsedKind.STREAM)
+
+    private fun channel(url: String, name: String) = WearStreamChannel(
+        id = "ch-1",
+        name = name,
+        url = url,
+        mediaKind = "AUDIO"
+    )
 
     private fun source(id: String, iconId: String? = null) = NetworkSource(
         id = id,
@@ -111,5 +175,11 @@ class ResolveLastUsedResourceUseCaseTest {
         const val OTHER_NAME = "Studio"
         const val ICON_ID = "ico-02-007"
         const val OTHER_ICON_ID = "ico-04-011"
+
+        // Already in the spelling `normalizeWearStreamUrl` produces, which is what the store holds.
+        const val CHANNEL_URL = "https://radio.example/stream"
+        const val OTHER_URL = "https://other.example/stream"
+        const val CHANNEL_NAME = "Jazz FM"
+        const val OTHER_CHANNEL_NAME = "Talk FM"
     }
 }

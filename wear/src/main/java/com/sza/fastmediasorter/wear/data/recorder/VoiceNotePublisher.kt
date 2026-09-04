@@ -13,6 +13,11 @@ import timber.log.Timber
 import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
+import java.text.DateFormat
+import java.text.ParseException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -64,8 +69,10 @@ class VoiceNotePublisher(
     }
 
     private fun insertPendingRow(file: File, sdkInt: Int): Uri? {
+        Timber.d("S2495: publishing %s with title %s", file.name, readableTitle(file))
         val initialValues = ContentValues().apply {
             put(MediaStore.Audio.Media.DISPLAY_NAME, file.name)
+            put(MediaStore.Audio.Media.TITLE, readableTitle(file))
             put(MediaStore.Audio.Media.MIME_TYPE, mimeTypeOf(file.name) ?: DEFAULT_MIME_TYPE)
             put(MediaStore.Audio.Media.RELATIVE_PATH, recordingsRelativePath(sdkInt))
             put(MediaStore.Audio.Media.IS_PENDING, 1)
@@ -146,6 +153,34 @@ class VoiceNotePublisher(
     companion object {
         const val DIRECTORY_RECORDINGS_CANONICAL = "Recordings"
         private const val DEFAULT_MIME_TYPE = "audio/mp4"
+
+        /** Mirrors `VoiceNoteFileFactory.DATE_TIME_PATTERN` - the two classes share no artifact. */
+        private const val FILE_NAME_TIME_PATTERN = "yyMMdd_HHmmss"
+
+        /** The stamp `VoiceNoteFileFactory` writes, whether or not a collision ordinal follows it. */
+        private val FILE_NAME_STAMP = Regex("""_(\d{6}_\d{6})""")
+
+        /**
+         * S2495: a row inserted without a title gets one derived from the file name, so every player
+         * on the watch and on the phone reads a recording as `audio_260903_155943`. The recording
+         * time is taken from the stamp the file factory wrote, and only from the file's own clock
+         * when that stamp is missing or unreadable - a file renamed by hand still has to publish.
+         */
+        fun readableTitle(file: File): String = DateFormat
+            .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
+            .format(Date(recordedAtMillis(file)))
+
+        private fun recordedAtMillis(file: File): Long {
+            val stamp = FILE_NAME_STAMP.find(file.name)?.groupValues?.get(1)
+                ?: return file.lastModified()
+            return try {
+                SimpleDateFormat(FILE_NAME_TIME_PATTERN, Locale.US).parse(stamp)?.time
+                    ?: file.lastModified()
+            } catch (e: ParseException) {
+                Timber.w(e, "VoiceNotePublisher: unreadable timestamp in %s", file.name)
+                file.lastModified()
+            }
+        }
 
         fun recordingsDirectoryName(sdkInt: Int): String {
             if (sdkInt < Build.VERSION_CODES.S) return DIRECTORY_RECORDINGS_CANONICAL

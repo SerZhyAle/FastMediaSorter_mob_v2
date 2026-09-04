@@ -33,6 +33,7 @@ class ResolveWearBackgroundUseCase @Inject constructor(
     private suspend fun resolve(mode: WearBackgroundMode): WearBackground {
         val resolved = when (mode) {
             WearBackgroundMode.BRANDED_ANIMATION -> WearBackground.BrandedAnimation
+            WearBackgroundMode.BRANDED_STILL -> WearBackground.BrandedStill
             WearBackgroundMode.IMAGE -> deliveredFrame() ?: WearBackground.BrandedAnimation
         }
         return resolved

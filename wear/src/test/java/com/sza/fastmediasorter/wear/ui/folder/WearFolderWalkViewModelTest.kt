@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.folder
 
 import androidx.lifecycle.SavedStateHandle
+import io.mockk.mockk
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
 import com.sza.fastmediasorter.wear.domain.model.WearFolderPage
@@ -67,7 +68,7 @@ class WearFolderWalkViewModelTest {
     )
 
     private fun viewModel(repository: WearLocalFolderRepository) =
-        WearFolderWalkViewModel(repository, SavedStateHandle())
+        WearFolderWalkViewModel(repository, mockk(relaxed = true), SavedStateHandle())
 
     @Before
     fun setUp() {

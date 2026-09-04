@@ -30,6 +30,21 @@
 
         # ---- Mirrored: the same control, and it must read the same on both sides ----
 
+        # S2484: one action, one glyph, one wording. The whole point of the unified sync control is
+        # that the owner recognizes the same thing on the phone and on the watch, so these two are
+        # the case Mirrored exists for - a divergence here would undo the ticket.
+        @{
+            Phone  = 'wear_sync_now'
+            Watch  = 'wear_sync_now'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_sync_now_description'
+            Watch  = 'wear_sync_now_description'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
         @{
             Phone  = 'wear_settings_sync_button'
             Watch  = 'wear_settings_sync_button'
@@ -376,12 +391,6 @@
         @{
             Phone  = 'wear_settings_group_other'
             Watch  = 'settings_group_other'
-            Mode   = 'Mirrored'
-            Reason = ''
-        },
-        @{
-            Phone  = 'wear_settings_group_sections'
-            Watch  = 'wear_settings_sections'
             Mode   = 'Mirrored'
             Reason = ''
         },

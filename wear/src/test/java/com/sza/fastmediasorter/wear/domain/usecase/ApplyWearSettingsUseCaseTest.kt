@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLanguageCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
@@ -238,6 +239,16 @@ class ApplyWearSettingsUseCaseTest {
     }
 
     @Test
+    fun `a payload carrying panelAutoHideSeconds applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository)
+
+        useCase(payloadWithoutNewFields().copy(panelAutoHideSeconds = 30))
+
+        assertEquals(30, repository.panelAutoHideSecondsValue)
+    }
+
+    @Test
     fun `an unknown background mode name falls back to the branded animation`() {
         assertEquals(
             WearBackgroundMode.BRANDED_ANIMATION,
@@ -426,6 +437,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var browseContentTypesValue: Set<WearContentType> = emptySet()
     var browseSortOrderValue: BrowseSortOrder = BrowseSortOrder.DEFAULT
     var animationsDisabledValue = false
+    var panelAutoHideSecondsValue = 15
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -433,6 +445,7 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val isDocumentsEnabled: Flow<Boolean> = MutableStateFlow(documentsEnabled)
     override val isSlideshowEnabled: Flow<Boolean> = MutableStateFlow(slideshowEnabled)
     override val slideshowIntervalSeconds: Flow<Int> = MutableStateFlow(slideshowIntervalSecondsValue)
+    override val panelAutoHideSeconds: Flow<Int> = MutableStateFlow(panelAutoHideSecondsValue)
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
     override val isShuffleEnabled: Flow<Boolean> = MutableStateFlow(shuffleEnabledValue)
     override val viewMode: Flow<WearViewMode> = MutableStateFlow(viewModeValue)
@@ -560,9 +573,19 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         backgroundPlaybackValue = enabled
     }
 
+    override suspend fun setPanelAutoHideSeconds(seconds: Int) {
+        panelAutoHideSecondsValue = seconds
+    }
+
     override suspend fun setLastUsedResource(id: String, name: String) {
         lastUsedResourcesValue = listOf(LastUsedResource(id, name)) +
             lastUsedResourcesValue.filterNot { it.id == id }
+    }
+
+    override suspend fun setLastUsedStream(normalizedUrl: String, name: String) {
+        val entry = LastUsedResource(normalizedUrl, name, LastUsedKind.STREAM)
+        lastUsedResourcesValue = listOf(entry) +
+            lastUsedResourcesValue.filterNot { it.kind == LastUsedKind.STREAM && it.id == normalizedUrl }
     }
 
     override suspend fun clearLastUsedResource() {

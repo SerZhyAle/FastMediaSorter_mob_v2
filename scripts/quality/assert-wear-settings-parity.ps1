@@ -105,7 +105,7 @@ $orderRoots = @{
     WatchScreen        = 'ScreenSettingsScreen'
     WatchOther         = 'OtherSettingsScreen'
     WatchBrowseCatalog = ''
-    PhoneRows          = 'WatchSettingsControls'
+    PhoneRows          = 'WearWatchSettingsGroup'
 }
 
 $text = @{}

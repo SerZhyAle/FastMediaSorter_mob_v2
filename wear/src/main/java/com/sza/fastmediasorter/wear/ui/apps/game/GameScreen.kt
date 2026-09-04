@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -62,6 +63,14 @@ private val SQUARE_ROW_SPACING = 2.dp
 private const val AUTO_ADVANCE_DELAY_MS = 1000L
 
 /**
+ * How long the start-of-level arrow stays on the board (S2494).
+ *
+ * The phone's `GameBoardView.START_HIGHLIGHT_MS`, taken as is: the owner described the hint as
+ * lasting half a second and named the phone as the thing to match, and the phone shows it for one.
+ */
+private const val GUIDE_ARROW_VISIBLE_MS = 1000L
+
+/**
  * The game: a board filling the largest square the glass admits, moved by swiping across it.
  *
  * @param navController the route's host controller. S2158 narrowly reversed the earlier ruling that
@@ -95,6 +104,9 @@ fun GameScreen(
         Timber.d("S2158: game screen laid out, round=%b", isRound)
     }
 
+    val boardKey = uiState.level?.config?.let { config -> config.levelNumber to config.seed }
+    val showGuideArrow = rememberGuideArrowVisibility(boardKey)
+
     LaunchedEffect(uiState.status, levelNumber) {
         if (uiState.status == GameStatus.LEVEL_WON) {
             Timber.d("S2158: level %d won, advancing in %d ms", levelNumber, AUTO_ADVANCE_DELAY_MS)
@@ -111,6 +123,7 @@ fun GameScreen(
                     uiState = uiState,
                     modifier = Modifier.align(Alignment.Center).size(wearMaxSquareSide()),
                     menuOpen = menuOpen,
+                    showGuideArrow = showGuideArrow,
                     onMove = { direction -> viewModel.move(direction) },
                     onOpenMenu = {
                         Timber.d("S2158: in-play menu opened by long press")
@@ -136,6 +149,7 @@ fun GameScreen(
                     uiState = uiState,
                     levelNumber = levelNumber,
                     menuOpen = menuOpen,
+                    showGuideArrow = showGuideArrow,
                     onMove = { direction -> viewModel.move(direction) },
                     onOpenMenu = {
                         Timber.d("S2158: in-play menu opened by long press")
@@ -151,11 +165,35 @@ fun GameScreen(
     }
 }
 
+/**
+ * Whether the start-of-level arrow is currently drawn for the board named by [boardKey].
+ *
+ * Keyed on the board, not on the state: the level number alone would keep the arrow off after a
+ * restart, which draws a new board under the same number, and the whole state would flash it again
+ * after every move. A null key is a screen with no board yet, which shows nothing rather than an
+ * arrow pointing out of an empty state.
+ */
+@Composable
+private fun rememberGuideArrowVisibility(boardKey: Pair<Int, Long>?): Boolean {
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(boardKey) {
+        if (boardKey == null) {
+            return@LaunchedEffect
+        }
+        visible = true
+        Timber.d("S2494: guide arrow shown for level %d seed %d", boardKey.first, boardKey.second)
+        delay(GUIDE_ARROW_VISIBLE_MS)
+        visible = false
+    }
+    return visible
+}
+
 @Composable
 private fun SquareScreenLayout(
     uiState: GameUiState,
     levelNumber: Int,
     menuOpen: Boolean,
+    showGuideArrow: Boolean,
     onMove: (GameDirection) -> Unit,
     onOpenMenu: () -> Unit,
     onRestart: () -> Unit
@@ -190,6 +228,7 @@ private fun SquareScreenLayout(
             uiState = uiState,
             modifier = Modifier.weight(1f, fill = false).sizeIn(maxWidth = side, maxHeight = side),
             menuOpen = menuOpen,
+            showGuideArrow = showGuideArrow,
             onMove = onMove,
             onOpenMenu = onOpenMenu
         )
@@ -204,6 +243,7 @@ private fun GameBoard(
     uiState: GameUiState,
     modifier: Modifier = Modifier,
     menuOpen: Boolean,
+    showGuideArrow: Boolean,
     onMove: (GameDirection) -> Unit,
     onOpenMenu: () -> Unit
 ) {
@@ -211,6 +251,7 @@ private fun GameBoard(
     GameBoardCanvas(
         level = level,
         contentDescription = stringResource(R.string.wear_game_board_description),
+        showGuideArrow = showGuideArrow,
         modifier = modifier
             .aspectRatio(1f)
             // Two detectors, two modifiers: sharing one gesture scope would make the long press and

@@ -19,9 +19,9 @@
     <!-- Settings strings -->
     <string name="settings">Налаштування</string>
     <string name="media_types">Типи медіа</string>
-    <string name="enable_audio">Увімкнути аудіо</string>
-    <string name="enable_video">Увімкнути відео</string>
-    <string name="enable_images">Увімкнути зображення</string>
+    <string name="enable_audio">Аудіо</string>
+    <string name="enable_video">Відео</string>
+    <string name="enable_images">Зображення</string>
     <string name="slideshow_settings">Слайд-шоу</string>
     <string name="enable_slideshow">Увімкнути слайд-шоу</string>
     <string name="slideshow_interval">Інтервал: %dс</string>
@@ -147,7 +147,7 @@
     <string name="wear_phone_documents">Документи</string>
     <string name="screen_settings_title">Екран</string>
     <string name="screen_settings_view_mode">Вигляд екранів</string>
-    <string name="wear_streams_section_enabled">Показувати трансляції</string>
+    <string name="wear_streams_section_enabled">Трансляції</string>
     <string name="wear_resources_empty_hint">З телефона сюди поки нічого не передали. Відкрийте на телефоні Wear-супутник і позначте потрібні ресурси.</string>
     <string name="screen_settings_keep_awake">Не гасити екран</string>
     <string name="about_send_logs">Надіслати логи розробнику</string>
@@ -319,8 +319,6 @@
     <string name="wear_voice_note_state_pending">Чекає на телефон</string>
     <string name="wear_voice_note_state_sent">Надіслана на телефон</string>
     <string name="wear_voice_note_state_failed">Не надіслана</string>
-    <string name="wear_voice_note_send">Надіслати на телефон</string>
-    <string name="wear_voice_note_delete">Видалити нотатку</string>
     <string name="wear_voice_note_delete_confirm">Видалити нотатку? Запис зникне разом з нею.</string>
     <string name="wear_voice_note_empty">Нотаток поки немає. Запишіть - і вона з\'явиться тут.</string>
     <string name="wear_voice_note_result_sent">Готово. Нотатка на телефоні.</string>
@@ -396,7 +394,8 @@
     <string name="wear_setting_streams_section">Показувати трансляції</string>
     <string name="wear_setting_background_mode">Фон на годиннику</string>
     <string name="wear_background_mode_animation">Фірмова анімація</string>
-    <string name="wear_background_mode_image">Власне зображення</string>
+    <string name="wear_background_mode_still">Нерухомий фірмовий фон</string>
+    <string name="wear_background_mode_image">Фото з телефона</string>
     <string name="wear_content_type_document">Документ</string>
     <string name="wear_content_type_folder">Папка</string>
     <string name="wear_browse_search">Пошук файлів</string>
@@ -414,8 +413,7 @@
     <string name="wear_browse_sort_date_desc">Дата (спочатку нові)</string>
     <string name="wear_browse_sort_size_asc">Розмір (спочатку малі)</string>
     <string name="wear_browse_sort_size_desc">Розмір (спочатку великі)</string>
-    <string name="enable_documents">Увімкнути документи</string>
-    <string name="wear_settings_sections">Розділи</string>
+    <string name="enable_documents">Документи</string>
     <string name="phone_resource_no_resource_for_type">Жоден ресурс телефона не налаштований на цей тип.</string>
     <string name="wear_folder_load_more">Показати ще</string>
     <string name="wear_file_op_outcome_needs_consent">Не підтверджено - нічого не змінилося</string>
@@ -480,7 +478,6 @@
     <string name="wear_game_rules_legend_shadow">Тінь: темний круг</string>
     <string name="wear_game_rules_legend_exit">Вихід: зелений квадрат</string>
     <string name="wear_game_rules_legend_wall">Стіна: коричневий квадрат</string>
-    <string name="wear_voice_note_play">Відтворити</string>
     <string name="system_info_empty_unsupported">На цьому годиннику немає такого обладнання</string>
     <string name="system_info_empty_unreadable">Годинник не відповів</string>
     <string name="system_info_refresh">Оновити</string>
@@ -569,4 +566,22 @@
     <string name="wear_refine_menu_clear_search">Очистити пошук: %1$s</string>
     <string name="wear_navigate_back">Назад</string>
     <string name="wear_minimize_to_background">Згорнути у фон</string>
+    <string name="wear_playback_mode_sequential">Послідовно</string>
+    <string name="wear_playback_mode_shuffle">Упереміш</string>
+    <string name="wear_playback_mode_loop">По колу</string>
+    <string name="wear_sync_now">Синхронізувати</string>
+    <string name="wear_sync_now_description">Синхронізувати годинник і телефон</string>
+    <string name="wear_voice_note_play_last">Слухати останню</string>
+    <string name="about_web_portal_on_phone">Відкрити на телефоні</string>
+    <string name="about_web_portal_no_browser">На годиннику немає браузера. Натисніть «Відкрити на телефоні»</string>
+    <string name="about_web_portal_phone_opened">Відкрито. Подивіться на телефон</string>
+    <string name="about_web_portal_no_phone">Телефон не підключено. Піднесіть його ближче</string>
+    <string name="about_web_portal_phone_failed">Не вдалося передати на телефон. Спробуйте ще раз</string>
+    <string name="wear_player_stream_pin">Закріпити трансляцію</string>
+    <string name="wear_player_stream_unpin">Відкріпити трансляцію</string>
+    <string name="wear_browse_voice_notes">Голосові нотатки</string>
+    <string name="wear_voice_note_rename_failed">Не вдалося перейменувати нотатку</string>
+    <string name="panel_auto_hide_label">Автоприховування: %dс</string>
+    <string name="panel_auto_hide_decrease">Зменшити час автоприховування</string>
+    <string name="panel_auto_hide_increase">Збільшити час автоприховування</string>
 </resources>

@@ -3,18 +3,22 @@ package com.sza.fastmediasorter.wear.ui.apps.calculator
 import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -22,6 +26,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -41,16 +46,15 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Confirmation
 import androidx.wear.compose.material.dialog.Dialog
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.ui.platform.LocalLayoutDirection
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceSize
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -59,18 +63,51 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
 // value row on the glass at once is worth more than the 48 dp target, which no five-row keypad ever
 // fitted anyway (S2007 section 6 item 3). The cost is a smaller key, stated rather than hidden.
 // GridColumnFit.DEFAULT_MIN_TARGET_DP stays 48 dp for every other watch control.
-private val KEY_HEIGHT = 24.dp
+private val KEY_HEIGHT = 25.dp
 private val KEY_GAP = 2.dp
 private val KEYPAD_SIDE_PADDING = 6.dp
 
+/** The back control starts two thirds of its touch target into the free half below `=`. */
+private const val BACK_BUTTON_START_OFFSET_FRACTION = 2f / 3f
+
+/** A low-contrast alternate plate makes the odd digits form a readable checkerboard. */
+private const val ODD_DIGIT_TINT_ALPHA = 0.12f
+
+private const val EVEN_DIVISOR = 2
+
 /**
- * S2152: how many keypad columns the value itself spends, with one column left to each flank.
+ * S2493: how many keypad columns the value itself spends, with the last column left to the operation
+ * element.
  *
- * Weights rather than a measured width, so the clear key and the operation element land exactly under
- * the outer keypad columns without this row repeating the keypad's column arithmetic.
+ * Weights rather than a measured width, so the operation element lands exactly under the outer keypad
+ * column without this row repeating the keypad's column arithmetic. S2152 spent one of these columns on
+ * the clear key standing beside the number; the owner priced that column as the value's on 2026-09-03,
+ * so clear left this row for one of its own below the keypad and the number gained the column back.
  */
-private const val VALUE_COLUMN_SPAN = 2f
+private const val VALUE_COLUMN_SPAN = 3f
 private const val FLANK_COLUMN_SPAN = 1f
+
+/** S2493: how many columns a keypad row divides into, which is what sizes the clear key below it. */
+private const val KEYPAD_COLUMNS = 4
+
+/**
+ * S2493: the clear key is two columns wide - the same span `=` carries, which is this screen's own
+ * word for a large target rather than a second, invented size.
+ */
+private const val CLEAR_COLUMN_SPAN = 2
+
+/** The reset target is deliberately twice as tall as an ordinary keypad key. */
+private const val CLEAR_KEY_HEIGHT_MULTIPLIER = 2
+
+/**
+ * S2493: the empty space between the last keypad row and the clear key, as a fraction of one normal
+ * keypad key's height (owner ruling 2026-09-03).
+ *
+ * The gap stays tied to the regular key rather than to the wider reset control, so it remains modest
+ * when the screen size changes. `=` occupies the two columns directly above the half of this row left
+ * empty, so an overshot `=` still has to cross the gap to reach reset.
+ */
+private const val CLEAR_ROW_GAP_FRACTION = 1f / 3f
 
 /**
  * S2152: how far a hugged label stays clear of the cell's own rounded corner.
@@ -123,7 +160,7 @@ internal sealed interface CalculatorKey {
  *
  * The keypad scrolls rather than filling the screen. A watch display cannot hold twenty keys at the
  * 48 dp interactive minimum and a result line at the same time, so one side of that trade has to
- * give. Owner ruling 2026-08-26 made it the target size: [KEY_HEIGHT] is 24 dp, which is what puts
+ * give. Owner ruling 2026-08-26 made it the target size: [KEY_HEIGHT] is 25 dp, which is what puts
  * the rows on the glass. The scroll container stays, because nothing guarantees the fit on every
  * watch size and a keypad that cannot scroll would lose its last row on the smallest of them.
  *
@@ -146,11 +183,6 @@ fun CalculatorScreen(
     var historyOpen by remember { mutableStateOf(false) }
     var copyConfirmationShown by remember { mutableStateOf(false) }
 
-    // Keyed on Unit so it marks entry into the screen, not every recomposition the keypad causes.
-    LaunchedEffect(
-        Unit
-    ) { }
-
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.
@@ -164,9 +196,6 @@ fun CalculatorScreen(
         ) {
             CalculatorDisplay(
                 uiState = uiState,
-                // S2152: the clear key moved into this row but not out of the keypad's dispatch, so
-                // the view model keeps exactly the entry points it had.
-                onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
                 // The same view-model entry the operator keys reach through `dispatch`; the element
                 // repeats an operation, it does not open a second way into the arithmetic.
                 onOperation = { symbol -> viewModel.onOperator(symbol) },
@@ -198,6 +227,10 @@ fun CalculatorScreen(
                         onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
                     )
                 }
+                ClearKeyRow(
+                    onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
+                    onLeave = onLeave,
+                )
             }
         }
 
@@ -299,7 +332,6 @@ private fun CopyConfirmation(onTimeout: () -> Unit) {
 @Composable
 private fun CalculatorDisplay(
     uiState: CalculatorUiState,
-    onKey: (CalculatorKey) -> Unit,
     onOperation: (String) -> Unit,
     onCopy: (String) -> Unit
 ) {
@@ -316,23 +348,15 @@ private fun CalculatorDisplay(
     val layoutDirection = LocalLayoutDirection.current
     val startInset = insets.calculateStartPadding(layoutDirection)
     val endInset = insets.calculateEndPadding(layoutDirection)
-    // Validate target column count via column-fit helper: GridColumnFit.columnsFor(WearViewMode.GRID_3, 192)
-    val targetColumns = GridColumnFit.columnsFor(WearViewMode.GRID_3, 192)
-
     Row(
-        // S2152: this bottom padding and the keypad column's `top = KEY_GAP` are together the gap the
-        // owner asked about between the clear key and the seven key - it already existed as the gap
-        // between the value row and the first keypad row, and clear inherits it by moving up here.
+        // This bottom padding and the keypad column's `top = KEY_GAP` are together the gap between the
+        // value row and the first keypad row.
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = startInset, end = endInset, top = 16.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        ClearKey(
-            modifier = Modifier.weight(FLANK_COLUMN_SPAN),
-            onClick = { onKey(CalculatorKey.Clear) }
-        )
         Text(
             text = text,
             style = MaterialTheme.typography.title1,
@@ -371,13 +395,55 @@ private fun CalculatorDisplay(
 }
 
 /**
- * S2152: clear stands in the value row rather than in the scrolling keypad.
+ * S2493: the clear key stands in a row of its own below every keypad row - two columns wide, against
+ * the start edge, with a guard gap above it. The unused half below `=` carries the standard back
+ * affordance, separated from both controls by the keypad gap.
+ *
+ * A row of its own and not a sixth cell in the last keypad row, because the guard the owner asked for
+ * is vertical: the two columns left empty beside clear are the two `=` occupies in the row above, so a
+ * finger that overshoots `=` crosses the gap instead of landing on a reset.
  *
  * S2007 criterion 7 measured this key's tap centre about 15 px outside a 240 px radius at maximum
- * scroll. The value row does not scroll at all, so the position that measurement was taken in no
- * longer exists for this key - the failure mode is removed rather than made less likely. It keeps the
- * destructive plate [keyColorsFor] gives it, because moving a key must not quietly restate what its
- * colour means (S2007 ADR-4).
+ * scroll, which is what moved it out of the keypad in S2152. It is back in the scroll container but no
+ * longer its last thing: [KEYPAD_TRAILING_SPACE] still follows, so the row scrolls to the middle of the
+ * glass instead of resting against the rim where the circle narrows.
+ */
+@Composable
+private fun ClearKeyRow(
+    onKey: (CalculatorKey) -> Unit,
+    onLeave: () -> Unit,
+) {
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+        val columnWidth = (maxWidth - KEY_GAP * (KEYPAD_COLUMNS - 1)) / KEYPAD_COLUMNS
+        // The key swallows the gaps its own spanned columns used to be separated by, the same way a
+        // spanned keypad cell does - otherwise it would stop short of the column it claims to reach.
+        val clearWidth = columnWidth * CLEAR_COLUMN_SPAN + KEY_GAP * (CLEAR_COLUMN_SPAN - 1)
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Spacer(modifier = Modifier.height(KEY_HEIGHT * CLEAR_ROW_GAP_FRACTION))
+            Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+                ClearKey(
+                    modifier = Modifier.width(clearWidth),
+                    onClick = { onKey(CalculatorKey.Clear) }
+                )
+                Spacer(
+                    modifier = Modifier.width(
+                        WearBackAffordanceSize * BACK_BUTTON_START_OFFSET_FRACTION
+                    )
+                )
+                WearBackAffordance(
+                    role = WearBackAffordanceRole.Back,
+                    onClick = onLeave
+                )
+            }
+        }
+    }
+}
+
+/**
+ * The clear key itself, sized by [ClearKeyRow].
+ *
+ * It keeps the destructive plate [keyColorsFor] gives it, because moving a key must not quietly restate
+ * what its colour means (S2007 ADR-4).
  */
 @Composable
 private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
@@ -385,7 +451,7 @@ private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
     RectangularButton(
         onClick = onClick,
         modifier = modifier
-            .height(KEY_HEIGHT)
+            .height(KEY_HEIGHT * CLEAR_KEY_HEIGHT_MULTIPLIER)
             .semantics { contentDescription = description },
         shape = RoundedCornerShape(4.dp),
         colors = keyColorsFor(CalculatorKey.Clear)
@@ -394,8 +460,8 @@ private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
             text = labelFor(CalculatorKey.Clear),
             style = labelStyleFor(CalculatorKey.Clear),
             maxLines = 1,
-            // First position of its row, so it hugs the end edge - the same column rule the keypad's
-            // own first column follows.
+            // S2493: first position of its row, so the label hugs the end edge - which now points at
+            // the middle of the glass, the part of a bottom-row key the round display never crops.
             modifier = Modifier
                 .align(Alignment.CenterEnd)
                 .padding(horizontal = LABEL_HUG_PADDING)
@@ -411,11 +477,9 @@ private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
  * A lone operator sign beside a number announces nothing to a screen reader, hence the spoken
  * description naming both the operation and what a tap does.
  *
- * S2152: it is sized like a keypad key - one column wide, [KEY_HEIGHT] tall - and no longer at the
- * 48 dp interactive minimum S1942 gave it. That size was set before the owner ruling of 2026-08-26
- * halved the key, so the element was out of step with the keypad rather than deliberately larger than
- * it, and on the glass it read as the loudest thing in the row. Both halves of the S1942 ruling
- * survive the change: it still shows the operation and still repeats it on a tap.
+ * S2493: the operation is a transparent caption in its existing right-hand column rather than a
+ * button-shaped plate. It preserves the same keypad-sized hit target and repeat-on-tap action while
+ * making the current operation read as part of the display.
  */
 @Composable
 private fun OperationElement(
@@ -427,27 +491,19 @@ private fun OperationElement(
         R.string.wear_calc_current_operation,
         stringResource(operationDescriptionRes(operation))
     )
-    RectangularButton(
-        onClick = {
-            onOperation(operation.symbol)
-        },
+    Text(
+        text = glyphFor(operation),
+        style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
+        maxLines = 1,
         modifier = modifier
             .height(KEY_HEIGHT)
-            .semantics { contentDescription = description },
-        shape = RoundedCornerShape(4.dp),
-        colors = ButtonDefaults.primaryButtonColors()
-    ) {
-        Text(
-            text = glyphFor(operation),
-            style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
-            maxLines = 1,
+            .clickable { onOperation(operation.symbol) }
+            .semantics { contentDescription = description }
             // S2152: this element stands in the last column of the value row, so it takes the same
             // column rule as a last-column key rather than being treated as its own special case.
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .padding(horizontal = LABEL_HUG_PADDING)
-        )
-    }
+            .padding(horizontal = LABEL_HUG_PADDING),
+        textAlign = TextAlign.Start
+    )
 }
 
 /**
@@ -555,9 +611,24 @@ private fun keyColorsFor(key: CalculatorKey): ButtonColors = when (key) {
         contentColor = MaterialTheme.colors.onBackground
     )
 
-    is CalculatorKey.Digit -> ButtonDefaults.secondaryButtonColors()
+    is CalculatorKey.Digit -> if (key.value % EVEN_DIVISOR == 0) {
+        ButtonDefaults.secondaryButtonColors()
+    } else {
+        ButtonDefaults.buttonColors(
+            backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = ODD_DIGIT_TINT_ALPHA),
+            contentColor = MaterialTheme.colors.onBackground
+        )
+    }
 
-    is CalculatorKey.Operator,
+    is CalculatorKey.Operator -> if (
+        key.operator == WearCalculatorEngine.Operator.PLUS ||
+        key.operator == WearCalculatorEngine.Operator.TIMES
+    ) {
+        ButtonDefaults.primaryButtonColors()
+    } else {
+        ButtonDefaults.secondaryButtonColors()
+    }
+
     CalculatorKey.Decimal,
     CalculatorKey.Sign,
     CalculatorKey.Equals,

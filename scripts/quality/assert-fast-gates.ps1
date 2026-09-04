@@ -17,6 +17,7 @@
                                       untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
       - assert-wear-settings-parity  (S2093 watch settings present on one side of the pair only)
+      - assert-wear-record-merge-parity (S2502 the two resource merge-rule copies diverging)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
@@ -135,6 +136,11 @@ $gates = [ordered]@{
     # gradle daemon. Per-ticket by Rule 33: only the author knows whether a new one-sided setting was
     # meant to be one-sided, and the reference it guards is read by agents between releases.
     'assert-wear-settings-parity.ps1'           = @('-Quiet')
+    # S2502: the resource merge rule is written once per module because the two share no artifact.
+    # If the copies disagree the exchange never converges - each side keeps its own version and
+    # believes it won - which is invisible until the owner notices an edit that will not stick.
+    # Per-ticket by Rule 33: it judges two files a ticket touches, not a tree-wide property.
+    'assert-wear-record-merge-parity.ps1'       = @('-Quiet')
     'assert-listener-symmetry.ps1'              = @()
     'assert-orientation-implied-feature.ps1'    = @()
     # S1549: an activity that absorbs 'orientation' in configChanges never re-inflates on
@@ -279,6 +285,11 @@ $gates = [ordered]@{
     # a week at ~1.1 KB/day of regrowth - a budget that is not mechanical is not a budget. Ratchet
     # on one file's length plus two advisory scans over ~220 small .md files, no gradle daemon.
     'assert-memory-budget.ps1'                  = @()
+    # S2517: every text file injected into EVERY request - CLAUDE.md, AGENTS.md, the active agent
+    # definition - against a ceiling that only goes down. Measured 2026-09-04: the fixed preamble is
+    # 37.8% of all billed cache_read and CLAUDE.md grew 2.35x in 35 days, having already been cleaned
+    # once by S1340 and having doubled again since. Three byte counts, no gradle daemon.
+    'assert-always-loaded-budget.ps1'           = @('-Quiet')
     # S1343: the mandatory `**Why:**` field on every tactical step, adopted on the pilot
     # verdict in dev/spec-form-pilot.jsonl. Count ratchet against a checked-in baseline
     # rather than a HEAD diff - PLAN/ is gitignored, so no phase file has a HEAD blob and

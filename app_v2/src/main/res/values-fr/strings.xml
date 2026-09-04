@@ -3046,6 +3046,7 @@
     <string name="calculator_keypad_mode_large">Grandes clés</string>
     <string name="calculator_keypad_mode_compact">Compact, en bas à droite</string>
     <string name="wear_background_mode_animation">Animation de marque</string>
+    <string name="wear_background_mode_still">Fond de marque fixe</string>
     <string name="wear_background_mode_image">Votre image</string>
     <string name="wear_background_pick_image">Choisir une image</string>
     <string name="wear_background_preview">Aperçu de l\'arrière-plan de la montre</string>

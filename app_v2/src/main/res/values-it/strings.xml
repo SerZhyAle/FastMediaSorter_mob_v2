@@ -3046,6 +3046,7 @@
     <string name="calculator_keypad_mode_large">Chiavi grandi</string>
     <string name="calculator_keypad_mode_compact">Compatto, in basso a destra</string>
     <string name="wear_background_mode_animation">Animazione marchiata</string>
+    <string name="wear_background_mode_still">Sfondo del marchio statico</string>
     <string name="wear_background_mode_image">La tua immagine</string>
     <string name="wear_background_pick_image">Scegli l\'immagine</string>
     <string name="wear_background_preview">Anteprima dello sfondo dell\'orologio</string>

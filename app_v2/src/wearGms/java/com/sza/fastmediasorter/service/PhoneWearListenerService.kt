@@ -76,6 +76,9 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var applyWatchFavoritesDeltaUseCase: ApplyWatchFavoritesDeltaUseCase
 
+    @Inject lateinit var applyWatchStreamPinsDeltaUseCase:
+        com.sza.fastmediasorter.domain.usecase.ApplyWatchStreamPinsDeltaUseCase
+
     @Inject lateinit var listPhoneResourcePageUseCase: ListPhoneResourcePageUseCase
 
     @Inject lateinit var openPhoneResourceChannelUseCase: OpenPhoneResourceChannelUseCase
@@ -112,6 +115,7 @@ class PhoneWearListenerService : WearableListenerService() {
             PATH_ACK -> handleAck(event.data)
             WearDataLayerPaths.SOURCES_EXPORT -> handleSourcesExport(event.data)
             WearDataLayerPaths.FAVORITES_DELTA -> handleFavoritesDelta(event.data)
+            WearDataLayerPaths.STREAM_PINS_DELTA -> handleStreamPinsDelta(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_BROWSE_REQUEST -> handlePhoneResourceBrowse(event.data)
             WearDataLayerPaths.PHONE_RESOURCE_OPEN_REQUEST ->
                 handlePhoneResourceOpen(event.sourceNodeId, event.data)
@@ -383,6 +387,21 @@ class PhoneWearListenerService : WearableListenerService() {
         }
     }
 
+    private fun handleStreamPinsDelta(data: ByteArray) {
+        applicationScope.launch {
+            try {
+                val envelope = envelopeCodec.decode(data)
+                val payload = gson.fromJson(
+                    envelope.data.decodeToString(),
+                    com.sza.fastmediasorter.domain.model.WearStreamPinsDeltaPayload::class.java
+                )
+                applyWatchStreamPinsDeltaUseCase(payload)
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to deserialize stream pins delta payload")
+            }
+        }
+    }
+
     private fun handleLogReport(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             wearLogReportReceiver.handle(nodeId, data)
@@ -484,12 +503,13 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleOpenOnPhone(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             val request = parseOpenOnPhoneRequest(data) ?: return@launch
-            val approved = openPhoneResourceChannelUseCase(openRequestFor(request.token))
+            val approved = openPhoneResourceChannelUseCase(openRequestFor(request.token), forWatchTransfer = false)
             val outcome = if (approved is PhoneResourceChannel.Approved) {
                 showOrAnnounce(request, approved)
             } else {
                 WearOpenOnPhoneOutcome.NOT_FOUND
             }
+            Timber.d("S2142: handleOpenOnPhone token=%s outcome=%s", request.token, outcome)
             answerOpenOnPhone(nodeId, request.token, outcome)
         }
     }

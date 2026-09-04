@@ -90,6 +90,35 @@ class PlaybackSetManagerShuffleTest {
         assertEquals("only.mp3", manager.previous()?.name)
     }
 
+    @Test
+    fun `removing the current middle file selects its following neighbour`() {
+        manager.publish(files, startIndex = 2)
+
+        val next = manager.removeAndSelectNext(files[2].id)
+
+        assertEquals("track4.mp3", next?.name)
+        assertEquals(
+            listOf("track1.mp3", "track2.mp3", "track4.mp3", "track5.mp3"),
+            manager.currentSet.value?.files?.map { it.name }
+        )
+    }
+
+    @Test
+    fun `removing the final file selects the new final file`() {
+        manager.publish(files, startIndex = files.lastIndex)
+
+        assertEquals("track4.mp3", manager.removeAndSelectNext(files.last().id)?.name)
+    }
+
+    @Test
+    fun `removing the only file clears the published set`() {
+        val single = listOf(file(9L, "only.mp3"))
+        manager.publish(single, startIndex = 0)
+
+        assertEquals(null, manager.removeAndSelectNext(single.single().id))
+        assertEquals(null, manager.currentSet.value)
+    }
+
     private fun file(id: Long, name: String) = WearMediaFile(
         id = id,
         name = name,

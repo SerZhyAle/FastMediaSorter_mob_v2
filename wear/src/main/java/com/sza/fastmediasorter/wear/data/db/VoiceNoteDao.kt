@@ -38,6 +38,17 @@ interface VoiceNoteDao {
     @Query("UPDATE voice_notes SET publishedAddress = :address WHERE id = :id")
     suspend fun updatePublishedAddress(id: Long, address: String)
 
+    /**
+     * S2495: both name columns move together, because they are one fact written twice - the index
+     * finds a note by its path and the list draws it by its name, and a rename that moved one of them
+     * would leave the list naming a file the index can no longer open.
+     *
+     * No schema change: both columns have existed since the entity was introduced, so this adds a
+     * statement and not a migration.
+     */
+    @Query("UPDATE voice_notes SET fileName = :fileName, absolutePath = :absolutePath WHERE id = :id")
+    suspend fun updateName(id: Long, fileName: String, absolutePath: String)
+
     @Query("DELETE FROM voice_notes WHERE id = :id")
     suspend fun deleteById(id: Long)
 

@@ -6,14 +6,18 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,6 +47,8 @@ sealed interface WearFolderWalkUiState {
     ) : WearFolderWalkUiState
 }
 
+private const val SUBSCRIPTION_TIMEOUT_MS = 5000L
+
 /**
  * S2201: holds the position of the walk over the watch's own storage.
  *
@@ -54,8 +60,12 @@ sealed interface WearFolderWalkUiState {
 @HiltViewModel
 class WearFolderWalkViewModel @Inject constructor(
     private val repository: WearLocalFolderRepository,
+    preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), WearViewMode.LIST)
 
     /**
      * Where the walk starts, from the route argument.

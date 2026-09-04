@@ -22,9 +22,10 @@ private val INFORMATION_ROW_VERTICAL_PADDING = 2.dp
 /**
  * A compact caption-value pair for watch-sized information screens.
  *
- * The value owns its half of the row and wraps there, so a device-provided value cannot separate
- * itself from the caption that explains it. One merged semantic node keeps the pair meaningful to
- * TalkBack as well.
+ * Both columns meet at the row centre: the caption is right-aligned against that boundary and the
+ * value begins there. The value owns its half of the row and wraps there, so a device-provided
+ * value cannot separate itself from the caption that explains it. One merged semantic node keeps
+ * the pair meaningful to TalkBack as well.
  */
 @Composable
 fun WearInformationRow(
@@ -50,12 +51,13 @@ fun WearInformationRow(
             text = label,
             style = MaterialTheme.typography.caption2,
             color = MaterialTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.End,
             modifier = Modifier.weight(1f)
         )
         Text(
             text = value,
             style = MaterialTheme.typography.body2,
-            textAlign = TextAlign.End,
+            textAlign = TextAlign.Start,
             modifier = Modifier.weight(1f)
         )
     }

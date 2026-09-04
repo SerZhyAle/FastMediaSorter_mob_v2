@@ -18,7 +18,7 @@ class LauncherTaskbarRecentMenuManager(
     /** Shows the same modal action-list presentation as other launcher long-press menus. */
     fun show(anchor: View, command: LauncherCellCommand): Boolean {
         if (!anchor.isAttachedToWindow) return false
-        Timber.d("S1901: show recent taskbar menu for %s", command)
+        Timber.d("S2391: show recent taskbar menu for %s", command)
         dismiss()
         val context = anchor.context
         val rows = listOf(

@@ -95,6 +95,35 @@ class PlaybackSetManager @Inject constructor() {
         return true
     }
 
+    /**
+     * Drops a file that a successful operation changed and keeps the same browse ordering for the
+     * player that must immediately continue. The index stays at the removed position, which selects
+     * the following item, or the new final item when the removed item had been final.
+     */
+    fun removeAndSelectNext(fileId: Long): WearMediaFile? {
+        val set = _currentSet.value
+        val removedIndex = set?.files?.indexOfFirst { it.id == fileId } ?: -1
+        return when {
+            set == null || removedIndex < 0 -> null
+            else -> selectAfterRemoval(set, fileId, removedIndex)
+        }
+    }
+
+    private fun selectAfterRemoval(
+        set: PlaybackSet,
+        fileId: Long,
+        removedIndex: Int
+    ): WearMediaFile? {
+        val remaining = set.files.filterNot { it.id == fileId }
+        if (remaining.isEmpty()) {
+            clear()
+        } else {
+            val nextIndex = removedIndex.coerceAtMost(remaining.lastIndex)
+            _currentSet.value = PlaybackSet(remaining, nextIndex)
+        }
+        return _currentSet.value?.current
+    }
+
     fun clear() {
         Timber.d("PlaybackSetManager: set cleared")
         _currentSet.value = null

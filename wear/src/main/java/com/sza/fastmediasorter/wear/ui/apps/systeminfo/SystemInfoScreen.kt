@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
@@ -17,9 +20,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.ChipDefaults
@@ -28,7 +28,6 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
-
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoField
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
@@ -40,6 +39,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val SECTION_TOP_PADDING = 10.dp
@@ -56,8 +56,9 @@ private val ROW_VERTICAL_PADDING = 2.dp
 @Composable
 fun SystemInfoScreen(
     viewModel: SystemInfoViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
 ) {
+    Timber.d("S2470: system information compact pairs shown")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // Hoisted out of the row rather than remembered inside it: a ScalingLazyColumn recycles the
     // composition of a row scrolled off the screen, so state kept in the row would silently collapse a
@@ -74,37 +75,36 @@ fun SystemInfoScreen(
             state = listState,
             verticalArrangement = Arrangement.spacedBy(2.dp)
         ) {
+            item {
+                Text(
+                    text = stringResource(R.string.system_info_title),
+                    style = MaterialTheme.typography.title2,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = TITLE_BOTTOM_PADDING),
+                    textAlign = TextAlign.Center
+                )
+            }
+            if (uiState.loading) {
                 item {
                     Text(
-                        text = stringResource(R.string.system_info_title),
-                        style = MaterialTheme.typography.title2,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = TITLE_BOTTOM_PADDING),
+                        text = stringResource(R.string.system_info_loading),
+                        style = MaterialTheme.typography.caption1,
+                        modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
                 }
-                if (uiState.loading) {
-                    item {
-                        Text(
-                            text = stringResource(R.string.system_info_loading),
-                            style = MaterialTheme.typography.caption1,
-                            modifier = Modifier.fillMaxWidth(),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                } else {
-                    item {
-                        RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
-                    }
+            } else {
+                item {
+                    RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
                 }
-                items(packSettingsRows(reportItems(uiState.sections, expanded), 1)) { row ->
-                    WearSettingsRow(row)
-                }
+            }
+            items(packSettingsRows(reportItems(uiState.sections, expanded), 1)) { row ->
+                WearSettingsRow(row)
             }
         }
     }
-
+}
 
 /**
  * A button rather than a pull-to-refresh gesture: wear-compose is pinned at 1.2.1 here, which ships no

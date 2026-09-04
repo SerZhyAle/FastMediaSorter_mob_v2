@@ -2,15 +2,12 @@ package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
-import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
-import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
-import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
+import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
@@ -159,15 +156,10 @@ class StreamsViewModelSearchTest {
         every { preferences.streamsSelectedLanguage } returns flowOf(null)
         val atlasStore = mockk<WearFaviconAtlasStore>(relaxed = true)
         every { atlasStore.atlasFile() } returns null
-        val favorites = mockk<WearFavoritesRepository>(relaxed = true)
-        coEvery { favorites.getFavorites() } returns pinnedUrls.map { url ->
-            WearFavoriteRecord(
-                sourceId = SOURCE_ID_STREAM,
-                filePath = normalizeWearStreamUrl(url),
-                displayName = url,
-                itemKind = FAVORITE_ITEM_KIND_STREAM
-            )
-        }
+        val streamPinsRepository = mockk<WearStreamPinsRepository>(relaxed = true)
+        val pinnedIdentities = pinnedUrls.map { foldWearStreamIdentity(it) }.toSet()
+        every { streamPinsRepository.observeWatchPins() } returns MutableStateFlow(pinnedIdentities)
+        every { streamPinsRepository.getWatchPins() } returns pinnedIdentities
         return StreamsViewModel(
             repository = repository,
             importCatalogUseCase = mockk<ImportWearStreamCatalogUseCase>(relaxed = true),
@@ -177,8 +169,9 @@ class StreamsViewModelSearchTest {
                 selectedMediaManager = mockk<SelectedMediaManager>(relaxed = true),
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
                 usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+                preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
             ),
-            favoritesRepository = favorites,
+            streamPinsRepository = streamPinsRepository,
             // S2149: no phone pins in these cases - the watch's own marks are what they exercise.
             phonePinsRepository = mockk<WearPhonePinsRepository>().also {
                 every { it.observe() } returns MutableStateFlow(emptySet())

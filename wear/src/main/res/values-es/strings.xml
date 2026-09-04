@@ -16,9 +16,9 @@
     <string name="permission_rationale">Se necesita permiso para mostrar tus archivos multimedia</string>
     <string name="settings">Ajustes</string>
     <string name="media_types">Tipos de medios</string>
-    <string name="enable_audio">Activar audio</string>
-    <string name="enable_video">Activar vídeo</string>
-    <string name="enable_images">Activar imágenes</string>
+    <string name="enable_audio">Audio</string>
+    <string name="enable_video">Vídeo</string>
+    <string name="enable_images">Imágenes</string>
     <string name="slideshow_settings">Presentación</string>
     <string name="enable_slideshow">Activar presentación</string>
     <string name="slideshow_interval">Intervalo: %ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">Documentos</string>
     <string name="screen_settings_title">Pantalla</string>
     <string name="screen_settings_view_mode">Vista de pantallas</string>
-    <string name="wear_streams_section_enabled">Mostrar transmisiones</string>
+    <string name="wear_streams_section_enabled">Transmisiones</string>
     <string name="wear_resources_empty_hint">Aún no ha llegado nada desde el teléfono. En el teléfono, abre el complemento para el reloj y elige los recursos que quieras enviar aquí.</string>
     <string name="screen_settings_keep_awake">Mantener la pantalla encendida</string>
     <string name="about_send_logs">Enviar registros al desarrollador</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">esperando el telefono</string>
     <string name="wear_voice_note_state_sent">enviado al telefono</string>
     <string name="wear_voice_note_state_failed">No enviado</string>
-    <string name="wear_voice_note_send">enviar al telefono</string>
-    <string name="wear_voice_note_delete">Eliminar nota</string>
     <string name="wear_voice_note_delete_confirm">¿Eliminar esta nota? La grabación va con él.</string>
     <string name="wear_voice_note_empty">Aún no hay notas. Graba uno y aparece aquí.</string>
     <string name="wear_voice_note_result_sent">Hecho. La nota está en el teléfono.</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">Mostrar transmisiones</string>
     <string name="wear_setting_background_mode">Ver fondo</string>
     <string name="wear_background_mode_animation">Animación de marca</string>
-    <string name="wear_background_mode_image">Tu imagen</string>
+    <string name="wear_background_mode_still">Fondo de marca estático</string>
+    <string name="wear_background_mode_image">Foto del teléfono</string>
     <string name="wear_content_type_document">Documento</string>
     <string name="wear_content_type_folder">Carpeta</string>
     <string name="wear_browse_search">Buscar archivos</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">Fecha (la más reciente primero)</string>
     <string name="wear_browse_sort_size_asc">Tamaño (el más pequeño primero)</string>
     <string name="wear_browse_sort_size_desc">Tamaño (el más grande primero)</string>
-    <string name="enable_documents">Habilitar documentos</string>
-    <string name="wear_settings_sections">Secciones</string>
+    <string name="enable_documents">Documentos</string>
     <string name="phone_resource_no_resource_for_type">No hay ningún recurso telefónico configurado para albergar este tipo.</string>
     <string name="wear_folder_load_more">Mostrar más</string>
     <string name="wear_file_op_outcome_needs_consent">No confirmado - nada cambió</string>

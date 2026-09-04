@@ -1,11 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.apps
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -16,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -24,7 +20,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -35,6 +30,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -44,7 +40,6 @@ import com.sza.fastmediasorter.wear.util.GridColumnFit
 private const val SINGLE_COLUMN = 1
 private const val APP_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
 
 @Composable
@@ -53,7 +48,7 @@ fun AppsScreen(
     viewModel: AppsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialItemIndex = 1)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -111,20 +106,18 @@ private fun AppChip(
     onClick: () -> Unit
 ) {
     val label = stringResource(app.labelRes)
-    Chip(
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = label) },
-        icon = {
+        colors = ChipDefaults.primaryChipColors(),
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(iconFor(app.id)),
-                contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                contentDescription = null,
+                modifier = glyphModifier
             )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -135,9 +128,10 @@ private fun AppRow(
     columns: Int,
     onAppClick: (WearApp) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = apps.size,
+        gap = GRID_GAP
     ) {
         apps.forEach { app ->
             AppCell(
@@ -145,9 +139,6 @@ private fun AppRow(
                 modifier = Modifier.weight(1f),
                 onClick = { onAppClick(app) }
             )
-        }
-        repeat(columns - apps.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -197,5 +188,3 @@ private fun iconFor(id: WearAppId): Int {
         WearAppId.SYSTEM_INFO -> R.drawable.ic_info
     }
 }
-
-

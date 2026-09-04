@@ -3041,6 +3041,7 @@
     <string name="calculator_keypad_mode_large">大按键</string>
     <string name="calculator_keypad_mode_compact">紧凑型，右下角</string>
     <string name="wear_background_mode_animation">品牌动画</string>
+    <string name="wear_background_mode_still">静态品牌背景</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>
     <string name="wear_background_preview">手表背景预览</string>

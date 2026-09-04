@@ -64,13 +64,15 @@ internal fun keypadRows(): List<List<CalculatorCell>> = listOf(
         CalculatorKey.Operator(WearCalculatorEngine.Operator.MINUS).cell()
     ),
     listOf(
-        CalculatorKey.Decimal.cell(),
-        CalculatorKey.Digit(0).cell(),
         CalculatorKey.Sign.cell(),
+        CalculatorKey.Digit(0).cell(),
+        CalculatorKey.Decimal.cell(),
         CalculatorKey.Operator(WearCalculatorEngine.Operator.PLUS).cell()
     ),
-    // S2152: clear has left this row for the value row, so backspace takes the freed first position,
-    // the menu shifts left, and equals spends the remaining two columns on one large target.
+    // S2152: clear has left this row, so backspace takes the freed first position, the menu shifts
+    // left, and equals spends the remaining two columns on one large target. S2493 then put clear back
+    // under the keypad in a row of its own - not here, because the gap that keeps a missed `=` off it
+    // is vertical.
     listOf(
         CalculatorKey.Backspace.cell(),
         CalculatorKey.Menu.cell(),

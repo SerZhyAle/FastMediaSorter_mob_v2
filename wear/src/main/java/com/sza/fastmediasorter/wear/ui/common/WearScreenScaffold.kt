@@ -9,6 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -16,7 +19,9 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
+import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
+import kotlin.math.sqrt
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -58,7 +63,8 @@ private const val ROUND_SQUARE_FRACTION = 0.70f
  * @param contentPadding defaults to the round-safe inset, so a screen added later is safe without
  * asking for it. Two cases pass `PaddingValues(0.dp)` instead: a full-bleed screen, which wants no
  * inset at all, and a scrolling screen, which hands [wearScreenInsets] to its own list's
- * `contentPadding` so items scroll under the rim rather than being clipped by a padded viewport.
+ * @param background background color for the screen container, defaulting to Color.Transparent so the
+ * window wallpaper is visible beneath navigation screens.
  */
 @Composable
 fun WearScreenScaffold(
@@ -68,6 +74,7 @@ fun WearScreenScaffold(
     scrollState: ScalingLazyListState? = null,
     showTimeText: Boolean = true,
     contentPadding: PaddingValues = wearScreenInsets(),
+    background: Color = Color.Transparent,
     content: @Composable BoxScope.() -> Unit
 ) {
     Scaffold(
@@ -75,7 +82,19 @@ fun WearScreenScaffold(
         positionIndicator = positionIndicator,
         pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
-            { TimeText(modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)) }
+            {
+                val textStyle = TimeTextDefaults.timeTextStyle().copy(
+                    shadow = Shadow(
+                        color = Color.Black,
+                        offset = Offset(1f, 1f),
+                        blurRadius = 4f
+                    )
+                )
+                TimeText(
+                    timeTextStyle = textStyle,
+                    modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)
+                )
+            }
         } else {
             null
         }
@@ -83,9 +102,9 @@ fun WearScreenScaffold(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                // Background before padding: the theme colour has to reach the frame edge, while the
+                // Background before padding: the colour has to reach the frame edge, while the
                 // content stops short of it. The reverse order leaves an unpainted ring at the rim.
-                .background(MaterialTheme.colors.background)
+                .background(background)
                 .padding(contentPadding),
             contentAlignment = Alignment.Center,
             content = content
@@ -147,4 +166,34 @@ fun wearRingInset(): Dp {
     } else {
         SQUARE_INSET
     }
+}
+
+/**
+ * Clearance a control needs when it stands at the middle of the left or right side.
+ *
+ * The module's fourth statement about screen shape, and the only one that is not about a rectangle:
+ * [wearScreenInsets], [wearMaxSquareSide] and [wearRingInset] each measure a box against the glass,
+ * so each answers with the clearance a CORNER needs. A control at the middle of a side has no corner
+ * out there - the chord at that height is the full diameter - so paying the square's clearance
+ * pushes it about a seventh of the display inwards, which lands it on the content band that starts
+ * at [wearScreenInsets] instead of in the free ring beside it (S2472: the affordance was reported
+ * overhanging the list rather than standing to the left of it).
+ *
+ * What such a control does need is the sagitta over its own height: at its top and bottom edges the
+ * circle has already fallen away from its leftmost point by `r - sqrt(r^2 - (height/2)^2)`.
+ * [SQUARE_INSET] is the floor, because for a finger-sized control that sagitta is under 2 dp and a
+ * mark touching the glass reads as clipped even while it is whole.
+ *
+ * @param controlHeight height of the control being placed; the sagitta is measured at its ends.
+ */
+@Composable
+fun wearSideBandInset(controlHeight: Dp): Dp {
+    val configuration = LocalConfiguration.current
+    if (!configuration.isScreenRound) {
+        return SQUARE_INSET
+    }
+    val radius = minOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat() / 2
+    val halfHeight = controlHeight.value / 2
+    val sagitta = radius - sqrt((radius * radius - halfHeight * halfHeight).coerceAtLeast(0f))
+    return sagitta.dp.coerceAtLeast(SQUARE_INSET)
 }

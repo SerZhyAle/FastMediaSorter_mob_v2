@@ -29,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,6 +57,8 @@ import java.io.File
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
 private const val SLIDESHOW_INTERVAL_MAX_SECONDS = 3600f
+private const val DEFAULT_PANEL_AUTO_HIDE_SECONDS = 15
+private const val PANEL_AUTO_HIDE_MAX_SECONDS = 600f
 
 // S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
 // the default IconButton size with a slightly smaller glyph, per docs/ARCHITECTURE.md Pattern A.
@@ -73,6 +76,7 @@ private val WEAR_VIEW_MODES = listOf(
 
 private val BACKGROUND_MODES = listOf(
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
+    WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL to R.string.wear_background_mode_still,
     WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
 )
 
@@ -101,17 +105,94 @@ internal fun WearWatchSettingsGroup(
     onChanged: () -> Unit
 ) {
     Timber.d("S2169: companion watch-settings block drawn in canonical watch-menu order")
+    Timber.d("S2482: companion watch settings split into separate collapsible groups")
 
-    WearCompanionGroup(
-        title = stringResource(R.string.wear_settings_section_title),
-        expanded = expanded,
-        onExpandedChange = onExpandedChange
-    ) {
-        WatchSettingsControls(
-            viewModel = viewModel,
-            state = state,
-            onChanged = onChanged
-        )
+    var mediaTypesExpanded by remember { mutableStateOf(expanded) }
+    var slideshowExpanded by remember { mutableStateOf(false) }
+    var screenExpanded by remember { mutableStateOf(false) }
+    var otherExpanded by remember { mutableStateOf(false) }
+
+    Column(verticalArrangement = Arrangement.spacedBy(SPACING_SECTION)) {
+        WearCompanionGroup(
+            title = stringResource(R.string.wear_settings_group_media_types),
+            expanded = mediaTypesExpanded,
+            onExpandedChange = { mediaTypesExpanded = it }
+        ) {
+            MediaTypesSwitches(state = state, onChanged = onChanged)
+            SwitchRow(
+                tag = "wearSwitchStreams",
+                label = stringResource(R.string.wear_setting_streams_section),
+                description = stringResource(R.string.wear_setting_streams_section_desc),
+                checked = state.streamsSectionEnabled
+            ) {
+                state.streamsSectionEnabled = it
+                onChanged()
+            }
+        }
+
+        WearCompanionGroup(
+            title = stringResource(R.string.wear_settings_group_slideshow),
+            expanded = slideshowExpanded,
+            onExpandedChange = { slideshowExpanded = it }
+        ) {
+            SwitchRow(
+                tag = "wearSwitchSlideshow",
+                label = stringResource(R.string.wear_settings_slideshow),
+                description = stringResource(R.string.wear_settings_slideshow_desc),
+                checked = state.slideshowEnabled
+            ) {
+                state.slideshowEnabled = it
+                onChanged()
+            }
+            SlideshowIntervalSlider(
+                seconds = state.slideshowInterval,
+                onSecondsChange = { state.slideshowInterval = it },
+                onSecondsSettled = onChanged
+            )
+        }
+
+        WearCompanionGroup(
+            title = stringResource(R.string.wear_settings_group_screen),
+            expanded = screenExpanded,
+            onExpandedChange = { screenExpanded = it }
+        ) {
+            ViewModeRow(
+                tagPrefix = "wearViewMode",
+                label = stringResource(R.string.wear_settings_view_mode),
+                selected = state.viewMode
+            ) { picked ->
+                state.viewMode = picked
+                onChanged()
+            }
+            ViewModeRow(
+                tagPrefix = "wearFileListViewMode",
+                label = stringResource(R.string.wear_settings_file_list_view),
+                selected = state.fileListViewMode
+            ) { picked ->
+                state.fileListViewMode = picked
+                onChanged()
+            }
+            BackgroundModeControls(viewModel = viewModel)
+            SwitchRow(
+                tag = "wearSwitchKeepAwake",
+                label = stringResource(R.string.wear_settings_keep_awake),
+                description = stringResource(R.string.wear_settings_keep_awake_desc),
+                checked = state.keepScreenAwake,
+                helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
+                helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
+            ) {
+                state.keepScreenAwake = it
+                onChanged()
+            }
+        }
+
+        WearCompanionGroup(
+            title = stringResource(R.string.wear_settings_group_other),
+            expanded = otherExpanded,
+            onExpandedChange = { otherExpanded = it }
+        ) {
+            OtherSubgroup(state = state, onChanged = onChanged)
+        }
     }
 }
 
@@ -153,6 +234,9 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     var slideshowInterval by mutableStateOf(
         (watchSettings?.slideshowIntervalSeconds ?: DEFAULT_SLIDESHOW_INTERVAL_SECONDS).toFloat()
     )
+    var panelAutoHideSeconds by mutableStateOf(
+        (watchSettings?.panelAutoHideSeconds ?: DEFAULT_PANEL_AUTO_HIDE_SECONDS).toFloat()
+    )
 
     fun payload(context: Context? = null) = WearSettingsPayload(
         audioEnabled = audioEnabled,
@@ -168,86 +252,14 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         appLanguage = context?.let { LocaleHelper.getLanguage(it) },
         streamsSectionEnabled = streamsSectionEnabled,
         disableAnimations = disableAnimations,
-        backgroundPlaybackEnabled = backgroundPlaybackEnabled
+        backgroundPlaybackEnabled = backgroundPlaybackEnabled,
+        panelAutoHideSeconds = panelAutoHideSeconds.toInt()
     )
-}
-
-@Composable
-private fun WatchSettingsControls(
-    viewModel: WearSyncViewModel,
-    state: WatchSettingsState,
-    onChanged: () -> Unit
-) {
-    // S2169: the subgroup sequence mirrors the watch settings menu - Media types, Slideshow, Screen,
-    // Other - in the watch's own order, so every setting sits where the watch shows it. A setting the
-    // watch owns outright (auto rotation, voice-note send policy) has no row here at all.
-    Spacer(Modifier.height(SPACING_SMALL))
-    GroupCaption(text = stringResource(R.string.wear_settings_group_media_types))
-    MediaTypesSwitches(state = state, onChanged = onChanged)
-    GroupCaption(text = stringResource(R.string.wear_settings_group_sections))
-    SwitchRow(
-        tag = "wearSwitchStreams",
-        label = stringResource(R.string.wear_setting_streams_section),
-        description = stringResource(R.string.wear_setting_streams_section_desc),
-        checked = state.streamsSectionEnabled
-    ) {
-        state.streamsSectionEnabled = it
-        onChanged()
-    }
-    GroupCaption(text = stringResource(R.string.wear_settings_group_slideshow))
-    SwitchRow(
-        tag = "wearSwitchSlideshow",
-        label = stringResource(R.string.wear_settings_slideshow),
-        description = stringResource(R.string.wear_settings_slideshow_desc),
-        checked = state.slideshowEnabled
-    ) {
-        state.slideshowEnabled = it
-        onChanged()
-    }
-    SlideshowIntervalSlider(
-        seconds = state.slideshowInterval,
-        onSecondsChange = { state.slideshowInterval = it },
-        onSecondsSettled = onChanged
-    )
-    GroupCaption(text = stringResource(R.string.wear_settings_group_screen))
-    ViewModeRow(
-        tagPrefix = "wearViewMode",
-        label = stringResource(R.string.wear_settings_view_mode),
-        selected = state.viewMode
-    ) { picked ->
-        state.viewMode = picked
-        onChanged()
-    }
-    ViewModeRow(
-        tagPrefix = "wearFileListViewMode",
-        label = stringResource(R.string.wear_settings_file_list_view),
-        selected = state.fileListViewMode
-    ) { picked ->
-        state.fileListViewMode = picked
-        onChanged()
-    }
-    // S2169: the background mode sits at its canonical Screen position; the picture picker, the
-    // preview and the delivery line are actions of this surface that exist only under the image
-    // option, so they follow the mode chips rather than preceding them.
-    BackgroundModeControls(viewModel = viewModel)
-    SwitchRow(
-        tag = "wearSwitchKeepAwake",
-        label = stringResource(R.string.wear_settings_keep_awake),
-        description = stringResource(R.string.wear_settings_keep_awake_desc),
-        checked = state.keepScreenAwake,
-        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
-        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
-    ) {
-        state.keepScreenAwake = it
-        onChanged()
-    }
-    OtherSubgroup(state = state, onChanged = onChanged)
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
-    GroupCaption(text = stringResource(R.string.wear_settings_group_other))
     SwitchRow(
         tag = "wearSwitchAlbumArt",
         label = stringResource(R.string.wear_settings_album_art),
@@ -280,6 +292,12 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         state.backgroundPlaybackEnabled = it
         onChanged()
     }
+    // S2505: player panel auto-hide duration on watch.
+    PanelAutoHideSlider(
+        seconds = state.panelAutoHideSeconds,
+        onSecondsChange = { state.panelAutoHideSeconds = it },
+        onSecondsSettled = onChanged
+    )
 }
 
 /** S2169: a subgroup heading, matching the caption style the view-mode rows already use. */
@@ -359,6 +377,30 @@ private fun SlideshowIntervalSlider(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("wearSlideshowInterval")
+            .semantics { contentDescription = label }
+    )
+    Spacer(Modifier.height(SPACING_SMALL))
+}
+
+@Composable
+private fun PanelAutoHideSlider(
+    seconds: Float,
+    onSecondsChange: (Float) -> Unit,
+    onSecondsSettled: () -> Unit
+) {
+    val label = stringResource(R.string.wear_settings_panel_auto_hide)
+    Text(
+        text = label + ": " + seconds.toInt(),
+        style = MaterialTheme.typography.bodySmall
+    )
+    Slider(
+        value = seconds,
+        onValueChange = onSecondsChange,
+        onValueChangeFinished = onSecondsSettled,
+        valueRange = 1f..PANEL_AUTO_HIDE_MAX_SECONDS,
+        modifier = Modifier
+            .fillMaxWidth()
+            .testTag("wearPanelAutoHide")
             .semantics { contentDescription = label }
     )
     Spacer(Modifier.height(SPACING_SMALL))

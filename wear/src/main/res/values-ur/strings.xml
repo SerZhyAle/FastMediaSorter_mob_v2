@@ -16,9 +16,9 @@
     <string name="permission_rationale">آپ کی میڈیا فائلیں دکھانے کے لیے اجازت درکار ہے</string>
     <string name="settings">ترتیبات</string>
     <string name="media_types">میڈیا اقسام</string>
-    <string name="enable_audio">آڈیو فعال کریں</string>
-    <string name="enable_video">ویڈیو فعال کریں</string>
-    <string name="enable_images">تصاویر فعال کریں</string>
+    <string name="enable_audio">آڈیو</string>
+    <string name="enable_video">ویڈیو</string>
+    <string name="enable_images">تصاویر</string>
     <string name="slideshow_settings">سلائیڈ شو</string>
     <string name="enable_slideshow">سلائیڈ شو فعال کریں</string>
     <string name="slideshow_interval">وقفہ: %ds</string>
@@ -129,7 +129,7 @@
     <string name="wear_phone_documents">دستاویزات</string>
     <string name="screen_settings_title">اسکرین</string>
     <string name="screen_settings_view_mode">اسکرینز کا منظر</string>
-    <string name="wear_streams_section_enabled">اسٹریمز دکھائیں</string>
+    <string name="wear_streams_section_enabled">اسٹریمز</string>
     <string name="wear_resources_empty_hint">ابھی تک فون سے کچھ نہیں آیا۔ فون پر Wear-companion کھولیں اور یہاں بھیجنے کے لیے وسائل منتخب کریں۔</string>
     <string name="screen_settings_keep_awake">اسکرین آن رکھیں</string>
     <string name="about_send_logs">لاگز ڈویلپر کو بھیجیں</string>
@@ -270,8 +270,6 @@
     <string name="wear_voice_note_state_pending">فون کا انتظار ہے۔</string>
     <string name="wear_voice_note_state_sent">فون پر بھیج دیا۔</string>
     <string name="wear_voice_note_state_failed">بھیجا نہیں۔</string>
-    <string name="wear_voice_note_send">فون پر بھیجیں۔</string>
-    <string name="wear_voice_note_delete">نوٹ حذف کریں۔</string>
     <string name="wear_voice_note_delete_confirm">اس نوٹ کو حذف کریں؟ ریکارڈنگ اس کے ساتھ جاتی ہے۔</string>
     <string name="wear_voice_note_empty">ابھی تک کوئی نوٹس نہیں ہے۔ ایک ریکارڈ کریں اور یہ یہاں ظاہر ہوتا ہے۔</string>
     <string name="wear_voice_note_result_sent">ہو گیا نوٹ فون پر ہے۔</string>
@@ -347,7 +345,8 @@
     <string name="wear_setting_streams_section">اسٹریمز دکھائیں۔</string>
     <string name="wear_setting_background_mode">پس منظر دیکھیں</string>
     <string name="wear_background_mode_animation">برانڈڈ اینیمیشن</string>
-    <string name="wear_background_mode_image">آپ کی تصویر</string>
+    <string name="wear_background_mode_still">ساکن برانڈڈ پس منظر</string>
+    <string name="wear_background_mode_image">فون سے تصویر</string>
     <string name="wear_content_type_document">دستاویز</string>
     <string name="wear_content_type_folder">فولڈر</string>
     <string name="wear_browse_search">فائلیں تلاش کریں۔</string>
@@ -365,8 +364,7 @@
     <string name="wear_browse_sort_date_desc">تاریخ (پہلے تازہ ترین)</string>
     <string name="wear_browse_sort_size_asc">سائز (پہلے سب سے چھوٹا)</string>
     <string name="wear_browse_sort_size_desc">سائز (پہلے سب سے بڑا)</string>
-    <string name="enable_documents">دستاویزات کو فعال کریں۔</string>
-    <string name="wear_settings_sections">سیکشنز</string>
+    <string name="enable_documents">دستاویزات</string>
     <string name="phone_resource_no_resource_for_type">اس قسم کے انعقاد کے لیے فون کا کوئی وسیلہ ترتیب نہیں دیا گیا ہے۔</string>
     <string name="wear_folder_load_more">مزید دکھائیں</string>
     <string name="wear_file_op_outcome_needs_consent">تصدیق نہیں ہوئی - کچھ بھی نہیں بدلا۔</string>

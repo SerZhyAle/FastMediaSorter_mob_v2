@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.thumbnail.EmbeddedPreviewReader
 import com.sza.fastmediasorter.wear.data.thumbnail.WearThumbnailRepositoryImpl
+import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
 import dagger.Module
@@ -28,13 +29,15 @@ object ThumbnailModule {
         smbDataSource: SmbDataSource,
         ftpDataSource: FtpDataSource,
         sftpDataSource: SftpDataSource,
-        previewReader: EmbeddedPreviewReader
+        previewReader: EmbeddedPreviewReader,
+        phoneResourceClient: PhoneResourceClient
     ): WearThumbnailRepository = WearThumbnailRepositoryImpl(
         context,
         networkSourceRepository,
         smbDataSource,
         ftpDataSource,
         sftpDataSource,
-        previewReader
+        previewReader,
+        phoneResourceClient
     )
 }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.repository
 
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -41,9 +42,35 @@ interface NetworkSourceRepository {
 
     /**
      * Delete network source by ID.
+     *
+     * Import path only: it leaves no deletion evidence, because the event it applies was already
+     * decided by the other side. A user delete goes through [deleteSourceWithTombstone].
      */
     suspend fun deleteSource(id: String)
-    
+
+    /**
+     * Delete network source by ID as a user action, recording the deletion event first.
+     *
+     * S2507: without the tombstone the next exchange cannot tell this removal from a resource that
+     * never existed on this watch, and the phone hands the resource back.
+     */
+    suspend fun deleteSourceWithTombstone(id: String, deletedAt: Long)
+
+    /**
+     * Read the deletion events this watch still carries.
+     */
+    suspend fun getTombstones(): List<WearSourceTombstonePayload>
+
+    /**
+     * Store a deletion event, replacing any earlier event for the same resource id.
+     */
+    suspend fun recordTombstone(tombstone: WearSourceTombstonePayload)
+
+    /**
+     * Drop the deletion event for [id], used when a later edit beats the recorded deletion.
+     */
+    suspend fun removeTombstone(id: String)
+
     /**
      * Test connection to network source.
      * 

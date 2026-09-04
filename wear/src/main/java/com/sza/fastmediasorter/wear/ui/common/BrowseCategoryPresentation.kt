@@ -22,7 +22,9 @@ import com.sza.fastmediasorter.wear.domain.model.WearContentType
  * The label keys keep their `wear_phone_*` names although all three category screens now read them.
  * Renaming seven keys across thirteen locales would move no user-visible text and would put a
  * translation round trip in front of a behaviour fix; the names record where the wording was first
- * settled, not which screen may use it.
+ * settled, not which screen may use it. A key added since then is named for what it is
+ * (`wear_browse_voice_notes`): inheriting a prefix that was already wrong would spread the mistake
+ * rather than keep the set tidy.
  *
  * ## The image label
  *
@@ -49,23 +51,25 @@ object BrowseCategoryPresentation {
         BrowseCategoryCatalog.TOKEN_PHOTOS -> R.string.wear_phone_images
         BrowseCategoryCatalog.TOKEN_DOCUMENTS -> R.string.wear_phone_documents
         BrowseCategoryCatalog.TOKEN_ALL -> R.string.wear_phone_all
+        BrowseCategoryCatalog.TOKEN_VOICE_NOTES -> R.string.wear_browse_voice_notes
         else -> R.string.wear_phone_browse
     }
 
     /**
      * The glyph [category] is drawn with.
      *
-     * Recents is the one entry that is not a content type - it is a time filter over every type - so
-     * it carries its own symbol and borrows only the tone. Everything else asks [ContentTypeCatalog],
-     * which keeps one glyph per entity across both apps.
+     * Two entries are not content types and so cannot be drawn from one. Recents is a time filter over
+     * every type, and voice notes is one store rather than a kind of file; both carry
+     * [WearContentType.OTHER], which is also what "all" carries, so asking the content type alone would
+     * draw all three identically. Everything else asks [ContentTypeCatalog], which keeps one glyph per
+     * entity across both apps.
      */
     @DrawableRes
-    fun glyphFor(category: WearBrowseCategory): Int =
-        if (category.token == BrowseCategoryCatalog.TOKEN_RECENTS) {
-            R.drawable.ic_history
-        } else {
-            ContentTypeCatalog.iconFor(category.type)
-        }
+    fun glyphFor(category: WearBrowseCategory): Int = when (category.token) {
+        BrowseCategoryCatalog.TOKEN_RECENTS -> R.drawable.ic_history
+        BrowseCategoryCatalog.TOKEN_VOICE_NOTES -> R.drawable.ic_voice_note
+        else -> ContentTypeCatalog.iconFor(category.type)
+    }
 
     /**
      * The semantic tone for a category glyph, or none when the painter already carries its own colour.

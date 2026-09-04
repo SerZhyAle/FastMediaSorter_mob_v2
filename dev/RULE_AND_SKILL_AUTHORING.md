@@ -40,6 +40,7 @@ Checklist for every `description:` field:
 ## Where each artifact lives
 
 - Rule (behavioral, always-loaded): `CLAUDE.md` - then mirror it per the rule mirroring contract below.
+- Rule detail (the mechanism, incident and measurement behind a numbered rule): `.claude/rules/<topic>.md` with `paths:` frontmatter, loaded by Claude Code only when it reads a file matching one of the globs (S2521). The statement and the number stay in `CLAUDE.md`; the detail file holds no numbered statement of its own. `scripts/quality/assert-always-loaded-budget.ps1` refuses a rules file without `paths:` that the baseline does not list - such a file is always-loaded and costs exactly what it was moved to avoid - and a `paths` entry whose literal prefix names nothing on disk, which is a rule that never loads.
 - Mechanical gate: `scripts/quality/assert-*.ps1`, wired into `scripts/post-change.ps1` and `a.ps1 fg`.
 - Slash command: `.claude/commands/<name>.md` with a trigger-focused `description:` in frontmatter.
 - Auto-triggered skill: `.claude/skills/<name>/SKILL.md`.
@@ -49,7 +50,7 @@ Checklist for every `description:` field:
 
 The `repository-rules` record in `docs/DOCUMENT_REGISTRY.jsonl` lists every agent-facing rules file, but a list of neighbours does not say which of them owes you a copy of your new rule. Four roles do. A file has exactly one.
 
-- **Authority** - `CLAUDE.md`. The only place a rule is formulated and the only place it gets a number. The number is the rule's identity for life; renumbering breaks every citation below.
+- **Authority** - `CLAUDE.md`. The only place a rule is formulated and the only place it gets a number. The number is the rule's identity for life; renumbering breaks every citation below. Its path-scoped detail files under `.claude/rules/` are part of the authority's text, not a digest: they carry no numbered statement, only the prose behind one.
 - **Full digest** - `AGENTS.md`, `.github/copilot-instructions.md`. Read by agents that never load the authority (Copilot pulls its file into every chat and pulls no other), so each must name **every** numbered rule and cite it as the literal token `Rule N`. Its own numbering, wording and grouping are free; only the citation is fixed, because the citation is what a machine can check. A range (`Rules 24-29`) does not count as citing its members - that is precisely how rules 25-28 looked covered while nothing stated them (S1548).
 - **Pointer** - `GEMINI.md`. Carries no rules at all, and must name the authority and every full digest so a reader who starts there can still reach them. A pointer that grows a rule list becomes a digest nobody remembers to update.
 - **Consumer** - `.claude/commands/*.md`, `.claude/skills/*/SKILL.md`, `.claude/agents/*.md`, `.claude/reference/*.md`, `.claude/templates/*.md`, `.github/prompts/*.prompt.md`, `docs/AGENT_HOOKS.md`. Cites rules as needed, owes no coverage, and never owns a formulation.

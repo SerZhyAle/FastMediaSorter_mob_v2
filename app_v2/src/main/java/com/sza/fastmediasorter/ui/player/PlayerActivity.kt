@@ -893,7 +893,9 @@ class PlayerActivity :
         if (!binding.root.isInTouchMode) return
         val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
         if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
-            hideControlsHandler.postDelayed(hideControlsRunnable, VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS)
+            val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000L
+            Timber.d("S2505: PlayerActivity scheduleHideControls delayMs=$delayMs")
+            hideControlsHandler.postDelayed(hideControlsRunnable, delayMs)
         }
     }
 
@@ -1438,7 +1440,6 @@ class PlayerActivity :
     }
 
     companion object {
-        private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
         private const val FMS_PLAYER_READY = "FMS_PLAYER_READY"
         private const val FMS_PLAYER_BACK_NAVIGATION = "FMS_PLAYER_BACK_NAVIGATION"
 

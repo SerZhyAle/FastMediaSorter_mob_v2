@@ -3506,6 +3506,7 @@
     <string name="calculator_keypad_mode_large">Large keys</string>
     <string name="calculator_keypad_mode_compact">Compact, bottom right</string>
     <string name="wear_background_mode_animation">Branded animation</string>
+    <string name="wear_background_mode_still">Branded still</string>
     <string name="wear_background_mode_image">Your image</string>
     <string name="wear_background_pick_image">Choose image</string>
     <string name="wear_background_preview">Preview of the watch background</string>
@@ -3706,4 +3707,11 @@
     <string name="wear_settings_watch_version">Watch app: %1$s</string>
     <string name="wear_settings_watch_version_unknown">Watch app: version unknown</string>
     <string name="wear_settings_watch_version_mismatch">Watch app: %1$s, phone: %2$s</string>
+    <string name="wear_resource_group_virtual">Virtual resources</string>
+    <string name="wear_resource_group_internal">Internal resources</string>
+    <string name="wear_resource_group_external">External resources</string>
+    <string name="wear_sync_now">Sync</string>
+    <string name="wear_sync_now_description">Synchronize watch and phone</string>
+    <string name="player_panel_auto_hide_seconds">Player panel auto-hide duration (s)</string>
+    <string name="wear_settings_panel_auto_hide">Player panel auto-hide duration (s)</string>
 </resources>

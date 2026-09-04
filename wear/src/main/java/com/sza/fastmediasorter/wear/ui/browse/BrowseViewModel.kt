@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
+import com.sza.fastmediasorter.wear.data.network.WearNetworkFailureClassifier
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseListProjection
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkFailure
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.asContentType
@@ -65,7 +67,9 @@ class BrowseViewModel @Inject constructor(
     private val playbackSetManager: PlaybackSetManager,
     private val thumbnailRepository: WearThumbnailRepository,
     /** S2444: owns the selection and the file-operation batch - see [BrowseFileOperationsManager]. */
-    val fileOperations: BrowseFileOperationsManager
+    val fileOperations: BrowseFileOperationsManager,
+    /** S2488: names why a network source refused to open, instead of one generic load failure. */
+    private val networkFailureClassifier: WearNetworkFailureClassifier
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BrowseUiState>(BrowseUiState.Loading)
@@ -283,7 +287,10 @@ class BrowseViewModel @Inject constructor(
                             Timber.e("Failed to connect to SMB: $error")
                             withContext(Dispatchers.Main) {
                                 _uiState.value = BrowseUiState.Error(
-                                    ScreenTitle.Resource(R.string.browse_network_connection_failed)
+                                    ScreenTitle.Resource(
+                                        // S2488: a failed Result, not a throw - a null cause is OTHER.
+                                        messageFor(connectResult.exceptionOrNull())
+                                    )
                                 )
                             }
                             return@withContext
@@ -323,10 +330,24 @@ class BrowseViewModel @Inject constructor(
                 Timber.d("S2278: browse network load catch entered, cancellation cure routes it")
                 e.errorUnlessCancellation("Exception loading network files")
                 withContext(Dispatchers.Main) {
-                    _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(R.string.browse_load_failed))
+                    _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(messageFor(e)))
                 }
             }
         }
+    }
+
+    /**
+     * S2488: the string the wearer reads for a failed network open. A cause the classifier cannot
+     * name keeps the generic load failure, which is what the screen showed for every case before.
+     */
+    private fun messageFor(error: Throwable?): Int = when (
+        error?.let { networkFailureClassifier.classify(it) } ?: WearNetworkFailure.OTHER
+    ) {
+        WearNetworkFailure.CONNECTION_REFUSED -> R.string.browse_network_error_refused
+        WearNetworkFailure.TIMEOUT -> R.string.browse_network_error_timeout
+        WearNetworkFailure.AUTH_REJECTED -> R.string.browse_network_error_auth
+        WearNetworkFailure.UNKNOWN_HOST -> R.string.browse_network_error_unknown_host
+        WearNetworkFailure.OTHER -> R.string.browse_load_failed
     }
 
     /**

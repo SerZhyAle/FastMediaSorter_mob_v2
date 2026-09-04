@@ -12,8 +12,10 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.playback.HostStopAction
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
@@ -65,11 +67,13 @@ class AudioPlayerViewModel @Inject constructor(
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     @ApplicationContext private val context: Context,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val toggleStreamPinUseCase: com.sza.fastmediasorter.wear.domain.usecase.ToggleStreamPinUseCase,
     private val resolveAlbumArt: ResolveAlbumArtUseCase,
     private val preferencesRepository: WearPreferencesRepository,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     private val nowPlayingRepository: WearNowPlayingRepository,
     private val backgroundSessionState: WearBackgroundSessionState,
+    val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -78,6 +82,9 @@ class AudioPlayerViewModel @Inject constructor(
 
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+
+    private val _isPinned = MutableStateFlow(false)
+    val isPinned: StateFlow<Boolean> = _isPinned.asStateFlow()
 
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
 
@@ -150,7 +157,10 @@ class AudioPlayerViewModel @Inject constructor(
                     // A set of one is excluded deliberately: it has nowhere to advance to, and
                     // restarting the only track is exactly the endless loop S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
-                    if (setSize > 1) {
+                    if (_uiState.value.playbackMode == WearPlaybackMode.LOOP) {
+                        exoPlayer.seekTo(0)
+                        exoPlayer.play()
+                    } else if (setSize > 1) {
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -184,6 +194,31 @@ class AudioPlayerViewModel @Inject constructor(
         Timber.d("AudioPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
 
+        val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
+        fileOperations.bind(
+            scope = viewModelScope,
+            currentFile = currentFileFlow,
+            isNetworkSource = { networkSelection != null }
+        )
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                currentFileFlow.value = state.mediaFile
+            }
+        }
+        viewModelScope.launch {
+            fileOperations.operationResult.collect { result ->
+                when (result) {
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
+                        playFile(result.nextFile)
+                    }
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
+                        _uiState.update { it.copy(closeScreen = true) }
+                    }
+                    com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Stay, null -> {}
+                }
+            }
+        }
+
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
             // S1683: navigation carries the id alone, so the shared set has to be pointed at it here
@@ -212,8 +247,14 @@ class AudioPlayerViewModel @Inject constructor(
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.NEXT -> {
+                        Timber.d("S2523: AudioPlayer received WearPlaybackCommand.NEXT, invoking skipToNext()")
+                        skipToNext()
+                    }
+                    WearPlaybackCommand.PREVIOUS -> {
+                        Timber.d("S2523: AudioPlayer received WearPlaybackCommand.PREVIOUS, invoking skipToPrevious()")
+                        skipToPrevious()
+                    }
                     WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
@@ -259,7 +300,9 @@ class AudioPlayerViewModel @Inject constructor(
         viewModelScope.launch {
             val selected = selectedMediaManager.getSelectedFileById(fileId)
             if (selected != null) {
-                _uiState.update { it.withMediaFile(selected.file) }
+                _uiState.update {
+                    it.withMediaFile(selected.file).copy(isStream = selected.sourceId == SOURCE_ID_STREAM)
+                }
                 if (selected.isNetworkSource) {
                     networkSelection = selected
                 }
@@ -374,7 +417,11 @@ class AudioPlayerViewModel @Inject constructor(
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
             if (selectedMedia != null) {
-                _uiState.update { it.withMediaFile(selectedMedia.file) }
+                _uiState.update {
+                    it.withMediaFile(selectedMedia.file).copy(
+                        isStream = selectedMedia.sourceId == SOURCE_ID_STREAM
+                    )
+                }
                 checkFavoriteState()
                 if (selectedMedia.isNetworkSource) {
                     // S1683: remembered so paging can re-enter the download path with the same source id.
@@ -446,8 +493,7 @@ class AudioPlayerViewModel @Inject constructor(
      * screen never holds a copy that a failed write could leave stale.
      */
     fun toggleShuffle() {
-        val enabled = !_uiState.value.isShuffleEnabled
-        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+        togglePlaybackMode()
     }
 
     /**
@@ -555,6 +601,13 @@ class AudioPlayerViewModel @Inject constructor(
         }
     }
 
+    fun togglePlaybackMode() {
+        val nextMode = _uiState.value.playbackMode.next()
+        val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
+        _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
     fun toggleFavorite() {
         val identity = currentFavoriteIdentity() ?: return
         viewModelScope.launch {
@@ -563,15 +616,33 @@ class AudioPlayerViewModel @Inject constructor(
         }
     }
 
-    /** Re-reads the mark for whatever is open now, so paging to another track cannot show a stale star. */
+    /** S2497: toggles stream pin state separately from favorite. */
+    fun togglePin() {
+        val identity = currentFavoriteIdentity() ?: return
+        if (_uiState.value.isStream) {
+            viewModelScope.launch {
+                val nextState = toggleStreamPinUseCase.toggle(identity.filePath, _isPinned.value)
+                Timber.d("S2497: AudioPlayerViewModel toggled stream pin for ${identity.filePath} -> $nextState")
+                _isPinned.value = nextState
+            }
+        }
+    }
+
+    /** Re-reads the marks for whatever is open now, so paging to another track cannot show a stale mark. */
     private fun checkFavoriteState() {
         val identity = currentFavoriteIdentity()
         if (identity == null) {
             _isFavorite.value = false
+            _isPinned.value = false
             return
         }
         viewModelScope.launch {
             _isFavorite.value = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
+            if (_uiState.value.isStream) {
+                _isPinned.value = toggleStreamPinUseCase.isPinned(identity.filePath)
+            } else {
+                _isPinned.value = false
+            }
         }
     }
 

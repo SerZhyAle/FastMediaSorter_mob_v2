@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 
 import android.net.Uri
 import com.sza.fastmediasorter.wear.data.network.WearNetworkDataSources
+import com.sza.fastmediasorter.wear.data.network.WearNetworkFailureClassifier
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
@@ -124,7 +125,9 @@ class BrowseViewModelRefineTest {
                 capabilityPolicy = capabilityPolicy,
                 performFileOperation = performFileOperation,
                 sendToReceiversRepository = sendToReceivers
-            )
+            ),
+            // S2488: the real classifier - it is a pure mapping and these cases never reach it.
+            networkFailureClassifier = WearNetworkFailureClassifier()
         ).apply {
             setNavigationArgs(MediaType.MUSIC)
             loadMediaFiles()

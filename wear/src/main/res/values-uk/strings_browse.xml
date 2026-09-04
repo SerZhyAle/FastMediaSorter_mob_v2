@@ -5,4 +5,8 @@
     <string name="browse_network_source_not_found">Це мережеве джерело більше недоступне. Поверніться та виберіть інше.</string>
     <string name="browse_network_connection_failed">Не вдалося підключитися до джерела. Перевірте з’єднання та повторіть.</string>
     <string name="browse_load_failed">Не вдалося завантажити файли. Повторіть спробу.</string>
+    <string name="browse_network_error_refused">Підключення відхилено. Перевірте, чи пристрій роздає файли.</string>
+    <string name="browse_network_error_timeout">Немає відповіді. Перевірте мережу та спробуйте ще раз.</string>
+    <string name="browse_network_error_auth">Невірний логін або пароль. Оновіть ресурс на телефоні.</string>
+    <string name="browse_network_error_unknown_host">Пристрій не знайдено в цій мережі. Перевірте підключення до Wi-Fi.</string>
 </resources>

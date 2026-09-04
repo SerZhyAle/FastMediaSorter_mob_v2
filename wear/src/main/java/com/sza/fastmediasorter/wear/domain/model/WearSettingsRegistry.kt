@@ -91,7 +91,8 @@ object WearSettingsRegistry {
             "disableAnimations",
             "autoRotationEnabled",
             "backgroundPlaybackEnabled",
-            "voiceNoteSendPolicy"
+            "voiceNoteSendPolicy",
+            "panelAutoHideSeconds"
         )
     )
 
@@ -247,6 +248,15 @@ object WearSettingsRegistry {
             companionRowTag = null,
             exceptionReason = "ADR-2: decided where the note is recorded, next to the auto-rotation row " +
                 "it sits beside on the watch."
+        ),
+        WearSettingScope(
+            field = "panelAutoHideSeconds",
+            watchPreferenceKey = "wear_panel_auto_hide_seconds",
+            docScopeId = "wearPanelAutoHide",
+            valueType = TYPE_INT,
+            ownership = WearSettingOwnership.BOTH,
+            watchRowAnchor = "setPanelAutoHideSeconds",
+            companionRowTag = "wearPanelAutoHide"
         ),
         WearSettingScope(
             field = "appLanguage",

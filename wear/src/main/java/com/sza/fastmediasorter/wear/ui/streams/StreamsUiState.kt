@@ -45,7 +45,7 @@ data class StreamFacetValue(
 data class StreamsUiState(
     val channels: List<WearStreamChannel> = emptyList(),
     val displayChannels: List<WearStreamChannel> = emptyList(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val viewMode: WearViewMode = WearViewMode.LIST,

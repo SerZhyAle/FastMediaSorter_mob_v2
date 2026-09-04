@@ -80,7 +80,6 @@ class PushWearSendToReceiversUseCase @Inject constructor(
         val nodes = wearableRepository.getConnectedNodes()
         check(nodes.isNotEmpty()) { "No watch connected" }
         val payload = WearSendToReceiversPayload(receivers = offeredReceivers(settings))
-        Timber.d("S2142: publishing %d send-to receiver(s) to the watch", payload.receivers.size)
         val envelope = WearEventEnvelope(
             eventType = WearDataLayerPaths.EVENT_SEND_TO_RECEIVERS,
             sentAt = System.currentTimeMillis(),

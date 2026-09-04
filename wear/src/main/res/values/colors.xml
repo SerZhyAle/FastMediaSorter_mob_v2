@@ -34,17 +34,17 @@
          .Colors declares no isLight and defaults background to black - so the watch has one surface
          and a split would resolve a choice that does not exist, at the risk of handing the watch the
          dark member of each pair against a black background. -->
-    <color name="color_media_music">#FF80CBC4</color>
-    <color name="color_media_video">#FFCE93D8</color>
-    <color name="color_media_image">#FF90CAF9</color>
-    <color name="color_media_docs">#FFFFCC80</color>
-    <color name="color_media_other">#FFB0BEC5</color>
+    <color name="color_media_music">#FF4B7A74</color>
+    <color name="color_media_video">#FF80608C</color>
+    <color name="color_media_image">#FF51789A</color>
+    <color name="color_media_docs">#FF9A7445</color>
+    <color name="color_media_other">#FF77848A</color>
 
     <!-- S2003 ADR-4: the only two tones in this set with no phone-side source - neither folder nor
          stream is a content type in any of the phone's four schemes. They are defined here, not
          inherited, and are marked so a later consolidation reads them as original rather than as
          drift. Green and red were chosen for being unoccupied and furthest from the five above;
          grey and teal were rejected because "other" and music already hold them. -->
-    <color name="color_media_folder">#FFA5D6A7</color>
-    <color name="color_media_stream">#FFEF9A9A</color>
+    <color name="color_media_folder">#FF628467</color>
+    <color name="color_media_stream">#FF9A5A5A</color>
 </resources>

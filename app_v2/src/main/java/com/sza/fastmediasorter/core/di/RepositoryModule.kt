@@ -23,7 +23,13 @@ import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceIdAliasStore
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceStampStore
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
+import com.sza.fastmediasorter.data.repository.wear.WearResourceIdAliasStore
+import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
+import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.WearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.game.GameStateRepository
@@ -66,7 +72,7 @@ abstract class RepositoryModule {
             .registerTypeAdapter(Instant::class.java, InstantTypeAdapter())
             .create()
     }
-    
+
     // S2093: the two older consumers inject the implementation directly; the merge use case takes the
     // interface so a test can hand it a plain fake instead of a mocked SharedPreferences.
     @Binds
@@ -74,6 +80,26 @@ abstract class RepositoryModule {
     abstract fun bindWearSettingsMirrorStore(
         impl: SharedPreferencesWearSettingsMirrorStore
     ): WearSettingsMirrorStore
+
+    // S2502: the resource edit stamps the watch exchange ranks records by. Lives beside the settings
+    // mirror above because it answers the same question for the other half of the exchange.
+    @Binds
+    @Singleton
+    abstract fun bindWearResourceStampStore(
+        impl: SharedPreferencesWearResourceStampStore
+    ): WearResourceStampStore
+
+    @Binds
+    @Singleton
+    abstract fun bindWearResourceTombstoneStore(
+        impl: SharedPreferencesWearResourceTombstoneStore
+    ): WearResourceTombstoneStore
+
+    @Binds
+    @Singleton
+    abstract fun bindWearResourceIdAliasStore(
+        impl: SharedPreferencesWearResourceIdAliasStore
+    ): WearResourceIdAliasStore
 
     // S2199: the resource list's remembered sort and filters. Bound as an interface because the
     // screen must not import the data layer - see the ui-imports-data gate (S2103).
@@ -88,7 +114,7 @@ abstract class RepositoryModule {
     abstract fun bindResourceRepository(
         impl: ResourceRepositoryImpl
     ): ResourceRepository
-    
+
     @Binds
     @Singleton
     abstract fun bindSettingsRepository(
@@ -130,7 +156,7 @@ abstract class RepositoryModule {
     abstract fun bindGameStateRepository(
         impl: GameStateRepositoryImpl
     ): GameStateRepository
-    
+
     @Binds
     @Singleton
     abstract fun bindNetworkCredentialsRepository(
@@ -142,13 +168,13 @@ abstract class RepositoryModule {
     abstract fun bindFavoritesRepository(
         impl: FavoritesRepositoryImpl
     ): FavoritesRepository
-    
+
     @Binds
     @Singleton
     abstract fun bindPlaybackPositionRepository(
         impl: PlaybackPositionRepositoryImpl
     ): PlaybackPositionRepository
-    
+
     @Binds
     @Singleton
     abstract fun bindThumbnailCacheRepository(

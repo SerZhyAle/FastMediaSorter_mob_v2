@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -25,7 +26,9 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
+// S2486: internal rather than private - AddNetworkSourceViewModel collects the same setting through the
+// same window, and a second literal with the same number is the shape that drifts.
+internal const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
 
 sealed class SyncState {
     data object Idle : SyncState()
@@ -63,8 +66,15 @@ class NetworkSourcesViewModel @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     @ApplicationContext private val context: Context,
     private val exportSourcesUseCase: ExportSourcesUseCase,
-    private val preferencesRepository: WearPreferencesRepository
+    private val preferencesRepository: WearPreferencesRepository,
+    restrictedCapabilities: WearRestrictedCapabilities
 ) : ViewModel() {
+
+    /**
+     * S2486: whether this flavor offers typing a new source in by hand. A plain `val`, not a flow - the
+     * answer is fixed at compile time per flavor and cannot change while the screen is alive.
+     */
+    val offersCredentialEntry: Boolean = restrictedCapabilities.offersCredentialEntry
 
     /** S1781: ADR-1 - one stored view shared with the home screen, never a second setting here. */
     val viewMode: StateFlow<WearViewMode> = preferencesRepository.viewMode
@@ -259,7 +269,10 @@ class NetworkSourcesViewModel @Inject constructor(
     fun deleteSource(id: String) {
         viewModelScope.launch {
             try {
-                networkSourceRepository.deleteSource(id)
+                // S2507: the user-delete path, which records the deletion event. The plain
+                // deleteSource is the import path - it applies a decision the phone already made.
+                Timber.d("S2507: watch user-delete, recording a tombstone for source $id")
+                networkSourceRepository.deleteSourceWithTombstone(id, System.currentTimeMillis())
                 Timber.d("Deleted source $id")
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Failed to delete source $id")

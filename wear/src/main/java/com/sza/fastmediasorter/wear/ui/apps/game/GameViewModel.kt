@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.wear.domain.game.GameDirection
 import com.sza.fastmediasorter.wear.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
 import com.sza.fastmediasorter.wear.domain.game.GameRulesEngine
+import com.sza.fastmediasorter.wear.domain.game.GameSeedSource
 import com.sza.fastmediasorter.wear.domain.game.GameStateSnapshot
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -34,6 +35,8 @@ class GameViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val engine = GameRulesEngine()
+
+    private val seedSource = GameSeedSource()
 
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
@@ -142,8 +145,13 @@ class GameViewModel @Inject constructor(
     }
 
     /**
-     * A level's seed is derived from its number, so the same level is always the same board - that is
-     * what makes replaying a lost level a second try rather than a different game.
+     * A seed is drawn fresh for every generated board, so no two boards repeat (S2494).
+     *
+     * The seed used to be derived from the level number, which made every entry into level 1 the same
+     * board and every restart the same second try. The phone draws a new seed both on advancing and
+     * on either restart, and the watch is brought to that behaviour. A restored save does not pass
+     * through here at all - it carries the seed it was written with, so returning to an interrupted
+     * game returns the board the player left.
      */
     private fun generate(levelNumber: Int): GameLevelState? {
         val config = GameLevelConfig(
@@ -152,8 +160,9 @@ class GameViewModel @Inject constructor(
             width = BOARD_SIDE,
             height = BOARD_SIDE,
             shadowCount = shadowCountFor(levelNumber),
-            seed = levelNumber.toLong() * LEVEL_SEED_STEP
+            seed = seedSource.nextSeed(levelNumber)
         )
+        Timber.d("S2494: level %d generated with seed %d", levelNumber, config.seed)
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)
@@ -198,6 +207,5 @@ class GameViewModel @Inject constructor(
         const val LEVELS_PER_SHADOW = 3
         const val NORMAL_FROM_LEVEL = 4
         const val HARD_FROM_LEVEL = 10
-        const val LEVEL_SEED_STEP = 7919L
     }
 }

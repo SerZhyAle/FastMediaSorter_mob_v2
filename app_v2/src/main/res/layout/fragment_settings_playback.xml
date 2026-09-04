@@ -173,6 +173,14 @@
                         app:str_helpTitle="@string/tooltip_command_panel_title"
                         app:str_helpMessage="@string/tooltip_command_panel_message" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+                        android:id="@+id/rowPlayerPanelAutoHide"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sir_title="@string/player_panel_auto_hide_seconds"
+                        app:sir_inputType="2" />
+
                     <!-- S0050: Show Black Screen button toggle - grouped with the command panel because it toggles a player command-panel button. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowShowBlackScreenButton"

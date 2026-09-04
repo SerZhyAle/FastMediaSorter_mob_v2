@@ -79,6 +79,27 @@ class VoiceNoteRepositoryImpl @Inject constructor(
         dao.updatePublishedAddress(id, publishedAddress)
     }
 
+    /**
+     * The file moves first and the index follows, so a process death between the two leaves an index
+     * naming a file that is gone - recoverable by the index rebuilder - rather than a file the index
+     * has already renamed past, which nothing would ever reconcile.
+     *
+     * A name already taken in the directory is refused outright instead of being suffixed: the caller
+     * is renaming one note by hand, and silently landing on a third name would tell it a rename
+     * succeeded that the owner did not ask for.
+     */
+    override suspend fun rename(id: Long, newName: String): VoiceNote? = withContext(Dispatchers.IO) {
+        val entity = dao.getById(id) ?: return@withContext null
+        val source = File(entity.absolutePath)
+        val target = File(source.parentFile, newName)
+        if (!source.exists() || target.exists() || !source.renameTo(target)) {
+            Timber.w("Refusing to rename note %d to %s: the file did not move", id, newName)
+            return@withContext null
+        }
+        dao.updateName(id, target.name, target.absolutePath)
+        dao.getById(id)?.toDomain()
+    }
+
     override suspend fun delete(id: Long) = withContext(Dispatchers.IO) {
         // The row goes only after the file: a row without a file is a broken list entry, while a file
         // without a row is an orphan nobody can reach. If the process dies between the two, the

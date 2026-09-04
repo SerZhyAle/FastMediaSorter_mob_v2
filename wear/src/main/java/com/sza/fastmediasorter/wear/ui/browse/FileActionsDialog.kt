@@ -1,9 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -15,7 +15,9 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
-
+import com.sza.fastmediasorter.wear.ui.common.WearAction
+import com.sza.fastmediasorter.wear.ui.common.WearActionColumn
+import timber.log.Timber
 
 /**
  * Every action this menu can run, in the order it draws them, each beside what it calls.
@@ -47,16 +49,24 @@ private fun batchActions(callbacks: FileActionsCallbacks): List<Pair<WearFileOpe
  */
 internal data class FileActionsDialogState(
     val selectedCount: Int,
+    val totalCount: Int,
     val allowedOperations: Set<WearFileOperationKind>
 )
 
-/** What the action menu can ask of the screen that owns the selection. */
+/**
+ * What the action menu can ask of the screen that owns the selection.
+ *
+ * [onDismiss] is the menu's cancel and nothing more: an operation the user never picked is one the
+ * user declined, so it puts the screen back as it was and touches no selection and no file.
+ */
 internal data class FileActionsCallbacks(
+    val onSelectAllRequested: () -> Unit,
     val onSendToRequested: () -> Unit,
     val onSendToPhone: () -> Unit,
     val onMoveToPhone: () -> Unit,
     val onRenameRequested: () -> Unit,
-    val onDeleteRequested: () -> Unit
+    val onDeleteRequested: () -> Unit,
+    val onDismiss: () -> Unit
 )
 
 /**
@@ -68,45 +78,50 @@ internal fun FileActionsDialog(
     state: FileActionsDialogState,
     callbacks: FileActionsCallbacks
 ) {
-    timber.log.Timber.d("S2474: FileActionsDialog selectedCount=%d", state.selectedCount)
-    Alert(
-        title = {
+    Timber.d("S2491: FileActionsDialog selectedCount=%d totalCount=%d", state.selectedCount, state.totalCount)
+    val operationActions = batchActions(callbacks)
+        .filter { it.first in state.allowedOperations }
+        .map { (kind, onClick) ->
+            WearAction(
+                label = stringResource(kind.labelRes()),
+                icon = {
+                    Icon(
+                        painter = painterResource(kind.iconRes()),
+                        contentDescription = null
+                    )
+                },
+                onClick = onClick
+            )
+        }
 
+    val actions = buildList {
+        if (state.selectedCount < state.totalCount) {
+            add(
+                WearAction(
+                    label = stringResource(R.string.wear_select_all),
+                    icon = {
+                        Icon(
+                            imageVector = Icons.Default.SelectAll,
+                            contentDescription = null
+                        )
+                    },
+                    onClick = callbacks.onSelectAllRequested
+                )
+            )
+        }
+        addAll(operationActions)
+    }
+
+    WearActionColumn(
+        actions = actions,
+        onDismiss = callbacks.onDismiss,
+        header = {
             Text(
                 text = stringResource(R.string.wear_file_op_title, state.selectedCount),
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.title3
             )
         }
-    ) {
-        batchActions(callbacks).filter { it.first in state.allowedOperations }.forEach { (kind, onClick) ->
-            item {
-                ActionChip(kind = kind, onClick = onClick)
-            }
-        }
-    }
-}
-
-/**
- * Every action carries its own word and its own glyph. Marking the destructive one by colour alone
- * would leave the distinction unreadable to the accessibility requirement in strategic 3.2.
- */
-@Composable
-private fun ActionChip(
-    kind: WearFileOperationKind,
-    onClick: () -> Unit
-) {
-    Chip(
-        onClick = onClick,
-        label = { Text(text = stringResource(kind.labelRes())) },
-        icon = {
-            Icon(
-                painter = painterResource(kind.iconRes()),
-                contentDescription = null
-            )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
     )
 }
 
@@ -163,4 +178,3 @@ private fun WearFileOperationKind.iconRes(): Int = when (this) {
     WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
     WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
 }
-

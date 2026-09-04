@@ -88,8 +88,11 @@ Two deltas are specific to the watch, and both are hard:
 
 **`wear/src/noLegal/` was empty from S2090 until S2165 filled it, and the ban that kept it empty still
 stands.** The dimension existed so that the next capability Play refuses on a watch had somewhere to go
-instead of being deleted, which is what happened to `ACCESS_FINE_LOCATION` in S2013. It now holds
-exactly two files, and they are the shape to copy:
+instead of being deleted, which is what happened to `ACCESS_FINE_LOCATION` in S2013. Both flavor sets now
+carry code, and they hold the two shapes worth copying.
+
+**Shape 1 - a contributor into a set (S2165).** Use it when the capability ADDS something to a collection
+the shared code already assembles:
 
 - `wear/src/noLegal/java/com/sza/fastmediasorter/wear/diagnostics/NoLegalWearInfoContributor.kt` - the
   capability itself, adding the signing-certificate fingerprint to the system-information report.
@@ -97,13 +100,36 @@ exactly two files, and they are the shape to copy:
   @IntoSet` module, contributing into a set that `wear/src/main` declares with `@Multibinds` so the set
   stays injectable in `standard`, where nothing occupies that slot.
 
-There is still **no `wear/src/noLegal/AndroidManifest.xml`**, because this capability declares no
+**Shape 2 - one contract answered by both flavors (S2486).** Use it when the capability is a QUESTION the
+two flavors answer differently - which is what a Play refusal usually is. This is Rule 5's preferred form
+and it needs a class in each set, not one:
+
+- `wear/src/main/java/com/sza/fastmediasorter/wear/domain/capability/WearRestrictedCapabilities.kt` - the
+  contract, with no default. Its members are named after the CAPABILITY (`offersCredentialEntry`), never
+  after a flavor, so the next Play refusal adds a property rather than a second interface, and no consumer
+  ever asks which flavor it is running in.
+- `wear/src/standard/java/.../capability/StandardWearRestrictedCapabilities.kt` plus
+  `.../di/StandardWearCapabilityModule.kt` - the withholding answers. **This is why
+  `wear/src/standard/` exists at all**: it was created by S2486 and holds nothing else. A default in
+  `src/main` overridden from one flavor was rejected deliberately - two same-named declarations across
+  `main` and a flavor set diverge silently, whereas exactly one of two flavor sets is ever on the
+  classpath, so a missing binding fails that flavor's build instead of falling back to the other's answers.
+- `wear/src/noLegal/java/.../capability/NoLegalWearRestrictedCapabilities.kt` plus
+  `.../di/NoLegalWearCapabilityModule.kt` - the offering answers, mirroring the pair above.
+
+**Compile BOTH flavors before closing a change that touches either set.** `.\a.ps1 fw` resolves to the
+module's first declared flavor, `standard`, and passes on a binding declared only there; `.\a.ps1 fwn`
+(added by S2486 for this reason) is the other half. One target alone is not a verdict about the module.
+
+There is still **no `AndroidManifest.xml` in either flavor set**, because neither capability declares a
 permission and an empty manifest overlay is dead weight under Rule 20 - the second half of S2090 §9
 ADR-5 is unspent, and the first capability that needs a permission creates that file.
 
-Do not fill the directory with a placeholder class to make it look occupied; that half of ADR-5 is
-permanent, and it is the reason the directory stayed empty for as long as it did rather than acquiring
-a stub nobody could later distinguish from real content.
+Do not fill either directory with a placeholder class to make it look occupied; that half of ADR-5 is
+permanent, and it is the reason `noLegal` stayed empty for as long as it did rather than acquiring
+a stub nobody could later distinguish from real content. `wear/src/standard/` is not that stub: a
+two-sided contract has no implementation at all unless both sides declare one, so its content is load
+bearing in exactly the way a placeholder is not.
 
 ## 3. AGENT BEHAVIOR & SKILLS
 

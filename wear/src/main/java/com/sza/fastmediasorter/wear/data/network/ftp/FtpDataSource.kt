@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.util.MediaMimeTypes
@@ -15,10 +16,15 @@ import java.io.IOException
 import java.io.InputStream
 import javax.inject.Inject
 
-class FtpDataSource @Inject constructor() {
+class FtpDataSource @Inject constructor(
+    private val endpointResolver: WearEndpointResolver
+) {
 
-    suspend fun listDirectory(source: NetworkSource, path: String): List<WearMediaFile> =
+    suspend fun listDirectory(sourceIn: NetworkSource, path: String): List<WearMediaFile> =
         withContext(Dispatchers.IO) {
+            // S2488: FTP carries no imported alternates today, so the group is one element and this
+            // returns the source untouched - the wiring is what lets a future group work.
+            val source = endpointResolver.resolve(sourceIn)
             val client = FTPClient()
             try {
                 openSession(client, source)

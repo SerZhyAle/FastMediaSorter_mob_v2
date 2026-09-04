@@ -15,6 +15,15 @@ object WearDataLayerPaths {
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
     /**
+     * Message, watch → phone. Empty body; asks the phone to push its selected resources back.
+     *
+     * S2484: named here rather than spelled out at the call site. This object is the canonical
+     * enumeration of every path, and the request was the one path living only as a literal - which is
+     * how it stayed invisible to anyone reading the list to learn what the two sides exchange.
+     */
+    const val NETWORK_SOURCES_REQUEST = "/fms/network_sources/request"
+
+    /**
      * Data Item, watch → phone. Carries the watch's own settings payload back to the phone (S2093).
      *
      * A Data Item rather than a Message, matching [PLAYBACK_STATE]: the watch's settings are state, so
@@ -130,6 +139,9 @@ object WearDataLayerPaths {
      */
     const val BACKGROUND_IMAGE_EDGE_PX = 480
 
+    /** Message, watch → phone. Carries stream pins delta payload (S2497). */
+    const val STREAM_PINS_DELTA = "/fms/watch/stream_pins_delta"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -158,6 +170,9 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
+    const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"
 
     /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
     const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"
