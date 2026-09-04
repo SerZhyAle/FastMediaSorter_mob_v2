@@ -17,7 +17,7 @@ FastMediaSorter on Wear OS connects directly to your home network storage (NAS, 
 
 ## What You Will Need
 
-- A smartwatch running **Wear OS 3.0** or newer connected to your home Wi-Fi network
+- A smartwatch running **Wear OS 2.0** or newer connected to your home Wi-Fi network
 - A shared network folder (SMB / Windows share, FTP server, or SFTP server)
 - Network credentials: IP address or hostname, share name, username, and password
 - FastMedia Wear installed on your watch

@@ -3660,4 +3660,5 @@
     <string name="wear_sync_now_description">Синхронізувати годинник і телефон</string>
     <string name="player_panel_auto_hide_seconds">Автоприховування панелі плеєра (сек)</string>
     <string name="wear_settings_panel_auto_hide">Автоприховування панелі плеєра (сек)</string>
+    <string name="launcher_feature_action_configure">Налаштувати</string>
 </resources>

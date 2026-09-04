@@ -4,6 +4,8 @@ import android.Manifest
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -43,6 +45,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopActions
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopGeometryManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopSwipeActionHandler
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherFeatureActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleState
@@ -92,6 +95,7 @@ import javax.inject.Inject
  * plain drawables, holds no player or image-loading target, and survives rotation by recomputing
  * the grid in place instead of being recreated.
  */
+@Suppress("LargeClass")
 @AndroidEntryPoint
 class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
@@ -328,6 +332,19 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             scope = lifecycleScope,
             resourceRows = { resourceId -> resourceActionManager.rowsFor(resourceId) },
             streamRows = { streamId -> streamActionManager.rowsFor(streamId) },
+            featureRows = { command, cellId -> featureActionManager.rowsFor(command, cellId) },
+        )
+    }
+
+    // S2392: lazy for the same reason as the managers around it - a Home visit that never long presses
+    // an App Functions cell builds none of them.
+    private val featureActionManager by lazy {
+        LauncherFeatureActionManager(
+            activity = this,
+            runCommand = { command -> viewModel.run(command) },
+            settingsIntentOf = { routeKey -> viewModel.featureSettingsIntent(routeKey) },
+            pinToTaskbar = { command -> viewModel.pinFeatureToTaskbar(command) },
+            removeDesktopCell = { cellId -> viewModel.removeCell(cellId) },
         )
     }
 
@@ -390,7 +407,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         binding.launcherRoot.applySystemBarInsetPadding(useStatusBarHeightFallback = false)
         // A home screen has nowhere to go back to: Back must not finish the surface and expose
         // whatever sits behind it.
-        onBackPressedDispatcher.addCallback(this) { }
+        // S2388: Back dismisses active screen blackout or black screen overlay rather than no-oping.
+        onBackPressedDispatcher.addCallback(this) {
+            if (::blackoutManager.isInitialized && blackoutManager.isOverlayVisible) {
+                Timber.d("S2388: Back pressed while blackout overlay visible -> hide blackout")
+                blackoutManager.hideBlackout()
+            } else if (blackScreenOverlayManager.isVisible) {
+                Timber.d("S2388: Back pressed while black screen overlay visible -> hide black screen")
+                blackScreenOverlayManager.hide()
+            }
+        }
         cellBinder.gadgetBinder = gadgetRenderManager::bindGadget
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
@@ -512,6 +538,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 !binding.launcherDesktop.hasGadgetAtScreenPosition(event.rawX, event.rawY)
             },
             onSwipe = { direction ->
+                Timber.d("S2534: desktop swipe passed gesture admission (direction=%s)", direction)
                 val settings = viewModel.launcherDesktopSettings.value
                 lifecycleScope.launch {
                     val (action, payload) = when (direction) {
@@ -536,7 +563,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                     if (isLeftRight && isUnassigned && screenCount > SINGLE_SCREEN) {
                         if (isLeft) pagingManager.next() else pagingManager.previous()
                     } else {
-                        Timber.d("S2534: dispatch desktop swipe from an eligible launcher surface")
                         swipeActionHandler.handle(action, payload)
                     }
                 }
@@ -587,6 +613,15 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        // S2388: Home button/gesture dismisses active screen blackout or black screen overlay.
+        if (::blackoutManager.isInitialized && blackoutManager.isOverlayVisible) {
+            Timber.d("S2388: onNewIntent while blackout overlay visible -> hide blackout")
+            blackoutManager.hideBlackout()
+        }
+        if (blackScreenOverlayManager.isVisible) {
+            Timber.d("S2388: onNewIntent while black screen overlay visible -> hide black screen")
+            blackScreenOverlayManager.hide()
+        }
         if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
     }
 
@@ -806,6 +841,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 true
             }
 
+            // S2392: the App Functions cell. It passes its own id as well as the command, because its
+            // last row removes the cell rather than acting on the feature behind it.
+            is LauncherCellCommand.Feature -> {
+                Timber.d("S2392: long press on App Functions cell route=%s", command.routeKey)
+                cellActionMenuManager.showForFeature(view, command, cellUi.cell.id)
+                true
+            }
+
             else -> false
         }
     }
@@ -833,6 +876,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
         if (::blackoutManager.isInitialized) blackoutManager.onStop()
+        if (blackScreenOverlayManager.isVisible) blackScreenOverlayManager.hide()
     }
 
     /**
@@ -880,7 +924,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         if (ev != null && ::idleManager.isInitialized) {
             idleManager.onUserInteraction()
         }
-        if (ev != null && ::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) {
+        val consumedByOverlay = ev != null && (
+            (::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) ||
+                consumeTouchForBlackScreen(ev)
+            )
+        if (consumedByOverlay) {
             return true
         }
         if (ev != null) {
@@ -889,24 +937,53 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         return super.dispatchTouchEvent(ev)
     }
 
+    private fun consumeTouchForBlackScreen(ev: MotionEvent): Boolean {
+        if (!blackScreenOverlayManager.isVisible) return false
+        if (ev.action == MotionEvent.ACTION_DOWN) {
+            Timber.d("S2388: touch event dismissed black screen overlay")
+            blackScreenOverlayManager.hide()
+        }
+        return true
+    }
+
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
         if (::idleManager.isInitialized) {
             idleManager.onUserInteraction()
         }
-        if (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) {
+        val consumed = (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) ||
+            consumeGenericMotionForBlackScreen()
+        if (consumed) {
             return true
         }
         return super.dispatchGenericMotionEvent(event)
+    }
+
+    private fun consumeGenericMotionForBlackScreen(): Boolean {
+        if (!blackScreenOverlayManager.isVisible) return false
+        Timber.d("S2388: generic motion event dismissed black screen overlay")
+        blackScreenOverlayManager.hide()
+        return true
     }
 
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
         if (::idleManager.isInitialized) {
             idleManager.onUserInteraction()
         }
-        if (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) {
+        val consumed = (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) ||
+            consumeKeyForBlackScreen(event)
+        if (consumed) {
             return true
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    private fun consumeKeyForBlackScreen(event: KeyEvent): Boolean {
+        if (!blackScreenOverlayManager.isVisible) return false
+        if (event.action == KeyEvent.ACTION_DOWN) {
+            Timber.d("S2388: key event dismissed black screen overlay (keyCode=%d)", event.keyCode)
+            blackScreenOverlayManager.hide()
+        }
+        return true
     }
 
     /**

@@ -971,6 +971,18 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
+    /** S2392: pins an App Functions cell, reusing the same confirmation the app menu speaks. */
+    fun pinFeatureToTaskbar(command: LauncherCellCommand) {
+        Timber.d("S2392: pinFeatureToTaskbar %s", command)
+        addPin(command)
+        viewModelScope.launch {
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
+        }
+    }
+
+    /** S2392: null when the feature behind [routeKey] declares no settings screen. */
+    fun featureSettingsIntent(routeKey: String): Intent? = executeCommand.settingsIntentFor(routeKey)
+
     /** S1401: null when no installed activity can show this app's details page. */
     fun appInfoIntent(packageName: String): Intent? =
         shortcutDependencies.buildAppSystemActionIntent.appInfoIntent(packageName)

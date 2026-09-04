@@ -3675,4 +3675,5 @@
     <string name="wear_sync_now_description">Синхронизировать часы и телефон</string>
     <string name="player_panel_auto_hide_seconds">Автоскрытие панели плеера (сек)</string>
     <string name="wear_settings_panel_auto_hide">Автоскрытие панели плеера (сек)</string>
+    <string name="launcher_feature_action_configure">Настроить</string>
 </resources>

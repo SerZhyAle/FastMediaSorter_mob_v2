@@ -114,5 +114,6 @@ FastMedia Wear and FastMedia Mobile App are available across major app stores an
 ## 📚 Step-by-Step Guides
 
 - [Put FastMedia on Your Smartwatch](../howto/wear-install.md) - Step-by-step installation and pairing guide.
-- [Listen to Music on Smartwatch](../howto/scenario-watch-music.md) - How to play tracks, manage volume, and save battery.
+- [Listen to Music on Smartwatch](../howto/scenario-watch-music.md) - How to play tracks, manage volume, and keep audio going in the background or with the screen dark.
 - [Connect Watch to Network Shares](../howto/scenario-watch-network.md) - Connect your watch directly to PC and NAS SMB/SFTP shares.
+- [TV on Your Smartwatch](../howto/scenario-watch-tv.md) - Fill the channel list, search and filter it, pin what you watch and reach it from a tile.

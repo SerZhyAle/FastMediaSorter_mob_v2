@@ -47,7 +47,7 @@ class LauncherScreenBlackoutManagerTest {
     }
 
     @Test
-    fun `blackout overlay dismissed and consumed by key event`() {
+    fun `blackout overlay dismissed and consumes key down and following key up`() {
         val controller = Robolectric.buildActivity(Activity::class.java).setup()
         val activity = controller.get()
         val manager = LauncherScreenBlackoutManager(WeakReference(activity))
@@ -57,10 +57,35 @@ class LauncherScreenBlackoutManagerTest {
         manager.showBlackout()
         assertTrue(manager.isOverlayVisible)
 
-        val keyEvent = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)
-        val consumed = manager.onDispatchKeyEvent(keyEvent)
+        val keyDownEvent = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)
+        val downConsumed = manager.onDispatchKeyEvent(keyDownEvent)
 
-        assertTrue(consumed)
+        assertTrue(downConsumed)
+        assertFalse(manager.isOverlayVisible)
+
+        val keyUpEvent = KeyEvent(KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_CENTER)
+        val upConsumed = manager.onDispatchKeyEvent(keyUpEvent)
+        assertTrue(upConsumed)
+
+        val nextKeyDown = KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER)
+        val nextConsumed = manager.onDispatchKeyEvent(nextKeyDown)
+        assertFalse(nextConsumed)
+
+        manager.onDestroy()
+    }
+
+    @Test
+    fun `onStop dismisses blackout overlay`() {
+        val controller = Robolectric.buildActivity(Activity::class.java).setup()
+        val activity = controller.get()
+        val manager = LauncherScreenBlackoutManager(WeakReference(activity))
+
+        manager.updateTimeout(10)
+        manager.onStart()
+        manager.showBlackout()
+        assertTrue(manager.isOverlayVisible)
+
+        manager.onStop()
         assertFalse(manager.isOverlayVisible)
 
         manager.onDestroy()

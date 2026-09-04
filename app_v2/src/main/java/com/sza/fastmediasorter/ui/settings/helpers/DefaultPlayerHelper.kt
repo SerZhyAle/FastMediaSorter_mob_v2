@@ -1,20 +1,17 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.Manifest
 import android.app.Activity
-import android.content.ContentUris
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
 import android.provider.Settings
 import android.view.View
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
-import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -24,6 +21,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.data.common.MediaTypeUtils
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.ui.dialog.SimpleValueChoiceDialog
+import com.sza.fastmediasorter.ui.player.DefaultPlayerProbe
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.EntryPointAccessors
@@ -31,6 +29,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import java.io.File
 
 /**
  * Helpers for "Set as default player" UI in Settings and Welcome screens.
@@ -44,9 +43,9 @@ import timber.log.Timber
  *
  * Flow (type-specific):
  * 1. Enable the activity-alias components via DefaultPlayerManager (app becomes visible to the OS).
- * 2. If a real sample file of that type exists AND no other app already owns the default, fire a bare
- *    ACTION_VIEW on it so the OS can present its native "Open with / Always" sheet.
- * 3. Otherwise (no sample, or a foreign default already set) the sheet cannot be shown, so route the
+ * 2. If no other app already owns the default, fire a bare ACTION_VIEW on a private technical probe
+ *    of that type so the OS can present its native "Open with / Always" sheet without opening user media.
+ * 3. Otherwise (no probe, or a foreign default already set) the sheet cannot be shown, so route the
  *    user to the system default-apps screen with a short instruction instead of silently opening an
  *    unrelated app.
  */
@@ -183,8 +182,7 @@ object DefaultPlayerHelper {
      */
     fun openChooserOrFallbackFromActivity(activity: Activity, mimeType: String) {
         DefaultPlayerManager.applyPrimaryPlayerState(activity, true, capabilities(activity))
-        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
-        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        // Probe materialization writes to cache and PackageManager resolves handlers, so keep this off main.
         (activity as LifecycleOwner).lifecycleScope.launch {
             val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(activity, mimeType) }
             if (activity.isFinishing || activity.isDestroyed) return@launch
@@ -212,8 +210,7 @@ object DefaultPlayerHelper {
         mimeType: String,
     ) {
         DefaultPlayerManager.applyPrimaryPlayerState(activity, true, capabilities(activity))
-        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
-        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        // Probe materialization writes to cache and PackageManager resolves handlers, so keep this off main.
         (activity as LifecycleOwner).lifecycleScope.launch {
             val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(activity, mimeType) }
             if (activity.isFinishing || activity.isDestroyed) return@launch
@@ -240,8 +237,7 @@ object DefaultPlayerHelper {
 
     private fun openChooserOrFallback(fragment: Fragment, mimeType: String) {
         val context = fragment.requireContext()
-        // resolveOpenWithIntent does a synchronous MediaStore cursor query (disk I/O) plus
-        // PackageManager resolution - keep it off the main thread to avoid a UI freeze / StrictMode hit.
+        // Probe materialization writes to cache and PackageManager resolves handlers, so keep this off main.
         fragment.lifecycleScope.launch {
             val openWith = withContext(Dispatchers.IO) { resolveOpenWithIntent(context, mimeType) }
             if (!fragment.isAdded) return@launch
@@ -260,14 +256,16 @@ object DefaultPlayerHelper {
 
     /**
      * Build the bare ACTION_VIEW that lets the OS present its "Open with / Always" sheet, or null when
-     * the sheet cannot be shown (no real sample of this type, or another app already owns the default).
+     * the sheet cannot be shown (the private probe could not be prepared, or another app owns the default).
      * Returning null is the signal to fall back to the default-apps settings screen.
      */
     private fun resolveOpenWithIntent(context: Context, mimeType: String): Intent? {
         if (foreignDefaultExists(context, mimeType)) {
             return null
         }
-        val (uri, actualMime) = findSampleFile(context, mimeType) ?: return null
+        Timber.d("S2379: preparing private default-handler probe for %s", mimeType)
+        val actualMime = concreteMime(mimeType)
+        val uri = createProbeUri(context, actualMime) ?: return null
         return Intent(Intent.ACTION_VIEW).apply {
             setDataAndType(uri, actualMime)
             addCategory(Intent.CATEGORY_DEFAULT)
@@ -301,26 +299,22 @@ object DefaultPlayerHelper {
         else -> mimeType
     }
 
-    /**
-     * Query MediaStore for the most recently modified file matching the given MIME type.
-     * Returns a Pair of (contentUri, actualMimeType) or null if nothing found.
-     */
-    private fun findSampleFile(context: Context, mimeType: String): Pair<Uri, String>? {
-        if (!canQueryMediaStore(context)) {
-            Timber.d("DefaultPlayerHelper: skip MediaStore query, no read permission")
-            return null
-        }
+    /** Creates the harmless content URI that drives the system resolver without exposing user media. */
+    private fun createProbeUri(context: Context, mimeType: String): Uri? = runCatching {
+        val directory = File(context.cacheDir, DefaultPlayerProbe.PROBE_DIR_NAME).apply { mkdirs() }
+        val file = File(directory, "$PROBE_FILE_NAME.${probeExtensionFor(mimeType)}")
+        file.outputStream().use { output -> output.write(PROBE_CONTENT) }
+        FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+    }.onFailure { error ->
+        Timber.w(error, "DefaultPlayerHelper: failed to create default-player probe")
+    }.getOrNull()
 
-        return when {
-            mimeType.startsWith("audio") ->
-                queryCollection(context, MediaStore.Audio.Media.EXTERNAL_CONTENT_URI)
-            mimeType.startsWith("video") ->
-                queryCollection(context, MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-            mimeType.startsWith("image") ->
-                queryCollection(context, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-            else ->
-                queryFilesWithMime(context, mimeType)
-        }
+    private fun probeExtensionFor(mimeType: String): String = when {
+        mimeType.startsWith("audio/") -> "mp3"
+        mimeType.startsWith("video/") -> "mp4"
+        mimeType.startsWith("image/") -> "jpg"
+        mimeType == PDF_MIME_TYPE -> "pdf"
+        else -> "bin"
     }
 
     private fun defaultOfficeMimeType(): String? {
@@ -328,77 +322,6 @@ object DefaultPlayerHelper {
         return when {
             OFFICE_DOCX_MIME_TYPE in officeMimeTypes -> OFFICE_DOCX_MIME_TYPE
             else -> officeMimeTypes.firstOrNull()
-        }
-    }
-
-    private fun canQueryMediaStore(context: Context): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            val canReadImages = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_IMAGES
-            ) == PackageManager.PERMISSION_GRANTED
-            val canReadVideo = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_VIDEO
-            ) == PackageManager.PERMISSION_GRANTED
-            val canReadAudio = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_MEDIA_AUDIO
-            ) == PackageManager.PERMISSION_GRANTED
-            canReadImages || canReadVideo || canReadAudio
-        } else {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.READ_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED
-        }
-    }
-
-    private fun queryCollection(context: Context, collectionUri: Uri): Pair<Uri, String>? {
-        return try {
-            context.contentResolver.query(
-                collectionUri,
-                arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.MIME_TYPE),
-                null, null,
-                "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
-            )?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-                    val mime = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
-                        ?: return@use null
-                    Pair(ContentUris.withAppendedId(collectionUri, id), mime)
-                } else {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "DefaultPlayerHelper: MediaStore query failed")
-            null
-        }
-    }
-
-    private fun queryFilesWithMime(context: Context, mimeType: String): Pair<Uri, String>? {
-        val filesUri = MediaStore.Files.getContentUri("external")
-        return try {
-            context.contentResolver.query(
-                filesUri,
-                arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.MIME_TYPE),
-                "${MediaStore.MediaColumns.MIME_TYPE} = ?",
-                arrayOf(mimeType),
-                "${MediaStore.MediaColumns.DATE_MODIFIED} DESC"
-            )?.use { cursor ->
-                if (cursor.moveToFirst()) {
-                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
-                    val mime = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.MIME_TYPE))
-                        ?: return@use null
-                    Pair(ContentUris.withAppendedId(filesUri, id), mime)
-                } else {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            Timber.e(e, "DefaultPlayerHelper: MediaStore files query failed for %s", mimeType)
-            null
         }
     }
 
@@ -438,4 +361,7 @@ object DefaultPlayerHelper {
             }
         }
     }
+
+    private const val PROBE_FILE_NAME = "default-handler-probe"
+    private val PROBE_CONTENT = byteArrayOf(0)
 }
