@@ -1222,8 +1222,13 @@ if ($runsDetektGate -and -not $detektPreflightFailed) {
     }
     $detektJob = Start-ThreadJob -Name 'detekt-gate' -ScriptBlock {
         param($PwshExe, $Argv)
+        # S2538: the child times itself. The consumer below is reached long after this job has
+        # finished, so a stopwatch around the join records how long the pipeline waited for a
+        # ready result - 11 ms on the median closure - and calls it the cost of detekt.
+        $sw = [System.Diagnostics.Stopwatch]::StartNew()
         $out = & $PwshExe @Argv 2>&1 | Out-String
-        [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out }
+        $sw.Stop()
+        [pscustomobject]@{ ExitCode = $LASTEXITCODE; Output = $out; ElapsedMs = [int]$sw.Elapsed.TotalMilliseconds }
     } -ArgumentList $pwsh, $detektArgs
 }
 
@@ -1703,10 +1708,30 @@ if ($runsDetektGate -and $detektPreflightFailed) {
 }
 elseif ($runsDetektGate) {
     Invoke-Gate "detekt-gate" {
+        # S2538: the join is bounded because the child already is. assert-detekt.ps1 caps its lock
+        # wait at 900 s and its gradle run at 600 s, so the child cannot exceed roughly 1500 s -
+        # yet this join was journalled at 34 711 s twice. Whatever holds the job past that is not
+        # detekt, and waiting for it silently is how a stalled closure reports nothing at all.
+        $joinCeilingSeconds = 1800
+        $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
+        if (-not $finished) {
+            Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
+                "the job was stopped and detekt was not judged.") -ForegroundColor Yellow
+            try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
+            try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+            $script:detektJob = $null
+            $global:LASTEXITCODE = 2
+            return
+        }
         $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
         $script:detektJob = $null
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
             Write-Host ($r.Output.TrimEnd())
+        }
+        # S2538: the job times itself, so the journalled number is what detekt cost, not how long
+        # the pipeline waited for a result that was already sitting there. Parity with the pool.
+        if ($r -and $r.PSObject.Properties.Name -contains 'ElapsedMs') {
+            Set-PooledElapsedMs ([int]$r.ElapsedMs)
         }
         $global:LASTEXITCODE = if ($r) { [int]$r.ExitCode } else { 1 }
     }

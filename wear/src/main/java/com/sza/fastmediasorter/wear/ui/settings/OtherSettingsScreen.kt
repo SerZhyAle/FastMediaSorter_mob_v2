@@ -5,7 +5,6 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -59,7 +58,7 @@ private val PANEL_AUTO_HIDE_INTERVALS = intArrayOf(
 @Composable
 fun OtherSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.OTHER)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val items = otherSettingsItems(uiState = uiState, viewModel = viewModel)
@@ -241,4 +240,3 @@ private fun panelAutoHideRow(
         onValueChanged = viewModel::setPanelAutoHideSeconds
     )
 }
-

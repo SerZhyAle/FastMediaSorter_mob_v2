@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepositor
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +29,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -59,6 +59,17 @@ class StreamsViewModelProjectionTest {
         // No wait: the chosen value must be readable the moment it is set, or the dialog would close
         // onto a row still showing the previous choice while the catalogue is projected.
         assertEquals(StreamSortOrder.NAME_ASC, viewModel.uiState.value.sortOrder)
+    }
+
+    @Test
+    fun `initial state remains loading until the first projection completes`() = runBlocking {
+        val viewModel = buildViewModel()
+
+        assertTrue(viewModel.uiState.value.isLoading)
+
+        delay(SETTLE_MS)
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
     @Test

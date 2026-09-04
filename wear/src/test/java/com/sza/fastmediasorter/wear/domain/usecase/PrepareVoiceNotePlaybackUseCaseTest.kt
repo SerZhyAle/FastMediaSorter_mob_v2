@@ -3,11 +3,13 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
+import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkStatic
+import io.mockk.verify
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -42,7 +44,7 @@ class PrepareVoiceNotePlaybackUseCaseTest {
         }
         every { Uri.fromFile(any()) } returns mockk(relaxed = true)
         prepareFilePlayback = PrepareWearFilePlaybackUseCase(selectedMediaManager)
-        useCase = PrepareVoiceNotePlaybackUseCase(prepareFilePlayback)
+        useCase = PrepareVoiceNotePlaybackUseCase(prepareFilePlayback, selectedMediaManager)
     }
 
     @After
@@ -66,6 +68,15 @@ class PrepareVoiceNotePlaybackUseCaseTest {
         val targetId = useCase(note)
 
         assertEquals(9876L, targetId)
+        verify {
+            selectedMediaManager.selectFile(
+                file = any<WearMediaFile>(),
+                isNetworkSource = false,
+                streamUri = note.publishedAddress,
+                sourceId = "voice_note",
+                isDirectStream = false
+            )
+        }
     }
 
     @Test

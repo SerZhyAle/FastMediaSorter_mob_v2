@@ -82,4 +82,8 @@
     <string name="video_snapshot_resource_label">Recurso para salvar quadros</string>
     <string name="video_snapshot_resource_not_set">Não selecionado (salva em Downloads)</string>
     <string name="videos_v">Vídeos (V)</string>
+    <string name="playback_control_tab_balance">Balanço</string>
+    <string name="playback_control_no_balance">Áudio mono - sem canais para equilibrar</string>
+    <string name="playback_control_balance_value">Balanço: %1$s</string>
+    <string name="playback_control_balance_description">Balanço %1$d por cento esquerda, %2$d por cento direita</string>
 </resources>

@@ -20,7 +20,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Rotary Bezel Volume Control:** Easily adjust system media volume using the rotating watch crown or bezel with real-time visual feedback.
 - **Album Art & Visualizer:** Displays high-resolution album covers or dynamic brand wave-and-particle backgrounds when art is unavailable.
 - **Shuffle & Auto-Advance:** Continuous playback with automatic track advance and persistent shuffle modes.
-- **Background Audio Playback:** Turn on the Background playback switch to keep local audio and streams playing after you minimize the app, with controls in the media notification. Video and slideshows still stop when the app leaves the screen.
+- **Background Audio Playback:** Turn on the Background playback switch to keep local audio and streams playing after you minimize the app, with controls in the media notification. When you reopen the app, the home screen carries a row naming what is playing: tap it to return to that track where it left off, or tap the stop button beside it to end playback without opening anything else. Video and slideshows still stop when the app leaves the screen.
 
 ### 🎥 Photo & Video Viewer
 - **Round-Safe Video Player:** Watch videos scaled for smartwatch displays with automatic advancing in slideshow mode.
@@ -76,6 +76,7 @@ FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
 - **Round-Safe Screen Margin:** All UI components, buttons, and scrolling indicators sit strictly inside the round screen glass.
 - **Grid & List View Modes:** Switch between single-column lists and 2-column or 3-column rectangular thumbnail grids.
 - **D-Pad & Touch Support:** Optimized touch targets (minimum 48 dp) and hardware rotary crown support.
+- **Universal Back Affordance & Navigation:** Every Wear OS screen provides a visible universal back affordance button positioned at the middle of the left edge, alongside standard edge-swipe gestures and physical hardware back buttons. On navigation screens and players, tapping the back affordance steps back to the previous screen. On the main home screen, the affordance dynamically adapts to playback state: showing a close icon (×) to exit the app when idle, or a minimize double-chevron («) when background audio is actively playing.
 
 ---
 

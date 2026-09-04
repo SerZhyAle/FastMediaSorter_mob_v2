@@ -50,6 +50,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -75,7 +76,7 @@ fun FavouritesScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val viewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = WearRoutes.FAVOURITES)
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel

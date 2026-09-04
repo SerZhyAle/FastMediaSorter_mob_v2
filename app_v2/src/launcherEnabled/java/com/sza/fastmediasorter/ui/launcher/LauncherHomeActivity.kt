@@ -443,6 +443,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // setupViews() is posted by BaseActivity, so onStart() has already run for this instance and the
         // manager would otherwise sit paused until the next foreground edge.
         wallpaperManager.onStart()
+        attachInstantPhotoCapture()
         resizeManager = LauncherResizeManager(
             container = binding.launcherDesktop,
             viewport = binding.launcherGridScroll,
@@ -682,18 +683,38 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
-        val currentWallpaper = viewModel.wallpaper.value
+        captureInstantPhotoFrame(viewModel.wallpaper.value)
+    }
+
+    /**
+     * The mode is chosen in a dialog hosted by this very activity, so applying it crosses no foreground
+     * edge and [onResumeWithViews] never runs again - without this collector the first frame would only
+     * arrive after the user left the desktop and came back, and until then the backdrop degraded to the
+     * branded animation, reading as if the choice had been ignored.
+     *
+     * Only a frameless state captures here: once the frame lands the flow re-emits carrying its path, and
+     * re-capturing on that emission would loop. A capture that fails leaves the path null and does not
+     * re-emit, so the retry waits for the next foreground edge rather than spinning the camera.
+     */
+    private fun attachInstantPhotoCapture() {
+        collectOnLifecycle(viewModel.wallpaper) { wallpaper ->
+            if (wallpaper is LauncherWallpaper.InstantPhoto && wallpaper.imagePath == null) {
+                captureInstantPhotoFrame(wallpaper)
+            }
+        }
+    }
+
+    private fun captureInstantPhotoFrame(wallpaper: LauncherWallpaper) {
         // A capture still in flight owns the camera and the single output file; a second one would unbind
         // it mid-write and both would fail, so a fast resume-pause-resume waits for the frame it started.
-        if (currentWallpaper is LauncherWallpaper.InstantPhoto && instantPhotoCaptureJob?.isActive != true) {
-            instantPhotoCaptureJob = lifecycleScope.launch {
-                val capturedPath = instantPhotoCaptureManager.captureSingleFrame(
-                    cameraId = currentWallpaper.cameraId,
-                    lifecycleOwner = this@LauncherHomeActivity,
-                )
-                if (capturedPath != null) {
-                    viewModel.onInstantPhotoCaptured(capturedPath)
-                }
+        if (wallpaper !is LauncherWallpaper.InstantPhoto || instantPhotoCaptureJob?.isActive == true) return
+        instantPhotoCaptureJob = lifecycleScope.launch {
+            val capturedPath = instantPhotoCaptureManager.captureSingleFrame(
+                cameraId = wallpaper.cameraId,
+                lifecycleOwner = this@LauncherHomeActivity,
+            )
+            if (capturedPath != null) {
+                viewModel.onInstantPhotoCaptured(capturedPath)
             }
         }
     }

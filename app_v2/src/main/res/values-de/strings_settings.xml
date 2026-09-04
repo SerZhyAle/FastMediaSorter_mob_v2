@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">Aktivieren Sie dies, wenn Sie eine Wear OS Uhr haben. Die Begleit-App wird von hier geöffnet und legt fest, was dieses Telefon mit der Uhr teilt.</string>
     <string name="settings_wear_install_guide_button">So installieren Sie es auf einer Uhr</string>
+    <string name="settings_wear_web_portal_button">Alles über die Uhr</string>
 </resources>

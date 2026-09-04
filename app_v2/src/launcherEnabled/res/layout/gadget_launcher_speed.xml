@@ -3,6 +3,7 @@
      fixed height - the value autosizes into whatever the cell hands it. The message line sits below
      the value rather than replacing it, so a momentary loss of fix does not blank a readable tile. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -13,7 +14,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetSpeedValue"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -26,10 +27,12 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="64 km/h" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetSpeedMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -38,6 +41,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Waiting for a position.."
             tools:visibility="visible" />
 

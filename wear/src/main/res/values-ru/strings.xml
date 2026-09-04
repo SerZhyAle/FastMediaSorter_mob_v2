@@ -396,6 +396,7 @@
     <string name="wear_background_mode_animation">Фирменная анимация</string>
     <string name="wear_background_mode_still">Неподвижный фирменный фон</string>
     <string name="wear_background_mode_image">Фото с телефона</string>
+    <string name="wear_background_mode_none">Пусто (чёрный экран)</string>
     <string name="wear_content_type_document">Документ</string>
     <string name="wear_content_type_folder">Папка</string>
     <string name="wear_browse_search">Поиск файлов</string>
@@ -584,4 +585,7 @@
     <string name="panel_auto_hide_label">Автоскрытие: %dс</string>
     <string name="panel_auto_hide_decrease">Уменьшить время автоскрытия</string>
     <string name="panel_auto_hide_increase">Увеличить время автоскрытия</string>
+    <string name="wear_now_playing_row_subtitle">Играет в фоне</string>
+    <string name="wear_now_playing_stop">Остановить</string>
+    <string name="wear_voice_note_unavailable">Эта запись больше недоступна</string>
 </resources>

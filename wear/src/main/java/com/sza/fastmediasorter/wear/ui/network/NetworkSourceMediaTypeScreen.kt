@@ -74,7 +74,7 @@ fun NetworkSourceMediaTypeScreen(
 ) {
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val source by mediaTypeViewModel.source.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = "source_media_type/$sourceId")
 
     val categories = remember(source, settings.allowedContentTypes()) {
         BrowseCategoryCatalog.categoriesForSource(

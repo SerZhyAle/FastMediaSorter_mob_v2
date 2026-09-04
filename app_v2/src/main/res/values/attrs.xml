@@ -136,6 +136,11 @@
     <declare-styleable name="OutlinedTextView">
         <attr name="otv_outlineColor" format="color|reference" />
         <attr name="otv_outlineWidth" format="dimension" />
+        <!-- Contour width as a fraction of the CURRENT text size, for a label whose size is not fixed:
+             an autosizing gadget value moves between 12sp and 96sp, and one dimension cannot serve both
+             ends - it blots the small end or disappears at the large one. Zero (the default) keeps the
+             fixed otv_outlineWidth. Shared by OutlinedTextClock, which reads this same styleable. -->
+        <attr name="otv_outlineScale" format="float" />
     </declare-styleable>
 
     <!-- Consumed by OutlinedImageView.kt. All public attrs use the oiv_ prefix. Defaults are shared

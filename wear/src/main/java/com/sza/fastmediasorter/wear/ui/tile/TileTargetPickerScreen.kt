@@ -40,7 +40,7 @@ fun TileTargetPickerScreen(
     viewModel: TileTargetPickerViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState()
 
     LaunchedEffect(Unit) {
         viewModel.doneEvent.collectLatest {

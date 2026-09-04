@@ -2,6 +2,7 @@
 <!-- S0426: the weather gadget. Sized by the desktop grid like every gadget, so nothing here sets a
      fixed height - the temperature autosizes into whatever the cell hands it. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -32,7 +33,7 @@
 
             <!-- S1587: shown only while the card carries no reading. A first-run phone has no place
                  chosen yet, so the card would otherwise be an unlabelled instruction. -->
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherCaption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -43,9 +44,10 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherTemperature"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -58,10 +60,12 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="+21°" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherPlace"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -69,9 +73,10 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Kyiv" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -80,6 +85,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Weather is unavailable right now"
                 tools:visibility="visible" />
 

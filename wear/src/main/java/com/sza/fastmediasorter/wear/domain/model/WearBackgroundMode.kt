@@ -7,6 +7,7 @@ package com.sza.fastmediasorter.wear.domain.model
  * what shows before a background is ready, not something the user picks.
  */
 enum class WearBackgroundMode {
+    NONE,
     BRANDED_ANIMATION,
     BRANDED_STILL,
     IMAGE;

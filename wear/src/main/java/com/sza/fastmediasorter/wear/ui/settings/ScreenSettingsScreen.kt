@@ -35,7 +35,7 @@ private val TITLE_BOTTOM_PADDING = 8.dp
 @Composable
 fun ScreenSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SCREEN)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val displayModeLabel = stringResource(R.string.screen_settings_view_mode)
@@ -52,7 +52,7 @@ fun ScreenSettingsScreen(
     // at stays a phone choice, because choosing one means opening a gallery.
     val backgroundLabel = stringResource(R.string.wear_setting_background_mode)
     val backgroundItems = WearBackgroundMode.entries.map { mode ->
-        WearSettingsItem { _ ->
+        WearSettingsItem(fullWidth = true) { _ ->
             BackgroundModeRow(
                 mode = mode,
                 groupLabel = backgroundLabel,
@@ -179,6 +179,7 @@ private fun backgroundLabelResFor(mode: WearBackgroundMode): Int = when (mode) {
     WearBackgroundMode.BRANDED_ANIMATION -> R.string.wear_background_mode_animation
     WearBackgroundMode.BRANDED_STILL -> R.string.wear_background_mode_still
     WearBackgroundMode.IMAGE -> R.string.wear_background_mode_image
+    WearBackgroundMode.NONE -> R.string.wear_background_mode_none
 }
 
 private fun labelResFor(mode: WearViewMode): Int = when (mode) {

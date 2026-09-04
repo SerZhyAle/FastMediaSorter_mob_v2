@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -55,9 +56,12 @@ class ResolveLastUsedResourceUseCase @Inject constructor(
         sources.firstOrNull { it.id == id }?.let { copy(iconId = it.iconId) }
 
     /**
-     * A channel carries no resource icon, so the cell falls back to the glyph its kind names; the
-     * caption is taken from the live catalog row, which is what keeps a renamed channel current.
+     * S2499: the caption and favicon index are taken from the live catalog row, which keeps a renamed
+     * or re-indexed channel current on the home screen.
      */
     private fun LastUsedResource.resolveAgainstChannels(channels: List<WearStreamChannel>): LastUsedResource? =
-        channels.firstOrNull { normalizeWearStreamUrl(it.url) == id }?.let { copy(name = it.name) }
+        channels.firstOrNull { normalizeWearStreamUrl(it.url) == id }?.let {
+            Timber.d("S2499: resolved channel %s with favicon %s", it.name, it.faviconIndex)
+            copy(name = it.name, faviconIndex = it.faviconIndex)
+        }
 }

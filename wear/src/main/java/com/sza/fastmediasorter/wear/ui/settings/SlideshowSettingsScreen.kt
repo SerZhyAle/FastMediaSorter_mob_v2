@@ -1,33 +1,25 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
@@ -58,7 +50,7 @@ private val SLIDESHOW_INTERVALS = intArrayOf(
 @Composable
 fun SlideshowSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.SLIDESHOW)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -75,11 +67,16 @@ fun SlideshowSettingsScreen(
             )
         },
         WearSettingsItem(fullWidth = true) { _ ->
-            val currentIndex = SLIDESHOW_INTERVALS.indexOfFirst { it == uiState.slideshowIntervalSeconds }.coerceAtLeast(0)
+            val currentIndex = SLIDESHOW_INTERVALS
+                .indexOfFirst { it == uiState.slideshowIntervalSeconds }
+                .coerceAtLeast(0)
             WearSettingsStepperCell(
                 values = SLIDESHOW_INTERVALS,
                 currentValue = uiState.slideshowIntervalSeconds,
-                labelText = stringResource(R.string.slideshow_interval_label, SLIDESHOW_INTERVALS[currentIndex]),
+                labelText = stringResource(
+                    R.string.slideshow_interval_label,
+                    SLIDESHOW_INTERVALS[currentIndex]
+                ),
                 decreaseDescription = stringResource(R.string.slideshow_interval_decrease),
                 increaseDescription = stringResource(R.string.slideshow_interval_increase),
                 onValueChanged = viewModel::setSlideshowInterval

@@ -80,7 +80,7 @@ fun NetworkMonitorSectionPage(
     canRequestPermissions: Boolean,
     actions: NetworkMonitorSectionActions,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

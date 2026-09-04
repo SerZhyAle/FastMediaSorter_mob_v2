@@ -36,7 +36,7 @@
             android:layout_weight="2"
             android:orientation="vertical">
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetTechnicalValue"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -49,10 +49,12 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="78%" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetTechnicalCaption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -60,6 +62,7 @@
                 android:maxLines="2"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="About 4 h left" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator

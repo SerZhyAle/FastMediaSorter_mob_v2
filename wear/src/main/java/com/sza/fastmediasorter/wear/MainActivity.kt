@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -69,9 +70,12 @@ import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.WearAppBackground
+import com.sza.fastmediasorter.wear.ui.common.LocalWearListPositions
+import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
+import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
@@ -191,6 +195,10 @@ class MainActivity : ComponentActivity() {
     // once the user is here and no longer needs it.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
 
+    // S2543: list positions outlive the screens that produced them, so the store is held by the process
+    // and handed to composition here - a screen popped off the back stack takes its own state with it.
+    @Inject lateinit var listPositions: WearListPositionStore
+
     /**
      * S1955: what this launch asked to open, until the navigation host has opened it.
      *
@@ -207,6 +215,7 @@ class MainActivity : ComponentActivity() {
         logAppInfo()
 
         Timber.d("MainActivity created")
+        Timber.d("S2545: wear release 36 strings translated")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
         // configChanges does not cover a locale, font-scale or density change, so re-reading it here
@@ -219,27 +228,31 @@ class MainActivity : ComponentActivity() {
         val hasPermissions = hasMediaPermissions()
 
         setContent {
-            AskNotificationPermissionEffect(
-                alreadyAsked = preferencesRepository.notificationPermissionAsked,
-                onAsked = { lifecycleScope.launch { preferencesRepository.setNotificationPermissionAsked(true) } }
-            )
-            WearApp(
-                initialHasPermissions = hasPermissions,
-                keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
-                isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
-                appLanguage = preferencesRepository.appLanguage,
-                hostUseCases = WearHostUseCases(
-                    prepareStreamPlayback = prepareStreamPlayback,
-                    prepareFilePlayback = prepareFilePlayback,
-                    resolveBackground = resolveBackground,
-                    prepareVoiceNotePlayback = prepareVoiceNotePlayback
-                ),
-                launchEntry = WearLaunchEntry(
-                    resolveRoute = resolveLaunchRoute,
-                    pendingTarget = pendingLaunchTarget,
-                    onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+            CompositionLocalProvider(LocalWearListPositions provides listPositions) {
+                AskNotificationPermissionEffect(
+                    alreadyAsked = preferencesRepository.notificationPermissionAsked,
+                    onAsked = {
+                        lifecycleScope.launch { preferencesRepository.setNotificationPermissionAsked(true) }
+                    }
                 )
-            )
+                WearApp(
+                    initialHasPermissions = hasPermissions,
+                    keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
+                    isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
+                    appLanguage = preferencesRepository.appLanguage,
+                    hostUseCases = WearHostUseCases(
+                        prepareStreamPlayback = prepareStreamPlayback,
+                        prepareFilePlayback = prepareFilePlayback,
+                        resolveBackground = resolveBackground,
+                        prepareVoiceNotePlayback = prepareVoiceNotePlayback
+                    ),
+                    launchEntry = WearLaunchEntry(
+                        resolveRoute = resolveLaunchRoute,
+                        pendingTarget = pendingLaunchTarget,
+                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+                    )
+                )
+            }
         }
     }
 
@@ -480,87 +493,65 @@ fun MainNavigation(
         initialValue = WearBackground.BrandedAnimation
     )
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
+    val showWallpaper = showsWallpaper(currentRoute)
+    val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) && currentRoute !in PLAYER_ROUTES
+    Timber.d("S2475: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
+    Timber.d("S2542: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
+
+    CompositionLocalProvider(
+        LocalWearWallpaperState provides WearWallpaperState(
+            background = background,
+            showsWallpaper = showWallpaper,
+            isResumed = isResumed
+        )
     ) {
-        val showWallpaper = showsWallpaper(currentRoute)
-        Timber.d("S2475: wallpaper scope evaluated route=%s showWallpaper=%b background=%s", currentRoute, showWallpaper, background)
-        if (showWallpaper) {
-            WearAppBackground(
-                background = background,
-                running = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
-                    currentRoute !in PLAYER_ROUTES
-            )
-        }
-        SwipeDismissableNavHost(
-            navController = navController,
-            startDestination = WearRoutes.HOME,
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
         ) {
-            composable(WearRoutes.HOME) {
-                HomeScreen(navController = navController)
-            }
-
-            browseRoutes(navController = navController)
-
-            localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
-
-            miniAppRoutes(
+            SwipeDismissableNavHost(
                 navController = navController,
-                prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback
-            )
+                startDestination = WearRoutes.HOME,
+            ) {
+                composable(WearRoutes.HOME) {
+                    HomeScreen(navController = navController)
+                }
 
-            tileRoutes(navController = navController)
+                browseRoutes(navController = navController)
 
-            // Add network source screen
-            composable(WearRoutes.ADD_NETWORK_SOURCE) {
-                AddNetworkSourceScreen(navController = navController)
-            }
+                localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
 
-            // Backward-compatible alias for old route name
-            composable(WearRoutes.ADD_SMB_ALIAS) {
-                AddNetworkSourceScreen(navController = navController)
-            }
-
-            // Sync transfer animation (shown while receiving data from phone)
-            composable(WearRoutes.SYNC_TRANSFER) {
-                SyncTransferScreen(navController = navController)
-            }
-
-            // Sync result screen (shown after successful sync)
-            composable(
-                route = WearRoutes.SYNC_RESULT_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_ADDED) { type = NavType.IntType },
-                    navArgument(WearRoutes.ARG_UPDATED) { type = NavType.IntType }
+                miniAppRoutes(
+                    navController = navController,
+                    prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback
                 )
-            ) { backStackEntry ->
-                val added = backStackEntry.arguments?.getInt(WearRoutes.ARG_ADDED) ?: 0
-                val updated = backStackEntry.arguments?.getInt(WearRoutes.ARG_UPDATED) ?: 0
-                SyncResultScreen(navController = navController, added = added, updated = updated)
+
+                tileRoutes(navController = navController)
+
+                syncRoutes(navController = navController)
+
+                playerRoutes(navController = navController)
+
+                settingsRoutes(navController = navController)
             }
 
-            playerRoutes(navController = navController)
-
-            settingsRoutes(navController = navController)
-        }
-
-        // S2472: the universal back affordance, drawn above the host so every navigation route
-        // carries it without any screen wiring it itself (strategic ADR-1). Home and the players
-        // own different roles for the same control, and the interactive mini-programs are ruled out
-        // by the owner, so the decision lives in one named predicate rather than in twenty screens.
-        if (showsNavBackAffordance(currentRoute)) {
-            WearBackAffordance(
-                role = WearBackAffordanceRole.Back,
-                onClick = {
-                    Timber.d("S2472: nav back affordance tapped on $currentRoute")
-                    navController.popBackStack()
-                },
-                modifier = Modifier
-                    .align(Alignment.CenterStart)
-                    .padding(start = wearBackAffordanceInset())
-            )
+            // S2472: the universal back affordance, drawn above the host so every navigation route
+            // carries it without any screen wiring it itself (strategic ADR-1). Home and the players
+            // own different roles for the same control, and the interactive mini-programs are ruled out
+            // by the owner, so the decision lives in one named predicate rather than in twenty screens.
+            if (showsNavBackAffordance(currentRoute)) {
+                WearBackAffordance(
+                    role = WearBackAffordanceRole.Back,
+                    onClick = {
+                        Timber.d("S2472: nav back affordance tapped on $currentRoute")
+                        navController.popBackStack()
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = wearBackAffordanceInset())
+                )
+            }
         }
     }
 }
@@ -578,7 +569,31 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route != WearRoutes.GAME &&
         route != WearRoutes.CALCULATOR
 
-private fun showsWallpaper(route: String?): Boolean = route !in SETTINGS_ROUTES
+private fun showsWallpaper(route: String?): Boolean =
+    route != null && route !in SETTINGS_ROUTES && route !in PLAYER_ROUTES
+
+private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
+    composable(WearRoutes.ADD_NETWORK_SOURCE) {
+        AddNetworkSourceScreen(navController = navController)
+    }
+    composable(WearRoutes.ADD_SMB_ALIAS) {
+        AddNetworkSourceScreen(navController = navController)
+    }
+    composable(WearRoutes.SYNC_TRANSFER) {
+        SyncTransferScreen(navController = navController)
+    }
+    composable(
+        route = WearRoutes.SYNC_RESULT_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_ADDED) { type = NavType.IntType },
+            navArgument(WearRoutes.ARG_UPDATED) { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        val added = backStackEntry.arguments?.getInt(WearRoutes.ARG_ADDED) ?: 0
+        val updated = backStackEntry.arguments?.getInt(WearRoutes.ARG_UPDATED) ?: 0
+        SyncResultScreen(navController = navController, added = added, updated = updated)
+    }
+}
 
 /**
  * S2161: the three playback destinations, lifted out of [MainNavigation] for the same reason S1944

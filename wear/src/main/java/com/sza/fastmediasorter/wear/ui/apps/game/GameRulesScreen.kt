@@ -1,12 +1,12 @@
 package com.sza.fastmediasorter.wear.ui.apps.game
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -21,8 +21,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-
-import androidx.compose.runtime.LaunchedEffect
 import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
@@ -39,7 +37,7 @@ private val ITEM_HORIZONTAL_PADDING = 8.dp
  */
 @Composable
 fun GameRulesScreen(
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = 0)
 ) {
     LaunchedEffect(Unit) {
         Timber.d("S2350: game rules screen opened")

@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 import java.text.DateFormat
@@ -56,7 +57,7 @@ private val SYNC_CELL_TOP_PADDING = 8.dp
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1),
+    listState: ScalingLazyListState = rememberWearListState(positionKey = WearRoutes.SETTINGS),
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

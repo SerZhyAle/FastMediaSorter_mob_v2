@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">Ative isto se tiver um relógio Wear OS. A aplicação complementar abre a partir daqui e decide o que este telemóvel partilha com o relógio.</string>
     <string name="settings_wear_install_guide_button">Como instalar num relógio</string>
+    <string name="settings_wear_web_portal_button">Tudo sobre o relógio</string>
 </resources>

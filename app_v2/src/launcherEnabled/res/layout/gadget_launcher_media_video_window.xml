@@ -24,7 +24,7 @@
         app:surface_type="texture_view"
         app:use_controller="false" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/mediaVideoWindowMessage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -34,6 +34,7 @@
         android:textColor="?attr/colorOnSurfaceVariant"
         android:textSize="12sp"
         android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="Unavailable"
         tools:visibility="visible" />
 

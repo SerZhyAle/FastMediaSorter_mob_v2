@@ -81,4 +81,8 @@
     <string name="video_snapshot_resource_label">用于保存帧的资源</string>
     <string name="video_snapshot_resource_not_set">未选中（保存到下载）</string>
     <string name="videos_v">视频（V）</string>
+    <string name="playback_control_tab_balance">平衡</string>
+    <string name="playback_control_no_balance">单声道音频 - 无通道可平衡</string>
+    <string name="playback_control_balance_value">平衡：%1$s</string>
+    <string name="playback_control_balance_description">平衡 左 %1$d%%，右 %2$d%%</string>
 </resources>

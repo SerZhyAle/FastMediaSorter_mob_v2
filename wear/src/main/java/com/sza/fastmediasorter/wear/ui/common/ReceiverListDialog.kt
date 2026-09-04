@@ -4,8 +4,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.Brush
@@ -101,7 +101,9 @@ private fun ReceiverChip(
     Chip(
         onClick = onClick,
         label = { Text(text = entry.title) },
-        secondaryLabel = if (entry.servedOnWatch) null else {
+        secondaryLabel = if (entry.servedOnWatch) {
+            null
+        } else {
             { Text(text = viaPhone) }
         },
         icon = {

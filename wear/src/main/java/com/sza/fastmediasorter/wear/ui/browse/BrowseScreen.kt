@@ -141,8 +141,7 @@ fun BrowseScreen(
         viewModel.fileOperations.clearFileSelection()
     }
 
-    val listState = rememberWearListState(initialItemIndex = 1)
-    Timber.d("S2466: BrowseScreen composing with prescroll")
+    val listState = rememberWearListState(positionKey = "browse/$mediaTypeArg/$sourceId")
 
     val refineState by viewModel.refineState.collectAsStateWithLifecycle()
     val refineUi = rememberBrowseRefineUi(viewModel, refineState)

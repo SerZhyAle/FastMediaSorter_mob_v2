@@ -81,6 +81,12 @@
             Mode   = 'Independent'
             Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
+        @{
+            Phone  = 'wear_background_mode_still'
+            Watch  = 'wear_background_mode_still'
+            Mode   = 'Independent'
+            Reason = 'Phone and watch background option labels use distinct localized phrasing.'
+        },
 
         # ---- Independent: the name collides, the wording is deliberately not shared ----
 

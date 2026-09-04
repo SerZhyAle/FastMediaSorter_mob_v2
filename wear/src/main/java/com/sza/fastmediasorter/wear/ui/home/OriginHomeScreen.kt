@@ -53,10 +53,10 @@ fun OriginHomeScreen(
     viewMode: WearViewMode,
     onCategoryClick: (WearBrowseCategory) -> Unit,
     onBack: () -> Unit,
-    onFolderClick: (() -> Unit)? = null
+    onFolderClick: (() -> Unit)? = null,
+    positionKey: String? = null
 ) {
-    val listState = rememberWearListState(initialItemIndex = 1)
-    Timber.d("S2466: OriginHomeScreen composing with prescroll, title=%s", title)
+    val listState = rememberWearListState(positionKey = positionKey)
 
     val vocabulary = categories.filterNot { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }
     val folderCategory = categories.firstOrNull { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }

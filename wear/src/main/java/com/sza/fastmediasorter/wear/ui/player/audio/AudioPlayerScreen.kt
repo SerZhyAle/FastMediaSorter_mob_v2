@@ -123,12 +123,17 @@ fun AudioPlayerScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
     val isPinned by viewModel.isPinned.collectAsState()
     // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialCenterItemIndex = 0)
 
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
         viewModel.onHostStopped()
+    }
+
+    // S2166: attach to background session when the host activity returns to foreground.
+    LifecycleEventEffect(Lifecycle.Event.ON_START) {
+        viewModel.onHostStarted()
     }
 
     Timber.d("S2481: AudioPlayerScreen composed")
@@ -144,6 +149,12 @@ fun AudioPlayerScreen(
     }
 
     KeepScreenOnEffect(enabled = uiState.isPlaying || uiState.isDimmed)
+
+    val actions = rememberAudioPlayerActions(
+        viewModel = viewModel,
+        onBack = onBack,
+        onShowActions = { showActions = true }
+    )
 
     WearScreenScaffold(
         scrollState = listState,
@@ -176,22 +187,7 @@ fun AudioPlayerScreen(
                         // reach a position than a bezel that also has to be a volume knob.
                         viewModel.onVolumeStep(step > 0)
                     },
-                    actions = AudioPlayerActions(
-                        onBack = onBack,
-                        onPlayPause = viewModel::togglePlayPause,
-                        onToggleFavorite = viewModel::toggleFavorite,
-                        onTogglePin = viewModel::togglePin,
-                        onSkipNext = viewModel::skipToNext,
-                        onSkipPrevious = viewModel::skipToPrevious,
-                        onToggleDimmed = viewModel::toggleDimmed,
-                        onTogglePlaybackMode = viewModel::togglePlaybackMode,
-                        onFileOperations = { showActions = true },
-                        seek = PlayerSeekActions(
-                            onSeekTo = viewModel::seekTo,
-                            onSeekBackward = viewModel::seekBackward,
-                            onSeekForward = viewModel::seekForward
-                        )
-                    )
+                    actions = actions
                 )
             }
         }
@@ -211,6 +207,30 @@ fun AudioPlayerScreen(
             onReceiversVisibilityChange = { showReceivers = it }
         ),
         currentFileName = uiState.mediaFile?.name
+    )
+}
+
+@Composable
+private fun rememberAudioPlayerActions(
+    viewModel: AudioPlayerViewModel,
+    onBack: () -> Unit,
+    onShowActions: () -> Unit
+): AudioPlayerActions = remember(viewModel, onBack, onShowActions) {
+    AudioPlayerActions(
+        onBack = onBack,
+        onPlayPause = viewModel::togglePlayPause,
+        onToggleFavorite = viewModel::toggleFavorite,
+        onTogglePin = viewModel::togglePin,
+        onSkipNext = viewModel::skipToNext,
+        onSkipPrevious = viewModel::skipToPrevious,
+        onToggleDimmed = viewModel::toggleDimmed,
+        onTogglePlaybackMode = viewModel::togglePlaybackMode,
+        onFileOperations = onShowActions,
+        seek = PlayerSeekActions(
+            onSeekTo = viewModel::seekTo,
+            onSeekBackward = viewModel::seekBackward,
+            onSeekForward = viewModel::seekForward
+        )
     )
 }
 

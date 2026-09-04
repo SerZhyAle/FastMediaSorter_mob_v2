@@ -109,6 +109,9 @@ const val SOURCE_ID_NETWORK = "network"
 /** A direct stream keyed by its normalized address instead of a volatile catalog row id. */
 const val SOURCE_ID_STREAM = "stream"
 
+/** A locally recorded voice note, selected for playback outside a browsed MediaStore set. */
+const val SOURCE_ID_VOICE_NOTE = "voice_note"
+
 /** A stream is presentation-distinct but shares the existing favourite identity and storage. */
 const val FAVORITE_ITEM_KIND_STREAM = "stream"
 

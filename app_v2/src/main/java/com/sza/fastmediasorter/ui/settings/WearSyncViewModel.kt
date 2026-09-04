@@ -450,6 +450,9 @@ class WearSyncViewModel @Inject constructor(
                     // rather than the delivery, and the line below says whether it arrived.
                     _backgroundPreview.value = readPreparedFrame()
                     awaitBackgroundTransfer(transferId)
+                    if (_backgroundDelivery.value == WearBackgroundDeliveryState.Sent) {
+                        updateBackgroundMode(WearSettingsPayload.BACKGROUND_MODE_IMAGE)
+                    }
                 }
                 .onFailure { e ->
                     Timber.e(e, "Failed to prepare the watch background frame")

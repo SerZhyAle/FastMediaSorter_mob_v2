@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.home
 
+import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +60,8 @@ fun HomeScreen(
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isBackgroundPlaybackActive by viewModel.isBackgroundPlaybackActive.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val nowPlaying by viewModel.nowPlaying.collectAsStateWithLifecycle()
+    val listState = rememberWearListState(initialCenterItemIndex = 0, positionKey = WearRoutes.HOME)
     // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
     // the action would be rebuilt every time the bar scrolls back into composition.
     val closeApp = rememberCloseAppAction()
@@ -78,12 +81,27 @@ fun HomeScreen(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
+                // S2524: the first thing on the screen while sound is playing, because the problem
+                // this solves is that there was nowhere to arrive at. It is its own item and never
+                // enters the chunked grid below: a row that appears and disappears inside that grid
+                // would move every section cell each time the sound started (strategic ADR-1).
+                nowPlaying?.let { playing ->
+                    item {
+                        HomeNowPlayingRow(
+                            nowPlaying = playing,
+                            onOpen = { fileId -> navController.navigate(WearRoutes.audioPlayer(fileId)) },
+                            onStop = viewModel::stopBackgroundPlayback
+                        )
+                    }
+                }
+
                 // S2499: a shortcut is resolved before it is navigated to - a channel has no address
                 // until playback preparation has run. A target that stopped resolving between the
                 // draw and the tap leaves the screen where it is, which the ViewModel logs.
                 lastUsedItems(
                     shortcuts = uiState.lastUsedResources,
                     columns = columns,
+                    getFaviconTile = viewModel::getFaviconTile,
                     onSectionClick = { section ->
                         shortcutClickScope.launch {
                             viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
@@ -94,6 +112,7 @@ fun HomeScreen(
                 sectionItems(
                     sections = uiState.sections,
                     columns = columns,
+                    getFaviconTile = viewModel::getFaviconTile,
                     onSectionClick = { section -> section.route?.let(navController::navigate) }
                 )
 
@@ -134,17 +153,23 @@ fun HomeScreen(
 private fun ScalingLazyListScope.sectionItems(
     sections: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(sections) { section ->
-            HomeSectionChip(section = section, onClick = { onSectionClick(section) })
+            HomeSectionChip(
+                section = section,
+                getFaviconTile = getFaviconTile,
+                onClick = { onSectionClick(section) }
+            )
         }
     } else {
         items(sections.chunked(columns)) { rowSections ->
             HomeSectionRow(
                 sections = rowSections,
                 columns = columns,
+                getFaviconTile = getFaviconTile,
                 onSectionClick = onSectionClick
             )
         }
@@ -162,11 +187,16 @@ private fun ScalingLazyListScope.sectionItems(
 private fun ScalingLazyListScope.lastUsedItems(
     shortcuts: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(shortcuts) { section ->
-            HomeSectionChip(section = section, onClick = { onSectionClick(section) })
+            HomeSectionChip(
+                section = section,
+                getFaviconTile = getFaviconTile,
+                onClick = { onSectionClick(section) }
+            )
         }
     } else {
         item {
@@ -175,6 +205,7 @@ private fun ScalingLazyListScope.lastUsedItems(
                 // requested column count on a narrow round display (strategic ADR-2).
                 sections = shortcuts.take(columns),
                 columns = columns,
+                getFaviconTile = getFaviconTile,
                 onSectionClick = onSectionClick
             )
         }
@@ -184,12 +215,17 @@ private fun ScalingLazyListScope.lastUsedItems(
 @Composable
 private fun HomeSectionChip(
     section: HomeSection,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val faviconBitmap by produceState<Bitmap?>(initialValue = null, section.faviconIndex) {
+        value = getFaviconTile(section.faviconIndex)
+    }
+    val thumbnail = faviconBitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
     val glyph = glyphFor(section)
     SingleColumnTileCell(
-        thumbnail = WearThumbnail.Unavailable,
+        thumbnail = thumbnail,
         caption = label,
         onClick = onClick,
         fallback = { glyphModifier ->
@@ -219,6 +255,7 @@ private fun HomeSectionChip(
 private fun HomeSectionRow(
     sections: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
     com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
@@ -230,6 +267,7 @@ private fun HomeSectionRow(
             HomeSectionCell(
                 section = section,
                 modifier = Modifier.weight(1f),
+                getFaviconTile = getFaviconTile,
                 onClick = { onSectionClick(section) }
             )
         }
@@ -240,11 +278,16 @@ private fun HomeSectionRow(
 private fun HomeSectionCell(
     section: HomeSection,
     modifier: Modifier,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val faviconBitmap by produceState<Bitmap?>(initialValue = null, section.faviconIndex) {
+        value = getFaviconTile(section.faviconIndex)
+    }
+    val thumbnail = faviconBitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
     ThumbnailCell(
-        thumbnail = WearThumbnail.Unavailable,
+        thumbnail = thumbnail,
         caption = label,
         onClick = onClick,
         modifier = modifier

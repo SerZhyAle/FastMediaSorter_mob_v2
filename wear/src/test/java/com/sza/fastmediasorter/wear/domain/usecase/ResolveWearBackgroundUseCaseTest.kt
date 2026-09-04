@@ -80,6 +80,15 @@ class ResolveWearBackgroundUseCaseTest {
         }
     }
 
+    @Test
+    fun `none mode yields WearBackground None`() {
+        runTest {
+            every { preferences.backgroundMode } returns flowOf(WearBackgroundMode.NONE)
+
+            assertEquals(WearBackground.None, background().first())
+        }
+    }
+
     private fun writeFrame(bytes: Int): File {
         val frame = File(incoming.root, WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME)
         frame.writeBytes(ByteArray(bytes))

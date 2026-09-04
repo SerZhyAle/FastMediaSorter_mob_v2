@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
+import timber.log.Timber
 
 /**
  * Constant by design (S2000, strategic 3.3.9): the watch draws light content, so a scrim that varied
@@ -20,7 +21,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearBackground
  * guarantee. Matched to the value already tuned for arbitrary album art on the audio player, which
  * is the same worst case - a bright, uncontrolled image under white text.
  */
-private const val SCRIM_ALPHA = 0.47f
+private const val SCRIM_ALPHA = 0.30f
 
 /**
  * S2000: the one layer drawn behind every screen of the watch app.
@@ -34,29 +35,50 @@ fun WearAppBackground(
     running: Boolean,
     modifier: Modifier = Modifier
 ) {
+    Timber.d("S2544: dimmer wallpaper applied bg=%s running=%b", background, running)
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(Color.Black)
     ) {
         when (background) {
-            is WearBackground.BrandedAnimation -> WaveParticleBackground(
-                modifier = Modifier.fillMaxSize(),
-                running = running
-            )
+            is WearBackground.BrandedAnimation -> {
+                WaveParticleBackground(
+                    modifier = Modifier.fillMaxSize(),
+                    running = running
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                )
+            }
 
-            is WearBackground.BrandedStill -> WaveParticleBackground(
-                modifier = Modifier.fillMaxSize(),
-                running = false
-            )
+            is WearBackground.BrandedStill -> {
+                WaveParticleBackground(
+                    modifier = Modifier.fillMaxSize(),
+                    running = false
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                )
+            }
 
-            is WearBackground.Image -> DeliveredFrame(image = background)
+            is WearBackground.Image -> {
+                DeliveredFrame(image = background)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                )
+            }
+
+            is WearBackground.None -> {
+                // Black screen background: outer Box background is already Color.Black.
+            }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = SCRIM_ALPHA))
-        )
     }
 }
 
@@ -69,8 +91,15 @@ fun WearAppBackground(
  */
 @Composable
 private fun DeliveredFrame(image: WearBackground.Image) {
-    val frame: ImageBitmap? = remember(image.file.path) {
-        BitmapFactory.decodeFile(image.file.path)?.asImageBitmap()
+    val frame: ImageBitmap? = remember(image.file.path, image.lastModified) {
+        val bitmap = BitmapFactory.decodeFile(image.file.path)?.asImageBitmap()
+        Timber.d(
+            "S2541: DeliveredFrame path=%s stamp=%d decoded=%b",
+            image.file.path,
+            image.lastModified,
+            bitmap != null
+        )
+        bitmap
     }
     if (frame != null) {
         Image(

@@ -9,6 +9,7 @@
      12-hour, Tokyo's 14:39 rendered as a bare "2:39", which inverts day and night - the one thing a
      remote clock exists to tell. Locally the user already knows which half of the day it is. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -19,7 +20,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextClock
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
             android:id="@+id/gadgetWorldClockTime"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -34,10 +35,12 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="09:45" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetWorldClockPlace"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -49,6 +52,8 @@
             android:gravity="center"
             android:maxLines="2"
             android:textColor="?attr/colorOnSurfaceVariant"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="Kyiv +2 h" />
 

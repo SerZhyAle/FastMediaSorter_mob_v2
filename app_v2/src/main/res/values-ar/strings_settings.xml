@@ -265,4 +265,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">فعّل هذا إذا كانت لديك ساعة Wear OS. يفتح التطبيق المرافق من هنا ويحدد ما يشاركه هذا الهاتف مع الساعة.</string>
     <string name="settings_wear_install_guide_button">كيفية التثبيت على الساعة</string>
+    <string name="settings_wear_web_portal_button">كل شيء عن الساعة</string>
 </resources>

@@ -210,7 +210,9 @@ function Get-BuiltArtifact {
 # so it defaults to the store variant; a miss must name the variant AND the directory searched, because
 # this script reports a path miss as "nothing got built" and the two read identically otherwise.
 $apkDir = "wear/build/outputs/apk/$WearFlavor/release"
-$aabDir = "wear/build/outputs/bundle/$WearFlavor/release"
+# A bundle does NOT follow the APK layout: AGP writes bundle/<flavor><BuildType>/, one segment,
+# while an APK gets two. Assuming otherwise cost a full release build on 2026-09-04.
+$aabDir = "wear/build/outputs/bundle/${WearFlavor}Release"
 
 $apk = Get-BuiltArtifact -Directory $apkDir -Extension 'apk'
 $aab = Get-BuiltArtifact -Directory $aabDir -Extension 'aab'

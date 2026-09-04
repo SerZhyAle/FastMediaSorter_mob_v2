@@ -3,6 +3,7 @@
      fixed height. The heading is a TextView beside the needle, not the needle alone - strategic §3.2
      requires heading and altitude to be readable as words by a screen reader. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -29,7 +30,7 @@
             android:layout_weight="2"
             android:orientation="vertical">
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetCompassHeading"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -42,10 +43,12 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurface"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="42° Northeast" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetCompassAltitude"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -53,9 +56,10 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="12sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="184 m" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetCompassCalibrate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -65,6 +69,7 @@
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:visibility="visible" />
 
         </LinearLayout>

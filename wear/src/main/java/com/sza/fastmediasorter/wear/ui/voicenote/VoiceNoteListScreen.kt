@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import timber.log.Timber
 import java.util.Date
 
@@ -72,7 +73,7 @@ fun VoiceNoteListScreen(
     viewModel: VoiceNoteListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = WearRoutes.VOICE_NOTES)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
 
     WearScreenScaffold(

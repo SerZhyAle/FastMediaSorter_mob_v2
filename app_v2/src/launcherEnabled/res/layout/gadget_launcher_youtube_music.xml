@@ -27,7 +27,7 @@
                 android:contentDescription="@null"
                 android:src="@drawable/ic_youtube_music" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetYouTubeMusicTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -39,7 +39,9 @@
                 android:text="@string/launcher_gadget_youtube_music"
                 android:textColor="?attr/colorOnSurface"
                 android:textSize="14sp"
-                android:textStyle="bold" />
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                android:textStyle="bold"
+            />
 
             <ImageButton
                 android:id="@+id/gadgetYouTubeMusicRefresh"

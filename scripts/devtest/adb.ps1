@@ -368,6 +368,35 @@ function Select-Device {
                 Write-Host "Selected $($matched[0]) - the only online device matching -Module $Module." -ForegroundColor Gray
                 return $matched[0]
             }
+            # Wireless ADB can list the SAME physical device twice: the literal ip:port a user
+            # `adb connect`-ed to, and the mDNS-advertised "adb-<serial>-xxxx._adb-tls-connect._tcp"
+            # service name Android also publishes for it. -Module disambiguation then narrows to two
+            # entries instead of one and still refuses, even though there is only one watch to pick
+            # (measured 2026-09-04: watch online as both 192.168.1.166:39969 and
+            # adb-RFGL1148CRZ-...tcp alongside one unrelated phone). Resolve by the device's own
+            # ro.serialno/ro.boot.serialno: if every matched id reports the same real serial, they are
+            # one device wearing two connection names, and installing to either reaches it - prefer
+            # the literal ip:port form since that is what the user actually typed to connect it.
+            if ($matched.Count -gt 1) {
+                $bySerial = @{}
+                foreach ($id in $matched) {
+                    $serial = ((Invoke-Adb $id @('shell', 'getprop', 'ro.serialno') -AllowFail) -join '').Trim()
+                    if (-not $serial) {
+                        $serial = ((Invoke-Adb $id @('shell', 'getprop', 'ro.boot.serialno') -AllowFail) -join '').Trim()
+                    }
+                    if ($serial) {
+                        if (-not $bySerial.ContainsKey($serial)) { $bySerial[$serial] = @() }
+                        $bySerial[$serial] += $id
+                    }
+                }
+                if ($bySerial.Keys.Count -eq 1) {
+                    $sameDevice = $bySerial.Values | Select-Object -First 1
+                    $preferred = $sameDevice | Where-Object { $_ -notmatch '\._tcp$' -and $_ -notlike 'adb-*' } | Select-Object -First 1
+                    $chosen = if ($preferred) { $preferred } else { $sameDevice[0] }
+                    Write-Host "Selected $chosen - one physical -Module $Module device online under $($sameDevice.Count) connection names ($($sameDevice -join ', '))." -ForegroundColor Gray
+                    return $chosen
+                }
+            }
         }
         Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId"
     }

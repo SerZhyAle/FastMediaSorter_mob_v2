@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private const val SINGLE_COLUMN = 1
@@ -48,7 +49,7 @@ fun AppsScreen(
     viewModel: AppsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = WearRoutes.APPS)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

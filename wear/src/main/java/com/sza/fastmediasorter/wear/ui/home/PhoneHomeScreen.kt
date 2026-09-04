@@ -36,6 +36,7 @@ fun PhoneHomeScreen(
         viewMode = settings.viewMode,
         onCategoryClick = { category -> navController.navigate(WearRoutes.browsePhone(category.token)) },
         onBack = { navController.popBackStack() },
-        onFolderClick = { navController.navigate(WearRoutes.PHONE_RESOURCE) }
+        onFolderClick = { navController.navigate(WearRoutes.PHONE_RESOURCE) },
+        positionKey = WearRoutes.PHONE_HOME
     )
 }

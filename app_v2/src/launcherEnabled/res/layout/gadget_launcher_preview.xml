@@ -17,7 +17,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetPreviewTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -30,9 +30,10 @@
             android:textColor="?attr/colorOnSurface"
             android:textSize="13sp"
             android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Holiday photos" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetPreviewMessage"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -42,6 +43,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="12sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Unavailable"
             tools:visibility="visible" />
 

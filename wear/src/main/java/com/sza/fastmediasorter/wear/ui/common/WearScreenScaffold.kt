@@ -16,7 +16,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
@@ -67,6 +66,7 @@ private const val ROUND_SQUARE_FRACTION = 0.70f
  * window wallpaper is visible beneath navigation screens.
  */
 @Composable
+@Suppress("LongParameterList")
 fun WearScreenScaffold(
     modifier: Modifier = Modifier,
     positionIndicator: (@Composable () -> Unit)? = null,
@@ -77,6 +77,8 @@ fun WearScreenScaffold(
     background: Color = Color.Transparent,
     content: @Composable BoxScope.() -> Unit
 ) {
+    val wallpaperState = LocalWearWallpaperState.current
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         positionIndicator = positionIndicator,
@@ -100,15 +102,25 @@ fun WearScreenScaffold(
         }
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxSize()
-                // Background before padding: the colour has to reach the frame edge, while the
-                // content stops short of it. The reverse order leaves an unpainted ring at the rim.
-                .background(background)
-                .padding(contentPadding),
-            contentAlignment = Alignment.Center,
-            content = content
-        )
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (background == Color.Transparent && wallpaperState.showsWallpaper) {
+                WearAppBackground(
+                    background = wallpaperState.background,
+                    running = wallpaperState.isResumed
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    // Background before padding: the colour has to reach the frame edge, while the
+                    // content stops short of it. The reverse order leaves an unpainted ring at the rim.
+                    .background(background)
+                    .padding(contentPadding),
+                contentAlignment = Alignment.Center,
+                content = content
+            )
+        }
     }
 }
 

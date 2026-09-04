@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">Activez cette option si vous avez une montre Wear OS. L\'application compagnon s\'ouvre d\'ici et décide ce que ce téléphone partage avec la montre.</string>
     <string name="settings_wear_install_guide_button">Comment installer sur une montre</string>
+    <string name="settings_wear_web_portal_button">Tout sur la montre</string>
 </resources>

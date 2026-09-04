@@ -56,7 +56,7 @@ private val ROW_VERTICAL_PADDING = 2.dp
 @Composable
 fun SystemInfoScreen(
     viewModel: SystemInfoViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     Timber.d("S2470: system information compact pairs shown")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

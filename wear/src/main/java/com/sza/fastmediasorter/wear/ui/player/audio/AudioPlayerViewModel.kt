@@ -10,9 +10,11 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
+import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_VOICE_NOTE
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
@@ -182,6 +184,14 @@ class AudioPlayerViewModel @Inject constructor(
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
             streamPlaybackSession.stop()
+            if (selectedMediaManager.getSelectedFileById(fileId)?.sourceId == SOURCE_ID_VOICE_NOTE) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = context.getString(R.string.wear_voice_note_unavailable)
+                    )
+                }
+            }
         }
     }
 
@@ -264,6 +274,12 @@ class AudioPlayerViewModel @Inject constructor(
         }
     }
 
+    fun onHostStarted() {
+        if (backgroundSessionState.session.value != null) {
+            attachToBackgroundSessionOrLoad()
+        }
+    }
+
     private fun loadAudioFile() {
         Timber.d("Loading audio file with fileId: $fileId")
         loadMediaFile()
@@ -285,10 +301,6 @@ class AudioPlayerViewModel @Inject constructor(
         }
         context.startService(WearPlaybackService.stopIntent(context))
         backgroundSessionState.clear()
-        if (background.fileId != fileId) {
-            loadAudioFile()
-            return
-        }
         resumeHandedBackSession(background)
     }
 
@@ -298,27 +310,70 @@ class AudioPlayerViewModel @Inject constructor(
      */
     private fun resumeHandedBackSession(background: WearBackgroundSession) {
         viewModelScope.launch {
-            val selected = selectedMediaManager.getSelectedFileById(fileId)
+            val targetFileId = if (background.fileId != WearPlaybackService.NO_FILE_ID) {
+                background.fileId
+            } else {
+                fileId
+            }
+            Timber.d("S2166: resumeHandedBack id=$targetFileId pos=${background.positionMs}")
+            val selected = selectedMediaManager.getSelectedFileById(targetFileId)
             if (selected != null) {
                 _uiState.update {
-                    it.withMediaFile(selected.file).copy(isStream = selected.sourceId == SOURCE_ID_STREAM)
+                    it.withMediaFile(selected.file).copy(
+                        isStream = selected.sourceId == SOURCE_ID_STREAM,
+                        currentPositionMs = background.positionMs,
+                        isPlaying = background.isPlaying
+                    )
                 }
                 if (selected.isNetworkSource) {
                     networkSelection = selected
                 }
                 fetchRemoteAlbumArt(selected.file)
             } else {
-                mediaRepository.getMediaFileById(fileId, MediaType.MUSIC)?.let { file ->
-                    _uiState.update { it.withMediaFile(file) }
+                val file = mediaRepository.getMediaFileById(targetFileId, MediaType.MUSIC)
+                    ?: playbackSetManager.currentSet.value?.current
+                if (file != null) {
+                    _uiState.update {
+                        it.withMediaFile(file).copy(
+                            currentPositionMs = background.positionMs,
+                            isPlaying = background.isPlaying
+                        )
+                    }
                     fetchRemoteAlbumArt(file)
+                } else {
+                    _uiState.update {
+                        it.copy(
+                            currentPositionMs = background.positionMs,
+                            isPlaying = background.isPlaying
+                        )
+                    }
                 }
             }
+            playbackSetManager.moveTo(targetFileId)
+            syncSetPosition()
             checkFavoriteState()
             background.streamMediaKind?.let(streamPlaybackSession::prepare)
-            exoPlayer.setMediaItem(MediaItem.fromUri(Uri.parse(background.mediaUri)))
+            val metadata = _uiState.value.mediaFile?.let { file ->
+                MediaMetadata.Builder()
+                    .setTitle(file.title?.takeIf { it.isNotBlank() } ?: file.name)
+                    .setArtist(file.artist?.takeIf { it.isNotBlank() })
+                    .apply { file.albumArt?.let { setArtworkUri(it) } }
+                    .build()
+            }
+            val mediaItemBuilder = MediaItem.Builder()
+                .setUri(Uri.parse(background.mediaUri))
+            if (metadata != null) {
+                mediaItemBuilder.setMediaMetadata(metadata)
+            }
+            exoPlayer.setMediaItem(mediaItemBuilder.build())
             exoPlayer.prepare()
             exoPlayer.seekTo(background.positionMs)
             exoPlayer.playWhenReady = background.isPlaying
+            if (background.isPlaying) {
+                progressTicker.start()
+                streamPlaybackSession.withWideChannel()
+            }
+            publishPlaybackState()
         }
     }
 
@@ -406,7 +461,16 @@ class AudioPlayerViewModel @Inject constructor(
     }
 
     private fun playLocalFile(file: WearMediaFile) {
-        exoPlayer.setMediaItem(MediaItem.fromUri(file.uri))
+        val metadata = MediaMetadata.Builder()
+            .setTitle(file.title?.takeIf { it.isNotBlank() } ?: file.name)
+            .setArtist(file.artist?.takeIf { it.isNotBlank() })
+            .apply { file.albumArt?.let { setArtworkUri(it) } }
+            .build()
+        val mediaItem = MediaItem.Builder()
+            .setUri(file.uri)
+            .setMediaMetadata(metadata)
+            .build()
+        exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.playWhenReady = true
     }
@@ -461,7 +525,15 @@ class AudioPlayerViewModel @Inject constructor(
                 return
             }
             _uiState.update { it.copy(isLoading = true) }
-            val mediaItem = MediaItem.fromUri(Uri.parse(selected.streamUri))
+            val metadata = MediaMetadata.Builder()
+                .setTitle(selected.file.title?.takeIf { it.isNotBlank() } ?: selected.file.name)
+                .setArtist(selected.file.artist?.takeIf { it.isNotBlank() })
+                .apply { selected.file.albumArt?.let { setArtworkUri(it) } }
+                .build()
+            val mediaItem = MediaItem.Builder()
+                .setUri(Uri.parse(selected.streamUri))
+                .setMediaMetadata(metadata)
+                .build()
             exoPlayer.setMediaItem(mediaItem)
             exoPlayer.prepare()
             _uiState.update { it.copy(isLoading = false) }
@@ -472,7 +544,15 @@ class AudioPlayerViewModel @Inject constructor(
 
         downloadNetworkFile(selected, DownloadNetworkFileUseCase.Kind.AUDIO).fold(
             onSuccess = { cachedFile ->
-                val mediaItem = MediaItem.fromUri(Uri.fromFile(cachedFile))
+                val metadata = MediaMetadata.Builder()
+                    .setTitle(selected.file.title?.takeIf { it.isNotBlank() } ?: selected.file.name)
+                    .setArtist(selected.file.artist?.takeIf { it.isNotBlank() })
+                    .apply { selected.file.albumArt?.let { setArtworkUri(it) } }
+                    .build()
+                val mediaItem = MediaItem.Builder()
+                    .setUri(Uri.fromFile(cachedFile))
+                    .setMediaMetadata(metadata)
+                    .build()
                 exoPlayer.setMediaItem(mediaItem)
                 exoPlayer.prepare()
                 _uiState.update { it.copy(isLoading = false) }
@@ -542,6 +622,7 @@ class AudioPlayerViewModel @Inject constructor(
         val uri = exoPlayer.currentMediaItem?.localConfiguration?.uri?.toString() ?: return
         val streamMediaKind = ClassifyWearStreamMediaKindUseCase.AUDIO
             .takeIf { networkSelection?.isDirectStream == true }
+        Timber.d("S2166: handOffToPlaybackService uri=%s position=%d", uri, exoPlayer.currentPosition)
         val intent = WearPlaybackService.startIntent(
             context = context,
             fileId = fileId,

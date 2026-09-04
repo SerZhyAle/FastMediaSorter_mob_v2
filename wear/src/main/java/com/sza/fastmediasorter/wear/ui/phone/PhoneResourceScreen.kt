@@ -86,6 +86,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberOverlayVisibleOnIdle
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.delay
 import timber.log.Timber
@@ -122,7 +123,7 @@ fun PhoneResourceScreen(
         }
     }
 
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = WearRoutes.PHONE_RESOURCE)
 
     // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
     // that dropped it costs nothing, while a ViewModel that carried it would replay it.

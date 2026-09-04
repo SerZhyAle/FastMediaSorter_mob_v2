@@ -37,7 +37,7 @@ import timber.log.Timber
 @Composable
 fun PermissionsScreen(
     onPermissionsGranted: () -> Unit,
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = 0)
 ) {
     // Define required permissions based on API level
     val mediaPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -49,7 +49,7 @@ fun PermissionsScreen(
     } else {
         listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
-    
+
     val permissionsState = rememberMultiplePermissionsState(
         permissions = mediaPermissions,
         onPermissionsResult = { results ->
@@ -60,7 +60,7 @@ fun PermissionsScreen(
             }
         }
     )
-    
+
     // Auto-navigate if already granted
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         Timber.d("S2273: PermissionsScreen rendered, allPermissionsGranted=${permissionsState.allPermissionsGranted}")
@@ -69,7 +69,7 @@ fun PermissionsScreen(
             onPermissionsGranted()
         }
     }
-    
+
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -142,4 +142,3 @@ fun PermissionsScreen(
         }
     }
 }
-

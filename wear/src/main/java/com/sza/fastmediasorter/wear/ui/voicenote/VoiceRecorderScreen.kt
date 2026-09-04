@@ -73,7 +73,7 @@ fun VoiceRecorderScreen(
     viewModel: VoiceRecorderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialCenterItemIndex = 0)
     val permissionsState = rememberMultiplePermissionsState(recorderPermissions())
     // Only the microphone gates recording. A denied POST_NOTIFICATIONS costs the ongoing
     // notification and nothing else, so it must not stand between the user and a recording.

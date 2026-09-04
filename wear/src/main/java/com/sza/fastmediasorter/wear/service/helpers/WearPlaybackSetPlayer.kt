@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.service.helpers
 
 import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
@@ -56,7 +57,15 @@ class WearPlaybackSetPlayer(
         if (file == null) {
             return
         }
-        setMediaItem(MediaItem.fromUri(file.uri))
+        val metadataBuilder = MediaMetadata.Builder()
+            .setTitle(file.title?.takeIf { it.isNotBlank() } ?: file.name)
+            .setArtist(file.artist?.takeIf { it.isNotBlank() })
+        file.albumArt?.let { metadataBuilder.setArtworkUri(it) }
+        val mediaItem = MediaItem.Builder()
+            .setUri(file.uri)
+            .setMediaMetadata(metadataBuilder.build())
+            .build()
+        setMediaItem(mediaItem)
         prepare()
         play()
     }

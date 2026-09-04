@@ -89,12 +89,20 @@ class DropboxCredentialsManager @Inject constructor(
         }
     }
 
-    /** Clear the legacy single-account credential entry. */
-    fun clearStoredCredentials() {
+    /** Clear stored credentials (legacy single-account key and per-account entry/all per-account entries). */
+    fun clearStoredCredentials(accountEmail: String? = null) {
         purgeLegacyPlaintextCredentials()
         guardStorage("clear", Unit) {
-            prefs.edit().remove(KEY_CREDENTIALS).apply()
-            Timber.d("Dropbox credentials cleared")
+            val editor = prefs.edit().remove(KEY_CREDENTIALS)
+            if (!accountEmail.isNullOrEmpty()) {
+                editor.remove("$KEY_CREDENTIALS_PREFIX$accountEmail")
+            } else {
+                prefs.all.keys
+                    .filter { it.startsWith(KEY_CREDENTIALS_PREFIX) }
+                    .forEach { editor.remove(it) }
+            }
+            editor.apply()
+            Timber.d("S2455: Dropbox credentials cleared (account: ${accountEmail ?: "all"})")
         }
         forgetTransferableSecret()
     }

@@ -13,6 +13,7 @@
      itself and adds room for an overlay badge and a corner mark inside the same 18dp square. The battery
      stays a TextView - it already carried text before any of this. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/trayIndicators"
     android:layout_width="wrap_content"
@@ -44,7 +45,7 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/traySpeedRx"
         android:clickable="true"
         android:focusable="true"
@@ -55,10 +56,11 @@
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/launcher_tray_speed_text_size"
         android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="↓ 1.2 MB/s"
         tools:visibility="visible" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/traySpeedTx"
         android:clickable="true"
         android:focusable="true"
@@ -69,6 +71,7 @@
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/launcher_tray_speed_text_size"
         android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="↑ 256 KB/s"
         tools:visibility="visible" />
 
@@ -78,7 +81,7 @@
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/trayBatteryLevel"
         android:clickable="true"
         android:focusable="true"
@@ -92,6 +95,7 @@
         android:paddingBottom="1dp"
         android:textColor="?attr/colorOnSurface"
         android:textSize="@dimen/launcher_tray_speed_text_size"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="86" />
 
 </LinearLayout>

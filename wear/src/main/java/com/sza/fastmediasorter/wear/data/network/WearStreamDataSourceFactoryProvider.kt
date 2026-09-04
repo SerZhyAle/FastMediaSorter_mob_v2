@@ -11,7 +11,6 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
-import timber.log.Timber
 
 /**
  * Builds the HTTP [DataSource.Factory] and [DefaultMediaSourceFactory] for Wear OS stream playback (S2498).
@@ -53,7 +52,6 @@ private class WearRadioHttpDataSource(
 
     override fun open(dataSpec: DataSpec): Long {
         val uri = dataSpec.uri
-        Timber.d("S2498: WearRadioHttpDataSource opening stream uri %s", uri)
         val userInfo = uri.userInfo
         val host = uri.host
         val authSpec = if (!userInfo.isNullOrEmpty() && host != null) {

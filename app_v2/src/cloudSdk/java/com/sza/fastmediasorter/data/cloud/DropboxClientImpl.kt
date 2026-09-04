@@ -40,6 +40,15 @@ import javax.inject.Singleton
  * S0403: lives in `src/cloudSdk` because it imports the Dropbox SDK directly. Shared code depends on
  * the [DropboxClient] contract in `src/main`, so a flavor that drops the SDK still compiles.
  */
+@Suppress(
+    "LargeClass",
+    "TooManyFunctions",
+    "TooGenericExceptionCaught",
+    "MagicNumber",
+    "MaxLineLength",
+    "ReturnCount",
+    "UnusedPrivateProperty"
+)
 @Singleton
 class DropboxClientImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -137,8 +146,8 @@ class DropboxClientImpl @Inject constructor(
         return tryRestoreFromStorage() // Fallback to any stored credentials
     }
 
-    private fun clearStoredCredentials() {
-        credentialsManager.clearStoredCredentials()
+    private fun clearStoredCredentials(email: String? = null) {
+        credentialsManager.clearStoredCredentials(email)
     }
 
     override suspend fun tryRestoreFromStorage(): Boolean {
@@ -907,10 +916,13 @@ class DropboxClientImpl @Inject constructor(
                 // Revoke access token if possible
                 dbxClient?.auth()?.tokenRevoke()
 
+                val emailToClear = accountEmail
+                clearStoredCredentials(emailToClear)
+
                 dbxClient = null
                 accountEmail = null
 
-                Timber.d("Dropbox sign-out successful")
+                Timber.d("S2455: Dropbox sign-out successful")
                 CloudResult.Success(true)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

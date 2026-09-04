@@ -3715,6 +3715,7 @@ S2326: the gate pool - start read-only gate children together, consume them in t
 scripts/quality/lib/gate-pool.ps1
   S2326: the gate pool - start read-only gate children together, consume them in the original order.
   (no param block)
+  Exit: 2 when the join exceeded $script:GatePoolJoinTimeoutSeconds and the gate was stopped unjudged.
 ```
 
 ### gate-telemetry.ps1

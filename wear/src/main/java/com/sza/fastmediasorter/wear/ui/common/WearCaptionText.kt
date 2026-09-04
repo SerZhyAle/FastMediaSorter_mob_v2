@@ -121,7 +121,6 @@ fun WearCaptionText(
         )
         return
     }
-    Timber.d("S2467: WearCaptionText draws the 2 dp outlined caption")
     val outlineStyle = LocalTextStyle.current.copy(
         drawStyle = Stroke(
             width = with(LocalDensity.current) { OUTLINE_WIDTH.toPx() },

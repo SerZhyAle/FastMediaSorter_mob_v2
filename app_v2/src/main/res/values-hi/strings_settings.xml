@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">अगर आपके पास Wear OS घड़ी है तो इसे चालू करें। साथी ऐप यहीं से खुलता है और तय करता है कि यह फ़ोन घड़ी के साथ क्या साझा करेगा।</string>
     <string name="settings_wear_install_guide_button">घड़ी पर कैसे इंस्टॉल करें</string>
+    <string name="settings_wear_web_portal_button">घड़ी के बारे में सब कुछ</string>
 </resources>

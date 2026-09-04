@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">Attiva questa opzione se hai uno smartwatch Wear OS. L\'app companion si apre da qui e decide che cosa questo telefono condivide con l\'orologio.</string>
     <string name="settings_wear_install_guide_button">Come installare su un orologio</string>
+    <string name="settings_wear_web_portal_button">Tutto sull\'orologio</string>
 </resources>

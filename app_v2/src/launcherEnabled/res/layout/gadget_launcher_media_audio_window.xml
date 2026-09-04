@@ -16,7 +16,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/mediaAudioWindowTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -29,6 +29,7 @@
             android:textColor="?attr/colorOnSurface"
             android:textSize="13sp"
             android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Road trip" />
 
         <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView

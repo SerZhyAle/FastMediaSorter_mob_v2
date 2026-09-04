@@ -261,4 +261,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">আপনার যদি Wear OS ঘড়ি থাকে তবে এটি চালু করুন। সঙ্গী অ্যাপটি এখান থেকে খোলে এবং ঠিক করে এই ফোনটি ঘড়ির সঙ্গে কী ভাগ করবে।</string>
     <string name="settings_wear_install_guide_button">ঘড়িতে কীভাবে ইনস্টল করবেন</string>
+    <string name="settings_wear_web_portal_button">ঘড়ি সম্পর্কে সব</string>
 </resources>

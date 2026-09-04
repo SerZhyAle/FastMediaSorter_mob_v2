@@ -13,7 +13,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
@@ -30,6 +29,7 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
 import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.common.WearCaptionText
 import com.sza.fastmediasorter.wear.ui.common.WearCellShape
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -54,7 +54,7 @@ fun NetworkMonitorSummaryScreen(
     viewModel: NetworkMonitorViewModel,
     onNavigateToSection: (String) -> Unit,
     modifier: Modifier = Modifier,
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     Timber.d("S2470: Network Monitor compact overview shown")
@@ -69,7 +69,6 @@ fun NetworkMonitorSummaryScreen(
             val availableWidthDp = maxWidth.value.toInt()
             val columns = GridColumnFit.columnsFor(state.viewMode, availableWidthDp)
             val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
-            Timber.d("S2156: Network monitor sections=%d columns=%d", nonSummarySections.size, columns)
             WearListColumn(
                 modifier = modifier.fillMaxSize(),
                 state = listState,
@@ -110,10 +109,15 @@ fun NetworkMonitorSummaryScreen(
                             gap = ROW_SPACING
                         ) {
                             rowSections.forEach { section ->
+                                val fact = state.sectionFacts[section] ?: WearSectionFact.None
+                                val title = stringResource(section.titleRes())
+                                val factText = fact.render()
+                                val fullText = if (factText.isNullOrEmpty()) title else "$title: $factText"
+                                val weight = fullText.length.coerceAtLeast(1).toFloat()
                                 SectionTile(
                                     section = section,
-                                    fact = state.sectionFacts[section] ?: WearSectionFact.None,
-                                    modifier = Modifier.weight(1f),
+                                    fact = fact,
+                                    modifier = Modifier.weight(weight),
                                     onClick = { onNavigateToSection(section.key) }
                                 )
                             }
@@ -185,15 +189,13 @@ private fun SectionTile(
         shape = WearCellShape,
         modifier = modifier.fillMaxWidth()
     ) {
-        Text(
+        WearCaptionText(
             text = fullText,
-            style = MaterialTheme.typography.caption2,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+                .padding(horizontal = 2.dp)
         )
     }
 }

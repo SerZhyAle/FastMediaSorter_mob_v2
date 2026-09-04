@@ -396,6 +396,7 @@
     <string name="wear_background_mode_animation">Branded animation</string>
     <string name="wear_background_mode_still">Branded still</string>
     <string name="wear_background_mode_image">Photo from phone</string>
+    <string name="wear_background_mode_none">Empty (black screen)</string>
     <string name="wear_content_type_document">Document</string>
     <string name="wear_content_type_folder">Folder</string>
     <string name="wear_browse_search">Search files</string>
@@ -584,4 +585,7 @@
     <string name="panel_auto_hide_label">Auto-hide: %ds</string>
     <string name="panel_auto_hide_decrease">Decrease auto-hide duration</string>
     <string name="panel_auto_hide_increase">Increase auto-hide duration</string>
+    <string name="wear_now_playing_row_subtitle">Playing in background</string>
+    <string name="wear_now_playing_stop">Stop</string>
+    <string name="wear_voice_note_unavailable">This recording is no longer available</string>
 </resources>

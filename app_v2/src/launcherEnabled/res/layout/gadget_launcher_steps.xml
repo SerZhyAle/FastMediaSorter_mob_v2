@@ -3,6 +3,7 @@
      fixed height. The caption is not decoration - the system counter reports steps since the last
      reboot, and a bare number with no denominator is one the user cannot interpret. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -17,7 +18,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetStepsValue"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -30,10 +31,12 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="8,412" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetStepsCaption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -41,9 +44,11 @@
             android:maxLines="2"
             android:text="@string/launcher_gadget_steps_since_boot"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="10sp" />
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            android:textSize="10sp"
+        />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetStepsMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -52,6 +57,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Physical activity is off"
             tools:visibility="visible" />
 

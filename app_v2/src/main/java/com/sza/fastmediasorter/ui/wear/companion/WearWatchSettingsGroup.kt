@@ -7,6 +7,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -75,6 +77,7 @@ private val WEAR_VIEW_MODES = listOf(
 )
 
 private val BACKGROUND_MODES = listOf(
+    WearSettingsPayload.BACKGROUND_MODE_NONE to R.string.wear_background_mode_none,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL to R.string.wear_background_mode_still,
     WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
@@ -450,6 +453,7 @@ private fun ViewModeRow(
  * animation leaves the setting a single control. The two options are told apart by their labels
  * rather than by the preview, because a thumbnail is not a label for a screen reader.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
     val mode by viewModel.backgroundMode.collectAsState()
@@ -464,9 +468,10 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
         text = stringResource(R.string.wear_settings_background_mode),
         style = MaterialTheme.typography.bodySmall
     )
-    Row(
+    FlowRow(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
+        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
     ) {
         BACKGROUND_MODES.forEach { (value, labelRes) ->
             val chipLabel = stringResource(labelRes)

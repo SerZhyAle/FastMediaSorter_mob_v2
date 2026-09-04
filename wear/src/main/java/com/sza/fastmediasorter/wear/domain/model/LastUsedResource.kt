@@ -27,7 +27,9 @@ data class LastUsedResource(
     val kind: LastUsedKind = LastUsedKind.RESOURCE,
     // S2129: filled on the read path from the live source, never stored - the history encodes id and
     // name only, so a remembered entry is null here and picks up the icon the phone last sent.
-    val iconId: String? = null
+    val iconId: String? = null,
+    // S2499: channel favicon index filled on the read path from the channel catalog, never stored.
+    val faviconIndex: Int? = null
 ) {
     companion object {
         /**

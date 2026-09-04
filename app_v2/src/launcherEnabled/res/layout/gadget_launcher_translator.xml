@@ -30,7 +30,7 @@
 
             <!-- S2237: the pair caption is itself the control - tapping it opens the program's
                  translation settings, where both languages and the engine are configured. -->
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetTranslatorDirection"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -43,6 +43,7 @@
                 android:maxLines="1"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 android:textSize="11sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="SelectableText"
                 tools:text="auto to ru" />
 
@@ -104,7 +105,7 @@
 
         </LinearLayout>
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetTranslatorResult"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -115,9 +116,10 @@
             android:textColor="?attr/colorOnSurface"
             android:textIsSelectable="true"
             android:textSize="13sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Перевод появится здесь" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetTranslatorState"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -126,6 +128,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Language pack is not downloaded yet."
             tools:visibility="visible" />
 

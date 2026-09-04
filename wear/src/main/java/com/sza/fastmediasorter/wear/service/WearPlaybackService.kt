@@ -11,6 +11,7 @@ import androidx.core.app.ServiceCompat
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -20,7 +21,6 @@ import androidx.media3.session.MediaSessionService
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
-import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
@@ -112,6 +112,22 @@ class WearPlaybackService : MediaSessionService() {
             }
         }
 
+        override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+            val file = playbackSetManager.currentSet.value?.current
+            if (file != null && mediaItem != null) {
+                backgroundSessionState.start(
+                    WearBackgroundSession(
+                        fileId = file.id,
+                        mediaUri = file.uri.toString(),
+                        streamMediaKind = null,
+                        positionMs = 0L,
+                        isPlaying = player?.playWhenReady == true
+                    )
+                )
+            }
+            publishPlaybackState(player?.isPlaying == true)
+        }
+
         /**
          * Strategic §7 asks for the wide channel to go back on a pause rather than only on a stop, so
          * a paused stream costs no more radio than a stopped one while the session stays resumable.
@@ -123,7 +139,7 @@ class WearPlaybackService : MediaSessionService() {
             } else {
                 streamPlaybackSession.stop()
                 progressTicker?.stop()
-                if (!WearBackgroundPlaybackPolicy.keepsBackgroundSession(isPlaying)) {
+                if (player?.playWhenReady != true) {
                     Timber.d("S2166: paused background session releases foreground service")
                     stopPlaybackAndSelf()
                     return
@@ -190,6 +206,7 @@ class WearPlaybackService : MediaSessionService() {
         // all, and prepare() on a null kind would claim one for a file already on disk.
         streamMediaKind?.let(streamPlaybackSession::prepare)
         val positionMs = intent.getLongExtra(EXTRA_POSITION_MS, 0L)
+        Timber.d("S2166: started background playback service for %s at %d ms", uri, positionMs)
         backgroundSessionState.start(
             WearBackgroundSession(
                 fileId = intent.getLongExtra(EXTRA_FILE_ID, NO_FILE_ID),
@@ -199,7 +216,20 @@ class WearPlaybackService : MediaSessionService() {
                 isPlaying = true
             )
         )
-        exoPlayer.setMediaItem(MediaItem.fromUri(uri))
+        val file = playbackSetManager.currentSet.value?.current
+        val title = file?.title?.takeIf { it.isNotBlank() }
+            ?: file?.name
+            ?: getString(R.string.wear_background_playback)
+        val artist = file?.artist?.takeIf { it.isNotBlank() }
+        val metadataBuilder = MediaMetadata.Builder()
+            .setTitle(title)
+            .setArtist(artist)
+        file?.albumArt?.let { metadataBuilder.setArtworkUri(it) }
+        val mediaItem = MediaItem.Builder()
+            .setUri(uri)
+            .setMediaMetadata(metadataBuilder.build())
+            .build()
+        exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.seekTo(positionMs)
         exoPlayer.playWhenReady = true

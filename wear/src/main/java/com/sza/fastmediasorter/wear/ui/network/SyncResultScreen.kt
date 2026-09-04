@@ -40,7 +40,7 @@ fun SyncResultScreen(
         }
     }
 
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialCenterItemIndex = 0)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

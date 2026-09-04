@@ -34,6 +34,7 @@ data class HomeSection(
     val route: String?,
     val dynamicLabel: String? = null,
     val iconId: String? = null,
+    val faviconIndex: Int? = null,
     val targetRef: WearTileTargetRef? = null
 )
 

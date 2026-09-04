@@ -151,6 +151,39 @@ class DropboxCredentialsManagerTest {
     }
 
     @Test
+    fun `clearing with specified account removes per-account and legacy keys`() = runTest(UnconfinedTestDispatcher()) {
+        plainPrefs().edit()
+            .putString(LEGACY_KEY, LEAKED_JSON)
+            .putString("${PER_ACCOUNT_PREFIX}user@example.com", LEAKED_JSON)
+            .putString("${PER_ACCOUNT_PREFIX}other@example.com", LEAKED_JSON)
+            .commit()
+
+        val manager = buildManager(this)
+        manager.clearStoredCredentials("user@example.com")
+
+        val keys = plainPrefs().all.keys
+        assertFalse("legacy plaintext key must be erased", keys.contains(LEGACY_KEY))
+        assertFalse("target per-account key must be erased", keys.contains("${PER_ACCOUNT_PREFIX}user@example.com"))
+    }
+
+    @Test
+    fun `clearing without account removes all per-account keys`() = runTest(UnconfinedTestDispatcher()) {
+        plainPrefs().edit()
+            .putString(LEGACY_KEY, LEAKED_JSON)
+            .putString("${PER_ACCOUNT_PREFIX}user1@example.com", LEAKED_JSON)
+            .putString("${PER_ACCOUNT_PREFIX}user2@example.com", LEAKED_JSON)
+            .commit()
+
+        val manager = buildManager(this)
+        manager.clearStoredCredentials()
+
+        val keys = plainPrefs().all.keys
+        assertFalse("legacy key must be erased", keys.contains(LEGACY_KEY))
+        assertFalse("per-account key 1 must be erased", keys.contains("${PER_ACCOUNT_PREFIX}user1@example.com"))
+        assertFalse("per-account key 2 must be erased", keys.contains("${PER_ACCOUNT_PREFIX}user2@example.com"))
+    }
+
+    @Test
     fun `a writer failure leaves the credential save successful`() = runTest(UnconfinedTestDispatcher()) {
         transferStore.failSave = true
 

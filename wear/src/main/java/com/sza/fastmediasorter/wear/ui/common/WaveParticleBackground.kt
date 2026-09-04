@@ -46,7 +46,7 @@ private const val PARTICLE_COUNT_MAX = 20
 private const val WAVE_STEP_PX = 20f
 private const val WAVE_STEP_JITTER_MIN = 0.8f
 private const val WAVE_STEP_JITTER_SPAN = 0.4f
-private const val WAVE_STROKE_PX = 3f
+private const val WAVE_STROKE_PX = 5f
 private const val WAVE_AMPLITUDE_MIN = 0.28f
 private const val WAVE_AMPLITUDE_MAX = 0.48f
 private const val WAVE_LANE_SPACING_FRACTION = 0.038f
@@ -60,7 +60,7 @@ private const val WAVE_HUE_STEP_MIN = 8f
 private const val WAVE_HUE_STEP_SPAN = 12f
 private const val WAVE_SATURATION = 0.80f
 private const val WAVE_LIGHTNESS = 0.65f
-private const val WAVE_ALPHA = 0.44f
+private const val WAVE_ALPHA = 0.49f
 
 private const val PARTICLE_RADIUS_MIN = 1f
 private const val PARTICLE_RADIUS_MAX = 6f
@@ -69,7 +69,7 @@ private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
 private const val PARTICLE_RANDOM_SPREAD = 0.28f
 private const val PARTICLE_SATURATION = 0.90f
 private const val PARTICLE_LIGHTNESS = 0.70f
-private const val PARTICLE_ALPHA = 0.70f
+private const val PARTICLE_ALPHA = 0.60f
 private const val COUNTER_DRIFT_CHANCE = 0.18f
 private const val COUNTER_DRIFT_SIGN = -0.35f
 
@@ -122,12 +122,13 @@ fun WaveParticleBackground(
         val screenSize = remember(widthPx, heightPx) { IntSize(widthPx, heightPx) }
         val wavePath = remember { Path() }
         val session = remember(buffer) {
-            WaveParticleSession(bufferWidth.toFloat(), bufferHeight.toFloat(), RENDER_SCALE)
+            WaveParticleSession(bufferWidth.toFloat(), bufferHeight.toFloat(), RENDER_SCALE).apply {
+                reroll()
+            }
         }
 
         LaunchedEffect(session, running) {
             if (!running) return@LaunchedEffect
-            session.reroll()
             var lastFrameNanos = 0L
             while (true) {
                 withFrameNanos { frameNanos ->
@@ -144,9 +145,10 @@ fun WaveParticleBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .drawBehind {
-                    if (!running) return@drawBehind
-                    bufferScope.draw(this, layoutDirection, bufferCanvas, bufferSize) {
-                        drawFrame(session, wavePath)
+                    if (session.resetPending || running) {
+                        bufferScope.draw(this, layoutDirection, bufferCanvas, bufferSize) {
+                            drawFrame(session, wavePath)
+                        }
                     }
                     drawImage(image = buffer, dstSize = screenSize)
                 }

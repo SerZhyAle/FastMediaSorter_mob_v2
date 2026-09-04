@@ -69,6 +69,8 @@
     <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
          labels; small captions must override it or the contour swallows the glyph. -->
     <dimen name="outline_text_stroke_width">2dp</dimen>
+    <!-- Proportional contour: 7% of the text size reads at 12sp and still at 96sp. -->
+    <item name="outline_text_stroke_scale" format="float" type="dimen">0.07</item>
 
     <!-- UI Elements -->
     <!-- Material's minimum touch target. A row whose own height is wrap_content (switch, radio,

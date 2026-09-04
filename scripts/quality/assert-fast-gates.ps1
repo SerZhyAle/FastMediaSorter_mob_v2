@@ -123,6 +123,7 @@ $gates = [ordered]@{
     'assert-no-ticket-logs.ps1'                 = @('-Quiet')
     'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
     'assert-acceptance-preconditions.ps1'       = @('-Quiet')
+    'assert-spec-catalog-valid.ps1'             = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.

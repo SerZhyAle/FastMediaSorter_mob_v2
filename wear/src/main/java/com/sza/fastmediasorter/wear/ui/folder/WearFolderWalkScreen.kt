@@ -74,7 +74,7 @@ fun WearFolderWalkScreen(
         }
     }
 
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

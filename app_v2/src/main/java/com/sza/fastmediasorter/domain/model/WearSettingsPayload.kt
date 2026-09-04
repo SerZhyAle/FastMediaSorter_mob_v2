@@ -69,5 +69,6 @@ data class WearSettingsPayload(
         const val BACKGROUND_MODE_BRANDED_ANIMATION = "BRANDED_ANIMATION"
         const val BACKGROUND_MODE_BRANDED_STILL = "BRANDED_STILL"
         const val BACKGROUND_MODE_IMAGE = "IMAGE"
+        const val BACKGROUND_MODE_NONE = "NONE"
     }
 }

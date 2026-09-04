@@ -84,7 +84,7 @@ fun AddNetworkSourceScreen(
     var editingField by remember { mutableStateOf<AddField?>(null) }
     var editingValue by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState()
     val viewMode by viewModel.viewMode.collectAsState()
 
     // S2486: the gate's second boundary. Both routes to this screen stay registered so a back-stack entry

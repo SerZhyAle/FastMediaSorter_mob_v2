@@ -4,6 +4,7 @@
      the value rather than replacing it, so a reading that momentarily goes missing does not blank a
      tile that already had a number on it. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -17,7 +18,7 @@
         <!-- S1587: the tile's own name. A seeded desktop shows a bare "53 m" with nothing saying which
              reading it is, and the spoken description already carries the name, so this line is visual
              only. -->
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetAltitudeCaption"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,9 +27,11 @@
             android:maxLines="1"
             android:text="@string/launcher_gadget_altitude"
             android:textColor="?attr/colorOnSurfaceVariant"
-            android:textSize="11sp" />
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            android:textSize="11sp"
+        />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetAltitudeValue"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -41,10 +44,12 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="412 m" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetAltitudeMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -53,6 +58,7 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="No altitude yet"
             tools:visibility="visible" />
 

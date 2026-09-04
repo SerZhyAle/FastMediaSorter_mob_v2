@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,13 +32,12 @@ import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
-private val ROW_SPACING = 4.dp
 private val TITLE_BOTTOM_PADDING = 8.dp
 
 @Composable
 fun MediaTypesSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState(initialItemIndex = 1)
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SettingsRoutes.MEDIA_TYPES)
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

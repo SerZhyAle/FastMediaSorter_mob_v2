@@ -1,8 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -77,7 +75,6 @@ fun CalculatorMenuSheet(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
     ) {
         val gridFit = WearChoiceGridFit(
             viewMode = viewMode,

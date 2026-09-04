@@ -51,15 +51,19 @@ function Assert-That([string]$Name, [bool]$Ok, [string]$Detail) {
     }
 }
 
-function New-FixtureRecord([string]$Gate, [string]$Status, [int]$ElapsedMs, [int]$Index) {
-    [ordered]@{
+function New-FixtureRecord([string]$Gate, [string]$Status, [int]$ElapsedMs, [int]$Index, [string]$RunId = '') {
+    $r = [ordered]@{
         timestampUtc = ([datetime]'2026-09-01T00:00:00Z').AddMinutes($Index).ToString('o')
         runner       = 'post-change'
         gate         = $Gate
         status       = $Status
         exitCode     = (($Status -eq 'PASS' -or $Status -eq 'SKIP') ? 0 : 1)
         elapsedMs    = $ElapsedMs
-    } | ConvertTo-Json -Compress
+    }
+    # S2538: omitted rather than blank when absent. The repository's own journal predates the field,
+    # and a reader that cannot tell "no id" from "empty id" would flag all of that history.
+    if ($RunId) { $r['runId'] = $RunId }
+    return ($r | ConvertTo-Json -Compress)
 }
 
 function Invoke-Report([string[]]$Arguments) {
@@ -173,6 +177,34 @@ if ($null -ne $ceilingReport) {
 else {
     Assert-That 'lowering the cost ceiling admits a gate that finds things cheaply' $false 'override run produced no JSON'
 }
+
+# S2538: the duplicate-row report. The main fixture carries no runId at all - the shape of the
+# repository's own history - and must stay silent, because an absent id is not a duplicate.
+$quiet = Invoke-Report @('-Placement')
+Assert-That 'a journal without run ids reports no duplicates' (
+    $quiet.Text -notmatch 'Duplicate rows'
+) 'the duplicate report fired on a journal that has no run ids to compare'
+
+$dupFixture = Join-Path $scratch 'gate-executions-runid.jsonl'
+$dupLines = New-Object System.Collections.Generic.List[string]
+$k = 0
+foreach ($run in 1..3) {
+    foreach ($g in @('honest-gate', 'double-reporting-gate')) {
+        $dupLines.Add((New-FixtureRecord $g 'PASS' 1000 $k "run$run")); $k++
+    }
+    # The second row for the same (runId, gate) is what a run reporting twice looks like.
+    $dupLines.Add((New-FixtureRecord 'double-reporting-gate' 'FAIL' 1000 $k "run$run")); $k++
+}
+Set-Content -LiteralPath $dupFixture -Value $dupLines -Encoding utf8
+
+$dupRun = & $pwshExe -NoProfile -File $subject -Journal $dupFixture -Placement 2>&1
+$dupText = (($dupRun | ForEach-Object { [string]$_ }) -join "`n")
+Assert-That 'a gate reported twice in one run is named' (
+    $dupText -match 'Duplicate rows' -and $dupText -match 'double-reporting-gate'
+) 'the duplicate report did not name the offending gate'
+Assert-That 'a gate reported once per run is not named as a duplicate' (
+    $dupText -notmatch '  honest-gate:'
+) 'a gate with one row per run was reported as duplicated'
 
 # The frequency view must survive the placement columns being added beside it.
 $frequency = Invoke-Report @()

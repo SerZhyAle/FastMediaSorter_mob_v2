@@ -5,6 +5,11 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
@@ -15,6 +20,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.ScalingParams
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
 /**
@@ -24,14 +30,71 @@ import timber.log.Timber
  * The returned state should be passed to [WearListColumn] and, where applicable, forwarded
  * to the screen scaffold (`WearScreenScaffold`) and position indicator unchanged.
  *
- * @param initialItemIndex initial anchor item index (S2466). Default is 0. Screens with a leading title
- * item (such as origin home screens, apps, file lists, settings, etc.) pass 1 so the list opens
- * with the first data row at the top edge ("start on second row"), leaving the title accessible by scrolling up.
+ * By default, lists prescroll to the first data row (initialCenterItemIndex = 1), skipping
+ * the leading title item so that multi-column grids open displaying 3/6/9 items at once (S2466).
+ * Screens without a leading title item (e.g. HomeScreen, StreamsScreen) or fixed control panels
+ * explicitly pass [initialCenterItemIndex] = 0.
+ *
+ * @param positionKey opts this list into position memory (S2543). A key identifies the list's content -
+ * its navigation route, plus whatever argument distinguishes what it shows - so the screen reopens on the
+ * item that was in the middle of the display when the user left it. Null keeps the plain behaviour above,
+ * which is what every dialog, sheet and secondary list of a route uses: they share their route with the
+ * screen's own list and a shared key would restore one list's position into another.
  */
 @Composable
-fun rememberWearListState(initialItemIndex: Int = 0): ScalingLazyListState {
-    Timber.d("S2466: rememberWearListState initialItemIndex=%d", initialItemIndex)
-    return rememberScalingLazyListState(initialCenterItemIndex = initialItemIndex)
+fun rememberWearListState(
+    initialCenterItemIndex: Int = 1,
+    positionKey: String? = null
+): ScalingLazyListState {
+    Timber.d("S2466: rememberWearListState initialItemIndex=%d", initialCenterItemIndex)
+    val store = LocalWearListPositions.current
+    val saved = remember(positionKey, store) { positionKey?.let { store?.peek(it) } }
+    val state = rememberScalingLazyListState(
+        initialCenterItemIndex = saved?.index ?: initialCenterItemIndex,
+        initialCenterItemScrollOffset = saved?.offset ?: 0
+    )
+    WearListPositionMemory(state = state, positionKey = positionKey, store = store)
+    return state
+}
+
+/**
+ * Restores the remembered anchor once the list actually has rows, and writes the current one back when
+ * the screen leaves composition - which is exactly the "back" the user performs.
+ *
+ * The restore cannot ride on `initialCenterItemIndex` alone: folder, stream and note lists are filled
+ * asynchronously, so on the first frame the list is still empty and any initial index is discarded.
+ */
+@Composable
+private fun WearListPositionMemory(
+    state: ScalingLazyListState,
+    positionKey: String?,
+    store: WearListPositionStore?
+) {
+    if (positionKey == null || store == null) {
+        return
+    }
+
+    // Guards the write below. A screen left while its list is still loading has a position that means
+    // nothing - saving it would overwrite the anchor the user is coming back for with row zero.
+    val settled = remember(positionKey) { mutableStateOf(store.peek(positionKey) == null) }
+
+    LaunchedEffect(positionKey) {
+        val saved = store.peek(positionKey) ?: return@LaunchedEffect
+        val itemCount = snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > 0 }
+        val target = saved.index.coerceIn(0, itemCount - 1)
+        state.scrollToItem(target, saved.offset)
+        settled.value = true
+    }
+
+    DisposableEffect(positionKey) {
+        onDispose {
+            val index = state.centerItemIndex
+            val offset = state.centerItemScrollOffset
+            if (settled.value && state.layoutInfo.totalItemsCount > 0) {
+                store.save(positionKey, index, offset)
+            }
+        }
+    }
 }
 
 /**

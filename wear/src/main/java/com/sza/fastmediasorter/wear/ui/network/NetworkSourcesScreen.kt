@@ -58,7 +58,7 @@ fun NetworkSourcesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
-    val listState = rememberWearListState(initialItemIndex = 1)
+    val listState = rememberWearListState(positionKey = WearRoutes.NETWORK_SOURCES)
     val viewMode by viewModel.viewMode.collectAsState()
     val connectionTestState by viewModel.connectionTestState.collectAsState()
 

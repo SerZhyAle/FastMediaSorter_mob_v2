@@ -119,7 +119,11 @@ if (-not $SkipManifestTest -and $manifestAffected) {
     # that job finishes, so a non-waiting acquire here loses the race against our own sibling job
     # (not cross-session contention) and reports a false lock-contention FAIL. -Wait queues instead;
     # a genuine timeout still surfaces as exit 2 CANNOT-VERIFY (documented above), never exit 1.
-    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait -Domain Build.Phone
+    # S2538: 900 s, not the harness default of 3600. assert-detekt.ps1 queues for this same
+    # Build.Phone lock under 900 s, and two steps of one closure waiting out ceilings four times
+    # apart is a difference nothing decided - the looser one holds an ordinary closure for an hour
+    # before reporting, correctly, that it never looked.
+    Enter-BuildLockOrExit -Reason "assert-settings-doc-sync.ps1 (SettingsManifestExportTest)" -Wait -Domain Build.Phone -WaitTimeoutSeconds 900
     Push-Location $RepoRoot
     try {
         # S1786: execute with timeout ceiling

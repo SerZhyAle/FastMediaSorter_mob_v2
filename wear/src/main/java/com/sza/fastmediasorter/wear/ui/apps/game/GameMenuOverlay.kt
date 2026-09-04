@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.apps.game
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -15,26 +14,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearActionCloud
-
-/**
- * S1966: the menu's callbacks travel as one object rather than four parameters, the shape this
- * module already uses for a composable with a handful of actions.
- */
-data class GameMenuActions(
-    val onSkipTurn: () -> Unit,
-    val onRestartLevel: () -> Unit,
-    val onNewGame: () -> Unit,
-    val onOpenRules: () -> Unit,
-    val onExit: () -> Unit,
-    val onDismiss: () -> Unit
-)
-
-/** The rows the menu offers, in the order they are drawn. */
-private enum class GameMenuEntry { SKIP_TURN, RESTART_LEVEL, NEW_GAME, RULES, EXIT, CLOSE }
 
 /**
  * Everything the board itself does not carry, opened by a long press on it.
@@ -51,7 +33,6 @@ fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colors.background)
     ) {
         val wearActions = GameMenuEntry.entries.map { entry ->
             WearAction(
@@ -62,7 +43,17 @@ fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
                         contentDescription = null
                     )
                 },
-                onClick = { actions.run(entry) }
+                onClick = {
+                    when (entry) {
+                        GameMenuEntry.SKIP_TURN -> actions.onSkipTurn()
+                        GameMenuEntry.RESTART_LEVEL -> actions.onRestartLevel()
+                        GameMenuEntry.NEW_GAME -> actions.onNewGame()
+                        GameMenuEntry.RULES -> actions.onOpenRules()
+                        GameMenuEntry.EXIT -> actions.onExit()
+                        GameMenuEntry.CLOSE -> Unit
+                    }
+                    actions.onDismiss()
+                }
             )
         }
         WearActionCloud(actions = wearActions)
@@ -70,20 +61,20 @@ fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
 }
 
 /**
- * Every action closes the menu behind it, so the player is returned to the board rather than left
- * looking at a list that has already been acted on. The close row does nothing else.
+ * S1966: the menu's callbacks travel as one object rather than four parameters, the shape this
+ * module already uses for a composable with a handful of actions.
  */
-private fun GameMenuActions.run(entry: GameMenuEntry) {
-    when (entry) {
-        GameMenuEntry.SKIP_TURN -> onSkipTurn()
-        GameMenuEntry.RESTART_LEVEL -> onRestartLevel()
-        GameMenuEntry.NEW_GAME -> onNewGame()
-        GameMenuEntry.RULES -> onOpenRules()
-        GameMenuEntry.EXIT -> onExit()
-        GameMenuEntry.CLOSE -> Unit
-    }
-    onDismiss()
-}
+data class GameMenuActions(
+    val onSkipTurn: () -> Unit,
+    val onRestartLevel: () -> Unit,
+    val onNewGame: () -> Unit,
+    val onOpenRules: () -> Unit,
+    val onExit: () -> Unit,
+    val onDismiss: () -> Unit
+)
+
+/** The rows the menu offers, in the order they are drawn. */
+private enum class GameMenuEntry { SKIP_TURN, RESTART_LEVEL, NEW_GAME, RULES, EXIT, CLOSE }
 
 private fun labelResFor(entry: GameMenuEntry): Int = when (entry) {
     GameMenuEntry.SKIP_TURN -> R.string.wear_game_menu_skip_turn

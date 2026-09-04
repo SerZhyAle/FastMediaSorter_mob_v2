@@ -4,6 +4,7 @@
      wiring and no receiver to keep symmetric. Same correction the taskbar tray took in Phase 05.
      No weather here: S0426 extends this gadget through the gadget contract (strategic §6.7). -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -28,7 +29,7 @@
              date did not take. The date's fifth is sized so its 9sp..16sp range always fits: at the
              seeded 4x2 it reaches the 16sp cap, at the minimum it settles near 9sp. No new signal is
              needed - a gadget only ever learns the pixel bounds the grid measured for it. -->
-        <TextClock
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
             android:id="@+id/gadgetClockTime"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -43,10 +44,12 @@
             android:maxLines="1"
             android:textColor="?attr/colorOnSurface"
             android:textStyle="bold"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="12:45" />
 
-        <TextClock
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextClock
             android:id="@+id/gadgetClockDate"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -58,6 +61,8 @@
             android:gravity="center"
             android:maxLines="1"
             android:textColor="?attr/colorOnSurfaceVariant"
+            app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:ignore="UnusedAttribute"
             tools:text="Fri, 17 Jul" />
 

@@ -35,6 +35,7 @@ class ResolveWearBackgroundUseCase @Inject constructor(
             WearBackgroundMode.BRANDED_ANIMATION -> WearBackground.BrandedAnimation
             WearBackgroundMode.BRANDED_STILL -> WearBackground.BrandedStill
             WearBackgroundMode.IMAGE -> deliveredFrame() ?: WearBackground.BrandedAnimation
+            WearBackgroundMode.NONE -> WearBackground.None
         }
         return resolved
     }
@@ -45,6 +46,6 @@ class ResolveWearBackgroundUseCase @Inject constructor(
      */
     private suspend fun deliveredFrame(): WearBackground.Image? = withContext(Dispatchers.IO) {
         val frame = File(incomingFilesDirectory(context), WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME)
-        if (frame.canRead() && frame.length() > 0L) WearBackground.Image(frame) else null
+        if (frame.canRead() && frame.length() > 0L) WearBackground.Image(frame, frame.lastModified()) else null
     }
 }

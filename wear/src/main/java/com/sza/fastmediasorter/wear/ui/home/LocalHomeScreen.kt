@@ -48,7 +48,8 @@ fun LocalHomeScreen(
         viewMode = settings.viewMode,
         onCategoryClick = { category -> navController.navigate(routeForCategory(category)) },
         onBack = { navController.popBackStack() },
-        onFolderClick = { navController.navigate(WearRoutes.localFolderRoot()) }
+        onFolderClick = { navController.navigate(WearRoutes.localFolderRoot()) },
+        positionKey = WearRoutes.LOCAL_HOME
     )
 }
 

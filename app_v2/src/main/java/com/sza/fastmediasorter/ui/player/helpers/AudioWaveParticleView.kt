@@ -430,7 +430,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val centerX = w * 0.5f + waveDirX * centerDrift
         val centerY = h * 0.5f + waveDirY * centerDrift
         val laneSpacing = minOf(w, h) * WAVE_LANE_SPACING_FRACTION
-        val waveAlpha = 0.28f + 0.16f * startupGain
+        val waveAlpha = (0.28f + 0.16f * startupGain) * 0.70f
 
         // Sine-wave paths are sampled in a rotated coordinate space so each fresh start
         // can travel in any direction while keeping the draw cost close to the old version.
@@ -466,7 +466,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             if (p.x < 0f || p.x > w) p.vx = -p.vx
             if (p.y < 0f || p.y > h) p.vy = -p.vy
             particlePaint.color =
-                hslToArgb(p.hue, 0.90f, particleLightness, 0.38f + 0.32f * startupGain)
+                hslToArgb(p.hue, 0.90f, particleLightness, (0.38f + 0.32f * startupGain) * 0.70f)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)
         }
     }

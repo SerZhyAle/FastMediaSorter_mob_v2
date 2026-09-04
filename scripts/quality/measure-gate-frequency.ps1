@@ -234,6 +234,24 @@ if ($Placement) {
             @{ Name = 'Runner'; Expression = { ($_.Runners -replace 'assert-', '' -replace '-gates', '' -replace '\.ps1', '') } },
             Executed, Failures, MedianSec, TypicalSec, TotalSec, SecPerCatch, Candidate |
         Format-Table -AutoSize
+    # S2538: a gate that reports twice for one run is double-counted in every total above, so the
+    # view has to be able to say when its own input is malformed. Silent when the journal predates
+    # the runId field - an absent id is not a duplicate, and treating it as one would flag the
+    # repository's entire history.
+    $dupes = @(
+        $records |
+            Where-Object { $_.PSObject.Properties.Name -contains 'runId' -and $_.runId } |
+            Group-Object -Property { "$($_.runId)|$($_.gate)" } |
+            Where-Object { $_.Count -gt 1 }
+    )
+    if ($dupes.Count -gt 0) {
+        Write-Host ''
+        Write-Host 'Duplicate rows - one run reported the same gate more than once:' -ForegroundColor Yellow
+        $dupes | Group-Object { ($_.Name -split '\|')[1] } | Sort-Object Count -Descending | ForEach-Object {
+            Write-Host ("  {0}: {1} run(s) reported it twice or more" -f $_.Name, $_.Count) -ForegroundColor Yellow
+        }
+    }
+
     $flagged = @($report | Where-Object { $_.Candidate })
     $flaggedSec = [Math]::Round((@($flagged | Measure-Object -Property TypicalSec -Sum).Sum), 1)
     Write-Host ("Placement candidates: {0} gate(s), {1}s of the window's typical gate time. Judge each by the CLAUDE.md Rule 33 four-part test - this view proposes, it moves nothing." -f $flagged.Count, $flaggedSec) -ForegroundColor Yellow

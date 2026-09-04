@@ -3467,6 +3467,7 @@
     <string name="wear_background_mode_animation">Фирменная анимация</string>
     <string name="wear_background_mode_still">Неподвижный фирменный фон</string>
     <string name="wear_background_mode_image">Своё изображение</string>
+    <string name="wear_background_mode_none">Пусто (чёрный экран)</string>
     <string name="wear_background_pick_image">Выбрать изображение</string>
     <string name="wear_background_preview">Предпросмотр фона на часах</string>
     <string name="wear_background_sending">Отправляем изображение на часы..</string>

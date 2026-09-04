@@ -147,7 +147,7 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState()
+    val listState = rememberWearListState(initialCenterItemIndex = 0, positionKey = WearRoutes.STREAMS)
 
     // S1954: the player is the other place a channel can be marked, and coming back from it does not
     // re-emit the catalogue - so the pinned order is re-read here rather than only on a catalogue change.

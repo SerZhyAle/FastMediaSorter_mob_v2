@@ -82,4 +82,8 @@
     <string name="video_snapshot_resource_label">ফ্রেম সংরক্ষণের জন্য রিসোর্স</string>
     <string name="video_snapshot_resource_not_set">নির্বাচিত নয় (ডাউনলোডে সংরক্ষিত হবে)</string>
     <string name="videos_v">ভিডিও (V)</string>
+    <string name="playback_control_tab_balance">ব্যালেন্স</string>
+    <string name="playback_control_no_balance">মোনো অডিও - ব্যালেন্স করার জন্য কোনো চ্যানেল নেই</string>
+    <string name="playback_control_balance_value">ব্যালেন্স: %1$s</string>
+    <string name="playback_control_balance_description">ব্যালেন্স %1$d শতাংশ বাম, %2$d শতাংশ ডান</string>
 </resources>

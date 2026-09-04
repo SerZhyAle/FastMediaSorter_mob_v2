@@ -60,7 +60,11 @@ $buildAab = $Artifact -in @('Aab', 'Both')
 Enter-BuildLockOrExit -Reason "build-wear-release.PS1" -Domain Build.Wear
 try {
 
-# AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
+# AGP capitalises the flavor inside a task name. The two output trees then disagree, and the
+# disagreement is not cosmetic: an APK lands in apk/<flavor>/<buildType>/ while a BUNDLE lands
+# in bundle/<flavor><BuildType>/ - one segment, flavor camel-joined to the build type. Reading
+# the APK rule onto the bundle path made every wear AAB unfindable after S2090 split the
+# module into flavors: gradle reported BUILD SUCCESSFUL and this script exited 1 (2026-09-04).
 $taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
 
 $gradleTasks = @()
@@ -90,7 +94,7 @@ if (-not $NoDistribute -and !(Test-Path -Path $downloadsDir)) {
 if ($buildAab) {
     # The Play Wear OS track accepts a bundle only. Kept next to the phone AAB under the same
     # naming scheme so publish-play-release.ps1 can address either by path alone.
-    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\$Flavor\release"
+    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\${Flavor}Release"
     $aab = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $aab) {

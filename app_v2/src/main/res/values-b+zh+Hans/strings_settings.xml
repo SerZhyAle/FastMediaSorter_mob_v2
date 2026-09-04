@@ -260,4 +260,5 @@
     <string name="settings_wear_group_title">Wear OS</string>
     <string name="settings_wear_group_description">如果你有 Wear OS 手表，请开启此项。配套应用从这里打开，并决定这部手机与手表共享哪些内容。</string>
     <string name="settings_wear_install_guide_button">如何在手表上安装</string>
+    <string name="settings_wear_web_portal_button">关于手表</string>
 </resources>

@@ -11,6 +11,20 @@ function Get-GateTelemetryPath {
 # headline figure the agent reads is the one thing the journal cannot answer.
 $script:GateTelemetryBatchName = '(batch)'
 
+# S2538: one id per process, so a row can be attributed to the run that wrote it. Two stalls were
+# journalled as a PASS row and a FAIL row for the same gate 23 ms apart carrying identical
+# durations, and nothing in the record could say whether that was one run reporting twice or two
+# runs released by one event - the question the stall raises is the one the journal could not
+# answer. Generated lazily rather than at load: this file is dot-sourced by scripts that write no
+# telemetry at all.
+$script:GateTelemetryRunId = $null
+function Get-GateTelemetryRunId {
+    if (-not $script:GateTelemetryRunId) {
+        $script:GateTelemetryRunId = ([guid]::NewGuid().ToString('n')).Substring(0, 12)
+    }
+    return $script:GateTelemetryRunId
+}
+
 function Write-GateBatchTelemetryRecord {
     param(
         [Parameter(Mandatory = $true)][string]$Runner,
@@ -39,6 +53,7 @@ function Write-GateTelemetryRecord {
         $record = [ordered]@{
             timestampUtc = [DateTime]::UtcNow.ToString('o')
             runner       = $Runner
+            runId        = Get-GateTelemetryRunId
             gate         = $Gate
             status       = $Status
             exitCode     = $ExitCode

@@ -5,11 +5,14 @@ import android.os.Environment
 import android.util.LruCache
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.Wearable
+import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
+import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -45,7 +48,8 @@ internal fun incomingFilesDirectory(context: Context): File =
  */
 @Singleton
 class WearFileReceiverRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val preferencesRepository: WearPreferencesRepository
 ) : WearFileReceiverRepository {
 
     private val declarations = LruCache<String, WearFileTransferMetadata>(MAX_DECLARATIONS)
@@ -142,6 +146,10 @@ class WearFileReceiverRepositoryImpl @Inject constructor(
                 WearFileReceiveResult(WearFileReceiveOutcome.REFUSED_TOO_LARGE, declaration = declared)
             } else {
                 Timber.i("Received %s (%d bytes) from the phone", fileName, written)
+                if (fileName == WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME) {
+                    runCatching { preferencesRepository.setBackgroundMode(WearBackgroundMode.IMAGE) }
+                        .onFailure { Timber.w(it, "Failed to update background mode preference on image arrival") }
+                }
                 WearFileReceiveResult(WearFileReceiveOutcome.SAVED, targetFile.absolutePath, declared)
             }
         } catch (e: CancellationException) {

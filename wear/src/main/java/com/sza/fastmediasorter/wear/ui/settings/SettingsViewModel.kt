@@ -353,6 +353,7 @@ class SettingsViewModel @Inject constructor(
      * S2093 / ADR-3: the watch chooses the background mode, never the picture.
      */
     fun setBackgroundMode(mode: WearBackgroundMode) {
+        Timber.d("S2540: setBackgroundMode mode=%s", mode)
         viewModelScope.launch {
             preferencesRepository.setBackgroundMode(mode)
         }

@@ -3452,6 +3452,7 @@
     <string name="wear_background_mode_animation">Фірмова анімація</string>
     <string name="wear_background_mode_still">Нерухомий фірмовий фон</string>
     <string name="wear_background_mode_image">Власне зображення</string>
+    <string name="wear_background_mode_none">Порожньо (чорний екран)</string>
     <string name="wear_background_pick_image">Вибрати зображення</string>
     <string name="wear_background_preview">Попередній перегляд фону на годиннику</string>
     <string name="wear_background_sending">Надсилаємо зображення на годинник..</string>

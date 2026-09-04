@@ -123,6 +123,17 @@ class ResolveLastUsedResourceUseCaseTest {
     }
 
     @Test
+    fun `a resolved channel carries the favicon index of the channel it matched`() {
+        runTest {
+            every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel()))
+            every { sources.observeSources() } returns flowOf(emptyList())
+            every { channels.observeChannels() } returns flowOf(listOf(channel(CHANNEL_URL, CHANNEL_NAME, faviconIndex = 42)))
+
+            assertEquals(42, useCase().first().single().faviconIndex)
+        }
+    }
+
+    @Test
     fun `a channel the catalog no longer lists is dropped`() {
         runTest {
             every { preferences.lastUsedResources } returns flowOf(listOf(rememberedChannel()))
@@ -151,11 +162,12 @@ class ResolveLastUsedResourceUseCaseTest {
     private fun rememberedChannel(name: String = CHANNEL_NAME) =
         LastUsedResource(CHANNEL_URL, name, LastUsedKind.STREAM)
 
-    private fun channel(url: String, name: String) = WearStreamChannel(
+    private fun channel(url: String, name: String, faviconIndex: Int? = null) = WearStreamChannel(
         id = "ch-1",
         name = name,
         url = url,
-        mediaKind = "AUDIO"
+        mediaKind = "AUDIO",
+        faviconIndex = faviconIndex
     )
 
     private fun source(id: String, iconId: String? = null) = NetworkSource(
