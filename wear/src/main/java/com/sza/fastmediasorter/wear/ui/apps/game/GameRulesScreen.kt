@@ -18,6 +18,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -37,7 +38,7 @@ private val ITEM_HORIZONTAL_PADDING = 8.dp
  */
 @Composable
 fun GameRulesScreen(
-    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = 0)
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 ) {
     LaunchedEffect(Unit) {
         Timber.d("S2350: game rules screen opened")

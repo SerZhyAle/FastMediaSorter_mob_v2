@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Fixture: expectRes names a resource that does not exist at all."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "no_such_string"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

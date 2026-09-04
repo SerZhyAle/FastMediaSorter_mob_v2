@@ -7,53 +7,105 @@
     "label: matched against text AND content-description, which is what the Home and Apps chips carry;",
     "the wear module declares no testTag anywhere, so no entry can name a resource-id.",
     "backAfter: BACK presses after the check. 0 keeps the walk inside a section it just opened.",
-    "Regenerate the reasoning, not this file, from wear/.../navigation/WearRoutes.kt and MainActivity.kt."
+    "Regenerate the reasoning, not this file, from wear/.../navigation/WearRoutes.kt and MainActivity.kt.",
+    "screen: the composable the `expect` token is checked on. S2547 - the gate asserts it exists.",
+    "expectRes: the string resource that screen renders and `expect` is matched against. The gate",
+    "asserts the resource resolves, that its CURRENT value contains `expect`, and that some file",
+    "under wear/src/main/java references it - a resource named only by the manifest reaches no",
+    "composable. What the gate cannot see is a string alive but rendered by a DIFFERENT screen.",
+    "excluded: every *Screen the walk does not open, each with a reason from the closed set",
+    "not-a-destination / arg-external / gesture-only / timed / needs-seeded-content /",
+    "pre-graph-gate / no-static-marker. The gate fails when a screen is in neither list, so a new",
+    "screen has to be classified rather than silently fall outside the walk."
   ],
   "screens": [
     {
       "id": "permission-gate",
       "name": "Permission gate (first launch only)",
       "label": "Grant",
-      "expect": "FastMedia Wear",
+      "expect": "Resources",
+      "screen": "HomeScreen",
+      "expectRes": "wear_section_resources",
       "optional": true,
       "backAfter": 0,
-      "note": "A fresh install asks for media permissions before the home list exists; a second run does not show this."
+      "note": "A fresh install asks for media permissions before the home list exists; a second run does not show this. S2555: the marker is the first Home section chip - HomeSectionCatalog adds RESOURCES unconditionally and first, and HomeScreen draws it with stringResource(section.labelRes)."
     },
     {
       "id": "home",
       "name": "Home",
-      "expect": "FastMedia Wear",
+      "expect": "Resources",
+      "screen": "HomeScreen",
+      "expectRes": "wear_section_resources",
       "backAfter": 0,
-      "note": "Start destination. No tap: the app is already here after launch."
+      "note": "Start destination. No tap: the app is already here after launch. S2555: HomeScreen has no title of its own - it draws lastUsedItems, then the HomeSectionCatalog sections, then the command bar - so the marker is the first section chip rather than the app name."
     },
     {
       "id": "resources",
       "name": "Resources (network sources)",
       "label": "Resources",
       "expect": "Sync from Phone",
-      "backAfter": 1,
+      "screen": "NetworkSourcesScreen",
+      "expectRes": "wear_sync_from_phone",
+      "backAfter": 0,
       "note": "The screen title repeats the Home chip label, so the sync action is the marker instead."
+    },
+    {
+      "id": "resources-add-source",
+      "name": "Resources - Add source",
+      "label": "Add Source",
+      "expect": "Base path",
+      "screen": "AddNetworkSourceScreen",
+      "expectRes": "base_path",
+      "backAfter": 1,
+      "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
+    },
+    {
+      "id": "resources-sync-transfer",
+      "name": "Resources - Sync from phone",
+      "label": "Sync from Phone",
+      "expect": "Receiving data",
+      "screen": "SyncTransferScreen",
+      "expectRes": "wear_sync_receiving",
+      "stateDependent": true,
+      "backAfter": 2,
+      "note": "The marker is the receiving state, so a run with no phone answering legitimately misses it. S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
     },
     {
       "id": "phone",
       "name": "Phone home",
       "label": "Phone",
       "expect": "Recents",
+      "screen": "PhoneHomeScreen",
+      "expectRes": "wear_phone_recents",
       "backAfter": 1
     },
     {
       "id": "local",
       "name": "Local home",
       "label": "Local",
-      "expect": "Music",
-      "backAfter": 1,
-      "note": "Music, Videos and Photos are each gated by their media-type switch; all three ship enabled."
+      "expect": "Audio",
+      "screen": "LocalHomeScreen",
+      "expectRes": "wear_phone_audio",
+      "backAfter": 0,
+      "note": "The category chips are each gated by their media-type switch; all ship enabled. S2555: the chip is written by BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) = wear_phone_audio = 'Audio', not by the content-type word 'Music' - and the next entry taps that same 'Audio' label, so the two agree or neither works."
+    },
+    {
+      "id": "local-browse",
+      "name": "Local - Browse files",
+      "label": "Audio",
+      "expect": "Search files",
+      "screen": "BrowseScreen",
+      "expectRes": "wear_browse_search",
+      "backAfter": 2,
+      "note": "Opened by the Audio category chip, which is the same label the Local list shows. S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
     },
     {
       "id": "streams",
       "name": "Streams",
       "label": "Streams",
       "expect": "Search streams",
+      "screen": "StreamsScreen",
+      "expectRes": "wear_streams_search",
       "stateDependent": true,
       "backAfter": 1,
       "note": "The Home entry disappears when the Streams switch is turned off, which is a setting rather than a defect."
@@ -63,6 +115,8 @@
       "name": "Favourites",
       "label": "Favourites",
       "expect": "Nothing marked yet",
+      "screen": "FavouritesScreen",
+      "expectRes": "wear_favourites_empty",
       "stateDependent": true,
       "backAfter": 1,
       "note": "A clean install shows the empty hint; a device with favourites shows a list instead, which a human judges."
@@ -72,6 +126,8 @@
       "name": "Apps",
       "label": "Apps",
       "expect": "Calculator",
+      "screen": "AppsScreen",
+      "expectRes": "wear_app_calculator",
       "backAfter": 0
     },
     {
@@ -79,6 +135,8 @@
       "name": "Calculator",
       "label": "Calculator",
       "expect": "Clear",
+      "screen": "CalculatorScreen",
+      "expectRes": "wear_calc_clear",
       "backAfter": 1
     },
     {
@@ -86,6 +144,8 @@
       "name": "Network Monitor",
       "label": "Network Monitor",
       "expect": "Summary",
+      "screen": "NetworkMonitorScreen",
+      "expectRes": "wear_netmon_summary",
       "backAfter": 1
     },
     {
@@ -93,14 +153,47 @@
       "name": "Mini-game",
       "label": "Mini-game",
       "expect": "Score",
+      "screen": "GameScreen",
+      "expectRes": "wear_game_score_description",
+      "backAfter": 1
+    },
+    {
+      "id": "apps-voice-recorder",
+      "name": "Apps - Voice recorder",
+      "label": "Voice recorder",
+      "expect": "My notes",
+      "screen": "VoiceRecorderScreen",
+      "expectRes": "wear_voice_note_open_list",
+      "backAfter": 0,
+      "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
+    },
+    {
+      "id": "apps-voice-notes",
+      "name": "Apps - Voice notes",
+      "label": "My notes",
+      "expect": "Voice notes",
+      "screen": "VoiceNoteListScreen",
+      "expectRes": "wear_voice_note_list",
       "backAfter": 2,
-      "note": "Two levels back: out of the game and out of the Apps section, so the next entry starts from Home."
+      "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
+    },
+    {
+      "id": "apps-system-info",
+      "name": "Apps - System information",
+      "label": "System information",
+      "expect": "Refresh",
+      "screen": "SystemInfoScreen",
+      "expectRes": "system_info_refresh",
+      "backAfter": 2,
+      "note": "S2008 moved this screen out of Settings and into the Apps list, so it is reached from there. The marker is the refresh chip, which replaces the loading line as soon as the first read completes and is absent from the Apps list itself. Two levels back: out of the report and out of the Apps section, so the next entry starts from Home."
     },
     {
       "id": "settings",
       "name": "Settings",
       "label": "Settings",
       "expect": "Media Types",
+      "screen": "SettingsScreen",
+      "expectRes": "media_types",
       "backAfter": 0,
       "note": "Reached from the Home command bar, whose button is icon-only and carries the label as its content-description."
     },
@@ -108,14 +201,19 @@
       "id": "settings-media-types",
       "name": "Settings - Media Types",
       "label": "Media Types",
-      "expect": "Enable Audio",
-      "backAfter": 1
+      "expect": "Audio",
+      "screen": "MediaTypesSettingsScreen",
+      "expectRes": "enable_audio",
+      "backAfter": 1,
+      "note": "S2555: enable_audio was renamed from 'Enable Audio' to 'Audio' and the entry kept the old value. The screen draws it through settingsLabelFor(MUSIC), and MUSIC is in BrowseCategoryCatalog.DISABLEABLE_TYPES, so the toggle is always there; the parent SettingsScreen carries no 'Audio', which is what keeps the marker on the destination."
     },
     {
       "id": "settings-slideshow",
       "name": "Settings - Slideshow",
       "label": "Slideshow",
       "expect": "Enable Slideshow",
+      "screen": "SlideshowSettingsScreen",
+      "expectRes": "enable_slideshow",
       "backAfter": 1
     },
     {
@@ -123,6 +221,8 @@
       "name": "Settings - Screen",
       "label": "Screen",
       "expect": "Screens view",
+      "screen": "ScreenSettingsScreen",
+      "expectRes": "screen_settings_view_mode",
       "backAfter": 1
     },
     {
@@ -130,6 +230,8 @@
       "name": "Settings - Other",
       "label": "Other",
       "expect": "Download Album Art",
+      "screen": "OtherSettingsScreen",
+      "expectRes": "download_album_art",
       "backAfter": 1
     },
     {
@@ -137,16 +239,92 @@
       "name": "Settings - About",
       "label": "About",
       "expect": "Web Portal",
-      "backAfter": 1
+      "screen": "AboutSettingsScreen",
+      "expectRes": "about_web_portal",
+      "backAfter": 2,
+      "note": "Last page of the settings block: two levels back leave the page and the section, so the next entry starts from Home."
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "AudioPlayerScreen",
+      "reason": "needs-seeded-content",
+      "note": "Reached by tapping a row captioned with a file name, so it needs seeded media with predictable names."
     },
     {
-      "id": "settings-system-info",
-      "name": "Settings - System information",
-      "label": "System information",
-      "expect": "Reading device",
-      "stateDependent": true,
-      "backAfter": 2,
-      "note": "The marker is the loading line, which is gone once the read completes - a dump taken later legitimately misses it."
+      "screen": "VideoPlayerScreen",
+      "reason": "needs-seeded-content",
+      "note": "Same file-name row as the audio player."
+    },
+    {
+      "screen": "ImageViewerScreen",
+      "reason": "needs-seeded-content",
+      "note": "Same file-name row as the audio player."
+    },
+    {
+      "screen": "UnsupportedFileScreen",
+      "reason": "needs-seeded-content",
+      "note": "Reached only by opening a file whose mime type has no player, so it needs a seeded unsupported file."
+    },
+    {
+      "screen": "PhoneResourceScreen",
+      "reason": "needs-seeded-content",
+      "note": "Lists what the paired phone shares; a watch with no phone answering shows nothing to walk into."
+    },
+    {
+      "screen": "NetworkSourceMediaTypeScreen",
+      "reason": "needs-seeded-content",
+      "note": "Opened by tapping a configured network source, and a clean install has none."
+    },
+    {
+      "screen": "SyncResultScreen",
+      "reason": "needs-seeded-content",
+      "note": "Its route arguments are the counts a completed sync produces, so it needs a phone that answered."
+    },
+    {
+      "screen": "WearFolderWalkScreen",
+      "reason": "needs-seeded-content",
+      "note": "Walks local folders; a clean watch has none to open."
+    },
+    {
+      "screen": "NetworkMonitorDetailScreen",
+      "reason": "no-static-marker",
+      "note": "Renders no string resource of its own - every line is measured data - so no token belongs to it that a walk could match."
+    },
+    {
+      "screen": "BrandFrameScreen",
+      "reason": "timed",
+      "note": "Splash that dismisses itself after a delay, shown before the navigation graph exists."
+    },
+    {
+      "screen": "PermissionsScreen",
+      "reason": "pre-graph-gate",
+      "note": "Shown before the NavHost, and the sweep removes it with pm grant before the walk starts."
+    },
+    {
+      "screen": "TileTargetPickerScreen",
+      "reason": "arg-external",
+      "note": "Its argument is minted by a Wear tile outside the app; no in-app tap reaches it."
+    },
+    {
+      "screen": "GameRulesScreen",
+      "reason": "gesture-only",
+      "note": "Behind a long press on the game board, and adb.ps1 has no long-press verb."
+    },
+    {
+      "screen": "OriginHomeScreen",
+      "reason": "not-a-destination",
+      "note": "Nested composable used by the Local and Phone home screens."
+    },
+    {
+      "screen": "NetworkMonitorSummaryScreen",
+      "reason": "not-a-destination",
+      "note": "Nested composable inside the network monitor screen."
+    },
+    {
+      "screen": "WearRefineMenuScreen",
+      "reason": "not-a-destination",
+      "note": "Nested composable inside the browse and phone-resource screens."
     }
   ]
 }

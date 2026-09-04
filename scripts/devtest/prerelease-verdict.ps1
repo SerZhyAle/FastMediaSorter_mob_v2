@@ -272,6 +272,7 @@ if ($WalkResults) {
         observed = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
         failed   = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
         manual   = $manualOpen
+        coverage = $walk.coverage
         screens  = @($walkScreens | ForEach-Object { [ordered]@{ id = $_.id; outcome = $_.outcome; detail = $_.detail } })
     }
 }
@@ -298,6 +299,12 @@ else {
     if ($artifactLine) { Write-Host $artifactLine -ForegroundColor Cyan }
     if ($walkBreakdown) {
         foreach ($s in $walkBreakdown.screens) { Write-Host ("  screen {0,-24} {1}{2}" -f $s.id, $s.outcome, $(if ($s.detail) { " - $($s.detail)" } else { '' })) }
+        # S2547: what the run OPENED, printed beside what it decided. A PASS used to be silent about
+        # its own scope, so a reader could not tell a walk of the whole app from a walk of half of it.
+        if ($walkBreakdown.coverage) {
+            Write-Host ("  coverage {0} screen(s) walked, {1} excluded with a recorded reason" -f `
+                $walkBreakdown.coverage.walked, $walkBreakdown.coverage.excluded) -ForegroundColor Cyan
+        }
     }
     $word = if (-not $pass) { 'FAIL' } elseif ($manualOpen -gt 0) { 'BLOCKED - manual observation open' } else { 'PASS' }
     Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} walk={4} screenshots={5}" -f $word, $logPass, $perfPass, $maestroPass, $walkPass, $screenshotCount)

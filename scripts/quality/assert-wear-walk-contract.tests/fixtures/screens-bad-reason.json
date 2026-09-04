@@ -1,0 +1,9 @@
+{
+  "_comment": ["Fixture: a reason outside the closed set."],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": [
+    { "screen": "BetaScreen", "reason": "because-i-said-so", "note": "Fixture." }
+  ]
+}

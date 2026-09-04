@@ -1,0 +1,10 @@
+{
+  "_comment": ["Fixture: AlphaScreen is walked AND excluded, which can only be one."],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": [
+    { "screen": "AlphaScreen", "reason": "timed", "note": "Fixture." },
+    { "screen": "BetaScreen", "reason": "not-a-destination", "note": "Fixture." }
+  ]
+}

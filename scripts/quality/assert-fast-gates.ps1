@@ -130,6 +130,10 @@ $gates = [ordered]@{
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
     'assert-wear-route-literals.ps1'            = @()
+    # S2547: the declared watch pre-release walk against the module it claims to walk. Per-ticket by
+    # Rule 33 - the subject is a wear string, so a rename must fail in the ticket that made it rather
+    # than months later on the pre-release run, where the failure reads as a broken screen instead.
+    'assert-wear-walk-contract.ps1'             = @()
     # S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The
     # list used to live in four independently maintained places, so a one-sided setting diverged in
     # silence and was found only when the owner could not see it where it was expected. Reads the two

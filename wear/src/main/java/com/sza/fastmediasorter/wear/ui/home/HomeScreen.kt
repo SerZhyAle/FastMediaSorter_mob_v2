@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -61,7 +62,9 @@ fun HomeScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isBackgroundPlaybackActive by viewModel.isBackgroundPlaybackActive.collectAsStateWithLifecycle()
     val nowPlaying by viewModel.nowPlaying.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialCenterItemIndex = 0, positionKey = WearRoutes.HOME)
+    // No title item here, so the second data row is item 1 (S2466).
+    val listState =
+        rememberWearListState(initialCenterItemIndex = WEAR_LIST_UNTITLED_ANCHOR, positionKey = WearRoutes.HOME)
     // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
     // the action would be rebuilt every time the bar scrolls back into composition.
     val closeApp = rememberCloseAppAction()

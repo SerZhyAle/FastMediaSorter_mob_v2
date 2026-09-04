@@ -1,0 +1,20 @@
+# Divergences between scripts/devtest/wear-prerelease-screens.json and the wear module.
+#
+# RATCHET: this number moves DOWN only, via -UpdateBaseline. The gate refuses to raise it.
+#
+# S2547 landed this gate at 4 on 2026-09-04, holding four walk entries that could not match on any
+# device. S2555 repaired all four the same day and the count is now 0:
+#   permission-gate, home   expected "FastMedia Wear" = R.string.app_name, named only by
+#                           AndroidManifest.xml -> now "Resources" = R.string.wear_section_resources,
+#                           the first chip HomeSectionCatalog gives HomeScreen to draw.
+#   local                   expected "Music" -> now "Audio", which is what
+#                           BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) actually writes.
+#   settings-media-types    expected "Enable Audio" -> now "Audio", the current value of
+#                           R.string.enable_audio, drawn through settingsLabelFor(MUSIC).
+#
+# S2547 assumed a repair needed a device to confirm the replacement marker. It did not: each marker
+# above is read off the composable that renders it, which is a source fact the gate itself checks.
+# A device still decides something this gate cannot see - whether the tap chain opens the screen the
+# entry names - and that is what /spec-prerelease-wear answers, for these four and for the five
+# chains S2547 added without a device.
+0

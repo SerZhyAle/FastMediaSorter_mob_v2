@@ -20,11 +20,10 @@
 
     <!-- S0659: Streams default profile + maintenance. Visibility follows the master toggle above
          (StreamsSettingsFragment), mirroring btnStreams, so the section stays compact when off. -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
         android:id="@+id/streamsDefaultsGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
         <!-- S0835: landscape keeps the sort+filter pair 2-up (own-row split is portrait-only), but
              both render title+value on one inline line. -->
@@ -134,6 +133,6 @@
                 app:iconGravity="start" />
         </LinearLayout>
 
-    </LinearLayout>
+    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
 </LinearLayout>

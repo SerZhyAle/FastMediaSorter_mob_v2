@@ -74,6 +74,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -123,7 +124,7 @@ fun AudioPlayerScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
     val isPinned by viewModel.isPinned.collectAsState()
     // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
-    val listState = rememberWearListState(initialCenterItemIndex = 0)
+    val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.

@@ -17,6 +17,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -40,7 +41,7 @@ fun SyncResultScreen(
         }
     }
 
-    val listState = rememberWearListState(initialCenterItemIndex = 0)
+    val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

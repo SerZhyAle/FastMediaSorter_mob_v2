@@ -150,4 +150,12 @@
         <attr name="oiv_outlineColor" format="color|reference" />
         <attr name="oiv_outlineWidth" format="dimension" />
     </declare-styleable>
+
+    <!-- Child parameters of SettingsValueRowGroup, read off each row rather than off the group. -->
+    <declare-styleable name="SettingsValueRowGroup_Layout">
+        <!-- Keeps this row out of the block's shared caption column: it hugs its own content and its
+             own width is ignored when the column is sized. Set it on a sub-row that belongs to the row
+             above it, whose caption and value are unrelated in length to the block around it. -->
+        <attr name="layout_excludeFromLabelColumn" format="boolean" />
+    </declare-styleable>
 </resources>

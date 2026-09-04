@@ -19,6 +19,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,6 +38,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -55,7 +57,10 @@ import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceSize
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
+import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -66,7 +71,18 @@ import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 // GridColumnFit.DEFAULT_MIN_TARGET_DP stays 48 dp for every other watch control.
 private val KEY_HEIGHT = 25.dp
 private val KEY_GAP = 2.dp
-private val KEYPAD_SIDE_PADDING = 6.dp
+
+/**
+ * S2273: the gap under the value row, which together with the keypad column's `top = KEY_GAP` is the
+ * whole separation between the value and the first key.
+ *
+ * It replaces the flat `KEYPAD_SIDE_PADDING = 6.dp` that used to inset this screen sideways. That
+ * constant assumed the full diameter was usable, which is true on no circle at all: Play rejected the
+ * watch on `WO-V16 Watch shapes` and the 192 dp measurement of 2026-09-04 found the value and the
+ * operation element 233 and 240 px from the centre of a 192 px circle. Side insets now come from the
+ * module's shape helpers, so nothing on this screen carries a width of its own any more.
+ */
+private val VALUE_ROW_BOTTOM_GAP = 4.dp
 
 /** The back control starts two thirds of its touch target into the free half below `=`. */
 private const val BACK_BUTTON_START_OFFSET_FRACTION = 2f / 3f
@@ -141,6 +157,46 @@ private const val DESTRUCTIVE_TINT_ALPHA = 0.35f
 private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2
 
 /**
+ * S2273: every width this screen places content by, read once so the value row and the keypad cannot
+ * drift apart the way they did when one used the module's inset and the other a flat 6 dp.
+ */
+private data class CalculatorShape(
+    val valueRowWidth: Dp,
+    val valueRowTop: Dp,
+    val keypadPadding: PaddingValues
+)
+
+/**
+ * S2273: where the round glass lets this screen put things.
+ *
+ * The value row takes [wearMaxSquareSide] and sits at [wearRingInset], which is the module's own
+ * answer for a box that must be whole at the TOP of a circle - the band where the chord is shortest
+ * and where every node Play's reviewer rejected was standing. The keypad takes the ordinary
+ * [wearScreenInsets] instead, because it scrolls: a scrolling row only has to fit the widest chord it
+ * can reach, and paying the square's clearance would narrow the keys on every watch to buy nothing.
+ */
+@Composable
+private fun calculatorShape(): CalculatorShape {
+    val insets = wearScreenInsets()
+    val layoutDirection = LocalLayoutDirection.current
+    val sideInset = insets.calculateStartPadding(layoutDirection)
+    val shape = CalculatorShape(
+        valueRowWidth = wearMaxSquareSide(),
+        valueRowTop = wearRingInset(),
+        keypadPadding = PaddingValues(
+            start = sideInset,
+            top = KEY_GAP,
+            end = insets.calculateEndPadding(layoutDirection),
+            bottom = KEY_GAP + KEYPAD_TRAILING_SPACE
+        )
+    )
+    LaunchedEffect(shape) {
+        Timber.d("S2273: value ${shape.valueRowWidth} top ${shape.valueRowTop} pad $sideInset")
+    }
+    return shape
+}
+
+/**
  * What a key does when pressed. The screen holds no arithmetic - every action is one call into the
  * view model, which owns the engine.
  */
@@ -183,7 +239,7 @@ fun CalculatorScreen(
     var menuOpen by remember { mutableStateOf(false) }
     var historyOpen by remember { mutableStateOf(false) }
     var copyConfirmationShown by remember { mutableStateOf(false) }
-
+    val shape = calculatorShape()
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.
@@ -201,6 +257,7 @@ fun CalculatorScreen(
         ) {
             CalculatorDisplay(
                 uiState = uiState,
+                shape = shape,
                 // The same view-model entry the operator keys reach through `dispatch`; the element
                 // repeats an operation, it does not open a second way into the arithmetic.
                 onOperation = { symbol -> viewModel.onOperator(symbol) },
@@ -217,12 +274,7 @@ fun CalculatorScreen(
                     .fillMaxWidth()
                     .weight(1f)
                     .verticalScroll(keypadScrollState)
-                    .padding(
-                        start = KEYPAD_SIDE_PADDING,
-                        top = KEY_GAP,
-                        end = KEYPAD_SIDE_PADDING,
-                        bottom = KEY_GAP + KEYPAD_TRAILING_SPACE
-                    ),
+                    .padding(shape.keypadPadding),
                 verticalArrangement = Arrangement.spacedBy(KEY_GAP)
             ) {
                 keypadRows().forEach { row ->
@@ -337,6 +389,7 @@ private fun CopyConfirmation(onTimeout: () -> Unit) {
 @Composable
 private fun CalculatorDisplay(
     uiState: CalculatorUiState,
+    shape: CalculatorShape,
     onOperation: (String) -> Unit,
     onCopy: (String) -> Unit
 ) {
@@ -349,16 +402,18 @@ private fun CalculatorDisplay(
     } else {
         text
     }
-    val insets = wearScreenInsets()
-    val layoutDirection = LocalLayoutDirection.current
-    val startInset = insets.calculateStartPadding(layoutDirection)
-    val endInset = insets.calculateEndPadding(layoutDirection)
     Row(
         // This bottom padding and the keypad column's `top = KEY_GAP` are together the gap between the
         // value row and the first keypad row.
+        //
+        // S2273: the row is sized and placed by the glass, not by the frame. It does not scroll, so
+        // `clip-check` judges it OFF-GLASS the moment a corner leaves the circle - there is no scroll
+        // position that could redeem it - and both of its children were exactly that on 192 dp. Width
+        // and top offset are the two halves of one statement and have to stay together: the square is
+        // only whole while it sits in the band the ring inset leaves it.
         modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = startInset, end = endInset, top = 16.dp, bottom = 4.dp),
+            .width(shape.valueRowWidth)
+            .padding(top = shape.valueRowTop, bottom = VALUE_ROW_BOTTOM_GAP),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
         verticalAlignment = Alignment.CenterVertically
     ) {

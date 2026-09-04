@@ -70,6 +70,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_green_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_green_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_green_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_green_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_green_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_green_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_green_primary_container</item>
@@ -99,6 +100,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_blue_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_blue_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_blue_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_blue_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_blue_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_blue_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_blue_primary_container</item>
@@ -128,6 +130,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_red_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_red_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_red_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_red_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_red_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_red_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_red_primary_container</item>
@@ -157,6 +160,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_green_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_green_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_green_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_green_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_green_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_green_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_green_primary_container</item>
@@ -186,6 +190,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_blue_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_blue_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_blue_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_blue_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_blue_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_blue_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_blue_primary_container</item>
@@ -215,6 +220,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_red_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_red_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_red_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_red_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_red_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_red_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_red_primary_container</item>

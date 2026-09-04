@@ -65,6 +65,7 @@ import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -147,7 +148,9 @@ fun StreamsScreen(
     viewModel: StreamsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialCenterItemIndex = 0, positionKey = WearRoutes.STREAMS)
+    // The channel rows are the first items on this screen, so the second row is item 1 (S2466).
+    val listState =
+        rememberWearListState(initialCenterItemIndex = WEAR_LIST_UNTITLED_ANCHOR, positionKey = WearRoutes.STREAMS)
 
     // S1954: the player is the other place a channel can be marked, and coming back from it does not
     // re-emit the catalogue - so the pinned order is re-read here rather than only on a catalogue change.

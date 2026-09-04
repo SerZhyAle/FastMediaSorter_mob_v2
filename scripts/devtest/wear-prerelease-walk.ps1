@@ -51,9 +51,10 @@
     Exit codes:
       0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing
       1  at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding
-      2  could not verify: the screen list is missing or unreadable, no device, or a called script
-         is absent. A screen recorded `manual` does not by itself set this code - it is reported and
-         carried into the verdict, which is what refuses the PASS.
+      2  could not verify: the watch display could not be woken (S2547 - every reading under a
+         sleeping display describes the watch face, not this app), the screen list is missing or
+         unreadable, no device, or a called script is absent. A screen recorded `manual` does not by
+         itself set this code - it is reported and carried into the verdict, which refuses the PASS.
 #>
 [CmdletBinding()]
 param(
@@ -86,6 +87,7 @@ $APP_PACKAGE = 'com.sza.fastmediasorter'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $adbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
 $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
+. (Join-Path $PSScriptRoot 'lib/wear-wakefulness.ps1')
 if (-not $ScreenList) { $ScreenList = Join-Path $PSScriptRoot 'wear-prerelease-screens.json' }
 
 $result = [ordered]@{
@@ -96,6 +98,7 @@ $result = [ordered]@{
     screenSize    = $null
     screens       = @()
     counts        = $null
+    coverage      = $null
     logFile       = $null
     logAuditExit  = $null
     skipLogAudit  = [bool]$SkipLogAudit
@@ -130,6 +133,61 @@ function Invoke-AdbVerb {
     if ($DeviceId) { $callArgs += @('-DeviceId', $DeviceId) }
     $output = & pwsh -NoProfile -File $adbWrapper @callArgs 2>&1
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
+}
+
+# --- Wakefulness (S2547) -------------------------------------------------------------------------
+
+$ambientOriginal = $null
+
+function Get-AmbientSetting {
+    $probe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'settings get global ambient_enabled')
+    if ($probe.Exit -ne 0) { return $null }
+    $value = ($probe.Output -split "`r?`n" | Where-Object { $_ -match '^\s*(0|1|null)\s*$' } | Select-Object -First 1)
+    if ($null -eq $value) { return $null }
+    return $value.Trim()
+}
+
+function Test-WalkDisplayAwake {
+    # $true when the display is usable now. Never wakes anything - the caller decides whether it may.
+    $dump = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys power')
+    if ($dump.Exit -ne 0) { return $false }
+    return (Test-WearDisplayUsable (Get-WearWakefulness $dump.Output))
+}
+
+function Assert-WalkDisplayAwake {
+    # The watch dozes on its own schedule, so this runs before the first screen AND between screens.
+    # Ambient mode is turned off for the duration rather than poked awake once: a single KEYCODE_WAKEUP
+    # buys a few seconds, and the walk is minutes long.
+    param([int]$Attempts = 3, [int]$SettleFor = 1200)
+
+    for ($try = 1; $try -le $Attempts; $try++) {
+        if (Test-WalkDisplayAwake) { return $true }
+        if ($null -eq $script:ambientOriginal) {
+            $script:ambientOriginal = Get-AmbientSetting
+        }
+        Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'settings put global ambient_enabled 0') | Out-Null
+        Invoke-AdbVerb -Arguments @('key', '-Key', 'KEYCODE_WAKEUP') | Out-Null
+        Start-Sleep -Milliseconds $SettleFor
+    }
+    return (Test-WalkDisplayAwake)
+}
+
+function Restore-AmbientSetting {
+    # The sweep judges the watch; it does not reconfigure it. Only a value this run actually changed
+    # is written back, and `null` means the setting was unset, which is restored as unset.
+    if ($null -eq $script:ambientOriginal) { return }
+    if ($script:ambientOriginal -eq 'null') {
+        Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'settings delete global ambient_enabled') | Out-Null
+    }
+    else {
+        Invoke-AdbVerb -Arguments @('shell', '-Cmd', "settings put global ambient_enabled $script:ambientOriginal") | Out-Null
+    }
+    $script:ambientOriginal = $null
+}
+
+if (-not (Assert-WalkDisplayAwake -SettleFor $SettleMs)) {
+    Restore-AmbientSetting
+    Stop-Run 2 'the watch display is not awake (mWakefulness is not Awake, or dumpsys power could not be read). Every screen reading under a sleeping display describes the watch face, not this app.'
 }
 
 # Scroll geometry, read from the device rather than assumed: a round watch, a square one and an
@@ -205,6 +263,14 @@ foreach ($screen in $screens) {
     # that is on its way out.
     $entrySettleMs = if ($null -ne $screen.settleMs) { [int]$screen.settleMs } else { $SettleMs }
     Start-Sleep -Milliseconds $entrySettleMs
+
+    # Is the display still awake? Checked BEFORE the app-in-front guard below, because that guard
+    # relaunches the app and a relaunch under a dozing display satisfies it while every reading that
+    # follows still describes the watch face (S2547).
+    if (-not (Assert-WalkDisplayAwake -SettleFor $entrySettleMs)) {
+        Restore-AmbientSetting
+        Stop-Run 2 "the watch display fell asleep before '$($screen.id)' and could not be woken; the screens after it were never observed."
+    }
 
     # Is the app still in front? One BACK too many leaves it, and everything after that is measured
     # against the watch launcher while still being reported as this app's screens - nine failures in a
@@ -289,10 +355,18 @@ foreach ($screen in $screens) {
     # Still not found: hunt for it the same way the tap above hunts for a control, instead of judging
     # the screen by the slice of it that happens to be in view. A marker is chosen because it belongs
     # to the destination, not because it fits on 480 px - `Clear` is the calculator's C key at the
-    # bottom of a scrolling keypad, `FastMedia Wear` is the home list's header ABOVE its resting
-    # position, and both were reported missing from screens that were plainly showing (S1984).
+    # bottom of a scrolling keypad, and `Favourites` is the last Home section, below the fold on a
+    # small round face; both were reported missing from screens that were plainly showing (S1984).
     # Downwards first, because that is where most of a list is; then back to the top for a marker the
     # list had already scrolled past.
+    #
+    # S2555 replaced the second example. It used to call the app name the home list's header, sitting
+    # ABOVE the list's resting position, and there is no such header: HomeScreen draws shortcuts, then
+    # the HomeSectionCatalog sections, then the command bar, and `app_name` is named only by the
+    # manifest, so no composable in the module ever renders it.
+    # The upward hunt is still right - it is why a marker the list scrolled past is still found - but
+    # it was being justified by a screen element that does not exist, which is the same wrong belief
+    # that put four unmatchable markers in wear-prerelease-screens.json.
     if (-not $present -and $null -ne $tree) {
         for ($hunt = 0; $hunt -lt $MaxScrolls; $hunt++) {
             Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
@@ -360,6 +434,18 @@ foreach ($screen in $screens) {
 }
 
 $result.screens = $rows
+
+# Coverage is a statement of scope, not a failure condition (S2547): it never changes the arithmetic
+# below. It exists because a PASS used to say nothing about how much of the app it had opened, and
+# clip-check - which decides WO-V16 - only runs on a screen the walk actually reached.
+$excludedDeclared = @()
+try { $excludedDeclared = @((Get-Content -LiteralPath $ScreenList -Raw | ConvertFrom-Json).excluded) } catch { $excludedDeclared = @() }
+$result['coverage'] = [ordered]@{
+    walked   = @($screens | ForEach-Object { $_.screen } | Where-Object { $_ } | Select-Object -Unique).Count
+    excluded = $excludedDeclared.Count
+    entries  = $screens.Count
+}
+
 $shapeFailuresCount = @($rows | Where-Object { $_.shapeExit -and $_.shapeExit -ne 0 }).Count
 $result.counts = [ordered]@{
     observed      = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
@@ -393,6 +479,8 @@ if (-not $SkipLogAudit) {
     }
 }
 
+Restore-AmbientSetting
+
 $walkPath = Join-Path $outPath 'walk.json'
 [pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
@@ -405,6 +493,6 @@ $result.ok = ($verdict -eq 0)
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
-    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

@@ -25,6 +25,7 @@ import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -38,7 +39,7 @@ import timber.log.Timber
 @Composable
 fun PermissionsScreen(
     onPermissionsGranted: () -> Unit,
-    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = 0)
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 ) {
     // Define required permissions based on API level
     val mediaPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

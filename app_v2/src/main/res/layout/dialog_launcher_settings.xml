@@ -319,11 +319,10 @@
                 app:csh_icon="@drawable/ic_gesture"
                 app:csh_title="@string/launcher_settings_group_gestures" />
 
-            <LinearLayout
+            <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
                 android:id="@+id/containerLauncherGestures"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
                 android:paddingStart="@dimen/margin_small"
                 android:paddingEnd="@dimen/margin_small"
                 android:paddingBottom="@dimen/margin_small">
@@ -349,7 +348,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherDesktopSwipeDown"
@@ -372,7 +372,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherDesktopSwipeLeft"
@@ -395,7 +396,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherDesktopSwipeRight"
@@ -418,7 +420,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherAllAppsSwipeUp"
@@ -441,7 +444,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherAllAppsSwipeDown"
@@ -464,7 +468,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherAllAppsSwipeLeft"
@@ -487,7 +492,8 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherAllAppsSwipeRight"
@@ -510,9 +516,10 @@
                     android:foreground="?attr/selectableItemBackground"
                     android:visibility="gone"
                     app:ssr_title="@string/gesture_slot_app_label"
-                    app:ssr_value="@string/gesture_slot_app_none" />
+                    app:ssr_value="@string/gesture_slot_app_none"
+                    app:layout_excludeFromLabelColumn="true" />
 
-            </LinearLayout>
+            </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
             <!-- 6. Appearance group -->
             <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader

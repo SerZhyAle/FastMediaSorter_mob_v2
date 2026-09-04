@@ -20,11 +20,10 @@
 
     <!-- S0659: Streams default profile + maintenance. Visibility follows the master toggle above
          (StreamsSettingsFragment), mirroring btnStreams, so the section stays compact when off. -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
         android:id="@+id/streamsDefaultsGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
         <!-- S0835: portrait - each selector on its own full-width row with title+value on one
              inline line (sdr_inline), mirroring the canonical Language/Color-theme rows in
@@ -130,6 +129,6 @@
 
         </LinearLayout>
 
-    </LinearLayout>
+    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
 </LinearLayout>

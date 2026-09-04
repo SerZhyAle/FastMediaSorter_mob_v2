@@ -1052,6 +1052,8 @@ pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial
 - **A watch must be attached.** The prepare step reads `ro.build.characteristics` and refuses anything without `watch`, because both modules publish under one application id and a run that landed on the phone would report a confident verdict about the wrong build.
 - Run artifacts land in `temp/scratch/wear-prerelease/`: `artifact.json` (what was built and judged), `walk.json` (per-screen outcome plus the log audit's code), `wear_session.log`, and a screenshot and UI dump per screen.
 - The content gates common to both modules run from `scripts/quality/assert-prerelease-content-gates.ps1`, which the phone sweep calls as well - adding a gate there covers the watch without editing either command file.
+- The declared screen list `scripts/devtest/wear-prerelease-screens.json` is gated by `scripts/quality/assert-wear-walk-contract.ps1` with the ratchet baseline `scripts/quality/wear-walk-contract-baseline.txt`. It binds every entry to the screen it opens and the string resource it expects, and refuses a `*Screen` that is neither walked nor excluded with a reason. It runs per ticket in `..ps1 fg`, not on the sweep: the subject is a wear string, so a rename has to fail in the ticket that made it (S2547).
+- The walk refuses to report screens it could not have seen: it requires `mWakefulness=Awake`, manages ambient mode for the duration and restores it, and returns 2 rather than a list of failures when the watch will not wake.
 
 ## OCR OVERLAY ACCURACY CORPUS (S1716)
 

@@ -46,6 +46,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingErrorReason
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingState
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
@@ -73,7 +74,7 @@ fun VoiceRecorderScreen(
     viewModel: VoiceRecorderViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberWearListState(initialCenterItemIndex = 0)
+    val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
     val permissionsState = rememberMultiplePermissionsState(recorderPermissions())
     // Only the microphone gates recording. A denied POST_NOTIFICATIONS costs the ongoing
     // notification and nothing else, so it must not stand between the user and a recording.

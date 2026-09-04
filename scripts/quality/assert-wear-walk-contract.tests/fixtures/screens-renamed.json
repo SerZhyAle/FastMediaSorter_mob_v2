@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Fixture: the resource still resolves but its value no longer carries the token."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Goodbye",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

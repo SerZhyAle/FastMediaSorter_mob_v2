@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Fixture: every check satisfied."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "AlphaScreen",
+      "expectRes": "good_marker"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

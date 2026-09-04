@@ -2,8 +2,11 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.View
+import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.core.view.children
+import com.sza.fastmediasorter.R
 
 /**
  * A row that can share one label column with its siblings.
@@ -66,19 +69,69 @@ class SettingsValueRowGroup @JvmOverloads constructor(
         val target = resolveLabelColumnWidth()
         if (target == appliedLabelWidth) return
         appliedLabelWidth = target
-        children.forEach { child -> (child as? LabelColumnRow)?.applyLabelColumnWidth(target) }
+        children.forEach { child ->
+            (child as? LabelColumnRow)?.applyLabelColumnWidth(if (isExcluded(child)) 0 else target)
+        }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
+
+    override fun generateLayoutParams(attrs: AttributeSet): LayoutParams = LayoutParams(context, attrs)
+
+    override fun generateDefaultLayoutParams(): LayoutParams =
+        LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+
+    override fun generateLayoutParams(p: ViewGroup.LayoutParams): LayoutParams = LayoutParams(p)
+
+    override fun checkLayoutParams(p: ViewGroup.LayoutParams?): Boolean = p is LayoutParams
+
+    /**
+     * Whether [child] opted out of the shared column. A child laid out with anything but this group's
+     * own params never opted out, which is what a programmatically added row gets.
+     */
+    private fun isExcluded(child: View): Boolean =
+        (child.layoutParams as? LayoutParams)?.excludeFromLabelColumn == true
 
     /**
      * The shared label width, or 0 when no column should be applied.
      */
     private fun resolveLabelColumnWidth(): Int {
-        val rows = children.filterIsInstance<LabelColumnRow>().toList()
+        val rows = children
+            .filter { child -> child.visibility != View.GONE && !isExcluded(child) }
+            .filterIsInstance<LabelColumnRow>()
+            .toList()
         val available = measuredWidth - paddingStart - paddingEnd
         if (rows.isEmpty() || available <= 0) return 0
         val widestLabel = rows.maxOf { row -> row.measureLabelNaturalWidth() }
         val widestTrailing = rows.maxOf { row -> row.measureTrailingNaturalWidth() }
         return if (widestLabel > 0 && widestLabel + widestTrailing <= available) widestLabel else 0
+    }
+
+    /**
+     * Child parameters of [SettingsValueRowGroup].
+     *
+     * A row with `layout_excludeFromLabelColumn` belongs to the row above it rather than to the block:
+     * its caption and value are unrelated in length to its neighbours', so it keeps its own hug layout
+     * and its widths are ignored when the shared column is sized.
+     */
+    class LayoutParams : LinearLayout.LayoutParams {
+
+        val excludeFromLabelColumn: Boolean
+
+        constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {
+            val typed = context.obtainStyledAttributes(attrs, R.styleable.SettingsValueRowGroup_Layout)
+            excludeFromLabelColumn = typed.getBoolean(
+                R.styleable.SettingsValueRowGroup_Layout_layout_excludeFromLabelColumn,
+                false,
+            )
+            typed.recycle()
+        }
+
+        constructor(width: Int, height: Int) : super(width, height) {
+            excludeFromLabelColumn = false
+        }
+
+        constructor(source: ViewGroup.LayoutParams) : super(source) {
+            excludeFromLabelColumn = false
+        }
     }
 }

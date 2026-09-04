@@ -804,7 +804,8 @@ Install noLegal DEBUG APK on connected device WITHOUT launching it.
 scripts/builders/install-nolegal-debug-to-device.ps1
   Install noLegal DEBUG APK on connected device WITHOUT launching it.
   Params:
-    -ApkPath         [String] = $null
+    -ApkPath          [String] = $null
+    -DeviceId         [String] = $env:ANDROID_SERIAL
 ```
 
 ### install-standard-debug-to-device.ps1
@@ -1117,7 +1118,7 @@ scripts/devtest/wear-prerelease-walk.ps1
     -SkipLogAudit           [SwitchParameter]
     -SkipShapeCheck         [SwitchParameter]
     -Json                   [SwitchParameter]
-  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding; 2 could not verify: the screen list is missing or unreadable, no device, or a called script
+  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding; 2 could not verify: the watch display could not be woken (S2547 - every reading under a
 ```
 
 ### wear-shape-bench.ps1
@@ -1251,6 +1252,15 @@ scripts/devtest/lib/ui-tree.ps1
   (no param block)
 ```
 
+### wear-wakefulness.ps1
+S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
+
+```
+scripts/devtest/lib/wear-wakefulness.ps1
+  S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
+  (no param block)
+```
+
 ## scripts\devtest\prerelease-log-audit.tests
 
 ### Run-Tests.ps1
@@ -1259,6 +1269,18 @@ S1859 / S1969 regression suite for the pre-release log audit's classification ru
 ```
 scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
   S1859 / S1969 regression suite for the pre-release log audit's classification rules.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\wear-prerelease-walk.tests
+
+### Run-Tests.ps1
+S2547 regression suite for the watch walk's wakefulness precondition. # Subject: scripts/devtest/wear-prerelease-walk.ps1, scripts/devtest/lib/wear-wakefulness.ps1
+
+```
+scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1
+  S2547 regression suite for the watch walk's wakefulness precondition. # Subject: scripts/devtest/wear-prerelease-walk.ps1, scripts/devtest/lib/wear-wakefulness.ps1
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
@@ -2859,7 +2881,7 @@ scripts/quality/assert-shared-test-flavor-scope.ps1
     -RepoRoot          [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -Module            [String] = 'app_v2'
     -DumpIndex         [SwitchParameter]
-  Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, or its mount map carries a line this gate
+  Exit: 0 - no violation (or violations found without -Gate).; 1 - at least one violation, and -Gate was passed.; 2 - could not verify: the build file is unreadable, its mount map carries a line this gate
 ```
 
 ### assert-source-gates.ps1
@@ -2876,6 +2898,18 @@ scripts/quality/assert-source-gates.ps1
     -Only                   [String[]]
     -ChangedFiles           [String[]]
   Exit: 0 every rule at or below its baseline, or a non-gate report run.; 1 -Gate and at least one rule is above its baseline.; 2 cannot verify - an unknown rule name in -Only, a source root that does not exist, or
+```
+
+### assert-spec-catalog-valid.ps1
+Guards spec catalog integrity and file mapping (S2549).
+
+```
+scripts/quality/assert-spec-catalog-valid.ps1
+  Guards spec catalog integrity and file mapping (S2549).
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean.; 1 - validation failure.; 2 - validate.ps1 missing.
 ```
 
 ### assert-splash-brand-sync.ps1
@@ -3071,6 +3105,22 @@ scripts/quality/assert-wear-settings-parity.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
+```
+
+### assert-wear-walk-contract.ps1
+S2547 - binds the declared watch pre-release walk to the wear module it claims to walk.
+
+```
+scripts/quality/assert-wear-walk-contract.ps1
+  S2547 - binds the declared watch pre-release walk to the wear module it claims to walk.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -ScreenList             [String]
+    -StringsFile            [String]
+    -WearSource             [String]
+    -BaselineFile           [String]
+  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or
 ```
 
 ### assert-window-insets.ps1
@@ -3593,6 +3643,18 @@ scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
 ```
 scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
   (no param block)
+```
+
+## scripts\quality\assert-wear-walk-contract.tests
+
+### Run-Tests.ps1
+S2547 regression suite for the watch walk contract gate. # Subject: scripts/quality/assert-wear-walk-contract.ps1
+
+```
+scripts/quality/assert-wear-walk-contract.tests/Run-Tests.ps1
+  S2547 regression suite for the watch walk contract gate. # Subject: scripts/quality/assert-wear-walk-contract.ps1
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\quality\assert-window-insets.tests
