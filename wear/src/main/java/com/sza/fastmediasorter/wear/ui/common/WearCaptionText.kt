@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,7 +20,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.LocalTextStyle
 import androidx.wear.compose.material.Text
-import timber.log.Timber
 
 private const val CEILING_SP = 16f
 private const val FLOOR_SP = 11f
@@ -128,6 +126,10 @@ fun WearCaptionText(
             join = StrokeJoin.Round
         )
     )
+    // Neither pass fills the width. They used to, which silently overrode any caller that sizes the
+    // caption to its text - a row centring an icon and its label as one pair got a full-width text
+    // node back and drifted left again (2026-09-04). Same text, same `size`, so the two passes
+    // measure identically and stay registered without being forced to a common width.
     Box(modifier = modifier) {
         // The stroke pass reports no layout on purpose. Both passes read the same `size`, so letting
         // each report an overflow would step the scale twice per frame and the caption would jump two
@@ -139,7 +141,6 @@ fun WearCaptionText(
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
-            modifier = Modifier.fillMaxWidth(),
             style = outlineStyle
         )
         Text(
@@ -149,7 +150,6 @@ fun WearCaptionText(
             maxLines = maxLines,
             overflow = TextOverflow.Ellipsis,
             textAlign = textAlign,
-            modifier = Modifier.fillMaxWidth(),
             onTextLayout = shrinkOnOverflow
         )
     }

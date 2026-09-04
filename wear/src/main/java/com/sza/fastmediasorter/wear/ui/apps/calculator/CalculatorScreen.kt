@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
@@ -186,9 +187,13 @@ fun CalculatorScreen(
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
     // `TimeText` away, and the value row is fixed below the clock while the keypad scrolls beneath
     // the value row - so nothing that moves here ever reaches the clock to obscure it.
+    // The one screen that opts out of the app wallpaper (owner ruling 2026-09-04): the calculator is
+    // worked on, not looked at, and a moving or photographic backdrop pulls the eye off the digits.
+    // An opaque black container also keeps the keypad's contrast independent of the chosen picture.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
-        positionIndicator = { PositionIndicator(keypadScrollState) }
+        positionIndicator = { PositionIndicator(keypadScrollState) },
+        background = Color.Black
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

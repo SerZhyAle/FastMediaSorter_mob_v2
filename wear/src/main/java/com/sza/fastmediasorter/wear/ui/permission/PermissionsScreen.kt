@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -63,7 +64,6 @@ fun PermissionsScreen(
 
     // Auto-navigate if already granted
     LaunchedEffect(permissionsState.allPermissionsGranted) {
-        Timber.d("S2273: PermissionsScreen rendered, allPermissionsGranted=${permissionsState.allPermissionsGranted}")
         if (permissionsState.allPermissionsGranted) {
             Timber.d("All permissions already granted, navigating to home")
             onPermissionsGranted()
@@ -80,65 +80,78 @@ fun PermissionsScreen(
             state = listState,
             centered = true
         ) {
-            item {
-                Icon(
-                    imageVector = Icons.Default.FolderOpen,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colors.onBackground
-                )
-            }
-
-            item {
-                Text(
-                    text = stringResource(R.string.permission_title),
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colors.onBackground,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            item {
-                Text(
-                    text = stringResource(R.string.permission_description),
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colors.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            item {
-                Chip(
-                    onClick = {
-                        Timber.d("Requesting permissions: $mediaPermissions")
-                        permissionsState.launchMultiplePermissionRequest()
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = {
-                        Text(
-                            text = stringResource(R.string.permission_grant_button),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
-
-            // Show rationale if needed
-            if (permissionsState.shouldShowRationale) {
-                item {
-                    Text(
-                        text = stringResource(R.string.permission_rationale),
-                        style = MaterialTheme.typography.caption2,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colors.error,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+            permissionPromptItems(
+                showRationale = permissionsState.shouldShowRationale,
+                onRequest = {
+                    Timber.d("Requesting permissions: $mediaPermissions")
+                    permissionsState.launchMultiplePermissionRequest()
                 }
-            }
+            )
+        }
+    }
+}
+
+/**
+ * The prompt itself, split out of [PermissionsScreen] so that screen stays a state holder.
+ */
+private fun ScalingLazyListScope.permissionPromptItems(
+    showRationale: Boolean,
+    onRequest: () -> Unit
+) {
+    item {
+        Icon(
+            imageVector = Icons.Default.FolderOpen,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colors.onBackground
+        )
+    }
+
+    item {
+        Text(
+            text = stringResource(R.string.permission_title),
+            style = MaterialTheme.typography.title3,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onBackground,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    item {
+        Text(
+            text = stringResource(R.string.permission_description),
+            style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    item {
+        Chip(
+            onClick = onRequest,
+            modifier = Modifier.fillMaxWidth(),
+            label = {
+                Text(
+                    text = stringResource(R.string.permission_grant_button),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            colors = ChipDefaults.primaryChipColors()
+        )
+    }
+
+    // Show rationale if needed
+    if (showRationale) {
+        item {
+            Text(
+                text = stringResource(R.string.permission_rationale),
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.error,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

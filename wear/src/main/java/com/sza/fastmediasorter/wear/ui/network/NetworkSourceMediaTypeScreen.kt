@@ -20,7 +20,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -171,7 +170,6 @@ private fun CategoryChip(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        colors = ChipDefaults.primaryChipColors(),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),

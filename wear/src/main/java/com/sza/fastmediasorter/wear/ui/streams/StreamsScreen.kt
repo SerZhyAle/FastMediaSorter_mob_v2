@@ -910,7 +910,6 @@ private fun StreamChip(
         thumbnail = thumbnail,
         caption = channel.name,
         onClick = onClick,
-        colors = ChipDefaults.primaryChipColors(),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(R.drawable.ic_cast),

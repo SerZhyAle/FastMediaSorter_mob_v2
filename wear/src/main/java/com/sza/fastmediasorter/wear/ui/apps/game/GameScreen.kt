@@ -4,6 +4,7 @@ import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -37,7 +38,10 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -74,9 +78,9 @@ private const val GUIDE_ARROW_VISIBLE_MS = 1000L
  * The game: a board filling the largest square the glass admits, moved by swiping across it.
  *
  * @param navController the route's host controller. S2158 narrowly reversed the earlier ruling that
- * this screen navigates nowhere: the board still carries no permanent controls and is still played
- * by swipes across it, but a long press opens a menu on demand, and that menu's exit entry is the
- * only navigation the screen performs. Leaving without the menu is still the platform's edge swipe.
+ * this screen navigates nowhere, and S2553 finished the reversal: the board is still played by
+ * swipes across it, but it now carries the module's standard back affordance beside the long-press
+ * menu, so leaving no longer depends on remembering either the menu or the platform's edge swipe.
  */
 @Composable
 fun GameScreen(
@@ -117,8 +121,10 @@ fun GameScreen(
 
     // Full bleed: the ring is measured against the glass, so the scaffold must not inset it first.
     WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
-        if (isRound) {
-            Box(modifier = Modifier.fillMaxSize()) {
+        // One box for both shapes since S2553: the two side affordances stand in the same place on
+        // either display, so keeping a box per branch would only duplicate their placement.
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isRound) {
                 GameBoard(
                     uiState = uiState,
                     modifier = Modifier.align(Alignment.Center).size(wearMaxSquareSide()),
@@ -137,14 +143,9 @@ fun GameScreen(
                         modifier = Modifier.align(Alignment.Center)
                     ) { viewModel.restart() }
                 }
-                if (menuOpen) {
-                    GameMenuOverlay(actions = menuActions)
-                }
-            }
-        } else {
-            // A square screen has no ring: an inscribed square leaves nothing around it, so the
-            // counters keep the row above the board they had before S2158.
-            Box(modifier = Modifier.fillMaxSize()) {
+            } else {
+                // A square screen has no ring: an inscribed square leaves nothing around it, so the
+                // counters keep the row above the board they had before S2158.
                 SquareScreenLayout(
                     uiState = uiState,
                     levelNumber = levelNumber,
@@ -157,11 +158,54 @@ fun GameScreen(
                     },
                     onRestart = { viewModel.restart() }
                 )
-                if (menuOpen) {
-                    GameMenuOverlay(actions = menuActions)
-                }
+            }
+            if (!menuOpen) {
+                GameSideAffordances(
+                    skipVisible = uiState.status == GameStatus.PLAYING,
+                    onBack = {
+                        Timber.d("S2553: back affordance tapped on the game screen")
+                        navController.popBackStack()
+                    },
+                    onSkipTurn = {
+                        Timber.d("S2553: skip turn tapped beside the board")
+                        viewModel.skipTurn()
+                    }
+                )
+            }
+            if (menuOpen) {
+                GameMenuOverlay(actions = menuActions)
             }
         }
+    }
+}
+
+/**
+ * The back mark and the skip-turn button, flanking the board at the middles of the two side bands.
+ *
+ * Drawn after the board so a tap on either wins over the board's own long press where the touch
+ * targets grow inwards over it. Both are hidden while the menu is open: the menu already carries
+ * exit and skip rows, and a control under an overlay answers a tap the player cannot see it accept.
+ */
+@Composable
+private fun BoxScope.GameSideAffordances(
+    skipVisible: Boolean,
+    onBack: () -> Unit,
+    onSkipTurn: () -> Unit
+) {
+    WearBackAffordance(
+        role = WearBackAffordanceRole.Back,
+        onClick = onBack,
+        modifier = Modifier
+            .align(Alignment.CenterStart)
+            .padding(start = wearBackAffordanceInset())
+    )
+    if (skipVisible) {
+        GameSkipTurnButton(
+            onClick = onSkipTurn,
+            modifier = Modifier
+                .align(Alignment.CenterEnd)
+                .padding(end = wearBackAffordanceInset())
+        )
     }
 }
 

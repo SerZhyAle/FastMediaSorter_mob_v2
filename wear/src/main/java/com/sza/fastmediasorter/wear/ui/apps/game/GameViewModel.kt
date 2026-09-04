@@ -129,9 +129,11 @@ class GameViewModel @Inject constructor(
         val stored = preferencesRepository.gameState.first()
         val restored = GameStateSnapshot.fromStorage(stored)?.toLevelState()
         if (restored != null) {
+            Timber.d("S2553: resumed saved game at level %d turn %d", restored.config.levelNumber, restored.stats.turns)
             _uiState.value = GameUiState(restored, restored.stats, restored.status)
             return
         }
+        Timber.d("S2553: no readable save, starting a fresh game")
         // An absent or unreadable save is a first run, never an error the player has to see.
         val generated = generate(FIRST_LEVEL_NUMBER) ?: return
         publish(generated)

@@ -14,7 +14,6 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -150,7 +149,6 @@ private fun OriginCategoryChip(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        colors = ChipDefaults.primaryChipColors(),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
@@ -172,7 +170,6 @@ private fun OriginFolderChip(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        colors = ChipDefaults.secondaryChipColors(),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),

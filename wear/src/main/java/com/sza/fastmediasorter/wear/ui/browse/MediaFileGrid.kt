@@ -17,7 +17,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
@@ -170,7 +169,6 @@ private fun MediaFileChip(
         onLongClick = onLongClick,
         secondaryText = secondaryText.takeIf { !it.isNullOrEmpty() },
         selected = selected,
-        colors = ChipDefaults.secondaryChipColors(),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(ContentTypeCatalog.iconFor(type)),
