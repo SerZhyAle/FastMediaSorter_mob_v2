@@ -149,7 +149,12 @@ foreach ($entry in $entries) {
 # re-judge. Without this the 18-against-38 gap was recorded nowhere, so a PASS could not be read as a
 # statement about what the run opened - and clip-check, which decides WO-V16, only runs on a screen
 # the walk actually opened.
-$REASONS = @('not-a-destination', 'arg-external', 'gesture-only', 'timed', 'needs-seeded-content', 'pre-graph-gate', 'no-static-marker')
+# `absent-from-this-flavor` is the seventh class and the only one that is not about the screen: the
+# module builds standard and noLegal from one graph, and S2486 hid the credential-entry route from the
+# store build to satisfy WO-P6. The screen is a real destination - just not in the variant this sweep
+# judges - so calling it `not-a-destination` would file a flavor decision as a navigation fact and
+# hide the one thing a reader needs, which is that the other flavor still reaches it (S2555).
+$REASONS = @('not-a-destination', 'arg-external', 'gesture-only', 'timed', 'needs-seeded-content', 'pre-graph-gate', 'no-static-marker', 'absent-from-this-flavor')
 $declared = [System.Collections.Generic.HashSet[string]]::new()
 foreach ($entry in $entries) {
     if ($entry.PSObject.Properties.Name -contains 'screen' -and $entry.screen) { [void]$declared.Add([string]$entry.screen) }

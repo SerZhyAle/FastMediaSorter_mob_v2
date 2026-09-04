@@ -491,6 +491,16 @@
       "titleUk": "Запис відео з екрана"
     },
     {
+      "key": "headerSendCommands",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SECTION_HEADER",
+      "titleEn": "Send file to..",
+      "titleRu": "Команды отправить файл в..",
+      "titleUk": "Команди надіслати файл у.."
+    },
+    {
       "key": "headerSystemApps",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -2819,16 +2829,6 @@
       "titleEn": "Player interface and commands",
       "titleRu": "Интерфейс и команды плеера",
       "titleUk": "Інтерфейс і команди програвача"
-    },
-    {
-      "key": "headerSendCommands",
-      "sectionId": "playback",
-      "destination": "PLAYBACK",
-      "layout": "fragment_settings_playback",
-      "kind": "SECTION_HEADER",
-      "titleEn": "Send file to..",
-      "titleRu": "Команды отправить файл в..",
-      "titleUk": "Команди надіслати файл у.."
     },
     {
       "key": "headerSortingSlideshow",

@@ -232,7 +232,15 @@ function Read-UiNodes {
     # The wrapper puts a verb's payload under `data`, not at the top level.
     $nodes = @(if ($null -ne $tree.data -and $null -ne $tree.data.nodes) { $tree.data.nodes } else { $tree.nodes })
     if ($nodes.Count -eq 0) { return $null }
-    return @($nodes | ForEach-Object { "$($_.label) $($_.resId)" }) -join "`n"
+    # The haystack carries desc as well as label, because the two are not alternatives. `adb.ps1`
+    # fills `label` from a node's TEXT when it has any and falls back to its content-description only
+    # when it has none, so a node carrying both arrived here as the text alone. Every Wear control
+    # that captions a bare number is such a node: the mini-game's score reads `text="0"` with
+    # `desc="Score: 0"`, so the marker `Score` could not match, and the walk scrolled twenty-four
+    # times past a screen that was plainly showing before calling it a failure (S2555, measured on
+    # emulator-5554 2026-09-05). That made every marker phrased as an accessibility description
+    # unmatchable, which is why repairing the markers one at a time kept finding more of them.
+    return @($nodes | ForEach-Object { "$($_.label) $($_.desc) $($_.resId)" }) -join "`n"
 }
 
 function Reset-ListToTop {

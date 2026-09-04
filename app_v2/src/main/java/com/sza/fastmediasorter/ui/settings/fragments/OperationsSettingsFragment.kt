@@ -47,6 +47,12 @@ import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
+import android.content.res.Configuration
+import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
+import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
+import com.sza.fastmediasorter.core.share.ShareTargetRegistry
+import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
+import com.sza.fastmediasorter.ui.settings.helpers.OperationsSendCommandsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -79,6 +85,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
+    // S2390: Share targets registry, availability, icon resolvers and use case for «Send file to..» group
+    @Inject
+    lateinit var shareTargetRegistry: ShareTargetRegistry
+
+    @Inject
+    lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
+
+    @Inject
+    lateinit var shareTargetIconResolver: ShareTargetIconResolver
+
+    @Inject
+    lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
+
     // Empty on every flavor except noLegal, where the gesture-overlay capability contributes one.
     @Inject
     lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
@@ -109,6 +128,17 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     private val sectionsHost by lazy { OperationsSectionsManager(binding, requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
+    private val sendCommandsManager by lazy {
+        OperationsSendCommandsManager(
+            fragment = this,
+            binding = binding,
+            viewModel = viewModel,
+            shareTargetRegistry = shareTargetRegistry,
+            shareTargetAvailabilityResolver = shareTargetAvailabilityResolver,
+            shareTargetIconResolver = shareTargetIconResolver,
+            isShareTargetEnabledUseCase = isShareTargetEnabledUseCase,
+        )
+    }
     private val localFolderDestinationPickerManager by lazy {
         LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
     }
@@ -247,6 +277,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
     
     private fun setupViews() {
+        sendCommandsManager.setup()
         binding.rowUseTrash.setTrailingControl(binding.btnClearTrash)
 
         // Copying switches
@@ -653,6 +684,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 fallbackRes = R.string.link_autodownload_resource_not_set,
                             ) { binding.tvLinkAutodownloadResource.text = it }
 
+                            sendCommandsManager.updateAvailability(settings)
                             gesturesManager.render(settings)
                         }
 
@@ -684,6 +716,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         destinationsManager.onConfigurationChanged()
+        if (_binding != null) {
+            sendCommandsManager.onConfigurationChanged(newConfig)
+        }
     }
     
     private fun applyFlavorRestrictions() {

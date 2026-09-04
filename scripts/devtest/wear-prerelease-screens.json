@@ -50,16 +50,6 @@
       "note": "The screen title repeats the Home chip label, so the sync action is the marker instead."
     },
     {
-      "id": "resources-add-source",
-      "name": "Resources - Add source",
-      "label": "Add Source",
-      "expect": "Base path",
-      "screen": "AddNetworkSourceScreen",
-      "expectRes": "base_path",
-      "backAfter": 1,
-      "note": "S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
-    },
-    {
       "id": "resources-sync-transfer",
       "name": "Resources - Sync from phone",
       "label": "Sync from Phone",
@@ -88,16 +78,6 @@
       "expectRes": "wear_phone_audio",
       "backAfter": 0,
       "note": "The category chips are each gated by their media-type switch; all ship enabled. S2555: the chip is written by BrowseCategoryPresentation.labelFor(TOKEN_MUSIC) = wear_phone_audio = 'Audio', not by the content-type word 'Music' - and the next entry taps that same 'Audio' label, so the two agree or neither works."
-    },
-    {
-      "id": "local-browse",
-      "name": "Local - Browse files",
-      "label": "Audio",
-      "expect": "Search files",
-      "screen": "BrowseScreen",
-      "expectRes": "wear_browse_search",
-      "backAfter": 2,
-      "note": "Opened by the Audio category chip, which is the same label the Local list shows. S2547: this chain was derived from the module without a device and is unconfirmed until the next /spec-prerelease-wear run."
     },
     {
       "id": "streams",
@@ -246,6 +226,18 @@
     }
   ],
   "excluded": [
+    {
+      "screen": "AddNetworkSourceScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "WO-P6 refuses credential entry on a watch, so S2486 gated the way in: NetworkSourcesScreen renders the Add Source chip only when WearRestrictedCapabilities.offersCredentialEntry is true, which the standard store build answers false. This sweep judges that build, so the screen has no route into it and a walk entry could only ever fail.",
+      "note2": "S2555: measured on emulator-5554 2026-09-05 - the Resources screen carried only the empty hint, Sync from Phone and Back."
+    },
+    {
+      "screen": "BrowseScreen",
+      "reason": "needs-seeded-content",
+      "note": "The route is fine - the Local > Audio chip opens it - but its search header renders only under uiState.hasRefinableContent(), so on a clean device the screen draws its empty state and offers no marker of its own. What is missing is media, not a path.",
+      "note2": "S2555: measured on emulator-5554 2026-09-05 - the screen carried only the empty-library text and Back."
+    },
     {
       "screen": "AudioPlayerScreen",
       "reason": "needs-seeded-content",

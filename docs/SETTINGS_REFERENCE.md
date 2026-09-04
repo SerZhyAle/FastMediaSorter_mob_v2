@@ -186,7 +186,6 @@ _Available in: Standard, Legacy, VR_
 | Background audio playback | Settings for background audio playback - keep audio playing in the background, what happens on exit from the player or streams, and the now-playing bar. |
 | Deletion and renaming in player | Settings for deleting and renaming files while inside the player. |
 | Player interface and commands | Settings for the player's visual interface, control buttons, and command layout. |
-| Send file to.. | Settings for the "Send file to.." commands shown in the player. |
 | Sorting, slideshow and playback order | Settings for file sort order, slideshow behavior, and playback sequence. |
 | Touch zones and on-screen hints | Settings for the player's tap-zone layout and on-screen usage hints. |
 | Allow delete | Allows deleting the current file directly from inside the player. |
@@ -240,6 +239,7 @@ _Available in: Standard, Legacy, VR_
 | Scheduled operations by schedule | Settings for operations that run automatically on a defined schedule. |
 | Edge screen gestures | Settings for swipe gestures triggered from the left edge of the screen. |
 | Screen recording | Settings for recording video of the screen and choosing where recordings are saved. |
+| Send file to.. | Settings for the "Send file to.." commands shown in the player. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
 | Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
 | Wear OS | Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window. |

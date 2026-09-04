@@ -200,7 +200,6 @@ abstract class ShareTargetModule {
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TELEGRAM_PACKAGES,
             batchCapable = true,
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
 
@@ -215,7 +214,6 @@ abstract class ShareTargetModule {
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = listOf("com.whatsapp", "com.whatsapp.w4b"),
             batchCapable = true,
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
 
@@ -229,7 +227,6 @@ abstract class ShareTargetModule {
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = VIBER_PACKAGES,
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
 
@@ -243,7 +240,6 @@ abstract class ShareTargetModule {
             defaultEnabled = ShareTargetDefault.ALWAYS_OFF,
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = MESSENGER_PACKAGES,
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
 
@@ -261,7 +257,6 @@ abstract class ShareTargetModule {
             // ADR-4: Instagram's ACTION_SEND share flow accepts a single item; it does not handle
             // ACTION_SEND_MULTIPLE. Single-file receiver - applies to the first file on a multi-select.
             batchCapable = false,
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
 
@@ -276,7 +271,6 @@ abstract class ShareTargetModule {
             availability = ShareTargetAvailability.PACKAGE_INSTALLED,
             packages = TIKTOK_PACKAGES,
             applicableTypes = setOf(MediaType.IMAGE, MediaType.VIDEO, MediaType.GIF),
-            subtitleRes = R.string.share_target_desc_package_app,
             helpMessageRes = R.string.share_target_help_package_app,
         )
     }

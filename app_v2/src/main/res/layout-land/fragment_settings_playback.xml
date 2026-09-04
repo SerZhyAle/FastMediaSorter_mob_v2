@@ -376,26 +376,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- GROUP: Send file to.. (S0452) - per-target toggles added dynamically from ShareTargetRegistry; card hidden while the registry is empty -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSendCommands" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
-
-                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
-                    android:id="@+id/headerSendCommands"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:csh_icon="@drawable/ic_share"
-                    app:csh_showHelp="false"
-                    app:csh_title="@string/settings_send_commands_group" />
-
-                <!-- S0999: horizontal host for N weighted column children (built in PlaybackSettingsFragment).
-                     Orientation is reset per-config in Kotlin: vertical for the single-column fallback. -->
-                <LinearLayout android:id="@+id/containerSendCommands" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" />
-
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
         <!-- GROUP: Background audio playback (S0577) - moved from Media/Audio; gated at runtime by ENABLE_PERSISTENT_AUDIO_PLAYBACK -->
         <com.google.android.material.card.MaterialCardView android:id="@+id/cardBackgroundAudio" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
 

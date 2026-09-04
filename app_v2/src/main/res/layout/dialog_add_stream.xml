@@ -94,11 +94,10 @@
 
     <!-- S1144: per-channel track preference. Shown in both add and edit so a channel can be given its
          languages up front; "Default" means follow the global stream defaults (ADR-4). -->
-    <LinearLayout
+    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
         android:id="@+id/trackPreferenceContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_marginTop="12dp">
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -124,5 +123,5 @@
             app:sdr_inline="true"
             app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
             app:sdr_title="@string/subtitle_track" />
-    </LinearLayout>
+    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 </LinearLayout>

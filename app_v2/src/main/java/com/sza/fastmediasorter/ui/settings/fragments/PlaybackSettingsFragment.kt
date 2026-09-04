@@ -20,26 +20,17 @@ import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.share.ShareTarget
-import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
-import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
-import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.databinding.FragmentSettingsPlaybackBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
 import com.sza.fastmediasorter.domain.model.SortMode
-import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
-import com.sza.fastmediasorter.util.getApplicationInfoCompat
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 // S1161: see GeneralSettingsFragment - the collapsed-group grid is installed by the base class, so every
@@ -54,19 +45,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
     // (CLAUDE.md Rule 14) - this screen used to read the build flag itself, which is what the
     // contract's own KDoc already claimed it did not.
     @Inject lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
-
-    @Inject lateinit var shareTargetRegistry: ShareTargetRegistry
-
-    @Inject lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
-
-    @Inject lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
-
-    // S0838: same resolver the runtime «Send to..» menus use, so a configured receiver shows the
-    // identical icon in Settings and in every menu (installed-app launcher icon, glyph fallback).
-    @Inject lateinit var shareTargetIconResolver: ShareTargetIconResolver
-
-    // S0452: dynamic "Send file to.." rows keyed by ShareTarget.id, refreshed in observeData.
-    private val sendCommandRows = mutableMapOf<String, SettingsToggleRow>()
 
     // S0439: player rotation toggle is hidden on devices without an orientation sensor.
     private val hasAccelerometer: Boolean by lazy {
@@ -113,7 +91,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         try {
             setupViews()
             setupBackgroundAudioSection()
-            setupSendCommandsGroup()
             setupCollapsibleSections()
         } catch (e: Exception) {
             timber.log.Timber.tag("PlaybackSettings").e(e, "Error setting up views")
@@ -307,177 +284,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         // Help for big buttons mode is now inline on rowBigButtonsMode (folded by SettingsToggleRow).
     }
 
-    /**
-     * S0452: build one toggle per registered ShareTarget into the "Send file to.." group.
-     * An unavailable target (e.g. its app is not installed) is disabled and marked with a
-     * non-color "Not installed" subtitle. With an empty registry this renders nothing.
-     * S0463: each row also shows a description subtitle and a (?) help button.
-     *
-     * S0999: the rows lay out in [R.integer.settings_send_commands_columns] columns (2 in landscape
-     * and on >=sw600dp, else 1). Rebuilt on rotation via [onConfigurationChanged] because
-     * SettingsActivity handles config changes itself (no fragment recreation).
-     */
-    private fun setupSendCommandsGroup() {
-        val container = binding.containerSendCommands
-        container.removeAllViews()
-        sendCommandRows.clear()
-        val targets = shareTargetRegistry.all()
-        // Hide the whole group while no target is registered, so users never see an empty section.
-        binding.cardSendCommands.isVisible = targets.isNotEmpty()
-        val columns = resources.getInteger(R.integer.settings_send_commands_columns)
-        val targetCount = targets.size
-        if (targets.isEmpty()) return
-        val current = viewModel.settings.value
-        val rows = targets.map { target ->
-            buildSendCommandRow(target, current).also { sendCommandRows[target.id] = it }
-        }
-        // <=1 target OR a single-column config collapses to today's full-width vertical list.
-        // min() also avoids empty weighted columns when a future bucket asks for more columns than rows.
-        val effectiveColumns = minOf(columns, targetCount)
-        if (effectiveColumns <= 1) {
-            container.orientation = LinearLayout.VERTICAL
-            rows.forEach(container::addView)
-        } else {
-            container.orientation = LinearLayout.HORIZONTAL
-            distributeColumnMajor(container, rows, effectiveColumns)
-        }
-        upgradeSendCommandLabelsAndIcons(targets)
-    }
-
-    /**
-     * S0452/S0463: build a single "Send file to.." toggle row for [target]. The row is
-     * MATCH_PARENT-wide so it fills its parent (the container directly, or a weighted column - S0999).
-     */
-    private fun buildSendCommandRow(target: ShareTarget, current: AppSettings): SettingsToggleRow {
-        return SettingsToggleRow(requireContext()).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-            )
-            // S0474: start with the fast declared title; the installed-app label (ADR-5 parity
-            // with SendToBottomSheet) is resolved off the main thread later and applied after.
-            setTitle(getString(target.titleRes))
-            // S0838: show each receiver's own glyph immediately; the installed-app launcher icon
-            // (menu parity) is resolved off the main thread later and upgrades this in place.
-            target.iconRes?.let { setIcon(it) }
-            val available = shareTargetAvailabilityResolver.isAvailable(target, current)
-            isEnabled = available
-            // S0463: show the target's description when available; "Not installed" otherwise.
-            val subtitleText: CharSequence? = if (available) {
-                target.subtitleRes?.let { getString(it) }
-            } else {
-                getString(R.string.settings_send_command_unavailable)
-            }
-            setSubtitle(subtitleText)
-            // S0463: wire up the (?) help button when the target declares a help message.
-            val hm = target.helpMessageRes
-            if (hm != null) setHelp(target.titleRes, hm)
-            setCheckedSilently(isShareTargetEnabledUseCase(target.id, current))
-            setOnCheckedChangeListener { isChecked ->
-                if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-                val s = viewModel.settings.value
-                val enabled = s.enabledShareTargets.toMutableSet()
-                val disabled = s.disabledShareTargets.toMutableSet()
-                if (isChecked) {
-                    enabled.add(target.id)
-                    disabled.remove(target.id)
-                } else {
-                    disabled.add(target.id)
-                    enabled.remove(target.id)
-                }
-                viewModel.updateSettings(
-                    s.copy(enabledShareTargets = enabled, disabledShareTargets = disabled)
-                )
-            }
-        }
-    }
-
-    /**
-     * S0999: distribute [rows] across [columns] weighted vertical columns, column-major balanced -
-     * fill the left column top-to-bottom first, then the next; the left column is longer by 1 when
-     * the count is odd. Column-major keeps the vertical reading order (logical D-pad / TalkBack).
-     */
-    private fun distributeColumnMajor(
-        container: LinearLayout,
-        rows: List<SettingsToggleRow>,
-        columns: Int,
-    ) {
-        val gap = resources.getDimensionPixelSize(R.dimen.dialog_field_spacing)
-        val base = rows.size / columns
-        val remainder = rows.size % columns
-        var index = 0
-        for (col in 0 until columns) {
-            val column = LinearLayout(requireContext()).apply {
-                orientation = LinearLayout.VERTICAL
-                layoutParams = LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    SEND_COMMANDS_COLUMN_WEIGHT,
-                ).apply { if (col > 0) marginStart = gap }
-            }
-            val count = base + if (col < remainder) 1 else 0
-            repeat(count) {
-                column.addView(rows[index])
-                index++
-            }
-            container.addView(column)
-        }
-    }
-
-    /**
-     * S0474 + S0838: resolve installed-app labels AND launcher icons off the main thread
-     * (PackageManager lookups must not block the Playback tab open); apply to existing rows on main.
-     */
-    private fun upgradeSendCommandLabelsAndIcons(targets: List<ShareTarget>) {
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resolved = withContext(Dispatchers.IO) {
-                targets.associate { t ->
-                    t.id to (resolveShareTargetLabel(t) to shareTargetIconResolver.resolveIcon(t))
-                }
-            }
-            resolved.forEach { (id, pair) ->
-                sendCommandRows[id]?.let { row ->
-                    row.setTitle(pair.first)
-                    // Upgrade the glyph to the installed receiver app's launcher icon (menu parity);
-                    // null keeps the glyph (logical or not-installed target).
-                    pair.second?.let { icon -> row.setIcon(icon) }
-                }
-            }
-        }
-    }
-
-    /**
-     * S0999: SettingsActivity absorbs rotation via android:configChanges (no fragment recreation),
-     * so rebuild the send-commands group here to pick up the per-orientation column count.
-     */
-    override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        if (_binding == null) return
-        setupSendCommandsGroup()
-    }
-
-    /**
-     * S0463: resolves the display label for a settings toggle row.
-     *
-     * Package-backed targets (non-empty [ShareTarget.packages]) show the installed app's own
-     * label via PackageManager - consistent with SendToBottomSheet (S0459 ADR-5) and avoids
-     * hardcoded brand literals. Falls back to [ShareTarget.titleRes] when no package resolves.
-     * Logical targets always use [ShareTarget.titleRes].
-     */
-    private fun resolveShareTargetLabel(target: ShareTarget): CharSequence {
-        if (target.packages.isEmpty()) return getString(target.titleRes)
-        val pm = requireContext().packageManager
-        for (pkg in target.packages) {
-            val label = try {
-                pm.getApplicationLabel(pm.getApplicationInfoCompat(pkg))
-            } catch (_: PackageManager.NameNotFoundException) {
-                null
-            }
-            if (label != null) return label
-        }
-        return getString(target.titleRes)
-    }
-
     private fun observeData() {
         collectOnLifecycle(viewModel.settings) { settings ->
             isUpdatingFromSettings = true
@@ -548,9 +354,6 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
             }
             applyNineZoneVisibility(gridEnabled = settings.nineZoneGridEnabled)
 
-            // S0452: refresh dynamic send-command rows from effective enabled state and availability.
-            updateSendCommandRowsAvailability(settings)
-
             // S0577: background-audio block (moved from Media/Audio).
             if (capabilityAvailability.isPersistentAudioPlaybackAvailable()) {
                 if (binding.rowEnablePersistentAudioPlayback.isChecked != settings.enablePersistentAudioPlayback) {
@@ -589,30 +392,11 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         binding.tvThreeZoneExplanation.isVisible = !gridEnabled
     }
 
-    private fun updateSendCommandRowsAvailability(settings: AppSettings) {
-        sendCommandRows.forEach { (id, row) ->
-            val target = shareTargetRegistry.byId(id)
-            if (target != null) {
-                val available = shareTargetAvailabilityResolver.isAvailable(target, settings)
-                row.isEnabled = available
-                val subtitleText: CharSequence? = if (available) {
-                    target.subtitleRes?.let { getString(it) }
-                } else {
-                    getString(R.string.settings_send_command_unavailable)
-                }
-                row.setSubtitle(subtitleText)
-            }
-            val enabled = isShareTargetEnabledUseCase(id, settings)
-            if (row.isChecked != enabled) row.setCheckedSilently(enabled)
-        }
-    }
-
     private fun setupCollapsibleSections() {
         sectionsManager.register(binding.headerSortingSlideshow, binding.containerSortingSlideshow, "playback__sorting")
         sectionsManager.register(binding.headerFileOperations, binding.containerFileOperations, "playback__file_ops")
         sectionsManager.register(binding.headerPlayerUI, binding.containerPlayerUI, "playback__player_ui")
         sectionsManager.register(binding.headerTouchZones, binding.containerTouchZones, "playback__touch_zones")
-        sectionsManager.register(binding.headerSendCommands, binding.containerSendCommands, "playback__send_commands")
         sectionsManager.register(binding.headerBackgroundAudio, binding.containerBackgroundAudio, "playback__bg_audio")
     }
 
@@ -752,8 +536,5 @@ class PlaybackSettingsFragment : BaseSettingsFragment() {
         // is not re-shown after the block moved tabs.
         private const val PREFS_NAME_HINT = "playback_sections_state"
         private const val KEY_HAS_SHOWN_BATTERY_HINT = "has_shown_battery_hint_background_audio"
-
-        // S0999: equal-width weight for each "Send file to.." column (named to stay detekt magic-number clean).
-        private const val SEND_COMMANDS_COLUMN_WEIGHT = 1f
     }
 }
