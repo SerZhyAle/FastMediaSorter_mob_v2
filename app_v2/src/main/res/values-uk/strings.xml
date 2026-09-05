@@ -3631,11 +3631,11 @@
     <string name="exif_orientation_mirror_rotate_90">Віддзеркалено та повернуто на 90° за годинниковою стрілкою</string>
     <string name="exif_orientation_rotate_270">Повернуто на 270° за годинниковою стрілкою</string>
     <string name="exif_orientation_unknown">Невідомо (%1$d)</string>
-    <string name="storage_reach_limited_browse">Ця тека підключена старим способом - через нього читаються лише фото, відео та звук. Щоб побачити документи, додайте теку знову й виберіть її у системному вікні.</string>
+    <string name="storage_reach_limited_browse">У цій теці доступні лише фото, відео та звук. Щоб побачити документи, додайте теку знову й виберіть її у системному вікні.</string>
     <string name="file_count_reach_limited">%1$s - лише фото, відео та звук</string>
     <string name="reach_limited_nothing_readable">Документи не читаються</string>
     <string name="storage_reach_limited_virtual">Документи та інші файли на цьому пристрої застосунку не видно. Щоб відкрити їх, додайте потрібну теку через системне вікно вибору.</string>
-    <string name="storage_reach_limited_browse_reconnect">Ця тека підключена старим способом - через нього читаються лише фото, відео та звук. Щоб побачити документи, затримайте палець на теці на головному екрані та виберіть «Перепідключити ресурс».</string>
+    <string name="storage_reach_limited_browse_reconnect">У цій теці доступні лише фото, відео та звук. Щоб побачити документи, затримайте палець на теці на головному екрані та виберіть «Перепідключити ресурс».</string>
     <string name="wear_settings_group_media_types">Типи медіа</string>
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Екран</string>

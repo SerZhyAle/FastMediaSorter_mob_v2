@@ -59,6 +59,8 @@ The three buttons at the top of the list stay pinned while the list scrolls, so 
 
 Above the list, a small two-line counter shows how many channels the current search and filters leave, over the size of the whole catalogue.
 
+![Channel list with the counter and the pinned toolbar](screenshots/screenshot-wear-tv-step3.png)
+
 In grid mode, a video channel shows a preview picture before you have ever opened it, taken from a downloadable preview set. After your first watch the preview is replaced by a frame captured from the channel itself.
 
 ---

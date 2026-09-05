@@ -56,12 +56,20 @@ class GeneralSettingsLauncherHelper(
         refreshState()
     }
 
-    /** Re-reads the HOME component state; call from onResume and the role-request result callback. */
+    /**
+     * S2381: Re-reads the home role holding state; call from onResume and the role-request result callback.
+     * When a role request is not pending, if the role is not held by this app, resets the component state
+     * via [LauncherRoleManager.disableMode] and updates the UI toggle to false so the user can re-attempt.
+     */
     fun refreshState() {
         if (!launcherModeContract.isAvailableInBuild) return
-        val enabled = launcherRoleManager.isModeEnabled()
-        binding.rowLauncherModeEnabled.setCheckedSilently(enabled)
-        updateOpenRowEnabled(enabled)
+        if (launcherRoleManager.isRoleRequestPending()) return
+        val roleHeld = launcherRoleManager.isHomeRoleHeld()
+        if (!roleHeld && launcherRoleManager.isModeEnabled()) {
+            launcherRoleManager.disableMode()
+        }
+        binding.rowLauncherModeEnabled.setCheckedSilently(roleHeld)
+        updateOpenRowEnabled(roleHeld)
     }
 
     // The launcher-settings button only makes sense once the launcher is enabled - keep it inert otherwise.
