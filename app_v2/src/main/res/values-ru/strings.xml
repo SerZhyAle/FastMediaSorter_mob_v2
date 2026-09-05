@@ -3676,4 +3676,9 @@
     <string name="player_panel_auto_hide_seconds">Автоскрытие панели плеера (сек)</string>
     <string name="wear_settings_panel_auto_hide">Автоскрытие панели плеера (сек)</string>
     <string name="launcher_feature_action_configure">Настроить</string>
+    <string name="launcher_settings_animation_palette_title">Палитра анимации</string>
+    <string name="launcher_settings_palette_dynamic">Динамическая (разноцветная)</string>
+    <string name="launcher_settings_palette_green">Зеленоватая</string>
+    <string name="launcher_settings_palette_pink">Розоватая</string>
+    <string name="launcher_settings_palette_blue">Голубоватая</string>
 </resources>

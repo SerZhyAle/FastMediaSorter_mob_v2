@@ -8,6 +8,8 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import com.sza.fastmediasorter.core.util.AnimationIntent
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import android.view.animation.LinearInterpolator
 import timber.log.Timber
 import kotlin.math.sin
@@ -111,7 +113,40 @@ class AudioBreathingBarsView @JvmOverloads constructor(
 
     // ────────────────────────── Public API ──────────────────────────
 
+    // Fires on the settings collector's thread, so the work is posted to the view's own thread.
+    private val policyListener: () -> Unit = { post { refreshPolicy() } }
+
+    /** True while the policy, not the host, is what is holding the animation still. */
+    private var frozenByPolicy = false
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        AnimationPolicy.addLevelListener(policyListener)
+    }
+
+    /**
+     * S2536: this is the alternate skin of the same visualizer, so it follows the same rule - it keeps
+     * moving under the user's cosmetic switch and freezes only in the power-saving level. Leaving it
+     * out would make strategic criterion 3 true on one player skin and false on the other.
+     */
+    fun refreshPolicy() {
+        if (AnimationPolicy.mayAnimate(AnimationIntent.AMBIENT)) {
+            if (frozenByPolicy) startAnimation()
+        } else if (!frozenByPolicy) {
+            frozenByPolicy = true
+            // Pause, never cancel: the last computed frame stays on screen, so a frozen visualizer
+            // reads as held rather than as blank.
+            pauseAnimation()
+        }
+    }
+
     fun startAnimation() {
+        if (!AnimationPolicy.mayAnimate(AnimationIntent.AMBIENT)) {
+            frozenByPolicy = true
+            pauseAnimation()
+            return
+        }
+        frozenByPolicy = false
         when {
             animator.isPaused -> {
                 Timber.d("AudioBreathingBarsView: startAnimation() - resume from pause")
@@ -217,6 +252,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        AnimationPolicy.removeLevelListener(policyListener)
         super.onDetachedFromWindow()
         animator.cancel()
         hueAnimator.cancel()

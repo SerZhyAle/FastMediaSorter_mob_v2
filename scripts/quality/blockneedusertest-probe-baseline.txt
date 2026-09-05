@@ -43,4 +43,4 @@ S2396  Maestro suite flakiness and selection hardening - the change is Maestro f
 S2527  Wear fallback icon palette - seven shared colour resources change, with no Kotlin flow or entry point to instrument; the evidence is a visual check of type-derived fallback icons without thumbnails in both file lists.
 S1873  Build configuration, Gradle and PowerShell tooling only - no Kotlin flow changed, so there is no app entry point for a probe. The device check is the installed artifact's versionName/versionCode and the unchanged build.gradle.kts checksums (per the status note).
 S2364  ProGuard rules, quality gate script and documentation only - no Kotlin flow changed, so there is no app entry point for a probe. Verification on release R8 build required.
-
+S2378  Six string resources changed in EN/RU/UK only, with no Kotlin entry point to instrument; evidence is the limited-access browser text on a phone/emulator.

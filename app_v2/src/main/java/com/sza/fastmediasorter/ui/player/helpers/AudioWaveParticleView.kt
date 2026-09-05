@@ -15,6 +15,8 @@ import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.sza.fastmediasorter.core.util.AnimationIntent
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
@@ -50,26 +52,58 @@ class AudioWaveParticleView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    /** S2223: selectable animation color palettes. */
+    enum class AnimationColorPalette(val key: String) {
+        DYNAMIC(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_DYNAMIC),
+        GREEN(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_GREEN),
+        PINK(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_PINK),
+        BLUE(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_BLUE);
+
+        companion object {
+            fun fromKeyOrDefault(key: String?): AnimationColorPalette =
+                entries.firstOrNull { it.key.equals(key, ignoreCase = true) } ?: DYNAMIC
+        }
+    }
+
+    /** Selected color palette for procedural waves and particles. */
+    var palette: AnimationColorPalette = AnimationColorPalette.DYNAMIC
+
     companion object {
         // Must match the speed of the HTML canvas version: time += 0.002 per animation frame.
         // ValueAnimator fires ~60fps; 0.002 per tick gives ~0.12/s drift.
         private const val TIME_INCREMENT = 0.002f
 
         // Randomization ranges - normal devices
-        private const val WAVE_COUNT_MIN    = 5
-        private const val WAVE_COUNT_MAX    = 12
-        private const val STEP_PX_BASE      = 20f   // ±20 % → 16..24 px
-        private const val STROKE_MIN        = 3f
-        private const val STROKE_MAX        = 6f
-        private const val AMPLITUDE_MIN     = 0.28f // fraction of view height
-        private const val AMPLITUDE_MAX     = 0.48f
-        private const val PARTICLE_MIN      = 15
-        private const val PARTICLE_MAX      = 55
-        private const val PARTICLE_R_MIN    = 1f    // px
-        private const val PARTICLE_R_MAX    = 6f    // px
-        private const val SPEED_MULT_MIN    = 0.5f
-        private const val SPEED_MULT_MAX    = 1.5f
-        private const val HUE_SPREAD_DEG    = 108f  // ±30 % of 360°
+        private const val WAVE_COUNT_MIN = 5
+        private const val WAVE_COUNT_MAX = 12
+        private const val STEP_PX_BASE = 20f // ±20 % → 16..24 px
+        private const val STROKE_MIN = 3f
+        private const val STROKE_MAX = 6f
+        private const val AMPLITUDE_MIN = 0.28f // fraction of view height
+        private const val AMPLITUDE_MAX = 0.48f
+        private const val PARTICLE_MIN = 15
+        private const val PARTICLE_MAX = 55
+        private const val PARTICLE_R_MIN = 1f // px
+        private const val PARTICLE_R_MAX = 6f // px
+        private const val SPEED_MULT_MIN = 0.5f
+        private const val SPEED_MULT_MAX = 1.5f
+        private const val HUE_SPREAD_DEG = 108f // ±30 % of 360°
+        private const val PALETTE_WAVE_STEP_MIN = 2f
+        private const val PALETTE_WAVE_STEP_RANGE = 4f
+        private const val PALETTE_PARTICLE_SPREAD_DEG = 30f
+
+        private const val GREEN_HUE_BASE_MIN = 95f
+        private const val GREEN_HUE_BASE_RANGE = 35f
+        private const val GREEN_PARTICLE_HUE_BASE = 115f
+
+        private const val PINK_HUE_BASE_MIN = 305f
+        private const val PINK_HUE_BASE_RANGE = 30f
+        private const val PINK_PARTICLE_HUE_BASE = 320f
+
+        private const val BLUE_HUE_BASE_MIN = 200f
+        private const val BLUE_HUE_BASE_RANGE = 30f
+        private const val BLUE_PARTICLE_HUE_BASE = 215f
+
         private const val STARTUP_RAMP_FRAMES = 36
         private const val WAVE_LANE_SPACING_FRACTION = 0.038f
         private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
@@ -77,10 +111,10 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val COUNTER_DRIFT_CHANCE = 0.18f
 
         // Reduced limits for low-RAM / weak devices
-        private const val WAVE_COUNT_MIN_LOW    = 3
-        private const val WAVE_COUNT_MAX_LOW    = 6
-        private const val PARTICLE_MIN_LOW      = 6
-        private const val PARTICLE_MAX_LOW      = 18
+        private const val WAVE_COUNT_MIN_LOW = 3
+        private const val WAVE_COUNT_MAX_LOW = 6
+        private const val PARTICLE_MIN_LOW = 6
+        private const val PARTICLE_MAX_LOW = 18
 
         // S1277: the look is accumulated, not drawn in one pass - each tick lays a translucent
         // overlay and draws over it, and the first STARTUP_RAMP_FRAMES ticks ramp amplitude and
@@ -292,17 +326,36 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private fun randomizeParams() {
         val waveMin = if (isLowRam) WAVE_COUNT_MIN_LOW else WAVE_COUNT_MIN
         val waveMax = if (isLowRam) WAVE_COUNT_MAX_LOW else WAVE_COUNT_MAX
-        val pMin    = if (isLowRam) PARTICLE_MIN_LOW   else PARTICLE_MIN
-        val pMax    = if (isLowRam) PARTICLE_MAX_LOW   else PARTICLE_MAX
+        val pMin = if (isLowRam) PARTICLE_MIN_LOW else PARTICLE_MIN
+        val pMax = if (isLowRam) PARTICLE_MAX_LOW else PARTICLE_MAX
 
-        waveCount         = Random.nextInt(waveMin, waveMax + 1)
-        stepPx            = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f)   // ±20 %
-        waveStrokeWidth   = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
-        baseWaveHue       = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
-        waveHueStep       = 8f + Random.nextFloat() * 12f                        // 8..20°
-        waveAmplitude     = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
+        waveCount = Random.nextInt(waveMin, waveMax + 1)
+        stepPx = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f) // ±20 %
+        waveStrokeWidth = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
+        when (palette) {
+            AnimationColorPalette.DYNAMIC -> {
+                baseWaveHue = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
+                waveHueStep = 8f + Random.nextFloat() * 12f // 8..20°
+                particleHueBase = Random.nextFloat() * 360f
+            }
+            AnimationColorPalette.GREEN -> {
+                baseWaveHue = GREEN_HUE_BASE_MIN + Random.nextFloat() * GREEN_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = GREEN_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+            AnimationColorPalette.PINK -> {
+                baseWaveHue = PINK_HUE_BASE_MIN + Random.nextFloat() * PINK_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = PINK_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+            AnimationColorPalette.BLUE -> {
+                baseWaveHue = BLUE_HUE_BASE_MIN + Random.nextFloat() * BLUE_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = BLUE_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+        }
+        waveAmplitude = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
         particleSpeedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
-        particleHueBase   = Random.nextFloat() * 360f
         particleCountCurrent = Random.nextInt(pMin, pMax + 1)
         waveDirectionAngleDeg = Random.nextFloat() * 360f
 
@@ -315,18 +368,23 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
     private fun initParticles(w: Int, h: Int) {
         particles.clear()
+        val particleSpread = if (palette == AnimationColorPalette.DYNAMIC) {
+            HUE_SPREAD_DEG
+        } else {
+            PALETTE_PARTICLE_SPREAD_DEG
+        }
         repeat(particleCountCurrent) {
             val directionalSpeed = (0.12f + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * particleSpeedMult
             val driftSign = if (Random.nextFloat() < COUNTER_DRIFT_CHANCE) -0.35f else 1f
             val directionalVx = waveDirX * directionalSpeed * driftSign
             val directionalVy = waveDirY * directionalSpeed * driftSign
             particles += Particle(
-                x      = Random.nextFloat() * w,
-                y      = Random.nextFloat() * h,
+                x = Random.nextFloat() * w,
+                y = Random.nextFloat() * h,
                 radius = PARTICLE_R_MIN + Random.nextFloat() * (PARTICLE_R_MAX - PARTICLE_R_MIN),
-                vx     = directionalVx + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
-                vy     = directionalVy + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
-                hue    = (particleHueBase + (Random.nextFloat() - 0.5f) * HUE_SPREAD_DEG + 360f) % 360f
+                vx = directionalVx + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
+                vy = directionalVy + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
+                hue = (particleHueBase + (Random.nextFloat() - 0.5f) * particleSpread + 360f) % 360f
             )
         }
     }
@@ -335,7 +393,13 @@ class AudioWaveParticleView @JvmOverloads constructor(
         offBitmap?.let { canvas.drawBitmap(it, 0f, 0f, blitPaint) }
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        AnimationPolicy.addLevelListener(policyListener)
+    }
+
     override fun onDetachedFromWindow() {
+        AnimationPolicy.removeLevelListener(policyListener)
         super.onDetachedFromWindow()
         animator.cancel()
         offBitmap?.recycle()
@@ -345,7 +409,52 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
     // ──────────────────── Public API ────────────────────
 
+    /**
+     * S2536: what this instance's motion is FOR. The audio player leaves the default; the launcher
+     * desktop sets [AnimationIntent.DECORATIVE], which is what lets one class be both the visualizer
+     * that survives the cosmetic switch and the wallpaper that does not.
+     */
+    var intent: AnimationIntent = AnimationIntent.AMBIENT
+
+    /** True while the policy, not the host, is what is holding the animation still. */
+    private var frozenByPolicy = false
+
+    // Fires on the settings collector's thread, so the work is posted to the view's own thread.
+    private val policyListener: () -> Unit = { post { refreshPolicy() } }
+
+    /**
+     * S2536: re-asks the policy after the level moved. Without this a backdrop frozen at ten percent
+     * would stay frozen after the charge recovered until the view was recreated - a paused animator
+     * has no draw pass left in which to notice the change on its own.
+     */
+    fun refreshPolicy() {
+        if (AnimationPolicy.mayAnimate(intent)) {
+            if (frozenByPolicy) startAnimation()
+        } else {
+            freezeForPolicy()
+        }
+    }
+
+    /**
+     * Pauses rather than cancels when a session is already running, so the buffer keeps the frame it
+     * had and the view reads as a still image instead of going black (S1277).
+     */
+    private fun freezeForPolicy() {
+        if (frozenByPolicy) return
+        frozenByPolicy = true
+        if (animator.isRunning) pauseAnimation() else renderFreshStaticFrame()
+    }
+
     fun startAnimation() {
+        if (!AnimationPolicy.mayAnimate(intent)) {
+            freezeForPolicy()
+            return
+        }
+        frozenByPolicy = false
+        beginAnimatorSession()
+    }
+
+    private fun beginAnimatorSession() {
         when {
             animator.isPaused -> {
                 pendingStaticFrame = false
@@ -492,12 +601,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val x = c * (1f - abs((h / 60f) % 2f - 1f))
         val m = l - c / 2f
         val (r, g, b) = when {
-            h < 60f  -> Triple(c + m, x + m, m)
+            h < 60f -> Triple(c + m, x + m, m)
             h < 120f -> Triple(x + m, c + m, m)
-            h < 180f -> Triple(m,     c + m, x + m)
-            h < 240f -> Triple(m,     x + m, c + m)
-            h < 300f -> Triple(x + m, m,     c + m)
-            else     -> Triple(c + m, m,     x + m)
+            h < 180f -> Triple(m, c + m, x + m)
+            h < 240f -> Triple(m, x + m, c + m)
+            h < 300f -> Triple(x + m, m, c + m)
+            else -> Triple(c + m, m, x + m)
         }
         return Color.argb(
             (a * 255f).toInt(),

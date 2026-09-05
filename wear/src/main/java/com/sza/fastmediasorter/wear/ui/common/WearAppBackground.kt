@@ -45,7 +45,8 @@ fun WearAppBackground(
             is WearBackground.BrandedAnimation -> {
                 WaveParticleBackground(
                     modifier = Modifier.fillMaxSize(),
-                    running = running
+                    running = running,
+                    intent = AnimationIntent.DECORATIVE
                 )
                 Box(
                     modifier = Modifier
@@ -57,7 +58,8 @@ fun WearAppBackground(
             is WearBackground.BrandedStill -> {
                 WaveParticleBackground(
                     modifier = Modifier.fillMaxSize(),
-                    running = false
+                    running = false,
+                    intent = AnimationIntent.DECORATIVE
                 )
                 Box(
                     modifier = Modifier

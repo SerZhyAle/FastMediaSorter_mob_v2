@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -1311,10 +1312,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
         resourceAdapter.setUseCompactElements(settings.useCompactElements)
         resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
-        if (settings.disableAnimations) {
+        // S2536: through the policy, not the raw setting. This was the last draw-side consumer still
+        // reading the flag directly, which stopped mattering only while the two could not disagree -
+        // a power-saving level now says "no animation" with the user's own switch still off.
+        if (AnimationPolicy.isAnimationAllowed) {
+            if (binding.rvResources.itemAnimator == null) {
+                binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+            }
+        } else {
             binding.rvResources.itemAnimator = null
-        } else if (binding.rvResources.itemAnimator == null) {
-            binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
         }
         // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
         // capability), replacing the removed runBlocking read in setupViews.

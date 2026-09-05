@@ -25,7 +25,9 @@ import com.sza.fastmediasorter.core.input.GamepadNavigationTranslator
 import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
+import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
@@ -220,6 +222,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // S2536: recompute rather than re-apply the cached answer. The power level can move while
+        // this activity is stopped and the settings collector does not re-emit for it, so a screen
+        // resumed after the charge recovered would otherwise keep the standing-down decision until
+        // the next unrelated settings change. Re-running the override chain also keeps each player
+        // host's own answer authoritative.
+        lastSecureFlagSettings?.let { keepScreenAwakeDecision = keepScreenAwakeFor(it) }
         // Reapply wake lock in case it was cleared by system
         applyKeepScreenAwake()
         // S1045: some OEMs clear window flags on background - re-apply from the last settings snapshot.
@@ -254,7 +262,13 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     // S0438: keep-screen-on decision is settings-driven. Default applies the global preventSleep;
     // player hosts override to also honour the dependent keepScreenOnPlayer setting.
-    protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean = settings.preventSleep
+    //
+    // S2536: the GLOBAL hold stands down in the power-saving level. It is on by default, so it is the
+    // app's largest always-on-screen cost and outweighs every decorative animator combined. The
+    // player hosts' override is deliberately not gated here: dropping the hold mid-video would blank
+    // the screen during playback, which is a functional break rather than an economy.
+    protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep && AnimationPolicy.level != PowerPolicyLevel.SAVING
 
     // Cached decision so onCreate/onResume can re-apply the flag synchronously between settings emissions.
     private var keepScreenAwakeDecision: Boolean = true

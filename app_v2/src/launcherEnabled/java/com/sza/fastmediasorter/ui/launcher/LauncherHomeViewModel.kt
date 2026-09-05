@@ -151,6 +151,14 @@ class LauncherHomeViewModel @Inject constructor(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWeatherLastLocation)
 
+    /**
+     * S2223: animation color palette for procedural waves/particles wallpaper.
+     */
+    val animationPalette: StateFlow<String> = settingsRepository.getSettings()
+        .map { it.launcherAnimationPalette }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherAnimationPalette)
+
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
             LauncherTaskbarComposition(

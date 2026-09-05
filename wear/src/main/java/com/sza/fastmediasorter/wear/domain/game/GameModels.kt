@@ -5,7 +5,8 @@ import timber.log.Timber
 enum class GameCell {
     FLOOR,
     WALL,
-    EXIT
+    EXIT,
+    VOID
 }
 
 enum class GameDirection(val rowDelta: Int, val colDelta: Int) {
@@ -91,10 +92,14 @@ data class GameBoard(
     }
 
     fun contains(position: GamePosition): Boolean =
-        position.row in 0 until height && position.col in 0 until width
+        position.row in 0 until height &&
+            position.col in 0 until width &&
+            cells[indexOf(position)] != GameCell.VOID
 
     fun cellAt(position: GamePosition): GameCell {
-        require(contains(position)) { "position outside board: $position" }
+        require(position.row in 0 until height && position.col in 0 until width) {
+            "position outside board: $position"
+        }
         return cells[indexOf(position)]
     }
 
@@ -117,7 +122,9 @@ data class GameBoard(
     private fun positionOf(index: Int): GamePosition = GamePosition(index / width, index % width)
 
     companion object {
-        fun fromRows(vararg rows: String): GameBoard {
+        fun fromRows(vararg rows: String): GameBoard = fromRowList(rows.toList())
+
+        fun fromRowList(rows: List<String>): GameBoard {
             require(rows.isNotEmpty()) { "rows must not be empty" }
             val width = rows.first().length
             require(width > 0) { "rows must not be empty" }
@@ -128,6 +135,7 @@ data class GameBoard(
                         '#', 'W' -> GameCell.WALL
                         'E', 'X' -> GameCell.EXIT
                         '.', 'P', 'K', 'S' -> GameCell.FLOOR
+                        ' ', '-', '_' -> GameCell.VOID
                         // The watch copy must not take the program down on a malformed hand-written
                         // board: an unsupported char degrades to floor and is reported instead.
                         else -> {
@@ -139,6 +147,42 @@ data class GameBoard(
             }
             return GameBoard(width, rows.size, cells)
         }
+
+        fun createRoundTemplate(width: Int, height: Int): GameBoard {
+            val rows = when {
+                width == ROUND_STANDARD_WIDTH && height == ROUND_STANDARD_HEIGHT -> listOf(
+                    "  ........  ",
+                    " .......... ",
+                    "............",
+                    "............",
+                    "............",
+                    "............",
+                    "............",
+                    "............",
+                    "............",
+                    " .......... ",
+                    "  ........  "
+                )
+                width == ROUND_COMPACT_WIDTH && height == ROUND_COMPACT_HEIGHT -> listOf(
+                    " ........ ",
+                    "..........",
+                    "..........",
+                    "..........",
+                    "..........",
+                    "..........",
+                    "..........",
+                    "..........",
+                    " ........ "
+                )
+                else -> List(height) { ".".repeat(width) }
+            }
+            return fromRowList(rows)
+        }
+
+        const val ROUND_STANDARD_WIDTH = 12
+        const val ROUND_STANDARD_HEIGHT = 11
+        const val ROUND_COMPACT_WIDTH = 10
+        const val ROUND_COMPACT_HEIGHT = 9
     }
 }
 

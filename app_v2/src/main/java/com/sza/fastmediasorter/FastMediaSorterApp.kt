@@ -39,9 +39,7 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
@@ -178,6 +176,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
 
+    // S2536: folds the charge, the system saver and the user's trigger into one policy level.
+    // Lazy because its own battery observation starts with the first started activity, not with the
+    // process - resolving it eagerly here would build it before anything can be animating.
+    @Inject
+    lateinit var powerStateObserver: dagger.Lazy<com.sza.fastmediasorter.core.power.PowerStateObserver>
+
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
@@ -216,15 +220,19 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         }
 
-        // S2250: the only subscription to the disable-animations flag in the process. Every
-        // animation site reads AnimationPolicy synchronously instead of carrying its own wiring,
-        // so this collector is what makes that read cheap enough for a draw path. Started here
-        // rather than behind firstFrameSignal because the first screen's own transition asks.
+        // S2250 / S2536: the only subscription that reaches AnimationPolicy in the process. Every
+        // animation site reads the policy synchronously instead of carrying its own wiring, so this
+        // collector is what makes that read cheap enough for a draw path. Started here rather than
+        // behind firstFrameSignal because the first screen's own transition asks.
+        //
+        // S2536 moved the source from the raw setting to PowerStateObserver, which already folds the
+        // setting together with the charge and the system saver. There is deliberately only one
+        // writer: two collectors racing for the same field would have no rule about which wins.
         applicationScope.launch(Dispatchers.IO) {
-            settingsRepository.get().getSettings()
-                .map { it.disableAnimations }
-                .distinctUntilChanged()
-                .collect { disabled -> AnimationPolicy.update(disabled) }
+            // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
+            // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
+            // which is what keeps the listeners below from firing on every battery tick.
+            powerStateObserver.get().level.collect { level -> AnimationPolicy.update(level) }
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
@@ -269,6 +277,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
+        registerActivityLifecycleCallbacks(powerStateObserver.get())
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(

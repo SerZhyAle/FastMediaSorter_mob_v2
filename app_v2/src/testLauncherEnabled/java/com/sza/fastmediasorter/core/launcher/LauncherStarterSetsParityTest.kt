@@ -135,6 +135,27 @@ class LauncherStarterSetsParityTest {
         assertEquals(true, LauncherGadgetRegistry.KEY_BATTERY in headsetTargets)
     }
 
+    /**
+     * S2385: the head unit's signature key, declared since S2241 and emitted by nothing until that
+     * ticket - so it is the one key whose spelling was never exercised against the registry.
+     *
+     * Its own case rather than a block inside the sweep above, which is at the length ceiling: a
+     * fourteenth assertion there would be paid for by deleting one of the thirteen.
+     */
+    @Test
+    fun `the head units live map key matches the registry const`() {
+        val liveMap = LauncherStarterSets
+            .itemsFor(
+                DeviceProfileType.CAR_HEAD_UNIT,
+                StarterResources(),
+                emptyMap(),
+                emptySet(),
+                screenClass = mediumWide,
+            )
+            .first { it.target == LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE }
+        assertEquals(LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE, liveMap.target)
+    }
+
     @Test
     fun `every starter gadget key resolves through the registry`() {
         val registryKeys = setOf(

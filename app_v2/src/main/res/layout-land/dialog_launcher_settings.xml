@@ -568,6 +568,16 @@
                         app:sdr_inline="true"
                         app:sdr_title="@string/launcher_settings_widget_backdrop_alpha_title" />
 
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowLauncherAnimationPalette"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_inline="true"
+                        app:sdr_title="@string/launcher_settings_animation_palette_title" />
+
                 </LinearLayout>
 
                 <!-- 7. System group -->

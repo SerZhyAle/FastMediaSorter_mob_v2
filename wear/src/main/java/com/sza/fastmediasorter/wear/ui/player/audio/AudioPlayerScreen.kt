@@ -72,6 +72,7 @@ import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.ui.common.AnimationIntent
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
@@ -466,7 +467,8 @@ private fun PlayerBackground(
     if (!coverShown) {
         WaveParticleBackground(
             modifier = Modifier.fillMaxSize(),
-            running = isPlaying
+            running = isPlaying,
+            intent = AnimationIntent.AMBIENT
         )
     }
     val scrimAlpha = if (coverShown) COVER_SCRIM_ALPHA else ANIMATION_SCRIM_ALPHA

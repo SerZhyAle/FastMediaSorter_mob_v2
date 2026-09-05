@@ -342,6 +342,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         requireNotNull(screenTimeoutSettingsManager).setupRow()
         setupWidgetBackdropAlphaRow()
+        setupAnimationPaletteRow()
         binding.rowLauncherOpenHomeSettings.setOnClickListener {
             val host = activity ?: return@setOnClickListener
             launcherRoleManager.openHomeChooser(host)
@@ -388,6 +389,23 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
             val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(widgetBackdropAlpha = alpha) })
+        }
+    }
+
+    private fun setupAnimationPaletteRow() {
+        binding.rowLauncherAnimationPalette.setEntries(
+            listOf(
+                getText(R.string.launcher_settings_palette_dynamic),
+                getText(R.string.launcher_settings_palette_green),
+                getText(R.string.launcher_settings_palette_pink),
+                getText(R.string.launcher_settings_palette_blue),
+            )
+        )
+        binding.rowLauncherAnimationPalette.setOnItemSelectedListener { index ->
+            if (isUpdatingFromSettings) return@setOnItemSelectedListener
+            val options = AppSettings.ANIMATION_PALETTE_OPTIONS
+            val palette = options.getOrElse(index) { AppSettings.ANIMATION_PALETTE_DYNAMIC }
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(animationPalette = palette) })
         }
     }
 
@@ -505,6 +523,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             wallpaperSettingsManager?.render(settings)
             screenTimeoutSettingsManager?.render(settings)
             renderWidgetBackdropAlphaRow(settings)
+            renderAnimationPaletteRow(settings)
             isUpdatingFromSettings = false
         }
         collectOnLifecycle(launcherViewModel.resetResult) { succeeded ->
@@ -623,6 +642,11 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
         val selected = if (index >= 0) index else BACKDROP_ALPHA_DEFAULT_INDEX
         binding.rowLauncherWidgetBackdropAlpha.setSelection(selected)
+    }
+
+    private fun renderAnimationPaletteRow(settings: AppSettings) {
+        val paletteIndex = AppSettings.ANIMATION_PALETTE_OPTIONS.indexOf(settings.launcherAnimationPalette)
+        binding.rowLauncherAnimationPalette.setSelection(if (paletteIndex >= 0) paletteIndex else 0)
     }
 
     override fun onStart() {

@@ -59,6 +59,37 @@ class GameStateSnapshotTest {
         assertNull(GameStateSnapshot.fromStorage(foreign))
     }
 
+    @Test
+    fun `a round board with void cells survives the round trip through storage`() {
+        val roundBoard = GameBoard.createRoundTemplate(
+            GameBoard.ROUND_STANDARD_WIDTH,
+            GameBoard.ROUND_STANDARD_HEIGHT
+        )
+        val original = GameLevelState(
+            board = roundBoard,
+            player = GameActor(GamePosition(5, 5)),
+            enemies = listOf(
+                GameEnemy("k", GameEnemyType.KRYVAVITSA, GamePosition(2, 2))
+            ),
+            stats = GameStats(turns = 10, score = 150),
+            config = GameLevelConfig(
+                levelNumber = 1,
+                width = GameBoard.ROUND_STANDARD_WIDTH,
+                height = GameBoard.ROUND_STANDARD_HEIGHT,
+                seed = 9999L
+            ),
+            status = GameStatus.PLAYING
+        )
+
+        val restored = GameStateSnapshot
+            .fromStorage(GameStateSnapshot.fromLevelState(original).toStorage())
+            ?.toLevelState()
+
+        assertEquals(original, restored)
+        assertEquals(GameCell.VOID, restored?.board?.cellAt(GamePosition(0, 0)))
+        assertEquals(GameCell.FLOOR, restored?.board?.cellAt(GamePosition(0, 2)))
+    }
+
     /** A level a player could plausibly walk away from: moved player, spent turns, a live score. */
     private fun midGameState(): GameLevelState = GameLevelState(
         board = GameBoard.fromRows(

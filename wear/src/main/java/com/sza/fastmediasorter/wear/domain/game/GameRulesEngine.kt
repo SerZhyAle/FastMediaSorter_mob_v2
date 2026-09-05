@@ -136,6 +136,7 @@ class GameRulesEngine(
                 events = listOf(GameEvent.PlayerMoved(from, target))
             )
             GameCell.WALL -> pushWall(state, direction, from, target)
+            GameCell.VOID -> blockedPlayerMove(state, GameMoveRejectReason.OUT_OF_BOUNDS, target)
         }
     }
 

@@ -3716,4 +3716,9 @@
     <string name="player_panel_auto_hide_seconds">Player panel auto-hide duration (s)</string>
     <string name="wear_settings_panel_auto_hide">Player panel auto-hide duration (s)</string>
     <string name="launcher_feature_action_configure">Settings</string>
+    <string name="launcher_settings_animation_palette_title">Animation color palette</string>
+    <string name="launcher_settings_palette_dynamic">Dynamic (multicolor)</string>
+    <string name="launcher_settings_palette_green">Greenish</string>
+    <string name="launcher_settings_palette_pink">Pinkish</string>
+    <string name="launcher_settings_palette_blue">Blueish</string>
 </resources>

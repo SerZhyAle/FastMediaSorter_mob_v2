@@ -275,10 +275,19 @@ foreach ($property in $SystemProperty) {
 }
 
 if ($Mode -eq "Assemble") {
-    # -Mode Assemble is the only mode here that packages a real, installable APK. Left unstamped it
-    # ships the checked-in constant, so the artifact reports the version of whatever release last
-    # touched build.gradle.kts - on 2026-08-21 that installed a watch build reading six days older
-    # than the one it replaced (S1873). Every compile-only mode keeps the frozen value on purpose.
+    # -Mode Assemble is the only mode stamped HERE. Left unstamped it ships the checked-in constant,
+    # so the artifact reports the version of whatever release last touched build.gradle.kts - on
+    # 2026-08-21 that installed a watch build reading six days older than the one it replaced (S1873).
+    # Every compile-only mode keeps the frozen value on purpose.
+    #
+    # S2377: ConnectedAndroidTest installs an APK too and STILL does not belong here - do not "fix"
+    # this condition by adding it. Since S1873 Phase 05 the in-build stamp in
+    # gradle/build-version-stamp.gradle.kts already covers it, matched from the task name
+    # ("connected"), and because that predicate is derived from the task graph the connected run keeps
+    # a stable configuration-cache entry. Passing the property from here as well changes no version
+    # and costs one: measured 2026-09-05, adding it made every fwm run reconfigure with "configuration
+    # cache cannot be reused because Gradle property 'fms.versionName' has changed", while the same
+    # run without it stored its entry and installed the identical stamped code 26090502.
     . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
     $stamp = Get-BuildVersionStamp
     $assembleVersionCode = if ($Module -eq 'wear') { $stamp.WearVersionCode } else { $stamp.AppVersionCode }

@@ -71,6 +71,27 @@ if ([string]::IsNullOrWhiteSpace($content)) {
 $lines = [System.IO.File]::ReadAllLines($selectedLogPath)
 $compilerLines = @($lines | Where-Object { $_ -match '^\s*e: file:///.+$' })
 $failedTaskLines = @($lines | Where-Object { $_ -match '^\s*> Task .+ FAILED$' })
+
+# S2377: an install refusal is printed by the installer BEFORE gradle's own FAILURE: block - in the
+# reference log temp/check_fast_20260902_165336.log the INSTALL_FAILED lines sit at 97-168 and the
+# marker at 187 - so it reaches none of the block-bound output below, and the digest built on top of
+# this script cannot name a cause it is never handed. What the operator saw instead was
+# "Could not load test results", which reads as a failed Room migration: the most expensive false red
+# in the whole pre-release sweep. Scanned across the whole file for exactly that reason.
+#
+# One line per distinct token: the same refusal repeats (seven times in the reference log) and the
+# first occurrence is the informative one, because that is the line carrying both version codes.
+$installFailureLines = @()
+$seenInstallTokens = @{}
+foreach ($logLine in $lines) {
+    if ($logLine -match 'INSTALL_FAILED_[A-Z_]+') {
+        $installToken = $Matches[0]
+        if (-not $seenInstallTokens.ContainsKey($installToken)) {
+            $seenInstallTokens[$installToken] = $true
+            $installFailureLines += $logLine.Trim()
+        }
+    }
+}
 $failureStart = -1
 
 for ($index = 0; $index -lt $lines.Length; $index++) {
@@ -97,6 +118,8 @@ if ($failureStart -ge 0) {
     Write-Output "Build log: $selectedLogPath"
     Write-Output ""
     Write-Section -Title "Compiler errors:" -Lines $compilerLines
+    # Before the failed task, because the task line is the symptom and this is the cause.
+    Write-Section -Title "Install failures:" -Lines $installFailureLines
     Write-Section -Title "Failed tasks:" -Lines $failedTaskLines
     Write-Section -Title "Failure block:" -Lines $failureBlock
     exit 0

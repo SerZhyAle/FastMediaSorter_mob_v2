@@ -269,6 +269,9 @@ object LauncherStarterSets {
      * seeded set rather than the whole catalogue is what keeps Chrome, YouTube and Maps on a device with
      * no Play Services, where the Google section is not seeded at all.
      *
+     * S2385: the profile's signature cell is a third owner under that same contract, and it resolves
+     * ahead of both app sections - see [profileSignatureOrNull].
+     *
      * S2015: [thirdPartyApps] are the device's own installed applications, resolved by the caller
      * (`QueryThirdPartyAppsUseCase`) because this table has no Context and must stay pure data. They
      * close the Android-apps section, which otherwise holds only Wi-Fi, Bluetooth and a dialer once the
@@ -278,7 +281,7 @@ object LauncherStarterSets {
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
-        routeAvailableInBuild: Map<String, Boolean>,
+        routeLaunchable: Map<String, Boolean>,
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
@@ -289,7 +292,7 @@ object LauncherStarterSets {
         val groups = contentGroups(
             profile = profile,
             resources = resources,
-            routeAvailableInBuild = routeAvailableInBuild,
+            routeLaunchable = routeLaunchable,
             installedPackages = installedPackages,
             googleServicesAvailable = googleServicesAvailable,
             importedShortcuts = importedShortcuts,
@@ -320,28 +323,37 @@ object LauncherStarterSets {
     private fun contentGroups(
         profile: DeviceProfileType,
         resources: StarterResources,
-        routeAvailableInBuild: Map<String, Boolean>,
+        routeLaunchable: Map<String, Boolean>,
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean,
         importedShortcuts: List<StarterItem>,
         thirdPartyApps: List<String>,
     ): Map<StarterSectionGroup, List<StarterItem>> {
-        val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
+        val streamsAvailable = routeLaunchable[InternalRouteCatalog.KEY_STREAMS] == true
+
+        // S2385: the profile group is resolved first because its signature cell may be an application,
+        // and every later owner of that package is defined by what the earlier ones already took.
+        val profileGroup = profileGadgetGroup(profile, resources, streamsAvailable, installedPackages)
+        val profileOwned = profileGroup.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
 
         // S2015: the Google membership is resolved before the Android-apps group is built, never after,
         // because that group subtracts it (see the itemsFor KDoc and strategic ADR-1).
         val googleOwned = googleSectionPackages(googleServicesAvailable, installedPackages)
 
         return mapOf(
-            StarterSectionGroup.PROFILE_GADGETS to profileGadgetGroup(profile, resources, streamsAvailable),
+            StarterSectionGroup.PROFILE_GADGETS to profileGroup,
             StarterSectionGroup.CORE_RESOURCES to coreResources(resources),
             StarterSectionGroup.RESOURCES to userResources(resources) + importedShortcuts,
-            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeAvailableInBuild),
+            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeLaunchable),
             StarterSectionGroup.LAUNCHER_ACTIONS to launcherActionGroup(profile),
             StarterSectionGroup.ANDROID_APPS to
-                androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps),
-            StarterSectionGroup.GOOGLE_APPS to googleOwned.map { shortcut(LauncherCellCommand.App(it)) },
-            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeAvailableInBuild),
+                androidAppsSection(profile, installedPackages, profileOwned + googleOwned, thirdPartyApps),
+            // S2385: the exclusion the Apps section gets is the UNION, while this group loses only what
+            // the profile took. Handing the Apps section the shrunk set instead would drop the profile's
+            // package out of the Google section and straight back into commonThirdPartyApps below it.
+            StarterSectionGroup.GOOGLE_APPS to
+                (googleOwned - profileOwned).map { shortcut(LauncherCellCommand.App(it)) },
+            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeLaunchable),
             StarterSectionGroup.MEDIA_WINDOWS to mediaWindowGroup(resources),
             StarterSectionGroup.STREAMS to streamGroup(streamsAvailable),
         )
@@ -417,7 +429,9 @@ object LauncherStarterSets {
         profile: DeviceProfileType,
         resources: StarterResources,
         streamsAvailable: Boolean,
+        installedPackages: Set<String>,
     ): List<StarterItem> = buildList {
+        profileSignatureOrNull(profile, installedPackages)?.let(::add)
         addAll(profileGadgets(profile, resources, streamsAvailable))
         if (profile in LOCATION_TILE_PROFILES) {
             add(gadget(GADGET_COMPASS))
@@ -444,12 +458,12 @@ object LauncherStarterSets {
     }
 
     /** S2251: the utility tiles - a game, the speed readout and the network monitor. */
-    private fun utilityWidgetGroup(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
-        if (routeAvailableInBuild[InternalRouteCatalog.KEY_GAME] == true) {
+    private fun utilityWidgetGroup(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
+        if (routeLaunchable[InternalRouteCatalog.KEY_GAME] == true) {
             add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME)))
         }
         add(gadget(GADGET_SPEED))
-        if (routeAvailableInBuild[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
+        if (routeLaunchable[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
             add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR)))
         }
     }
@@ -468,22 +482,25 @@ object LauncherStarterSets {
     }
 
     /**
-     * S2015: the Android-apps section, with every package the Google section already owns filtered out.
+     * S2015: the Android-apps section, with every package an earlier section already owns filtered out.
      * [thirdPartyApps] close it, minus anything the fixed rules above already placed - the caller's list
      * is resolved against the whole device and the starter table's own candidates may appear in it.
+     *
+     * S2385: [alreadySeeded] is the union of the Google membership and the profile's signature cell, so
+     * the name no longer says "google" - two sections ahead of this one can own a package now.
      */
     private fun androidAppsSection(
         profile: DeviceProfileType,
         installedPackages: Set<String>,
-        googleOwned: Set<String>,
+        alreadySeeded: Set<String>,
         thirdPartyApps: List<String>,
     ): List<StarterItem> {
         val fixed = buildList {
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, alreadySeeded)?.let(::add)
                 firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
             } else if (profile in MAPS_PROFILES) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, alreadySeeded)?.let(::add)
             }
             if (profile in WIFI_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
@@ -491,11 +508,11 @@ object LauncherStarterSets {
             if (profile in BLUETOOTH_PROFILES) {
                 add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
             }
-            addAll(commonThirdPartyApps(installedPackages, googleOwned))
+            addAll(commonThirdPartyApps(installedPackages, alreadySeeded))
         }
         val alreadyPlaced = fixed.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
         return fixed + thirdPartyApps
-            .filterNot { it in alreadyPlaced || it in googleOwned }
+            .filterNot { it in alreadyPlaced || it in alreadySeeded }
             .map { shortcut(LauncherCellCommand.App(it)) }
     }
 
@@ -566,9 +583,10 @@ object LauncherStarterSets {
     // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
     // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static
     // InternalRouteCatalog route, needs a resource-picker dialog) are the strip's only two exclusions.
-    // Gated on build presence only: a compiled-but-runtime-disabled feature keeps its cell, which routes
-    // to its own setting.
-    private fun commonFeatures(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
+    // S2382: gated on launchability, not on build presence. A compiled-but-disabled feature used to hold
+    // a cell that routed to its own setting; the reactive shortcut sync (S2330) now adds the cell the
+    // moment the feature becomes launchable, so a first seed no longer has to carry it in advance.
+    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
         val paddingKeys = listOf(
             InternalRouteCatalog.KEY_STREAMS,
             InternalRouteCatalog.KEY_QUICK_CAMERA,
@@ -583,7 +601,7 @@ object LauncherStarterSets {
             InternalRouteCatalog.KEY_WEAR_COMPANION,
         )
         paddingKeys.forEach { key ->
-            if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
+            if (routeLaunchable[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
         }
     }
 
@@ -645,6 +663,43 @@ object LauncherStarterSets {
             DeviceProfileType.CAR_HEAD_UNIT,
             DeviceProfileType.OTHER -> null
         }
+
+    /**
+     * S2385: the one cell that makes a fresh desktop recognisable as the device it belongs to, seeded at
+     * the HEAD of the profile's widget group (strategic ADR-2). The group is budgeted and scales down to
+     * three items on a compact screen, so a signature added to the tail would be the first thing cut.
+     *
+     * Exhaustive over [DeviceProfileType] like [mediaWindowOrNull] beside it: a new profile must name its
+     * signature or an explicit null rather than inherit a silent default. Nine of the eleven return null
+     * because [profileGadgets] already gives them a group nothing else has - the frame its photos, the
+     * box its streams, the reader its documents.
+     *
+     * The head unit is the exception the ticket opened on: it carried a Maps *icon* in the apps section
+     * while the live frame gadget shipped in the same build and was seeded nowhere. The tablet is the
+     * other: its group held one image window and nothing said "tablet", so YouTube moves out of the row
+     * every profile shares and into the group only this profile has.
+     */
+    private fun profileSignatureOrNull(
+        profile: DeviceProfileType,
+        installedPackages: Set<String>,
+    ): StarterItem? = when (profile) {
+        DeviceProfileType.CAR_HEAD_UNIT -> StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_GOOGLE_MAPS_LIVE,
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+        )
+        DeviceProfileType.HOME_TABLET -> appIfInstalled(PACKAGE_YOUTUBE, installedPackages)
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.AUDIO_PLAYER,
+        DeviceProfileType.MEDIA_PLAYER,
+        DeviceProfileType.VIDEO_PLAYER,
+        DeviceProfileType.TV_MEDIA_BOX,
+        DeviceProfileType.PHOTO_FRAME,
+        DeviceProfileType.EBOOK_READER,
+        DeviceProfileType.VR_HEADSET,
+        DeviceProfileType.OTHER -> null
+    }
 
     /**
      * Lays [items] row-major over an occupancy grid of [columns] columns: each item takes the first

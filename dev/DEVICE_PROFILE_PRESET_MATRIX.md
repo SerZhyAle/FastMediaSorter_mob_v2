@@ -180,10 +180,11 @@ Broad categories currently registered: credentials, install-local pointers (reso
 paths), consent flags, session and migration state, one-shot hints, and the locale-derived
 translation languages.
 
-## 7. The launcher desktop is not a preset (S2309)
+## 7. The launcher desktop is not a preset (S2309, S2385)
 
 The starter desktop the launcher seeds - which sections exist, in which order, how many items each
-holds and how many screens they fill - is **not** driven by the CSV matrix and will not be.
+holds and how many screens they fill, **and which cells land in them** - is **not** driven by the CSV
+matrix and will not be.
 
 It has a second axis the CSV cannot express: the device's screen class. A profile says what belongs
 on the device; the screen class says how much of it reaches the first screen, and it is derived from
@@ -195,8 +196,17 @@ Adding layout columns to the CSV would also mean one column per section per scre
 grid nobody can read and a coverage gate nobody can satisfy - and the CSV's promise is that every
 row is one `AppSettings` field, which a section order is not.
 
+The desktop's **contents** stay out for a second reason (S2385, ADR-1). This CSV's contract is that an
+empty cell means "do not override", which is unambiguous for a scalar option and not for a list: an
+empty cell would stop being distinguishable from a deliberately empty list, and the same eleven
+columns would carry a value whose meaning depended on the row's type. Contents also depend on things
+no `option -> profile` grid holds - which packages are installed, which resource ids resolved, which
+routes the build shipped - so the profile column could not decide them alone even if the shape fitted.
+
 Where the rules actually live, for a reader who came here looking for them:
 
+- `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSets.kt` - what each
+  profile's desktop is made of, the signature cell it opens its widget group with among it.
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterLayoutRules.kt` - the
   section order, the per-section item budget and the screen count, per profile and screen class.
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClassifier.kt` - how a

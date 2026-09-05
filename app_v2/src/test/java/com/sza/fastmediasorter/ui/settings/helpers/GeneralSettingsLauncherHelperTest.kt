@@ -31,8 +31,8 @@ class GeneralSettingsLauncherHelperTest {
 
     @Before
     fun setUp() {
-        every { binding.rowLauncherModeEnabled } returns rowLauncherModeEnabled
-        every { binding.rowLauncherSettings } returns rowLauncherSettings
+        setBindingField("rowLauncherModeEnabled", rowLauncherModeEnabled)
+        setBindingField("rowLauncherSettings", rowLauncherSettings)
         every { launcherModeContract.isAvailableInBuild } returns true
 
         helper = GeneralSettingsLauncherHelper(
@@ -42,6 +42,20 @@ class GeneralSettingsLauncherHelperTest {
             launcherRoleManager = launcherRoleManager,
             launcherRoleLauncher = launcherRoleLauncher,
         )
+    }
+
+    private fun setBindingField(fieldName: String, value: Any) {
+        var clazz: Class<*>? = binding.javaClass
+        while (clazz != null && clazz != Any::class.java) {
+            try {
+                val field = clazz.getDeclaredField(fieldName)
+                field.isAccessible = true
+                field.set(binding, value)
+                return
+            } catch (_: NoSuchFieldException) {
+                clazz = clazz.superclass
+            }
+        }
     }
 
     @Test

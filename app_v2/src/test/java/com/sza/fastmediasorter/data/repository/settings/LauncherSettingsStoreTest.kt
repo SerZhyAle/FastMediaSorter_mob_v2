@@ -51,6 +51,8 @@ class LauncherSettingsStoreTest {
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
         // least likely to reach - the tester has picked a city before he thinks to test this.
         assertEquals("", values.weatherLastLocation)
+        // S2223: dynamic palette by default.
+        assertEquals(AppSettings.ANIMATION_PALETTE_DYNAMIC, values.animationPalette)
     }
 
     @Test
@@ -234,6 +236,7 @@ class LauncherSettingsStoreTest {
                 screenBlackoutTimeoutSeconds = 45,
                 widgetBackdropAlpha = 0.25f,
                 weatherLastLocation = "50.45,30.52,Kyiv",
+                animationPalette = AppSettings.ANIMATION_PALETTE_GREEN,
             ),
         )
 
@@ -275,6 +278,18 @@ class LauncherSettingsStoreTest {
         assertEquals(settings.launcherWallpaperMode, values.wallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)
         assertEquals(settings.launcherWeatherLastLocation, values.weatherLastLocation)
+        assertEquals(settings.launcherAnimationPalette, values.animationPalette)
+    }
+
+    @Test
+    fun `an unknown animation palette token falls back to DYNAMIC`() {
+        val prefs = mutablePreferencesOf()
+        LauncherSettingsStore.write(
+            prefs,
+            AppSettings(launcher = LauncherSettings(animationPalette = "UNKNOWN_PALETTE"))
+        )
+
+        assertEquals(AppSettings.ANIMATION_PALETTE_DYNAMIC, LauncherSettingsStore.read(prefs).animationPalette)
     }
 
     // S2300: `read` answers with the launcher group itself, so these mirror the production direction

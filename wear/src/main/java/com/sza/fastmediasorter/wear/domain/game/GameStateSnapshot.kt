@@ -127,6 +127,7 @@ private const val STORED_FALSE = "0"
 private const val CHAR_FLOOR = '.'
 private const val CHAR_WALL = '#'
 private const val CHAR_EXIT = 'X'
+private const val CHAR_VOID = ' '
 
 /** The player and the enemies, accepted only once they are known to stand on the decoded board. */
 private class DecodedPlacement(val player: GameActor, val enemies: List<GameEnemy>)
@@ -143,12 +144,14 @@ private fun charOf(cell: GameCell): Char = when (cell) {
     GameCell.FLOOR -> CHAR_FLOOR
     GameCell.WALL -> CHAR_WALL
     GameCell.EXIT -> CHAR_EXIT
+    GameCell.VOID -> CHAR_VOID
 }
 
 private fun cellOf(char: Char): GameCell? = when (char) {
     CHAR_FLOOR -> GameCell.FLOOR
     CHAR_WALL -> GameCell.WALL
     CHAR_EXIT -> GameCell.EXIT
+    CHAR_VOID, '-', '_' -> GameCell.VOID
     else -> null
 }
 

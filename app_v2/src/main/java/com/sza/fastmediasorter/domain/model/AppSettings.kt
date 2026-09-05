@@ -30,6 +30,10 @@ data class AppSettings(
     val language: String = "en",
     // S2209: disable visual transition and decorative animations across the main app.
     val disableAnimations: Boolean = false,
+    // S2536: the stricter sibling of the switch above - when the app drops all continuous drawing and
+    // stops holding the screen on its own. The default matches yesterday's behaviour on a charged
+    // phone; it only starts acting below 20 percent.
+    val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT,
     val preventSleep: Boolean = true,
     // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
     // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
@@ -434,6 +438,7 @@ data class AppSettings(
     val launcherWeatherLastLocation: String get() = launcher.weatherLastLocation
     val launcherStepsResetCount: Long get() = launcher.stepsResetCount
     val launcherStepsResetTimestamp: Long get() = launcher.stepsResetTimestamp
+    val launcherAnimationPalette: String get() = launcher.animationPalette
     companion object {
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
@@ -509,6 +514,19 @@ data class AppSettings(
             LAUNCHER_WALLPAPER_IMAGE,
             LAUNCHER_WALLPAPER_CAMERA,
             LAUNCHER_WALLPAPER_INSTANT_PHOTO,
+        )
+
+        /** S2223: animation color palette tokens. */
+        const val ANIMATION_PALETTE_DYNAMIC = "DYNAMIC"
+        const val ANIMATION_PALETTE_GREEN = "GREEN"
+        const val ANIMATION_PALETTE_PINK = "PINK"
+        const val ANIMATION_PALETTE_BLUE = "BLUE"
+
+        val ANIMATION_PALETTE_OPTIONS = listOf(
+            ANIMATION_PALETTE_DYNAMIC,
+            ANIMATION_PALETTE_GREEN,
+            ANIMATION_PALETTE_PINK,
+            ANIMATION_PALETTE_BLUE,
         )
     }
 

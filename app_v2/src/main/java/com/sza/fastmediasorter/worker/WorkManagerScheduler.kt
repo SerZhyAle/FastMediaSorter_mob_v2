@@ -59,10 +59,18 @@ class WorkManagerScheduler @Inject constructor(
      */
     fun scheduleTrashCleanup() {
         try {
+            // S2536: this is the most frequent periodic schedule in the app at every 15 minutes, and
+            // it was one of two here that carried no battery constraint. Deleting an expired trash
+            // folder is work that can wait for a charge.
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build()
+
             val workRequest = PeriodicWorkRequestBuilder<TrashCleanupWorker>(
                 repeatInterval = 15,
                 repeatIntervalTimeUnit = TimeUnit.MINUTES
             )
+                .setConstraints(constraints)
                 .setInitialDelay(1, TimeUnit.MINUTES) // Delay first run to reduce startup load
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()
@@ -145,10 +153,17 @@ class WorkManagerScheduler @Inject constructor(
      */
     fun scheduleOrphanCleanup() {
         try {
+            // S2536: a daily audit of cached lists and orphaned credentials is the clearest case of
+            // work that can wait for a charge - it was the second schedule here with no constraint.
+            val constraints = Constraints.Builder()
+                .setRequiresBatteryNotLow(true)
+                .build()
+
             val workRequest = PeriodicWorkRequestBuilder<OrphanCleanupWorker>(
                 repeatInterval = 24,
                 repeatIntervalTimeUnit = TimeUnit.HOURS
             )
+                .setConstraints(constraints)
                 .setInitialDelay(10, TimeUnit.MINUTES)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.SECONDS)
                 .build()

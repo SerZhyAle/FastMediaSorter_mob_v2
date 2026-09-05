@@ -2361,6 +2361,16 @@
       "titleUk": "Програма для запуску"
     },
     {
+      "key": "rowLauncherAnimationPalette",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Animation color palette",
+      "titleRu": "Палитра анимации",
+      "titleUk": "Палітра анімації"
+    },
+    {
       "key": "rowLauncherDensity",
       "sectionId": "launcher",
       "destination": "GENERAL",

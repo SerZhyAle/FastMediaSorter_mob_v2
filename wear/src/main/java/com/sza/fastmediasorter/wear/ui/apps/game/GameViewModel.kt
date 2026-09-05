@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.apps.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.game.GameBoard
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.game.GameDifficulty
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
@@ -38,11 +39,31 @@ class GameViewModel @Inject constructor(
 
     private val seedSource = GameSeedSource()
 
+    private var boardWidth = GameBoard.ROUND_STANDARD_WIDTH
+    private var boardHeight = GameBoard.ROUND_STANDARD_HEIGHT
+
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch { restoreOrStart() }
+    }
+
+    /**
+     * S2558: configure board geometry based on screen shape and dimensions.
+     */
+    fun configureScreen(isRound: Boolean, screenShorterEdgeDp: Int) {
+        val (w, h) = when {
+            !isRound -> SQUARE_BOARD_SIDE to SQUARE_BOARD_SIDE
+            screenShorterEdgeDp <= COMPACT_SCREEN_THRESHOLD_DP -> {
+                GameBoard.ROUND_COMPACT_WIDTH to GameBoard.ROUND_COMPACT_HEIGHT
+            }
+            else -> {
+                GameBoard.ROUND_STANDARD_WIDTH to GameBoard.ROUND_STANDARD_HEIGHT
+            }
+        }
+        boardWidth = w
+        boardHeight = h
     }
 
     fun move(direction: GameDirection) {
@@ -159,12 +180,18 @@ class GameViewModel @Inject constructor(
         val config = GameLevelConfig(
             levelNumber = levelNumber,
             difficulty = difficultyFor(levelNumber),
-            width = BOARD_SIDE,
-            height = BOARD_SIDE,
+            width = boardWidth,
+            height = boardHeight,
             shadowCount = shadowCountFor(levelNumber),
             seed = seedSource.nextSeed(levelNumber)
         )
-        Timber.d("S2494: level %d generated with seed %d", levelNumber, config.seed)
+        Timber.d(
+            "S2494: level %d generated with seed %d (size %dx%d)",
+            levelNumber,
+            config.seed,
+            boardWidth,
+            boardHeight
+        )
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)
@@ -202,8 +229,9 @@ class GameViewModel @Inject constructor(
     private companion object {
         const val FIRST_LEVEL_NUMBER = 1
 
-        /** Small enough that every cell stays readable on a watch, above the generator's minimum. */
-        const val BOARD_SIDE = 9
+        const val SQUARE_BOARD_SIDE = 9
+        const val COMPACT_SCREEN_THRESHOLD_DP = 192
+
         const val SHADOW_COUNT_BASE = 2
         const val SHADOW_COUNT_MAX = 5
         const val LEVELS_PER_SHADOW = 3

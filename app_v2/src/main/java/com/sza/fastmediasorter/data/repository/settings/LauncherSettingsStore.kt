@@ -95,6 +95,7 @@ object LauncherSettingsStore {
         stringPreferencesKey("launcher_weather_last_location")
     private val KEY_LAUNCHER_STEPS_RESET_COUNT = longPreferencesKey("launcher_steps_reset_count")
     private val KEY_LAUNCHER_STEPS_RESET_TIMESTAMP = longPreferencesKey("launcher_steps_reset_timestamp")
+    private val KEY_LAUNCHER_ANIMATION_PALETTE = stringPreferencesKey("launcher_animation_palette")
 
     // S0404: absent keys resolve to auto density + full taskbar (S2017: except the tray clock, off by
     // default), hidden system status bar and foreign-notification badges on (S2017 ADR-1).
@@ -210,6 +211,9 @@ object LauncherSettingsStore {
         weatherLastLocation = preferences.getOrDefault(KEY_LAUNCHER_WEATHER_LAST_LOCATION, ""),
         stepsResetCount = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_COUNT, 0L),
         stepsResetTimestamp = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_TIMESTAMP, 0L),
+        animationPalette = preferences[KEY_LAUNCHER_ANIMATION_PALETTE]
+            ?.takeIf { it in AppSettings.ANIMATION_PALETTE_OPTIONS }
+            ?: AppSettings.ANIMATION_PALETTE_DYNAMIC,
     )
 
     /**
@@ -272,5 +276,6 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_WEATHER_LAST_LOCATION] = settings.launcherWeatherLastLocation
         preferences[KEY_LAUNCHER_STEPS_RESET_COUNT] = settings.launcherStepsResetCount
         preferences[KEY_LAUNCHER_STEPS_RESET_TIMESTAMP] = settings.launcherStepsResetTimestamp
+        preferences[KEY_LAUNCHER_ANIMATION_PALETTE] = settings.launcherAnimationPalette
     }
 }

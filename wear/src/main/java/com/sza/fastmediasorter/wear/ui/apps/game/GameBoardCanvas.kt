@@ -153,11 +153,13 @@ private fun DrawScope.drawCells(board: GameBoard, metrics: BoardMetrics, palette
     val tile = metrics.cell - gap
     for (row in 0 until board.height) {
         for (col in 0 until board.width) {
-            val colour = when (board.cellAt(GamePosition(row, col))) {
+            val cell = board.cellAt(GamePosition(row, col))
+            val colour = when (cell) {
                 GameCell.FLOOR -> palette.floor
                 GameCell.WALL -> palette.wall
                 GameCell.EXIT -> palette.exit
-            }
+                GameCell.VOID -> null
+            } ?: continue
             drawRect(
                 color = colour,
                 topLeft = Offset(

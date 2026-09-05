@@ -97,12 +97,21 @@ private const val HALF = 0.5f
  * @param running drives the frame loop. False cancels it and draws nothing - on a watch this
  * animation is the most expensive thing on the screen, so it must stop rather than keep drawing
  * while nobody is looking at it.
+ * @param intent what this instance's motion is FOR, which decides how strong a power level has to be
+ * before it stops. The default is [AnimationIntent.AMBIENT] because the audio player was the first
+ * caller; the backdrop drawn behind every other screen passes [AnimationIntent.DECORATIVE].
  */
 @Composable
 fun WaveParticleBackground(
     modifier: Modifier = Modifier,
-    running: Boolean
+    running: Boolean,
+    intent: AnimationIntent = AnimationIntent.AMBIENT
 ) {
+    // Read in composition, not in the frame loop: the policy level is snapshot state, so a recovered
+    // charge recomposes this and the loop below restarts on its own. Reading it inside the loop would
+    // leave a frozen backdrop frozen until the screen was re-entered - and a frozen loop has no next
+    // iteration in which to read anything.
+    val animating = running && WearPowerPolicy.mayAnimate(intent)
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }.toInt().coerceAtLeast(1)
@@ -127,8 +136,8 @@ fun WaveParticleBackground(
             }
         }
 
-        LaunchedEffect(session, running) {
-            if (!running) return@LaunchedEffect
+        LaunchedEffect(session, animating) {
+            if (!animating) return@LaunchedEffect
             var lastFrameNanos = 0L
             while (true) {
                 withFrameNanos { frameNanos ->
@@ -145,7 +154,11 @@ fun WaveParticleBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .drawBehind {
-                    if (session.resetPending || running) {
+                    // A frozen instance still lays down its first frame, because resetPending is true
+                    // until one is drawn - so the buffer blitted below holds a real static frame
+                    // rather than black. S1277 settled that fork on the phone: a black rectangle
+                    // reads as a broken screen, a still frame reads as a still frame.
+                    if (session.resetPending || animating) {
                         bufferScope.draw(this, layoutDirection, bufferCanvas, bufferSize) {
                             drawFrame(session, wavePath)
                         }

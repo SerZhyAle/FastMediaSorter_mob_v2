@@ -79,8 +79,12 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // resource since deleted) never becomes a permanently-dead tile.
             val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
             val starterResources = starterResourcesFrom(allResources, lastResourceId)
-            val routeAvailableInBuild = routeAvailability.all()
-                .mapValues { (_, availability) -> availability.availableInBuild }
+            // S2382: launchability, not build presence. The resolver answers both halves and this call
+            // used to discard the runtime one, so a first desktop filled with cells for features the user
+            // had never switched on. Behind the already-seeded early exit above, so no existing desktop is
+            // recomposed by the change (strategic ADR-2).
+            val routeLaunchable = routeAvailability.all()
+                .mapValues { (_, availability) -> availability.isLaunchable }
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
             // for the package-manager probe (strategic §3.2).
             val installedPackages = resolveInstalledPackages(LauncherStarterSets.candidatePackages)
@@ -118,7 +122,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
-                routeAvailableInBuild,
+                routeLaunchable,
                 installedPackages,
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,

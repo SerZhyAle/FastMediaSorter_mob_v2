@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
@@ -58,6 +58,9 @@ private const val FIRST_LEVEL_DISPLAYED = 1
 /** Square screens only: the gap between the counter row and the board it sits above. */
 private val SQUARE_ROW_SPACING = 2.dp
 
+/** Round screens: clearance fraction from the edge ring so board tiles do not overlap stats ring. */
+private const val ROUND_BOARD_INSET_FRACTION = 0.35f
+
 /**
  * Pause between finishing a level and the next board appearing, matching the phone's.
  *
@@ -88,7 +91,9 @@ fun GameScreen(
     viewModel: GameViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isRound = LocalConfiguration.current.isScreenRound
+    val configuration = LocalConfiguration.current
+    val isRound = configuration.isScreenRound
+    val shorterEdgeDp = minOf(configuration.screenWidthDp, configuration.screenHeightDp)
     val levelNumber = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     val menuActions = GameMenuActions(
@@ -100,12 +105,9 @@ fun GameScreen(
         onDismiss = { menuOpen = false }
     )
 
-    // No job field, no flag, no cancel call: the effect is keyed on the status and the level number,
-    // so a status change, an early tap on the chip and leaving the screen each cancel it - all three
-    // either move a key or leave the composition. That is the phone's re-check guard without a
-    // second piece of state.
-    LaunchedEffect(isRound) {
-        Timber.d("S2158: game screen laid out, round=%b", isRound)
+    LaunchedEffect(isRound, shorterEdgeDp) {
+        Timber.d("S2158: game screen laid out, round=%b, sizeDp=%d", isRound, shorterEdgeDp)
+        viewModel.configureScreen(isRound, shorterEdgeDp)
     }
 
     val boardKey = uiState.level?.config?.let { config -> config.levelNumber to config.seed }
@@ -119,30 +121,27 @@ fun GameScreen(
         }
     }
 
-    // Full bleed: the ring is measured against the glass, so the scaffold must not inset it first.
-    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
+    // S2558: Black background (same as calculator) to remove animated/photographic wallpaper backdrop.
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        background = Color.Black
+    ) {
         // One box for both shapes since S2553: the two side affordances stand in the same place on
         // either display, so keeping a box per branch would only duplicate their placement.
         Box(modifier = Modifier.fillMaxSize()) {
             if (isRound) {
-                GameBoard(
+                RoundScreenLayout(
                     uiState = uiState,
-                    modifier = Modifier.align(Alignment.Center).size(wearMaxSquareSide()),
+                    levelNumber = levelNumber,
                     menuOpen = menuOpen,
                     showGuideArrow = showGuideArrow,
                     onMove = { direction -> viewModel.move(direction) },
                     onOpenMenu = {
                         Timber.d("S2158: in-play menu opened by long press")
                         menuOpen = true
-                    }
+                    },
+                    onRestart = { viewModel.restart() }
                 )
-                GameStatsRing(stats = uiState.stats, levelNumber = levelNumber)
-                if (uiState.status != GameStatus.PLAYING) {
-                    GameOutcomeChip(
-                        status = uiState.status,
-                        modifier = Modifier.align(Alignment.Center)
-                    ) { viewModel.restart() }
-                }
             } else {
                 // A square screen has no ring: an inscribed square leaves nothing around it, so the
                 // counters keep the row above the board they had before S2158.
@@ -176,6 +175,37 @@ fun GameScreen(
                 GameMenuOverlay(actions = menuActions)
             }
         }
+    }
+}
+
+@Composable
+private fun BoxScope.RoundScreenLayout(
+    uiState: GameUiState,
+    levelNumber: Int,
+    menuOpen: Boolean,
+    showGuideArrow: Boolean,
+    onMove: (GameDirection) -> Unit,
+    onOpenMenu: () -> Unit,
+    onRestart: () -> Unit
+) {
+    GameBoard(
+        uiState = uiState,
+        modifier = Modifier
+            .align(Alignment.Center)
+            .fillMaxSize()
+            .padding(wearRingInset() * ROUND_BOARD_INSET_FRACTION),
+        menuOpen = menuOpen,
+        showGuideArrow = showGuideArrow,
+        onMove = onMove,
+        onOpenMenu = onOpenMenu
+    )
+    GameStatsRing(stats = uiState.stats, levelNumber = levelNumber)
+    if (uiState.status != GameStatus.PLAYING) {
+        GameOutcomeChip(
+            status = uiState.status,
+            modifier = Modifier.align(Alignment.Center),
+            onAct = onRestart
+        )
     }
 }
 

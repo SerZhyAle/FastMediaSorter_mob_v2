@@ -118,4 +118,6 @@ data class LauncherSettings(
     // S2239: resetting the launcher steps widget stores the cumulative step count and timestamp of reset.
     val stepsResetCount: Long = 0L,
     val stepsResetTimestamp: Long = 0L,
+    // S2223: animation color palette for procedural waves/particles (DYNAMIC, GREEN, PINK, BLUE).
+    val animationPalette: String = AppSettings.ANIMATION_PALETTE_DYNAMIC,
 )

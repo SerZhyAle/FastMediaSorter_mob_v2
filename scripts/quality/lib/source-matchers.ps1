@@ -567,7 +567,16 @@ function Measure-LoneResourceBackslashes([string]$Text) {
 # S2250: a policy check can be hoisted or expressed as an early return, so a lexical gate cannot
 # reliably prove that an individual animator consulted it. Count the animation vocabulary instead:
 # adding any new primitive makes the review explicit, while the baseline never hides that growth.
-$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b'
+#
+# S2536: the vocabulary above is entirely NAMED animation APIs, and that is what the rule could not
+# see. A hand-rolled per-frame loop - withFrameNanos advancing a clock and invalidating - is not one
+# of them, so the largest animation in the watch module, measured at about 1.5 cores while playing,
+# scored zero hits from a gate whose whole job is finding animation. The watch baseline of 2 came
+# entirely from one already-gated call elsewhere. The gap was in the mechanism rather than in any one
+# ticket's attention, so the fix is the pattern: withFrameNanos for the hand-rolled loop,
+# rememberInfiniteTransition for the Compose form of an endless animator, and animateContentSize for
+# the layout animation that declares itself in a modifier rather than at a call site.
+$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b|\bwithFrameNanos\b|\brememberInfiniteTransition\b|\banimateContentSize\b'
 
 function Find-UnpolicedAnimationLines([string]$Text) {
     if ([string]::IsNullOrEmpty($Text)) { return @() }

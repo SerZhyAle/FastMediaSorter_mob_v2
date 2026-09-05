@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StreamsSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -59,6 +60,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
         private val KEY_DISABLE_ANIMATIONS = booleanPreferencesKey("disable_animations")
+        private val KEY_POWER_SAVING_TRIGGER = stringPreferencesKey("power_saving_trigger")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -330,6 +332,11 @@ class SettingsRepositoryImpl @Inject constructor(
                     language = language,
                     colorTheme = colorTheme,
                     disableAnimations = preferences[KEY_DISABLE_ANIMATIONS] ?: false,
+                    // Through fromNameOrDefault, not valueOf: an absent key is the normal state of
+                    // every install that predates this setting, and it must read as the default.
+                    powerSavingTrigger = PowerSavingTrigger.fromNameOrDefault(
+                        preferences[KEY_POWER_SAVING_TRIGGER]
+                    ),
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
@@ -672,6 +679,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_LANGUAGE] = storedLanguage
                 preferences[KEY_COLOR_THEME] = storedColorTheme
                 preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
+                preferences[KEY_POWER_SAVING_TRIGGER] = settings.powerSavingTrigger.name
                 preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
                 preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
                 preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls

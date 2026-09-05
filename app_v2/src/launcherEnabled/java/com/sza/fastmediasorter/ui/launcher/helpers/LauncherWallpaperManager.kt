@@ -10,6 +10,8 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
+import com.sza.fastmediasorter.core.util.AnimationIntent
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import java.io.File
@@ -43,27 +45,66 @@ class LauncherWallpaperManager(
 
     private var current: LauncherWallpaper = LauncherWallpaper.None
 
+    init {
+        // S2536: the desktop backdrop is ornament, whatever the class it is drawn by. The same view
+        // is the audio visualizer elsewhere and stays AMBIENT there - this is the declaration that
+        // lets the animation switch reach the wallpaper without freezing the visualizer.
+        wavesLayer.intent = AnimationIntent.DECORATIVE
+    }
+
+    // Fires on the settings collector's thread; the camera is driven from the view's thread.
+    private val policyListener: () -> Unit = { cameraLayer.post { refreshCameraPolicy() } }
+
+    /**
+     * S2536: the live-camera backdrop is the one wallpaper whose cost is not an animator - it is a
+     * capture session. Hiding the preview would leave the camera running, so the session is stopped
+     * outright and restarted when the level recovers.
+     */
+    private fun startCameraIfPolicyAllows(cameraId: String) {
+        if (AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)) {
+            cameraBackground.start(cameraId)
+        } else {
+            cameraBackground.stop()
+        }
+    }
+
+    private fun refreshCameraPolicy() {
+        val wallpaper = current
+        if (wallpaper is LauncherWallpaper.LiveCamera) startCameraIfPolicyAllows(wallpaper.cameraId)
+    }
+
     fun attach() {
         lifecycleOwner.collectOnLifecycle(viewModel.wallpaper) { wallpaper ->
             current = wallpaper
             render(wallpaper)
         }
+        lifecycleOwner.collectOnLifecycle(viewModel.animationPalette) { paletteKey ->
+            wavesLayer.palette = AudioWaveParticleView.AnimationColorPalette.fromKeyOrDefault(paletteKey)
+            if (current is LauncherWallpaper.Branded && wavesLayer.isVisible) {
+                wavesLayer.stopAndReset()
+                wavesLayer.startAnimation()
+            } else if (current is LauncherWallpaper.StaticStripes && wavesLayer.isVisible) {
+                wavesLayer.renderFreshStaticFrame()
+            }
+        }
     }
 
     /** Foreground edge: resume whichever backdrop is active. Symmetric with [onStop]. */
     fun onStart() {
+        AnimationPolicy.addLevelListener(policyListener)
         when (val wallpaper = current) {
             is LauncherWallpaper.Branded -> wavesLayer.startAnimation()
             is LauncherWallpaper.StaticStripes -> wavesLayer.renderFreshStaticFrame()
             is LauncherWallpaper.Image -> imageAnimatable()?.start()
             is LauncherWallpaper.InstantPhoto -> render(wallpaper)
-            is LauncherWallpaper.LiveCamera -> cameraBackground.start(wallpaper.cameraId)
+            is LauncherWallpaper.LiveCamera -> startCameraIfPolicyAllows(wallpaper.cameraId)
             is LauncherWallpaper.None -> Unit
         }
     }
 
     /** Background edge: no frames while the desktop is not on screen. Symmetric with [onStart]. */
     fun onStop() {
+        AnimationPolicy.removeLevelListener(policyListener)
         wavesLayer.pauseAnimation()
         imageAnimatable()?.stop()
         cameraBackground.stop()
@@ -129,7 +170,7 @@ class LauncherWallpaperManager(
                 stopWaves()
                 cameraLayer.isVisible = true
                 cameraScrim.isVisible = true
-                cameraBackground.start(wallpaper.cameraId)
+                startCameraIfPolicyAllows(wallpaper.cameraId)
             }
         }
     }

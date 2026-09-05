@@ -120,8 +120,9 @@ class AudioCoverArtLoader(
         if (isNetworkFile || isCloudFile) {
             // Show empty-state immediately; hide when artwork is found
             lifecycleScope.launch {
-                val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-                audioEmptyStateController?.show(mode)
+                val settings = try { settingsRepository.getSettings().first() } catch (_: Exception) { null }
+                val mode = settings?.audioEmptyStateMode ?: AudioEmptyStateController.MODE_NONE
+                audioEmptyStateController?.show(mode, settings?.launcherAnimationPalette)
             }
             coverArtJob = lifecycleScope.launch {
                 delay(1500) // Wait for ExoPlayer to extract artwork
@@ -155,7 +156,7 @@ class AudioCoverArtLoader(
                         val settings = settingsRepository.getSettings().first()
                         if (!settings.searchAudioCoversOnline) {
                             withContext(Dispatchers.Main) {
-                                audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                                audioEmptyStateController?.show(settings.audioEmptyStateMode, settings.launcherAnimationPalette)
                                     ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                             }
                         } else {
@@ -167,7 +168,7 @@ class AudioCoverArtLoader(
                     val settings = settingsRepository.getSettings().first()
                     if (!settings.searchAudioCoversOnline) {
                         withContext(Dispatchers.Main) {
-                            audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                            audioEmptyStateController?.show(settings.audioEmptyStateMode, settings.launcherAnimationPalette)
                                 ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                         }
                     } else {
@@ -180,8 +181,9 @@ class AudioCoverArtLoader(
 
         // Local file: show empty state immediately, then try embedded art
         lifecycleScope.launch {
-            val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-            audioEmptyStateController?.show(mode)
+            val settings = try { settingsRepository.getSettings().first() } catch (_: Exception) { null }
+            val mode = settings?.audioEmptyStateMode ?: AudioEmptyStateController.MODE_NONE
+            audioEmptyStateController?.show(mode, settings?.launcherAnimationPalette)
         }
         Timber.d("loadAudioCoverArt: Starting cover art search for ${file.name}")
 
@@ -230,7 +232,7 @@ class AudioCoverArtLoader(
                         val settings = settingsRepository.getSettings().first()
                         if (!settings.searchAudioCoversOnline) {
                             Timber.d("loadAudioCoverArt[$callId]: No embedded cover, online search disabled")
-                            audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                            audioEmptyStateController?.show(settings.audioEmptyStateMode, settings.launcherAnimationPalette)
                                 ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                             return@withContext
                         }
@@ -251,7 +253,7 @@ class AudioCoverArtLoader(
                             if (cached.coverArtUrl != null) {
                                 if (isKnownMissingCoverUrl(cached.coverArtUrl)) {
                                     Timber.d("loadAudioCoverArt[$callId]: skipping known missing cover URL - ${urlHost(cached.coverArtUrl)}")
-                                    audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                                    audioEmptyStateController?.show(settings.audioEmptyStateMode, settings.launcherAnimationPalette)
                                         ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                                     return@withContext
                                 }
@@ -273,7 +275,7 @@ class AudioCoverArtLoader(
                             callback.onAudioMetadataLoaded(metadata, file.path)
                             if (isKnownMissingCoverUrl(coverUrl)) {
                                 Timber.d("loadAudioCoverArt[$callId]: skipping known missing cover URL - ${urlHost(coverUrl)}")
-                                audioEmptyStateController?.show(settings.audioEmptyStateMode)
+                                audioEmptyStateController?.show(settings.audioEmptyStateMode, settings.launcherAnimationPalette)
                                     ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                                 return@withContext
                             }
@@ -292,6 +294,7 @@ class AudioCoverArtLoader(
                             Timber.d("loadAudioCoverArt[$callId]: ONLINE cover found: $coverUrl")
                             prepareCoverTarget("local-online-url")
                             val capturedMode = settings.audioEmptyStateMode
+                            val capturedPalette = settings.launcherAnimationPalette
                             val request = Glide.with(binding.audioCoverArtView.context).load(coverUrl)
                                 .error(R.drawable.ic_music_note)
                                 .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -305,7 +308,7 @@ class AudioCoverArtLoader(
                                     } else {
                                         Timber.w("loadAudioCoverArt[$callId]: cover art load failed: ${e?.message}")
                                     }
-                                    audioEmptyStateController?.show(capturedMode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                                    audioEmptyStateController?.show(capturedMode, capturedPalette) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                                     return true
                                 }
                                 override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
@@ -324,7 +327,8 @@ class AudioCoverArtLoader(
                                 }
                             }).into(binding.audioCoverArtView)
                         } else {
-                            audioEmptyStateController?.show(settingsRepository.getSettings().first().audioEmptyStateMode)
+                            val currentSettings = settingsRepository.getSettings().first()
+                            audioEmptyStateController?.show(currentSettings.audioEmptyStateMode, currentSettings.launcherAnimationPalette)
                                 ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note) }
                         }
                     }
@@ -335,8 +339,10 @@ class AudioCoverArtLoader(
             } catch (e: Exception) {
                 Timber.e(e, "Failed to load audio cover art for ${file.name}")
                 withContext(Dispatchers.Main) {
-                    val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
-                    audioEmptyStateController?.show(mode) ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
+                    val settings = try { settingsRepository.getSettings().first() } catch (_: Exception) { null }
+                    val mode = settings?.audioEmptyStateMode ?: AudioEmptyStateController.MODE_NONE
+                    audioEmptyStateController?.show(mode, settings?.launcherAnimationPalette)
+                        ?: run { binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note); binding.audioCoverArtView.isVisible = true }
                 }
             }
         }
@@ -351,7 +357,9 @@ class AudioCoverArtLoader(
         val callId = System.currentTimeMillis()
         Timber.d("searchOnlineAndDisplayCover[$callId]: START for ${file.name}")
         lifecycleScope.launch(Dispatchers.IO) {
-            val mode = try { settingsRepository.getSettings().first().audioEmptyStateMode } catch (_: Exception) { AudioEmptyStateController.MODE_NONE }
+            val settings = try { settingsRepository.getSettings().first() } catch (_: Exception) { null }
+            val mode = settings?.audioEmptyStateMode ?: AudioEmptyStateController.MODE_NONE
+            val palette = settings?.launcherAnimationPalette
             try {
                 val cached = audioMetadataCacheRepository.readMetadata(file.name)
                 if (cached != null) {
@@ -384,7 +392,7 @@ class AudioCoverArtLoader(
                         callback.onAudioMetadataLoaded(metadata, file.path)
                         if (isKnownMissingCoverUrl(coverUrl)) {
                             Timber.d("searchOnlineAndDisplayCover[$callId]: skipping known missing cover URL - ${urlHost(coverUrl)}")
-                            audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                            audioEmptyStateController?.show(mode, palette) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                             return@withContext
                         }
                         // Save to local cache if enabled
@@ -414,7 +422,7 @@ class AudioCoverArtLoader(
                                 } else {
                                     Timber.w("searchOnlineAndDisplayCover[$callId]: cover art load failed: ${e?.message}")
                                 }
-                                audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                                audioEmptyStateController?.show(mode, palette) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                                 return true
                             }
                             override fun onResourceReady(resource: Drawable, model: Any, target: Target<Drawable>?, dataSource: DataSource, isFirstResource: Boolean): Boolean {
@@ -434,7 +442,7 @@ class AudioCoverArtLoader(
                         }).into(binding.audioCoverArtView)
                     } else {
                         Timber.d("searchOnlineAndDisplayCover[$callId]: No cover found, showing empty state")
-                        audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                        audioEmptyStateController?.show(mode, palette) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                     }
                 }
             } catch (e: CancellationException) {
@@ -443,7 +451,7 @@ class AudioCoverArtLoader(
             } catch (e: Exception) {
                 Timber.e(e, "searchOnlineAndDisplayCover[$callId]: EXCEPTION")
                 withContext(Dispatchers.Main) {
-                    audioEmptyStateController?.show(mode) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
+                    audioEmptyStateController?.show(mode, palette) ?: binding.audioCoverArtView.setImageResource(R.drawable.ic_music_note)
                 }
             }
         }

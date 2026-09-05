@@ -3661,4 +3661,9 @@
     <string name="player_panel_auto_hide_seconds">Автоприховування панелі плеєра (сек)</string>
     <string name="wear_settings_panel_auto_hide">Автоприховування панелі плеєра (сек)</string>
     <string name="launcher_feature_action_configure">Налаштувати</string>
+    <string name="launcher_settings_animation_palette_title">Палітра анімації</string>
+    <string name="launcher_settings_palette_dynamic">Динамічна (різнокольорова)</string>
+    <string name="launcher_settings_palette_green">Зеленкувата</string>
+    <string name="launcher_settings_palette_pink">Рожувата</string>
+    <string name="launcher_settings_palette_blue">Блакитнувата</string>
 </resources>
