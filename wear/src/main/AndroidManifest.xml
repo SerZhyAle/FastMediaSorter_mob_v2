@@ -213,6 +213,34 @@
                 android:resource="@drawable/tile_preview_favourites" />
         </service>
 
+        <!-- S2511: Wear OS Tile Service for the mini-programs shortcut grid -->
+        <service
+            android:name=".tile.WearProgramsTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_programs_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_programs" />
+        </service>
+
+        <!-- S2511: Wear OS Tile Service for the home-sections shortcut grid -->
+        <service
+            android:name=".tile.WearSectionsTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_sections_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_sections" />
+        </service>
+
         <!-- S2047: Wear OS Complication Provider for Last Used Resource -->
         <service
             android:name=".complication.WearLastResourceComplicationService"

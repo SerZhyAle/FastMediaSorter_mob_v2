@@ -14,6 +14,14 @@
     bytes cost nothing per turn - deleting them saves nothing that is billed and loses the
     trap they record. That is why this gate has exactly one size rule.
 
+    Over the ceiling the run also prints a per-section table - bytes, top-level pointer count, and
+    whether the section already links a second-level INDEX_*.md - and names the sections to drain
+    first (S2595). A byte count alone is not actionable: it points at trimming hooks, which is the
+    one compression this corpus forbids, while the real finding is a section that was split once and
+    then written past. Measured 2026-09-05: nine sections owning an index still carried 60 top-level
+    pointers, and the section S2450 had reduced to three lines was back to eight two days later. The
+    table is advisory output inside the existing failure branch - it adds no exit code.
+
     Three correctness checks ride along beside the size rule.
       - dead paths   - a memory file naming a repo path that no longer exists. ADVISORY: a path
                        in prose can be an illustrative example rather than a claim about the tree.
@@ -63,6 +71,8 @@
       0  at or below MaxBytes with every link resolving, or a report-only run.
       1  -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.
       2  cannot verify - the index or the memory directory does not exist.
+      4  Code.Scripts is held by another session, so no baseline was written. The queue place is
+         held - wait for the turn in the background and rerun (S2635).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-memory-budget.ps1 -Gate
@@ -82,6 +92,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 if (-not $Path) {
     $Path = Join-Path $repoRoot '.claude/agent-memory/android-rd-specialist/MEMORY.md'
 }
@@ -108,7 +120,14 @@ $overshoot = $bytes - $MaxBytes
 
 if ($UpdateBaseline) {
     if ($bytes -lt $MaxBytes) {
-        Set-Content -LiteralPath $baselineFile -Value "$bytes"
+        # Taken here and not at the top of the script: the other two branches write nothing, so a
+        # lock held for the whole run would serialise siblings for a write that never happens.
+        $scope = $null
+        try {
+            $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-memory-budget.ps1 -UpdateBaseline'
+            Set-Content -LiteralPath $baselineFile -Value "$bytes"
+        }
+        finally { Exit-CodeLockScope -Scope $scope }
         Write-Host ("memory budget ratcheted DOWN: {0} -> {1} B (target {2})" -f $MaxBytes, $bytes, $TargetBytes)
     }
     elseif ($bytes -eq $MaxBytes) { Write-Host ("memory budget unchanged ({0} B)" -f $MaxBytes) }
@@ -219,9 +238,51 @@ foreach ($file in Get-ChildItem -LiteralPath $memoryDir -Filter '*.md' -File) {
     }
 }
 
+# --- diagnosis: which section to drain (S2595) -------------------------------------------
+# Over budget, the actionable fact is WHICH section to move, never how many bytes to lose. The
+# refusal used to say "trim <n> B of pointer lines", and trimming a hook is the one mechanism this
+# corpus forbids - the pointer is the expensive half and the hook is the only part that decides
+# whether a turn opens the file. A section that already links an INDEX_*.md and still carries
+# top-level lines is regrowth: the split happened and later pointers were written straight past it.
+# Measured 2026-09-05, nine such sections carried 60 top-level pointers between them.
+function Get-IndexSectionReport {
+    param([string]$IndexPath)
+    $sections = [System.Collections.Generic.List[object]]::new()
+    $current = $null
+    foreach ($line in (Get-Content -LiteralPath $IndexPath)) {
+        if ($line -match '^##\s+(.+)$') {
+            $current = [pscustomobject]@{
+                Title = $Matches[1].Trim(); Bytes = 0; TopLevel = 0; OwnsIndex = $false
+            }
+            $sections.Add($current)
+        }
+        if ($null -eq $current) { continue }
+        $current.Bytes += [System.Text.Encoding]::UTF8.GetByteCount($line) + 1
+        if ($line -notmatch '^\s*-\s') { continue }
+        if ($line -match '\]\(INDEX_[^)]+\)') { $current.OwnsIndex = $true }
+        else { $current.TopLevel++ }
+    }
+    return $sections
+}
+
 Write-Host ("memory index: {0} B | ceiling {1} B | stretch {2} B" -f $bytes, $MaxBytes, $StretchBytes)
 if ($bytes -gt $MaxBytes) {
-    Write-Host ("  OVER by {0} B - trim {1} B of pointer lines." -f $overshoot, $overshoot) -ForegroundColor Red
+    Write-Host ("  OVER by {0} B." -f $overshoot) -ForegroundColor Red
+    $sections = Get-IndexSectionReport -IndexPath $Path
+    if ($sections.Count -gt 0) {
+        Write-Host "  sections, largest first - bytes | top-level pointers | owns a second-level index:"
+        foreach ($s in ($sections | Sort-Object Bytes -Descending)) {
+            $owns = if ($s.OwnsIndex) { 'yes' } else { 'no ' }
+            $colour = if ($s.OwnsIndex -and $s.TopLevel -gt 0) { 'Red' } else { 'Gray' }
+            Write-Host ("    {0,6} B | {1,3} top-level | index {2} | {3}" -f $s.Bytes, $s.TopLevel, $owns, $s.Title) -ForegroundColor $colour
+        }
+        $drain = @($sections | Where-Object { $_.OwnsIndex -and $_.TopLevel -gt 0 } | Sort-Object Bytes -Descending)
+        if ($drain.Count -gt 0) {
+            $named = (($drain | Select-Object -First 3) | ForEach-Object { $_.Title }) -join '; '
+            Write-Host ("  drain first, these own an index and were written past: {0}" -f $named) -ForegroundColor Red
+            Write-Host "  move the whole pointer line into that INDEX_*.md and keep its hook intact; a top-level line is earned only by a precondition." -ForegroundColor Red
+        }
+    }
 }
 elseif ($bytes -gt $StretchBytes) {
     Write-Host ("  within the ceiling, {0} B above the stretch target." -f ($bytes - $StretchBytes)) -ForegroundColor Yellow
@@ -245,7 +306,7 @@ if ($brokenLinks.Count -gt 0) {
 }
 
 if ($Gate -and $bytes -gt $MaxBytes) {
-    Write-Error ("assert-memory-budget: FAIL - {0} B exceeds the {1} B ceiling by {2} B. MEMORY.md is billed on every turn of every session; merge or drop pointer lines." -f $bytes, $MaxBytes, $overshoot) -ErrorAction Continue
+    Write-Error ("assert-memory-budget: FAIL - {0} B exceeds the {1} B ceiling by {2} B. MEMORY.md is billed on every turn of every session; move pointer lines into the topic's INDEX_*.md as the section table above names, keeping every hook whole." -f $bytes, $MaxBytes, $overshoot) -ErrorAction Continue
     exit 1
 }
 

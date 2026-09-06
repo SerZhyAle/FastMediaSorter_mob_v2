@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.service.helpers
 import android.content.Context
 import android.media.MediaRecorder
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import com.sza.fastmediasorter.wear.data.recorder.VoiceNoteFileFactory
 import com.sza.fastmediasorter.wear.data.recorder.VoiceNotePublisher
@@ -57,7 +58,12 @@ class VoiceRecordingSessionManager @Inject constructor(
     private val fileFactory: VoiceNoteFileFactory,
     private val stateHolder: VoiceRecordingStateHolder,
     private val preferences: WearPreferencesRepository,
-    private val sendVoiceNoteUseCase: SendVoiceNoteUseCase
+    private val sendVoiceNoteUseCase: SendVoiceNoteUseCase,
+    /**
+     * S2550: exposed because the LAN server serving the stream needs THIS session's pipe, and an
+     * unscoped injection at the server's own call site would hand it a different, unopened one.
+     */
+    val liveSink: LiveAudioPipeSink
 ) {
 
     /** What this manager cannot do itself: it holds no `Service` and posts no notification. */
@@ -69,10 +75,20 @@ class VoiceRecordingSessionManager @Inject constructor(
         fun onSessionFinished()
     }
 
+    /** S2550: which of the two things the shipped microphone session can be doing. */
+    enum class Mode {
+        /** The shipped voice note: MPEG_4 into a real file, published to MediaStore and sent. */
+        VOICE_NOTE,
+
+        /** ADR-3: live ADTS onto [liveSink]. Nothing is stored, published or sent. */
+        LIVE_STREAM
+    }
+
     private var scope: CoroutineScope? = null
     private var callbacks: Callbacks? = null
     private var recorder: MediaRecorder? = null
     private var targetFile: File? = null
+    private var mode = Mode.VOICE_NOTE
     private var startedAtMillis = 0L
     private var startedAtElapsed = 0L
     private var tickerJob: Job? = null
@@ -90,19 +106,39 @@ class VoiceRecordingSessionManager @Inject constructor(
         this.callbacks = callbacks
     }
 
-    suspend fun begin() {
+    suspend fun begin(mode: Mode) {
         Timber.d("S2430: session manager begin, recorder open=%s", isSessionOpen)
+        this.mode = mode
+        when (mode) {
+            Mode.VOICE_NOTE -> beginVoiceNote()
+            Mode.LIVE_STREAM -> beginLiveStream()
+        }
+    }
+
+    private suspend fun beginVoiceNote() {
         if (!repository.hasRoomToRecord()) {
             fail(VoiceRecordingErrorReason.NO_FREE_SPACE, cause = null)
             return
         }
         val file = withContext(Dispatchers.IO) { fileFactory.newFile() }
-        if (openRecorder(file)) {
+        if (openRecorder { configureVoiceNote(it, file) }) {
             targetFile = file
-            startedAtMillis = System.currentTimeMillis()
-            startedAtElapsed = SystemClock.elapsedRealtime()
-            stateHolder.publish(VoiceRecordingState.Recording(startedAtMillis, elapsedMillis = 0L))
-            startTicker()
+            markStarted()
+        }
+    }
+
+    /**
+     * No free-space check and no file: a live session writes nothing to disk. The pipe is opened
+     * inside the recorder's own try, so a pipe the kernel refuses fails the start the same way an
+     * unavailable recorder does rather than by a separate path with its own error state.
+     */
+    private suspend fun beginLiveStream() {
+        val pumpScope = requireNotNull(scope) { "begin() ran before attach()" }
+        val opened = openRecorder { recorder ->
+            configureLiveStream(recorder, liveSink.open(pumpScope))
+        }
+        if (opened) {
+            markStarted()
         }
     }
 
@@ -120,13 +156,30 @@ class VoiceRecordingSessionManager @Inject constructor(
         val durationMillis = SystemClock.elapsedRealtime() - startedAtElapsed
         val file = targetFile
         targetFile = null
-        if (closeRecorder(active) && file != null) {
+        val closedCleanly = closeRecorder(active)
+        when (mode) {
+            Mode.VOICE_NOTE -> finishVoiceNote(closedCleanly, file, durationMillis)
+            // A live session has nothing to keep or to discard, and a stop() that threw because the
+            // listener had already gone (ADR-7) is the expected end rather than a lost recording.
+            Mode.LIVE_STREAM -> stateHolder.publish(VoiceRecordingState.Idle)
+        }
+        // Last, and on every path: the service exists only for the duration of one session.
+        callbacks?.onSessionFinished()
+    }
+
+    private suspend fun finishVoiceNote(closedCleanly: Boolean, file: File?, durationMillis: Long) {
+        if (closedCleanly && file != null) {
             storeNote(file, durationMillis)
         } else {
             discard(file)
         }
-        // Last, and on every path: the service exists only for the duration of one session.
-        callbacks?.onSessionFinished()
+    }
+
+    private fun markStarted() {
+        startedAtMillis = System.currentTimeMillis()
+        startedAtElapsed = SystemClock.elapsedRealtime()
+        stateHolder.publish(VoiceRecordingState.Recording(startedAtMillis, elapsedMillis = 0L))
+        startTicker()
     }
 
     /** Called from the service's `onDestroy`, after its scope is cancelled. */
@@ -141,11 +194,11 @@ class VoiceRecordingSessionManager @Inject constructor(
      * the two blocking calls run on IO - `prepare` creates and opens the output file.
      */
     @Suppress("TooGenericExceptionCaught")
-    private suspend fun openRecorder(file: File): Boolean = try {
+    private suspend fun openRecorder(configure: (MediaRecorder) -> Unit): Boolean = try {
         val created = newRecorder()
         recorder = created
         withContext(Dispatchers.IO) {
-            configure(created, file)
+            configure(created)
             created.prepare()
             created.start()
         }
@@ -162,16 +215,6 @@ class VoiceRecordingSessionManager @Inject constructor(
         // both leave a half-open recorder that fail() releases.
         fail(VoiceRecordingErrorReason.RECORDER_UNAVAILABLE, e)
         false
-    }
-
-    private fun configure(target: MediaRecorder, file: File) {
-        target.setAudioSource(MediaRecorder.AudioSource.MIC)
-        target.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-        target.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-        target.setAudioChannels(AUDIO_CHANNELS_MONO)
-        target.setAudioSamplingRate(AUDIO_SAMPLING_RATE_HZ)
-        target.setAudioEncodingBitRate(AUDIO_BIT_RATE)
-        target.setOutputFile(file.absolutePath)
     }
 
     /**
@@ -266,9 +309,15 @@ class VoiceRecordingSessionManager @Inject constructor(
         callbacks?.onSessionFinished()
     }
 
+    /**
+     * The pipe is closed after the recorder and never before it: closing the read end under a
+     * running capture is the measured case that makes `stop()` throw (strategic §6.2). Every caller
+     * of this function has already finished with the recorder, so the order holds on every path.
+     */
     private fun releaseRecorder() {
         recorder?.release()
         recorder = null
+        liveSink.close()
     }
 
     @Suppress("DEPRECATION")
@@ -278,4 +327,43 @@ class VoiceRecordingSessionManager @Inject constructor(
         } else {
             MediaRecorder()
         }
+
+    /**
+     * Both configurations are stateless, so they sit here rather than on an instance: the
+     * instrumentation test that proves the live container actually streams drives the shipped
+     * settings directly, without standing up this manager's dependency graph.
+     */
+    companion object {
+
+        /** The shipped voice note. MPEG_4 patches its index at `stop()`, so it needs a real file. */
+        fun configureVoiceNote(target: MediaRecorder, file: File) {
+            target.setAudioSource(MediaRecorder.AudioSource.MIC)
+            target.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+            configureEncoder(target)
+            target.setOutputFile(file.absolutePath)
+        }
+
+        /**
+         * ADR-4: self-delimiting ADTS frames, which is what lets a non-seekable sink carry them and
+         * what `AacExtractor` on the phone already reads.
+         */
+        fun configureLiveStream(target: MediaRecorder, sink: ParcelFileDescriptor) {
+            target.setAudioSource(MediaRecorder.AudioSource.MIC)
+            target.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            configureEncoder(target)
+            target.setOutputFile(sink.fileDescriptor)
+        }
+
+        /**
+         * Called after `setOutputFormat` on both paths, which the recorder's state machine requires
+         * and which is also what makes the two modes differ by container alone - the property the
+         * test's MPEG_4 control rests on.
+         */
+        private fun configureEncoder(target: MediaRecorder) {
+            target.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            target.setAudioChannels(AUDIO_CHANNELS_MONO)
+            target.setAudioSamplingRate(AUDIO_SAMPLING_RATE_HZ)
+            target.setAudioEncodingBitRate(AUDIO_BIT_RATE)
+        }
+    }
 }

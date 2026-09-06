@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.launcher.grid
 
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellSeating
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 
@@ -139,13 +140,16 @@ object LauncherGridGeometry {
      * whatever column count was current when the user placed the cell, and both the density factor and
      * rotation change that count underneath. Unclamped, a cell saved on a wider grid lays out past the
      * right edge and silently disappears.
+     *
+     * S2599: the clamps themselves now live in [LauncherCellSeating], so the repository can seat a cell
+     * by the same rule this draws it by - the two copies that used to answer differently are what let a
+     * stored cell be found free and drawn on top of its neighbour.
      */
     fun footprint(row: Int, col: Int, spanW: Int, spanH: Int, columns: Int): CellFootprint {
-        val safeColumns = columns.coerceAtLeast(1)
-        val width = spanW.coerceIn(1, safeColumns)
+        val width = LauncherCellSeating.seatSpanW(spanW, columns)
         return CellFootprint(
             row = safeRow(row),
-            col = col.coerceIn(0, safeColumns - width),
+            col = LauncherCellSeating.seatColumn(col, width, columns),
             spanW = width,
             spanH = safeSpanH(spanH),
         )

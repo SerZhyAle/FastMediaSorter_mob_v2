@@ -13,13 +13,18 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import timber.log.Timber
 
 /**
- * Constant by design (S2000, strategic 3.3.9): the watch draws light content, so a scrim that varied
- * with the chosen picture would make contrast a property of the owner's photo rather than a
- * guarantee. Matched to the value already tuned for arbitrary album art on the audio player, which
- * is the same worst case - a bright, uncontrolled image under white text.
+ * Constant by design (S2000, strategic 3.3.9): the scrim always opposes the content, so contrast is a
+ * guarantee of the app rather than a property of the owner's photo - a scrim that varied with the
+ * chosen picture would make it the latter. Matched to the value already tuned for arbitrary album art
+ * on the audio player, which is the same worst case: a bright, uncontrolled image under the content.
+ *
+ * S2522 made the DIRECTION follow the scheme while leaving the amount fixed. Before it the file could
+ * say "the watch draws light content" as a fact; a light scheme removes that, so the fill and the
+ * scrim now take whichever side keeps the content readable.
  */
 private const val SCRIM_ALPHA = 0.30f
 
@@ -36,10 +41,14 @@ fun WearAppBackground(
     modifier: Modifier = Modifier
 ) {
     Timber.d("S2544: dimmer wallpaper applied bg=%s running=%b", background, running)
+    // S2522: under a light scheme the content is dark, so the veil that has to sit between it and an
+    // arbitrary photo is the light one. Only the side flips - the amount stays the constant above.
+    val opposing = if (WearAppTheme.colors.isLight) Color.White else Color.Black
+    Timber.d("S2522: background layer light=%b", WearAppTheme.colors.isLight)
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(opposing)
     ) {
         when (background) {
             is WearBackground.BrandedAnimation -> {
@@ -51,7 +60,7 @@ fun WearAppBackground(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                        .background(opposing.copy(alpha = SCRIM_ALPHA))
                 )
             }
 
@@ -64,7 +73,7 @@ fun WearAppBackground(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                        .background(opposing.copy(alpha = SCRIM_ALPHA))
                 )
             }
 
@@ -73,12 +82,12 @@ fun WearAppBackground(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(Color.Black.copy(alpha = SCRIM_ALPHA))
+                        .background(opposing.copy(alpha = SCRIM_ALPHA))
                 )
             }
 
             is WearBackground.None -> {
-                // Black screen background: outer Box background is already Color.Black.
+                // Plain screen background: the outer Box is already filled with the opposing side.
             }
         }
     }
@@ -95,12 +104,7 @@ fun WearAppBackground(
 private fun DeliveredFrame(image: WearBackground.Image) {
     val frame: ImageBitmap? = remember(image.file.path, image.lastModified) {
         val bitmap = BitmapFactory.decodeFile(image.file.path)?.asImageBitmap()
-        Timber.d(
-            "S2541: DeliveredFrame path=%s stamp=%d decoded=%b",
-            image.file.path,
-            image.lastModified,
-            bitmap != null
-        )
+        Timber.d("S2541: DeliveredFrame path=%s stamp=%d ok=%b", image.file.path, image.lastModified, bitmap != null)
         bitmap
     }
     if (frame != null) {

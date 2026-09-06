@@ -23,6 +23,10 @@ data class WearSettingsPayload(
     // the file-transfer channel, because this payload is Gson-encoded and a ByteArray would serialize
     // as an array of numbers, pushing the data item past the size where it is dropped in silence.
     val backgroundMode: String? = null,
+    // S2522: the name of a WearColorScheme. Nullable for the S1781 reason - a partner build that
+    // predates it omits the key, and only a nullable field lets this side keep its own stored value
+    // instead of reading the absence as a scheme choice the owner never made.
+    val colorScheme: String? = null,
     // S2093: the watch row that had no phone control until this ticket.
     val streamsSectionEnabled: Boolean? = null,
     // S2130: the fourth allowed-type switch. Nullable unlike its three siblings above for the S1781
@@ -31,6 +35,11 @@ data class WearSettingsPayload(
     val documentsEnabled: Boolean? = null,
     // S2209: disable animations toggle synced from/to phone.
     val disableAnimations: Boolean? = null,
+    // S2536: the charge at which the watch enters power saving on its own, as the enum's name. Only
+    // this VALUE crosses; the verdict is always local, because the two devices have separate
+    // batteries. Nullable for the S1781 reason - a phone that predates it omits the key, and only a
+    // nullable field lets this side keep its own stored value instead of reading the absence as OFF.
+    val powerSavingTrigger: String? = null,
     // S2166: whether audio keeps playing after the app is minimized. Nullable for the S1781 reason -
     // a phone that predates it omits the key, and only a nullable field lets this side keep its own
     // stored value instead of reading the absence as "the owner switched background playback off".

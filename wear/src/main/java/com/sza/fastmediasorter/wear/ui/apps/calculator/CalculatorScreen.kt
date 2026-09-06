@@ -44,6 +44,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.ButtonColors
 import androidx.wear.compose.material.ButtonDefaults
+import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -658,25 +659,28 @@ private fun labelStyleFor(key: CalculatorKey): TextStyle {
  * beside it.
  *
  * The tint derives from the theme rather than a literal, so if S2003 later replaces the watch
- * palette these keys follow it instead of standing out of line. The content colour is
- * `onBackground` and not `onError` (ADR-4): Wear's `onError` is a dark colour meant for a fully
- * saturated error surface, and over a translucent tint on a black background it would be close to
- * unreadable.
+ * palette these keys follow it instead of standing out of line. The content colour is not `onError`
+ * (ADR-4): Wear's `onError` is a dark colour meant for a fully saturated error surface, and over a
+ * translucent tint on a black background it would be close to unreadable.
+ *
+ * S2522: it is the scaffold's content colour rather than the palette's `onBackground`, because this
+ * screen pins a black container and so does not follow the scheme's background. Under a light scheme
+ * `onBackground` is near-black, which put the digits at roughly 1.2:1 against their own keypad.
  */
 @Composable
 private fun keyColorsFor(key: CalculatorKey): ButtonColors = when (key) {
     CalculatorKey.Clear,
     CalculatorKey.Backspace -> ButtonDefaults.buttonColors(
         backgroundColor = MaterialTheme.colors.error.copy(alpha = DESTRUCTIVE_TINT_ALPHA),
-        contentColor = MaterialTheme.colors.onBackground
+        contentColor = LocalContentColor.current
     )
 
     is CalculatorKey.Digit -> if (key.value % EVEN_DIVISOR == 0) {
         ButtonDefaults.secondaryButtonColors()
     } else {
         ButtonDefaults.buttonColors(
-            backgroundColor = MaterialTheme.colors.onSurface.copy(alpha = ODD_DIGIT_TINT_ALPHA),
-            contentColor = MaterialTheme.colors.onBackground
+            backgroundColor = LocalContentColor.current.copy(alpha = ODD_DIGIT_TINT_ALPHA),
+            contentColor = LocalContentColor.current
         )
     }
 

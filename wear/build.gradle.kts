@@ -1,6 +1,7 @@
 
 import java.io.FileInputStream
 import java.io.File
+import java.time.Duration
 import java.util.Properties
 import org.gradle.api.GradleException
 
@@ -32,6 +33,12 @@ apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
 
 val defaultAppVersionCode = 26090121
 val defaultAppVersionName = "2.60.9012.140"
+
+// S2585: single source for the unit-test task ceiling, shared with app_v2 through gradle.properties.
+// Declared at the top level because testOptions.unitTests.all binds `it` to the Test task, which a
+// nested provider lambda would shadow. Rationale and the measurement behind 20: the property itself.
+val unitTestTimeoutMinutes: Long =
+    providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
 val stampedAppVersionCode = extra.properties["fmsStampedWearVersionCode"] as Int?
 val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
@@ -140,8 +147,13 @@ android {
     // system-information contributor, and S2486 added wear/src/standard alongside it: a two-sided
     // @Binds contract has no implementation unless BOTH flavors declare one, so the withholding answer
     // is a real class in its own set rather than a default in src/main, which would diverge silently
-    // from the flavor that overrides it. Neither set carries an AndroidManifest.xml, because neither
-    // capability declares a permission - a flavor manifest is picked up by convention the day one does.
+    // from the flavor that overrides it. wear/src/noLegal/AndroidManifest.xml now exists too, created
+    // the day a capability first needed a permission and merged by convention exactly as the paragraph
+    // below predicted; S2457 and S2458 both reached that day at once, so it carries two unrelated
+    // permission families - body sensors and activity recognition - and any third sibling ADDS to it
+    // rather than rewriting it. wear/src/standard still has no manifest, and that absence is the
+    // feature: it is what keeps the Play-distributed edition clear of the permissions whose review
+    // left S1614 blocked.
     // See dev/FLAVOR_DEVELOPMENT_RULES.md Rule 8 for the shape a new capability must take, and note
     // that the ban on placeholder content in these sets still stands.
     flavorDimensions += listOf("version")
@@ -213,6 +225,14 @@ android {
             // declared testOptions at all. isIncludeAndroidResources stays off deliberately - it is a
             // Robolectric requirement, and this module has no Robolectric.
             isReturnDefaultValues = true
+            all {
+                // S2585: the same ceiling app_v2 carries, from the same gradle.properties value, so
+                // the two modules cannot drift to two different numbers. This module has never hung,
+                // but the mechanism is not module-specific: any test spinning without checking the
+                // interrupt flag holds its task open, and a held task holds Build.Wear. The timeout
+                // ends the task so the wrapper reaches its finally and reaps the worker there.
+                it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
+            }
         }
     }
 }
@@ -281,6 +301,24 @@ dependencies {
 
     // S2047: watch face complication data sources. watch-face APIs are deprecated at 1.3.0 while complication APIs are not.
     implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.3.0")
+
+    // S2457: Health Services, for a single foreground heart-rate reading. Three things about this line
+    // are deliberate and none of them is style.
+    //   1. noLegalImplementation, not implementation. Play reviews both heart-rate permissions against six
+    //      admitted use cases and a media sorter matches none, so the capability ships in the sideload
+    //      flavor alone - and the library has no business in the standard artifact, where no permission
+    //      exists to use it. This also keeps point 2 out of the standard manifest.
+    //   2. The library declares minSdk 30 against this module's floor of 28, so the noLegal manifest
+    //      carries a tools:overrideLibrary entry and the data source guards on SDK_INT at runtime.
+    //      Raising the floor is not available: minSdk 28 is pinned above as a support commitment.
+    //   3. The version is an RC because the Health Services line has never shipped a stable release -
+    //      1.0.0 stopped at beta02 and the maintained branch is 1.1.0-rc02.
+    // Quoted, not the accessor form: Kotlin DSL generates type-safe accessors for the base
+    // configurations only, never for a product flavor's, so `noLegalImplementation(..)` is an
+    // unresolved reference that fails SCRIPT COMPILATION - which breaks configuration for every
+    // module, so detekt and every post-change closure in the repository died before running a
+    // single check. app_v2 has used the quoted form for its six flavors since it gained them.
+    "noLegalImplementation"("androidx.health:health-services-client:1.1.0-rc02")
     
     // Accompanist Permissions (for runtime permission handling)
     implementation("com.google.accompanist:accompanist-permissions:0.34.0")

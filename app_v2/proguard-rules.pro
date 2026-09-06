@@ -581,3 +581,15 @@
 -keepclassmembernames enum com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator {
     <fields>;
 }
+# S2569: two enums that shipped without a rule, both restoring a persisted value by matching a
+# stored string against a constant name and both degrading to a default instead of throwing - so an
+# R8 rename resets the user's choice silently. BrowseSwipeAction arrived with S2533 (Browse row
+# swipe actions, SharedPreferences), PowerSavingTrigger with S2536 (battery power-saving mode,
+# AppSettings). The AppSettings field rule above pins the FIELD name `powerSavingTrigger`, never the
+# constants of the enum that field holds - those are static fields of a different class.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.BrowseSwipeAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.PowerSavingTrigger {
+    <fields>;
+}

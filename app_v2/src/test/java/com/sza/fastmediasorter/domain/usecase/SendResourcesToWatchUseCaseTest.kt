@@ -61,7 +61,7 @@ class SendResourcesToWatchUseCaseTest {
         )
     }
 
-    private fun select(vararg ids: Long) {
+    private suspend fun select(vararg ids: Long) {
         selectionRepository.setSelectedIds(ids.toSet())
     }
 
@@ -339,17 +339,17 @@ private class FakeWearResourceStampStore : WearResourceStampStore {
 
     val stamps = mutableMapOf<String, Long>()
 
-    override fun readStamps(): Map<String, Long> = stamps.toMap()
+    override suspend fun readStamps(): Map<String, Long> = stamps.toMap()
 
-    override fun stampEdit(resourceId: String) {
+    override suspend fun stampEdit(resourceId: String) {
         stamps[resourceId] = System.currentTimeMillis()
     }
 
-    override fun writeStamp(resourceId: String, atEpochMillis: Long) {
+    override suspend fun writeStamp(resourceId: String, atEpochMillis: Long) {
         stamps[resourceId] = atEpochMillis
     }
 
-    override fun forget(resourceId: String) {
+    override suspend fun forget(resourceId: String) {
         stamps.remove(resourceId)
     }
 }

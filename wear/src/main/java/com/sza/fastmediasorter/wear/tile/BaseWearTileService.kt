@@ -5,9 +5,9 @@ import androidx.wear.protolayout.TimelineBuilders
 import androidx.wear.tiles.RequestBuilders
 import androidx.wear.tiles.TileBuilders
 import androidx.wear.tiles.TileService
-import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.SettableFuture
+import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.usecase.LoadWearTileContentUseCase
 import dagger.hilt.android.AndroidEntryPoint
@@ -54,7 +54,7 @@ abstract class BaseWearTileService : TileService() {
                 }
                 val timeline = TimelineBuilders.Timeline.fromLayoutElement(rootElement)
                 val tile = TileBuilders.Tile.Builder()
-                    .setResourcesVersion(RESOURCES_VERSION)
+                    .setResourcesVersion(resourcesVersionOf(content))
                     .setTileTimeline(timeline)
                     .build()
                 future.set(tile)
@@ -67,14 +67,61 @@ abstract class BaseWearTileService : TileService() {
         return future
     }
 
+    /**
+     * S2511: publishes an image for every glyph the current content draws.
+     *
+     * This used to answer an empty set under a constant version, which meant no tile could show an image at
+     * all - a shortcut grid would have drawn empty buttons. The version is derived from the published ids
+     * rather than fixed, because the renderer caches by that string: under a constant a changed icon set is
+     * never re-fetched, and the tile keeps drawing the old glyphs.
+     */
+    @Suppress("TooGenericExceptionCaught")
     override fun onTileResourcesRequest(
         requestParams: RequestBuilders.ResourcesRequest
     ): ListenableFuture<ResourceBuilders.Resources> {
-        val resources = ResourceBuilders.Resources.Builder()
-            .setVersion(RESOURCES_VERSION)
-            .build()
-        return Futures.immediateFuture(resources)
+        val future = SettableFuture.create<ResourceBuilders.Resources>()
+        serviceScope.launch {
+            try {
+                val drawableIds = drawableIdsOf(loadWearTileContentUseCase(kind))
+                Timber.d("S2511: tile %s publishing %d image(s)", kind, drawableIds.size)
+                val builder = ResourceBuilders.Resources.Builder()
+                    .setVersion(versionOf(drawableIds))
+                drawableIds.forEach { drawableId ->
+                    builder.addIdToImageMapping(
+                        tileImageResourceId(drawableId),
+                        ResourceBuilders.ImageResource.Builder()
+                            .setAndroidResourceByResId(
+                                ResourceBuilders.AndroidImageResourceByResId.Builder()
+                                    .setResourceId(drawableId)
+                                    .build()
+                            )
+                            .build()
+                    )
+                }
+                future.set(builder.build())
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                future.setException(e)
+            }
+        }
+        return future
     }
+
+    private fun resourcesVersionOf(content: WearTileContent): String = versionOf(drawableIdsOf(content))
+
+    /** The glyphs [content] needs, in a stable order so the version does not change on re-ordering alone. */
+    private fun drawableIdsOf(content: WearTileContent): List<Int> = when (content) {
+        is WearTileContent.Shortcuts -> content.entries.map { it.iconResId }.distinct().sorted()
+        // The other states draw text only; their iconResId has never been populated.
+        is WearTileContent.Assigned,
+        is WearTileContent.Unassigned,
+        is WearTileContent.TargetMissing,
+        WearTileContent.FavouritesEmpty -> emptyList()
+    }
+
+    private fun versionOf(drawableIds: List<Int>): String =
+        if (drawableIds.isEmpty()) NO_IMAGES_VERSION else drawableIds.joinToString(separator = "-")
 
     override fun onDestroy() {
         // Releases an in-flight tile request that would otherwise retain this destroyed service.
@@ -83,6 +130,7 @@ abstract class BaseWearTileService : TileService() {
     }
 
     companion object {
-        private const val RESOURCES_VERSION = "1"
+        /** Distinct from any id-derived version, which always carries a digit. */
+        private const val NO_IMAGES_VERSION = "none"
     }
 }

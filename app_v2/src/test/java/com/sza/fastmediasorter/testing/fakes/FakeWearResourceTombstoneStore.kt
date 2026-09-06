@@ -12,14 +12,14 @@ class FakeWearResourceTombstoneStore : WearResourceTombstoneStore {
 
     val tombstones = mutableListOf<WearSourceTombstonePayload>()
 
-    override fun read(): List<WearSourceTombstonePayload> = tombstones.toList()
+    override suspend fun read(): List<WearSourceTombstonePayload> = tombstones.toList()
 
-    override fun record(tombstone: WearSourceTombstonePayload) {
+    override suspend fun record(tombstone: WearSourceTombstonePayload) {
         tombstones.removeAll { it.id == tombstone.id }
         tombstones.add(tombstone)
     }
 
-    override fun forget(resourceId: String) {
+    override suspend fun forget(resourceId: String) {
         tombstones.removeAll { it.id == resourceId }
     }
 }

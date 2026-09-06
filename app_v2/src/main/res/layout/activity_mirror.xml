@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1924: the mirror. The white field is a view of its own rather than the root background, because the
+  backlight button has to hide it without taking the preview's own backdrop with it - with the field
+  gone the root stays black, which is what a mirror with the light off should look like.
+
+  One orientation-agnostic file on purpose (strategic 3.3): every control is pinned to a corner, and a
+  corner reads the same in portrait and landscape. Both neighbouring sub-programs are built the same way.
+
+  Insets padding is applied in code on the four corner containers, so the controls stay inside the safe
+  bounds while the glow field itself keeps covering the cutout and the system-bar areas.
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mirrorRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/black"
+    tools:context=".ui.mirror.MirrorActivity">
+
+    <View
+        android:id="@+id/mirrorGlowField"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/white"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- The flip lives on this host, not on the PreviewView: CameraCaptureSessionManager expresses soft
+         (digital) zoom by writing PreviewView.scaleX/scaleY, and a front lens usually reports an optical
+         max of 1.0, so every preset above x1 goes down that path. A flip written to the same property
+         would be overwritten by the next zoom, and the zoom by the next flip. The host also gives the
+         scaled preview a parent to be clipped by, the way S1920 documents on the capture screen.
+
+         The inset is a dimen, not a literal: strategic 5.3 keeps the field width a parameter, and the
+         risk table calls out that too wide a field eats the preview on a narrow screen. -->
+    <FrameLayout
+        android:id="@+id/mirrorPreviewFlipHost"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="@dimen/mirror_glow_field_width"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- compatible, not performance: the flip is a negative scale, and a TextureView-backed preview
+             applies one predictably where a SurfaceView-backed one does not. -->
+        <androidx.camera.view.PreviewView
+            android:id="@+id/mirrorPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:implementationMode="compatible"
+            app:scaleType="fitCenter" />
+    </FrameLayout>
+
+    <!-- Strategic 3.3 fixes the corner assignment: close top-start; backlight then flip top-end;
+         the zoom row bottom-start; photo then video bottom-end.
+
+         The tint is a fixed colour, never ?attr/colorOnSurface: these controls sit on the glow field,
+         not on the theme's surface. In the dark theme colorOnSurface resolves to white, which on a white
+         field is five invisible buttons in the mirror's own default state (the backlight starts on).
+         The front-flashlight screen fixes its tint to black for exactly this reason. Black is the
+         backlight-on value; MirrorActivity swaps it to white when the field is hidden and the black
+         root shows through. -->
+
+    <LinearLayout
+        android:id="@+id/mirrorCornerTopStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnMirrorClose"
+            android:layout_width="@dimen/control_button_size"
+            android:layout_height="@dimen/control_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mirror_close_button"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_cancel"
+            app:tint="@color/black" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/mirrorCornerTopEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnMirrorBacklight"
+            android:layout_width="@dimen/control_button_size"
+            android:layout_height="@dimen/control_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mirror_backlight_button"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_front_flashlight"
+            app:tint="@color/black" />
+
+        <ImageButton
+            android:id="@+id/btnMirrorFlip"
+            android:layout_width="@dimen/control_button_size"
+            android:layout_height="@dimen/control_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mirror_flip_button"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_swap_horizontal"
+            app:tint="@color/black" />
+
+    </LinearLayout>
+
+    <!-- Left empty on purpose: MirrorZoomManager inflates one preset per entry of its ratio list, so
+         strategic 5.3 holds and a fifth preset never costs a layout edit. -->
+    <LinearLayout
+        android:id="@+id/mirrorCornerBottomStart"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/mirrorCornerBottomEnd"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/btnMirrorPhoto"
+            android:layout_width="@dimen/control_button_size"
+            android:layout_height="@dimen/control_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mirror_photo_button"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_camera_capture"
+            app:tint="@color/black" />
+
+        <ImageButton
+            android:id="@+id/btnMirrorVideo"
+            android:layout_width="@dimen/control_button_size"
+            android:layout_height="@dimen/control_button_size"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/mirror_video_button"
+            android:focusable="true"
+            android:padding="@dimen/padding_normal"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_shutter_video_idle"
+            app:tint="@color/black" />
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

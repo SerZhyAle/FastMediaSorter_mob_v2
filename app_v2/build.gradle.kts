@@ -1,6 +1,7 @@
 import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.io.File
+import java.time.Duration
 import java.util.Properties
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
@@ -224,6 +225,13 @@ apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
 
 val defaultAppVersionCode = 260901214
 val defaultAppVersionName = "2.60.9012.140"
+
+// S2585: single source for the unit-test task ceiling, shared with wear through gradle.properties so
+// the two modules cannot drift apart. Declared here rather than inside testOptions.unitTests.all
+// because that lambda already binds `it` to the Test task, and a nested provider lambda would shadow
+// it. The full rationale - and the measurement that picked 20 - is on the property itself.
+val unitTestTimeoutMinutes: Long =
+    providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
 val stampedAppVersionCode = extra.properties["fmsStampedAppVersionCode"] as Int?
 val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
@@ -1052,6 +1060,15 @@ android {
                 // natively - exit value 10, no Java-level OOM, truncated suite. Recycling the
                 // worker every 100 classes caps that peak; cost is a few JVM warmups per run.
                 it.forkEvery = 100L
+                // S2585: bound the task's WALL CLOCK, next to the two limits that bound the worker's
+                // heap and lifetime. This one is different in kind and the difference matters: it
+                // ends the task, not the worker - Gradle's timeout only interrupts its own
+                // daemon-side thread, and the worker that hung on 2026-09-05 was spinning RUNNABLE
+                // and ignored every interrupt, including kotlinx-coroutines-test's own 60 s runTest
+                // timeout. Its value is that the wrapper stops waiting, reaches its finally,
+                // releases Build.Phone and reaps the worker there. Alone it would leave the worker
+                // holding R.jar; that half lives in scripts/builders/gradle-worker-reaper.ps1.
+                it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
                 // S1657: Gson ships no java.time adapter, so a bare Gson() reflects over java.time's own
                 // private fields. The test JVM enforces modules and refuses that read with
                 // InaccessibleObjectException, which made every serialization test of a model carrying an

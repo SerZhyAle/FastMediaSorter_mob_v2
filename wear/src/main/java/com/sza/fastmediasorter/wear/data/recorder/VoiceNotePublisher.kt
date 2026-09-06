@@ -166,9 +166,15 @@ class VoiceNotePublisher(
          * time is taken from the stamp the file factory wrote, and only from the file's own clock
          * when that stamp is missing or unreadable - a file renamed by hand still has to publish.
          */
-        fun readableTitle(file: File): String = DateFormat
+        fun readableTitle(file: File): String = readableTitle(recordedAtMillis(file))
+
+        /**
+         * S2626: the same title from the recording time alone, so the refresh pass can rebuild it
+         * from the note index without the private file having to still be on disk.
+         */
+        fun readableTitle(recordedAtMillis: Long): String = DateFormat
             .getDateTimeInstance(DateFormat.MEDIUM, DateFormat.SHORT, Locale.getDefault())
-            .format(Date(recordedAtMillis(file)))
+            .format(Date(recordedAtMillis))
 
         private fun recordedAtMillis(file: File): Long {
             val stamp = FILE_NAME_STAMP.find(file.name)?.groupValues?.get(1)

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.util
 import android.os.Environment
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import java.io.File
 
 /**
@@ -10,7 +11,7 @@ import java.io.File
  */
 object TextNoteTargetPolicy {
     fun canCreateTextNote(resource: MediaResource?): Boolean {
-        if (resource == null || resource.isReadOnly || !resource.supportsDocuments()) return false
+        if (resource == null || !resource.allowsWriteOperations() || !resource.supportsDocuments()) return false
         return !VirtualPathUtils.isVirtualPath(resource.path) || isAllDocuments(resource)
     }
 

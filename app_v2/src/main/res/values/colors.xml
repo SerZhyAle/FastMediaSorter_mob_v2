@@ -417,6 +417,24 @@
     <color name="color_media_docs">#FFE65100</color>      <!-- Orange 900 -->
     <color name="color_media_other">#FF616161</color>     <!-- Grey 700 -->
 
+    <!-- S2510: per-mini-program accent palette (light theme). Read through
+         core/panel/SubProgramAccentCatalog - a surface asks there instead of picking a tone.
+         Key names are frozen: wear/src/main/res/values/colors.xml declares the same eight against
+         its own values, and that name match is the entire contract between two modules that share
+         no source (S2510 ADR-4).
+         Deliberately outside the dynamic palette (S2510 ADR-2): a tone that moves with the wallpaper
+         cannot stay attached to a program, which is the whole point of the feature. Eight tones, not
+         one per program - what makes a list scannable is how far apart the hues sit, and nearly
+         thirty unique tones would only produce neighbours nobody can tell apart on a small glyph. -->
+    <color name="color_program_accent_red">#FFC62828</color>     <!-- Red 800 -->
+    <color name="color_program_accent_orange">#FFE65100</color>  <!-- Orange 900 -->
+    <color name="color_program_accent_amber">#FFF9A825</color>   <!-- Amber 800 -->
+    <color name="color_program_accent_green">#FF2E7D32</color>   <!-- Green 800 -->
+    <color name="color_program_accent_teal">#FF00796B</color>    <!-- Teal 700 -->
+    <color name="color_program_accent_blue">#FF1976D2</color>    <!-- Blue 700 -->
+    <color name="color_program_accent_indigo">#FF303F9F</color>  <!-- Indigo 700 -->
+    <color name="color_program_accent_purple">#FF7B1FA2</color>  <!-- Purple 700 -->
+
     <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone). -->
     <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->
     <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
@@ -443,6 +461,11 @@
     <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
          red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
     <color name="stream_pin_badge_bg">#FFC62828</color>
+    <!-- S2556: the splash background, named once because two surfaces now render it - the platform
+         starting window via windowSplashScreenBackground, and the app's own startup brand frame,
+         which continues that window because the platform one cannot draw live text. Two literals
+         would be two things free to drift apart into a visible seam at the handover. -->
+    <color name="splash_background">#F5F5F5</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
     <!-- S1706: splash logo gradient, sampled from the lit and shaded faces of the launcher icon's

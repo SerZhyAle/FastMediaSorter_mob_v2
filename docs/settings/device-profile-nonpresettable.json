@@ -9,6 +9,7 @@
     { "field": "audioBackgroundPhotosResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "slideshowMusicResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "slideshowMusicUri", "reason": "pointer to a document URI granted on this install" },
+    { "field": "stopwatchMusicUri", "reason": "pointer to a document URI granted on this install - see slideshowMusicUri, the same grant cannot exist on another device (S1411)" },
     { "field": "videoRecordingDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "micRecordingDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
     { "field": "cameraPhotosDestinationResourceId", "reason": "pointer to a resource row that exists only on this install" },
@@ -22,6 +23,7 @@
     { "field": "launcherWeatherLastLocation", "reason": "the city the user picked for a weather block - a profile names a class of devices, and where someone lives is not a property of his phone model (S2213)" },
     { "field": "launcherScreenCount", "reason": "how many desktop pages the person keeps - gadget and shortcut placements are stored per screen index, so a profile lowering the count would strand arrangements the user made himself (S2295)" },
     { "field": "frontFlashlightColor", "reason": "personal taste - the flashlight glow colour is the user's pick, and the default white is already what every device class wants (S1796)" },
+    { "field": "launcherAnimationPalette", "reason": "personal taste - see frontFlashlightColor: the colour of the launcher waves and particles is the owner's pick, and the DYNAMIC default already adapts on every device class (S2223)" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
     { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },
@@ -84,7 +86,10 @@
     { "field": "launcherAllAppsSwipeDownAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
     { "field": "launcherAllAppsSwipeLeftAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
     { "field": "launcherAllAppsSwipeRightAction", "reason": "launcher gesture action - personal gesture assignment rather than a device-class default, decided as one family with the desktop swipe rows above (S2304)" },
-    { "field": "launcher", "reason": "container, not a setting - S2300 nested the launcher group to get AppSettings back under the JVM descriptor ceiling, and every member is still surfaced individually through a read-through property that carries its own decision here or in the CSV. A profile presets members, never the group object" }
+    { "field": "launcher", "reason": "container, not a setting - S2300 nested the launcher group to get AppSettings back under the JVM descriptor ceiling, and every member is still surfaced individually through a read-through property that carries its own decision here or in the CSV. A profile presets members, never the group object" },
+    { "field": "mirrorZoomRatio", "reason": "the zoom the mirror reopens at is the user's own in-screen choice, remembered from last time rather than a device-class default; the mirror's presettable half is mirrorEnabled, which does have a matrix row (S1924)" },
+    { "field": "mirrorHorizontallyFlipped", "reason": "whether the mirror image is flipped is a personal preference toggled inside the screen, not something a device class implies (S1924)" },
+    { "field": "mirrorBacklightOn", "reason": "the glow field is switched off and on inside the mirror itself and remembered; no device class wants a different starting answer (S1924)" }
   ],
 
   "reviewed": [
@@ -112,6 +117,7 @@
     { "field": "launcherTrayShowClock", "reason": "reviewed for release 35 - a clock is wanted on every device class, so the shared default already fits and a per-profile override would only diverge (S1538)" },
     { "field": "launcherTrayShowNetwork", "reason": "reviewed for release 35 - every profile browses network shares or streams, so the indicator stays useful on all of them (S1538)" },
     { "field": "launcherTrayShowBluetooth", "reason": "reviewed for release 35 - Bluetooth audio and remotes are plausible on every device class, so no profile has a reason to hide it (S1538)" },
+    { "field": "launcherTrayShowTethering", "reason": "reviewed for release 37 - see launcherTrayShowClock and launcherTrayShowBluetooth: a status tray toggle whose shared default suits every device class, and whether tethering is in use is a property of the moment rather than of the class (S2574)" },
     { "field": "launcherTaskbarShowPinned", "reason": "reviewed for release 35 - which apps are worth pinning is the arrangement of the person using the device, not a property of the device class (S1538)" },
     { "field": "launcherTopStatusStripMode", "reason": "reviewed for release 35 - a presentation preference for the launcher status strip with no device-class basis; the shared default holds (S1538)" },
     { "field": "smbEnabled", "reason": "reviewed for release 35 - a profile cannot know whether an SMB share exists on this network, and switching a protocol on only surfaces an entry point that leads nowhere (S1538)" },
@@ -152,6 +158,14 @@
     { "field": "enableSystemInfo", "reason": "reviewed for release 35 - a diagnostics surface opened deliberately; no device class needs it on by default (S1538)" },
     { "field": "launcherTrayShowSpeed", "reason": "reviewed for release 35 - launcher status tray toggle; shared default holds (S1538)" },
     { "field": "disableAnimations", "reason": "reviewed for release 36 - motion sensitivity and power saving preference; false is the default across all device classes (S2209)" },
-    { "field": "launcherDensityFactor", "reason": "reviewed for release 36 - the dense grid became the shared default, so the four profiles that carried 1.25 were repeating it and the tablet's 1.0 only ever repeated the default before it; the row stays presettable and a profile that genuinely needs looser spacing fills its cell again (S2320)" }
+    { "field": "launcherDensityFactor", "reason": "reviewed for release 36 - the dense grid became the shared default, so the four profiles that carried 1.25 were repeating it and the tablet's 1.0 only ever repeated the default before it; the row stays presettable and a profile that genuinely needs looser spacing fills its cell again (S2320)" },
+
+    { "field": "enableStopwatch", "reason": "reviewed for release 37 - S1411 ships the stopwatch off until the user asks for it, and unlike the calculator beside it no device class implies a stopwatch; a profile that later wants one fills its cell (S2574)" },
+    { "field": "stopwatchParticipantCount", "reason": "reviewed for release 37 - configures a tool that is off by default, so there is nothing to preset before the user enables it; decided as one family with the other stopwatch rows (S2574)" },
+    { "field": "stopwatchMusicEnabled", "reason": "reviewed for release 37 - see stopwatchParticipantCount: behaviour of a sub-program that is off by default (S2574)" },
+    { "field": "stopwatchVolumeKeysControl", "reason": "reviewed for release 37 - see stopwatchParticipantCount: behaviour of a sub-program that is off by default (S2574)" },
+    { "field": "waterFlashlightEnabled", "reason": "reviewed for release 37 - S2516 ships the water flashlight off until asked for, and no device class implies it; the applier branch already exists, so a profile value added later takes effect without a code change (S2574)" },
+    { "field": "browseSwipeRightAction", "reason": "reviewed for release 37 - the SEND_TO default is non-destructive and useful on every device class, unlike the left slot whose DELETE default the photo frame overrides (S2574)" },
+    { "field": "playerPanelAutoHideSeconds", "reason": "reviewed for release 37 - fifteen seconds suits every device class; a different timeout is a matter of taste rather than a property of the class the profile names (S2574)" }
   ]
 }

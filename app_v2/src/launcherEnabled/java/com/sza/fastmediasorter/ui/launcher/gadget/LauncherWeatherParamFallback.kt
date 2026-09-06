@@ -21,8 +21,14 @@ object LauncherWeatherParamFallback {
      * cell has no readable place of its own. A saved value that does not decode is ignored rather than
      * passed on, so a corrupted preference cannot turn a configured-looking cell into a broken one.
      */
-    fun resolve(key: String, param: String?, savedLocation: String?): String? = when {
+    fun resolve(
+        key: String,
+        param: String?,
+        savedLocation: String?,
+        cellConfigLocation: String? = null,
+    ): String? = when {
         key != LauncherGadgetRegistry.KEY_WEATHER -> param
+        cellConfigLocation?.let { WeatherLocation.decode(it) } != null -> cellConfigLocation
         WeatherLocation.decode(param) != null -> param
         else -> savedLocation?.takeIf { WeatherLocation.decode(it) != null } ?: param
     }

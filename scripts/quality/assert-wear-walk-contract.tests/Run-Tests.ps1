@@ -46,15 +46,16 @@ $script:passed = 0
 $script:failed = 0
 
 function Invoke-Gate {
-    param([string]$ScreenListName, [switch]$AsGate)
+    param([string]$ScreenListName, [switch]$AsGate, [string]$SourceDir = 'src', [string]$ChangedFiles)
     $callArgs = @(
         '-NoProfile', '-File', $gate,
         '-ScreenList', (Join-Path $fixtures $ScreenListName),
         '-StringsFile', (Join-Path $fixtures 'strings.xml'),
-        '-WearSource', (Join-Path $fixtures 'src'),
+        '-WearSource', (Join-Path $fixtures $SourceDir),
         '-BaselineFile', (Join-Path $fixtures 'baseline-zero.txt')
     )
     if ($AsGate) { $callArgs += '-Gate' }
+    if ($ChangedFiles) { $callArgs += @('-ChangedFiles', $ChangedFiles) }
     $output = & pwsh @callArgs 2>&1
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
 }
@@ -119,6 +120,39 @@ Assert-Case -Label 'a reason outside the closed set is reported' `
 Assert-Case -Label 'a missing screen list is could-not-verify, not a defect' `
     -ExpectedExit 2 -ExpectedPattern 'could not verify' `
     -Result (Invoke-Gate -ScreenListName 'screens-does-not-exist.json' -AsGate)
+
+# S2621 - the scoped mode. It exists to NOT report things, which is indistinguishable from a broken
+# gate unless both halves are pinned: what it still catches, and what it deliberately lets past.
+Assert-Case -Label 'scoped: the unscoped run over the same fixtures still reports the divergence' `
+    -ExpectedExit 1 -ExpectedPattern 'BetaScreen : neither walked nor excluded' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate)
+
+Assert-Case -Label 'scoped: a divergence in a file the set does not name is not reported' `
+    -ExpectedExit 0 -ExpectedPattern 'PASS' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'src-scoped/Alpha.kt')
+
+Assert-Case -Label 'scoped: a divergence in a file the set names is reported' `
+    -ExpectedExit 1 -ExpectedPattern 'BetaScreen : neither walked nor excluded' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'src-scoped/Beta.kt')
+
+Assert-Case -Label 'scoped: naming the screen list restores the full project-wide judgement' `
+    -ExpectedExit 1 -ExpectedPattern 'BetaScreen : neither walked nor excluded' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'screens-scoped.json')
+
+# The rename channel: the stale entry names a composable that exists in no file, so it is
+# attributable to no file - only the presence of a changed *Screen.kt in the set can claim it.
+Assert-Case -Label 'scoped: a stale entry is claimed by a changed *Screen.kt in the set' `
+    -ExpectedExit 1 -ExpectedPattern "screen 'GammaScreen' is not a composable" `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped-missing.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'wear/src/main/java/com/example/RenamedScreen.kt')
+
+Assert-Case -Label 'scoped: a stale entry is not claimed by a set carrying no screen source' `
+    -ExpectedExit 0 -ExpectedPattern 'PASS' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped-missing.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'src-scoped/Alpha.kt')
 
 Write-Host ""
 Write-Host "assert-wear-walk-contract.tests: $script:passed passed, $script:failed failed."

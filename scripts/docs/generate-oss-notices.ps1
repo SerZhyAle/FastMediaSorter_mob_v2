@@ -39,6 +39,16 @@
       1  -Check found drift (regenerate without -Check)
       2  could not verify: parser or manifest missing, a shipping coordinate
          absent from the manifest, or a manifest entry missing a required field
+      4  a code domain is held by another session: nothing was written, the place
+         in the queue is held, wait for the turn and rerun. Write path only -
+         -Check takes no lock, because the gate battery runs its children at once.
+
+    Locking (S2615). This is the one generator whose targets span two code
+    domains: the four documents are Code.Scripts and the seven per-flavor
+    app_v2/src/main/res/raw payloads are Code.Phone. They are taken in ONE call
+    so the set is all-or-nothing; two sequential calls would hold the first
+    domain while queueing for the second, which is the shape canonical ordering
+    exists to rule out.
 #>
 [CmdletBinding()]
 param(
@@ -49,6 +59,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $parserPath = Join-Path $PSScriptRoot 'OssDependencyParser.ps1'
 if (-not (Test-Path -LiteralPath $parserPath)) {
@@ -371,11 +382,21 @@ foreach ($flavor in $appRawPaths.Keys) {
 }
 
 $drifted = [System.Collections.Generic.List[string]]::new()
-foreach ($path in ($rendered.Keys | Sort-Object)) {
-    if (Write-IfChanged -Path $path -Content $rendered[$path] -CheckOnly:$Check) {
-        $drifted.Add((Resolve-Path -LiteralPath $path -ErrorAction SilentlyContinue)?.Path ?? $path)
+$codeScope = $null
+try {
+    # S2615: eleven files across two domains, written as one set. -Check renders into memory and
+    # compares, so it takes nothing - assert-oss-notices.ps1 calls it from the concurrent gate batch.
+    if (-not $Check) {
+        $codeScope = Enter-CodeLockOrExit -Path @($rendered.Keys) `
+            -Reason 'generate-oss-notices.ps1 (OPEN_SOURCE pages + per-flavor raw notices)'
+    }
+    foreach ($path in ($rendered.Keys | Sort-Object)) {
+        if (Write-IfChanged -Path $path -Content $rendered[$path] -CheckOnly:$Check) {
+            $drifted.Add((Resolve-Path -LiteralPath $path -ErrorAction SilentlyContinue)?.Path ?? $path)
+        }
     }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 if ($Check) {
     if ($drifted.Count -gt 0) {

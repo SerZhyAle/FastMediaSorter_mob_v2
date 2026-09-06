@@ -83,4 +83,6 @@
     <string name="launcher_gadget_network_indicator_pick_title">Який показник показувати</string>
     <string name="widget_front_flashlight_label">Екранний ліхтарик</string>
     <string name="widget_front_flashlight_description">Вмикає екранний ліхтарик в один дотик</string>
+    <string name="widget_stopwatch_label">Секундомір</string>
+    <string name="widget_stopwatch_description">Запуск і зупинка заміру просто з домашнього екрана</string>
 </resources>

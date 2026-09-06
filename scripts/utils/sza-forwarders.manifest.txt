@@ -1,3 +1,4 @@
+scripts/spec_catalog/_blocker-links.ps1|spec_catalog/_blocker-links.ps1
 scripts/spec_catalog/_lib.ps1|spec_catalog/_lib.ps1
 scripts/spec_catalog/_research-items.ps1|spec_catalog/_research-items.ps1
 scripts/spec_catalog/_status-sets.ps1|spec_catalog/_status-sets.ps1
@@ -6,6 +7,7 @@ scripts/spec_catalog/archive.ps1|spec_catalog/archive.ps1
 scripts/spec_catalog/bulk-update.ps1|spec_catalog/bulk-update.ps1
 scripts/spec_catalog/check-audit-current.ps1|spec_catalog/check-audit-current.ps1
 scripts/spec_catalog/check-audit-recorded.ps1|spec_catalog/check-audit-recorded.ps1
+scripts/spec_catalog/check-block-note.ps1|spec_catalog/check-block-note.ps1
 scripts/spec_catalog/check-capability-recorded.ps1|spec_catalog/check-capability-recorded.ps1
 scripts/spec_catalog/check-evidence-durable.ps1|spec_catalog/check-evidence-durable.ps1
 scripts/spec_catalog/check-headings-unique.ps1|spec_catalog/check-headings-unique.ps1

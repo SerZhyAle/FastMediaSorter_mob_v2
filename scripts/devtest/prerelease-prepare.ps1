@@ -85,7 +85,9 @@ function Get-Adb {
 # ---------- stage 1: device gate ----------
 # The readiness pre-flight without -Package only checks adb + an online device (exit 0/1/2/3);
 # the package is not installed yet at this point, so -Package is deliberately omitted.
-$drArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/device-ready.ps1", '-Json')
+# S2611: -Module app_v2 - this is the PHONE pre-release sweep; the watch has its own
+# wear-prerelease-prepare.ps1, so a watch picked up here would be tested against the wrong plan.
+$drArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/device-ready.ps1", '-Module', 'app_v2', '-Json')
 if ($DeviceId) { $drArgs += @('-DeviceId', $DeviceId) }
 
 $drOut  = & pwsh @drArgs

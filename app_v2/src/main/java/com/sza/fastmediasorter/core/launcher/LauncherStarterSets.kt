@@ -592,6 +592,7 @@ object LauncherStarterSets {
             InternalRouteCatalog.KEY_QUICK_CAMERA,
             InternalRouteCatalog.KEY_QUICK_VOICE,
             InternalRouteCatalog.KEY_CALCULATOR,
+            InternalRouteCatalog.KEY_STOPWATCH,
             InternalRouteCatalog.KEY_NETWORK_MONITOR,
             InternalRouteCatalog.KEY_OCR,
             InternalRouteCatalog.KEY_SCREEN_RECORDING,

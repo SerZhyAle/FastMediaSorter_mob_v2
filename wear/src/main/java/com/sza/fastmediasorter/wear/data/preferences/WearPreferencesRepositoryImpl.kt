@@ -14,9 +14,11 @@ import androidx.datastore.preferences.preferencesDataStore
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -60,11 +62,13 @@ class WearPreferencesRepositoryImpl @Inject constructor(
 
         val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
         val WEAR_DISABLE_ANIMATIONS = booleanPreferencesKey("wear_disable_animations")
+        val WEAR_POWER_SAVING_TRIGGER = stringPreferencesKey("wear_power_saving_trigger")
 
         val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
 
         val VIEW_MODE = stringPreferencesKey("wear_view_mode")
         val BACKGROUND_MODE = stringPreferencesKey("wear_background_mode")
+        val COLOR_SCHEME = stringPreferencesKey("wear_color_scheme")
         val FILE_LIST_VIEW_MODE = stringPreferencesKey("wear_file_list_view_mode")
         val BROWSE_CONTENT_TYPES = stringSetPreferencesKey("wear_browse_content_types")
         val BROWSE_SORT_ORDER = stringPreferencesKey("wear_browse_sort_order")
@@ -234,6 +238,16 @@ class WearPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
+    override val powerSavingTrigger: Flow<PowerSavingTrigger> = context.dataStore.data.map { prefs ->
+        PowerSavingTrigger.fromNameOrDefault(prefs[PreferencesKeys.WEAR_POWER_SAVING_TRIGGER])
+    }
+
+    override suspend fun setPowerSavingTrigger(trigger: PowerSavingTrigger) {
+        stampedEdit("powerSavingTrigger") { prefs ->
+            prefs[PreferencesKeys.WEAR_POWER_SAVING_TRIGGER] = trigger.name
+        }
+    }
+
     // Screen settings
     override val viewMode: Flow<WearViewMode> = context.dataStore.data.map { prefs ->
         WearViewMode.fromNameOrDefault(prefs[PreferencesKeys.VIEW_MODE])
@@ -341,6 +355,18 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     override suspend fun setBackgroundMode(mode: WearBackgroundMode) {
         stampedEdit("backgroundMode") { prefs ->
             prefs[PreferencesKeys.BACKGROUND_MODE] = mode.name
+        }
+    }
+
+    // S2522: an absent value reads as the dark scheme, which is what the watch already looked like, so
+    // installing this update does not repaint the watch of an owner who never opens the setting.
+    override val colorScheme: Flow<WearColorScheme> = context.dataStore.data.map { prefs ->
+        WearColorScheme.fromNameOrDefault(prefs[PreferencesKeys.COLOR_SCHEME])
+    }
+
+    override suspend fun setColorScheme(scheme: WearColorScheme) {
+        stampedEdit("colorScheme") { prefs ->
+            prefs[PreferencesKeys.COLOR_SCHEME] = scheme.name
         }
     }
 

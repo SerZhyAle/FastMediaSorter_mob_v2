@@ -26,6 +26,12 @@
     Output is deterministic (fixed section order, key-sorted rows via ordinal
     compare, LF newlines, single trailing newline, UTF-8 no BOM) so the Phase 04
     gate can re-render and byte-diff to detect drift. Generated - never hand-edited.
+
+    Exit codes:
+      0 - the three legend pages were written.
+      4 - Code.Scripts is held by another session: nothing was written, the place
+          in the queue is held, wait for the turn and rerun. Reachable only when
+          rendering into docs/ - see the -OutDir note below.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
@@ -33,7 +39,17 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 if (-not $OutDir) { $OutDir = Join-Path $RepoRoot 'docs' }
+
+# S2615: -OutDir decides whether this run rewrites the shared render target or only produces a
+# throwaway copy of it. Into docs/ it takes that tree's code domain. Into anywhere else - which is
+# what assert-icon-inventory-sync.ps1 check 4 does, rendering to temp/ to byte-diff - it must take
+# NOTHING: that call runs inside the deliberately concurrent .\a.ps1 fg battery, and the scratch
+# path is unknown to the domain table, so handing it over would fail closed to EVERY code domain
+# and serialise phone and wear edits behind a documentation check.
+$writesRenderTarget = ([System.IO.Path]::GetFullPath($OutDir).TrimEnd('\', '/') -ieq
+    [System.IO.Path]::GetFullPath((Join-Path $RepoRoot 'docs')).TrimEnd('\', '/'))
 
 $invPath = Join-Path $RepoRoot 'docs/icons/icon-inventory.json'
 $annPath = Join-Path $RepoRoot 'docs/icons/icon-annotations.json'
@@ -190,13 +206,25 @@ $targets = @(
     @{ locale = 'ru'; permalink = 'ICON_LEGEND_RU'; file = 'ICON_LEGEND_RU.md' }
     @{ locale = 'uk'; permalink = 'ICON_LEGEND_UK'; file = 'ICON_LEGEND_UK.md' }
 )
-foreach ($t in $targets) {
-    $content = Render-Legend $t.locale $t.permalink
-    $path = Join-Path $OutDir $t.file
-    [System.IO.File]::WriteAllText($path, $content, $utf8NoBom)
-    $rowCount = ($content -split "`n" | Where-Object { $_ -match '^\| ' -and $_ -notmatch '^\| ---' -and $_ -notmatch "^\| $([regex]::Escape($colIcon[$t.locale])) " }).Count
-    Write-Host "rendered -> $path  ($rowCount data rows)"
+$codeScope = $null
+try {
+    if ($writesRenderTarget) {
+        # The FILES, never the directory holding them: the domain table matches an anchored prefix
+        # ('^docs/'), so the bare directory 'docs' matches no rule at all and takes the fail-closed
+        # branch that returns EVERY code domain. Measured 2026-09-06 - passing $OutDir here made a
+        # legend render queue behind a sibling's Code.Phone and exit 4 with the docs tree free.
+        $codeScope = Enter-CodeLockOrExit -Reason 'render-icon-legend.ps1 (docs/ICON_LEGEND*.md)' `
+            -Path @($targets | ForEach-Object { Join-Path $OutDir $_.file })
+    }
+    foreach ($t in $targets) {
+        $content = Render-Legend $t.locale $t.permalink
+        $path = Join-Path $OutDir $t.file
+        [System.IO.File]::WriteAllText($path, $content, $utf8NoBom)
+        $rowCount = ($content -split "`n" | Where-Object { $_ -match '^\| ' -and $_ -notmatch '^\| ---' -and $_ -notmatch "^\| $([regex]::Escape($colIcon[$t.locale])) " }).Count
+        Write-Host "rendered -> $path  ($rowCount data rows)"
+    }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 # --- Verification summary (advisory; the Phase 04 gate is the enforcement layer) -
 Write-Host ''

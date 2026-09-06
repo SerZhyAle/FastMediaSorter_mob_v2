@@ -15,10 +15,13 @@ import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorSummaryBinding
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkTransport
 import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartValueUnit
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorSectionHost
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.copyMonitorValue
+import com.sza.fastmediasorter.ui.networkmonitor.helpers.formatChartValue
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 /**
  * S1433: the Monitor's first screen - the active connection above a grid of section tiles.
@@ -104,6 +107,7 @@ class NetworkMonitorSummaryFragment : Fragment() {
     }
 
     private fun renderActiveCard(state: NetworkMonitorSummaryUiState) {
+        Timber.d("S1936: Network Monitor summary card speed metric rendered")
         val transportRes = state.transport?.toLabelRes()
         val hasLink = transportRes != null
         binding.networkMonitorActiveHeadline.text = if (hasLink) {
@@ -117,6 +121,16 @@ class NetworkMonitorSummaryFragment : Fragment() {
         // The external row stays visible without a link: the address is a property of the last connection
         // the outside world saw, and hiding it would read as "we lost it" rather than "you are offline".
         binding.networkMonitorExternalIpValue.text = externalIpText(state)
+        binding.networkMonitorSpeedRow.isVisible = hasLink
+        val rx = state.rxBytesPerSecond
+        val tx = state.txBytesPerSecond
+        binding.networkMonitorSpeedValue.text = if (rx != null && tx != null) {
+            val rxText = requireContext().formatChartValue(rx, ChartValueUnit.BYTES_PER_SECOND)
+            val txText = requireContext().formatChartValue(tx, ChartValueUnit.BYTES_PER_SECOND)
+            "↓ $rxText  ↑ $txText"
+        } else {
+            getString(R.string.network_monitor_value_unknown)
+        }
     }
 
     private fun externalIpText(state: NetworkMonitorSummaryUiState): String {

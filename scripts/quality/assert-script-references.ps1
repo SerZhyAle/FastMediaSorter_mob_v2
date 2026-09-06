@@ -41,6 +41,16 @@
     READ-ONLY ZONES ARE IN THE CORPUS. dev/archive, V1, v2_6 and spec_v2 may not be written, but
     they may be read, and a reference living only there is still a reference.
 
+    A CONTENT TREE IS A LIVE CALLER (S2636). play/ and store_assets/ hold runbooks, not records: the
+    listing procedure in play/listing/README.md is the only place the store-capture scripts are
+    invoked from. Leaving those two roots out of the live corpus did not merely under-report - it
+    INVERTED the verdict, condemning a wired script as dead weight. capture-play-screenshots.ps1 sat
+    in the baseline as a deliberate piece of dead weight while three of its invocations were written
+    down in that README, and seed-store-shot-media.ps1 failed this gate the same way on 2026-09-06.
+    The test for a live root is whether its files tell someone to run something, which is why the
+    other content trees this repository serialises together - maestro/, fastlane/, delivery/ - were
+    here from the start; these two were an omission, not a boundary.
+
     THE ESCAPE HATCH. A script the owner runs by hand is unreferenced by definition and is the
     costliest class to delete, because the loss surfaces only when it is next needed. Such a script
     declares itself with a line in its comment-based help:
@@ -140,7 +150,7 @@ $scriptRoots = @('scripts', 'dev/CATALOG/scripts', 'dev/ACTIVITY_CATALOG/scripts
 # decides: LIVE is what actually calls or wires a script, HISTORICAL is what merely remembers it.
 $liveRoots = @(
     'scripts', 'docs', '.claude', '.github', 'maestro', 'fastlane', 'config',
-    'lint-rules', 'corex', 'delivery', 'benchmark'
+    'lint-rules', 'corex', 'delivery', 'benchmark', 'play', 'store_assets'
 )
 $historicalRoots = @('PLAN', 'V1', 'v2_6', 'spec_v2')
 # dev/ is split: its guides and catalogues are live wiring, its changelog and archive are a record.

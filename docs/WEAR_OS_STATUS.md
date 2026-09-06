@@ -487,14 +487,42 @@ storage class, meaning "the phone still holds the original of this".
 
 ## 🎮 Apps: the mini-programs section (S1710)
 
-The watch home screen carries an **Apps** section holding five self-contained programs, each usable
+The watch home screen carries an **Apps** section holding eight self-contained programs, each usable
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
-recorder** and **system information**.
+recorder**, **system information**, a **water flashlight**, a **motion monitor** and a **heart-rate
+check**. Seven of them appear in every edition; the heart-rate check appears in `noLegal` alone.
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
-  program registers a catalog record and its own route; the Apps screen itself does not change.
+  program registers a catalog record and its own route; the Apps screen itself does not change. **Four**
+  further `when` expressions are exhaustive on an id and will refuse to compile until the new program is
+  answered in each: `WearAppIconCatalog`, `WearAppAccentCatalog`, `destinationFor` in
+  `domain/model/WearDestinationId.kt` - the one that puts the program on the Programs tile - and
+  `routeOf` inside `domain/usecase/ResolveWearLaunchRouteUseCase.kt`, which is keyed on
+  `WearDestinationId` rather than on `WearAppId` and is therefore the one a reader counting "catalogs"
+  misses. S2457 found it the way it is meant to be found: the build failed.
 - Routes registered: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`,
-  `WearRoutes.VOICE_RECORDER`, `WearRoutes.SYSTEM_INFO`.
+  `WearRoutes.VOICE_RECORDER`, `WearRoutes.SYSTEM_INFO`, `WearRoutes.WATER_FLASHLIGHT`,
+  `WearRoutes.MOTION_MONITOR`, `WearRoutes.BODY_SENSOR`.
+- **Heart-rate check** (S2457) is the only program whose ROW the build can withhold. `WearAppCatalog
+  .apps(offersBodySensorDiagnostics)` reads the answer from `WearRestrictedCapabilities`, so `standard`
+  never lists it: Play reviews both heart-rate permissions against six admitted use cases and a media
+  sorter matches none, so the way in is withheld rather than the absence explained. The route stays
+  registered in both flavors anyway - a Programs-tile shortcut must not become a dead tap, and reaching
+  the screen in `standard` prints the withheld-capability sentence. One foreground reading through the
+  public Health Services `MeasureClient`, never a Samsung raw type; the session is bound to
+  `viewModelScope` and its `awaitClose` unregisters the callback, so leaving the screen ends it. The two
+  permissions live in `wear/src/noLegal/AndroidManifest.xml` and split at API 36 -
+  `BODY_SENSORS` capped at `maxSdkVersion="35"`, `health.READ_HEART_RATE` above it - and the choice is
+  made in ONE place, `domain/bodysensor/HeartRatePermission.kt`, because the screen requests a permission
+  while the data source checks one and a split decision would pin the screen on `PERMISSION_DENIED`.
+- **Motion monitor** (S2458) reads live sensors, which no other program here does. Accelerometer,
+  gyroscope and rotation vector need no permission and are present in both flavors. Step counter and
+  step detector need `ACTIVITY_RECOGNITION`, which lives in `wear/src/noLegal/AndroidManifest.xml`
+  alone - the module's first flavor manifest - because the phone edition that declared it was rejected
+  by Play against the Health apps questionnaire and S1614 is still blocked on that answer. Availability
+  is resolved from the app's own MERGED manifest by `data/motion/WearActivityRecognitionState.kt`, never
+  from a flavor check, which Rule 14 bans in shared code. `fwr` cannot see the noLegal manifest - use
+  `fwrn`, whose merged output is the only place the permission's presence can be read.
 - **Network monitor** measures THIS watch, not the phone. `sectionsFor(capabilities)` in
   `domain/netmonitor/WearNetworkSection.kt` drops the sections whose hardware the watch lacks, so a
   watch without mobile data never shows an empty mobile page. Sampling runs only while the screen
@@ -582,15 +610,22 @@ recorder** and **system information**.
 
 ---
 
-## 🧩 Wear OS Tiles (S1955)
+## 🧩 Wear OS Tiles (S1955, S2511)
 
-The `:wear` module exposes five external components to the Wear OS platform:
+The `:wear` module exposes these external components to the Wear OS platform:
 1. `MainActivity` (launcher & addressable entry point)
 2. `WatchWearListenerService` (Data Layer phone companion listener)
 3. `VoiceRecordingService` (microphone session service)
-4. `WearResourceTileService`, `WearStreamTileService`, `WearFavouritesTileService` (Tile Providers)
+4. `WearResourceTileService`, `WearStreamTileService`, `WearFavouritesTileService` (Tile Providers - pinned content)
+5. `WearProgramsTileService`, `WearSectionsTileService` (Tile Providers - shortcut grids)
 
 `MainActivity` is an addressable entry point using a launch-target contract (`WearLaunchTarget`) shared with S1944, S1884, and S1961. Tiles construct ProtoLayout `AndroidActivity` launch intents with `WearLaunchTarget` key-value extras to open assigned resources, streams, or the favourites list directly upon user tap.
+
+**Two roles, not one (S2511).** The first three tiles each pin **one unit of content**, chosen by the user through `TileTargetPickerScreen` and stored per kind in DataStore; they therefore have an unassigned state and a target that can go missing. The last two pin **nothing**: they draw a `MultiButtonLayout` grid built from the same ordered catalogs the screens use - `WearAppCatalog` for the mini-programs, `HomeSectionCatalog` for the home sections - so adding a tile to the carousel is itself the act of pinning. `WearTileKind.carriesAssignableTarget` is the single place that classification lives; a kind that answers `false` owns no preference key and never reaches the target picker.
+
+A grid button names a `WearDestinationId`, never a navigation route: `MainActivity` is exported, so a raw route from outside would let any app on the watch open an arbitrary internal screen. An unknown id reads as "no target was named" and lands on the ordinary launch.
+
+`BaseWearTileService` publishes one ProtoLayout `ImageResource` per glyph the current content draws, under a version derived from that id set. Both halves matter: while the resource set was empty no tile could render an image at all, and under the previous constant version the renderer cached by that string, so a changed icon set was never re-fetched.
 
 ---
 
@@ -626,8 +661,9 @@ not exist for the phone at all.
   settings stay watch-only by decision (auto rotation, voice note policy) and the background picture
   stays a phone choice; each is a registry entry with its reason written down.
 - Three settings the watch has always had were missing from the published settings reference and are now
-  in it. `scripts/quality/assert-wear-settings-parity.ps1` runs in `scripts/post-change.ps1`, so a
-  setting added to one side and not the other fails the closure and names the missing side.
+  in it. `scripts/quality/assert-wear-settings-parity.ps1` carries 13 checks running in `scripts/post-change.ps1`
+  and `.\a.ps1 fg` (checks 1-10 settings registry & payloads, check 11 `WearSyncLeg`, check 12 `WearSettingOwnership`,
+  check 13 `WearSettingsFieldIssue`), so a setting added to one side and not the other fails the closure and names the missing side.
 - That gate checks a setting **exists** on both sides; `scripts/quality/assert-wear-mirrored-strings.ps1`
   checks its label still **reads** the same. The two modules ship no shared resource artifact, so every
   label the owner sees on both sides exists twice, and before this gate editing one copy left no trace on
@@ -639,6 +675,12 @@ not exist for the phone at all.
   (`wear_setting_background_mode`). The gate is summoned by a changed `strings.xml` under either module,
   and a key that appears in both modules without being classified fails it, so the list cannot age in
   silence.
+- **Wire Vocabulary Parity (S2642)**: `scripts/quality/assert-wear-wire-vocabulary-parity.ps1` extends this
+  protection to all eight phone-watch wire vocabularies outside the settings channel (events in `WearDataLayerPaths`,
+  the transfer ack companion outcomes in `WearStreamTransferPayload` and `WearFileTransfer` / `WearFileTransferMetadata`,
+  `WearPlaybackCommand`, `WearOpenOnPhoneOutcome`, `WearPhoneResourceRequestKind`, `WearPhoneResourceResponseStatus`).
+  It verifies `Mirrored` vocabularies as maps/sets, enforces safety checks on `LocalOnly` local-only types,
+  and performs auto-discovery to refuse any new mirrored enum introduced without declaration.
 
 ---
 

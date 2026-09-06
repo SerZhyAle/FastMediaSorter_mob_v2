@@ -28,7 +28,7 @@ import javax.inject.Inject
 /**
  * S1440: the launcher-desktop counterpart of the Network Monitor home-screen widget.
  *
- * One gadget serves all eight indicators. A desktop cell has no widget id, so the chosen indicator
+ * One gadget serves all nine indicators. A desktop cell has no widget id, so the chosen indicator
  * lives in the cell's own `target` param instead of a preferences row - the add flow asks for it at
  * placement and encodes it as `network_indicator:<indicatorKey>` (plus `|<resourceId>` for the
  * reachability indicator).
@@ -124,20 +124,29 @@ private class NetworkIndicatorGadgetView(
     }
 
     /**
-     * The host owns every launch path (see [LauncherGadgetHost]), so the tile asks for the Monitor
-     * route rather than building an Intent of its own.
+     * The host owns every launch path (see [LauncherGadgetHost]), so the tile asks for a route rather
+     * than building an Intent of its own.
      *
      * S1440: the indicator's own sub-screen travels with the route as its stable key, so the tile lands
      * where the home widget does; an indicator whose key this build does not know falls back to Summary
      * inside `NetworkMonitorSection.fromKey` rather than failing the open.
+     *
+     * S2027: an indicator naming a [NetworkMonitorIndicator.systemSurfaceKey] goes to that system screen
+     * instead - the shared `OsShortcut` path already carries the exact-plus-fallback pair and drops a
+     * target this device cannot resolve, so no second resolution rule is introduced here.
      */
     private fun openMonitor() {
-        host.run(
+        val systemSurfaceKey = indicator.systemSurfaceKey
+        Timber.d("S2027: tile tap ${indicator.name} systemSurfaceKey=$systemSurfaceKey")
+        val command = if (systemSurfaceKey != null) {
+            LauncherCellCommand.OsShortcut(systemSurfaceKey)
+        } else {
             LauncherCellCommand.FeatureSection(
                 routeKey = InternalRouteCatalog.KEY_NETWORK_MONITOR,
                 sectionKey = indicator.sectionKey,
             )
-        )
+        }
+        host.run(command)
     }
 
     /**
@@ -193,7 +202,7 @@ private class NetworkIndicatorGadgetView(
         val formatted = formatter.format(indicator, reading)
         binding.gadgetNetworkIndicatorIcon.setImageResource(formatted.iconRes)
         binding.gadgetNetworkIndicatorValue.text = formatted.primary
-        // Without a caption of its own the tile still has to say which of the eight it is showing.
+        // Without a caption of its own the tile still has to say which of the nine it is showing.
         binding.gadgetNetworkIndicatorCaption.text =
             formatted.caption ?: context.getString(indicator.labelRes)
     }

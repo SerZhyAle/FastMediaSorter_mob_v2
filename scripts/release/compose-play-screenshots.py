@@ -3,9 +3,16 @@
 
 For each locale folder in play/listing/ and each slot in play/listing/captions.json, load the raw
 shot temp/play-shots/<locale>/<slot-id>.png (falling back to temp/play-shots/<slot-id>.png when the
-locale has no own capture), pad it onto a brand-color canvas constrained to a 2:1 aspect bound, draw
-the localized caption as a top band, and write the result to
+locale has no own capture), pad it onto a brand-color canvas constrained to a 2:1 aspect bound, add
+the localized caption on a band ABOVE the frame, and write the result to
 play/listing/<locale-folder>/images/phoneScreenshots/<NN>.png (NN ordered over present slots).
+
+The band occupies canvas the composer adds, never the screenshot's own pixels, so a composed file is
+taller than the frame it carries. Its height follows the canvas height rather than the short edge:
+Play allows a tagline at most 20% of the image, and the short-edge rule spent 23% of a landscape
+tablet frame against 11% of a portrait phone one, burying the app bar of every tablet screenshot
+(S2573). A recomposed slot is therefore not the shape of a slot composed before that change, which
+is what the --only geometry warning below reports.
 
 Play asset constraints enforced: PNG output, each side in [320, 3840], aspect ratio <= 2:1.
 Slots whose raw shot is absent are skipped with a warning (manual-pending), not silently swallowed.
@@ -13,10 +20,21 @@ Slots whose raw shot is absent are skipped with a warning (manual-pending), not 
 --tablet reads the separate temp/play-shots-tablet/ tree and writes tenInchScreenshots instead, so a
 tablet run can never overwrite or shadow a phone raw shot through resolve_shot()'s flat fallback.
 
+--only <slot-id> composes that slot alone and writes it at its 1-based ordinal in captions.json,
+leaving every other file in the output directory alone. A full run numbers its output over the raw
+shots that happen to be present, and temp/ is a gitignored scratch area, so a run made after one
+fresh capture writes 01.png and leaves a one-file set - which publish-play-listing.py then uploads
+over the whole live set, because it deletes all images of a type before uploading (S2398). Such a
+run also compares what it wrote against the siblings it left alone and warns when their shapes
+disagree, because publishing replaces every image of a type at once and the carousel then shows both.
+
 Usage:
-    python compose-play-screenshots.py [--tablet]
+    python compose-play-screenshots.py [--tablet] [--only <slot-id>]
+
+Exit codes: 0 composed; 1 nothing composed, an unknown slot id, or a missing caption/captions file.
 """
 import json
+import math
 import os
 import sys
 from PIL import Image, ImageDraw, ImageFont
@@ -27,6 +45,20 @@ if '--help' in sys.argv or '-h' in sys.argv:
 
 # Sibling scripts in this folder read sys.argv directly rather than pulling in argparse.
 TABLET = '--tablet' in sys.argv
+
+
+def parse_only(argv):
+    """Return the slot id given to --only, or None for a full run."""
+    if '--only' not in argv:
+        return None
+    value_index = argv.index('--only') + 1
+    if value_index >= len(argv):
+        print("ERROR: --only requires a slot id")
+        sys.exit(1)
+    return argv[value_index]
+
+
+ONLY = parse_only(sys.argv)
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..', '..'))
@@ -84,26 +116,56 @@ def fit_to_aspect(img):
     return canvas
 
 
-def draw_caption(img, text):
-    """Draw the caption inside a top band sized to the wrapped text."""
+def caption_font_size(canvas_h):
+    """Font size for a caption on a canvas of this height.
+
+    Off the HEIGHT, not the short edge. A store frame is shown whole, so what a reader perceives is
+    the caption's share of the height, and holding that share constant is what makes the tablet and
+    the phone caption look alike. The divisor is twice the old one because these frames are about
+    twice as tall as they are wide, which leaves the portrait output byte-identical to the short-edge
+    rule it replaces while halving the landscape band that rule doubled.
+    """
+    return max(28, canvas_h // 36)
+
+
+def compose_with_caption(img, text):
+    """Return a new canvas carrying the caption on a band ADDED above the frame.
+
+    The band never overlaps `img`: its height is added to the canvas, so whatever the screenshot
+    carries at its top edge survives the compose. Adding height can push a portrait frame past
+    MAX_ASPECT, so the canvas widens rather than the band shrinking.
+    """
     w, h = img.size
-    draw = ImageDraw.Draw(img)
-    # Sized off the short edge, not the width: on a landscape tablet frame w//18 gives a band
-    # covering a third of the image. For a portrait phone shot the short edge IS the width, so
-    # the phone output is unchanged.
-    font = resolve_font(max(28, min(w, h) // 18))
-    lines = text.split('\n')
+    font = resolve_font(caption_font_size(h))
     spacing = max(6, font.size // 5)
-    bbox = draw.multiline_textbbox((0, 0), text, font=font, spacing=spacing, align='center')
+    probe = ImageDraw.Draw(Image.new('RGB', (1, 1)))
+    bbox = probe.multiline_textbbox((0, 0), text, font=font, spacing=spacing, align='center')
     text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
     pad_y = font.size
     band_h = text_h + 2 * pad_y
-    draw.rectangle([0, 0, w, band_h], fill=BAND_COLOR)
-    tx = (w - text_w) // 2 - bbox[0]
-    ty = pad_y - bbox[1]
-    draw.multiline_text((tx, ty), text, font=font, fill=TEXT_COLOR,
-                        spacing=spacing, align='center')
-    return img
+    out_h = h + band_h
+    out_w = max(w, int(math.ceil(out_h / MAX_ASPECT)))
+
+    canvas = Image.new('RGB', (out_w, out_h), BG_COLOR)
+    draw = ImageDraw.Draw(canvas)
+    draw.rectangle([0, 0, out_w, band_h], fill=BAND_COLOR)
+    canvas.paste(img, ((out_w - w) // 2, band_h))
+    draw.multiline_text(((out_w - text_w) // 2 - bbox[0], pad_y - bbox[1]), text,
+                        font=font, fill=TEXT_COLOR, spacing=spacing, align='center')
+    return canvas
+
+
+def odd_shaped_siblings(out_dir, written_name, written_size):
+    """Siblings in out_dir whose aspect differs from the file just written."""
+    ratio = written_size[0] / written_size[1]
+    odd = []
+    for name in sorted(os.listdir(out_dir)):
+        if name == written_name or not name.lower().endswith('.png'):
+            continue
+        with Image.open(os.path.join(out_dir, name)) as sibling:
+            if abs(sibling.size[0] / sibling.size[1] - ratio) > 0.01:
+                odd.append((name, sibling.size))
+    return odd
 
 
 def validate_bounds(img, label):
@@ -122,16 +184,24 @@ def main():
     with open(CAPTIONS, 'r', encoding='utf-8') as f:
         slots = json.load(f)['slots']
 
+    known_ids = [slot['id'] for slot in slots]
+    if ONLY is not None and ONLY not in known_ids:
+        print(f"ERROR: unknown slot '{ONLY}'. Known: " + ", ".join(known_ids))
+        sys.exit(1)
+
     locales = sorted(slots[0]['captions'].keys())
     total_written = 0
     missing = []
+    mixed = []
 
     for locale in locales:
         out_dir = os.path.join(LISTING_ROOT, locale, 'images', OUT_SUBDIR)
         os.makedirs(out_dir, exist_ok=True)
         index = 0
-        for slot in slots:
+        for ordinal, slot in enumerate(slots, start=1):
             slot_id = slot['id']
+            if ONLY is not None and slot_id != ONLY:
+                continue
             caption = slot['captions'].get(locale)
             if caption is None:
                 print(f"ERROR: {locale}/{slot_id}: missing caption")
@@ -141,21 +211,35 @@ def main():
                 missing.append(f"{locale}/{slot_id}")
                 continue
             index += 1
+            # A single-slot run keeps the slot's registry position, so the seven files it does not
+            # touch stay addressable; a full run still numbers over the shots actually present.
+            out_index = ordinal if ONLY is not None else index
             with Image.open(shot) as raw:
-                composed = fit_to_aspect(raw)
-                composed = draw_caption(composed, caption)
-            label = f"{locale}/{index:02d} ({slot_id})"
+                composed = compose_with_caption(fit_to_aspect(raw), caption)
+            label = f"{locale}/{out_index:02d} ({slot_id})"
             validate_bounds(composed, label)
-            out_path = os.path.join(out_dir, f"{index:02d}.png")
+            out_name = f"{out_index:02d}.png"
+            out_path = os.path.join(out_dir, out_name)
             composed.save(out_path, 'PNG')
             print(f"  {label} -> {out_path} ({composed.size[0]}x{composed.size[1]})")
             total_written += 1
+            # Only a partial run can disagree with the set around it; a full run writes every file.
+            if ONLY is not None:
+                odd = odd_shaped_siblings(out_dir, out_name, composed.size)
+                if odd:
+                    mixed.append((out_path, composed.size, odd))
 
     if missing:
         print(f"WARNING: {len(missing)} slot(s) without a raw shot, skipped (manual-pending): "
               + ", ".join(missing))
+    if mixed:
+        print("\nWARNING: the set now holds more than one frame shape. Publishing deletes every "
+              "image of a type before uploading, so the store carousel will show both.")
+        for path, size, odd in mixed:
+            siblings = ", ".join(f"{name} {s[0]}x{s[1]}" for name, s in odd)
+            print(f"  {path} {size[0]}x{size[1]} against {siblings}")
     if total_written == 0:
-        print("ERROR: no screenshots composed (no raw shots under temp/play-shots/).")
+        print(f"ERROR: no screenshots composed (no raw shots under {SHOTS_DIR}).")
         sys.exit(1)
     print(f"\nDONE: composed {total_written} screenshot(s) across {len(locales)} locale(s).")
 

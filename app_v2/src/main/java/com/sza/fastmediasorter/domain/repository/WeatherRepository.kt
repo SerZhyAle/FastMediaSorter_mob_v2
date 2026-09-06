@@ -20,7 +20,7 @@ sealed interface WeatherResult {
 
 interface WeatherRepository {
 
-    suspend fun current(location: WeatherLocation): WeatherResult
+    suspend fun current(location: WeatherLocation, forceRefresh: Boolean = false): WeatherResult
 
     suspend fun search(query: String): List<WeatherLocation>
 }

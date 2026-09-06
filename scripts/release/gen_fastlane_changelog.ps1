@@ -55,6 +55,14 @@
 
 .EXAMPLE
     pwsh -File scripts/release/gen_fastlane_changelog.ps1 -VersionCode 260515201 -VersionName 2.60.5152.017
+
+.NOTES
+    Exit codes:
+      0 - at least one locale produced a changelog file.
+      1 - a locale's "Current release" block is missing or empty, or no changelog was produced
+          at all.
+      4 - the target's code domain is held by another session, so nothing was written. The queue
+          place is held - wait for the turn in the background and rerun (S2635).
 #>
 
 [CmdletBinding()]
@@ -66,6 +74,7 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Resolve-Path (Join-Path $PSScriptRoot "..\..")
 if (-not $WhatsNewRoot)  { $WhatsNewRoot  = Join-Path $repoRoot "docs" }
@@ -198,40 +207,53 @@ function Trim-ToBudget {
 
 # Main loop.
 $produced = 0
-foreach ($entry in $localeMap) {
-    $localeDir = $entry.Locale
-    $srcName   = $entry.File
-    $srcPath   = Join-Path $WhatsNewRoot $srcName
-    if (-not (Test-Path -LiteralPath $srcPath)) {
-        Write-Host "[gen_fastlane_changelog] skip ${localeDir}: $srcName not found"
-        continue
-    }
+# One acquisition for all three locales: they are a single release artifact, so a run that wrote
+# en-US and was then refused ru-RU would ship a version whose notes exist in one language only.
+$outPaths = @($localeMap | ForEach-Object {
+        Join-Path (Join-Path (Join-Path $FastlaneRoot $_.Locale) "changelogs") "$VersionCode.txt"
+    })
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path $outPaths `
+        -Reason "gen_fastlane_changelog.ps1 (fastlane changelogs for versionCode $VersionCode)"
 
-    $lines = Get-Content -LiteralPath $srcPath
-    $block = Extract-CurrentReleaseBlock -Lines $lines -VersionName $VersionName -CurrentReleasePrefix $entry.CurrentReleasePrefix
-    if ($block.Count -eq 0) {
-        Write-Host "[gen_fastlane_changelog] FAIL ${localeDir}: no 'Current release' marker"
-        exit 1
-    }
+    foreach ($entry in $localeMap) {
+        $localeDir = $entry.Locale
+        $srcName   = $entry.File
+        $srcPath   = Join-Path $WhatsNewRoot $srcName
+        if (-not (Test-Path -LiteralPath $srcPath)) {
+            Write-Host "[gen_fastlane_changelog] skip ${localeDir}: $srcName not found"
+            continue
+        }
 
-    $stripped = Strip-Markdown -Lines $block
-    $trimmed  = Trim-ToBudget -Lines $stripped -MaxChars 500
-    if (-not $trimmed -or $trimmed.Trim().Length -eq 0) {
-        Write-Host "[gen_fastlane_changelog] FAIL ${localeDir}: empty body after extraction"
-        exit 1
-    }
+        $lines = Get-Content -LiteralPath $srcPath
+        $block = Extract-CurrentReleaseBlock -Lines $lines -VersionName $VersionName `
+            -CurrentReleasePrefix $entry.CurrentReleasePrefix
+        if ($block.Count -eq 0) {
+            Write-Host "[gen_fastlane_changelog] FAIL ${localeDir}: no 'Current release' marker"
+            exit 1
+        }
 
-    $outDir  = Join-Path (Join-Path $FastlaneRoot $localeDir) "changelogs"
-    if (-not (Test-Path -LiteralPath $outDir)) {
-        New-Item -ItemType Directory -Path $outDir -Force | Out-Null
-    }
-    $outPath = Join-Path $outDir "$VersionCode.txt"
-    # UTF-8 without BOM (consistent with other text artefacts).
-    [System.IO.File]::WriteAllText($outPath, ($trimmed + "`n"), (New-Object System.Text.UTF8Encoding $false))
+        $stripped = Strip-Markdown -Lines $block
+        $trimmed  = Trim-ToBudget -Lines $stripped -MaxChars 500
+        if (-not $trimmed -or $trimmed.Trim().Length -eq 0) {
+            Write-Host "[gen_fastlane_changelog] FAIL ${localeDir}: empty body after extraction"
+            exit 1
+        }
 
-    Write-Host "[gen_fastlane_changelog] wrote ${localeDir}: $outPath ($($trimmed.Length) chars)"
-    $produced++
+        $outDir  = Join-Path (Join-Path $FastlaneRoot $localeDir) "changelogs"
+        if (-not (Test-Path -LiteralPath $outDir)) {
+            New-Item -ItemType Directory -Path $outDir -Force | Out-Null
+        }
+        $outPath = Join-Path $outDir "$VersionCode.txt"
+        # UTF-8 without BOM (consistent with other text artefacts).
+        [System.IO.File]::WriteAllText($outPath, ($trimmed + "`n"), (New-Object System.Text.UTF8Encoding $false))
+
+        Write-Host "[gen_fastlane_changelog] wrote ${localeDir}: $outPath ($($trimmed.Length) chars)"
+        $produced++
+    }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 if ($produced -eq 0) {
     Write-Host "[gen_fastlane_changelog] FAIL: no changelogs produced"

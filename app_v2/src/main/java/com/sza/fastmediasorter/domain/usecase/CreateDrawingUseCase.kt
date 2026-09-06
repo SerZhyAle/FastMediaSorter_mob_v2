@@ -11,11 +11,13 @@ import com.sza.fastmediasorter.data.local.staging.StagingDirectoryProvider
 import com.sza.fastmediasorter.domain.files.FileNameConflictResolver
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.util.DrawingTargetPolicy
 import com.sza.fastmediasorter.utils.MediaStoreNotifier
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.ByteArrayOutputStream
 import java.io.File
 import javax.inject.Inject
@@ -41,8 +43,10 @@ class CreateDrawingUseCase @Inject constructor(
         parentPath: String,
         fileName: String,
     ): Result<String> = withContext(Dispatchers.IO) {
-        if (resource.isReadOnly) {
-            return@withContext Result.failure(Exception("Resource is read-only"))
+        Timber.d("S2625: create-drawing type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
+        // S2625: the user flag alone misses the probe for LOCAL/CLOUD and never refuses a stream.
+        if (!resource.allowsWriteOperations()) {
+            return@withContext Result.failure(Exception("Resource does not allow write operations"))
         }
 
         val trimmedName = fileName.trim()

@@ -343,6 +343,15 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             startupInitializer.get().warmGlide()
         }
 
+        // S2627: translate the persisted folder names to the current language. Ungated for the same
+        // reason as the warm-up above: the resource list IS the first screen, so a pass that waited
+        // for the first frame would be racing the very thing it has to correct. It ran from the
+        // thirty-second DeferredStartupWorker until this ticket, which is why a language switch left
+        // the list in the previous language until long after the user had read it.
+        applicationScope.launch(Dispatchers.IO) {
+            startupInitializer.get().renameVirtualResources()
+        }
+
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             com.sza.fastmediasorter.core.cache.TranslationCacheManager.clearAll()

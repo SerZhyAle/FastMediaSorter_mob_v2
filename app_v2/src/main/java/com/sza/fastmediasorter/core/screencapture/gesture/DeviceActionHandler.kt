@@ -46,33 +46,42 @@ class DeviceActionHandler @Inject constructor() {
     }
 
     /** Toggles the physical camera flash and reports whether this device could accept the operation. */
-    fun toggleFlashlight(context: Context): Boolean {
+    fun toggleFlashlight(context: Context): Boolean = setTorch(context, !torchEnabled)
+
+    /**
+     * Drives the physical camera flash to [enabled] and reports whether the device accepted it.
+     *
+     * S2516: safe to call with the state the torch is already in. A screen that lights the torch on
+     * entry must extinguish it on exit whoever lit it, and a toggle cannot promise that - it would
+     * hand back a lit torch to a caller that found one already burning.
+     */
+    fun setTorch(context: Context, enabled: Boolean): Boolean {
+        Timber.d("S2516: setTorch requested enabled=%b", enabled)
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
-        val flashCameraId = cameraManager?.let { manager ->
-            runCatching {
-                manager.cameraIdList.firstOrNull { id ->
-                    manager.getCameraCharacteristics(id)
-                        .get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
-                }
-            }.getOrNull()
-        }
+        val flashCameraId = cameraManager?.let(::findFlashCameraId)
         return when {
             cameraManager == null -> {
                 Timber.w("DeviceActionHandler: CameraManager unavailable, flashlight ignored")
                 false
             }
             flashCameraId == null -> {
-            Timber.w("DeviceActionHandler: no flash unit on this device, flashlight ignored")
+                Timber.w("DeviceActionHandler: no flash unit on this device, flashlight ignored")
                 false
             }
             else -> runCatching {
-            val next = !torchEnabled
-            cameraManager.setTorchMode(flashCameraId, next)
-            torchEnabled = next
-            true
+                cameraManager.setTorchMode(flashCameraId, enabled)
+                torchEnabled = enabled
+                true
             }.onFailure { Timber.w(it, "DeviceActionHandler: setTorchMode failed") }.getOrDefault(false)
         }
     }
+
+    /** The first camera carrying a flash unit, or null when this device has none. */
+    private fun findFlashCameraId(manager: CameraManager): String? = runCatching {
+        manager.cameraIdList.firstOrNull { id ->
+            manager.getCameraCharacteristics(id).get(CameraCharacteristics.FLASH_INFO_AVAILABLE) == true
+        }
+    }.getOrNull()
 
     private fun setBrightness(context: Context, value: Int) {
         if (!Settings.System.canWrite(context)) {

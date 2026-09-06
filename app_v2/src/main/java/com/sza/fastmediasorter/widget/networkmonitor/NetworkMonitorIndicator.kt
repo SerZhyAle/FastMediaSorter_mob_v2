@@ -3,13 +3,14 @@ package com.sza.fastmediasorter.widget.networkmonitor
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 
 /**
- * S1440: the eight network-monitor indicators a widget or launcher gadget can show.
+ * S1440: the nine network-monitor indicators a widget or launcher gadget can show.
  *
  * One declaration owns key, label, icon, target sub-screen, refresh contract and default footprint,
- * because the widget, its configuration screen and the launcher gadget all need the same eight-way
+ * because the widget, its configuration screen and the launcher gadget all need the same nine-way
  * table - three private copies would drift the first time an indicator changed.
  *
  * [key] is a **persisted storage format**: it is written into the widget preferences and into a
@@ -97,6 +98,15 @@ enum class NetworkMonitorIndicator(
         spanW = 1,
         spanH = 1
     ),
+    HOTSPOT_STATE(
+        key = "hotspot_state",
+        labelRes = R.string.widget_network_monitor_indicator_hotspot_state,
+        iconRes = R.drawable.ic_wifi_tethering,
+        section = NetworkMonitorSection.Wifi,
+        refresh = Refresh.EVENT,
+        spanW = 1,
+        spanH = 1
+    ),
     ;
 
     /**
@@ -107,6 +117,19 @@ enum class NetworkMonitorIndicator(
      * widget configured by an older release needs when a section is renamed or dropped.
      */
     val sectionKey: String get() = section.key
+
+    /**
+     * S2027: the [OsShortcutCatalog] key a tap opens INSTEAD of the in-app Monitor, or null when the
+     * Monitor is the right destination.
+     *
+     * Hotspot state is the one indicator the app cannot act on at any API level this build ships to
+     * (strategic ADR-2), so the Monitor is a dead end for it and the only useful thing behind a tap is
+     * the system screen that can change it. Declared here rather than branched inside each consumer,
+     * so the home-screen widget, the desktop tile and the tray cannot disagree about where one
+     * indicator leads - they read the same nine-way table for everything else already.
+     */
+    val systemSurfaceKey: String?
+        get() = if (this == HOTSPOT_STATE) OsShortcutCatalog.KEY_TETHERING else null
 
     companion object {
 

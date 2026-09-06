@@ -428,6 +428,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * has no draw pass left in which to notice the change on its own.
      */
     fun refreshPolicy() {
+        Timber.d("S2536: visualizer refresh intent=$intent level=${AnimationPolicy.level}")
         if (AnimationPolicy.mayAnimate(intent)) {
             if (frozenByPolicy) startAnimation()
         } else {

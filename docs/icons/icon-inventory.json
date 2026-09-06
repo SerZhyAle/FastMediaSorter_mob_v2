@@ -697,6 +697,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "mirror",
+    "feature": "mirror_title",
+    "drawable": "ic_mirror",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "network_monitor",
     "feature": "network_monitor_title",
     "drawable": "ic_network_monitor",
@@ -793,6 +801,14 @@
   },
   {
     "surface": "program-nav",
+    "key": "stopwatch",
+    "feature": "stopwatch_title",
+    "drawable": "ic_stopwatch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "storage",
     "feature": "app_launch_panel_os_storage",
     "drawable": "ic_storage",
@@ -841,9 +857,25 @@
   },
   {
     "surface": "program-nav",
+    "key": "tethering",
+    "feature": "app_launch_panel_os_tethering",
+    "drawable": "ic_wifi_tethering",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "vpn",
     "feature": "app_launch_panel_os_vpn",
     "drawable": "ic_lock",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "water_flashlight",
+    "feature": "water_flashlight_title",
+    "drawable": "ic_water_flashlight",
     "assetFormat": "vector",
     "public": true
   },
@@ -1281,6 +1313,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableStopwatch",
+    "feature": "stopwatch_title",
+    "drawable": "ic_stopwatch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableStreams",
     "feature": "settings_streams_toggle",
     "drawable": "ic_cast",
@@ -1340,6 +1380,14 @@
     "key": "rowMicRecordingEnabled",
     "feature": "settings_mic_recording_enable_title",
     "drawable": "ic_microphone",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowMirror",
+    "feature": "mirror_settings_row_title",
+    "drawable": "ic_mirror",
     "assetFormat": "vector",
     "public": true
   },
@@ -1420,6 +1468,14 @@
     "key": "rowVideoCaptureEnabled",
     "feature": "setting_video_capture_enable_title",
     "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowWaterFlashlight",
+    "feature": "water_flashlight_settings_toggle_title",
+    "drawable": "ic_water_flashlight",
     "assetFormat": "vector",
     "public": true
   }

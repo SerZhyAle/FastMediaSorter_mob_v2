@@ -35,6 +35,7 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
     private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
     private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
+    private val KEY_LAUNCHER_TRAY_SHOW_TETHERING = booleanPreferencesKey("launcher_tray_show_tethering")
     private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
     private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
     private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
@@ -145,6 +146,7 @@ object LauncherSettingsStore {
         // S2017: the one taskbar exception - duplicates the top bar's own clock once the status area is replaced.
         trayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, false),
         trayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
+        trayShowTethering = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_TETHERING, true),
         trayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
         trayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
         trayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
@@ -195,9 +197,13 @@ object LauncherSettingsStore {
         allAppsSortOrder = InstalledAppSortOrder
             .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
         allAppsSortDescending = preferences.getOrDefault(KEY_ALL_APPS_SORT_DESCENDING, false),
-        // S1741: non-negative seconds (0 = Off)
+        // S1741/S2384: non-negative seconds (0 = Off). The fallback is what a fresh install reads,
+        // because nothing has been written to the preference yet.
         screenBlackoutTimeoutSeconds = preferences
-            .getOrDefault(KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS, 0)
+            .getOrDefault(
+                KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS,
+                AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+            )
             .coerceAtLeast(0),
         // S1748: the widget backdrop opacity stored as a float, with the default matching the app's
         // launcher setting rows and the last chosen value surviving a restart.
@@ -232,6 +238,7 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
         preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
         preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
+        preferences[KEY_LAUNCHER_TRAY_SHOW_TETHERING] = settings.launcherTrayShowTethering
         preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
         preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
         preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork

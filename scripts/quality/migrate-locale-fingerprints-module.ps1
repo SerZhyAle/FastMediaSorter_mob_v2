@@ -50,6 +50,8 @@
       0 - migration completed, or -DryRun classified without writing.
       1 - a corpus export failed, so ownership could not be resolved; nothing was written.
       2 - the registry is already at the current schema version; nothing to do.
+      4 - the target's code domain is held by another session, so nothing was written. The queue
+          place is held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding()]
 param(
@@ -62,6 +64,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $repoRoot 'scripts/quality/lib/locale-fingerprints.ps1')
@@ -190,11 +193,19 @@ if ($DryRun) {
     exit 0
 }
 
-Save-LocaleSourceFingerprints -Fingerprints $migrated -Path $FingerprintsPath
-if (Test-Path -LiteralPath $BaselinePath) {
-    $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-    [System.IO.File]::WriteAllText($BaselinePath, (($baselineLines -join "`n") + "`n"), $utf8NoBom)
+# One acquisition for both files: the registry and the baseline share an identity space, so a run
+# that qualified one and was refused the other would leave the pair describing different schemas.
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path @($FingerprintsPath, $BaselinePath) `
+        -Reason 'migrate-locale-fingerprints-module.ps1 (registry + baseline)'
+    Save-LocaleSourceFingerprints -Fingerprints $migrated -Path $FingerprintsPath
+    if (Test-Path -LiteralPath $BaselinePath) {
+        $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+        [System.IO.File]::WriteAllText($BaselinePath, (($baselineLines -join "`n") + "`n"), $utf8NoBom)
+    }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host ''
 Write-Host "migrate-locale-fingerprints-module: wrote $FingerprintsPath (schema v2) and $BaselinePath."

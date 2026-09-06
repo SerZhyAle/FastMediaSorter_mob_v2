@@ -12,6 +12,10 @@ import android.os.SystemClock
 import androidx.core.os.LocaleListCompat
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import timber.log.Timber
 import java.util.Locale
 
@@ -40,6 +44,15 @@ object LocaleHelper {
     @Volatile private var lastLoggedSystemFallback: String? = null
 
     @Volatile private var lastLoggedAppliedLanguage: String? = null
+
+    private val languageRevisionState = MutableStateFlow(0)
+
+    /**
+     * S2571: bumped whenever the stored language changes. Carries no language of its own - a reader
+     * takes a new revision as "ask again" and calls [getLanguage]. It exists because the language is
+     * no longer mirrored into DataStore, so a settings flow has nothing else left to re-emit on.
+     */
+    val languageRevision: StateFlow<Int> = languageRevisionState.asStateFlow()
 
     fun isFollowSystemLanguage(languageCode: String?): Boolean {
         val normalized = languageCode?.trim()?.lowercase(Locale.ROOT)
@@ -91,6 +104,35 @@ object LocaleHelper {
         // only stable source for the device language while the process is already localized.
         val systemLang = Resources.getSystem().configuration.locales[0].toLanguageTag()
         return UiLanguageCatalog.resolveTag(systemLang) ?: DEFAULT_LANGUAGE
+    }
+
+    /**
+     * S2598: the region of the device, for a decision that depends on where the user is rather than on
+     * which language the interface speaks - a measurement unit, a paper size, a calendar convention.
+     *
+     * The process default cannot answer this. Every writer of it builds the locale from a tag declared in
+     * `locales_config.xml`, and none of the thirteen carries a region, so `Locale.getDefault().country` is
+     * the empty string from the first line of the process onward. Reading it left the Fahrenheit branch of
+     * the weather unit unreachable for every user in the countries that use it.
+     *
+     * [Resources.getSystem] does not answer it either, which is the part that is easy to get wrong and was:
+     * measured on an API 35 emulator whose device locale is `en-US`, it reports region `US` while the app
+     * has no per-app locale and an EMPTY region the moment one is set, because the per-app locale mechanism
+     * propagates into the system resources too. It is a correct fallback only below API 33, where that
+     * mechanism does not exist. [LocaleManager.getSystemLocales] is the source that stays the device's.
+     *
+     * Returns an empty string on a device that reports no region.
+     */
+    fun systemRegion(context: Context): String {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            try {
+                val systemLocales = context.getSystemService(LocaleManager::class.java)?.systemLocales
+                if (systemLocales != null && !systemLocales.isEmpty) return systemLocales[0].country
+            } catch (e: Exception) {
+                Timber.w(e, "LocaleHelper: Failed to read systemLocales, falling back to system resources")
+            }
+        }
+        return Resources.getSystem().configuration.locales[0].country
     }
 
     /**
@@ -188,6 +230,8 @@ object LocaleHelper {
                 Timber.e(e, "LocaleHelper: Failed to set language via LocaleManager, fallback to manual restart")
             }
         }
+
+        languageRevisionState.update { it + 1 }
     }
 
     /**
@@ -212,6 +256,8 @@ object LocaleHelper {
                 Timber.w(e, "LocaleHelper: Failed to clear LocaleManager override during reset")
             }
         }
+
+        languageRevisionState.update { it + 1 }
     }
 
     /**
@@ -244,10 +290,29 @@ object LocaleHelper {
             Timber.d("LocaleHelper: Applying locale: $resolvedLanguageCode")
         }
         
+        val localized = localizedContext(context, languageCode)
+        Locale.setDefault(Locale.forLanguageTag(resolvedLanguageCode))
+        Timber.d("S2598: applyLocale ui=$resolvedLanguageCode region=${systemRegion(context)}")
+        return localized
+    }
+
+    /**
+     * S2571: a context for READING resources in a language other than the one the process runs in,
+     * without touching the process-wide default. Everything [applyLocale] does except
+     * `Locale.setDefault` - which is why [applyLocale] delegates here rather than repeating it, so the
+     * two cannot drift apart.
+     *
+     * A caller that wants to change the language of the whole process must use [applyLocale] instead.
+     * Resolving a launcher cell label does not: it runs on `Dispatchers.IO` on every desktop rebuild,
+     * and mutating the global default from there carried a stale language into unrelated views.
+     */
+    fun localizedContext(context: Context, languageCode: String): Context {
+        UiLanguageCatalog.ensureInitialized(context)
+        val resolvedLanguageCode = resolveSupportedLanguageCode(languageCode)
+
         // forLanguageTag, not the Locale(String) constructor: a declared tag may carry a script subtag
         // ("zh-Hans"), which the constructor would take for a language code of its own.
         val locale = Locale.forLanguageTag(resolvedLanguageCode)
-        Locale.setDefault(locale)
 
         val config = Configuration(context.resources.configuration)
         config.setLocale(locale)

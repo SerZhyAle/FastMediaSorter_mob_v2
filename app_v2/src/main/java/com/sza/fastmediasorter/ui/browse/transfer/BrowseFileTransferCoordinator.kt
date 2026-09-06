@@ -94,6 +94,15 @@ class BrowseFileTransferCoordinator @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
+    suspend fun enqueue(request: BrowseFileTransferRequest): EnqueueResult.Enqueued = withContext(Dispatchers.IO) {
+        requestStore.enqueueRequest(request)
+        val workRequest = OneTimeWorkRequestBuilder<com.sza.fastmediasorter.worker.BrowseFileTransferWorker>()
+            .build()
+        workManager.enqueueUniqueWork(WORK_NAME, ExistingWorkPolicy.KEEP, workRequest)
+        Timber.i("BrowseFileTransferCoordinator: enqueued workId=%s", workRequest.id)
+        EnqueueResult.Enqueued(workRequest.id.toString())
+    }
+
     suspend fun enqueueIfIdle(request: BrowseFileTransferRequest): EnqueueResult = withContext(Dispatchers.IO) {
         if (hasActiveTransfer()) return@withContext EnqueueResult.ActiveAlreadyRunning
         requestStore.clearTerminalEvent()

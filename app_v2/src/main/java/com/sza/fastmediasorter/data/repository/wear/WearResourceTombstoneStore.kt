@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -17,14 +19,17 @@ import javax.inject.Inject
  * describes, which a column cannot do.
  *
  * The key is the resource id in its string form, exactly as it travels on the wire.
+ *
+ * S2515: every member suspends and the implementation moves itself to IO, matching the watch half,
+ * which has wrapped its own tombstone operations in an IO context since it was written.
  */
 interface WearResourceTombstoneStore {
 
-    fun read(): List<WearSourceTombstonePayload>
+    suspend fun read(): List<WearSourceTombstonePayload>
 
-    fun record(tombstone: WearSourceTombstonePayload)
+    suspend fun record(tombstone: WearSourceTombstonePayload)
 
-    fun forget(resourceId: String)
+    suspend fun forget(resourceId: String)
 }
 
 class SharedPreferencesWearResourceTombstoneStore @Inject constructor(
@@ -35,17 +40,23 @@ class SharedPreferencesWearResourceTombstoneStore @Inject constructor(
     private val preferences
         get() = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    override fun read(): List<WearSourceTombstonePayload> = readTombstones()
-
-    override fun record(tombstone: WearSourceTombstonePayload) {
-        saveTombstones(readTombstones().filterNot { it.id == tombstone.id } + tombstone)
+    override suspend fun read(): List<WearSourceTombstonePayload> = withContext(Dispatchers.IO) {
+        readTombstones()
     }
 
-    override fun forget(resourceId: String) {
-        val current = readTombstones()
-        val updated = current.filterNot { it.id == resourceId }
-        if (updated.size != current.size) {
-            saveTombstones(updated)
+    override suspend fun record(tombstone: WearSourceTombstonePayload) {
+        withContext(Dispatchers.IO) {
+            saveTombstones(readTombstones().filterNot { it.id == tombstone.id } + tombstone)
+        }
+    }
+
+    override suspend fun forget(resourceId: String) {
+        withContext(Dispatchers.IO) {
+            val current = readTombstones()
+            val updated = current.filterNot { it.id == resourceId }
+            if (updated.size != current.size) {
+                saveTombstones(updated)
+            }
         }
     }
 

@@ -35,10 +35,12 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_46_47
 import com.sza.fastmediasorter.data.local.db.MIGRATION_47_48
 import com.sza.fastmediasorter.data.local.db.MIGRATION_48_49
 import com.sza.fastmediasorter.data.local.db.MIGRATION_49_50
+import com.sza.fastmediasorter.data.local.db.LauncherCellConfigDao
 import com.sza.fastmediasorter.data.local.db.MIGRATION_50_51
 import com.sza.fastmediasorter.data.local.db.MIGRATION_51_52
 import com.sza.fastmediasorter.data.local.db.MIGRATION_52_53
 import com.sza.fastmediasorter.data.local.db.MIGRATION_53_54
+import com.sza.fastmediasorter.data.local.db.MIGRATION_54_55
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -143,7 +145,8 @@ object DatabaseModule {
                 MIGRATION_50_51,
                 MIGRATION_51_52,
                 MIGRATION_52_53,
-                MIGRATION_53_54
+                MIGRATION_53_54,
+                MIGRATION_54_55
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -305,5 +308,11 @@ object DatabaseModule {
     @Singleton
     fun provideNetworkMeasurementDao(database: AppDatabase): NetworkMeasurementDao {
         return database.networkMeasurementDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherCellConfigDao(database: AppDatabase): LauncherCellConfigDao {
+        return database.launcherCellConfigDao()
     }
 }

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.di
 
 import com.sza.fastmediasorter.wear.domain.systeminfo.AppInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.DeviceInfoContributor
+import com.sza.fastmediasorter.wear.domain.systeminfo.EnvironmentInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.HealthInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.MemoryInfoContributor
 import com.sza.fastmediasorter.wear.domain.systeminfo.PhoneLinkContributor
@@ -45,6 +46,12 @@ abstract class WearSystemInfoModule {
     @Binds
     @IntoSet
     abstract fun bindSensorsInfoContributor(impl: SensorsInfoContributor): WearSystemInfoContributor
+
+    @Binds
+    @IntoSet
+    abstract fun bindEnvironmentInfoContributor(
+        impl: EnvironmentInfoContributor
+    ): WearSystemInfoContributor
 
     @Binds
     @IntoSet

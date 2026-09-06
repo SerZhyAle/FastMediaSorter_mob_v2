@@ -58,11 +58,11 @@
       }
     },
     {
-      "id": "camera",
+      "id": "launcher",
       "captions": {
-        "en-US": "Shoot straight\ninto your folders",
-        "ru-RU": "Снимайте сразу\nв нужную папку",
-        "uk-UA": "Знімайте одразу\nв потрібну теку"
+        "en-US": "Use the app as\nyour home screen",
+        "ru-RU": "Приложение вместо\nдомашнего экрана",
+        "uk-UA": "Застосунок замість\nдомашнього екрана"
       }
     }
   ]

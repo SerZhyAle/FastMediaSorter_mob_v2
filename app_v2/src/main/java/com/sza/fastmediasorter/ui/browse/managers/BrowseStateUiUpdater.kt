@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
+import timber.log.Timber
 import java.util.Date
 
 /**
@@ -232,12 +233,15 @@ class BrowseStateUiUpdater(
 
     private fun updateCreateFolderButtonVisibility(state: BrowseState) {
         val resource = state.resource
+        // S2594: writability from the shared policy resolver, so the bar button and the overflow item
+        // that carry the same command cannot disagree about who may create a folder.
         val canCreateFolder = resource != null &&
             resource.showSubfoldersAsItems &&
-            !resource.isReadOnly &&
+            resource.allowsWriteOperations() &&
             !VirtualPathUtils.isVirtualPath(resource.path)
         binding.btnCreateFolder?.isVisible = canCreateFolder
         setCommandEligibility(R.id.btnCreateFolder, canCreateFolder)
+        Timber.d("S2594: create-folder bar button canCreateFolder=$canCreateFolder")
 
         // S0189: virtual "All Documents" writes new notes to the public Documents folder.
         val canCreateTextNote = TextNoteTargetPolicy.canCreateTextNote(resource)
@@ -247,6 +251,7 @@ class BrowseStateUiUpdater(
         // S0363: drawing allowed on real image folders + the virtual "all images" / "camera" resources.
         val canCreateDrawing = DrawingTargetPolicy.canCreateDrawing(resource)
         binding.btnCreateDrawing?.isVisible = canCreateDrawing
+        Timber.d("S2646: affordance note=%b drawing=%b", canCreateTextNote, canCreateDrawing)
         setCommandEligibility(R.id.btnCreateDrawing, canCreateDrawing)
     }
 

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.wearresources
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -9,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.isAllFilesPredefined
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,7 +48,9 @@ data class WearResourceSelectionUiState(
 @HiltViewModel
 class WearResourceSelectionViewModel @Inject constructor(
     private val resourceRepository: ResourceRepository,
-    private val selectionRepository: WearResourceSelectionRepositoryImpl
+    private val selectionRepository: WearResourceSelectionRepositoryImpl,
+    // S2515 (ADR-4): the selection write outlives this ViewModel on purpose - see setSelected.
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WearResourceSelectionUiState())
@@ -65,7 +69,8 @@ class WearResourceSelectionViewModel @Inject constructor(
                 val selectedIds = if (hasSaved) {
                     selectionRepository.getSelectedIds()
                 } else {
-                    // Default selection: auto-select local & virtual resources, force external network resources to be unselected
+                    // Default selection: local and virtual resources start ticked, external network
+                    // ones start unticked - pushing a remote source to the watch is never assumed.
                     val defaultSelected = deduplicated
                         .filter { it.getResourceCategory() != ResourceCategory.EXTERNAL }
                         .map { it.id }
@@ -89,20 +94,27 @@ class WearResourceSelectionViewModel @Inject constructor(
         _uiState.value = _uiState.value.copy(expandedCategories = updated)
     }
 
-    /** Each tick is persisted immediately, so leaving the screen any way keeps the choice. */
+    /**
+     * Each tick is persisted immediately, so leaving the screen any way keeps the choice.
+     *
+     * S2515 (ADR-4): the write runs in the application scope, not [viewModelScope]. It used to be
+     * synchronous and so always completed before the screen could go; a viewModelScope write would be
+     * cancelled by the very act of leaving, which is the one thing the line above promises never
+     * happens. The UI state is assigned outside the launch so the checkbox still flips in this frame.
+     */
     fun setSelected(resourceId: Long, selected: Boolean) {
         val updated = if (selected) {
             _uiState.value.selectedIds + resourceId
         } else {
             _uiState.value.selectedIds - resourceId
         }
-        selectionRepository.setSelectedIds(updated)
+        applicationScope.launch { selectionRepository.setSelectedIds(updated) }
         _uiState.value = _uiState.value.copy(selectedIds = updated)
     }
 
     fun selectAll() {
         val allIds = _uiState.value.resources.map { it.id }.toSet()
-        selectionRepository.selectAll(allIds)
+        applicationScope.launch { selectionRepository.selectAll(allIds) }
         _uiState.value = _uiState.value.copy(selectedIds = allIds)
     }
 }

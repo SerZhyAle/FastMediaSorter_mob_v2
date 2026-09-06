@@ -8,9 +8,9 @@ import android.graphics.Paint
 import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
+import android.view.animation.LinearInterpolator
 import com.sza.fastmediasorter.core.util.AnimationIntent
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import android.view.animation.LinearInterpolator
 import timber.log.Timber
 import kotlin.math.sin
 import kotlin.random.Random
@@ -39,8 +39,8 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     companion object {
         private const val BAR_COUNT = 15
         private const val ANIMATION_DURATION_MS = 5000L
-        private const val HUE_CYCLE_DURATION_MS = 45_000L  // full-spectrum colour drift period
-        private const val MIN_HEIGHT_FRACTION = 0.15f   // fraction of view height
+        private const val HUE_CYCLE_DURATION_MS = 45_000L // full-spectrum colour drift period
+        private const val MIN_HEIGHT_FRACTION = 0.15f // fraction of view height
         private const val MAX_HEIGHT_FRACTION = 0.85f
         private const val BAR_CORNER_RADIUS_DP = 4f
         private const val INTER_BAR_GAP_FRACTION = 0.15f // gap = barWidth * fraction
@@ -232,7 +232,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
 
         for (i in 0 until RING_COUNT) {
             // Each ring is offset by 1/RING_COUNT of the cycle - continuous staggered stream
-            val progress = (animProgress + i.toFloat() / RING_COUNT) % 1f  // 0..1
+            val progress = (animProgress + i.toFloat() / RING_COUNT) % 1f // 0..1
             val radius = maxRadius * progress
             // Fade: full opacity at center, transparent at edge
             val alpha = ((1f - progress).coerceIn(0f, 1f) * 230).toInt()

@@ -264,10 +264,17 @@ tr:hover td{background:#0d1117}
     rows = [];
     (s.stalls || []).forEach(function (k) {
       var pn = k.holderProcessAlive ? cls('warn', 'process alive - hung') : cls('bad', 'no process observable');
-      rows.push(tr(['<b>' + esc(k.domain) + '</b>', name(k.name), cls('bad', mins(k.quietMinutes) + ' quiet, limit ' + esc(k.thresholdMinutes) + 'm'), { n: mins(k.heldMinutes) }, { n: k.queueDepth }, { n: mins(k.longestWaitMinutes) }, pn, { w: esc(k.reason) }]));
+      // S2582: the rule is a column of its own, and the evidence cell follows it - a build row is
+      // judged on CPU and a code row on owner silence, so one shared "quiet" column would print a
+      // number the build rule never looked at.
+      var rule = k.rule || 'quiet-owner';
+      var evidence = rule === 'no-cpu'
+        ? cls('bad', 'no CPU: tree ' + esc(k.treeCpuSeconds) + 's, engine ' + esc(k.engineCpuSeconds) + 's over ' + esc(k.sampleSeconds) + 's')
+        : cls('bad', mins(k.quietMinutes) + ' quiet, limit ' + esc(k.thresholdMinutes) + 'm');
+      rows.push(tr(['<b>' + esc(k.domain) + '</b>', name(k.name), esc(rule), evidence, { n: mins(k.heldMinutes) }, { n: k.queueDepth }, { n: mins(k.longestWaitMinutes) }, pn, { w: esc(k.reason) }]));
     });
     el('stalls-box').style.display = rows.length ? '' : 'none';
-    if (rows.length) { table('stalls', ['domain', 'holder', 'quiet', '#held', '#waiting', '#longest wait', 'process', 'reason'], rows, ''); }
+    if (rows.length) { table('stalls', ['domain', 'holder', 'rule', 'evidence', '#held', '#waiting', '#longest wait', 'process', 'reason'], rows, ''); }
 
     rows = [];
     // Five domains printed as five `free` rows is seven lines that never say anything; the one-line

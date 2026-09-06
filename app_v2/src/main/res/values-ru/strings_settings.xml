@@ -262,4 +262,5 @@
     <string name="settings_wear_group_description">Включите, если у вас есть часы на Wear OS. Компаньон открывается отсюда и решает, чем этот телефон делится с часами.</string>
     <string name="settings_wear_install_guide_button">Как поставить на часы</string>
     <string name="settings_wear_web_portal_button">Всё о часах</string>
+    <string name="setting_stopwatch_desc">Показывать секундомер в основном меню и виджете лаунчера</string>
 </resources>

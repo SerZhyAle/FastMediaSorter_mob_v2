@@ -41,7 +41,9 @@ class LauncherSettingsStoreTest {
         assertTrue(values.desktopDoubleTapLockEnabled)
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.wallpaperImagePath)
-        assertEquals(0, values.screenBlackoutTimeoutSeconds)
+        // S2384: idle screen-off ships on at 30 seconds. Pinned as a literal for the same reason the
+        // backdrop alpha below is - reading the constant the store reads would pin nothing.
+        assertEquals(30, values.screenBlackoutTimeoutSeconds)
         // S2320: the shared launcher backdrop starts at 25% opacity, so a fresh install reads its
         // surfaces as plates over the wallpaper. Pinned as a literal - reading the constant the store
         // itself reads would compare it with itself and pin nothing.

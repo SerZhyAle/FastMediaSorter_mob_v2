@@ -55,7 +55,7 @@
 
     'settings-doc-sync-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-settings-doc-sync.ps1'
-        Fix   = 'A settings surface changed without regenerating its docs (CLAUDE.md Rule 22) - regenerate docs/settings/settings-manifest.json and docs/SETTINGS_REFERENCE*.md, and annotate the new key.'
+        Fix   = 'A settings surface changed without regenerating its docs (CLAUDE.md Rule 22) - regenerate docs/settings/settings-manifest.json and docs/SETTINGS_REFERENCE*.md, and annotate the new key. Exit 3 is not that (S2604): it means every stage passed and only the project-wide reference render diverged, while no file you changed feeds that render - the drift belongs to whichever ticket last moved the manifest, the annotations or an availability module, and regenerating it would commit their user-visible text under your change. Leave it; re-run with no -ChangedFiles for the project-wide verdict.'
     }
 
     'detekt-baseline-absorption' = @{
@@ -183,9 +183,14 @@
         Fix   = 'A watch setting exists on one side of the phone/watch pair and not the other. The message names the missing side: add the field to that WearSettingsPayload copy, the key to the watch DataStore, the entry to the other WearSettingsRegistry copy, or the row to SettingsDocScopeCatalog.wearEntries. A setting that is deliberately one-sided is legal, but only with a written exceptionReason on its registry entry - without one it is indistinguishable from a forgotten side.'
     }
 
+    'wear-walk-contract-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-walk-contract.ps1 -Gate'
+        Fix   = 'A wear screen in your changed set is classified in neither list of scripts/devtest/wear-prerelease-screens.json, so the watch pre-release walk neither opens it nor declares it skipped - it would ship unwalked in silence. Add it to screens[] with the label that opens it and a marker the destination renders and its parent does not (expect + expectRes, and mind that most watch screens repeat their parent chip label as their title, which makes the title useless as a marker), or to excluded[] with a reason from the closed set: not-a-destination, arg-external, gesture-only, timed, needs-seeded-content, pre-graph-gate, no-static-marker, absent-from-this-flavor. The other shapes are drift in an existing entry - a renamed string, a resource no composable renders, or a screen name that no longer exists. Note the scope (S2621): this per-ticket run judges only screens declared in your changed files, plus everything if the list itself is in the set, so a neighbour''s unclassified screen is not yours to fix; the whole-tree run is .\a.ps1 fg.'
+    }
+
     'wear-mirrored-strings-gate' = @{
-        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-mirrored-strings.ps1 -Gate'
-        Fix   = 'A string the phone and the watch are declared to share stopped reading the same, or a key now present in both modules is unclassified. The message names the key, the locale and both texts: bring the two copies back into line, or - if the two sides are meant to word it differently - move the pair to Mode = Independent in scripts/quality/wear-mirrored-strings.psd1 with a Reason. A new colliding key must be declared Mirrored or Independent there, because only the author who added it knows which it was meant to be.'
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-mirrored-strings.ps1 -Gate -Scope Authored'
+        Fix   = 'Two failure shapes, and the message tells them apart. (1) "exists in both modules but ... classifies it neither Mirrored nor Independent" - a new key now present in both modules is undeclared: add it to scripts/quality/wear-mirrored-strings.psd1 as Mirrored if the two sides must read the same, or Independent with a Reason if they are meant to word it differently. Only the author who added the key knows which it was, which is why this is asked at closure and not later. (2) "differs in values / values-ru / values-uk" - a pair declared Mirrored diverged in a locale the owner writes by hand: bring the two copies into line, or move the pair to Independent with a Reason if the divergence is deliberate. Note the scope (S2562): this per-ticket run compares ONLY the authored locales en/ru/uk. Divergence in the ten batch-translated locales is not reported here at all and is not yours to fix - those texts come from a release-boundary batch translation that app_v2 and wear make separately, so they are compared by assert-prerelease-content-gates.ps1 once that import has run. To see the full picture anyway, re-run the repro with -Scope All.'
     }
 
     # S1939: hints for icon-inventory-sync, doc-icons-sync and device-profile-matrix were removed
@@ -231,6 +236,11 @@
         Fix   = 'A contract suite you changed exists on this machine only - it is not in the git index, so a fresh clone and the release worktree discover a smaller set and print the same green verdict. Stage it with the `git add` command the gate printed; nothing in the closure path stages for you, and once missed a directory is never picked up again (`git commit -a` stages tracked files only). Exit 2 is a different answer: git could not be asked at all (S2411).'
     }
 
+    'dotsource-tracked' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-dotsource-tracked.ps1 -Gate -ChangedFiles "<your,files>"'
+        Fix   = 'A script one of your changed files dot-sources exists on this machine only - it is not in the git index. This is harsher than the suite-tracked case beside it: a dot-source is resolved when the CONSUMER is parsed, so in a fresh clone or the release worktree the consumer does not start at all. That is how one unstaged helper took down fk, fkn, fc, fr, fu and every a.ps1 target above check-standard-fast.ps1 while its own ticket sat in Verified (S2616). Stage it with the `git add` command the gate printed; nothing in the closure path stages for you. Exit 2 is a different answer: git could not be asked at all.'
+    }
+
     'androidtest-compile-gate' = @{
         Repro = 'pwsh -NoProfile -File ./a.ps1 fa'
         Fix   = 'The instrumented set (app_v2 src/androidTest) does not compile. No other check compiles it - fk/fkn build src/main, fu builds src/test - so a break here can only surface via this gate. Read the compiler error above and fix the test source; a migration test that cannot compile is indistinguishable from an absent one.'
@@ -244,5 +254,10 @@
     'dev-log' = @{
         Repro = 'pwsh -NoProfile -File scripts/add_to_dev_log.ps1 "<path>" "<target>" "<description>"'
         Fix   = 'The changelog row could not be written - read the error above; never edit dev/CHANGELOG.md by hand to work around it.'
+    }
+
+    'wear-wire-vocabulary-parity-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-wire-vocabulary-parity.ps1 -Gate'
+        Fix   = 'A phone/watch wire vocabulary outside settings diverged between app_v2 and wear, a LocalOnly safety rule failed, or a new mirrored enum was added without being declared in the gate table. Align the declarations or declare the new enum in $vocabularies.'
     }
 }

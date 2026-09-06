@@ -225,6 +225,22 @@
     <color name="color_media_image">#FF90CAF9</color>     <!-- Blue 200 -->
     <color name="color_media_docs">#FFFFCC80</color>      <!-- Orange 200 -->
     <color name="color_media_other">#FFB0BEC5</color>     <!-- Blue Grey 200 -->
+
+    <!-- S2510: night members of the per-mini-program accent palette. The catalog hands callers a
+         resource id rather than a resolved colour precisely so this file is picked automatically;
+         a name present only in values/ would serve the light tone in dark mode. -->
+    <color name="color_program_accent_red">#FFEF9A9A</color>     <!-- Red 200 -->
+    <color name="color_program_accent_orange">#FFFFCC80</color>  <!-- Orange 200 -->
+    <color name="color_program_accent_amber">#FFFFE082</color>   <!-- Amber 200 -->
+    <color name="color_program_accent_green">#FFA5D6A7</color>   <!-- Green 200 -->
+    <color name="color_program_accent_teal">#FF80CBC4</color>    <!-- Teal 200 -->
+    <color name="color_program_accent_blue">#FF90CAF9</color>    <!-- Blue 200 -->
+    <color name="color_program_accent_indigo">#FF9FA8DA</color>  <!-- Indigo 200 -->
+    <color name="color_program_accent_purple">#FFCE93D8</color>  <!-- Purple 200 -->
+    <!-- S2556: night half of the shared splash background. An alias rather than a copied literal -
+         the night theme already rendered item_normal here, so naming it keeps the pixel identical
+         while giving the app's own brand frame the same colour to continue into. -->
+    <color name="splash_background">@color/item_normal</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FFECEFF1</color>
     <!-- S1706: splash logo gradient - same sampled blues as day; they carry on the dark splash background too. -->

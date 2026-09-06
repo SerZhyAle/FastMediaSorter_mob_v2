@@ -486,7 +486,15 @@ private fun ExportToPhoneChip(
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
+        // S2522: spelled out through the base factory rather than through secondaryChipColors(), which
+        // exposes no disabled colour and derives it as the content colour at a fixed low alpha - the
+        // pattern AndroidX documents as insufficient contrast on a light background and patched only in
+        // the primary family (b/254025377). This chip is disabled for the whole export, which is
+        // exactly when it has to stay readable. The surface background matches the secondary look.
+        colors = ChipDefaults.chipColors(
+            backgroundColor = MaterialTheme.colors.surface,
+            disabledContentColor = MaterialTheme.colors.onSurfaceVariant
+        )
     )
 }
 

@@ -108,6 +108,15 @@ class ResetLauncherToDefaultsUseCaseTest {
         coVerify(exactly = 1) { shortcutSyncBaseline.clearSyncedRoutes() }
     }
 
+    // S2564: the resource baseline is cleared by name, not by the route call widening its meaning -
+    // a surviving one would read every re-provisioned aggregate as already accounted for.
+    @Test
+    fun `reset clears the resource tile sync baseline`() = runBlocking {
+        useCase(CHOSEN_DENSITY)
+
+        coVerify(exactly = 1) { shortcutSyncBaseline.clearSyncedResourcePaths() }
+    }
+
     private companion object {
         const val CHOSEN_DENSITY = 1.25f
         const val STALE_DENSITY = 0.75f

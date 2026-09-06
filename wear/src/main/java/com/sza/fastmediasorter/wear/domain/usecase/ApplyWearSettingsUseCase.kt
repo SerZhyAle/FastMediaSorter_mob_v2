@@ -2,20 +2,30 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsMergeResolver
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsRegistry
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 
 class ApplyWearSettingsUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val preferencesRepository: WearPreferencesRepository
+    private val preferencesRepository: WearPreferencesRepository,
+    /**
+     * S2626: Lazy because [WatchWearListenerService] field-injects this use case and is constructed
+     * for every Data Layer message, not only for a settings push - an eager dependency would pull the
+     * voice-note database into the construction path of every message the watch receives.
+     */
+    private val refreshVoiceNoteTitles: Lazy<RefreshVoiceNoteTitlesUseCase>
 ) {
 
     /**
@@ -90,8 +100,15 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "backgroundMode", payload.backgroundMode) {
             preferencesRepository.setBackgroundMode(WearBackgroundMode.fromNameOrDefault(it))
         }
+        Timber.d("S2522: incoming colour scheme=%s", payload.colorScheme)
+        apply(resolver, "colorScheme", payload.colorScheme) {
+            preferencesRepository.setColorScheme(WearColorScheme.fromNameOrDefault(it))
+        }
         apply(resolver, "disableAnimations", payload.disableAnimations) {
             preferencesRepository.setAnimationsDisabled(it)
+        }
+        apply(resolver, "powerSavingTrigger", payload.powerSavingTrigger) {
+            preferencesRepository.setPowerSavingTrigger(PowerSavingTrigger.fromNameOrDefault(it))
         }
         apply(resolver, "backgroundPlaybackEnabled", payload.backgroundPlaybackEnabled) {
             preferencesRepository.setBackgroundPlaybackEnabled(it)
@@ -108,6 +125,10 @@ class ApplyWearSettingsUseCase @Inject constructor(
         val resolvedTag = WearLocaleManager.resolveSupportedTag(context, rawLanguage) ?: return
         preferencesRepository.setAppLanguage(resolvedTag)
         WearLocaleManager.applyLocale(context, resolvedTag)
+        // S2626: the one moment the watch's language actually changes, and so the one moment the
+        // stored voice-note titles stop matching it. The pass exits on its own when they still do.
+        Timber.d("S2626: language push applied $resolvedTag, refreshing note titles")
+        refreshVoiceNoteTitles.get().invoke(resolvedTag)
     }
 
     /**

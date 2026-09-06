@@ -141,6 +141,17 @@
                         app:str_title="@string/pref_disable_animations_title"
                         app:str_subtitle="@string/pref_disable_animations_desc" />
 
+                    <!-- S2536: the stricter sibling of the switch above, so it sits immediately after
+                         it - a user looking for how to make the app quieter finds both in one place.
+                         One control covers both the manual choice and the automatic threshold. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowPowerSaving"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_title="@string/pref_power_saving_title"
+                        app:sdr_entries="@array/power_saving_trigger_options" />
+
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->
                     <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
 
@@ -320,6 +331,24 @@
                         android:layout_marginBottom="@dimen/margin_small"
                         app:str_title="@string/file_ops_in_overflow_menu"
                         app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
+
+                    <!-- S2533: swipe actions over a file row. Entries are supplied in code from
+                         BrowseSwipeActionCatalog, so no sdr_entries array here. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowBrowseSwipeLeftAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_title="@string/setting_browse_swipe_left_action_title"
+                        app:sdr_subtitle="@string/setting_browse_swipe_left_action_desc" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowBrowseSwipeRightAction"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_title="@string/setting_browse_swipe_right_action_title"
+                        app:sdr_subtitle="@string/setting_browse_swipe_right_action_desc" />
 
                 </LinearLayout>
             </LinearLayout>

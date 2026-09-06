@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.model.TimeFilter
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import java.net.HttpCookie
 import java.text.SimpleDateFormat
@@ -147,6 +148,7 @@ object BackupMapper {
             embeddedGameEnabled = settings.embeddedGameEnabled,
             frontFlashlightEnabled = settings.frontFlashlightEnabled,
             frontFlashlightColor = settings.frontFlashlightColor,
+            waterFlashlightEnabled = settings.waterFlashlightEnabled,
             networkParallelism = settings.networkParallelism,
             cacheSizeMb = settings.cacheSizeMb,
             isCacheSizeUserModified = settings.isCacheSizeUserModified,
@@ -280,6 +282,7 @@ object BackupMapper {
             launcherForeignNotificationsEnabled = settings.launcherForeignNotificationsEnabled,
             launcherTrayShowClock = settings.launcherTrayShowClock,
             launcherTrayShowBluetooth = settings.launcherTrayShowBluetooth,
+            launcherTrayShowTethering = settings.launcherTrayShowTethering,
             launcherTrayShowSim1 = settings.launcherTrayShowSim1,
             launcherTrayShowSim2 = settings.launcherTrayShowSim2,
             launcherTrayShowNetwork = settings.launcherTrayShowNetwork,
@@ -293,6 +296,18 @@ object BackupMapper {
             allAppsSortOrder = settings.allAppsSortOrder,
             allAppsSortDescending = settings.allAppsSortDescending,
             launcherScreenBlackoutTimeoutSeconds = settings.launcherScreenBlackoutTimeoutSeconds,
+            // S2632: absent from BackupSettings until now, so a restore silently reset both.
+            launcherTrayShowSpeed = settings.launcherTrayShowSpeed,
+            launcherAnimationPalette = settings.launcherAnimationPalette,
+            // S2648: the 124 settings the flat block above never carried, written as eight groups.
+            screenshotGesture = BackupSettingsGroupMapper.toGesture(settings),
+            launcherExtra = BackupSettingsGroupMapper.toLauncherExtra(settings),
+            capture = BackupSettingsGroupMapper.toCapture(settings),
+            programs = BackupSettingsGroupMapper.toPrograms(settings),
+            streams = BackupSettingsGroupMapper.toStreams(settings),
+            appearance = BackupSettingsGroupMapper.toAppearance(settings),
+            playerExtra = BackupSettingsGroupMapper.toPlayerExtra(settings),
+            integration = BackupSettingsGroupMapper.toIntegration(settings),
         )
     }
 
@@ -332,17 +347,19 @@ object BackupMapper {
     }
 
     fun toAppSettings(backup: BackupSettings, current: AppSettings, payloadVersion: Int): AppSettings {
-        return current.copy(
+        val flatRestored = current.copy(
             isResourceGridMode = backup.isResourceGridMode,
             resourceGridCellSize = com.sza.fastmediasorter.domain.model.ResourceGridCellSize
                 .fromName(backup.resourceGridCellSize),
-            language = backup.language.gsonSafe(current.language),
+            // S2571: no language here. LocaleHelper owns it and this mapper has no Context; the restore
+            // applies BackupSettings.language itself, after the transaction. The backup still records it.
             preventSleep = backup.preventSleep,
             keepScreenOnPlayer = backup.keepScreenOnPlayer,
             showSmallControls = backup.showSmallControls,
             embeddedGameEnabled = backup.embeddedGameEnabled,
             frontFlashlightEnabled = backup.frontFlashlightEnabled,
             frontFlashlightColor = backup.frontFlashlightColor,
+            waterFlashlightEnabled = backup.waterFlashlightEnabled,
             // S0406: restore global default network login from backup (was kept-from-current before).
             defaultUser = backup.defaultUser,
             defaultPassword = backup.defaultPassword,
@@ -484,34 +501,50 @@ object BackupMapper {
                 ?.let { StereoMode.fromKey(it) }
                 ?.takeIf { it != StereoMode.AUTO && it != StereoMode.UNKNOWN }
                 ?: current.stereoDefaultProjection,
-            // S1740: Launcher settings
-            launcher = current.launcher.copy(
-                densityFactor = backup.launcherDensityFactor,
-                taskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
-                taskbarShowRecents = backup.launcherTaskbarShowRecents,
-                taskbarShowPinned = backup.launcherTaskbarShowPinned,
-                taskbarShowTray = backup.launcherTaskbarShowTray,
-                replaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
-                topStatusStripMode = backup.launcherTopStatusStripMode,
-                foreignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
-                trayShowClock = backup.launcherTrayShowClock,
-                trayShowBluetooth = backup.launcherTrayShowBluetooth,
-                trayShowSim1 = backup.launcherTrayShowSim1,
-                trayShowSim2 = backup.launcherTrayShowSim2,
-                trayShowNetwork = backup.launcherTrayShowNetwork,
-                trayShowBattery = backup.launcherTrayShowBattery,
-                rotationHintShown = backup.launcherRotationHintShown,
-                desktopLocked = backup.launcherDesktopLocked,
-                // null in older backup files → preserve current setting, so the gesture stays enabled by default
-                desktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
-                    ?: current.launcherDesktopDoubleTapLockEnabled,
-                wallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
-                wallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
-                wallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
-                allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
-                allAppsSortDescending = backup.allAppsSortDescending,
-                screenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
-            ),
+            launcher = restoreLauncherSettings(backup, current),
+        )
+        // S2648: the eight grouped blocks apply on top of the flat copy above. A group the file does not
+        // carry leaves its settings untouched, which is what lets a backup written before these groups
+        // existed restore without resetting any of the 124 settings it never held.
+        return BackupSettingsGroupMapper.applyGroups(flatRestored, backup)
+    }
+
+    /**
+     * S2632: split out of [toAppSettings] so that function stays under the cyclomatic-complexity ceiling -
+     * adding two more null-coalescing restores pushed it to 21 against a limit of 20. The mapping itself is
+     * unchanged by the move; only its address is.
+     */
+    private fun restoreLauncherSettings(backup: BackupSettings, current: AppSettings): LauncherSettings {
+        return current.launcher.copy(
+            densityFactor = backup.launcherDensityFactor,
+            taskbarPlacement = backup.launcherTaskbarPlacement.gsonSafe(current.launcherTaskbarPlacement),
+            taskbarShowRecents = backup.launcherTaskbarShowRecents,
+            taskbarShowPinned = backup.launcherTaskbarShowPinned,
+            taskbarShowTray = backup.launcherTaskbarShowTray,
+            replaceSystemStatusArea = backup.launcherReplaceSystemStatusArea,
+            topStatusStripMode = backup.launcherTopStatusStripMode,
+            foreignNotificationsEnabled = backup.launcherForeignNotificationsEnabled,
+            trayShowClock = backup.launcherTrayShowClock,
+            trayShowBluetooth = backup.launcherTrayShowBluetooth,
+            trayShowTethering = backup.launcherTrayShowTethering,
+            trayShowSim1 = backup.launcherTrayShowSim1,
+            trayShowSim2 = backup.launcherTrayShowSim2,
+            trayShowNetwork = backup.launcherTrayShowNetwork,
+            trayShowBattery = backup.launcherTrayShowBattery,
+            rotationHintShown = backup.launcherRotationHintShown,
+            desktopLocked = backup.launcherDesktopLocked,
+            // null in older backup files → preserve current setting, so the gesture stays enabled by default
+            desktopDoubleTapLockEnabled = backup.launcherDesktopDoubleTapLockEnabled
+                ?: current.launcherDesktopDoubleTapLockEnabled,
+            wallpaperMode = backup.launcherWallpaperMode.gsonSafe(current.launcherWallpaperMode),
+            wallpaperImagePath = backup.launcherWallpaperImagePath.gsonSafe(current.launcherWallpaperImagePath),
+            wallpaperCameraId = backup.launcherWallpaperCameraId.gsonSafe(current.launcherWallpaperCameraId),
+            allAppsSortOrder = backup.allAppsSortOrder.gsonSafe(current.allAppsSortOrder),
+            allAppsSortDescending = backup.allAppsSortDescending,
+            screenBlackoutTimeoutSeconds = backup.launcherScreenBlackoutTimeoutSeconds,
+            // null in a backup written before S2632 - preserve what the device already has.
+            trayShowSpeed = backup.launcherTrayShowSpeed ?: current.launcherTrayShowSpeed,
+            animationPalette = backup.launcherAnimationPalette ?: current.launcherAnimationPalette,
         )
     }
 

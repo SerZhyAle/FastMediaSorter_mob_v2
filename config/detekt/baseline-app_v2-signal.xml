@@ -1632,10 +1632,7 @@
     <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$16384</ID>
     <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$256</ID>
     <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$32</ID>
-    <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$5</ID>
     <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$512</ID>
-    <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$60</ID>
-    <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$60.0</ID>
     <ID>MagicNumber:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$8</ID>
     <ID>MagicNumber:GetDeviceStorageUseCase.kt$GetDeviceStorageUseCase$1024.0</ID>
     <ID>MagicNumber:GetMediaFilesUseCase.kt$GetMediaFilesUseCase$100L</ID>
@@ -3629,7 +3626,6 @@
     <ID>SwallowedException:GeneralSettingsCredentialHelper.kt$GeneralSettingsCredentialHelper$e: Exception</ID>
     <ID>SwallowedException:GeneralSettingsFragment.kt$GeneralSettingsFragment$e: Exception</ID>
     <ID>SwallowedException:GeneralSettingsLogHelper.kt$GeneralSettingsLogHelper$e: Exception</ID>
-    <ID>SwallowedException:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$e: android.content.ActivityNotFoundException</ID>
     <ID>SwallowedException:GoogleDriveFolderPickerViewModel.kt$GoogleDriveFolderPickerViewModel$e: Exception</ID>
     <ID>SwallowedException:GoogleDriveThumbnailModelLoader.kt$GoogleDriveThumbnailDataFetcher$e: Exception</ID>
     <ID>SwallowedException:GoogleLensTranslationHelper.kt$GoogleLensTranslationHelper$e: CancellationException</ID>

@@ -43,8 +43,10 @@ class GatherWearSettingsUseCase @Inject constructor(
         // value, so reporting it back could only overwrite the phone's own choice with an echo.
         appLanguage = null,
         backgroundMode = preferencesRepository.backgroundMode.first().name,
+        colorScheme = preferencesRepository.colorScheme.first().name,
         streamsSectionEnabled = preferencesRepository.streamsSectionEnabled.first(),
         disableAnimations = preferencesRepository.isAnimationsDisabled.first(),
+        powerSavingTrigger = preferencesRepository.powerSavingTrigger.first().name,
         backgroundPlaybackEnabled = preferencesRepository.backgroundPlaybackEnabled.first(),
         fieldTimestamps = preferencesRepository.settingTimestamps.first(),
         capabilities = mapOf(

@@ -352,17 +352,17 @@ private class FakeStampStore : com.sza.fastmediasorter.data.repository.wear.Wear
 
     val stamps = mutableMapOf<String, Long>()
 
-    override fun readStamps(): Map<String, Long> = stamps.toMap()
+    override suspend fun readStamps(): Map<String, Long> = stamps.toMap()
 
-    override fun stampEdit(resourceId: String) {
+    override suspend fun stampEdit(resourceId: String) {
         stamps[resourceId] = System.currentTimeMillis()
     }
 
-    override fun writeStamp(resourceId: String, atEpochMillis: Long) {
+    override suspend fun writeStamp(resourceId: String, atEpochMillis: Long) {
         stamps[resourceId] = atEpochMillis
     }
 
-    override fun forget(resourceId: String) {
+    override suspend fun forget(resourceId: String) {
         stamps.remove(resourceId)
     }
 }

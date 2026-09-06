@@ -2,12 +2,14 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.stats.FileOpAction
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsMediaType
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -32,9 +34,11 @@ class CreateDirectoryUseCase @Inject constructor(
         parentPath: String,
         folderName: String
     ): Result<String> = withContext(Dispatchers.IO) {
-        // 1. Validation: Basic read-only check
-        if (resource.isReadOnly) {
-            return@withContext Result.failure(Exception("Resource is read-only"))
+        Timber.d("S2625: create-folder type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
+        // 1. Validation: S2625 - the user flag alone misses the probe for LOCAL/CLOUD and never
+        // refuses a stream, so this boundary resolves write permission through the shared helper.
+        if (!resource.allowsWriteOperations()) {
+            return@withContext Result.failure(Exception("Resource does not allow write operations"))
         }
 
         // 2. Validation: Name constraints

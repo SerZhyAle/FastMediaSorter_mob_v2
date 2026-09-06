@@ -48,6 +48,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
@@ -81,6 +82,20 @@ private val BACKGROUND_MODES = listOf(
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION to R.string.wear_background_mode_animation,
     WearSettingsPayload.BACKGROUND_MODE_BRANDED_STILL to R.string.wear_background_mode_still,
     WearSettingsPayload.BACKGROUND_MODE_IMAGE to R.string.wear_background_mode_image
+)
+
+// S2522: the watch's eight schemes, in the order the watch itself lists them. Eight entries and no
+// AUTO - Wear OS has no system light/dark switch, so a follow-the-system option could never differ
+// from the dark scheme (strategic ADR-2).
+private val COLOR_SCHEMES = listOf(
+    WearSettingsPayload.COLOR_SCHEME_DARK to R.string.wear_color_scheme_dark,
+    WearSettingsPayload.COLOR_SCHEME_LIGHT to R.string.wear_color_scheme_light,
+    WearSettingsPayload.COLOR_SCHEME_DARK_GREEN to R.string.wear_color_scheme_dark_green,
+    WearSettingsPayload.COLOR_SCHEME_DARK_BLUE to R.string.wear_color_scheme_dark_blue,
+    WearSettingsPayload.COLOR_SCHEME_DARK_RED to R.string.wear_color_scheme_dark_red,
+    WearSettingsPayload.COLOR_SCHEME_LIGHT_GREEN to R.string.wear_color_scheme_light_green,
+    WearSettingsPayload.COLOR_SCHEME_LIGHT_BLUE to R.string.wear_color_scheme_light_blue,
+    WearSettingsPayload.COLOR_SCHEME_LIGHT_RED to R.string.wear_color_scheme_light_red
 )
 
 private val PICKED_IMAGE_TYPES = arrayOf("image/*")
@@ -176,6 +191,7 @@ internal fun WearWatchSettingsGroup(
                 onChanged()
             }
             BackgroundModeControls(viewModel = viewModel)
+            ColorSchemeControls(viewModel = viewModel)
             SwitchRow(
                 tag = "wearSwitchKeepAwake",
                 label = stringResource(R.string.wear_settings_keep_awake),
@@ -225,6 +241,13 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     // a BOTH field, so an unedited push must carry the default rather than flip animations off.
     var disableAnimations by mutableStateOf(watchSettings?.disableAnimations ?: DEFAULT_ANIMATIONS_DISABLED)
 
+    // S2536: seeded with the watch's own stored default for the reason album art records above - the
+    // row edits a BOTH field, so an unedited push must carry the default rather than turn the watch's
+    // power saving off behind the owner's back.
+    var powerSavingTrigger by mutableStateOf(
+        watchSettings?.powerSavingTrigger ?: PowerSavingTrigger.DEFAULT.name
+    )
+
     // S2166: seeded false, the watch's stored default, for the reason album art records above - the
     // row edits a BOTH field, so an unedited push must not switch background playback on by itself.
     var backgroundPlaybackEnabled by mutableStateOf(watchSettings?.backgroundPlaybackEnabled ?: false)
@@ -255,12 +278,14 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         appLanguage = context?.let { LocaleHelper.getLanguage(it) },
         streamsSectionEnabled = streamsSectionEnabled,
         disableAnimations = disableAnimations,
+        powerSavingTrigger = powerSavingTrigger,
         backgroundPlaybackEnabled = backgroundPlaybackEnabled,
         panelAutoHideSeconds = panelAutoHideSeconds.toInt()
     )
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     SwitchRow(
@@ -284,6 +309,50 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         state.disableAnimations = it
         onChanged()
     }
+    // S2536: the watch's power-saving threshold, directly after the animation switch it strengthens -
+    // the same neighbouring the watch menu uses. Chips rather than a switch because the value is a
+    // threshold, and the registry declares it BOTH, so this phone row is what the parity gate
+    // requires to exist.
+    //
+    // Written inline rather than extracted into its own composable, unlike the background-mode chips
+    // below: the order gate resolves a row literal to the FIRST INVOCATION of the helper holding it,
+    // one level only. A helper nested inside this one would resolve to its call site here while its
+    // sibling rows resolve to where THIS subgroup is invoked, which sorts the row after every row it
+    // is drawn before.
+    Text(
+        text = stringResource(R.string.wear_settings_power_saving),
+        style = MaterialTheme.typography.bodySmall
+    )
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
+        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+    ) {
+        POWER_SAVING_TRIGGERS.forEach { (value, labelRes) ->
+            val chipLabel = stringResource(labelRes)
+            FilterChip(
+                selected = value == state.powerSavingTrigger,
+                onClick = {
+                    state.powerSavingTrigger = value
+                    onChanged()
+                },
+                label = { Text(chipLabel) },
+                // S2091: a chip's own label does not reach the accessibility node, so without this the
+                // options dump as anonymous checkboxes and the screen reader announces none of them.
+                modifier = Modifier
+                    .testTag("wearPowerSavingTrigger_" + value)
+                    .semantics { contentDescription = chipLabel }
+            )
+        }
+    }
+    // The watch judges its own charge, because the two devices have separate batteries and a phone at
+    // eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not read
+    // as a phone-side switch.
+    Text(
+        text = stringResource(R.string.wear_settings_power_saving_desc),
+        style = MaterialTheme.typography.bodySmall
+    )
+    Spacer(Modifier.height(SPACING_SMALL))
     // S2166: last in the Other group, matching the watch menu - auto-rotation sits between this row
     // and animations on the watch, but it is WATCH_ONLY and has no phone row to draw here.
     SwitchRow(
@@ -453,6 +522,42 @@ private fun ViewModeRow(
  * animation leaves the setting a single control. The two options are told apart by their labels
  * rather than by the preview, because a thumbnail is not a label for a screen reader.
  */
+/**
+ * S2522: the watch's colour scheme at its canonical Screen position, one chip per scheme.
+ *
+ * Each chip carries its own `contentDescription` for the reason the background chips beside it do
+ * (S2091): a chip's label does not reach the accessibility node, so without it the eight options dump
+ * as anonymous checkboxes and the screen reader announces none of them.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ColorSchemeControls(viewModel: WearSyncViewModel) {
+    val scheme by viewModel.colorScheme.collectAsState()
+
+    Text(
+        text = stringResource(R.string.wear_settings_color_scheme),
+        style = MaterialTheme.typography.bodySmall
+    )
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
+        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+    ) {
+        COLOR_SCHEMES.forEach { (value, labelRes) ->
+            val chipLabel = stringResource(labelRes)
+            FilterChip(
+                selected = value == scheme,
+                onClick = { viewModel.updateColorScheme(value) },
+                label = { Text(chipLabel) },
+                modifier = Modifier
+                    .testTag("wearColorScheme_" + value)
+                    .semantics { contentDescription = chipLabel }
+            )
+        }
+    }
+    Spacer(Modifier.height(SPACING_SMALL))
+}
+
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
@@ -612,3 +717,13 @@ private fun SwitchRow(
         }
     }
 }
+
+/** S2536: in PowerSavingTrigger declaration order, reusing the phone row's own option labels. */
+private val POWER_SAVING_TRIGGERS = listOf(
+    PowerSavingTrigger.OFF.name to R.string.pref_power_saving_off,
+    PowerSavingTrigger.ALWAYS.name to R.string.pref_power_saving_always,
+    PowerSavingTrigger.BELOW_10.name to R.string.pref_power_saving_below_10,
+    PowerSavingTrigger.BELOW_15.name to R.string.pref_power_saving_below_15,
+    PowerSavingTrigger.BELOW_20.name to R.string.pref_power_saving_below_20,
+    PowerSavingTrigger.BELOW_30.name to R.string.pref_power_saving_below_30,
+)

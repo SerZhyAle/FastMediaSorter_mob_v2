@@ -159,7 +159,19 @@ private fun StateChip(
     primary: Boolean,
     enabled: Boolean = true
 ) {
-    val colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
+    // S2522: the secondary branch is spelled out through the base factory rather than through
+    // secondaryChipColors(), which exposes no disabled colour at all and derives it as the content
+    // colour at a fixed low alpha - the pattern AndroidX documents as insufficient contrast on a light
+    // background and patched only in the primary family (b/254025377). The surface background and the
+    // content colour derived from it are exactly what secondaryChipColors() would have produced.
+    val colors = if (primary) {
+        ChipDefaults.primaryChipColors()
+    } else {
+        ChipDefaults.chipColors(
+            backgroundColor = MaterialTheme.colors.surface,
+            disabledContentColor = MaterialTheme.colors.onSurfaceVariant
+        )
+    }
     Chip(
         onClick = onClick,
         label = { Text(text = label) },

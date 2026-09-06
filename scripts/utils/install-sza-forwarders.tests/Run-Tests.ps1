@@ -212,6 +212,59 @@ if (-not $case3) {
     Assert-Equal 'the caller survives the fallback dot-source'        'S2452'           $case3.Target
 }
 
+# --- Case 4: an incomplete call must FAIL, not hang, when stdin is a pipe nobody closes ----------
+# S2610. PowerShell answers a missing mandatory parameter by prompting, and the prompt reads stdin.
+# A foreign agent runtime hands its child a stdin pipe and never closes it, so the prompt blocks
+# forever: measured 2026-09-05 as 15 pairs of pwsh processes alive 14-17 hours on 0.3-0.7 s of CPU,
+# none of which had run a line, while the runtime recorded every call as dispatched. This is the
+# only case that exercises the template's CLI branch - the three above all dot-source it, where the
+# guard deliberately does not apply.
+Write-Host 'case 4: an incomplete call fails fast instead of hanging on an open stdin pipe'
+$sandbox4 = Join-Path $repoRoot ('temp\scratch\sza-fwd-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+$harness4 = Join-Path $sandbox4 'harness'
+New-Item -ItemType Directory -Force -Path $harness4 | Out-Null
+try {
+    Set-Content -LiteralPath (Join-Path $harness4 'probe-cli.ps1') -Encoding UTF8 -Value @'
+param([Parameter(Mandatory = $true)][string]$Required)
+"reached with $Required"
+'@
+    $forwarder4 = $template.
+        Replace('{HARNESS}', 'probe-cli.ps1').
+        Replace('{LEAF}', 'probe-cli-fwd.ps1').
+        Replace('{UP}', '.')
+    $forwarder4Path = Join-Path $sandbox4 'probe-cli-fwd.ps1'
+    [System.IO.File]::WriteAllText($forwarder4Path, $forwarder4, [System.Text.UTF8Encoding]::new($false))
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = (Get-Process -Id $PID).Path
+    $psi.Arguments = "-NoProfile -File `"$forwarder4Path`""
+    $psi.WorkingDirectory = $sandbox4
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    # Opened and never closed - the whole point of the case.
+    $psi.RedirectStandardInput = $true
+    $psi.EnvironmentVariables['SZA_HARNESS_ROOT'] = $harness4
+    $child = [System.Diagnostics.Process]::Start($psi)
+    $exited = $child.WaitForExit(20000)
+    if (-not $exited) {
+        try { $child.Kill($true) } catch { }
+        Write-Host '  FAIL  an incomplete call still hangs on an open stdin pipe' -ForegroundColor Red
+        $failures.Add('case 4: incomplete call hangs')
+    }
+    else {
+        Assert-Equal 'an incomplete call refuses rather than prompting' 'nonzero' `
+            $(if ($child.ExitCode -ne 0) { 'nonzero' } else { "exit $($child.ExitCode)" })
+        $said = ($child.StandardError.ReadToEnd() + $child.StandardOutput.ReadToEnd())
+        Assert-Equal 'the refusal names the missing parameter' 'named' `
+            $(if ($said -match 'Required') { 'named' } else { 'not named' })
+    }
+}
+finally {
+    Remove-Item -LiteralPath $sandbox4 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 if ($failures.Count -gt 0) {
     Write-Host "install-sza-forwarders.tests: FAIL ($($failures.Count) assertion(s))" -ForegroundColor Red
     exit 1

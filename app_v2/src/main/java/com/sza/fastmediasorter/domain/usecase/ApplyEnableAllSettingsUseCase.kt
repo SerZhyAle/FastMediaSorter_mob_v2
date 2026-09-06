@@ -89,6 +89,14 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
          */
         private val ROUTE_ENABLERS: Map<String, (AppSettings) -> AppSettings> = mapOf(
             InternalRouteCatalog.KEY_CALCULATOR to { s: AppSettings -> s.copy(enableCalculator = true) },
+            // S1411: the stopwatch is present wherever the calculator is (strategic criterion 1), so the
+            // button that turns the calculator on turns this on too. Only the master switch joins - the
+            // tool's music and volume-key settings are a mode and a resource choice, which the membership
+            // rule keeps out.
+            InternalRouteCatalog.KEY_STOPWATCH to { s: AppSettings ->
+                Timber.d("S1411: enable-all switching the stopwatch on")
+                s.copy(enableStopwatch = true)
+            },
             InternalRouteCatalog.KEY_NETWORK_MONITOR to { s: AppSettings -> s.copy(enableNetworkMonitor = true) },
             InternalRouteCatalog.KEY_GAME to { s: AppSettings -> s.copy(embeddedGameEnabled = true) },
             InternalRouteCatalog.KEY_SYSTEM_INFO to { s: AppSettings -> s.copy(enableSystemInfo = true) },
@@ -99,6 +107,13 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
             InternalRouteCatalog.KEY_SCREEN_RECORDING to { s: AppSettings -> s.copy(screenRecordingEnabled = true) },
             InternalRouteCatalog.KEY_LINK_DOWNLOAD to { s: AppSettings -> s.copy(linkAutoDownloadEnabled = true) },
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to { s: AppSettings -> s.copy(frontFlashlightEnabled = true) },
+            InternalRouteCatalog.KEY_WATER_FLASHLIGHT to { s: AppSettings -> s.copy(waterFlashlightEnabled = true) },
+            // S2628: the mirror joins on the same footing as the other sub-programs, so a user who switched
+            // it off by hand gets it back from the button. Its default is already true, which is why the
+            // omission survived S1924 unseen - the second half of EnableAllCoverageClassificationTest
+            // compares before against after and a field that starts on can never appear in that diff. Only
+            // the master switch joins: flip and backlight are modes the membership rule keeps out.
+            InternalRouteCatalog.KEY_MIRROR to { s: AppSettings -> s.copy(mirrorEnabled = true) },
             InternalRouteCatalog.KEY_START_VIDEO_RECORDING to { s: AppSettings -> s.copy(disableVideoCapture = false) },
             InternalRouteCatalog.KEY_SCHEDULED_TASKS to { s: AppSettings ->
                 s.copy(enableScheduledOperations = true)

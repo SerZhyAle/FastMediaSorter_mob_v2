@@ -112,6 +112,7 @@ fun WaveParticleBackground(
     // leave a frozen backdrop frozen until the screen was re-entered - and a frozen loop has no next
     // iteration in which to read anything.
     val animating = running && WearPowerPolicy.mayAnimate(intent)
+    timber.log.Timber.d("S2536: wear backdrop animating=$animating level=${WearPowerPolicy.level}")
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }.toInt().coerceAtLeast(1)

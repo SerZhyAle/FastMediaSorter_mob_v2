@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2516: water flashlight accent icon for light widget backgrounds. Same indigo as its neighbour
+     (S1165): a solid white glyph is invisible in the widget picker's light dialog. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="#FF4F46E5"
+        android:pathData="M12,3.1C12,3.1 6.5,10.2 6.5,14a5.5,5.5 0 1,0 11,0C17.5,10.2 12,3.1 12,3.1z" />
+    <path
+        android:fillColor="#FF4F46E5"
+        android:pathData="M2,13.2h2.6v1.6H2zM19.4,13.2H22v1.6h-2.6zM4.2,5.6l1.1,-1.1 1.9,1.9 -1.1,1.1zM16.8,6.4l1.9,-1.9 1.1,1.1 -1.9,1.9z" />
+</vector>

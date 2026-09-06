@@ -30,6 +30,9 @@ object InternalRouteCatalog {
     // S1103: launch the quick-access panel overlay from a launcher cell.
     const val KEY_APP_LAUNCH_PANEL = "app_launch_panel"
     const val KEY_CALCULATOR = "calculator"
+
+    // S1411: a built-in stopwatch present wherever the calculator is present.
+    const val KEY_STOPWATCH = "stopwatch"
     const val KEY_NETWORK_MONITOR = "network_monitor"
     const val KEY_GAME = "game"
     const val KEY_OCR = "ocr"
@@ -44,8 +47,14 @@ object InternalRouteCatalog {
     const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
     const val KEY_PHYSICAL_FLASHLIGHT = "physical_flashlight"
 
+    // S2516: torch and screen lit together behind a lock only a hardware key opens.
+    const val KEY_WATER_FLASHLIGHT = "water_flashlight"
+
     // S2211: black screen as an autonomous sub-program.
     const val KEY_BLACK_SCREEN = "black_screen"
+
+    // S1924: the front camera shown as a mirror, lit by the window around it.
+    const val KEY_MIRROR = "mirror"
 
     // S1733: system information as a program of its own, reachable without going into settings.
     const val KEY_SYSTEM_INFO = "system_info"
@@ -80,6 +89,15 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_calculator,
             intent = AppLaunchPanelRouteIntents::calculator,
             settingsIntent = AppLaunchPanelRouteIntents::calculatorSettings,
+        ),
+        // S1411: label reused from the screen's own title, the way the network monitor and system
+        // information reuse theirs - two wordings for one program drift apart.
+        Route(
+            key = KEY_STOPWATCH,
+            labelRes = R.string.stopwatch_title,
+            iconRes = R.drawable.ic_stopwatch,
+            intent = AppLaunchPanelRouteIntents::stopwatch,
+            settingsIntent = AppLaunchPanelRouteIntents::stopwatchSettings,
         ),
         Route(
             key = KEY_NETWORK_MONITOR,
@@ -171,10 +189,24 @@ object InternalRouteCatalog {
             intent = AppLaunchPanelRouteIntents::physicalFlashlight,
         ),
         Route(
+            key = KEY_WATER_FLASHLIGHT,
+            labelRes = R.string.water_flashlight_title,
+            iconRes = R.drawable.ic_water_flashlight,
+            intent = AppLaunchPanelRouteIntents::waterFlashlight,
+            settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
+        ),
+        Route(
             key = KEY_BLACK_SCREEN,
             labelRes = R.string.launcher_action_black_screen,
             iconRes = R.drawable.ic_black_screen,
             intent = AppLaunchPanelRouteIntents::blackScreen,
+        ),
+        Route(
+            key = KEY_MIRROR,
+            labelRes = R.string.mirror_title,
+            iconRes = R.drawable.ic_mirror,
+            intent = AppLaunchPanelRouteIntents::mirror,
+            settingsIntent = AppLaunchPanelRouteIntents::mirrorSettings,
         ),
         // S0978: camera/video gesture actions with an existing standalone trampoline. Labels reuse the
         // left-edge gesture picker's own strings; order follows the ScreenshotGestureAction enum order.

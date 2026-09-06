@@ -29,6 +29,7 @@ import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -137,11 +138,17 @@ fun SingleColumnTileCell(
             CellPicture(thumbnail = thumbnail, fallback = fallback)
         }
 
-        // No plate stands behind the text any more, so the caption states its own colours: white
-        // glyphs stroked in black (S2467's outline pass). What is behind a row is now the wallpaper -
-        // a moving, arbitrary picture - and an outline is the only treatment that survives it without
-        // drawing a box back in.
-        CompositionLocalProvider(LocalContentColor provides Color.White) {
+        // No plate stands behind the text any more, so the caption states its own colours: glyphs
+        // stroked in the opposite tone (S2467's outline pass). What is behind a row is now the
+        // wallpaper - a moving, arbitrary picture - and an outline is the only treatment that
+        // survives it without drawing a box back in.
+        // S2522: which tone is the glyph and which the stroke follows the scheme, because the
+        // wallpaper's own fill does. A light scheme paints that fill white, and a white glyph on it
+        // disappears - the outlined caption would survive, but the secondary line below has no
+        // outline to survive on.
+        val glyphColor = if (WearAppTheme.colors.isLight) Color.Black else Color.White
+        val glyphOutlineColor = if (WearAppTheme.colors.isLight) Color.White else Color.Black
+        CompositionLocalProvider(LocalContentColor provides glyphColor) {
             Column(
                 modifier = Modifier
                     // `fill = false` is what makes the centring visible: a filled weight would take
@@ -156,8 +163,8 @@ fun SingleColumnTileCell(
                     text = caption,
                     maxLines = captionLayout.maxLines.coerceAtLeast(1),
                     textAlign = TextAlign.Start,
-                    color = Color.White,
-                    outlineColor = Color.Black
+                    color = glyphColor,
+                    outlineColor = glyphOutlineColor
                 )
                 if (!secondaryText.isNullOrEmpty()) {
                     Text(
@@ -165,7 +172,7 @@ fun SingleColumnTileCell(
                         style = MaterialTheme.typography.caption2,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        color = Color.White.copy(alpha = SECONDARY_TEXT_ALPHA)
+                        color = glyphColor.copy(alpha = SECONDARY_TEXT_ALPHA)
                     )
                 }
             }

@@ -411,6 +411,69 @@
             Watch  = 'wear_setting_background_mode'
             Mode   = 'Mirrored'
             Reason = ''
+        },
+
+        # ---- Mirrored: the watch appearance option sets, declared by S2562 ----
+        # One background option and the eight colour-scheme options the companion window offers for
+        # the watch. Both modules render the SAME option list for the same setting, so the two copies
+        # name one choice each and a reworded option on one side only is the defect this gate exists
+        # for. Mirrored rather than Independent is a measurement, not a preference: on 2026-09-05 all
+        # nine were byte-identical in every authored locale - values, values-ru and values-uk - which
+        # is what a verbatim copy looks like. They arrived after S2125 built this file and sat
+        # unclassified, so check 4 reported all nine on every closure that touched any strings.xml.
+        @{
+            Phone  = 'wear_background_mode_none'
+            Watch  = 'wear_background_mode_none'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark'
+            Watch  = 'wear_color_scheme_dark'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light'
+            Watch  = 'wear_color_scheme_light'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_green'
+            Watch  = 'wear_color_scheme_dark_green'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_blue'
+            Watch  = 'wear_color_scheme_dark_blue'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_red'
+            Watch  = 'wear_color_scheme_dark_red'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_green'
+            Watch  = 'wear_color_scheme_light_green'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_blue'
+            Watch  = 'wear_color_scheme_light_blue'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_red'
+            Watch  = 'wear_color_scheme_light_red'
+            Mode   = 'Mirrored'
+            Reason = ''
         }
     )
 }

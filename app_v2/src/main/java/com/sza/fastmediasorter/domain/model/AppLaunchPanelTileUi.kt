@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.model
 
 import android.graphics.drawable.Drawable
+import androidx.annotation.ColorRes
 
 /** Number of fixed slots in the locked-view panel grid (3x5 portrait / 5x3 landscape). */
 const val APP_LAUNCH_PANEL_SLOT_COUNT = 15
@@ -25,4 +26,11 @@ data class AppLaunchPanelTileUi(
      * tile type alone is not enough (a Resource route can be either a colored badge or the cast glyph).
      */
     val tintable: Boolean = false,
+    /**
+     * S2510: the accent identifying this sub-program, or null to keep the neutral on-surface tint.
+     * Only meaningful while [tintable] is true. Decided at resolve time, where the icon source is
+     * known - the empty-slot placeholder, OS shortcuts and the colored resource badges all leave it
+     * null, so colouring a program cannot bleed into a tile that is not one.
+     */
+    @ColorRes val accentRes: Int? = null,
 )

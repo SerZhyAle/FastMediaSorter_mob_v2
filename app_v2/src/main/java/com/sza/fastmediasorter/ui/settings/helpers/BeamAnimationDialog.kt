@@ -32,10 +32,10 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -43,17 +43,22 @@ import androidx.core.content.getSystemService
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.AnimationIntent
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
+import com.sza.fastmediasorter.ui.common.compose.rememberAnimationAllowed
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import timber.log.Timber
 
 @AndroidEntryPoint
 class BeamAnimationDialog : DialogFragment() {
 
-    private val viewModel: WearSyncViewModel by viewModels({ requireParentFragment().also { } },
-        factoryProducer = { defaultViewModelProviderFactory })
+    private val viewModel: WearSyncViewModel by viewModels(
+        { requireParentFragment().also { } },
+        factoryProducer = { defaultViewModelProviderFactory }
+    )
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         val composeView = ComposeView(requireContext()).apply {
@@ -174,7 +179,10 @@ private fun BeamDialogBody(
             }
             Spacer(Modifier.height(8.dp))
             TextButton(
-                onClick = { viewModel.reset(); onDismiss() },
+                onClick = {
+                    viewModel.reset()
+                    onDismiss()
+                },
                 modifier = Modifier.testTag("beam_cancel_button")
             ) {
                 Text(stringResource(R.string.cancel))
@@ -188,7 +196,10 @@ private fun BeamDialogBody(
             )
             Spacer(Modifier.height(12.dp))
             TextButton(
-                onClick = { viewModel.reset(); onDismiss() },
+                onClick = {
+                    viewModel.reset()
+                    onDismiss()
+                },
                 modifier = Modifier.testTag("beam_close_button")
             ) {
                 Text(stringResource(R.string.close))
@@ -203,13 +214,12 @@ private fun BeamDialogBody(
 
 @Composable
 private fun PulsingBeamAnimation() {
-    val infiniteTransition = rememberInfiniteTransition(label = "beam")
-    val pulse by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing), RepeatMode.Restart),
-        label = "pulse"
-    )
+    // The rings are ornament: the progress spinner drawn over them already says "still sending", so
+    // stopping them tells the user nothing false. Held at phase zero the same three rings read as an
+    // intentional static graphic rather than as a dialog that died.
+    val mayPulse = rememberAnimationAllowed(AnimationIntent.DECORATIVE)
+    Timber.d("S2567: beam rings mayPulse=$mayPulse")
+    val pulse = if (mayPulse) beamPulsePhase() else 0f
     val color = MaterialTheme.colorScheme.primary
     Box(modifier = Modifier.height(120.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {
         Canvas(modifier = Modifier.fillMaxSize()) {
@@ -227,4 +237,21 @@ private fun PulsingBeamAnimation() {
         }
         CircularProgressIndicator(modifier = Modifier.padding(8.dp))
     }
+}
+
+/**
+ * Split out so the animator itself leaves composition when the policy stops it. Reading the phase and
+ * discarding it would keep the infinite transition running and burn the frames the policy exists to
+ * save.
+ */
+@Composable
+private fun beamPulsePhase(): Float {
+    val infiniteTransition = rememberInfiniteTransition(label = "beam")
+    val pulse by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(tween(1200, easing = LinearEasing), RepeatMode.Restart),
+        label = "pulse"
+    )
+    return pulse
 }

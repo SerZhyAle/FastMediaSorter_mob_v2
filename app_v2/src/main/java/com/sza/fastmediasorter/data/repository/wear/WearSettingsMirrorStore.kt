@@ -5,6 +5,8 @@ import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -21,18 +23,27 @@ import javax.inject.Inject
  * to the watch", because the watch now reports its own set back over `SETTINGS_REPORT` and the merged
  * result is written here. The rest of that ruling stands unchanged - this is still not a reactive
  * store, so the boundary against `AppSettings` is where it was.
+ *
+ * S2515 (ADR-3): the contract is deliberately mixed, and the split is not an oversight. Every WRITE
+ * suspends and moves itself to IO. The three reads below stay synchronous because they feed field
+ * initialisers of the companion sheet's `ViewModel` - two of them derived from a third at
+ * construction - and an asynchronous read would render the sheet's defaults before the mirror
+ * arrived, which is precisely the defect this store was created to prevent: a picked grid reading
+ * back as the list default. [readFieldTimestamps] suspends with the writes, having no such caller.
  */
 interface WearSettingsMirrorStore {
 
+    /** Synchronous by ADR-3 - read from a field initialiser. */
     fun readSettings(): WearSettingsPayload?
 
-    fun writeSettings(settings: WearSettingsPayload)
+    suspend fun writeSettings(settings: WearSettingsPayload)
 
+    /** Synchronous by ADR-3 - read from a field initialiser. */
     fun readLastSyncTimestamp(): Long
 
     /**
      * S2461: the version name the watch reported with the last completed exchange, or null when the
-     * watch that answered did not report one.
+     * watch that answered did not report one. Synchronous by ADR-3 - read from a field initialiser.
      */
     fun readWatchAppVersion(): String?
 
@@ -44,7 +55,7 @@ interface WearSettingsMirrorStore {
      *
      * @param watchAppVersionName null when the report carried none, which CLEARS the stored value.
      */
-    fun markSynced(atEpochMillis: Long, watchAppVersionName: String?)
+    suspend fun markSynced(atEpochMillis: Long, watchAppVersionName: String?)
 
     /**
      * S2093: contract field name to epoch-millis of that field's last edit, in this phone's time base.
@@ -54,9 +65,9 @@ interface WearSettingsMirrorStore {
      * settings known" on any change of shape, and losing the whole mirror to gain a stamp would be a
      * bad trade.
      */
-    fun readFieldTimestamps(): Map<String, Long>
+    suspend fun readFieldTimestamps(): Map<String, Long>
 
-    fun writeFieldTimestamps(stamps: Map<String, Long>)
+    suspend fun writeFieldTimestamps(stamps: Map<String, Long>)
 }
 
 /**
@@ -82,38 +93,48 @@ class SharedPreferencesWearSettingsMirrorStore @Inject constructor(
             .getOrNull()
     }
 
-    override fun writeSettings(settings: WearSettingsPayload) {
-        prefs.edit().putString(KEY_WATCH_SETTINGS, gson.toJson(settings)).apply()
+    override suspend fun writeSettings(settings: WearSettingsPayload) {
+        withContext(Dispatchers.IO) {
+            prefs.edit().putString(KEY_WATCH_SETTINGS, gson.toJson(settings)).apply()
+        }
     }
 
     override fun readLastSyncTimestamp(): Long = prefs.getLong(KEY_LAST_SYNC, 0L)
 
     override fun readWatchAppVersion(): String? = prefs.getString(KEY_WATCH_APP_VERSION, null)
 
-    override fun markSynced(atEpochMillis: Long, watchAppVersionName: String?) {
-        prefs.edit().apply {
-            putLong(KEY_LAST_SYNC, atEpochMillis)
-            // Removed rather than left alone when the report carried no version: an older watch answering
-            // must not inherit the version string of whatever build answered last.
-            if (watchAppVersionName == null) {
-                remove(KEY_WATCH_APP_VERSION)
-            } else {
-                putString(KEY_WATCH_APP_VERSION, watchAppVersionName)
-            }
-        }.apply()
+    override suspend fun markSynced(atEpochMillis: Long, watchAppVersionName: String?) {
+        withContext(Dispatchers.IO) {
+            prefs.edit().apply {
+                putLong(KEY_LAST_SYNC, atEpochMillis)
+                // Removed rather than left alone when the report carried no version: an older watch answering
+                // must not inherit the version string of whatever build answered last.
+                if (watchAppVersionName == null) {
+                    remove(KEY_WATCH_APP_VERSION)
+                } else {
+                    putString(KEY_WATCH_APP_VERSION, watchAppVersionName)
+                }
+            }.apply()
+        }
+    }
+
+    override suspend fun readFieldTimestamps(): Map<String, Long> = withContext(Dispatchers.IO) {
+        readFieldTimestampsFromPrefs()
+    }
+
+    override suspend fun writeFieldTimestamps(stamps: Map<String, Long>) {
+        withContext(Dispatchers.IO) {
+            prefs.edit().putString(KEY_FIELD_TIMESTAMPS, gson.toJson(stamps)).apply()
+        }
     }
 
     // An unreadable stamp map degrades to "nothing was ever edited here", which the merge reads as
     // "take the watch's value" - the behaviour that predates two-way sync, and never a reset.
-    override fun readFieldTimestamps(): Map<String, Long> {
+    private fun readFieldTimestampsFromPrefs(): Map<String, Long> {
         val stored = prefs.getString(KEY_FIELD_TIMESTAMPS, null) ?: return emptyMap()
         return runCatching { gson.fromJson(stored, STAMP_MAP_TYPE) ?: emptyMap<String, Long>() }
             .onFailure { Timber.w(it, "Stored watch settings timestamps unreadable, ignoring them") }
             .getOrDefault(emptyMap())
-    }
-
-    override fun writeFieldTimestamps(stamps: Map<String, Long>) {
-        prefs.edit().putString(KEY_FIELD_TIMESTAMPS, gson.toJson(stamps)).apply()
     }
 
     companion object {

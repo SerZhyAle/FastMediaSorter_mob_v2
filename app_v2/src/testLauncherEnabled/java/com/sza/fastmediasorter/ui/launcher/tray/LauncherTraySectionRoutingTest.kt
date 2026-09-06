@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LauncherTraySectionRoutingTest {
@@ -47,5 +49,28 @@ class LauncherTraySectionRoutingTest {
         )
         assertEquals(NetworkMonitorSection.Mobile.key, sectionKey)
         assertEquals(OsShortcutCatalog.KEY_WIRELESS, osKey)
+    }
+
+    @Test
+    fun tetheringIndicatorRoutesToWifiSectionAndTetheringOsShortcut() {
+        val (sectionKey, osKey) = LauncherTraySectionRouting.routeFor(LauncherTrayIndicator.TETHERING)
+        assertEquals(NetworkMonitorSection.Wifi.key, sectionKey)
+        assertEquals(OsShortcutCatalog.KEY_TETHERING, osKey)
+    }
+
+    @Test
+    fun tetheringIndicatorOpensTheSystemScreenDirectly() {
+        assertTrue(LauncherTraySectionRouting.opensSystemScreenDirectly(LauncherTrayIndicator.TETHERING))
+    }
+
+    @Test
+    fun everyOtherIndicatorKeepsTheInAppMonitorRoute() {
+        val inward = LauncherTrayIndicator.entries.filter { it != LauncherTrayIndicator.TETHERING }
+        inward.forEach { indicator ->
+            assertFalse(
+                "S2027 widened the system-screen exception to $indicator",
+                LauncherTraySectionRouting.opensSystemScreenDirectly(indicator)
+            )
+        }
     }
 }

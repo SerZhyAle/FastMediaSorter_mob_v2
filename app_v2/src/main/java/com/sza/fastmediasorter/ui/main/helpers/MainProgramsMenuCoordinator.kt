@@ -1,14 +1,20 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import android.content.Intent
+import android.content.res.ColorStateList
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.PopupMenu
+import androidx.core.content.ContextCompat
+import androidx.core.view.MenuItemCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
+import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
+import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
@@ -63,6 +69,8 @@ class MainProgramsMenuCoordinator(
         val systemInfo: Boolean,
         val wearCompanion: Boolean,
         val frontFlashlight: Boolean,
+        val waterFlashlight: Boolean,
+        val stopwatch: Boolean,
     )
 
     // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
@@ -73,6 +81,8 @@ class MainProgramsMenuCoordinator(
             (if (gate.cameraOcr) 1 else 0) +
             (if (gate.systemInfo) 1 else 0) +
             (if (gate.frontFlashlight) 1 else 0) +
+            (if (gate.waterFlashlight) 1 else 0) +
+            (if (gate.stopwatch) 1 else 0) +
             wearCompanionMenuManager.itemCount(gate.wearCompanion) +
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
@@ -156,7 +166,49 @@ class MainProgramsMenuCoordinator(
                 R.string.front_flashlight_title,
             ).setIcon(R.drawable.ic_front_flashlight)
         }
+        if (gate.waterFlashlight) {
+            popup.menu.add(
+                0,
+                MENU_ITEM_WATER_FLASHLIGHT,
+                MENU_ORDER_WATER_FLASHLIGHT,
+                R.string.water_flashlight_title,
+            ).setIcon(R.drawable.ic_water_flashlight)
+        }
+        if (gate.stopwatch) {
+            popup.menu.add(0, MENU_ITEM_STOPWATCH, MENU_ORDER_STOPWATCH, R.string.stopwatch_title)
+                .setIcon(R.drawable.ic_stopwatch)
+        }
+        applyProgramAccents(popup)
         return popup.menu.size()
+    }
+
+    /**
+     * S2510: colours each program's glyph with the accent that identifies it in every other list.
+     *
+     * Runs as one pass over the finished menu rather than at each `setIcon` call because seven
+     * delegating managers add these items, and spreading the colour decision across them is exactly
+     * the drift SubProgramAccentCatalog exists to prevent. Items are matched by `order`, which is the
+     * same number SubProgramEntry stores.
+     *
+     * Tints the MenuItem, never the drawable: `setIcon` hands out a drawable whose constant state is
+     * shared with every other user of that vector, so tinting it here would recolour it app-wide.
+     *
+     * An item with no catalog entry keeps its current appearance - VR Cinema is deliberately outside
+     * the registry, and the non-program items (new window, remove) are not sub-programs at all.
+     */
+    private fun applyProgramAccents(popup: PopupMenu) {
+        for (index in 0 until popup.menu.size()) {
+            val item = popup.menu.getItem(index)
+            val accentRes = SubProgramCatalog.all()
+                .firstOrNull { it.order == item.order }
+                ?.let { SubProgramAccentCatalog.accentFor(it.routeKey) }
+                ?: continue
+            timber.log.Timber.d("S2510: menu item order=%d accent=%d", item.order, accentRes)
+            MenuItemCompat.setIconTintList(
+                item,
+                ColorStateList.valueOf(ContextCompat.getColor(activity, accentRes)),
+            )
+        }
     }
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
@@ -199,6 +251,14 @@ class MainProgramsMenuCoordinator(
                 activity.startActivity(AppLaunchPanelRouteIntents.frontFlashlight(activity))
                 true
             }
+            MENU_ITEM_WATER_FLASHLIGHT -> {
+                activity.startActivity(AppLaunchPanelRouteIntents.waterFlashlight(activity))
+                true
+            }
+            MENU_ITEM_STOPWATCH -> {
+                activity.startActivity(StopwatchActivity.createIntent(activity))
+                true
+            }
             else -> false
         }
     }
@@ -213,6 +273,7 @@ class MainProgramsMenuCoordinator(
             MainStreamsMenuManager.MENU_ITEM_STREAMS -> Intent(activity, StreamsActivity::class.java)
             MENU_ITEM_APP_LAUNCH_PANEL -> Intent(activity, AppLaunchPanelActivity::class.java)
             MENU_ITEM_CALCULATOR -> CalculatorActivity.createIntent(activity)
+            MENU_ITEM_STOPWATCH -> StopwatchActivity.createIntent(activity)
             MENU_ITEM_NETWORK_MONITOR -> NetworkMonitorActivity.createIntent(activity)
             MENU_ITEM_CAMERA_OCR ->
                 com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(activity)
@@ -233,6 +294,8 @@ class MainProgramsMenuCoordinator(
     fun removeActionFor(itemId: Int): (() -> Unit)? = when (itemId) {
         MENU_ITEM_CALCULATOR ->
             removeProgramAction(R.string.calculator_title) { it.copy(enableCalculator = false) }
+        MENU_ITEM_STOPWATCH ->
+            removeProgramAction(R.string.stopwatch_title) { it.copy(enableStopwatch = false) }
         MENU_ITEM_NETWORK_MONITOR ->
             removeProgramAction(R.string.network_monitor_title) { it.copy(enableNetworkMonitor = false) }
         MENU_ITEM_CAMERA_OCR ->
@@ -259,6 +322,8 @@ class MainProgramsMenuCoordinator(
             removeProgramAction(R.string.wear_companion) { it.copy(enableWearCompanion = false) }
         MENU_ITEM_FRONT_FLASHLIGHT ->
             removeProgramAction(R.string.front_flashlight_title) { it.copy(frontFlashlightEnabled = false) }
+        MENU_ITEM_WATER_FLASHLIGHT ->
+            removeProgramAction(R.string.water_flashlight_title) { it.copy(waterFlashlightEnabled = false) }
         else -> null
     }
 
@@ -280,6 +345,13 @@ class MainProgramsMenuCoordinator(
         // S2212: front flashlight item id
         const val MENU_ITEM_FRONT_FLASHLIGHT = 21
 
+        // S2516: water flashlight item id
+        const val MENU_ITEM_WATER_FLASHLIGHT = 22
+
+        // S1411: 23 is the first free id - 20 belongs to the Wear companion manager, 21 and 22 to the
+        // two flashlights above, and a collision would route one program's tap into another's branch.
+        const val MENU_ITEM_STOPWATCH = 23
+
         private const val MENU_ORDER_STREAMS = 1
         private const val MENU_ORDER_VR_CINEMA = 2
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
@@ -298,5 +370,14 @@ class MainProgramsMenuCoordinator(
 
         // S2212: front flashlight menu order
         private const val MENU_ORDER_FRONT_FLASHLIGHT = 13
+
+        // S2516: appended after the front flashlight, so the two lights stand together and no
+        // familiar position moves.
+        private const val MENU_ORDER_WATER_FLASHLIGHT = 14
+
+        // S1411: appended for the same reason S1733 and S1735 appended themselves. Slotting the
+        // stopwatch beside the calculator, whose presence it copies, would have pushed nine familiar
+        // items down a row to buy adjacency the owner never asked for.
+        private const val MENU_ORDER_STOPWATCH = 15
     }
 }

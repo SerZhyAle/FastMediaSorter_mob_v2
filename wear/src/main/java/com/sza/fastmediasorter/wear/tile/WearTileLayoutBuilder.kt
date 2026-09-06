@@ -1,21 +1,25 @@
 package com.sza.fastmediasorter.wear.tile
 
 import android.content.Context
-import android.content.Intent
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ModifiersBuilders
+import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.CompactChip
 import androidx.wear.protolayout.material.Text
 import androidx.wear.protolayout.material.Typography
+import androidx.wear.protolayout.material.layouts.LayoutDefaults.MultiButtonLayoutDefaults.MAX_BUTTONS
+import androidx.wear.protolayout.material.layouts.MultiButtonLayout
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearLaunchExtra
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
-import com.sza.fastmediasorter.wear.domain.model.writeTo
+import com.sza.fastmediasorter.wear.domain.model.extras
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val MAX_FAVOURITES_PREVIEW_ENTRIES = 3
@@ -45,6 +49,7 @@ class WearTileLayoutBuilder @Inject constructor(
                 deviceParameters = deviceParameters
             )
             WearTileContent.FavouritesEmpty -> buildFavouritesEmptyLayout()
+            is WearTileContent.Shortcuts -> buildShortcutsLayout(content)
         }
 
         return LayoutElementBuilders.Layout.Builder()
@@ -102,6 +107,49 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
+    /**
+     * S2511: a grid of icon buttons, one per shortcut.
+     *
+     * The list is cut to [MAX_BUTTONS] here rather than trusted to be short enough. `MultiButtonLayout`
+     * throws above that count instead of truncating, and an exception inside a tile request hands the
+     * system an error tile in place of content - while the two catalogs feeding this grid are documented as
+     * growing by a single line, by authors who have no reason to know a tile reads them.
+     */
+    private fun buildShortcutsLayout(
+        content: WearTileContent.Shortcuts
+    ): LayoutElementBuilders.LayoutElement {
+        val shown = content.entries.take(MAX_BUTTONS)
+        Timber.d("S2511: shortcut grid drawing %d button(s)", shown.size)
+        if (content.entries.size > shown.size) {
+            Timber.w(
+                "Shortcut tile holds %d entries, %d fit - dropped the last %d",
+                content.entries.size,
+                shown.size,
+                content.entries.size - shown.size
+            )
+        }
+
+        val layoutBuilder = MultiButtonLayout.Builder()
+        shown.forEach { shortcut ->
+            val clickable = ModifiersBuilders.Clickable.Builder()
+                .setOnClick(buildLaunchAction(shortcut.launchTarget))
+                .setId(shortcut.launchTarget.clickId())
+                .build()
+            layoutBuilder.addButtonContent(
+                Button.Builder(context, clickable)
+                    .setIconContent(tileImageResourceId(shortcut.iconResId))
+                    .setContentDescription(shortcut.contentDescription)
+                    .build()
+            )
+        }
+
+        return LayoutElementBuilders.Box.Builder()
+            .addContent(layoutBuilder.build())
+            .setHeight(DimensionBuilders.expand())
+            .setWidth(DimensionBuilders.expand())
+            .build()
+    }
+
     private fun buildUnassignedLayout(
         kind: WearTileKind,
         deviceParameters: DeviceParametersBuilders.DeviceParameters
@@ -109,7 +157,11 @@ class WearTileLayoutBuilder @Inject constructor(
         val labelRes = when (kind) {
             WearTileKind.RESOURCE -> R.string.wear_tile_unassigned_resource
             WearTileKind.STREAM -> R.string.wear_tile_unassigned_stream
-            WearTileKind.FAVOURITES -> R.string.wear_tile_favourites_empty
+            // Unreachable for the two grids - they have no assignment, so they never reach this state
+            // (S2511). Named rather than sent to an else so a future kind must still be classified.
+            WearTileKind.FAVOURITES,
+            WearTileKind.PROGRAMS,
+            WearTileKind.SECTIONS -> R.string.wear_tile_favourites_empty
         }
         val labelText = context.getString(labelRes)
         val pickText = context.getString(R.string.wear_tile_pick_action)
@@ -201,22 +253,30 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
+    /**
+     * S2511: every extra crosses, not only the string ones.
+     *
+     * This mapping is the tile's whole transport, and it used to be built by writing the target into a
+     * throwaway `Intent` and reading the values back out untyped - which answered `String` for some fields
+     * and `Any?` for the rest, so everything that was not a `String` was dropped. A resource address carries
+     * a numeric port, so the port never arrived, the completeness test in `readWearLaunchTarget` failed, and
+     * the tap read as a plain launch: the resource tile opened the home screen instead of the pinned
+     * resource. The round-trip test did not catch it because it exercises a real `Intent`, where an `Int`
+     * passes; only this ProtoLayout hop dropped it. Reading the declared shape leaves no unrecognised case.
+     */
     private fun buildLaunchAction(target: WearLaunchTarget): ActionBuilders.LaunchAction {
-        val dummyIntent = Intent().also { target.writeTo(it) }
         val activityBuilder = ActionBuilders.AndroidActivity.Builder()
             .setPackageName(context.packageName)
             .setClassName("com.sza.fastmediasorter.wear.MainActivity")
 
-        dummyIntent.extras?.let { bundle ->
-            for (key in bundle.keySet()) {
-                val value = bundle.get(key)
-                if (value is String) {
-                    activityBuilder.addKeyToExtraMapping(
-                        key,
-                        ActionBuilders.stringExtra(value)
-                    )
-                }
+        val extras = target.extras()
+        Timber.d("S2511: tile launch action carries %d extra(s)", extras.size)
+        extras.forEach { (key, extra) ->
+            val value = when (extra) {
+                is WearLaunchExtra.Text -> ActionBuilders.stringExtra(extra.value)
+                is WearLaunchExtra.Number -> ActionBuilders.intExtra(extra.value)
             }
+            activityBuilder.addKeyToExtraMapping(key, value)
         }
 
         return ActionBuilders.LaunchAction.Builder()

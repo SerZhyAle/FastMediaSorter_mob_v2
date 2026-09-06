@@ -104,6 +104,10 @@
     <dimen name="destination_button_min_height">56dp</dimen>
     <dimen name="destination_border_width">1dp</dimen>
 
+    <!-- S2556: the app's own startup brand frame, held for one beat after the platform splash. -->
+    <dimen name="splash_frame_padding">16dp</dimen>
+    <dimen name="splash_clock_text_size">32sp</dimen>
+
     <!-- Welcome screen -->
     <dimen name="welcome_button_text_size">14sp</dimen>
     <dimen name="welcome_button_padding">8dp</dimen>
@@ -418,6 +422,8 @@
     <dimen name="item_icon_size_small">24dp</dimen>
     <dimen name="item_icon_size_tiny">16dp</dimen>
     <dimen name="widget_icon_size_large">40dp</dimen>
+    <dimen name="widget_stopwatch_toggle_size">48dp</dimen>
+    <dimen name="widget_stopwatch_reading_text_size">22sp</dimen>
     <dimen name="item_network_icon_size">36dp</dimen>
     <dimen name="item_thumbnail_size">120dp</dimen>
     <dimen name="item_grid_thumbnail_size">150dp</dimen>
@@ -871,5 +877,17 @@
     <!-- Zero means "no separators": the portrait bar has none, so the width doubles as the switch. -->
     <dimen name="main_cmd_bar_separator_width">@dimen/dimension_zero</dimen>
     <dimen name="main_tab_strip_leading_anchor">@dimen/dimension_zero</dimen>
+
+    <!-- S1924: how much of the mirror's white field shows around the preview. A dimen rather than a
+         literal margin because strategic 5.3 keeps the field a parameter, and the risk table calls out
+         that a field too wide eats the preview on a narrow screen. -->
+    <dimen name="mirror_glow_field_width">48dp</dimen>
+
+    <!-- S1411: the stopwatch reading auto-sizes between these two bounds instead of carrying one size
+         per participant count, because the same region layout is drawn full-screen, half-screen and
+         quarter-screen and only the band edges of the reading change its width. -->
+    <dimen name="stopwatch_reading_text_size_min">20sp</dimen>
+    <dimen name="stopwatch_reading_text_size_max">96sp</dimen>
+    <dimen name="stopwatch_reading_text_size_step">2sp</dimen>
 
 </resources>

@@ -10,12 +10,15 @@ import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.flashlight.FlashlightToggleActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
+import com.sza.fastmediasorter.ui.flashlight.WaterFlashlightActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.mirror.MirrorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
@@ -44,6 +47,15 @@ object AppLaunchPanelRouteIntents {
     // S1856: the calculator's own toggle lives on the Operations tab, next to the network monitor's
     // and the flashlight's - a disabled route opens its setting instead of dead-launching.
     fun calculatorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    fun stopwatch(context: Context): Intent = StopwatchActivity.createIntent(context).withPanelFlags()
+
+    // S1411 ADR-5: the stopwatch's switch sits on the Operations tab beside the calculator's, so a
+    // disabled route opens that tab exactly as the calculator's does.
+    fun stopwatchSettings(context: Context): Intent =
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
@@ -132,9 +144,23 @@ object AppLaunchPanelRouteIntents {
     fun physicalFlashlight(context: Context): Intent =
         Intent(context, FlashlightToggleActivity::class.java).withPanelFlags()
 
+    // S2516: the water flashlight shares the front flashlight's settings tab, so its settings intent
+    // is that one - both switches live in the same operations section.
+    fun waterFlashlight(context: Context): Intent =
+        WaterFlashlightActivity.createIntent(context).withPanelFlags()
+
     // S2211: black screen as an autonomous sub-program.
     fun blackScreen(context: Context): Intent =
         Intent(context, com.sza.fastmediasorter.ui.blackscreen.BlackScreenActivity::class.java).withPanelFlags()
+
+    // S1924: the mirror is our own Activity, like the front flashlight - no widget trampoline reused.
+    fun mirror(context: Context): Intent =
+        MirrorActivity.createIntent(context).withPanelFlags()
+
+    fun mirrorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
 
     // S0978: reuse the same standalone camera/photo trampolines the left-edge gesture dispatcher uses
     // (PhotoCaptureLaunchActivity auto-captures then routes; CameraLaunchActivity.videoIntent opens the

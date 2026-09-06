@@ -1,0 +1,26 @@
+# Files that name scripts/devtest/device-ready.ps1 without invoking it as a device probe (S2611).
+#
+# Read by scripts/quality/assert-device-ready-module.ps1. One `path # reason` row each; the reason
+# is the point of the file. The gate cannot tell a call from a mention by shape alone - an
+# invocation may set its module several statements from the call, so the check is per file - and a
+# silent path list would let a real call site hide as one more line. If you add a row, say what the
+# file does with the name instead of calling it.
+#
+# A row here is NOT a debt marker. Nothing on this list is expected to gain a -Module later.
+
+# --- prose: describes the probe, calls nothing ---
+scripts/devtest/maestro-run.ps1 # header cites the probe for binary-discovery and -Json parity
+scripts/devtest/prerelease-configure.ps1 # comment says adb resolution mirrors the probe's
+scripts/devtest/maestro/README.md # says the runner's exit codes mirror the probe's
+.claude/skills/run-fastmediasorter/SKILL.md # gotcha note that adb is not on PATH and the probe auto-discovers it
+.claude/reference/spec-next.md # lists what session-bootstrap composes; the actual args live in .sza-profile.json
+.claude/commands/spec-code.md # names the probe as FORBIDDEN for the whole run - the opposite of a call site
+.claude/reference/spec-dev.md # states what the verify-smoke branch does with a `ready: false` payload; the invocation is in .claude/commands/spec-dev.md
+scripts/devtest/adb.ps1 # header cites the probe for adb auto-discovery and exit-code parity; its own -Module is an install-time guard, unrelated
+scripts/utils/gradle-modules.tests/Run-Tests.ps1 # the DeviceModule cases name the probe to say whose vocabulary the field is in
+
+# --- test infrastructure: exercises the probe as a subject, never to pick a device ---
+scripts/devtest/device-ready.tests/stub/adb-stub.ps1 # the stub adb the probe's own suite puts on PATH
+scripts/devtest/devtest-encoding.tests/Run-Tests.ps1 # lists the path in the set of files whose OutputEncoding it checks
+scripts/utils/agent-chat.tests/Run-Tests.ps1 # runs the probe to assert S2409 canonical-request matching, not to reach a device
+scripts/utils/script-help-text.tests/Run-Tests.ps1 # quotes the probe's exit-code table as a help-text fixture

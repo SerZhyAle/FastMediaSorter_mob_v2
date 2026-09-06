@@ -442,7 +442,9 @@ class SettingsViewModel @Inject constructor(
         val current = settings.value
         updateSettings(
             current.copy(
-                language = defaults.language,
+                // S2571: the interface language is not part of this snapshot - LocaleHelper owns it, and
+                // the reset keeps the language the user is reading this screen in. Only the language row
+                // itself changes it.
                 showSmallControls = defaults.showSmallControls,
                 defaultUser = defaults.defaultUser,
                 defaultPassword = defaults.defaultPassword,
@@ -474,6 +476,7 @@ class SettingsViewModel @Inject constructor(
 
     fun resetMediaSection() {
         val defaults = AppSettings()
+        Timber.d("S2603: media reset defaults videoSizeMin=${defaults.videoSizeMin}")
         val current = settings.value
         updateSettings(
             current.copy(

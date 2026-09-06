@@ -225,6 +225,74 @@ exit 2
     Assert-That 'K3 gate exits 1 when Stop comes from a quoted $PSScriptRoot dot-source' ((Invoke-Gate $inheritQuoted) -eq 1) 'expected 1'
     Assert-That 'K4 gate exits 0 when the dot-source path is computed at run time' ((Invoke-Gate $inheritVar) -eq 0) 'expected 0'
 
+    # --- L (S2609): the scan used to read one physical line of a statement that occupies several.
+    # A `Write-Error (...)` wrapped by string concatenation put its -ErrorAction on a continuation
+    # line, where the flag was invisible: the cured shape was reported as a defect (measured live on
+    # assert-wear-mirrored-strings.ps1:174), and the UNcured wrapped shape was missed the same way -
+    # the class the gate exists for, unchecked wherever a statement breaks. Rule A now reads the
+    # parser, so each case below fails on the pre-S2609 gate and passes on this one. ---
+    Write-Host 'L: a wrapped Write-Error is judged by the whole statement, not by its first line' -ForegroundColor Yellow
+
+    # L1 - the false positive from the ticket: the cure is present, one line further down.
+    $wrappedCured = New-Fixture 'wrapped-cured.ps1' @'
+$ErrorActionPreference = 'Stop'
+Write-Error ('could not verify - the scope selected no locale. ' +
+    'Expected one of: a, b, c. A run that compares nothing must not report PASS.') -ErrorAction Continue
+exit 2
+'@
+    Assert-That 'L1 gate exits 0 when -ErrorAction sits on a continuation line' ((Invoke-Gate $wrappedCured) -eq 0) 'expected 0'
+
+    # L2 - the dangerous half. The statement is longer than the lookahead, so the old scan started
+    # counting at the first line and ran out before reaching the exit it was meant to protect.
+    $wrappedBare = New-Fixture 'wrapped-bare.ps1' @'
+$ErrorActionPreference = 'Stop'
+Write-Error ('could not verify - ' +
+    'this message ' +
+    'is spread over ' +
+    'four physical lines')
+exit 2
+'@
+    Assert-That 'L2 gate exits 1 on a wrapped Write-Error with no -ErrorAction' ((Invoke-Gate $wrappedBare) -eq 1) 'expected 1'
+
+    # L3 - the parser refuses some files (two live ones, owned by S2619). Falling back to the line
+    # scan keeps them checked; skipping them would print a verdict about a smaller set than the
+    # summary line names. Unlike its four neighbours this case does NOT fail on the pre-S2609
+    # detector - the old scan flagged it too, because the old scan was line-based to begin with.
+    # What it guards is the fallback introduced here: it fails the moment an unparseable file is
+    # skipped rather than handed to Get-RuleAFindingsByLine. Case A stays the parseable form.
+    $unparseable = New-Fixture 'unparseable.ps1' @'
+$ErrorActionPreference = 'Stop'
+Write-Error "bad argument"
+exit 2
+foreach $broken = $null
+'@
+    Assert-That 'L3 gate still exits 1 on a defect inside a file that does not parse' ((Invoke-Gate $unparseable) -eq 1) 'expected 1'
+
+    # L4 - `[2-9]` was shorthand for "N != 1" and stopped at one digit, so a two-digit exit code was
+    # never checked. The AST compares an integer.
+    $exitTwoDigit = New-Fixture 'exit11.ps1' @'
+$ErrorActionPreference = 'Stop'
+Write-Error "catalog did not reach the expected size"
+exit 11
+'@
+    Assert-That 'L4 gate exits 1 for an exit code above 9' ((Invoke-Gate $exitTwoDigit) -eq 1) 'expected 1'
+
+    # L5 - a here-string body is data, not code. The line scan could not tell the two apart, which is
+    # why scripts/<subject>.tests/ is excluded from the repo scan in the first place. This fixture is
+    # assembled line by line rather than written as a here-string: a nested here-string terminator at
+    # column 0 would close the outer one and take the rest of this suite with it.
+    $hereStringBody = @(
+        "`$ErrorActionPreference = 'Stop'",
+        "`$doc = @'",
+        'Write-Error "documented example"',
+        'exit 2',
+        "'@",
+        'Write-Host $doc',
+        'exit 0'
+    ) -join "`n"
+    $hereString = New-Fixture 'herestring.ps1' $hereStringBody
+    Assert-That 'L5 gate exits 0 for a Write-Error inside a here-string body' ((Invoke-Gate $hereString) -eq 0) 'expected 0'
+
     # --- H: live regression - the real tree stays clean (all 18 S1070 sites cured). ---
     Write-Host 'H: the repository scripts/ tree has no unreachable exit site' -ForegroundColor Yellow
     & $pwshExe -NoProfile -File $gate -Gate -Quiet *> $null

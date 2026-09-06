@@ -185,13 +185,7 @@ class GameViewModel @Inject constructor(
             shadowCount = shadowCountFor(levelNumber),
             seed = seedSource.nextSeed(levelNumber)
         )
-        Timber.d(
-            "S2494: level %d generated with seed %d (size %dx%d)",
-            levelNumber,
-            config.seed,
-            boardWidth,
-            boardHeight
-        )
+        Timber.d("S2494: level %d seed %d (%dx%d)", levelNumber, config.seed, boardWidth, boardHeight)
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)

@@ -8,12 +8,14 @@
     resolve the selection from the archive journal and removes `import timber.log.Timber` only
     when the resulting file has no remaining Timber call. Every modified source file is backed up.
 .NOTES
-    Exit codes: 0 completed (including an idempotent no-op); 1 invalid input or write failure.
+    Exit codes: 0 completed (including an idempotent no-op); 1 invalid input or write failure;
+    3 refused - a named ticket is still in BlockNeedUserTest, so its probe is required (use -Force).
 #>
 [CmdletBinding()]
 param(
     [string] $Id = '',
     [switch] $Archived,
+    [switch] $Force,
     [string] $BackupDirectory = 'temp/scratch',
     [switch] $WhatIf
 )
@@ -49,6 +51,30 @@ if ($Archived) {
     }
 }
 if ($ids.Count -eq 0) { throw 'No ticket ids were resolved.' }
+
+# S2639: this remover named a ticket and never asked the catalog what that ticket's status was, so
+# it would strip the probe of a ticket still parked in BlockNeedUserTest. That is the one direction
+# CLAUDE.md section 2's invariant was never guarded in: Assert-ClosingGates checks the probe only on
+# the transition INTO the status (and returns early when OldStatus equals NewStatus), so nothing
+# re-checks afterwards and the loss surfaces only on a project-wide assert-fast-gates run. Measured
+# 2026-09-06: three tickets - S2156, S2487, S2498 - sat in BlockNeedUserTest carrying no probe.
+if (-not $Force) {
+    $catalogPath = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
+    if (Test-Path -LiteralPath $catalogPath) {
+        $live = [System.Collections.Generic.List[string]]::new()
+        foreach ($line in Get-Content -LiteralPath $catalogPath -Encoding utf8) {
+            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            try { $record = $line | ConvertFrom-Json } catch { continue }
+            if ($record.status -eq 'BlockNeedUserTest' -and $ids.Contains([string] $record.id)) {
+                $live.Add([string] $record.id)
+            }
+        }
+        if ($live.Count -gt 0) {
+            Write-Error ("remove-ticket-probes: refusing - still in BlockNeedUserTest: {0}. A probe must exist for as long as its ticket holds that status; move the ticket first, or pass -Force." -f ($live -join ', ')) -ErrorAction Continue
+            exit 3
+        }
+    }
+}
 
 $probeStartPattern = [regex]'(?:timber\.log\.)?Timber\.d\(\s*"(?<id>S\d{4}):'
 $timberCallPattern = [regex]'(?<![A-Za-z0-9_.])(?:timber\.log\.)?Timber\.'

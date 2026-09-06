@@ -11,13 +11,13 @@ class FakeWearResourceIdAliasStore : WearResourceIdAliasStore {
 
     val aliases = mutableMapOf<String, Long>()
 
-    override fun resolve(foreignId: String): Long? = aliases[foreignId]
+    override suspend fun resolve(foreignId: String): Long? = aliases[foreignId]
 
-    override fun record(foreignId: String, resourceId: Long) {
+    override suspend fun record(foreignId: String, resourceId: Long) {
         aliases[foreignId] = resourceId
     }
 
-    override fun forget(foreignId: String) {
+    override suspend fun forget(foreignId: String) {
         aliases.remove(foreignId)
     }
 }

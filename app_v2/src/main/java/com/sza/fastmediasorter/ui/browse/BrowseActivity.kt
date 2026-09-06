@@ -787,6 +787,10 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
         if (::initializer.isInitialized) {
             initializer.mediaStoreObserver.stop()
         }
+        // S1326: the folder-undo hook closes over the Activity-scoped file-operations manager, so the
+        // ViewModel would retain this Activity across a rotation if it were left set. The same call
+        // answers a confirmation whose dialog is going away with it.
+        viewModel.onDirectoryUndoHostDestroyed()
         binding.rvMediaFiles.clearOnScrollListeners()
         super.onDestroy()
     }

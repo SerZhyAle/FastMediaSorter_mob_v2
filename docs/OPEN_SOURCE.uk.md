@@ -40,6 +40,7 @@ FastMediaSorter побудований на перелічених нижче к
 | AndroidX DocumentFile | `androidx.documentfile:documentfile` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX ExifInterface | `androidx.exifinterface:exifinterface` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Fragment KTX | `androidx.fragment:fragment-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Health Services Client | `androidx.health:health-services-client` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | noLegal | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Hilt Navigation Compose | `androidx.hilt:hilt-navigation-compose` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Hilt WorkManager | `androidx.hilt:hilt-work` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Lifecycle LiveData KTX | `androidx.lifecycle:lifecycle-livedata-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://android.googlesource.com/platform/frameworks/support/) |

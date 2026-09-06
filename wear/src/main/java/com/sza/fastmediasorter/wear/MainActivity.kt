@@ -51,6 +51,7 @@ import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
@@ -61,12 +62,15 @@ import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseC
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
+import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
+import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
+import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
@@ -240,6 +244,7 @@ class MainActivity : ComponentActivity() {
                     keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
                     isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
                     appLanguage = preferencesRepository.appLanguage,
+                    colorScheme = preferencesRepository.colorScheme,
                     hostUseCases = WearHostUseCases(
                         prepareStreamPlayback = prepareStreamPlayback,
                         prepareFilePlayback = prepareFilePlayback,
@@ -347,13 +352,20 @@ fun WearApp(
     keepScreenAwakeOutsidePlayers: Flow<Boolean>,
     isAutoRotationEnabled: Flow<Boolean>,
     appLanguage: Flow<String?>,
+    colorScheme: Flow<WearColorScheme>,
     // S1944: passed down rather than resolved in the composable, so the one instance the Activity
     // injects is the one both entrances to a player use.
     hostUseCases: WearHostUseCases,
     // S1955: read-only here and cleared through the callback, so the one writer stays the Activity.
     launchEntry: WearLaunchEntry
 ) {
-    WearAppTheme {
+    // S2522: the default here is shown only until DataStore answers, and nothing themed is drawn in
+    // that window - WearApp opens on the brand frame, which outlives the read. So no synchronous
+    // preference mirror is needed, unlike the phone, whose night mode must be set before an Activity
+    // inflates. If the brand frame is ever removed, a light-scheme owner would see one dark frame at
+    // cold start, and the fix at that point is a synchronous mirror, not a different initial value.
+    val scheme by colorScheme.collectAsStateWithLifecycle(initialValue = WearColorScheme.DEFAULT)
+    WearAppTheme(scheme = scheme) {
         AutoLocaleEffect(appLanguage = appLanguage)
         AutoRotationEffect(isAutoRotationEnabled = isAutoRotationEnabled)
         val keepAwake by keepScreenAwakeOutsidePlayers.collectAsStateWithLifecycle(initialValue = false)
@@ -567,7 +579,10 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route != WearRoutes.HOME &&
         route !in PLAYER_ROUTES &&
         route != WearRoutes.GAME &&
-        route != WearRoutes.CALCULATOR
+        route != WearRoutes.CALCULATOR &&
+        // S2516: the back arrow is a touch target, and this screen exists to have none - drawing it
+        // would hand a wet wrist the exit the program is built to withhold.
+        route != WearRoutes.WATER_FLASHLIGHT
 
 private fun showsWallpaper(route: String?): Boolean =
     route != null && route !in SETTINGS_ROUTES && route !in PLAYER_ROUTES
@@ -814,6 +829,12 @@ private fun NavGraphBuilder.miniAppRoutes(
         GameScreen(navController = navController)
     }
 
+    // S2516: leaving is the host's word here too, the way the calculator already has it - the screen
+    // knows only that some hardware input arrived, never what to navigate to.
+    composable(WearRoutes.WATER_FLASHLIGHT) {
+        WaterFlashlightScreen(onLeave = { navController.popBackStack() })
+    }
+
     composable(WearRoutes.GAME_RULES) {
         GameRulesScreen()
     }
@@ -837,6 +858,20 @@ private fun NavGraphBuilder.miniAppRoutes(
     // watch is - so it is a program of this list rather than a settings destination.
     composable(WearRoutes.SYSTEM_INFO) {
         SystemInfoScreen()
+    }
+
+    // S2458: a live session rather than a report, so the destination owns nothing - leaving the
+    // composition is what unregisters the sensors, through the repository's own awaitClose.
+    composable(WearRoutes.MOTION_MONITOR) {
+        MotionMonitorScreen()
+    }
+
+    // S2457: registered in both flavors although the Apps list offers the row in `noLegal` alone. The
+    // route is what a tile shortcut resolves to, and a shortcut saved before an edition change would
+    // otherwise be a dead tap; reaching the screen in `standard` prints the withheld-capability
+    // sentence, which is an answer, and leaving it ends any session through the flow's own awaitClose.
+    composable(WearRoutes.BODY_SENSOR) {
+        BodySensorScreen()
     }
 
     composable(WearRoutes.UNSUPPORTED_FILE) {

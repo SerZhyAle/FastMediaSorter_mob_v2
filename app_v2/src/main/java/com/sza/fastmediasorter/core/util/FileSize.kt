@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.core.util
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import java.text.DecimalFormatSymbols
 import java.util.Locale
 
 private const val BYTES_PER_UNIT = 1024.0
@@ -13,7 +14,8 @@ private const val EXACT_BYTES_CEILING = 10240L
  * Format file size to human-readable format with bytes grouped by thousands.
  *
  * Examples (en):
- * - Small files (< 10KB): "1 234 567 B" (exact bytes with space separators)
+ * - Small files (< 10KB): "1 234 567 B" - every digit, thousands separated by a space in every locale,
+ *   whichever character that locale would have grouped with
  * - Medium files: "45.67 KB", "123.45 MB"
  * - Large files: "2.34 GB"
  *
@@ -27,7 +29,12 @@ private const val EXACT_BYTES_CEILING = 10240L
  */
 fun formatFileSize(context: Context, bytes: Long): String {
     if (bytes < EXACT_BYTES_CEILING) {
-        val exact = String.format(Locale.getDefault(), "%,d", bytes).replace(',', ' ')
+        // S2598: the separator is read back from the locale that produced it, never assumed to be a comma.
+        // Only part of the declared set groups with one - de/es/it/pt group with a period, fr/ru/uk with a
+        // non-breaking space - so a hardcoded comma left the grouped form below unreachable in those.
+        val locale = Locale.getDefault()
+        val groupingSeparator = DecimalFormatSymbols.getInstance(locale).groupingSeparator
+        val exact = String.format(locale, "%,d", bytes).replace(groupingSeparator, ' ')
         return context.getString(R.string.unit_size_bytes, exact)
     }
 

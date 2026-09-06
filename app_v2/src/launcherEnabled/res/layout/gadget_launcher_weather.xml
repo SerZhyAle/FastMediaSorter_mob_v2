@@ -77,6 +77,19 @@
                 tools:text="Kyiv" />
 
             <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetWeatherUpdatedAt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopTextSecondary"
+                android:textSize="10sp"
+                android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Updated 14:30"
+                tools:visibility="visible" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

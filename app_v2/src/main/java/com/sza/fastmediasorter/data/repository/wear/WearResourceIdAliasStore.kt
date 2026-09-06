@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -19,15 +21,18 @@ import javax.inject.Inject
  * Phone-local by construction: nothing here travels, and the watch adopts the phone's id on the next
  * exchange (`NetworkSourceRepositoryImpl.upsertSource`, S1734), after which the alias is dead weight
  * that [forget] clears.
+ *
+ * S2515: every member suspends and the implementation moves itself to IO, for the reason recorded on
+ * [WearResourceStampStore] - the guarantee belongs in the store, not in each call site.
  */
 interface WearResourceIdAliasStore {
 
     /** The phone resource id recorded for [foreignId], or null when that id was never aliased. */
-    fun resolve(foreignId: String): Long?
+    suspend fun resolve(foreignId: String): Long?
 
-    fun record(foreignId: String, resourceId: Long)
+    suspend fun record(foreignId: String, resourceId: Long)
 
-    fun forget(foreignId: String)
+    suspend fun forget(foreignId: String)
 }
 
 class SharedPreferencesWearResourceIdAliasStore @Inject constructor(
@@ -38,16 +43,22 @@ class SharedPreferencesWearResourceIdAliasStore @Inject constructor(
     private val preferences
         get() = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
 
-    override fun resolve(foreignId: String): Long? = readAliases()[foreignId]
-
-    override fun record(foreignId: String, resourceId: Long) {
-        saveAliases(readAliases() + (foreignId to resourceId))
+    override suspend fun resolve(foreignId: String): Long? = withContext(Dispatchers.IO) {
+        readAliases()[foreignId]
     }
 
-    override fun forget(foreignId: String) {
-        val current = readAliases()
-        if (current.containsKey(foreignId)) {
-            saveAliases(current - foreignId)
+    override suspend fun record(foreignId: String, resourceId: Long) {
+        withContext(Dispatchers.IO) {
+            saveAliases(readAliases() + (foreignId to resourceId))
+        }
+    }
+
+    override suspend fun forget(foreignId: String) {
+        withContext(Dispatchers.IO) {
+            val current = readAliases()
+            if (current.containsKey(foreignId)) {
+                saveAliases(current - foreignId)
+            }
         }
     }
 

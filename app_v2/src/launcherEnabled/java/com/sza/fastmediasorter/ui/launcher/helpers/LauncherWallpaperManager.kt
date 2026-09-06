@@ -8,10 +8,10 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleOwner
 import com.bumptech.glide.Glide
 import com.bumptech.glide.signature.ObjectKey
-import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
-import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.core.util.AnimationIntent
 import com.sza.fastmediasorter.core.util.AnimationPolicy
+import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
+import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import java.io.File
@@ -56,15 +56,22 @@ class LauncherWallpaperManager(
     private val policyListener: () -> Unit = { cameraLayer.post { refreshCameraPolicy() } }
 
     /**
-     * S2536: the live-camera backdrop is the one wallpaper whose cost is not an animator - it is a
-     * capture session. Hiding the preview would leave the camera running, so the session is stopped
-     * outright and restarted when the level recovers.
+     * S2536 / S2661: live-camera wallpaper is stopped when animation policy disallows decorative animations.
+     * When policy allows, the camera preview and scrim are raised; when disallowed, camera is stopped,
+     * camera layers are hidden, and the desktop degrades to the branded backdrop rather than leaving a black preview.
      */
     private fun startCameraIfPolicyAllows(cameraId: String) {
+        timber.log.Timber.d("S2536: launcher camera backdrop level=${AnimationPolicy.level}")
+        timber.log.Timber.d("S2661: launcher camera backdrop level=${AnimationPolicy.level} policyAllows=${AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)}")
         if (AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)) {
+            stopWaves()
+            cameraLayer.isVisible = true
+            cameraScrim.isVisible = true
             cameraBackground.start(cameraId)
         } else {
-            cameraBackground.stop()
+            stopCamera()
+            wavesLayer.isVisible = true
+            wavesLayer.startAnimation()
         }
     }
 
@@ -167,9 +174,6 @@ class LauncherWallpaperManager(
 
             is LauncherWallpaper.LiveCamera -> {
                 clearImage()
-                stopWaves()
-                cameraLayer.isVisible = true
-                cameraScrim.isVisible = true
                 startCameraIfPolicyAllows(wallpaper.cameraId)
             }
         }

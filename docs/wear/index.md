@@ -45,10 +45,12 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 ### 🧮 Mini-Programs Suite
 - **Watch Calculator:** Grid-based math calculator with on-screen operation history.
 - **Network Monitor:** Opens on a summary of the active link with your local and external address, and a button panel where every section shows a live fact. Each section is its own screen you tap into and leave with the usual edge swipe: Wi-Fi frequency, standard and a restartable signal trend; satellites by constellation with coordinates, accuracy and fix time; traffic rates with resettable counters; an on-demand reachability check. Addresses copy to the clipboard, and each section opens its own system settings screen.
+- **Motion Monitor:** Shows what the watch's movement sensors are actually reporting, right now. The accelerometer, gyroscope and rotation vector are there on every watch that has them, with the live reading and how fast events are arriving - so a sensor that has quietly stopped answering is visible rather than guessed at. Step counter and step detector sit in their own group and ask for activity access the moment you open it. Where a sensor is missing, access was declined, or the build simply does not carry step reading, the row says which of the three it is instead of showing a zero. Everything stops the moment you leave the screen.
 - **Mini-Game:** On-watch entertainment usable completely offline without a phone connection. Every board is drawn at random, so two games in a row never repeat and restarting a level gives you a fresh one; leaving the game and coming back returns the board and the position you left. Each new board opens with a short arrow pointing from you to the nearest exit, then fades on its own. A back arrow at the left middle of the screen leaves the game and a small skip-turn button opposite it lets the shadows move while you stay put; both are also in the menu a long press opens.
 
 ### 🧩 Wear OS Tiles
-- **Three Dedicated Tiles:** Add Network Resource, Stream, and Favourites tiles to your Wear OS tile carousel.
+- **Five Dedicated Tiles:** Add Network Resource, Stream, Favourites, Programs, and Sections tiles to your Wear OS tile carousel.
+- **Shortcut Grids:** The Programs tile opens every mini-program in the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it.
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.
 - **Standalone & Offline:** Launch assigned network shares, streams, or favourites list instantly from your watch face, completely independent of the phone or network state.
 
@@ -56,7 +58,8 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 
 ## 📸 Interface & Layout Showcase
 
-- **Wallpaper choices:** Navigation screens can use the branded animation, a stationary branded frame, or a photo already sent from the phone. Settings screens stay free of wallpaper.
+- **Colour schemes:** The watch interface is drawn in one of eight schemes - a plain dark or light one, or a green, blue or red accent family in either. The set is the phone's, so a pair can be set the same way and a family reads as the same family on both devices. Dark is the default and reproduces the look the watch had before, so nothing changes until you choose. Pick a scheme on the watch or in the phone companion window - a change on either side reaches the other.
+- **Wallpaper choices:** Navigation screens can use the branded animation, a stationary branded frame, or a photo already sent from the phone. Settings screens stay free of wallpaper. A light colour scheme lightens this layer and the veil over a delivered photo too, so dark content stays readable over any of them.
 
 FastMedia Wear adapts dynamically to every smartwatch screen shape and density.
 

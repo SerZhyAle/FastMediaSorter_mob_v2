@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.util
 import android.os.Environment
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import java.io.File
 
 /**
@@ -15,7 +16,7 @@ import java.io.File
  */
 object DrawingTargetPolicy {
     fun canCreateDrawing(resource: MediaResource?): Boolean {
-        if (resource == null || resource.isReadOnly || !resource.supportsImages()) return false
+        if (resource == null || !resource.allowsWriteOperations() || !resource.supportsImages()) return false
         return !VirtualPathUtils.isVirtualPath(resource.path) || isAllowedVirtual(resource)
     }
 

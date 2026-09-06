@@ -18,6 +18,10 @@
       2 - the tool itself cannot run: a build file or target document is missing,
           a version could not be read, or the managed-block markers are absent.
           Distinct from 1 on purpose - "cannot check" is not "drift found".
+      4 - -Write only: Code.Scripts is held by another session, so no managed block
+          was replaced. The place in the queue is held; wait for the turn and rerun.
+          -Check and the default print mode take no lock (S2615) - post-change.ps1
+          calls -Check on every closure, and a lock there would serialise it.
 
     Modes:
       (default)  Print the generated managed block to stdout.
@@ -38,6 +42,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $appGradle = Join-Path $repoRoot 'app_v2/build.gradle.kts'
@@ -128,22 +133,29 @@ switch ($PSCmdlet.ParameterSetName) {
     }
     'Write' {
         $rx = [regex]::Escape($startMarker) + '.*?' + [regex]::Escape($endMarker)
-        foreach ($t in $targets) {
-            if (-not (Test-Path $t)) { Write-Error "Target not found: $t" -ErrorAction Continue; exit 2 }
-            $docText = Get-Content -LiteralPath $t -Raw
-            if (-not [regex]::IsMatch($docText, $rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
-                Write-Error "Managed block markers missing in $(Split-Path $t -Leaf). Add the marker pair first, then re-run -Write." -ErrorAction Continue
-                exit 2
+        # S2615: the lock lives in this branch only. Both other modes read, and -Check is called by
+        # post-change.ps1 on every closure - taking a domain there would serialise every close.
+        $codeScope = $null
+        try {
+            $codeScope = Enter-CodeLockOrExit -Path $targets -Reason 'generate-toolchain-pins.ps1 -Write (managed pin blocks)'
+            foreach ($t in $targets) {
+                if (-not (Test-Path $t)) { Write-Error "Target not found: $t" -ErrorAction Continue; exit 2 }
+                $docText = Get-Content -LiteralPath $t -Raw
+                if (-not [regex]::IsMatch($docText, $rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)) {
+                    Write-Error "Managed block markers missing in $(Split-Path $t -Leaf). Add the marker pair first, then re-run -Write." -ErrorAction Continue
+                    exit 2
+                }
+                $eol = if ($docText.Contains("`r`n")) { "`r`n" } else { "`n" }
+                $blockEol = $block.Replace("`n", $eol)
+                # MatchEvaluator returns the block literally - avoids $-substitution in the replacement.
+                $evaluator = [System.Text.RegularExpressions.MatchEvaluator] { param($m) $blockEol }
+                $re = [regex]::new($rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)
+                $updated = $re.Replace($docText, $evaluator)
+                [System.IO.File]::WriteAllText($t, $updated)
+                Write-Host "Wrote managed block -> $(Split-Path $t -Leaf)"
             }
-            $eol = if ($docText.Contains("`r`n")) { "`r`n" } else { "`n" }
-            $blockEol = $block.Replace("`n", $eol)
-            # MatchEvaluator returns the block literally - avoids $-substitution in the replacement.
-            $evaluator = [System.Text.RegularExpressions.MatchEvaluator] { param($m) $blockEol }
-            $re = [regex]::new($rx, [System.Text.RegularExpressions.RegexOptions]::Singleline)
-            $updated = $re.Replace($docText, $evaluator)
-            [System.IO.File]::WriteAllText($t, $updated)
-            Write-Host "Wrote managed block -> $(Split-Path $t -Leaf)"
         }
+        finally { Exit-CodeLockScope -Scope $codeScope }
         exit 0
     }
     default {

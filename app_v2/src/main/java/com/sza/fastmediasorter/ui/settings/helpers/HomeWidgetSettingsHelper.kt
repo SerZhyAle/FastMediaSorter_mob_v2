@@ -77,9 +77,14 @@ class HomeWidgetSettingsHelper(
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val entries = catalog.availableEntries()
             if (!fragment.isAdded || fragment.view == null) return@launch
-            // Calculator has no flavor or setting gate, so the list is never empty in practice;
-            // the guard is purely defensive against an unexpected empty result.
-            if (entries.isEmpty()) return@launch
+            // S2613: the calculator used to carry no gate at all, which is what made this branch
+            // unreachable and let it return in silence. Now that every sub-program widget follows its
+            // own switch, a build with all of them off empties the list for real - and a button that
+            // does nothing reads as broken, not as "nothing to offer".
+            if (entries.isEmpty()) {
+                Toast.makeText(context, R.string.widget_none_available, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
             showPickerDialog(entries, destination)
         }
     }

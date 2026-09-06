@@ -58,7 +58,7 @@
     pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
                          Without -Local the file lands in temp/scratch/ under its own name.
                          -Latest treats -Remote as a directory or glob and takes the newest match
-    push                 send a local file to the device: -Local <path> -Remote <path>
+    push                 send a local file OR directory to the device: -Local <path> -Remote <path>
     shell                arbitrary passthrough: -Cmd "<adb shell command>"
 
   Why pull/push live here rather than in a bare `adb` call (S1578): the wrapper keeps the adb
@@ -1130,10 +1130,15 @@ switch ($Verb.ToLowerInvariant()) {
         if (-not $Local -or -not $Remote) { Fail 1 "push needs -Local <local path> -Remote <device path>" }
         # Refused here rather than on the device: adb's own error for a missing source reads like a
         # device-side problem and sends the reader looking in the wrong place.
-        if (-not (Test-Path -Path $Local -PathType Leaf)) { Fail 1 "local file '$Local' does not exist" }
+        if (-not (Test-Path -Path $Local)) { Fail 1 "local path '$Local' does not exist" }
+        # A directory is accepted because adb push copies a tree natively; the Leaf-only test this
+        # replaces refused one, which made seeding a media corpus fall back to a raw adb - the exact
+        # call that rewrites /sdcard into a Windows path from a POSIX-style shell (S2602).
+        $isDirectory = Test-Path -Path $Local -PathType Container
         Invoke-Adb $id @('push', $Local, $Remote) | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; local = $Local; remote = $Remote } }
-        Write-Host "PUSHED $Local -> $Remote on $id" -ForegroundColor Green
+        $kind = if ($isDirectory) { 'directory' } else { 'file' }
+        if ($Json) { Emit-Ok @{ id = $id; local = $Local; remote = $Remote; kind = $kind } }
+        Write-Host "PUSHED $kind $Local -> $Remote on $id" -ForegroundColor Green
         exit 0
     }
 

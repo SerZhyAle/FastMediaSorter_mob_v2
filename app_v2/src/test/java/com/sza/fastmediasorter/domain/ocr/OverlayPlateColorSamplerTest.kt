@@ -154,4 +154,48 @@ class OverlayPlateColorSamplerTest {
         val result = OverlayPlateColorSampler.samplePlateColors(bmp, rect)
         assertEquals(Color.BLUE, result.paperColor)
     }
+
+    /**
+     * Strategic spec section 11 criterion 5 names the fully transparent area as its own degenerate
+     * case: nothing at all is sampled, so there is no median to take and the pair must still be a
+     * readable one rather than an exception or a transparent plate.
+     */
+    @Test
+    fun testFullyTransparentAreaYieldsReadableFallbackPair() {
+        val bmp = createBitmap(40, 40, Color.TRANSPARENT)
+
+        val result = OverlayPlateColorSampler.samplePlateColors(bmp, Rect(0, 0, 40, 40))
+
+        assertEquals(Color.WHITE, result.paperColor)
+        assertEquals(Color.BLACK, result.inkColor)
+        assertTrue(result.isFallbackPair)
+    }
+
+    /**
+     * Strategic spec section 3.1 wish 1: sampling cost is bounded by a pixel count, never by the
+     * plate's area. Rounding the stride up is what makes that true - truncating it leaves a region
+     * of up to 2.5x the budget being read at stride 1.
+     */
+    @Test
+    fun testDecimationStepKeepsSampleCountUnderBudget() {
+        val budget = OverlayPlateColorSampler.SAMPLE_BUDGET_CEILING
+        val areas = listOf(1, 999, budget, budget + 1, 2500, 8000, 250_000, 12_000_000)
+
+        for (area in areas) {
+            val step = OverlayPlateColorSampler.decimationStep(area, budget)
+            val sampled = Math.ceil(area.toDouble() / (step.toDouble() * step.toDouble())).toInt()
+            assertTrue(
+                "area=$area step=$step sampled=$sampled exceeds budget=$budget",
+                sampled <= budget
+            )
+        }
+    }
+
+    /** A region already inside the budget must not be decimated - every pixel is read. */
+    @Test
+    fun testDecimationStepIsOneBelowBudget() {
+        val budget = OverlayPlateColorSampler.SAMPLE_BUDGET_CEILING
+        assertEquals(1, OverlayPlateColorSampler.decimationStep(budget, budget))
+        assertEquals(1, OverlayPlateColorSampler.decimationStep(1, budget))
+    }
 }

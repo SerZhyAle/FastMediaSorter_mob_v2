@@ -26,6 +26,7 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -53,6 +54,24 @@ private val PANEL_AUTO_HIDE_INTERVALS = intArrayOf(
     TWENTY_SECONDS,
     THIRTY_SECONDS,
     SIXTY_SECONDS,
+)
+
+// S2536: charge PERCENTAGES, declared separately from the second-intervals above even though four of
+// the numbers coincide - a stepper of percentages that borrowed constants named for seconds would
+// read as a copy-paste error at the next edit, and the two scales are free to diverge.
+private const val POWER_SAVING_OFF_PERCENT = 0
+private const val POWER_SAVING_TEN_PERCENT = 10
+private const val POWER_SAVING_FIFTEEN_PERCENT = 15
+private const val POWER_SAVING_TWENTY_PERCENT = 20
+private const val POWER_SAVING_THIRTY_PERCENT = 30
+
+/** Zero is the off end of the same scale, so one stepper carries the whole choice. */
+private val POWER_SAVING_THRESHOLDS = intArrayOf(
+    POWER_SAVING_OFF_PERCENT,
+    POWER_SAVING_TEN_PERCENT,
+    POWER_SAVING_FIFTEEN_PERCENT,
+    POWER_SAVING_TWENTY_PERCENT,
+    POWER_SAVING_THIRTY_PERCENT,
 )
 
 @Composable
@@ -140,6 +159,10 @@ private fun otherSettingsItems(
                 )
             }
         )
+        // S2536: immediately after the switch it is the stricter sibling of, the same neighbouring as
+        // on the phone. A stepper rather than a dropdown because a six-item list on a round display
+        // pushes its outer rows past the glass.
+        add(stepperPowerSaving(uiState, viewModel))
         if (uiState.hasAutoRotationSensor) {
             add(
                 WearSettingsItem { _ ->
@@ -221,6 +244,35 @@ private fun voiceNoteSendPolicyRows(
         )
     }
 )
+
+/**
+ * S2536: the charge at which the watch quietens itself. Zero reads as off rather than as "below 0",
+ * so one control covers both halves of the choice and no second row appears.
+ *
+ * The values are percentages rather than [PowerSavingTrigger] ordinals because a stepper moves along
+ * a scale - stepping through OFF, ALWAYS, 10, 15 .. would make the first two steps mean something
+ * other than "less" and "more". ALWAYS is therefore not offered here; the phone's dropdown has it.
+ */
+@Composable
+private fun stepperPowerSaving(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+): WearSettingsItem = WearSettingsItem(fullWidth = true) { _ ->
+    val threshold = uiState.powerSavingTrigger.thresholdPercent ?: 0
+    val label = if (threshold == 0) {
+        stringResource(R.string.wear_power_saving_off)
+    } else {
+        stringResource(R.string.wear_power_saving_below, threshold)
+    }
+    WearSettingsStepperCell(
+        values = POWER_SAVING_THRESHOLDS,
+        currentValue = threshold,
+        labelText = stringResource(R.string.wear_power_saving_title) + ": " + label,
+        decreaseDescription = stringResource(R.string.wear_power_saving_decrease),
+        increaseDescription = stringResource(R.string.wear_power_saving_increase),
+        onValueChanged = { percent -> viewModel.setPowerSavingThreshold(percent) }
+    )
+}
 
 /**
  * Stepper row for player panel auto-hide interval.

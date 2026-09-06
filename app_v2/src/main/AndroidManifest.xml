@@ -299,6 +299,12 @@
              recreate through CalculatorInputManager.saveTo/restoreFrom. -->
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S1411: no orientation|screenSize - portrait and landscape place the same four region ids
+             differently, so the rotation must reach the layout. The measurement does not ride the
+             recreate in a Bundle; it lives in StopwatchViewModel and is derived from elapsedRealtime
+             marks, which is what ADR-8 buys. -->
+        <activity android:name=".ui.stopwatch.StopwatchActivity" android:exported="false" android:label="@string/stopwatch_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
         <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
@@ -309,8 +315,15 @@
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
         <activity android:name=".ui.flashlight.FlashlightToggleActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
+        <!-- S2516: the water flashlight - the same family, but a screen no touch can close. -->
+        <activity android:name=".ui.flashlight.WaterFlashlightActivity" android:exported="false" android:label="@string/water_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S2211: autonomous Black Screen application surface -->
         <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S1924: the mirror sub-program. Declared with the route in Phase 02 so the registered
+             destination resolves; Phase 03 fills the screen behind it. -->
+        <activity android:name=".ui.mirror.MirrorActivity" android:exported="false" android:label="@string/mirror_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
@@ -652,12 +665,31 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_calculator_info" />
         </receiver>
 
+        <!-- Stopwatch Widget -->
+        <receiver android:name=".widget.StopwatchWidgetProvider" android:exported="true" android:label="@string/widget_stopwatch_label" android:icon="@drawable/ic_widget_stopwatch_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- S1411: the elapsed-realtime clock restarts at a reboot, so a running cell must be
+                     re-drawn once; nothing else would, updatePeriodMillis being 0 by design. -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_stopwatch_info" />
+        </receiver>
+
         <!-- Front Flashlight Widget -->
         <receiver android:name=".widget.FrontFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_front_flashlight_label" android:icon="@drawable/ic_widget_front_flashlight_accent">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_front_flashlight_info" />
+        </receiver>
+
+        <!-- S2516: Water Flashlight Widget -->
+        <receiver android:name=".widget.WaterFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_water_flashlight_label" android:icon="@drawable/ic_widget_water_flashlight_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_water_flashlight_info" />
         </receiver>
 
         <!-- Camera OCR Translate Widget -->

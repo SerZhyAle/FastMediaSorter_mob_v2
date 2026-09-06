@@ -23,19 +23,21 @@ import timber.log.Timber
  * fallback shown for a key the registry does not know - extracted from the activity.
  *
  * Re-pointing a cell is a picker, which belongs to the add-flow, so it arrives as
- * [onWeatherReconfigure] / [onWorldClockReconfigure] rather than as a dependency on that role:
- * rendering must not need the picker chain to exist.
+ * [onWeatherReconfigure] / [onWorldClockReconfigure] / [onSunDewpointReconfigure] rather than as a
+ * dependency on that role: rendering must not need the picker chain to exist.
  */
 class LauncherGadgetRenderManager(
     private val gadgetRegistry: LauncherGadgetRegistry,
     private val gadgetHost: LauncherGadgetHost,
     private val onWeatherReconfigure: (cellId: Long) -> Unit,
     private val onWorldClockReconfigure: (cellId: Long) -> Unit,
+    private val onSunDewpointReconfigure: (cellId: Long) -> Unit,
     // S2213: read per bind rather than captured once - a place picked after this manager was built must
     // be visible to the next bind, otherwise the fix would appear to work only after a restart. No
     // default on purpose: a construction site that forgot this would still compile and would silently
     // stop substituting, which is the failure this ticket exists to remove.
     private val savedWeatherLocation: () -> String?,
+    private val cellConfigLocation: (cellId: Long) -> String? = { null },
 ) {
 
     /**
@@ -54,7 +56,12 @@ class LauncherGadgetRenderManager(
         // S2213: resolved once and fed to both call sites below - wireReconfigure decides from the same
         // param whether the cell still needs its "tap to configure" listener, so substituting in only one
         // of the two would show the city while still treating the cell as unconfigured.
-        val param = LauncherWeatherParamFallback.resolve(decoded.first, decoded.second, savedWeatherLocation())
+        val param = LauncherWeatherParamFallback.resolve(
+            key = decoded.first,
+            param = decoded.second,
+            savedLocation = savedWeatherLocation(),
+            cellConfigLocation = cellConfigLocation(cellUi.cell.id),
+        )
         // A gadget that cannot build its view degrades to a named failed-gadget tile (S2208). Without
         // this, the exception escapes into the HOME activity's render pass, and because
         // the system restarts HOME immediately the desktop crash-loops the device with no way in to
@@ -97,6 +104,9 @@ class LauncherGadgetRenderManager(
             // param the renderer cannot ask for on its own.
             LauncherGadgetRegistry.KEY_WORLD_CLOCK ->
                 onWorldClockReconfigure to (LauncherTimeZoneCatalog.zoneOrNull(param) != null)
+            // S1907: the identical codec as weather above, so the identical "is it configured" test.
+            LauncherGadgetRegistry.KEY_SUN_DEWPOINT ->
+                onSunDewpointReconfigure to (WeatherLocation.decode(param) != null)
             else -> return
         }
         view.setOnLongClickListener {

@@ -93,3 +93,75 @@
     public static *** d(...);
     public static *** i(...);
 }
+
+# ===== Durable enum constant names (S2596) =====
+# Each name below is a storage key: it is written with `.name` into DataStore, a preferences
+# value or a serialized snapshot, and read back by name, so a rename by R8 makes the stored
+# value unreadable and the reader falls silently back to a default. The rules are addressed
+# rather than resting on the two package keeps above, because those cover only two of the five
+# packages these enums live in - a real standardRelease mapping showed the other seven renamed.
+# The list is maintained by scripts/quality/assert-enum-persistence-contract.ps1, which fails
+# the build when a new durable enum appears without its rule.
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.game.GameDifficulty {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.game.GameEnemyType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.game.GameStatus {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.LastUsedKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.MediaType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.NetworkSourceType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.VideoScaleMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearColorScheme {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearContentType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearDestinationId {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearTileKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearViewMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.ui.streams.StreamFilterKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.ui.streams.StreamSortOrder {
+    <fields>;
+}

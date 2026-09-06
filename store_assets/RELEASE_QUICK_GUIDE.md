@@ -26,10 +26,18 @@ a second, media-player-sounding description, and an operator pasting it from her
 listing stopped reading as a file organizer.
 
 ### 3. Assets
-**Location**: `store_assets/`
+**Location**: `play/listing/<locale>/images/` - not `store_assets/`
 
-- ✅ **Feature Graphic** (`feature_graphic.png`)
-- ✅ **Screenshots** (`screenshots/` folder)
+- ✅ **Screenshots** - `play/listing/<locale>/images/phoneScreenshots/<NN>.png`, composed from
+  `play/listing/captions.json` and published by `scripts/release/publish-play-listing.ps1`. The
+  `store_assets/screenshots/` folder this section used to name is a dump of raw device captures, not
+  a listing source, and an operator uploading from it publishes unframed, uncaptioned frames (S2570)
+- ✅ **Feature Graphic** - `play/listing/<locale>/images/featureGraphic.png`, 1024 × 500 px, written
+  by `python scripts/release/compose-feature-graphic.py` and published by the same
+  `publish-play-listing.ps1` run as the screenshots. The composer writes the fastlane copy in the
+  same pass, so Play and IzzyOnDroid carry one artwork (S2597)
+- ✅ **App icon** - `play/listing/en-US/images/icon.png`, 512 × 512 px, the same artwork as
+  `store_assets/icon_512.png`. It is a listing source now, not a hand upload
 - ⚠️ **Video** (`Screen_recording_*.webm`) - Optional, verify format compliance
 
 ### 4. Documentation

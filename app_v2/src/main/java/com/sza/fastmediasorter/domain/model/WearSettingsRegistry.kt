@@ -85,10 +85,17 @@ object WearSettingsRegistry {
             "streamsSectionEnabled"
         ),
         "SLIDESHOW" to listOf("slideshowEnabled", "slideshowIntervalSeconds"),
-        "SCREEN" to listOf("viewMode", "fileListViewMode", "backgroundMode", "keepScreenAwakeOutsidePlayers"),
+        "SCREEN" to listOf(
+            "viewMode",
+            "fileListViewMode",
+            "backgroundMode",
+            "colorScheme",
+            "keepScreenAwakeOutsidePlayers"
+        ),
         "OTHER" to listOf(
             "downloadAlbumArt",
             "disableAnimations",
+            "powerSavingTrigger",
             "autoRotationEnabled",
             "backgroundPlaybackEnabled",
             "voiceNoteSendPolicy",
@@ -209,6 +216,15 @@ object WearSettingsRegistry {
             companionRowTag = "wearBackgroundMode_"
         ),
         WearSettingScope(
+            field = "colorScheme",
+            watchPreferenceKey = "wear_color_scheme",
+            docScopeId = "wearColorScheme",
+            valueType = TYPE_ENUM_NAME,
+            ownership = WearSettingOwnership.BOTH,
+            watchRowAnchor = "setColorScheme",
+            companionRowTag = "wearColorScheme_"
+        ),
+        WearSettingScope(
             field = "streamsSectionEnabled",
             watchPreferenceKey = "wear_streams_section_enabled",
             docScopeId = "wearStreamsSection",
@@ -225,6 +241,15 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.BOTH,
             watchRowAnchor = "toggleDisableAnimations",
             companionRowTag = "wearSwitchDisableAnimations"
+        ),
+        WearSettingScope(
+            field = "powerSavingTrigger",
+            watchPreferenceKey = "wear_power_saving_trigger",
+            docScopeId = "wearPowerSavingTrigger",
+            valueType = TYPE_ENUM_NAME,
+            ownership = WearSettingOwnership.BOTH,
+            watchRowAnchor = "stepperPowerSaving",
+            companionRowTag = "wearPowerSavingTrigger_"
         ),
         WearSettingScope(
             field = "autoRotationEnabled",

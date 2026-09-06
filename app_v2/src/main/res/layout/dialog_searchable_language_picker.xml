@@ -14,7 +14,7 @@
         app:boxBackgroundMode="outline"
         app:endIconMode="clear_text">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <com.sza.fastmediasorter.ui.common.widget.SafeSelectionTextInputEditText
             android:id="@+id/editLanguageSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

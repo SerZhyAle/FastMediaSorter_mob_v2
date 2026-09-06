@@ -33,7 +33,10 @@
 
 .NOTES
   Exit codes: 0 ok; 1 stale (-Check drift or missing cheatsheet); 2 not found;
-  3 ambiguous name.
+  3 ambiguous name; 4 -Generate only: Code.Scripts is held by another session, so
+  the cheatsheet was not rewritten - the place in the queue is held, wait for the
+  turn and rerun (S2615). -Check, -List and a lookup take no lock: -Check is what
+  the gate battery runs, and locking there would serialise it.
 #>
 [CmdletBinding()]
 param(
@@ -284,9 +287,18 @@ if ($List) {
 
 if ($Generate) {
     $outPath = Join-Path $Root 'docs\SCRIPT_CHEATSHEET.md'
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($outPath, (Build-CheatsheetText -Files $allFiles -RepoRoot $Root), $utf8NoBom)
-    Write-Host ("Wrote {0} ({1} scripts)" -f ($outPath.Substring($Root.Length).TrimStart('\','/')), @($allFiles).Count) -ForegroundColor Green
+    # S2615: assert-script-cheatsheet-sync.ps1 names this command in its refusal, so an agent runs
+    # it without deciding to - which is exactly when a rewrite of a shared render target must be
+    # ordered against the sibling that is editing docs/ by hand.
+    . (Join-Path $PSScriptRoot 'code-lock-scope.ps1')
+    $codeScope = $null
+    try {
+        $codeScope = Enter-CodeLockOrExit -Path @($outPath) -Reason 'help.ps1 -Generate (docs/SCRIPT_CHEATSHEET.md)'
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($outPath, (Build-CheatsheetText -Files $allFiles -RepoRoot $Root), $utf8NoBom)
+        Write-Host ("Wrote {0} ({1} scripts)" -f ($outPath.Substring($Root.Length).TrimStart('\','/')), @($allFiles).Count) -ForegroundColor Green
+    }
+    finally { Exit-CodeLockScope -Scope $codeScope }
     exit 0
 }
 

@@ -11,6 +11,7 @@ import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusStripBinding
+import com.sza.fastmediasorter.domain.network.HotspotStateSource
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignal
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalListBottomSheet
 import com.sza.fastmediasorter.ui.launcher.signal.LauncherSignalRegistry
@@ -38,6 +39,7 @@ import javax.inject.Inject
  */
 class LauncherStatusStripManager @Inject constructor(
     private val signalRegistry: LauncherSignalRegistry,
+    private val hotspotStateSource: HotspotStateSource,
 ) : DefaultLifecycleObserver {
 
     private var binding: LauncherStatusStripBinding? = null
@@ -160,6 +162,7 @@ class LauncherStatusStripManager @Inject constructor(
             lifecycleOwner = lifecycleOwner,
             clock = clock,
             indicators = indicators,
+            hotspotStateSource = hotspotStateSource,
             callbacks = callbacks,
         ).apply { bind(topStatusStripMode, trayComposition) }
     }

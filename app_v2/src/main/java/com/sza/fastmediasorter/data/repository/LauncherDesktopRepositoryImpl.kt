@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellSeating
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
@@ -49,10 +50,19 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                 )
                 return@withContext LauncherCellPlacement.TooWide
             }
+            // S2599: seated BEFORE the occupancy lookup, not after it. The renderer pulls a footprint
+            // that runs off the right edge back inside the grid, so asking the table about the column the
+            // user named answers for a rectangle that is never drawn - which is how a 2-wide gadget
+            // placed in the last column was found free and then drawn on top of its neighbour. Seating
+            // first turns the edge case into an ordinary occupied square, which [seat] already resolves.
+            val seated = candidate.copy(
+                colIndex = LauncherCellSeating.seatColumn(candidate.colIndex, candidate.spanW, columns),
+            )
+            Timber.d("S2599: add seats col ${candidate.colIndex} -> ${seated.colIndex} of $columns")
             // The push and the insert must be one transaction: a shift that landed without its cell would
             // leave a hole in the desktop, and two concurrent adds that each saw free space would both
             // land, making the "cells never overlap" invariant false forever after.
-            db.withTransaction { seat(candidate) }
+            db.withTransaction { seat(seated) }
         }
 
     /**
@@ -466,12 +476,23 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean =
+    override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int): Boolean =
         withContext(Dispatchers.IO) {
-            val safeW = spanW.coerceAtLeast(MIN_SPAN)
             val safeH = spanH.coerceAtLeast(MIN_SPAN)
             db.withTransaction {
                 val source = cellDao.getById(id) ?: return@withTransaction false
+                // S2599: capped rather than seated, because the resize handle grows the cell rightwards
+                // from a fixed corner - moving the anchor to fit a wider footprint would drag the cell
+                // out from under the finger. Growth simply stops at the right edge, and the overlap
+                // lookup below then judges the footprint the renderer will actually draw.
+                // The remaining columns ARE the grid this width has to fit, so the shared rule answers it
+                // unchanged; a stale anchor already past the edge leaves one square and stays resizable
+                // in height rather than being refused outright.
+                val safeW = LauncherCellSeating.seatSpanW(
+                    spanW = spanW,
+                    columns = columns - source.colIndex.coerceAtLeast(0),
+                )
+                Timber.d("S2599: resize caps width $spanW -> $safeW at col ${source.colIndex}")
                 if (source.spanW == safeW && source.spanH == safeH) return@withTransaction false
                 // Self is excluded, so growing over the cell's own current squares is fine; only another
                 // cell's squares block the resize, keeping the "cells never overlap" invariant.
@@ -533,7 +554,7 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
         columns: Int,
     ): Boolean = sectionOps.resortSection(orientation, sectionCellId, columns)
 
-    override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean =
+    override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean =
         withContext(Dispatchers.IO) {
             val targetRow = rowIndex.coerceAtLeast(0)
             db.withTransaction {
@@ -541,7 +562,17 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                 // S1428: a header stays anchored at column 0 for the same reason normalized() puts it
                 // there - it is drawn across the whole row whatever column it was stored in, so any
                 // other value frees squares in the table that stay covered on screen.
-                val targetCol = if (source.kind == SECTION_KIND) 0 else colIndex.coerceAtLeast(0)
+                //
+                // S2599: every other cell is seated against its own width, so a wide cell dropped near
+                // the right edge is stored where it is drawn. The drop point arrives clamped for a
+                // single square (a drop only needs an anchor), which for a 2-wide cell is one column too
+                // far right - and the overlap lookup below would then clear a rectangle off the grid.
+                val targetCol = if (source.kind == SECTION_KIND) {
+                    0
+                } else {
+                    LauncherCellSeating.seatColumn(colIndex, source.spanW, columns)
+                }
+                Timber.d("S2599: move seats col $colIndex -> $targetCol of $columns")
                 if (source.rowIndex == targetRow && source.colIndex == targetCol) {
                     return@withTransaction false
                 }

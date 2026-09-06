@@ -86,6 +86,10 @@ class NetworkMonitorViewModel @Inject constructor(
         record(snapshot, viewMode, local)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialState)
 
+    init {
+        Timber.d("S2156: NetworkMonitorViewModel opened, sections=%d", sections.size)
+    }
+
     fun probeConnection(host: String = "1.1.1.1") {
         viewModelScope.launch {
             localState.update { it.copy(isProbing = true, probeResult = null) }

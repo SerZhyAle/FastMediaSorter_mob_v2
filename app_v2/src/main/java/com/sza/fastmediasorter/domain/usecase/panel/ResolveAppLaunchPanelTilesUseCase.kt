@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.domain.usecase.panel
 
 import android.content.Context
+import androidx.annotation.ColorRes
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.panel.ResourceTypeIconMap
+import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.domain.model.APP_LAUNCH_PANEL_SLOT_COUNT
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTile
 import com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType
@@ -95,12 +97,27 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                 // Degrade a feature that is not compiled into this build.
                 if (!isRouteVisible(target.routeKey)) return null
                 // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
-                tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
+                // S2510: a sub-program is tinted to its own accent rather than the neutral on-surface.
+                val accent = SubProgramAccentCatalog.accentFor(target.routeKey)
+                timber.log.Timber.d("S2510: panel route=%s accent=%s", target.routeKey, accent)
+                tileUi(
+                    tile,
+                    context.getString(route.labelRes),
+                    route.iconRes,
+                    tintable = true,
+                    accentRes = accent,
+                )
             }
             is AppLaunchPanelRouteTarget.FeatureSection -> {
                 val route = InternalRouteCatalog.byKey(target.routeKey) ?: return null
                 if (!isRouteVisible(target.routeKey)) return null
-                tileUi(tile, context.getString(route.labelRes), route.iconRes, tintable = true)
+                tileUi(
+                    tile,
+                    context.getString(route.labelRes),
+                    route.iconRes,
+                    tintable = true,
+                    accentRes = SubProgramAccentCatalog.accentFor(target.routeKey),
+                )
             }
             is AppLaunchPanelRouteTarget.OsShortcut -> {
                 val osTarget = OsShortcutCatalog.byKey(target.targetKey) ?: return null
@@ -153,6 +170,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
         label: String,
         iconRes: Int,
         tintable: Boolean,
+        @ColorRes accentRes: Int? = null,
     ): AppLaunchPanelTileUi =
         AppLaunchPanelTileUi(
             slotIndex = tile.slotIndex,
@@ -162,6 +180,7 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
             icon = ContextCompat.getDrawable(context, iconRes),
             isEmpty = false,
             tintable = tintable,
+            accentRes = accentRes,
         )
 
     private fun emptySlot(slot: Int): AppLaunchPanelTileUi =

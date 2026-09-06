@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.wear.domain.repository
 
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import kotlinx.coroutines.flow.Flow
@@ -114,6 +116,13 @@ interface WearPreferencesRepository {
     val backgroundMode: Flow<WearBackgroundMode>
     suspend fun setBackgroundMode(mode: WearBackgroundMode)
 
+    /**
+     * S2522: the colour scheme the interface is drawn in. Read from here rather than from the last
+     * message received, so the watch renders the chosen scheme after a restart out of BT range.
+     */
+    val colorScheme: Flow<WearColorScheme>
+    suspend fun setColorScheme(scheme: WearColorScheme)
+
     /** S1781: the players hold the screen unconditionally, so this covers only the rest of the app. */
     val keepScreenAwakeOutsidePlayers: Flow<Boolean>
     suspend fun setKeepScreenAwakeOutsidePlayers(enabled: Boolean)
@@ -129,6 +138,17 @@ interface WearPreferencesRepository {
     /** S2209: disable visual transition and decorative animations across the Wear OS app. */
     val isAnimationsDisabled: Flow<Boolean>
     suspend fun setAnimationsDisabled(disabled: Boolean)
+
+    /**
+     * S2536: the charge at which the watch enters the power-saving level on its own. Stricter than
+     * the switch above - it also freezes the branded backdrop drawn under every screen.
+     *
+     * The VALUE travels from the phone over the settings channel; the verdict does not. The watch
+     * judges its own charge, because a paired phone at eighty percent says nothing about a watch
+     * at twelve.
+     */
+    val powerSavingTrigger: Flow<PowerSavingTrigger>
+    suspend fun setPowerSavingTrigger(trigger: PowerSavingTrigger)
 
     /**
      * S1781: the resources opened last, newest first. S1836: an entry that predates the identifier

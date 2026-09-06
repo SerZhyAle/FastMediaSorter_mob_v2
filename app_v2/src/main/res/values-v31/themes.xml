@@ -8,7 +8,8 @@
             leaving the pre-Android-12 behaviour of the base theme untouched.
         -->
         <item name="android:windowDisablePreview">false</item>
-        <item name="android:windowSplashScreenBackground">#F5F5F5</item>
+        <!-- S2556: named, because the app's own startup brand frame renders the same colour. -->
+        <item name="android:windowSplashScreenBackground">@color/splash_background</item>
         <!-- S0997: center = app logo + wordmark fading in; author logo moved to the branding slot. -->
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_splash_animated</item>
         <item name="android:windowSplashScreenAnimationDuration">700</item>

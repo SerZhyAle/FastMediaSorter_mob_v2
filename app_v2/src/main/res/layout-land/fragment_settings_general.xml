@@ -142,6 +142,16 @@
                         app:str_title="@string/pref_disable_animations_title"
                         app:str_subtitle="@string/pref_disable_animations_desc" />
 
+                    <!-- S2536: the same row in landscape (Rule 11) - this variant already carried the
+                         animation switch, so it carries its stricter sibling too. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowPowerSaving"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_title="@string/pref_power_saving_title"
+                        app:sdr_entries="@array/power_saving_trigger_options" />
+
                     <!-- Row: Allow new windows (S0028) | Enable Favorites.
                          Two compact toggles share one landscape row to cut vertical scroll (S0618 R2).
                          S0911: the third toggle formerly here (Resource ops overflow) moved to the new
@@ -339,6 +349,30 @@
                             android:layout_marginStart="@dimen/dialog_field_spacing"
                             app:str_title="@string/file_ops_in_overflow_menu"
                             app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
+
+                    </LinearLayout>
+
+                    <!-- S2533: swipe actions over a file row, paired on one line as the toggles above
+                         are. Entries are supplied in code from BrowseSwipeActionCatalog. -->
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/margin_tiny">
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/rowBrowseSwipeLeftAction"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="@dimen/dialog_field_spacing"
+                            app:sdr_title="@string/setting_browse_swipe_left_action_title"
+                            app:sdr_subtitle="@string/setting_browse_swipe_left_action_desc" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                            android:id="@+id/rowBrowseSwipeRightAction"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="@dimen/dialog_field_spacing"
+                            app:sdr_title="@string/setting_browse_swipe_right_action_title"
+                            app:sdr_subtitle="@string/setting_browse_swipe_right_action_desc" />
 
                     </LinearLayout>
 

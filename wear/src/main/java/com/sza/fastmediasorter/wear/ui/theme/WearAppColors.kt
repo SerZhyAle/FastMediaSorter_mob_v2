@@ -40,13 +40,23 @@ private const val GUIDE_ARROW_AMBER = 0xFFFFA000
  *
  * Held here rather than as loose top-level values so a second state - a pause, say - extends one
  * type instead of adding one more literal to whichever screen needs it first (strategic 5.5).
+ *
+ * S2522: [isLight] rides here because `androidx.wear.compose.material.Colors` carries no light/dark
+ * signal at all - it declares thirteen colour roles and nothing else, and `MaterialTheme` does not
+ * provide one either. So this companion set is the only place a composable can ask which way round the
+ * current scheme is, which the background layer and the clock both have to know.
+ *
+ * The four state tones stay the same in every scheme on purpose: they report what is happening - a
+ * live recording, a switch position, a hint - not which scheme is active, and repainting them per
+ * scheme would make a state indistinguishable from an accent.
  */
 @Immutable
 data class WearAppColors(
     val recording: Color = Color(RECORDING_RED),
     val toggleOn: Color = Color(TOGGLE_ON_BLUE),
     val toggleOff: Color = Color(TOGGLE_OFF_BROWN),
-    val guideArrow: Color = Color(GUIDE_ARROW_AMBER)
+    val guideArrow: Color = Color(GUIDE_ARROW_AMBER),
+    val isLight: Boolean = false
 )
 
 internal val LocalWearAppColors = staticCompositionLocalOf { WearAppColors() }

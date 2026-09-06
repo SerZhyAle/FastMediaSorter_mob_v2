@@ -721,6 +721,16 @@
       "titleUk": "Використовувати операції за розкладом"
     },
     {
+      "key": "rowEnableStopwatch",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Stopwatch",
+      "titleRu": "Секундомер",
+      "titleUk": "Секундомір"
+    },
+    {
       "key": "rowEnableSystemInfo",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -831,6 +841,26 @@
       "titleUk": "Увімкнути запис із мікрофона"
     },
     {
+      "key": "rowMirror",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Mirror",
+      "titleRu": "Зеркало",
+      "titleUk": "Дзеркало"
+    },
+    {
+      "key": "rowOpenStopwatchSettings",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Stopwatch settings",
+      "titleRu": "Настройки секундомера",
+      "titleUk": "Налаштування секундоміра"
+    },
+    {
       "key": "rowOverwriteOnCopy",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -909,6 +939,16 @@
       "titleEn": "Open recorded video in player",
       "titleRu": "Открывать записанное видео в плеере",
       "titleUk": "Відкривати записане відео у плеєрі"
+    },
+    {
+      "key": "rowWaterFlashlight",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Water flashlight",
+      "titleRu": "Водный фонарь",
+      "titleUk": "Водний ліхтар"
     },
     {
       "key": "btnSetDefaultDocsViewer",
@@ -1461,6 +1501,26 @@
       "titleUk": "Дозволити нові вікна"
     },
     {
+      "key": "rowBrowseSwipeLeftAction",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Swipe left action",
+      "titleRu": "Действие жеста влево",
+      "titleUk": "Дія жесту ліворуч"
+    },
+    {
+      "key": "rowBrowseSwipeRightAction",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Swipe right action",
+      "titleRu": "Действие жеста вправо",
+      "titleUk": "Дія жесту праворуч"
+    },
+    {
       "key": "rowCompactElements",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1609,6 +1669,16 @@
       "titleEn": "Statistics",
       "titleRu": "Статистика",
       "titleUk": "Статистика"
+    },
+    {
+      "key": "rowPowerSaving",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Power saving mode",
+      "titleRu": "Режим энергосбережения",
+      "titleUk": "Режим енергозбереження"
     },
     {
       "key": "rowResourceGridCellSize",
@@ -2651,6 +2721,16 @@
       "titleUk": "Швидкість передачі"
     },
     {
+      "key": "rowLauncherTrayTethering",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Wi-Fi Hotspot",
+      "titleRu": "Раздача Wi-Fi",
+      "titleUk": "Роздача Wi-Fi"
+    },
+    {
       "key": "rowLauncherWallpaper",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -3051,6 +3131,66 @@
       "titleUk": "Режим сортування за замовчуванням"
     },
     {
+      "key": "btnStopwatchSettingsApply",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "BUTTON",
+      "titleEn": "Apply",
+      "titleRu": "Применить",
+      "titleUk": "Застосувати"
+    },
+    {
+      "key": "btnStopwatchSettingsCancel",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "BUTTON",
+      "titleEn": "Cancel",
+      "titleRu": "Отмена",
+      "titleUk": "Відміна"
+    },
+    {
+      "key": "rowStopwatchMusic",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Play music while it runs",
+      "titleRu": "Играть музыку во время отсчёта",
+      "titleUk": "Грати музику під час відліку"
+    },
+    {
+      "key": "rowStopwatchParticipants",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Participants",
+      "titleRu": "Участники",
+      "titleUk": "Учасники"
+    },
+    {
+      "key": "rowStopwatchTrack",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "SELECTION_ROW",
+      "titleEn": "Track",
+      "titleRu": "Дорожка",
+      "titleUk": "Доріжка"
+    },
+    {
+      "key": "rowStopwatchVolumeKeys",
+      "sectionId": "stopwatch",
+      "destination": "OPERATIONS",
+      "layout": "dialog_stopwatch_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Volume keys start and stop",
+      "titleRu": "Кнопки громкости запускают и останавливают",
+      "titleUk": "Кнопки гучності запускають і зупиняють"
+    },
+    {
       "key": "btnClearPlayStatuses",
       "sectionId": "streams",
       "destination": "MEDIA",
@@ -3281,6 +3421,16 @@
       "titleUk": "Продовжувати відтворення у фоні"
     },
     {
+      "key": "wearColorScheme",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "RADIO_GROUP",
+      "titleEn": "Colour scheme",
+      "titleRu": "Цветовая схема",
+      "titleUk": "Колірна схема"
+    },
+    {
       "key": "wearDisableAnimations",
       "sectionId": "wear",
       "destination": "MEDIA",
@@ -3379,6 +3529,16 @@
       "titleEn": "Player panel auto-hide duration (s)",
       "titleRu": "Автоскрытие панели плеера (сек)",
       "titleUk": "Автоприховування панелі плеєра (сек)"
+    },
+    {
+      "key": "wearPowerSavingTrigger",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_other_settings",
+      "kind": "STEPPER_ROW",
+      "titleEn": "Power saving",
+      "titleRu": "Энергосбережение",
+      "titleUk": "Енергозбереження"
     },
     {
       "key": "wearSlideshowInterval",

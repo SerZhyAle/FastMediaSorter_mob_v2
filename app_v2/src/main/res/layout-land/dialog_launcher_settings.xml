@@ -150,6 +150,14 @@
                         app:str_title="@string/launcher_settings_tray_bluetooth_title" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherTrayTethering"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:str_subtitle="@string/launcher_settings_tray_tethering_subtitle"
+                        app:str_title="@string/launcher_settings_tray_tethering_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowLauncherTraySim1"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

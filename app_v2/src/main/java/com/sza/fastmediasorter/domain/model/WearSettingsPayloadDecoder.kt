@@ -112,9 +112,11 @@ class WearSettingsPayloadDecoder(private val gson: Gson = Gson()) {
             "fileListViewMode" to JsonKind.STRING,
             "appLanguage" to JsonKind.STRING,
             "backgroundMode" to JsonKind.STRING,
+            "colorScheme" to JsonKind.STRING,
             "streamsSectionEnabled" to JsonKind.BOOLEAN,
             "documentsEnabled" to JsonKind.BOOLEAN,
             "disableAnimations" to JsonKind.BOOLEAN,
+            "powerSavingTrigger" to JsonKind.STRING,
             "backgroundPlaybackEnabled" to JsonKind.BOOLEAN,
             // S2461, added 2026-09-03 while this ticket was in flight: metadata about the sender, not a
             // setting. It is listed here for the reason the KDoc above gives - a key missing from this

@@ -5,6 +5,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import androidx.room.withTransaction
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
@@ -52,6 +53,22 @@ class ImportSettingsUseCase @Inject constructor(
     private companion object {
         const val LEGACY_XML_FILE_NAME = "FastMediaSorter_export.xml"
     }
+
+    /**
+     * S2631: an export written before Office support existed carries no `supportOfficeDocuments` tag, so
+     * the flag is inferred from the document tags that are there - a file that deliberately turned every
+     * document type off must not come back with Office on. Only when the export names none of the three
+     * is there nothing to infer from, and the fresh-install default applies; that last branch is the fix,
+     * since the literal `false` it replaces disagreed with [AppSettings].
+     */
+    private fun legacyOfficeSupport(data: Map<String, String>): Boolean {
+        val documentTags = listOfNotNull(data["supportText"], data["supportPdf"], data["supportEpub"])
+        if (documentTags.isEmpty()) {
+            return AppSettings.DEFAULTS.supportOfficeDocuments
+        }
+        return documentTags.any { it.toBoolean() }
+    }
+
     /**
      * Import settings from XML file.
      * @param exportUri Optional content URI from a previous export. If provided, uses it directly.
@@ -105,6 +122,9 @@ class ImportSettingsUseCase @Inject constructor(
                 parser.setInput(stream, "UTF-8")
 
                 var settings: AppSettings? = null
+                // S2571: the language is not part of AppSettings any more - LocaleHelper owns it - so it
+                // travels beside the snapshot and is applied last, after every section is written.
+                var importedLanguage: String? = null
                 val resources = mutableListOf<MediaResource>()
                 val credentials = mutableListOf<com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity>()
                 val scheduledOps = mutableListOf<MutableMap<String, String>>()
@@ -167,12 +187,12 @@ class ImportSettingsUseCase @Inject constructor(
                             "Settings" -> {
                                 // Build AppSettings from collected data
                                 currentResource?.let { data ->
+                                        importedLanguage = data["language"]
                                         settings = AppSettings(
                                         isResourceGridMode = data["isResourceGridMode"]?.toBoolean() ?: false,
                                         resourceGridCellSize = com.sza.fastmediasorter.domain.model
                                             .ResourceGridCellSize.fromName(data["resourceGridCellSize"]),
                                         
-                                        language = data["language"] ?: "en",
                                         preventSleep = data["preventSleep"]?.toBoolean() ?: true,
                                         showSmallControls = data["showSmallControls"]?.toBoolean() ?: false,
                                         defaultUser = data["defaultUser"] ?: "",
@@ -180,7 +200,11 @@ class ImportSettingsUseCase @Inject constructor(
                                         networkParallelism = data["networkParallelism"]?.toInt() ?: 4,
                                         cacheSizeMb = data["cacheSizeMb"]?.toInt() ?: 2048,
                                         isCacheSizeUserModified = data["isCacheSizeUserModified"]?.toBoolean() ?: false,
-                                        enableBackgroundSync = data["enableBackgroundSync"]?.toBoolean() ?: true,
+                                        // S2631: a tag missing from a pre-S0406 export must fall back to
+                                        // the value a fresh install uses, so the fallbacks below read
+                                        // AppSettings.DEFAULTS instead of restating a literal that drifts.
+                                        enableBackgroundSync = data["enableBackgroundSync"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.enableBackgroundSync,
                                         backgroundSyncIntervalHours = data["backgroundSyncIntervalHours"]?.toInt() ?: 4,
                                         
                                         allFiles = data["allFiles"]?.toBoolean() ?: false,
@@ -190,14 +214,18 @@ class ImportSettingsUseCase @Inject constructor(
                                         supportImages = data["supportImages"]?.toBoolean() ?: true,
                                         imageSizeMin = data["imageSizeMin"]?.toLong() ?: 1024L,
                                         imageSizeMax = data["imageSizeMax"]?.toLong() ?: 10485760L,
-                                        loadFullSizeImages = data["loadFullSizeImages"]?.toBoolean() ?: false,
+                                        loadFullSizeImages = data["loadFullSizeImages"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.loadFullSizeImages,
                                         supportGifs = data["supportGifs"]?.toBoolean() ?: true,
                                         supportVideos = data["supportVideos"]?.toBoolean() ?: true,
-                                        videoSizeMin = data["videoSizeMin"]?.toLong() ?: 102400L,
+                                        videoSizeMin = data["videoSizeMin"]?.toLong()
+                                            ?: AppSettings.DEFAULT_VIDEO_SIZE_MIN,
                                         videoSizeMax = data["videoSizeMax"]?.toLong() ?: 107374182400L,
                                         supportAudio = data["supportAudio"]?.toBoolean() ?: true,
-                                        audioSizeMin = data["audioSizeMin"]?.toLong() ?: 10240L,
-                                        audioSizeMax = data["audioSizeMax"]?.toLong() ?: 1048576000L,
+                                        audioSizeMin = data["audioSizeMin"]?.toLong()
+                                            ?: AppSettings.DEFAULTS.audioSizeMin,
+                                        audioSizeMax = data["audioSizeMax"]?.toLong()
+                                            ?: AppSettings.DEFAULTS.audioSizeMax,
                                         searchAudioCoversOnline = data["searchAudioCoversOnline"]?.toBoolean() ?: false,
                                         searchAudioCoversOnlyOnWifi = data["searchAudioCoversOnlyOnWifi"]?.toBoolean() ?: true,
                                         saveAudioMetadataLocally = data["saveAudioMetadataLocally"]?.toBoolean() ?: true,
@@ -205,13 +233,14 @@ class ImportSettingsUseCase @Inject constructor(
                                         audioBackgroundPhotosResourceId = data["audioBackgroundPhotosResourceId"],
                                         
                                         // Document support
-                                        supportText = data["supportText"]?.toBoolean() ?: false,
-                                        supportPdf = data["supportPdf"]?.toBoolean() ?: false,
-                                        supportEpub = data["supportEpub"]?.toBoolean() ?: false,
+                                        supportText = data["supportText"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.supportText,
+                                        supportPdf = data["supportPdf"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.supportPdf,
+                                        supportEpub = data["supportEpub"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.supportEpub,
                                         supportOfficeDocuments = data["supportOfficeDocuments"]?.toBoolean()
-                                            ?: (data["supportText"]?.toBoolean() == true ||
-                                                data["supportPdf"]?.toBoolean() == true ||
-                                                data["supportEpub"]?.toBoolean() == true),
+                                            ?: legacyOfficeSupport(data),
                                         showPdfThumbnails = data["showPdfThumbnails"]?.toBoolean() ?: false,
                                         textSizeMax = data["textSizeMax"]?.toLong() ?: 104857600L,
                                         showTextLineNumbers = data["showTextLineNumbers"]?.toBoolean() ?: false,
@@ -220,7 +249,8 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableTranslation = data["enableTranslation"]?.toBoolean() ?: false,
                                         translationSourceLanguage = data["translationSourceLanguage"] ?: "auto",
                                         translationTargetLanguage = data["translationTargetLanguage"] ?: "ru",
-                                        translationLensStyle = data["translationLensStyle"]?.toBoolean() ?: false,
+                                        translationLensStyle = data["translationLensStyle"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.translationLensStyle,
                                         enableOcr = data["enableOcr"]?.toBoolean() ?: false,
                                         ocrDefaultFontSize = data["ocrDefaultFontSize"] ?: "AUTO",
                                         ocrDefaultFontFamily = data["ocrDefaultFontFamily"] ?: "DEFAULT",
@@ -236,16 +266,21 @@ class ImportSettingsUseCase @Inject constructor(
                                         frontFlashlightEnabled = data["frontFlashlightEnabled"]?.toBoolean() ?: false,
                                         frontFlashlightColor = data["frontFlashlightColor"]?.toIntOrNull()
                                             ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
+                                        waterFlashlightEnabled =
+                                            data["waterFlashlightEnabled"]?.toBoolean() ?: false,
                                         enableSlideshowBackgroundMusic = data["enableSlideshowBackgroundMusic"]?.toBoolean() ?: false,
                                         slideshowMusicResourceId = data["slideshowMusicResourceId"]?.toLongOrNull(),
                                         
-                                        playToEndInSlideshow = data["playToEndInSlideshow"]?.toBoolean() ?: false,
+                                        playToEndInSlideshow = data["playToEndInSlideshow"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.playToEndInSlideshow,
                                         allowRename = data["allowRename"]?.toBoolean() ?: true,
                                         allowDelete = data["allowDelete"]?.toBoolean() ?: true,
-                                        useTrash = data["useTrash"]?.toBoolean() ?: true,
+                                        useTrash = data["useTrash"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.useTrash,
                                         confirmDelete = data["confirmDelete"]?.toBoolean() ?: true,
                                         defaultGridMode = data["defaultGridMode"]?.toBoolean() ?: false,
-                                        hideGridActionButtons = data["hideGridActionButtons"]?.toBoolean() ?: false,
+                                        hideGridActionButtons = data["hideGridActionButtons"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.hideGridActionButtons,
                                         fileOpsInOverflowMenu = data["fileOpsInOverflowMenu"]?.toBoolean() ?: true,
                                         fileOpsOverflowMenuHintShown = data["fileOpsOverflowMenuHintShown"]?.toBoolean() ?: false,
                                         defaultIconSize = data["defaultIconSize"]?.toInt() ?: 96,
@@ -255,11 +290,13 @@ class ImportSettingsUseCase @Inject constructor(
                                         showPlayerHintOnFirstRun = data["showPlayerHintOnFirstRun"]?.toBoolean() ?: true,
                                         alwaysShowTouchZonesOverlay = data["alwaysShowTouchZonesOverlay"]?.toBoolean() ?: false,
                                         nineZoneGridEnabled = data["nineZoneGridEnabled"]?.toBoolean() ?: true,
-                                        showVideoThumbnails = data["showVideoThumbnails"]?.toBoolean() ?: false,
+                                        showVideoThumbnails = data["showVideoThumbnails"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.showVideoThumbnails,
                                         enablePlayerWarmup = data["enablePlayerWarmup"]?.toBoolean() ?: false,
                                         rendererMigrationEnabled = data["rendererMigrationEnabled"]?.toBoolean() ?: false,
                                         enableSafeMode = data["enableSafeMode"]?.toBoolean() ?: true,
-                                        enableFavorites = data["enableFavorites"]?.toBoolean() ?: false,
+                                        enableFavorites = data["enableFavorites"]?.toBoolean()
+                                            ?: AppSettings.DEFAULTS.enableFavorites,
                                         disableCameraCapture = data["disableCameraCapture"]?.toBoolean() ?: false,
                                         skipCameraFilenameDialog = data["skipCameraFilenameDialog"]?.toBoolean() ?: false,
                                         cameraCaptureOpenForEditing = data["cameraCaptureOpenForEditing"]?.toBoolean() ?: false,
@@ -281,9 +318,14 @@ class ImportSettingsUseCase @Inject constructor(
                                         enableThumbnailPreload = data["enableThumbnailPreload"]?.toBoolean() ?: false,
                                         thumbnailPreloadWifiOnly = data["thumbnailPreloadWifiOnly"]?.toBoolean() ?: true,
                                         videoSnapshotResourceId = data["videoSnapshotResourceId"]?.toLongOrNull(),
+                                            // S2631: an absent tag takes the fresh-install default; a
+                                            // tag that IS present keeps the whitelist that was already
+                                            // here, so an export naming PNG still imports as PNG. The
+                                            // two cannot share one `takeIf`, whose null result cannot
+                                            // say which of the two happened.
                                             videoSnapshotFormat = data["videoSnapshotFormat"]
-                                                ?.takeIf { it == "JPG" }
-                                                ?: "PNG",
+                                                ?.let { if (it == "JPG") "JPG" else "PNG" }
+                                                ?: AppSettings.DEFAULTS.videoSnapshotFormat,
                                         videoFrameCopyToClipboard = data["videoFrameCopyToClipboard"]?.toBoolean() ?: false
                                     )
                                 }
@@ -383,7 +425,7 @@ class ImportSettingsUseCase @Inject constructor(
                 eventType = parser.next()
             }
             
-            applyLegacyXmlSections(settings, resources, credentials, scheduledOps, backupVersion)
+            applyLegacyXmlSections(settings, resources, credentials, scheduledOps, backupVersion, importedLanguage)
 
             Result.success(Unit)
             } // End of inputStream.use block
@@ -405,7 +447,8 @@ class ImportSettingsUseCase @Inject constructor(
         resources: List<MediaResource>,
         credentials: List<com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity>,
         scheduledOps: List<Map<String, String>>,
-        backupVersion: Int
+        backupVersion: Int,
+        importedLanguage: String?
     ) {
         settings?.let {
             settingsRepository.updateSettings(it)
@@ -425,6 +468,22 @@ class ImportSettingsUseCase @Inject constructor(
         enabledScheduledOpIds.forEach { id ->
             scheduledOperationRepository.getById(id)?.let { workManagerScheduler.scheduleOperation(it) }
         }
+
+        // S2571: last action of the import - on API 33+ saveLanguage restarts the activity stack, which
+        // cancels this coroutine, so anything after it would be lost. Skipped when the imported language
+        // already matches the effective one, so an ordinary import triggers no restart at all.
+        applyImportedLanguage(importedLanguage)
+    }
+
+    /**
+     * S2571: applies an imported interface language through its single owner, [LocaleHelper].
+     * The value no longer rides in [AppSettings], which the repository derives rather than stores.
+     */
+    private fun applyImportedLanguage(importedLanguage: String?) {
+        val language = importedLanguage?.trim().orEmpty()
+        if (language.isEmpty() || language == LocaleHelper.getLanguage(context)) return
+        Timber.d("Import: applying interface language %s", language)
+        LocaleHelper.saveLanguage(context, language)
     }
 
     /**

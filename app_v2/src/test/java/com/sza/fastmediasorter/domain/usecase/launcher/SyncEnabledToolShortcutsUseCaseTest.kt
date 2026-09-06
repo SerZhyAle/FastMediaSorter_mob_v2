@@ -54,8 +54,8 @@ class SyncEnabledToolShortcutsUseCaseTest {
             columns: Int,
         ): Boolean = false
         override suspend fun normalizeSectionSpans() = Unit
-        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean = true
-        override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean = true
+        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean = true
+        override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int): Boolean = true
         override suspend fun updateCellTarget(id: Long, target: String): Boolean = true
         override suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean = true
         override suspend fun clearAll(): List<String> = emptyList()
@@ -98,6 +98,14 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun clearSyncedRoutes() {
             routes = null
         }
+
+        // S2564: the resource baseline shares this repository but no route test reads it, so the
+        // three members answer for the contract without keeping state this file would never assert.
+        override suspend fun syncedResourcePaths(): Set<String>? = null
+
+        override suspend fun setSyncedResourcePaths(paths: Set<String>) = Unit
+
+        override suspend fun clearSyncedResourcePaths() = Unit
     }
 
     /**

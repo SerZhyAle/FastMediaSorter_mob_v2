@@ -219,6 +219,18 @@
     <!-- Settings - General -->
     <string name="language">Language/Язык/Мова</string>
     <string name="color_theme">Color theme</string>
+    <!-- S2536: the power-saving trigger, in PowerSavingTrigger declaration order. Items reference the
+         localized keys rather than repeating literals, so this array exists once and every locale
+         follows its own strings without a per-locale copy of the array to keep in step. -->
+    <string-array name="power_saving_trigger_options">
+        <item>@string/pref_power_saving_off</item>
+        <item>@string/pref_power_saving_always</item>
+        <item>@string/pref_power_saving_below_10</item>
+        <item>@string/pref_power_saving_below_15</item>
+        <item>@string/pref_power_saving_below_20</item>
+        <item>@string/pref_power_saving_below_30</item>
+    </string-array>
+
     <string-array name="color_theme_options">
         <item>Auto (follow device)</item>
         <item>Light</item>
@@ -2766,7 +2778,7 @@
     <string name="launcher_settings_wallpaper_image">My image</string>
     <string name="launcher_settings_wallpaper_import_failed">Could not use this image</string>
     <string name="launcher_settings_screen_timeout_title">Screen timeout</string>
-    <string name="launcher_settings_screen_timeout_subtitle">Turn screen black when idle on launcher desktop</string>
+    <string name="launcher_settings_screen_timeout_subtitle">Locks the device when the desktop is idle. Without the accessibility service the screen only goes black.</string>
     <string name="launcher_settings_screen_timeout_off">Off (never)</string>
     <string name="launcher_settings_screen_timeout_5s">5 seconds</string>
     <string name="launcher_settings_screen_timeout_15s">15 seconds</string>
@@ -3690,7 +3702,7 @@
     <string name="file_count_reach_limited">%1$s - photos, video and audio only</string>
     <string name="reach_limited_nothing_readable">Documents cannot be read</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
-    <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, hold the folder on the main screen and select Reconnect resource.</string>
+    <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row on the main screen and select Reconnect resource.</string>
     <string name="wear_settings_group_media_types">Media Types</string>
     <string name="wear_settings_group_slideshow">Slideshow</string>
     <string name="wear_settings_group_screen">Screen</string>
@@ -3721,4 +3733,109 @@
     <string name="launcher_settings_palette_green">Greenish</string>
     <string name="launcher_settings_palette_pink">Pinkish</string>
     <string name="launcher_settings_palette_blue">Blueish</string>
+    <string name="pref_power_saving_title">Power saving mode</string>
+    <string name="pref_power_saving_desc">Stops continuous animation and stops holding the screen on when the battery is low</string>
+    <string name="pref_power_saving_state_low_battery">On now: the battery is below %1$d%%</string>
+    <string name="pref_power_saving_state_system_saver">On now: Android battery saver is on</string>
+    <string name="pref_power_saving_state_always">On now: you chose to keep it on</string>
+    <string name="pref_power_saving_state_no_battery">This device does not report its battery level, so the threshold options do nothing</string>
+    <string name="pref_power_saving_off">Off</string>
+    <string name="pref_power_saving_always">Always on</string>
+    <string name="pref_power_saving_below_10">Below 10%</string>
+    <string name="pref_power_saving_below_15">Below 15%</string>
+    <string name="pref_power_saving_below_20">Below 20%</string>
+    <string name="pref_power_saving_below_30">Below 30%</string>
+    <string name="wear_settings_power_saving">Watch power saving</string>
+    <string name="wear_settings_power_saving_desc">The watch decides by its own battery, not the phone\'s</string>
+    <string name="setting_browse_swipe_left_action_title">Swipe left action</string>
+    <string name="setting_browse_swipe_left_action_desc">Action run by swiping a file row to the left</string>
+    <string name="setting_browse_swipe_right_action_title">Swipe right action</string>
+    <string name="setting_browse_swipe_right_action_desc">Action run by swiping a file row to the right</string>
+    <string name="browse_swipe_action_none">Do not use</string>
+    <string name="network_monitor_speed_label">Speed:</string>
+    <string name="launcher_gadget_weather_updated_at">Updated %s</string>
+    <string name="app_launch_panel_os_tethering">Hotspot</string>
+    <string name="widget_network_monitor_indicator_hotspot_state">Hotspot</string>
+    <string name="widget_network_monitor_indicator_hotspot_enabled">Hotspot: On</string>
+    <string name="widget_network_monitor_indicator_hotspot_disabled">Hotspot: Off</string>
+    <string name="widget_network_monitor_indicator_hotspot_unknown">Hotspot: Not determined</string>
+    <string name="mirror_title">Mirror</string>
+    <string name="mirror_settings_row_title">Mirror</string>
+    <string name="mirror_settings_row_summary">Front camera with a bright field to light your face</string>
+    <string name="mirror_close_button">Close mirror</string>
+    <string name="mirror_backlight_button">Backlight</string>
+    <string name="mirror_flip_button">Flip image</string>
+    <string name="mirror_photo_button">Take photo</string>
+    <string name="mirror_video_button">Record video</string>
+    <string name="mirror_zoom_button">Zoom %1$sx</string>
+    <string name="mirror_no_front_camera">This device has no front camera, so the mirror cannot open</string>
+    <string name="launcher_settings_screen_timeout_subtitle_no_lock">Turns the screen black when the desktop is idle. This build cannot lock the device.</string>
+    <string name="launcher_settings_tray_tethering_title">Wi-Fi Hotspot</string>
+    <string name="launcher_settings_tray_tethering_subtitle">Show hotspot status in tray</string>
+    <string name="launcher_tray_tethering_on">Wi-Fi Hotspot on</string>
+    <string name="launcher_gadget_sun_dewpoint">Sun and dew point</string>
+    <string name="launcher_gadget_sun_dewpoint_actions">Sun and dew point. Tap to refresh, long press to change the place</string>
+    <string name="launcher_gadget_sun_dewpoint_no_location">Long press to choose a place</string>
+    <string name="launcher_gadget_sun_dewpoint_unavailable">Sun and dew point are unavailable right now</string>
+    <string name="launcher_gadget_sun_dewpoint_sunrise">Sunrise</string>
+    <string name="launcher_gadget_sun_dewpoint_sunset">Sunset</string>
+    <string name="launcher_gadget_sun_dewpoint_dew">Dew point</string>
+    <string name="launcher_gadget_sun_dewpoint_value_missing">n/a</string>
+    <string name="mirror_zoom_preset_label">%1$sx</string>
+    <string name="stopwatch_title">Stopwatch</string>
+    <string name="stopwatch_action_start">Start</string>
+    <string name="stopwatch_action_stop">Stop</string>
+    <string name="stopwatch_action_lap">Lap</string>
+    <string name="stopwatch_action_reset">Reset</string>
+    <string name="stopwatch_action_reset_all">Reset all</string>
+    <string name="stopwatch_action_settings">Stopwatch settings</string>
+    <string name="stopwatch_region_label">Participant %1$d</string>
+    <string name="stopwatch_region_description">Participant area</string>
+    <string name="stopwatch_laps_empty">No laps yet - press Lap while it runs.</string>
+    <string name="stopwatch_lap_line">%1$d.  %2$s</string>
+    <string name="wear_settings_color_scheme">Watch colour scheme</string>
+    <string name="wear_color_scheme_dark">Dark</string>
+    <string name="wear_color_scheme_light">Light</string>
+    <string name="wear_color_scheme_dark_green">Dark green</string>
+    <string name="wear_color_scheme_dark_blue">Dark blue</string>
+    <string name="wear_color_scheme_dark_red">Dark red</string>
+    <string name="wear_color_scheme_light_green">Light green</string>
+    <string name="wear_color_scheme_light_blue">Light blue</string>
+    <string name="wear_color_scheme_light_red">Light red</string>
+    <string name="water_flashlight_title">Water flashlight</string>
+    <string name="water_flashlight_locked_hint">Locked. Use the buttons</string>
+    <string name="water_flashlight_settings_toggle_title">Water flashlight</string>
+    <string name="water_flashlight_settings_toggle_subtitle">Torch and screen at full brightness, locked against touch</string>
+    <string name="water_flashlight_help_title">Water flashlight</string>
+    <string name="water_flashlight_help_message">Lights the camera flash and the screen at once, then locks the screen: only the time and a reminder show, and only a hardware button closes it. Made for wet hands, where a touch screen presses itself. Leaving through a system gesture turns the light off as well. It does not replace the water-lock mode built into a watch or a phone - no app can reach that one.</string>
+    <string name="widget_water_flashlight_label">Water flashlight</string>
+    <string name="widget_water_flashlight_description">Lights the flash and the screen and locks the screen - only a button closes it</string>
+    <string name="tooltip_stopwatch_title">Stopwatch</string>
+    <string name="tooltip_stopwatch_message">Adds a stopwatch to the main menu. Measures one run or several in a row, for up to four participants at once, and keeps the result inside FastMediaSorter.</string>
+    <string name="stopwatch_volume_label">Music volume</string>
+    <string name="stopwatch_settings_title">Stopwatch settings</string>
+    <string name="stopwatch_settings_participants">Participants</string>
+    <string name="stopwatch_settings_music">Play music while it runs</string>
+    <string name="stopwatch_settings_music_summary">The chosen track loops for as long as a measurement is running.</string>
+    <string name="stopwatch_settings_track">Track</string>
+    <string name="stopwatch_settings_track_none">Not chosen</string>
+    <string name="stopwatch_settings_volume_keys">Volume keys start and stop</string>
+    <string name="stopwatch_settings_volume_keys_summary">While the stopwatch is open, volume up starts or laps and volume down stops. Turn this off to give the keys back to the system.</string>
+    <string name="setting_stopwatch_settings_desc">Participants, music and what the volume keys do</string>
+    <string name="stopwatch_action_result">Result</string>
+    <string name="stopwatch_result_title">Stopwatch result</string>
+    <string name="stopwatch_result_description_hint">Description</string>
+    <string name="stopwatch_result_note_hint">Note</string>
+    <string name="stopwatch_result_preview_label">Preview</string>
+    <string name="stopwatch_result_action_save">Save to file</string>
+    <string name="stopwatch_result_action_send">Send</string>
+    <string name="stopwatch_result_share_title">Send the result</string>
+    <string name="stopwatch_result_saved">Saved to Downloads: %1$s</string>
+    <string name="stopwatch_result_save_failed">Could not save the result</string>
+    <string name="stopwatch_result_laps">laps</string>
+    <string name="stopwatch_result_empty">Nothing has been measured yet</string>
+    <string name="stopwatch_enable_prompt_title">Stopwatch is off</string>
+    <string name="stopwatch_enable_prompt_message">Turn on Stopwatch in Settings to use this widget.</string>
+    <string name="stopwatch_open_settings">Open Settings</string>
+    <string name="widget_none_available">No widgets are available. Turn a program on in Settings first.</string>
 </resources>

@@ -14,8 +14,8 @@ retype the texts into the Console.
 
 The boxes below are per locale and the publisher pushes all of them in one edit, so tick each line
 once the Console shows the set complete. Ten of the thirteen carry text only and inherit their
-graphics from the default language, which is why section C still lists screenshots for three locales
-and not for thirteen.
+graphics from the default language, which is why section C is about the locales that carry an
+`images/` folder and not about all thirteen.
 
 - [ ] Title updated - source: `play/listing/<locale>/title.txt`
 - [ ] Short description updated - source: `play/listing/<locale>/short_description.txt`
@@ -33,12 +33,39 @@ and not for thirteen.
 
 ## C. Graphics
 
-- [ ] App icon uploaded: `store_assets/icon_512.png` (512 × 512 px)
-- [ ] Feature graphic uploaded: `store_assets/feature_graphic_1024x500.png` (1024 × 500 px)
-- [ ] 6 screenshots uploaded for EN locale (slots 1-6 per `design_brief.md` sequence)
-- [ ] 6 screenshots uploaded for RU locale
-- [ ] 6 screenshots uploaded for UK locale
-- [ ] Screenshot slot 1 shows sorting-in-action (NOT the Settings screen)
+Screenshots are not uploaded by hand any more than the texts of section A are retyped.
+`publish-play-listing.ps1 -Mode commit` pushes everything under `play/listing/<locale>/images/`
+through `edits().images()`, deleting the live set of each type first. Which screens fill the set, in
+what order, and what each caption says is `play/listing/captions.json` - count nothing by hand and
+compare against that file, never against a number written here.
+
+- [ ] Screenshot set published for every locale that carries an `images/` folder - source:
+      `play/listing/<locale>/images/`, one frame per slot in `captions.json`, in slot order. The
+      locales without that folder inherit the graphics of the default language, exactly as section A
+      describes for the ten text-only languages
+- [ ] Composed set is complete before publishing: a compose run made after capturing a single screen
+      writes `01.png` and leaves a set of one, and publishing then replaces the whole live set with
+      it. Refresh the WHOLE set rather than one frame - `compose-play-screenshots.py --only
+      <slot-id>` exists for the case where that is impossible, and the next bullet is why it is the
+      exception and not the habit (S2398, narrowed by S2573)
+- [ ] Composed set is one shape: the caption is added above the frame, so a slot composed since
+      S2573 is taller than a slot composed before it, and an `--only` refresh mixes the two in one
+      carousel. The run says so - read its `WARNING:` block, which names every sibling that
+      disagrees. The set on disk still carries the pre-S2573 shape and its landscape frames spend
+      23% of their height on the caption, over the 20% Google allows a tagline; recomposing it whole
+      is S2602
+- [ ] App icon published from the listing tree, not by hand: `play/listing/en-US/images/icon.png`,
+      512 × 512 px, the same artwork as `store_assets/icon_512.png` and the fastlane copy. Until
+      S2597 this line named `store_assets/` and the publisher read a path no locale carried, so the
+      upload it describes never happened on any run
+- [ ] Feature graphic published from the listing tree: `play/listing/<locale>/images/featureGraphic.png`,
+      1024 × 500 px, written by `python scripts/release/compose-feature-graphic.py` for `en-US`,
+      `ru-RU` and `uk-UA`; the other ten locales inherit `en-US`. The same run writes the fastlane
+      copy, so Play and IzzyOnDroid carry one artwork
+- [ ] Neither single image is missing or split in two. `scripts/quality/assert-play-listing-graphics.ps1`
+      answers both questions and runs in release scope from `assert-release-scope-gates.ps1`. It
+      exists because the publisher cannot: an image whose file is absent is skipped and the run
+      still exits 0, which is how the feature graphic went months with no source in the repository
 
 ## C2. Wear OS form factor (S1707)
 

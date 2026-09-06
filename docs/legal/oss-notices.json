@@ -648,6 +648,25 @@
       "note": null
     },
     {
+      "coordinate": "androidx.health:health-services-client",
+      "modules": [
+        "wear"
+      ],
+      "name": "AndroidX Health Services Client",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "noLegal"
+      ],
+      "allFlavors": false,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "androidx.hilt:hilt-navigation-compose",
       "modules": [
         "wear"

@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import androidx.room.withTransaction
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
@@ -243,7 +244,7 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             launcherCellsRestored
         )
 
-        RestoreSummary(
+        val summary = RestoreSummary(
             settingsRestored = settingsRestored,
             resourcesAdded = resourcesAdded,
             resourcesUpdated = resourcesUpdated,
@@ -255,6 +256,22 @@ class ApplyBackupPayloadUseCase @Inject constructor(
             webSessionsRestored = webSessionsRestored,
             launcherCellsRestored = launcherCellsRestored
         )
+
+        // S2571: last action of the restore, after the transaction and after the summary is built - on
+        // API 33+ saveLanguage restarts the activity stack, and anything sequenced behind it can be lost
+        // with the cancelled coroutine. Skipped when the backup names the language already in effect, so
+        // an ordinary restore triggers no restart.
+        // `as? String` rather than a plain read: Gson bypasses Kotlin's non-null guarantee and leaves
+        // this field null for a backup written before it existed, which a safe call on a non-null type
+        // would not catch - the same hazard BackupMapper.gsonSafe exists for.
+        (payload.settings?.language as? String)?.trim()?.takeIf {
+            it.isNotEmpty() && it != LocaleHelper.getLanguage(context)
+        }?.let { language ->
+            Timber.d("ApplyBackup: applying interface language %s", language)
+            LocaleHelper.saveLanguage(context, language)
+        }
+
+        summary
     }
 
     private fun isSameResource(existing: MediaResource, candidate: MediaResource): Boolean {

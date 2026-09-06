@@ -57,6 +57,15 @@ object WearRoutes {
     const val VOICE_RECORDER = "voice_recorder"
     const val VOICE_NOTES = "voice_notes"
 
+    /** S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too. */
+    const val WATER_FLASHLIGHT = "water_flashlight"
+
+    /** S2458: live motion and activity readings. Carries its `canonicalKey` like the programs above. */
+    const val MOTION_MONITOR = "motion_monitor"
+
+    /** S2457: the foreground heart-rate diagnostic. Carries its `canonicalKey` like the programs above. */
+    const val BODY_SENSOR = "body_sensor"
+
     /**
      * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
      * `canonicalKey` like the four above, which is what the Apps catalog's route-equals-key test reads;

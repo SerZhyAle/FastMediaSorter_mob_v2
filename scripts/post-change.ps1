@@ -45,7 +45,9 @@
 #        the tail reads "post-change: FAIL (n gate(s))" followed by the full list,
 #        each with the command that reproduces it alone. Nothing is written.
 #     2  could not verify. Nothing was inspected, or a gate could not run:
-#        an invalid/absent/unexpanded file argument, or missing tooling.
+#        an invalid/absent/unexpanded file argument, missing tooling, or (S2612)
+#        a build-backed gate that was QUEUED behind another session's hold on the
+#        build domain and refused rather than blocking - re-run it after the wait.
 #
 #   A caller must distinguish 1 from 2. "Found a defect" and "did not look"
 #   are different answers, and treating 2 as success is how a green verdict
@@ -67,8 +69,14 @@ param(
     # every existing caller and is folded into the same set.
     [string[]]$Files,
     [string[]]$Deleted,
-    [Parameter(Mandatory = $true)][string]$Target,
-    [Parameter(Mandatory = $true)][string]$Description,
+    # S2610: required, but deliberately NOT [Parameter(Mandatory)]. PowerShell answers a missing
+    # mandatory parameter by PROMPTING, and the prompt reads stdin - so a caller that opens a stdin
+    # pipe and never closes it converts the refusal into a permanent block. Measured 2026-09-05:
+    # this facade sat 17 hours having executed nothing, on 0.47 s of CPU, while the runtime that
+    # fired it recorded the closure as done. The check below is the same refusal, delivered as an
+    # exit code the caller can actually read.
+    [string]$Target,
+    [string]$Description,
     [ValidateSet('Doc', 'Script', 'Config', 'Tooling', 'Kotlin', 'Xml', 'Mixed')]
     [string]$ChangeType,
     [string]$Module = "app_v2",
@@ -96,6 +104,27 @@ param(
 
 $ErrorActionPreference = "Stop"
 $root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+
+# -? used to be answered by the parameter binder, which showed help before it could complain about a
+# missing mandatory argument. With the mandatory declarations gone that short-circuit went with them
+# and the body now runs, so help is served here explicitly. This script declares no [CmdletBinding()],
+# so an undeclared switch lands in $args.
+if ($args -contains '-?' -or $args -contains '-h' -or $args -contains '--help') {
+    Get-Help -Name $PSCommandPath -Full
+    exit 0
+}
+
+# S2610: the refusal that -Parameter(Mandatory) used to deliver as a prompt. Exit 2 is what the
+# contract above already means by "could not verify" - the closure did not look at anything, which
+# is a different answer from "a gate found a defect", and a caller must be able to tell them apart.
+$szaMissingRequired = @()
+if ([string]::IsNullOrWhiteSpace($Target)) { $szaMissingRequired += 'Target' }
+if ([string]::IsNullOrWhiteSpace($Description)) { $szaMissingRequired += 'Description' }
+if ($szaMissingRequired.Count -gt 0) {
+    Write-Host "post-change.ps1: missing required parameter(s): $($szaMissingRequired -join ', ')" -ForegroundColor Red
+    Write-Host "  Nothing was checked and nothing was journalled." -ForegroundColor Yellow
+    exit 2
+}
 
 # S1937: the gate journal that measure-gate-frequency.ps1 reads. S1795 wired it into
 # assert-fast-gates.ps1 only, so the journal saw ~11 runs a day and missed the ~61 closures
@@ -306,6 +335,25 @@ function Invoke-Step([string]$Label, [scriptblock]$Action) {
 # breaks. Certification is unchanged: Test-FatalFindings barricades the mutating
 # steps and exits 1, so a failed run still writes no changelog row and no catalog
 # index. Invoke-Step stays for those mutating steps, where "cannot go on" is real.
+# S2612: check-standard-fast.ps1 returns 4 for "queued, not my turn" - a short, foreground-scale
+# check that found its build domain busy and refused rather than blocking past the caller's 120 s
+# timeout. Nothing was inspected and nothing is wrong, which is this script's exit 2, not its exit 1:
+# the contract at the top of this file is explicit that "found a defect" and "did not look" are
+# different answers, and Invoke-Gate would otherwise turn the refusal into a FatalFinding and report
+# a red closure over a lock somebody else legitimately held.
+#
+# Aborting outright is safe here because every gate runs BEFORE the first mutating step, so this
+# writes no changelog row, no capability record and no catalog entry - the run is simply repeatable
+# once the domain frees up.
+function Stop-ClosureOnQueuedBuild([int]$ExitCode, [string]$Label) {
+    if ($ExitCode -ne 4) { return }
+    Write-Host ""
+    Write-Host "post-change: could not verify - '$Label' was QUEUED behind another session's build, not run." -ForegroundColor Yellow
+    Write-Host "  Nothing was inspected and nothing was written. Your place in the build queue is taken." -ForegroundColor Yellow
+    Write-Host "  Wait for the turn in the background with the command the check printed above, then re-run this closure." -ForegroundColor Yellow
+    exit 2
+}
+
 function Invoke-Gate([string]$Label, [scriptblock]$Action) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     Reset-PooledElapsedMs
@@ -461,6 +509,13 @@ function Get-FirstChangedFileMatch([string]$Pattern) {
 # scripts/quality/lib/room-databases.ps1 and not another edit here.
 . (Join-Path $root 'scripts/quality/lib/room-databases.ps1')
 $roomDatabaseRows = @(Get-RoomDatabaseRegistry -RepoRoot $root)
+
+# S2604: the settings-doc gate's five stages each read a different input, and the trigger below
+# used to test a bare 'docs/settings/' prefix - so device-profile-nonpresettable.json, which feeds
+# no stage of this gate at all, ran four checks that cannot see it and then failed the close on the
+# project-wide reference stage. The per-stage input map lives beside the gate so the trigger here
+# and the gate's own delta predicates cannot drift apart (S1621).
+. (Join-Path $root 'scripts/quality/lib/settings-doc-inputs.ps1')
 
 function Test-PathUnderDir([string]$Candidate, [string]$Directory) {
     if ([string]::IsNullOrWhiteSpace($Directory)) { return $false }
@@ -635,15 +690,19 @@ $runsAllFeaturesGate = Test-AnyChangedFile 'docs/ALL_FEATURES.*\.(jsonl|json)$'
 # availability module) or a settings doc artifact (manifest / annotations /
 # reference). Re-runs the composite gate so a settings change that skipped
 # regenerating the manifest, annotations, or reference is blocked. Narrow trigger.
+# S2604: the doc-artifact half is now the shared per-stage input map rather than a
+# 'docs/settings/' path prefix, which fired on a file feeding none of the five stages.
 $runsSettingsDocGate = (
     (Test-AnyChangedFile 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$') -or
     (Test-AnyChangedFile 'app_v2/.*/ui/settings/search/') -or
     (Test-AnyChangedFile 'wear/.*/ui/settings/') -or
     (Test-AnyChangedFile 'wear/src/main/res/values[^/]*/strings') -or
     (Test-AnyChangedFile 'SettingsSearchAvailabilityModule\.kt$') -or
-    (Test-AnyChangedFile 'docs/settings/') -or
-    (Test-AnyChangedFile 'docs/SETTINGS_REFERENCE')
+    (Test-SettingsDocArtifactInput -ChangedFiles $normChangedFiles)
 )
+
+# S2642 wear wire vocabulary parity gate. Fires when any wire model or data layer path file is edited.
+$runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|WearStreamTransferPayload|WearFileTransfer|WearFileTransferMetadata|WearPlaybackCommand|WearOpenOnPhonePayload|WearPhoneResourcePayload|WearSyncOutcome|WearSettingsRegistry|WearSettingsDecodeResult)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
@@ -755,6 +814,14 @@ $runsScriptCheatsheetGate = (
     (Test-AnyChangedFile '(^|/)scripts/.*\.ps1$') -or
     (Test-AnyChangedFile 'docs/SCRIPT_CHEATSHEET\.md$')
 )
+# S2635 code-domain writer registry. Fires on any repo PowerShell script or on the registry
+# itself: a script that rewrites a file owned by a Code.* domain must take that domain, and the
+# moment to catch a new one that does not is the change that introduces it. Reads the .ps1 tree,
+# no gradle.
+$runsCodeDomainWritersGate = (
+    (Test-AnyChangedFile '(^|/)scripts/.*\.ps1$') -or
+    (Test-AnyChangedFile 'scripts/quality/code-domain-writers\.manifest\.txt$')
+)
 # S2122 script-suite regression gate. Applicability is ASKED OF THE RUNNER, not re-derived here:
 # it owns the subject-resolution rules (sibling script, sibling lib, sibling directory, nested
 # tests dir, declared subject), and a second copy of that arithmetic in the facade is exactly how
@@ -777,6 +844,11 @@ if (Test-AnyChangedFile '(^|/)scripts/') {
 # refuse a close over another session's untracked work in flight. The whole-tree half - which does
 # see the accumulated debt, and cannot attribute it - is release scope (strategic ADR-2).
 $runsSuiteTrackedGate = (Test-AnyChangedFile '(^|/)run-tests\.ps1$')
+# S2616 dot-source-tracked gate, the same shape one class of file wider: any changed .ps1 is a
+# potential CONSUMER, and its dot-source targets are what a fresh clone needs. Scoped to the changed
+# set it addresses those files directly instead of walking the tree, which is the difference between
+# 639 ms and 8.1 s (measured 2026-09-06) - the whole-tree half is release scope.
+$runsDotSourceTrackedGate = (Test-AnyChangedFile '\.ps1$')
 # S1392 flavor-matrix doc-conformance gate. Fires when the flavor grid itself moves
 # (app_v2/build.gradle.kts), when the generated snapshot / rendered table is touched, or when one
 # of the documents carrying a checked glyph table is edited. Compares cell VALUES against
@@ -1120,6 +1192,24 @@ else {
     Skip-Step "suite-tracked" "not applicable - no contract-suite runner among the changed files"
 }
 
+# S2616: the per-ticket half of the dot-source-tracked question. A dot-source is resolved when the
+# CONSUMER is parsed, so an unstaged target does not degrade a fresh clone, it stops the consumer
+# from starting - which in the incident that produced this gate meant fk, fkn, fc, fr, fu and every
+# a.ps1 target above check-standard-fast.ps1. Its ticket had already closed Verified, because every
+# check it ran read the working tree, where the file is present either way.
+#
+# Called WITH -Gate for the reason its neighbour above is: here "could not verify" means git could
+# not be asked at all, and a closure that cannot see the index must not answer green about it.
+if ($runsDotSourceTrackedGate) {
+    Invoke-Gate "dotsource-tracked" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-dotsource-tracked.ps1") `
+            -Gate -ChangedFiles ($changedFiles -join ',')
+    }
+}
+else {
+    Skip-Step "dotsource-tracked" "not applicable - no .ps1 among the changed files"
+}
+
 # S0826: a project-wide gate without per-file delta support runs advisory (warn, non-fatal)
 # under -ScopeToFile; fatal otherwise. Since S0850 only icon-inventory-sync still uses this -
 # the count-ratchet gates all judge FATAL per-file deltas.
@@ -1254,10 +1344,12 @@ if ($ScopeToFile) { $argvListenerSymmetry += @('-ChangedFiles', ($changedFiles -
 $argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
 $argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
 $argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
+$argvCodeDomainWriters = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-code-domain-writers.ps1"), '-Gate', '-Quiet')
 $argvFlavorMatrixDoc = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1"), '-Gate', '-Quiet')
 $argvOssNotices = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-oss-notices.ps1"), '-Gate', '-Quiet')
 $argvRuleDigest = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rule-digest-sync.ps1"), '-Gate')
 $argvLauncherReset = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1"), '-Gate', '-Quiet')
+$argvWearWireVocabularyParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-vocabulary-parity.ps1"), '-Gate', '-Quiet')
 
 if ($runsNeuroslopGate) { Start-PooledGate @argvNeuroslop }
 if ($runsOrientationFeatureGate) { Start-PooledGate @argvOrientationFeature }
@@ -1271,9 +1363,11 @@ if ($runsListenerSymmetryGate) { Start-PooledGate @argvListenerSymmetry }
 if ($runsAllFeaturesGate) { Start-PooledGate @argvAllFeatures }
 if ($runsHowToPathGate) { Start-PooledGate @argvHowToPaths }
 if ($runsScriptCheatsheetGate) { Start-PooledGate @argvScriptCheatsheet }
+if ($runsCodeDomainWritersGate) { Start-PooledGate @argvCodeDomainWriters }
 if ($runsFlavorMatrixDocGate) { Start-PooledGate @argvFlavorMatrixDoc }
 if ($runsOssNoticesGate) { Start-PooledGate @argvOssNotices }
 if ($runsRuleDigestGate) { Start-PooledGate @argvRuleDigest }
+if ($runsWearWireVocabularyParityGate) { Start-PooledGate @argvWearWireVocabularyParity }
 Start-PooledGate @argvLauncherReset
 
 try {
@@ -1361,20 +1455,40 @@ else {
 }
 
 if ($runsSettingsDocGate) {
-    Invoke-Gate "settings-doc-sync-gate" {
-        # S1338 step 04.7: under -ScopeToFile hand it the changed set so its ~28 s gradle stage
-        # runs only when a manifest input actually moved. Same rule as the detekt branch above -
-        # an unscoped run (release, CI) keeps the strict project-wide judgement.
-        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-settings-doc-sync.ps1"), '-Gate')
-        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
-        # S2326: its stage 5 IS howto-settings-paths-gate above. Running both meant one check
-        # executed twice in one closure and reported once.
-        if ($runsHowToPathGate) { $a += '-SkipHowToStage' }
-        & $pwsh @a
+    # S1338 step 04.7: under -ScopeToFile hand it the changed set so its ~28 s gradle stage
+    # runs only when a manifest input actually moved. Same rule as the detekt branch above -
+    # an unscoped run (release, CI) keeps the strict project-wide judgement.
+    $settingsDocArgs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-settings-doc-sync.ps1"), '-Gate')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) { $settingsDocArgs += @('-ChangedFiles', ($changedFiles -join ',')) }
+    # S2326: its stage 5 IS howto-settings-paths-gate above. Running both meant one check
+    # executed twice in one closure and reported once.
+    if ($runsHowToPathGate) { $settingsDocArgs += '-SkipHowToStage' }
+
+    # S2604: same shape as ticket-log-audit above, and for the same reason - only code 3 is
+    # advisory, and deciding that inside Invoke-AdvisoryStep is not an option because its catch
+    # block turns any exception into a SKIP, which would downgrade this change's OWN drift.
+    # Code 3 means every stage passed except the project-wide reference re-render, whose finding
+    # belongs to whichever ticket last moved a renderer input.
+    $settingsDocOutput = & $pwsh @settingsDocArgs 2>&1 | Out-String
+    $settingsDocExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+    if (-not [string]::IsNullOrWhiteSpace($settingsDocOutput)) { Write-Host $settingsDocOutput.TrimEnd() }
+
+    if ($ScopeToFile -and $settingsDocExit -eq 3) {
+        Invoke-AdvisoryStep "settings-doc-sync-gate" { $global:LASTEXITCODE = 3 } `
+            -AdvisoryDetails ("docs/SETTINGS_REFERENCE* diverges from a fresh render, and no file in this " +
+                "changed set feeds that render - so the divergence belongs to whichever ticket last moved " +
+                "the manifest, the annotations or an availability module, and regenerating it here would " +
+                "commit that ticket's user-visible text under this change. Run " +
+                "assert-settings-doc-sync.ps1 with no -ChangedFiles for the project-wide verdict.")
+    }
+    else {
+        # Code 1 (drift this set can own) and code 2 (the gate could not look) stay fatal, scoped
+        # or not.
+        Invoke-Gate "settings-doc-sync-gate" { $global:LASTEXITCODE = $settingsDocExit }
     }
 }
 else {
-    Skip-Step "settings-doc-sync-gate" "not applicable - no changed file is a settings surface or settings doc"
+    Skip-Step "settings-doc-sync-gate" "not applicable - no changed file is a settings surface or a settings doc artifact that feeds one of its stages"
 }
 
 if ($runsHowToPathGate) {
@@ -1382,6 +1496,13 @@ if ($runsHowToPathGate) {
 }
 else {
     Skip-Step "howto-settings-paths-gate" "not applicable - no changed file is a HOW_TO or narrative settings-path guide"
+}
+
+if ($runsWearWireVocabularyParityGate) {
+    Invoke-Gate "wear-wire-vocabulary-parity-gate" { Invoke-GateChild @argvWearWireVocabularyParity }
+}
+else {
+    Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file is a Wear wire model"
 }
 
 # S1939: icon-inventory-sync and doc-icons-sync moved to the release-scope runner
@@ -1533,15 +1654,51 @@ else {
     Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
 }
 
+# S2621: a wear screen that is in neither the walked nor the excluded list of the pre-release walk is
+# not opened by /spec-prerelease-wear and is not declared skipped either, so it ships unchecked in
+# silence. Until now the only caller was the project-wide fg battery, which is not bound to any
+# ticket's changed set: the three screens that produced this gate's first real failure were added by
+# S2457, S2458 and S2516 on 2026-09-03/04, and the refusal was collected on 2026-09-05 and 2026-09-06
+# by two uninvolved sessions running fg for unrelated work - one of which filed a duplicate ticket
+# because the finding reaches whoever ran the battery rather than whoever added the screen.
+#
+# PER-TICKET by Rule 33: the subject is a screen this change added or renamed, and only its author
+# knows whether it is a destination worth walking or an exclusion with a reason. Scoped rather than
+# unconditional for the same reason the wear-mirrored-strings gate is: the gate reads the whole
+# module, so an unscoped FATAL here would refuse this closure over a neighbour's unclassified WIP -
+# reproducing the very complaint above, narrowed to sessions touching the watch.
+if (Test-AnyChangedFile '(^|/)wear/.*Screen\.kt$|(^|/)scripts/devtest/wear-prerelease-screens\.json$') {
+    Invoke-Gate "wear-walk-contract-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-walk-contract.ps1"), '-Gate')
+        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "wear-walk-contract-gate" "not applicable - no changed file is a wear screen or the declared walk list"
+}
+
 # S2125: the sibling of the gate above, judging the TEXT the parity gate never reads. The two modules
 # ship no shared resource artifact, so a label the owner sees on both sides exists twice and editing
 # one copy left no trace on the other. PER-TICKET by Rule 33 because only the author knows whether a
 # newly shared key was meant to read the same, but summoned only by a changed strings.xml: run
 # unconditionally it would judge the whole tree on every closure, which is the shape Rule 33 warns
 # about. The declaration it enforces is scripts/quality/wear-mirrored-strings.psd1.
+#
+# S2562: -Scope Authored, because the thirteen locales do not share one author. The three authored
+# ones (Rule 30) are written by hand in this very edit, and the declaration checks are locale-free
+# author intent - both stay fatal here, which is Rule 33's counter-condition for per-ticket. The
+# other ten are filled by a batch translation at the release boundary, and app_v2 and wear make that
+# trip separately with no glossary and no shared translation memory, so two independent renderings of
+# one English phrase are not expected to agree and their divergence is regenerated by every release.
+# Judged here it was pure cross-ticket noise: measured 2026-09-05 the full run reported 34 findings,
+# 25 of them living only in those ten locales, and that set refused the closure of S2392 - a ticket
+# that added one key in the three authored locales and appeared in none of the 34. The full
+# comparison is not dropped; it runs from assert-prerelease-content-gates.ps1, after the batch import
+# that produces the text has actually happened.
 if (Test-AnyChangedFile '(^|/)(app_v2|wear)/src/.*/res/values[^/]*/strings\.xml$') {
     Invoke-Gate "wear-mirrored-strings-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-mirrored-strings.ps1") -Gate -Quiet
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-mirrored-strings.ps1") -Gate -Quiet -Scope Authored
     }
 }
 else {
@@ -1656,6 +1813,7 @@ if ($runsResourceLinkGate) {
                 # its task name carries no variant segment (:watchface:processDebugResources).
                 & $pwsh -NoProfile -File $builder `
                     -Mode Resources -Module $resourceModule -BuildType $resourceLinkBuildType
+                Stop-ClosureOnQueuedBuild $LASTEXITCODE "resource-link-gate"
                 if ($LASTEXITCODE -ne 0) { return }
                 continue
             }
@@ -1663,6 +1821,7 @@ if ($runsResourceLinkGate) {
                 & $pwsh -NoProfile -File $builder `
                     -Mode Resources -Module $resourceModule -Flavor $resourceFlavor `
                     -BuildType $resourceLinkBuildType
+                Stop-ClosureOnQueuedBuild $LASTEXITCODE "resource-link-gate"
                 # Stop at the first red. Without this the loop would run on and Invoke-Gate would read the
                 # LAST flavor's exit code, turning an earlier failure into a pass.
                 if ($LASTEXITCODE -ne 0) { return }
@@ -1692,6 +1851,7 @@ if ($runsAndroidTestCompileGate) {
         foreach ($androidTestModule in $androidTestModules) {
             Write-Host "  compiling the instrumented set of module '$androidTestModule'" -ForegroundColor Gray
             & $pwsh -NoProfile -File (Join-Path $root "scripts/builders/check-standard-fast.ps1") -Mode AndroidTest -Module $androidTestModule
+            Stop-ClosureOnQueuedBuild $LASTEXITCODE "androidtest-compile-gate"
             if ($LASTEXITCODE -ne 0) { return }
         }
     }

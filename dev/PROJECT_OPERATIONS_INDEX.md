@@ -114,6 +114,13 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 	- `ui/settings/fragments/`
 	- Primary files: `ui/settings/SettingsActivity.kt`, `ui/settings/SettingsViewModel.kt`
 
+- Lights and screen-as-a-surface programs (front flashlight, water flashlight, physical flash, black screen):
+	- `ui/flashlight/` (`FrontFlashlightActivity.kt` the screen lamp, `WaterFlashlightActivity.kt` the touch-locked one, `FlashlightToggleActivity.kt` the screenless torch trampoline)
+	- `ui/blackscreen/`
+	- Torch hardware: `core/screencapture/gesture/DeviceActionHandler.kt` (`setTorch` / `toggleFlashlight`)
+	- Watch half: `wear/.../ui/apps/waterflashlight/`
+	- Which surfaces each one appears on: `core/panel/SubProgramCatalog.kt`
+
 - Desktop companion config (`.fmscfg` SFTP-share import/export) - NOT the Wear companion:
 	- `data/companion/` (`CompanionConfigParser.kt` read side, `CompanionConfigSerializer.kt` write side, `CompanionConfigDto.kt` contract mirror, `CompanionResourceTokens.kt`)
 	- `domain/usecase/companion/` (`ImportCompanionConfigUseCase.kt`, `ExportCompanionConfigUseCase.kt`)

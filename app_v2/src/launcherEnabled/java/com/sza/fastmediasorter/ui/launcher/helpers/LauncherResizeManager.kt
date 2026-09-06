@@ -69,7 +69,11 @@ class LauncherResizeManager(
         cellSize = container.currentCellSize().coerceAtLeast(1)
         floorW = seedW
         floorH = seedH
-        ceilingW = container.columns.coerceAtLeast(floorW)
+        // S2599: the ceiling is the distance from this cell's own column to the right edge, not the whole
+        // grid - the handle grows the cell rightwards, so a preview stretched past the edge shows a
+        // rectangle the commit then narrows. The floor still wins a tie, because coerceIn below throws
+        // when the ceiling drops under it, and a cell already stranded past the edge would do exactly that.
+        ceilingW = (container.columns - cell.colIndex).coerceAtLeast(floorW)
         ceilingH = (viewport.height / cellSize).coerceAtLeast(floorH)
         downRawX = event.rawX
         downRawY = event.rawY
@@ -106,7 +110,7 @@ class LauncherResizeManager(
         preview?.let { container.removeView(it) }
         preview = null
         if (candW != baseW || candH != baseH) {
-            viewModel.resizeCell(activeCellId, candW, candH)
+            viewModel.resizeCell(activeCellId, candW, candH, container.columns)
         } else if (!canceled && isTap(event)) {
             Snackbar.make(container, R.string.launcher_edit_resize_hint_drag, Snackbar.LENGTH_SHORT).show()
         }

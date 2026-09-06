@@ -20,8 +20,11 @@
       - assert-wear-record-merge-parity (S2502 the two resource merge-rule copies diverging)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
+- assert-device-ready-module   (S2611 a device-ready.ps1 call site that names no -Module)
       - assert-tactical-step-form    (S1343 Why-field ratchet over PLAN/*/PHASE_*.md)
+      - assert-no-line-budget        (S2037 a self-cost estimate column in planning output)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
+      - assert-code-domain-writers   (S2635 a script writing a Code.* path without taking the domain)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
 - assert-flavor-count-prose    (S2445 flavor counts and complete-set lists in prose vs the matrix)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
@@ -141,6 +144,10 @@ $gates = [ordered]@{
     # gradle daemon. Per-ticket by Rule 33: only the author knows whether a new one-sided setting was
     # meant to be one-sided, and the reference it guards is read by agents between releases.
     'assert-wear-settings-parity.ps1'           = @('-Quiet')
+    # S2642: eight vocabularies cross the Wear Data Layer outside settings, each written twice by hand.
+    # Refuses a divergence between the two copies, and refuses a new mirrored enum added without being
+    # declared in the gate's table. Dot-sources lib/wear-vocabulary-parsers.ps1; no gradle daemon.
+    'assert-wear-wire-vocabulary-parity.ps1'      = @('-Quiet')
     # S2502: the resource merge rule is written once per module because the two share no artifact.
     # If the copies disagree the exchange never converges - each side keeps its own version and
     # believes it won - which is invisible until the owner notices an edit that will not stick.
@@ -164,6 +171,12 @@ $gates = [ordered]@{
     # EAP=Stop makes the following `exit N` unreachable, so a script's documented code
     # collapses to 1. Cheap (scans scripts/*.ps1 only) and the class has regrown 3 times.
     'assert-exit-contract.ps1'                  = @('-Quiet')
+    # S2619: a .ps1 the parser cannot read at all. The rest of the battery scans line by line with
+    # regular expressions, which matches text the same whether the file is valid or wrecked - so a
+    # script truncated by a bad edit passes closure and waits in the tree for its first caller.
+    # Two did, both halves of the dimen pipeline, one with two fragments spliced mid-block. Binary
+    # class, so no baseline: a file either parses or cannot run. Parses .ps1 text, no gradle daemon.
+    'assert-script-parses.ps1'                  = @('-Quiet')
     # S2172: a Gradle task name written without its module segment. Gradle expands such a name across
     # every project that declares it, so `assembleStandardDebug` began meaning "app_v2 AND wear" the
     # day S2090 gave the watch a `standard` flavor - changing what 40 call sites did without editing
@@ -171,6 +184,13 @@ $gates = [ordered]@{
     # a sibling session's watch build dies on a locked R.jar reading as broken code. Scans scripts/*.ps1
     # only, no gradle daemon.
     'assert-qualified-gradle-tasks.ps1'         = @('-Quiet')
+    # S2611: a device-ready.ps1 call site that names no -Module, so the probe takes whatever device
+    # is attached. S2600 built the form-factor selection and left the parameter undefaulted on
+    # purpose - which meant twelve call sites carried none and the protection was off. Per-ticket by
+    # Rule 33: a new call site arrives with a ticket, and its failure is a verdict about the wrong
+    # device rather than a crash, so it has to be refused where it is written. Scans scripts/ and
+    # .claude/ only, no gradle daemon.
+    'assert-device-ready-module.ps1'            = @('-Quiet')
     # S2447: a Hilt binding for a type src/main injects unconditionally, present only in source sets
     # some flavors do not mount. `fk` compiles standard and `fkn` noLegal, both of which happened to
     # carry the AccessibilityServiceControl binding; the five flavors that did not went unbuilt for
@@ -191,6 +211,12 @@ $gates = [ordered]@{
     # another. A module with an exported schema and zero migrations is a clean skip, not "cannot
     # verify": that is the watch's legitimate state at version 1, and refusing it would defer the
     # gate's activation to somebody else's ticket.
+    # S1905 (2026-09-05): -Gate is what makes this fatal. Without it the script prints its FAIL
+    # banner and exits 0, so this batch recorded PASS while the finding stood in plain text. That is
+    # exactly what shipped Migration54To55 with an index the entity does not declare and wiped the
+    # owner's database on update - both migration gates named the defect and neither could stop it.
+    # S2569: no '-Gate' here - the runner supplies it (see the invocation below), and a second copy
+    # made PowerShell refuse to bind, so this gate reported FAIL without ever executing.
     'assert-migration-test-pairing.ps1'         = @()
     # S2306: the other half of the same contract - a migration test proves a test EXISTS, this proves
     # the migration's SQL says what the exported schema Room validates against says. S2251 had neither:
@@ -301,12 +327,29 @@ $gates = [ordered]@{
     # the diff-scoping every sibling gate uses returns nothing here. Parses ~300 small .md
     # files, no gradle daemon.
     'assert-tactical-step-form.ps1'             = @('-Quiet')
+    # S2037: the `Line budget` column of a Files Touched table - a self-cost estimate CLAUDE.md
+    # section 1 bans by name. It survived because the ban had nothing mechanical behind it: the
+    # column is in no template and no script, so /spec-tech reproduced it from habit and nothing
+    # failed - S1954's plan carried it in all four phase files, written the day the rule came into
+    # force, and 49 live phase files carried it when S2037 measured. Absolute rather than ratcheted
+    # (unlike the gate above over the same corpus): S2037's sweep zeroed the live files, so a
+    # baseline would read 0 forever and only offer -UpdateBaseline as a way to bury a regression.
+    # Judged per table CELL, so the prose that names the column - CLAUDE.md's own rule, S2037's
+    # captured material - is not its first offender. Reads ~300 small .md files, no gradle daemon.
+    'assert-no-line-budget.ps1'                 = @('-Quiet')
     # S1392: documentation flavor tables vs the generated capability snapshot. Nothing compared a
     # markdown matrix to build.gradle.kts before - the pin checker covers pins, the release
     # snapshot covers `standard` only - so docs/HOW_TO.md sat inverted against the lite gates on
     # two rows until a sibling ticket happened to derive wording from the gates instead. Parses one
     # JSON plus four small docs, no gradle daemon.
     'assert-flavor-matrix-docs.ps1'             = @('-Quiet')
+    # S2635: a script that rewrites a file owned by a Code.* domain must take that domain, or two
+    # sessions writing the same generated artifact are separated by nothing. S2615 built the helper
+    # and adopted eleven generators; the question it carried was what stops the NEXT writer, since
+    # the only convention that existed was written in one script's header, checked by nothing and
+    # obeyed by no caller. Checks the registry's adoption exactly, plus a deliberately narrow
+    # ratcheted heuristic for a writer nobody registered. Reads the .ps1 tree, no gradle daemon.
+    'assert-code-domain-writers.ps1'            = @('-Quiet')
     # S1489: a dependency the project retired, still named in prose. The pin gate above watches jsch
     # but compares the VERSION in one gated row, which was correct the whole time - a version
     # comparator cannot express "this name must not appear at all". So SSHJ survived the S0207/S0046
@@ -375,7 +418,8 @@ $gates = [ordered]@{
 $changedFilesAware = @(
     'assert-source-gates.ps1',
     'assert-listener-symmetry.ps1',
-    'assert-gson-persistence-contract.ps1'
+    'assert-gson-persistence-contract.ps1',
+    'assert-device-ready-module.ps1'
 )
 
 # Build the work list first so a MISSING gate is settled without spawning anything, and so

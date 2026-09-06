@@ -48,8 +48,11 @@ class ExecuteScheduledOperationUseCase @Inject constructor(
     private val refreshResourceFileCountsUseCase: RefreshResourceFileCountsUseCase,
     private val statsSink: StatsSink,
 ) {
+    // S2598: Locale.US, not the interface language - this stamp goes into a persisted log line that
+    // outlives a language change, and an Arabic or Bengali interface would render its digits in a script
+    // the neighbouring lines of the same file do not share.
     private val logDateFormat = object : ThreadLocal<SimpleDateFormat>() {
-        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+        override fun initialValue() = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.US)
     }
 
     suspend operator fun invoke(operationId: Long): ScheduledExecutionResult {

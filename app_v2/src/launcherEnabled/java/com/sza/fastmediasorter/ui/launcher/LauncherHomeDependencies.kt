@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher
 
+import com.sza.fastmediasorter.data.local.db.LauncherCellConfigDao
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherPinsRepository
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherCommandLab
 import com.sza.fastmediasorter.domain.usecase.launcher.ResolveLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.StartAppShortcutUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.SyncEnabledResourceTilesUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.SyncEnabledToolShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.RemoveStreamSourceUseCase
@@ -39,10 +41,14 @@ class LauncherDesktopDependencies @Inject constructor(
     // S2330: joins the seeding it must never precede - the sync keeps the desktop current for tools
     // switched on after the starter set was laid out, and both describe the same surface.
     val syncEnabledToolShortcuts: SyncEnabledToolShortcutsUseCase,
+    // S2564: the same keeping-current for the other half of the desktop - an aggregate resource whose
+    // media type was switched on after the starter set was laid out.
+    val syncEnabledResourceTiles: SyncEnabledResourceTilesUseCase,
     val resourceRepository: ResourceRepository,
     // S1930: removing a configured widget cell has to throw its stored instance away, and the cell is
     // the only thing that still knows which one - so the cleanup joins the surface that owns removal.
     val configuredWidgetInstances: ConfiguredWidgetInstanceManager,
+    val cellConfigDao: LauncherCellConfigDao,
 )
 
 /** Serves the taskbar strips - the recents row, the pinned row and what each icon renders as. */

@@ -5,6 +5,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
@@ -25,6 +26,7 @@ import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.service.WearSyncEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -112,7 +114,9 @@ class WearSyncViewModel @Inject constructor(
     private val ensureWatchResourceUseCase: EnsureWatchResourceUseCase,
     private val sendWearBackgroundImageUseCase: SendWearBackgroundImageUseCase,
     private val wearFileTransferRepository: WearFileTransferRepository,
-    private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore
+    private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore,
+    // S2515 (ADR-4): mirror writes outlive this ViewModel on purpose - see rememberSettings.
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : ViewModel() {
 
     // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
@@ -160,6 +164,15 @@ class WearSyncViewModel @Inject constructor(
             ?: WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION
     )
     val backgroundMode: StateFlow<String> = _backgroundMode.asStateFlow()
+
+    // S2522: surfaced separately for the same reason as the background mode above - the group that
+    // offers the eight schemes reads this one value rather than unpacking the whole payload. The dark
+    // fallback matches the watch's own default, so the window agrees with the watch before any
+    // exchange has happened.
+    private val _colorScheme = MutableStateFlow(
+        _watchSettingsState.value?.colorScheme ?: WearSettingsPayload.COLOR_SCHEME_DARK
+    )
+    val colorScheme: StateFlow<String> = _colorScheme.asStateFlow()
 
     private val _backgroundPreview = MutableStateFlow(readPreparedFrame())
     val backgroundPreview: StateFlow<WearBackgroundPreview?> = _backgroundPreview.asStateFlow()
@@ -284,7 +297,7 @@ class WearSyncViewModel @Inject constructor(
         if (_unifiedSyncState.value is UnifiedSyncState.Running) {
             return
         }
-        val merged = withBackgroundMode(settings)
+        val merged = withScreenChoices(settings)
         rememberSettings(merged)
         inboundResourcesLeg = null
         _unifiedSyncState.value = UnifiedSyncState.Running
@@ -368,7 +381,7 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun pushSettings(settings: WearSettingsPayload) {
-        val merged = withBackgroundMode(settings)
+        val merged = withScreenChoices(settings)
         rememberSettings(merged)
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
@@ -384,7 +397,7 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun updateWatchSettingsLocally(settings: WearSettingsPayload) {
-        rememberSettings(withBackgroundMode(settings))
+        rememberSettings(withScreenChoices(settings))
     }
 
     /**
@@ -398,12 +411,22 @@ class WearSyncViewModel @Inject constructor(
     private fun rememberSettings(settings: WearSettingsPayload) {
         val changed = WearSettingsFieldDiff.changedFields(_watchSettingsState.value, settings)
         _watchSettingsState.value = settings
-        wearSettingsMirrorStore.writeSettings(settings)
-        if (changed.isEmpty()) return
+        // S2515 (ADR-4): taken here rather than inside the launch. The stamp must be the moment the
+        // owner edited, not the moment the coroutine happened to run - the merge ranks this value
+        // against the watch's clock, so a later time would let a phone edit beat a newer watch edit.
         val editedAt = System.currentTimeMillis()
-        wearSettingsMirrorStore.writeFieldTimestamps(
-            wearSettingsMirrorStore.readFieldTimestamps() + changed.associateWith { editedAt }
-        )
+        // S2515 (ADR-4): the application scope, not viewModelScope - this sheet is a
+        // BottomSheetDialogFragment and is routinely closed in the same gesture that edits a setting,
+        // which would cancel a viewModelScope write and lose exactly what the mirror exists to keep.
+        applicationScope.launch {
+            Timber.d("S2515: mirror write on ${Thread.currentThread().name}")
+            wearSettingsMirrorStore.writeSettings(settings)
+            if (changed.isNotEmpty()) {
+                wearSettingsMirrorStore.writeFieldTimestamps(
+                    wearSettingsMirrorStore.readFieldTimestamps() + changed.associateWith { editedAt }
+                )
+            }
+        }
     }
 
     /**
@@ -417,21 +440,30 @@ class WearSyncViewModel @Inject constructor(
     private fun adoptMergedSettings(settings: WearSettingsPayload) {
         _watchSettingsState.value = settings
         settings.backgroundMode?.let { _backgroundMode.value = it }
+        settings.colorScheme?.let { _colorScheme.value = it }
         _lastSyncTimestamp.value = wearSettingsMirrorStore.readLastSyncTimestamp()
         _watchAppVersion.value = wearSettingsMirrorStore.readWatchAppVersion()
     }
 
     /**
-     * S2000: the watch-settings group rebuilds the whole payload from its own controls, and the
-     * background lives in no control of that group - so without merging it back in, editing any
-     * neighbouring switch would erase the chosen background before it ever left the phone.
+     * S2000 / S2522: the watch-settings group rebuilds the whole payload from its own controls, and
+     * neither the background nor the colour scheme lives in a control of that group - so without
+     * merging them back in, editing any neighbouring switch would erase both before they ever left
+     * the phone. Named for the pair rather than for the background alone, which is what it carried
+     * until the scheme joined it.
      */
-    private fun withBackgroundMode(settings: WearSettingsPayload): WearSettingsPayload =
-        settings.copy(backgroundMode = _backgroundMode.value)
+    private fun withScreenChoices(settings: WearSettingsPayload): WearSettingsPayload =
+        settings.copy(backgroundMode = _backgroundMode.value, colorScheme = _colorScheme.value)
 
     fun updateBackgroundMode(mode: String) {
         _backgroundMode.value = mode
         _watchSettingsState.value?.let { rememberSettings(it.copy(backgroundMode = mode)) }
+    }
+
+    fun updateColorScheme(scheme: String) {
+        Timber.d("S2522: companion updateColorScheme scheme=%s", scheme)
+        _colorScheme.value = scheme
+        _watchSettingsState.value?.let { rememberSettings(it.copy(colorScheme = scheme)) }
     }
 
     /**

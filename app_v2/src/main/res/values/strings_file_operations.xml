@@ -139,4 +139,11 @@
     <string name="browse_row_folder_checkbox">Folder %1$s, select</string>
     <string name="browse_row_file_checkbox">File %1$s, select</string>
     <string name="browse_transfer_folders_included">Folders included: %1$d</string>
+    <string name="undo_folder_move_started">Moving the folders back..</string>
+    <string name="undo_folder_copy_confirm_title">Undo the folder copy?</string>
+    <string name="undo_folder_copy_confirm_message">The copies at the destination will be deleted, including anything added to them since. The original folders stay where they are.</string>
+    <string name="undo_folder_copy_confirm_action">Delete the copies</string>
+    <string name="undo_folder_copy_done">Copies deleted.</string>
+    <string name="undo_mixed_move_started">Moving the folders back, restoring %1$d files..</string>
+    <string name="undo_mixed_copy_done">Copies deleted: %1$d files, %2$d folders.</string>
 </resources>

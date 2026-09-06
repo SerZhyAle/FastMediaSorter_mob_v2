@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1411 phase 07. The description and the note are collected at the moment of export rather than kept
+     as screen state (§2.6), so this surface is where both fields live. The preview below them is the very
+     text that gets written and sent - one renderer feeds all three. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_medium">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutStopwatchResultDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/stopwatch_result_description_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputStopwatchResultDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:imeOptions="actionNext"
+            android:inputType="textCapSentences"
+            android:maxLines="2"
+            android:minHeight="@dimen/touch_target_min_height" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/layoutStopwatchResultNote"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_small"
+        android:hint="@string/stopwatch_result_note_hint">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/inputStopwatchResultNote"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:imeOptions="actionDone"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="3"
+            android:minHeight="@dimen/touch_target_min_height" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <TextView
+        android:id="@+id/labelStopwatchResultPreview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:text="@string/stopwatch_result_preview_label"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/margin_tiny"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:minHeight="@dimen/touch_target_min_height">
+
+        <TextView
+            android:id="@+id/textStopwatchResultPreview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="?attr/colorOnSurface"
+            android:textIsSelectable="true"
+            android:textSize="@dimen/text_size_small" />
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_medium"
+        android:gravity="end"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopwatchResultCancel"
+            style="@style/Widget.FastMediaSorter.Button.DialogCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/cancel" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopwatchResultSave"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@string/stopwatch_result_action_save" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopwatchResultSend"
+            style="@style/Widget.FastMediaSorter.Button.DialogConfirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/dialog_action_button_gap"
+            android:text="@string/stopwatch_result_action_send" />
+    </LinearLayout>
+</LinearLayout>

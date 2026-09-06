@@ -117,7 +117,11 @@ private fun PickerHeader(kind: WearTileKind) {
     val titleRes = when (kind) {
         WearTileKind.RESOURCE -> R.string.wear_tile_picker_title_resource
         WearTileKind.STREAM -> R.string.wear_tile_picker_title_stream
+        // A kind with no assignable target leaves the picker before it draws (S2511); these branches exist
+        // to keep the classification total, not because the screen can show them.
         WearTileKind.FAVOURITES -> R.string.wear_tile_favourites_label
+        WearTileKind.PROGRAMS -> R.string.wear_tile_programs_label
+        WearTileKind.SECTIONS -> R.string.wear_tile_sections_label
     }
     Text(
         text = stringResource(titleRes),
@@ -134,7 +138,9 @@ private fun PickerEmptyContent(kind: WearTileKind) {
     val emptyRes = when (kind) {
         WearTileKind.RESOURCE -> R.string.wear_tile_picker_empty_resource
         WearTileKind.STREAM -> R.string.wear_tile_picker_empty_stream
-        WearTileKind.FAVOURITES -> R.string.wear_tile_favourites_empty
+        WearTileKind.FAVOURITES,
+        WearTileKind.PROGRAMS,
+        WearTileKind.SECTIONS -> R.string.wear_tile_favourites_empty
     }
     Text(
         text = stringResource(emptyRes),

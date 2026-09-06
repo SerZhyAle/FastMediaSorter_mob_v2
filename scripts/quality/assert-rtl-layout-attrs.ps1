@@ -33,6 +33,8 @@
       0 - pass (count at or below baseline, or a non-gate mode).
       1 - fail: the count rose above the baseline, or a changed file carries an occurrence.
       2 - cannot verify: the scan root is missing, or a named changed file does not exist.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 #>
 
 [CmdletBinding()]
@@ -46,6 +48,8 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $baselinePath = Join-Path $PSScriptRoot 'rtl-layout-attrs-baseline.txt'
 $pattern = 'android:(layout_marginLeft|layout_marginRight|layout_alignParentLeft|' +
     'layout_alignParentRight|layout_toLeftOf|layout_toRightOf|paddingLeft|paddingRight)=|' +
@@ -100,7 +104,12 @@ $baseline = if (Test-Path -LiteralPath $baselinePath) { [int](Get-Content -Liter
 
 if ($UpdateBaseline) {
     if ($count -lt $baseline -or -not (Test-Path -LiteralPath $baselinePath)) {
-        Set-Content -LiteralPath $baselinePath -Value $count -Encoding utf8NoBOM
+        $scope = $null
+        try {
+            $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-rtl-layout-attrs.ps1 -UpdateBaseline'
+            Set-Content -LiteralPath $baselinePath -Value $count -Encoding utf8NoBOM
+        }
+        finally { Exit-CodeLockScope -Scope $scope }
         Write-Output "assert-rtl-layout-attrs: baseline set to $count (was $baseline)."
     }
     else {

@@ -94,4 +94,40 @@ class LauncherShortcutSyncRepositoryImplTest {
 
         assertEquals(setOf("route.game"), repository.syncedRoutes())
     }
+
+    @Test
+    fun `a resource baseline that was never written returns null`() = runTest {
+        assertNull(repository.syncedResourcePaths())
+    }
+
+    @Test
+    fun `a populated resource baseline reads back unchanged`() = runTest {
+        val paths = setOf("virtual://all_audio", "virtual://all_video")
+
+        repository.setSyncedResourcePaths(paths)
+
+        assertEquals(paths, repository.syncedResourcePaths())
+    }
+
+    @Test
+    fun `clearing the resource baseline returns it to absent and not to empty`() = runTest {
+        repository.setSyncedResourcePaths(setOf("virtual://all_audio"))
+
+        repository.clearSyncedResourcePaths()
+
+        assertNull(repository.syncedResourcePaths())
+    }
+
+    // S2564: one DataStore, two keys - a clear of either baseline must leave the other one standing,
+    // or the launcher reset and the two sync passes would silently undo each other's bookkeeping.
+    @Test
+    fun `the two baselines are stored independently of each other`() = runTest {
+        repository.setSyncedRoutes(setOf("route.calculator"))
+        repository.setSyncedResourcePaths(setOf("virtual://all_audio"))
+
+        repository.clearSyncedRoutes()
+
+        assertNull(repository.syncedRoutes())
+        assertEquals(setOf("virtual://all_audio"), repository.syncedResourcePaths())
+    }
 }

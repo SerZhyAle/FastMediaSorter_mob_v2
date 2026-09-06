@@ -3,10 +3,13 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
+import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.isVisible
+import androidx.lifecycle.findViewTreeLifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherWeatherBinding
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
@@ -19,7 +22,9 @@ import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -56,7 +61,22 @@ private class WeatherGadgetView(
 
     init {
         contentDescription = context.getString(R.string.launcher_gadget_weather_actions)
-        setOnClickListener { openWeatherApp(context) }
+        setOnClickListener {
+            openWeatherApp(context)
+            refreshWeatherOnTap()
+        }
+    }
+
+    private fun refreshWeatherOnTap() {
+        Timber.d("S1905: weather gadget tapped, forcing refresh for ${location?.label}")
+        val place = location ?: return
+        findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
+            when (val result = getWeather(place, forceRefresh = true)) {
+                is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
+                is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
+                WeatherResult.Unavailable -> showMessage(R.string.launcher_gadget_weather_unavailable)
+            }
+        }
     }
 
     override suspend fun CoroutineScope.onActive() {
@@ -76,12 +96,17 @@ private class WeatherGadgetView(
     }
 
     private fun showSnapshot(snapshot: WeatherSnapshot, stale: Boolean) {
+        Timber.d("S1905: gadget draws ${snapshot.location.label} at ${snapshot.observedAtMs} stale=$stale")
         binding.gadgetWeatherIcon.setImageResource(iconFor(snapshot.condition, snapshot.isDay))
         binding.gadgetWeatherIcon.isVisible = true
         binding.gadgetWeatherCaption.isVisible = false
         binding.gadgetWeatherTemperature.text = formatTemperature(snapshot)
         binding.gadgetWeatherPlace.text = snapshot.location.label
         binding.gadgetWeatherPlace.isVisible = true
+        val formattedTime = DateFormat.getTimeFormat(context).format(Date(snapshot.observedAtMs))
+        binding.gadgetWeatherUpdatedAt.text =
+            context.getString(R.string.launcher_gadget_weather_updated_at, formattedTime)
+        binding.gadgetWeatherUpdatedAt.isVisible = true
         binding.gadgetWeatherMessage.isVisible = stale
         if (stale) {
             binding.gadgetWeatherMessage.setText(R.string.launcher_gadget_weather_stale)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -114,7 +115,8 @@ private fun AppChip(
             Icon(
                 painter = painterResource(iconFor(app.id)),
                 contentDescription = null,
-                modifier = glyphModifier
+                modifier = glyphModifier,
+                tint = colorResource(WearAppAccentCatalog.accentFor(app.id))
             )
         }
     )
@@ -161,10 +163,12 @@ private fun AppCell(
         // distinction S2177 exists to preserve.
         captionLayout = CellCaption(maxLines = APP_LABEL_MAX_LINES)
     ) { glyphModifier ->
+        timber.log.Timber.d("S2510: AppsScreen accent id=%s", app.id)
         Icon(
             painter = painterResource(iconFor(app.id)),
             contentDescription = null,
-            modifier = glyphModifier
+            modifier = glyphModifier,
+            tint = colorResource(WearAppAccentCatalog.accentFor(app.id))
         )
     }
 }
@@ -179,11 +183,5 @@ private fun AppCell(
 @DrawableRes
 private fun iconFor(id: WearAppId): Int {
     timber.log.Timber.d("S2474: AppsScreen.iconFor id=%s", id)
-    return when (id) {
-        WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
-        WearAppId.NETWORK_MONITOR -> R.drawable.ic_network_monitor
-        WearAppId.GAME -> R.drawable.ic_app_game
-        WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
-        WearAppId.SYSTEM_INFO -> R.drawable.ic_info
-    }
+    return WearAppIconCatalog.iconFor(id)
 }

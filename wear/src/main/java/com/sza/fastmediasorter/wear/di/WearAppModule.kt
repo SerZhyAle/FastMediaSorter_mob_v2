@@ -34,6 +34,7 @@ import com.sza.fastmediasorter.wear.data.repository.WearLocalFolderRepositoryImp
 import com.sza.fastmediasorter.wear.data.repository.WearMediaRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearOpenOnPhoneRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearOpenUrlOnPhoneRepositoryImpl
+import com.sza.fastmediasorter.wear.data.wear.AndroidWearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearHardwareDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearHealthDataSource
 import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
@@ -46,6 +47,7 @@ import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearHardwareDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearHealthDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
@@ -298,6 +300,12 @@ object WearAppModule {
     fun provideWearHardwareDataSource(
         impl: AndroidWearHardwareDataSource
     ): WearHardwareDataSource = impl
+
+    @Provides
+    @Singleton
+    fun provideWearEnvironmentDataSource(
+        impl: AndroidWearEnvironmentDataSource
+    ): WearEnvironmentDataSource = impl
 
     // S2142: the capability policy reads this to decide whether a MediaStore row may be written at
     // all, so it has to answer on every device - including the 28-29 band, where the answer is "no".

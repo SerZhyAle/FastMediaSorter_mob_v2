@@ -22,7 +22,7 @@
          itself, or dot-sources a library that does (otherwise Write-Error is non-terminating
          already and the exit line is reached);
       2. a `Write-Error` carries no explicit -ErrorAction;
-      3. an `exit N` with N != 1 sits on the same line or within the next few.
+      3. an `exit N` with N != 1 starts within a few lines of where that statement ends.
 
     S1547 corrected condition 1. It used to read the scanned file's own lines only - true for a
     file with no dot-sources, wrong for one with them. The 21 scripts sourcing
@@ -49,13 +49,29 @@
     ignored because its value is not statically known. Rule C ratchets against
     scripts/quality/exit-reason-baseline.txt: the count may fall, never rise.
 
-    KNOWN LIMITATION (accepted, not a bug to file): the scan is line-based, so a
-    multi-line `Write-Error (...)` whose `-ErrorAction Continue` sits on a continuation
-    line reads as rule 2 and gets flagged although the exit is reachable. It over-blocks,
-    never under-blocks - so it nags, it does not let a broken exit code through. Workaround
-    is one line: build the message into a variable first, then
-    `Write-Error $msg -ErrorAction Continue`. Fixing it properly needs AST parsing rather
-    than regex; judged not worth the machinery (ticket raised 2026-07-16 and archived).
+    S2609 moved rule A off the line and onto the PowerShell parser. A `Write-Error (...)`
+    wrapped over several physical lines used to be read one line at a time, so an
+    `-ErrorAction Continue` sitting on a continuation line was outside what the scan could
+    see. That cost both directions: a cured site was reported as a defect - measured on
+    assert-wear-mirrored-strings.ps1:174, whose suggested fix was already applied - and an
+    UNCURED wrapped site was missed exactly as silently, leaving the class this gate was
+    written for unchecked wherever a statement breaks. Conditions 2 and 3 now read a
+    `CommandAst` and an `ExitStatementAst`, which buys three things beyond the wrapped flag:
+    a here-string body is no longer mistaken for code, `-ea` and any unambiguous prefix of
+    -ErrorAction count as cured, and the `exit N` window is measured from the statement's
+    LAST line instead of its first. A splatted `Write-Error @params` is spared - its
+    parameter set is not statically known, and guessing is the over-block case K4 refuses.
+
+    Rules B and C stay line-based on purpose: they read `exit` statements and printed
+    reasons, neither of which a line break disturbs, and widening the rewrite would grow the
+    failure surface of a gate that runs in the fast battery.
+
+    A file the parser refuses falls back to the line scan and is NAMED in the report rather
+    than dropped - a gate that skips a file silently answers a question nobody asked. The
+    scanned roots hold no such file: assert-script-parses.ps1 (S2619) refuses one outright,
+    since a file the parser cannot read cannot be executed either. The fallback stays as the
+    degradation path, so if one ever appears between runs this gate names it instead of
+    quietly reporting a verdict about a smaller set than its summary line claims.
 
     Exit codes:
       0 - no unreachable exit site, no silent script, Rule C at or below baseline
@@ -179,6 +195,111 @@ function Test-LibrarySetsStop([string]$path) {
     return $verdict
 }
 
+# --- Rule A, the line-based form (S1070) -------------------------------------------------------
+# Kept only as the fallback for a file the parser refuses (S2609). The scanned roots hold no such
+# file - assert-script-parses.ps1 (S2619) refuses one outright - but skipping a file here would
+# print a verdict about a smaller set than the summary line names, so the fallback stays.
+function Get-RuleAFindingsByLine([string[]]$lines) {
+    $found = @()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        # Condition 2: a Write-Error with no explicit -ErrorAction. Skip comment lines -
+        # a header explaining this very rule must not trip the gate that enforces it.
+        if ($line -match '^\s*#') { continue }
+        if ($line -notmatch 'Write-Error') { continue }
+        if ($line -match '-ErrorAction') { continue }
+
+        # Condition 3: an exit N (N != 1) within reach.
+        for ($k = $i; $k -lt [Math]::Min($i + $script:lookahead + 1, $lines.Count); $k++) {
+            if ($lines[$k] -match '\bexit\s+([2-9])\b') {
+                $found += [pscustomobject]@{
+                    Line = $i + 1
+                    Code = [int]$Matches[1]
+                    Text = $line.Trim()
+                    Span = 1
+                }
+                break
+            }
+        }
+    }
+    return , $found
+}
+
+# --- Rule A, the parsed form (S2609) -----------------------------------------------------------
+# A `Write-Error (...)` wrapped over several physical lines put its -ErrorAction on a continuation
+# line, and the scan above reads one line at a time, so the flag was outside what it could see: a
+# cured site was reported as a defect, and an UNcured wrapped site was missed the same way - the very
+# class this gate exists for, unchecked wherever a statement breaks. The parser reads the whole
+# invocation, so a line break stops meaning anything. Returns $null when the file does not parse, so
+# the caller can tell "nothing found" from "could not look" - the distinction this gate audits.
+function Get-RuleAFindingsByAst([string[]]$lines) {
+    $tokens = $null
+    $errors = $null
+    $ast = [System.Management.Automation.Language.Parser]::ParseInput(
+        ($lines -join "`n"), [ref]$tokens, [ref]$errors)
+    if ($errors -and $errors.Count -gt 0) { return $null }
+
+    # An `exit N` with N >= 2, keyed by the line it starts on. The old scan spelled this `[2-9]`, a
+    # shorthand for the header's "N = 1 is excluded deliberately" that silently stopped at one digit,
+    # so `exit 11` was never checked at all.
+    $exitLines = @{}
+    $exitAsts = $ast.FindAll(
+        { param($n) $n -is [System.Management.Automation.Language.ExitStatementAst] }, $true)
+    foreach ($e in $exitAsts) {
+        if (-not $e.Pipeline) { continue }
+        $expr = $e.Pipeline.GetPureExpression()
+        if ($expr -isnot [System.Management.Automation.Language.ConstantExpressionAst]) { continue }
+        if ($expr.Value -isnot [int]) { continue }
+        $code = [int]$expr.Value
+        if ($code -lt 2) { continue }
+        $exitLines[$e.Extent.StartLineNumber] = $code
+    }
+
+    $found = @()
+    $cmdAsts = $ast.FindAll(
+        { param($n) $n -is [System.Management.Automation.Language.CommandAst] }, $true)
+    foreach ($cmd in $cmdAsts) {
+        if ($cmd.GetCommandName() -ne 'Write-Error') { continue }
+
+        $cured = $false
+        foreach ($el in $cmd.CommandElements) {
+            # PowerShell binds any unambiguous prefix plus the -ea alias, so the literal spelling is
+            # not the only cured shape a reader may have written.
+            if ($el -is [System.Management.Automation.Language.CommandParameterAst]) {
+                $p = $el.ParameterName
+                if ($p -and ($p -eq 'ea' -or 'erroraction'.StartsWith($p.ToLowerInvariant()))) {
+                    $cured = $true
+                    break
+                }
+            }
+            # A splatted call keeps its parameters in a hashtable whose contents are not statically
+            # known. Guessing would over-block - the trade case K4 already refused for a dot-source
+            # path assembled at run time.
+            if ($el -is [System.Management.Automation.Language.VariableExpressionAst] -and $el.Splatted) {
+                $cured = $true
+                break
+            }
+        }
+        if ($cured) { continue }
+
+        # Condition 3, measured from the statement's LAST line: a five-line invocation used to run
+        # past the three-line lookahead before the lookahead had anywhere left to look.
+        $startLine = $cmd.Extent.StartLineNumber
+        $endLine = $cmd.Extent.EndLineNumber
+        for ($ln = $endLine; $ln -le $endLine + $script:lookahead; $ln++) {
+            if (-not $exitLines.ContainsKey($ln)) { continue }
+            $found += [pscustomobject]@{
+                Line = $startLine
+                Code = $exitLines[$ln]
+                Text = $lines[$startLine - 1].Trim()
+                Span = $endLine - $startLine + 1
+            }
+            break
+        }
+    }
+    return , $found
+}
+
 $files = @(foreach ($root in $scanRoots) {
     if (Test-Path $root -PathType Leaf) {
         Get-Item -LiteralPath $root
@@ -195,6 +316,7 @@ $files = @(foreach ($root in $scanRoots) {
 $findings = @()
 $silent = @()
 $reasonless = @()
+$parseFallback = @()
 foreach ($f in $files) {
     $lines = Get-Content -LiteralPath $f.FullName -ErrorAction SilentlyContinue
     if (-not $lines) { continue }
@@ -272,26 +394,22 @@ foreach ($f in $files) {
     }
     if (-not $underStop) { continue }
 
-    for ($i = 0; $i -lt $lines.Count; $i++) {
-        $line = $lines[$i]
-        # Condition 2: a Write-Error with no explicit -ErrorAction. Skip comment lines -
-        # a header explaining this very rule must not trip the gate that enforces it.
-        if ($line -match '^\s*#') { continue }
-        if ($line -notmatch 'Write-Error') { continue }
-        if ($line -match '-ErrorAction') { continue }
-
-        # Condition 3: an exit N (N != 1) within reach.
-        for ($k = $i; $k -lt [Math]::Min($i + $lookahead + 1, $lines.Count); $k++) {
-            if ($lines[$k] -match '\bexit\s+([2-9])\b') {
-                $findings += [pscustomobject]@{
-                    File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
-                    Line = $i + 1
-                    Code = [int]$Matches[1]
-                    Text = $line.Trim()
-                    Inherited = $inheritedFrom
-                }
-                break
-            }
+    # Conditions 2 and 3 are the parser's job (S2609). A file it refuses is scanned by the old
+    # line pass instead of being dropped, and named in the report below - "found nothing" and
+    # "could not look" are the two answers this gate exists to keep apart.
+    $ruleAHits = Get-RuleAFindingsByAst $lines
+    if ($null -eq $ruleAHits) {
+        $parseFallback += $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
+        $ruleAHits = Get-RuleAFindingsByLine $lines
+    }
+    foreach ($hit in $ruleAHits) {
+        $findings += [pscustomobject]@{
+            File = $f.FullName.Replace($repoRoot + [IO.Path]::DirectorySeparatorChar, '')
+            Line = $hit.Line
+            Code = $hit.Code
+            Text = $hit.Text
+            Span = $hit.Span
+            Inherited = $inheritedFrom
         }
     }
 }
@@ -305,10 +423,18 @@ if (-not $Quiet) {
             Write-Host ("      runs under Stop inherited from {0}" -f $x.Inherited) -ForegroundColor DarkGray
         }
         Write-Host ("      {0}" -f $x.Text) -ForegroundColor DarkGray
+        # The line printed above is only the first of several, and on its own it looks like a call
+        # that could still carry the flag further down. Say how far the statement actually runs.
+        if ($x.Span -gt 1) {
+            Write-Host ("      statement spans lines {0}-{1}" -f $x.Line, ($x.Line + $x.Span - 1)) -ForegroundColor DarkGray
+        }
     }
     if ($findings.Count -gt 0) {
         Write-Host ''
         Write-Host '  Fix: add -ErrorAction Continue to the Write-Error so the exit line is reached.' -ForegroundColor Yellow
+    }
+    foreach ($p in $parseFallback) {
+        Write-Host ("  {0}  does not parse - rule A used the line scan for it (owned by S2619)" -f $p) -ForegroundColor DarkYellow
     }
     foreach ($s in $silent) {
         Write-Host ("  {0}  sets no exit code - the caller keeps whatever `$LASTEXITCODE it had" -f $s) -ForegroundColor Red

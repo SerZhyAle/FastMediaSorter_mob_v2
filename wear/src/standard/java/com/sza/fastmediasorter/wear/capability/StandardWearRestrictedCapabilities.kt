@@ -19,4 +19,10 @@ import javax.inject.Inject
 class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedCapabilities {
 
     override val offersCredentialEntry: Boolean = false
+
+    /**
+     * S2457: neither heart-rate permission is declared in this flavor, so the diagnostic has no path and
+     * the Apps catalog withholds its row rather than offering one that could only report a refusal.
+     */
+    override val offersBodySensorDiagnostics: Boolean = false
 }

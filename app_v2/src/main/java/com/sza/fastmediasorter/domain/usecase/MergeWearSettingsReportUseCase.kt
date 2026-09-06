@@ -32,8 +32,12 @@ class MergeWearSettingsReportUseCase @Inject constructor(
      *   timing parameters, so the existing positional call sites keep compiling; defaults to the whole
      *   contract, which is exactly the behaviour that shipped before this ticket.
      * @return the merged set, already written to the mirror.
+     *
+     * S2515: suspends because it writes the mirror. The listener service, the only caller outside the
+     * companion sheet, already runs this inside an application-scope launch on IO, so that leg is
+     * unaffected.
      */
-    operator fun invoke(
+    suspend operator fun invoke(
         incoming: WearSettingsPayload,
         sentAtEpochMillis: Long? = null,
         receivedAtEpochMillis: Long = System.currentTimeMillis(),
@@ -109,6 +113,7 @@ class MergeWearSettingsReportUseCase @Inject constructor(
             stored.fileListViewMode
         ),
         backgroundMode = merge.optional("backgroundMode", incoming.backgroundMode, stored.backgroundMode),
+        colorScheme = merge.optional("colorScheme", incoming.colorScheme, stored.colorScheme),
         backgroundPlaybackEnabled = merge.optional(
             "backgroundPlaybackEnabled",
             incoming.backgroundPlaybackEnabled,

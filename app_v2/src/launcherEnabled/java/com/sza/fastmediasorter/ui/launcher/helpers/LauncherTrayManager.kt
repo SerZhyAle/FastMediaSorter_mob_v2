@@ -31,8 +31,10 @@ import com.sza.fastmediasorter.databinding.LauncherStatusClockBinding
 import com.sza.fastmediasorter.databinding.LauncherStatusIndicatorsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.devicestatus.NetworkTransport
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
 import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
+import com.sza.fastmediasorter.domain.network.HotspotStateSource
 import com.sza.fastmediasorter.domain.usecase.devicestatus.GetNetworkStatusUseCase
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBadgeMapper
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothConnectionMonitor
@@ -75,6 +77,12 @@ class LauncherTrayManager(
     private val lifecycleOwner: LifecycleOwner,
     private val clock: LauncherStatusClockBinding,
     private val indicators: LauncherStatusIndicatorsBinding,
+    /**
+     * S2027 ADR-5: handed in rather than constructed here. The taskbar and the strip each own a renderer,
+     * so building it locally would give the two placements one broadcast receiver apiece for the same
+     * system event - the singleton binding exists precisely to keep that at one.
+     */
+    private val hotspotStateSource: HotspotStateSource,
     private val callbacks: LauncherTrayCallbacks = LauncherTrayCallbacks(),
 ) : DefaultLifecycleObserver {
 
@@ -113,6 +121,7 @@ class LauncherTrayManager(
 
     /** Held so the collection can be cancelled when the switch goes off, not merely hidden (§5.2). */
     private var bluetoothJob: Job? = null
+    private var hotspotJob: Job? = null
 
     private var simJob: Job? = null
     private var speedJob: Job? = null
@@ -153,9 +162,15 @@ class LauncherTrayManager(
         val openNetwork = callbacks.onOpenNetworkSurface
         val routeTo = { indicator: LauncherTrayIndicator ->
             val (sectionKey, osShortcutKey) = LauncherTraySectionRouting.routeFor(indicator, lastTransport)
-            openNetwork(sectionKey, osShortcutKey)
+            if (LauncherTraySectionRouting.opensSystemScreenDirectly(indicator)) {
+                Timber.d("S2027: tray tap $indicator -> system screen $osShortcutKey")
+                openSystem(osShortcutKey)
+            } else {
+                openNetwork(sectionKey, osShortcutKey)
+            }
         }
         indicators.trayBluetooth.setOnClickListener { routeTo(LauncherTrayIndicator.BLUETOOTH) }
+        indicators.trayHotspot.setOnClickListener { routeTo(LauncherTrayIndicator.TETHERING) }
         indicators.traySim1.setOnClickListener { routeTo(LauncherTrayIndicator.SIM1) }
         indicators.traySim2.setOnClickListener { routeTo(LauncherTrayIndicator.SIM2) }
         indicators.traySpeedRx.setOnClickListener { routeTo(LauncherTrayIndicator.SPEED_RX) }
@@ -199,6 +214,8 @@ class LauncherTrayManager(
         stopBlink()
         speedJob?.cancel()
         speedJob = null
+        hotspotJob?.cancel()
+        hotspotJob = null
     }
 
     /**
@@ -216,8 +233,37 @@ class LauncherTrayManager(
         if (network) registerNetwork() else unregisterNetwork()
         if (!battery) stopBlink()
         applyBluetooth(statusContentVisible && composition.bluetooth)
+        applyHotspot(statusContentVisible && composition.tethering)
         applySim(statusContentVisible && (composition.sim1 || composition.sim2))
         applySpeed(statusContentVisible && composition.speed)
+    }
+
+    private fun applyHotspot(enabled: Boolean) {
+        if (!enabled) {
+            hotspotJob?.cancel()
+            hotspotJob = null
+            indicators.trayHotspot.isVisible = false
+            return
+        }
+        if (hotspotJob?.isActive == true) return
+        hotspotJob = lifecycleOwner.collectOnLifecycle(hotspotStateSource.state()) { state ->
+            renderHotspot(state)
+        }
+    }
+
+    private fun renderHotspot(state: HotspotState) {
+        Timber.d("S2027: tray hotspot render state=$state")
+        if (state != HotspotState.ENABLED) {
+            indicators.trayHotspot.isVisible = false
+            return
+        }
+        indicators.trayHotspot.apply(
+            LauncherTrayIconModel(
+                iconRes = R.drawable.ic_wifi_tethering,
+                contentDescription = describe(context.getString(R.string.launcher_tray_tethering_on)),
+            ),
+        )
+        indicators.trayHotspot.isVisible = true
     }
 
     private fun applySpeed(enabled: Boolean) {

@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
@@ -50,6 +52,8 @@ data class SettingsUiState(
 
     /** S2209: disable visual transition and decorative animations across the Wear OS app. */
     val isAnimationsDisabled: Boolean = false,
+    /** S2536: the charge at which this watch quietens itself. Judged locally, never sent as a verdict. */
+    val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT,
 
     /** S1862: who decides that a finished voice note leaves the watch. Ships automatic (§6 item 1). */
     val voiceNoteSendPolicy: VoiceNoteSendPolicy = VoiceNoteSendPolicy.AUTOMATIC,
@@ -59,6 +63,9 @@ data class SettingsUiState(
      * sides; the picture it selects stays a phone-side choice, because picking one means a gallery.
      */
     val backgroundMode: WearBackgroundMode = WearBackgroundMode.BRANDED_ANIMATION,
+
+    /** S2522: the scheme the interface is drawn in. The default reproduces today's appearance. */
+    val colorScheme: WearColorScheme = WearColorScheme.DEFAULT,
 
     /** S2093: epoch-millis the two sides last agreed, or 0 when they never have. */
     val lastSyncedAtEpochMillis: Long = 0L,

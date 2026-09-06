@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorSettings
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 
 @AndroidEntryPoint
 class CalculatorActivity :
@@ -111,10 +112,17 @@ class CalculatorActivity :
         if (::inputManager.isInitialized) inputManager.reloadSettings()
     }
 
+    /**
+     * S2613: the Operations tab, not Playback. `rowEnableCalculator` is registered under
+     * `destination: OPERATIONS`, so the tab this used to open is one the switch has never been on -
+     * the button that exists to fix the disabled state could not reach the control that fixes it.
+     * `AppLaunchPanelRouteIntents.calculatorSettings` already pointed at Operations.
+     */
     private fun openSettings() {
+        Timber.d("S2613: calculator fallback opens settings on TAB_OPERATIONS")
         startActivity(
             Intent(this, SettingsActivity::class.java)
-                .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_PLAYBACK)
+                .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
         )
     }
 

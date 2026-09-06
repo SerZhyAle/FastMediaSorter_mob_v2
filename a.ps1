@@ -31,13 +31,18 @@
            them instead of installing on each one, the owner's phone included (S2363).
     fw   - Fast Kotlin compile check, wear module (standard flavor)
     fwn  - Fast Kotlin compile check, wear module (noLegal flavor)
-    fwr  - Fast resources/manifest check, wear module
+    fwr  - Fast resources/manifest check, wear module (standard flavor)
+    fwrn - Fast resources/manifest check, wear module (noLegal flavor)
     fwu  - Fast unit-test suite, wear module
            fk/fkn/fr/fc/fu all check app_v2. A change under wear/ needs fw/fwr/fwu -
            the phone target exits 0 without looking at the watch module at all.
            fw covers only the flavor the module declares first, standard. Since S2486 the
            two wear flavors compile different code, so a change under wear/src/standard or
            wear/src/noLegal needs fwn as well - fw alone passes on a binding declared once.
+           The same now holds for resources: S2458 created wear/src/noLegal/AndroidManifest.xml,
+           so the flavors merge DIFFERENT manifests and fwr sees only the one with no permission
+           in it. A change to a flavor manifest needs fwrn, and its merged output is the only
+           place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
@@ -242,6 +247,7 @@ $scripts = @{
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
     'fwn'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2486: fw resolves to the module's first flavor, standard - this is the other one
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
+    'fwrn'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2458: fwr resolves to standard, and since wear/src/noLegal/AndroidManifest.xml exists the two flavors merge different manifests - fwr cannot see the one that carries a permission
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
     # S2355: compile the WATCH instrumented set. `fa` compiles app_v2 only, so quoting it under a
     # wear change records a verdict about the other module - the miss S1807 measured five times.
@@ -361,7 +367,8 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "         fam/fwm take -DeviceId <serial>; several devices attached = refusal, not a fan-out" -ForegroundColor Cyan
     Write-Host "  fw   - Fast Kotlin compile check, wear module (standard flavor)" -ForegroundColor Cyan
     Write-Host "  fwn  - Fast Kotlin compile check, wear module (noLegal flavor)" -ForegroundColor Cyan
-    Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
+    Write-Host "  fwr  - Fast resources/manifest check, wear module (standard flavor)" -ForegroundColor Cyan
+    Write-Host "  fwrn - Fast resources/manifest check, wear module (noLegal flavor)" -ForegroundColor Cyan
     Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan
     Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
     Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan

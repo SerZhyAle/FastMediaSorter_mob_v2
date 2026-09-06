@@ -92,6 +92,7 @@ class PowerStateObserver @Inject constructor(
             osPowerSaveMode = osPowerSaveMode,
             animationsDisabled = animationsDisabled
         )
+        Timber.d("S2536: phone level=${mutableLevel.value} charge=$chargePercent osSaver=$osPowerSaveMode")
     }
 
     private fun startObserving() {

@@ -32,6 +32,10 @@
       1  -Gate and at least one rule is above its baseline.
       2  cannot verify - an unknown rule name in -Only, a source root that does not exist, or
          (-Explain) a rule whose baseline file has no commit, so there is no reference point.
+      4  -UpdateBaseline only: Code.Scripts is held by another session, so no baseline was
+         written. The queue place is held - wait for the turn in the background and rerun.
+         S2635. The auto-ratchet on a plain gate run never returns this: it SKIPS the write and
+         keeps its verdict, because that write is bookkeeping and the verdict is already PASS.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Gate
@@ -55,6 +59,38 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'lib/source-matchers.ps1')
 . (Join-Path $PSScriptRoot 'lib/changed-files.ps1')
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
+function Set-BaselineUnderCodeLock {
+    <#
+    .SYNOPSIS
+        S2635: write one baseline file holding Code.Scripts, taken LAZILY and released at once.
+    .DESCRIPTION
+        Every caller below is on a branch that has already decided a write is due, so the domain is
+        taken here and nowhere earlier. Taking it at the top of the script would serialise the
+        eleven forwarders `.\a.ps1 fg` runs concurrently (S2451) on every run, for a write that
+        happens only when a rule's live count actually dropped.
+
+        A busy domain SKIPS the write and returns $false. The verdict this run computed is
+        unaffected - the count is at or below baseline either way - so failing here would paint fg
+        red over bookkeeping. The baseline stays one run stale, which is the pre-S1338 state and
+        self-healing.
+    #>
+    param(
+        [Parameter(Mandatory)][string]$BaselineFile,
+        [Parameter(Mandatory)][string]$Value,
+        [Parameter(Mandatory)][string]$RuleName
+    )
+
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrSkip -Path $BaselineFile -Reason "assert-source-gates.ps1 ratchet $RuleName"
+        if ($scope.Skipped) { return $false }
+        Set-Content -LiteralPath $BaselineFile -Value $Value
+        return $true
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
+}
 
 $rules = @(Get-SourceRules)
 
@@ -257,7 +293,14 @@ foreach ($rule in $rules) {
 
     if (-not (Test-Path $baselineFile)) {
         Write-Host ("{0}: NO BASELINE yet | actual {1} - run -UpdateBaseline to seed." -f $rule.Name, $current)
-        if ($UpdateBaseline) { Set-Content -LiteralPath $baselineFile -Value "$current" }
+        if ($UpdateBaseline) {
+            $scope = $null
+            try {
+                $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason "assert-source-gates.ps1 seed $($rule.Name)"
+                Set-Content -LiteralPath $baselineFile -Value "$current"
+            }
+            finally { Exit-CodeLockScope -Scope $scope }
+        }
         continue
     }
 
@@ -265,7 +308,12 @@ foreach ($rule in $rules) {
 
     if ($UpdateBaseline) {
         if ($current -lt $baseline) {
-            Set-Content -LiteralPath $baselineFile -Value "$current"
+            $scope = $null
+            try {
+                $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason "assert-source-gates.ps1 -UpdateBaseline $($rule.Name)"
+                Set-Content -LiteralPath $baselineFile -Value "$current"
+            }
+            finally { Exit-CodeLockScope -Scope $scope }
             Write-Host ("{0} baseline ratcheted DOWN: {1} -> {2}" -f $rule.Name, $baseline, $current)
         }
         elseif ($current -eq $baseline) {
@@ -295,8 +343,9 @@ foreach ($rule in $rules) {
         # have passed. This branch is unreachable from the delta path above, which returns
         # before it: a scoped count is a fraction of the project total and recording it as the
         # baseline would slam the cap shut on files the run never looked at.
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host ("  ratcheted DOWN: {0} baseline {1} -> {2}" -f $rule.Name, $baseline, $current) -ForegroundColor DarkGray
+        if (Set-BaselineUnderCodeLock -BaselineFile $baselineFile -Value "$current" -RuleName $rule.Name) {
+            Write-Host ("  ratcheted DOWN: {0} baseline {1} -> {2}" -f $rule.Name, $baseline, $current) -ForegroundColor DarkGray
+        }
     }
 }
 

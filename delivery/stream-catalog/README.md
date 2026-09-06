@@ -432,6 +432,44 @@ pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeFa
 The canonical value contract itself (which aliases fold where) is documented in
 `dev/handoff/streams-source-spec/03_catalog_format.md` §2.4.
 
+### Name repair rewrite (S2645)
+
+`-NormalizeNames` repairs the `name` column of the existing catalog and collapses rows that fold to one
+channel identity. Same shape as the facet mode: no network collection, a timestamped backup, reports under
+`temp/S2645/`, nothing uploaded unless `-Publish` is passed. It is idempotent - a second pass over a
+repaired bank reports zero moves.
+
+What it does: decodes HTML entities (including double-encoded ones), strips the serialised
+`- 0 N - ` encoder-slot prefix, collapses whitespace, and rebuilds a name that carries no information -
+`(null)`, a bare `-`, or an encoder default such as `Online Radio` - from the row's own `host:port`. A name
+the broadcaster actually wrote keeps its words and gains the token beside them; one that only asserts the
+absence of a name is replaced by the token. Leading punctuation is left alone: `.977 Country` and
+`#joint radio Blues Rock` are real station names.
+
+It never drops a named row - the inclusion policy above is unchanged. The only rows it removes are exact
+identity duplicates, which are one channel entered twice; the app already resolved both to the same key, so
+a pin on one showed on the other.
+
+```
+# Review the diff first - writes the backup + both reports, publishes nothing:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeNames
+
+# Publish the repaired catalog after reviewing the two reports from the run above:
+pwsh -NoProfile -File scripts/streams/collect-stream-candidates.ps1 -NormalizeNames -Publish
+```
+
+Both reports are timestamped - `name-normalization-moves.<stamp>.csv` and
+`identity-duplicates-dropped.<stamp>.csv` - so the publishing run does not overwrite the reports the
+review run produced. The second run finds nothing left to change and writes two empty ones of its own.
+
+Publishing refuses outright when the name column was never repaired (`Assert-CatalogNamesClean`). The
+refusal names the count per class and points back at this mode; it never strips anything itself, because a
+silent repair on the publish path is an unrecorded change to the shipped bank. The guarantees a published
+bank now carries are in `dev/handoff/streams-source-spec/03_catalog_format.md` §2.5.
+
+The 2026-09-06 pass: 112 rows repaired, 1 224 given a token beside their name, 398 replaced by their token,
+62 identity duplicates collapsed, 19 211 -> 19 149 rows.
+
 ## Inventory (snapshot 2026-07-23, post-webcam replenishment)
 
 - Total: **2361** streams. The catalog includes live TV, public webcams under topic `Webcam`, radio, and test streams.

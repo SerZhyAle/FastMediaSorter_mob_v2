@@ -98,6 +98,8 @@
       2  cannot verify - a registry row's migration directory, schema directory or registration
          file is missing, no @Database class was found for a row, or its declared version cannot
          be read. Every such message names the module.
+      4  Code.Scripts is held by another session, so no baseline was written. The queue place is
+         held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding()]
 param(
@@ -119,6 +121,11 @@ if ($Help) {
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'lib/room-databases.ps1')
+# The code-lock helper is loaded LAZILY, inside the -UpdateBaseline branch, not here. This script
+# is exercised by its contract suite from a temp sandbox that copies scripts/quality/ alone, so a
+# top-level dot-source of ../utils/ cannot resolve and every case dies before it asserts anything.
+# Loading it at the write keeps the sandbox's read-only cases working and still makes the helper
+# mandatory on the one path that needs it (S2635).
 $baselineFile = Join-Path $PSScriptRoot 'migration-schema-conformance-baseline.txt'
 
 function Stop-CannotVerify([string]$message) {
@@ -432,7 +439,14 @@ foreach ($db in $databases) {
 
 # ---- baseline ---------------------------------------------------------------------------
 if ($UpdateBaseline) {
-    ($findings | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+    . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile `
+            -Reason 'assert-migration-schema-conformance.ps1 -UpdateBaseline'
+        ($findings | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host ("assert-migration-schema-conformance: baseline rewritten - {0} accepted disagreement(s)." -f $findings.Count)
     exit 0
 }

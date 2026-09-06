@@ -10,5 +10,8 @@ class GetLauncherWeatherUseCase @Inject constructor(
     private val repository: WeatherRepository,
 ) {
 
-    suspend operator fun invoke(location: WeatherLocation): WeatherResult = repository.current(location)
+    suspend operator fun invoke(
+        location: WeatherLocation,
+        forceRefresh: Boolean = false,
+    ): WeatherResult = repository.current(location, forceRefresh)
 }

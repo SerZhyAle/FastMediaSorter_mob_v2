@@ -20,6 +20,7 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -61,6 +62,19 @@ fun ScreenSettingsScreen(
             )
         }
     }
+    // S2522: the same shape as the background group above - mutually exclusive options, each named in
+    // words rather than shown only as a swatch, so the choice reaches a screen reader too.
+    val colorSchemeLabel = stringResource(R.string.wear_setting_color_scheme)
+    val colorSchemeItems = WearColorScheme.entries.map { scheme ->
+        WearSettingsItem(fullWidth = true) { _ ->
+            ColorSchemeRow(
+                scheme = scheme,
+                groupLabel = colorSchemeLabel,
+                selected = uiState.colorScheme == scheme,
+                onSelect = { viewModel.setColorScheme(scheme) }
+            )
+        }
+    }
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
     val keepAwakeItems = listOf(
         WearSettingsItem { _ ->
@@ -99,6 +113,8 @@ fun ScreenSettingsScreen(
                 items(packSettingsRows(fileListItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = backgroundLabel) }
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
+                item { GroupCaption(text = colorSchemeLabel) }
+                items(packSettingsRows(colorSchemeItems, columns)) { row -> WearSettingsRow(row) }
                 items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
             }
         }
@@ -173,6 +189,41 @@ private fun BackgroundModeRow(
         radio = true,
         accessibilityLabel = "$groupLabel: $label"
     )
+}
+
+/**
+ * S2522: one scheme as a radio row, in the same shape as the background rows above.
+ *
+ * The row is named rather than swatched: strategic 3.2 requires the option to be readable as a word,
+ * without which the choice is unavailable to a screen reader and to an owner who does not tell the
+ * hues apart.
+ */
+@Composable
+private fun ColorSchemeRow(
+    scheme: WearColorScheme,
+    groupLabel: String,
+    selected: Boolean,
+    onSelect: () -> Unit
+) {
+    val label = stringResource(colorSchemeLabelResFor(scheme))
+    WearSettingsToggleCell(
+        label = label,
+        checked = selected,
+        onToggle = { if (!selected) onSelect() },
+        radio = true,
+        accessibilityLabel = "$groupLabel: $label"
+    )
+}
+
+private fun colorSchemeLabelResFor(scheme: WearColorScheme): Int = when (scheme) {
+    WearColorScheme.DARK -> R.string.wear_color_scheme_dark
+    WearColorScheme.LIGHT -> R.string.wear_color_scheme_light
+    WearColorScheme.DARK_GREEN -> R.string.wear_color_scheme_dark_green
+    WearColorScheme.DARK_BLUE -> R.string.wear_color_scheme_dark_blue
+    WearColorScheme.DARK_RED -> R.string.wear_color_scheme_dark_red
+    WearColorScheme.LIGHT_GREEN -> R.string.wear_color_scheme_light_green
+    WearColorScheme.LIGHT_BLUE -> R.string.wear_color_scheme_light_blue
+    WearColorScheme.LIGHT_RED -> R.string.wear_color_scheme_light_red
 }
 
 private fun backgroundLabelResFor(mode: WearBackgroundMode): Int = when (mode) {

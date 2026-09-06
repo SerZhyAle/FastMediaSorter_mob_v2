@@ -95,7 +95,6 @@ class AppStartupInitializer @Inject constructor(
         runDeferredTask("fix-cloud-writable-flag") { fixCloudResourcesWritableFlag() }
         runDeferredTask("fix-local-writable-flag") { fixLocalResourcesWritableFlag() }
         runDeferredTask("fix-virtual-writable-flag") { fixVirtualAggregateWritableFlag() }
-        runDeferredTask("rename-virtual-resources") { renameVirtualResourceNames() }
         runDeferredTask("cleanup-playback-positions") { cleanupPlaybackPositions() }
         runDeferredTask("migrate-thumbnail-cache") { migrateThumbnailCache() }
         runDeferredTask("cleanup-old-thumbnails") { cleanupOldThumbnails() }
@@ -294,8 +293,17 @@ class AppStartupInitializer @Inject constructor(
         }
     }
 
-    private suspend fun renameVirtualResourceNames() {
-        renameVirtualResourcesUseCase.get().invoke()
+    /**
+     * S2627: translates the persisted names of the predefined resources to the current UI language.
+     *
+     * Public and called straight from the application, like [warmGlide] above it, rather than from
+     * [runDeferredStartupTasks]. That list runs inside `DeferredStartupWorker`, which is enqueued with
+     * a thirty-second initial delay - so the folder list drew in the previous language for at least
+     * that long after every language switch, and a session shorter than the delay never ran the pass
+     * at all, leaving the stale names in place for the next launch to show again.
+     */
+    suspend fun renameVirtualResources() {
+        runDeferredTask("rename-virtual-resources") { renameVirtualResourcesUseCase.get().invoke() }
     }
 
     /**

@@ -9,7 +9,7 @@ import com.sza.fastmediasorter.domain.usecase.networkmonitor.CgnatVerdict
  * home-screen widget through RemoteViews and once into a launcher gadget through ordinary Views.
  *
  * "Not asked yet" and "asked, waiting" are first-class states rather than an empty string, because
- * strategic 4.3 splits the eight indicators into event-driven, tap-driven and visible-only classes -
+ * strategic 4.3 splits the nine indicators into event-driven, tap-driven and visible-only classes -
  * a tap-driven cell has to be able to say which of the two it is in, and strategic 3.4 forbids the
  * home widget from ever fetching on a timer, which is only enforceable if "awaiting a tap" is
  * something the renderer can draw.

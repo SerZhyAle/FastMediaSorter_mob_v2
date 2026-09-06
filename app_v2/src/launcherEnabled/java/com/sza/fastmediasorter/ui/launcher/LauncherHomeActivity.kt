@@ -30,6 +30,7 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
+import com.sza.fastmediasorter.domain.network.HotspotStateSource
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetHost
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
@@ -47,8 +48,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherDesktopSwipeActionHan
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherEditModeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherFeatureActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherGadgetRenderManager
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleManager
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleState
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherIdleScreenOffManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherInstantPhotoCaptureManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherModalSurfaceManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherOpenAllAppsRequest
@@ -56,7 +56,6 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResizeManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceActionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceCreateManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherResourceOperations
-import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenBlackoutManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenLockManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenPagingManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherScreenTransitionManager
@@ -105,6 +104,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private var desktopGestureManager: LauncherAllAppsGestureManager? = null
 
+    /** S2384: set by the double tap while its ACTION_DOWN is still being dispatched. */
+    private var screenOffTakenByDoubleTap = false
+
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
 
@@ -123,13 +125,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     @Inject
     lateinit var statusStripManager: LauncherStatusStripManager
 
+    @Inject
+    lateinit var hotspotStateSource: HotspotStateSource
+
     // S1402: the desktop can now carry the "leave launcher mode" action, and handing the home role back
     // is this manager's job - the same one the Start menu row uses.
     @Inject
     lateinit var roleManager: LauncherRoleManager
-
-    @Inject
-    lateinit var idleManager: LauncherIdleManager
 
     // S1423: the one shared launch every home-screen entry point uses; this host never builds the
     // Add Resource intent itself.
@@ -234,8 +236,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     private lateinit var resizeManager: LauncherResizeManager
 
-    // S1741: manages the app-private screen blackout overlay and inactivity timeout.
-    private lateinit var blackoutManager: LauncherScreenBlackoutManager
+    // S1741 / S2384: owns the inactivity countdown; its outcome is the shared screen-off decision point.
+    private lateinit var idleScreenOffManager: LauncherIdleScreenOffManager
 
     /** S2268: the section long-press menu and its dialogs, lifted out of this class unchanged. */
     private val sectionActionsManager by lazy {
@@ -257,7 +259,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         )
     }
 
-    /** S2268: the double-tap screen lock, with the desktop's own black screen as its fallback. */
+    /** S2268 / S2384: the one screen-off decision point, with the desktop's black screen as its fallback. */
     private val screenLockManager by lazy {
         LauncherScreenLockManager(gestureAccessibilityActions, ::showBlackScreen)
     }
@@ -293,19 +295,19 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         LauncherResourceActionManager(
             activity = this,
             scope = lifecycleScope,
-            loadResource = { resourceId -> viewModel.resourceById(resourceId) },
+            loadResource = { resourceId -> viewModel.cellMenu.resourceById(resourceId) },
             runCommand = { command -> viewModel.run(command) },
-            deleteResource = { resourceId -> viewModel.deleteResource(resourceId) },
+            deleteResource = { resourceId -> viewModel.cellMenu.deleteResource(resourceId) },
             shortcutPinManager = resourceShortcutPinManager,
             vrCinema = resourceVrCinema,
             operations = LauncherResourceOperations(
-                scan = { resource -> viewModel.scanResource(resource) },
-                export = { resourceId, target -> viewModel.exportResource(resourceId, target) },
+                scan = { resource -> viewModel.cellMenu.scanResource(resource) },
+                export = { resourceId, target -> viewModel.cellMenu.exportResource(resourceId, target) },
                 exportCompanionConfig = { resource, includePassword ->
-                    viewModel.exportCompanionConfig(resource, includePassword)
+                    viewModel.cellMenu.exportCompanionConfig(resource, includePassword)
                 },
                 companionQrPayload = { resource, includePassword ->
-                    viewModel.companionQrPayload(resource, includePassword)
+                    viewModel.cellMenu.companionQrPayload(resource, includePassword)
                 },
             ),
         )
@@ -314,11 +316,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     private val streamActionManager by lazy {
         LauncherStreamActionManager(
             activity = this,
-            loadStream = { streamId -> viewModel.streamById(streamId) },
-            loadPinnedStreams = { viewModel.pinnedStreams() },
-            togglePin = { source -> viewModel.toggleStreamPin(source) },
-            removeStream = { source -> viewModel.removeStream(source) },
-            streamEdit = viewModel.streamEditDependencies,
+            loadStream = { streamId -> viewModel.cellMenu.streamById(streamId) },
+            loadPinnedStreams = { viewModel.cellMenu.pinnedStreams() },
+            togglePin = { source -> viewModel.cellMenu.toggleStreamPin(source) },
+            removeStream = { source -> viewModel.cellMenu.removeStream(source) },
+            streamEdit = viewModel.cellMenu.streamEditDependencies,
             // S2247: the menu's "add window to desktop" row lands in the add flow, which owns the
             // placement write for every gadget.
             placeDesktopWindow = { identityKey, mediaKind, onResult ->
@@ -373,7 +375,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             gadgetHost = gadgetHost,
             onWeatherReconfigure = { cellId -> addFlowManager.openWeatherLocationPicker(cellId) },
             onWorldClockReconfigure = { cellId -> addFlowManager.openWorldClockZonePicker(cellId) },
+            onSunDewpointReconfigure = { cellId -> addFlowManager.openSunDewpointLocationPicker(cellId) },
             savedWeatherLocation = { viewModel.weatherLastLocation.value.takeIf { it.isNotEmpty() } },
+            cellConfigLocation = { cellId ->
+                viewModel.cellConfigs.value[cellId]?.get(LauncherHomeViewModel.KEY_WEATHER_LOCATION)
+            },
         )
     }
 
@@ -407,12 +413,9 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         binding.launcherRoot.applySystemBarInsetPadding(useStatusBarHeightFallback = false)
         // A home screen has nowhere to go back to: Back must not finish the surface and expose
         // whatever sits behind it.
-        // S2388: Back dismisses active screen blackout or black screen overlay rather than no-oping.
+        // S2388: Back dismisses the active black screen overlay rather than no-oping.
         onBackPressedDispatcher.addCallback(this) {
-            if (::blackoutManager.isInitialized && blackoutManager.isOverlayVisible) {
-                Timber.d("S2388: Back pressed while blackout overlay visible -> hide blackout")
-                blackoutManager.hideBlackout()
-            } else if (blackScreenOverlayManager.isVisible) {
+            if (blackScreenOverlayManager.isVisible) {
                 Timber.d("S2388: Back pressed while black screen overlay visible -> hide black screen")
                 blackScreenOverlayManager.hide()
             }
@@ -425,6 +428,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             lifecycleOwner = this,
             clock = binding.launcherTaskbar.trayClock,
             indicators = binding.launcherTaskbar.trayIndicators,
+            hotspotStateSource = hotspotStateSource,
             callbacks = trayCallbacks(),
             // S1431: gated on the taskbar being the placement in use, not merely on the launcher owning the
             // status area - otherwise this renderer and the strip's would subscribe to the same sources at
@@ -486,8 +490,8 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Order matters: the re-opened picker delivers to the listener registered on the line above, so
         // registering second would drop the very pick this call exists to enable.
         contactPickManager.restorePendingPicker()
-        blackoutManager = LauncherScreenBlackoutManager(WeakReference(this))
-        blackoutManager.onStart()
+        idleScreenOffManager = LauncherIdleScreenOffManager { screenLockManager.turnScreenOff() }
+        idleScreenOffManager.onStart()
     }
 
     /** S2301: the active launcher screen and its page dots, one owner for all four callers. */
@@ -569,8 +573,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             },
             onDoubleTap = {
                 val lockEnabled = viewModel.launcherDesktopSettings.value.launcherDesktopDoubleTapLockEnabled
+                Timber.d("S2384: desktop double tap reached the lock decision (enabled=%b)", lockEnabled)
                 if (lockEnabled) {
-                    screenLockManager.lockScreen()
+                    screenLockManager.turnScreenOff()
+                    // S2384: the gesture must end here for the hierarchy - see endGestureForChildren.
+                    screenOffTakenByDoubleTap = true
                 }
             },
         )
@@ -613,14 +620,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // S2388: Home button/gesture dismisses active screen blackout or black screen overlay.
-        if (::blackoutManager.isInitialized && blackoutManager.isOverlayVisible) {
-            Timber.d("S2388: onNewIntent while blackout overlay visible -> hide blackout")
-            blackoutManager.hideBlackout()
-        }
+        // S2388: Home button/gesture dismisses the active black screen overlay.
         if (blackScreenOverlayManager.isVisible) {
             Timber.d("S2388: onNewIntent while black screen overlay visible -> hide black screen")
             blackScreenOverlayManager.hide()
+            // S2384: the overlay is gone by a route that never reaches dispatchKeyEvent, so the
+            // countdown has to be restarted here or the desktop goes dark again without an idle period.
+            if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onUserInput()
         }
         if (LauncherOpenAllAppsRequest.consume(intent)) modalSurfaces.showAllApps()
     }
@@ -660,25 +666,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             taskbarManager.setEditMode(editMode)
         }
         collectOnLifecycle(viewModel.screenBlackoutTimeoutSeconds) { timeout ->
-            blackoutManager.updateTimeout(timeout)
-        }
-        collectOnLifecycle(idleManager.idleState) { state ->
-            when (state) {
-                LauncherIdleState.ACTIVE -> {
-                    binding.launcherIdleDimOverlay.visibility = View.GONE
-                    binding.launcherIdleDimOverlay.alpha = 0f
-                }
-                LauncherIdleState.DIMMING -> {
-                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
-                    binding.launcherIdleDimOverlay.animate().alpha(
-                        DIM_OVERLAY_ALPHA
-                    ).setDuration(DIM_ANIMATION_DURATION_MS).start()
-                }
-                LauncherIdleState.BLACKOUT -> {
-                    binding.launcherIdleDimOverlay.visibility = View.VISIBLE
-                    binding.launcherIdleDimOverlay.alpha = 1.0f
-                }
-            }
+            idleScreenOffManager.updateTimeout(timeout)
         }
         // S1904: the backdrop is part of what a cell looks like, so a new opacity is a re-render - the
         // binder's render key carries it and skips the rebuild when the value did not actually change.
@@ -858,7 +846,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // Guarded: onStart fires before BaseActivity's posted setupViews() on the very first pass, which
         // is where the manager is created - that pass starts it itself.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStart()
-        if (::blackoutManager.isInitialized) blackoutManager.onStart()
+        if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onStart()
     }
 
     override fun onStop() {
@@ -875,18 +863,18 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         cellScreenMenuManager.dismiss()
         // S1101: symmetric with onStart - an animated wallpaper must not keep drawing off-screen.
         if (::wallpaperManager.isInitialized) wallpaperManager.onStop()
-        if (::blackoutManager.isInitialized) blackoutManager.onStop()
+        if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onStop()
         if (blackScreenOverlayManager.isVisible) blackScreenOverlayManager.hide()
     }
 
     /**
      * S1741: a dialog, a popup or the shade lives in its own window, and its input never reaches the
-     * dispatch* overrides below - so the blackout countdown has to pause on focus loss, or it fires
-     * behind that window and the desktop is already black by the time the user is back on it.
+     * dispatch* overrides below - so the idle countdown has to pause on focus loss, or it turns the
+     * screen off behind that window while the user is reading it.
      */
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (::blackoutManager.isInitialized) blackoutManager.onWindowFocusChanged(hasFocus)
+        if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onWindowFocusChanged(hasFocus)
     }
 
     /**
@@ -916,25 +904,44 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // S1421: the manager holds the strip's binding, so it drops it here rather than leaving a destroyed
         // hierarchy reachable for as long as anything still references the manager.
         statusStripManager.unbind()
-        if (::blackoutManager.isInitialized) blackoutManager.onDestroy()
+        if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onDestroy()
         super.onDestroy()
     }
 
     override fun dispatchTouchEvent(ev: android.view.MotionEvent?): Boolean {
-        if (ev != null && ::idleManager.isInitialized) {
-            idleManager.onUserInteraction()
+        if (ev != null && ::idleScreenOffManager.isInitialized) {
+            idleScreenOffManager.onUserInput()
         }
-        val consumedByOverlay = ev != null && (
-            (::blackoutManager.isInitialized && blackoutManager.onDispatchTouchEvent(ev)) ||
-                consumeTouchForBlackScreen(ev)
-            )
+        val consumedByOverlay = ev != null && consumeTouchForBlackScreen(ev)
         if (consumedByOverlay) {
             return true
         }
         if (ev != null) {
             desktopGestureManager?.onTouchEvent(ev)
         }
-        return super.dispatchTouchEvent(ev)
+        return if (ev != null && screenOffTakenByDoubleTap) {
+            screenOffTakenByDoubleTap = false
+            endGestureForChildren(ev)
+        } else {
+            super.dispatchTouchEvent(ev)
+        }
+    }
+
+    /**
+     * S2384: the double tap turns the screen off from inside the touch stream, and the rest of that
+     * stream never reaches the hierarchy afterwards - the black-screen branch swallows every later event
+     * in [consumeTouchForBlackScreen], and the system-lock branch takes the window away. A child handed
+     * the second tap's ACTION_DOWN therefore keeps the long-press the framework posted with it, and that
+     * long-press fires half a second later on the desktop, opening the quick menu over the dark screen.
+     * That is the "edit menu instead of a lock" the owner reported. Ending the gesture with a cancel
+     * leaves no child holding a half-delivered press.
+     */
+    private fun endGestureForChildren(ev: MotionEvent): Boolean {
+        val cancel = MotionEvent.obtain(ev)
+        cancel.action = MotionEvent.ACTION_CANCEL
+        super.dispatchTouchEvent(cancel)
+        cancel.recycle()
+        return true
     }
 
     private fun consumeTouchForBlackScreen(ev: MotionEvent): Boolean {
@@ -947,12 +954,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchGenericMotionEvent(event: android.view.MotionEvent): Boolean {
-        if (::idleManager.isInitialized) {
-            idleManager.onUserInteraction()
+        if (::idleScreenOffManager.isInitialized) {
+            idleScreenOffManager.onUserInput()
         }
-        val consumed = (::blackoutManager.isInitialized && blackoutManager.onDispatchGenericMotionEvent(event)) ||
-            consumeGenericMotionForBlackScreen()
-        if (consumed) {
+        if (consumeGenericMotionForBlackScreen()) {
             return true
         }
         return super.dispatchGenericMotionEvent(event)
@@ -966,12 +971,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     override fun dispatchKeyEvent(event: android.view.KeyEvent): Boolean {
-        if (::idleManager.isInitialized) {
-            idleManager.onUserInteraction()
+        if (::idleScreenOffManager.isInitialized) {
+            idleScreenOffManager.onUserInput()
         }
-        val consumed = (::blackoutManager.isInitialized && blackoutManager.onDispatchKeyEvent(event)) ||
-            consumeKeyForBlackScreen(event)
-        if (consumed) {
+        if (consumeKeyForBlackScreen(event)) {
             return true
         }
         return super.dispatchKeyEvent(event)
@@ -1035,9 +1038,6 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     companion object {
-        private const val DIM_OVERLAY_ALPHA = 0.6f
-        private const val DIM_ANIMATION_DURATION_MS = 4000L
-
         // S2301: a desktop of one screen has nothing to page to.
         private const val SINGLE_SCREEN = 1
     }

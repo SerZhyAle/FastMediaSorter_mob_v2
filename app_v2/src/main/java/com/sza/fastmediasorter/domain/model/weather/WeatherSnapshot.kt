@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model.weather
 
+import java.time.LocalTime
+
 /**
  * S0426: a place the weather is shown for. Persisted inside a launcher GADGET cell's `target`, so the
  * codec below is the single source of truth for that encoding - the picker writes it, the gadget reads
@@ -83,7 +85,16 @@ enum class WeatherCondition {
     }
 }
 
-/** One reading for one place. [observedAtMs] is our fetch time - it drives the staleness decision. */
+/**
+ * One reading for one place. [observedAtMs] is our fetch time - it drives the staleness decision.
+ *
+ * S1907: [dewPoint] carries no unit of its own - it is a temperature and rides [unit], so a desktop can
+ * never show two different degrees. [sunrise] / [sunset] are the SELECTED PLACE's own wall-clock time
+ * (Open-Meteo answers with `timezone=auto`), which is why they are [LocalTime] rather than an instant:
+ * converting through the device's zone would shift the hour whenever the picked city and the device
+ * disagree. All three are nullable - a provider gap or a cache entry written before S1907 means "not
+ * available", not a failed parse.
+ */
 data class WeatherSnapshot(
     val location: WeatherLocation,
     val temperature: Double,
@@ -91,4 +102,7 @@ data class WeatherSnapshot(
     val condition: WeatherCondition,
     val isDay: Boolean,
     val observedAtMs: Long,
+    val dewPoint: Double? = null,
+    val sunrise: LocalTime? = null,
+    val sunset: LocalTime? = null,
 )

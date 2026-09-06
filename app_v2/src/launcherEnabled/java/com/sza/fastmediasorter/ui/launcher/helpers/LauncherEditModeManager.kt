@@ -163,7 +163,7 @@ class LauncherEditModeManager(
                 stopAutoScroll()
                 val id = event.localState as? Long ?: return@OnDragListener false
                 val target = desktop.cellAt(event.x, event.y)
-                viewModel.moveCell(id, target.row, target.col)
+                viewModel.moveCell(id, target.row, target.col, desktop.columns)
                 true
             }
             // ENDED fires even when the drag was cancelled or released outside the container, so it is

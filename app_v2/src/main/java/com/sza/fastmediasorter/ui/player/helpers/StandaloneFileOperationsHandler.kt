@@ -31,6 +31,9 @@ import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.domain.usecase.OpenInFmsTarget
 import com.sza.fastmediasorter.domain.usecase.ResolveOpenInFmsTargetUseCase
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferRequest
+import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.player.PlayerActivity
@@ -53,6 +56,7 @@ import java.io.File
  *
  * Extracted to keep StandalonePlayerActivity below the 1000-line cap.
  */
+@Suppress("LongParameterList")
 class StandaloneFileOperationsHandler(
     private val activity: AppCompatActivity,
     private val root: View,
@@ -71,6 +75,7 @@ class StandaloneFileOperationsHandler(
     // that do not wire both leave the pinned «Select resource..» entry hidden.
     private val getDestinationsUseCase: GetDestinationsUseCase? = null,
     private val onPickCustomFolderForCopy: () -> Unit = {},
+    private val browseTransferCoordinator: BrowseFileTransferCoordinator? = null,
 ) {
 
     private val safeViews = PlayerBindingSafeViews(root)
@@ -404,38 +409,64 @@ class StandaloneFileOperationsHandler(
 
     private fun transferCurrentFile(destinationPath: String, label: String, isMove: Boolean) {
         val file = getCurrentMediaFile() ?: return
-        val useCase = fileOperationUseCase ?: run {
-            Timber.w("StandalonePlayer: copy/move requested but no FileOperationUseCase wired for this host")
-            return
-        }
         activity.lifecycleScope.launch {
             val settings = getCurrentSettings()
             val startedRes = if (isMove) R.string.msg_move_started else R.string.msg_copy_started
-            val failedRes = if (isMove) R.string.error_move_failed else R.string.error_copy_failed
             Toast.makeText(activity, activity.getString(startedRes, label), Toast.LENGTH_LONG).show()
-            try {
-                val sources = listOf(createNetworkAwareFile(file.path, file.name))
-                val dest = createNetworkAwareFile(destinationPath, null)
-                val operation = if (isMove) {
-                    FileOperation.Move(sources, dest, overwrite = settings.overwriteOnMove)
-                } else {
-                    FileOperation.Copy(sources, dest, overwrite = settings.overwriteOnCopy)
+
+            val coordinator = browseTransferCoordinator
+            if (coordinator != null) {
+                val request = BrowseFileTransferRequest(
+                    operationType = if (isMove) FileOperationType.MOVE else FileOperationType.COPY,
+                    sourceResourceId = -1L,
+                    sourceResourceName = "",
+                    sourceCredentialsId = null,
+                    currentBrowsePath = null,
+                    destinationPath = destinationPath,
+                    destinationName = label,
+                    destinationResourceId = null,
+                    overwriteFiles = if (isMove) settings.overwriteOnMove else settings.overwriteOnCopy,
+                    sources = listOf(
+                        BrowseFileTransferSource(
+                            path = file.path,
+                            displayName = file.name,
+                            size = file.size,
+                            isDirectory = file.isDirectory,
+                        ),
+                    ),
+                )
+                coordinator.enqueue(request)
+                Timber.d("S1224: standalone enqueued %s to %s", if (isMove) "move" else "copy", destinationPath)
+                if (isMove) activity.finish()
+            } else {
+                val useCase = fileOperationUseCase ?: run {
+                    Timber.w("StandalonePlayer: copy/move requested but no FileOperationUseCase wired for this host")
+                    return@launch
                 }
-                when (useCase.execute(operation)) {
-                    is FileOperationResult.Success,
-                    is FileOperationResult.PartialSuccess -> {
-                        val successRes = if (isMove) R.string.msg_move_success else R.string.msg_copy_success
-                        Toast.makeText(activity, activity.getString(successRes, label), Toast.LENGTH_SHORT).show()
-                        // Move removes the shown file, so the single-file viewer has nothing left to show.
-                        if (isMove) activity.finish()
+                val failedRes = if (isMove) R.string.error_move_failed else R.string.error_copy_failed
+                try {
+                    val sources = listOf(createNetworkAwareFile(file.path, file.name))
+                    val dest = createNetworkAwareFile(destinationPath, null)
+                    val operation = if (isMove) {
+                        FileOperation.Move(sources, dest, overwrite = settings.overwriteOnMove)
+                    } else {
+                        FileOperation.Copy(sources, dest, overwrite = settings.overwriteOnCopy)
                     }
-                    else ->
-                        Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
+                    when (useCase.execute(operation)) {
+                        is FileOperationResult.Success,
+                        is FileOperationResult.PartialSuccess -> {
+                            val successRes = if (isMove) R.string.msg_move_success else R.string.msg_copy_success
+                            Toast.makeText(activity, activity.getString(successRes, label), Toast.LENGTH_SHORT).show()
+                            if (isMove) activity.finish()
+                        }
+                        else ->
+                            Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
+                    }
+                } catch (e: Exception) {
+                    e.rethrowIfCancellation()
+                    Timber.e(e, "StandalonePlayer: ${if (isMove) "move" else "copy"} to $destinationPath failed")
+                    Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
                 }
-            } catch (e: Exception) {
-                e.rethrowIfCancellation()
-                Timber.e(e, "StandalonePlayer: ${if (isMove) "move" else "copy"} to $destinationPath failed")
-                Toast.makeText(activity, activity.getString(failedRes), Toast.LENGTH_LONG).show()
             }
         }
     }

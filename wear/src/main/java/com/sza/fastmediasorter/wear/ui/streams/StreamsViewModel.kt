@@ -482,6 +482,11 @@ private fun List<WearStreamChannel>.sortedByUsage(
         .thenBy { it.name }
 ).map { it.channel }
 
+/** Pin ranks, ascending: the lower the rank the earlier the channel sits in the finished list. */
+private const val WATCH_PIN_RANK = 0
+private const val PHONE_PIN_RANK = 1
+private const val UNPINNED_RANK = 2
+
 internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamChannel> {
     val query = inputs.query
     val selectedTopic = inputs.selectedTopic
@@ -521,13 +526,19 @@ internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamCh
     if (inputs.pinnedIdentities.isEmpty() && inputs.phonePinnedIdentities.isEmpty()) {
         return result
     }
-    // S1954: partition last and by address, not row id. Pinning is a second ordering key applied over
-    // whatever the filter and sort already decided, so both groups keep the order chosen above, and a
-    // catalogue re-import that renumbers every row leaves the marks where they were.
-    // S2149: the top group is the union of the two sources - marks made on this watch and pins that
-    // arrived from the phone. They stay separate sets up to here so the phone can withdraw only its
-    // own, and a channel named by both still appears once because a partition yields each row once.
-    val topGroup = inputs.pinnedIdentities + inputs.phonePinnedIdentities
-    val (pinned, unpinned) = result.partition { foldWearStreamIdentity(it.url) in topGroup }
-    return pinned + unpinned
+    // S1954: rank last and by address, not row id, so a catalogue re-import that renumbers every row
+    // leaves the marks where they were.
+    // S2149: the two sources stay separate sets up to here, so the phone can withdraw only its own.
+    // S2514: rank rather than partition against their union. A union carries no order, and the owner
+    // reads the sources as different in weight - a mark made on this watch outranks a pin that arrived
+    // from the phone. sortedBy is stable, so the filter and sort above still order each group, and a
+    // channel named by both sources is ranked once, in the watch group.
+    return result.sortedBy { channel ->
+        val identity = foldWearStreamIdentity(channel.url)
+        when {
+            identity in inputs.pinnedIdentities -> WATCH_PIN_RANK
+            identity in inputs.phonePinnedIdentities -> PHONE_PIN_RANK
+            else -> UNPINNED_RANK
+        }
+    }
 }

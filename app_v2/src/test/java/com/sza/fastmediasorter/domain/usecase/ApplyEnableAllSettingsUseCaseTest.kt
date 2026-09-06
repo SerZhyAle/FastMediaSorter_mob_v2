@@ -127,6 +127,7 @@ class ApplyEnableAllSettingsUseCaseTest {
     fun `every compiled route has its runtime switch turned on`() {
         val result = run(AppSettings(), caps())
         assertTrue(result.enableCalculator)
+        assertTrue(result.enableStopwatch)
         assertTrue(result.enableNetworkMonitor)
         assertTrue(result.embeddedGameEnabled)
         assertTrue(result.enableSystemInfo)
@@ -139,6 +140,18 @@ class ApplyEnableAllSettingsUseCaseTest {
         assertTrue(result.enableScheduledOperations)
         assertFalse(result.disableCameraCapture)
         assertFalse(result.disableVideoCapture)
+    }
+
+    // S2628: the mirror is the one route switch that ships ON by default, so the test above passes
+    // whether or not the button covers it. Only a start state with the mirror switched off can tell the
+    // two apart - which is how the missing map entry survived S1924 unnoticed.
+    @Test
+    fun `the mirror comes back for a user who switched it off`() {
+        val start = AppSettings(mirrorEnabled = false)
+
+        val result = run(start, caps())
+
+        assertTrue(result.mirrorEnabled)
     }
 
     @Test

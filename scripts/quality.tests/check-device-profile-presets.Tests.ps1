@@ -72,7 +72,15 @@ data class AppSettings(
 $deviceProfileSrc = 'enum class DeviceProfileType { PHONE, TV }'
 
 function New-Sandbox {
-    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches, [hashtable[]]$Reviewed)
+    param(
+        [string[]]$CsvLines,
+        [string[]]$RegistryFields,
+        [string[]]$Branches,
+        [hashtable[]]$Reviewed,
+        # S2574: extra `val name: Type` lines appended to the fixture data class. Default empty, so
+        # every case written before this stays on the exact five-field fixture it was tuned against.
+        [string[]]$ExtraAppSettingsFields
+    )
 
     if (Test-Path $sandbox) { Remove-Item -Recurse -Force $sandbox }
     $kt = Join-Path $sandbox 'app_v2/src/main/java/com/sza/fastmediasorter'
@@ -84,7 +92,12 @@ function New-Sandbox {
         New-Item -ItemType Directory -Force $d | Out-Null
     }
 
-    Set-Content -LiteralPath (Join-Path $kt 'domain/model/AppSettings.kt') -Value $appSettingsSrc
+    $settingsSrc = $appSettingsSrc
+    if ($ExtraAppSettingsFields) {
+        $extra = ($ExtraAppSettingsFields | ForEach-Object { "    $_," }) -join "`n"
+        $settingsSrc = $appSettingsSrc -replace '\)$', "$extra`n)"
+    }
+    Set-Content -LiteralPath (Join-Path $kt 'domain/model/AppSettings.kt') -Value $settingsSrc
     Set-Content -LiteralPath (Join-Path $kt 'data/model/DeviceProfile.kt') -Value $deviceProfileSrc
 
     $branchLines = ($Branches | ForEach-Object { "        `"$_`" -> settings.copy($_ = raw.toBool())" }) -join "`n"
@@ -111,8 +124,15 @@ function New-Sandbox {
 }
 
 function Invoke-Gate {
-    param([string[]]$CsvLines, [string[]]$RegistryFields, [string[]]$Branches, [hashtable[]]$Reviewed)
-    $script = New-Sandbox -CsvLines $CsvLines -RegistryFields $RegistryFields -Branches $Branches -Reviewed $Reviewed
+    param(
+        [string[]]$CsvLines,
+        [string[]]$RegistryFields,
+        [string[]]$Branches,
+        [hashtable[]]$Reviewed,
+        [string[]]$ExtraAppSettingsFields
+    )
+    $script = New-Sandbox -CsvLines $CsvLines -RegistryFields $RegistryFields -Branches $Branches `
+        -Reviewed $Reviewed -ExtraAppSettingsFields $ExtraAppSettingsFields
     $out = & $pwshExe -NoProfile -File $script 2>&1 | Out-String
     return @{ Exit = $LASTEXITCODE; Out = $out }
 }
@@ -215,6 +235,40 @@ if ($r.Out -match 'NO decision.*ghostField') {
 else {
     Assert-Equal 'stale row must not also be reported undecided' 'not reported' 'not reported'
 }
+
+# --- Case 13: a reviewed field with no CSV row is named as such (S2574) ----------------------
+# The misfiled-entry defect: only `fields` exempts a field from owning a row, so an entry written
+# into `reviewed` by mistake leaves the field absent from the CSV while the non-presettable counter
+# does not move. Before this case the field was reported as merely forgotten, which sends the reader
+# looking for a missing row rather than at the array the entry landed in.
+$r = Invoke-Gate -CsvLines $baselineCsv -RegistryFields @('charlie', 'secretToken') `
+    -Branches $baselineBranches -Reviewed @(@{ field = 'bravo'; reason = 'misfiled - belongs in fields' })
+Assert-Equal 'reviewed field without a CSV row -> exit 1' 1 $r.Exit
+Assert-Match 'reviewed field without a row is named under its own label' `
+    'reviewed fields MISSING their CSV row.*bravo' $r.Out
+if ($r.Out -match 'AppSettings fields MISSING from CSV rows.*bravo') {
+    Assert-Equal 'reviewed field must not also be reported as forgotten' 'not reported' 'reported'
+}
+else {
+    Assert-Equal 'reviewed field must not also be reported as forgotten' 'not reported' 'not reported'
+}
+
+# --- Case 14: an off-list enum cell is named (S2574) -----------------------------------------
+# powerSavingTrigger enters $allowedValues with this ticket. DEFAULT is a companion alias rather
+# than an enum constant, so it is exactly the plausible-looking value the applier would drop.
+$enumCsv = $baselineCsv + '"powerSavingTrigger","DEFAULT",""'
+$r = Invoke-Gate -CsvLines $enumCsv -RegistryFields $baselineRegistry `
+    -Branches ($baselineBranches + 'powerSavingTrigger') `
+    -ExtraAppSettingsFields @('val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT')
+Assert-Equal 'off-list powerSavingTrigger -> exit 1' 1 $r.Exit
+Assert-Match 'off-list powerSavingTrigger is named' "powerSavingTrigger/phone='DEFAULT'" $r.Out
+
+# A real constant on the same fixture keeps the gate green, so the case above failed on the value
+# rather than on the field being new to the fixture.
+$r = Invoke-Gate -CsvLines ($baselineCsv + '"powerSavingTrigger","BELOW_20",""') -RegistryFields $baselineRegistry `
+    -Branches ($baselineBranches + 'powerSavingTrigger') `
+    -ExtraAppSettingsFields @('val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT')
+Assert-Equal 'on-list powerSavingTrigger -> exit 0' 0 $r.Exit
 
 if (Test-Path $sandbox) { Remove-Item -Recurse -Force $sandbox }
 

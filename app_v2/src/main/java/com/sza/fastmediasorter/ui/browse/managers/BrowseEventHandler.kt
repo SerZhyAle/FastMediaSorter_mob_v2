@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.PermissionHelper
 import com.sza.fastmediasorter.data.cloud.CloudProvider
+import com.sza.fastmediasorter.databinding.DialogUndoFolderCopyBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
@@ -203,7 +204,34 @@ class BrowseEventHandler(
             is BrowseEvent.ShowLocalNetworkPermissionRequired -> {
                 showLocalNetworkPermissionRationale()
             }
+            is BrowseEvent.ShowUndoFolderCopyConfirm -> {
+                showUndoFolderCopyConfirm()
+            }
         }
+    }
+
+    /**
+     * S1326: the copy-undo confirmation. A custom layout rather than the builder's own buttons, which
+     * cannot carry the named destructive/cancel styles (CLAUDE.md 11). Every exit answers the waiting
+     * undo coroutine - confirm, cancel and dismiss alike - because an unanswered prompt parks it.
+     */
+    private fun showUndoFolderCopyConfirm() {
+        val content = DialogUndoFolderCopyBinding.inflate(activity.layoutInflater)
+        var decided = false
+        val dialog = MaterialAlertDialogBuilder(activity)
+            .setView(content.root)
+            .setOnDismissListener {
+                if (!decided) viewModel.onUndoFolderCopyDecision(confirmed = false)
+            }
+            .create()
+        val decide: (Boolean) -> Unit = { confirmed ->
+            decided = true
+            viewModel.onUndoFolderCopyDecision(confirmed)
+            dialog.dismiss()
+        }
+        content.btnDeleteCopies.setOnClickListener { decide(true) }
+        content.btnCancel.setOnClickListener { decide(false) }
+        dialog.showBoundToHost(activity)
     }
 
     private fun showLocalNetworkPermissionRationale() {

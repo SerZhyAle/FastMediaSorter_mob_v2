@@ -8,10 +8,12 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.networkmonitor.NetworkIndicatorFormatter
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkIndicatorReading
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveNetworkIndicatorUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ResolveNetworkIndicatorOnDemandUseCase
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
+import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -29,7 +31,7 @@ import java.util.concurrent.ConcurrentHashMap
 /**
  * S1440: the configurable Network Monitor home-screen widget.
  *
- * One provider serves all eight indicators; which one a placed instance shows is a per-id choice held
+ * One provider serves all nine indicators; which one a placed instance shows is a per-id choice held
  * by [NetworkMonitorWidgetIndicatorStore] and written by the configuration activity.
  *
  * The receiver is declared only in `src/networkMonitor/AndroidManifest.xml`, which gradle injects for
@@ -190,21 +192,50 @@ class NetworkMonitorWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_network_monitor)
             views.setImageViewResource(R.id.widget_network_monitor_icon, formatted.iconRes)
             views.setTextViewText(R.id.widget_network_monitor_primary, formatted.primary)
-            // Without a caption of its own the cell still has to say which of the eight it is.
+            // Without a caption of its own the cell still has to say which of the nine it is.
             views.setTextViewText(
                 R.id.widget_network_monitor_caption,
                 formatted.caption ?: context.getString(indicator.labelRes)
             )
-            bindIntents(context, views, appWidgetId)
+            bindIntents(context, views, appWidgetId, indicator)
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 
-        private fun bindIntents(context: Context, views: RemoteViews, appWidgetId: Int) {
+        /**
+         * S2027: the system screen [catalogKey] names when this device has it, the catalog's declared
+         * fallback otherwise, and null when neither resolves.
+         *
+         * Probed rather than tried in order, unlike `startSystemSurfaceFor`: a `PendingIntent` is chosen
+         * once at render time and cannot fall through at tap time, so an unresolvable choice here would
+         * be a dead cell rather than a second attempt. Null keeps the caller on the Monitor, which is a
+         * worse destination than the system screen but a live one.
+         */
+        private fun systemSurfaceIntent(context: Context, catalogKey: String): Intent? {
+            val target = OsShortcutCatalog.byKey(catalogKey) ?: return null
+            val exact = target.intent(context)
+            val chosen = if (context.packageManager.resolveActivityCompat(exact, 0) != null) {
+                exact
+            } else {
+                target.fallbackIntent?.invoke(context)
+            }
+            return chosen
+                ?.takeIf { context.packageManager.resolveActivityCompat(it, 0) != null }
+                ?.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        }
+
+        private fun bindIntents(
+            context: Context,
+            views: RemoteViews,
+            appWidgetId: Int,
+            indicator: NetworkMonitorIndicator
+        ) {
             val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             val section = NetworkMonitorWidgetIndicatorStore.readSection(context, appWidgetId)
             // The factory owns the section extra; no second route or entry point is introduced here.
-            val open = NetworkMonitorActivity.createIntent(context, section)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            Timber.d("S2027: widget bind ${indicator.name} system=${indicator.systemSurfaceKey}")
+            val open = indicator.systemSurfaceKey?.let { systemSurfaceIntent(context, it) }
+                ?: NetworkMonitorActivity.createIntent(context, section)
+                    .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
             views.setOnClickPendingIntent(
                 R.id.widget_network_monitor_container,
                 PendingIntent.getActivity(

@@ -90,6 +90,11 @@ $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $runner = Join-Path $PSScriptRoot 'run-script-suites.ps1'
 $workTree = if ($GitRoot) { $GitRoot } else { $repoRoot }
 
+# S2616: the index question itself is shared with assert-dotsource-tracked.ps1, which asks it about a
+# different selection. Only the comparison between git's repository-relative output and a path off
+# the disk lives there - the discovery above it, and the exit codes below it, stay this gate's own.
+. "$PSScriptRoot\lib\git-index-membership.ps1"
+
 $script:listPath = $null
 
 function Deny-Verify([string]$Message) {
@@ -103,23 +108,15 @@ function Deny-Verify([string]$Message) {
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     Deny-Verify "the suite runner is absent: $runner"
 }
-if (-not (Test-Path -LiteralPath $workTree -PathType Container)) {
-    Deny-Verify "work tree not found: $workTree"
+# Asked before the runner is spawned, and unconditionally: a discovery that selects nothing never
+# reaches the index query below, so deferring this check to it would let an unusable work tree
+# report a clean tree it never looked at (S2616, case G of the dot-source gate's suite).
+try {
+    [void](Assert-GitWorkTree -WorkTree $workTree)
 }
-if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Deny-Verify 'git is not on PATH, so the index cannot be read.'
+catch {
+    Deny-Verify $_.Exception.Message
 }
-
-$insideWorkTree = & git -C $workTree rev-parse --is-inside-work-tree 2>&1
-if ($LASTEXITCODE -ne 0 -or ("$insideWorkTree").Trim() -ne 'true') {
-    Deny-Verify "not a git work tree: $workTree"
-}
-$topLevel = & git -C $workTree rev-parse --show-toplevel 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Deny-Verify "git could not resolve the work tree root of ${workTree}: $(($topLevel -join ' ').Trim())"
-}
-$topFwd = ((("$topLevel").Trim()) -replace '\\', '/').TrimEnd('/')
-
 # --- the selection, taken from the runner ------------------------------------------------------
 $pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") { "$env:ProgramFiles\PowerShell\7\pwsh.exe" } else { 'pwsh' }
 $listDir = Join-Path $repoRoot 'temp/scratch'
@@ -154,45 +151,35 @@ finally {
 }
 
 # --- the index question ------------------------------------------------------------------------
-# One `git ls-files` for the whole selection rather than one per path: it prints the members it
-# knows and stays silent about the rest, so the difference IS the answer, and a 65-suite release
-# sweep pays for one process instead of 65.
-$relByKey = @{}
-$pathspec = @()
+# Answered by lib/git-index-membership.ps1 (S2616), which the dot-source-target gate shares. The
+# discovery stays here; only the comparison moves. Paths are made absolute BEFORE the call, against
+# $repoRoot rather than $workTree, because the runner reports repository-relative paths while
+# -GitRoot may point at a fixture repository nested inside this one - joining a repo-relative path
+# to that fixture would address a file that does not exist.
+$relByAbsolute = [ordered]@{}
 foreach ($record in $records) {
     $rel = [string]$record.Suite
     if (-not $rel) { continue }
     $absolute = if ([System.IO.Path]::IsPathRooted($rel)) { $rel } else { Join-Path $repoRoot $rel }
-    $relByKey[(($absolute -replace '\\', '/').ToLowerInvariant())] = $rel
-    $pathspec += $absolute
+    $relByAbsolute[$absolute] = $rel
 }
 
-if ($pathspec.Count -eq 0) {
+if ($relByAbsolute.Count -eq 0) {
     Write-Host 'assert-suite-tracked: expected: 0 | actual: 0 untracked runner(s) of 0 discovered'
     Write-Host 'assert-suite-tracked: PASS - no contract suite in the selection.' -ForegroundColor Green
     exit 0
 }
 
-$trackedOutput = & git -C $workTree ls-files -- @pathspec 2>&1
-if ($LASTEXITCODE -ne 0) {
-    Deny-Verify "git ls-files failed: $((($trackedOutput | ForEach-Object { [string]$_ }) -join ' ').Trim())"
+try {
+    $membership = Get-GitIndexMembership -WorkTree $workTree -Paths @($relByAbsolute.Keys)
+}
+catch {
+    Deny-Verify $_.Exception.Message
 }
 
-$trackedKeys = [System.Collections.Generic.HashSet[string]]::new()
-foreach ($line in $trackedOutput) {
-    $printed = ([string]$line).Trim()
-    if (-not $printed) { continue }
-    [void]$trackedKeys.Add("$topFwd/$printed".ToLowerInvariant())
-}
+$untracked = @($membership.Untracked | ForEach-Object { $relByAbsolute[$_] } | Sort-Object)
 
-$untracked = @(
-    $relByKey.Keys |
-        Where-Object { -not $trackedKeys.Contains($_) } |
-        ForEach-Object { $relByKey[$_] } |
-        Sort-Object
-)
-
-Write-Host ("assert-suite-tracked: expected: 0 | actual: {0} untracked runner(s) of {1} discovered" -f $untracked.Count, $pathspec.Count)
+Write-Host ("assert-suite-tracked: expected: 0 | actual: {0} untracked runner(s) of {1} discovered" -f $untracked.Count, $relByAbsolute.Count)
 
 if ($untracked.Count -eq 0) {
     if (-not $Quiet) {

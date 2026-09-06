@@ -112,7 +112,7 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         }
         val onExtract = actions.onExtractArchive
         val supportsExtract = BrowseItemOperationPolicy.supports(BrowseItemOperation.EXTRACT_ARCHIVE, file)
-        if (supportsExtract && isZipArchive(file) && onExtract != null) {
+        if (supportsExtract && BrowseItemOperationPolicy.isZipArchive(file) && onExtract != null) {
             entries.organize += MenuEntry(context.getString(R.string.unarchive_action_extract)) {
                 onExtract(file)
             }
@@ -334,8 +334,4 @@ class BrowseFileOverflowMenuManager @Inject constructor(
         }
     }
 
-    private fun isZipArchive(file: MediaFile): Boolean {
-        return file.type == MediaType.BINARY_ARCHIVE &&
-            file.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
-    }
 }

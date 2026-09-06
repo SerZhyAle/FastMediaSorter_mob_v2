@@ -1138,6 +1138,30 @@
                             app:str_helpMessage="@string/tooltip_calculator_message" />
 
                         <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowEnableStopwatch"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            android:nextFocusLeft="@id/rowCameraOcrTranslationEnabled"
+                            app:str_icon="@drawable/ic_stopwatch"
+                            app:str_title="@string/stopwatch_title"
+                            app:str_subtitle="@string/setting_stopwatch_desc"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/tooltip_stopwatch_title"
+                            app:str_helpMessage="@string/tooltip_stopwatch_message" />
+
+                        <!-- S1411 ADR-5: the tool's own options are reachable from here as well as
+                             from its gear button, which is what its doc-scope host key records. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                            android:id="@+id/rowOpenStopwatchSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:ssr_showChevron="true"
+                            app:ssr_subtitle="@string/setting_stopwatch_settings_desc"
+                            app:ssr_title="@string/stopwatch_settings_title" />
+
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                             android:id="@+id/rowEnableNetworkMonitor"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
@@ -1177,6 +1201,29 @@
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/front_flashlight_help_title"
                             app:str_helpMessage="@string/front_flashlight_help_message" />
+
+                        <!-- S2516: directly under the front flashlight - the two are the same kind of
+                             light and differ only in what a touch does. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowWaterFlashlight"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_water_flashlight"
+                            app:str_title="@string/water_flashlight_settings_toggle_title"
+                            app:str_subtitle="@string/water_flashlight_settings_toggle_subtitle"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/water_flashlight_help_title"
+                            app:str_helpMessage="@string/water_flashlight_help_message" />
+
+                        <!-- S1924: the mirror sits beside the flashlight because the two are the same
+                             kind of sub-program and the owner reads them as a pair (strategic 3.3). -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowMirror"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_mirror"
+                            app:str_title="@string/mirror_settings_row_title"
+                            app:str_subtitle="@string/mirror_settings_row_summary" />
 
                     </LinearLayout>
 

@@ -134,6 +134,9 @@ class PlayerActivity :
     // Tracks lifecycle-induced togglePause() from onPause() so onResumeWithViews() can reverse it. Prevents isPaused from leaking across background/resume cycles and breaking playWhenReady on next load.
     internal var wasToggledPausedByLifecycle = false
 
+    @Inject
+    lateinit var browseTransferCoordinator: com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
+
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
     internal val isPlayerFileOperationQueueInitialized: Boolean
@@ -885,6 +888,7 @@ class PlayerActivity :
         Toast.makeText(this, getString(R.string.volume_level, (newVolume * 100).toInt()), Toast.LENGTH_SHORT).show()
     }
 
+    @Suppress("MagicNumber")
     internal fun scheduleHideControls() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
         // S0819: in non-touch mode (D-pad/gamepad) the controls overlay is the only thing the

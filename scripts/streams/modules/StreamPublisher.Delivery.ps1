@@ -143,6 +143,31 @@ function Assert-FaviconIndexPairing {
     }
 }
 
+# S2645: refuse to publish a bank whose names were never repaired. Same stance as the blank-name refusal
+# in Invoke-PublishCatalog and for the same reason (S1835): a silent repair on the publish path is an
+# unrecorded change to the shipped bank, and an unrecorded change to that file is what cost users their
+# pins (S1830, S1832). Repair belongs to -NormalizeNames, which leaves a move report and a backup.
+function Assert-CatalogNamesClean {
+    param([Parameter(Mandatory = $true)][object[]]$Rows)
+    $classes = @(
+        @{ label = "literally '(null)'"; test = { param($n) $n.Trim() -eq '(null)' } },
+        @{ label = 'no letter and no digit'; test = { param($n) $n -notmatch '[\p{L}\p{N}]' } },
+        @{ label = 'an undecoded HTML entity'; test = { param($n) $n -match '&(#\d+|#x[0-9A-Fa-f]+|[A-Za-z][A-Za-z0-9]{1,31});' } },
+        @{ label = 'a serialised encoder-slot prefix'; test = { param($n) $n -match $script:CatalogNameMachinePrefix } }
+    )
+    $offences = @()
+    foreach ($class in $classes) {
+        $hits = @($Rows | Where-Object { & $class.test ([string]$_.name) })
+        if ($hits.Count -gt 0) {
+            $offences += ("{0} row(s) carry {1} (first: '{2}')" -f $hits.Count, $class.label, ([string]$hits[0].name))
+        }
+    }
+    if ($offences.Count -gt 0) {
+        throw ("Refusing to publish: the name column was never repaired - {0}. Run the publisher with -NormalizeNames first; it writes a move report and a backup, so the change to the shipped bank stays reviewable. Do not strip these here." -f `
+            ($offences -join '; '))
+    }
+}
+
 function Assert-CatalogZipEntries {
     param(
         [Parameter(Mandatory = $true)][string]$ZipPath,
@@ -195,6 +220,7 @@ function Invoke-PublishCatalog {
         throw ("Refusing to publish: {0} of {1} row(s) carry an empty name or url. Consumers drop such rows silently, so publishing them makes our row count and theirs diverge unnoticed. Fix the collector that produced them rather than stripping them here." -f `
                 $blankRows.Count, $rowCount)
     }
+    Assert-CatalogNamesClean -Rows $catalogRows
     Write-Host ''
     Write-Host ("Publishing catalog ({0} rows): zipping {1} -> {2} .." -f $rowCount, $CsvPath, $zip) -ForegroundColor Cyan
 
@@ -269,7 +295,177 @@ function Normalize-CatalogFacetRows {
     [pscustomobject]@{ Rows = $Rows; Moves = $moveRows }
 }
 
+# S2645: the identity key the app files every kind of user-authored data under - the pin, its position,
+# the play outcome, the desktop cell. This is a deliberate port of StreamUrlNormalizer.normalize plus
+# StreamChannelIdentity.of, so two rows the app would treat as one channel are seen as one here too.
+#
+# Parsed by hand rather than through [uri] on purpose: the Kotlin side folds the scheme and the host and
+# keeps the path, query and fragment RAW, while [uri] re-encodes and normalizes a path. A key that
+# disagreed with the app's would collapse rows the app keeps apart, which is the one mistake this
+# function must not make.
+function Get-CatalogIdentityKey {
+    param([string]$Url)
+    $trimmed = ([string]$Url).Trim()
+    if ($trimmed -notmatch '^(?<scheme>[A-Za-z][A-Za-z0-9+.\-]*)://(?<authority>[^/?#]*)(?<rest>.*)$') {
+        return $trimmed.TrimEnd('/')
+    }
+    $scheme = $Matches['scheme'].ToLowerInvariant()
+    $authority = $Matches['authority']
+    $rest = $Matches['rest']
+    if (-not $authority) { return $trimmed.TrimEnd('/') }
+
+    $userInfo = ''
+    $at = $authority.LastIndexOf('@')
+    if ($at -ge 0) {
+        $userInfo = $authority.Substring(0, $at) + '@'
+        $authority = $authority.Substring($at + 1)
+    }
+
+    $hostPart = $authority
+    $port = ''
+    if ($authority.StartsWith('[')) {
+        $close = $authority.IndexOf(']')
+        if ($close -ge 0) {
+            $hostPart = $authority.Substring(0, $close + 1)
+            $tail = $authority.Substring($close + 1)
+            if ($tail -match '^:(?<p>\d+)$') { $port = $Matches['p'] }
+        }
+    }
+    else {
+        $colon = $authority.LastIndexOf(':')
+        if ($colon -ge 0 -and $authority.Substring($colon + 1) -match '^\d+$') {
+            $hostPart = $authority.Substring(0, $colon)
+            $port = $authority.Substring($colon + 1)
+        }
+    }
+    if (-not $hostPart) { return $trimmed.TrimEnd('/') }
+
+    $defaultPort = switch ($scheme) {
+        'http' { '80' }
+        'https' { '443' }
+        'rtsp' { '554' }
+        default { '' }
+    }
+    $portPart = if ($port -and $port -ne $defaultPort) { ':' + $port } else { '' }
+
+    # Split the remainder the same way the Kotlin does: only the PATH loses a trailing slash.
+    $path = $rest
+    $suffix = ''
+    $cut = $rest.IndexOfAny([char[]]@('?', '#'))
+    if ($cut -ge 0) {
+        $path = $rest.Substring(0, $cut)
+        $suffix = $rest.Substring($cut)
+    }
+    $path = $path.TrimEnd('/')
+
+    # http and https name the same channel; every other scheme, rtsp included, stays itself, because two
+    # genuinely different protocols on one host and path are two different channels.
+    $keyScheme = if ($scheme -in @('http', 'https')) { 'web' } else { $scheme }
+    return $keyScheme + '://' + $userInfo + $hostPart.ToLowerInvariant() + $portPart + $path + $suffix
+}
+
+# Repair the `name` column across a catalog. Mirrors Normalize-CatalogFacetRows above: returns the rows
+# it mutated in place plus a per-move report, so the rewrite can be reviewed before it is published.
+function Normalize-CatalogNameRows {
+    param([object[]]$Rows)
+    $moves = @{}
+    foreach ($row in $Rows) {
+        $old = [string]$row.name
+        $resolved = Resolve-CatalogName -Name $old -Url ([string]$row.url)
+        $new = [string]$resolved.Name
+        if ($new -ceq $old) { continue }
+        $key = "{0}`u{001F}{1}`u{001F}{2}" -f $resolved.Rule, $old, $new
+        $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })
+        $row.name = $new
+    }
+    $moveRows = @($moves.GetEnumerator() | ForEach-Object {
+            $parts = $_.Key -split "`u{001F}", 3
+            [pscustomobject]@{ rule = $parts[0]; from = $parts[1]; to = $parts[2]; rows = $_.Value }
+        } | Sort-Object rule, rows -Descending)
+    [pscustomobject]@{ Rows = $Rows; Moves = $moveRows }
+}
+
+# Collapse rows that fold to one channel identity. This is NOT a prune: the channel survives, only its
+# second copy leaves. Both copies produce the same identityKey on the device, so the pin the user puts on
+# one already shows on the other - keeping them apart in the bank cannot make that correct, it only makes
+# the list show the same station twice.
+function Merge-CatalogIdentityDuplicates {
+    param([object[]]$Rows)
+    $groups = @{}
+    foreach ($row in $Rows) {
+        $key = Get-CatalogIdentityKey -Url ([string]$row.url)
+        if (-not $groups.ContainsKey($key)) { $groups[$key] = [System.Collections.ArrayList]::new() }
+        [void]$groups[$key].Add($row)
+    }
+    $droppedUrls = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
+    $dropped = [System.Collections.ArrayList]::new()
+    foreach ($entry in $groups.GetEnumerator()) {
+        if ($entry.Value.Count -lt 2) { continue }
+        # Prefer https, then a row that carries a homepage (the artwork passes read that column), then the
+        # longest name. The final ordinal tie-break exists so two runs over one bank agree.
+        $ordered = @($entry.Value | Sort-Object `
+            @{ Expression = { if (([string]$_.url).ToLowerInvariant().StartsWith('https://')) { 0 } else { 1 } } }, `
+            @{ Expression = { if ([string]::IsNullOrWhiteSpace([string]$_.homepage)) { 1 } else { 0 } } }, `
+            @{ Expression = { -([string]$_.name).Length } }, `
+            @{ Expression = { [string]$_.url } })
+        $kept = $ordered[0]
+        foreach ($loser in $ordered[1..($ordered.Count - 1)]) {
+            [void]$droppedUrls.Add([string]$loser.url)
+            [void]$dropped.Add([pscustomobject]@{
+                    identity = $entry.Key
+                    kept_url = [string]$kept.url
+                    dropped_url = [string]$loser.url
+                    dropped_name = [string]$loser.name
+                })
+        }
+    }
+    # Survivors keep the published order; only the dropped rows are filtered out.
+    $survivors = @($Rows | Where-Object { -not $droppedUrls.Contains([string]$_.url) })
+    [pscustomobject]@{ Rows = $survivors; Dropped = @($dropped) }
+}
+
 function Invoke-PublisherModeDispatch {
+if ($NormalizeNames) {
+    if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
+    $nameRows = @(Import-Csv -Path $ExistingCsv)
+    $beforeCount = $nameRows.Count
+    $nameResult = Normalize-CatalogNameRows -Rows $nameRows
+    $mergeResult = Merge-CatalogIdentityDuplicates -Rows $nameResult.Rows
+
+    # Stamped, like the backup beside them. The documented flow is two runs - review the reports, then
+    # re-run with -Publish - and a fixed name means the second run truncates the very reports the first
+    # one produced for review, before it uploads. Measured on this ticket's own first pass: the review
+    # artifacts for a 1 734-row rewrite were two empty files by the time the bank shipped.
+    $stamp = (Get-Date).ToString('yyyyMMdd-HHmmss')
+    $moveReport = Join-Path $OutDir ("name-normalization-moves.{0}.csv" -f $stamp)
+    Write-CsvUtf8 -Rows $nameResult.Moves -Path $moveReport -Columns @('rule', 'from', 'to', 'rows')
+    $dropReport = Join-Path $OutDir ("identity-duplicates-dropped.{0}.csv" -f $stamp)
+    Write-CsvUtf8 -Rows $mergeResult.Dropped -Path $dropReport `
+        -Columns @('identity', 'kept_url', 'dropped_url', 'dropped_name')
+
+    foreach ($rule in @('repair', 'derive-suffix', 'derive-replace')) {
+        $moved = @($nameResult.Moves | Where-Object { $_.rule -eq $rule } | Measure-Object -Property rows -Sum).Sum
+        Write-Host ("Names: {0} row(s) via {1}." -f ($moved ?? 0), $rule) -ForegroundColor DarkGray
+    }
+    $afterCount = $mergeResult.Rows.Count
+    Write-Host ("Names: {0} identity duplicate(s) collapsed; {1} -> {2} row(s)." -f `
+            $mergeResult.Dropped.Count, $beforeCount, $afterCount) -ForegroundColor Cyan
+    # The row count is the one number that must be explainable: anything beyond the collapsed duplicates
+    # is a channel this mode lost, which its rules forbid.
+    if ($afterCount -ne ($beforeCount - $mergeResult.Dropped.Count)) {
+        throw ("Refusing to write: {0} row(s) in, {1} out, {2} duplicate(s) collapsed - the difference is unaccounted for." -f `
+                $beforeCount, $afterCount, $mergeResult.Dropped.Count)
+    }
+
+    $nameBackup = Backup-IfExists -Path $ExistingCsv
+    if (-not $nameBackup) { throw "Name-normalization backup failed for $ExistingCsv" }
+    Write-CsvUtf8 -Rows $mergeResult.Rows -Path $ExistingCsv -Columns $Schema
+    Write-Host ("Names: rewrote {0}; moves -> {1}; dropped -> {2}; backup -> {3}" -f `
+            $ExistingCsv, $moveReport, $dropReport, $nameBackup) -ForegroundColor Green
+    if ($Publish) { Invoke-PublishCatalog }
+    return $true
+}
+
 if ($NormalizeFacets) {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
     $facetRows = @(Import-Csv -Path $ExistingCsv)

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.util
 import android.os.Build
 import android.os.Environment
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import java.io.File
 
 /**
@@ -22,7 +23,7 @@ import java.io.File
  *
  * "Empty" is never an error - it deterministically resolves to the documented fallback.
  * A selected resource is honoured only when it is a real, writable, on-device folder
- * (`!isReadOnly && !VirtualPathUtils.isVirtualPath`); a stale/invalid selection silently
+ * (`allowsWriteOperations() && !VirtualPathUtils.isVirtualPath`); a stale/invalid selection silently
  * degrades to the same fallback rather than failing the capture.
  *
  * Pure helper - no Android Context, no DI. Mirrors [DrawingTargetPolicy] for the device-media
@@ -73,7 +74,7 @@ object CaptureDestinationPolicy {
 
     /** True when [resource] is a real, writable, on-device folder usable as a capture target. */
     fun isUsableTarget(resource: MediaResource?): Boolean {
-        if (resource == null || resource.isReadOnly) return false
+        if (resource == null || !resource.allowsWriteOperations()) return false
         return !VirtualPathUtils.isVirtualPath(resource.path)
     }
 

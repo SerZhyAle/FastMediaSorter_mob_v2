@@ -84,7 +84,7 @@ Two deltas are specific to the watch, and both are hard:
   auto-detected flavor manifest and silently dropped its other entries, which then had to be re-added
   through `androidComponents.onVariants` (S0174/S0183). Leaving it unset means a
   `wear/src/noLegal/AndroidManifest.xml` is picked up by convention and merged normally - which is why
-  no such file needs to exist until something has a permission to declare.
+  the file that now exists there (see below) needed no build-script change at all to take effect.
 
 **`wear/src/noLegal/` was empty from S2090 until S2165 filled it, and the ban that kept it empty still
 stands.** The dimension existed so that the next capability Play refuses on a watch had somewhere to go
@@ -121,9 +121,27 @@ and it needs a class in each set, not one:
 module's first declared flavor, `standard`, and passes on a binding declared only there; `.\a.ps1 fwn`
 (added by S2486 for this reason) is the other half. One target alone is not a verdict about the module.
 
-There is still **no `AndroidManifest.xml` in either flavor set**, because neither capability declares a
-permission and an empty manifest overlay is dead weight under Rule 20 - the second half of S2090 §9
-ADR-5 is unspent, and the first capability that needs a permission creates that file.
+**`wear/src/noLegal/AndroidManifest.xml` now exists**, created on 2026-09-05 - S2090 §9 ADR-5 predicted
+that "the first capability that needs a permission creates that file", and S2457 and S2458 both reached
+that point within the same hour, so the file serves both from birth. It carries:
+
+- `android.permission.BODY_SENSORS` capped at `android:maxSdkVersion="35"`, and
+  `android.permission.health.READ_HEART_RATE` above it - S2457's heart-rate diagnostic, split at API 36
+  where the granular health permission replaces the sensor-shaped one.
+- `android.permission.ACTIVITY_RECOGNITION` - S2458's step counter and detector, a different permission
+  family confined here for its own reason.
+- `<uses-sdk tools:overrideLibrary="androidx.health.services.client" />`, because that library declares
+  `minSdk 30` while this module is pinned at 28 as a Wear OS 2.0 commitment. What makes the override safe
+  is the runtime guard, not this line: the data source answers `PLATFORM_TOO_OLD` below API 30 and touches
+  no Health Services class there.
+
+That half of ADR-5 is therefore **spent**. The file is the whole module's `noLegal` permission surface and
+belongs to no single ticket, so the next Play-refused capability adds its `uses-permission` here rather
+than creating a second file.
+
+The ban that kept the flavor sets empty still stands everywhere it has not been spent: `wear/src/standard/`
+has no manifest and needs none, because an empty manifest overlay is dead weight under Rule 20. A flavor
+set earns a manifest only when it has a permission to declare.
 
 Do not fill either directory with a placeholder class to make it look occupied; that half of ADR-5 is
 permanent, and it is the reason `noLegal` stayed empty for as long as it did rather than acquiring

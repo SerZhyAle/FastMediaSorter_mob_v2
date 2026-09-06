@@ -42,6 +42,7 @@ import javax.inject.Inject
  *
  * Unscoped on purpose - what it builds is Activity-scoped and must not outlive the host that asked.
  */
+@Suppress("LongParameterList")
 class StandaloneHostFactory @Inject constructor(
     private val networkClients: StandaloneNetworkClients,
     private val fileOpHandlers: StandaloneFileOpHandlers,
@@ -54,6 +55,7 @@ class StandaloneHostFactory @Inject constructor(
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val sendToMenuManager: SendToMenuManager,
     private val saveTextNoteUseCase: SaveTextNoteUseCase,
+    val browseTransferCoordinator: com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator,
 ) {
 
     /**
@@ -79,6 +81,7 @@ class StandaloneHostFactory @Inject constructor(
         fileOperationUseCase = fileOperationUseCase,
         getDestinationsUseCase = getDestinationsUseCase,
         onPickCustomFolderForCopy = callbacks.onPickCustomFolderForCopy,
+        browseTransferCoordinator = browseTransferCoordinator,
     )
 
     fun createViewManager(

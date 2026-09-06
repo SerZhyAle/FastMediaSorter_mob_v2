@@ -10,7 +10,6 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -83,6 +82,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainWearCompanionMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
+import com.sza.fastmediasorter.ui.main.helpers.StartupBrandFrameManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.main.helpers.VersionOverlayManager
@@ -95,7 +95,6 @@ import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -161,6 +160,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+    private var isStopwatchEnabled = false
 
     // S1285: last cell-size step handed to the layout chrome. The settings collector below compares
     // against it, because that collector re-fires for every unrelated setting and rebuilding the
@@ -170,6 +170,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isNetworkMonitorEnabled = false
     private var isSystemInfoEnabled = false
     private var isFrontFlashlightEnabled = false
+    private var isWaterFlashlightEnabled = false
     private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
@@ -365,6 +366,14 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
             return
+        }
+
+        // S2556: the startup brand frame, placed here for the same reason as the notices below -
+        // after every early-return redirect, so the welcome path and the settings return never carry
+        // a frame the user did not ask for a cold start of. savedInstanceState gates it to a real
+        // cold start rather than a process restore.
+        if (savedInstanceState == null && !returnToSettingsRequested) {
+            StartupBrandFrameManager.attach(this)
         }
 
         // S1153: defer the disk-reading startup notices (S0731 DB-reset, S0490 crash prompt) off the
@@ -795,6 +804,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
             (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
         calculator = isCalculatorEnabled,
+        stopwatch = isStopwatchEnabled,
         networkMonitor = isNetworkMonitorEnabled,
         cameraOcr = isCameraOcrEnabled,
         linkDownload = isLinkDownloadEnabled,
@@ -803,6 +813,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         systemInfo = isSystemInfoEnabled,
         wearCompanion = isWearCompanionEnabled,
         frontFlashlight = isFrontFlashlightEnabled,
+        waterFlashlight = isWaterFlashlightEnabled,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -1264,11 +1275,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun applyAppSettingsToUi(settings: AppSettings) {
         latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
         val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+        val stopwatchEnabledChanged = isStopwatchEnabled != settings.enableStopwatch
         val networkMonitorNowEnabled =
             settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
         val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
         val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
         val frontFlashlightEnabledChanged = isFrontFlashlightEnabled != settings.frontFlashlightEnabled
+        val waterFlashlightEnabledChanged = isWaterFlashlightEnabled != settings.waterFlashlightEnabled
         // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
         // companion where no bridge exists; the capability alone would deny the user the switch.
         val wearCompanionNowEnabled =
@@ -1293,9 +1306,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
         val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
         isCalculatorEnabled = settings.enableCalculator
+        isStopwatchEnabled = settings.enableStopwatch
         isNetworkMonitorEnabled = networkMonitorNowEnabled
         isSystemInfoEnabled = settings.enableSystemInfo
         isFrontFlashlightEnabled = settings.frontFlashlightEnabled
+        isWaterFlashlightEnabled = settings.waterFlashlightEnabled
         isWearCompanionEnabled = wearCompanionNowEnabled
         isEmbeddedGameEnabled = settings.embeddedGameEnabled
         isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
@@ -1346,9 +1361,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
         // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
         val panelInputsChanged = listOf(
-            calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-            networkMonitorEnabledChanged, systemInfoEnabledChanged, frontFlashlightEnabledChanged,
-            wearCompanionEnabledChanged,
+            calculatorEnabledChanged, stopwatchEnabledChanged, embeddedGameEnabledChanged,
+            cameraOcrEnabledChanged, networkMonitorEnabledChanged, systemInfoEnabledChanged,
+            frontFlashlightEnabledChanged, waterFlashlightEnabledChanged, wearCompanionEnabledChanged,
             quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
             linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
             screenRecordingEnabledChanged,

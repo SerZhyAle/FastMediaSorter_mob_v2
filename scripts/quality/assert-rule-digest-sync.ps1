@@ -21,7 +21,24 @@
          rules 25-28 came to look covered while nothing stated them - the range sat
          in a paragraph about hooks and named no rule of its own.
 
-      2. Pointer reachability - a pointer file carries no rules, so it must at least
+      2. Closing-gate coverage - every closing gate that carries an 'Sxxxx' label in
+         the '## Closing gates' section of .claude/rules/spec-catalog.md must be cited
+         in every full digest by that literal token. Those gates carry no rule number,
+         so the whole class sat outside check 1's 'Rule N' unit and any omission was
+         silent: measured 2026-09-05, AGENTS.md stated none of the heading-uniqueness
+         gate (S2357) and .github/copilot-instructions.md stated none of the six at
+         all, while this gate reported PASS (S2583). An agent reading only its own
+         digest met a closing refusal with no rule behind it.
+
+         The unit is the bullet's leading BOLD LABEL, not its prose. The prose of that
+         section names neighbours and incidents (S1884, S1955, S1621, S1912), and
+         requiring those cited would demand a retelling of other people's tickets. The
+         label token survives paraphrase exactly as 'Rule N' does. A bullet with no
+         token is therefore out of reach by construction, and one bullet is - the
+         dated owner ruling 'A found problem ends BlockNeedUserTest', which owns no
+         ticket id. A bullet that later gains a label enters the check by itself.
+
+      3. Pointer reachability - a pointer file carries no rules, so it must at least
          name the authority and every full digest, or a reader who starts there has
          no route to the rules at all.
 
@@ -29,10 +46,13 @@
     digest is a paraphrase; only a human reading the pair can judge it.
 
     Exit codes (S1070):
-      0 - every full digest cites every rule and every pointer is reachable, or audit mode.
-      1 - substantive failure: a rule is uncited or a pointer is a dead end (-Gate only).
-      2 - the gate itself cannot run: a declared file is missing, or the authority
-          parses to no numbered rules, so nothing could be compared.
+      0 - every full digest cites every rule and every labelled closing gate, and every
+          pointer is reachable, or audit mode.
+      1 - substantive failure: a rule or a closing gate is uncited, or a pointer is a
+          dead end (-Gate only).
+      2 - the gate itself cannot run: a declared file is missing, the authority parses
+          to no numbered rules, or the closing-gate detail file is missing or has no
+          '## Closing gates' section, so nothing could be compared.
 
 .PARAMETER Gate
     Fail-closed: exit 1 when any rule is uncited or any pointer is unreachable.
@@ -66,6 +86,12 @@ $pointerPaths = @('GEMINI.md')
 # The authority's rule list lives under this heading and ends at the next h2.
 $authorityHeadingRx = '^##\s+\d+\.\s+Strict Rules\b'
 
+# The closing gates are formulated in the authority's path-scoped detail file, which is
+# part of the authority's text rather than a digest, and they are labelled by ticket id
+# instead of by rule number - hence a second source and a second citation unit.
+$closingGatePath = '.claude/rules/spec-catalog.md'
+$closingGateHeadingRx = '^##\s+Closing gates\b'
+
 function Read-RepoFile([string] $relative) {
     $full = Join-Path $repoRoot $relative
     if (-not (Test-Path -LiteralPath $full)) { return $null }
@@ -83,6 +109,34 @@ function Get-AuthorityRuleNumbers([string] $text) {
         if ($line -match '^(?<n>\d+)\.\s') { [void]$numbers.Add([int]$matches['n']) }
     }
     return , @($numbers | Sort-Object -Unique)
+}
+
+function Get-ClosingGateLabelTokens([string] $text) {
+    # $null = the section was never entered (caller exits 2); an empty map = the section
+    # exists but no bullet carries a label token, which is a real, reportable state.
+    # Token -> the label it came from, so a failure can name the bullet a reader must find.
+    $lines = $text -split "`r?`n"
+    $map = [ordered]@{}
+    $inSection = $false
+    $sectionSeen = $false
+    foreach ($line in $lines) {
+        if ($line -match $closingGateHeadingRx) { $inSection = $true; $sectionSeen = $true; continue }
+        if (-not $inSection) { continue }
+        if ($line -match '^##\s') { break }
+        # Top-level bullet only, and only the leading bold label - the lazy match ends at
+        # the first '**' that closes it, so the bullet's prose is never read.
+        if ($line -notmatch '^-\s+\*\*(?<label>.+?)\*\*') { continue }
+        $label = $matches['label']
+        foreach ($m in [regex]::Matches($label, 'S\d{4}')) {
+            if (-not $map.Contains($m.Value)) { $map[$m.Value] = $label }
+        }
+    }
+    if (-not $sectionSeen) { return $null }
+    return $map
+}
+
+function Test-TokenCited([string] $text, [string] $token) {
+    return [regex]::IsMatch($text, "\b$token\b")
 }
 
 function Test-RuleCited([string] $text, [int] $number) {
@@ -106,6 +160,18 @@ if ($ruleNumbers.Count -eq 0) {
     exit 2
 }
 
+$closingGateText = Read-RepoFile $closingGatePath
+if ($null -eq $closingGateText) {
+    Write-Error "assert-rule-digest-sync: closing-gate detail file not found: $closingGatePath" -ErrorAction Continue
+    exit 2
+}
+
+$closingGates = Get-ClosingGateLabelTokens $closingGateText
+if ($null -eq $closingGates) {
+    Write-Error "assert-rule-digest-sync: no 'Closing gates' section in $closingGatePath - the heading or its list shape changed." -ErrorAction Continue
+    exit 2
+}
+
 foreach ($digest in $fullDigestPaths) {
     $text = Read-RepoFile $digest
     if ($null -eq $text) {
@@ -115,6 +181,10 @@ foreach ($digest in $fullDigestPaths) {
     $uncited = @($ruleNumbers | Where-Object { -not (Test-RuleCited $text $_) })
     if ($uncited.Count -gt 0) {
         [void]$failures.Add("[full-digest] $digest does not cite Rule $($uncited -join ', Rule ') - state the rule there and cite it by number")
+    }
+    foreach ($token in $closingGates.Keys) {
+        if (Test-TokenCited $text $token) { continue }
+        [void]$failures.Add("[closing-gate] $digest does not cite $token - state the '$($closingGates[$token])' gate from $closingGatePath there and cite it by that token")
     }
 }
 
@@ -139,5 +209,5 @@ if ($failures.Count -gt 0) {
     exit 0
 }
 
-Write-Host ("assert-rule-digest-sync: PASS - {0} rule(s) cited in {1} full digest(s), {2} pointer(s) reachable." -f $ruleNumbers.Count, $fullDigestPaths.Count, $pointerPaths.Count) -ForegroundColor Green
+Write-Host ("assert-rule-digest-sync: PASS - {0} rule(s) and {1} labelled closing gate(s) cited in {2} full digest(s), {3} pointer(s) reachable." -f $ruleNumbers.Count, $closingGates.Count, $fullDigestPaths.Count, $pointerPaths.Count) -ForegroundColor Green
 exit 0

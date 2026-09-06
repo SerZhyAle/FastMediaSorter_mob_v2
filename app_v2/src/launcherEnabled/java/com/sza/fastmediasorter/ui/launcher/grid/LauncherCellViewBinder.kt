@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
+import timber.log.Timber
 import kotlin.math.roundToInt
 
 /**
@@ -103,7 +104,13 @@ class LauncherCellViewBinder(
         // at the guard is also what keeps a toggle made while editing from rebuilding an identical tree.
         val foldedSections = if (editMode) emptySet() else collapsedSections
         val plan = LauncherGridGeometry.renderPlan(cells, foldedSections, columns)
-        val rows = rowsToShow(plan, editMode, viewportRows)
+        val occupied = LauncherGridGeometry.rowsForRendered(plan)
+        val rows = rowsToShow(occupied, editMode, viewportRows)
+        // S2660: edit mode scrolls into its spare rows on purpose, so there the content IS the whole
+        // grid; at rest only the occupied rows may size the canvas, or the viewport floor below turns
+        // its rounding remainder into scroll travel over empty space.
+        val contentRows = if (editMode) rows else occupied
+        Timber.d("S2660: bind occupied=$occupied rows=$rows contentRows=$contentRows edit=$editMode")
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
         // screen - must not tear down every gadget for an identical render.
@@ -113,6 +120,7 @@ class LauncherCellViewBinder(
         container.removeAllViews()
         container.columns = columns
         container.rows = rows
+        container.contentRows = contentRows
         val inflater = LayoutInflater.from(container.context)
         plan.forEach { rendered ->
             val item = rendered.item
@@ -215,13 +223,15 @@ class LauncherCellViewBinder(
      *
      * S2387: at rest, the canvas spans at least [viewportRows] so long-press and slot targeting work
      * anywhere on visible desktop space below all shortcuts, while empty slot affordances remain edit-only.
+     *
+     * S2660: what this returns addresses touches, it does not size the canvas. The height comes from
+     * LauncherDesktopLayout.contentRows, which at rest is [occupied] alone.
      */
     private fun rowsToShow(
-        plan: List<LauncherGridGeometry.RenderedCell>,
+        occupied: Int,
         editMode: Boolean,
         viewportRows: Int,
     ): Int {
-        val occupied = LauncherGridGeometry.rowsForRendered(plan)
         if (!editMode) return maxOf(occupied, viewportRows)
         return maxOf(occupied + SPARE_EDIT_ROWS, viewportRows)
     }

@@ -7,6 +7,7 @@
   Verifies, in order:
     1. ADB executable is reachable.
     2. At least one device is online (DeviceId narrows the selection).
+    2b. If -Module is given, only devices of that module's form factor are candidates.
     3. If -Package is given, the package is installed on the selected device.
     4. If -ExpectedVersion is given, the installed package's versionName matches.
     5. If -CheckMcp is set, the mobile-mcp launcher (npx + @mobilenext/mobile-mcp) is resolvable.
@@ -33,6 +34,17 @@
         Reachable only under -ClaimFree. Deliberately distinct from no-device and from
         multiple-devices (S1926): "there is nothing to test on" ends the device stage, while
         "somebody else is on all of them" means try again later.
+    8 - devices are online but none is the form factor -Module asked for
+                                          (state: form-factor-mismatch)
+        Reachable only when -Module is passed. Distinct from no-device for exactly S1926's
+        reason (S2600): "nothing to test on" ends the device stage, while "the wrong kind of
+        device is attached" means boot the other emulator or attach the other device.
+
+  The form factor of the selected device is reported unconditionally in `formFactor`
+  ('watch' or 'phone'), with or without -Module. It cannot be derived from -Package: both
+  modules publish under one applicationId (S1681), so the package name is the same on a
+  phone and on a watch, and reading it as a form factor put a watch-sourced verdict into a
+  phone ticket's spec once already (S2600).
 
   Human output:  one line per check + final verdict line.
   Machine output (with -Json): single JSON object on stdout, all human noise suppressed.
@@ -64,9 +76,19 @@
   Legacy fail-fast mode: a not-ready state exits with its numeric code (1..6) instead of 0.
   Only for a caller that cannot read the payload and must branch on $LASTEXITCODE.
 
+.PARAMETER Module
+  Which module the caller intends to test: app_v2 (phone) or wear (watch). Narrows the candidate
+  devices to that form factor before any selection happens, so a phone and a paired watch both
+  online resolve to the right one instead of refusing with multiple-devices. No default on
+  purpose (S2600): absent, the probe answers exactly as it always has, and every existing caller
+  keeps its behaviour unchanged.
+
 .PARAMETER ReuseFinding
   Opt-in finding reuse (S2409): when an alive finding for the requested topic and canonical request
-  string exists, answer READY immediately without adb probing.
+  string exists, take its EXPENSIVE checks (package, version, mcp) instead of repeating them.
+  The device list and the form factor are always measured fresh (S2600) - a finding is another
+  session's answer about the device THEY wanted, and letting it choose is the thing that put a
+  watch under a phone ticket.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/device-ready.ps1
@@ -94,12 +116,17 @@ param(
     # `multiple-devices` included.
     [switch]$ClaimFree,
     # S2409. Opt-in reuse mode.
-    [switch]$ReuseFinding
+    [switch]$ReuseFinding,
+    # S2600. Explicit only - see .PARAMETER Module for why there is no default.
+    [ValidateSet('app_v2', 'wear')]
+    [string]$Module
 )
 
 $ErrorActionPreference = 'Stop'
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+
+. "$PSScriptRoot/lib/device-form-factor.ps1"
 
 # ---------- helpers ----------
 
@@ -111,6 +138,8 @@ $script:result = [ordered]@{
     adbPath         = $null
     devices         = @()
     selectedDevice  = $null
+    formFactor      = $null
+    module          = if ($Module) { $Module } else { $null }
     package         = $Package
     installed       = $null
     versionName     = $null
@@ -136,47 +165,46 @@ function Get-CanonicalReadyRequest {
     return "device-ready.ps1 -DeviceId $dev -Package $pkg -ExpectedVersion $ver -CheckMcp $mcp"
 }
 
-# ---------- step 0: opt-in reuse check (S2409) ----------
+if ($MyInvocation.InvocationName -eq '.') { return }
 
-if ($ReuseFinding) {
+function Get-ReuseCandidate {
+    <#
+        Looks a live finding up and returns it, or $null. LOOKUP ONLY - it deliberately does not
+        answer, because S2600's incident was this lookup answering: it named emulator-5554 with an
+        empty `devices` list, from a 23-minute-old finding belonging to another session, for a
+        ticket whose subject was the phone. Rule 34 lets another agent's finding spare us cheap
+        idempotent WORK, never carry a verdict, and choosing the device IS the verdict here. So the
+        caller below enumerates devices and reads the form factor itself, and consults this only to
+        skip the expensive checks (pm list packages, dumpsys package, npm view).
+    #>
+    if (-not $ReuseFinding) { return $null }
     try {
         $storeScript = Join-Path $PSScriptRoot '..\utils\agent-chat-store.ps1'
-        if (Test-Path -LiteralPath $storeScript) {
-            . $storeScript
-            $topic = if ($DeviceId) { "device:$DeviceId" } else { "device:*" }
-            $req = Get-CanonicalReadyRequest -DeviceId $DeviceId -Package $Package -ExpectedVersion $ExpectedVersion -CheckMcp $CheckMcp
-            $match = Get-AgentChatCoveringFinding -Topic $topic -Request $req
-            if ($null -ne $match) {
-                $foundSerial = [string](Get-AgentChatProp $match 'device' '')
-                if (-not $foundSerial -and $DeviceId) { $foundSerial = $DeviceId }
-                $agentObj = Get-AgentChatProp $match 'agent'
-                $authorName = [string](Get-AgentChatProp $agentObj 'name' ([string](Get-AgentChatProp $agentObj 'id' '?')))
-                $atUtc = [DateTime](Get-AgentChatProp $match 'atUtc' ([DateTime]::UtcNow))
-                $ageMin = [double]([DateTime]::UtcNow - $atUtc).TotalMinutes
-                $ageStr = Format-AgentChatAge $ageMin
+        if (-not (Test-Path -LiteralPath $storeScript)) { return $null }
+        . $storeScript
+        $topic = if ($DeviceId) { "device:$DeviceId" } else { "device:*" }
+        $req = Get-CanonicalReadyRequest -DeviceId $DeviceId -Package $Package -ExpectedVersion $ExpectedVersion -CheckMcp $CheckMcp
+        $match = Get-AgentChatCoveringFinding -Topic $topic -Request $req
+        if ($null -eq $match) { return $null }
 
-                $script:result.ready           = $true
-                $script:result.state           = 'ready'
-                $script:result.selectedDevice  = $foundSerial
-                $script:result.installed       = [bool]$Package
-                $script:result.versionName     = if ($ExpectedVersion) { $ExpectedVersion } else { $null }
-                $script:result.versionMatch    = [bool]$ExpectedVersion
-                $script:result.mcpResolvable   = if ($CheckMcp) { $true } else { $null }
-                $script:result.reused          = $true
-                $script:result.reusedFrom      = "$authorName ($ageStr ago)"
+        $foundSerial = [string](Get-AgentChatProp $match 'device' '')
+        if (-not $foundSerial -and $DeviceId) { $foundSerial = $DeviceId }
+        if (-not $foundSerial) { return $null }
 
-                if ($Json) {
-                    $script:result | ConvertTo-Json -Compress
-                } else {
-                    Write-Host "READY (reused from $authorName, $ageStr ago) - device=$foundSerial$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
-                }
-                exit 0
-            }
+        $agentObj = Get-AgentChatProp $match 'agent'
+        $atUtc = [DateTime](Get-AgentChatProp $match 'atUtc' ([DateTime]::UtcNow))
+        return [pscustomobject]@{
+            serial = $foundSerial
+            author = [string](Get-AgentChatProp $agentObj 'name' ([string](Get-AgentChatProp $agentObj 'id' '?')))
+            age    = Format-AgentChatAge ([double]([DateTime]::UtcNow - $atUtc).TotalMinutes)
         }
-    } catch { }
+    }
+    catch {
+        # Reuse is an optimisation. A malformed or unreadable chat store must cost the full probe
+        # below, never the answer.
+        return $null
+    }
 }
-
-if ($MyInvocation.InvocationName -eq '.') { return }
 
 function Write-Line {
     param([string]$Text, [string]$Color = 'White')
@@ -285,6 +313,10 @@ function Get-DevicePreferenceOrder {
         emulator over the owner's physical phone, or a device that already carries the package -
         belongs here, so it cannot drift apart across the callers that pick a device.
         Today the order is "as adb listed them".
+
+        S2600 narrowed what reaches this function without moving the rule: the -Module form-factor
+        filter below runs first and decides ELIGIBILITY, which is a different question from order -
+        a device of the wrong form factor is not a worse candidate, it is not a candidate.
     #>
     param([Parameter(Mandatory)]$Candidates)
     return @($Candidates)
@@ -304,10 +336,77 @@ function Request-DeviceLease {
     return ($LASTEXITCODE -eq 0)
 }
 
+# ---------- step 2b: form factor (S2600) ----------
+
+# Read for every online device, not only the chosen one: the reason to read it at all is to CHOOSE,
+# and the refusal below has to be able to say what each rejected device actually was.
+$formFactors = @{}
+foreach ($device in $devices) {
+    $formFactors[$device.id] = Get-DeviceFormFactor -Adb $adb -Serial $device.id
+}
+
+$candidates = $devices
+if ($Module) {
+    $wanted = if ($Module -eq 'wear') { 'watch' } else { 'phone' }
+    $candidates = @($devices | Where-Object { Test-FormFactorMatch -FormFactor $formFactors[$_.id] -Module $Module })
+    if ($candidates.Count -eq 0) {
+        $seen = (($devices | ForEach-Object { "$($_.id)=$($formFactors[$_.id])" }) -join ', ')
+        Stop-NotReady 8 'form-factor-mismatch' "-Module $Module needs a $wanted and no online device is one (online: $seen); boot a $wanted emulator or attach a $wanted, then re-run"
+    }
+    Write-Line "OK form factor: $($candidates.Count) of $($devices.Count) device(s) match -Module $Module ($wanted)" 'Green'
+}
+
+# ---------- step 2c: reuse decision (S2409, amended by S2600) ----------
+
+# Reached only after the device list and every form factor were measured THIS run, so a reused
+# answer can no longer name a device the probe did not see, nor one the caller's -Module excludes.
+$reuse = Get-ReuseCandidate
+if ($null -ne $reuse) {
+    $reuseDevice = $candidates | Where-Object { $_.id -eq $reuse.serial } | Select-Object -First 1
+    if (-not $reuseDevice) {
+        Write-Line "ignoring finding from $($reuse.author) ($($reuse.age) ago): $($reuse.serial) is not an eligible device now - probing fresh" 'DarkYellow'
+    }
+    elseif ($ClaimFree -and -not (Request-DeviceLease -Serial $reuseDevice.id)) {
+        # A sibling took it since the finding was written. The full probe below reaches the proper
+        # all-devices-leased / device-leased answer, which this shortcut cannot express.
+        Write-Line "ignoring finding from $($reuse.author) ($($reuse.age) ago): $($reuse.serial) is leased by another session - probing fresh" 'DarkYellow'
+    }
+    else {
+        $script:result.ready          = $true
+        $script:result.state          = 'ready'
+        $script:result.selectedDevice = $reuseDevice.id
+        $script:result.formFactor     = $formFactors[$reuseDevice.id]
+        $script:result.installed      = [bool]$Package
+        $script:result.versionName    = if ($ExpectedVersion) { $ExpectedVersion } else { $null }
+        $script:result.versionMatch   = [bool]$ExpectedVersion
+        $script:result.mcpResolvable  = if ($CheckMcp) { $true } else { $null }
+        $script:result.reused         = $true
+        $script:result.reusedFrom     = "$($reuse.author) ($($reuse.age) ago)"
+
+        if ($Json) {
+            $script:result | ConvertTo-Json -Compress
+        } else {
+            Write-Host "READY (reused from $($reuse.author), $($reuse.age) ago) - device=$($reuseDevice.id) ff=$($script:result.formFactor)$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
+        }
+        exit 0
+    }
+}
+
 $selected = $null
+# Every branch below chooses from $candidates, never from $devices: without -Module the two are the
+# same list, and with it the filter has already run, so no branch can hand back a device of the
+# form factor the caller ruled out (S2600).
 if ($DeviceId) {
-    $selected = $devices | Where-Object { $_.id -eq $DeviceId } | Select-Object -First 1
-    if (-not $selected) { Stop-NotReady 2 'no-device' "device '$DeviceId' is not online (online: $($devices.id -join ', '))" }
+    $selected = $candidates | Where-Object { $_.id -eq $DeviceId } | Select-Object -First 1
+    if (-not $selected) {
+        # An online device excluded by -Module is a different answer from an absent one, and saying
+        # 'not online' about a device sitting in `adb devices` is the lie this ticket exists for.
+        $named = $devices | Where-Object { $_.id -eq $DeviceId } | Select-Object -First 1
+        if ($named) {
+            Stop-NotReady 8 'form-factor-mismatch' "device '$DeviceId' is online but is a $($formFactors[$DeviceId]), and -Module $Module needs a $(if($Module -eq 'wear'){'watch'}else{'phone'})"
+        }
+        Stop-NotReady 2 'no-device' "device '$DeviceId' is not online (online: $($devices.id -join ', '))"
+    }
     if ($ClaimFree -and -not (Request-DeviceLease -Serial $selected.id)) {
         Stop-NotReady 7 'device-leased' "device '$($selected.id)' is leased by another session; run device-lease.ps1 -Verb Status to see who"
     }
@@ -316,20 +415,21 @@ if ($DeviceId) {
     # because the gap between those two calls is exactly how two sessions take one device. Walk the
     # candidates and keep the first one that lets us claim it.
     $contested = @()
-    foreach ($candidate in (Get-DevicePreferenceOrder -Candidates $devices)) {
+    foreach ($candidate in (Get-DevicePreferenceOrder -Candidates $candidates)) {
         if (Request-DeviceLease -Serial $candidate.id) { $selected = $candidate; break }
         $contested += $candidate.id
     }
     if (-not $selected) {
         Stop-NotReady 7 'all-devices-leased' "every online device is leased by another session ($($contested -join ', ')); this is not 'no device' - retry later or run device-lease.ps1 -Verb Status"
     }
-} elseif ($devices.Count -gt 1) {
-    Stop-NotReady 3 'multiple-devices' "multiple online devices ($($devices.id -join ', ')); pass -DeviceId, or -ClaimFree to take a free one"
+} elseif ($candidates.Count -gt 1) {
+    Stop-NotReady 3 'multiple-devices' "multiple online devices ($($candidates.id -join ', ')); pass -DeviceId, -Module to narrow by form factor, or -ClaimFree to take a free one"
 } else {
-    $selected = $devices[0]
+    $selected = $candidates[0]
 }
 $script:result.selectedDevice = $selected.id
-Write-Line "OK device: $($selected.id)" 'Green'
+$script:result.formFactor     = $formFactors[$selected.id]
+Write-Line "OK device: $($selected.id) ($($script:result.formFactor))" 'Green'
 
 # ---------- step 3 + 4: package + version ----------
 
@@ -412,7 +512,7 @@ $script:result.state = 'ready'
 if ($Json) {
     $script:result | ConvertTo-Json -Compress
 } else {
-    Write-Host "READY - device=$($selected.id)$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
+    Write-Host "READY - device=$($selected.id) ff=$($script:result.formFactor)$(if($Package){" pkg=$Package"})$(if($ExpectedVersion){" v=$ExpectedVersion"})" -ForegroundColor Cyan
 }
 
 # S2372: the device state is the measurement sessions repeat most (up to 90 s a probe), so READY is

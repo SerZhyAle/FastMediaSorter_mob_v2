@@ -19,7 +19,29 @@ enum class WearAppId(val canonicalKey: String) {
      * S2008: the watch's own report, moved here from Settings - it configures nothing, so it belongs
      * with the programs rather than with the switches.
      */
-    SYSTEM_INFO("system_info")
+    SYSTEM_INFO("system_info"),
+
+    /**
+     * S2516: the display used as a light behind a lock no touch opens. Shares its `canonicalKey` with
+     * the phone's program of the same name, which has a torch as well - the watch has no flash unit,
+     * so only the lit screen half exists here.
+     */
+    WATER_FLASHLIGHT("water_flashlight"),
+
+    /**
+     * S2458: live motion and activity readings, for as long as its screen is open. Appended rather than
+     * placed beside the Network Monitor it resembles: the order of this list is the owner's, and moving
+     * an existing program is a decision this ticket was not asked to make.
+     */
+    MOTION_MONITOR("motion_monitor"),
+
+    /**
+     * S2457: one foreground heart-rate reading, with the reason printed when there cannot be one. The only
+     * program of this list whose row is withheld in `standard` - Play reviews the heart-rate permissions
+     * against six admitted use cases and a media sorter matches none (ADR-1), so the catalog answers
+     * `isAvailable` from the build rather than listing it everywhere and explaining the absence inside.
+     */
+    BODY_SENSOR("body_sensor")
 }
 
 /**

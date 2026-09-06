@@ -47,4 +47,20 @@
          grey and teal were rejected because "other" and music already hold them. -->
     <color name="color_media_folder">#FF628467</color>
     <color name="color_media_stream">#FF9A5A5A</color>
+
+    <!-- S2510: per-mini-program accent palette, the watch half. The eight names repeat
+         app_v2/src/main/res/values/colors.xml exactly - that name match is the whole contract, since
+         the two modules share no source. The values do not: the watch screen is dark and may carry a
+         user photo under a fixed scrim, where a tone picked for a light phone surface either glares
+         or disappears (S2510 ADR-4). These are the desaturated members the color_media_* set above
+         already uses here, for the same reason and against the same background.
+         No values-night, for the reason S2003 ADR-6 states above: Wear Compose ships one palette. -->
+    <color name="color_program_accent_red">#FF9A5A5A</color>
+    <color name="color_program_accent_orange">#FF9A7445</color>
+    <color name="color_program_accent_amber">#FF9A8A45</color>
+    <color name="color_program_accent_green">#FF628467</color>
+    <color name="color_program_accent_teal">#FF4B7A74</color>
+    <color name="color_program_accent_blue">#FF51789A</color>
+    <color name="color_program_accent_indigo">#FF5A6096</color>
+    <color name="color_program_accent_purple">#FF80608C</color>
 </resources>

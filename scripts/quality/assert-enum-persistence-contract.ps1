@@ -34,16 +34,25 @@
     looks right still proves nothing about what the optimizer did, so a minified artifact is the only
     evidence that a persisted member name survived.
 
+    S2596 taught the gate the second module. The roots were literals naming app_v2, so the watch was
+    never scanned: seven durable wear enums sat outside the two package keeps in wear/proguard-rules.pro
+    and a real standardRelease mapping showed every one of them renamed. The analysis is now per
+    module, because one module is one R8 run with one rule file - a shared enum-name index would
+    resolve a simple name across the boundary and demand the rule in the other module's file.
+
 .EXIT CODES
     0 - every durable enum-name path has a matching base rule (and, with -Mapping, kept its name).
     1 - a durable enum-name path is unpinned, a base rule names no declared class, or the mapping
         shows a renamed member.
-    2 - source, the base ProGuard file or the named mapping could not be inspected.
+    2 - no module could be inspected, no durable enum-name path was discovered, the named mapping is
+        missing, or -Mapping was passed without -Module.
 #>
 [CmdletBinding()]
 param(
     [string]$Mapping,
     [string]$RepoRoot,
+    [ValidateSet('app_v2', 'wear')]
+    [string]$Module,
     [switch]$Gate,
     [switch]$Quiet
 )
@@ -54,11 +63,29 @@ Set-StrictMode -Version Latest
 if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
     $RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 }
-$durableRoot = Join-Path $RepoRoot 'app_v2/src/main/java'
-$proguardPath = Join-Path $RepoRoot 'app_v2/proguard-rules.pro'
 
-if (-not (Test-Path -LiteralPath $durableRoot) -or -not (Test-Path -LiteralPath $proguardPath)) {
-    Write-Error 'assert-enum-persistence-contract: app source or base ProGuard rules are missing.' -ErrorAction Continue
+# A mapping file is one module's artifact produced by one R8 run, so the module cannot be guessed:
+# attributing it to the wrong one is the same silent mis-attribution this gate exists to prevent.
+if ($Mapping -and -not $Module) {
+    Write-Error 'assert-enum-persistence-contract: -Mapping needs -Module (app_v2 or wear) - a mapping belongs to one module.' -ErrorAction Continue
+    exit 2
+}
+
+$moduleSpecs = @(
+    [pscustomobject]@{ Name = 'app_v2'; SrcRoot = 'app_v2/src'; DurableRoot = 'app_v2/src/main/java'; Proguard = 'app_v2/proguard-rules.pro' }
+    [pscustomobject]@{ Name = 'wear'; SrcRoot = 'wear/src'; DurableRoot = 'wear/src/main/java'; Proguard = 'wear/proguard-rules.pro' }
+)
+if ($Module) { $moduleSpecs = @($moduleSpecs | Where-Object { $_.Name -eq $Module }) }
+
+# A module whose source root or rule file is absent is skipped rather than fatal: a synthetic
+# fixture repository legitimately carries only one of them.
+$moduleSpecs = @($moduleSpecs | Where-Object {
+        (Test-Path -LiteralPath (Join-Path $RepoRoot $_.DurableRoot)) -and
+        (Test-Path -LiteralPath (Join-Path $RepoRoot $_.Proguard))
+    })
+
+if ($moduleSpecs.Count -eq 0) {
+    Write-Error 'assert-enum-persistence-contract: no module has both a source root and a ProGuard file.' -ErrorAction Continue
     exit 2
 }
 
@@ -240,19 +267,25 @@ function Get-DeclaredEnums {
     return $found
 }
 
-# Declarations are collected across every source set, not just main: a rule may legitimately pin an
-# enum that only a flavour declares, and judging such a rule dead would be a false red.
-$declarationRoots = @()
-$srcRoot = Join-Path $RepoRoot 'app_v2/src'
-if (Test-Path -LiteralPath $srcRoot) {
-    foreach ($set in Get-ChildItem -LiteralPath $srcRoot -Directory) {
-        foreach ($lang in @('java', 'kotlin')) {
-            $candidate = Join-Path $set.FullName $lang
-            if (Test-Path -LiteralPath $candidate) { $declarationRoots += $candidate }
+function Invoke-ModuleScan {
+    param([pscustomobject]$Spec)
+
+    $durableRoot = Join-Path $RepoRoot $Spec.DurableRoot
+    $proguardPath = Join-Path $RepoRoot $Spec.Proguard
+
+    # Declarations are collected across every source set, not just main: a rule may legitimately pin an
+    # enum that only a flavour declares, and judging such a rule dead would be a false red.
+    $declarationRoots = @()
+    $srcRoot = Join-Path $RepoRoot $Spec.SrcRoot
+    if (Test-Path -LiteralPath $srcRoot) {
+        foreach ($set in Get-ChildItem -LiteralPath $srcRoot -Directory) {
+            foreach ($lang in @('java', 'kotlin')) {
+                $candidate = Join-Path $set.FullName $lang
+                if (Test-Path -LiteralPath $candidate) { $declarationRoots += $candidate }
+            }
         }
     }
-}
-if ($declarationRoots.Count -eq 0) { $declarationRoots = @($durableRoot) }
+    if ($declarationRoots.Count -eq 0) { $declarationRoots = @($durableRoot) }
 
 $allEnumFqns = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::Ordinal)
 $enumsBySimple = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.List[object]]]::new([System.StringComparer]::Ordinal)
@@ -382,33 +415,59 @@ foreach ($enum in ($durableEnums | Sort-Object)) {
     if ($rules -notmatch $rule) { $missing.Add($enum) }
 }
 
-# A rule naming no declared class is ignored by R8 in silence while reading as a satisfied contract.
-# Wildcard rules are deliberately not captured here - they name a shape, not a class.
-$dead = [System.Collections.Generic.List[string]]::new()
-foreach ($m in [regex]::Matches($rules, '(?m)^\s*-keepclassmembernames\s+enum\s+([\w.$]+)')) {
-    $named = $m.Groups[1].Value
-    if (-not $allEnumFqns.Contains($named)) { $dead.Add($named) }
+    # A rule naming no declared class is ignored by R8 in silence while reading as a satisfied contract.
+    # Wildcard rules are deliberately not captured here - they name a shape, not a class.
+    $dead = [System.Collections.Generic.List[string]]::new()
+    foreach ($m in [regex]::Matches($rules, '(?m)^\s*-keepclassmembernames\s+enum\s+([\w.$]+)')) {
+        $named = $m.Groups[1].Value
+        if (-not $allEnumFqns.Contains($named)) { $dead.Add($named) }
+    }
+
+    return [pscustomobject]@{
+        Module        = $Spec.Name
+        Missing       = $missing
+        Dead          = $dead
+        DurableEnums  = $durableEnums
+        DeclaredCount = $allEnumFqns.Count
+    }
 }
 
-if ($durableEnums.Count -eq 0) {
+$results = @()
+foreach ($spec in $moduleSpecs) { $results += (Invoke-ModuleScan -Spec $spec) }
+
+# The "nothing was discovered" guard is aggregate: a module that legitimately persists no enum by
+# name is not a broken scan, but every inspected module coming back empty still is.
+$totalDurable = 0
+foreach ($r in $results) { $totalDurable += $r.DurableEnums.Count }
+if ($totalDurable -eq 0) {
     Write-Error 'assert-enum-persistence-contract: no durable enum-name path was discovered.' -ErrorAction Continue
     exit 2
 }
-if ($missing.Count -gt 0 -or $dead.Count -gt 0) {
-    foreach ($enum in $missing) {
-        Write-Error "assert-enum-persistence-contract: missing -keepclassmembernames enum rule for $enum." -ErrorAction Continue
+
+$failed = $false
+foreach ($r in $results) {
+    foreach ($enum in $r.Missing) {
+        Write-Error "assert-enum-persistence-contract [$($r.Module)]: missing -keepclassmembernames enum rule for $enum." -ErrorAction Continue
+        $failed = $true
     }
-    foreach ($enum in $dead) {
-        Write-Error "assert-enum-persistence-contract: -keepclassmembernames enum rule names no declared class - $enum." -ErrorAction Continue
+    foreach ($enum in $r.Dead) {
+        Write-Error "assert-enum-persistence-contract [$($r.Module)]: -keepclassmembernames enum rule names no declared class - $enum." -ErrorAction Continue
+        $failed = $true
     }
-    exit 1
 }
+if ($failed) { exit 1 }
+
 if (-not $Mapping) {
     if (-not ($Gate -or $Quiet)) {
-        Write-Host "assert-enum-persistence-contract: PASS ($($durableEnums.Count) durable enum(s) pinned; $($allEnumFqns.Count) declared enum(s) scanned)."
+        foreach ($r in $results) {
+            Write-Host "assert-enum-persistence-contract [$($r.Module)]: PASS ($($r.DurableEnums.Count) durable enum(s) pinned; $($r.DeclaredCount) declared enum(s) scanned)."
+        }
     }
     exit 0
 }
+
+# -Mapping demanded -Module above, so exactly one module was scanned.
+$durableEnums = $results[0].DurableEnums
 
 if (-not (Test-Path -LiteralPath $Mapping)) {
     Write-Error "assert-enum-persistence-contract: mapping file not found at $Mapping." -ErrorAction Continue
@@ -423,11 +482,21 @@ $targets = @{}
 foreach ($enum in $durableEnums) { $targets[$enum] = $true }
 $renamed = [System.Collections.Generic.List[string]]::new()
 $inspected = 0
+# Counted separately from $inspected because the two answer different questions: how many target
+# classes the mapping named, and how many of their members were actually compared. Reporting only
+# the first is what let a parse that read no member at all print PASS (S2596).
+$membersRead = 0
 $currentEnum = $null
 
 $reader = [System.IO.StreamReader]::new($Mapping)
 try {
     while ($null -ne ($line = $reader.ReadLine())) {
+        # R8 prints its own metadata as `# {"id":"sourceFile",..}` at column 0, between a class line
+        # and that class's members. Classifying it as a class line - which the unindented test does -
+        # parses no class out of it and nulls the current class, so every member below goes unread
+        # while $inspected still counts the class as verified: a PASS that observed nothing. Measured
+        # on a fixture where the same rename exits 1 without this line and 0 with it (S2596).
+        if ($line.StartsWith('#')) { continue }
         if ($line -notmatch '^\s') {
             $classLine = [regex]::Match($line, '^([\w.$]+)\s+->\s+')
             # Absent from the file means R8 removed the class outright - a reachability question,
@@ -444,6 +513,7 @@ try {
         $member = [regex]::Match($line, '^\s+([\w.$]+)\s+(\w+)\s+->\s+(\w+)\s*$')
         if (-not $member.Success) { continue }
         if ($member.Groups[1].Value -ne $currentEnum) { continue }
+        $membersRead++
         if ($member.Groups[2].Value -cne $member.Groups[3].Value) {
             $renamed.Add("$currentEnum.$($member.Groups[2].Value) -> $($member.Groups[3].Value)")
         }
@@ -454,15 +524,21 @@ try {
 
 if ($renamed.Count -gt 0) {
     foreach ($entry in $renamed) {
-        Write-Error "assert-enum-persistence-contract: persisted enum member renamed by R8 - $entry." -ErrorAction Continue
+        Write-Error "assert-enum-persistence-contract [$Module]: persisted enum member renamed by R8 - $entry." -ErrorAction Continue
     }
     exit 1
 }
 if ($inspected -eq 0) {
-    Write-Error "assert-enum-persistence-contract: no durable enum appears in $Mapping - nothing was proven." -ErrorAction Continue
+    Write-Error "assert-enum-persistence-contract [$Module]: no durable enum appears in $Mapping - nothing was proven." -ErrorAction Continue
+    exit 2
+}
+# A mapping that names the classes but yields no member line means the parse walked past them, not
+# that the members are unchanged - the exact shape that made this mode a false green before S2596.
+if ($membersRead -eq 0) {
+    Write-Error "assert-enum-persistence-contract [$Module]: $inspected durable enum(s) named in $Mapping but no member line was read - nothing was proven." -ErrorAction Continue
     exit 2
 }
 if (-not ($Gate -or $Quiet)) {
-    Write-Host "assert-enum-persistence-contract: PASS ($($durableEnums.Count) durable enum(s) pinned; $inspected verified against $Mapping)."
+    Write-Host "assert-enum-persistence-contract [$Module]: PASS ($($durableEnums.Count) durable enum(s) pinned; $inspected class(es) and $membersRead member(s) read from $Mapping)."
 }
 exit 0

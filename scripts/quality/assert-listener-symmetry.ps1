@@ -19,6 +19,13 @@
       -Gate            Exit 1 if current > baseline (fail-closed on growth).
       -UpdateBaseline  Ratchet DOWN only (also seeds the file when missing).
       -List            Print every unbalanced file with details.
+
+.NOTES
+    Exit codes (CLAUDE.md Rule 7):
+      0 - pass: at or below baseline, a report/list run, or a completed baseline write.
+      1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding(DefaultParameterSetName = 'Report')]
 param(
@@ -35,6 +42,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 # S1559: ONE scope rule, read by both modes. The full scan used to list app_v2/src/main and
 # wear/src/main while delta mode (S1501) already judged every non-test source set - so an unbalanced
@@ -128,23 +136,30 @@ if ($List) {
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Update') {
-    if (-not (Test-Path $baselineFile)) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "listener-symmetry baseline SEEDED: $current"
-        exit 0
+    # One scope over both branches: they are mutually exclusive writes to the same file, and the
+    # seed branch's `exit 0` still runs the finally before the process terminates.
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-listener-symmetry.ps1 -UpdateBaseline'
+        if (-not (Test-Path $baselineFile)) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "listener-symmetry baseline SEEDED: $current"
+            exit 0
+        }
+        $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
+        if ($current -lt $baseline) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "listener-symmetry baseline ratcheted DOWN: $baseline -> $current"
+        }
+        elseif ($current -eq $baseline) {
+            Write-Host "listener-symmetry baseline unchanged ($baseline)"
+        }
+        else {
+            Write-Error "Refusing to RAISE baseline ($baseline -> $current). Mismatched listeners grew - ensure every add/register has a matching remove/unregister."
+            exit 1
+        }
     }
-    $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
-    if ($current -lt $baseline) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "listener-symmetry baseline ratcheted DOWN: $baseline -> $current"
-    }
-    elseif ($current -eq $baseline) {
-        Write-Host "listener-symmetry baseline unchanged ($baseline)"
-    }
-    else {
-        Write-Error "Refusing to RAISE baseline ($baseline -> $current). Mismatched listeners grew - ensure every add/register has a matching remove/unregister."
-        exit 1
-    }
+    finally { Exit-CodeLockScope -Scope $scope }
     exit 0
 }
 

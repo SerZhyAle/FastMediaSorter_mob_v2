@@ -161,14 +161,25 @@ Provisional minimalist vector icon set, wired into the shared picker
 **File:** `docs/settings/device-profile-nonpresettable.json`. Developer tooling data, read only by
 `scripts/check_device_profile_presets.ps1` - it is not packaged into the APK.
 
-A record is `{ "field": "<AppSettings field name>", "reason": "<why a profile may never set it>" }`.
-The reason is mandatory and is what a future reader gets instead of guessing.
+A record is `{ "field": "<AppSettings field name>", "reason": "<why the field is where it is>" }`.
+The reason is mandatory in both arrays and is what a future reader gets instead of guessing.
 
-**The rule a new setting must satisfy:** every `AppSettings` field has *either* a row in the CSV
-matrix *or* an entry in this registry. Until one of the two exists the coverage gate fails, and with
-it `.\a.ps1 fg` and `scripts/post-change.ps1`. A registered field that nevertheless carries a value
-in the CSV is also an error - the registry promises that value can never take effect, so authoring
-one would be silent data loss.
+**The file holds two arrays, and they are not interchangeable (S1538).**
+
+- `fields` - a profile may **never** set this one. It needs no CSV row, and carrying a value in the
+  CSV is an error, because the entry promises the value can never take effect.
+- `reviewed` - the field was examined and needs no override *today*. It stays presettable, **keeps
+  its CSV row and its applier branch**, and a value added later is legitimate rather than an error.
+
+**The rule a new setting must satisfy:** every `AppSettings` field carries a decision - a value in
+at least one profile column, a `fields` entry, or a `reviewed` entry. Until one of the three exists
+the coverage gate fails, and with it `.\a.ps1 fg` and `scripts/post-change.ps1`.
+
+**Only `fields` excuses a field from owning a row.** Writing an entry into `reviewed` when `fields`
+was meant leaves the field absent from the CSV while the `Non-presettable fields` counter does not
+move, so the mistake used to be visible only as a number that stayed put. Since S2574 the checker
+reports that case under its own label - `reviewed fields MISSING their CSV row` - instead of filing
+it with the genuinely forgotten fields.
 
 **The registry does not replace the applier's `else -> skip(..)` branch.** The applier is the
 runtime safety net: it is what actually refuses to write a credential or a session-state field when

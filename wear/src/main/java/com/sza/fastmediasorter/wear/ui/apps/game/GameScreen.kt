@@ -33,6 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
@@ -54,6 +55,13 @@ private val MIN_SWIPE_TRAVEL = 16.dp
 
 /** Shown while the first board is still being generated, so the ring never reads a level of zero. */
 private const val FIRST_LEVEL_DISPLAYED = 1
+
+/**
+ * Dims the stat counters below the board's own content. S2522: it dims the scaffold's content colour
+ * rather than reading `onSurfaceVariant`, because this screen pins a black container and does not
+ * follow the scheme's background - under a light scheme that palette role is near-black on black.
+ */
+private const val STAT_TEXT_ALPHA = 0.7f
 
 /** Square screens only: the gap between the counter row and the board it sits above. */
 private val SQUARE_ROW_SPACING = 2.dp
@@ -284,17 +292,17 @@ private fun SquareScreenLayout(
             Text(
                 text = stringResource(R.string.wear_game_score_description, uiState.stats.score),
                 style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurfaceVariant
+                color = LocalContentColor.current.copy(alpha = STAT_TEXT_ALPHA)
             )
             Text(
                 text = stringResource(R.string.wear_game_level_description, levelNumber),
                 style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurfaceVariant
+                color = LocalContentColor.current.copy(alpha = STAT_TEXT_ALPHA)
             )
             Text(
                 text = stringResource(R.string.wear_game_turns_description, uiState.stats.turns),
                 style = MaterialTheme.typography.caption2,
-                color = MaterialTheme.colors.onSurfaceVariant
+                color = LocalContentColor.current.copy(alpha = STAT_TEXT_ALPHA)
             )
         }
         val side = wearMaxSquareSide()

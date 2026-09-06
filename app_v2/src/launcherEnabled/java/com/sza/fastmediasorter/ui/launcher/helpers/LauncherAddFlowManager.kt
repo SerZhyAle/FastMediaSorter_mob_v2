@@ -139,6 +139,7 @@ class LauncherAddFlowManager(
         }
         registerResourceListeners()
         registerWeatherLocationListener()
+        registerSunDewpointLocationListener()
         registerWorldClockZoneListener()
         registerNetworkIndicatorListeners()
         registerSectionNameListener()
@@ -224,6 +225,18 @@ class LauncherAddFlowManager(
     fun openWeatherLocationPicker(cellId: Long) {
         openPicker(
             LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION, cellId),
+            LauncherWeatherLocationDialogFragment.TAG,
+        )
+    }
+
+    /**
+     * S1907: re-points an existing sun/dew-point cell. The weather dialog unmodified - it returns a
+     * plain encoded place and does not care which gadget asked - on its own request key, so a place
+     * answered here never completes a weather cell instead.
+     */
+    fun openSunDewpointLocationPicker(cellId: Long) {
+        openPicker(
+            LauncherWeatherLocationDialogFragment.newInstance(REQ_SUN_DEWPOINT_LOCATION, cellId),
             LauncherWeatherLocationDialogFragment.TAG,
         )
     }
@@ -343,6 +356,13 @@ class LauncherAddFlowManager(
             // The weather gadget's param is a place, not a registered resource, so it has its own picker.
             gadgetKey == LauncherGadgetRegistry.KEY_WEATHER -> openPicker(
                 LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION),
+                LauncherWeatherLocationDialogFragment.TAG,
+            )
+
+            // S1907: same shape and the same picker - its param is a place too - but its own request
+            // key, so the answer completes this cell rather than the weather one.
+            gadgetKey == LauncherGadgetRegistry.KEY_SUN_DEWPOINT -> openPicker(
+                LauncherWeatherLocationDialogFragment.newInstance(REQ_SUN_DEWPOINT_LOCATION),
                 LauncherWeatherLocationDialogFragment.TAG,
             )
 
@@ -576,9 +596,36 @@ class LauncherAddFlowManager(
             if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
                 placeWeatherGadget(encoded)
             } else {
+                viewModel.saveWeatherCellLocation(cellId, encoded)
                 viewModel.updateCellTarget(
                     cellId,
                     gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encoded),
+                )
+            }
+        }
+    }
+
+    /**
+     * S1907: the weather listener's shape without its two weather-specific writes. This gadget keeps its
+     * place in the cell's own `target` and nowhere else (research/01 §2), so it neither writes the
+     * `launcher_cell_config` row [saveWeatherCellLocation][LauncherHomeViewModel.saveWeatherCellLocation]
+     * keeps for the weather reset path, nor moves the global last-picked place - a city chosen for a sun
+     * cell must not silently retarget the weather cell beside it.
+     */
+    private fun registerSunDewpointLocationListener() {
+        fragmentManager.setFragmentResultListener(REQ_SUN_DEWPOINT_LOCATION, lifecycleOwner) { _, bundle ->
+            val encoded = bundle.getString(LauncherWeatherLocationDialogFragment.RESULT_LOCATION)
+                ?: return@setFragmentResultListener
+            val cellId = bundle.getLong(
+                LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
+                LauncherWeatherLocationDialogFragment.NO_CELL_ID,
+            )
+            if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
+                placeSunDewpointGadget(encoded)
+            } else {
+                viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_SUN_DEWPOINT, encoded),
                 )
             }
         }
@@ -642,6 +689,17 @@ class LauncherAddFlowManager(
         )
     }
 
+    /** S1907: same reason as [placeWeatherGadget] - the place rides the target, not a resource id. */
+    private fun placeSunDewpointGadget(encodedLocation: String) {
+        val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_SUN_DEWPOINT) ?: return
+        placeAtPendingSlot(
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_SUN_DEWPOINT, encodedLocation),
+            spanW = gadget.defaultSpanW,
+            spanH = gadget.defaultSpanH,
+        )
+    }
+
     /**
      * Public because the contact chain finishes outside this class: [LauncherContactPickManager] picks
      * the person and the channel, then hands back a command that lands on the same pending slot as
@@ -671,6 +729,10 @@ class LauncherAddFlowManager(
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
         const val REQ_SECTION_NAME = "launcher_section_name"
+
+        // S1907: the weather place picker serves two gadgets now, so each owns a request key - one
+        // shared key would let a place picked for either cell complete whichever asked last.
+        const val REQ_SUN_DEWPOINT_LOCATION = "launcher_sun_dewpoint_location"
 
         // S1440: two keys - the network cell's second question reuses the shared resource picker, and a
         // pick answered on REQ_RESOURCE_GADGET would complete some other gadget instead.

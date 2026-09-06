@@ -20,7 +20,9 @@
     map and sources are unchanged. Stale assets (a drawable dropped from the map) are pruned.
 
     Exit codes: 0 = complete asset set on disk; 1 = map or venv python absent, a mapped drawable
-    has no source XML, the rasterizer failed, or the set on disk is partial after the run.
+    has no source XML, the rasterizer failed, or the set on disk is partial after the run;
+    4 = Code.Scripts is held by another session, so nothing was written or pruned - the place in
+    the queue is held, wait for the turn and rerun.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
@@ -31,6 +33,7 @@ param(
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/vectordrawable-svg.ps1')
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $mapPath     = Join-Path $RepoRoot 'docs/icons/doc-icon-map.json'
 $drawableDir = Join-Path $RepoRoot 'app_v2/src/main/res/drawable'
@@ -51,7 +54,6 @@ foreach ($c in $map.docsMap) { [void]$names.Add($c.drawable) }
 foreach ($p in $map.settingsSections.PSObject.Properties) { [void]$names.Add($p.Value) }
 $distinct = @($names) | Sort-Object
 
-$null = New-Item -ItemType Directory -Force -Path $outDir
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 
 $expected = New-Object System.Collections.Generic.HashSet[string]
@@ -59,66 +61,76 @@ $missing  = New-Object System.Collections.Generic.List[string]
 $skipped  = New-Object System.Collections.Generic.List[string]
 $jobs     = New-Object System.Collections.Generic.List[object]
 $emitted  = 0
+$pruned   = 0
 
-foreach ($name in $distinct) {
-    $src = Join-Path $drawableDir ($name + '.xml')
-    if (-not (Test-Path -LiteralPath $src)) {
-        $missing.Add($name)
-        continue
+# S2615: the SVG write, the rasterizer batch that completes each pair, and the prune are ONE window.
+# Splitting them is what the S1956 partial-set check already guards against inside one run - a
+# sibling writing the same tree between them produces the same half-exported state from outside.
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path @($outDir) -Reason 'export-doc-icon-pngs.ps1 (docs/icons/doc)'
+    $null = New-Item -ItemType Directory -Force -Path $outDir
+
+    foreach ($name in $distinct) {
+        $src = Join-Path $drawableDir ($name + '.xml')
+        if (-not (Test-Path -LiteralPath $src)) {
+            $missing.Add($name)
+            continue
+        }
+        $result = Convert-VectorToSvg $src
+        if ($result.Skip) {
+            Write-Warning ('skip ' + $name + '.xml - ' + $result.Skip)
+            $skipped.Add($name + ' - ' + $result.Skip)
+            continue
+        }
+        $svgPath = Join-Path $outDir ($name + '.svg')
+        $pngPath = Join-Path $outDir ($name + '.png')
+        [System.IO.File]::WriteAllText($svgPath, $result.Svg, $utf8)
+        [void]$expected.Add($name + '.svg')
+        [void]$expected.Add($name + '.png')
+        $jobs.Add([ordered]@{ svg = $svgPath; png = $pngPath; width = $PngWidth; color = $Color })
+        $emitted++
     }
-    $result = Convert-VectorToSvg $src
-    if ($result.Skip) {
-        Write-Warning ('skip ' + $name + '.xml - ' + $result.Skip)
-        $skipped.Add($name + ' - ' + $result.Skip)
-        continue
+
+    if ($missing.Count -gt 0) {
+        Write-Host ''
+        Write-Host ('ERROR: ' + $missing.Count + ' mapped drawable(s) missing under ' + $drawableDir + ':')
+        foreach ($m in $missing) { Write-Host ('    - ' + $m) }
+        exit 1
     }
-    $svgPath = Join-Path $outDir ($name + '.svg')
-    $pngPath = Join-Path $outDir ($name + '.png')
-    [System.IO.File]::WriteAllText($svgPath, $result.Svg, $utf8)
-    [void]$expected.Add($name + '.svg')
-    [void]$expected.Add($name + '.png')
-    $jobs.Add([ordered]@{ svg = $svgPath; png = $pngPath; width = $PngWidth; color = $Color })
-    $emitted++
-}
 
-if ($missing.Count -gt 0) {
-    Write-Host ''
-    Write-Host ('ERROR: ' + $missing.Count + ' mapped drawable(s) missing under ' + $drawableDir + ':')
-    foreach ($m in $missing) { Write-Host ('    - ' + $m) }
-    exit 1
-}
+    # One resvg-py batch for every PNG.
+    $jobsFile = Join-Path $RepoRoot 'temp/_doc_icon_raster_jobs.json'
+    $null = New-Item -ItemType Directory -Force -Path (Split-Path $jobsFile)
+    [System.IO.File]::WriteAllText($jobsFile, ($jobs | ConvertTo-Json -Depth 4), $utf8)
+    & $python $rasterizer $jobsFile
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "ERROR: rasterizer exited $LASTEXITCODE"
+        Write-Host "HINT: provision its dependency into the venv it just used:"
+        Write-Host "      $python -m pip install -r scripts/docs/lib/requirements.txt"
+        exit 1
+    }
+    Remove-Item -LiteralPath $jobsFile -Force -ErrorAction SilentlyContinue
 
-# One resvg-py batch for every PNG.
-$jobsFile = Join-Path $RepoRoot 'temp/_doc_icon_raster_jobs.json'
-$null = New-Item -ItemType Directory -Force -Path (Split-Path $jobsFile)
-[System.IO.File]::WriteAllText($jobsFile, ($jobs | ConvertTo-Json -Depth 4), $utf8)
-& $python $rasterizer $jobsFile
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERROR: rasterizer exited $LASTEXITCODE"
-    Write-Host "HINT: provision its dependency into the venv it just used:"
-    Write-Host "      $python -m pip install -r scripts/docs/lib/requirements.txt"
-    exit 1
-}
-Remove-Item -LiteralPath $jobsFile -Force -ErrorAction SilentlyContinue
+    # A partial asset set is fatal (S1956): the SVG half is written before rasterization, so a
+    # rasterizer that failed - or silently skipped a job - would leave the tree half-exported and
+    # apply-doc-icons.ps1 would then publish a reference to a PNG that is not there.
+    $absent = @($expected | Where-Object { -not (Test-Path -LiteralPath (Join-Path $outDir $_)) } | Sort-Object)
+    if ($absent.Count -gt 0) {
+        Write-Host ''
+        Write-Host ('ERROR: ' + $absent.Count + ' expected asset(s) missing after export under ' + $outDir + ':')
+        foreach ($a in $absent) { Write-Host ('    - ' + $a) }
+        Write-Host '  The asset set is partial - do not run apply-doc-icons.ps1 until this is resolved.'
+        exit 1
+    }
 
-# A partial asset set is fatal (S1956): the SVG half is written before rasterization, so a
-# rasterizer that failed - or silently skipped a job - would leave the tree half-exported and
-# apply-doc-icons.ps1 would then publish a reference to a PNG that is not there.
-$absent = @($expected | Where-Object { -not (Test-Path -LiteralPath (Join-Path $outDir $_)) } | Sort-Object)
-if ($absent.Count -gt 0) {
-    Write-Host ''
-    Write-Host ('ERROR: ' + $absent.Count + ' expected asset(s) missing after export under ' + $outDir + ':')
-    foreach ($a in $absent) { Write-Host ('    - ' + $a) }
-    Write-Host '  The asset set is partial - do not run apply-doc-icons.ps1 until this is resolved.'
-    exit 1
+    # Prune assets no longer backed by the map.
+    Get-ChildItem -LiteralPath $outDir -File | Where-Object { -not $expected.Contains($_.Name) } | ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Force
+        $pruned++
+    }
 }
-
-# Prune assets no longer backed by the map.
-$pruned = 0
-Get-ChildItem -LiteralPath $outDir -File | Where-Object { -not $expected.Contains($_.Name) } | ForEach-Object {
-    Remove-Item -LiteralPath $_.FullName -Force
-    $pruned++
-}
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host ''
 Write-Host 'Doc icon asset export complete.'

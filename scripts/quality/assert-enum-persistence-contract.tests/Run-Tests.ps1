@@ -52,25 +52,30 @@ function Assert-That([string]$name, [bool]$ok, [string]$detail) {
 
 # Each fixture is a whole miniature repository: the gate resolves both its source root and its
 # ProGuard file from -RepoRoot, so handing it one directory is enough to isolate a case completely.
+# -Module defaults to app_v2 so every case written before S2596 builds the same fixture it always
+# did; a wear case simply names the other module and gets its own source root and rule file.
 function New-Fixture {
-    param([string]$Suffix, [hashtable]$Files, [string]$Rules)
+    param([string]$Suffix, [hashtable]$Files, [string]$Rules, [string]$Module = 'app_v2')
 
     $root = Join-Path $repoRoot "temp/scratch/s2364-fixture-$PID-$Suffix"
     foreach ($relative in $Files.Keys) {
-        $target = Join-Path $root "app_v2/src/main/java/com/fixture/s2364/$relative"
+        $target = Join-Path $root "$Module/src/main/java/com/fixture/s2364/$relative"
         New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
         Set-Content -Path $target -Value $Files[$relative] -Encoding utf8
     }
-    Set-Content -Path (Join-Path $root 'app_v2/proguard-rules.pro') -Value $Rules -Encoding utf8
+    Set-Content -Path (Join-Path $root "$Module/proguard-rules.pro") -Value $Rules -Encoding utf8
     $script:roots.Add($root)
     return $root
 }
 
 function Invoke-Gate {
-    param([string]$Root)
+    param([string]$Root, [string]$Module, [string]$Mapping)
 
     $stderr = Join-Path $Root 'gate-stderr.txt'
-    & $pwshExe -NoProfile -File $gateScript -RepoRoot $Root -Quiet 2> $stderr | Out-Null
+    $gateArgs = @('-NoProfile', '-File', $gateScript, '-RepoRoot', $Root, '-Quiet')
+    if ($Module) { $gateArgs += @('-Module', $Module) }
+    if ($Mapping) { $gateArgs += @('-Mapping', $Mapping) }
+    & $pwshExe @gateArgs 2> $stderr | Out-Null
     $code = $LASTEXITCODE
     $text = if (Test-Path -LiteralPath $stderr) { (Get-Content -LiteralPath $stderr -Raw) } else { '' }
     if ($null -eq $text) { $text = '' }
@@ -254,6 +259,81 @@ enum class FreeStanding { ONE, TWO }
         ($result.Text -match [regex]::Escape("rule for $pkg.FreeStanding.")) $result.Text
     Assert-That 'a body-less class does not become a parent' `
         ($result.Text -notmatch [regex]::Escape("$pkg.Header`$FreeStanding")) $result.Text
+
+    # --- 7. The watch module is scanned, and its rule is demanded from its own file. -----------
+    # Before S2596 the gate's roots were literals naming app_v2, so a wear-only tree reported
+    # nothing at all rather than reporting an unpinned enum.
+    $watchSource = @"
+package $pkg
+
+import android.content.SharedPreferences
+
+enum class WatchSortOrder { DEFAULT, NAME_ASC }
+
+class WatchStore {
+    fun save(prefs: SharedPreferences, order: WatchSortOrder) {
+        prefs.edit().putString("k", order.name).apply()
+    }
+}
+"@
+    $root = New-Fixture -Suffix 'wear-unpinned' -Files @{ 'Watch.kt' = $watchSource } -Rules '' -Module 'wear'
+    $result = Invoke-Gate -Root $root
+    Assert-That 'an unpinned enum in the wear module fails the gate' ($result.Code -eq 1) "exit $($result.Code)"
+    Assert-That 'the failure is attributed to the wear module' `
+        ($result.Text -match [regex]::Escape('[wear]')) $result.Text
+    Assert-That 'the wear enum is named in the failure' `
+        ($result.Text -match [regex]::Escape("rule for $pkg.WatchSortOrder.")) $result.Text
+
+    $root = New-Fixture -Suffix 'wear-pinned' -Files @{ 'Watch.kt' = $watchSource } `
+        -Rules (New-KeepRule "$pkg.WatchSortOrder") -Module 'wear'
+    $result = Invoke-Gate -Root $root
+    Assert-That 'a rule in the wear ProGuard file satisfies the gate' ($result.Code -eq 0) "exit $($result.Code): $($result.Text)"
+
+    # --- 8. Each module is judged against its OWN rule file. -----------------------------------
+    # The same simple name declared in both modules must be pinned twice, once per ProGuard file:
+    # crediting one module's rule to the other is what a shared enum-name index would do.
+    $root = New-Fixture -Suffix 'cross-module' -Files @{ 'Watch.kt' = $watchSource } `
+        -Rules (New-KeepRule "$pkg.WatchSortOrder") -Module 'app_v2'
+    $wearDir = Join-Path $root 'wear/src/main/java/com/fixture/s2364'
+    New-Item -ItemType Directory -Path $wearDir -Force | Out-Null
+    Set-Content -Path (Join-Path $wearDir 'Watch.kt') -Value $watchSource -Encoding utf8
+    Set-Content -Path (Join-Path $root 'wear/proguard-rules.pro') -Value '' -Encoding utf8
+    $result = Invoke-Gate -Root $root
+    Assert-That 'the phone rule does not satisfy the watch' ($result.Code -eq 1) "exit $($result.Code)"
+    Assert-That 'only the wear module is reported missing' `
+        (($result.Text -match [regex]::Escape('[wear]')) -and ($result.Text -notmatch [regex]::Escape('[app_v2]'))) $result.Text
+
+    # --- 9. A rename hiding behind an R8 metadata line is still caught. -------------------------
+    # R8 prints `# {"id":..}` at column 0 between a class line and its members. Reading that as a
+    # class line nulls the current class and every member below goes unread, which made -Mapping
+    # print PASS over a renamed constant (S2596).
+    $root = New-Fixture -Suffix 'mapping-metadata' -Files @{ 'Watch.kt' = $watchSource } `
+        -Rules (New-KeepRule "$pkg.WatchSortOrder")
+    $plainMapping = Join-Path $root 'plain-mapping.txt'
+    $metaMapping = Join-Path $root 'meta-mapping.txt'
+    $memberLines = "    $pkg.WatchSortOrder DEFAULT -> a`n    $pkg.WatchSortOrder NAME_ASC -> b`n"
+    Set-Content -Path $plainMapping -Value "$pkg.WatchSortOrder -> m1:`n$memberLines" -Encoding utf8
+    Set-Content -Path $metaMapping -Value "$pkg.WatchSortOrder -> m1:`n# {`"id`":`"sourceFile`",`"fileName`":`"Watch.kt`"}`n$memberLines" -Encoding utf8
+
+    $result = Invoke-Gate -Root $root -Module 'app_v2' -Mapping $plainMapping
+    Assert-That 'a renamed constant fails against a mapping with no metadata line' `
+        ($result.Code -eq 1) "exit $($result.Code): $($result.Text)"
+    $result = Invoke-Gate -Root $root -Module 'app_v2' -Mapping $metaMapping
+    Assert-That 'the same rename fails when an R8 metadata line precedes the members' `
+        ($result.Code -eq 1) "exit $($result.Code): $($result.Text)"
+
+    # A mapping naming the class but carrying no member line proves nothing and must not read as a
+    # pass - the shape the class-only counter used to report as verified.
+    $emptyMapping = Join-Path $root 'no-members-mapping.txt'
+    Set-Content -Path $emptyMapping -Value "$pkg.WatchSortOrder -> m1:`n" -Encoding utf8
+    $result = Invoke-Gate -Root $root -Module 'app_v2' -Mapping $emptyMapping
+    Assert-That 'a mapping with no member line cannot verify anything' ($result.Code -eq 2) "exit $($result.Code): $($result.Text)"
+
+    # --- 10. -Mapping refuses to guess which module produced it. -------------------------------
+    $result = Invoke-Gate -Root $root -Mapping $plainMapping
+    Assert-That '-Mapping without -Module exits 2' ($result.Code -eq 2) "exit $($result.Code)"
+    Assert-That 'the refusal names both valid modules' `
+        (($result.Text -match 'app_v2') -and ($result.Text -match 'wear')) $result.Text
 
     Write-Host ''
     Write-Host "assert-enum-persistence-contract.tests: $script:pass passed, $script:fail failed."

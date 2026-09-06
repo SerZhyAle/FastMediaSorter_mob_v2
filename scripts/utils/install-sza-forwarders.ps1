@@ -29,7 +29,9 @@
     Put the pre-forwarder copies back from the backup directory this script wrote.
 
 Exit codes: 0 = written (or listed under -WhatIf); 1 = a source path is missing or a write failed;
-            2 = the manifest or the staged harness could not be read.
+            2 = the manifest or the staged harness could not be read;
+            4 = the target's code domain is held by another session, so nothing was written. The
+                queue place is held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding(SupportsShouldProcess)]
 param(
@@ -38,6 +40,9 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+# Loaded before the rewrite deliberately: this script regenerates the very forwarders it calls
+# through, and a function already in memory is unaffected by its own file being replaced.
+. (Join-Path $PSScriptRoot 'code-lock-scope.ps1')
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $manifestPath = Join-Path $root 'scripts\utils\sza-forwarders.manifest.txt'
@@ -59,12 +64,20 @@ if ($Restore) {
         exit 2
     }
     $n = 0
-    foreach ($e in $entries) {
-        $src = Join-Path $backupDir ($e.Local -replace '/', '\')
-        if (-not (Test-Path -LiteralPath $src)) { continue }
-        Copy-Item -LiteralPath $src -Destination (Join-Path $root ($e.Local -replace '/', '\')) -Force
-        $n++
+    $codeScope = $null
+    try {
+        if (-not $WhatIfPreference) {
+            $codeScope = Enter-CodeLockOrExit -Path @($entries | ForEach-Object { $_.Local }) `
+                -Reason 'install-sza-forwarders.ps1 -Restore (pre-forwarder copies)'
+        }
+        foreach ($e in $entries) {
+            $src = Join-Path $backupDir ($e.Local -replace '/', '\')
+            if (-not (Test-Path -LiteralPath $src)) { continue }
+            Copy-Item -LiteralPath $src -Destination (Join-Path $root ($e.Local -replace '/', '\')) -Force
+            $n++
+        }
     }
+    finally { Exit-CodeLockScope -Scope $codeScope }
     Write-Host "install-sza-forwarders: restored $n file(s) from $backupDir" -ForegroundColor Green
     exit 0
 }
@@ -172,6 +185,20 @@ if ($MyInvocation.InvocationName -eq '.') {
     # running under 'Stop' for the rest of its life.
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
+    # S2610: a caller that omits a MANDATORY parameter makes PowerShell prompt for it, and that
+    # prompt reads stdin. A foreign agent runtime hands its child a stdin pipe and never closes it,
+    # so the prompt never returns and the target never runs a line - measured 2026-09-05 as 15 pairs
+    # of pwsh processes alive 14-17 hours on 0.3-0.7 s of CPU each, whose phase ticks, dev-log row
+    # and post-change closure therefore silently did not happen while the caller recorded success.
+    # Pointing the host's input at an already-ended reader turns that hang into the binding error
+    # the caller should have got in the first place. Only when input is ALREADY redirected: at a
+    # real console the prompt is the right answer and stays. No harness script reads stdin or
+    # pipeline input, so nothing legitimate loses its input to this.
+    $szaFwdPriorIn = $null
+    if ([Console]::IsInputRedirected) {
+        $szaFwdPriorIn = [Console]::In
+        [Console]::SetIn([System.IO.TextReader]::Null)
+    }
     try {
         & $szaFwdTarget @args
     } catch {
@@ -180,6 +207,11 @@ if ($MyInvocation.InvocationName -eq '.') {
         # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
         Write-Error $_ -ErrorAction Continue
         exit 1
+    } finally {
+        # Console input is process-global, and `exit` inside a &-invoked script returns to its
+        # caller rather than ending the process, so a forwarder invoked from another script has to
+        # hand input back or it silently takes stdin away from everything after it.
+        if ($null -ne $szaFwdPriorIn) { [Console]::SetIn($szaFwdPriorIn) }
     }
     $szaFwdCode = $LASTEXITCODE
     exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })
@@ -188,33 +220,46 @@ if ($MyInvocation.InvocationName -eq '.') {
 
 $written = 0
 $missing = @()
-foreach ($e in $entries) {
-    $localPath = Join-Path $root ($e.Local -replace '/', '\')
-    if (-not (Test-Path -LiteralPath $localPath)) { $missing += $e.Local; continue }
+$codeScope = $null
+try {
+    # Once for the whole batch, never once per entry: 79 acquire/release cycles would hand the
+    # domain back to a waiting sibling 78 times mid-rewrite, and whatever ran in between would see
+    # a forwarder set that is half regenerated and half not.
+    if (-not $WhatIfPreference) {
+        $codeScope = Enter-CodeLockOrExit -Path @($entries | ForEach-Object { $_.Local }) `
+            -Reason 'install-sza-forwarders.ps1 (harness forwarders)'
+    }
+    foreach ($e in $entries) {
+        $localPath = Join-Path $root ($e.Local -replace '/', '\')
+        if (-not (Test-Path -LiteralPath $localPath)) { $missing += $e.Local; continue }
 
-    $depth = ($e.Local -split '/').Count - 1
-    $up = if ($depth -le 0) { '.' } else { (@('..') * $depth) -join '\' }
-    $body = $template.
-        Replace('{HARNESS}', ($e.Harness -replace '/', '\')).
-        Replace('{LEAF}', (Split-Path $e.Local -Leaf)).
-        Replace('{UP}', $up)
+        $depth = ($e.Local -split '/').Count - 1
+        $up = if ($depth -le 0) { '.' } else { (@('..') * $depth) -join '\' }
+        $body = $template.
+            Replace('{HARNESS}', ($e.Harness -replace '/', '\')).
+            Replace('{LEAF}', (Split-Path $e.Local -Leaf)).
+            Replace('{UP}', $up)
 
-    if ($PSCmdlet.ShouldProcess($e.Local, "forward to $($e.Harness)")) {
-        # Back up only a file that is not ALREADY a forwarder, and only once. Copying a forwarder
-        # into the backup would replace the real pre-forwarder copy with a five-line stub, so
-        # -Restore would put back nothing - the backup is the only route from here to the original.
-        $backupPath = Join-Path $backupDir ($e.Local -replace '/', '\')
-        New-Item -ItemType Directory -Force -Path (Split-Path $backupPath -Parent) | Out-Null
-        $alreadyForwarder = (Get-Content -LiteralPath $localPath -Raw) -match 'Forwarder to the canon-shipped harness'
-        if (-not (Test-Path -LiteralPath $backupPath) -and -not $alreadyForwarder) {
-            Copy-Item -LiteralPath $localPath -Destination $backupPath -Force
+        if ($PSCmdlet.ShouldProcess($e.Local, "forward to $($e.Harness)")) {
+            # Back up only a file that is not ALREADY a forwarder, and only once. Copying a
+            # forwarder into the backup would replace the real pre-forwarder copy with a five-line
+            # stub, so -Restore would put back nothing - the backup is the only route from here to
+            # the original.
+            $backupPath = Join-Path $backupDir ($e.Local -replace '/', '\')
+            New-Item -ItemType Directory -Force -Path (Split-Path $backupPath -Parent) | Out-Null
+            $forwarderMark = 'Forwarder to the canon-shipped harness'
+            $alreadyForwarder = (Get-Content -LiteralPath $localPath -Raw) -match $forwarderMark
+            if (-not (Test-Path -LiteralPath $backupPath) -and -not $alreadyForwarder) {
+                Copy-Item -LiteralPath $localPath -Destination $backupPath -Force
+            }
+            [System.IO.File]::WriteAllText($localPath, $body, [System.Text.UTF8Encoding]::new($false))
+            $written++
+        } else {
+            Write-Host "would forward: $($e.Local) -> $($e.Harness)"
         }
-        [System.IO.File]::WriteAllText($localPath, $body, [System.Text.UTF8Encoding]::new($false))
-        $written++
-    } else {
-        Write-Host "would forward: $($e.Local) -> $($e.Harness)"
     }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 if ($missing.Count -gt 0) {
     Write-Host "install-sza-forwarders: $($missing.Count) source path(s) missing:" -ForegroundColor Red

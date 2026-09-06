@@ -72,7 +72,12 @@
       { "pattern": "^(GEMINI\\.md|LICENSE|THIRD_PARTY_LICENSES\\.md)$", "domain": "Code.Scripts" },
       { "pattern": "^(favicon[^/]*|icon\\.png|apple-touch-icon\\.png)$", "domain": "Code.Scripts" }
     ],
-    "agentProcessNames": ["claude.exe", "claude", "codex.exe", "codex"]
+    "agentProcessNames": ["claude.exe", "claude", "codex.exe", "codex"],
+    "buildEngine": {
+      "processNames": ["java.exe", "java"],
+      "busyMatch": "GradleDaemon|gradle-launcher",
+      "busyExclude": "-Xmx64m"
+    }
   },
   "probes": {
     "enabled": true,
@@ -93,7 +98,7 @@
       { "script": "dev/CATALOG/scripts/render.ps1", "args": ["-Module", "{Module}"] }
     ],
     "deviceReady": "scripts/devtest/device-ready.ps1",
-    "deviceReadyArgs": ["-Package", "com.sza.fastmediasorter.debug", "-CheckMcp"],
+    "deviceReadyArgs": ["-Package", "com.sza.fastmediasorter.debug", "-CheckMcp", "-Module", "app_v2"],
     "moduleCatalog": "dev/CATALOG/{Module}.jsonl",
     "moduleCatalogSync": "scripts/catalog_sync.ps1"
   },

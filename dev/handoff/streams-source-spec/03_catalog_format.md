@@ -130,6 +130,50 @@ and uploads nothing unless `-Publish` is also passed. It is a separate mode by d
 a mass metadata rewrite must never ride along with a discovery or artwork run. The legacy
 `-NormalizeTopics` switch remains the topic-only subset of the same operation.
 
+### 2.5 `name` guarantees (S2645) **[CONTRACT]**
+
+Until 2026-09-06 the `name` cell was whatever the upstream directory wrote, forwarded untouched. It is now
+repaired publisher-side, and a published bank carries four guarantees. A consumer may rely on them; a
+consumer that already works around their absence may stop.
+
+- **No undecoded HTML entity.** Named and numeric forms are decoded, including the double-encoded shape
+  (`102 FM L&amp;#039;Originale` -> `102 FM L'Originale`).
+- **No serialised encoder-slot prefix.** A leading `- <n> <X> - ` is stripped. A leading dash that is part
+  of the station's own name is not - the pattern requires the digit.
+- **Never literally `(null)`, and never free of letters and digits.** A row whose name says nothing gets
+  one derived from its address instead (below).
+- **Non-blank.** Unchanged from 2.1, and now enforced at publish time rather than assumed.
+
+**Derived names.** A name that carries no information - no letter and no digit, `(null)`, or one of the
+encoder defaults (`Online Radio`, `Unspecified name`, `Default Stream`, `Orban Opticodec-PC Encoder`,
+`MB STUDIO`, `RadioBOSS Stream`, ...) - is rebuilt from the row's own `host[:port]`, dropping a default
+port. A name that still carries the broadcaster's own words keeps them and gains the token beside them
+(`Online Radio (quincy.torontocast.com:2150)`); one that only asserts the absence of a name is replaced by
+the token outright (`(null)` -> `hoth.alonhosting.com:3410`). The port is part of the token because shared
+streaming hosts give every tenant one hostname and a port of its own.
+
+This is a **name** guarantee, not a uniqueness guarantee. Two rows may still share a name: a station with
+several quality rungs legitimately does, and 83 rows of the 2026-09-06 bank sit on one host and port with
+nothing in the URL to tell them apart. The mount path is deliberately not appended - it would reach
+uniqueness by putting an opaque id such as `/p5q8mompi9z/64k.aac` in front of the user.
+
+**Row identity.** Rows that fold to one channel identity - the `StreamChannelIdentity` key, i.e. the
+normalized URL with `http` and `https` folded to one token - are collapsed to a single row. This removes a
+duplicate **row**, never a channel: both copies already resolved to the same key on the device, so a pin
+placed on one showed on the other. The 2026-09-06 pass collapsed 62.
+
+**Rewrite mode.** `-NormalizeNames` applies all of the above to an existing catalog with no network
+collection, in the shape `-NormalizeFacets` established: a timestamped backup, a per-rule move report
+(`name-normalization-moves.csv`), a per-row list of collapsed duplicates
+(`identity-duplicates-dropped.csv`), and no upload unless `-Publish` is passed. It refuses to write when
+the surviving row count is not the input count minus the collapsed duplicates. It is idempotent - a second
+pass over a repaired bank reports zero moves.
+
+**Publish gate.** `Assert-CatalogNamesClean` runs inside `Invoke-PublishCatalog` and refuses a bank that
+violates any of the four guarantees, naming the count per class. It repairs nothing: a silent repair on the
+publish path would be an unrecorded change to the shipped bank, which is what `-NormalizeNames` exists to
+keep reviewable.
+
 ---
 
 ## 3. The parser - `StreamCatalogCsvParser` *(impl detail; but the tokenizer contract is [CONTRACT])*

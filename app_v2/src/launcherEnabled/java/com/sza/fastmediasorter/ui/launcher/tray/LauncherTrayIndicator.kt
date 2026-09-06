@@ -10,6 +10,10 @@ import com.sza.fastmediasorter.domain.model.AppSettings
  * This is the one place that lists what the status area can contain, so the next indicator is added here
  * rather than by editing the taskbar layout. S1431 reuses the same registry for its top-strip placement,
  * which is what keeps the two placements from offering different sets.
+ *
+ * S2027: [TETHERING] sits immediately before [NETWORK] because strategic §5.1 pillar 3 and acceptance
+ * criterion 3 both place it next to the network glyph - the two report on the same radio, so a reader
+ * scanning for connectivity finds them together instead of five slots apart.
  */
 enum class LauncherTrayIndicator {
     CLOCK,
@@ -18,6 +22,7 @@ enum class LauncherTrayIndicator {
     SIM2,
     SPEED_RX,
     SPEED_TX,
+    TETHERING,
     NETWORK,
     BATTERY,
 }
@@ -26,6 +31,7 @@ enum class LauncherTrayIndicator {
 data class LauncherTrayComposition(
     val clock: Boolean,
     val bluetooth: Boolean,
+    val tethering: Boolean,
     val sim1: Boolean,
     val sim2: Boolean,
     val speed: Boolean,
@@ -40,6 +46,7 @@ data class LauncherTrayComposition(
         LauncherTrayIndicator.SIM2 -> sim2
         LauncherTrayIndicator.SPEED_RX -> speed
         LauncherTrayIndicator.SPEED_TX -> speed
+        LauncherTrayIndicator.TETHERING -> tethering
         LauncherTrayIndicator.NETWORK -> network
         LauncherTrayIndicator.BATTERY -> battery
     }
@@ -48,6 +55,7 @@ data class LauncherTrayComposition(
         fun from(settings: AppSettings): LauncherTrayComposition = LauncherTrayComposition(
             clock = settings.launcherTrayShowClock,
             bluetooth = settings.launcherTrayShowBluetooth,
+            tethering = settings.launcherTrayShowTethering,
             sim1 = settings.launcherTrayShowSim1,
             sim2 = settings.launcherTrayShowSim2,
             speed = settings.launcherTrayShowSpeed,

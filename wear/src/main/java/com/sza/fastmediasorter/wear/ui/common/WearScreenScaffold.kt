@@ -7,15 +7,19 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import androidx.wear.compose.material.LocalContentColor
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
@@ -28,6 +32,13 @@ import kotlin.math.sqrt
  * its ends unless it is inset in proportion to the screen instead of by a fixed dp value.
  */
 private const val ROUND_INSET_FRACTION = 0.10f
+
+/**
+ * Lightness at which a pinned container stops being dark. Only screens that opt out of the wallpaper
+ * pass an opaque background, and their content has to oppose the colour actually painted rather than
+ * the one the palette declares (S2522).
+ */
+private const val PINNED_LUMINANCE_MIDPOINT = 0.5f
 
 /** A square screen clips nothing, so the inset only has to keep content off the bezel. */
 private val SQUARE_INSET = 4.dp
@@ -78,6 +89,14 @@ fun WearScreenScaffold(
     content: @Composable BoxScope.() -> Unit
 ) {
     val wallpaperState = LocalWearWallpaperState.current
+    // S2522: a screen that pins its own opaque container has stepped outside the scheme's background,
+    // so its content opposes what is actually painted instead of what the palette declares. Without
+    // this the two wallpaper-less screens draw a light scheme's near-black content onto pinned black.
+    val contentColor = when {
+        background == Color.Transparent -> MaterialTheme.colors.onBackground
+        background.luminance() < PINNED_LUMINANCE_MIDPOINT -> Color.White
+        else -> Color.Black
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -85,9 +104,22 @@ fun WearScreenScaffold(
         pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             {
+                // S2522: the colour is passed explicitly because the clock does not follow the palette
+                // on its own - the library Scaffold does not wrap this slot in a content colour, so
+                // TimeText resolves to the hardcoded white below LocalContentColor. The theme now
+                // provides that local (strategic ADR-6), but this slot sits outside the content Box,
+                // so it is coloured here as well - and from the same value, so a screen that pins its
+                // own container gets a clock that opposes the container rather than the palette.
                 val textStyle = TimeTextDefaults.timeTextStyle().copy(
+                    color = contentColor,
                     shadow = Shadow(
-                        color = Color.Black,
+                        // The shadow opposes the text for the same reason the wallpaper scrim does:
+                        // the clock is drawn over an uncontrolled picture.
+                        color = if (contentColor.luminance() < PINNED_LUMINANCE_MIDPOINT) {
+                            Color.White
+                        } else {
+                            Color.Black
+                        },
                         offset = Offset(1f, 1f),
                         blurRadius = 4f
                     )
@@ -110,16 +142,19 @@ fun WearScreenScaffold(
                     running = wallpaperState.isResumed
                 )
             }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    // Background before padding: the colour has to reach the frame edge, while the
-                    // content stops short of it. The reverse order leaves an unpainted ring at the rim.
-                    .background(background)
-                    .padding(contentPadding),
-                contentAlignment = Alignment.Center,
-                content = content
-            )
+            CompositionLocalProvider(LocalContentColor provides contentColor) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        // Background before padding: the colour has to reach the frame edge, while the
+                        // content stops short of it. The reverse order leaves an unpainted ring at the
+                        // rim.
+                        .background(background)
+                        .padding(contentPadding),
+                    contentAlignment = Alignment.Center,
+                    content = content
+                )
+            }
         }
     }
 }

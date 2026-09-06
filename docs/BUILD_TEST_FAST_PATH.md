@@ -39,6 +39,13 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
 | `a.ps1 fg` (fast static gates, 45 gates concurrent since S2451) | 32 s | foreground |
+<!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
+     `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
+     reached 142.8 s and were preempted into the background twice, delivering the verdict the way
+     Rule 26 forbids. S2451 made the children concurrent - 117 s -> 32 s, same gates, same verdicts -
+     so the margin is real again, but it is now bounded by the slowest single gate rather than by
+     the batch's size. -->
+
 | `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
@@ -51,6 +58,14 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 | `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
 | `a.ps1 fwm` (S2355, wear migration tests ON a device) | not measured | background |
+
+**Every row above is the run alone, on an empty queue** (S2606), and it stays that way (S2612). A `Build.*` domain is exclusive, so a target's wall clock is what it costs once it already holds the domain; the wait in front of it is in no number here and can dwarf them. Measured 2026-09-06 over 1327 fast checks, a short-mode run's queue wait was p50 1 s but **p90 58 s** - four times the 14.1 s the `fk` row records - with a worst case of 2996 s, and 155 of 975 short runs spent longer queueing than working (34 112 s against 4213 s).
+
+**The classification is not adjusted for contention, because contention is not a property of a target** - the same `fk` is 14 s alone and 14 s behind a 40-minute suite, and folding a queue into the row would make the number unreadable as either. The queue is handled where it happens instead. Since S2612 a **short-class** check that finds its build domain busy takes its place in the queue, prints who is in front and the `wait-for-lock-turn.ps1` command that resumes it, and **exits 4** - the same answer `enter-code-lock.ps1` already gives for a busy code domain, closing the asymmetry that hid this: a busy code domain sent the agent to wait in the background while a busy build domain made `Enter-BuildLockOrExit` block in-process, so a foreground call simply sat there until the 120 s timeout killed it with no verdict at all. The wait budget is **60 s**, below the 88-105 s a short target can actually survive once its own 14-32 s of work is counted. It cost about twelve runs per three days a background-wait turn and stopped roughly eighty-two from returning nothing: 94 of 975 short runs waited past 60 s, 82 past 90 s, 66 past 120 s.
+
+Long-class targets still block - they are backgrounded anyway, so they have no window to lose. To block through on a short one, pass `-BlockThrough` or set `FMS_LOCK_BLOCK=1`; the unattended queue runner is **not** an exception, since its `claude -p` children run checks through the same 120 s tool. `post-change.ps1` reports a queued gate as its exit 2 "could not verify", never as exit 1.
+
+Read the queue before blaming a slow target - `lock-status.ps1 -Name Build.Phone -Queue` for the present second, `measure-build-lock-wait.ps1` for the history, which since S2612 buckets short-class waits by threshold, marks the operative budget and counts refusals separately. Since S2580 the holder's reason names its mode and hold class, so a wait is legible rather than anonymous.
 
 `fam` is the only target here that needs a connected device, and it is the only one that executes a Room
 migration anywhere outside a user's phone. `fa` compiles the same source set and runs nothing, so a green
@@ -404,6 +419,8 @@ Use:
 ```
 
 **Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
+
+**Exit 2 saying the build output is HELD is not your change (S2584).** A hung Gradle test worker can outlive the run that spawned it and keep that variant's `R.jar` open; every mode except `Code` starts by rewriting it, so the run cannot even begin. The check now probes the file, refuses with **exit 2** - "could not verify", never exit 1 - and prints the holder's pid, start time and CPU. Read it as "nothing was proven either way" and do not go looking for a defect in the code: two sessions on 2026-09-05 lost time editing working code over the raw `IOException: Couldn't delete .. R.jar` this replaces. `Build.Phone` will report FREE throughout and is not lying - it tracks the wrapper pid, while the holder is a worker outside the mechanism. **`fk` / `fkn` / `fw` still return a real verdict during such an incident**, because a Kotlin-only compile never rewrites the jar - they are the fallback while it lasts. Killing the holder is the owner's call (Rule 35); the reaper is `scripts/utils/agent-watchdog.ps1`.
 
 Escalate only if the change also affects shared code used by `app_v2/`.
 

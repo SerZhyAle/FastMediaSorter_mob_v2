@@ -29,6 +29,10 @@ data class WearSettingsPayload(
     // serialize as an array of numbers, pushing the data item past the size where it is dropped in
     // silence and reads on the watch as "phone out of reach".
     @SerializedName("backgroundMode") val backgroundMode: String? = null,
+    // S2522: name of the watch's WearColorScheme. Nullable for the S1781 reason - a watch that predates
+    // it omits the key, and only a nullable field lets this side keep its own stored value instead of
+    // reading the absence as a scheme choice the owner never made.
+    @SerializedName("colorScheme") val colorScheme: String? = null,
     // S2093: the watch row that had no phone control until this ticket.
     @SerializedName("streamsSectionEnabled") val streamsSectionEnabled: Boolean? = null,
     // S2130: the fourth allowed-type switch. Nullable unlike its three siblings above for the S1781
@@ -37,6 +41,11 @@ data class WearSettingsPayload(
     @SerializedName("documentsEnabled") val documentsEnabled: Boolean? = null,
     // S2209: disable animations toggle synced between phone and watch.
     @SerializedName("disableAnimations") val disableAnimations: Boolean? = null,
+    // S2536: the charge at which the watch enters power saving on its own, as the enum's name. Only
+    // this VALUE crosses; the verdict is always local, because the two devices have separate
+    // batteries. Nullable for the S1781 reason - a watch that predates it omits the key, and only a
+    // nullable field lets this side keep its own stored value instead of reading the absence as OFF.
+    @SerializedName("powerSavingTrigger") val powerSavingTrigger: String? = null,
     // S2166: whether audio keeps playing on the watch after the app is minimized. Nullable for the
     // S1781 reason - a watch that predates it omits the key, and only a nullable field lets this side
     // keep its own stored value instead of reading the absence as "background playback is off".
@@ -70,5 +79,22 @@ data class WearSettingsPayload(
         const val BACKGROUND_MODE_BRANDED_STILL = "BRANDED_STILL"
         const val BACKGROUND_MODE_IMAGE = "IMAGE"
         const val BACKGROUND_MODE_NONE = "NONE"
+
+        /**
+         * S2522: the watch's `WearColorScheme` entries, pinned here for the same reason as the
+         * background modes above - the two modules share no artifact, so each side names the
+         * vocabulary independently and an unknown name resolves to the dark scheme on the watch.
+         *
+         * There is deliberately no AUTO member: Wear OS gives no system light/dark switch, so it could
+         * never differ from the dark scheme (strategic ADR-2).
+         */
+        const val COLOR_SCHEME_DARK = "DARK"
+        const val COLOR_SCHEME_LIGHT = "LIGHT"
+        const val COLOR_SCHEME_DARK_GREEN = "DARK_GREEN"
+        const val COLOR_SCHEME_DARK_BLUE = "DARK_BLUE"
+        const val COLOR_SCHEME_DARK_RED = "DARK_RED"
+        const val COLOR_SCHEME_LIGHT_GREEN = "LIGHT_GREEN"
+        const val COLOR_SCHEME_LIGHT_BLUE = "LIGHT_BLUE"
+        const val COLOR_SCHEME_LIGHT_RED = "LIGHT_RED"
     }
 }

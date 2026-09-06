@@ -4,6 +4,8 @@ import android.content.Context
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -17,13 +19,17 @@ import javax.inject.Inject
  *
  * The key is the resource id in its string form, which is exactly what travels on the wire, so the
  * importer needs no conversion in the one place a mismatch would be silent.
+ *
+ * S2515: every member suspends and the implementation moves itself to IO. A synchronous contract
+ * cannot switch dispatcher from inside, so the main-safety guarantee had to be repeated at each call
+ * site - and one half of the exchange duly forgot it while the other did not.
  */
 interface WearResourceStampStore {
 
-    fun readStamps(): Map<String, Long>
+    suspend fun readStamps(): Map<String, Long>
 
     /** Records an edit made on this phone, now. */
-    fun stampEdit(resourceId: String)
+    suspend fun stampEdit(resourceId: String)
 
     /**
      * Records the edit time a merge resolved, in this phone's time base. Separate from [stampEdit]
@@ -31,10 +37,10 @@ interface WearResourceStampStore {
      * the clock offset - stamping it "now" would make every imported record look freshly edited and
      * win the next exchange against a genuine edit.
      */
-    fun writeStamp(resourceId: String, atEpochMillis: Long)
+    suspend fun writeStamp(resourceId: String, atEpochMillis: Long)
 
     /** Drops the stamp of a resource that no longer exists, so the map does not grow without bound. */
-    fun forget(resourceId: String)
+    suspend fun forget(resourceId: String)
 }
 
 class SharedPreferencesWearResourceStampStore @Inject constructor(
@@ -45,30 +51,39 @@ class SharedPreferencesWearResourceStampStore @Inject constructor(
     private val prefs
         get() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
+    override suspend fun readStamps(): Map<String, Long> = withContext(Dispatchers.IO) {
+        readStampsFromPrefs()
+    }
+
+    override suspend fun stampEdit(resourceId: String) {
+        writeStamp(resourceId, System.currentTimeMillis())
+    }
+
+    override suspend fun writeStamp(resourceId: String, atEpochMillis: Long) {
+        withContext(Dispatchers.IO) {
+            Timber.d("S2515: stamp write for $resourceId on ${Thread.currentThread().name}")
+            val updated = readStampsFromPrefs() + (resourceId to atEpochMillis)
+            prefs.edit().putString(KEY_STAMPS, gson.toJson(updated)).apply()
+        }
+    }
+
+    override suspend fun forget(resourceId: String) {
+        withContext(Dispatchers.IO) {
+            val current = readStampsFromPrefs()
+            if (current.containsKey(resourceId)) {
+                prefs.edit().putString(KEY_STAMPS, gson.toJson(current - resourceId)).apply()
+            }
+        }
+    }
+
     // An unreadable map degrades to "nothing was ever edited here", which the merge rule answers with
     // "take the incoming record" - the behaviour that predates this ticket, and never a data reset.
-    override fun readStamps(): Map<String, Long> {
+    // Kept non-suspend so the writers above read inside their own IO block rather than re-dispatching.
+    private fun readStampsFromPrefs(): Map<String, Long> {
         val stored = prefs.getString(KEY_STAMPS, null) ?: return emptyMap()
         return runCatching { gson.fromJson(stored, STAMP_MAP_TYPE) ?: emptyMap<String, Long>() }
             .onFailure { Timber.w(it, "Stored resource edit stamps unreadable, ignoring them") }
             .getOrDefault(emptyMap())
-    }
-
-    override fun stampEdit(resourceId: String) {
-        writeStamp(resourceId, System.currentTimeMillis())
-    }
-
-    override fun writeStamp(resourceId: String, atEpochMillis: Long) {
-        val updated = readStamps() + (resourceId to atEpochMillis)
-        prefs.edit().putString(KEY_STAMPS, gson.toJson(updated)).apply()
-    }
-
-    override fun forget(resourceId: String) {
-        val current = readStamps()
-        if (!current.containsKey(resourceId)) {
-            return
-        }
-        prefs.edit().putString(KEY_STAMPS, gson.toJson(current - resourceId)).apply()
     }
 
     private companion object {

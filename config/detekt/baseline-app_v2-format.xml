@@ -784,19 +784,6 @@
     <ID>ArgumentListWrapping:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$(fragment.requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)</ID>
     <ID>ArgumentListWrapping:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$(R.string.settings_reset_settings_failed)</ID>
     <ID>ArgumentListWrapping:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$(R.string.settings_reset_smb_failed)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(android.R.id.content, com.sza.fastmediasorter.ui.settings.fragments.OpenSourceLicensesFragment())</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, syncIntervalOptions)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), R.string.slide_interval_error, Toast.LENGTH_SHORT)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), R.string.tooltip_default_credentials_title, R.string.tooltip_default_credentials_message)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(fragment.requireContext(), R.string.tooltip_grid_size_title, R.string.tooltip_grid_size_message)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(R.string.number_format, viewModel.settings.value.defaultIconSize)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(R.string.settings_cache_size_range_error)</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_RU.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_UK.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html" }, "No browser found to open documentation")</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/" }, "No browser found to open documentation")</ID>
-    <ID>ArgumentListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.ru.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.uk.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html" }, "No browser found to open Privacy Policy")</ID>
     <ID>ArgumentListWrapping:GetDestinationsUseCaseTest.kt$GetDestinationsUseCaseTest$(id = 2, isDestination = true, destinationOrder = 2, isReadOnly = true)</ID>
     <ID>ArgumentListWrapping:GetDestinationsUseCaseTest.kt$GetDestinationsUseCaseTest$(id = 3, isDestination = true, destinationOrder = 3, isReadOnly = true)</ID>
     <ID>ArgumentListWrapping:GetMediaFilesUseCase.kt$GetMediaFilesUseCase$("START invoke", "resource" to resource.name, "showHiddenFiles" to showHiddenFiles, "forceFullScan" to forceFullScan)</ID>
@@ -3941,17 +3928,8 @@
     <ID>MaxLineLength:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_reset_smb_failed), Toast.LENGTH_LONG).show()</ID>
     <ID>MaxLineLength:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$Toast.makeText(fragment.requireContext(), R.string.reset_general_section_success, Toast.LENGTH_LONG).show()</ID>
     <ID>MaxLineLength:GeneralSettingsResetHelper.kt$GeneralSettingsResetHelper$Toast.makeText(fragment.requireContext(), R.string.reset_smb_success, Toast.LENGTH_SHORT).show()</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$.</ID>
     <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb)</ID>
     <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$binding.actvNetworkParallelism.text = fragment.getString(R.string.number_format, viewModel.settings.value.networkParallelism)</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_default_credentials_title, R.string.tooltip_default_credentials_message)</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_grid_size_title, R.string.tooltip_grid_size_message)</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$Toast.makeText(fragment.requireContext(), R.string.slide_interval_error, Toast.LENGTH_SHORT).show()</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$transform: (com.sza.fastmediasorter.domain.model.AppSettings) -&gt; com.sza.fastmediasorter.domain.model.AppSettings</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$val iconSizeAdapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)</ID>
-    <ID>MaxLineLength:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$val syncAdapter = android.widget.ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, syncIntervalOptions)</ID>
     <ID>MaxLineLength:GetDestinationsUseCase.kt$GetDestinationsUseCase$.</ID>
     <ID>MaxLineLength:GetDestinationsUseCase.kt$GetDestinationsUseCase$return resources.count { it.isDestination &amp;&amp; (it.destinationOrder ?: -1) &gt;= 0 &amp;&amp; !it.isReadOnly &amp;&amp; !VirtualPathUtils.isVirtualPath(it.path) }</ID>
     <ID>MaxLineLength:GetDestinationsUseCaseTest.kt$GetDestinationsUseCaseTest$coEvery { resourceRepository.getAllResources() } returns flowOf(listOf(resource1, resource2, resource3, resource4))</ID>
@@ -5290,8 +5268,6 @@
     <ID>MultiLineIfElse:GeneralSettingsObserversHelper.kt$GeneralSettingsObserversHelper$binding.rowSourceSmb.setCheckedSilently(smbGroup)</ID>
     <ID>MultiLineIfElse:GeneralSettingsObserversHelper.kt$GeneralSettingsObserversHelper$fragment.getString(R.string.sync_status_in_progress)</ID>
     <ID>MultiLineIfElse:GeneralSettingsObserversHelper.kt$GeneralSettingsObserversHelper$syncIntervalView.setText(fragment.getString(R.string.number_format, syncMinutes), false)</ID>
-    <ID>MultiLineIfElse:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$viewModel.cancelManualNetworkSync()</ID>
-    <ID>MultiLineIfElse:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$viewModel.startManualNetworkSync()</ID>
     <ID>MultiLineIfElse:ImageCropManager.kt$ImageCropManager$Bitmap.CompressFormat.WEBP</ID>
     <ID>MultiLineIfElse:ImageCropManager.kt$ImageCropManager$Bitmap.CompressFormat.WEBP_LOSSLESS</ID>
     <ID>MultiLineIfElse:ImageLoadingManager.kt$ImageLoadingManager$DrawableTransitionOptions.withCrossFade(0)</ID>
@@ -6581,7 +6557,6 @@
     <ID>ParameterListWrapping:FlipImageUseCase.kt$FlipImageUseCase$(imagePath: String, direction: FlipDirection, recordStats: Boolean = true)</ID>
     <ID>ParameterListWrapping:FtpClient.kt$FtpClient$(connectionInfo: FtpExoPlayerPool.FtpConnectionInfo)</ID>
     <ID>ParameterListWrapping:FtpFileOperationHandler.kt$FtpFileOperationHandler$(e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException)</ID>
-    <ID>ParameterListWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(com.sza.fastmediasorter.domain.model.AppSettings)</ID>
     <ID>ParameterListWrapping:IconPickerBottomSheet.kt$IconPickerBottomSheet$( inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle? )</ID>
     <ID>ParameterListWrapping:IntegrationTestRunner.kt$IntegrationTestRunner$(provider: CloudProvider)</ID>
     <ID>ParameterListWrapping:LinkDownloadWriter.kt$LinkDownloadWriter.WriteResult.FellBackToDownloads$(val fileName: String, val reason: SaveFallbackReason, val destinationUri: Uri?)</ID>
@@ -6620,7 +6595,6 @@
     <ID>ParameterWrapping:FileOperationDestinationDialog.kt$FileOperationDestinationDialog$private val onPermissionRequired: ((android.app.PendingIntent, com.sza.fastmediasorter.domain.model.MediaResource?) -&gt; Unit)? = null</ID>
     <ID>ParameterWrapping:FtpClient.kt$FtpClient$private val lifecycleBootstrapper: dagger.Lazy&lt;com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper&gt;</ID>
     <ID>ParameterWrapping:FtpFileOperationHandler.kt$FtpFileOperationHandler$e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException</ID>
-    <ID>ParameterWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$transform: (com.sza.fastmediasorter.domain.model.AppSettings) -&gt; com.sza.fastmediasorter.domain.model.AppSettings</ID>
     <ID>ParameterWrapping:GoogleDriveRestClient.kt$GoogleDriveRestClient$private val lifecycleBootstrapper: dagger.Lazy&lt;com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper&gt;</ID>
     <ID>ParameterWrapping:LocalOperationStrategy.kt$LocalOperationStrategy$e: com.sza.fastmediasorter.domain.usecase.FileOperationUseCase.BatchDeletePermissionRequiredException</ID>
     <ID>ParameterWrapping:OneDriveRestClient.kt$OneDriveRestClient$private val lifecycleBootstrapper: dagger.Lazy&lt;com.sza.fastmediasorter.data.network.lifecycle.NetworkLifecycleBootstrapper&gt;</ID>
@@ -6666,7 +6640,6 @@
     <ID>PropertyWrapping:FtpFileOperationHandler.kt$FtpFileOperationHandler$val uploadedPath = uploadToFtp(source = File(sourcePath), ftpPath = destFilePath, overwrite = operation.overwrite, progressCallback = progressCallback)</ID>
     <ID>PropertyWrapping:FtpFileOperationHandler.kt$FtpFileOperationHandler$val uploadedPath = uploadToFtp(source = tempFile, ftpPath = destFilePath, overwrite = operation.overwrite, progressCallback = progressCallback)</ID>
     <ID>PropertyWrapping:GeneralSettingsFragment.kt$GeneralSettingsFragment$// S0391: gate decides whether the cloud group toggle row is visible on this flavor. @Inject lateinit var remoteSourceAvailabilityGate: com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate</ID>
-    <ID>PropertyWrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$val iconSizeAdapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)</ID>
     <ID>PropertyWrapping:GoogleDriveFolderPickerActivity.kt$GoogleDriveFolderPickerActivity$private val keyboardDelegate = CloudFolderPickerKeyboardDelegate(object : CloudFolderPickerKeyboardDelegate.Callback { override fun activateFocused(): Boolean { // Keyboard OpenCurrent must target the focused row/button, not always the first folder. return activateFocusedViewOrAncestor() } override fun navigateUp() { handleBackNavigation() } override fun refresh() { viewModel.loadFolders() } override fun cancel() { finish() } override fun showHelp() { InputHelpDialogFragment.show(supportFragmentManager, UiSurface.CLOUD_PICKER) } })</ID>
     <ID>PropertyWrapping:LinkExtractionRegistry.kt$LinkExtractionRegistry.Companion$// S0174: "ytdlp" is registered only in the noLegal flavor DI module. // In other flavors this id matches no strategy - sort falls back to Int.MAX_VALUE, harmless. // S0177: native site extractors - noLegal only, benign no-op in other flavors. // S0303: "telegram" is the lightweight public t.me post extractor, bound only in noLegal. // Placed ahead of "ytdlp"/"html"/"dynamic" so it wins for t.me links; benign no-op elsewhere. val CANONICAL_ORDER = listOf("artstation", "deviantart", "vimeo", "dailymotion", "telegram", "ytdlp", "site", "direct", "html", "dynamic")</ID>
     <ID>PropertyWrapping:LinkSettingsStore.kt$LinkSettingsStore$private val KEY_LINK_DOWNLOAD_LOGIN_WALL_HEURISTIC_ENABLED = booleanPreferencesKey("link_download_login_wall_heuristic_enabled")</ID>
@@ -7480,10 +7453,6 @@
     <ID>Wrapping:GeneralSettingsCredentialHelper.kt$GeneralSettingsCredentialHelper$(</ID>
     <ID>Wrapping:GeneralSettingsFragment.kt$GeneralSettingsFragment$;</ID>
     <ID>Wrapping:GeneralSettingsFragment.kt$GeneralSettingsFragment$(</ID>
-    <ID>Wrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(</ID>
-    <ID>Wrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_RU.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_UK.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html" }, "No browser found to open documentation")</ID>
-    <ID>Wrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/" }, "No browser found to open documentation")</ID>
-    <ID>Wrapping:GeneralSettingsViewSetupHelper.kt$GeneralSettingsViewSetupHelper$(when (LocaleHelper.getLanguage(fragment.requireContext())) { "ru" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.ru.html" "uk" -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.uk.html" else -&gt; "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html" }, "No browser found to open Privacy Policy")</ID>
     <ID>Wrapping:GetDestinationsUseCase.kt$GetDestinationsUseCase$it.isDestination &amp;&amp; (it.destinationOrder ?: -1) &gt;= 0 &amp;&amp; !it.isReadOnly &amp;&amp; !it.isHidden &amp;&amp; !VirtualPathUtils.isVirtualPath(it.path)</ID>
     <ID>Wrapping:GetDestinationsUseCase.kt$GetDestinationsUseCase$it.isDestination &amp;&amp; (it.destinationOrder ?: -1) &gt;= 0 &amp;&amp; !it.isReadOnly &amp;&amp; !VirtualPathUtils.isVirtualPath(it.path)</ID>
     <ID>Wrapping:GetDestinationsUseCase.kt$GetDestinationsUseCase$it.isDestination &amp;&amp; (it.destinationOrder ?: -1) &gt;= 0 &amp;&amp; it.id != excludedResourceId &amp;&amp; !it.isReadOnly &amp;&amp; !it.isHidden &amp;&amp; !VirtualPathUtils.isVirtualPath(it.path)</ID>

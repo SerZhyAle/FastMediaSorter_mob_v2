@@ -20,8 +20,49 @@ class BrowseFileTransferRequestStore @Inject constructor(
     private val activeRequestFile: File by lazy(LazyThreadSafetyMode.NONE) {
         File(rootDir, "active_request.json")
     }
+    private val pendingQueueFile: File by lazy(LazyThreadSafetyMode.NONE) {
+        File(rootDir, "pending_queue.json")
+    }
     private val terminalEventFile: File by lazy(LazyThreadSafetyMode.NONE) {
         File(rootDir, "terminal_event.json")
+    }
+
+    fun enqueueRequest(request: BrowseFileTransferRequest) {
+        synchronized(lock) {
+            val queue = readPendingQueue()
+            queue.add(request)
+            writePendingQueue(queue)
+        }
+    }
+
+    fun pollNextRequest(): BrowseFileTransferRequest? = synchronized(lock) {
+        val queue = readPendingQueue()
+        if (queue.isNotEmpty()) {
+            val next = queue.removeAt(0)
+            writePendingQueue(queue)
+            writeJson(activeRequestFile, next)
+            next
+        } else {
+            readActiveRequest()
+        }
+    }
+
+    fun hasPendingRequests(): Boolean = synchronized(lock) {
+        readActiveRequest() != null || readPendingQueue().isNotEmpty()
+    }
+
+    fun clearQueue() {
+        synchronized(lock) {
+            deleteIfExists(pendingQueueFile)
+        }
+    }
+
+    fun clearAll() {
+        synchronized(lock) {
+            deleteIfExists(activeRequestFile)
+            deleteIfExists(pendingQueueFile)
+            deleteIfExists(terminalEventFile)
+        }
     }
 
     fun writeActiveRequest(request: BrowseFileTransferRequest) {
@@ -63,6 +104,24 @@ class BrowseFileTransferRequestStore @Inject constructor(
     fun clearTerminalEvent() {
         synchronized(lock) {
             deleteIfExists(terminalEventFile)
+        }
+    }
+
+    private fun readPendingQueue(): MutableList<BrowseFileTransferRequest> {
+        if (!pendingQueueFile.exists()) return mutableListOf()
+        val parsed = runCatching {
+            val listType = object : com.google.gson.reflect.TypeToken<List<BrowseFileTransferRequest>>() {}.type
+            gson.fromJson<List<BrowseFileTransferRequest>>(pendingQueueFile.readText(Charsets.UTF_8), listType)
+        }.onFailure { Timber.e(it, "BrowseFileTransferRequestStore: failed reading pending_queue.json") }
+            .getOrNull()
+        return parsed?.filter { it != null && it.isStructurallyIntact() }?.toMutableList() ?: mutableListOf()
+    }
+
+    private fun writePendingQueue(queue: List<BrowseFileTransferRequest>) {
+        if (queue.isEmpty()) {
+            deleteIfExists(pendingQueueFile)
+        } else {
+            writeJson(pendingQueueFile, queue)
         }
     }
 

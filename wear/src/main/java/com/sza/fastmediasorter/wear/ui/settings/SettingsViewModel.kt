@@ -8,8 +8,10 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportClient
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearOpenUrlOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
@@ -48,6 +50,11 @@ private const val INDEX_DOCUMENTS = 14
 private const val INDEX_DISABLE_ANIMATIONS = 15
 private const val INDEX_BACKGROUND_PLAYBACK = 16
 private const val INDEX_PANEL_AUTO_HIDE = 17
+private const val INDEX_POWER_SAVING_TRIGGER = 18
+
+// S2522: appended rather than inserted. Every index above names a position in the combine list, and the
+// casts below are unchecked, so renumbering would silently re-map settings onto each other's flows.
+private const val INDEX_COLOR_SCHEME = 19
 
 /**
  * ViewModel for Settings screen.
@@ -123,7 +130,9 @@ class SettingsViewModel @Inject constructor(
                     preferencesRepository.isDocumentsEnabled,
                     preferencesRepository.isAnimationsDisabled,
                     preferencesRepository.backgroundPlaybackEnabled,
-                    preferencesRepository.panelAutoHideSeconds
+                    preferencesRepository.panelAutoHideSeconds,
+                    preferencesRepository.powerSavingTrigger,
+                    preferencesRepository.colorScheme
                 )
             ) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
@@ -144,8 +153,11 @@ class SettingsViewModel @Inject constructor(
                 val disableAnimations = values[INDEX_DISABLE_ANIMATIONS] as Boolean
                 val backgroundPlayback = values[INDEX_BACKGROUND_PLAYBACK] as Boolean
                 val panelAutoHide = values[INDEX_PANEL_AUTO_HIDE] as Int
+                val powerSaving = values[INDEX_POWER_SAVING_TRIGGER] as PowerSavingTrigger
+                val colorScheme = values[INDEX_COLOR_SCHEME] as WearColorScheme
                 _uiState.value.copy(
                     backgroundMode = background,
+                    colorScheme = colorScheme,
                     lastSyncedAtEpochMillis = lastSync,
                     isAudioEnabled = audio,
                     isVideoEnabled = video,
@@ -163,6 +175,7 @@ class SettingsViewModel @Inject constructor(
                     hasAutoRotationSensor = hasAccelerometer,
                     voiceNoteSendPolicy = sendPolicy,
                     isAnimationsDisabled = disableAnimations,
+                    powerSavingTrigger = powerSaving,
                     backgroundPlaybackEnabled = backgroundPlayback,
                     isLoading = false
                 )
@@ -252,6 +265,20 @@ class SettingsViewModel @Inject constructor(
     fun toggleDisableAnimations() {
         viewModelScope.launch {
             preferencesRepository.setAnimationsDisabled(!_uiState.value.isAnimationsDisabled)
+        }
+    }
+
+    /**
+     * S2536: the stepper works in charge percentages, so the enum is resolved from the percentage
+     * here rather than in the screen - zero is the off end of that scale and maps to
+     * [PowerSavingTrigger.OFF]. An unmatched percentage would mean the screen and the enum disagreed,
+     * so it resolves to OFF rather than silently picking a neighbour.
+     */
+    fun setPowerSavingThreshold(percent: Int) {
+        val trigger = PowerSavingTrigger.entries.firstOrNull { it.thresholdPercent == percent }
+            ?: PowerSavingTrigger.OFF
+        viewModelScope.launch {
+            preferencesRepository.setPowerSavingTrigger(trigger)
         }
     }
 
@@ -356,6 +383,14 @@ class SettingsViewModel @Inject constructor(
         Timber.d("S2540: setBackgroundMode mode=%s", mode)
         viewModelScope.launch {
             preferencesRepository.setBackgroundMode(mode)
+        }
+    }
+
+    /** S2522: the colour scheme every screen is drawn in. */
+    fun setColorScheme(scheme: WearColorScheme) {
+        Timber.d("S2522: setColorScheme scheme=%s", scheme)
+        viewModelScope.launch {
+            preferencesRepository.setColorScheme(scheme)
         }
     }
 

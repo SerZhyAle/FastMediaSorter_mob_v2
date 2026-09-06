@@ -286,3 +286,194 @@ function Normalize-PruneStatuses([string[]]$Statuses) {
         Where-Object { $_ })
 }
 
+# S2645: the name column is the only facet copied from the upstream directory untouched, and the four
+# functions below are the repair rules the -NormalizeNames mode applies to it. They are pure - no IO, no
+# network - so the mode that rewrites a shipped bank can be reasoned about from its tests alone.
+#
+# The rules NEVER drop a row. The bank's inclusion policy is every live channel, and the last mass
+# removal cost 1 321 live stations along with the pins filed against them (S1830, S1832); a nameless row
+# therefore has a name derived for it rather than being deleted.
+
+# Two decoding passes cover the double-encoded names measured in the bank (`102 FM L&amp;#039;Originale`
+# needs two), and the ceiling exists so a station whose real name contains the literal text of an entity
+# cannot be rewritten indefinitely.
+$script:CatalogNameDecodePasses = 3
+
+# Anchored at the start only, and it requires a digit: `- 0 N - Blues on Radio` is a serialised encoder
+# slot, while `- NEUERSCHEINUNGEN - Radio Charts` is a real station name that begins with a dash.
+$script:CatalogNameMachinePrefix = '^\s*-\s*\d+\s*\p{L}?\s*-\s+'
+
+# Trailing separators only. Leading punctuation is deliberately absent: `.977 Country`,
+# `#joint radio Blues Rock` and `_Funky Corner Radio (USA)` are the stations' own names, and trimming
+# them would be this repair inventing a defect of its own.
+$script:CatalogNameTrailingSeparators = ' -_|,;:'
+
+# Names the encoder wrote because the broadcaster never set one, lower-cased with runs of whitespace
+# already collapsed. Every entry is measured in the published bank, not guessed: the counts behind the
+# top of this list are in the S2645 strategic spec section 5. Grows as new encoder defaults surface.
+$script:CatalogNamePlaceholders = @(
+    'online radio',
+    'онлайн радио',
+    'unspecified name',
+    'default stream',
+    'orban opticodec-pc encoder',
+    'this is my server name',
+    'my station name',
+    'my radio',
+    'mb studio',
+    'mbstudio',
+    'mbstudiocloud',
+    'mb recaster',
+    'radioboss stream',
+    'radiocaster stream',
+    'instreamer',
+    'stream',
+    'streaming',
+    'no name',
+    'noname',
+    'unknown',
+    'untitled',
+    'new station',
+    'server 1',
+    'testserver 1',
+    'test',
+    'test stream',
+    'radio',
+    '(null)',
+    'null'
+)
+
+# Repair one catalog name. Returns the input unchanged when no rule applies.
+function Repair-CatalogName {
+    param([string]$Name)
+    $value = [string]$Name
+    if ([string]::IsNullOrWhiteSpace($value)) { return '' }
+    for ($pass = 0; $pass -lt $script:CatalogNameDecodePasses; $pass++) {
+        $decoded = [System.Net.WebUtility]::HtmlDecode($value)
+        if ($decoded -ceq $value) { break }
+        $value = $decoded
+    }
+    $value = $value -replace $script:CatalogNameMachinePrefix, ''
+    $value = ($value -replace '\s+', ' ').Trim()
+    return $value.TrimEnd($script:CatalogNameTrailingSeparators.ToCharArray()).Trim()
+}
+
+# The token an uninformative name is rebuilt from: the host, plus the port when the row carries a
+# non-default one.
+#
+# The port is in here because of a measurement, not for completeness. Shared streaming hosts give every
+# tenant the same hostname and a port of its own, so a host-only token leaves the wall standing: over the
+# 1 622 uninformative rows of the 2026-09-06 bank, a bare host still left 1 099 rows sharing a name
+# (67 of them reading `Online Radio (hoth.alonhosting.com)`), while host-and-port left 83. Appending the
+# mount path as well reaches 0, and is deliberately not done - it puts `/stream` in front of the user in
+# every one of those names to settle 83 rows out of 19 149.
+function Get-CatalogNameFromUrl {
+    param([string]$Url)
+    $trimmed = ([string]$Url).Trim()
+    if ($trimmed -notmatch '^(?<scheme>[A-Za-z][A-Za-z0-9+.\-]*)://(?<authority>[^/?#]*)') {
+        return ''
+    }
+    $scheme = $Matches['scheme'].ToLowerInvariant()
+    $authority = $Matches['authority']
+    $at = $authority.LastIndexOf('@')
+    if ($at -ge 0) { $authority = $authority.Substring($at + 1) }
+    if (-not $authority) { return '' }
+
+    $hostPart = $authority
+    $port = ''
+    $colon = $authority.LastIndexOf(':')
+    if ($colon -ge 0 -and $authority.Substring($colon + 1) -match '^\d+$') {
+        $hostPart = $authority.Substring(0, $colon)
+        $port = $authority.Substring($colon + 1)
+    }
+    if (-not $hostPart) { return '' }
+
+    $defaultPort = switch ($scheme) {
+        'http' { '80' }
+        'https' { '443' }
+        'rtsp' { '554' }
+        default { '' }
+    }
+    $suffix = if ($port -and $port -ne $defaultPort) { ':' + $port } else { '' }
+    return $hostPart.ToLowerInvariant() + $suffix
+}
+
+# The subset of the placeholders that is REPLACED by the token rather than keeping its words in front of
+# it. The test is what the existing name is about: a value that names the encoder software, the server, or
+# simply asserts there is no name tells the user nothing a host already tells them better, so carrying it
+# through only lengthens the result - `Orban Opticodec-PC Encoder (stream.valenzuelasistemas.net.ar:8000)`
+# is 66 characters that say less than its last 37.
+#
+# What stays OUT of this list, and is therefore kept and suffixed: the values that describe the MEDIUM -
+# `Online Radio`, `Radio`, `stream`. In a bank holding radio, live TV and webcams side by side, "this one
+# is a radio" is a real signal, and it is the broadcaster's own word for the channel.
+$script:CatalogNameNullTokens = @(
+    '(null)',
+    'null',
+    'no name',
+    'noname',
+    'unknown',
+    'untitled',
+    'unspecified name',
+    'new station',
+    'my station name',
+    'my radio',
+    'this is my server name',
+    'server 1',
+    'testserver 1',
+    'test',
+    'test stream',
+    'default stream',
+    'orban opticodec-pc encoder',
+    'mb studio',
+    'mbstudio',
+    'mbstudiocloud',
+    'mb recaster',
+    'radioboss stream',
+    'radiocaster stream',
+    'instreamer'
+)
+
+# True when the name tells the user nothing: no letter and no digit at all, or a known encoder default.
+function Test-CatalogNameUninformative {
+    param([string]$Name)
+    $value = ([string]$Name).Trim()
+    if (-not $value) { return $true }
+    if ($value -notmatch '[\p{L}\p{N}]') { return $true }
+    $folded = ($value.ToLowerInvariant() -replace '\s+', ' ')
+    return $script:CatalogNamePlaceholders -contains $folded
+}
+
+# True when nothing in the name is worth carrying into the repaired one.
+function Test-CatalogNameDiscardable {
+    param([string]$Name)
+    $value = ([string]$Name).Trim()
+    if (-not $value) { return $true }
+    if ($value -notmatch '[\p{L}\p{N}]') { return $true }
+    $folded = ($value.ToLowerInvariant() -replace '\s+', ' ')
+    return $script:CatalogNameNullTokens -contains $folded
+}
+
+# Resolve the final name for one catalog row: repair it, then rebuild it from the row's host when the
+# result still says nothing. Returns the name and the rule that produced it ('' when nothing fired), so
+# the caller's move report can be read rule by rule instead of row by row.
+function Resolve-CatalogName {
+    param([string]$Name, [string]$Url)
+    $repaired = Repair-CatalogName -Name $Name
+    if (-not (Test-CatalogNameUninformative -Name $repaired)) {
+        $rule = if ($repaired -cne ([string]$Name)) { 'repair' } else { '' }
+        return [pscustomobject]@{ Name = $repaired; Rule = $rule }
+    }
+    $token = Get-CatalogNameFromUrl -Url $Url
+    # No host to build from: leave the row exactly as it arrived. The publish gate then refuses the bank
+    # and names the row, which is the honest outcome - inventing a name here would hide the real defect.
+    if (-not $token) {
+        $rule = if ($repaired -cne ([string]$Name)) { 'repair' } else { '' }
+        return [pscustomobject]@{ Name = $repaired; Rule = $rule }
+    }
+    if (Test-CatalogNameDiscardable -Name $repaired) {
+        return [pscustomobject]@{ Name = $token; Rule = 'derive-replace' }
+    }
+    return [pscustomobject]@{ Name = ('{0} ({1})' -f $repaired, $token); Rule = 'derive-suffix' }
+}
+

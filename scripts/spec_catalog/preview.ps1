@@ -100,6 +100,20 @@ if ($MyInvocation.InvocationName -eq '.') {
     # running under 'Stop' for the rest of its life.
     $ErrorActionPreference = 'Continue'
     $global:LASTEXITCODE = 0
+    # S2610: a caller that omits a MANDATORY parameter makes PowerShell prompt for it, and that
+    # prompt reads stdin. A foreign agent runtime hands its child a stdin pipe and never closes it,
+    # so the prompt never returns and the target never runs a line - measured 2026-09-05 as 15 pairs
+    # of pwsh processes alive 14-17 hours on 0.3-0.7 s of CPU each, whose phase ticks, dev-log row
+    # and post-change closure therefore silently did not happen while the caller recorded success.
+    # Pointing the host's input at an already-ended reader turns that hang into the binding error
+    # the caller should have got in the first place. Only when input is ALREADY redirected: at a
+    # real console the prompt is the right answer and stays. No harness script reads stdin or
+    # pipeline input, so nothing legitimate loses its input to this.
+    $szaFwdPriorIn = $null
+    if ([Console]::IsInputRedirected) {
+        $szaFwdPriorIn = [Console]::In
+        [Console]::SetIn([System.IO.TextReader]::Null)
+    }
     try {
         & $szaFwdTarget @args
     } catch {
@@ -108,6 +122,11 @@ if ($MyInvocation.InvocationName -eq '.') {
         # turn a red verdict green. Every such refusal is a failure, so it leaves as exit 1.
         Write-Error $_ -ErrorAction Continue
         exit 1
+    } finally {
+        # Console input is process-global, and `exit` inside a &-invoked script returns to its
+        # caller rather than ending the process, so a forwarder invoked from another script has to
+        # hand input back or it silently takes stdin away from everything after it.
+        if ($null -ne $szaFwdPriorIn) { [Console]::SetIn($szaFwdPriorIn) }
     }
     $szaFwdCode = $LASTEXITCODE
     exit $(if ($null -eq $szaFwdCode) { 0 } else { $szaFwdCode })

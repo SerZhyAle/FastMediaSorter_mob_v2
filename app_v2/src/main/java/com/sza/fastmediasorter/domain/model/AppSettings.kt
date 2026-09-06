@@ -40,11 +40,27 @@ data class AppSettings(
     val keepScreenOnPlayer: Boolean = true,
     val showSmallControls: Boolean = false,
     val enableCalculator: Boolean = false,
+    // S1411: the stopwatch is a sub-program like the calculator - off until the user asks for it.
+    val enableStopwatch: Boolean = false,
+    // S1411 ADR-7: what the tool does once opened. The switch above decides whether it is reachable;
+    // these four decide how it behaves, and they live in the shared store so an update keeps them.
+    val stopwatchParticipantCount: Int = STOPWATCH_DEFAULT_PARTICIPANTS,
+    val stopwatchMusicEnabled: Boolean = false,
+    val stopwatchMusicUri: String = "",
+    val stopwatchVolumeKeysControl: Boolean = true,
     val embeddedGameEnabled: Boolean = false,
     // S1796: the front flashlight is a program like its neighbours - off until the user asks for it.
     val frontFlashlightEnabled: Boolean = false,
     // S1796: ARGB of the glow. White is the requested start state; the picker writes any other choice here.
     val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
+    // S2516: the water flashlight is its own program beside the one above, off until asked for.
+    val waterFlashlightEnabled: Boolean = false,
+    // S1924: on by default wherever a front lens exists, unlike the flashlight above - ADR-3 records
+    // the divergence so a later reader does not take it for an oversight and align the two.
+    val mirrorEnabled: Boolean = true,
+    val mirrorZoomRatio: Float = MIRROR_DEFAULT_ZOOM_RATIO,
+    val mirrorHorizontallyFlipped: Boolean = true,
+    val mirrorBacklightOn: Boolean = true,
     // S1433: the Network Monitor program is off until the user asks for it, like every other program.
     val enableNetworkMonitor: Boolean = false,
     // S1433: recording a GNSS track is a separate choice from opening the Monitor - on by default it
@@ -96,7 +112,7 @@ data class AppSettings(
     val cropImagesToFullscreen: Boolean = false,
     val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
-    val videoSizeMin: Long = 1048576L, // 1MB
+    val videoSizeMin: Long = DEFAULT_VIDEO_SIZE_MIN,
     val videoSizeMax: Long = 107374182400L, // 100GB
     val supportAudio: Boolean = true,
     val audioSizeMin: Long = 0L, // 0MB
@@ -179,6 +195,10 @@ data class AppSettings(
     val hideGridActionButtons: Boolean = true, // Hide quick action buttons (copy/move/rename/delete) on grid thumbnails
     val fileOpsInOverflowMenu: Boolean = true, // Collapse file op buttons into a single ⋮ overflow menu per row
     val fileOpsOverflowMenuHintShown: Boolean = false, // True after the one-time "ops moved to menu" Toast was shown
+    // S2533: action run by a horizontal swipe over a Browse file row. Read and written only through
+    // BrowseSwipeDirection, which owns the direction-to-field mapping.
+    val browseSwipeLeftAction: BrowseSwipeAction = BrowseSwipeAction.DELETE,
+    val browseSwipeRightAction: BrowseSwipeAction = BrowseSwipeAction.SEND_TO,
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
@@ -404,6 +424,7 @@ data class AppSettings(
     val launcherForeignNotificationsEnabled: Boolean get() = launcher.foreignNotificationsEnabled
     val launcherTrayShowClock: Boolean get() = launcher.trayShowClock
     val launcherTrayShowBluetooth: Boolean get() = launcher.trayShowBluetooth
+    val launcherTrayShowTethering: Boolean get() = launcher.trayShowTethering
     val launcherTrayShowSim1: Boolean get() = launcher.trayShowSim1
     val launcherTrayShowSim2: Boolean get() = launcher.trayShowSim2
     val launcherTrayShowNetwork: Boolean get() = launcher.trayShowNetwork
@@ -440,8 +461,27 @@ data class AppSettings(
     val launcherStepsResetTimestamp: Long get() = launcher.stepsResetTimestamp
     val launcherAnimationPalette: String get() = launcher.animationPalette
     companion object {
+        /**
+         * S2603: 100KB, the only home of the `video_size_min` default.
+         *
+         * The value was written out independently in four places and two of them drifted to 1MB, so
+         * which bound a fresh install applied depended on whether the snapshot came from
+         * [AppSettings] or from DataStore. 100KB is the value that was already in force: the store
+         * fallback, the legacy-import fallback and every `videoSizeMin` row of
+         * `device_profile_presets.csv` all carried it. Named here so the store, the backup DTO and
+         * the importer read one constant instead of repeating a literal that can drift again.
+         */
+        const val DEFAULT_VIDEO_SIZE_MIN: Long = 102400L
+
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
+        const val MIRROR_DEFAULT_ZOOM_RATIO: Float = 3f
+
+        /** S1411: one runner is the plain case; the split screen is something the user asks for. */
+        const val STOPWATCH_DEFAULT_PARTICIPANTS: Int = 1
+
+        /** S1411 §2.4: the only counts the split screen is designed for. */
+        val STOPWATCH_PARTICIPANT_OPTIONS = listOf(1, 2, 4)
 
         /**
          * S1748/S2253/S2320: canonical default - launcher surfaces read as plates over the wallpaper
@@ -465,6 +505,14 @@ data class AppSettings(
 
         /** S1741: preset screen blackout timeout seconds for launcher settings selector (0 = Off). */
         val LAUNCHER_SCREEN_TIMEOUT_PRESETS = listOf(0, 5, 15, 30, 60, 300)
+
+        /**
+         * S2384: the launcher turns the screen off after this long by default. Paired with the
+         * `launcherScreenBlackoutTimeoutSeconds` cells of `device_profile_presets.csv` - a profile
+         * overrides this value, so moving one without the other changes nothing for whoever applied
+         * a profile.
+         */
+        const val DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS = 30
 
         /** S0404: selectable launcher grid densities (see [launcherDensityFactor]). */
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
@@ -528,6 +576,25 @@ data class AppSettings(
             ANIMATION_PALETTE_PINK,
             ANIMATION_PALETTE_BLUE,
         )
+
+        /**
+         * S2631: the fresh-install settings as one instance, for every code path that has to restate a
+         * default instead of simply omitting the argument.
+         *
+         * A backup DTO field and a legacy-import fallback each need a value when the stored key is
+         * absent, and both used to spell that value out again; 23 of those copies had drifted away from
+         * the constructor above, so a restore produced settings a fresh install never would. S2603
+         * solved the same drift for one field with a named constant, but 23 named constants would only
+         * rename the literals, so the whole default set is exposed once instead - reading
+         * `AppSettings.DEFAULTS.someField` has no second value to drift from. The nested [launcher]
+         * group is reachable through it too.
+         *
+         * Declared last in the companion on purpose: constructing an `AppSettings` evaluates every
+         * parameter default, and a default that reads a companion member declared below this line would
+         * see it uninitialised. Today all of them are `const val` and inlined, so the order is not yet
+         * load-bearing - it is kept so that adding a non-const one later cannot quietly break it.
+         */
+        val DEFAULTS = AppSettings()
     }
 
     /**

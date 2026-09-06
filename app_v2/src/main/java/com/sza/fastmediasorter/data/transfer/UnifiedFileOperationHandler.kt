@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.transfer.ProgressTracker
 import com.sza.fastmediasorter.domain.transfer.TempFileManager
 import com.sza.fastmediasorter.domain.transfer.generateOperationId
 import com.sza.fastmediasorter.domain.usecase.GetDestinationFreeSpaceUseCase
+import com.sza.fastmediasorter.util.directoryLandingPath
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
@@ -530,9 +531,7 @@ class UnifiedFileOperationHandler @Inject constructor(
         try {
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
-            val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
-            val destination =
-                if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            val destination = directoryLandingPath(sourcePath, destParentPath)
             if (sourceProtocol != destProtocol) {
                 requireSourceEnabled(sourcePath)
                 directoryTreeTransferManager.copyTree(sourcePath, destination, progressCallback)
@@ -568,9 +567,7 @@ class UnifiedFileOperationHandler @Inject constructor(
         try {
             val sourceProtocol = getProtocolKey(sourcePath)
             val destProtocol = getProtocolKey(destParentPath)
-            val dirName = sourcePath.trimEnd('/').substringAfterLast('/')
-            val destination =
-                if (destParentPath.endsWith('/')) "$destParentPath$dirName" else "$destParentPath/$dirName"
+            val destination = directoryLandingPath(sourcePath, destParentPath)
             if (sourceProtocol != destProtocol) {
                 requireSourceEnabled(sourcePath)
                 directoryTreeTransferManager.moveTree(sourcePath, destination, progressCallback)

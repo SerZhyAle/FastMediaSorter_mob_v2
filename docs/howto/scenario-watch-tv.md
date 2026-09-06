@@ -43,7 +43,7 @@ A fresh install has no channels yet, and the screen says so.
 There are two ways to fill it, and they work together:
 
 - **Download the shared catalogue.** Tap **Refresh catalog**. The watch fetches the published channel bank in one archive - many thousands of TV and radio channels with their topics, languages and countries.
-- **Send channels from your phone.** A channel you added yourself in FastMediaSorter on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised into the top group of the watch's list, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that top group again.
+- **Send channels from your phone.** A channel you added yourself in FastMediaSorter on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised towards the top of the watch's list, just behind the ones you pinned on the watch itself, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that group again, and a channel the watch's own catalogue does not carry is simply skipped.
 
 Channels sent from the phone survive a catalogue refresh - the refresh replaces the shared bank and leaves your own rows alone.
 
@@ -71,7 +71,7 @@ In grid mode, a video channel shows a preview picture before you have ever opene
 2. **Volume:** turn the rotating bezel or crown.
 3. **Seek:** long press the previous or next button. Both buttons stay on screen even for a single channel.
 4. **Frame:** the frame-mode button switches between fitting the whole picture inside the round glass and cropping it to fill the screen. The watch remembers your choice - it survives leaving the player and restarting the app, and the same choice covers your own video files.
-5. **Pin:** the mark on the player pins the channel. Pinned channels are listed first the next time you open Streams. The pin is keyed to the channel address, so it survives a catalogue re-import.
+5. **Pin:** the mark on the player pins the channel. Pinned channels are listed first the next time you open Streams: the ones you pinned here on the watch lead, the ones pinned on the phone follow them, and everything else keeps the order your chosen sort gives it. The pin is keyed to the channel address, so it survives a catalogue re-import.
 
 > **Video needs the screen.** Background playback keeps **audio** going after you leave the app - useful for radio channels - but video and slideshows stop when the app leaves the screen. That is deliberate: a video you cannot see only drains the battery.
 

@@ -224,6 +224,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding = binding,
             currentSettings = { viewModel.settings.value },
             isUpdating = { isUpdatingFromSettings },
+            systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
             updateSettings = viewModel::updateSettings,
         )
         desktopSwipeSettingsManager?.registerAppPickerListener()
@@ -428,6 +429,10 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowBluetooth = isChecked) })
         }
+        binding.rowLauncherTrayTethering.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowTethering = isChecked) })
+        }
         binding.rowLauncherTraySim1.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(trayShowSim1 = isChecked) })
@@ -500,6 +505,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             binding.rowLauncherShowTray.setCheckedSilently(settings.launcherTaskbarShowTray)
             binding.rowLauncherTrayClock.setCheckedSilently(settings.launcherTrayShowClock)
             binding.rowLauncherTrayBluetooth.setCheckedSilently(settings.launcherTrayShowBluetooth)
+            binding.rowLauncherTrayTethering.setCheckedSilently(settings.launcherTrayShowTethering)
             binding.rowLauncherTraySim1.setCheckedSilently(settings.launcherTrayShowSim1)
             binding.rowLauncherTraySim2.setCheckedSilently(settings.launcherTrayShowSim2)
             binding.rowLauncherTrayNetwork.setCheckedSilently(settings.launcherTrayShowNetwork)

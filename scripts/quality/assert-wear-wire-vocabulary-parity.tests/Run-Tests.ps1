@@ -1,0 +1,369 @@
+# Subject: scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+<#
+.SYNOPSIS
+    S2642: Regression suite for assert-wear-wire-vocabulary-parity.ps1.
+
+.DESCRIPTION
+    Tests the wire vocabulary parity gate against fixture pairs exercising all 3 comparison shapes,
+    discovery of undeclared mirrored enums, and LocalOnly safety rules.
+
+.EXAMPLE
+    pwsh -NoProfile -File scripts/quality/assert-wear-wire-vocabulary-parity.tests/Run-Tests.ps1
+#>
+
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..' '..')).Path
+$pwshExe = if (Test-Path "$env:ProgramFiles\PowerShell\7\pwsh.exe") {
+    "$env:ProgramFiles\PowerShell\7\pwsh.exe"
+} else { 'pwsh' }
+
+$gateScript = Join-Path $repoRoot 'scripts/quality/assert-wear-wire-vocabulary-parity.ps1'
+if (-not (Test-Path -LiteralPath $gateScript)) {
+    Write-Error "assert-wear-wire-vocabulary-parity.tests: could not verify - missing $gateScript" -ErrorAction Continue
+    exit 2
+}
+
+$script:pass = 0
+$script:fail = 0
+
+function Assert-That([string]$name, [bool]$ok, [string]$detail) {
+    if ($ok) {
+        Write-Host "  PASS  $name" -ForegroundColor Green
+        $script:pass++
+    } else {
+        Write-Host "  FAIL  $name -> $detail" -ForegroundColor Red
+        $script:fail++
+    }
+}
+
+# Helper to build a minimal valid sandbox fixture pair
+function New-FixtureSandbox {
+    $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ("s2642-" + [Guid]::NewGuid().ToString('N'))
+    $phoneDir = Join-Path $sandbox 'phone'
+    $watchDir = Join-Path $sandbox 'watch'
+
+    $phoneModel = Join-Path $phoneDir 'domain/model'
+    $phoneSvc = Join-Path $phoneDir 'service'
+    $watchModel = Join-Path $watchDir 'domain/model'
+    $watchSvc = Join-Path $watchDir 'data/wear'
+
+    New-Item -ItemType Directory -Force -Path $phoneModel | Out-Null
+    New-Item -ItemType Directory -Force -Path $phoneSvc | Out-Null
+    New-Item -ItemType Directory -Force -Path $watchModel | Out-Null
+    New-Item -ItemType Directory -Force -Path $watchSvc | Out-Null
+
+    # Base valid contents
+    @'
+package com.sza.fastmediasorter.service
+object WearDataLayerPaths {
+    const val EVENT_A = "event_a"
+    const val EVENT_B = "event_b"
+}
+'@ | Set-Content (Join-Path $phoneSvc 'WearDataLayerPaths.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.data.wear
+object WearDataLayerPaths {
+    const val EVENT_A = "event_a"
+    const val EVENT_B = "event_b"
+}
+'@ | Set-Content (Join-Path $watchSvc 'WearDataLayerPaths.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+class WearStreamTransferPayload {
+    class WearStreamTransferAck {
+        companion object {
+            const val OUTCOME_OK = "ok"
+        }
+    }
+}
+'@ | Set-Content (Join-Path $phoneModel 'WearStreamTransferPayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+class WearStreamTransferPayload {
+    class WearStreamTransferAck {
+        companion object {
+            const val OUTCOME_OK = "ok"
+        }
+    }
+}
+'@ | Set-Content (Join-Path $watchModel 'WearStreamTransferPayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+class WearFileTransfer {
+    class WearFileTransferAck {
+        companion object {
+            const val OUTCOME_SUCCESS = "success"
+            const val OUTCOME_TOO_LARGE = "too_large"
+        }
+    }
+    class WearFileReceiveAck {
+        companion object {
+            const val OUTCOME_SAVED = "saved"
+        }
+    }
+}
+enum class WearFileReceiveOutcome { SAVED, REFUSED, FAILED }
+'@ | Set-Content (Join-Path $phoneModel 'WearFileTransfer.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+class WearFileTransferMetadata {
+    class WearFileTransferAck {
+        companion object {
+            const val OUTCOME_SUCCESS = "success"
+            const val OUTCOME_TOO_LARGE = "too_large"
+        }
+    }
+    class WearFileReceiveAck {
+        companion object {
+            const val OUTCOME_SAVED = "saved"
+        }
+    }
+}
+enum class WearFileReceiveOutcome { SAVED, FAILED }
+'@ | Set-Content (Join-Path $watchModel 'WearFileTransferMetadata.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearPlaybackCommand { PLAY_PAUSE, NEXT, PREVIOUS }
+'@ | Set-Content (Join-Path $phoneModel 'WearPlaybackCommand.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearPlaybackCommand { PLAY_PAUSE, NEXT, PREVIOUS }
+'@ | Set-Content (Join-Path $watchModel 'WearPlaybackCommand.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearOpenOnPhoneOutcome { SUCCESS, NOT_FOUND }
+'@ | Set-Content (Join-Path $phoneModel 'WearOpenOnPhonePayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearOpenOnPhoneOutcome { SUCCESS, NOT_FOUND }
+'@ | Set-Content (Join-Path $watchModel 'WearOpenOnPhonePayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearPhoneResourceRequestKind { @SerializedName("AUDIO") AUDIO }
+enum class WearPhoneResourceResponseStatus { @SerializedName("OK") OK }
+'@ | Set-Content (Join-Path $phoneModel 'WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearPhoneResourceRequestKind { AUDIO }
+enum class WearPhoneResourceResponseStatus { OK }
+'@ | Set-Content (Join-Path $watchModel 'WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearSyncLeg { PHONE_TO_WATCH, WATCH_TO_PHONE }
+'@ | Set-Content (Join-Path $phoneModel 'WearSyncOutcome.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearSyncLeg { PHONE_TO_WATCH, WATCH_TO_PHONE }
+'@ | Set-Content (Join-Path $watchModel 'WearSyncOutcome.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearSettingOwnership { PHONE_ONLY, WATCH_ONLY }
+'@ | Set-Content (Join-Path $phoneModel 'WearSettingsRegistry.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearSettingOwnership { PHONE_ONLY, WATCH_ONLY }
+'@ | Set-Content (Join-Path $watchModel 'WearSettingsRegistry.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearSettingsFieldIssue { UNKNOWN_KEY }
+'@ | Set-Content (Join-Path $phoneModel 'WearSettingsDecodeResult.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearSettingsFieldIssue { UNKNOWN_KEY }
+'@ | Set-Content (Join-Path $watchModel 'WearSettingsDecodeResult.kt') -Encoding utf8NoBOM
+
+    return @{ Root = $sandbox; Phone = $phoneDir; Watch = $watchDir }
+}
+
+function Invoke-GateOnSandbox($sandbox, [switch]$NoGate) {
+    $callArgs = @('-NoProfile', '-File', $gateScript, '-PhoneRoot', $sandbox.Phone, '-WatchRoot', $sandbox.Watch, '-Quiet')
+    if (-not $NoGate) { $callArgs += '-Gate' }
+    & $pwshExe @callArgs 2>&1 | Out-Null
+    return $LASTEXITCODE
+}
+
+# --- Case 1: Baseline green ---
+$sb = New-FixtureSandbox
+try {
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "1. Baseline clean fixture" ($code -eq 0) "expected 0, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 2: constMap value diverges ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.data.wear
+object WearDataLayerPaths {
+    const val EVENT_A = "event_a_DIVERGED"
+    const val EVENT_B = "event_b"
+}
+'@ | Set-Content (Join-Path $sb.Watch 'data/wear/WearDataLayerPaths.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "2. constMap value diverges" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 3: constMap values swapped (ADR-3 test) ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.data.wear
+object WearDataLayerPaths {
+    const val EVENT_A = "event_b"
+    const val EVENT_B = "event_a"
+}
+'@ | Set-Content (Join-Path $sb.Watch 'data/wear/WearDataLayerPaths.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "3. constMap values swapped (ADR-3)" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 4: Enum member missing on watch ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearOpenOnPhoneOutcome { SUCCESS }
+'@ | Set-Content (Join-Path $sb.Watch 'domain/model/WearOpenOnPhonePayload.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "4. Enum member missing on watch" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 5: SerializedName changes, member names untouched ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearPhoneResourceRequestKind { @SerializedName("CHANGED") AUDIO }
+enum class WearPhoneResourceResponseStatus { @SerializedName("OK") OK }
+'@ | Set-Content (Join-Path $sb.Phone 'domain/model/WearPhoneResourcePayload.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "5. SerializedName changes, member names untouched" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 6: Constant moved between two companions in one file ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.domain.model
+class WearFileTransfer {
+    class WearFileTransferAck {
+        companion object {
+            const val OUTCOME_SUCCESS = "success"
+        }
+    }
+    class WearFileReceiveAck {
+        companion object {
+            const val OUTCOME_TOO_LARGE = "too_large"
+            const val OUTCOME_SAVED = "saved"
+        }
+    }
+}
+enum class WearFileReceiveOutcome { SAVED, REFUSED, FAILED }
+'@ | Set-Content (Join-Path $sb.Phone 'domain/model/WearFileTransfer.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "6. Constant moved between companions in one file" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 7: Undeclared mirrored enum ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class WearUndeclaredEnum { FOO, BAR }
+'@ | Set-Content (Join-Path $sb.Phone 'domain/model/WearUndeclaredPayload.kt') -Encoding utf8NoBOM
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearUndeclaredEnum { FOO, BAR }
+'@ | Set-Content (Join-Path $sb.Watch 'domain/model/WearUndeclaredPayload.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "7. Undeclared mirrored enum discovered" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 8: LocalOnly type gains SerializedName ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+class WearFileTransferMetadata {
+    class WearFileTransferAck {
+        companion object {
+            const val OUTCOME_SUCCESS = "success"
+            const val OUTCOME_TOO_LARGE = "too_large"
+        }
+    }
+    class WearFileReceiveAck {
+        companion object {
+            const val OUTCOME_SAVED = "saved"
+        }
+    }
+}
+enum class WearFileReceiveOutcome { @SerializedName("SAVED") SAVED, FAILED }
+'@ | Set-Content (Join-Path $sb.Watch 'domain/model/WearFileTransferMetadata.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "8. LocalOnly type gains SerializedName" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 9: LocalOnly type becomes a field of a serialized class ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.domain.model
+class WearFileTransfer {
+    class WearFileTransferAck {
+        companion object {
+            const val OUTCOME_SUCCESS = "success"
+            const val OUTCOME_TOO_LARGE = "too_large"
+        }
+    }
+    class WearFileReceiveAck {
+        companion object {
+            const val OUTCOME_SAVED = "saved"
+        }
+    }
+}
+enum class WearFileReceiveOutcome { SAVED, REFUSED, FAILED }
+data class WearLeakedPayload(
+    @SerializedName("outcome") val outcome: WearFileReceiveOutcome
+)
+'@ | Set-Content (Join-Path $sb.Phone 'domain/model/WearFileTransfer.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "9. LocalOnly type becomes field in serialized class" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 10: Declared file missing returns exit 2 ---
+$sb = New-FixtureSandbox
+try {
+    Remove-Item (Join-Path $sb.Phone 'service/WearDataLayerPaths.kt') -Force
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "10. Declared file missing returns exit 2" ($code -eq 2) "expected 2, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+Write-Host ''
+if ($script:fail -gt 0) {
+    Write-Host "assert-wear-wire-vocabulary-parity.tests: FAIL - $($script:fail) case(s) failed, $($script:pass) passed." -ForegroundColor Red
+    exit 1
+}
+Write-Host "assert-wear-wire-vocabulary-parity.tests: PASS - $($script:pass) case(s)." -ForegroundColor Green
+exit 0

@@ -55,6 +55,7 @@ data class LauncherSettings(
     // bar's own clock once [replaceSystemStatusArea] is on by default).
     val trayShowClock: Boolean = false,
     val trayShowBluetooth: Boolean = true,
+    val trayShowTethering: Boolean = true,
     val trayShowSim1: Boolean = true,
     val trayShowSim2: Boolean = true,
     val trayShowNetwork: Boolean = true,
@@ -106,8 +107,8 @@ data class LauncherSettings(
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
     val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
     val allAppsSortDescending: Boolean = false,
-    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
-    val screenBlackoutTimeoutSeconds: Int = 0,
+    // S1741/S2384: idle seconds before the launcher turns the screen off (0 = Off, on by default).
+    val screenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
     // S1748/S2253: launcher shared-surface opacity (0.0f = fully transparent, 1.0f = fully opaque).
     val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
     // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here

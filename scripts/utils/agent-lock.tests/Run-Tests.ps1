@@ -44,6 +44,188 @@ $originalJavaHome = $env:JAVA_HOME
 $persistedUser = [Environment]::GetEnvironmentVariable('JAVA_HOME', 'User')
 $failures = 0
 
+# S2577 case 10's child process, written to the sandbox at run time. It lives here as a literal
+# here-string rather than as a sibling file because it is not independently runnable: it only means
+# anything against the harness path and throwaway project root this suite hands it.
+$s2577ProbeBody = @'
+#requires -Version 7.0
+param(
+    [Parameter(Mandatory)][string]$HarnessPath,
+    [Parameter(Mandatory)][string]$Sandbox
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$env:SZA_PROJECT_ROOT = $Sandbox
+$env:FMS_AGENT_CHAT_ROOT = (Join-Path $Sandbox 'chat')
+# The sweeping identity must own none of the fixtures: 'self' is never evicted and an absent
+# identity reads as 'undetermined', so either would pass this probe for the wrong reason.
+$env:FMS_AGENT_ID = 'agent-lock-tests-sweeper'
+
+. $HarnessPath
+
+$nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+$selfStartTicks = (Get-Process -Id $PID).StartTime.Ticks
+
+function New-TicketFixture {
+    param(
+        [Parameter(Mandatory)][string]$Domain,
+        [Parameter(Mandatory)][int]$Seq,
+        [Parameter(Mandatory)][string]$Owner,
+        [hashtable]$Extra = @{}
+    )
+    # procStart = 1 against this process's own live pid is the recycled-pid shape: a number that is
+    # demonstrably taken paired with a start time it cannot have. It is the only way to fabricate a
+    # provably dead owner without killing a process.
+    $body = [ordered]@{
+        schema = 1; seq = $Seq; lockType = $Domain; sessionId = $Owner
+        host = $env:COMPUTERNAME; pid = $PID; procStart = 1
+        reason = 'S2577 fixture'; enqueuedAt = $nowMs; transcriptPath = $null
+    }
+    foreach ($key in $Extra.Keys) { $body[$key] = $Extra[$key] }
+    $path = Join-Path (Get-AgentLockQueueDir -Name $Domain) ('{0:0000}__{1}.json' -f $Seq, $Owner)
+    Set-Content -LiteralPath $path -Value ($body | ConvertTo-Json -Compress) -Encoding utf8NoBOM
+    return $path
+}
+
+$fixtures = [ordered]@{
+    buildDeadPid       = (New-TicketFixture -Domain 'Build.Phone'  -Seq 1 -Owner 's2577-dead')
+    buildLivePid       = (New-TicketFixture -Domain 'Build.Phone'  -Seq 2 -Owner 's2577-live' -Extra @{ procStart = $selfStartTicks })
+    buildDeadHeartbeat = (New-TicketFixture -Domain 'Build.Phone'  -Seq 3 -Owner 's2577-beat' -Extra @{ lastSeenAt = $nowMs })
+    buildDeadGranted   = (New-TicketFixture -Domain 'Build.Phone'  -Seq 4 -Owner 's2577-turn' -Extra @{ turnGrantedAt = $nowMs })
+    codeDeadPid        = (New-TicketFixture -Domain 'Code.Scripts' -Seq 1 -Owner 's2577-code')
+}
+
+[void](Remove-StaleAgentLockTickets -Name 'Build.Phone')
+[void](Remove-StaleAgentLockTickets -Name 'Code.Scripts')
+
+$survived = [ordered]@{}
+foreach ($key in $fixtures.Keys) { $survived[$key] = [bool](Test-Path -LiteralPath $fixtures[$key]) }
+$survived | ConvertTo-Json -Compress
+exit 0
+'@
+
+# S2582 case 11's child process. A here-string for case 10's reason and one more: it fabricates a
+# BUILD.PHONE.LOCK and a queue ticket, so it is only ever safe against the throwaway project root
+# this suite hands it - run anywhere else it would overwrite the machine's live build lock.
+$s2582ProbeBody = @'
+#requires -Version 7.0
+param(
+    [Parameter(Mandatory)][string]$HarnessPath,
+    [Parameter(Mandatory)][string]$Sandbox
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$env:SZA_PROJECT_ROOT = $Sandbox
+$env:FMS_AGENT_CHAT_ROOT = (Join-Path $Sandbox 'chat')
+$env:FMS_AGENT_ID = 's2582-probe'
+. $HarnessPath
+
+# The holder is a real, live, idle child process - the only way to produce "alive and burning
+# nothing" without borrowing somebody else's build, which is exactly the state processAlive: True
+# could not tell apart from a healthy one.
+$r = [ordered]@{}
+$holder = Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command', 'Start-Sleep -Seconds 120' -PassThru -WindowStyle Hidden
+try {
+    Start-Sleep -Milliseconds 700
+    $holderProc = Get-Process -Id $holder.Id
+    $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
+
+    function Write-LockFixture([int]$AgeMinutes) {
+        $body = [ordered]@{
+            schema = 2; pid = $holder.Id; procStart = $holderProc.StartTime.Ticks
+            acquiredAt = $nowMs - ($AgeMinutes * 60000); reason = 'S2582 fixture'
+            host = $env:COMPUTERNAME; sessionId = 's2582-holder'; transcriptPath = $null
+        }
+        Set-Content -LiteralPath (Get-AgentLockPath -Name 'Build.Phone') -Value ($body | ConvertTo-Json -Compress) -Encoding utf8NoBOM
+    }
+    function Write-TicketFixture([string]$Owner) {
+        $body = [ordered]@{
+            schema = 1; seq = 1; lockType = 'Build.Phone'; sessionId = $Owner
+            host = $env:COMPUTERNAME; pid = $PID; procStart = (Get-Process -Id $PID).StartTime.Ticks
+            reason = 'S2582 waiter'; enqueuedAt = ($nowMs - 600000); transcriptPath = $null
+        }
+        $path = Join-Path (Get-AgentLockQueueDir -Name 'Build.Phone') '0001__waiter.json'
+        Set-Content -LiteralPath $path -Value ($body | ConvertTo-Json -Compress) -Encoding utf8NoBOM
+        return $path
+    }
+
+    # 1. Held past the threshold, a foreign waiter, an idle tree, an idle engine -> the verdict.
+    Write-LockFixture -AgeMinutes 40
+    $ticketPath = Write-TicketFixture -Owner 's2582-waiter'
+    $stall = Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2
+    $r.idleIsStall = ($null -ne $stall -and $stall.rule -eq 'no-cpu')
+    $r.verdictNamesHolder = ($null -ne $stall -and $stall.holderPid -eq $holder.Id -and $stall.sampleSeconds -eq 2)
+    $r.verdictReportsLiveProcess = ($null -ne $stall -and [bool]$stall.holderProcessAlive)
+    $r.thresholdIsBuildField = ($null -ne $stall -and $stall.thresholdMinutes -eq 25)
+
+    # 2. Younger than the threshold: no verdict, and no sampling window paid for it. The elapsed
+    #    time is the assertion - a pre-filter placed after the sample would still return null.
+    Write-LockFixture -AgeMinutes 3
+    $sw = [Diagnostics.Stopwatch]::StartNew()
+    $young = Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2
+    $sw.Stop()
+    $r.youngIsNotStall = ($null -eq $young)
+    $r.youngPaidNoSample = ($sw.ElapsedMilliseconds -lt 1500)
+    $r.youngElapsedMs = [int]$sw.ElapsedMilliseconds
+
+    # 3. An empty queue: a stuck holder blocking nobody is not reported.
+    Write-LockFixture -AgeMinutes 40
+    Remove-Item -LiteralPath $ticketPath -Force
+    $r.emptyQueueIsNotStall = ($null -eq (Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2))
+
+    # 4. A working engine cancels the verdict. This is the half that matters most: the engine
+    #    detaches, so it is never in the holder's tree, and the profile is re-pointed at a spinner
+    #    this probe starts so the branch runs without borrowing a real build.
+    Write-LockFixture -AgeMinutes 40
+    $ticketPath = Write-TicketFixture -Owner 's2582-waiter'
+    $profilePath = Join-Path $Sandbox '.sza-profile.json'
+    $profileText = Get-Content -LiteralPath $profilePath -Raw
+    $spinner = Start-Process -FilePath 'pwsh' -ArgumentList '-NoProfile', '-Command',
+        '$m = "s2582-spinner"; $end = (Get-Date).AddSeconds(30); while ((Get-Date) -lt $end) { $null = [math]::Sqrt(2) }' -PassThru -WindowStyle Hidden
+    try {
+        $profileObj = $profileText | ConvertFrom-Json
+        $profileObj.locks.buildEngine.processNames = @('pwsh.exe')
+        $profileObj.locks.buildEngine.busyMatch = 's2582-spinner'
+        $profileObj.locks.buildEngine.busyExclude = ''
+        Set-Content -LiteralPath $profilePath -Value ($profileObj | ConvertTo-Json -Depth 12) -Encoding utf8NoBOM
+        $script:SzaProfileCache = $null
+        Start-Sleep -Milliseconds 500
+        $r.busyEngineCancels = ($null -eq (Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2))
+        # Proves the cancellation came from a measured engine and not from an unrelated null.
+        $activity = Measure-AgentBuildActivity -HolderPid $holder.Id -SampleSeconds 2
+        $r.busyEngineWasMeasured = ($null -ne $activity -and $activity.engineCount -ge 1 -and
+                                    [double]$activity.engineCpuSeconds -ge 1.0)
+        $r.engineCpuSeconds = if ($activity) { [double]$activity.engineCpuSeconds } else { -1 }
+    }
+    finally {
+        Get-Process -Id $spinner.Id -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    }
+
+    # 5. A project that declares no build engine gets no build verdict at all.
+    $profileObj = $profileText | ConvertFrom-Json
+    $profileObj.locks.PSObject.Properties.Remove('buildEngine')
+    Set-Content -LiteralPath $profilePath -Value ($profileObj | ConvertTo-Json -Depth 12) -Encoding utf8NoBOM
+    $script:SzaProfileCache = $null
+    $r.noEngineNoVerdict = ($null -eq (Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2))
+    Set-Content -LiteralPath $profilePath -Value $profileText -Encoding utf8NoBOM
+    $script:SzaProfileCache = $null
+
+    # 6. A dead holder: already stale, already reclaimable, nothing for a human to do about it.
+    [void](Write-TicketFixture -Owner 's2582-waiter')
+    Stop-Process -Id $holder.Id -Force
+    Start-Sleep -Milliseconds 500
+    $r.deadHolderIsNotStall = ($null -eq (Get-AgentLockStall -Name 'Build.Phone' -SampleSeconds 2))
+}
+finally {
+    Get-Process -Id $holder.Id -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+}
+
+$r | ConvertTo-Json -Compress
+exit 0
+'@
+
 function Assert-Case {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][bool]$Ok, [string]$Detail)
     if ($Ok) { Write-Output "  PASS $Name" }
@@ -514,11 +696,12 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
         Assert-Case -Name 'S2413: a quiet holder with an empty queue blocks nobody and is not a stall' `
             -Ok ($null -eq $noQueue) -Detail "predicate returned '$noQueue' with nobody waiting"
 
-        $buildStall = Get-AgentLockStall -Name 'Build.Phone' -HolderSessionId $quietOwner `
-            -HolderTranscriptPath $quietTranscript -HeldMinutes 12 -Queue $waiter
-        Assert-Case -Name 'S2413: a build domain is never a stall - a dead pid already makes it stale' `
-            -Ok ($null -eq $buildStall) -Detail "predicate returned '$buildStall' for a PID-judged domain"
-
+        # S2413's build case - "a build domain is never a stall" - is deliberately absent here: it
+        # asserted the exclusion S2582 removed, so keeping it would pin the defect. Its replacement
+        # is case 11 below, which needs the fix present and is skipped without it. It cannot simply
+        # be re-aimed in place either: under the new predicate a build call with no -HolderPid falls
+        # back to reading whichever live Build.Phone lock a sibling session happens to hold, which
+        # would make this suite's verdict depend on another session's build.
         $selfQueued = Get-AgentLockStall -Name 'Code.Scripts' -HolderSessionId $quietOwner `
             -HolderTranscriptPath $quietTranscript -HeldMinutes 12 `
             -Queue @([pscustomobject]@{ seq = 3; sessionId = $quietOwner; waitedMinutes = 9 })
@@ -533,11 +716,170 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
         Remove-Item -LiteralPath $stallRoot -Recurse -Force -ErrorAction SilentlyContinue
     }
 
+    # 10. S2577 - a BUILD ticket whose own process is gone while its session keeps writing. Four of
+    #     the six cases are protective: this sweep has already evicted a live waiter once (S2421,
+    #     292 s of correct polling lost), so each condition that narrows the new eviction gets a
+    #     case proving it still keeps somebody's place.
+    $s2577Skipped = 0
+    if (-not (Get-Command Test-AgentTicketProcessAlive -ErrorAction SilentlyContinue)) {
+        # The resolved harness is the deployed plugin cache and only the owner can deploy it, so a
+        # session running this suite between the canon edit and the deploy must not go red over
+        # work no session running it can perform.
+        Write-Output "  SKIP S2577 dead-pid build ticket (6 cases) - the resolved harness predates the fix: $agentLockSourcePath"
+        $s2577Skipped = 6
+    }
+    else {
+        $selfStart = (Get-Process -Id $PID).StartTime
+        $selfStartTicks = $selfStart.Ticks
+        $selfEnqueuedAt = [DateTimeOffset]::new($selfStart).ToUnixTimeMilliseconds()
+
+        Assert-Case -Name 'S2577: a running process with matching start ticks reads alive' `
+            -Ok (Test-AgentTicketProcessAlive -Ticket ([pscustomobject]@{
+                    pid = $PID; procStart = $selfStartTicks; enqueuedAt = $selfEnqueuedAt })) `
+            -Detail 'a live owner judged gone would be evicted in the middle of its own wait'
+
+        # Real pid reuse cannot be forced from a test, so it is fabricated the way case 6 does it:
+        # this process's own live pid paired with start ticks it cannot have.
+        Assert-Case -Name 'S2577: a live pid with different start ticks is a recycled pid, not a survivor' `
+            -Ok (-not (Test-AgentTicketProcessAlive -Ticket ([pscustomobject]@{
+                    pid = $PID; procStart = 1; enqueuedAt = $selfEnqueuedAt }))) `
+            -Detail 'pid reuse would keep a dead owner alive for as long as the number stays taken'
+
+        Assert-Case -Name 'S2577: a ticket carrying no pid reads alive - every doubt keeps the place' `
+            -Ok (Test-AgentTicketProcessAlive -Ticket ([pscustomobject]@{
+                    sessionId = 's2577-no-pid'; enqueuedAt = $selfEnqueuedAt })) `
+            -Detail 'an unanswerable ticket was deleted instead of kept'
+
+        # A pre-S2577 ticket carries no procStart, so its enqueue time is the only pid-reuse guard
+        # left: a process that started nine hours after the ticket was written did not write it.
+        Assert-Case -Name 'S2577: a legacy ticket with no procStart is judged by its enqueue time' `
+            -Ok (-not (Test-AgentTicketProcessAlive -Ticket ([pscustomobject]@{
+                    pid = $PID; enqueuedAt = ([DateTimeOffset]::UtcNow.AddHours(-9).ToUnixTimeMilliseconds()) }))) `
+            -Detail 'a legacy ticket older than the process it names was judged alive'
+
+        # The sweep itself runs in a child process against a THROWAWAY project root, never in this
+        # one: SZA_PROJECT_ROOT is cached per process, and the forwarder overwrites it with the
+        # repository root, so the only working sandbox is the harness file dot-sourced directly
+        # (S2426, S2520 - getting this wrong swept the live queue and stranded nine tickets in the
+        # real temp/CODE.SCRIPTS.QUEUE).
+        $s2577Sandbox = Join-Path $repoRoot 'temp/S2577/agent-lock-tests-sandbox'
+        $s2577Probe = Join-Path $s2577Sandbox 'probe.ps1'
+        $s2577Out = Join-Path $repoRoot 'temp/S2577-sweep-stdout.log'
+        $s2577Err = Join-Path $repoRoot 'temp/S2577-sweep-stderr.log'
+        try {
+            Remove-Item -LiteralPath $s2577Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Path $s2577Sandbox -Force | Out-Null
+            Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $s2577Sandbox -Force
+            Set-Content -LiteralPath $s2577Probe -Value $s2577ProbeBody -Encoding utf8NoBOM
+
+            $proc = Start-Process -FilePath 'pwsh' `
+                -ArgumentList @('-NoProfile', '-File', $s2577Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2577Sandbox) `
+                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2577Out -RedirectStandardError $s2577Err
+            $verdict = $null
+            if ($proc.ExitCode -eq 0) {
+                try { $verdict = (Get-Content -LiteralPath $s2577Out -Raw).Trim() | ConvertFrom-Json }
+                catch { $verdict = $null }
+            }
+
+            Assert-Case -Name 'S2577: a build ticket whose process is gone is swept' `
+                -Ok ($null -ne $verdict -and -not $verdict.buildDeadPid) `
+                -Detail "probe exited $($proc.ExitCode), verdict '$($verdict | ConvertTo-Json -Compress)' - the ticket that stalls the queue survived"
+
+            Assert-Case -Name 'S2577: a live pid, a fresh heartbeat, a granted turn and any code ticket all survive' `
+                -Ok ($null -ne $verdict -and $verdict.buildLivePid -and $verdict.buildDeadHeartbeat -and
+                     $verdict.buildDeadGranted -and $verdict.codeDeadPid) `
+                -Detail "verdict '$($verdict | ConvertTo-Json -Compress)' - the new reason reached a ticket it must never touch"
+        }
+        finally {
+            Remove-Item -LiteralPath $s2577Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $s2577Out -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $s2577Err -Force -ErrorAction SilentlyContinue
+        }
+    }
+
+    # 11. S2582 - the build half of the stalled-holder signal. Eight cases and five of them
+    #     negative, because the naive form of this signal has a measured price: a reaper judging the
+    #     holder's tree alone killed 24 live builds in 105 minutes, always exactly at its threshold,
+    #     while one build in that window reached success. Every condition that narrows the verdict
+    #     therefore gets a case proving it still stays quiet.
+    $s2582Skipped = 0
+    if (-not (Get-Command Measure-AgentBuildActivity -ErrorAction SilentlyContinue)) {
+        # Same reason as case 10: only the owner can deploy the plugin cache, so a session running
+        # this suite between the canon edit and the deploy must not go red over work it cannot do.
+        Write-Output "  SKIP S2582 build stall rule (8 cases) - the resolved harness predates the fix: $agentLockSourcePath"
+        $s2582Skipped = 8
+    }
+    else {
+        $codeTimings = Get-AgentLockTimings -Name 'Code.Scripts'
+        Assert-Case -Name 'S2582: the code threshold is StallMinutes and still equals LockStaleMinutes' `
+            -Ok ($codeTimings.StallMinutes -eq 10 -and $codeTimings.StallMinutes -eq $codeTimings.LockStaleMinutes) `
+            -Detail "StallMinutes $($codeTimings.StallMinutes) vs LockStaleMinutes $($codeTimings.LockStaleMinutes) - the code rule changed verdict"
+
+        Assert-Case -Name 'S2582: the build threshold is its own field, not the hour-long stale limit' `
+            -Ok ((Get-AgentLockTimings -Name 'Build.Phone').StallMinutes -eq 25) `
+            -Detail "got $((Get-AgentLockTimings -Name 'Build.Phone').StallMinutes), expected the reaper's 25"
+
+        # The six build cases run in a child process against a THROWAWAY project root, for case 10's
+        # two reasons plus one of their own: the engine vocabulary is read from the profile and
+        # cached per process, and re-pointing it at a spinner - the only way to exercise the busy
+        # half without borrowing somebody's real build - cannot be undone inside this process.
+        $s2582Sandbox = Join-Path $repoRoot 'temp/S2582/agent-lock-tests-sandbox'
+        $s2582Probe = Join-Path $s2582Sandbox 'probe.ps1'
+        $s2582Out = Join-Path $repoRoot 'temp/S2582-stall-stdout.log'
+        $s2582Err = Join-Path $repoRoot 'temp/S2582-stall-stderr.log'
+        try {
+            Remove-Item -LiteralPath $s2582Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Path $s2582Sandbox -Force | Out-Null
+            Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination $s2582Sandbox -Force
+            Set-Content -LiteralPath $s2582Probe -Value $s2582ProbeBody -Encoding utf8NoBOM
+
+            $proc = Start-Process -FilePath 'pwsh' `
+                -ArgumentList @('-NoProfile', '-File', $s2582Probe, '-HarnessPath', $agentLockSourcePath, '-Sandbox', $s2582Sandbox) `
+                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2582Out -RedirectStandardError $s2582Err
+            $v = $null
+            if ($proc.ExitCode -eq 0) {
+                try { $v = (Get-Content -LiteralPath $s2582Out -Raw).Trim() | ConvertFrom-Json }
+                catch { $v = $null }
+            }
+            $probeNote = "probe exited $($proc.ExitCode), verdict '$($v | ConvertTo-Json -Compress)'"
+
+            Assert-Case -Name 'S2582: a build holder past its threshold with an idle tree and an idle engine is a stall' `
+                -Ok ($null -ne $v -and $v.idleIsStall -and $v.verdictNamesHolder -and
+                     $v.verdictReportsLiveProcess -and $v.thresholdIsBuildField) `
+                -Detail "$probeNote - the 51-minute hang this ticket exists for would still print nothing"
+
+            Assert-Case -Name 'S2582: a working build engine cancels the verdict' `
+                -Ok ($null -ne $v -and $v.busyEngineCancels -and $v.busyEngineWasMeasured) `
+                -Detail "$probeNote - the engine detaches, so without this half the signal fires on every healthy build"
+
+            Assert-Case -Name 'S2582: a holder younger than the threshold is not a stall, and pays for no sample' `
+                -Ok ($null -ne $v -and $v.youngIsNotStall -and $v.youngPaidNoSample) `
+                -Detail "$probeNote - the free pre-filter must run before the Start-Sleep, not after it"
+
+            Assert-Case -Name 'S2582: a build holder with an empty queue blocks nobody and is not a stall' `
+                -Ok ($null -ne $v -and $v.emptyQueueIsNotStall) -Detail $probeNote
+
+            Assert-Case -Name 'S2582: a project declaring no build engine gets no build verdict at all' `
+                -Ok ($null -ne $v -and $v.noEngineNoVerdict) `
+                -Detail "$probeNote - fail-closed: half the predicate is unmeasurable without the vocabulary"
+
+            Assert-Case -Name 'S2582: a dead build holder is not a stall - it is already stale and reclaimable' `
+                -Ok ($null -ne $v -and $v.deadHolderIsNotStall) -Detail $probeNote
+        }
+        finally {
+            Remove-Item -LiteralPath $s2582Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $s2582Out -Force -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath $s2582Err -Force -ErrorAction SilentlyContinue
+        }
+    }
+
     if ($failures -gt 0) {
         Write-Output "agent-lock tests: FAIL ($failures case(s))"
         exit 1
     }
-    Write-Output 'agent-lock tests: PASS (JAVA_HOME snapshot repair, both directions)'
+    $totalSkipped = $s2577Skipped + $s2582Skipped
+    $skipNote = if ($totalSkipped -gt 0) { ", $totalSkipped skipped" } else { '' }
+    Write-Output "agent-lock tests: PASS (JAVA_HOME snapshot repair, both directions$skipNote)"
     exit 0
 }
 finally {

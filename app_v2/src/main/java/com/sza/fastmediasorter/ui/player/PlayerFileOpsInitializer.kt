@@ -36,8 +36,8 @@ internal class PlayerFileOpsInitializer(
             lifecycleScope = activity.lifecycleScope,
             appScope = activity.fileOpsAppScope,
             settingsRepository = activity.playerHostFactory.settingsRepository,
-            fileOperationUseCase = activity.viewModel.fileOperationUseCase,
             playerFileOperationQueue = activity.playerFileOperationQueue,
+            browseTransferCoordinator = activity.browseTransferCoordinator,
             callback = buildFileOpsCallback(),
         )
 

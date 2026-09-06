@@ -19,23 +19,25 @@ class ChannelBalanceAudioProcessor(
     override fun onConfigure(
         inputAudioFormat: AudioProcessor.AudioFormat
     ): AudioProcessor.AudioFormat {
+        ChannelBalanceController.reportChannelCount(inputAudioFormat.channelCount)
+        // Balance is defined for two channels only: mono has no sides, and a stereo pair read out of
+        // a multichannel layout would scale the wrong speakers. NOT_SET keeps the processor out of
+        // the pipeline's active list entirely (S2638), so queueInput is never reached on such a
+        // stream - a pass-through branch there aliased media3's shared EMPTY_BUFFER onto itself and
+        // killed playback of every mono file. The encoding check sits below this exit on purpose: a
+        // processor that will not touch the stream must not reject its format either.
+        if (inputAudioFormat.channelCount != ChannelBalanceController.STEREO_CHANNEL_COUNT) {
+            return AudioProcessor.AudioFormat.NOT_SET
+        }
         if (inputAudioFormat.encoding != C.ENCODING_PCM_16BIT) {
             throw AudioProcessor.UnhandledAudioFormatException(inputAudioFormat)
         }
-        ChannelBalanceController.reportChannelCount(inputAudioFormat.channelCount)
         // Gain scaling changes neither channel count nor sample rate.
         return inputAudioFormat
     }
 
     override fun queueInput(inputBuffer: ByteBuffer) {
         val output = replaceOutputBuffer(inputBuffer.remaining())
-        // Balance is defined for two channels only: mono has no sides, and a stereo pair read out of
-        // a multichannel layout would scale the wrong speakers.
-        if (inputAudioFormat.channelCount != ChannelBalanceController.STEREO_CHANNEL_COUNT) {
-            output.put(inputBuffer)
-            output.flip()
-            return
-        }
         val leftGain = gains.leftGain
         val rightGain = gains.rightGain
         var onLeftChannel = true

@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.core.util.DestinationColors
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.testing.createMediaResource
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.coroutines.test.runTest
@@ -30,15 +31,23 @@ class AddResourceAsDestinationUseCaseTest {
     }
 
     @Test
+    fun `fails when local resource has no probed write access`() = runTest {
+        val result = useCase(createMediaResource(isReadOnly = false, isWritable = false))
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { getDestinations.getNextAvailableOrder() }
+    }
+
+    @Test
     fun `fails when resource is already a destination`() = runTest {
-        val result = useCase(createMediaResource(isDestination = true))
+        val result = useCase(createMediaResource(isDestination = true, isWritable = true))
         assertTrue(result.isFailure)
     }
 
     @Test
     fun `fails when destinations list is full`() = runTest {
         coEvery { getDestinations.getNextAvailableOrder() } returns -1
-        val result = useCase(createMediaResource())
+        val result = useCase(createMediaResource(isWritable = true))
         assertTrue(result.isFailure)
     }
 
@@ -48,7 +57,8 @@ class AddResourceAsDestinationUseCaseTest {
         val saved = slot<MediaResource>()
         coEvery { updateResource(capture(saved)) } returns Result.success(Unit)
 
-        val result = useCase(createMediaResource(name = "Dest"))
+        // S2625: allowsWriteOperations() demands the probed isWritable for LOCAL, not only isReadOnly.
+        val result = useCase(createMediaResource(name = "Dest", isWritable = true))
 
         assertTrue(result.isSuccess)
         assertEquals(true, saved.captured.isDestination)

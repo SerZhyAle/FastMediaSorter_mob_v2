@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1411 landscape host. Row 0 holds participants 0 and 1, row 1 holds 2 and 3, so one participant
+     fills the screen, two sit side by side across the wider axis, and four form a two-by-two grid.
+     Same ids as the portrait file, different placement - one binder drives either (Rule 11).
+     S2613: the same content/fallback frame the portrait file carries, with the same two group ids. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/stopwatchRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="?attr/colorControlNormal"
+        app:title="@string/stopwatch_title" />
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:id="@+id/stopwatchContentGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/stopwatchRow0"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <include
+                    android:id="@+id/stopwatchRegion0"
+                    layout="@layout/view_stopwatch_region"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <include
+                    android:id="@+id/stopwatchRegion1"
+                    layout="@layout/view_stopwatch_region"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/stopwatchRow1"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <include
+                    android:id="@+id/stopwatchRegion2"
+                    layout="@layout/view_stopwatch_region"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <include
+                    android:id="@+id/stopwatchRegion3"
+                    layout="@layout/view_stopwatch_region"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <!-- Same control as the portrait file, same ids. Landscape is the short axis, so the row
+                 shares a single line with the caption beside the slider rather than stacking above it. -->
+            <LinearLayout
+                android:id="@+id/stopwatchVolumeRow"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="@dimen/margin_small"
+                android:paddingEnd="@dimen/margin_small">
+
+                <TextView
+                    android:id="@+id/labelStopwatchVolume"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/stopwatch_volume_label"
+                    android:textColor="?attr/colorOnSurfaceVariant"
+                    android:textSize="@dimen/text_size_small" />
+
+                <com.google.android.material.slider.Slider
+                    android:id="@+id/sliderStopwatchVolume"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/stopwatch_volume_label"
+                    android:focusable="true"
+                    android:stepSize="1"
+                    android:valueFrom="0"
+                    android:valueTo="15" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/stopwatchActionBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:padding="@dimen/margin_small">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStopwatchResetAll"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_tiny"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:text="@string/stopwatch_action_reset_all" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStopwatchResult"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="@dimen/margin_tiny"
+                    android:layout_weight="1"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:text="@string/stopwatch_action_result" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnStopwatchSettings"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:contentDescription="@string/stopwatch_action_settings"
+                    android:focusable="true"
+                    android:minHeight="@dimen/touch_target_min_height"
+                    android:minWidth="@dimen/touch_target_min_height"
+                    app:icon="@drawable/ic_settings"
+                    app:iconGravity="textStart"
+                    app:iconPadding="0dp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/stopwatchFallbackGroup"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="@dimen/margin_large"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/stopwatchFallbackTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/stopwatch_enable_prompt_title"
+                android:textColor="?attr/colorOnSurface"
+                android:textSize="@dimen/text_size_large"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/stopwatchFallbackMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:gravity="center"
+                android:text="@string/stopwatch_enable_prompt_message"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="@dimen/text_size_normal" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStopwatchOpenSettings"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_medium"
+                android:clickable="true"
+                android:focusable="true"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:text="@string/stopwatch_open_settings"
+                app:icon="@drawable/ic_settings" />
+        </LinearLayout>
+    </FrameLayout>
+</LinearLayout>

@@ -26,7 +26,6 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.PositionIndicator
-import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -365,26 +364,5 @@ private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     HomeSectionId.APPS -> WearContentType.OTHER
 }
 
-/**
- * Icons stay here rather than on the section model so the domain layer carries no Compose types.
- *
- * These are the phone's own vectors, copied into this module: one entity wears one glyph across both
- * apps, and `docs/ICON_LEGEND.md` is the table that decides which (owner instruction 2026-08-18).
- */
 @DrawableRes
-private fun iconFor(id: HomeSectionId): Int = when (id) {
-    HomeSectionId.LAST_USED_RESOURCE -> R.drawable.ic_history
-    // S2499: the streams glyph rather than the history one - one entity wears one glyph, and the
-    // history glyph is exactly what would make a recent channel indistinguishable from a folder.
-    HomeSectionId.LAST_USED_STREAM -> R.drawable.ic_cast
-    HomeSectionId.FAVOURITES -> R.drawable.ic_resource_favorites
-    // ic_resource is the phone's canonical umbrella glyph for "a source registered in this app",
-    // which is what this section lists. ic_wifi described the transport, not the entity (S1952).
-    HomeSectionId.RESOURCES -> R.drawable.ic_resource
-    HomeSectionId.PHONE -> R.drawable.ic_profile_personal_smartphone
-    // Local means the watch's own storage, so it takes the phone's glyph for the watch - the phone's
-    // "local storage" icon is a smartphone and would have been indistinguishable from PHONE above.
-    HomeSectionId.LOCAL -> R.drawable.ic_watch
-    HomeSectionId.STREAMS -> R.drawable.ic_cast
-    HomeSectionId.APPS -> R.drawable.ic_apps
-}
+private fun iconFor(id: HomeSectionId): Int = HomeSectionIconCatalog.iconFor(id)

@@ -63,6 +63,8 @@
       1  `-Gate` and at least one file is above its ceiling; or `-UpdateBaseline` asked to RAISE
          a ceiling.
       2  cannot verify - the baseline is missing or unparseable, or a file it names is gone.
+      4  Code.Scripts is held by another session, so no baseline was written. The queue place is
+         held - wait for the turn in the background and rerun (S2635).
 
     Baseline line format (`#` starts a comment):
       <repo-relative path>|<ceiling bytes>|<stretch bytes>|<where the text goes instead>
@@ -96,6 +98,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = if ($RepoRoot) { (Resolve-Path -LiteralPath $RepoRoot).Path } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 if (-not $BaselineFile) { $BaselineFile = Join-Path $PSScriptRoot 'always-loaded-budget-baseline.txt' }
 
 if (-not (Test-Path -LiteralPath $BaselineFile -PathType Leaf)) {
@@ -245,7 +249,14 @@ if ($UpdateBaseline) {
         Write-Host ("always-loaded budget ratcheted DOWN: {0} {1} -> {2} B (stretch {3})" -f $m.RelPath, $m.Ceiling, $m.Bytes, $m.Stretch)
         $changed++
     }
-    if ($changed -gt 0) { Set-Content -LiteralPath $BaselineFile -Value $text.TrimEnd("`r", "`n") -NoNewline:$false }
+    if ($changed -gt 0) {
+        $scope = $null
+        try {
+            $scope = Enter-CodeLockOrExit -Path $BaselineFile -Reason 'assert-always-loaded-budget.ps1 -UpdateBaseline'
+            Set-Content -LiteralPath $BaselineFile -Value $text.TrimEnd("`r", "`n") -NoNewline:$false
+        }
+        finally { Exit-CodeLockScope -Scope $scope }
+    }
     else { Write-Host "always-loaded budget unchanged - no file is smaller than its ceiling." }
     exit 0
 }

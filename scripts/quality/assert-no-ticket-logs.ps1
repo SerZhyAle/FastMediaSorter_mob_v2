@@ -285,6 +285,15 @@ if (-not $Quiet -and $missingProbe.Count -gt 0) {
 Write-Host ("assert-no-ticket-logs: expected: 0 | actual: {0} forbidden log id(s), {1} missing probe(s)  (BlockNeedUserTest: {2}, probes in source: {3}, excused: {4})" -f
     $actual, $missingProbe.Count, $blockNeedUserTest.Count, $probeIds.Count, $excused.Count)
 
+# S2639: the two modes differ by contract - default audits and exits 0, -Gate is fail-closed - and a
+# reader who ran this standalone saw nine findings answered by a zero and filed it as a broken gate.
+# The contract is right; what was missing is the sentence saying which mode just spoke.
+if (-not $Gate -and -not $Quiet -and ($actual -gt 0 -or $missingProbe.Count -gt 0)) {
+    Write-Host ''
+    Write-Host '  Audit mode (no -Gate): the findings above are REPORTED and this run exits 0.'
+    Write-Host '  Re-run with -Gate for the fail-closed verdict - that is how a.ps1 fg invokes it.'
+}
+
 if ($Gate -and $actual -gt 0) { exit 1 }
 # S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1
 # both take that branch - but exits 3 for a caller that named its changed set, so post-change.ps1 can

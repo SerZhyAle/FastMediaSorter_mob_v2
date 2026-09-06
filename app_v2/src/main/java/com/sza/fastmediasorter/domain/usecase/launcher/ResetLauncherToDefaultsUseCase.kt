@@ -87,6 +87,9 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
             journal.clearJournal()
             installedApps.clearLaunchStats()
             shortcutSyncBaseline.clearSyncedRoutes()
+            // S2564: both baselines by name. A resource baseline surviving the reset would let the
+            // next sync pass read every re-provisioned aggregate as already accounted for.
+            shortcutSyncBaseline.clearSyncedResourcePaths()
 
             restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()

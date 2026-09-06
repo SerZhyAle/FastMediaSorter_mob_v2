@@ -55,6 +55,7 @@ object OsShortcutCatalog {
     const val KEY_NFC = "nfc"
     const val KEY_VPN = "vpn"
     const val KEY_LOCATION = "location"
+    const val KEY_TETHERING = "tethering"
 
     // Settings.ACTION_* are compile-time String constants; the value is inlined so it exists on every
     // API level and [available] can probe it via resolveActivity. InlinedApi (auto-rotate API 31, data
@@ -135,6 +136,15 @@ object OsShortcutCatalog {
         },
         Target(KEY_LOCATION, R.string.app_launch_panel_os_location, R.drawable.ic_location) {
             Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+        },
+        // TETHER_SETTINGS has no public SDK constant, which is why it is written as a literal.
+        Target(
+            KEY_TETHERING,
+            R.string.app_launch_panel_os_tethering,
+            R.drawable.ic_wifi_tethering,
+            fallbackIntent = { Intent(Settings.ACTION_WIRELESS_SETTINGS) },
+        ) {
+            Intent("android.settings.TETHER_SETTINGS")
         },
     )
 

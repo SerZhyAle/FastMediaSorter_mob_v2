@@ -18,7 +18,7 @@ import kotlin.math.floor
  * cells, not a feed, so recycling buys nothing and costs the 2D model.
  *
  * Height is the scroll axis: this layout lives inside a vertical scroll container and measures itself
- * to `rows * cellSize` (strategic §3.3 - one screen plus downward scroll, no desktop pages).
+ * to `contentRows * cellSize` (strategic §3.3 - one screen plus downward scroll, no desktop pages).
  *
  * Knows nothing about commands, gadgets or edit mode - it measures and places whatever children it is
  * given, using their [CellLayoutParams].
@@ -42,8 +42,25 @@ class LauncherDesktopLayout @JvmOverloads constructor(
             requestLayout()
         }
 
-    /** How many rows the canvas spans - drives the measured height. */
+    /** How many rows the canvas addresses - the grid a touch is resolved against, not its height. */
     var rows: Int = 1
+        set(value) {
+            val safe = value.coerceAtLeast(1)
+            if (field == safe) return
+            field = safe
+            requestLayout()
+        }
+
+    /**
+     * How many rows the content actually occupies - drives the measured height.
+     *
+     * S2660: this is deliberately NOT [rows]. At rest [rows] is floored to the rows a viewport covers,
+     * rounded up (S1288, S2387), so that a long press below the last shortcut still resolves to a slot.
+     * Sizing the canvas from that floor made it taller than the screen by the rounding remainder on
+     * every desktop, which gave the scroll container real travel into empty space: the scroll thumb
+     * showed itself and a vertical swipe was consumed before the desktop gesture could see it.
+     */
+    var contentRows: Int = 1
         set(value) {
             val safe = value.coerceAtLeast(1)
             if (field == safe) return
@@ -75,14 +92,14 @@ class LauncherDesktopLayout @JvmOverloads constructor(
                 MeasureSpec.makeMeasureSpec(bounds.height, MeasureSpec.EXACTLY),
             )
         }
-        val gridHeight = paddingTop + rows * cellSize + paddingBottom
+        val contentHeight = paddingTop + contentRows * cellSize + paddingBottom
         val minHeight = MeasureSpec.getSize(heightMeasureSpec)
         val height = when (MeasureSpec.getMode(heightMeasureSpec)) {
             MeasureSpec.EXACTLY -> minHeight
-            MeasureSpec.AT_MOST -> gridHeight.coerceAtMost(minHeight)
-            else -> gridHeight
+            MeasureSpec.AT_MOST -> contentHeight.coerceAtMost(minHeight)
+            else -> contentHeight
         }
-        setMeasuredDimension(width, maxOf(gridHeight, height))
+        setMeasuredDimension(width, maxOf(contentHeight, height))
     }
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {

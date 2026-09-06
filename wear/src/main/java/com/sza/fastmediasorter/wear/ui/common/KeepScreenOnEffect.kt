@@ -53,7 +53,8 @@ private object KeepScreenOnClaims {
     }
 }
 
-private tailrec fun Context.findActivity(): Activity? = when (this) {
+/** Internal rather than private since S2516: the water flashlight needs the same window this finds. */
+internal tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
     is ContextWrapper -> baseContext.findActivity()
     else -> null

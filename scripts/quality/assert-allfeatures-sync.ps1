@@ -19,6 +19,8 @@
       1 - substantive failure: validation error or record-count regression.
       2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
           from 1 on purpose: "the gate is broken" is not "the code is bad".
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue
+          place is held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Gate
     Fail-closed: exit 1 on validation failure or record-count regression.
@@ -45,6 +47,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $dataFile = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
 $validate = Join-Path $repoRoot 'scripts/all_features/validate.ps1'
 $baselineFile = Join-Path $PSScriptRoot 'allfeatures-sync-baseline.txt'
@@ -56,7 +60,12 @@ if (-not (Test-Path $validate)) { Write-Error "validate.ps1 not found at $valida
 $count = @(Get-Content -LiteralPath $dataFile | Where-Object { $_.Trim().Length -gt 0 }).Count
 
 if ($UpdateBaseline) {
-    Set-Content -LiteralPath $baselineFile -Value "$count" -Encoding utf8 -NoNewline
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-allfeatures-sync.ps1 -UpdateBaseline'
+        Set-Content -LiteralPath $baselineFile -Value "$count" -Encoding utf8 -NoNewline
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-allfeatures-sync: baseline updated -> $count"
     exit 0
 }

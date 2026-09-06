@@ -77,6 +77,14 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.OPERATIONS,
             ""
         ),
+        // S1411 ADR-5: unlike the calculator above, this one is reachable from a settings-screen row
+        // as well as from the tool's own gear button (§6.4), which is what the non-empty host key says.
+        DocScopeSurface(
+            R.layout.dialog_stopwatch_settings,
+            "stopwatch",
+            SettingsSearchDestination.OPERATIONS,
+            "rowOpenStopwatchSettings"
+        ),
         // Opened only from the camera-OCR capture flow (CameraOcrTranslateActivity), same reason.
         DocScopeSurface(
             R.layout.dialog_camera_ocr_settings,
@@ -231,6 +239,16 @@ object SettingsDocScopeCatalog {
             titleRu = "Фон на часах",
             titleUk = "Фон на годиннику"
         ),
+        // S2522: the watch's own colour scheme, at its canonical Screen position beside the background
+        // it shares a group with. Editable from both sides, like the background mode above.
+        WearDocEntry(
+            key = "wearColorScheme",
+            layout = "wear_screen_settings",
+            kind = "RADIO_GROUP",
+            titleEn = "Colour scheme",
+            titleRu = "Цветовая схема",
+            titleUk = "Колірна схема"
+        ),
         // S2093: a real watch row since S1781 that was never published - a pre-existing Rule 22 gap,
         // in scope here because strategic criterion 9 is that this reference lists the set the owner
         // actually has, and the parity gate fails the closure while it does not.
@@ -259,6 +277,14 @@ object SettingsDocScopeCatalog {
             titleEn = "Disable animations",
             titleRu = "Отключить анимацию",
             titleUk = "Вимкнути анімацію"
+        ),
+        WearDocEntry(
+            key = "wearPowerSavingTrigger",
+            layout = "wear_other_settings",
+            kind = "STEPPER_ROW",
+            titleEn = "Power saving",
+            titleRu = "Энергосбережение",
+            titleUk = "Енергозбереження"
         ),
         WearDocEntry(
             key = "wearBackgroundPlayback",

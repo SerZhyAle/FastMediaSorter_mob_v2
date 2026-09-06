@@ -162,6 +162,32 @@ object SubProgramCatalog {
                 SubProgramSurface.LAUNCHER_SHORTCUT,
             ),
         ),
+        // S2516: order 102 so the three lights stand together in the menu; the mirror moved to 103 for
+        // it, which changes no position relative to anything else because 103 and 104 were both free.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_WATER_FLASHLIGHT,
+            order = 102,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "water_flashlight",
+            disable = { it.copy(waterFlashlightEnabled = false) },
+        ),
+        // S1924: no widget pairing - none is planned, and an entry declaring WIDGET must name a
+        // paired HomeWidgetCatalog key or the completeness test fails.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_MIRROR,
+            order = 103,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+            disable = { it.copy(mirrorEnabled = false) },
+        ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_BLACK_SCREEN,
             order = 105,
@@ -170,6 +196,22 @@ object SubProgramCatalog {
                 SubProgramSurface.QUICK_ACCESS_PANEL,
                 SubProgramSurface.LAUNCHER_SHORTCUT,
             ),
+        ),
+        // S1411. Appended rather than slotted next to the calculator: this table's order must match the
+        // position the owner actually sees (the ADR-5 note on screen recording above), and the programs
+        // menu appends a new program precisely so no familiar position shifts (S1733, S1735). Slotting
+        // the stopwatch beside the calculator would have moved nine existing entries down one row.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_STOPWATCH,
+            order = 106,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "stopwatch",
+            disable = { it.copy(enableStopwatch = false) },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_TAKE_PHOTO_SEND_TO,

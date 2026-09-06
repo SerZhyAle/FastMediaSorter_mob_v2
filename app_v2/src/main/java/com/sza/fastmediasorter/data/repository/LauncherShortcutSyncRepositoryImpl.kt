@@ -41,7 +41,23 @@ class LauncherShortcutSyncRepositoryImpl @Inject constructor(
         dataStore.edit { preferences -> preferences.remove(KEY_SYNCED_SHORTCUT_ROUTES) }
     }
 
+    override suspend fun syncedResourcePaths(): Set<String>? =
+        dataStore.data.first()[KEY_SYNCED_RESOURCE_PATHS]
+
+    override suspend fun setSyncedResourcePaths(paths: Set<String>) {
+        val snapshot = paths.toSet()
+        dataStore.edit { preferences -> preferences[KEY_SYNCED_RESOURCE_PATHS] = snapshot }
+    }
+
+    override suspend fun clearSyncedResourcePaths() {
+        dataStore.edit { preferences -> preferences.remove(KEY_SYNCED_RESOURCE_PATHS) }
+    }
+
     private companion object {
         val KEY_SYNCED_SHORTCUT_ROUTES = stringSetPreferencesKey("launcher_synced_shortcut_routes")
+
+        // S2564: a key of its own, so the launcher reset and the two sync passes can clear one
+        // baseline without disturbing the other.
+        val KEY_SYNCED_RESOURCE_PATHS = stringSetPreferencesKey("launcher_synced_resource_paths")
     }
 }

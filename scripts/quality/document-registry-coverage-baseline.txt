@@ -1,0 +1,28 @@
+# document-registry-coverage-baseline.txt (S2618)
+#
+# The trees that hold .md files and are deliberately NOT in docs/DOCUMENT_REGISTRY.jsonl, read by
+# scripts/quality/assert-document-registry-coverage.ps1.
+#
+# The gate asks the reverse of what the harness validator asks. The validator enforces
+# registry -> disk: every record glob must find a live file. This file answers disk -> registry for
+# the directories that will never be registered, so that "no record names this tree" stops being
+# indistinguishable from "nobody noticed this tree" - which is the state that let the missing
+# `.claude/rules/*.md` glob survive until S2607.
+#
+# Format: one row per line, "<directory> | <reason>". A row ending in "/**" excuses the directory
+# and everything beneath it; use it only where the subtree is generated per agent or per run, so a
+# new subdirectory is the same decision rather than a new one.
+#
+# The reason must be at least four words and must say what the tree is and who it is for. The floor
+# is the one validate.ps1 already applies to sitemap_exclude reasons (S1803), and for the same
+# reason: a list whose entries read "internal" is a place things disappear into. A row naming a
+# directory that no longer holds documents fails the gate - a decision about nothing still reads as
+# a decision until someone checks.
+#
+# Excusing a tree is the second-best answer. The first is registering it: a directory here is one
+# the repository has agreed to stop maintaining as documentation.
+#
+# Lines starting with # are comments.
+
+.claude/agent-memory/** | Private per-agent memory written by Claude Code, gitignored and rewritten every session; belongs to the agent that owns the directory, not to a maintainer, so there is no document here anyone is answerable for.
+.agents/** | No longer memory: S2622 deleted the 125 stale copies this tree used to hold and left a pointer to .claude/agent-memory/android-rd-specialist/ plus the ZCode entry-point skill that names it. Both files exist to be resolved by a link, not read as documents, so neither is anything a maintainer is answerable for - and the tree stays tracked, which S2618 measured to be a poor signal of maintainedness in both directions.

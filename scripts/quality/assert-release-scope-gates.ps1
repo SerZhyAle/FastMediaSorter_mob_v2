@@ -31,14 +31,19 @@
     Gates (in order):
       - assert-gate-timing-claims      (S2453 documented run times vs the gate telemetry journal)
       - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
+      - assert-play-listing-graphics   (S2597 declared single images have a source and one artwork)
+      - assert-play-listing-screenshot-geometry (S2602 caption band under 20%, one shape per carousel)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
       - assert-icon-inventory-sync     (S0815 icon docs vs the settings icon/title sources)
       - assert-doc-icons-sync          (S0889 doc icon assets vs their inventory)
       - assert-device-profile-matrix   (S1216 device matrix, registry and applier agreement)
+      - assert-archive-artefacts       (S2592 every spec archive record vs the file it points at)
       - assert-source-gates            (S2110 every lexical ratchet baseline, over the whole tree)
       - run-script-suites              (S2122 every *.tests/Run-Tests.ps1 suite in the repository)
       - assert-suite-tracked           (S2411 every discovered suite runner is in the git index)
+      - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
+      - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
 
     Deliberately NOT moved here: assert-oss-notices. It ships inside the package, so criteria 1
     and 2 hold - but its own wiring comment records that both of its findings ARE attributable to
@@ -137,23 +142,60 @@ $gates = [ordered]@{
     # user at all, only an agent choosing foreground or background; its subject is a document
     # against months of accumulated journal, which no changed file can be blamed for; each finding
     # names its own claim id and both numbers; and re-measuring a target costs the same whenever it
-    # is done. Cheapest member by a wide margin - one regex per claim over one document, plus one
-    # pass of the journal - so it goes first and a reworded row surfaces before the slow gates run.
+    # is done. First not by cost but by subject: it judges the run times this very table's members
+    # are documented to have, so a reworded row surfaces before the slow gates run. Its own cost is
+    # modest rather than least - measured 4896 ms, against 373 for the locale gate below it.
     # Not passed -Quiet: which claim drifted, and by how much, is the whole content of its report.
     'assert-gate-timing-claims.ps1'    = @()
     # S2340. Reads two declarations - locales_config.xml and the LOCALES dict in
-    # publish-play-listing.py - plus 39 small text files, so it is the cheapest member and goes first.
+    # publish-play-listing.py - plus 39 small text files, so it is the cheapest member at 373 ms.
     # Rule 33 puts it in release scope on all four criteria (strategic S2340 "Гейт"): the listing
     # reaches a user only when the owner publishes it; its subject is the whole listing tree against
     # the whole locale declaration; each finding names its own locale and folder; and adding the
     # missing locales is one batch either way. Deliberately NOT passed -Quiet - that switch suppresses
     # the per-violation lines, and "which locale" is the whole content of this gate's report.
     'assert-play-listing-locales.ps1'  = @()
+    # S2597. The other half of the same listing tree: its locale sibling above judges the TEXTS,
+    # this one judges the images the publisher declares in SINGLE_IMAGES. Rule 33 places it here on
+    # the same four criteria, and for one more reason of its own - the defect it guards is invisible
+    # by construction, because publish-play-listing.py skips an image whose file is absent and exits
+    # 0, so for months the Play feature graphic had no source in the repository at all and nothing
+    # said so. Not passed -Quiet: which image lost its source, or which copy of one artwork drifted,
+    # is the whole content of the report.
+    'assert-play-listing-graphics.ps1' = @()
     'assert-unreferenced-strings.ps1'  = @('-Quiet')
     'assert-splash-brand-sync.ps1'     = @('-Quiet')
     'assert-icon-inventory-sync.ps1'   = @()
     'assert-doc-icons-sync.ps1'        = @()
     'assert-device-profile-matrix.ps1' = @('-Quiet')
+    # S2592. Every record in PLAN/spec-catalog-archive.jsonl against the file it names. Rule 33
+    # puts it here on all four criteria: a lost archived spec reaches no user between releases, its
+    # subject is the whole journal against the whole archive directory and no changed file can be
+    # blamed for a dangling row, every finding prints its own id and path, and repairing a batch of
+    # them costs one recovery run whenever it is done. Not passed -Quiet: which ticket lost its text
+    # is the entire content of the report, and the release sweep is the moment 166 specs move.
+    'assert-archive-artefacts.ps1'     = @()
+    # S2602. The third member of the listing family, and the one that judges the SCREENSHOT PIXELS:
+    # the locale gate judges the texts, the graphics gate judges that the single images exist and
+    # agree, and neither ever looked at what a composed screenshot actually shows. Measured
+    # 2026-09-06, all 24 tenInchScreenshots carried a caption band over 22% of image height against
+    # Google's stated 20% tagline ceiling, painted across the app bar of every tablet frame.
+    #
+    # Rule 33 puts it here on all four criteria, exactly as for its two siblings: a listing image
+    # reaches a user only when the owner publishes; its subject is the whole published asset tree,
+    # which no changed file created; every finding prints its own path and its own measured share;
+    # and recomposing a set is one run whenever it is done. It is also the clearest case yet for the
+    # release scope rather than the closure - the debt it reports is 24 files of asset work that no
+    # session closing an unrelated ticket could clear, which is precisely the shape S1939 measured.
+    #
+    # Sits apart from its two siblings because this table is ordered by COST and it opens 24 PNGs:
+    # measured 7735 ms against their 373 and 1765. The family reads as one block in the .DESCRIPTION
+    # list above, which is where grouping by subject belongs.
+    #
+    # EXPECTED RED until S2602 Phase 03 and Phase 04 recapture both sets. That is the point: the
+    # defect the ticket exists to clear is now reproduced by a check rather than only by prose.
+    # Not passed -Quiet - which frame breached the ceiling, and by how much, is the whole report.
+    'assert-play-listing-screenshot-geometry.ps1' = @()
     # S2110. Every lexical ratchet baseline, judged over the WHOLE tree. Rule 33 puts it here on
     # all four criteria (strategic S2110 section 6.3): a hardcoded dp breaks nothing at runtime, so
     # between releases it cannot reach a user; its subject is the tree, not a changed file; -Explain
@@ -190,6 +232,19 @@ $gates = [ordered]@{
     # went red is the more urgent report of the two.
     'run-script-suites.ps1'            = @('-Quiet')
     'assert-suite-tracked.ps1'         = @()
+    # S2616. The same index question over a wider selection: every statically resolvable dot-source
+    # target, which is the set whose absence stops a consumer from PARSING in a fresh clone. Here on
+    # the same four Rule 33 criteria as its neighbour, and for one more - the per-ticket half only
+    # ever sees consumers a session changed, so a target orphaned by a session that has since ended
+    # is visible nowhere else.
+    'assert-dotsource-tracked.ps1'     = @()
+    # S2618. The document registry's reverse direction: the harness validator enforces
+    # registry -> disk, nothing enforced disk -> registry, so a directory full of documents that no
+    # record named failed no gate - which is how the missing `.claude/rules/*.md` glob survived to
+    # S2607. Release scope on the S1939 arithmetic quoted in post-change.ps1: the state is
+    # repository-wide and a new documentation tree appears on the scale of months, so a per-closure
+    # run would spend the same minutes that gate spent to report a single finding.
+    'assert-document-registry-coverage.ps1' = @('-Quiet')
 }
 
 $results = [System.Collections.Generic.List[object]]::new()
@@ -249,6 +304,21 @@ if (-not $Json) {
     }
     catch {
         Write-Host "  placement review unavailable: $($_.Exception.Message)" -ForegroundColor DarkGray
+    }
+
+    # S2608, a REPORT for the same reason as the review above: the runner collapses every non-zero
+    # code to FAIL, and this one returns 3 whenever the canon checkout and the running harness
+    # diverge - a state no ticket caused, no session can fix from here, and which is legitimately
+    # absent on any machine without a canon checkout. Blocking a ship on it would fail a release for
+    # another repository's uncommitted work. It belongs at the release boundary rather than in a
+    # closure because its subject is the machine's plugin deployment, which changes on plugin update.
+    try {
+        Write-Host ''
+        Write-Host 'harness delivery (S2608 - advisory, affects no verdict):' -ForegroundColor Cyan
+        & (Join-Path $PSScriptRoot 'assert-harness-drift.ps1')
+    }
+    catch {
+        Write-Host "  harness drift check unavailable: $($_.Exception.Message)" -ForegroundColor DarkGray
     }
 }
 

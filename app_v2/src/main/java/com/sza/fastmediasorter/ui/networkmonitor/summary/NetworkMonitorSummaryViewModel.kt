@@ -8,6 +8,7 @@ import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.domain.model.networkmonitor.VisibleNetwork
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ExternalIpState
+import com.sza.fastmediasorter.domain.usecase.networkmonitor.ObserveTrafficRateUseCase
 import com.sza.fastmediasorter.domain.usecase.networkmonitor.ResolveExternalIpUseCase
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ExternalIpSessionStore
@@ -75,6 +76,8 @@ data class NetworkMonitorSummaryUiState(
     val externalIp: String?,
     val isResolvingExternalIp: Boolean,
     val internet: InternetReachability,
+    val rxBytesPerSecond: Double? = null,
+    val txBytesPerSecond: Double? = null,
     val sections: Map<NetworkMonitorSection, SectionAvailability?>,
     val facts: Map<NetworkMonitorSection, SectionFact>,
 ) {
@@ -88,6 +91,8 @@ data class NetworkMonitorSummaryUiState(
             externalIp = null,
             isResolvingExternalIp = false,
             internet = InternetReachability.OFFLINE,
+            rxBytesPerSecond = null,
+            txBytesPerSecond = null,
             sections = emptyMap(),
             facts = emptyMap(),
         )
@@ -105,6 +110,7 @@ data class NetworkMonitorSummaryUiState(
 @HiltViewModel
 class NetworkMonitorSummaryViewModel @Inject constructor(
     repository: NetworkMonitorRepository,
+    observeTrafficRate: ObserveTrafficRateUseCase,
     private val externalIpSessionStore: ExternalIpSessionStore,
     private val resolveExternalIp: ResolveExternalIpUseCase,
 ) : ViewModel() {
@@ -115,7 +121,16 @@ class NetworkMonitorSummaryViewModel @Inject constructor(
         repository.observeSnapshot(),
         externalIpSessionStore.address,
         resolving,
-    ) { snapshot, externalIp, isResolving -> snapshot.toUiState(externalIp, isResolving) }
+        observeTrafficRate(),
+    ) { snapshot, externalIp, isResolving, trafficRateSection ->
+        val rate = trafficRateSection.data.takeIf { trafficRateSection.availability == SectionAvailability.Available }
+        snapshot.toUiState(
+            externalIp = externalIp,
+            isResolvingExternalIp = isResolving,
+            rxBytesPerSecond = rate?.receivedBytesPerSecond,
+            txBytesPerSecond = rate?.transmittedBytesPerSecond,
+        )
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(), NetworkMonitorSummaryUiState.Empty)
 
     /**
@@ -162,6 +177,8 @@ class NetworkMonitorSummaryViewModel @Inject constructor(
 private fun NetworkMonitorSnapshot.toUiState(
     externalIp: String?,
     isResolvingExternalIp: Boolean,
+    rxBytesPerSecond: Double?,
+    txBytesPerSecond: Double?,
 ): NetworkMonitorSummaryUiState {
     val active = networks.firstOrNull { it.isActive }
     return NetworkMonitorSummaryUiState(
@@ -171,6 +188,8 @@ private fun NetworkMonitorSnapshot.toUiState(
         externalIp = externalIp,
         isResolvingExternalIp = isResolvingExternalIp,
         internet = active.toReachability(),
+        rxBytesPerSecond = rxBytesPerSecond,
+        txBytesPerSecond = txBytesPerSecond,
         sections = mapOf(
             NetworkMonitorSection.Wifi to wifi.availability,
             NetworkMonitorSection.Mobile to sims.availability,

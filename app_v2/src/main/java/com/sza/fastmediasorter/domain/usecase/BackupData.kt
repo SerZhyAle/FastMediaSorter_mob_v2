@@ -49,6 +49,7 @@ data class BackupSettings(
     val embeddedGameEnabled: Boolean = false,
     val frontFlashlightEnabled: Boolean = false,
     val frontFlashlightColor: Int = AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
+    val waterFlashlightEnabled: Boolean = false,
     val networkParallelism: Int = 4,
     val cacheSizeMb: Int = 2048,
     val isCacheSizeUserModified: Boolean = false,
@@ -71,7 +72,7 @@ data class BackupSettings(
     val cropImagesToFullscreen: Boolean = false,
     val supportGifs: Boolean = true,
     val supportVideos: Boolean = true,
-    val videoSizeMin: Long = 1048576L,
+    val videoSizeMin: Long = AppSettings.DEFAULT_VIDEO_SIZE_MIN,
     val videoSizeMax: Long = 107374182400L,
     val supportAudio: Boolean = true,
     val audioSizeMin: Long = 0L,
@@ -100,11 +101,14 @@ data class BackupSettings(
     val epubLineHeight: Float = 1.6f,
     val epubHorizontalMargin: Int = 16,
     // Translation & OCR
-    val enableTranslation: Boolean = true,
+    // S2631: both engines are delivered on demand and default OFF since S0386; this copy still carried
+    // the pre-S0386 `true`, so a backup without the key restored a translation stack a fresh install
+    // does not enable.
+    val enableTranslation: Boolean = AppSettings.DEFAULTS.enableTranslation,
     val translationSourceLanguage: String = "auto",
     val translationTargetLanguage: String = "ru",
     val translationLensStyle: Boolean = true,
-    val enableOcr: Boolean = true,
+    val enableOcr: Boolean = AppSettings.DEFAULTS.enableOcr,
     val ocrDefaultFontSize: String = "AUTO",
     val ocrDefaultFontFamily: String = "DEFAULT",
     val ocrEngineType: String = "TESSERACT",
@@ -116,7 +120,9 @@ data class BackupSettings(
     val playToEndInSlideshow: Boolean = true,
     val allowRename: Boolean = true,
     val allowDelete: Boolean = true,
-    val useTrash: Boolean = true,
+    // S2631: deleting straight through is the shipped default; restoring a backup must not silently
+    // turn the trash folder on for a user whose fresh install would not have it.
+    val useTrash: Boolean = AppSettings.DEFAULTS.useTrash,
     val confirmDelete: Boolean = true,
     val confirmMove: Boolean = false,
     val defaultGridMode: Boolean = false,
@@ -154,7 +160,9 @@ data class BackupSettings(
     val copyPanelCollapsed: Boolean = false,
     val movePanelCollapsed: Boolean = false,
     val resourceTypeTabCollapsed: Boolean = false,
-    val enablePictureInPicture: Boolean = false,
+    // S2631: the copy withheld a feature the constructor ships enabled, so a restore turned
+    // picture-in-picture off for a user who had never switched it off.
+    val enablePictureInPicture: Boolean = AppSettings.DEFAULTS.enablePictureInPicture,
     // File list caching
     val defaultRememberFileList: Boolean = false,
     // Dynamic background
@@ -192,33 +200,259 @@ data class BackupSettings(
     val stereoDefaultProjection: String? = null,
     // Deprecated since S0251 - kept only so old JSON backups still deserialize.
     val vrForcedFormat: String? = null,
-    // S1740: Launcher settings
-    val launcherDensityFactor: Float = 1.0f,
+    // S1740: Launcher settings.
+    // S2631: the four fields below read the launcher group's own defaults. Each was frozen at the
+    // value in force when S1740 wrote this block, and S2017/S2320 later moved the source of truth
+    // without moving the copy.
+    val launcherDensityFactor: Float = AppSettings.DEFAULTS.launcher.densityFactor,
     val launcherTaskbarPlacement: String = "BOTTOM",
     val launcherTaskbarShowRecents: Boolean = true,
     val launcherTaskbarShowPinned: Boolean = true,
     val launcherTaskbarShowTray: Boolean = true,
-    val launcherReplaceSystemStatusArea: Boolean = false,
+    val launcherReplaceSystemStatusArea: Boolean = AppSettings.DEFAULTS.launcher.replaceSystemStatusArea,
     val launcherTopStatusStripMode: Boolean = false,
-    val launcherForeignNotificationsEnabled: Boolean = false,
-    val launcherTrayShowClock: Boolean = true,
+    val launcherForeignNotificationsEnabled: Boolean =
+        AppSettings.DEFAULTS.launcher.foreignNotificationsEnabled,
+    val launcherTrayShowClock: Boolean = AppSettings.DEFAULTS.launcher.trayShowClock,
     val launcherTrayShowBluetooth: Boolean = true,
+    val launcherTrayShowTethering: Boolean = true,
     val launcherTrayShowSim1: Boolean = true,
     val launcherTrayShowSim2: Boolean = true,
     val launcherTrayShowNetwork: Boolean = true,
     val launcherTrayShowBattery: Boolean = true,
     val launcherRotationHintShown: Boolean = false,
     val launcherDesktopLocked: Boolean = false,
-    // Nullable so a field absent from an older backup restores as "keep current" - plain Gson
-    // skips Kotlin defaults, so a non-null Boolean here would silently read as false.
+    // Nullable so a field absent from an older backup restores as "keep current": a non-null Boolean
+    // could only say true or false, and neither can mean "the writer had no opinion".
+    // S2631 corrected the reason recorded here. It used to read "plain Gson skips Kotlin defaults, so a
+    // non-null Boolean here would silently read as false", which is not what happens - every parameter
+    // of this class has a default, so Kotlin emits a synthetic no-argument constructor and Gson prefers
+    // it over unsafe allocation, which is exactly why the declared defaults above are reachable at all.
+    // The wrong reason mattered: it made a diverged default look harmless.
     val launcherDesktopDoubleTapLockEnabled: Boolean? = null,
     val launcherWallpaperMode: String = "BRANDED",
     val launcherWallpaperImagePath: String = "",
     val launcherWallpaperCameraId: String = "",
     val allAppsSortOrder: String = "LABEL",
     val allAppsSortDescending: Boolean = false,
-    val launcherScreenBlackoutTimeoutSeconds: Int = 0
-)
+    // S2384: a backup written before this field existed restores to the current default, not to Off.
+    val launcherScreenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+    // S2632: both fields are introduced now, so NO already-written backup file carries them. A non-null
+    // default would therefore reset the user's real setting on every restore from an existing file -
+    // the same silent loss this ticket fixes, moved one step later. Nullable means "the writer had no
+    // opinion", which BackupMapper restores as "keep current".
+    val launcherTrayShowSpeed: Boolean? = null,
+    val launcherAnimationPalette: String? = null,
+    // S2648: the 124 settings this DTO never carried, grouped rather than listed flat. Two reasons, both
+    // load-bearing. First the ceiling: a JVM method descriptor holds at most 255 slots, and Kotlin's
+    // synthetic all-defaults constructor spends one per parameter (two per non-nullable Long) plus a
+    // bitmask int per 32 plus a marker plus `this`; at 284 flat parameters that descriptor reaches roughly
+    // 302 slots, which kotlinc emits silently and ART rejects at class verification - every
+    // `BackupSettings()` in the process. That exact failure already created ScreenshotGestureSettings
+    // (S1470) and LauncherSettings (S2300) in the model. Second the migration: a group absent from an
+    // already-written file arrives as null, which restores as "keep current", so no backup written before
+    // this block can reset a setting it never carried - which is why CURRENT_VERSION stays 6.
+    // A field ADDED to one of these groups later is a different case and is declared nullable on its own,
+    // the way S2632's two launcher fields above are.
+    val screenshotGesture: ScreenshotGesture? = null,
+    val launcherExtra: LauncherExtra? = null,
+    val capture: Capture? = null,
+    val programs: Programs? = null,
+    val streams: Streams? = null,
+    val appearance: Appearance? = null,
+    val playerExtra: PlayerExtra? = null,
+    val integration: Integration? = null
+) {
+
+    /**
+     * S2648: every field of `ScreenshotGestureSettings` - the one settings group the backup omitted whole,
+     * so a user who had configured twelve gestures across four zones restored to none of them.
+     *
+     * Actions travel as the enum name; a null action or payload means the key was absent and the current
+     * value is kept, which also covers Gson writing null into a field declared non-null in Kotlin.
+     */
+    data class ScreenshotGesture(
+        val zoneLeftTopEnabled: Boolean = true,
+        val zoneLeftBottomEnabled: Boolean = false,
+        val zoneRightTopEnabled: Boolean = false,
+        val zoneRightBottomEnabled: Boolean = false,
+        val zoneLeftTopStripVisible: Boolean = false,
+        val zoneLeftBottomStripVisible: Boolean = false,
+        val zoneRightTopStripVisible: Boolean = false,
+        val zoneRightBottomStripVisible: Boolean = false,
+        val leftTopDown: String? = null,
+        val leftTopRight: String? = null,
+        val leftTopUp: String? = null,
+        val leftBottomDown: String? = null,
+        val leftBottomRight: String? = null,
+        val leftBottomUp: String? = null,
+        val rightTopDown: String? = null,
+        val rightTopRight: String? = null,
+        val rightTopUp: String? = null,
+        val rightBottomDown: String? = null,
+        val rightBottomRight: String? = null,
+        val rightBottomUp: String? = null,
+        val payloadLeftTopDown: String? = null,
+        val payloadLeftTopRight: String? = null,
+        val payloadLeftTopUp: String? = null,
+        val payloadLeftBottomDown: String? = null,
+        val payloadLeftBottomRight: String? = null,
+        val payloadLeftBottomUp: String? = null,
+        val payloadRightTopDown: String? = null,
+        val payloadRightTopRight: String? = null,
+        val payloadRightTopUp: String? = null,
+        val payloadRightBottomDown: String? = null,
+        val payloadRightBottomRight: String? = null,
+        val payloadRightBottomUp: String? = null
+    )
+
+    /**
+     * S2648: the `LauncherSettings` fields the backup did not carry.
+     *
+     * The sixteen swipe slots travel as their `persistedName` token, which both action families already
+     * define for DataStore, so the backup reuses the persistence name rather than inventing a second one.
+     * The two step-counter fields are deliberately absent: they are a baseline against one device's own
+     * sensor, and another device's baseline would render a wrong step count.
+     */
+    data class LauncherExtra(
+        val desktopSwipeUpAction: String? = null,
+        val desktopSwipeDownAction: String? = null,
+        val desktopSwipeLeftAction: String? = null,
+        val desktopSwipeRightAction: String? = null,
+        val desktopSwipeUpPayload: String? = null,
+        val desktopSwipeDownPayload: String? = null,
+        val desktopSwipeLeftPayload: String? = null,
+        val desktopSwipeRightPayload: String? = null,
+        val allAppsSwipeUpAction: String? = null,
+        val allAppsSwipeDownAction: String? = null,
+        val allAppsSwipeLeftAction: String? = null,
+        val allAppsSwipeRightAction: String? = null,
+        val allAppsSwipeUpPayload: String? = null,
+        val allAppsSwipeDownPayload: String? = null,
+        val allAppsSwipeLeftPayload: String? = null,
+        val allAppsSwipeRightPayload: String? = null,
+        val screenCount: Int = 2,
+        val weatherLastLocation: String? = null,
+        val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA
+    )
+
+    /**
+     * S2648: camera, microphone, video and screen capture.
+     *
+     * The destination fields carry the raw resource id, matching the three the backup already carries
+     * (`audioBackgroundPhotosResourceId`, `videoSnapshotResourceId`, `linkAutoDownloadResourceId`): an id
+     * that no longer resolves falls back to the same default folder an absent value would.
+     * `cameraLensSettings` is deliberately absent - lens ids belong to one device's hardware.
+     */
+    data class Capture(
+        val cameraAspectRatio: Int = 1,
+        val cameraGeotagEnabled: Boolean = false,
+        val cameraGridEnabled: Boolean = false,
+        val cameraOcrOnly: Boolean = false,
+        val cameraOcrTranslationEnabled: Boolean = false,
+        val cameraPhotosDestinationResourceId: String? = null,
+        val disableVideoCapture: Boolean = false,
+        val videoCaptureOpenInPlayer: Boolean = false,
+        val videoRecordingDestinationResourceId: String? = null,
+        val micRecordingEnabled: Boolean = false,
+        val micRecordingAskFilename: Boolean = true,
+        val micRecordingDestinationResourceId: String? = null,
+        val screenRecordingEnabled: Boolean = false,
+        val screenRecordingDestinationResourceId: String? = null,
+        val screenshotDestinationResourceId: String? = null,
+        val copyScreenshotToClipboard: Boolean = false,
+        val gestureOverlayEnabled: Boolean = false
+    )
+
+    /**
+     * S2648: the programs block - which tools are reachable and how they behave.
+     *
+     * Neither disclosure-accepted flag is here: a screen-capture consent is given on a device by the person
+     * holding it, and a restored "already accepted" would suppress a warning that person never saw.
+     */
+    data class Programs(
+        val enableCalculator: Boolean = false,
+        val enableStopwatch: Boolean = false,
+        val stopwatchParticipantCount: Int = AppSettings.STOPWATCH_DEFAULT_PARTICIPANTS,
+        val stopwatchMusicEnabled: Boolean = false,
+        val stopwatchMusicUri: String? = null,
+        val stopwatchVolumeKeysControl: Boolean = true,
+        val enableNetworkMonitor: Boolean = false,
+        val recordGnssTrack: Boolean = false,
+        val enableSystemInfo: Boolean = false,
+        val enableWearCompanion: Boolean = false,
+        val mirrorEnabled: Boolean = true,
+        val mirrorZoomRatio: Float = AppSettings.MIRROR_DEFAULT_ZOOM_RATIO,
+        val mirrorHorizontallyFlipped: Boolean = true,
+        val mirrorBacklightOn: Boolean = true,
+        val showProgramsPanelInMainWindow: Boolean = false,
+        val programsPanelCollapsed: Boolean = false,
+        val showBlackScreenButton: Boolean = false
+    )
+
+    /** S2648: the streams feature and the streaming cache that serves it. */
+    data class Streams(
+        val enableStreams: Boolean = false,
+        val streamsDefaultSort: String? = null,
+        val streamsDefaultMediaFilter: String? = null,
+        val streamsCatalogRefreshPolicy: String? = null,
+        val streamsDefaultAudioLanguage: String? = null,
+        val streamsDefaultSubtitleLanguage: String? = null,
+        val streamsSmartBuffering: Boolean = false,
+        val streamsPanelCollapsed: Boolean = false,
+        val showStreamsPanelInMainWindow: Boolean = false,
+        val streamingCacheCleanupMode: String? = null,
+        val streamingCacheTtlDays: Int = 7,
+        val prefetchCacheMultiplier: String? = null
+    )
+
+    /** S2648: appearance and the general interaction settings that shape every screen. */
+    data class Appearance(
+        val colorTheme: String? = null,
+        val disableAnimations: Boolean = false,
+        val useCompactElements: Boolean = false,
+        val resourceOpsInOverflowMenu: Boolean = true,
+        val browseSwipeLeftAction: String? = null,
+        val browseSwipeRightAction: String? = null,
+        val showNowPlayingPanel: Boolean = false,
+        val secureSensitiveScreens: Boolean = true,
+        val powerSavingTrigger: String? = null,
+        val allowSeparateWindow: Boolean = false,
+        val enableStatistics: Boolean = true,
+        val backgroundAudioExitBehavior: String? = null
+    )
+
+    /** S2648: player-side settings, including both rotation policies and the two FPS counters. */
+    data class PlayerExtra(
+        val playerFollowSystemRotation: Boolean = false,
+        val programFollowSystemRotation: Boolean = true,
+        val playerRotationSensorEnabled: Boolean = true,
+        val playerPanelAutoHideSeconds: Int = 15,
+        val playerShowFps: Boolean = false,
+        val vrShowFps: Boolean = false,
+        val vrPlayerEntryPromptDismissed: Boolean = false,
+        val panelStereoSingleEye: Boolean = true,
+        val resumeOnNextLaunch: Boolean = true,
+        val slideshowMusicResourceId: Long? = null
+    )
+
+    /**
+     * S2648: how the app presents itself to the rest of the system.
+     *
+     * `acceptSharedFiles` and `isPrimaryMediaPlayer` decide which manifest aliases are enabled. The
+     * restore writes only the setting: unlike a settings-screen toggle, which flips the component there
+     * and then, a restored value reaches the OS at the next process start, when
+     * `DefaultPlayerStateBootstrapper` reconciles component state against DataStore. That reconcile is
+     * idempotent and unconditional, so the aliases end up correct without anything extra here.
+     */
+    data class Integration(
+        val acceptSharedFiles: Boolean = true,
+        val isPrimaryMediaPlayer: Boolean = false,
+        val enabledShareTargets: Set<String>? = null,
+        val disabledShareTargets: Set<String>? = null,
+        val scheduledOperationsPaused: Boolean = false
+    )
+}
 
 /**
  * S1740: Serializable launcher desktop cell (shortcut, gadget, section header).

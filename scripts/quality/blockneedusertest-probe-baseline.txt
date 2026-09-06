@@ -44,3 +44,6 @@ S2527  Wear fallback icon palette - seven shared colour resources change, with n
 S1873  Build configuration, Gradle and PowerShell tooling only - no Kotlin flow changed, so there is no app entry point for a probe. The device check is the installed artifact's versionName/versionCode and the unchanged build.gradle.kts checksums (per the status note).
 S2364  ProGuard rules, quality gate script and documentation only - no Kotlin flow changed, so there is no app entry point for a probe. Verification on release R8 build required.
 S2378  Six string resources changed in EN/RU/UK only, with no Kotlin entry point to instrument; evidence is the limited-access browser text on a phone/emulator.
+S1902  Option D declined adding privileged APIs (Device Admin / Accessibility Service) for standard flavor. Policy decision with no Kotlin code flow changed.
+S2565  Deletes two orphaned wear splash resources and touches no Kotlin, so there is no changed flow to instrument. The splash window is drawn by the platform before the first line of app code runs - the same reason S1706 is on this list - so no Timber line could observe it; the device check is a cold start on the watch showing the launcher icon and no crash.
+

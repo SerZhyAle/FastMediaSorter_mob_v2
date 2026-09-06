@@ -40,6 +40,10 @@
       1  -Check found drift (regenerate without -Check)
       2  could not verify: build file missing, productFlavors block not found,
          unparsable declaration, or fewer than -MinFlavorCount flavors parsed
+      4  Code.Scripts is held by another session: nothing was written, the place
+         in the queue is held, wait for the turn and rerun. Write path only
+         (S2615) - -Check must stay lock-free, because assert-flavor-matrix-docs.ps1
+         calls it in check mode from inside the concurrent fast-gate batch.
 #>
 [CmdletBinding()]
 param(
@@ -53,6 +57,7 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 if (-not $GradleFile) { $GradleFile = Join-Path $RepoRoot 'app_v2/build.gradle.kts' }
 if (-not $Json)       { $Json       = Join-Path $RepoRoot 'docs/flavors/flavor-matrix.json' }
@@ -302,11 +307,18 @@ if ($Check) {
     exit 0
 }
 
-$jsonDir = Split-Path -Parent $Json
-if (-not (Test-Path -LiteralPath $jsonDir)) { New-Item -ItemType Directory -Force -Path $jsonDir | Out-Null }
+$codeScope = $null
+try {
+    # S2615: reached only past the -Check return above, so the lock is on the write path alone.
+    $codeScope = Enter-CodeLockOrExit -Path @($Json, $Markdown) -Reason 'generate-flavor-matrix.ps1 (FLAVOR_MATRIX.md + snapshot)'
 
-Set-Content -LiteralPath $Json     -Value $jsonText -Encoding utf8NoBOM
-Set-Content -LiteralPath $Markdown -Value $mdText   -Encoding utf8NoBOM
+    $jsonDir = Split-Path -Parent $Json
+    if (-not (Test-Path -LiteralPath $jsonDir)) { New-Item -ItemType Directory -Force -Path $jsonDir | Out-Null }
+
+    Set-Content -LiteralPath $Json     -Value $jsonText -Encoding utf8NoBOM
+    Set-Content -LiteralPath $Markdown -Value $mdText   -Encoding utf8NoBOM
+}
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Info "generate-flavor-matrix: $($flavors.Count) flavor(s), $($flagOrder.Count) flag(s) -> $Json, $Markdown"
 exit 0

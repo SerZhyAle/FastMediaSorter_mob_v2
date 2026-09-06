@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- One participant region. Included once per participant by activity_stopwatch.xml in both
+     orientations, so every id here repeats per include and is addressed through the include binding. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/item_focus_selector"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_small">
+
+    <TextView
+        android:id="@+id/stopwatchRegionLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/stopwatchRegionReading"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fontFamily="monospace"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textStyle="bold"
+        app:autoSizeMaxTextSize="@dimen/stopwatch_reading_text_size_max"
+        app:autoSizeMinTextSize="@dimen/stopwatch_reading_text_size_min"
+        app:autoSizeStepGranularity="@dimen/stopwatch_reading_text_size_step"
+        app:autoSizeTextType="uniform" />
+
+    <ScrollView
+        android:id="@+id/stopwatchRegionLapScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:focusable="true"
+        android:scrollbars="vertical">
+
+        <TextView
+            android:id="@+id/stopwatchRegionLaps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="@dimen/text_size_small" />
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopwatchRegionPrimary"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/margin_tiny"
+            android:layout_weight="2"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:text="@string/stopwatch_action_start"
+            android:textSize="@dimen/text_size_normal" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStopwatchRegionSecondary"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:clickable="true"
+            android:focusable="true"
+            android:minHeight="@dimen/touch_target_min_height"
+            android:text="@string/stopwatch_action_reset"
+            android:textSize="@dimen/text_size_normal" />
+    </LinearLayout>
+</LinearLayout>

@@ -23,4 +23,15 @@ interface WearRestrictedCapabilities {
      * already-saved source stay in both flavors regardless of this answer.
      */
     val offersCredentialEntry: Boolean
+
+    /**
+     * Whether this build offers the body-sensor diagnostic - one foreground heart-rate reading with the
+     * reason printed when it cannot be taken. Play reviews both `BODY_SENSORS` and
+     * `health.READ_HEART_RATE` against six admitted use cases - fitness and coaching, rewards, corporate
+     * wellness, medical care, human-subjects research, activity games - and a media sorter matches none,
+     * so the store build withholds the way in (S2457). Unlike [offersCredentialEntry] this also decides
+     * whether the program appears in the Apps catalog at all, because there is no already-saved content
+     * behind it to keep reachable.
+     */
+    val offersBodySensorDiagnostics: Boolean
 }

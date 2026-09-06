@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.ui.applaunchpanel
 import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.annotation.ColorRes
+import androidx.core.content.ContextCompat
 import androidx.core.widget.ImageViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.color.MaterialColors
@@ -47,8 +49,9 @@ class AppLaunchPanelTileAdapter(
             val context = binding.root.context
             if (tile.isEmpty) {
                 binding.ivPanelTileIcon.setImageResource(R.drawable.ic_add)
-                // The ghost "add" glyph is monochrome; tint it on-surface so it stays legible on both themes.
-                applyIconTint(monochrome = true)
+                // The ghost "add" glyph is monochrome; tint it on-surface so it stays legible on both
+                // themes. No accent: it is an invitation to configure, not a program.
+                applyIconTint(monochrome = true, accentRes = null)
                 val emptyLabel = context.getString(R.string.app_launch_panel_empty_slot)
                 binding.tvPanelTileLabel.text = emptyLabel
                 binding.cardPanelTile.contentDescription = emptyLabel
@@ -58,7 +61,7 @@ class AppLaunchPanelTileAdapter(
                 binding.ivPanelTileIcon.setImageDrawable(tile.icon)
                 // Tint only monochrome glyphs (decided per icon source in tile.tintable) so they stay legible
                 // on the light tile; full-color app icons and colored resource badges are left untinted (S1124).
-                applyIconTint(monochrome = tile.tintable)
+                applyIconTint(monochrome = tile.tintable, accentRes = tile.accentRes)
                 binding.tvPanelTileLabel.text = tile.label
                 binding.cardPanelTile.contentDescription = tile.label
                 binding.cardPanelTile.alpha = 1f
@@ -70,15 +73,20 @@ class AppLaunchPanelTileAdapter(
 
         // Monochrome glyphs (internal-route destinations, the empty "add" placeholder) carry no color of
         // their own, so they need a theme tint to stay visible; colored app icons must not be tinted.
-        private fun applyIconTint(monochrome: Boolean) {
-            val tint = if (monochrome) {
-                val onSurface = MaterialColors.getColor(
-                    binding.ivPanelTileIcon,
-                    com.google.android.material.R.attr.colorOnSurface,
+        // S2510: a sub-program supplies its own accent, which identifies it across every list on both
+        // phone and watch; everything else monochrome falls back to the neutral on-surface color.
+        private fun applyIconTint(monochrome: Boolean, @ColorRes accentRes: Int?) {
+            val tint = when {
+                !monochrome -> null
+                accentRes != null -> ColorStateList.valueOf(
+                    ContextCompat.getColor(binding.root.context, accentRes)
                 )
-                ColorStateList.valueOf(onSurface)
-            } else {
-                null
+                else -> ColorStateList.valueOf(
+                    MaterialColors.getColor(
+                        binding.ivPanelTileIcon,
+                        com.google.android.material.R.attr.colorOnSurface,
+                    )
+                )
             }
             ImageViewCompat.setImageTintList(binding.ivPanelTileIcon, tint)
         }

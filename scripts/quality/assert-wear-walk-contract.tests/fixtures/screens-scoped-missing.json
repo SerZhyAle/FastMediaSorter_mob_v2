@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "S2621 fixture for the rename channel. Both real screens are classified, so the only divergence",
+    "is the entry naming GammaScreen - a composable that exists in no file and can therefore be",
+    "attributed to no file. That is the shape a rename leaves behind when the author classified the",
+    "new name and left the old entry, which is the case S2547 built this gate for."
+  ],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" },
+    { "id": "gamma", "name": "Gamma", "expect": "Hello", "screen": "GammaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": [
+    { "screen": "BetaScreen", "reason": "not-a-destination", "note": "Keeps the coverage rule quiet so the missing-screen divergence is the only one." }
+  ]
+}

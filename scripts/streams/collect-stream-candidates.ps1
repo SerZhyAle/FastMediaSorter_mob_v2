@@ -148,6 +148,12 @@ param(
     # a reviewable metadata-only rewrite: it creates a move report and never runs network collection.
     [switch]$NormalizeFacets,
 
+    # S2645: repair the `name` column on an existing catalog and collapse rows that fold to one channel
+    # identity. Same shape as -NormalizeFacets - a reviewable rewrite with move reports, a backup and no
+    # network. It is the only supported way past the publish-time name gate, and it never drops a named
+    # row: an uninformative name is rebuilt from the row's own host instead.
+    [switch]$NormalizeNames,
+
     # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
     # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
     # the url->index sidecar. Off by default: a routine catalog refresh must never trigger a multi-hour

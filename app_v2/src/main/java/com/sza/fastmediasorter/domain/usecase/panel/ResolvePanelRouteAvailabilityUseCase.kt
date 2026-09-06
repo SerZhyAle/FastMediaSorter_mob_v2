@@ -32,6 +32,16 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
 ) {
 
     /**
+     * S1924: probed once and held - the hardware cannot appear while the process runs, and the chain
+     * is asked for every route on every panel composition. A missing feature and a failed query are
+     * the same answer here, which is why the wrapper defaults to false rather than propagating.
+     */
+    private val hasFrontCamera: Boolean by lazy {
+        runCatching { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) }
+            .getOrDefault(false)
+    }
+
+    /**
      * [availableInBuild] - feature is compiled into this flavor. [enabledAtRuntime] - a runtime
      * toggle (where one exists) is on. A route is launchable only when both hold; a compiled but
      * disabled route routes to its setting instead of dead-launching (§6.1).
@@ -78,6 +88,10 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_CALCULATOR -> {
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableCalculator)
             }
+            // S1411 §6.5: universal across flavors, like the calculator above - only the user's switch
+            // gates it, so the compile-time axis stays unconditionally open.
+            InternalRouteCatalog.KEY_STOPWATCH ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableStopwatch)
             InternalRouteCatalog.KEY_NETWORK_MONITOR ->
                 Availability(
                     availableInBuild = networkMonitorContract.isAvailableInBuild,
@@ -118,6 +132,27 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_LINK_DOWNLOAD ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.linkAutoDownloadEnabled)
+            // S1924: compiled into every flavor - the camera is gated by a setting, never by a flavor
+            // flag, so there is no capability to read here. The three runtime conditions are factored
+            // out to keep this chain under detekt's cyclomatic ceiling, which S1883 already reached.
+            InternalRouteCatalog.KEY_MIRROR ->
+                Availability(availableInBuild = true, enabledAtRuntime = isMirrorEnabled(settings))
+            else -> resolveLightRoute(routeKey, settings) ?: resolveCaptureRoute(routeKey, settings)
+        }
+
+    /**
+     * S2516: the light family - both flashlights, the water flashlight and the black screen - resolved
+     * apart from the chain above.
+     *
+     * They moved out because adding the water flashlight took that chain to detekt's cyclomatic
+     * ceiling, which S1883 had already reached and S1924 had already stepped back from once. The family
+     * is the natural seam: each of these four routes paints its own window and none of them reads a
+     * capability except the physical torch, which needs the hardware.
+     *
+     * Null when [routeKey] is not one of them, so the caller falls through to its own next branch.
+     */
+    private fun resolveLightRoute(routeKey: String, settings: AppSettings): Availability? =
+        when (routeKey) {
             // S1796: the flashlight needs no capability - it only paints its own window - so the pair
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
@@ -127,11 +162,23 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                     availableInBuild = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH),
                     enabledAtRuntime = true,
                 )
+            // S2516: deliberately NOT gated on a camera flash, unlike the entry above. Half of this
+            // program is the lit screen, which every device has; on a phone without a flash it is still
+            // a light and still a lock, and the torch call degrades to a logged no-op.
+            InternalRouteCatalog.KEY_WATER_FLASHLIGHT ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.waterFlashlightEnabled)
             // S2211: black screen needs no special capability - always available in build and runtime.
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
-            else -> resolveCaptureRoute(routeKey, settings)
+            else -> null
         }
+
+    /**
+     * S1924: the mirror needs its own switch on, the global camera switch not off, and a front lens
+     * to point at - strategic §3.2 and §6.3. Any one of the three missing makes the route dead.
+     */
+    private fun isMirrorEnabled(settings: AppSettings): Boolean =
+        settings.mirrorEnabled && !settings.disableCameraCapture && hasFrontCamera
 
     /**
      * S0978: the four capture routes - two photo shortcuts, the OCR-translate variant and the video one.

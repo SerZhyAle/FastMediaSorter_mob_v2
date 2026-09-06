@@ -5,10 +5,13 @@ import com.sza.fastmediasorter.data.networkmonitor.BluetoothSnapshotDataSource
 import com.sza.fastmediasorter.data.networkmonitor.ConnectivitySample
 import com.sza.fastmediasorter.data.networkmonitor.ConnectivitySnapshotDataSource
 import com.sza.fastmediasorter.data.networkmonitor.TelephonySnapshotDataSource
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMonitorSnapshot
+import com.sza.fastmediasorter.domain.network.HotspotStateSource
 import com.sza.fastmediasorter.domain.repository.NetworkMonitorRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -16,13 +19,9 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * S1433: composes one Monitor snapshot out of the three device readers.
+ * S1433: composes one Monitor snapshot out of the device readers.
  *
- * Connectivity is the only observed source; telephony and Bluetooth are read on each of its emissions. That
- * is deliberate and is what keeps the phase invariant "no background work" literally true - two more
- * observers would mean two more registrations to unregister, and neither of those two sources has an event
- * stream worth registering for. Connectivity already re-samples on a bounded tick while collected, so the
- * other two are no staler than it is.
+ * Connectivity and hotspot state are observed; telephony and Bluetooth are read on each of their emissions.
  *
  * The rate cap lives here rather than in each observing view, per strategic §3.2's redraw budget: one
  * screen with several sections must cost one sample, not one per section.
@@ -32,6 +31,7 @@ class NetworkMonitorRepositoryImpl @Inject constructor(
     private val connectivity: ConnectivitySnapshotDataSource,
     private val telephony: TelephonySnapshotDataSource,
     private val bluetooth: BluetoothSnapshotDataSource,
+    private val hotspotStateSource: HotspotStateSource,
 ) : NetworkMonitorRepository {
 
     /**
@@ -43,12 +43,16 @@ class NetworkMonitorRepositoryImpl @Inject constructor(
      * the exact rate strategic §3.2 caps the redraw cost at.
      */
     override fun observeSnapshot(): Flow<NetworkMonitorSnapshot> =
-        connectivity.observe()
+        combine(
+            connectivity.observe(),
+            hotspotStateSource.state()
+        ) { sample, hotspot ->
+            compose(sample, hotspot)
+        }
             .atMostOncePerInterval()
-            .map { sample -> compose(sample) }
             .flowOn(Dispatchers.IO)
 
-    private fun compose(sample: ConnectivitySample): NetworkMonitorSnapshot {
+    private fun compose(sample: ConnectivitySample, hotspot: HotspotState): NetworkMonitorSnapshot {
         val sims = telephony.sample()
         return NetworkMonitorSnapshot(
             networks = sample.networks,
@@ -57,6 +61,7 @@ class NetworkMonitorRepositoryImpl @Inject constructor(
             sims = sims.sims,
             activeModemCount = sims.activeModemCount,
             bluetooth = bluetooth.sample(),
+            hotspot = hotspot,
             sampledAtMillis = System.currentTimeMillis(),
         )
     }
