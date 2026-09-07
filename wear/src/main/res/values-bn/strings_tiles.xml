@@ -14,4 +14,6 @@
     <string name="wear_tile_picker_title_stream">স্ট্রিম নির্বাচন করুন</string>
     <string name="wear_tile_picker_empty_resource">কোন সম্পদ পাওয়া যায়নি. ঘড়িতে একটি নেটওয়ার্ক সংস্থান যোগ করুন বা ফোন থেকে সিঙ্ক করুন।</string>
     <string name="wear_tile_picker_empty_stream">কোন স্ট্রীম পাওয়া যায়নি. ফোন থেকে একটি স্ট্রিম বা সিঙ্ক ক্যাটালগ যোগ করুন।</string>
+    <string name="wear_tile_programs_label">প্রোগ্রাম</string>
+    <string name="wear_tile_sections_label">বিভাগ</string>
 </resources>

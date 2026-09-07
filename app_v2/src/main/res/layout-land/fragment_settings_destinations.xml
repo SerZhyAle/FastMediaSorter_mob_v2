@@ -21,7 +21,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/settings_margin_standard"
                 app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                app:cardElevation="@dimen/card_elevation"
                 app:contentPadding="0dp">
 
                 <LinearLayout
@@ -160,7 +160,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/settings_margin_standard"
                 app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                app:cardElevation="@dimen/card_elevation"
                 app:contentPadding="0dp">
 
                 <LinearLayout
@@ -287,7 +287,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/settings_margin_standard"
                 app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                app:cardElevation="@dimen/card_elevation"
                 app:contentPadding="0dp">
 
                 <LinearLayout
@@ -395,7 +395,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/settings_margin_standard"
                 app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                app:cardElevation="@dimen/card_elevation"
                 app:contentPadding="0dp">
 
                 <LinearLayout
@@ -432,7 +432,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="@dimen/settings_margin_standard"
                 app:cardCornerRadius="@dimen/card_corner_radius"
-                app:cardElevation="2dp"
+                app:cardElevation="@dimen/card_elevation"
                 app:contentPadding="0dp">
 
                 <LinearLayout
@@ -554,7 +554,7 @@
 
 
         <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -637,7 +637,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Photography (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -760,7 +760,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Video recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -852,7 +852,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Voice recorder (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -943,7 +943,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Screen recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1020,7 +1020,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Wear OS (S1883) - the watch half of the app in one place. The card carries its own id because the whole card is hidden in builds without the watch bridge: hiding only the header and the container would leave an empty elevated card on screen. Landscape: two equal-weight columns - left is the switch and its explanation, right is the link and the button that opens the companion. -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1082,7 +1082,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features. Landscape: two equal-weight columns (strategic S0649 §6.2). Left = Fast camera translation + nested Recognition only (kept together); right = Calculator + Mini-game. When OCR/translation is unavailable, the left column hides via applyFlavorRestrictions() and the right column keeps Calculator + Mini-game. -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -1238,7 +1238,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1469,7 +1469,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1525,7 +1525,7 @@
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow

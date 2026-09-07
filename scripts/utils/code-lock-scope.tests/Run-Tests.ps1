@@ -151,6 +151,27 @@ try {
 }
 finally { if ($planScope) { Exit-CodeLockScope -Scope $planScope } }
 
+# --- Case 11b: a temp/ path takes no domain either (S2710) --------------------
+# The second exemption, and it arrived as a red contract suite rather than as a design: every path
+# rule is an anchored prefix and none of them named temp/, so a throwaway file under temp/scratch
+# hit the fail-closed branch and acquired ALL THREE code domains to write a file the run deletes.
+# Measured 2026-09-07 - assert-always-loaded-budget's own suite failed C8 with exit 4 against a
+# free Code.Scripts whose QUEUE a foreign session held. PLAN/ is exempt because the lease and the
+# catalog mutex already serialise it; temp/ is exempt because there is nothing there to serialise.
+Assert-Case 'a temp/ path resolves to no domain at all' `
+    ((Resolve-ForTest -Path @((Join-Path $repoRoot 'temp/scratch/s2710-sandbox/baseline.txt'))) -eq '') `
+    "resolved: $(Resolve-ForTest -Path @((Join-Path $repoRoot 'temp/scratch/s2710-sandbox/baseline.txt')))"
+
+$tempScope = $null
+try {
+    $tempScope = Enter-CodeLockOrExit -Path @((Join-Path $repoRoot 'temp/scratch/s2710-sandbox/baseline.txt')) `
+        -Reason 'code-lock-scope.tests case 11b'
+    Assert-Case 'a temp/ only set acquires nothing and creates no lock file' `
+        ((@($tempScope.Acquired).Count -eq 0) -and -not (Test-Path -LiteralPath $scriptsLock) -and
+         -not (Test-Path -LiteralPath $phoneLock) -and -not (Test-Path -LiteralPath $wearLock))
+}
+finally { if ($tempScope) { Exit-CodeLockScope -Scope $tempScope } }
+
 # --- Cases 12-13: a foreign holder yields exit 4 and writes nothing -----------
 $probe = Join-Path $repoRoot 'temp/S2615/probe-exit-4.ps1'
 New-Item -ItemType Directory -Path (Split-Path -Parent $probe) -Force | Out-Null

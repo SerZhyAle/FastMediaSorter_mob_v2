@@ -135,4 +135,11 @@
     <string name="browse_row_folder_checkbox">المجلد %1$s، حدد</string>
     <string name="browse_row_file_checkbox">الملف %1$s، حدد</string>
     <string name="browse_transfer_folders_included">المجلدات المضمنة: %1$d</string>
+    <string name="undo_folder_move_started">جارٍ إعادة المجلدات..</string>
+    <string name="undo_folder_copy_confirm_title">هل تريد التراجع عن نسخ المجلد؟</string>
+    <string name="undo_folder_copy_confirm_message">سيتم حذف النسخ في الوجهة، بما في ذلك كل ما أُضيف إليها منذ ذلك الحين. تبقى المجلدات الأصلية في مكانها.</string>
+    <string name="undo_folder_copy_confirm_action">حذف النسخ</string>
+    <string name="undo_folder_copy_done">تم حذف النسخ.</string>
+    <string name="undo_mixed_move_started">جارٍ إعادة المجلدات، واستعادة %1$d ملفات..</string>
+    <string name="undo_mixed_copy_done">تم حذف النسخ: %1$d ملفات، %2$d مجلدات.</string>
 </resources>

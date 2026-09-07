@@ -16,7 +16,9 @@
       C5 a .claude/rules file whose paths prefix does not exist fails
       C6 a .claude/rules file with a valid paths: list is accepted
       C7 -UpdateBaseline refuses to raise a ceiling
-      C8 -UpdateBaseline lowers a ceiling the tree beats
+      C8 -UpdateBaseline lowers a ceiling the tree beats, to size + slack (S2708)
+      C9 -UpdateBaseline leaves the ceiling alone when size + slack does not beat it
+      C10 a file sitting inside its granted slack is still under the ceiling for -Gate
 
     Exit codes (CLAUDE.md Rule 7):
       0  every case passed
@@ -122,13 +124,30 @@ Write-Page 'CLAUDE.md' 300
 $r = Invoke-Gate @('-UpdateBaseline')
 Assert 'C7 -UpdateBaseline refuses to raise' ($r.Code -eq 1 -and $r.Out -match 'refusing to RAISE') "exit $($r.Code): $($r.Out)"
 
-# C8
+# C8 - the written number is size + slack, never the bare size (S2708). Slack is passed
+# explicitly so the assertion does not move when the default constant is retuned.
 Reset-Sandbox
 Write-Page 'CLAUDE.md' 100
-$bl = Write-Baseline "CLAUDE.md|200|200|somewhere`n"
-$r = Invoke-Gate @('-UpdateBaseline')
+$bl = Write-Baseline "CLAUDE.md|2000|2000|somewhere`n"
+$r = Invoke-Gate @('-UpdateBaseline', '-SlackBytes', '50')
 $after = [System.IO.File]::ReadAllText($bl)
-Assert 'C8 -UpdateBaseline lowers a beaten ceiling' ($r.Code -eq 0 -and $after -match 'CLAUDE\.md\|100\|') "exit $($r.Code): $after"
+Assert 'C8 -UpdateBaseline lowers a beaten ceiling to size + slack' ($r.Code -eq 0 -and $after -match 'CLAUDE\.md\|150\|') "exit $($r.Code): $after"
+
+# C9 - the slack is granted once per real compaction, not once per run: a file that has already
+# grown into its granted slack must leave the ceiling exactly where it is.
+Reset-Sandbox
+Write-Page 'CLAUDE.md' 140
+$bl = Write-Baseline "CLAUDE.md|150|150|somewhere`n"
+$r = Invoke-Gate @('-UpdateBaseline', '-SlackBytes', '50')
+$after = [System.IO.File]::ReadAllText($bl)
+Assert 'C9 -UpdateBaseline leaves the ceiling alone inside the granted slack' ($r.Code -eq 0 -and $after -match 'CLAUDE\.md\|150\|' -and $r.Out -match 'unchanged') "exit $($r.Code): $after"
+
+# C10 - the slack is real headroom for -Gate, which is the whole point of S2708.
+Reset-Sandbox
+Write-Page 'CLAUDE.md' 140
+[void](Write-Baseline "CLAUDE.md|150|150|somewhere`n")
+$r = Invoke-Gate @('-Gate')
+Assert 'C10 a file inside its granted slack passes -Gate' ($r.Code -eq 0) "exit $($r.Code): $($r.Out)"
 
 if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
 Write-Host ("assert-always-loaded-budget tests: {0} passed, {1} failed" -f $script:pass, $script:fail)

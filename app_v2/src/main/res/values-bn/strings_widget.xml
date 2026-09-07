@@ -83,4 +83,6 @@
     <string name="launcher_gadget_network_indicator_pick_title">কোন নির্দেশক দেখাতে হবে</string>
     <string name="widget_front_flashlight_label">সামনের টর্চলাইট</string>
     <string name="widget_front_flashlight_description">একটি ট্যাপে স্ক্রীনটিকে একটি বাতিতে পরিণত করে৷</string>
+    <string name="widget_stopwatch_label">স্টপওয়াচ</string>
+    <string name="widget_stopwatch_description">হোম স্ক্রিন থেকে পরিমাপ শুরু ও বন্ধ করুন</string>
 </resources>

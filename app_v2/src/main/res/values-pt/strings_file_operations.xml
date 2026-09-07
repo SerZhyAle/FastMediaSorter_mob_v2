@@ -136,4 +136,11 @@
     <string name="browse_row_folder_checkbox">Pasta %1$s, selecione</string>
     <string name="browse_row_file_checkbox">Arquivo %1$s, selecione</string>
     <string name="browse_transfer_folders_included">Pastas incluídas: %1$d</string>
+    <string name="undo_folder_move_started">A mover as pastas de volta..</string>
+    <string name="undo_folder_copy_confirm_title">Anular a cópia da pasta?</string>
+    <string name="undo_folder_copy_confirm_message">As cópias no destino serão eliminadas, incluindo tudo o que lhes foi acrescentado desde então. As pastas originais permanecem onde estão.</string>
+    <string name="undo_folder_copy_confirm_action">Eliminar as cópias</string>
+    <string name="undo_folder_copy_done">Cópias eliminadas.</string>
+    <string name="undo_mixed_move_started">A mover as pastas de volta, a restaurar %1$d ficheiros..</string>
+    <string name="undo_mixed_copy_done">Cópias eliminadas: %1$d ficheiros, %2$d pastas.</string>
 </resources>

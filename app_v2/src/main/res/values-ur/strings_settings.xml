@@ -262,4 +262,5 @@
     <string name="settings_wear_group_description">اگر آپ کے پاس Wear OS گھڑی ہے تو یہ آن کریں۔ ساتھی ایپ یہیں سے کھلتی ہے اور طے کرتی ہے کہ یہ فون گھڑی کے ساتھ کیا شیئر کرے گا۔</string>
     <string name="settings_wear_install_guide_button">گھڑی پر انسٹال کرنے کا طریقہ</string>
     <string name="settings_wear_web_portal_button">گھڑی کے بارے میں سب کچھ</string>
+    <string name="setting_stopwatch_desc">مرکزی مینو اور لانچر وجٹ میں سٹاپ واچ دکھائیں</string>
 </resources>

@@ -1683,7 +1683,6 @@
     <string name="wear_sync_sending">Отправка на часы..</string>
     <string name="wear_sync_success">Отправлено %d источников на часы</string>
     <string name="wear_sync_failed">Не получилось синхронизировать данные с часами. Попробуйте ещё раз.</string>
-    <string name="wear_settings_section_title">Настройки часов</string>
     <string name="wear_settings_audio">Аудио</string>
     <string name="wear_settings_video">Видео</string>
     <string name="wear_settings_images">Изображения</string>
@@ -3655,7 +3654,6 @@
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Экран</string>
     <string name="wear_settings_group_other">Другие</string>
-    <string name="wear_settings_group_sections">Разделы</string>
     <string name="wear_settings_disable_animations">Отключить анимацию</string>
     <string name="wear_settings_background_mode">Фон на часах</string>
     <string name="wear_send_to_notification_title">Файл с часов</string>
@@ -3738,7 +3736,6 @@
     <string name="stopwatch_action_reset_all">Сбросить все</string>
     <string name="stopwatch_action_settings">Настройки секундомера</string>
     <string name="stopwatch_region_label">Участник %1$d</string>
-    <string name="stopwatch_region_description">Область участника</string>
     <string name="stopwatch_laps_empty">Кругов пока нет - нажмите «Круг» во время отсчёта.</string>
     <string name="stopwatch_lap_line">%1$d.  %2$s</string>
     <string name="wear_settings_color_scheme">Цветовая схема часов</string>

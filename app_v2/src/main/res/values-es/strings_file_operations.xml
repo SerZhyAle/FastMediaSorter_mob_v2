@@ -137,4 +137,11 @@
     <string name="browse_row_folder_checkbox">Carpeta %1$s, seleccione</string>
     <string name="browse_row_file_checkbox">Archivo %1$s, seleccione</string>
     <string name="browse_transfer_folders_included">Carpetas incluidas: %1$d</string>
+    <string name="undo_folder_move_started">Moviendo las carpetas de vuelta..</string>
+    <string name="undo_folder_copy_confirm_title">¿Deshacer la copia de la carpeta?</string>
+    <string name="undo_folder_copy_confirm_message">Las copias en el destino se eliminarán, incluido todo lo que se haya añadido a ellas desde entonces. Las carpetas originales permanecen donde están.</string>
+    <string name="undo_folder_copy_confirm_action">Eliminar las copias</string>
+    <string name="undo_folder_copy_done">Copias eliminadas.</string>
+    <string name="undo_mixed_move_started">Moviendo las carpetas de vuelta, restaurando %1$d archivos..</string>
+    <string name="undo_mixed_copy_done">Copias eliminadas: %1$d archivos, %2$d carpetas.</string>
 </resources>

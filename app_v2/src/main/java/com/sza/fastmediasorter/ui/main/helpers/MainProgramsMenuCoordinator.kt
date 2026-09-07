@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
+import timber.log.Timber
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
@@ -111,10 +112,11 @@ class MainProgramsMenuCoordinator(
         ).setIcon(R.drawable.ic_view_grid)
         // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
         // is what puts every surface on one sequence and what makes the accent pass below match.
-        timber.log.Timber.d("S2673: menu draws %d sub-programs from the registry", visibleSubPrograms(gate).size)
-        for (entry in visibleSubPrograms(gate)) {
+        val visible = visibleSubPrograms(gate)
+        Timber.d("S2673: programs menu drew ${visible.size} sub-program entries from the registry")
+        for (entry in visible) {
             val presentation = PRESENTATION.getValue(entry.routeKey)
-            popup.menu.add(0, presentation.itemId, entry.order, presentation.labelRes)
+            popup.menu.add(0, presentation.itemId, MENU_ORDER_REGISTRY_BASE + entry.order, presentation.labelRes)
                 .setIcon(presentation.iconRes)
         }
         broadcastMenuManager.populate(popup, gate.broadcast, MENU_ORDER_BROADCAST)
@@ -137,8 +139,9 @@ class MainProgramsMenuCoordinator(
      *
      * Runs as one pass over the finished menu rather than at each `setIcon` call because the four
      * non-registry items are added around the loop. Items are matched by `order`, which since S2673 is
-     * literally the number `SubProgramEntry` stores - before it, menu orders ran 1..16 against the
-     * registry's 0..106 and exactly one item matched, wearing another program's colour.
+     * the number `SubProgramEntry` stores offset by MENU_ORDER_REGISTRY_BASE - before it, menu orders
+     * ran 1..16 against the registry's 0..106 and exactly one item matched, wearing another program's
+     * colour. The offset must be applied on both sides or the match silently finds nothing again.
      *
      * Tints the MenuItem, never the drawable: `setIcon` hands out a drawable whose constant state is
      * shared with every other user of that vector, so tinting it here would recolour it app-wide.
@@ -150,7 +153,7 @@ class MainProgramsMenuCoordinator(
         for (index in 0 until popup.menu.size()) {
             val item = popup.menu.getItem(index)
             val accentRes = SubProgramCatalog.all()
-                .firstOrNull { it.order == item.order }
+                .firstOrNull { MENU_ORDER_REGISTRY_BASE + it.order == item.order }
                 ?.let { SubProgramAccentCatalog.accentFor(it.routeKey) }
                 ?: continue
             timber.log.Timber.d("S2510: menu item order=%d accent=%d", item.order, accentRes)
@@ -380,11 +383,15 @@ class MainProgramsMenuCoordinator(
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */
         val PRESENTABLE_ROUTE_KEYS: Set<String> get() = PRESENTATION.keys
 
-        // S2673: the four non-registry items sort outside the registry's 0..106 band, so the sequence
+        // S2673: the four non-registry items sort outside the registry's own band, so the sequence
         // the owner sees is unchanged while every sub-program carries its own registry order.
-        private const val MENU_ORDER_STREAMS = -30
-        private const val MENU_ORDER_VR_CINEMA = -20
-        private const val MENU_ORDER_APP_LAUNCH_PANEL = -10
-        private const val MENU_ORDER_BROADCAST = 200
+        // A menu order carries an Android category in its high 16 bits, so a negative value makes
+        // MenuBuilder.add throw. The fixed items therefore sit below the registry's own orders, which
+        // are shifted by MENU_ORDER_REGISTRY_BASE, and broadcast stays last (S2673).
+        private const val MENU_ORDER_STREAMS = 10
+        private const val MENU_ORDER_VR_CINEMA = 20
+        private const val MENU_ORDER_APP_LAUNCH_PANEL = 30
+        private const val MENU_ORDER_REGISTRY_BASE = 100
+        private const val MENU_ORDER_BROADCAST = 1000
     }
 }

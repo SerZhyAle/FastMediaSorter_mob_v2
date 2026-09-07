@@ -16,6 +16,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.power.PowerStateObserver
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -74,6 +75,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var streamingCacheRepository: StreamingCacheRepository
 
     @Inject lateinit var systemInfoDialogManager: SystemInfoDialogManager
+
+    /** S2707: the power-saving row needs the device fact, not a setting, to explain a dead threshold. */
+    @Inject lateinit var powerStateObserver: PowerStateObserver
 
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
@@ -234,6 +238,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner },
             { isUpdatingSpinner = it },
             capabilityAvailability,
+            powerStateObserver.batteryLevelUnavailable,
         )
     }
     private val viewSetupHelper by lazy {

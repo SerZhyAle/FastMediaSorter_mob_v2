@@ -66,6 +66,15 @@
     Exit 1 when the index is above MaxBytes, or when any `[[link]]` resolves to nothing.
     Without it the run only reports.
 
+.PARAMETER SlackBytes
+    Headroom left above the measured size when the ceiling is ratcheted down (S2708). Writing
+    the ceiling equal to the size left zero headroom the instant a compaction passed, so the
+    better the compaction the harsher the next edit; the written number is now
+    `min(old ceiling, bytes + SlackBytes)`, which still never rises and grants the slack once
+    per real compaction rather than once per run. The reasoning and the measurement behind the
+    1024 B are in `assert-always-loaded-budget.ps1` -SlackBytes - MEMORY.md is an always-loaded
+    page judged by the same ratchet, and the two must not answer the same question differently.
+
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
       0  at or below MaxBytes with every link resolving, or a report-only run.
@@ -85,7 +94,8 @@ param(
     [int]$StretchBytes = 6000,
     [int]$TargetBytes = 9000,
     [switch]$Gate,
-    [switch]$UpdateBaseline
+    [switch]$UpdateBaseline,
+    [int]$SlackBytes = 1024
 )
 
 Set-StrictMode -Version Latest
@@ -119,22 +129,25 @@ if ($MaxBytes -le 0) {
 $overshoot = $bytes - $MaxBytes
 
 if ($UpdateBaseline) {
-    if ($bytes -lt $MaxBytes) {
-        # Taken here and not at the top of the script: the other two branches write nothing, so a
+    if ($bytes -gt $MaxBytes) {
+        Write-Error ("assert-memory-budget: refusing to RAISE the ceiling {0} -> {1} B." -f $MaxBytes, $bytes) -ErrorAction Continue
+        exit 1
+    }
+    # min(), not the measured size: the ceiling must still never rise, and the slack is granted
+    # once per real compaction rather than once per run (S2708).
+    $target = [math]::Min($MaxBytes, $bytes + $SlackBytes)
+    if ($target -lt $MaxBytes) {
+        # Taken here and not at the top of the script: the other branches write nothing, so a
         # lock held for the whole run would serialise siblings for a write that never happens.
         $scope = $null
         try {
             $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-memory-budget.ps1 -UpdateBaseline'
-            Set-Content -LiteralPath $baselineFile -Value "$bytes"
+            Set-Content -LiteralPath $baselineFile -Value "$target"
         }
         finally { Exit-CodeLockScope -Scope $scope }
-        Write-Host ("memory budget ratcheted DOWN: {0} -> {1} B (target {2})" -f $MaxBytes, $bytes, $TargetBytes)
+        Write-Host ("memory budget ratcheted DOWN: {0} -> {1} B ({2} B measured + {3} B slack, target {4})" -f $MaxBytes, $target, $bytes, $SlackBytes, $TargetBytes)
     }
-    elseif ($bytes -eq $MaxBytes) { Write-Host ("memory budget unchanged ({0} B)" -f $MaxBytes) }
-    else {
-        Write-Error ("assert-memory-budget: refusing to RAISE the ceiling {0} -> {1} B." -f $MaxBytes, $bytes) -ErrorAction Continue
-        exit 1
-    }
+    else { Write-Host ("memory budget unchanged ({0} B) - {1} B measured does not beat it by more than the {2} B slack." -f $MaxBytes, $bytes, $SlackBytes) }
     exit 0
 }
 

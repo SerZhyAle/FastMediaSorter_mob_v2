@@ -394,6 +394,11 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation {
     <fields>;
 }
+# LauncherCellOrigin.name is stored in the launcher_cells.origin column, so a remap makes every
+# automatically added shortcut read back as USER and stop being removed with its app.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherCellOrigin {
+    <fields>;
+}
 # StatsKey.name and StatsMediaType.name are lowercased into every counter key that
 # StatsAggregateDataStore writes, so a remap orphans the whole accumulated statistics set.
 -keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsKey {

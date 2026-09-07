@@ -137,4 +137,11 @@
     <string name="browse_row_folder_checkbox">Dossier %1$s, sélectionnez</string>
     <string name="browse_row_file_checkbox">Fichier %1$s, sélectionnez</string>
     <string name="browse_transfer_folders_included">Dossiers inclus : %1$d</string>
+    <string name="undo_folder_move_started">Déplacement des dossiers en arrière..</string>
+    <string name="undo_folder_copy_confirm_title">Annuler la copie du dossier ?</string>
+    <string name="undo_folder_copy_confirm_message">Les copies à la destination seront supprimées, y compris tout ce qui y a été ajouté depuis. Les dossiers d\'origine restent où ils sont.</string>
+    <string name="undo_folder_copy_confirm_action">Supprimer les copies</string>
+    <string name="undo_folder_copy_done">Copies supprimées.</string>
+    <string name="undo_mixed_move_started">Déplacement des dossiers en arrière, restauration de %1$d fichiers..</string>
+    <string name="undo_mixed_copy_done">Copies supprimées : %1$d fichiers, %2$d dossiers.</string>
 </resources>

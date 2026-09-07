@@ -56,6 +56,17 @@ class PowerStateObserver @Inject constructor(
     private val mutableLevel = MutableStateFlow(PowerPolicyLevel.NORMAL)
     val level: StateFlow<PowerPolicyLevel> = mutableLevel.asStateFlow()
 
+    /**
+     * S2707: true only once the platform has answered about the battery and had nothing to report.
+     *
+     * The settings screen prints this as the reason its threshold options do nothing, so it must not
+     * be inferred from [chargePercent] alone: that is null both on a device with no usable battery
+     * level and in the window before the first reading arrives, and announcing a broken threshold on
+     * a healthy phone for those milliseconds is worse than never announcing it.
+     */
+    private val mutableBatteryLevelUnavailable = MutableStateFlow(false)
+    val batteryLevelUnavailable: StateFlow<Boolean> = mutableBatteryLevelUnavailable.asStateFlow()
+
     @Volatile
     private var trigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT
 
@@ -65,6 +76,10 @@ class PowerStateObserver @Inject constructor(
     /** Null while the battery cannot be read, which leaves the threshold arm unsatisfied. */
     @Volatile
     private var chargePercent: Int? = null
+
+    /** Separates "the platform reports no level" from "no reading has arrived yet". */
+    @Volatile
+    private var batteryIntentSeen: Boolean = false
 
     @Volatile
     private var osPowerSaveMode: Boolean = false
@@ -86,6 +101,8 @@ class PowerStateObserver @Inject constructor(
     }
 
     private fun recompute() {
+        mutableBatteryLevelUnavailable.value =
+            resolveBatteryLevelUnavailable(batteryIntentSeen, chargePercent)
         mutableLevel.value = resolvePowerPolicyLevel(
             trigger = trigger,
             chargePercent = chargePercent,
@@ -100,7 +117,10 @@ class PowerStateObserver @Inject constructor(
         val listener = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 when (intent?.action) {
-                    Intent.ACTION_BATTERY_CHANGED -> chargePercent = readChargePercent(intent)
+                    Intent.ACTION_BATTERY_CHANGED -> {
+                        batteryIntentSeen = true
+                        chargePercent = readChargePercent(intent)
+                    }
                     PowerManager.ACTION_POWER_SAVE_MODE_CHANGED ->
                         osPowerSaveMode = powerManager?.isPowerSaveMode ?: false
                 }
@@ -121,6 +141,7 @@ class PowerStateObserver @Inject constructor(
             ContextCompat.RECEIVER_NOT_EXPORTED
         )
         registeredReceiver = listener
+        if (sticky != null) batteryIntentSeen = true
         chargePercent = sticky?.let(::readChargePercent)
         osPowerSaveMode = powerManager?.isPowerSaveMode ?: false
         recompute()
@@ -148,11 +169,14 @@ class PowerStateObserver @Inject constructor(
         if (startedActivities == 0) stopObserving()
     }
 
-    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {}
-    override fun onActivityResumed(activity: Activity) {}
-    override fun onActivityPaused(activity: Activity) {}
-    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
-    override fun onActivityDestroyed(activity: Activity) {}
+    // Only the started/stopped pair drives this observer; the rest of the interface is required by
+    // the platform and has nothing to do here. Expression bodies rather than empty braces so the
+    // emptiness reads as deliberate.
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+    override fun onActivityResumed(activity: Activity) = Unit
+    override fun onActivityPaused(activity: Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 }
 
 /** Null when the platform reports no usable level or scale, rather than a fabricated percentage. */
@@ -169,6 +193,15 @@ private fun readChargePercent(intent: Intent): Int? {
  * battery - guessing the wrong way here would freeze the app on a device that simply does not report
  * its charge.
  */
+/**
+ * S2707: whether the device has ANSWERED that it has no usable battery level.
+ *
+ * A pure function for the same reason [resolvePowerPolicyLevel] is one: the difference between the
+ * two null cases is invisible to the compiler and can only be proved by a test.
+ */
+internal fun resolveBatteryLevelUnavailable(batteryIntentSeen: Boolean, chargePercent: Int?): Boolean =
+    batteryIntentSeen && chargePercent == null
+
 internal fun resolvePowerPolicyLevel(
     trigger: PowerSavingTrigger,
     chargePercent: Int?,

@@ -83,4 +83,6 @@
     <string name="launcher_gadget_network_indicator_pick_title">Qué indicador mostrar</string>
     <string name="widget_front_flashlight_label">Linterna frontal</string>
     <string name="widget_front_flashlight_description">Convierte la pantalla en una lámpara con un solo toque</string>
+    <string name="widget_stopwatch_label">Cronómetro</string>
+    <string name="widget_stopwatch_description">Iniciar y detener una medición desde la pantalla de inicio</string>
 </resources>

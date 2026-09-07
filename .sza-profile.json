@@ -62,6 +62,7 @@
       { "pattern": "^app_v2/", "domain": "Code.Phone" },
       { "pattern": "^wear/", "domain": "Code.Wear" },
       { "pattern": "^PLAN/", "domain": null },
+      { "pattern": "^temp/", "domain": null },
       { "pattern": "^(scripts|dev|docs|\\.claude|\\.github)/", "domain": "Code.Scripts" },
       { "pattern": "^(CLAUDE|AGENTS|README)\\.md$", "domain": "Code.Scripts" },
       { "pattern": "^(\\.sza-profile\\.json|\\.sza-canon\\.json)$", "domain": "Code.Scripts" },
@@ -111,8 +112,12 @@
     "alwaysStrongStatuses": ["BlockQuestions"],
     "strongTierMin": 4,
     "shapeCheapTierMax": 2,
-    "instanceModelPolicyComment": "S2696. Empty until BOTH preconditions hold: the canon plugin carrying -ModelPolicy shape is deployed (the deployed runner rejects the value until then, and the watchdog would start an instance that cannot run), and the owner has answered the week-measurement question in PLAN/S2696. Then set { \"c\": \"shape\" } to put instance c on the shape rule against a and b on tiered. Absent or empty means every instance takes tiered, which is the runner's own default.",
-    "instanceModelPolicy": {},
+    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Putting instance c on the shape rule is \"modelPolicy\": \"shape\" here, and it waits on BOTH of S2696's preconditions - the canon plugin carrying -ModelPolicy shape deployed (the deployed runner rejects the value until then, and the watchdog would start an instance that cannot run), and the owner's answer to the week-measurement question in PLAN/S2696. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else.",
+    "instances": {
+      "a": {},
+      "b": {},
+      "c": {}
+    },
     "idleRunThreshold": 2,
     "idleOutcomes": ["ok", "timeout", "claim-lost", "claim-lost-before-launch", "no-progress-or-claim-lost", "launch-failed"]
   },

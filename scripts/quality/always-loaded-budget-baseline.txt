@@ -5,6 +5,15 @@
 # A ceiling goes DOWN on a run that passed and never up. Lower it with -UpdateBaseline; do not
 # hand-edit a number upward, and never drop a rule to fit under one (S2517 ADR-4).
 #
+# A ratcheted ceiling carries SLACK (S2708): -UpdateBaseline writes min(old ceiling, size + 1024),
+# so a page that was just compacted has room for one ordinary rule line instead of zero. Measured
+# 2026-09-07 over the numbered rule lines of CLAUDE.md - median 140 B, p75 540 B, 37 of 41 under
+# 1024 B - so the slack admits a rule statement and refuses an incident narrative. The min() form
+# is what stops it accumulating: once the file has grown into the granted slack the next run
+# computes min() against an unchanged ceiling and writes the same number, so the upper bound stays
+# the historic minimum plus one slack. Before this, the ceiling equalled the size and all three
+# files below sat on it to the byte, which made a better compaction the harsher constraint.
+#
 # A stretch at or above the ceiling means no target below the ceiling has been set yet. S2517
 # section 6 item 4 defers that number until after the first rationale move, because before it any
 # target is assigned blind.
@@ -29,6 +38,6 @@
 # memory file enters context, so the gate strips them too (S2521). AGENTS.md is measured the
 # same way for consistency, although non-Claude runtimes read it raw.
 
-CLAUDE.md|41531|41531|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
-AGENTS.md|45008|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
+CLAUDE.md|41518|41531|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
+AGENTS.md|37807|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
 .claude/agents/android-rd-specialist.md|9762|9762|CLAUDE.md when the line is a project rule, or the skill that needs it

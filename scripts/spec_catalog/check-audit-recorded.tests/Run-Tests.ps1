@@ -68,24 +68,23 @@ function Invoke-Gate([string]$id) {
 }
 
 # ---------------------------------------------------------------------------
-# Anchor cases A-C in live data. Each is resolved by SEARCHING the catalog rather than by
-# hardcoding an id: a suite pinned to S2226 starts lying the day that ticket is archived.
+# Anchor the positive cases in live data. Each is resolved by SEARCHING the catalog rather than by
+# hardcoding an id: a suite pinned to S2226 starts lying the day that ticket is archived. The
+# negative case cannot be live data because this very gate prevents an unaudited Verified spec.
 # ---------------------------------------------------------------------------
 $verified = @(& $selectPs1 -Status Verified -Format json | ConvertFrom-Json)
 $plainId = $null
 $numberedId = $null
-$absentId = $null
 foreach ($r in $verified) {
     $abs = Join-Path $repoRoot ($r.file -replace '/', [IO.Path]::DirectorySeparatorChar)
     if (-not (Test-Path -LiteralPath $abs -PathType Leaf)) { continue }
     $text = Get-Content -LiteralPath $abs -Raw -Encoding UTF8
     if (-not $plainId -and $text -match '(?m)^##\s+Last\s+Audit\b') { $plainId = $r.id; continue }
     if (-not $numberedId -and $text -match '(?m)^##\s+\d+\.\s*Last\s+Audit\b') { $numberedId = $r.id; continue }
-    if (-not $absentId -and $text -notmatch '(?im)^#{2,3}\s*(\d+\.\s*)?Last\s+Audit\b') { $absentId = $r.id }
 }
-if (-not $plainId -or -not $numberedId -or -not $absentId) {
-    Write-Host "Cannot anchor the live cases (plain=$plainId numbered=$numberedId absent=$absentId)." -ForegroundColor Yellow
-    Write-Host "The catalog no longer holds one Verified spec of each shape - re-point this suite." -ForegroundColor Yellow
+if (-not $plainId -or -not $numberedId) {
+    Write-Host "Cannot anchor the live positive cases (plain=$plainId numbered=$numberedId)." -ForegroundColor Yellow
+    Write-Host "The catalog no longer holds a Verified spec with each accepted audit heading shape - re-point this suite." -ForegroundColor Yellow
     exit 2
 }
 
@@ -97,11 +96,8 @@ Assert-That "A. plain '## Last Audit' passes ($plainId)" ($a.Code -eq 0) "exit $
 $b = Invoke-Gate $numberedId
 Assert-That "B. numbered '## N. Last Audit' passes ($numberedId)" ($b.Code -eq 0) "exit $($b.Code): $($b.Text)"
 
-$c = Invoke-Gate $absentId
-Assert-That "C. no audit block fails ($absentId)" ($c.Code -eq 1) "exit $($c.Code): $($c.Text)"
-
 # ---------------------------------------------------------------------------
-# Fixture cases D-E. Sandbox journal + fixture spec bodies under temp/scratch/.
+# Fixture cases C-E. Sandbox journal + fixture spec bodies under temp/scratch/.
 # ---------------------------------------------------------------------------
 $sandboxDir = Join-Path $repoRoot ('temp/scratch/check-audit-recorded-sandbox-{0}' -f $PID)
 $fixtureDir = Join-Path $sandboxDir 'specs'
@@ -113,6 +109,7 @@ try {
     # Ids from the FIXED reserved block far above the live maximum, never from next-id.ps1: a
     # generated id can collide with one a sibling session is allocating right now (S1490).
     $fixtures = @(
+        @{ Id = 'S9994'; Slug = 'audit-heading-absent'; Body = "# Fixture`n`n**Status:** Verified`n" }
         @{ Id = 'S9995'; Slug = 'audit-heading-empty-body'; Body = "# Fixture`n`n**Status:** Implemented`n`n## Last Audit`n`n## Next section`n`ncontent`n" }
         @{ Id = 'S9996'; Slug = 'audit-heading-rule-only'; Body = "# Fixture`n`n**Status:** Implemented`n`n## Last Audit`n`n---`n" }
     )
@@ -130,6 +127,9 @@ try {
 
     $env:FMS_SPEC_CATALOG_DIR = $sandboxDir
     $env:FMS_SKIP_RELEASE_QUEUE = '1'
+
+    $c = Invoke-Gate 'S9994'
+    Assert-That 'C. no audit block fails' ($c.Code -eq 1) "exit $($c.Code): $($c.Text)"
 
     $d = Invoke-Gate 'S9995'
     Assert-That "D. heading with empty body fails" ($d.Code -eq 1) "exit $($d.Code): $($d.Text)"

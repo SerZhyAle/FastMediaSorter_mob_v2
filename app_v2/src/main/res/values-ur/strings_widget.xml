@@ -83,4 +83,6 @@
     <string name="launcher_gadget_network_indicator_pick_title">کون سا اشارہ دکھانا ہے</string>
     <string name="widget_front_flashlight_label">سامنے والی ٹارچ</string>
     <string name="widget_front_flashlight_description">ایک نل میں اسکرین کو چراغ میں بدل دیتا ہے۔</string>
+    <string name="widget_stopwatch_label">سٹاپ واچ</string>
+    <string name="widget_stopwatch_description">ہوم اسکرین سے پیمائش شروع اور بند کریں</string>
 </resources>

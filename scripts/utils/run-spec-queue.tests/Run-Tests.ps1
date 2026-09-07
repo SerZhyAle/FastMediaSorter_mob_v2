@@ -1,29 +1,36 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Regression tests for the queue runner's idle-run series (S2695) - the count of consecutive
-    runs that handed a ticket back without moving its status, derived from the run journals.
+    Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child
+    invocation - command, argument template and their fallbacks (S2698).
 
 .DESCRIPTION
-    The series decides two visible things: whether automatic ranking passes a ticket over, and
-    whether `[idle N, <outcome>]` appears on its row in the release queue. Both are wrong in the
+    The idle-run series decides two visible things: whether automatic ranking passes a ticket over,
+    and whether `[idle N, <outcome>]` appears on its row in the release queue. Both are wrong in the
     expensive direction if the walk is wrong - a series that never ends holds a healthy ticket out
     of the queue, and one that ends too early re-runs a ticket that has nothing left to do, which
     is the 18% of runner time this ticket exists to remove.
 
-    Everything runs against SYNTHETIC journals under a throwaway project root. The library is
-    invoked at its HARNESS path, never through scripts/utils/run-spec-queue.ps1: that forwarder
-    overwrites SZA_PROJECT_ROOT with the repository root, so a sandbox set up around it would be
-    silently discarded and the suite would read - and could write - the live temp/spec-queue
-    (S2520, S2426).
+    The per-instance invocation decides what each instance LAUNCHES. Its cases are guarded against
+    one failure above all others: a default that drifts from the call the runner made before the
+    template existed changes every queue run at once, on every instance, silently. So the expected
+    vectors here are written out element by element rather than derived from the profile.
+
+    Everything runs against SYNTHETIC journals and a SANDBOX profile under a throwaway project root.
+    The code under test is invoked at its HARNESS path, never through
+    scripts/utils/run-spec-queue.ps1: that forwarder overwrites SZA_PROJECT_ROOT with the repository
+    root, so a sandbox set up around it would be silently discarded and the suite would read - and
+    could write - the live temp/spec-queue (S2520, S2426).
 
     Each sandbox is exercised in its own nested pwsh process. Get-SzaProfile and the idle map are
     both cached per process, so a case that changes the threshold cannot share a process with one
-    that does not.
+    that does not. The S2698 functions are lifted out of the runner by parsing it and evaluating the
+    two function definitions: the runner is a top-to-bottom script that ranks and launches tickets,
+    so dot-sourcing it to reach a function would run the queue.
 
 .NOTES
     Exit codes:
-      0 - every case passed, or the resolved harness predates S2695 and the cases were skipped.
+      0 - every case passed, or the resolved harness predates a fix and its cases were skipped.
       1 - a case failed.
 #>
 [CmdletBinding()]
@@ -163,6 +170,140 @@ if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
             -Detail "expected: threshold 3, S9001 count 2, not held | actual: $($r3.threshold) / $($r3.S9001.count) / held=$($r3.S9001.held)"
     } finally {
         foreach ($s in $sandboxes) { Remove-Item -LiteralPath $s -Recurse -Force -ErrorAction SilentlyContinue }
+    }
+}
+
+Write-Host ''
+Write-Host 'run-spec-queue tests - per-instance child invocation (S2698)' -ForegroundColor Cyan
+
+# The two functions are lifted out of the runner rather than reached by dot-sourcing it: the runner
+# ranks and launches tickets from its top level, so dot-sourcing would run the live queue.
+$instanceProbeBody = @'
+param(
+    [Parameter(Mandatory)][string]$Runner,
+    [Parameter(Mandatory)][string]$Sandbox,
+    [Parameter(Mandatory)][string]$ProfileLib
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+# Set BEFORE the dot-source: Get-SzaProjectRoot caches the value for the life of the process.
+$env:SZA_PROJECT_ROOT = $Sandbox
+. $ProfileLib
+$ast = [System.Management.Automation.Language.Parser]::ParseFile($Runner, [ref]$null, [ref]$null)
+foreach ($name in @('Get-InstanceSetting', 'Expand-ChildArgs')) {
+    $fn = $ast.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq $name
+        }, $true)
+    if ($fn.Count -eq 0) { throw "function $name not found in $Runner" }
+    . ([scriptblock]::Create($fn[0].Extent.Text))
+}
+$out = [ordered]@{}
+foreach ($i in @('a', 'b', 'zz')) {
+    $Instance = $i
+    $template = @(Get-InstanceSetting -Field 'argsTemplate')
+    $out[$i] = [ordered]@{
+        command       = [string](Get-InstanceSetting -Field 'command')
+        headlessMatch = [string](Get-InstanceSetting -Field 'headlessMatch')
+        withModel     = @(Expand-ChildArgs -Template $template -Prompt '/spec-all S9001' -Mode 'bypassPermissions' -Model 'opus')
+        noModel       = @(Expand-ChildArgs -Template $template -Prompt '/spec-all S9001' -Mode 'bypassPermissions' -Model '')
+    }
+}
+$out | ConvertTo-Json -Depth 6 -Compress
+'@
+
+function New-InstanceSandbox {
+    $sandbox = Join-Path $repoRoot 'temp/S2698/sandbox'
+    if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
+    New-Item -ItemType Directory -Path (Join-Path $sandbox 'temp') -Force | Out-Null
+
+    $profile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
+    # Instance a overrides all three fields, b overrides nothing, and zz is absent from the map -
+    # the three answers the resolution chain has to give.
+    $profile.runner.instances = [ordered]@{
+        a = [ordered]@{
+            command       = 'pwsh'
+            argsTemplate  = @('run', '--task', '{prompt}', '--perm', '{permissionMode}', '--agent', '{model}')
+            headlessMatch = '\s--task\s'
+        }
+        b = [ordered]@{}
+    }
+    $profile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
+    return $sandbox
+}
+
+$runnerScript = $null
+try {
+    $runnerScript = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $runnerScript = $null
+}
+$hasInstanceMechanism = $runnerScript -and (Test-Path -LiteralPath $runnerScript) -and
+    (Select-String -LiteralPath $runnerScript -Pattern 'function Get-InstanceSetting' -Quiet)
+if (-not $hasInstanceMechanism) {
+    Write-Host '  SKIP S2698 per-instance invocation (7 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 7
+} else {
+    $instanceSandbox = $null
+    try {
+        $instanceSandbox = New-InstanceSandbox
+        $probePath = Join-Path $instanceSandbox 'instance-probe.ps1'
+        Set-Content -LiteralPath $probePath -Value $instanceProbeBody -Encoding UTF8
+        $profileLib = Get-SzaHarnessScript '_profile.ps1'
+        $rawI = & pwsh -NoProfile -File $probePath -Runner $runnerScript -Sandbox $instanceSandbox -ProfileLib $profileLib 2>&1 | Out-String
+        try { $ri = $rawI | ConvertFrom-Json } catch { throw "instance probe returned no JSON:`n$rawI" }
+
+        # Written out rather than derived: a default that drifts from this vector changes every queue
+        # run on every instance at once, which is the failure the whole template exists not to cause.
+        $today = @('-p', '/spec-all S9001', '--permission-mode', 'bypassPermissions', '--model', 'opus')
+        $todayNoModel = @('-p', '/spec-all S9001', '--permission-mode', 'bypassPermissions')
+
+        Assert-Case -Name 'an instance with an empty record builds today vector, model chosen' `
+            -Ok ((@($ri.b.withModel) -join '|') -eq ($today -join '|')) `
+            -Detail "expected: $($today -join ' ') | actual: $(@($ri.b.withModel) -join ' ')"
+
+        Assert-Case -Name 'an empty model drops its flag rather than passing an empty argument' `
+            -Ok ((@($ri.b.noModel) -join '|') -eq ($todayNoModel -join '|')) `
+            -Detail "expected: $($todayNoModel -join ' ') | actual: $(@($ri.b.noModel) -join ' ')"
+
+        Assert-Case -Name 'an instance absent from the map takes the shared values whole' `
+            -Ok ($ri.zz.command -eq 'claude' -and (@($ri.zz.withModel) -join '|') -eq ($today -join '|')) `
+            -Detail "expected: claude / $($today -join ' ') | actual: $($ri.zz.command) / $(@($ri.zz.withModel) -join ' ')"
+
+        Assert-Case -Name 'a record command changes that instance only' `
+            -Ok ($ri.a.command -eq 'pwsh' -and $ri.b.command -eq 'claude') `
+            -Detail "expected: a=pwsh, b=claude | actual: a=$($ri.a.command), b=$($ri.b.command)"
+
+        $custom = @('run', '--task', '/spec-all S9001', '--perm', 'bypassPermissions', '--agent', 'opus')
+        Assert-Case -Name 'a record argsTemplate fills all three substitutions' `
+            -Ok ((@($ri.a.withModel) -join '|') -eq ($custom -join '|')) `
+            -Detail "expected: $($custom -join ' ') | actual: $(@($ri.a.withModel) -join ' ')"
+
+        Assert-Case -Name 'a record headlessMatch changes that instance only' `
+            -Ok ($ri.a.headlessMatch -eq '\s--task\s' -and $ri.b.headlessMatch -eq '\s-p\s') `
+            -Detail "expected: a=\s--task\s, b=\s-p\s | actual: a=$($ri.a.headlessMatch), b=$($ri.b.headlessMatch)"
+
+        # A command this machine does not have. The watchdog restarts a fallen instance on a timer,
+        # so a silent failure here costs that instance's whole share of the queue's throughput with
+        # nothing on screen naming which of the three stopped working.
+        $missingCommand = 's2698-no-such-command'
+        $badProfilePath = Join-Path $instanceSandbox '.sza-profile.json'
+        $badProfile = Get-Content -LiteralPath $badProfilePath -Raw | ConvertFrom-Json
+        $badProfile.runner.instances | Add-Member -NotePropertyName 'x' `
+            -NotePropertyValue ([pscustomobject]@{ command = $missingCommand }) -Force
+        $badProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $badProfilePath -Encoding UTF8
+
+        $refusal = & pwsh -NoProfile -Command `
+            "`$env:SZA_PROJECT_ROOT = '$instanceSandbox'; & '$runnerScript' -RepoRoot '$instanceSandbox' -Instance x -DryRun 2>&1 | Out-String; exit `$LASTEXITCODE"
+        $refusalCode = $LASTEXITCODE
+        $refusalText = ($refusal | Out-String)
+
+        Assert-Case -Name 'an instance whose command is missing refuses with exit 2, naming both' `
+            -Ok ($refusalCode -eq 2 -and $refusalText -match "instance 'x'" -and $refusalText -match [regex]::Escape($missingCommand)) `
+            -Detail "expected: exit 2, text naming instance x and $missingCommand | actual: exit $refusalCode | $($refusalText.Trim())"
+    } finally {
+        if ($instanceSandbox) { Remove-Item -LiteralPath $instanceSandbox -Recurse -Force -ErrorAction SilentlyContinue }
     }
 }
 

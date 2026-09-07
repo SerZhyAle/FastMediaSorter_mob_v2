@@ -136,4 +136,11 @@
     <string name="browse_row_folder_checkbox">फ़ोल्डर %1$s, चुनें</string>
     <string name="browse_row_file_checkbox">फ़ाइल %1$s, चुनें</string>
     <string name="browse_transfer_folders_included">शामिल फ़ोल्डर: %1$d</string>
+    <string name="undo_folder_move_started">फ़ोल्डर वापस ले जाए जा रहे हैं..</string>
+    <string name="undo_folder_copy_confirm_title">फ़ोल्डर की कॉपी पूर्ववत करें?</string>
+    <string name="undo_folder_copy_confirm_message">गंतव्य पर मौजूद प्रतियाँ हटा दी जाएँगी, उनमें उसके बाद जोड़ी गई हर चीज़ सहित। मूल फ़ोल्डर अपनी जगह पर बने रहते हैं।</string>
+    <string name="undo_folder_copy_confirm_action">प्रतियाँ हटाएँ</string>
+    <string name="undo_folder_copy_done">प्रतियाँ हटा दी गईं।</string>
+    <string name="undo_mixed_move_started">फ़ोल्डर वापस ले जाए जा रहे हैं, %1$d फ़ाइलें बहाल की जा रही हैं..</string>
+    <string name="undo_mixed_copy_done">प्रतियाँ हटाई गईं: %1$d फ़ाइलें, %2$d फ़ोल्डर।</string>
 </resources>

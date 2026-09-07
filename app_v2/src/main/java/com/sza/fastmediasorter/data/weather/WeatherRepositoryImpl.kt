@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.data.weather
 
 import android.content.Context
 import android.content.SharedPreferences
-import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
@@ -60,7 +59,8 @@ class WeatherRepositoryImpl @Inject constructor(
 
     private suspend fun currentLocked(location: WeatherLocation, forceRefresh: Boolean): WeatherResult {
         val key = cacheKey(location)
-        val cached = cache[key] ?: readFromDisk(key, location)?.also { cache[key] = it }
+        val cached = (cache[key] ?: readFromDisk(key, location)?.also { cache[key] = it })
+            ?.takeIf { it.unit == WeatherUnit.CELSIUS }
         val now = System.currentTimeMillis()
         if (cached != null) {
             val ageMs = now - cached.observedAtMs
@@ -69,7 +69,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 return WeatherResult.Fresh(cached)
             }
         }
-        val fetched = provider.currentWeather(location, preferredUnit())
+        val fetched = provider.currentWeather(location, WeatherUnit.CELSIUS)
         return when {
             fetched != null -> {
                 cache[key] = fetched
@@ -139,15 +139,6 @@ class WeatherRepositoryImpl @Inject constructor(
     private inline fun <reified T : Enum<T>> enumValueOrNull(name: String): T? =
         enumValues<T>().firstOrNull { it.name == name }
 
-    // S2598: the region of the device, not of the process default - the latter is built from a declared
-    // language tag and carries no region at all, which left this branch unreachable and every user in the
-    // three countries below on Celsius.
-    private fun preferredUnit(): WeatherUnit {
-        val fahrenheit = LocaleHelper.systemRegion(context) in FAHRENHEIT_COUNTRIES
-        Timber.d("S2598: weather preferredUnit fahrenheit=$fahrenheit")
-        return if (fahrenheit) WeatherUnit.FAHRENHEIT else WeatherUnit.CELSIUS
-    }
-
     private companion object {
         const val PREFS_NAME = "weather_cache"
         val TTL_MS = TimeUnit.MINUTES.toMillis(20)
@@ -161,6 +152,5 @@ class WeatherRepositoryImpl @Inject constructor(
         const val SUFFIX_DEW_POINT = "_dew"
         const val SUFFIX_SUNRISE = "_sunrise"
         const val SUFFIX_SUNSET = "_sunset"
-        val FAHRENHEIT_COUNTRIES = setOf("US", "LR", "MM")
     }
 }

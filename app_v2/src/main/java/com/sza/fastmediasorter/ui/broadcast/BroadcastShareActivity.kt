@@ -54,6 +54,11 @@ class BroadcastShareActivity : AppCompatActivity() {
         activeTitle = intent.getStringExtra(EXTRA_TITLE)
         activeMode = intent.getStringExtra(EXTRA_MODE) ?: "AUDIO_ONLY"
 
+        // Set before renderBarcode so the address survives a QR encoding failure, which leaves the
+        // image empty and a toast as the only feedback.
+        binding.tvUrlValue.text = url
+        Timber.d("S2707: broadcast share url row bound, length=${url.length}")
+
         binding.btnClose.setOnClickListener { finish() }
         binding.btnExportFile.setOnClickListener {
             val fileName = "broadcast_${url.hashCode()}.fmsbcast"

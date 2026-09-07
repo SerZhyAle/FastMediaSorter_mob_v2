@@ -135,4 +135,11 @@
     <string name="browse_row_folder_checkbox">选择文件夹 %1$s</string>
     <string name="browse_row_file_checkbox">文件 %1$s，选择</string>
     <string name="browse_transfer_folders_included">包含的文件夹：%1$d</string>
+    <string name="undo_folder_move_started">正在把文件夹移回..</string>
+    <string name="undo_folder_copy_confirm_title">撤销文件夹复制？</string>
+    <string name="undo_folder_copy_confirm_message">目标位置的副本将被删除，包括此后添加到其中的所有内容。原始文件夹保持原位。</string>
+    <string name="undo_folder_copy_confirm_action">删除副本</string>
+    <string name="undo_folder_copy_done">副本已删除。</string>
+    <string name="undo_mixed_move_started">正在把文件夹移回，正在恢复 %1$d 个文件..</string>
+    <string name="undo_mixed_copy_done">已删除副本：%1$d 个文件，%2$d 个文件夹。</string>
 </resources>

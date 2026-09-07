@@ -301,8 +301,10 @@ function Invoke-DeadTicketReaper {
 # living in an argument would be re-typed correctly or not at all. Absent key -> 'tiered', which is
 # the runner's own default, so a profile with no such block behaves exactly as before.
 #
-# The key is narrow on purpose and S2698 absorbs it whole: that ticket generalises the runner block
-# to a command AND its arguments per instance, at which point this lookup moves rather than grows.
+# S2698 absorbed that narrow key: the policy is now one field of the instance's record in
+# runner.instances, beside the command and the argument template it launches with, so an instance is
+# declared in one place instead of in a separate map per key - two maps drift silently the moment a
+# name is added to one and forgotten in the other.
 function Get-InstanceModelPolicy {
     param([string] $Instance)
 
@@ -310,16 +312,18 @@ function Get-InstanceModelPolicy {
     $profilePath = Join-Path $repoRoot '.sza-profile.json'
     if (-not (Test-Path -LiteralPath $profilePath)) { return $default }
     try {
-        $map = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).runner.instanceModelPolicy
+        $map = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).runner.instances
     } catch {
         # A profile that does not parse is a repository-wide failure other scripts report loudly;
         # the watchdog's job is to keep the queue draining, so it falls back rather than exiting.
         return $default
     }
     if ($null -eq $map) { return $default }
-    $value = $map.PSObject.Properties[$Instance]
-    if ($null -eq $value -or [string]::IsNullOrWhiteSpace([string]$value.Value)) { return $default }
-    return [string]$value.Value
+    $record = $map.PSObject.Properties[$Instance]
+    if ($null -eq $record -or $null -eq $record.Value) { return $default }
+    $field = $record.Value.PSObject.Properties['modelPolicy']
+    if ($null -eq $field -or [string]::IsNullOrWhiteSpace([string]$field.Value)) { return $default }
+    return [string]$field.Value
 }
 
 function Invoke-RunnerSupervisor {

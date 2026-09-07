@@ -66,8 +66,20 @@ $chatRoot = Join-Path $runDir 'chat'
 # ---------- the seam ----------
 # Find-Adb reads ANDROID_HOME and ANDROID_SDK_ROOT BEFORE PATH, so both must be blanked or the child
 # finds this machine's real adb.exe and the suite stops being hermetic.
+#
+# S2712: TWO resolvers run in this probe and their orders differ, so sealing PATH alone seals one of
+# them. device-ready.ps1's own Find-Adb reads ANDROID_HOME -> ANDROID_SDK_ROOT -> PATH ->
+# %LOCALAPPDATA%\Android\Sdk, but the canon harness's Find-AgentChatAdb (chat/agent-chat-store.ps1,
+# reached from Test-AgentChatFindingAlive when a finding names a device) reads
+# ANDROID_HOME -> ANDROID_SDK_ROOT -> %LOCALAPPDATA%\Android\Sdk -> PATH, with PATH LAST. So the
+# liveness check walked past the seam to the machine's real adb, which lists no emulator-5554, and
+# the seeded finding died as `device not listed` - the three reuse cases below then measured a
+# multiple-devices refusal instead of a reuse. Pointing LOCALAPPDATA at the run directory, which is
+# real and writable and has no Android\Sdk under it, makes that resolver fall through to PATH and
+# reach the same stub the probe uses.
 $env:ANDROID_HOME        = ''
 $env:ANDROID_SDK_ROOT    = ''
+$env:LOCALAPPDATA        = $runDir
 $env:PATH                = (Join-Path $runDir 'stub') + [System.IO.Path]::PathSeparator + $env:PATH
 $env:FMS_STUB_HOME       = $runDir
 $env:FMS_AGENT_CHAT_ROOT = $chatRoot

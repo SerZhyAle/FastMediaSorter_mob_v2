@@ -273,6 +273,7 @@ class MainViewModel @Inject constructor(
                 resolveResourceIconUseCase(path = path, profile = profile, type = type)
             }
             observeResourcesFromDatabase()
+            scanCoordinator.backfillVirtualResourceCounts()
         }
     }
 

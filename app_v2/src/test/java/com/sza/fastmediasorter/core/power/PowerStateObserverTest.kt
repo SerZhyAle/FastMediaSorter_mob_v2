@@ -115,6 +115,15 @@ class PowerStateObserverTest {
     }
 
     @Test
+    fun `no battery level is claimed only after the platform has answered`() {
+        // S2707: the settings row prints this as a statement about the device, so the window before
+        // the first reading must not be announced as a device without a battery.
+        assertEquals(false, resolveBatteryLevelUnavailable(batteryIntentSeen = false, chargePercent = null))
+        assertEquals(true, resolveBatteryLevelUnavailable(batteryIntentSeen = true, chargePercent = null))
+        assertEquals(false, resolveBatteryLevelUnavailable(batteryIntentSeen = true, chargePercent = 42))
+    }
+
+    @Test
     fun `an unknown stored name resolves to the default rather than throwing`() {
         assertEquals(PowerSavingTrigger.BELOW_20, PowerSavingTrigger.fromNameOrDefault(null))
         assertEquals(PowerSavingTrigger.BELOW_20, PowerSavingTrigger.fromNameOrDefault("BELOW_42"))

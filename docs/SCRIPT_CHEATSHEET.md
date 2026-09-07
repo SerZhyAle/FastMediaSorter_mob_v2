@@ -1089,6 +1089,19 @@ scripts/devtest/find-recent-screenshots.ps1
   Exit: 0 - the scan ran to completion, including when it found nothing (an empty corpus is a valid
 ```
 
+### grant-all-files-access.ps1
+S2713 - grant MANAGE_EXTERNAL_STORAGE to a debug build and PROVE the grant took.
+
+```
+scripts/devtest/grant-all-files-access.ps1
+  S2713 - grant MANAGE_EXTERNAL_STORAGE to a debug build and PROVE the grant took.
+  Params:
+    -DeviceId         [String]
+    -Package          [String] = 'com.sza.fastmediasorter.debug'
+    -Json             [SwitchParameter]
+  Exit: 0 - granted; `appops get` reads back `allow`; 1 - refused; the permission is declared but the appop did not take (value quoted in the output); 2 - cannot verify: adb missing, no online device, several devices and no -DeviceId, or the
+```
+
 ### maestro-run.ps1
 Run a Maestro YAML flow against a device and emit a compact, off-context verdict.
 
@@ -1110,9 +1123,10 @@ S0484 pre-release sweep - resource + settings configuration (adb-scriptable part
 scripts/devtest/prerelease-configure.ps1
   S0484 pre-release sweep - resource + settings configuration (adb-scriptable parts).
   Params:
-    -DeviceId         [String]
-    -Json             [SwitchParameter]
-  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed
+    -DeviceId          [String]
+    -NoRestore         [SwitchParameter]
+    -Json              [SwitchParameter]
+  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed; 11 - the app is not installed on the device and was not restored
 ```
 
 ### prerelease-log-audit.ps1
@@ -1387,6 +1401,15 @@ scripts/devtest/lib/find-adb.ps1
   (no param block)
 ```
 
+### prerelease-package-guard.ps1
+S2709 - decide whether `pm list packages` reported an exact package as installed.
+
+```
+scripts/devtest/lib/prerelease-package-guard.ps1
+  S2709 - decide whether `pm list packages` reported an exact package as installed.
+  (no param block)
+```
+
 ### ui-tree.ps1
 uiautomator node-tree parsing and display-shape geometry, shared by adb.ps1 and its test suite.
 
@@ -1415,6 +1438,40 @@ scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
   S1859 / S1969 regression suite for the pre-release log audit's classification rules.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-package-guard.tests
+
+### Run-Tests.ps1
+S2709 regression suite for the pre-release configure step's package-presence guard.
+
+```
+scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1
+  S2709 regression suite for the pre-release configure step's package-presence guard.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-package-guard.tests\stub
+
+### adb-stub.ps1
+Stub `adb` for scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1 (S2709).
+
+```
+scripts/devtest/prerelease-package-guard.tests/stub/adb-stub.ps1
+  Stub `adb` for scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1 (S2709).
+  (no param block)
+  Exit: 0 - the call matched the table; 99 - the call matched nothing. Silence would turn any change in the script's adb usage into a
+```
+
+### prepare-stub.ps1
+Stub `prerelease-prepare.ps1` for the S2709 suite.
+
+```
+scripts/devtest/prerelease-package-guard.tests/stub/prepare-stub.ps1
+  Stub `prerelease-prepare.ps1` for the S2709 suite.
+  (no param block)
+  Exit: 0 - the stubbed prepare "succeeded"; 10 - the stubbed prepare failed (or FMS_STUB_PREPARE_EXIT)
 ```
 
 ## scripts\devtest\resolve-ticket-module.tests
@@ -1994,6 +2051,7 @@ scripts/quality/assert-always-loaded-budget.ps1
     -BaselineFile           [String]
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -SlackBytes             [Int32] = 1024
     -Quiet                  [SwitchParameter]
     -RepoRoot               [String]
   Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
@@ -2596,7 +2654,8 @@ scripts/quality/assert-memory-budget.ps1
     -TargetBytes            [Int32] = 9000
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 at or below MaxBytes with every link resolving, or a report-only run.; 1 -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.; 2 cannot verify - the index or the memory directory does not exist.; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is
+    -SlackBytes             [Int32] = 1024
+  Exit: 1024 B are in `assert-always-loaded-budget.ps1` -SlackBytes - MEMORY.md is an always-loaded
 ```
 
 ### assert-migration-schema-conformance.ps1
@@ -6753,13 +6812,13 @@ scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
 ## scripts\utils\run-spec-queue.tests
 
 ### Run-Tests.ps1
-Regression tests for the queue runner's idle-run series (S2695) - the count of consecutive runs that handed a ticket back without moving its status, derived from the run journals.
+Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child invocation - command, argument template and their fallbacks (S2698).
 
 ```
 scripts/utils/run-spec-queue.tests/Run-Tests.ps1
-  Regression tests for the queue runner's idle-run series (S2695) - the count of consecutive runs that handed a ticket back without moving its status, derived from the run journals.
+  Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child invocation - command, argument template and their fallbacks (S2698).
   (no param block)
-  Exit: 0 - every case passed, or the resolved harness predates S2695 and the cases were skipped.; 1 - a case failed.
+  Exit: 0 - every case passed, or the resolved harness predates a fix and its cases were skipped.; 1 - a case failed.
 ```
 
 ## scripts\utils\script-help-text.tests

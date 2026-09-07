@@ -3,7 +3,11 @@ appId: com.sza.fastmediasorter.debug
 # Test: create a LOCAL resource from the Download quick-folder chip.
 # Precondition: All-Files access (MANAGE_EXTERNAL_STORAGE) granted for the debug package -
 #   without it btnAddManually opens the access-permission dialog instead of the folder picker.
-#   Grant once: adb shell appops set com.sza.fastmediasorter.debug MANAGE_EXTERNAL_STORAGE allow
+#   Grant once: pwsh -NoProfile -File scripts/devtest/grant-all-files-access.ps1 -DeviceId <id>
+#   That works only on a build declaring the permission - noLegal, since S2012 dropped it from every
+#   store flavor. On the standard debug build the underlying `appops set` succeeds and changes
+#   nothing, which is what sent the S2687 sweep looking for a vendor policy that did not exist
+#   (S2713); the script reads the value back and says `not-declared` instead.
 # Oracle: the "Download" resource appears in the Local tab of the main list after registration.
 
 - launchApp

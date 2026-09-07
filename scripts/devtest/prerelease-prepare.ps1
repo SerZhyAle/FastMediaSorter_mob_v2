@@ -6,8 +6,12 @@
   Brings a chosen emulator to a clean known state for the /spec-prerelease sweep:
     1. Device gate (delegates to the device-readiness pre-flight; aborts on its exit codes 1..3).
     2. Clean uninstall + install of the standard-debug build (added in step 01.2).
+    2.55 Grant the media-read permissions, which the onboarding bypass would otherwise leave
+        denied - every local list then opens empty with no error anywhere (S2714).
     2.6 Grant ACCESS_LOCAL_NETWORK on API >= 37 so the onboarding bypass does not break
         SMB/SFTP/FTP coverage (S0614).
+    2.7 Grant all-files access and read the value back, so "not declared by this flavor" and
+        "the device refused it" stop looking like success (S2713).
     3. Seed test media when absent (added in step 01.3).
     4. Verify first launch from logs (added in step 01.4).
 
@@ -199,6 +203,36 @@ if ($sdkRaw -notmatch '^\d+$') {
 }
 $deviceSdk = [int]$sdkRaw
 
+# ---------- stage 2.55: media-read permissions (S2714) ----------
+# Shares the adb handle and the API probe resolved just above. Runs before 2.6/2.7 because it is
+# the grant every local scenario depends on, and it was the one grant nobody issued: the sweep
+# granted ACCESS_LOCAL_NETWORK and MANAGE_EXTERNAL_STORAGE and never READ_MEDIA_*, while stage 2.5
+# writes welcome_completed and so skips WelcomeActivity - the only flow that would have asked. The
+# failure is silent by construction and that is why it cost two tickets: without the permission
+# MediaStore does not throw, it returns the caller's OWN files only, so LocalMediaScanner logs
+# nothing, no exception is swallowed, and every local list simply opens empty with "0 файлов".
+# Measured on RFCR110NBQJ 2026-09-07: virtual://all_images read 0 files revoked and 211 granted,
+# same disk, same session. MANAGE_EXTERNAL_STORAGE does not cover this - it is unavailable on the
+# standard flavor the sweep installs (S2012/S2713), which is why 2.7 legitimately SKIPs here.
+$mediaPerms = if ($deviceSdk -ge 33) {
+    @('android.permission.READ_MEDIA_IMAGES', 'android.permission.READ_MEDIA_VIDEO', 'android.permission.READ_MEDIA_AUDIO')
+} else {
+    @('android.permission.READ_EXTERNAL_STORAGE')
+}
+foreach ($perm in $mediaPerms) {
+    & $adb @adbTarget shell pm grant $DebugPackage $perm *> $null
+}
+# Read the value back rather than trusting adb's silence - the S2713 lesson: an ungrantable
+# permission also prints nothing, and the sweep then runs its whole scenario set against a
+# device that cannot see a single file.
+$permDump = "$(& $adb @adbTarget shell dumpsys package $DebugPackage 2>$null)"
+$denied = @($mediaPerms | Where-Object { $permDump -notmatch ([regex]::Escape($_) + ':\s*granted=true') })
+if ($denied.Count -gt 0) {
+    Add-Stage 'media-read-grant' 'FAIL' "granted but read back denied on device API ${deviceSdk}: $($denied -join ', ')"
+    Complete-Run 10
+}
+Add-Stage 'media-read-grant' 'OK' "granted and read back (device API ${deviceSdk}): $($mediaPerms -join ', ')"
+
 if ($deviceSdk -ge 37) {
     & $adb @adbTarget shell pm grant $DebugPackage android.permission.ACCESS_LOCAL_NETWORK *> $null
     $grantCode = $LASTEXITCODE
@@ -209,6 +243,31 @@ if ($deviceSdk -ge 37) {
     Add-Stage 'local-network-grant' 'OK' "granted ACCESS_LOCAL_NETWORK (device API $deviceSdk)"
 } else {
     Add-Stage 'local-network-grant' 'SKIP' "runtime permission needs API 37+ (device API $deviceSdk); auto-granted below that"
+}
+
+# ---------- stage 2.7: all-files access, verified (S2713) ----------
+# The sweep used to issue `appops set --uid <pkg> MANAGE_EXTERNAL_STORAGE allow` and read the silence
+# that followed as success. It never granted anything: S2012 left the declaration in the noLegal
+# flavor only, and this stage installs the standard debug build, so the op was unsettable on every
+# device. Delegate to the script that re-reads the value, and branch on which of the three outcomes
+# came back - "this flavor cannot have it" is normal and must not stop a release sweep, while a
+# device refusing a declared permission must.
+$grantArgs = @('-NoProfile', '-File', "$RepoRoot/scripts/devtest/grant-all-files-access.ps1",
+               '-DeviceId', $TargetDevice, '-Package', $DebugPackage)
+$grantOut  = & pwsh @grantArgs 2>&1
+$grantExit = $LASTEXITCODE
+$grantText = ($grantOut | Out-String).Trim() -replace '\s+', ' '
+switch ($grantExit) {
+    0 { Add-Stage 'all-files-access' 'OK'   "granted and read back - $grantText" }
+    3 { Add-Stage 'all-files-access' 'SKIP' "not declared by this flavor (S2012); scenarios needing all-files access are out of reach on this build" }
+    1 {
+        Add-Stage 'all-files-access' 'FAIL' "declared but the grant did not take - $grantText"
+        Complete-Run 10
+    }
+    default {
+        Add-Stage 'all-files-access' 'FAIL' "could not verify the grant (exit $grantExit) - $grantText"
+        Complete-Run 10
+    }
 }
 
 # ---------- stage 3: seed media (step 01.3) ----------

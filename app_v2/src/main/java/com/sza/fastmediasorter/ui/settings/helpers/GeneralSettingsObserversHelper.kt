@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.dialog.MaterialProgressDialog
 import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -29,6 +30,9 @@ class GeneralSettingsObserversHelper(
     private val getIsUpdatingSpinner: () -> Boolean,
     private val setIsUpdatingSpinner: (Boolean) -> Unit,
     private val capabilityAvailability: CapabilityAvailability,
+    // S2707: passed in rather than taken from the ViewModel, whose constructor detekt already excuses
+    // at 22 parameters - a 23rd would grow accepted debt to carry one read-only device fact.
+    private val batteryLevelUnavailable: StateFlow<Boolean>,
 ) {
     private var manualSyncProgressDialog: MaterialProgressDialog? = null
 
@@ -62,18 +66,29 @@ class GeneralSettingsObserversHelper(
         val context = fragment.requireContext()
         val threshold = trigger.thresholdPercent
         val state = when {
+            // Ahead of the SAVING guard on purpose: on a device that reports no charge the threshold
+            // can never raise the level, so the guard below would swallow the one message that says so.
+            threshold != null && batteryLevelUnavailable.value ->
+                context.getString(R.string.pref_power_saving_state_no_battery)
             AnimationPolicy.level != PowerPolicyLevel.SAVING -> null
             trigger == PowerSavingTrigger.ALWAYS -> context.getString(R.string.pref_power_saving_state_always)
             threshold != null -> context.getString(R.string.pref_power_saving_state_low_battery, threshold)
             // SAVING with neither of those means the platform raised it, not this app.
             else -> context.getString(R.string.pref_power_saving_state_system_saver)
         }
+        Timber.d("S2707: power saving row noBattery=${batteryLevelUnavailable.value} threshold=$threshold")
         val base = context.getString(R.string.pref_power_saving_desc)
         Timber.d("S2536: settings row trigger=$trigger cause=${state != null} level=${AnimationPolicy.level}")
         row.setSubtitle(if (state == null) base else "$base\n$state")
     }
 
     fun observeData() {
+        // S2707: the flag settles after the first battery broadcast, which can arrive once this
+        // screen is already open, so the row is redrawn rather than bound once from the settings flow.
+        fragment.viewLifecycleOwner.collectOnLifecycle(batteryLevelUnavailable) {
+            bindPowerSavingRow(viewModel.settings.value.powerSavingTrigger)
+        }
+
         fragment.viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
             updateLanguageRow(settings.language)
 

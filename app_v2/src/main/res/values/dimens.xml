@@ -892,4 +892,5 @@
     <dimen name="stopwatch_reading_text_size_max">96sp</dimen>
     <dimen name="stopwatch_reading_text_size_step">2sp</dimen>
 
+    <dimen name="broadcast_share_qr_size">280dp</dimen>
 </resources>

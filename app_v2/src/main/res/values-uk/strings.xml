@@ -1652,7 +1652,6 @@
     <string name="wear_sync_sending">Надсилання на годинник..</string>
     <string name="wear_sync_success">Надіслано %d джерел на годинник</string>
     <string name="wear_sync_failed">Не вдалося синхронізувати дані з годинником. Спробуйте ще раз.</string>
-    <string name="wear_settings_section_title">Налаштування годинника</string>
     <string name="wear_settings_audio">Аудіо</string>
     <string name="wear_settings_video">Відео</string>
     <string name="wear_settings_images">Зображення</string>
@@ -3640,7 +3639,6 @@
     <string name="wear_settings_group_slideshow">Слайд-шоу</string>
     <string name="wear_settings_group_screen">Екран</string>
     <string name="wear_settings_group_other">Інші</string>
-    <string name="wear_settings_group_sections">Розділи</string>
     <string name="wear_settings_disable_animations">Вимкнути анімацію</string>
     <string name="wear_settings_background_mode">Фон на годиннику</string>
     <string name="wear_send_to_notification_title">Файл з годинника</string>
@@ -3723,7 +3721,6 @@
     <string name="stopwatch_action_reset_all">Скинути все</string>
     <string name="stopwatch_action_settings">Налаштування секундоміра</string>
     <string name="stopwatch_region_label">Учасник %1$d</string>
-    <string name="stopwatch_region_description">Область учасника</string>
     <string name="stopwatch_laps_empty">Кіл поки немає - натисніть «Коло» під час відліку.</string>
     <string name="stopwatch_lap_line">%1$d.  %2$s</string>
     <string name="wear_settings_color_scheme">Колірна схема годинника</string>

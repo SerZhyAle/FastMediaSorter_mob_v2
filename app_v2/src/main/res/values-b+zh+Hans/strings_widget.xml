@@ -83,4 +83,6 @@
     <string name="launcher_gadget_network_indicator_pick_title">显示哪个指示器</string>
     <string name="widget_front_flashlight_label">前置手电筒</string>
     <string name="widget_front_flashlight_description">一键将屏幕变成一盏灯</string>
+    <string name="widget_stopwatch_label">秒表</string>
+    <string name="widget_stopwatch_description">从主屏幕开始和停止计时</string>
 </resources>

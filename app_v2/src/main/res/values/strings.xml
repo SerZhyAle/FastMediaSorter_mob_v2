@@ -1762,7 +1762,6 @@
     <string name="wear_sync_sending">Sending to watch..</string>
     <string name="wear_sync_success">Sent %d source(s) to watch</string>
     <string name="wear_sync_failed">Couldn\'t sync with the watch. Try again.</string>
-    <string name="wear_settings_section_title">Watch Settings</string>
     <string name="wear_settings_audio">Audio</string>
     <string name="wear_settings_video">Video</string>
     <string name="wear_settings_images">Images</string>
@@ -3707,7 +3706,6 @@
     <string name="wear_settings_group_slideshow">Slideshow</string>
     <string name="wear_settings_group_screen">Screen</string>
     <string name="wear_settings_group_other">Other</string>
-    <string name="wear_settings_group_sections">Sections</string>
     <string name="wear_settings_disable_animations">Disable animations</string>
     <string name="wear_settings_background_mode">Watch Background</string>
     <string name="wear_send_to_notification_title">File from your watch</string>
@@ -3790,7 +3788,6 @@
     <string name="stopwatch_action_reset_all">Reset all</string>
     <string name="stopwatch_action_settings">Stopwatch settings</string>
     <string name="stopwatch_region_label">Participant %1$d</string>
-    <string name="stopwatch_region_description">Participant area</string>
     <string name="stopwatch_laps_empty">No laps yet - press Lap while it runs.</string>
     <string name="stopwatch_lap_line">%1$d.  %2$s</string>
     <string name="wear_settings_color_scheme">Watch colour scheme</string>

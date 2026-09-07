@@ -31,6 +31,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 - **Direct Wi-Fi Streaming:** Connect your watch directly to home NAS, PC shared folders (SMB), and remote FTP/SFTP servers over Wi-Fi.
 - **Host Key Pinning & Security:** Enforces SFTP host key pins configured on your phone to protect credentials.
 - **Connection Testing:** In-app connection probe to test network share availability directly from the watch.
+- **Folder Walk on a Share:** **Browse** is offered for every network resource and opens its folders, not just the base one. Subdirectories are rows of their own, tapping one shows what is inside it, the back gesture takes you a level up and leaves the screen once you are back at the top, and tapping a file opens it in the player. SMB, FTP and SFTP all behave the same way.
 - **Endpoint Resolution & Clear Errors:** A network resource sent from your phone stays accessible when the host computer moves to another address, as the watch automatically tries all known endpoints. When a connection cannot be established, the watch states the exact cause (connection refused, timeout, invalid credentials, unknown host) instead of a generic failure.
 
 ### 📲 Paired Phone Integration

@@ -28,7 +28,10 @@ Status: active S0551 capability-regression suite.
 `-Suite all` is the emulator-default suite. It excludes device-only file-operation flows until
 `Ops/src` and `Ops/dst` are registered as writable operation resources on the target device.
 It also excludes the `features/resource/` flows (need All-Files access granted for the debug
-package on API 30+); run those with an explicit `-Suite features\resource`.
+package on API 30+); run those with an explicit `-Suite features\resource`. Grant that access with
+`scripts/devtest/grant-all-files-access.ps1`, and only on a build declaring the permission - S2012
+left it in `noLegal` alone, and on the standard debug build a raw `appops set` succeeds while
+changing nothing (S2713).
 Network/cloud flows are deferred from the active suite because they require external reachability.
 
 ## Run Examples

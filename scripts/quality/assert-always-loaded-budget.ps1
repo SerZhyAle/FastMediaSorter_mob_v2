@@ -47,7 +47,25 @@
 
 .PARAMETER UpdateBaseline
     Lower every ceiling that the current tree beats, and refuse to raise one. Seeds an entry
-    for a judged file the baseline does not carry yet.
+    for a judged file the baseline does not carry yet. The number written is
+    `min(old ceiling, size + SlackBytes)` - see -SlackBytes.
+
+.PARAMETER SlackBytes
+    Headroom left above the measured size when a ceiling is ratcheted down (S2708). Before it,
+    `-UpdateBaseline` wrote the ceiling equal to the size, so a page had zero headroom the
+    instant it passed: measured 2026-09-07, all three judged files sat on their ceiling to the
+    byte, and adding one line to any of them required a counter-compaction in the same edit -
+    which made the better compaction the harsher constraint.
+
+    The `min` form is what keeps this from being a loophole. The ceiling still never rises, and
+    the slack is granted once per genuine compaction rather than accumulating: once the file has
+    grown into the granted slack, the next run computes `min` against an unchanged ceiling and
+    writes the same number, so the page's upper bound is forever the historic minimum plus one
+    slack.
+
+    1024 B is measured, not chosen: over the numbered rule lines of `CLAUDE.md` on 2026-09-07 the
+    median is 140 B, p75 540 B, p90 1113 B, and 37 of 41 fit under 1024. So the slack admits an
+    ordinary rule statement and refuses an incident narrative - the same split S2517 defends.
 
 .PARAMETER Quiet
     Print the failing and warning lines only. The batch runner passes this.
@@ -90,6 +108,7 @@ param(
     [string]$BaselineFile,
     [switch]$Gate,
     [switch]$UpdateBaseline,
+    [int]$SlackBytes = 1024,
     [switch]$Quiet,
     [string]$RepoRoot
 )
@@ -242,11 +261,14 @@ if ($UpdateBaseline) {
     $text = Get-Content -LiteralPath $BaselineFile -Raw
     $changed = 0
     foreach ($m in $measured) {
-        if ($m.Bytes -ge $m.Ceiling) { continue }
+        # min(), not the measured size: the ceiling must still never rise, and the slack must be
+        # granted once per real compaction rather than once per run (S2708).
+        $target = [math]::Min($m.Ceiling, $m.Bytes + $SlackBytes)
+        if ($target -ge $m.Ceiling) { continue }
         $escaped = [regex]::Escape($m.RelPath)
         $pattern = "(?m)^(\s*$escaped\s*\|\s*)\d+(\s*\|)"
-        $text = [regex]::Replace($text, $pattern, { param($mm) "$($mm.Groups[1].Value)$($m.Bytes)$($mm.Groups[2].Value)" })
-        Write-Host ("always-loaded budget ratcheted DOWN: {0} {1} -> {2} B (stretch {3})" -f $m.RelPath, $m.Ceiling, $m.Bytes, $m.Stretch)
+        $text = [regex]::Replace($text, $pattern, { param($mm) "$($mm.Groups[1].Value)$target$($mm.Groups[2].Value)" })
+        Write-Host ("always-loaded budget ratcheted DOWN: {0} {1} -> {2} B ({3} B measured + {4} B slack, stretch {5})" -f $m.RelPath, $m.Ceiling, $target, $m.Bytes, $SlackBytes, $m.Stretch)
         $changed++
     }
     if ($changed -gt 0) {
@@ -257,7 +279,7 @@ if ($UpdateBaseline) {
         }
         finally { Exit-CodeLockScope -Scope $scope }
     }
-    else { Write-Host "always-loaded budget unchanged - no file is smaller than its ceiling." }
+    else { Write-Host ("always-loaded budget unchanged - no file beats its ceiling by more than the {0} B slack." -f $SlackBytes) }
     exit 0
 }
 
