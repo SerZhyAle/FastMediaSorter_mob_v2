@@ -53,10 +53,7 @@ private const val FIELD_CELL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val GRID_CELL_HEIGHT = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
-/**
- * The protocols the watch offers to type in by hand. `GOOGLE_DRIVE` is deliberately absent - it has no
- * host, port or credential form, so it is not a choice this screen can make.
- */
+/** The protocols the watch offers to type in by hand. */
 private val PROTOCOL_OPTIONS = listOf(
     NetworkSourceType.SMB,
     NetworkSourceType.FTP,
@@ -482,10 +479,6 @@ private fun protocolLabel(protocol: NetworkSourceType): String = when (protocol)
     NetworkSourceType.SMB -> stringResource(R.string.smb_connection)
     NetworkSourceType.FTP -> stringResource(R.string.ftp_connection)
     NetworkSourceType.SFTP -> stringResource(R.string.sftp_connection)
-    // The watch never offers Google Drive as a hand-typed source - it has no host, port or credential to
-    // type - so it is absent from PROTOCOL_OPTIONS and unreachable from the chooser. The enum name is a
-    // truthful fallback for a saved source that somehow arrives here, rather than a crash.
-    NetworkSourceType.GOOGLE_DRIVE -> protocol.name
 }
 
 private fun applyFieldChange(

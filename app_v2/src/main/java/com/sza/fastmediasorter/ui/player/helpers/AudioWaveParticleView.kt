@@ -9,6 +9,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.os.Build
 import android.provider.Settings
 import android.util.AttributeSet
@@ -268,9 +269,25 @@ class AudioWaveParticleView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldW: Int, oldH: Int) {
         super.onSizeChanged(w, h, oldW, oldH)
         if (w <= 0 || h <= 0) return
-        offBitmap?.recycle()
-        offBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        offCanvas = Canvas(offBitmap!!).also { it.drawColor(bufferFillColor) }
+        // S2678: the outgoing buffer is carried into the new one, stretched to the new size, before
+        // anything draws on top. The trail this view shows is accumulated - each tick lays a
+        // semi-transparent overlay over the frames before it - so a buffer that starts as flat fill
+        // has no trail to show, and the single pass a resize can afford cannot rebuild one. Copying
+        // keeps the look continuous across a rotation at the cost of one bitmap blit.
+        val previousBitmap = offBitmap
+        val resized = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val resizedCanvas = Canvas(resized).also { it.drawColor(bufferFillColor) }
+        if (previousBitmap != null && !previousBitmap.isRecycled) {
+            resizedCanvas.drawBitmap(
+                previousBitmap,
+                Rect(0, 0, previousBitmap.width, previousBitmap.height),
+                Rect(0, 0, w, h),
+                null,
+            )
+        }
+        previousBitmap?.recycle()
+        offBitmap = resized
+        offCanvas = resizedCanvas
         initParticles(w, h)
         if (pendingStaticFrame) {
             pendingStaticFrame = false
@@ -287,7 +304,17 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // S1277: with system animations off the animator ends without ever firing its update
         // listener, so nothing would repaint the buffer this method just blacked out and the view
         // stays pure black for the rest of the session. Draw the frame here instead.
-        if (animatorsDisabled()) renderStaticFrame()
+        //
+        // S2678: the full ramp belongs to the FIRST sizing only. Its 36 passes exist to raise the
+        // amplitude from zero to a settled frame, and after that [startupFrameCount] is already at
+        // its ceiling - so on a resize the same 36 passes redraw a full-amplitude frame 36 times to
+        // land on the one a single pass produces. Measured on a Galaxy S21+ with animations off,
+        // that cost 470 ms of the 483 ms layout the rotation spent, because this runs inside
+        // onSizeChanged and onSizeChanged runs inside the layout pass.
+        if (animatorsDisabled()) {
+            if (oldW == 0 && oldH == 0) renderStaticFrame() else renderResizedFrame()
+        }
+        Timber.d("S2678: onSizeChanged ${w}x$h from ${oldW}x$oldH animatorsOff=${animatorsDisabled()}")
     }
 
     /**
@@ -308,6 +335,20 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 ANIMATOR_SCALE_DEFAULT
             ) == 0f
         }
+
+    /**
+     * Repaints the buffer a resize just blacked out, at the amplitude the view already reached.
+     *
+     * One pass, not [STATIC_FRAME_PASSES]: the ramp those passes drive is already finished by the
+     * time a resize arrives, so repeating it changes nothing about the frame and only costs the
+     * layout pass it runs inside (S2678).
+     */
+    private fun renderResizedFrame() {
+        wavePaint.strokeWidth = waveStrokeWidth
+        time += TIME_INCREMENT
+        tick()
+        invalidate()
+    }
 
     /** Builds one complete frame without the animator, then shows it. See [STATIC_FRAME_PASSES]. */
     private fun renderStaticFrame() {

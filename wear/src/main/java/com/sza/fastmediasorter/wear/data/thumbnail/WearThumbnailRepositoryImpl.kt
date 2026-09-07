@@ -134,7 +134,6 @@ class WearThumbnailRepositoryImpl(
             NetworkSourceType.SMB -> smbStream(source, path)
             NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, path).getOrNull()
             NetworkSourceType.SFTP -> sftpDataSource.getFileStream(source, path).getOrNull()
-            NetworkSourceType.GOOGLE_DRIVE -> null
         }
 
     private suspend fun smbStream(source: NetworkSource, path: String): InputStream? {

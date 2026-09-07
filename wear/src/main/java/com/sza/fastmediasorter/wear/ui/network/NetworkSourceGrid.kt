@@ -33,7 +33,6 @@ private fun iconFor(type: NetworkSourceType): Int = when (type) {
     NetworkSourceType.SMB -> R.drawable.ic_resource_smb
     NetworkSourceType.FTP -> R.drawable.ic_resource_ftp
     NetworkSourceType.SFTP -> R.drawable.ic_resource_sftp
-    NetworkSourceType.GOOGLE_DRIVE -> R.drawable.ic_resource_cloud
 }
 
 /**

@@ -636,4 +636,5 @@
     <string name="body_sensor_reason_sensor_off_body">Надягніть годинник і повторіть</string>
     <string name="body_sensor_reason_measurement_timed_out">Замір не встиг. Повторіть</string>
     <string name="body_sensor_reason_measurement_failed">Датчик не відповів. Повторіть</string>
+    <string name="wear_media_types_source_unsupported">Цей ресурс містить лише типи файлів, які годинник не показує. Відкрийте його на телефоні.</string>
 </resources>

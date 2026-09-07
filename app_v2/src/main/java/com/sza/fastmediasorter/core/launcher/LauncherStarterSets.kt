@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules.StarterS
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -27,63 +29,38 @@ object LauncherStarterSets {
      */
     const val OWN_APP_TOKEN = "__self__"
 
-    // Gadget target keys are duplicated from LauncherGadgetRegistry, which lives in src/launcherEnabled
-    // and therefore cannot be imported here. Kept in sync by LauncherStarterSetsParityTest (testStandard),
-    // which fails if these drift from the registry's KEY_* consts or the gadgets' default spans.
-    private const val GADGET_CLOCK = "clock"
-    private const val GADGET_PLAYLIST = "playlist"
-    private const val GADGET_STREAMS = "streams"
-    private const val GADGET_FOLDER_PREVIEW = "folder_preview"
-
-    // S1560: the tiles the per-profile grid adds, under the same duplication contract as the four above.
-    private const val GADGET_WEATHER = "weather"
-    private const val GADGET_SPEED = "speed"
-
-    // S1747: the compass replaced altitude and satellites in the seed. Both gadgets still exist and stay
-    // addable by hand - the owner's objection was that a bare satellite count says nothing to a user and
-    // that altitude is a thing one adds deliberately, not something a fresh desktop should decide for them.
-    private const val GADGET_COMPASS = "compass"
-    private const val GADGET_AUDIO_NOW_PLAYING = "audio_now_playing"
-
-    // S1566: same duplication contract again - the web search field every profile opens with.
-    private const val GADGET_SEARCH = "search"
-
-    // S1886: the S1754 media-window family, one window per profile. These are the closest keys the
-    // launcher can actually render to the system-desktop widgets the request named - the launcher hosts
-    // gadgets, not AppWidgets, so RandomPhotoFrame and its siblings are unreachable from a seed.
-    private const val GADGET_MEDIA_IMAGE_WINDOW = "media_image_window"
-    private const val GADGET_MEDIA_AUDIO_WINDOW = "media_audio_window"
-    private const val GADGET_MEDIA_VIDEO_WINDOW = "media_video_window"
-    private const val GADGET_MEDIA_DOCUMENT_WINDOW = "media_document_window"
-
-    // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
-    private const val GADGET_BATTERY = "battery"
-
-    // S2241: Google Maps interactive live frame gadget
-    private const val GADGET_GOOGLE_MAPS_LIVE = "google_maps_live"
+    // S2672: short local names for the keys this table emits, each an alias of the one place the
+    // literal is written. A `const val` initialised from another `const val` is resolved at compile
+    // time, so these cannot drift from the policy the way fifteen hand-typed literals drifted from
+    // the registry - and the call sites below stay readable.
+    private const val GADGET_CLOCK = LauncherGadgetSeedPolicy.KEY_CLOCK
+    private const val GADGET_PLAYLIST = LauncherGadgetSeedPolicy.KEY_PLAYLIST
+    private const val GADGET_STREAMS = LauncherGadgetSeedPolicy.KEY_STREAMS
+    private const val GADGET_FOLDER_PREVIEW = LauncherGadgetSeedPolicy.KEY_FOLDER_PREVIEW
+    private const val GADGET_WEATHER = LauncherGadgetSeedPolicy.KEY_WEATHER
+    private const val GADGET_SPEED = LauncherGadgetSeedPolicy.KEY_SPEED
+    private const val GADGET_COMPASS = LauncherGadgetSeedPolicy.KEY_COMPASS
+    private const val GADGET_AUDIO_NOW_PLAYING = LauncherGadgetSeedPolicy.KEY_AUDIO_NOW_PLAYING
+    private const val GADGET_SEARCH = LauncherGadgetSeedPolicy.KEY_SEARCH
+    private const val GADGET_MEDIA_IMAGE_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_IMAGE_WINDOW
+    private const val GADGET_MEDIA_AUDIO_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_AUDIO_WINDOW
+    private const val GADGET_MEDIA_VIDEO_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_VIDEO_WINDOW
+    private const val GADGET_MEDIA_DOCUMENT_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_DOCUMENT_WINDOW
+    private const val GADGET_BATTERY = LauncherGadgetSeedPolicy.KEY_BATTERY
+    private const val GADGET_GOOGLE_MAPS_LIVE = LauncherGadgetSeedPolicy.KEY_GOOGLE_MAPS_LIVE
+    private const val GADGET_TRANSLATOR = LauncherGadgetSeedPolicy.KEY_TRANSLATOR
+    private const val GADGET_STORAGE = LauncherGadgetSeedPolicy.KEY_STORAGE
 
     /**
-     * Every gadget key this table can emit. Public because the parity test cannot reach the private
-     * consts above, and a hand-written list over there is what let the previous four-key guard fall
-     * behind the table it was meant to guard.
+     * Every gadget key this table can emit, derived from [LauncherGadgetSeedPolicy] rather than listed
+     * a second time here.
+     *
+     * S2672: the keys used to be fifteen private consts in this file, which meant the set of gadgets the
+     * seed emits and the set the registry declares had no common home - twenty registry keys drifted out
+     * of every profile with no recorded decision. The policy is that home now; this property stays
+     * public because the parity test needs it to prove the two spellings still agree.
      */
-    val gadgetKeys: Set<String> = setOf(
-        GADGET_CLOCK,
-        GADGET_PLAYLIST,
-        GADGET_STREAMS,
-        GADGET_FOLDER_PREVIEW,
-        GADGET_WEATHER,
-        GADGET_SPEED,
-        GADGET_COMPASS,
-        GADGET_AUDIO_NOW_PLAYING,
-        GADGET_SEARCH,
-        GADGET_MEDIA_IMAGE_WINDOW,
-        GADGET_MEDIA_AUDIO_WINDOW,
-        GADGET_MEDIA_VIDEO_WINDOW,
-        GADGET_MEDIA_DOCUMENT_WINDOW,
-        GADGET_BATTERY,
-        GADGET_GOOGLE_MAPS_LIVE,
-    )
+    val gadgetKeys: Set<String> = LauncherGadgetSeedPolicy.seededKeys
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
     // so an absent app leaves no icon behind rather than a dead one (strategic §5.1.3).
@@ -194,6 +171,22 @@ object LauncherStarterSets {
     private val MAPS_PROFILES = setOf(
         DeviceProfileType.CAR_HEAD_UNIT,
         DeviceProfileType.PERSONAL_SMARTPHONE,
+    )
+
+    /** S2682: the three profiles where a person reads text off the screen and may need a word rendered. */
+    private val TRANSLATOR_PROFILES = setOf(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.HOME_TABLET,
+        DeviceProfileType.EBOOK_READER,
+    )
+
+    /**
+     * S2682: the two profiles the sorting is done from, where free space is the quantity that runs out
+     * while files are copied and moved.
+     */
+    private val STORAGE_PROFILES = setOf(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.HOME_TABLET,
     )
 
     private const val SPAN_WIDE = 2
@@ -442,6 +435,12 @@ object LauncherStarterSets {
         if (profile in NOW_PLAYING_PROFILES) {
             add(gadget(GADGET_AUDIO_NOW_PLAYING))
         }
+        if (profile in TRANSLATOR_PROFILES) {
+            add(gadget(GADGET_TRANSLATOR))
+        }
+        if (profile in STORAGE_PROFILES) {
+            add(gadget(GADGET_STORAGE))
+        }
         mediaWindowOrNull(profile, resources)?.let(::add)
     }
 
@@ -580,31 +579,17 @@ object LauncherStarterSets {
     private fun userResources(resources: StarterResources): List<StarterItem> =
         resources.userResourceIds.map { resourceShortcut(it, LauncherResourceMode.BROWSE) }
 
-    // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
-    // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static
-    // InternalRouteCatalog route, needs a resource-picker dialog) are the strip's only two exclusions.
+    // Every registered launcher shortcut is seeded in registry order. App Launch Panel has no on/off
+    // state and VR Cinema has no static route, so neither declares the launcher-shortcut surface.
     // S2382: gated on launchability, not on build presence. A compiled-but-disabled feature used to hold
     // a cell that routed to its own setting; the reactive shortcut sync (S2330) now adds the cell the
     // moment the feature becomes launchable, so a first seed no longer has to carry it in advance.
-    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
-        val paddingKeys = listOf(
-            InternalRouteCatalog.KEY_STREAMS,
-            InternalRouteCatalog.KEY_QUICK_CAMERA,
-            InternalRouteCatalog.KEY_QUICK_VOICE,
-            InternalRouteCatalog.KEY_CALCULATOR,
-            InternalRouteCatalog.KEY_STOPWATCH,
-            InternalRouteCatalog.KEY_NETWORK_MONITOR,
-            InternalRouteCatalog.KEY_OCR,
-            InternalRouteCatalog.KEY_SCREEN_RECORDING,
-            InternalRouteCatalog.KEY_LINK_DOWNLOAD,
-            InternalRouteCatalog.KEY_GAME,
-            InternalRouteCatalog.KEY_SYSTEM_INFO,
-            InternalRouteCatalog.KEY_WEAR_COMPANION,
-        )
-        paddingKeys.forEach { key ->
-            if (routeLaunchable[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
+    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> =
+        SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
+            entry.routeKey
+                .takeIf { routeLaunchable[it] == true }
+                ?.let { shortcut(LauncherCellCommand.Feature(it)) }
         }
-    }
 
     /**
      * The original per-profile gadget/resource items that were already in the table before S1560.

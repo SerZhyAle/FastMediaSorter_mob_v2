@@ -73,9 +73,6 @@ class DownloadNetworkFileUseCase @Inject constructor(
             NetworkSourceType.SMB -> openSmbStream(source, streamUri)
             NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, NetworkUriParser.remotePathOf(streamUri))
             NetworkSourceType.SFTP -> sftpDataSource.getFileStream(source, NetworkUriParser.remotePathOf(streamUri))
-            NetworkSourceType.GOOGLE_DRIVE -> Result.failure(
-                UnsupportedOperationException("Google Drive playback is not available on Wear")
-            )
         }
     }
 

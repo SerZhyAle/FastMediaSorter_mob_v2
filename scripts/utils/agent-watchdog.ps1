@@ -294,21 +294,52 @@ function Invoke-DeadTicketReaper {
 # A runner that exited leaves the queue undrained, which is the idling the owner asked to end. The
 # check is by command line rather than by remembered pid so a watchdog restart re-adopts instances
 # it did not launch.
+# S2696: the model policy is per instance, because the shape rule is enabled as a MEASUREMENT - one
+# instance on it, the others on the rule it is being compared against - and a measurement that only
+# survives until the watchdog restarts the instance is not one. Read from the profile rather than
+# passed as a parameter: the watchdog is itself restarted by hand and by the machine, so a policy
+# living in an argument would be re-typed correctly or not at all. Absent key -> 'tiered', which is
+# the runner's own default, so a profile with no such block behaves exactly as before.
+#
+# The key is narrow on purpose and S2698 absorbs it whole: that ticket generalises the runner block
+# to a command AND its arguments per instance, at which point this lookup moves rather than grows.
+function Get-InstanceModelPolicy {
+    param([string] $Instance)
+
+    $default = 'tiered'
+    $profilePath = Join-Path $repoRoot '.sza-profile.json'
+    if (-not (Test-Path -LiteralPath $profilePath)) { return $default }
+    try {
+        $map = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).runner.instanceModelPolicy
+    } catch {
+        # A profile that does not parse is a repository-wide failure other scripts report loudly;
+        # the watchdog's job is to keep the queue draining, so it falls back rather than exiting.
+        return $default
+    }
+    if ($null -eq $map) { return $default }
+    $value = $map.PSObject.Properties[$Instance]
+    if ($null -eq $value -or [string]::IsNullOrWhiteSpace([string]$value.Value)) { return $default }
+    return [string]$value.Value
+}
+
 function Invoke-RunnerSupervisor {
     $started = 0
     foreach ($instance in $Instances) {
         $running = @(Get-CimInstance Win32_Process -Filter "Name='pwsh.exe'" -Property ProcessId, CommandLine |
             Where-Object { $_.CommandLine -match 'run-spec-queue' -and $_.CommandLine -match "-Instance\s+$instance\b" })
         if ($running.Count -gt 0) { continue }
-        if ($WhatIf) { Write-WatchdogLine "WOULD START runner instance $instance"; continue }
+        $policy = Get-InstanceModelPolicy -Instance $instance
+        if ($WhatIf) { Write-WatchdogLine "WOULD START runner instance $instance with model policy $policy"; continue }
         $out = Join-Path $logDir "queue-$instance.out.txt"
         $err = Join-Path $logDir "queue-$instance.err.txt"
         $proc = Start-Process -FilePath 'pwsh' `
             -ArgumentList @('-NoProfile', '-File', 'scripts/utils/run-spec-queue.ps1',
-                '-ModelPolicy', 'tiered', '-Instance', $instance, '-TimeoutMinutes', '60') `
+                '-ModelPolicy', $policy, '-Instance', $instance, '-TimeoutMinutes', '60') `
             -WorkingDirectory $repoRoot -RedirectStandardOutput $out -RedirectStandardError $err `
             -WindowStyle Hidden -PassThru
-        Write-WatchdogLine "STARTED runner instance $instance as pid $($proc.Id)"
+        # The policy is named in the line because the journal it produces is compared against another
+        # instance's, and "which rule was this instance on" has to be answerable from the log alone.
+        Write-WatchdogLine "STARTED runner instance $instance as pid $($proc.Id) with model policy $policy"
         $started++
     }
     return $started

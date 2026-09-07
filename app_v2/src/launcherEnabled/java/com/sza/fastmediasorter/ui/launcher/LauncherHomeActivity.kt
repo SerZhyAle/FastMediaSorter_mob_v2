@@ -432,6 +432,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             }
         }
         cellBinder.gadgetBinder = gadgetRenderManager::bindGadget
+        cellBinder.gadgetRebinder = gadgetRenderManager::rebindGadget
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
 

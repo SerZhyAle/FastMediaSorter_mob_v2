@@ -57,7 +57,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
         // S1009: never push hidden resources to the watch (defense-in-depth; hidden resources are LOCAL today).
         val networkResources = allResources.filter {
             it.id in selectedIds && !it.isHidden &&
-                it.type in listOf(ResourceType.SMB, ResourceType.FTP, ResourceType.SFTP)
+                it.type in ResourceType.WATCH_TRANSFERABLE
         }
 
         var sent = 0

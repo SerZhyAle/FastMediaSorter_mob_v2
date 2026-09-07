@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
+import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
+
 /**
  * Every navigation address of the watch app, declared once.
  *
@@ -53,8 +55,13 @@ object WearRoutes {
      * S1862: the voice recorder is a mini-program, so [VOICE_RECORDER] carries its `canonicalKey`
      * like the three above. [VOICE_NOTES] is not one - it is the recorder's own note list, reached
      * only from the recorder, so it stays out of the Apps catalog and has no key to match.
+     *
+     * S2579: that key is `quick_voice`, which is how the phone addresses the same program - so this is
+     * the one route whose value does not echo its identifier. The identifier names the screen the watch
+     * opens; the value is the address the phone's registry would resolve, and the two are allowed to
+     * read differently precisely because only the second one is a cross-module contract.
      */
-    const val VOICE_RECORDER = "voice_recorder"
+    const val VOICE_RECORDER = "quick_voice"
     const val VOICE_NOTES = "voice_notes"
 
     /** S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too. */
@@ -86,6 +93,12 @@ object WearRoutes {
 
     /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
     const val ARG_FOLDER_TOKEN = "folderToken"
+
+    /**
+     * S2694: what the walk's entrance level is called, when the caller knows a better word than the
+     * default. A network walk passes the share's name; the local walk passes nothing.
+     */
+    const val ARG_FOLDER_TITLE = "folderTitle"
     const val ARG_NETMON_SECTION = "section"
 
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
@@ -125,7 +138,8 @@ object WearRoutes {
      * root, which is exactly what `WearFolderAddress.parse` answers for a blank one. Declaring it
      * mandatory would leave the walk with no address for its first screen.
      */
-    const val LOCAL_FOLDER_PATTERN = "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}"
+    const val LOCAL_FOLDER_PATTERN =
+        "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}&$ARG_FOLDER_TITLE={$ARG_FOLDER_TITLE}"
 
     fun browse(mediaType: String): String = "browse/$mediaType"
 
@@ -159,10 +173,23 @@ object WearRoutes {
      * a folder name inside it may legally hold `&`. Concatenated raw, either one misses this
      * pattern and the tap does nothing at all.
      */
-    fun localFolder(token: String): String = "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}"
+    fun localFolder(token: String): String = folderWalk(token, title = "")
 
     /** The walk opened at its entrance, where no level has been chosen yet. */
     fun localFolderRoot(): String = localFolder("")
+
+    /**
+     * S2694: the walk opened on a network source, at [path] inside it.
+     *
+     * [sourceName] titles the entrance, which the local fallback cannot do here - it names the
+     * watch's own storage. Both arguments are encoded for the reason above: the token carries the
+     * share path, and a share or folder name legally holds `&`.
+     */
+    fun networkFolder(sourceId: String, path: String, sourceName: String): String =
+        folderWalk(WearFolderAddress.NetworkLevel(sourceId = sourceId, path = path).asToken(), sourceName)
+
+    private fun folderWalk(token: String, title: String): String =
+        "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}&$ARG_FOLDER_TITLE=${encodeArg(title)}"
 
     fun networkMonitorSection(sectionKey: String): String =
         "network_monitor/${encodeArg(sectionKey)}"

@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.lang.reflect.Modifier
 
 /**
  * S0404: [LauncherStarterSets] (src/main) hardcodes the gadget target keys because it cannot import
@@ -174,7 +175,107 @@ class LauncherStarterSetsParityTest {
             LauncherGadgetRegistry.KEY_MEDIA_DOCUMENT_WINDOW,
             LauncherGadgetRegistry.KEY_BATTERY,
             LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE,
+            LauncherGadgetRegistry.KEY_TRANSLATOR,
+            LauncherGadgetRegistry.KEY_STORAGE,
         )
         assertEquals(registryKeys, LauncherStarterSets.gadgetKeys)
+    }
+
+    /**
+     * S2682: the two keys the ticket ruled seedable, and the profiles it ruled them onto.
+     *
+     * The coverage case below proves only that a seeded key reaches SOME profile, so it would pass on a
+     * membership set that had drifted onto the wrong ones - and which profiles get the tile is the whole
+     * content of the ruling.
+     */
+    @Test
+    fun `the translator and storage tiles land on the profiles S2682 named`() {
+        fun targetsFor(profile: DeviceProfileType) = LauncherStarterSets
+            .itemsFor(profile, StarterResources(), emptyMap(), emptySet(), screenClass = mediumWide)
+            .map { it.target }
+            .toSet()
+
+        val phone = targetsFor(DeviceProfileType.PERSONAL_SMARTPHONE)
+        assertTrue(LauncherGadgetRegistry.KEY_TRANSLATOR in phone)
+        assertTrue(LauncherGadgetRegistry.KEY_STORAGE in phone)
+
+        // The reader translates a word but does no sorting, so it earns one of the two, not both.
+        val reader = targetsFor(DeviceProfileType.EBOOK_READER)
+        assertTrue(LauncherGadgetRegistry.KEY_TRANSLATOR in reader)
+        assertEquals(false, LauncherGadgetRegistry.KEY_STORAGE in reader)
+
+        val headUnit = targetsFor(DeviceProfileType.CAR_HEAD_UNIT)
+        assertEquals(false, LauncherGadgetRegistry.KEY_TRANSLATOR in headUnit)
+        assertEquals(false, LauncherGadgetRegistry.KEY_STORAGE in headUnit)
+    }
+
+    /**
+     * S2672: the coverage assertion - every key the registry declares carries a seed decision.
+     *
+     * The registry's side is read by reflection rather than retyped here, because a hand-written list in
+     * a test guards nothing: a thirty-sixth `KEY_*` const would be absent from both the policy and the
+     * list, and the test would pass while the new gadget joined the twenty this ticket found. Kotlin
+     * compiles a companion `const val` to a public static final field on the outer class, so the fields
+     * below are the registry's keys exactly.
+     */
+    @Test
+    fun `every registry gadget key carries a seed decision`() {
+        val registryKeys = LauncherGadgetRegistry::class.java.declaredFields
+            .filter { Modifier.isStatic(it.modifiers) && it.type == String::class.java && it.name.startsWith("KEY_") }
+            .onEach { it.isAccessible = true }
+            .map { it.get(null) as String }
+            .toSet()
+
+        assertEquals(registryKeys.size, LauncherGadgetSeedPolicy.decisions.size)
+        assertEquals(registryKeys, LauncherGadgetSeedPolicy.decisions.keys)
+    }
+
+    /** S2672: the seed table emits exactly the keys the policy marks Seeded, and nothing else. */
+    @Test
+    fun `the seeded decisions match the keys the starter table emits`() {
+        assertEquals(LauncherGadgetSeedPolicy.seededKeys, LauncherStarterSets.gadgetKeys)
+    }
+
+    /**
+     * S2672: "Seeded" has to be earned, not declared. Without this case the policy could call a key
+     * seeded while no profile emitted it - which is the exact failure the ticket opened on, one level up.
+     *
+     * Every input is maximally generous (every resource id present, every route launchable, every
+     * candidate package installed), so a key missing here is missing from the table on every profile,
+     * not merely absent from this fixture.
+     */
+    @Test
+    fun `every key declared seeded is emitted for at least one profile`() {
+        val resources = StarterResources(
+            recentId = 1L,
+            allAudioId = 2L,
+            allImagesId = 3L,
+            allVideoId = 4L,
+            allDocsId = 5L,
+            cameraId = 6L,
+            allFilesId = 7L,
+            lastResourceId = 8L,
+        )
+        val routes = mapOf(
+            InternalRouteCatalog.KEY_STREAMS to true,
+            InternalRouteCatalog.KEY_GAME to true,
+            InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
+        )
+
+        val emitted = DeviceProfileType.entries.flatMap { profile ->
+            LauncherStarterSets.itemsFor(
+                profile,
+                resources,
+                routes,
+                LauncherStarterSets.candidatePackages,
+                googleServicesAvailable = true,
+                screenClass = mediumWide,
+            )
+        }
+            .filter { it.kind == LauncherCellKind.GADGET }
+            .map { it.target.substringBefore(':') }
+            .toSet()
+
+        assertEquals(emptySet<String>(), LauncherGadgetSeedPolicy.seededKeys - emitted)
     }
 }

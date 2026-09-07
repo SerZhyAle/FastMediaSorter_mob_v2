@@ -13,11 +13,18 @@ import javax.inject.Inject
  * S2382).
  *
  * Membership rule: a setting joins when switching it on unlocks a capability the build already ships and
- * the user has nothing further to choose. Out of scope by rule: privacy and telemetry switches,
- * destructive defaults, preferences and modes, numeric values, settings inert until the user picks a
- * resource, and settings that own a consent page in the wizard. The classification of every boolean in
- * the settings model is pinned by `EnableAllCoverageClassificationTest`, which fails on an unclassified
- * new field - the previous hand-written list drifted away from this KDoc unnoticed.
+ * the user has nothing further to choose. That includes the flags deciding whether a file operation is
+ * offered at all - copy, move, undo, rename (S2674). Out of scope by rule: privacy and telemetry
+ * switches, destructive defaults (delete stays out by that clause), preferences and modes, numeric
+ * values, settings inert until the user picks a resource, settings whose default a device detector
+ * computes rather than the build, and settings that own a consent page in the wizard. The classification
+ * of every boolean in the settings model is pinned by `EnableAllCoverageClassificationTest`, which fails
+ * on an unclassified new field - the previous hand-written list drifted away from this KDoc unnoticed.
+ *
+ * The «Send to..» recipient registry splits along the same rule (S2684): the button clears the explicit
+ * opt-outs, so a recipient this build ships on comes back, and never touches the explicit opt-ins, so a
+ * recipient the registry ships off is not force-added. Which messenger to send files to is a choice the
+ * user still has, which is the clause that keeps the `ALWAYS_OFF` half out.
  *
  * Deliverable-gated features (OCR/translation) are intentionally NOT touched here - they are downloaded
  * and enabled-on-install by the welcome orchestrator, preserving the "enable only after install" invariant.
@@ -66,20 +73,43 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
                 acceptSharedFiles = true,
                 isPrimaryMediaPlayer = true,
             )
+            // S2674: the flags deciding whether a file operation is OFFERED, not how it behaves. Delete is
+            // absent on purpose - it is the one whose return the user cannot undo, so it stays with the
+            // destructive defaults the rule keeps out.
+            Timber.d("S2674: enable-all switching the file-operation flags on")
+            val withFileOperations = withMediaTypes.copy(
+                enableCopying = true,
+                enableMoving = true,
+                enableUndo = true,
+                allowRename = true,
+            )
+            // S2674: PiP is a player capability, so a build carrying no player keeps its stored value.
+            // The device axis needs no condition here - PictureInPictureManager asks the platform for
+            // FEATURE_PICTURE_IN_PICTURE and hides the button on its own.
+            val withPictureInPicture = if (mediaCapabilities.supportsVideo || mediaCapabilities.supportsAudio) {
+                withFileOperations.copy(enablePictureInPicture = true)
+            } else {
+                withFileOperations
+            }
             // S2664: the six remote sources join the button. The compile-tier question goes to
             // MediaCapabilities - the same two flags RemoteSourceAvailabilityGate consults - so a source
             // this build does not carry keeps its stored value instead of being switched on.
             val withNetworkSources = if (mediaCapabilities.supportsLocalNetworkSources) {
-                withMediaTypes.copy(smbEnabled = true, sftpEnabled = true, ftpEnabled = true)
+                withPictureInPicture.copy(smbEnabled = true, sftpEnabled = true, ftpEnabled = true)
             } else {
-                withMediaTypes
+                withPictureInPicture
             }
             val withRemoteSources = if (mediaCapabilities.supportsCloud) {
                 withNetworkSources.copy(googleDriveEnabled = true, oneDriveEnabled = true, dropboxEnabled = true)
             } else {
                 withNetworkSources
             }
-            ROUTE_ENABLERS.entries.fold(withRemoteSources) { settings, (routeKey, enable) ->
+            // S2684: only the explicit opt-outs are dropped, returning every recipient to the registry
+            // default ShareTargetAvailabilityResolver computes. Availability needs no condition here -
+            // IsShareTargetEnabledUseCase asks the resolver before either set, so an unreachable recipient
+            // stays off whatever the settings hold.
+            val withShareTargets = withRemoteSources.copy(disabledShareTargets = emptySet())
+            ROUTE_ENABLERS.entries.fold(withShareTargets) { settings, (routeKey, enable) ->
                 if (routeKey in compiledRoutes) enable(settings) else settings
             }
         }

@@ -935,6 +935,16 @@ Every ratchet baseline in this repository is enforced by the same runner in two 
 
 Measured over 2026-08-24..2026-09-04 (69 647 records), the honest per-closure ranking is `settings-doc-sync-gate` 42.5 s, `script-suite-regression` 13.7 s, `catalog-sync` 10.6 s, `fgs-notification-gate` 5.7 s over 1022 closures, `resource-link-gate` 5.8 s, `ctor-arg-slots-gate` 5.1 s. `settings-doc-sync-gate` takes the `Build.Phone` domain lock for its manifest-regeneration stage, which is why its p90 is 154 s and its maximum 564 s against that 42.5 s median: a rank-and-file closure queues behind a sibling session's build.
 
+### The fast battery prints two verdicts (S2693)
+
+`.\a.ps1 fg` given a changed set - `assert-fast-gates.ps1 -ChangedFiles <the comma-joined paths this change touched>` - splits its summary in two. **YOUR SET** holds the gates that actually received the set and judged it, and it alone decides the exit code. **THE TREE** holds every gate that judged the whole project regardless of what was passed; a red gate there prints its name, says the work belongs outside the caller's set, and leaves the exit code at 0. Run with no changed set - a release run, a CI run, `.\a.ps1 fg` typed bare - and the behaviour is identical to before: one block, any red gate exits 1.
+
+Which block a gate lands in is a property of the invocation, not of the gate: it is `set` when the gate was handed `-ChangedFiles` and `tree` when it was not, computed beside the forwarding decision so the two cannot drift apart. One promotion crosses that line, and it is the only way a tree gate reaches the exit code: a tree gate whose FAIL output names a repo-relative path from the changed set moves into YOUR SET as `set-named` (the S2693 re-audit found that without it a gate that takes no `-ChangedFiles` - exit contract, script references, memory budget - reported the caller's own defect as advisory). The search is for the path in both slash forms, never the bare file name. All three classes are journalled - the gate rows and the batch row carry a `scope` field, absent on every row written before the split, so a reader must treat a missing field as unknown rather than as `tree`.
+
+Why: measured over 2026-08-28..2026-09-07, the battery ran 62 times and was clean on none of them, median three red gates per run, the reds being project-wide invariants catching another session's unfinished work in a tree that carries up to six concurrent sessions. A verdict red on every run stops being read, and the operator who stops reading it also stops seeing the reds that are his. This weakens no invariant: `assert-release-scope-gates.ps1` keeps the tree fatal at the boundary that ships, which is where a tree-wide subject belongs under Rule 33.
+
+Contract suite: `scripts/quality/assert-fast-gates.tests/Run-Tests.ps1`. It asserts the relation between the printed blocks and the exit code rather than an expected colour, because the tree it runs on carries other sessions and any absolute expectation would be flaky by construction.
+
 ### A closure step waits under a ceiling (S2538)
 
 **No step of a closure waits without a limit, and an exhausted limit is exit 2 - never PASS and never FAIL.** The contract is S1338's, written after one `post-change.ps1` run hung for three hours and still reported PASS; `scripts/utils/process-timeout.ps1` bounds the process, and S2538 extended the same rule to the two places the closure waits for something other than a process.
@@ -1400,6 +1410,20 @@ update, and it never reaches the other projects.
 - **The layer's own gate** is `assert-portable.ps1` (External: it ships with the canon plugin under
   `tools/harness/`, it is not a script of this repository): it refuses a harness script whose code
   lines name a product path, an environment prefix, a log call or a build-system marker.
+
+## THE QUEUE RUNNER REMEMBERS IDLE RUNS (S2695)
+
+`run-spec-queue.ps1` used to forget a fruitless ticket the moment its process ended. A ticket handed back with the status it started with is dropped for the rest of that run, but the list holding it lives in the loop's memory, so the next start and every parallel instance ranked it again and offered it again. Measured over 2026-08-28..09-07: 121 of 485 runs moved no status (18%, 34.9 h), 27 tickets were run twice or more in a row with no result, one of them eight times. The skip cache could not carry the memory either - the runner wipes it at each start by design, so it was empty in the same window.
+
+**The counter is derived, never stored.** `tools/harness/batch/_idle-runs.ps1` (External: it ships with the canon plugin under `tools/harness/`, it is not a script of this repository) reads every `runs-*.jsonl` under `temp/spec-queue/`, orders a ticket's rows by `finishedAt` and walks back from the newest until the first row that moved the status. That is the idle series. Two properties come free from the shape rather than from code: it spans instances, because all journals are read, and it resets on the first status move, because a moving row ends the walk. Nothing has to be cleared, and no mutator has to learn about it.
+
+**What the threshold does.** At `runner.idleRunThreshold` (2 here) the ticket is passed over by `spec-next-preflight.ps1` with `auto_skip: idle-hold`, so the runner takes the next line of its package, and `[idle N, <outcome>]` appears on the ticket's row in `PLAN/RELEASE_QUEUE.md` next to the `[taken ..]` marker - the same render-on-every-write contract, so it can never disagree with the journals. `runner.idleOutcomes` names which journal outcomes count; an outcome outside that list ends the series rather than being stepped over, since the count claims consecutive idle runs. Both keys live in `.sza-profile.json`, so retuning the policy - dropping `claim-lost` if instance races start punishing healthy tickets - needs no canon session.
+
+**A held ticket is never unreachable.** The hold applies to automatic ranking only. `/spec-all Sxxxx`, `run-spec-queue.ps1 -Ids Sxxxx` and the owner picking a row by hand all bypass the ranker and run it.
+
+**The child timeout follows the plan, not the clock.** `-TimeoutMinutes` used to run from the child's start whatever it was doing, and killed 14 children between minute 60 and minute 90 in that same window. The wait is now sliced: each time the ticket's tactical folder carries one more `**Status:** `[x]`` step than the last reading, the deadline moves to a full `-TimeoutMinutes` from that moment. The step mark is the only signal, deliberately - the agent chat is written by the lock, lease and status scripts as a side effect, so a spinning child would renew itself on it for ever, and a dev-log row arrives once at the end when there is nothing left to extend. A ticket with no tactical folder gives no signal, waits in one slice and dies exactly when it did before; an extension can only add time, so the change has no worse case than the old behaviour. The kill line names whether the deadline was ever extended and how many steps the child produced.
+
+Suite: `scripts/utils/run-spec-queue.tests/Run-Tests.ps1`, over synthetic journals in a throwaway project root. It SKIPs by name while the resolved harness predates the change - that is the undeployed state, not a defect.
 
 ## PORTABLE PATHS (S2326)
 

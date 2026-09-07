@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.wear.data.wear
 /**
  * Path constants for the Wear OS Data Layer - watch side mirror.
  * String values are identical to the phone-side WearDataLayerPaths to guarantee path matching.
- * Existing /fms/network_sources/ paths are defined locally in WatchWearListenerService
- * for backward compatibility and are not listed here.
+ * The compatible network-sources routes remain in this catalogue even though their payloads predate
+ * the event envelope: both modules still need one mechanically checked declaration for every route.
  */
 object WearDataLayerPaths {
 
@@ -14,14 +14,14 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries network sources export payload. */
     const val SOURCES_EXPORT = "/fms/watch/sources_export"
 
-    /**
-     * Message, watch → phone. Empty body; asks the phone to push its selected resources back.
-     *
-     * S2484: named here rather than spelled out at the call site. This object is the canonical
-     * enumeration of every path, and the request was the one path living only as a literal - which is
-     * how it stayed invisible to anyone reading the list to learn what the two sides exchange.
-     */
+    /** Message, watch → phone. Requests the compatible network-sources sync. */
     const val NETWORK_SOURCES_REQUEST = "/fms/network_sources/request"
+
+    /** Data Item, phone → watch. Carries the compatible network-sources payload. */
+    const val NETWORK_SOURCES_PUSH = "/fms/network_sources/push"
+
+    /** Message, watch → phone. Acknowledges the compatible network-sources payload. */
+    const val NETWORK_SOURCES_ACK = "/fms/network_sources/ack"
 
     /**
      * Data Item, watch → phone. Carries the watch's own settings payload back to the phone (S2093).

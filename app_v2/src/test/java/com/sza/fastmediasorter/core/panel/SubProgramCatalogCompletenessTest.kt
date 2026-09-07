@@ -3,10 +3,16 @@ package com.sza.fastmediasorter.core.panel
 import android.content.Context
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
+import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
+import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
+import com.sza.fastmediasorter.ui.main.helpers.MainProgramsMenuCoordinator
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -106,6 +112,86 @@ class SubProgramCatalogCompletenessTest {
         assertEveryRouteIsOpenable(SubProgramSurface.LAUNCHER_SHORTCUT)
     }
 
+    /**
+     * S2673: the programs menu draws an entry from the registry plus a presentation row holding the
+     * label, the icon and the menu item id the registry deliberately does not store (ADR-1). An entry
+     * whose row is missing is silently skipped at run time, which is the "present on one surface,
+     * absent from another" failure ADR-4 built this suite to catch.
+     */
+    @Test
+    fun `every PROGRAMS_MENU entry can be drawn by the programs menu`() {
+        SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU).forEach { entry ->
+            assertTrue(
+                "sub-program '${entry.routeKey}' is fit for PROGRAMS_MENU but the menu has no " +
+                    "label/icon/id row for it",
+                entry.routeKey in MainProgramsMenuCoordinator.PRESENTABLE_ROUTE_KEYS,
+            )
+        }
+    }
+
+    /**
+     * S2675: the reverse of the assertion above, and the direction the suite lacked. A presentation
+     * row added without a registry entry is a menu item no other surface can ever learn about, which
+     * is the divergence the registry exists to remove (S1736 §2 goal 4).
+     *
+     * The four non-registry menu items - streams, VR Cinema, the quick-launch panel and broadcast -
+     * are added by their own `popup.menu.add` calls around the registry loop and never enter
+     * [MainProgramsMenuCoordinator.PRESENTATION], so they fall outside this assertion by
+     * construction rather than by an exception list.
+     */
+    @Test
+    fun `every programs-menu presentation row belongs to a registry entry`() {
+        val menuEntries = SubProgramCatalog
+            .forSurface(SubProgramSurface.PROGRAMS_MENU)
+            .map { it.routeKey }
+            .toSet()
+        MainProgramsMenuCoordinator.PRESENTABLE_ROUTE_KEYS.forEach { routeKey ->
+            assertTrue(
+                "route '$routeKey' has a programs-menu label/icon/id row but no registry entry " +
+                    "fit for PROGRAMS_MENU",
+                routeKey in menuEntries,
+            )
+        }
+    }
+
+    /**
+     * S2675: the same reverse direction for the starter desktop, which is where the gap was found.
+     * `fn:streams` was seeded onto every desk with no registry entry behind it, and nothing failed
+     * for the whole interval until S2664 derived the section from the registry and the cell silently
+     * disappeared.
+     *
+     * Favourites is the one seeded feature cell outside the registry. It and streams are both parts
+     * of the main application rather than sub-programs (S1736 §2 Non-goals), but streams reaches the
+     * desk through its own STREAMS section while favourites is still placed by hand, in
+     * `LauncherStarterSets.commonTail()` - so only favourites needs naming here.
+     */
+    @Test
+    fun `every seeded feature cell belongs to a registry entry or a named exception`() {
+        val shortcutEntries = SubProgramCatalog
+            .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+            .map { it.routeKey }
+            .toSet()
+        val everyRouteLaunchable = InternalRouteCatalog.all().associate { it.key to true }
+        DeviceProfileType.entries.forEach { profile ->
+            LauncherStarterSets
+                .itemsFor(
+                    profile = profile,
+                    resources = StarterResources(),
+                    routeLaunchable = everyRouteLaunchable,
+                    installedPackages = emptySet(),
+                    screenClass = MEDIUM_WIDE,
+                )
+                .mapNotNull { (LauncherCellCommand.decode(it.target) as? LauncherCellCommand.Feature)?.routeKey }
+                .forEach { routeKey ->
+                    assertTrue(
+                        "$profile seeds feature cell '$routeKey', which is neither a registry entry " +
+                            "fit for LAUNCHER_SHORTCUT nor a named non-registry exception",
+                        routeKey in shortcutEntries || routeKey in NON_REGISTRY_FEATURE_CELLS,
+                    )
+                }
+        }
+    }
+
     @Test
     fun `order values are unique and no entry declares an empty surface set`() {
         val orders = SubProgramCatalog.all().map { it.order }
@@ -116,6 +202,19 @@ class SubProgramCatalogCompletenessTest {
                 entry.surfaces.isNotEmpty(),
             )
         }
+    }
+
+    private companion object {
+
+        /**
+         * The screen class the desk assertions seed against - the pair the pre-S2309 hardcoded layout
+         * was written for, so a shape axis this suite does not care about changes no membership.
+         */
+        private val MEDIUM_WIDE =
+            LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
+
+        /** S2675: the feature cells seeded by hand, each a part of the main app rather than a program. */
+        private val NON_REGISTRY_FEATURE_CELLS = setOf(InternalRouteCatalog.KEY_FAVORITES)
     }
 
     private fun assertEveryRouteIsOpenable(surface: SubProgramSurface) {

@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.wear.ui.folder
 
 import androidx.lifecycle.SavedStateHandle
-import io.mockk.mockk
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
 import com.sza.fastmediasorter.wear.domain.model.WearFolderPage
-import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearFolderLevelRepository
+import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -37,7 +37,7 @@ class WearFolderWalkViewModelTest {
     /** Records every level asked for, so a test can assert which window was requested, not just what came back. */
     private class FakeFolderRepository(
         private val pages: (WearFolderAddress, Int) -> WearFolderPage
-    ) : WearLocalFolderRepository {
+    ) : WearFolderLevelRepository {
 
         val requests = mutableListOf<Pair<WearFolderAddress, Int>>()
 
@@ -67,7 +67,7 @@ class WearFolderWalkViewModelTest {
         dateModifiedEpochSeconds = 0L
     )
 
-    private fun viewModel(repository: WearLocalFolderRepository) =
+    private fun viewModel(repository: WearFolderLevelRepository) =
         WearFolderWalkViewModel(repository, mockk(relaxed = true), SavedStateHandle())
 
     @Before

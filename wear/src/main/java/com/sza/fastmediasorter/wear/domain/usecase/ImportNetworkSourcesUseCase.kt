@@ -129,7 +129,10 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         }
         val type = parseType(item.type)
         return if (type == null) {
-            Timber.w("Unknown type ${item.type} - skipping")
+            Timber.w(
+                "Type ${item.type} is outside the phone/watch source contract - no client here can " +
+                    "open it, so source ${item.id} is skipped"
+            )
             ImportOutcome.SKIPPED
         } else {
             val incoming = toSource(item, type)
@@ -164,6 +167,14 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         }
     }
 
+    /**
+     * S2641: these three branches are one half of the phone/watch source contract; the other half is
+     * `ResourceType.WATCH_TRANSFERABLE` on the phone, which decides what is put on the wire. The pair
+     * is compared by `scripts/quality/assert-wear-wire-vocabulary-parity.ps1`, so a branch added here
+     * without the matching member there, or the reverse, fails that gate. Written as an explicit
+     * `when` rather than `NetworkSourceType.valueOf` on purpose: this watch may declare a type it can
+     * open by hand but must never accept over the wire, and only a listed branch says which is which.
+     */
     private fun parseType(raw: String): NetworkSourceType? = when (raw.uppercase()) {
         "SMB" -> NetworkSourceType.SMB
         "FTP" -> NetworkSourceType.FTP

@@ -55,13 +55,33 @@ private class CameraQuickCaptureGadgetView(
     init {
         val binding = GadgetHomeWidgetBinding.inflate(LayoutInflater.from(context), this)
         binding.gadgetHomeWidgetIcon.setImageResource(R.drawable.ic_widget_camera_quick_capture)
-        binding.gadgetHomeWidgetLabel.setText(R.string.widget_camera_quick_capture_label)
-        // The label is the only thing naming this cell, so the whole cell announces it rather than
-        // leaving a talkback user with an unlabelled tap target (Rule 16).
-        contentDescription = context.getString(R.string.widget_camera_quick_capture_label)
-        isFocusable = true
-        isClickable = true
-        setOnClickListener { onTap() }
+        val label = context.getString(R.string.widget_camera_quick_capture_label)
+        val instance = token
+        if (instance == null) {
+            showUnavailable(binding, label)
+        } else {
+            binding.gadgetHomeWidgetLabel.text = label
+            // The label is the only thing naming this cell, so the whole cell announces it rather than
+            // leaving a talkback user with an unlabelled tap target (Rule 16).
+            contentDescription = label
+            isFocusable = true
+            isClickable = true
+            setOnClickListener { onTap(instance) }
+        }
+    }
+
+    /**
+     * A cell whose param carries no usable token has no instance to capture into and none to
+     * configure, so it says so on its face - the same answer [RandomPhotoFrameGadget]'s
+     * `showUnavailable()` gives - rather than swallowing a tap that looked like it worked.
+     */
+    private fun showUnavailable(binding: GadgetHomeWidgetBinding, label: String) {
+        Timber.d("S2681: camera quick capture cell rendered unavailable - no instance token")
+        val unavailable = context.getString(R.string.launcher_home_cell_unavailable)
+        binding.gadgetHomeWidgetIcon.alpha = UNAVAILABLE_ALPHA
+        binding.gadgetHomeWidgetLabel.text = "$label\n$unavailable"
+        contentDescription = "$label, $unavailable"
+        isClickable = false
     }
 
     /**
@@ -69,8 +89,7 @@ private class CameraQuickCaptureGadgetView(
      * configuration screen can run between two taps, and a cached "not configured yet" would keep
      * sending the user back to it after they had answered.
      */
-    private fun onTap() {
-        val instance = token ?: return
+    private fun onTap(instance: Int) {
         val intent = if (CameraQuickCaptureWidgetProvider.isConfigured(context, instance)) {
             captureIntent(instance)
         } else {
@@ -90,4 +109,9 @@ private class CameraQuickCaptureGadgetView(
             action = CameraQuickCaptureActivity.ACTION_CAPTURE
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, instance)
         }
+
+    private companion object {
+        /** Dimmed enough to read as inert against a wallpaper, still legible as the camera icon. */
+        const val UNAVAILABLE_ALPHA = 0.4f
+    }
 }

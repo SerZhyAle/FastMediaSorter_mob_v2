@@ -8,12 +8,24 @@ import androidx.annotation.StringRes
  * [canonicalKey] is the phone's route key for the same program, not a name invented here. The phone's
  * program registry addresses a program by that key, so keeping it identical is what lets the watch list
  * be absorbed into that registry later without renaming a key already saved on a device.
+ *
+ * S2579: the rule is two-part, because a program of this list may have no counterpart at all. A key is
+ * either one of `InternalRouteCatalog`'s route keys, spelled identically, or the program lives only on
+ * the watch and is named in `scripts/quality/wear-canonical-key-watch-only-baseline.txt` with its reason.
+ * The single-part wording above held on the first five entries and quietly stopped being true when the
+ * sensor programs joined; the gate `assert-wear-canonical-key-parity.ps1` now judges both halves.
  */
 enum class WearAppId(val canonicalKey: String) {
     CALCULATOR("calculator"),
     NETWORK_MONITOR("network_monitor"),
     GAME("game"),
-    VOICE_RECORDER("voice_recorder"),
+
+    /**
+     * S2579: the watch's dictaphone, which the phone addresses as `quick_voice`. The watch yielded rather
+     * than the phone: the phone's key is saved in launcher cells and app-launch panel layouts, so renaming
+     * it would devalue a layout the owner built, while this key is saved nowhere at all.
+     */
+    VOICE_RECORDER("quick_voice"),
 
     /**
      * S2008: the watch's own report, moved here from Settings - it configures nothing, so it belongs

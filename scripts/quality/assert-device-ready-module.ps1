@@ -116,6 +116,14 @@ if ($ChangedFiles) {
     # Resolve-GradleModulesForPaths documents. A narrower set here means a missed finding.
     $wanted = @($ChangedFiles | ForEach-Object { ([string]$_) -split ',' } |
         ForEach-Object { $_.Trim() -replace '\\', '/' } | Where-Object { $_ })
+    # S2693 re-audit: the same population as the tree walk. A changed docs/ page mentions the probe
+    # in prose and is never executed, yet a set naming it was judged and failed while the bare run
+    # never looked at it - two answers for one file. Only what the machine or the model executes
+    # is inspected in either mode.
+    $wanted = @($wanted | Where-Object {
+            $rel = $_
+            ($scanRootFiles -contains $rel) -or ($scanRoots | Where-Object { $rel.StartsWith($_ + '/') })
+        })
     foreach ($rel in $wanted) {
         $full = Join-Path $repoRoot $rel
         if (Test-Path -LiteralPath $full -PathType Leaf) { $candidates += (Get-Item -LiteralPath $full) }

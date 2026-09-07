@@ -636,4 +636,5 @@
     <string name="body_sensor_reason_sensor_off_body">Put the watch on and try again</string>
     <string name="body_sensor_reason_measurement_timed_out">No reading arrived. Try again</string>
     <string name="body_sensor_reason_measurement_failed">The sensor did not answer. Try again</string>
+    <string name="wear_media_types_source_unsupported">This resource holds only file kinds the watch cannot show. Open it on the phone.</string>
 </resources>

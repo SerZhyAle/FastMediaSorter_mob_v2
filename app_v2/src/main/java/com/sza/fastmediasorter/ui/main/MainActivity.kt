@@ -15,6 +15,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
@@ -47,7 +48,6 @@ import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
-import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
@@ -136,6 +136,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var linkDownloadManager: MainLinkDownloadManager
     private lateinit var exitButtonManager: MainExitButtonManager
     private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
+
+    // S2673: route-availability probe for the programs menu, built by the helper factory so this
+    // Activity declares no domain dependency of its own (CLAUDE.md Rule 3).
+    private val subProgramAvailability: (String) -> Boolean by lazy {
+        mainHelperFactory.createSubProgramAvailabilityProbe { latestSettings }
+    }
     private lateinit var screenRecordingMenuManager: MainScreenRecordingMenuManager
     private lateinit var screenRecordingManager: MainScreenRecordingManager
     private lateinit var broadcastMenuManager: MainBroadcastMenuManager
@@ -810,28 +816,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun getMainWindowDropdownMenuItemCount(): Int =
         programsMenuCoordinator.itemCount(currentProgramsMenuGate())
 
-    // S0774: resolve the runtime flags + media capabilities into the coordinator's gate snapshot. The
-    // flags are mutated by the settings collector, so this is recomputed on every menu build.
+    // S0774: resolve the runtime flags + media capabilities into the coordinator's gate snapshot.
+    // S2673: only the three items the sub-program registry does not govern are named here; every
+    // sub-program is answered by the route-availability chain, so this activity holds no mapping from
+    // a route key to a boolean.
     private fun currentProgramsMenuGate() = MainProgramsMenuCoordinator.ProgramsMenuGate(
         streams = capabilityAvailability.isStreamsAvailable() && isStreamsEnabled,
         // S0962 (VR Cinema, Pillar 1): visible only on an XR device with the VR-3D master toggle on; the
         // launch manager mirrors that runtime state (same gate as the file/resource context-menu items).
         vrCinema = resourceVrCinemaLaunchManager.isAvailable,
-        quickVoice = isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-        quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
-            (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
-        calculator = isCalculatorEnabled,
-        stopwatch = isStopwatchEnabled,
-        networkMonitor = isNetworkMonitorEnabled,
-        cameraOcr = isCameraOcrEnabled,
-        linkDownload = isLinkDownloadEnabled,
-        miniGame = isEmbeddedGameEnabled,
-        screenRecording = isScreenRecordingEnabled,
-        systemInfo = isSystemInfoEnabled,
-        wearCompanion = isWearCompanionEnabled,
-        frontFlashlight = isFrontFlashlightEnabled,
-        waterFlashlight = isWaterFlashlightEnabled,
         broadcast = broadcastSourceController.isAvailable,
+        isSubProgramAvailable = subProgramAvailability,
     )
 
     private fun showMainWindowDropdownMenu() {

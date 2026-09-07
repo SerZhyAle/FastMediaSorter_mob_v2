@@ -24,6 +24,11 @@ private val SENT_AT = System.currentTimeMillis() - 60_000L
 private val RECEIVED_AT = SENT_AT + SKEW
 private const val MERGE_ID = "res-1"
 
+// S2641: the phone half of the source contract, ResourceType.WATCH_TRANSFERABLE, spelled out here
+// because the two modules share no artifact. The pair is compared as text by
+// scripts/quality/assert-wear-wire-vocabulary-parity.ps1; this list makes the watch half executable.
+private val CONTRACT_NAMES = listOf("SMB", "FTP", "SFTP")
+
 class ImportNetworkSourcesUseCaseTest {
 
     private lateinit var fakeRepository: FakeNetworkSourceRepository
@@ -89,6 +94,30 @@ class ImportNetworkSourcesUseCaseTest {
         assertEquals(1, result.added)
         assertEquals(0, result.updated)
         assertEquals(1, result.skipped)
+    }
+
+    @Test
+    fun `every name of the transfer contract is accepted`() = runTest {
+        val payload = freshPayload(CONTRACT_NAMES.mapIndexed { i, type -> makePayloadItem("id-$i", type) })
+
+        val result = useCase(payload)
+
+        assertEquals(CONTRACT_NAMES.size, result.added)
+        assertEquals(0, result.skipped)
+        assertEquals(CONTRACT_NAMES.size, fakeRepository.upsertCallCount)
+    }
+
+    @Test
+    fun `phone type outside the transfer contract is skipped and stores nothing`() = runTest {
+        // CLOUD is a real ResourceType on the phone and is deliberately outside WATCH_TRANSFERABLE:
+        // this watch carries no client that could open it, so arriving at all would be the defect.
+        val payload = freshPayload(listOf(makePayloadItem("cloud-1", "CLOUD")))
+
+        val result = useCase(payload)
+
+        assertEquals(0, result.added)
+        assertEquals(1, result.skipped)
+        assertEquals(0, fakeRepository.upsertCallCount)
     }
 
     @Test

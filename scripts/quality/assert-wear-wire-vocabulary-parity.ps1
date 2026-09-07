@@ -29,6 +29,11 @@
        below. This is what makes a new vocabulary impossible to add silently - the half that outlives
        the eight rows, since the rows only cover what existed when they were written.
 
+    Discovery keys on a name declared in both modules, so a vocabulary whose two sides are NOT
+    same-named is invisible to it and can only be covered by a row. S2641 added the first such row:
+    the phone's ResourceType.WATCH_TRANSFERABLE subset against the watch's parseType branch list.
+    A channel of that shape must be declared here by hand - nothing will discover it.
+
     A row is Mirrored - the two sides must declare the same vocabulary - or LocalOnly, which asserts
     the OPPOSITE: the name is shared by coincidence and the type must never reach the wire. LocalOnly
     is not an exemption from checking, it is a different check, so the asymmetry stays legal only
@@ -77,6 +82,10 @@ $problems = @()
 $unreadable = @()
 
 $vocabularies = @(
+    @{ Name = 'WearDataLayerPaths route constants'; Kind = 'Mirrored'; Compare = 'constMapByValuePrefix'
+       PhoneFile = 'service/WearDataLayerPaths.kt'; WatchFile = 'data/wear/WearDataLayerPaths.kt'
+       ValuePrefix = '/fms/' },
+
     @{ Name = 'EVENT_* (WearEventEnvelope.eventType)'; Kind = 'Mirrored'; Compare = 'constMap'
        PhoneFile = 'service/WearDataLayerPaths.kt'; WatchFile = 'data/wear/WearDataLayerPaths.kt'
        Prefix = 'EVENT_' },
@@ -108,6 +117,16 @@ $vocabularies = @(
     @{ Name = 'WearPhoneResourceResponseStatus'; Kind = 'Mirrored'; Compare = 'serializedVsPlain'
        PhoneFile = 'domain/model/WearPhoneResourcePayload.kt'; WatchFile = 'domain/model/WearPhoneResourcePayload.kt'
        Type = 'WearPhoneResourceResponseStatus' },
+
+    # S2641: the one row whose two sides are not same-named, and the reason the DISCOVERY half below
+    # cannot be the only guard. The phone puts ResourceType.name into a source payload after filtering
+    # by the WATCH_TRANSFERABLE subset; the watch resolves it by explicit branch in parseType and drops
+    # an unlisted name as a skipped record. Neither declaration is an enum the other module declares,
+    # so widening one alone compiles both modules and loses the source at import with no message.
+    @{ Name = 'ResourceType.WATCH_TRANSFERABLE / ImportNetworkSourcesUseCase.parseType'
+       Kind = 'Mirrored'; Compare = 'namedSetVsWhenLiterals'
+       PhoneFile = 'domain/model/Models.kt'; WatchFile = 'domain/usecase/ImportNetworkSourcesUseCase.kt'
+       PhoneSet = 'WATCH_TRANSFERABLE'; WatchFunction = 'parseType' },
 
     # Not a wire vocabulary, but both copies' KDoc states the invariant in words - "the copy is
     # deliberate and the pair must move together" - so the row makes that claim checkable instead of
@@ -188,6 +207,10 @@ foreach ($v in $vocabularies) {
             $phoneMap = Get-KotlinConstMap -Source $phone -Prefix $v.Prefix
             $watchMap = Get-KotlinConstMap -Source $watch -Prefix $v.Prefix
         }
+        'constMapByValuePrefix' {
+            $phoneMap = Get-KotlinConstMapByValuePrefix -Source $phone -ValuePrefix $v.ValuePrefix
+            $watchMap = Get-KotlinConstMapByValuePrefix -Source $watch -ValuePrefix $v.ValuePrefix
+        }
         'companionConstMap' {
             $phoneMap = Get-KotlinCompanionConstMap -Source $phone -ClassName $v.Class -Prefix $v.Prefix
             $watchMap = Get-KotlinCompanionConstMap -Source $watch -ClassName $v.Class -Prefix $v.Prefix
@@ -195,6 +218,12 @@ foreach ($v in $vocabularies) {
         'enum' {
             Get-KotlinEnumMember -Source $phone -TypeName $v.Type | ForEach-Object { $phoneMap[$_] = $_ }
             Get-KotlinEnumMember -Source $watch -TypeName $v.Type | ForEach-Object { $watchMap[$_] = $_ }
+        }
+        'namedSetVsWhenLiterals' {
+            # S2641: a subset declaration against a branch list. Compared as a set of names, because
+            # neither side has an order the wire can observe.
+            Get-KotlinNamedSetMember   -Source $phone -SetName $v.PhoneSet       | ForEach-Object { $phoneMap[$_] = $_ }
+            Get-KotlinWhenBranchLiteral -Source $watch -FunctionName $v.WatchFunction | ForEach-Object { $watchMap[$_] = $_ }
         }
         'serializedVsPlain' {
             # The phone pins its wire names with @SerializedName and the watch resolves the raw name

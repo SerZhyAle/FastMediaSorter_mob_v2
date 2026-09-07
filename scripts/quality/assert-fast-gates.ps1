@@ -85,9 +85,33 @@
       -Sequential     Run the children one at a time, as before S2451.
       -ThrottleLimit  Concurrent children; 0 (default) derives it from the core count.
 
+    Two verdicts under -ChangedFiles (S2693):
+      Given a changed set, the summary splits in two. YOUR SET holds the gates that actually
+      received the set and judged it; THE TREE holds every gate that judged the whole project
+      regardless. Only YOUR SET decides the exit code; a red TREE names its gates, says the work
+      belongs to someone else, and leaves the exit code at 0.
+
+      One promotion, and it is the only way a tree gate reaches the exit code: a tree gate whose
+      FAIL output names a path from the changed set moves into YOUR SET (journal scope
+      `set-named`). Without it a gate that takes no -ChangedFiles - exit contract, script
+      references, memory budget - would report the caller's OWN defect as advisory, and the
+      split would hide exactly the red it exists to surface (found by the S2693 re-audit).
+
+      Why: measured over the ten days to 2026-09-07, the battery ran 62 times and was clean on
+      none of them, with a median of three red gates per run - the reds being project-wide
+      invariants catching another session's unfinished work in a tree that carries up to six
+      concurrent sessions. A verdict that is red on every run is not read, and the operator who
+      stops reading it also stops seeing the reds that ARE his. The closure facade has judged a
+      delta against HEAD since S1338 for the same reason and holds a 31% FAIL rate against this
+      battery's 100%. This does not weaken the tree's invariants: with no changed set - a release
+      run, a CI run, `.\a.ps1 fg` typed bare - the behaviour is exactly as before, and
+      assert-release-scope-gates.ps1 keeps the tree fatal at the boundary that ships.
+
     Exit codes:
-      0  every gate passed.
-      1  at least one gate failed or is MISSING.
+      0  every gate passed; or, with -ChangedFiles, every gate that judged the changed set
+         passed and only project-wide gates were red.
+      1  at least one gate failed or is MISSING; with -ChangedFiles, at least one gate that
+         judged the changed set failed or is MISSING.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
@@ -429,23 +453,31 @@ $changedFilesAware = @(
 # Build the work list first so a MISSING gate is settled without spawning anything, and so
 # every item carries the table index - the one thing that restores table order after the
 # children finish out of order.
+# S2693: $split is the whole condition for the two-verdict form. A gate's scope is not a property
+# of the gate - it is a property of THIS invocation: the same gate judges the caller's files when
+# it was handed them and the whole tree when it was not, which is ADR-2 of S2693 (the area a gate
+# judges follows the caller). So the classification is computed here, beside the forwarding
+# decision it mirrors, and never looked up from a second list that could drift away from it.
+$split = [bool]$ChangedFiles
 $index = 0
 $work = [System.Collections.Generic.List[object]]::new()
 $missing = [System.Collections.Generic.List[object]]::new()
 foreach ($entry in $gates.GetEnumerator()) {
+    $judgesSet = $split -and ($entry.Key -in $changedFilesAware)
+    $scope = if (-not $split) { $null } elseif ($judgesSet) { 'set' } else { 'tree' }
     $path = Join-Path $PSScriptRoot $entry.Key
     if (-not (Test-Path $path)) {
-        $missing.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Status = 'MISSING'; ExitCode = 2; Ms = 0; Output = '' })
+        $missing.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Status = 'MISSING'; ExitCode = 2; Ms = 0; Output = ''; Scope = $scope })
         $index++
         continue
     }
     $extraArgs = @($entry.Value)
-    if ($ChangedFiles -and ($entry.Key -in $changedFilesAware)) {
+    if ($judgesSet) {
         # S1184: comma-joined, never one element per file - `pwsh -File` binds only the
         # first element to [string[]] and rejects the rest as positional arguments.
         $extraArgs += @('-ChangedFiles', ($ChangedFiles -join ','))
     }
-    $work.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Path = $path; GateArgs = $extraArgs })
+    $work.Add([pscustomobject]@{ Index = $index; Gate = $entry.Key; Path = $path; GateArgs = $extraArgs; Scope = $scope })
     $index++
 }
 
@@ -477,6 +509,7 @@ $runOne = {
         ExitCode = $code
         Ms       = [int]$sw.Elapsed.TotalMilliseconds
         Output   = $captured
+        Scope    = $item.Scope
     }
 }
 
@@ -490,14 +523,54 @@ else {
     @($work | ForEach-Object -Parallel $parallelBody -ThrottleLimit $throttle)
 }
 
+# S2693 re-audit: the needles a red tree gate is searched for. Both slash forms of the repo-relative
+# path, never the bare file name - a name like README.md would promote on someone else's finding.
+$changedNeedles = @()
+if ($split) {
+    $repoRootPath = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path.TrimEnd('\', '/')
+    foreach ($entry in @($ChangedFiles)) {
+        foreach ($raw in @([string]$entry -split ',')) {
+            $rel = $raw.Trim().Replace('\', '/')
+            if (-not $rel) { continue }
+            if ($rel.StartsWith('./')) { $rel = $rel.Substring(2) }
+            $rootFwd = $repoRootPath.Replace('\', '/')
+            if ($rel.StartsWith($rootFwd, [System.StringComparison]::OrdinalIgnoreCase)) {
+                $rel = $rel.Substring($rootFwd.Length).TrimStart('/')
+            }
+            $changedNeedles += @($rel, $rel.Replace('/', '\'))
+        }
+    }
+}
+function Test-OutputNamesChangedFile {
+    param([string]$Output)
+    if (-not $Output) { return $false }
+    foreach ($needle in $changedNeedles) {
+        if ($Output.IndexOf($needle, [System.StringComparison]::OrdinalIgnoreCase) -ge 0) { return $true }
+    }
+    return $false
+}
+
 $results = [System.Collections.Generic.List[object]]::new()
 foreach ($r in (@($completed) + @($missing) | Sort-Object Index)) {
     if ($r.Output) { Write-Host $r.Output.TrimEnd() }
-    $results.Add([pscustomobject]@{ Gate = $r.Gate; Status = $r.Status; Ms = $r.Ms })
+    $rowScope = $r.Scope
+    if ($rowScope -eq 'tree' -and $r.Status -eq 'FAIL' -and (Test-OutputNamesChangedFile -Output $r.Output)) {
+        $rowScope = 'set-named'
+    }
+    $r.Scope = $rowScope
+    $results.Add([pscustomobject]@{ Gate = $r.Gate; Status = $r.Status; Ms = $r.Ms; Scope = $r.Scope })
     # Written here, by the parent, never inside a runspace: Write-GateTelemetryRecord appends to
     # one JSONL file and swallows its own failures, so a concurrent append would lose records in
     # silence rather than report an error.
-    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate $r.Gate -Status $r.Status -ExitCode $r.ExitCode -ElapsedMs $r.Ms
+    $telemetry = @{
+        Runner    = 'assert-fast-gates'
+        Gate      = $r.Gate
+        Status    = $r.Status
+        ExitCode  = $r.ExitCode
+        ElapsedMs = $r.Ms
+    }
+    if ($r.Scope) { $telemetry['Scope'] = $r.Scope }
+    Write-GateTelemetryRecord @telemetry
 }
 
 if ($IncludeDetekt) {
@@ -507,29 +580,85 @@ if ($IncludeDetekt) {
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
     & $pwshExe @detektArgs | Write-Host
     $sw.Stop()
-    $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
-    $results.Add([pscustomobject]@{ Gate = 'assert-detekt.ps1'; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })
-    Write-GateTelemetryRecord -Runner 'assert-fast-gates' -Gate 'assert-detekt.ps1' -Status $status -ExitCode ([int]$LASTEXITCODE) -ElapsedMs ([int]$sw.Elapsed.TotalMilliseconds)
+    $detektExitCode = [int]$LASTEXITCODE
+    $status = ($detektExitCode -eq 0) ? 'PASS' : 'FAIL'
+    # Handed the changed set above, so under -ChangedFiles it narrows its findings to those files
+    # and belongs to the set verdict.
+    $detektScope = if ($split) { 'set' } else { 'tree' }
+    $results.Add([pscustomobject]@{ Gate = 'assert-detekt.ps1'; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds; Scope = $detektScope })
+    $detektTelemetry = @{
+        Runner    = 'assert-fast-gates'
+        Gate      = 'assert-detekt.ps1'
+        Status    = $status
+        ExitCode  = $detektExitCode
+        ElapsedMs = [int]$sw.Elapsed.TotalMilliseconds
+    }
+    $detektTelemetry['Scope'] = $detektScope
+    . (Join-Path $PSScriptRoot 'lib/detekt-report.ps1')
+    $detektRepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    $detektModules = if ($PSBoundParameters.ContainsKey('Module')) { @($Module) } else { @('app_v2', 'wear') }
+    $detektFindings = Get-DetektFindings -RepoRoot $detektRepoRoot -Modules $detektModules
+    $detektTelemetry['FindingDetailsAvailable'] = [bool]$detektFindings.Ok
+    if ($detektFindings.Ok) {
+        $detektTelemetry['FindingCount'] = @($detektFindings.Findings).Count
+        $detektTelemetry['FindingPaths'] = @($detektFindings.Findings | ForEach-Object { $_.File } |
+                Sort-Object -Unique)
+    }
+    Write-GateTelemetryRecord @detektTelemetry
+}
+
+function Write-GateBlock {
+    param(
+        [Parameter(Mandatory = $true)][string]$Title,
+        [Parameter(Mandatory = $true)][AllowEmptyCollection()][object[]]$Rows
+    )
+
+    Write-Host $Title -ForegroundColor Cyan
+    foreach ($r in $Rows) {
+        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } default { 'Yellow' } }
+        $named = if ($r.Scope -eq 'set-named') { ' - names a file in your set' } else { '' }
+        Write-Host ("  {0,-40} {1} ({2} ms){3}" -f $r.Gate, $r.Status, $r.Ms, $named) -ForegroundColor $color
+    }
+    return @($Rows | Where-Object { $_.Status -ne 'PASS' })
 }
 
 Write-Host ''
-Write-Host 'assert-fast-gates summary:' -ForegroundColor Cyan
-$failed = 0
-foreach ($r in $results) {
-    $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } default { 'Yellow' } }
-    Write-Host ("  {0,-40} {1} ({2} ms)" -f $r.Gate, $r.Status, $r.Ms) -ForegroundColor $color
-    if ($r.Status -ne 'PASS') { $failed++ }
+if ($split) {
+    $setRows = @($results | Where-Object { $_.Scope -in @('set', 'set-named') })
+    $treeRows = @($results | Where-Object { $_.Scope -notin @('set', 'set-named') })
+    $setFailures = @(Write-GateBlock -Title 'assert-fast-gates summary - YOUR SET:' -Rows $setRows)
+    Write-Host ''
+    $treeFailures = @(Write-GateBlock -Title 'assert-fast-gates summary - THE TREE (advisory):' -Rows $treeRows)
+    $failed = $setFailures.Count
+}
+else {
+    $allFailures = @(Write-GateBlock -Title 'assert-fast-gates summary:' -Rows @($results))
+    $treeFailures = @()
+    $failed = $allFailures.Count
 }
 
 $batchStopwatch.Stop()
 $batchMs = [int]$batchStopwatch.Elapsed.TotalMilliseconds
 Write-Host ("  {0,-40} {1} ms (batch wall clock)" -f '(batch)', $batchMs) -ForegroundColor Cyan
 
+$batchScope = if ($split) { 'split' } else { $null }
+$batchArgs = @{ Runner = 'assert-fast-gates'; ElapsedMs = $batchMs }
+if ($batchScope) { $batchArgs['Scope'] = $batchScope }
+
+if ($treeFailures.Count -gt 0) {
+    Write-Host ''
+    Write-Host ("assert-fast-gates: {0} project-wide gate(s) are red on work outside your set - {1}." -f
+        $treeFailures.Count, (($treeFailures | ForEach-Object { $_.Gate }) -join ', ')) -ForegroundColor Yellow
+    Write-Host '  Advisory: these judge the whole tree, which carries other sessions. They stay fatal' -ForegroundColor Yellow
+    Write-Host '  in assert-release-scope-gates.ps1 and in any run given no -ChangedFiles.' -ForegroundColor Yellow
+}
+
 if ($failed -gt 0) {
-    Write-GateBatchTelemetryRecord -Runner 'assert-fast-gates' -ExitCode 1 -ElapsedMs $batchMs
+    Write-GateBatchTelemetryRecord @batchArgs -ExitCode 1
     Write-Host "assert-fast-gates: FAIL ($failed gate(s))." -ForegroundColor Red
     exit 1
 }
-Write-GateBatchTelemetryRecord -Runner 'assert-fast-gates' -ExitCode 0 -ElapsedMs $batchMs
-Write-Host 'assert-fast-gates: PASS (all fast gates green).' -ForegroundColor Green
+Write-GateBatchTelemetryRecord @batchArgs -ExitCode 0
+$verdict = if ($split) { 'PASS (every gate judging your set is green).' } else { 'PASS (all fast gates green).' }
+Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green
 exit 0

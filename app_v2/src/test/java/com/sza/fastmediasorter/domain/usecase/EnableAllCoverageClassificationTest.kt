@@ -116,6 +116,96 @@ class EnableAllCoverageClassificationTest {
         assertTrue("Enable-all left Dropbox off on a build that carries it.", after.dropboxEnabled)
     }
 
+    /**
+     * S2684: the «Send to..» registry is two sets of ids rather than a boolean, so no [Coverage] bucket can
+     * hold its decision and this is the only place the answer is pinned. The two halves are asserted
+     * together on purpose - clearing the opt-outs while also clearing the opt-ins would read as the same
+     * "recipients came back" in a test that watched one set.
+     */
+    @Test
+    fun `the button drops the share-target opt-outs and keeps the opt-ins`() {
+        val before = AppSettings(
+            disabledShareTargets = setOf("print", "email"),
+            enabledShareTargets = setOf("telegram"),
+        )
+        val after = applyEnableAll(before)
+        assertEquals(
+            "Enable-all left a recipient the user switched off, so a build-default target stayed hidden.",
+            emptySet<String>(),
+            after.disabledShareTargets,
+        )
+        assertEquals(
+            "Enable-all rewrote the explicit opt-ins - a recipient the user chose by hand must survive it.",
+            setOf("telegram"),
+            after.enabledShareTargets,
+        )
+    }
+
+    /**
+     * S2674: all five default to on, so - exactly as with the remote sources above - the diff test can
+     * never observe them and the run starts from a user who switched every one of them off.
+     */
+    @Test
+    fun `the button switches the file-operation flags back on when the user turned them off`() {
+        val before = AppSettings(
+            enableCopying = false,
+            enableMoving = false,
+            enableUndo = false,
+            enablePictureInPicture = false,
+            allowRename = false,
+        )
+        val after = applyEnableAll(before)
+        assertTrue("Enable-all left copying off.", after.enableCopying)
+        assertTrue("Enable-all left moving off.", after.enableMoving)
+        assertTrue("Enable-all left undo off.", after.enableUndo)
+        assertTrue(
+            "Enable-all left picture-in-picture off on a build that carries a player.",
+            after.enablePictureInPicture,
+        )
+        assertTrue("Enable-all left renaming off.", after.allowRename)
+    }
+
+    /**
+     * S2674: [CLASSIFICATION] can only cover booleans, so a capability expressed as an enum or a number
+     * carries no coverage decision at all. The gate is deliberately narrowed to names that ANNOUNCE a
+     * capability: the settings model holds about a hundred ordinary non-boolean fields - intervals,
+     * languages, sort modes - and failing on each new one would train the reader to re-baseline without
+     * looking. The two share-target sets it does catch are excused by name, each against the ticket that
+     * owes the answer - an excuse is a carried question, never a silenced one.
+     */
+    @Test
+    fun `no capability-shaped setting hides behind a non-boolean type`() {
+        val suspicious = AppSettings::class.java.declaredFields
+            .filter { !it.isSynthetic }
+            .filter { !Modifier.isStatic(it.modifiers) }
+            .filter { it.type != java.lang.Boolean.TYPE }
+            .map { it.name }
+            .filterTo(mutableSetOf()) { name ->
+                CAPABILITY_NAME_PREFIXES.any { name.startsWith(it) } || name.endsWith("Enabled")
+            }
+        suspicious -= CAPABILITY_SHAPED_EXCUSED.keys
+        suspicious -= CAPABILITY_SHAPED_DECIDED.keys
+        assertEquals(
+            "A setting whose name announces a capability is not a Boolean, so no coverage decision can " +
+                "reach it. Either give it a boolean master switch this file classifies, rename it to " +
+                "describe the mode it actually picks, or excuse it in CAPABILITY_SHAPED_EXCUSED against " +
+                "the ticket that owes the answer.",
+            emptySet<String>(),
+            suspicious,
+        )
+        val declaredNames = AppSettings::class.java.declaredFields.mapTo(mutableSetOf()) { it.name }
+        assertEquals(
+            "An excused name is no longer a field in AppSettings - drop it from CAPABILITY_SHAPED_EXCUSED.",
+            emptySet<String>(),
+            CAPABILITY_SHAPED_EXCUSED.keys - declaredNames,
+        )
+        assertEquals(
+            "A decided name is no longer a field in AppSettings - drop it from CAPABILITY_SHAPED_DECIDED.",
+            emptySet<String>(),
+            CAPABILITY_SHAPED_DECIDED.keys - declaredNames,
+        )
+    }
+
     private fun applyEnableAll(start: AppSettings): AppSettings {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         val routeAvailability = mockk<ResolvePanelRouteAvailabilityUseCase>()
@@ -156,21 +246,49 @@ class EnableAllCoverageClassificationTest {
 
     private companion object {
 
+        /** S2674: name shapes that claim a capability exists, rather than picking how one behaves. */
+        val CAPABILITY_NAME_PREFIXES = listOf("enable", "allow", "disable", "support")
+
+        /**
+         * S2674: a capability-shaped non-boolean whose coverage question is real but belongs to another
+         * ticket. The value is that ticket, so the excuse names its owner and expires when the owner
+         * answers. Empty is the healthy state: every such field is either decided below or has no ticket
+         * yet, and the map stays here so the next one is parked rather than deleted.
+         */
+        val CAPABILITY_SHAPED_EXCUSED: Map<String, String> = emptyMap()
+
+        /**
+         * S2684: a capability-shaped non-boolean whose coverage question has been answered, against the
+         * answer itself rather than against a ticket. Separate from [CAPABILITY_SHAPED_EXCUSED] because
+         * the two mean opposite things to a reader deciding whether a field still owes work; the behaviour
+         * behind each entry is pinned by `the button drops the share-target opt-outs and keeps the
+         * opt-ins`, since a set of ids fits no [Coverage] bucket.
+         */
+        val CAPABILITY_SHAPED_DECIDED: Map<String, String> = mapOf(
+            "disabledShareTargets" to "Cleared by the button - a recipient the build ships on comes back.",
+            "enabledShareTargets" to "Untouched - the registry's ALWAYS_OFF recipients stay the user's choice.",
+        )
+
         val CLASSIFICATION: Map<Coverage, Set<String>> = mapOf(
             Coverage.ENABLED_BY_BUTTON to setOf(
                 "acceptSharedFiles",
                 "allFiles",
+                "allowRename",
                 "disableCameraCapture",
                 "disableVideoCapture",
                 "dropboxEnabled",
                 "embeddedGameEnabled",
                 "enableCalculator",
+                "enableCopying",
                 "enableFavorites",
+                "enableMoving",
                 "enableNetworkMonitor",
                 "enablePersistentAudioPlayback",
+                "enablePictureInPicture",
                 "enableScheduledOperations",
                 "enableStopwatch",
                 "enableSystemInfo",
+                "enableUndo",
                 "enableWearCompanion",
                 "frontFlashlightEnabled",
                 "ftpEnabled",
@@ -194,6 +312,7 @@ class EnableAllCoverageClassificationTest {
                 "waterFlashlightEnabled",
             ),
             Coverage.ENABLED_AFTER_INSTALL to setOf(
+                "cameraOcrTranslationEnabled",
                 "enableOcr",
                 "enableStreams",
                 "enableTranslation",
@@ -205,6 +324,7 @@ class EnableAllCoverageClassificationTest {
                 "secureSensitiveScreens",
             ),
             Coverage.DESTRUCTIVE_OR_DATA_RISK to setOf(
+                "allowDelete",
                 "overwriteOnCopy",
                 "overwriteOnMove",
                 "useTrash",
@@ -227,15 +347,15 @@ class EnableAllCoverageClassificationTest {
                 "screenRecordingDisclosureAccepted",
             ),
             Coverage.PREFERENCE_MODE_OR_STATE to setOf(
-                "allowDelete",
-                "allowRename",
+                // S2674: a device property, not a build one - MultiWindowCapabilityDetector computes its
+                // first-run default, and S0184 decided that on an ordinary phone "open in a new window"
+                // must not appear. A button switching it on everywhere would restore that defect.
                 "allowSeparateWindow",
                 "alwaysShowTouchZonesOverlay",
                 "cameraCaptureCopyToClipboard",
                 "cameraCaptureOpenForEditing",
                 "cameraGridEnabled",
                 "cameraOcrOnly",
-                "cameraOcrTranslationEnabled",
                 "confirmDelete",
                 "confirmMove",
                 "copyPanelCollapsed",
@@ -247,12 +367,8 @@ class EnableAllCoverageClassificationTest {
                 "disable3dVr",
                 "disableAnimations",
                 "dynamicBackgroundExtension",
-                "enableCopying",
-                "enableMoving",
-                "enablePictureInPicture",
                 "enablePlayerWarmup",
                 "enableSafeMode",
-                "enableUndo",
                 "fileOpsInOverflowMenu",
                 "fileOpsOverflowMenuHintShown",
                 "goToNextAfterCopy",

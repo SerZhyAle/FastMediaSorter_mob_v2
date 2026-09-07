@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.browse
 
+import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
 import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
@@ -101,31 +102,25 @@ object BrowseCategoryCatalog {
      * `supportedMediaTypes` and `allFiles` flag, narrowed by what the user left enabled in Wear settings.
      */
     fun categoriesForSource(
-        source: com.sza.fastmediasorter.wear.domain.model.NetworkSource?,
+        source: NetworkSource?,
         allowedTypes: Set<WearContentType>
     ): List<WearBrowseCategory> {
         if (source == null) {
             return categoriesFor(WearCategoryOrigin.NETWORK_SOURCE, allowedTypes)
         }
-        val supportedTypes = mutableSetOf<WearContentType>()
-        if (source.allFiles) {
-            supportedTypes.addAll(DISABLEABLE_TYPES)
-        } else if (!source.supportedMediaTypes.isNullOrEmpty()) {
-            for (typeStr in source.supportedMediaTypes) {
-                when (typeStr.uppercase()) {
-                    "AUDIO" -> supportedTypes.add(WearContentType.MUSIC)
-                    "VIDEO" -> supportedTypes.add(WearContentType.VIDEO)
-                    "IMAGE", "GIF" -> supportedTypes.add(WearContentType.IMAGE)
-                    "TEXT", "PDF", "EPUB", "OFFICE_DOCUMENT", "DOCUMENT" -> supportedTypes.add(WearContentType.DOCUMENT)
-                }
-            }
-        } else {
-            supportedTypes.addAll(NETWORK_PRESENTABLE_TYPES)
-        }
+        val supportedTypes = supportedTypesOf(source)
 
         return VOCABULARY.filter { category ->
             val isSupportedBySource = when (category.token) {
-                TOKEN_ALL, TOKEN_BROWSE -> source.allFiles
+                TOKEN_ALL -> source.allFiles
+                // S2694: a share has a folder walk now - the walk route serves a network level
+                // through its own level repository - so the entry names a shape the module does
+                // produce. Offered regardless of `allFiles`: that flag says what the flat listing
+                // may include, not whether the share has a tree, and every share has one. Stated
+                // `true` rather than left to the type test, so this narrow branch cannot drift
+                // from the origin-wide answer: [isPresentable] allows it, `FOLDER` being in
+                // [NETWORK_PRESENTABLE_TYPES].
+                TOKEN_BROWSE -> true
                 TOKEN_RECENTS -> false
                 // S2495: stated rather than left to the type test, which only refuses it by accident.
                 TOKEN_VOICE_NOTES -> false
@@ -136,6 +131,74 @@ object BrowseCategoryCatalog {
                 else -> category.type in supportedTypes
             }
             isSupportedBySource && isEnabled(category.type, allowedTypes)
+        }
+    }
+
+    /**
+     * S2640: the watch content types [source] declares, with every phone token answered.
+     *
+     * The phone sends the names of its own `MediaType` constants verbatim, and four of them -
+     * the `BINARY_*` group - name file kinds this module has no way to list: the only path to a
+     * network source's files filters a directory listing by mime prefix, and the three prefixes it
+     * knows are audio, video and image. Before this method that absence was expressed by a `when`
+     * with no `else`, which is indistinguishable from forgetting the token: a source allowed only
+     * binary files produced an empty set, then an empty category list, and the screen blamed the
+     * watch's own settings for it. The mapping is total now, so a thirteenth constant added on the
+     * phone tomorrow lands in [emptyReasonForSource]'s explainable branch instead of in silence.
+     */
+    private fun supportedTypesOf(source: NetworkSource): Set<WearContentType> = when {
+        source.allFiles -> DISABLEABLE_TYPES
+        !source.supportedMediaTypes.isNullOrEmpty() ->
+            source.supportedMediaTypes.mapNotNullTo(mutableSetOf()) { wearTypeForPhoneToken(it) }
+        else -> NETWORK_PRESENTABLE_TYPES
+    }
+
+    /**
+     * The watch content type a phone `MediaType` constant name stands for, or null when this module
+     * cannot present that kind of file from a network source at all.
+     *
+     * Null is a stated answer, not a miss - see [supportedTypesOf] for why the four binary kinds and
+     * any name this build does not know share it.
+     */
+    private fun wearTypeForPhoneToken(phoneToken: String): WearContentType? =
+        when (phoneToken.uppercase()) {
+            "AUDIO" -> WearContentType.MUSIC
+            "VIDEO" -> WearContentType.VIDEO
+            "IMAGE", "GIF" -> WearContentType.IMAGE
+            "TEXT", "PDF", "EPUB", "OFFICE_DOCUMENT", "DOCUMENT" -> WearContentType.DOCUMENT
+            else -> null
+        }
+
+    /**
+     * S2640: why [categoriesForSource] came back empty, so the screen can say which of the two it is.
+     *
+     * The two causes call for opposite reactions and the screen showed one message for both: a
+     * source allowed only binary file kinds sent the wearer into a settings screen with nothing in
+     * it to change, because the only message the screen had said every content type was switched
+     * off. Answers [WearSourceEmptyReason.NONE] for a source that does offer something, so a caller
+     * cannot read a reason out of a state that has none.
+     *
+     * S2694: the question is about the source's MEDIA offering, which is why the walk is excluded
+     * from the test. The walk accompanies every share unconditionally, so reading the whole list
+     * here would answer [WearSourceEmptyReason.NONE] for a share that can present no file kind at
+     * all - the exact silence S2640 was opened to remove.
+     */
+    fun emptyReasonForSource(
+        source: NetworkSource?,
+        allowedTypes: Set<WearContentType>
+    ): WearSourceEmptyReason {
+        val mediaCategories = categoriesForSource(source, allowedTypes)
+            .filterNot { it.token == TOKEN_BROWSE }
+        if (mediaCategories.isNotEmpty()) {
+            return WearSourceEmptyReason.NONE
+        }
+        // A null source is the un-narrowed network origin, which offers a fixed set this module can
+        // always present - nothing but settings can empty it.
+        val presentable = source?.let { supportedTypesOf(it) } ?: NETWORK_PRESENTABLE_TYPES
+        return if (presentable.isEmpty()) {
+            WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED
+        } else {
+            WearSourceEmptyReason.TYPES_DISABLED_IN_SETTINGS
         }
     }
 
@@ -177,8 +240,13 @@ object BrowseCategoryCatalog {
      *   targetSdk 36 without special access - is reconstructed as a hierarchy by grouping rows on
      *   `RELATIVE_PATH`.
      * - A network share is listed one directory at a time over SMB, FTP or SFTP, with no index to
-     *   sort by date across directories and no document handling, so it stays at the three media
-     *   types it can filter a single listing down to.
+     *   sort by date across directories, so it stays at what it can filter a single listing down to
+     *   by file name. S2691 made that four types rather than three: documents classify by mime like
+     *   the media kinds do, and a document opened from a share reaches the same unsupported-file
+     *   screen a document on the watch's own store does (S2006). S2694 added the folder walk, which
+     *   is not a filtered listing at all - it reads one level at a time through the same walk screen
+     *   the watch's own store uses. Recents is the one this cannot reach - no index means no
+     *   cross-directory date order.
      *
      * The paired phone has all seven because the phone answers with both list shapes already.
      *
@@ -194,10 +262,24 @@ object BrowseCategoryCatalog {
                 category.token != TOKEN_VOICE_NOTES && category.type in NETWORK_PRESENTABLE_TYPES
         }
 
-    /** What a network share can show: the three media types a single directory listing can filter. */
+    /**
+     * What a network share can show: the types `NetworkListingFilter` can filter a single directory
+     * listing down to.
+     *
+     * S2691: documents joined the three media kinds when that filter learned to read the route's
+     * category token. Before it, this constant and [categoriesForSource] answered the same question
+     * about a share and documents in opposite directions, and the listing itself answered a third
+     * way - by the media type substituted for a token it could not express.
+     *
+     * S2694: `FOLDER` joined them, and it is the one member that owes nothing to that filter - the
+     * walk reads a level through its own repository and never passes through the flat listing. It
+     * is here because [isPresentable] is the origin-wide answer both branches must agree on.
+     */
     private val NETWORK_PRESENTABLE_TYPES: Set<WearContentType> = setOf(
         WearContentType.MUSIC,
         WearContentType.VIDEO,
-        WearContentType.IMAGE
+        WearContentType.IMAGE,
+        WearContentType.DOCUMENT,
+        WearContentType.FOLDER
     )
 }

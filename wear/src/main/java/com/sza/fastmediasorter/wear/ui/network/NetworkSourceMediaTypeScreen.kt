@@ -26,6 +26,9 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.browse.WearSourceEmptyReason
+import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
+import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
@@ -86,9 +89,10 @@ fun NetworkSourceMediaTypeScreen(
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
+        Timber.d("S2692: source %s offers %s", sourceId, categories.joinToString { it.token })
         val only = categories.singleOrNull() ?: return@LaunchedEffect
         Timber.d("S2487: auto-skip single category %s for source %s", only.token, sourceId)
-        navController.navigate(WearRoutes.browseSource(only.token, sourceId, sourceName)) {
+        navController.navigate(routeFor(only, sourceId, sourceName, source)) {
             popUpTo(WearRoutes.SOURCE_MEDIA_TYPE_PATTERN) { inclusive = true }
         }
     }
@@ -99,11 +103,18 @@ fun NetworkSourceMediaTypeScreen(
         positionIndicator = { PositionIndicator(listState) }
     ) {
         if (categories.isEmpty()) {
-            // No retry: the list is empty because a settings read succeeded and returned three
-            // disabled types, so repeating that read would return the same answer.
+            // No retry: the list is empty because a settings read succeeded and returned an answer,
+            // so repeating that read would return the same one. S2640: which answer it was decides
+            // the message - a source allowed only binary file kinds is not a switched-off setting,
+            // and naming settings for it sends the wearer somewhere with nothing to change.
+            val reason = BrowseCategoryCatalog.emptyReasonForSource(
+                source = source,
+                allowedTypes = settings.allowedContentTypes()
+            )
+            Timber.d("S2640: source %s offers no category, reason %s", sourceId, reason)
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
-                message = stringResource(R.string.wear_media_types_all_disabled),
+                message = stringResource(messageFor(reason)),
                 onBack = { navController.popBackStack() }
             )
             return@WearScreenScaffold
@@ -132,14 +143,49 @@ fun NetworkSourceMediaTypeScreen(
                     categories = categories,
                     columns = columns,
                     onCategoryClick = { category ->
-                        navController.navigate(
-                            WearRoutes.browseSource(category.token, sourceId, sourceName)
-                        )
+                        navController.navigate(routeFor(category, sourceId, sourceName, source))
                     }
                 )
             }
         }
     }
+}
+
+/**
+ * S2694: where a chosen category goes.
+ *
+ * Every media token opens the flat listing it always did; the browse token opens the folder walk,
+ * which is a different route with a different argument shape - it carries a level address, not a
+ * media type. The entry level is the source's own base path put through the one normalisation rule
+ * the flat listing already uses, so the walk and the listing cannot disagree about where a share
+ * starts. A source still loading answers null, and the browse token then has no level to open, so
+ * the flat route stays the fallback rather than a crash.
+ */
+private fun routeFor(
+    category: WearBrowseCategory,
+    sourceId: String,
+    sourceName: String,
+    source: NetworkSource?
+): String {
+    if (category.token != BrowseCategoryCatalog.TOKEN_BROWSE || source == null) {
+        return WearRoutes.browseSource(category.token, sourceId, sourceName)
+    }
+    val entryPath = NetworkBasePath.normalize(source.basePath, source.type, source.shareName)
+    Timber.d("S2694: browse category opens the network walk at '%s' of source %s", entryPath, sourceId)
+    return WearRoutes.networkFolder(sourceId = sourceId, path = entryPath, sourceName = sourceName)
+}
+
+/**
+ * S2640: the string that names why this source offers nothing.
+ *
+ * [WearSourceEmptyReason.NONE] cannot reach here - the caller tested the list first - but it is an
+ * ordinary member of the enum and answering it with the settings message keeps the mapping total
+ * rather than throwing on a state that is merely unreachable.
+ */
+private fun messageFor(reason: WearSourceEmptyReason): Int = when (reason) {
+    WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED -> R.string.wear_media_types_source_unsupported
+    WearSourceEmptyReason.TYPES_DISABLED_IN_SETTINGS,
+    WearSourceEmptyReason.NONE -> R.string.wear_media_types_all_disabled
 }
 
 private fun ScalingLazyListScope.categoryItems(

@@ -218,7 +218,14 @@ class WelcomeEnableAllManager @Inject constructor(
         // S0971: OCR engines are bundled now, so the enqueue resolves to an immediate install on every
         // install source (including Play) - the former `!isPlayInstall()` gate is gone.
         if (capabilityAvailability.isOcrAvailable(context)) {
-            enqueueAndEnableOnInstall(DeliverableSet.OCR_ENGINES) { it.copy(enableOcr = true) }
+            // S2674: the camera OCR-translation route resolves its build axis through this very
+            // isOcrAvailable(context) call and its runtime axis through cameraOcrTranslationEnabled, so the
+            // flag rises here with enableOcr - never earlier, or the route offers a translator whose
+            // engines are not on disk yet (S0386).
+            enqueueAndEnableOnInstall(DeliverableSet.OCR_ENGINES) {
+                Timber.d("S2674: OCR engines installed - raising the camera translation flag")
+                it.copy(enableOcr = true, cameraOcrTranslationEnabled = true)
+            }
         }
         if (capabilityAvailability.isTranslationAvailable()) {
             enqueueAndEnableOnInstall(DeliverableSet.TRANSLATION) { it.copy(enableTranslation = true) }

@@ -24,6 +24,18 @@ enum class ResourceType {
 
     val isNetworkResource: Boolean
         get() = this in listOf(SMB, SFTP, FTP, CLOUD)
+
+    companion object {
+        /**
+         * S2641: the constant names this app may put into a watch-bound source payload. The watch
+         * parses them back in `ImportNetworkSourcesUseCase.parseType`, which is the other half of the
+         * agreement - it has no client for anything outside this set, and an unparsed name is dropped
+         * at import with no message the owner ever sees. The two halves are compared by
+         * `scripts/quality/assert-wear-wire-vocabulary-parity.ps1`, so widening this set without
+         * adding the matching branch there fails that gate instead of losing a source on the watch.
+         */
+        val WATCH_TRANSFERABLE: Set<ResourceType> = setOf(SMB, FTP, SFTP)
+    }
 }
 
 /**

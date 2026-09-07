@@ -51,16 +51,19 @@ function New-FixtureSandbox {
     $phoneSvc = Join-Path $phoneDir 'service'
     $watchModel = Join-Path $watchDir 'domain/model'
     $watchSvc = Join-Path $watchDir 'data/wear'
+    $watchUseCase = Join-Path $watchDir 'domain/usecase'
 
     New-Item -ItemType Directory -Force -Path $phoneModel | Out-Null
     New-Item -ItemType Directory -Force -Path $phoneSvc | Out-Null
     New-Item -ItemType Directory -Force -Path $watchModel | Out-Null
     New-Item -ItemType Directory -Force -Path $watchSvc | Out-Null
+    New-Item -ItemType Directory -Force -Path $watchUseCase | Out-Null
 
     # Base valid contents
     @'
 package com.sza.fastmediasorter.service
 object WearDataLayerPaths {
+    const val PATH_SHARED = "/fms/shared"
     const val EVENT_A = "event_a"
     const val EVENT_B = "event_b"
 }
@@ -69,6 +72,7 @@ object WearDataLayerPaths {
     @'
 package com.sza.fastmediasorter.wear.data.wear
 object WearDataLayerPaths {
+    const val PATH_SHARED = "/fms/shared"
     const val EVENT_A = "event_a"
     const val EVENT_B = "event_b"
 }
@@ -194,6 +198,36 @@ package com.sza.fastmediasorter.wear.domain.model
 enum class WearSettingsFieldIssue { UNKNOWN_KEY }
 '@ | Set-Content (Join-Path $watchModel 'WearSettingsDecodeResult.kt') -Encoding utf8NoBOM
 
+    # S2641: the one pair whose sides are not same-named - a phone-side subset declaration against a
+    # watch-side branch list. Both files must exist in every fixture, or the row reports "could not
+    # check" (exit 2) and every case below reads as a failure of whatever it was actually testing.
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class ResourceType {
+    LOCAL,
+    SMB,
+    SFTP,
+    FTP,
+    CLOUD;
+
+    companion object {
+        val WATCH_TRANSFERABLE: Set<ResourceType> = setOf(SMB, FTP, SFTP)
+    }
+}
+'@ | Set-Content (Join-Path $phoneModel 'Models.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.usecase
+class ImportNetworkSourcesUseCase {
+    private fun parseType(raw: String): NetworkSourceType? = when (raw.uppercase()) {
+        "SMB" -> NetworkSourceType.SMB
+        "FTP" -> NetworkSourceType.FTP
+        "SFTP" -> NetworkSourceType.SFTP
+        else -> null
+    }
+}
+'@ | Set-Content (Join-Path $watchUseCase 'ImportNetworkSourcesUseCase.kt') -Encoding utf8NoBOM
+
     return @{ Root = $sandbox; Phone = $phoneDir; Watch = $watchDir }
 }
 
@@ -217,6 +251,7 @@ try {
     @'
 package com.sza.fastmediasorter.wear.data.wear
 object WearDataLayerPaths {
+    const val PATH_SHARED = "/fms/shared"
     const val EVENT_A = "event_a_DIVERGED"
     const val EVENT_B = "event_b"
 }
@@ -231,6 +266,7 @@ try {
     @'
 package com.sza.fastmediasorter.wear.data.wear
 object WearDataLayerPaths {
+    const val PATH_SHARED = "/fms/shared"
     const val EVENT_A = "event_b"
     const val EVENT_B = "event_a"
 }
@@ -358,6 +394,59 @@ try {
     Remove-Item (Join-Path $sb.Phone 'service/WearDataLayerPaths.kt') -Force
     $code = Invoke-GateOnSandbox $sb
     Assert-That "10. Declared file missing returns exit 2" ($code -eq 2) "expected 2, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 11: phone widens WATCH_TRANSFERABLE alone (S2641) ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.domain.model
+enum class ResourceType {
+    LOCAL,
+    SMB,
+    SFTP,
+    FTP,
+    CLOUD;
+
+    companion object {
+        val WATCH_TRANSFERABLE: Set<ResourceType> = setOf(SMB, FTP, SFTP, CLOUD)
+    }
+}
+'@ | Set-Content (Join-Path $sb.Phone 'domain/model/Models.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "11. Phone widens the watch-transferable set alone" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 12: watch drops a parseType branch alone (S2641, the same row from the other side) ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.domain.usecase
+class ImportNetworkSourcesUseCase {
+    private fun parseType(raw: String): NetworkSourceType? = when (raw.uppercase()) {
+        "SMB" -> NetworkSourceType.SMB
+        "FTP" -> NetworkSourceType.FTP
+        else -> null
+    }
+}
+'@ | Set-Content (Join-Path $sb.Watch 'domain/usecase/ImportNetworkSourcesUseCase.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "12. Watch drops a parseType branch alone" ($code -eq 1) "expected 1, got $code"
+} finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
+
+# --- Case 13: route value diverges while event vocabulary stays equal ---
+$sb = New-FixtureSandbox
+try {
+    @'
+package com.sza.fastmediasorter.wear.data.wear
+object WearDataLayerPaths {
+    const val PATH_SHARED = "/fms/diverged"
+    const val EVENT_A = "event_a"
+    const val EVENT_B = "event_b"
+}
+'@ | Set-Content (Join-Path $sb.Watch 'data/wear/WearDataLayerPaths.kt') -Encoding utf8NoBOM
+    $code = Invoke-GateOnSandbox $sb
+    Assert-That "13. Route value diverges while event values match" ($code -eq 1) "expected 1, got $code"
 } finally { Remove-Item -Recurse -Force $sb.Root -ErrorAction SilentlyContinue }
 
 Write-Host ''

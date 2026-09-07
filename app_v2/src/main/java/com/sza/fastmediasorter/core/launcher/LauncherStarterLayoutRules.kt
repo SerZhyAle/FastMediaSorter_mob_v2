@@ -88,9 +88,9 @@ object LauncherStarterLayoutRules {
     private const val BUDGET_GADGETS = 6
     private const val BUDGET_RESOURCES = 8
 
-    // Above the eleven feature tiles a fully equipped standard build offers, so the medium class trims
-    // nothing that exists today and only a compact screen shortens the row.
-    private const val BUDGET_APP_FUNCTIONS = 12
+    // Covers every launcher-shortcut entry in the registry on a medium screen. Compact screens retain
+    // their existing proportional limit because the section is an open list.
+    private const val BUDGET_APP_FUNCTIONS = 22
     private const val BUDGET_ANDROID_APPS = 12
     private const val BUDGET_GOOGLE_APPS = 10
     private const val BUDGET_UTILITY_WIDGETS = 4

@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.StreamResumeStateRepository
 import com.sza.fastmediasorter.domain.usecase.ClearResumeStateUseCase
 import com.sza.fastmediasorter.domain.usecase.GetResumeStateUseCase
+import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.ui.main.MainActivity
 import com.sza.fastmediasorter.ui.main.MainViewModel
 import com.sza.fastmediasorter.ui.main.ResourceTab
@@ -44,7 +45,24 @@ class MainHelperFactory @Inject constructor(
     private val clearResumeStateUseCase: ClearResumeStateUseCase,
     // S1152: last-active-stream store, read by the resume helper to resume a stream on cold start.
     private val streamResumeStateRepository: StreamResumeStateRepository,
+    // S2673: the one chain that answers whether a sub-program route is live. Held here rather than in
+    // the host, because Rule 3 keeps domain dependencies out of an Activity - which is why S1329 built
+    // this factory in the first place.
+    private val panelRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
 ) {
+
+    /**
+     * S2673: the predicate the programs menu asks about each registry entry.
+     *
+     * Before the settings snapshot has arrived nothing is offered; the menu is rebuilt on every
+     * settings emission, so that empty first pass is replaced immediately.
+     */
+    fun createSubProgramAvailabilityProbe(
+        currentSettings: () -> AppSettings?,
+    ): (String) -> Boolean = { routeKey ->
+        val settings = currentSettings()
+        settings != null && panelRouteAvailability.resolveOrNull(routeKey, settings)?.isLaunchable == true
+    }
 
     fun createResumePlaybackHelper(
         activity: AppCompatActivity,

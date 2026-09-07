@@ -8,8 +8,7 @@ import java.util.UUID
 enum class NetworkSourceType {
     SMB,
     FTP,
-    SFTP,
-    GOOGLE_DRIVE
+    SFTP
 }
 
 /**
@@ -24,7 +23,6 @@ data class NetworkSource(
         NetworkSourceType.SMB -> 445
         NetworkSourceType.FTP -> 21
         NetworkSourceType.SFTP -> 22
-        NetworkSourceType.GOOGLE_DRIVE -> 443
     },
     val username: String,
     val password: String, // Encrypted in storage

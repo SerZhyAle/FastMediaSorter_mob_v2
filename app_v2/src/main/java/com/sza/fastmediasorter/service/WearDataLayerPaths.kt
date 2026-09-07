@@ -2,10 +2,19 @@ package com.sza.fastmediasorter.service
 
 /**
  * Path constants for the Wear OS Data Layer.
- * Existing /fms/network_sources/ paths are defined locally in their respective services
- * for backward compatibility and are not listed here.
+ * The compatible network-sources routes remain in this catalogue even though their payloads predate
+ * the event envelope: both modules still need one mechanically checked declaration for every route.
  */
 object WearDataLayerPaths {
+
+    /** Message, watch → phone. Requests the compatible network-sources sync. */
+    const val NETWORK_SOURCES_REQUEST = "/fms/network_sources/request"
+
+    /** Data Item, phone → watch. Carries the compatible network-sources payload. */
+    const val NETWORK_SOURCES_PUSH = "/fms/network_sources/push"
+
+    /** Message, watch → phone. Acknowledges the compatible network-sources payload. */
+    const val NETWORK_SOURCES_ACK = "/fms/network_sources/ack"
 
     /** Data Item, phone → watch. Carries watch companion settings payload. */
     const val SETTINGS_PUSH = "/fms/wear/settings"

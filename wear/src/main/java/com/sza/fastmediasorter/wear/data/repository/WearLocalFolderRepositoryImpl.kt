@@ -74,6 +74,11 @@ class WearLocalFolderRepositoryImpl(
         is WearFolderAddress.Root -> rootEntries()
         is WearFolderAddress.AppOwned -> appOwnedEntries(address.path)
         is WearFolderAddress.MediaStoreFolder -> mediaStoreEntries(address.relativePath)
+        // S2694: a network level belongs to the network repository, and the dispatcher never routes
+        // one here. Refused loudly rather than returned empty: an empty level reads as "the share is
+        // empty" on screen, which is a wrong answer, while this is a wiring fault and says so.
+        is WearFolderAddress.NetworkLevel ->
+            throw IllegalArgumentException("Network level reached the local folder repository")
     }
 
     /**

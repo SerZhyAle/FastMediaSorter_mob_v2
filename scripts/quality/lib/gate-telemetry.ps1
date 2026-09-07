@@ -25,16 +25,28 @@ function Get-GateTelemetryRunId {
     return $script:GateTelemetryRunId
 }
 
+# S2693: which area a row's verdict was about - 'set' for a gate that judged the caller's changed
+# files, 'tree' for one that judged the whole project. Optional, and absent on every row written
+# before the split, so a reader must treat a missing field as "unknown", not as 'tree'.
 function Write-GateBatchTelemetryRecord {
     param(
         [Parameter(Mandatory = $true)][string]$Runner,
         [Parameter(Mandatory = $true)][int]$ExitCode,
-        [Parameter(Mandatory = $true)][int]$ElapsedMs
+        [Parameter(Mandatory = $true)][int]$ElapsedMs,
+        [ValidateSet('set', 'tree', 'split')]
+        [string]$Scope
     )
 
     $status = switch ($ExitCode) { 0 { 'PASS' } 2 { 'MISSING' } default { 'FAIL' } }
-    Write-GateTelemetryRecord -Runner $Runner -Gate $script:GateTelemetryBatchName `
-        -Status $status -ExitCode $ExitCode -ElapsedMs $ElapsedMs
+    $forward = @{
+        Runner    = $Runner
+        Gate      = $script:GateTelemetryBatchName
+        Status    = $status
+        ExitCode  = $ExitCode
+        ElapsedMs = $ElapsedMs
+    }
+    if ($Scope) { $forward['Scope'] = $Scope }
+    Write-GateTelemetryRecord @forward
 }
 
 function Write-GateTelemetryRecord {
@@ -43,7 +55,12 @@ function Write-GateTelemetryRecord {
         [Parameter(Mandatory = $true)][string]$Gate,
         [Parameter(Mandatory = $true)][string]$Status,
         [Parameter(Mandatory = $true)][int]$ExitCode,
-        [Parameter(Mandatory = $true)][int]$ElapsedMs
+        [Parameter(Mandatory = $true)][int]$ElapsedMs,
+        [ValidateSet('set', 'tree', 'split')]
+        [string]$Scope,
+        [int]$FindingCount,
+        [string[]]$FindingPaths,
+        [bool]$FindingDetailsAvailable
     )
 
     try {
@@ -58,6 +75,12 @@ function Write-GateTelemetryRecord {
             status       = $Status
             exitCode     = $ExitCode
             elapsedMs    = $ElapsedMs
+        }
+        if ($Scope) { $record['scope'] = $Scope }
+        if ($PSBoundParameters.ContainsKey('FindingCount')) { $record['findingCount'] = $FindingCount }
+        if ($PSBoundParameters.ContainsKey('FindingPaths')) { $record['findingPaths'] = @($FindingPaths) }
+        if ($PSBoundParameters.ContainsKey('FindingDetailsAvailable')) {
+            $record['findingDetailsAvailable'] = $FindingDetailsAvailable
         }
         [System.IO.File]::AppendAllText(
             $path,

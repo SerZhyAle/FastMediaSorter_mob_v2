@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.network.smb
 
 import com.hierynomus.msdtyp.AccessMask
+import com.hierynomus.msfscc.FileAttributes
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.SMBClient
@@ -11,6 +12,9 @@ import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
 import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.SELF_ENTRY
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
@@ -148,7 +152,10 @@ class SmbDataSource(
     data class SmbEntry(
         val name: String,
         val size: Long,
-        val modifiedTime: Long
+        val modifiedTime: Long,
+        // S2694: read from the listing record's attribute bits. A name heuristic was refused there -
+        // it calls an extension-less file a directory and a dotted directory a file, silently.
+        val isDirectory: Boolean = false
     )
 
     /**
@@ -178,7 +185,9 @@ class SmbDataSource(
                 SmbEntry(
                     name = fileInfo.fileName,
                     size = fileInfo.endOfFile,
-                    modifiedTime = fileInfo.lastWriteTime.toEpochMillis()
+                    modifiedTime = fileInfo.lastWriteTime.toEpochMillis(),
+                    isDirectory = fileInfo.fileAttributes and
+                        FileAttributes.FILE_ATTRIBUTE_DIRECTORY.value != 0L
                 )
             }
 
@@ -189,6 +198,38 @@ class SmbDataSource(
             Timber.e(e, "Failed to list files")
             Result.failure(e)
         }
+    }
+
+    /**
+     * S2694: the same listing as [listFiles], in the protocol-neutral shape the folder walk consumes.
+     *
+     * The self and parent entries are dropped here rather than in [listFiles]: a walk that showed
+     * them would offer the wearer a row leading to the level already on screen, while the flat
+     * listing never displayed them anyway - neither carries a mime type the listing filter can place.
+     *
+     * @param path Path relative to share root; the empty string is the share root
+     */
+    suspend fun listEntries(path: String): Result<List<WearNetworkEntry>> =
+        listFiles(path).map { entries -> toNetworkEntries(path, entries) }
+
+    /**
+     * The pure half of [listEntries], separated so the join and the flag can be tested without a
+     * share. Its subject is a mapping, and a mapping that needs a socket to be checked is a mapping
+     * nothing checks.
+     */
+    internal fun toNetworkEntries(path: String, entries: List<SmbEntry>): List<WearNetworkEntry> {
+        val parent = path.trim('/')
+        return entries
+            .filterNot { it.name == SELF_ENTRY || it.name == PARENT_ENTRY }
+            .map { entry ->
+                WearNetworkEntry(
+                    name = entry.name,
+                    path = if (parent.isEmpty()) entry.name else "$parent/${entry.name}",
+                    isDirectory = entry.isDirectory,
+                    sizeBytes = entry.size,
+                    dateModifiedEpochMillis = entry.modifiedTime
+                )
+            }
     }
 
     /**

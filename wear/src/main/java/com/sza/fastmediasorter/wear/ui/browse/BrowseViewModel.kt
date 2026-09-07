@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineKeys
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineRestore
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.browse.NetworkListingFilter
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
@@ -318,8 +319,11 @@ class BrowseViewModel @Inject constructor(
                     }
                     NetworkSourceType.FTP -> networkDataSources.ftp.listDirectory(source, currentPath)
                     NetworkSourceType.SFTP -> networkDataSources.sftp.listDirectory(source, currentPath)
-                    NetworkSourceType.GOOGLE_DRIVE -> error("Google Drive not supported on Wear")
-                }.filter { matchesMediaType(it.mimeType, mediaType) }
+                    // S2691: by the route's category token, not by its media type. Documents, "all"
+                    // and "browse" have no MediaType of their own, so filtering by one showed the
+                    // audio files of the share under every one of them.
+                }.filter { NetworkListingFilter.accepts(_categoryToken, it.mimeType, mediaType) }
+                Timber.d("S2691: network listing filtered by token=${_categoryToken}")
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
                     publishLoaded(mediaFiles)
@@ -550,8 +554,8 @@ class BrowseViewModel @Inject constructor(
  * chip is written with - reading it here is what keeps the screen titled the same as the chip that
  * opened it, which is the defect the key set above records.
  *
- * Top-level rather than a member, on the same grounds as [matchesMediaType] below: it reads no
- * state the caller cannot hand it, and both of its inputs are arguments.
+ * Top-level rather than a member: it reads no state the caller cannot hand it, and both of its
+ * inputs are arguments.
  */
 @StringRes
 private fun localTitleRes(categoryToken: String?, mediaType: MediaType): Int =
@@ -562,20 +566,3 @@ private fun localTitleRes(categoryToken: String?, mediaType: MediaType): Int =
             MediaType.VIDEO -> R.string.wear_phone_video
             MediaType.PHOTO -> R.string.wear_phone_images
         }
-
-/**
- * Whether a MIME type belongs to the expected media type category.
- *
- * Top-level rather than a member: it reads no state of the screen, taking both of its inputs as
- * arguments, and sat inside the class only by habit.
- */
-private fun matchesMediaType(mimeType: String?, mediaType: MediaType): Boolean {
-    if (mimeType == null) {
-        return false
-    }
-    return when (mediaType) {
-        MediaType.PHOTO -> mimeType.startsWith("image/")
-        MediaType.VIDEO -> mimeType.startsWith("video/")
-        MediaType.MUSIC -> mimeType.startsWith("audio/")
-    }
-}

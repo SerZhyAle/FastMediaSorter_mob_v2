@@ -59,9 +59,6 @@ import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
-private const val PATH_REQUEST = "/fms/network_sources/request"
-private const val PATH_ACK = "/fms/network_sources/ack"
-
 /** Used when the watch opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "watch_file"
 
@@ -111,8 +108,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     override fun onMessageReceived(event: MessageEvent) {
         when (event.path) {
-            PATH_REQUEST -> handleSyncRequest()
-            PATH_ACK -> handleAck(event.data)
+            WearDataLayerPaths.NETWORK_SOURCES_REQUEST -> handleSyncRequest()
+            WearDataLayerPaths.NETWORK_SOURCES_ACK -> handleAck(event.data)
             WearDataLayerPaths.SOURCES_EXPORT -> handleSourcesExport(event.data)
             WearDataLayerPaths.FAVORITES_DELTA -> handleFavoritesDelta(event.data)
             WearDataLayerPaths.STREAM_PINS_DELTA -> handleStreamPinsDelta(event.data)

@@ -140,7 +140,7 @@
     { "field": "streamsDefaultSubtitleLanguage", "reason": "reviewed for release 35 - see streamsDefaultAudioLanguage: follows the app language, not the device (S1538)" },
     { "field": "showProgramsPanelInMainWindow", "reason": "reviewed for release 35 - a layout preference for the main window; streaming is absent from several flavors, so no single value holds across builds (S1538)" },
     { "field": "cameraAspectRatio", "reason": "reviewed for release 35 - the useful ratio follows the sensor and the shot, not the device class the profile names (S1538)" },
-    { "field": "cameraGridEnabled", "reason": "framing grid in camera preview is a user preference, not a device class property" },
+    { "field": "cameraGridEnabled", "reason": "reviewed for release 37 - the framing grid in the camera preview is a user preference rather than a device-class property; the only reviewed row that carried no release stamp and no originating ticket, re-read and stamped here (S2676)" },
     { "field": "cameraCaptureCopyToClipboard", "reason": "reviewed for release 35 - copying on capture is a working habit; decided together with the other two clipboard rows (S1538)" },
     { "field": "videoFrameCopyToClipboard", "reason": "reviewed for release 35 - see cameraCaptureCopyToClipboard: decided as one family (S1538)" },
     { "field": "copyScreenshotToClipboard", "reason": "reviewed for release 35 - see cameraCaptureCopyToClipboard: decided as one family (S1538)" },

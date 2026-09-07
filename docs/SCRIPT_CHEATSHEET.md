@@ -2290,7 +2290,7 @@ scripts/quality/assert-fast-gates.ps1
     -ChangedFiles          [String[]]
     -Sequential            [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
-  Exit: 0 every gate passed.; 1 at least one gate failed or is MISSING.
+  Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
 ```
 
 ### assert-fgs-notifications.ps1
@@ -3699,6 +3699,19 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-fast-gates.tests
+
+### Run-Tests.ps1
+S2693: contract suite for the two-verdict form of assert-fast-gates.ps1.
+
+```
+scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
+  S2693: contract suite for the two-verdict form of assert-fast-gates.ps1.
+  Params:
+    -Help         [SwitchParameter]
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
 ```
 
 ## scripts\quality\assert-gate-timing-claims.tests
@@ -6735,6 +6748,18 @@ Fixture for the reaper contract suite: a repository script that is idle itself b
 scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
   Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
   (no param block)
+```
+
+## scripts\utils\run-spec-queue.tests
+
+### Run-Tests.ps1
+Regression tests for the queue runner's idle-run series (S2695) - the count of consecutive runs that handed a ticket back without moving its status, derived from the run journals.
+
+```
+scripts/utils/run-spec-queue.tests/Run-Tests.ps1
+  Regression tests for the queue runner's idle-run series (S2695) - the count of consecutive runs that handed a ticket back without moving its status, derived from the run journals.
+  (no param block)
+  Exit: 0 - every case passed, or the resolved harness predates S2695 and the cases were skipped.; 1 - a case failed.
 ```
 
 ## scripts\utils\script-help-text.tests

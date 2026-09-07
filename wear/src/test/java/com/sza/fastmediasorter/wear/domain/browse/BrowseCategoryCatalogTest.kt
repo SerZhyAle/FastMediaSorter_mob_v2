@@ -218,11 +218,16 @@ class BrowseCategoryCatalogTest {
             .map { it.token }
 
         assertNotEquals(local, network)
+        // S2691: documents joined the set when the network listing learned to filter by category
+        // token. S2694: the folder walk joined it when a share gained a level repository. Recents
+        // stays out - a share has no index to order by date across directories.
         assertEquals(
             listOf(
                 BrowseCategoryCatalog.TOKEN_VIDEOS,
                 BrowseCategoryCatalog.TOKEN_MUSIC,
-                BrowseCategoryCatalog.TOKEN_PHOTOS
+                BrowseCategoryCatalog.TOKEN_PHOTOS,
+                BrowseCategoryCatalog.TOKEN_DOCUMENTS,
+                BrowseCategoryCatalog.TOKEN_BROWSE
             ),
             network
         )
@@ -243,8 +248,12 @@ class BrowseCategoryCatalogTest {
             supportedMediaTypes = listOf("AUDIO")
         )
         val categories = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES)
-        assertEquals(1, categories.size)
-        assertEquals(BrowseCategoryCatalog.TOKEN_MUSIC, categories.first().token)
+        // S2694: the folder walk accompanies every share regardless of its declared media types,
+        // so the media answer is read by token rather than by list size.
+        assertEquals(
+            listOf(BrowseCategoryCatalog.TOKEN_MUSIC, BrowseCategoryCatalog.TOKEN_BROWSE),
+            categories.map { it.token }
+        )
     }
 
     @Test
@@ -258,23 +267,156 @@ class BrowseCategoryCatalogTest {
             supportedMediaTypes = listOf("PDF", "TEXT")
         )
         val categories = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES)
-        assertEquals(1, categories.size)
-        assertEquals(BrowseCategoryCatalog.TOKEN_DOCUMENTS, categories.first().token)
+        assertEquals(
+            listOf(BrowseCategoryCatalog.TOKEN_DOCUMENTS, BrowseCategoryCatalog.TOKEN_BROWSE),
+            categories.map { it.token }
+        )
     }
 
     @Test
     fun `categoriesForSource includes all and browse when allFiles is true`() {
+        val tokens = BrowseCategoryCatalog
+            .categoriesForSource(allFilesSource(), ALL_TYPES)
+            .map { it.token }
+
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_ALL))
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_DOCUMENTS))
+        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_BROWSE))
+    }
+
+    /**
+     * S2694: `allFiles` describes what the flat listing may include, not whether the share has a
+     * tree, so the walk must survive that flag being off - the case a test written only against the
+     * all-files fixture would never reach.
+     */
+    @Test
+    fun `a share offers the folder walk with allFiles off`() {
         val source = com.sza.fastmediasorter.wear.domain.model.NetworkSource(
             type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
-            name = "Full Share",
+            name = "Audio Only Share",
             server = "192.168.1.10",
             username = "user",
             password = "pass",
-            allFiles = true
+            supportedMediaTypes = listOf("AUDIO"),
+            allFiles = false
         )
+
         val tokens = BrowseCategoryCatalog.categoriesForSource(source, ALL_TYPES).map { it.token }
-        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_ALL))
+
         assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_BROWSE))
-        assertTrue(tokens.contains(BrowseCategoryCatalog.TOKEN_DOCUMENTS))
+        assertFalse(tokens.contains(BrowseCategoryCatalog.TOKEN_ALL))
+    }
+
+    /**
+     * S2692: the per-source branch and the per-origin branch answer the same question about a share,
+     * and only this assertion is placed where both answers are visible - the narrow one is written as
+     * a token `when` that cannot see `NETWORK_PRESENTABLE_TYPES` from its own line. S2694 moved the
+     * answer's side without touching the invariant: the failure mode is the two branches drifting
+     * apart, in either direction.
+     */
+    @Test
+    fun `a share is offered the folder walk by both branches alike`() {
+        val perSource = BrowseCategoryCatalog
+            .categoriesForSource(allFilesSource(), ALL_TYPES)
+            .map { it.token }
+        val perOrigin = BrowseCategoryCatalog
+            .categoriesFor(WearCategoryOrigin.NETWORK_SOURCE, ALL_TYPES)
+            .map { it.token }
+
+        assertTrue(perSource.contains(BrowseCategoryCatalog.TOKEN_BROWSE))
+        assertTrue(perOrigin.contains(BrowseCategoryCatalog.TOKEN_BROWSE))
+    }
+
+    private fun allFilesSource() = com.sza.fastmediasorter.wear.domain.model.NetworkSource(
+        type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
+        name = "Full Share",
+        server = "192.168.1.10",
+        username = "user",
+        password = "pass",
+        allFiles = true
+    )
+
+    /**
+     * S2640: the phone sends the names of its own MediaType constants, so this list is the contract
+     * between the two modules. It is spelled out rather than derived because the phone enum is not
+     * on the watch's classpath - which is exactly how four of these went unnoticed.
+     */
+    private fun phoneMediaTypeNames(): List<String> = listOf(
+        "IMAGE", "VIDEO", "AUDIO", "GIF", "TEXT", "PDF", "EPUB",
+        "BINARY_ARCHIVE", "BINARY_DISK", "BINARY_EXECUTABLE", "BINARY_OTHER", "OFFICE_DOCUMENT"
+    )
+
+    private fun sourceAllowing(vararg phoneTypes: String) =
+        com.sza.fastmediasorter.wear.domain.model.NetworkSource(
+            type = com.sza.fastmediasorter.wear.domain.model.NetworkSourceType.SMB,
+            name = "Share",
+            server = "192.168.1.10",
+            username = "user",
+            password = "pass",
+            supportedMediaTypes = phoneTypes.toList()
+        )
+
+    @Test
+    fun `every phone media type either offers a category or states why it cannot`() {
+        for (name in phoneMediaTypeNames()) {
+            val source = sourceAllowing(name)
+            // S2694: the walk is excluded - it accompanies every share and so would answer this
+            // question affirmatively for a token no build knows, which is the silence being tested.
+            val mediaTokens = tokensOf(source, ALL_TYPES)
+                .filterNot { it == BrowseCategoryCatalog.TOKEN_BROWSE }
+            val reason = BrowseCategoryCatalog.emptyReasonForSource(source, ALL_TYPES)
+
+            assertTrue(
+                "$name produced neither a category nor a stated reason",
+                mediaTokens.isNotEmpty() || reason == WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED
+            )
+        }
+    }
+
+    private fun tokensOf(
+        source: com.sza.fastmediasorter.wear.domain.model.NetworkSource,
+        allowedTypes: Set<WearContentType>
+    ): List<String> = BrowseCategoryCatalog.categoriesForSource(source, allowedTypes).map { it.token }
+
+    @Test
+    fun `a binary-only source blames the source, not the settings`() {
+        val source = sourceAllowing("BINARY_ARCHIVE", "BINARY_DISK", "BINARY_EXECUTABLE", "BINARY_OTHER")
+
+        // S2694: the walk accompanies every share, so the media offering is what is empty here.
+        assertEquals(listOf(BrowseCategoryCatalog.TOKEN_BROWSE), tokensOf(source, ALL_TYPES))
+        assertEquals(
+            WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED,
+            BrowseCategoryCatalog.emptyReasonForSource(source, ALL_TYPES)
+        )
+    }
+
+    @Test
+    fun `a presentable type switched off in settings blames the settings`() {
+        val source = sourceAllowing("AUDIO")
+        val withoutMusic = ALL_TYPES - WearContentType.MUSIC
+
+        assertEquals(listOf(BrowseCategoryCatalog.TOKEN_BROWSE), tokensOf(source, withoutMusic))
+        assertEquals(
+            WearSourceEmptyReason.TYPES_DISABLED_IN_SETTINGS,
+            BrowseCategoryCatalog.emptyReasonForSource(source, withoutMusic)
+        )
+    }
+
+    @Test
+    fun `a token no build knows is answered like a binary one`() {
+        val source = sourceAllowing("HOLOGRAM")
+
+        assertEquals(
+            WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED,
+            BrowseCategoryCatalog.emptyReasonForSource(source, ALL_TYPES)
+        )
+    }
+
+    @Test
+    fun `a source offering something states no reason at all`() {
+        assertEquals(
+            WearSourceEmptyReason.NONE,
+            BrowseCategoryCatalog.emptyReasonForSource(sourceAllowing("AUDIO"), ALL_TYPES)
+        )
     }
 }

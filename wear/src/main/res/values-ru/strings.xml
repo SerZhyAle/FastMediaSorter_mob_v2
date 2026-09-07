@@ -636,4 +636,5 @@
     <string name="body_sensor_reason_sensor_off_body">Наденьте часы и повторите</string>
     <string name="body_sensor_reason_measurement_timed_out">Замер не успел. Повторите</string>
     <string name="body_sensor_reason_measurement_failed">Датчик не ответил. Повторите</string>
+    <string name="wear_media_types_source_unsupported">Этот ресурс содержит только типы файлов, которые часы не показывают. Откройте его на телефоне.</string>
 </resources>

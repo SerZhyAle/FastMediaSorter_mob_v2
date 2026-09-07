@@ -107,7 +107,14 @@
     "promptTemplate": "/spec-all {Id}",
     "decisionStatuses": ["Draft", "Approved", "Tactical", "In Progress", "Partial", "Broken", "BlockQuestions"],
     "cheapStatuses": ["Implemented", "BlockNeedUserTest"],
-    "cheapTierMax": 3
+    "cheapTierMax": 3,
+    "alwaysStrongStatuses": ["BlockQuestions"],
+    "strongTierMin": 4,
+    "shapeCheapTierMax": 2,
+    "instanceModelPolicyComment": "S2696. Empty until BOTH preconditions hold: the canon plugin carrying -ModelPolicy shape is deployed (the deployed runner rejects the value until then, and the watchdog would start an instance that cannot run), and the owner has answered the week-measurement question in PLAN/S2696. Then set { \"c\": \"shape\" } to put instance c on the shape rule against a and b on tiered. Absent or empty means every instance takes tiered, which is the runner's own default.",
+    "instanceModelPolicy": {},
+    "idleRunThreshold": 2,
+    "idleOutcomes": ["ok", "timeout", "claim-lost", "claim-lost-before-launch", "no-progress-or-claim-lost", "launch-failed"]
   },
   "commands": {
     "statusCommands": {

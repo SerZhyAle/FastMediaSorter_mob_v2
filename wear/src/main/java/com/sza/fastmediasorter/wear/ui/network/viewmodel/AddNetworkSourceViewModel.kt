@@ -222,7 +222,6 @@ class AddNetworkSourceViewModel @Inject constructor(
             NetworkSourceType.SMB -> 445
             NetworkSourceType.FTP -> 21
             NetworkSourceType.SFTP -> 22
-            NetworkSourceType.GOOGLE_DRIVE -> 443
         }
     }
 }

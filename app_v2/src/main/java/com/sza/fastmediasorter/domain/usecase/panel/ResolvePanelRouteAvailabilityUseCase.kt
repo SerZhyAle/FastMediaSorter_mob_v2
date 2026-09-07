@@ -109,16 +109,26 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                     availableInBuild = mediaCapabilities.supportsWearCompanion,
                     enabledAtRuntime = settings.enableWearCompanion,
                 )
-            InternalRouteCatalog.KEY_OCR -> Availability(capability.isOcrAvailable(context), enabledAtRuntime = true)
+            // S2673: the runtime axis was a literal `true`, so a panel tile and a desktop cell kept
+            // opening the translator with its switch off - the S1856 calculator defect, repeated. The
+            // registry entry for this key disables itself through the same field.
+            InternalRouteCatalog.KEY_OCR ->
+                Availability(
+                    availableInBuild = capability.isOcrAvailable(context),
+                    enabledAtRuntime = settings.cameraOcrTranslationEnabled,
+                )
             InternalRouteCatalog.KEY_STREAMS -> Availability(capability.isStreamsAvailable(), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_FAVORITES ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableFavorites)
             // Photo only, not video: the panel tile has no per-instance capture-mode config, so it
             // always resolves to the widget's default (photo) capture mode - see AppLaunchPanelRouteIntents.
+            // S2673: the video half was missing, so a build that records video but shows no photos
+            // reported this route dead while the programs menu offered it. Both halves are factored
+            // into isQuickCaptureEnabled to keep this chain under detekt's cyclomatic ceiling.
             InternalRouteCatalog.KEY_QUICK_CAMERA ->
                 Availability(
-                    availableInBuild = mediaCapabilities.supportsImages,
-                    enabledAtRuntime = !settings.disableCameraCapture,
+                    availableInBuild = mediaCapabilities.supportsImages || mediaCapabilities.supportsVideo,
+                    enabledAtRuntime = isQuickCaptureEnabled(settings),
                 )
             InternalRouteCatalog.KEY_QUICK_VOICE ->
                 Availability(
@@ -172,6 +182,14 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = true)
             else -> null
         }
+
+    /**
+     * S2673: the quick-capture route is one program with two capture modes, so either mode being
+     * both supported and switched on keeps it alive - the pair the programs menu has always used.
+     */
+    private fun isQuickCaptureEnabled(settings: AppSettings): Boolean =
+        (mediaCapabilities.supportsImages && !settings.disableCameraCapture) ||
+            (mediaCapabilities.supportsVideo && !settings.disableVideoCapture)
 
     /**
      * S1924: the mirror needs its own switch on, the global camera switch not off, and a front lens

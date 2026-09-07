@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherWeatherParamFallback
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import timber.log.Timber
+import java.util.WeakHashMap
 
 /**
  * S1541: builds the view for a gadget cell - registry lookup, the gadget's own view, and the
@@ -40,6 +41,15 @@ class LauncherGadgetRenderManager(
     private val cellConfigLocation: (cellId: Long) -> String? = { null },
 ) {
 
+    /** S2686: what a bound container was built from, so [rebindGadget] can tell a match from a stale hit. */
+    private data class BoundGadget(val key: String, val param: String?)
+
+    /**
+     * S2686: weak keys, so a cell root the binder dropped takes its record - and its gadget view - with
+     * it instead of being held alive by this map.
+     */
+    private val boundGadgets = WeakHashMap<FrameLayout, BoundGadget>()
+
     /**
      * A GADGET cell's `target` is a registry key, not a command, so a key we do not know is the only
      * "broken gadget" signal there is: [LauncherCellUi.visual] is null for every gadget by contract,
@@ -47,6 +57,7 @@ class LauncherGadgetRenderManager(
      */
     fun bindGadget(cellUi: LauncherCellUi, container: FrameLayout) {
         Timber.d("S2539: LauncherGadgetRenderManager bindGadget with theme text")
+        boundGadgets.remove(container)
         val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
         val gadget = decoded?.first?.let { gadgetRegistry.byKey(it) }
         if (gadget == null) {
@@ -83,6 +94,38 @@ class LauncherGadgetRenderManager(
         }
         wireReconfigure(decoded.first, param, cellUi.cell.id, view)
         container.addView(view)
+        // S2686: recorded only on the path that produced a real gadget view. The two degraded tiles above
+        // return without recording, so a later render rebuilds them instead of preserving a failure.
+        boundGadgets[container] = BoundGadget(decoded.first, param)
+    }
+
+    /**
+     * S2686: answers whether [container] - a cell root the desktop binder kept from the render it is
+     * tearing down - still holds the right gadget for [cellUi], and re-points it at that cell when it
+     * does. `false` sends the binder back to inflating a fresh cell.
+     *
+     * The comparison includes the resolved parameter, not just the registry key, because the parameter
+     * is read per bind from the saved weather place and the cell's config row: a container matched on
+     * the key alone would keep drawing the previous city after the user picked a new one.
+     *
+     * Re-running [wireReconfigure] is not housekeeping. Its callbacks carry the cell id, and portrait and
+     * landscape are separate rows with separate ids, so a container kept across a rotation with its old
+     * id would re-point the cell of the orientation the user just left.
+     */
+    fun rebindGadget(cellUi: LauncherCellUi, container: FrameLayout): Boolean {
+        val bound = boundGadgets[container]
+        val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
+        val view = container.getChildAt(0)
+        if (bound == null || decoded == null || view == null) return false
+        val param = LauncherWeatherParamFallback.resolve(
+            key = decoded.first,
+            param = decoded.second,
+            savedLocation = savedWeatherLocation(),
+            cellConfigLocation = cellConfigLocation(cellUi.cell.id),
+        )
+        val matches = bound.key == decoded.first && bound.param == param
+        if (matches) wireReconfigure(decoded.first, param, cellUi.cell.id, view)
+        return matches
     }
 
     /**

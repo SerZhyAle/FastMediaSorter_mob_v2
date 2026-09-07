@@ -8,8 +8,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.MenuItemCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramEntry
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.applaunchpanel.AppLaunchPanelActivity
 import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
@@ -21,11 +24,17 @@ import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 
 /**
  * S0774: single home for the main-window programs menu - item registration, count, click dispatch,
- * and the S0770 per-item "Open in new window" / "Remove" resolvers. Extracted verbatim from
- * MainActivity (which exceeded the 1500-LOC limit) so the screen-recording scenario has one place to
- * plug into. Behaviour-preserving: the per-scenario menu managers, the canonical item ids/orders, and
- * the gate predicates are unchanged - MainActivity now passes a resolved [ProgramsMenuGate] snapshot
- * each call instead of the coordinator reading its mutable flags.
+ * and the S0770 per-item "Open in new window" / "Remove" resolvers.
+ *
+ * S2673: which sub-programs the menu shows, in what order, and whether each is available now come
+ * from [SubProgramCatalog] and the one route-availability chain. What stays here is what ADR-1 keeps
+ * out of the registry - the label, the icon and the menu item id each route is drawn with. Four items
+ * are not sub-programs and are still added by hand: the streams entry, VR Cinema, the quick-launch
+ * panel and the live broadcast.
+ *
+ * Taps still travel through the per-program managers. A route's intent says how to OPEN a program,
+ * never what a tap does: quick capture and the link download act inside this window, and routing them
+ * through the route catalog would replace an in-place action with a trampoline activity.
  */
 @Suppress("LongParameterList")
 class MainProgramsMenuCoordinator(
@@ -54,60 +63,37 @@ class MainProgramsMenuCoordinator(
     )
 
     /**
-     * Resolved per-scenario visibility for one menu build - MainActivity folds in its runtime flags +
-     * media capabilities.
+     * Resolved visibility for one menu build.
+     *
+     * S2673: the twelve per-program booleans are gone. Every sub-program answers through
+     * [isSubProgramAvailable], which MainActivity binds to `ResolvePanelRouteAvailabilityUseCase`, so
+     * neither side holds a second mapping from a route key to a boolean. The three fields that remain
+     * belong to the items the registry does not govern.
      */
     data class ProgramsMenuGate(
         val streams: Boolean,
         val vrCinema: Boolean,
-        val quickVoice: Boolean,
-        val quickCamera: Boolean,
-        val calculator: Boolean,
-        val networkMonitor: Boolean,
-        val cameraOcr: Boolean,
-        val linkDownload: Boolean,
-        val miniGame: Boolean,
-        val screenRecording: Boolean,
-        val systemInfo: Boolean,
-        val wearCompanion: Boolean,
-        val frontFlashlight: Boolean,
-        val waterFlashlight: Boolean,
-        val stopwatch: Boolean,
-        val broadcast: Boolean = false,
+        val broadcast: Boolean,
+        val isSubProgramAvailable: (String) -> Boolean,
     )
 
-    // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
+    /** How one sub-program is drawn; the registry stores none of this, by ADR-1. */
+    private data class MenuPresentation(val itemId: Int, val labelRes: Int, val iconRes: Int)
+
+    // S0757: the quick-launch panel entry is always present (no toggle), so the count starts at 1 and
     // the three-dots menu button stays visible even when every other program is disabled.
     fun itemCount(gate: ProgramsMenuGate): Int =
-        1 + (if (gate.vrCinema) 1 else 0) + (if (gate.calculator) 1 else 0) +
-            (if (gate.networkMonitor) 1 else 0) +
-            (if (gate.cameraOcr) 1 else 0) +
-            (if (gate.systemInfo) 1 else 0) +
-            (if (gate.frontFlashlight) 1 else 0) +
-            (if (gate.waterFlashlight) 1 else 0) +
-            (if (gate.stopwatch) 1 else 0) +
-            wearCompanionMenuManager.itemCount(gate.wearCompanion) +
-            miniGameMenuManager.itemCount(gate.miniGame) +
-            quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
-            linkDownloadMenuManager.itemCount(gate.linkDownload) +
-            screenRecordingMenuManager.itemCount(gate.screenRecording) +
-            broadcastMenuManager.itemCount(gate.broadcast)
+        1 + (if (gate.streams) 1 else 0) + (if (gate.vrCinema) 1 else 0) +
+            (if (gate.broadcast) 1 else 0) + visibleSubPrograms(gate).size
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
     fun populate(popup: PopupMenu, excludeStreams: Boolean, gate: ProgramsMenuGate): Int {
         popup.menu.clear()
-        // S0758: each item's explicit order = its canonical position in the owner's programs menu order.
-        // Sorted display order after S0962: Streams, VR Cinema [S0962], quick-launch panel [S0757],
-        // quick-capture, calculator, Network Monitor, camera-OCR, screen recording [S0913 - right after
-        // camera-OCR], link download, mini-game, system information [S1733 - appended at the end of the
-        // group so no familiar position shifts], Wear companion [S1735 - appended after it for the same
-        // reason]. The panel mirrors this menu (single source of truth),
-        // so the order carries there too.
         streamsMenuManager.populate(popup, !excludeStreams && gate.streams, MENU_ORDER_STREAMS)
-        // S0962 (VR Cinema, Pillar 1): immersive-cinema program - shown only when XR is available and the
-        // VR-3D master toggle is on (gate.vrCinema). Master-gated with no per-item toggle and not a window,
-        // so newWindowActionFor/removeActionFor both leave it on their `else -> null` branch.
+        // S0962 (VR Cinema, Pillar 1): immersive-cinema program - shown only when XR is available and
+        // the VR-3D master toggle is on. Master-gated with no per-item toggle and not a window, so
+        // newWindowActionFor/removeActionFor both leave it on their `else -> null` branch.
         if (gate.vrCinema) {
             popup.menu.add(
                 0,
@@ -123,77 +109,36 @@ class MainProgramsMenuCoordinator(
             MENU_ORDER_APP_LAUNCH_PANEL,
             R.string.app_launch_panel_title,
         ).setIcon(R.drawable.ic_view_grid)
-        quickCaptureMenuManager.populate(
-            popup,
-            gate.quickVoice,
-            gate.quickCamera,
-            MENU_ORDER_QUICK_CAPTURE,
-        )
-        screenRecordingMenuManager.populate(popup, gate.screenRecording, MENU_ORDER_SCREEN_RECORDING)
+        // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
+        // is what puts every surface on one sequence and what makes the accent pass below match.
+        timber.log.Timber.d("S2673: menu draws %d sub-programs from the registry", visibleSubPrograms(gate).size)
+        for (entry in visibleSubPrograms(gate)) {
+            val presentation = PRESENTATION.getValue(entry.routeKey)
+            popup.menu.add(0, presentation.itemId, entry.order, presentation.labelRes)
+                .setIcon(presentation.iconRes)
+        }
         broadcastMenuManager.populate(popup, gate.broadcast, MENU_ORDER_BROADCAST)
-        if (gate.calculator) {
-            popup.menu.add(0, MENU_ITEM_CALCULATOR, MENU_ORDER_CALCULATOR, R.string.calculator_title)
-                .setIcon(R.drawable.ic_calculator)
-        }
-        if (gate.networkMonitor) {
-            popup.menu.add(
-                0,
-                MENU_ITEM_NETWORK_MONITOR,
-                MENU_ORDER_NETWORK_MONITOR,
-                R.string.network_monitor_title,
-            )
-                .setIcon(R.drawable.ic_network_monitor)
-        }
-        if (gate.cameraOcr) {
-            popup.menu.add(
-                0,
-                MENU_ITEM_CAMERA_OCR,
-                MENU_ORDER_CAMERA_OCR,
-                R.string.setting_camera_ocr_translation_title,
-            ).setIcon(R.drawable.ic_camera_ocr_translate)
-        }
-        linkDownloadMenuManager.populate(popup, gate.linkDownload, MENU_ORDER_LINK_DOWNLOAD)
-        miniGameMenuManager.populate(popup, gate.miniGame, MENU_ORDER_MINI_GAME)
-        if (gate.systemInfo) {
-            popup.menu.add(
-                0,
-                MENU_ITEM_SYSTEM_INFO,
-                MENU_ORDER_SYSTEM_INFO,
-                R.string.settings_system_info_title,
-            ).setIcon(R.drawable.ic_info)
-        }
-        wearCompanionMenuManager.populate(popup, gate.wearCompanion, MENU_ORDER_WEAR_COMPANION)
-        if (gate.frontFlashlight) {
-            popup.menu.add(
-                0,
-                MENU_ITEM_FRONT_FLASHLIGHT,
-                MENU_ORDER_FRONT_FLASHLIGHT,
-                R.string.front_flashlight_title,
-            ).setIcon(R.drawable.ic_front_flashlight)
-        }
-        if (gate.waterFlashlight) {
-            popup.menu.add(
-                0,
-                MENU_ITEM_WATER_FLASHLIGHT,
-                MENU_ORDER_WATER_FLASHLIGHT,
-                R.string.water_flashlight_title,
-            ).setIcon(R.drawable.ic_water_flashlight)
-        }
-        if (gate.stopwatch) {
-            popup.menu.add(0, MENU_ITEM_STOPWATCH, MENU_ORDER_STOPWATCH, R.string.stopwatch_title)
-                .setIcon(R.drawable.ic_stopwatch)
-        }
         applyProgramAccents(popup)
         return popup.menu.size()
     }
 
     /**
+     * The registry's programs-menu entries this build can draw and this settings state allows.
+     *
+     * An entry with no [PRESENTATION] row is skipped rather than crashing the menu; the completeness
+     * test is what refuses to let such an entry exist in the first place.
+     */
+    private fun visibleSubPrograms(gate: ProgramsMenuGate): List<SubProgramEntry> =
+        SubProgramCatalog.forSurface(SubProgramSurface.PROGRAMS_MENU)
+            .filter { it.routeKey in PRESENTATION && gate.isSubProgramAvailable(it.routeKey) }
+
+    /**
      * S2510: colours each program's glyph with the accent that identifies it in every other list.
      *
-     * Runs as one pass over the finished menu rather than at each `setIcon` call because seven
-     * delegating managers add these items, and spreading the colour decision across them is exactly
-     * the drift SubProgramAccentCatalog exists to prevent. Items are matched by `order`, which is the
-     * same number SubProgramEntry stores.
+     * Runs as one pass over the finished menu rather than at each `setIcon` call because the four
+     * non-registry items are added around the loop. Items are matched by `order`, which since S2673 is
+     * literally the number `SubProgramEntry` stores - before it, menu orders ran 1..16 against the
+     * registry's 0..106 and exactly one item matched, wearing another program's colour.
      *
      * Tints the MenuItem, never the drawable: `setIcon` hands out a drawable whose constant state is
      * shared with every other user of that vector, so tinting it here would recolour it app-wide.
@@ -217,61 +162,60 @@ class MainProgramsMenuCoordinator(
     }
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
-    fun handleMenuItem(itemId: Int): Boolean {
-        val handledByManager = miniGameMenuManager.handleMenuItem(itemId) ||
+    fun handleMenuItem(itemId: Int): Boolean =
+        handledByManager(itemId) ||
+            launchIntentFor(itemId)?.also { activity.startActivity(it) } != null ||
+            handledAsVrCinema(itemId)
+
+    /** The seven per-program managers, each of which acts inside this window rather than opening one. */
+    private fun handledByManager(itemId: Int): Boolean =
+        miniGameMenuManager.handleMenuItem(itemId) ||
             wearCompanionMenuManager.handleMenuItem(itemId) ||
             streamsMenuManager.handleMenuItem(itemId) ||
             quickCaptureMenuManager.handleMenuItem(itemId) ||
             linkDownloadMenuManager.handleMenuItem(itemId) ||
             screenRecordingMenuManager.handleMenuItem(itemId) ||
             broadcastMenuManager.handleMenuItem(itemId)
-        if (handledByManager) return true
-        return when (itemId) {
-            MENU_ITEM_CALCULATOR -> {
-                activity.startActivity(CalculatorActivity.createIntent(activity))
-                true
-            }
-            MENU_ITEM_NETWORK_MONITOR -> {
-                activity.startActivity(NetworkMonitorActivity.createIntent(activity))
-                true
-            }
-            MENU_ITEM_CAMERA_OCR -> {
-                activity.startActivity(
-                    com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(activity)
-                )
-                true
-            }
-            MENU_ITEM_APP_LAUNCH_PANEL -> {
-                activity.startActivity(Intent(activity, AppLaunchPanelActivity::class.java))
-                true
-            }
-            MENU_ITEM_VR_CINEMA -> {
-                hostActions.onVrCinemaSelected()
-                true
-            }
-            MENU_ITEM_SYSTEM_INFO -> {
-                activity.startActivity(SystemInfoActivity.createIntent(activity))
-                true
-            }
-            MENU_ITEM_FRONT_FLASHLIGHT -> {
-                activity.startActivity(AppLaunchPanelRouteIntents.frontFlashlight(activity))
-                true
-            }
-            MENU_ITEM_WATER_FLASHLIGHT -> {
-                activity.startActivity(AppLaunchPanelRouteIntents.waterFlashlight(activity))
-                true
-            }
-            MENU_ITEM_STOPWATCH -> {
-                activity.startActivity(StopwatchActivity.createIntent(activity))
-                true
-            }
-            else -> false
-        }
+
+    /**
+     * S0962 (VR Cinema, Pillar 1): the one program that opens no Activity of its own - it prompts for a
+     * resource first, so it cannot be expressed as an intent in [launchIntentFor].
+     */
+    private fun handledAsVrCinema(itemId: Int): Boolean {
+        if (itemId != MENU_ITEM_VR_CINEMA) return false
+        hostActions.onVrCinemaSelected()
+        return true
+    }
+
+    /**
+     * The Activity a menu item opens, or null when the item is not one of the plain launches.
+     *
+     * Split from [handleMenuItem] to keep both under detekt's cyclomatic ceiling, which the three
+     * entries S2673 added pushed the single function past.
+     */
+    private fun launchIntentFor(itemId: Int): Intent? = when (itemId) {
+        MENU_ITEM_CALCULATOR -> CalculatorActivity.createIntent(activity)
+        MENU_ITEM_NETWORK_MONITOR -> NetworkMonitorActivity.createIntent(activity)
+        MENU_ITEM_CAMERA_OCR ->
+            com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity.createIntent(activity)
+        MENU_ITEM_APP_LAUNCH_PANEL -> Intent(activity, AppLaunchPanelActivity::class.java)
+        MENU_ITEM_SYSTEM_INFO -> SystemInfoActivity.createIntent(activity)
+        MENU_ITEM_STOPWATCH -> StopwatchActivity.createIntent(activity)
+        MENU_ITEM_FRONT_FLASHLIGHT -> AppLaunchPanelRouteIntents.frontFlashlight(activity)
+        MENU_ITEM_WATER_FLASHLIGHT -> AppLaunchPanelRouteIntents.waterFlashlight(activity)
+        // S2673: the three registry entries the hand-written menu never drew.
+        MENU_ITEM_PHYSICAL_FLASHLIGHT -> AppLaunchPanelRouteIntents.physicalFlashlight(activity)
+        MENU_ITEM_MIRROR -> AppLaunchPanelRouteIntents.mirror(activity)
+        MENU_ITEM_BLACK_SCREEN -> AppLaunchPanelRouteIntents.blackScreen(activity)
+        else -> null
     }
 
     /**
      * S0770: "Open in new window" action for a programs-panel item, or null when multi-window is off or
      * the item is not a standalone window (quick capture / link download act in-place, not as a window).
+     *
+     * S2673 left this list hand-written on purpose: a route's intent says how to open a program, never
+     * whether that program is a window, so the registry cannot answer this question.
      */
     fun newWindowActionFor(itemId: Int): (() -> Unit)? {
         if (!hostActions.isNewWindowAvailable()) return null
@@ -296,48 +240,24 @@ class MainProgramsMenuCoordinator(
     /**
      * S0770: "Remove" action for a programs-panel item = turn off its existing settings toggle, or null
      * when the item has no per-item toggle (Streams master feature + Quick Launch Panel stay un-removable).
+     *
+     * S2673: the toggle is the registry entry's own `disable`, so an entry declaring none - the
+     * physical flashlight and the black screen - is simply not removable, with no branch saying so.
      */
-    fun removeActionFor(itemId: Int): (() -> Unit)? = when (itemId) {
-        MENU_ITEM_CALCULATOR ->
-            removeProgramAction(R.string.calculator_title) { it.copy(enableCalculator = false) }
-        MENU_ITEM_STOPWATCH ->
-            removeProgramAction(R.string.stopwatch_title) { it.copy(enableStopwatch = false) }
-        MENU_ITEM_NETWORK_MONITOR ->
-            removeProgramAction(R.string.network_monitor_title) { it.copy(enableNetworkMonitor = false) }
-        MENU_ITEM_CAMERA_OCR ->
-            removeProgramAction(R.string.setting_camera_ocr_translation_title) {
-                it.copy(cameraOcrTranslationEnabled = false)
+    fun removeActionFor(itemId: Int): (() -> Unit)? =
+        routeKeyForItemId(itemId)?.let { routeKey ->
+            SubProgramCatalog.byRouteKey(routeKey)?.disable?.let { disable ->
+                val titleRes = PRESENTATION.getValue(routeKey).labelRes
+                { hostActions.confirmRemoveProgram(titleRes, disable) }
             }
-        MainQuickCaptureMenuManager.MENU_ITEM_QUICK_CAMERA ->
-            removeProgramAction(R.string.quick_camera_menu_label) {
-                it.copy(disableCameraCapture = true, disableVideoCapture = true)
-            }
-        MainQuickCaptureMenuManager.MENU_ITEM_QUICK_VOICE ->
-            removeProgramAction(R.string.quick_voice_menu_label) { it.copy(micRecordingEnabled = false) }
-        MainLinkDownloadMenuManager.MENU_ITEM_LINK_DOWNLOAD ->
-            removeProgramAction(R.string.download_by_link_menu_label) {
-                it.copy(linkAutoDownloadEnabled = false)
-            }
-        MainMiniGameMenuManager.MENU_ITEM_GAME ->
-            removeProgramAction(R.string.game_menu_label) { it.copy(embeddedGameEnabled = false) }
-        MainScreenRecordingMenuManager.MENU_ITEM_SCREEN_RECORDING ->
-            removeProgramAction(R.string.screen_recording_menu_label) { it.copy(screenRecordingEnabled = false) }
-        MENU_ITEM_SYSTEM_INFO ->
-            removeProgramAction(R.string.settings_system_info_title) { it.copy(enableSystemInfo = false) }
-        MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION ->
-            removeProgramAction(R.string.wear_companion) { it.copy(enableWearCompanion = false) }
-        MENU_ITEM_FRONT_FLASHLIGHT ->
-            removeProgramAction(R.string.front_flashlight_title) { it.copy(frontFlashlightEnabled = false) }
-        MENU_ITEM_WATER_FLASHLIGHT ->
-            removeProgramAction(R.string.water_flashlight_title) { it.copy(waterFlashlightEnabled = false) }
-        else -> null
-    }
+        }
 
-    private fun removeProgramAction(titleRes: Int, apply: (AppSettings) -> AppSettings): () -> Unit = {
-        hostActions.confirmRemoveProgram(titleRes, apply)
-    }
+    /** The route a menu item id belongs to, or null when the item is not a sub-program. */
+    private fun routeKeyForItemId(itemId: Int): String? =
+        PRESENTATION.entries.firstOrNull { it.value.itemId == itemId }?.key
 
     companion object {
+
         const val MENU_ITEM_CALCULATOR = 1
         const val MENU_ITEM_NETWORK_MONITOR = 18
         const val MENU_ITEM_CAMERA_OCR = 9
@@ -358,35 +278,113 @@ class MainProgramsMenuCoordinator(
         // two flashlights above, and a collision would route one program's tap into another's branch.
         const val MENU_ITEM_STOPWATCH = 23
 
-        private const val MENU_ORDER_STREAMS = 1
-        private const val MENU_ORDER_VR_CINEMA = 2
-        private const val MENU_ORDER_APP_LAUNCH_PANEL = 3
-        private const val MENU_ORDER_QUICK_CAPTURE = 4
-        private const val MENU_ORDER_CALCULATOR = 5
-        private const val MENU_ORDER_NETWORK_MONITOR = 6
-        private const val MENU_ORDER_CAMERA_OCR = 7
-        private const val MENU_ORDER_SCREEN_RECORDING = 8
-        private const val MENU_ORDER_LINK_DOWNLOAD = 9
-        private const val MENU_ORDER_MINI_GAME = 10
-        private const val MENU_ORDER_SYSTEM_INFO = 11
+        // S2673: 25-27 are the next free ids after the broadcast manager's 24 - the three registry
+        // entries the hand-written menu never drew.
+        const val MENU_ITEM_PHYSICAL_FLASHLIGHT = 25
+        const val MENU_ITEM_MIRROR = 26
+        const val MENU_ITEM_BLACK_SCREEN = 27
 
-        // S1735: appended after system information for the same reason S1733 appended itself - a new
-        // program at the end shifts no familiar position.
-        private const val MENU_ORDER_WEAR_COMPANION = 12
+        /**
+         * S2673: label, icon and menu item id per sub-program - the three things ADR-1 keeps out of the
+         * registry.
+         *
+         * Existing entries repeat the label and the id they are drawn with today rather than reading
+         * `InternalRouteCatalog`, which would rename the quick camera, the camera translation and the
+         * mini-game, and would break the ids the programs panel and the managers dispatch on
+         * (strategic §2). The three entries the menu never drew have no such label to preserve, so
+         * they take the route catalog's.
+         */
+        private val PRESENTATION: Map<String, MenuPresentation> = mapOf(
+            InternalRouteCatalog.KEY_QUICK_CAMERA to MenuPresentation(
+                MainQuickCaptureMenuManager.MENU_ITEM_QUICK_CAMERA,
+                R.string.quick_camera_menu_label,
+                R.drawable.ic_camera_capture,
+            ),
+            InternalRouteCatalog.KEY_QUICK_VOICE to MenuPresentation(
+                MainQuickCaptureMenuManager.MENU_ITEM_QUICK_VOICE,
+                R.string.quick_voice_menu_label,
+                R.drawable.ic_microphone,
+            ),
+            InternalRouteCatalog.KEY_CALCULATOR to MenuPresentation(
+                MENU_ITEM_CALCULATOR,
+                R.string.calculator_title,
+                R.drawable.ic_calculator,
+            ),
+            InternalRouteCatalog.KEY_NETWORK_MONITOR to MenuPresentation(
+                MENU_ITEM_NETWORK_MONITOR,
+                R.string.network_monitor_title,
+                R.drawable.ic_network_monitor,
+            ),
+            InternalRouteCatalog.KEY_OCR to MenuPresentation(
+                MENU_ITEM_CAMERA_OCR,
+                R.string.setting_camera_ocr_translation_title,
+                R.drawable.ic_camera_ocr_translate,
+            ),
+            InternalRouteCatalog.KEY_SCREEN_RECORDING to MenuPresentation(
+                MainScreenRecordingMenuManager.MENU_ITEM_SCREEN_RECORDING,
+                R.string.screen_recording_menu_label,
+                R.drawable.ic_display,
+            ),
+            InternalRouteCatalog.KEY_LINK_DOWNLOAD to MenuPresentation(
+                MainLinkDownloadMenuManager.MENU_ITEM_LINK_DOWNLOAD,
+                R.string.download_by_link_menu_label,
+                R.drawable.ic_cloud_download,
+            ),
+            InternalRouteCatalog.KEY_GAME to MenuPresentation(
+                MainMiniGameMenuManager.MENU_ITEM_GAME,
+                R.string.game_menu_label,
+                R.drawable.ic_game_kryvavitsa,
+            ),
+            InternalRouteCatalog.KEY_SYSTEM_INFO to MenuPresentation(
+                MENU_ITEM_SYSTEM_INFO,
+                R.string.settings_system_info_title,
+                R.drawable.ic_info,
+            ),
+            InternalRouteCatalog.KEY_WEAR_COMPANION to MenuPresentation(
+                MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION,
+                R.string.wear_companion,
+                R.drawable.ic_watch,
+            ),
+            InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to MenuPresentation(
+                MENU_ITEM_FRONT_FLASHLIGHT,
+                R.string.front_flashlight_title,
+                R.drawable.ic_front_flashlight,
+            ),
+            InternalRouteCatalog.KEY_PHYSICAL_FLASHLIGHT to MenuPresentation(
+                MENU_ITEM_PHYSICAL_FLASHLIGHT,
+                R.string.physical_flashlight_title,
+                R.drawable.ic_camera_flash_on,
+            ),
+            InternalRouteCatalog.KEY_WATER_FLASHLIGHT to MenuPresentation(
+                MENU_ITEM_WATER_FLASHLIGHT,
+                R.string.water_flashlight_title,
+                R.drawable.ic_water_flashlight,
+            ),
+            InternalRouteCatalog.KEY_MIRROR to MenuPresentation(
+                MENU_ITEM_MIRROR,
+                R.string.mirror_title,
+                R.drawable.ic_mirror,
+            ),
+            InternalRouteCatalog.KEY_BLACK_SCREEN to MenuPresentation(
+                MENU_ITEM_BLACK_SCREEN,
+                R.string.launcher_action_black_screen,
+                R.drawable.ic_black_screen,
+            ),
+            InternalRouteCatalog.KEY_STOPWATCH to MenuPresentation(
+                MENU_ITEM_STOPWATCH,
+                R.string.stopwatch_title,
+                R.drawable.ic_stopwatch,
+            ),
+        )
 
-        // S2212: front flashlight menu order
-        private const val MENU_ORDER_FRONT_FLASHLIGHT = 13
+        /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */
+        val PRESENTABLE_ROUTE_KEYS: Set<String> get() = PRESENTATION.keys
 
-        // S2516: appended after the front flashlight, so the two lights stand together and no
-        // familiar position moves.
-        private const val MENU_ORDER_WATER_FLASHLIGHT = 14
-
-        // S1411: appended for the same reason S1733 and S1735 appended themselves. Slotting the
-        // stopwatch beside the calculator, whose presence it copies, would have pushed nine familiar
-        // items down a row to buy adjacency the owner never asked for.
-        private const val MENU_ORDER_STOPWATCH = 15
-
-        // S2508: live audio broadcast menu order
-        private const val MENU_ORDER_BROADCAST = 16
+        // S2673: the four non-registry items sort outside the registry's 0..106 band, so the sequence
+        // the owner sees is unchanged while every sub-program carries its own registry order.
+        private const val MENU_ORDER_STREAMS = -30
+        private const val MENU_ORDER_VR_CINEMA = -20
+        private const val MENU_ORDER_APP_LAUNCH_PANEL = -10
+        private const val MENU_ORDER_BROADCAST = 200
     }
 }

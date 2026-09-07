@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.folder
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
@@ -55,12 +54,15 @@ private val TITLE_PADDING_VERTICAL = 12.dp
  * S2490: respects fileListViewMode so grid/columns mode (2 or 3 columns)
  * renders grid cells consistently with all browse screens.
  *
- * @param onOpenFile receives the tapped file and its mime type.
+ * @param onOpenFile receives the tapped row, whose uri is non-null - only a file row invokes it.
+ *   S2694 widened this from the bare uri and mime type: a network row's name, size and timestamp
+ *   were read off the protocol by the level that produced it, and the host has no cheaper way back
+ *   to them than a second listing of the same directory.
  * @param onExit called when Back is pressed at the level the walk started on.
  */
 @Composable
 fun WearFolderWalkScreen(
-    onOpenFile: (Uri, String?) -> Unit,
+    onOpenFile: (WearFolderEntry) -> Unit,
     onExit: () -> Unit,
     viewModel: WearFolderWalkViewModel = hiltViewModel()
 ) {
@@ -107,7 +109,7 @@ private fun FolderWalkList(
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
     onOpenFolder: (WearFolderEntry) -> Unit,
-    onOpenFile: (Uri, String?) -> Unit,
+    onOpenFile: (WearFolderEntry) -> Unit,
     onLoadMore: () -> Unit
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -174,7 +176,7 @@ private fun FolderWalkGridRow(
     entries: List<WearFolderEntry>,
     columns: Int,
     onOpenFolder: (WearFolderEntry) -> Unit,
-    onOpenFile: (Uri, String?) -> Unit
+    onOpenFile: (WearFolderEntry) -> Unit
 ) {
     CenteredGridRow(columns = columns, itemCount = entries.size, gap = GRID_GAP) {
         entries.forEach { entry ->
@@ -186,7 +188,7 @@ private fun FolderWalkGridRow(
                     val uri = entry.uri
                     when {
                         entry.isDirectory -> onOpenFolder(entry)
-                        uri != null -> onOpenFile(uri, entry.mimeType)
+                        uri != null -> onOpenFile(entry)
                         else -> Timber.w("Folder entry is neither a directory nor a file: %s", entry.name)
                     }
                 },
@@ -212,7 +214,7 @@ private fun FolderWalkGridRow(
 private fun FolderWalkRow(
     entry: WearFolderEntry,
     onOpenFolder: (WearFolderEntry) -> Unit,
-    onOpenFile: (Uri, String?) -> Unit
+    onOpenFile: (WearFolderEntry) -> Unit
 ) {
     val type = contentTypeForEntry(entry.mimeType, entry.isDirectory)
     SingleColumnTileCell(
@@ -222,7 +224,7 @@ private fun FolderWalkRow(
             val uri = entry.uri
             when {
                 entry.isDirectory -> onOpenFolder(entry)
-                uri != null -> onOpenFile(uri, entry.mimeType)
+                uri != null -> onOpenFile(entry)
                 else -> Timber.w("Folder entry is neither a directory nor a file: %s", entry.name)
             }
         },

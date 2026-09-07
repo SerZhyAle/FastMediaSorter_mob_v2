@@ -702,7 +702,10 @@ $runsSettingsDocGate = (
 )
 
 # S2642 wear wire vocabulary parity gate. Fires when any wire model or data layer path file is edited.
-$runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|WearStreamTransferPayload|WearFileTransfer|WearFileTransferMetadata|WearPlaybackCommand|WearOpenOnPhonePayload|WearPhoneResourcePayload|WearSyncOutcome|WearSettingsRegistry|WearSettingsDecodeResult)\.kt$'
+# S2641 added the last two names: that row's sides are Models.kt and ImportNetworkSourcesUseCase.kt,
+# neither of which is Wear*-named, so without them the row would be enforced only by the project-wide
+# .\a.ps1 fg run - a check nobody's own ticket executes, which is the shape this gate exists to end.
+$runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|WearStreamTransferPayload|WearFileTransfer|WearFileTransferMetadata|WearPlaybackCommand|WearOpenOnPhonePayload|WearPhoneResourcePayload|WearSyncOutcome|WearSettingsRegistry|WearSettingsDecodeResult|Models|ImportNetworkSourcesUseCase)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
@@ -1502,7 +1505,7 @@ if ($runsWearWireVocabularyParityGate) {
     Invoke-Gate "wear-wire-vocabulary-parity-gate" { Invoke-GateChild @argvWearWireVocabularyParity }
 }
 else {
-    Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file is a Wear wire model"
+    Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file declares a side of a phone/watch wire vocabulary"
 }
 
 # S1939: icon-inventory-sync and doc-icons-sync moved to the release-scope runner

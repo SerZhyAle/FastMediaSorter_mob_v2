@@ -53,11 +53,14 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
+import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
@@ -131,6 +134,7 @@ data class WearHostUseCases(
     val prepareFilePlayback: PrepareWearFilePlaybackUseCase,
     val resolveBackground: ResolveWearBackgroundUseCase,
     val prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
+    val prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase,
 )
 
 /**
@@ -183,6 +187,8 @@ class MainActivity : ComponentActivity() {
 
     // S1884: the same arrangement for a file the phone delivered rather than a channel it named.
     @Inject lateinit var prepareFilePlayback: PrepareWearFilePlaybackUseCase
+
+    @Inject lateinit var prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase
 
     // S2161: a voice note is addressed either by its published MediaStore row or by its private file,
     // and only this use case knows which - the recorder and note screens hand it the note and navigate.
@@ -249,7 +255,8 @@ class MainActivity : ComponentActivity() {
                         prepareStreamPlayback = prepareStreamPlayback,
                         prepareFilePlayback = prepareFilePlayback,
                         resolveBackground = resolveBackground,
-                        prepareVoiceNotePlayback = prepareVoiceNotePlayback
+                        prepareVoiceNotePlayback = prepareVoiceNotePlayback,
+                        prepareNetworkFilePlayback = prepareNetworkFilePlayback
                     ),
                     launchEntry = WearLaunchEntry(
                         resolveRoute = resolveLaunchRoute,
@@ -532,7 +539,11 @@ fun MainNavigation(
 
                 browseRoutes(navController = navController)
 
-                localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
+                localFolderRoutes(
+                    navController,
+                    hostUseCases.prepareFilePlayback,
+                    hostUseCases.prepareNetworkFilePlayback
+                )
 
                 miniAppRoutes(
                     navController = navController,
@@ -988,7 +999,8 @@ private fun NavGraphBuilder.browseRoutes(navController: NavHostController) {
  */
 private fun NavGraphBuilder.localFolderRoutes(
     navController: NavHostController,
-    prepareFilePlayback: PrepareWearFilePlaybackUseCase
+    prepareFilePlayback: PrepareWearFilePlaybackUseCase,
+    prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase
 ) {
     composable(
         route = WearRoutes.LOCAL_FOLDER_PATTERN,
@@ -997,13 +1009,41 @@ private fun NavGraphBuilder.localFolderRoutes(
                 type = NavType.StringType
                 nullable = true
                 defaultValue = null
+            },
+            // S2694: absent for the local walk, which wants the default header.
+            navArgument(WearRoutes.ARG_FOLDER_TITLE) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
             }
         )
-    ) {
+    ) { entry ->
+        // The walk's entrance decides which half of the walk this is, and it does not change as the
+        // wearer descends: a network walk holds only network rows, a local one only local rows. The
+        // level's own address is the screen's private state, so the route argument is the one place
+        // the host can read it from.
+        val walkSourceId = (
+            WearFolderAddress.parse(entry.arguments?.getString(WearRoutes.ARG_FOLDER_TOKEN))
+                as? WearFolderAddress.NetworkLevel
+            )?.sourceId
         WearFolderWalkScreen(
-            onOpenFile = { uri, mimeType ->
-                val route = playerRouteFor(localFileIdFor(uri, mimeType, prepareFilePlayback), mimeType)
-                navController.navigate(route)
+            onOpenFile = { row ->
+                val uri = row.uri ?: return@WearFolderWalkScreen
+                val fileId = if (walkSourceId == null) {
+                    localFileIdFor(uri, row.mimeType, prepareFilePlayback)
+                } else {
+                    prepareNetworkFilePlayback(
+                        WearNetworkFileOpenRequest(
+                            sourceId = walkSourceId,
+                            uri = uri,
+                            name = row.name,
+                            mimeType = row.mimeType,
+                            sizeBytes = row.sizeBytes,
+                            dateModifiedEpochSeconds = row.dateModifiedEpochSeconds
+                        )
+                    ).fileId
+                }
+                navController.navigate(playerRouteFor(fileId, row.mimeType))
             },
             onExit = { navController.popBackStack() }
         )

@@ -88,6 +88,51 @@ function Get-KotlinEnumSerializedName {
     return $names
 }
 
+# Member names of a named `setOf(..)` / `listOf(..)` declaration, in declaration order.
+#
+# S2641: the sending half of a vocabulary is not always an enum. The phone decides what may cross to
+# the watch with `ResourceType.WATCH_TRANSFERABLE`, a subset of a larger enum, so comparing the enums
+# themselves would report a divergence on every member the channel deliberately never carries.
+# Qualifiers are dropped, so `setOf(SMB, ResourceType.FTP)` reads as two members either way.
+function Get-KotlinNamedSetMember {
+    param([string]$Source, [string]$SetName)
+
+    $decl = [regex]::Match(
+        $Source,
+        "val\s+$([regex]::Escape($SetName))\s*(?::[^=]+)?=\s*(?:setOf|listOf|setOfNotNull)\s*\((?<body>[^)]*)\)"
+    )
+    if (-not $decl.Success) { return @() }
+
+    $members = @()
+    foreach ($m in [regex]::Matches($decl.Groups['body'].Value, '(?<name>[A-Z][A-Z0-9_]*)\s*(?=,|$)')) {
+        $members += $m.Groups['name'].Value
+    }
+    return $members
+}
+
+# The quoted left-hand literals of a `when` inside a named function, in branch order.
+#
+# S2641: the receiving half of the source contract is a branch list, not a declaration - the watch
+# resolves an incoming name by explicit branch precisely so that a type it can open by hand is not
+# automatically accepted off the wire. Only literals before a `->` are read, so the `else` branch and
+# any string in a branch BODY are never mistaken for accepted names.
+function Get-KotlinWhenBranchLiteral {
+    param([string]$Source, [string]$FunctionName)
+
+    $decl = [regex]::Match($Source, "fun\s+$([regex]::Escape($FunctionName))\s*\(")
+    if (-not $decl.Success) { return @() }
+
+    $rest = $Source.Substring($decl.Index)
+    $next = [regex]::Match($rest.Substring(1), '(?m)^\s{0,4}(?:private\s+|internal\s+)?fun\s')
+    if ($next.Success) { $rest = $rest.Substring(0, $next.Index + 1) }
+
+    $literals = @()
+    foreach ($m in [regex]::Matches($rest, '(?m)^\s*"(?<v>[^"]+)"\s*->')) {
+        $literals += $m.Groups['v'].Value
+    }
+    return $literals
+}
+
 # Ordered map of constant name -> string value for every `const val <Prefix>* = ".."` in the source.
 #
 # The MAP is returned rather than the bare values because swapping two constants' values leaves the
@@ -99,6 +144,22 @@ function Get-KotlinConstMap {
     $map = [ordered]@{}
     foreach ($m in [regex]::Matches($Source, "const\s+val\s+(?<n>$([regex]::Escape($Prefix))\w+)\s*=\s*""(?<v>[^""]+)""")) {
         $map[$m.Groups['n'].Value] = $m.Groups['v'].Value
+    }
+    return $map
+}
+
+# Ordered map of constant name -> string value for every `const val` whose value starts with a
+# transport route prefix. Names cannot select this family: `NETWORK_SOURCES_REQUEST` and
+# `PHONE_RESOURCE_PAGE` are equally valid wire routes despite different name prefixes.
+function Get-KotlinConstMapByValuePrefix {
+    param([string]$Source, [string]$ValuePrefix)
+
+    $map = [ordered]@{}
+    foreach ($m in [regex]::Matches($Source, 'const\s+val\s+(?<n>\w+)\s*=\s*"(?<v>[^"]+)"')) {
+        $value = $m.Groups['v'].Value
+        if ($value.StartsWith($ValuePrefix, [System.StringComparison]::Ordinal)) {
+            $map[$m.Groups['n'].Value] = $value
+        }
     }
     return $map
 }

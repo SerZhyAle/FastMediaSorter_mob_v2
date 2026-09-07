@@ -54,9 +54,6 @@ import kotlinx.coroutines.tasks.await
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val PATH_PUSH = "/fms/network_sources/push"
-private const val PATH_ACK = "/fms/network_sources/ack"
-
 /** Used when the phone opened the channel without a trailing name segment. */
 private const val DEFAULT_INCOMING_FILE_NAME = "transferred_media"
 
@@ -185,7 +182,7 @@ class WatchWearListenerService : WearableListenerService() {
      */
     private fun dispatchDataItem(uri: android.net.Uri, payloadBytes: ByteArray) {
         when (uri.path) {
-            PATH_PUSH -> handlePush(payloadBytes, uri.host ?: "")
+            WearDataLayerPaths.NETWORK_SOURCES_PUSH -> handlePush(payloadBytes, uri.host ?: "")
             WearDataLayerPaths.SETTINGS_PUSH -> handleSettingsPush(payloadBytes)
             WearDataLayerPaths.FILE_UPLOAD_OUTCOME -> handleFileUploadOutcome(payloadBytes, uri)
             WearDataLayerPaths.STREAM_PINS -> handleStreamPinsPush(payloadBytes)
@@ -430,7 +427,7 @@ class WatchWearListenerService : WearableListenerService() {
         val ackJson = gson.toJson(SyncAck(added = result.added, updated = result.updated))
         try {
             Wearable.getMessageClient(this)
-                .sendMessage(nodeId, PATH_ACK, ackJson.toByteArray())
+                .sendMessage(nodeId, WearDataLayerPaths.NETWORK_SOURCES_ACK, ackJson.toByteArray())
                 .await()
         } catch (e: Exception) {
             e.errorUnlessCancellation("Failed to send ack to phone")

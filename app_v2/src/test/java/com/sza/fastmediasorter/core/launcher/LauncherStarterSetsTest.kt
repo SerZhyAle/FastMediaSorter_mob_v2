@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.core.launcher
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -32,19 +34,10 @@ class LauncherStarterSetsTest {
     private val mediumWide =
         LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
 
-    private val allPaddingLaunchable = mapOf(
-        InternalRouteCatalog.KEY_STREAMS to true,
-        InternalRouteCatalog.KEY_QUICK_CAMERA to true,
-        InternalRouteCatalog.KEY_QUICK_VOICE to true,
-        InternalRouteCatalog.KEY_CALCULATOR to true,
-        InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
-        InternalRouteCatalog.KEY_OCR to true,
-        InternalRouteCatalog.KEY_SCREEN_RECORDING to true,
-        InternalRouteCatalog.KEY_LINK_DOWNLOAD to true,
-        InternalRouteCatalog.KEY_GAME to true,
-        InternalRouteCatalog.KEY_SYSTEM_INFO to true,
-        InternalRouteCatalog.KEY_WEAR_COMPANION to true,
-    )
+    private val allPaddingLaunchable =
+        SubProgramCatalog
+            .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+            .associate { it.routeKey to true } + (InternalRouteCatalog.KEY_STREAMS to true)
 
     /** The utilities every profile closes with, below the second header. */
     private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
@@ -138,7 +131,8 @@ class LauncherStarterSetsTest {
         val actions = targets.filter { it.startsWith("act:") }
         assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
         assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
-        val actionsStart = actionsHeaderIndex + allPaddingLaunchable.size + 1
+        val actionsStart = actionsHeaderIndex +
+            SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).size + 1
         assertEquals(actions, targets.subList(actionsStart, actionsStart + actions.size))
     }
 
@@ -156,7 +150,7 @@ class LauncherStarterSetsTest {
     }
 
     @Test
-    fun `mainstream profile seeds the full resource and padding set`() {
+    fun `mainstream profile seeds every launchable registry shortcut`() {
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(
@@ -174,20 +168,17 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "compass",
+                // S2682: the phone's widgets group gained the translator and the storage readout.
+                "sec:widgets", "compass", "translator", "storage",
                 "sec:resources",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
-                // S1913: listed rather than folded into sectionTail(), which has no padding cells by
-                // construction. This assertion is named "and padding set" and is called with
-                // allPaddingLaunchable, so commonFeatures emits every key - the helper silently dropped
-                // them when the flat tail was refactored away, which is what made this test red.
                 "sec:app_functions",
-                "fn:streams", "fn:quick_camera", "fn:quick_voice",
-                "fn:calculator", "fn:network_monitor", "fn:ocr",
-                // S2019: the five programs the seed used to leave out of the App-functions section.
-                "fn:screen_recording", "fn:link_download", "fn:game", "fn:system_info", "fn:wear_companion",
-            ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
+            ) +
+                SubProgramCatalog
+                    .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+                    .map { "fn:${it.routeKey}" } +
+                actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
             items.map { it.target },
         )
     }
@@ -204,7 +195,7 @@ class LauncherStarterSetsTest {
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "compass",
+                "sec:widgets", "compass", "translator", "storage",
                 "sec:resources", "res:1:BROWSE",
                 "sec:app_functions", "fn:calculator",
             ) +
@@ -307,7 +298,7 @@ class LauncherStarterSetsTest {
                 "clock", "search",
                 "sec:widgets", "playlist:7", "streams", "audio_now_playing", "media_audio_window:7",
                 "sec:resources", "res:7:BROWSE",
-                "sec:app_functions", "fn:streams",
+                "sec:app_functions",
             ) +
                 actionTargets(DeviceProfileType.AUDIO_PLAYER) +
                 commonTail +
