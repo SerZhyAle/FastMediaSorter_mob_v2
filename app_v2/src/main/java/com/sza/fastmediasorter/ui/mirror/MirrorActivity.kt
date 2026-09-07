@@ -9,6 +9,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.annotation.StringRes
 import androidx.camera.core.CameraSelector
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -78,6 +79,15 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
      * nothing more than leaving the screen. The unbind waits for the finalize callback instead.
      */
     private var unbindAfterRecording = false
+
+    /**
+     * Set from the shutter press until the capture is saved or failed. The capture screen has carried
+     * the same guard since it was written; the mirror was built without one, and a second press while
+     * `takePicture` is still in flight fails inside CameraX and reports an error over a shot that
+     * actually succeeded. The shutter is the biggest control on this screen and a double press is the
+     * natural way to use it, so the guard is the difference between "works" and "shows an error".
+     */
+    private var captureInFlight = false
 
     private val cameraPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -198,6 +208,7 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             previewView = binding.mirrorPreview,
             onReady = {
                 sessionManager.switchToFacing(CameraSelector.LENS_FACING_FRONT, restoreSaved = false)
+                Timber.d("S1924: bound front lens, flipped=" + viewModel.horizontallyFlipped.value)
                 sessionManager.setZoomRatio(viewModel.zoomRatio.value)
                 zoomManager.showActive(viewModel.zoomRatio.value)
             },
@@ -214,9 +225,13 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
      * reaches the file - the session captures the frame the lens produced.
      */
     private fun capturePhoto() {
+        if (captureInFlight) return
+        captureInFlight = true
+        binding.btnMirrorPhoto.isEnabled = false
         lifecycleScope.launch {
             val tempFile = captureManager.newPhotoFile() ?: run {
-                showCaptureFailed()
+                releaseShutter()
+                showCaptureFailed(R.string.mirror_capture_error_file)
                 return@launch
             }
             sessionManager.capture(
@@ -225,18 +240,31 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
                 onSaved = { lifecycleScope.launch { persistPhoto(tempFile) } },
                 onError = { error ->
                     Timber.e(error, "MirrorActivity: photo capture failed")
-                    showCaptureFailed()
+                    if (isFinishing || isDestroyed) return@capture
+                    releaseShutter()
+                    showCaptureFailed(R.string.mirror_capture_error_camera)
                 },
             )
         }
     }
 
     private suspend fun persistPhoto(tempFile: File) {
-        if (captureManager.savePhoto(tempFile)) {
+        // CameraX delivers the save callback asynchronously, so the screen may already be gone -
+        // touching the binding after onDestroy released it crashes, the way the capture screen records.
+        if (isFinishing || isDestroyed) return
+        val saved = captureManager.savePhoto(tempFile)
+        releaseShutter()
+        if (saved) {
             Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
         } else {
-            showCaptureFailed()
+            showCaptureFailed(R.string.mirror_capture_error_save)
         }
+    }
+
+    /** Re-arms the shutter after a capture ended, whichever way it ended. */
+    private fun releaseShutter() {
+        captureInFlight = false
+        if (!isFinishing && !isDestroyed) binding.btnMirrorPhoto.isEnabled = true
     }
 
     private fun toggleRecording() {
@@ -256,7 +284,7 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     private fun startRecording(withAudio: Boolean) {
         lifecycleScope.launch {
             val tempFile = captureManager.newVideoFile() ?: run {
-                showCaptureFailed()
+                showCaptureFailed(R.string.mirror_capture_error_file)
                 return@launch
             }
             // The session binds an image pipeline by default and only carries a Recorder in video mode,
@@ -287,11 +315,12 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     }
 
     private suspend fun finishRecording(tempFile: File, failed: Boolean) {
-        if (failed || !captureManager.saveVideo(tempFile)) {
-            showCaptureFailed()
-            return
+        if (isFinishing || isDestroyed) return
+        when {
+            failed -> showCaptureFailed(R.string.mirror_capture_error_camera)
+            !captureManager.saveVideo(tempFile) -> showCaptureFailed(R.string.mirror_capture_error_save)
+            else -> Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
         }
-        Toast.makeText(this, R.string.camera_capture_saved, Toast.LENGTH_SHORT).show()
     }
 
     /** The button carries the state, so a running recording is visible without a second indicator. */
@@ -305,8 +334,14 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
         )
     }
 
-    private fun showCaptureFailed() {
-        Toast.makeText(this, R.string.camera_capture_error_save_generic, Toast.LENGTH_LONG).show()
+    /**
+     * Names the branch that failed rather than reporting one word for four different causes. The
+     * owner's 2026-09-06 device run reported "the photo button errors" and left nothing to act on,
+     * because a file that could not be allocated, a camera that refused the shot and a folder that
+     * refused the write all produced the same sentence.
+     */
+    private fun showCaptureFailed(@StringRes messageRes: Int) {
+        Toast.makeText(this, messageRes, Toast.LENGTH_LONG).show()
     }
 
     private fun applyControlInsets() {
@@ -327,13 +362,23 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             binding.mirrorCornerBottomEnd.updatePaddingRelative(bottom = bars.bottom, end = endInset)
             insets
         }
+        // BaseActivity defers setupViews to binding.root.post, which is after the window's first insets
+        // dispatch - a listener registered here would otherwise never fire, and the owner's 2026-09-06
+        // run found the zoom row sitting under the navigation bar for exactly that reason (Rule 17).
+        val root = binding.mirrorRoot
+        ViewCompat.getRootWindowInsets(root)
+            ?.let { ViewCompat.dispatchApplyWindowInsets(root, it) }
+            ?: ViewCompat.requestApplyInsets(root)
     }
 
     /**
-     * The controls sit on the glow field, so their colour follows the field rather than the theme: black
-     * while the field is lit, white once it is hidden and the black root shows through. A themed
+     * The icon controls sit on the glow field, so their colour follows the field rather than the theme:
+     * black while the field is lit, white once it is hidden and the black root shows through. A themed
      * `?attr/colorOnSurface` would resolve to white in the dark theme and hide every button on the white
      * field - in the mirror's default state, since the backlight starts on.
+     *
+     * The zoom row is deliberately out of this: it carries an opaque body of its own, so it reads on
+     * either state of the field without being repainted.
      */
     private fun applyControlTint(backlightOn: Boolean) {
         val tint = ContextCompat.getColor(this, if (backlightOn) R.color.black else R.color.white)
@@ -344,7 +389,6 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
             binding.btnMirrorPhoto,
             binding.btnMirrorVideo,
         ).forEach { it.imageTintList = ColorStateList.valueOf(tint) }
-        zoomManager.applyTint(tint)
     }
 
     /**

@@ -64,6 +64,7 @@ import com.sza.fastmediasorter.ui.xr.helpers.VrPanelReturnDispatcher
 import com.sza.fastmediasorter.ui.xr.helpers.VrStereoConfigResolver
 import com.sza.fastmediasorter.ui.xr.helpers.VrTextureDecoder
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -79,9 +80,15 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
-    @Inject lateinit var runtime: DiagnosticXrRuntime
+    @Inject lateinit var runtimeProvider: Lazy<DiagnosticXrRuntime>
+
+    private val runtime: DiagnosticXrRuntime
+        get() = runtimeProvider.get()
+
     @Inject lateinit var assetProvider: DiagnosticXrAssetProvider
+
     @Inject lateinit var exitHandler: DiagnosticXrInputExitHandler
+
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
 
     // S1223: remembers whether the one-time controls legend has already been shown on this install.
@@ -285,11 +292,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
         // S0295 Phase 02: shared transport parsing now lives in DiagnosticXrLaunchArgs so the
         // host stays focused on OpenXR session lifecycle rather than intent plumbing.
-        when (val parsed = DiagnosticXrLaunchArgs.parse(
-            intent,
-            payloadHolder = payloadHolder,
-            defaultReturnTarget = VrPanelReturnTarget.Settings(MEDIA_SETTINGS_TAB_INDEX),
-        )) {
+        when (
+            val parsed = DiagnosticXrLaunchArgs.parse(
+                intent,
+                payloadHolder = payloadHolder,
+                defaultReturnTarget = VrPanelReturnTarget.Settings(MEDIA_SETTINGS_TAB_INDEX),
+            )
+        ) {
             is DiagnosticXrLaunchArgs.PreflightFailure -> {
                 Timber.w("DiagnosticXrActivity: preflight failure ${parsed.unavailable.reason}")
                 launchInput = VrLaunchInput(
@@ -599,7 +608,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun prepareLaunchMedia(): Boolean {
         // S0296 Phase 02 step 02.2: VIDEO is now supported in immerse; GIF remains out of scope and short-circuits.
         if (launchInput.launchMode == VrLaunchMode.FILE_URI &&
-            launchInput.mediaType == VrMediaType.GIF) {
+            launchInput.mediaType == VrMediaType.GIF
+        ) {
             Timber.w("DiagnosticXrActivity: mediaType=${launchInput.mediaType} not yet supported in immerse")
             returnDispatcher.deliverReturnAndFinish(
                 VrLaunchResult.Unavailable(VrLaunchUnavailableReason.NotYetSupported)

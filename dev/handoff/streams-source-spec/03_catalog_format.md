@@ -130,10 +130,10 @@ and uploads nothing unless `-Publish` is also passed. It is a separate mode by d
 a mass metadata rewrite must never ride along with a discovery or artwork run. The legacy
 `-NormalizeTopics` switch remains the topic-only subset of the same operation.
 
-### 2.5 `name` guarantees (S2645) **[CONTRACT]**
+### 2.5 `name` guarantees (S2645, S2651) **[CONTRACT]**
 
 Until 2026-09-06 the `name` cell was whatever the upstream directory wrote, forwarded untouched. It is now
-repaired publisher-side, and a published bank carries four guarantees. A consumer may rely on them; a
+repaired publisher-side, and a published bank carries five guarantees. A consumer may rely on them; a
 consumer that already works around their absence may stop.
 
 - **No undecoded HTML entity.** Named and numeric forms are decoded, including the double-encoded shape
@@ -143,6 +143,12 @@ consumer that already works around their absence may stop.
 - **Never literally `(null)`, and never free of letters and digits.** A row whose name says nothing gets
   one derived from its address instead (below).
 - **Non-blank.** Unchanged from 2.1, and now enforced at publish time rather than assumed.
+- **No Unicode replacement character (U+FFFD).** The Xiph YP directory serves 31 station names whose
+  accented letter is already destroyed in its own bytes, so the app showed a black diamond inside the
+  name (`Roxy R<U+FFFD>di<U+FFFD>`). The letter is restored from a word table - `Roxy Rádió`,
+  `Radio Lübeck`, `RCF Liège` - and only that letter: an accent the source had already lost elsewhere
+  in the word is not added, because that would rename the station. A word the table does not know is a
+  terminal case: the row leaves the bank, reported, rather than shipping the diamond.
 
 **Derived names.** A name that carries no information - no letter and no digit, `(null)`, or one of the
 encoder defaults (`Online Radio`, `Unspecified name`, `Default Stream`, `Orban Opticodec-PC Encoder`,
@@ -165,12 +171,13 @@ placed on one showed on the other. The 2026-09-06 pass collapsed 62.
 **Rewrite mode.** `-NormalizeNames` applies all of the above to an existing catalog with no network
 collection, in the shape `-NormalizeFacets` established: a timestamped backup, a per-rule move report
 (`name-normalization-moves.csv`), a per-row list of collapsed duplicates
-(`identity-duplicates-dropped.csv`), and no upload unless `-Publish` is passed. It refuses to write when
-the surviving row count is not the input count minus the collapsed duplicates. It is idempotent - a second
-pass over a repaired bank reports zero moves.
+(`identity-duplicates-dropped.csv`), a per-row list of names it could not repair
+(`replacement-char-dropped.csv`), and no upload unless `-Publish` is passed. It refuses to write when the
+surviving row count is not the input count minus the collapsed duplicates and those dropped rows. It is
+idempotent - a second pass over a repaired bank reports zero moves.
 
 **Publish gate.** `Assert-CatalogNamesClean` runs inside `Invoke-PublishCatalog` and refuses a bank that
-violates any of the four guarantees, naming the count per class. It repairs nothing: a silent repair on the
+violates any of the five guarantees, naming the count per class. It repairs nothing: a silent repair on the
 publish path would be an unrecorded change to the shipped bank, which is what `-NormalizeNames` exists to
 keep reviewable.
 

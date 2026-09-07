@@ -34,8 +34,9 @@ class WeatherRepositoryImpl @Inject constructor(
     private val provider: WeatherProvider,
 ) : WeatherRepository {
 
-    private val prefs: SharedPreferences =
+    private val prefs: SharedPreferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     private val cache = mutableMapOf<String, WeatherSnapshot>()
 

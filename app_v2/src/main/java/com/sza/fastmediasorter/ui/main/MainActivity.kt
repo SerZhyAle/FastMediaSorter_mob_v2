@@ -47,12 +47,15 @@ import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.usecase.link.LinkAutoDownloadCoordinator
 import com.sza.fastmediasorter.ui.calculator.helpers.CalculatorAprilFoolsPrankManager
+import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.ui.common.AppUpdateNoticeManager
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
+import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastManager
+import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
@@ -135,6 +138,8 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
     private lateinit var screenRecordingMenuManager: MainScreenRecordingMenuManager
     private lateinit var screenRecordingManager: MainScreenRecordingManager
+    private lateinit var broadcastMenuManager: MainBroadcastMenuManager
+    private lateinit var broadcastManager: MainBroadcastManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
     private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
@@ -252,9 +257,21 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
 
+    // S2508: broadcast permission launchers - registered pre-STARTED
+    private val broadcastRecordAudioLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (::broadcastManager.isInitialized && granted) broadcastManager.startBroadcast() }
+
+    private val broadcastPostNotificationsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted -> if (::broadcastManager.isInitialized && granted) broadcastManager.startBroadcast() }
+
     // S0774: empty except on standard (fms.screenCapture=on) + noLegal; gates the screen-recording scenario.
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
+    @Inject
+    lateinit var broadcastSourceController: BroadcastSourceController
 
     @Inject
     lateinit var screenRecordingStateController: ScreenRecordingStateController
@@ -814,6 +831,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         wearCompanion = isWearCompanionEnabled,
         frontFlashlight = isFrontFlashlightEnabled,
         waterFlashlight = isWaterFlashlightEnabled,
+        broadcast = broadcastSourceController.isAvailable,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -903,6 +921,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecordingMenuManager = MainScreenRecordingMenuManager(
             onScreenRecording = { screenRecordingManager.start() },
         )
+        broadcastManager = MainBroadcastManager(
+            activity = this,
+            controller = broadcastSourceController,
+            requestRecordAudioPermission = {
+                broadcastRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            },
+            requestPostNotificationsPermission = {
+                broadcastPostNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            },
+        )
+        broadcastManager.bind(this)
+        broadcastMenuManager = MainBroadcastMenuManager(
+            onBroadcast = { broadcastManager.startBroadcast() },
+        )
         // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
         // before the coordinator/menu-actions below, which delegate to it.
         panelItemActions = mainHelperFactory.createPanelItemActionsManager(
@@ -919,6 +951,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
             screenRecordingMenuManager = screenRecordingMenuManager,
+            broadcastMenuManager = broadcastMenuManager,
             hostActions = MainProgramsMenuCoordinator.ProgramsHostActions(
                 isNewWindowAvailable = { panelItemActions.isNewWindowAvailable() },
                 launchInNewWindow = { intent -> panelItemActions.launchInNewWindow(intent) },

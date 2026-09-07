@@ -36,6 +36,7 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
      * the welcome enable-all flow spawns concurrent deliverable-install writers right after this call.
      */
     suspend operator fun invoke() {
+        Timber.d("S2664: enable-all pressed - remote sources join the button")
         // S2382: resolved BEFORE updateSettings and never inside its transform - the transform runs under
         // the repository mutex while all() performs a settings read of its own.
         val compiledRoutes = routeAvailability.all()
@@ -65,7 +66,20 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
                 acceptSharedFiles = true,
                 isPrimaryMediaPlayer = true,
             )
-            ROUTE_ENABLERS.entries.fold(withMediaTypes) { settings, (routeKey, enable) ->
+            // S2664: the six remote sources join the button. The compile-tier question goes to
+            // MediaCapabilities - the same two flags RemoteSourceAvailabilityGate consults - so a source
+            // this build does not carry keeps its stored value instead of being switched on.
+            val withNetworkSources = if (mediaCapabilities.supportsLocalNetworkSources) {
+                withMediaTypes.copy(smbEnabled = true, sftpEnabled = true, ftpEnabled = true)
+            } else {
+                withMediaTypes
+            }
+            val withRemoteSources = if (mediaCapabilities.supportsCloud) {
+                withNetworkSources.copy(googleDriveEnabled = true, oneDriveEnabled = true, dropboxEnabled = true)
+            } else {
+                withNetworkSources
+            }
+            ROUTE_ENABLERS.entries.fold(withRemoteSources) { settings, (routeKey, enable) ->
                 if (routeKey in compiledRoutes) enable(settings) else settings
             }
         }

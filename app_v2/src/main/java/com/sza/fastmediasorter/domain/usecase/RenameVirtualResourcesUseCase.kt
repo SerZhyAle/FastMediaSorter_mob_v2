@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Environment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.UiLanguageCatalog
+import com.sza.fastmediasorter.core.util.UriPathResolver
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -89,7 +91,7 @@ class RenameVirtualResourcesUseCase @Inject constructor(
             val downloadsPath = Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 .absolutePath
-            val downloads = allResources.filter { it.isDestination && it.path == downloadsPath }
+            val downloads = allResources.filter { it.isDestination && isDownloadsPath(it.path, downloadsPath) }
             for (resource in downloads) {
                 val renamed = applyLocalizedDefaults(
                     resource, R.string.resource_name_downloads, null, languages, currentLang
@@ -105,6 +107,15 @@ class RenameVirtualResourcesUseCase @Inject constructor(
         } catch (e: Exception) {
             Timber.e(e, "RenameVirtualResources: failed")
         }
+    }
+
+    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean {
+        if (path == downloadsPath) return true
+        if (path.startsWith("content://")) {
+            val resolved = UriPathResolver.getPath(context, Uri.parse(path))
+            if (resolved == downloadsPath) return true
+        }
+        return false
     }
 
     /**

@@ -426,6 +426,7 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
         }
 
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
@@ -524,6 +525,7 @@ android {
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -555,6 +557,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in lite
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -585,6 +588,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in photos
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -624,6 +628,7 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in legacy
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -701,6 +706,7 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
@@ -744,6 +750,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             buildConfigField("boolean", "SUPPORT_CAST", "false")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false")
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
@@ -887,6 +894,7 @@ android {
             // S1433: Network Monitor program. Flavors without it mount src/networkMonitorDisabled,
             // which binds the no-op capability contract.
             kotlin.directories.add("src/networkMonitor/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -922,6 +930,7 @@ android {
             res.directories.add("src/launcherEnabled/res")
             // S1433: Network Monitor program - part of the sideload superset.
             kotlin.directories.add("src/networkMonitor/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -946,6 +955,7 @@ android {
             kotlin.directories.add("src/networkMonitorDisabled/java")
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
             kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -972,6 +982,7 @@ android {
             kotlin.directories.add("src/networkMonitorDisabled/java")
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
             kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -995,6 +1006,7 @@ android {
             kotlin.directories.add("src/networkMonitorDisabled/java")
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
             kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         // S0403: foss subtracts exactly the proprietary nodes. Every "disabled"/"stub" set below is
         // the no-op contract half of a seam whose real half links a Google, Microsoft or Dropbox
@@ -1015,6 +1027,7 @@ android {
             kotlin.directories.add("src/playServicesDisabled/java")
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
             kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -1036,6 +1049,7 @@ android {
             // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
             // This is the flavor whose hiltJavaCompileLiteDebug failure opened the ticket.
             kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
     }
 
@@ -1869,6 +1883,38 @@ dependencies {
     "noLegalImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "legacyImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
     "vrImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    // S2662: RTSP SERVER on the device (broadcast source, pillar B) - the mirror of the media3
+    // client above, which only receives. Restricted to the three flavors that carry
+    // SUPPORT_BROADCAST_SOURCE: a plain implementation() would push the native encoder .so into
+    // lite/photos/vr/foss, which cannot broadcast at all. Owner accepted the JitPack source
+    // 2026-09-06; the repository is already declared for PhotoView in settings.gradle.kts.
+    // Pinned to 1.4.1, not the newest 1.4.3: 1.4.2 and 1.4.3 declare `minCompileSdk=37` in their AAR
+    // metadata and are refused against this project's compileSdk 36, while 1.4.1 declares 1
+    // (measured 2026-09-06 by reading each AAR's aar-metadata.properties). Moving past 1.4.1 is a
+    // compileSdk decision for the whole project, not a dependency bump.
+    // The `whip` sibling module (WebRTC-HTTP publishing) is excluded: nothing here publishes over
+    // WebRTC, and it is the only path that drags BouncyCastle 1.84 in against the 1.75 pin below,
+    // which the version guard rejected on the first resolution attempt (measured 2026-09-06).
+    "standardImplementation"("com.github.pedroSG94:RTSP-Server:1.4.1") {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "noLegalImplementation"("com.github.pedroSG94:RTSP-Server:1.4.1") {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "legacyImplementation"("com.github.pedroSG94:RTSP-Server:1.4.1") {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    // RootEncoder carries the base classes (`Camera2Base`, `ConnectChecker`) that the server type
+    // above extends and exposes, but JitPack generates its POM with every dependency at runtime
+    // scope, so they reach the runtime classpath and not the compile one - the compiler reported
+    // "Cannot access 'Camera2Base' which is a supertype of 'RtspServerCamera2'" until these two were
+    // declared here. Versions match what RTSP-Server 1.4.1 resolves to; bump them together with it.
+    "standardImplementation"("com.github.pedroSG94.RootEncoder:library:2.7.2")
+    "standardImplementation"("com.github.pedroSG94.RootEncoder:common:2.7.2")
+    "noLegalImplementation"("com.github.pedroSG94.RootEncoder:library:2.7.2")
+    "noLegalImplementation"("com.github.pedroSG94.RootEncoder:common:2.7.2")
+    "legacyImplementation"("com.github.pedroSG94.RootEncoder:library:2.7.2")
+    "legacyImplementation"("com.github.pedroSG94.RootEncoder:common:2.7.2")
     // S1060: libVLC software decoding of patented codecs + DVD/BD ISO playback. noLegal ONLY -
     // the flavor boundary is the ticket's legal premise (patents/DMCA), so this must never move
     // to implementation(). Ships prebuilt .so per ABI; noLegal abiFilters govern which are packaged.

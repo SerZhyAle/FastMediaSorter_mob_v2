@@ -880,8 +880,10 @@
 
     <!-- S1924: how much of the mirror's white field shows around the preview. A dimen rather than a
          literal margin because strategic 5.3 keeps the field a parameter, and the risk table calls out
-         that a field too wide eats the preview on a narrow screen. -->
-    <dimen name="mirror_glow_field_width">48dp</dimen>
+         that a field too wide eats the preview on a narrow screen. Halved from 48dp on the owner's
+         2026-09-06 device run: in portrait the field lands on the long sides of the frame, where 48dp
+         cost more of the face than it returned in light. -->
+    <dimen name="mirror_glow_field_width">24dp</dimen>
 
     <!-- S1411: the stopwatch reading auto-sizes between these two bounds instead of carrying one size
          per participant count, because the same region layout is drawn full-screen, half-screen and

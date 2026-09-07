@@ -42,6 +42,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `SUPPORT_WEAR_COMPANION` | [+] | [+] | [-] | [-] | [-] | [-] | [-] |
 | `SUPPORT_CAST` | [+] | [+] | [+] | [+] | [+] | [-] | [-] |
 | `SUPPORT_NETWORK_MONITOR` | [+] | [+] | [-] | [-] | [-] | [-] | [-] |
+| `SUPPORT_BROADCAST_SOURCE` | [+] | [+] | [-] | [-] | [+] | [-] | [-] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED` | n/a | [+] | n/a | n/a | n/a | [-] | n/a |
 | `minSdk` | 26 | 26 | 26 | 26 | 23 | 26 | 23 |
 

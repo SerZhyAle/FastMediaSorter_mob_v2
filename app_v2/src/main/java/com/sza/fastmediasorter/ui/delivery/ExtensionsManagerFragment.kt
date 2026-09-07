@@ -206,8 +206,20 @@ class ExtensionsAdapter(
 
             job = lifecycleOwner.lifecycleScope.launch {
                 lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    item.statusFlow.collect { status ->
-                        updateStatus(status)
+                    // S2652: the measured size arrives after the row is already on screen, so the two
+                    // flows are collected side by side rather than one after the other - awaiting the
+                    // size probe first would hold the status (and the download button) behind a
+                    // network request.
+                    launch {
+                        item.statusFlow.collect { status ->
+                            updateStatus(status)
+                        }
+                    }
+                    launch {
+                        item.sizeLabelFlow.collect { label ->
+                            binding.tvSize.text =
+                                binding.root.context.getString(R.string.ext_estimated_size, label)
+                        }
                     }
                 }
             }

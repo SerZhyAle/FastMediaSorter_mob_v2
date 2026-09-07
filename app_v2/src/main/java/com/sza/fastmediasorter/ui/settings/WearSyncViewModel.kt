@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.service.WearSyncEvents
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
@@ -144,7 +146,7 @@ class WearSyncViewModel @Inject constructor(
     // read back as the LIST default on the next open. S2093: the watch now does report its own set
     // back, and the merged result is written to the same mirror, so this restores the last agreed
     // state rather than only the phone's last send.
-    private val _watchSettingsState = MutableStateFlow(wearSettingsMirrorStore.readSettings())
+    private val _watchSettingsState = MutableStateFlow<WearSettingsPayload?>(null)
     val watchSettingsState: StateFlow<WearSettingsPayload?> = _watchSettingsState.asStateFlow()
 
     private val _pendingWatchSources = MutableStateFlow<WearSourcesExportPayload?>(null)
@@ -174,7 +176,7 @@ class WearSyncViewModel @Inject constructor(
     )
     val colorScheme: StateFlow<String> = _colorScheme.asStateFlow()
 
-    private val _backgroundPreview = MutableStateFlow(readPreparedFrame())
+    private val _backgroundPreview = MutableStateFlow<WearBackgroundPreview?>(null)
     val backgroundPreview: StateFlow<WearBackgroundPreview?> = _backgroundPreview.asStateFlow()
 
     private val _backgroundDelivery =
@@ -186,12 +188,12 @@ class WearSyncViewModel @Inject constructor(
     // S2093: observable rather than a plain getter - the caption beside the sync button has to change
     // when a report arrives, and a getter is read once and never again. S2460 removed the getter that
     // stood beside this flow once its only reader, the screen's second status line, was deleted.
-    private val _lastSyncTimestamp = MutableStateFlow(wearSettingsMirrorStore.readLastSyncTimestamp())
+    private val _lastSyncTimestamp = MutableStateFlow(0L)
     val lastSyncedAt: StateFlow<Long> = _lastSyncTimestamp.asStateFlow()
 
     // S2461: read back from the store rather than off the merged payload, so the version on screen is
     // the one that was persisted beside the sync time and the two readouts cannot disagree.
-    private val _watchAppVersion = MutableStateFlow(wearSettingsMirrorStore.readWatchAppVersion())
+    private val _watchAppVersion = MutableStateFlow<String?>(null)
     val watchAppVersion: StateFlow<String?> = _watchAppVersion.asStateFlow()
 
     init {
@@ -228,6 +230,27 @@ class WearSyncViewModel @Inject constructor(
             WearSyncEvents.watchSettingsMergedFlow.collect { merged ->
                 adoptMergedSettings(merged)
             }
+        }
+        loadPersistedState()
+    }
+
+    private fun loadPersistedState() {
+        viewModelScope.launch {
+            val persisted = withContext(Dispatchers.IO) {
+                PersistedWearState(
+                    settings = wearSettingsMirrorStore.readSettings(),
+                    preview = readPreparedFrame(),
+                    lastSyncTimestamp = wearSettingsMirrorStore.readLastSyncTimestamp(),
+                    watchAppVersion = wearSettingsMirrorStore.readWatchAppVersion(),
+                )
+            }
+            _watchSettingsState.value = persisted.settings
+            _backgroundMode.value = persisted.settings?.backgroundMode
+                ?: WearSettingsPayload.BACKGROUND_MODE_BRANDED_ANIMATION
+            _colorScheme.value = persisted.settings?.colorScheme ?: WearSettingsPayload.COLOR_SCHEME_DARK
+            _backgroundPreview.value = persisted.preview
+            _lastSyncTimestamp.value = persisted.lastSyncTimestamp
+            _watchAppVersion.value = persisted.watchAppVersion
         }
     }
 
@@ -526,6 +549,13 @@ class WearSyncViewModel @Inject constructor(
         File(context.cacheDir, WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME)
             .takeIf { it.exists() }
             ?.let { WearBackgroundPreview(it.absolutePath, it.lastModified()) }
+
+    private data class PersistedWearState(
+        val settings: WearSettingsPayload?,
+        val preview: WearBackgroundPreview?,
+        val lastSyncTimestamp: Long,
+        val watchAppVersion: String?,
+    )
 
     fun acceptWatchImport() {
         val payload = _pendingWatchSources.value ?: return

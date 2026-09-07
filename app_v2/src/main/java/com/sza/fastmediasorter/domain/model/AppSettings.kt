@@ -475,7 +475,13 @@ data class AppSettings(
 
         /** S1796: opaque white - the flashlight starts as a plain white lamp until a colour is picked. */
         const val FRONT_FLASHLIGHT_DEFAULT_COLOR: Int = 0xFFFFFFFF.toInt()
-        const val MIRROR_DEFAULT_ZOOM_RATIO: Float = 3f
+
+        /**
+         * S1924: the mirror opens at 2x (owner ruling 2026-09-06, replacing the 3x of the original
+         * capture). Only the FIRST open uses it - the screen writes the chosen preset back, so every
+         * later open restores what the user last left.
+         */
+        const val MIRROR_DEFAULT_ZOOM_RATIO: Float = 2f
 
         /** S1411: one runner is the plain case; the split screen is something the user asks for. */
         const val STOPWATCH_DEFAULT_PARTICIPANTS: Int = 1

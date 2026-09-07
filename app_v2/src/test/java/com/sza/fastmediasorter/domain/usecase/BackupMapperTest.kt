@@ -357,7 +357,8 @@ class BackupMapperTest {
             kind = "SHORTCUT",
             target = "app:com.example.app",
             labelOverride = "Custom App",
-            addedAt = 123456789L
+            addedAt = 123456789L,
+            origin = "AUTO_INSTALL",
         )
 
         val backupCell = BackupMapper.toBackupLauncherCell(cellEntity)
@@ -373,5 +374,6 @@ class BackupMapperTest {
         assertEquals("app:com.example.app", restoredEntity.target)
         assertEquals("Custom App", restoredEntity.labelOverride)
         assertEquals(123456789L, restoredEntity.addedAt)
+        assertEquals("AUTO_INSTALL", restoredEntity.origin)
     }
 }

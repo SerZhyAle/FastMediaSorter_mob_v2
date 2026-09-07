@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.domain.delivery
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
 /**
  * Persists the registry/inventory of available deliverable items (modules and language data).
@@ -20,6 +21,14 @@ sealed class ExtensionItem {
     abstract val section: ExtensionSection
     abstract val statusFlow: Flow<ExtensionStatus>
 
+    /**
+     * S2652: the size actually shown, which for a payload republished outside the build is measured
+     * rather than compiled. It opens on [sizeLabel] so the row is never blank, and re-emits once a
+     * live source answers; a payload pinned by this build has no second source and stays on the one
+     * value.
+     */
+    abstract val sizeLabelFlow: Flow<String>
+
     data class Module(
         override val id: String,
         val set: DeliverableSet,
@@ -27,7 +36,8 @@ sealed class ExtensionItem {
         override val descriptionRes: Int,
         override val sizeLabel: String,
         override val section: ExtensionSection,
-        override val statusFlow: Flow<ExtensionStatus>
+        override val statusFlow: Flow<ExtensionStatus>,
+        override val sizeLabelFlow: Flow<String> = flowOf(sizeLabel)
     ) : ExtensionItem()
 
     data class LanguageData(
@@ -37,7 +47,8 @@ sealed class ExtensionItem {
         override val descriptionRes: Int,
         override val sizeLabel: String,
         override val section: ExtensionSection,
-        override val statusFlow: Flow<ExtensionStatus>
+        override val statusFlow: Flow<ExtensionStatus>,
+        override val sizeLabelFlow: Flow<String> = flowOf(sizeLabel)
     ) : ExtensionItem()
 
     // S0575: a downloadable catalog of stream sources. Not a DeliverableSet - fetched directly via
@@ -48,7 +59,8 @@ sealed class ExtensionItem {
         override val descriptionRes: Int,
         override val sizeLabel: String,
         override val section: ExtensionSection,
-        override val statusFlow: Flow<ExtensionStatus>
+        override val statusFlow: Flow<ExtensionStatus>,
+        override val sizeLabelFlow: Flow<String> = flowOf(sizeLabel)
     ) : ExtensionItem()
 }
 

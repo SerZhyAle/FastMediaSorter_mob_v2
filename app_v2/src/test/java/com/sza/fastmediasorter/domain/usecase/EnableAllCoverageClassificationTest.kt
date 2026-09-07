@@ -92,6 +92,30 @@ class EnableAllCoverageClassificationTest {
         assertTrue("Expected the programs-panel switches to be part of the change.", "enableCalculator" in changed)
     }
 
+    /**
+     * Starts from all six sources off, because they default to on and the diff test above can never
+     * observe a field that starts true - the blindness S2628 recorded when the mirror's omission
+     * survived unseen.
+     */
+    @Test
+    fun `the button switches the remote sources back on when the user turned them off`() {
+        val before = AppSettings(
+            smbEnabled = false,
+            sftpEnabled = false,
+            ftpEnabled = false,
+            googleDriveEnabled = false,
+            oneDriveEnabled = false,
+            dropboxEnabled = false,
+        )
+        val after = applyEnableAll(before)
+        assertTrue("Enable-all left SMB off on a build that carries it.", after.smbEnabled)
+        assertTrue("Enable-all left SFTP off on a build that carries it.", after.sftpEnabled)
+        assertTrue("Enable-all left FTP off on a build that carries it.", after.ftpEnabled)
+        assertTrue("Enable-all left Google Drive off on a build that carries it.", after.googleDriveEnabled)
+        assertTrue("Enable-all left OneDrive off on a build that carries it.", after.oneDriveEnabled)
+        assertTrue("Enable-all left Dropbox off on a build that carries it.", after.dropboxEnabled)
+    }
+
     private fun applyEnableAll(start: AppSettings): AppSettings {
         val settingsRepository = mockk<SettingsRepository>(relaxed = true)
         val routeAvailability = mockk<ResolvePanelRouteAvailabilityUseCase>()
@@ -138,6 +162,7 @@ class EnableAllCoverageClassificationTest {
                 "allFiles",
                 "disableCameraCapture",
                 "disableVideoCapture",
+                "dropboxEnabled",
                 "embeddedGameEnabled",
                 "enableCalculator",
                 "enableFavorites",
@@ -148,11 +173,16 @@ class EnableAllCoverageClassificationTest {
                 "enableSystemInfo",
                 "enableWearCompanion",
                 "frontFlashlightEnabled",
+                "ftpEnabled",
+                "googleDriveEnabled",
                 "isPrimaryMediaPlayer",
                 "linkAutoDownloadEnabled",
                 "micRecordingEnabled",
                 "mirrorEnabled",
+                "oneDriveEnabled",
                 "screenRecordingEnabled",
+                "sftpEnabled",
+                "smbEnabled",
                 "supportAudio",
                 "supportEpub",
                 "supportGifs",
@@ -216,7 +246,6 @@ class EnableAllCoverageClassificationTest {
                 "defaultShowCommandPanel",
                 "disable3dVr",
                 "disableAnimations",
-                "dropboxEnabled",
                 "dynamicBackgroundExtension",
                 "enableCopying",
                 "enableMoving",
@@ -226,8 +255,6 @@ class EnableAllCoverageClassificationTest {
                 "enableUndo",
                 "fileOpsInOverflowMenu",
                 "fileOpsOverflowMenuHintShown",
-                "ftpEnabled",
-                "googleDriveEnabled",
                 "goToNextAfterCopy",
                 "hideGridActionButtons",
                 "hideSystemUiInFullscreen",
@@ -244,7 +271,6 @@ class EnableAllCoverageClassificationTest {
                 "mirrorHorizontallyFlipped",
                 "movePanelCollapsed",
                 "nineZoneGridEnabled",
-                "oneDriveEnabled",
                 "openVideoInFullscreen",
                 "panelStereoSingleEye",
                 "pdfScrollMode",
@@ -261,7 +287,6 @@ class EnableAllCoverageClassificationTest {
                 "resumeOnNextLaunch",
                 "saveAudioMetadataLocally",
                 "scheduledOperationsPaused",
-                "sftpEnabled",
                 "showBlackScreenButton",
                 "showDetailedErrors",
                 "showHiddenFiles",
@@ -275,7 +300,6 @@ class EnableAllCoverageClassificationTest {
                 "showTextLineNumbers",
                 "showVideoThumbnails",
                 "skipCameraFilenameDialog",
-                "smbEnabled",
                 "stereoAmbiguityBestGuess",
                 "stereoAutoDetectEnabled",
                 "stereoTrustAspectRatio",

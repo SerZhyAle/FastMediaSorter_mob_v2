@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.delivery.DeliverableInventory
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.delivery.DeliverableSetDownloader
 import com.sza.fastmediasorter.domain.delivery.DeliverableSourceDescriptor
+import com.sza.fastmediasorter.domain.delivery.DeliveryAssetSizeSource
 import com.sza.fastmediasorter.domain.delivery.DownloadProgress
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
+import timber.log.Timber
 import java.util.Locale
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -58,6 +60,8 @@ class DeliverableInventoryImpl @Inject constructor(
     private val descriptors: Map<DeliverableSet, @JvmSuppressWildcards DeliverableSourceDescriptor>,
     // S1483: the freshness signal for the unpinned artwork payloads, read from the mirror.
     private val artworkManifest: ArtworkManifestSource,
+    // S2652: the live size of the stream-catalog archive, which no descriptor describes.
+    private val assetSize: DeliveryAssetSizeSource,
     @ApplicationContext private val appContext: Context
 ) : DeliverableInventory {
 
@@ -170,7 +174,8 @@ class DeliverableInventoryImpl @Inject constructor(
                     descriptionRes = R.string.ext_streams_desc,
                     sizeLabel = formatBytes(STREAM_CATALOG_SIZE),
                     section = ExtensionSection.STREAMS,
-                    statusFlow = catalogStatusFlow(STREAM_CATALOG_ID)
+                    statusFlow = catalogStatusFlow(STREAM_CATALOG_ID),
+                    sizeLabelFlow = liveSizeLabel(STREAM_CATALOG_SIZE) { assetSize.streamCatalogBytes() }
                 )
             )
             add(
@@ -181,7 +186,8 @@ class DeliverableInventoryImpl @Inject constructor(
                     descriptionRes = R.string.ext_channel_preview_atlas_desc,
                     sizeLabel = moduleSizeLabel(DeliverableSet.CHANNEL_PREVIEW_ATLAS),
                     section = ExtensionSection.STREAMS,
-                    statusFlow = moduleStatusFlow(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
+                    statusFlow = moduleStatusFlow(DeliverableSet.CHANNEL_PREVIEW_ATLAS),
+                    sizeLabelFlow = manifestSizeLabel(DeliverableSet.CHANNEL_PREVIEW_ATLAS)
                 )
             )
             add(
@@ -192,7 +198,8 @@ class DeliverableInventoryImpl @Inject constructor(
                     descriptionRes = R.string.ext_stream_logo_atlas_desc,
                     sizeLabel = moduleSizeLabel(DeliverableSet.STREAM_LOGO_ATLAS),
                     section = ExtensionSection.STREAMS,
-                    statusFlow = moduleStatusFlow(DeliverableSet.STREAM_LOGO_ATLAS)
+                    statusFlow = moduleStatusFlow(DeliverableSet.STREAM_LOGO_ATLAS),
+                    sizeLabelFlow = manifestSizeLabel(DeliverableSet.STREAM_LOGO_ATLAS)
                 )
             )
         }
@@ -346,9 +353,36 @@ class DeliverableInventoryImpl @Inject constructor(
         is DownloadProgress.Failed -> ExtensionStatus.Failed(reason)
     }
 
+    // S2652: `minSize` is the truncation guard, not a size. For a pinned payload the two coincide -
+    // the descriptor is generated from the very file it pins - but an unpinned one carries a floor
+    // (1 MB for a tile pack) that used to reach the screen as the estimate, promising 1 MB for a
+    // download measured at 14 MB. An unpinned set therefore falls through to FALLBACK_SIZE here and
+    // is corrected by the published manifest in [manifestSizeLabel].
     private fun moduleSizeLabel(set: DeliverableSet): String {
-        val fromDescriptor = descriptors[set]?.files?.sumOf { it.minSize } ?: 0L
+        val fromDescriptor = descriptors[set]?.files
+            ?.filter { it.sha256.isNotBlank() }
+            ?.sumOf { it.minSize }
+            ?: 0L
         return formatBytes(if (fromDescriptor > 0L) fromDescriptor else FALLBACK_SIZE[set] ?: 0L)
+    }
+
+    /**
+     * S2652: the artwork rows' size, taken from the manifest the publisher writes beside the payload.
+     *
+     * These packs are rebuilt outside the build, so the only number that cannot go stale is the one
+     * published with them. The compiled estimate opens the row and is replaced when the manifest
+     * answers; an unreachable mirror simply leaves the estimate standing.
+     */
+    private fun manifestSizeLabel(set: DeliverableSet): Flow<String> =
+        liveSizeLabel(FALLBACK_SIZE[set] ?: 0L) { artworkManifest.sizeOf(set) }
+
+    private fun liveSizeLabel(fallbackBytes: Long, live: suspend () -> Long?): Flow<String> = flow {
+        emit(formatBytes(fallbackBytes))
+        val measured = live()
+        Timber.d("S2652: extensions size label fallback=%d measured=%s", fallbackBytes, measured)
+        if (measured != null && measured > 0L && measured != fallbackBytes) {
+            emit(formatBytes(measured))
+        }
     }
 
     // S1110: "%.0f MB" collapses any sub-MB value to "0 MB" (the growing, non-pinned stream catalog
@@ -371,9 +405,12 @@ class DeliverableInventoryImpl @Inject constructor(
         // descriptor; values mirror temp/S0386_B3_so_staging.md (strategic §5.4).
         private const val STREAM_CATALOG_ID = "stream_catalog"
 
-        // S1110: approximate size of the growing, non-pinned stream-catalog.zip (measured 2.44 MB on
-        // 2026-07-19: 2.31 MiB favicon atlas + 0.92 MB CSV). Not the stale S0386 staging estimate.
-        private const val STREAM_CATALOG_SIZE = 2_500_000L
+        // S2652: the OFFLINE FALLBACK only - the live size comes from the asset itself
+        // (DeliveryAssetSizeSource) and wins whenever the mirror answers. Kept honest by the
+        // release-scope gate assert-delivery-size-estimates.ps1, because the July value stood at
+        // 2_500_000 against a 6_994_765-byte archive for seven weeks with nothing comparing the two.
+        // Measured 2026-09-06 off the published delivery-so-v1 asset.
+        private const val STREAM_CATALOG_SIZE = 7_000_000L
         private const val BYTES_PER_KB = 1024.0
         private const val BYTES_PER_MB = 1024.0 * 1024.0
 
@@ -385,8 +422,11 @@ class DeliverableInventoryImpl @Inject constructor(
             DeliverableSet.AUDIO_VISUALIZATIONS to 6_100_000L,
             DeliverableSet.FFMPEG_DTS to 7_675_704L,
             // S1445: the tile packs replaced the sprite sheets as the fetched payload - pack + sidecar.
-            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 10_975_853L,
-            DeliverableSet.STREAM_LOGO_ATLAS to 5_925_785L,
+            // S2652: these two are republished outside the build, so these are offline fallbacks and
+            // the manifest wins when it answers. Measured 2026-09-06 off the published assets
+            // (pack + coords sidecar) and kept honest by assert-delivery-size-estimates.ps1.
+            DeliverableSet.CHANNEL_PREVIEW_ATLAS to 14_806_317L,
+            DeliverableSet.STREAM_LOGO_ATLAS to 10_232_740L,
             DeliverableSet.VLC_ENGINE to 46_181_608L
         )
     }

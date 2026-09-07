@@ -128,7 +128,6 @@
     <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$120</ID>
     <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$60</ID>
     <ID>MagicNumber:WatchWearListenerService.kt$WatchWearListenerService$80</ID>
-    <ID>MagicNumber:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$5</ID>
     <ID>MagicNumber:WearTextInput.kt$0.95f</ID>
     <ID>MagicNumber:WearTextInput.kt$5</ID>
     <ID>MaxLineLength:AddNetworkSourceScreen.kt$append(if (uiState.useSshKey) stringResource(R.string.enabled) else stringResource(R.string.disabled))</ID>
@@ -206,9 +205,6 @@
     <ID>NoTrailingSpaces:WearAppModule.kt$WearAppModule$ </ID>
     <ID>NoTrailingSpaces:WearMediaRepository.kt$WearMediaRepository$ </ID>
     <ID>NoTrailingSpaces:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepository.kt$WearPreferencesRepository$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl.PreferencesKeys$ </ID>
     <ID>NoTrailingSpaces:WearTextInput.kt$ </ID>
     <ID>NoUnusedImports:AudioPlayerViewModel.kt$com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerViewModel.kt</ID>
     <ID>NoUnusedImports:BrowseScreen.kt$com.sza.fastmediasorter.wear.ui.browse.BrowseScreen.kt</ID>

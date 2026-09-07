@@ -177,6 +177,10 @@ $gates = [ordered]@{
     # Two did, both halves of the dimen pipeline, one with two fragments spliced mid-block. Binary
     # class, so no baseline: a file either parses or cannot run. Parses .ps1 text, no gradle daemon.
     'assert-script-parses.ps1'                  = @('-Quiet')
+    # S2654: a gate called by another script can exist locally without entering git, so a fresh
+    # clone or release worktree fails only when the caller reaches it. The parser resolves
+    # non-comment .ps1 tokens and refuses untracked existing targets; no Gradle daemon runs.
+    'assert-invoked-tracked.ps1'                 = @('-Quiet')
     # S2172: a Gradle task name written without its module segment. Gradle expands such a name across
     # every project that declares it, so `assembleStandardDebug` began meaning "app_v2 AND wear" the
     # day S2090 gave the watch a `standard` flavor - changing what 40 call sites did without editing

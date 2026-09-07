@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.debug.StrictModeHelper
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
@@ -270,6 +271,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         BlackScreenOverlayManager(WeakReference(this), SystemBarsManager(this))
     }
 
+    // S2667: one layout pass over this desktop was measured at 1.53 s, so re-padding it when the black
+    // screen hides the bars - and again when it hands them back - froze the launcher for over a second
+    // on every idle screen-off. The overlay restores the insets it took, so skipping the recompute for
+    // the length of that episode leaves the padding it already had, which is the same one.
+    private val insetPaddingSuspendedByBlackScreen: () -> Boolean =
+        { blackScreenOverlayManager.isChangingSystemBars }
+
     // Built lazily on the first long press: most Home visits never open the popup at all.
     private val shortcutMenuManager by lazy {
         LauncherAppActionMenuManager(
@@ -410,7 +418,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // insets immediately, which a bare listener would miss (Rule 17).
         // S1087: this surface hides the status bar on request, so the resource-height fallback must not
         // reserve a band for a bar that is gone - the removal would look like nothing happened.
-        binding.launcherRoot.applySystemBarInsetPadding(useStatusBarHeightFallback = false)
+        binding.launcherRoot.applySystemBarInsetPadding(
+            useStatusBarHeightFallback = false,
+            suspendWhile = insetPaddingSuspendedByBlackScreen,
+        )
         // A home screen has nowhere to go back to: Back must not finish the surface and expose
         // whatever sits behind it.
         // S2388: Back dismisses the active black screen overlay rather than no-oping.
@@ -686,12 +697,12 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         collectOnLifecycle(viewModel.events) { event ->
             when (event) {
                 is LauncherHomeEvent.Message ->
-                    Toast.makeText(this, event.messageResId, Toast.LENGTH_SHORT).show()
+                    showToast(event.messageResId)
                 LauncherHomeEvent.OpenStreamPicker ->
                     addFlowManager.openStreamPicker()
                 LauncherHomeEvent.OpenStreamsSettings -> {
                     startActivity(inOwnTask(SettingsActivity.openStreamsSectionIntent(this)))
-                    Toast.makeText(this, R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG).show()
+                    showToast(R.string.launcher_edit_streams_enable_first, Toast.LENGTH_LONG)
                 }
                 is LauncherHomeEvent.PerformLauncherAction -> performLauncherAction(event.actionKey)
                 is LauncherHomeEvent.ConfirmScheduledOp -> {
@@ -713,6 +724,20 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onResumeWithViews() {
         viewModel.onHomeResumed()
         captureInstantPhotoFrame(viewModel.wallpaper.value)
+    }
+
+    /**
+     * S2668: `Toast.show()` itself - not this call site - does a handful of small synchronous disk
+     * reads on this Samsung/Knox build (a `PackageManager` feature-flag check, then a Binder round
+     * trip into `KnoxCustomManagerService.getToastEnabledState()` backed by a SQLite policy read).
+     * That is expected OEM overhead outside this app's control, not a bug here - `allowDiskIO`
+     * records that instead of leaving it as StrictMode noise on every toast this screen shows.
+     */
+    private fun showToast(messageResId: Int, duration: Int = Toast.LENGTH_SHORT) {
+        Timber.d("S2668: showToast wrapped in allowDiskIO, resId=%d", messageResId)
+        StrictModeHelper.allowDiskIO {
+            Toast.makeText(this, messageResId, duration).show()
+        }
     }
 
     /**
@@ -1008,12 +1033,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             binding.launcherRoot.applySystemBarInsetPadding(
                 applyTop = false,
                 useStatusBarHeightFallback = false,
+                suspendWhile = insetPaddingSuspendedByBlackScreen,
             )
         } else {
             controller.show(WindowInsetsCompat.Type.statusBars())
             binding.launcherRoot.applySystemBarInsetPadding(
                 applyTop = true,
                 useStatusBarHeightFallback = false,
+                suspendWhile = insetPaddingSuspendedByBlackScreen,
             )
         }
         ViewCompat.requestApplyInsets(binding.launcherRoot)

@@ -33,6 +33,7 @@
       - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
       - assert-play-listing-graphics   (S2597 declared single images have a source and one artwork)
       - assert-play-listing-screenshot-geometry (S2602 caption band under 20%, one shape per carousel)
+      - assert-delivery-size-estimates (S2652 compiled download sizes vs the published assets)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
       - assert-icon-inventory-sync     (S0815 icon docs vs the settings icon/title sources)
@@ -163,6 +164,15 @@ $gates = [ordered]@{
     # said so. Not passed -Quiet: which image lost its source, or which copy of one artwork drifted,
     # is the whole content of the report.
     'assert-play-listing-graphics.ps1' = @()
+    # S2652. The three download sizes the app compiles in, against the assets they name in the
+    # delivery release. Rule 33 puts it here on all four criteria: a stale estimate reaches a user
+    # only when a build ships; its subject is a release published by a run no session's diff
+    # contains; each finding prints its asset, both byte counts and the literal to write; and
+    # correcting them is one edit whenever it is done. It is also the only member that reads the
+    # network, so it answers an unreachable release with exit 0 and a printed advisory - the loop
+    # below collapses every non-zero code to FAIL, and an offline machine is not a defect.
+    # Not passed -Quiet: the per-payload drift line is the report, green or red.
+    'assert-delivery-size-estimates.ps1' = @()
     'assert-unreferenced-strings.ps1'  = @('-Quiet')
     'assert-splash-brand-sync.ps1'     = @('-Quiet')
     'assert-icon-inventory-sync.ps1'   = @()

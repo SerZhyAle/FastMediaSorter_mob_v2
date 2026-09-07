@@ -89,6 +89,9 @@ FastMediaSorter собран на перечисленных ниже компо
 | PhotoView | `com.github.chrisbanes:PhotoView` | [Apache-2.0](https://raw.githubusercontent.com/Baseflow/PhotoView/2.3.0/LICENSE) | все сборки | [link](https://github.com/Baseflow/PhotoView) |
 | Chucker (no-op) | `com.github.chuckerteam.chucker:library-no-op` | [Apache-2.0](https://raw.githubusercontent.com/ChuckerTeam/chucker/main/LICENSE.txt) | все сборки | [link](https://github.com/ChuckerTeam/chucker) |
 | JSch (mwiede fork) | `com.github.mwiede:jsch` | [BSD-3-Clause](https://raw.githubusercontent.com/mwiede/jsch/master/LICENSE.txt) | все сборки | [link](https://github.com/mwiede/jsch) |
+| RTSP-Server | `com.github.pedroSG94:RTSP-Server` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RTSP-Server/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RTSP-Server) |
+| RootEncoder Common | `com.github.pedroSG94.RootEncoder:common` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RootEncoder) |
+| RootEncoder | `com.github.pedroSG94.RootEncoder:library` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RootEncoder) |
 | NewPipe Extractor | `com.github.TeamNewPipe:NewPipeExtractor` | [GPL-3.0-or-later](https://raw.githubusercontent.com/TeamNewPipe/NewPipeExtractor/dev/LICENSE) | noLegal | [link](https://github.com/TeamNewPipe/NewPipeExtractor) |
 | Accompanist Permissions | `com.google.accompanist:accompanist-permissions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/google/accompanist) |
 | Material Components for Android | `com.google.android.material:material` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://github.com/material-components/material-components-android) |
@@ -139,6 +142,8 @@ FastMediaSorter собран на перечисленных ниже компо
 - **Glide** (`BSD-2-Clause AND Apache-2.0 AND MIT`) - Compound licence: BSD-2-Clause for Glide itself, Apache-2.0 for third_party/disklrucache, MIT for third_party/gif_decoder, plus two permissive grants in third_party/gif_encoder that have no SPDX identifier.
 - **PhotoView** (`Apache-2.0`) - Published on JitPack under the original author coordinate; the canonical repository is Baseflow/PhotoView.
 - **JSch (mwiede fork)** (`BSD-3-Clause`) - The POM declares three licences: BSD-3-Clause for JSch, BSD-3-Clause for the bundled JZlib, ISC for the bundled jBCrypt.
+- **RTSP-Server** (`Apache-2.0`) - Published on JitPack; hosts the on-device RTSP server used by the camera broadcast (standard/noLegal/legacy only).
+- **RootEncoder** (`Apache-2.0`) - Declared explicitly rather than transitively: JitPack generates the RTSP-Server POM with runtime scope, so its base classes never reach the compile classpath.
 - **NewPipe Extractor** (`GPL-3.0-or-later`) - Copyleft without a linking exception, linked only into the sideload-only noLegal build. In accordance with GPLv3 §6, the Corresponding Source code (including both the application source code and the extractor source code) is available at https://github.com/SerZhyAle/FastMediaSorter_mob_v2 and https://github.com/TeamNewPipe/NewPipeExtractor.
 - **ZXing Core** (`Apache-2.0`) - Licence inherited from the zxing-parent POM; the core artifact declares no licences block of its own.
 - **SMBJ** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use.

@@ -510,4 +510,12 @@
          scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
          selector, so the portrait state list stays defined in exactly one place. -->
     <item name="browse_scroll_button_tint" type="color">@color/selector_player_button_tint</item>
+
+    <!-- S1924: the mirror's zoom presets carry their own opaque body instead of following the control
+         tint. They sit on the glow field, which is white while the backlight is on and black once it is
+         off, and a transparent preset was unreadable against the white one on the owner's 2026-09-06
+         device run. Opaque in both states, and the active preset inverts body and label - a cue that
+         survives greyscale, unlike a colour swap. -->
+    <color name="mirror_zoom_preset_body">#FF212121</color>
+    <color name="mirror_zoom_preset_body_active">#FFFFFFFF</color>
 </resources>

@@ -44,6 +44,14 @@ substitute a payload - a mismatch fails verification and the app falls back to t
 structure and minimum size instead of by a hash frozen into the build, which is what lets them be
 refreshed in place under a stable name. Every other payload is pinned as described above.
 
+**That minimum size is a truncation guard, never an estimate (S2652).** For a pinned payload the two
+coincide, because the descriptor is generated from the file it pins; for an unpinned one the floor is
+round and small (1 MB for a tile pack) and reading it as a size promised the user 1 MB against a
+14 MB download. The size shown before a download therefore comes from the published payload itself -
+`artwork-manifest.json` for the atlases, `Content-Length` for `stream-catalog.zip` - and the numbers
+compiled into `DeliverableInventoryImpl` are the offline fallback, kept honest by the release-scope
+gate `scripts/quality/assert-delivery-size-estimates.ps1`.
+
 ## What state a set is in
 
 An asset sitting on the release proves nothing about whether the app still uses it: revisions are

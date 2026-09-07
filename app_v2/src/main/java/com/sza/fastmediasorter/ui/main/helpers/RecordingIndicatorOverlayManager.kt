@@ -50,15 +50,21 @@ class RecordingIndicatorOverlayManager(private val activity: FragmentActivity) {
     fun show(
         accessibleLabel: String,
         stopCd: String,
-        onPauseResume: () -> Unit,
+        onPauseResume: (() -> Unit)? = null,
         onStop: () -> Unit,
         onCancel: (() -> Unit)? = null,
         cancelCd: String? = null,
+        onTapRoot: (() -> Unit)? = null,
     ) {
         val rootView = root ?: return
         applySafeBoundsInsetsOnce(rootView)
         rootView.contentDescription = accessibleLabel
-        pauseResumeButton?.setOnClickListener { onPauseResume() }
+        if (onPauseResume != null) {
+            pauseResumeButton?.setOnClickListener { onPauseResume() }
+            pauseResumeButton?.isVisible = true
+        } else {
+            pauseResumeButton?.isVisible = false
+        }
         stopButton?.contentDescription = stopCd
         stopButton?.setOnClickListener { onStop() }
         if (onCancel != null) {
@@ -67,6 +73,11 @@ class RecordingIndicatorOverlayManager(private val activity: FragmentActivity) {
             cancelButton?.isVisible = true
         } else {
             cancelButton?.isVisible = false
+        }
+        if (onTapRoot != null) {
+            rootView.setOnClickListener { onTapRoot() }
+        } else {
+            rootView.setOnClickListener(null)
         }
         rootView.isVisible = true
     }

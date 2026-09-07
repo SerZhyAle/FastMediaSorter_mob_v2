@@ -33,7 +33,11 @@ data class LauncherCellEntity(
     // run without one - a mismatch here is not a warning, it fails validation and the destructive
     // fallback wipes the user's database.
     @ColumnInfo(defaultValue = "0")
-    val screenIndex: Int = 0
+    val screenIndex: Int = 0,
+    // Existing and restored cells are user-managed unless an explicit automation flow created them.
+    // This default prevents a package removal from deleting a shortcut the user placed before S2665.
+    @ColumnInfo(defaultValue = "'USER'")
+    val origin: String = "USER",
 )
 
 @Dao

@@ -36,6 +36,9 @@ class StreamAtlasPromptManager(
     private val scope: CoroutineScope,
     private val set: DeliverableSet,
     @androidx.annotation.StringRes private val messageRes: Int,
+    // S2650: the two offers queue back to back, so a shared title made the second read as a repeat of
+    // the first - a user who answered once believed both payloads were answered.
+    @androidx.annotation.StringRes private val titleRes: Int,
     // S1483: supplies the payload size shown in the offer; already fetched for the staleness verdict.
     private val manifest: ArtworkManifestSource,
     // Invoked once the payload is on disk, so the caller can pick it up without reopening the screen.
@@ -92,7 +95,7 @@ class StreamAtlasPromptManager(
             }
             var accepted = false
             MaterialAlertDialogBuilder(context)
-                .setTitle(R.string.streams_atlas_prompt_title)
+                .setTitle(titleRes)
                 .setMessage(body)
                 .setPositiveButton(R.string.streams_atlas_prompt_action) { _, _ ->
                     accepted = true

@@ -23,7 +23,9 @@ import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.reflect.KMutableProperty0
 
@@ -472,8 +474,11 @@ class GeneralSettingsViewSetupHelper(
                 LoggingHelper.clearDebugMirrorTarget()
             }
         }
-        isUpdatingSpinner.set(true)
-        binding.rowDebugLogMirror.setCheckedSilently(DebugLogMirrorPrefs.isEnabled(context))
-        isUpdatingSpinner.set(false)
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            val enabled = withContext(Dispatchers.IO) { DebugLogMirrorPrefs.isEnabled(context) }
+            isUpdatingSpinner.set(true)
+            binding.rowDebugLogMirror.setCheckedSilently(enabled)
+            isUpdatingSpinner.set(false)
+        }
     }
 }

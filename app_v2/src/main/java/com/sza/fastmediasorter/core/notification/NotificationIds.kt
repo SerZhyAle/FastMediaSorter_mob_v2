@@ -53,6 +53,9 @@ object NotificationIds {
     /** Quick audio recorder widget service. */
     const val QUICK_AUDIO_RECORDER = 0xA349
 
+    /** Live phone audio/video broadcast service. */
+    const val PHONE_BROADCAST = 0xB700
+
     /**
      * SaveFallbackNotifier derives one id per rescued file by adding an offset to this base, so the
      * whole 0x5A22xxxx block is reserved. Keep every other id well below it.

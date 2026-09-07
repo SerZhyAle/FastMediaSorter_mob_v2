@@ -1488,6 +1488,69 @@
     "note": "The POM declares three licences: BSD-3-Clause for JSch, BSD-3-Clause for the bundled JZlib, ISC for the bundled jBCrypt."
   },
   {
+    "coordinate": "com.github.pedroSG94:RTSP-Server",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "RTSP-Server",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/pedroSG94/RTSP-Server/master/LICENSE",
+    "sourceUrl": "https://github.com/pedroSG94/RTSP-Server",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Published on JitPack; hosts the on-device RTSP server used by the camera broadcast (standard/noLegal/legacy only)."
+  },
+  {
+    "coordinate": "com.github.pedroSG94.RootEncoder:common",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "RootEncoder Common",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE",
+    "sourceUrl": "https://github.com/pedroSG94/RootEncoder",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "com.github.pedroSG94.RootEncoder:library",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "RootEncoder",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE",
+    "sourceUrl": "https://github.com/pedroSG94/RootEncoder",
+    "oss": true,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "standard"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": "Declared explicitly rather than transitively: JitPack generates the RTSP-Server POM with runtime scope, so its base classes never reach the compile classpath."
+  },
+  {
     "coordinate": "com.github.TeamNewPipe:NewPipeExtractor",
     "modules": [
       "app_v2"

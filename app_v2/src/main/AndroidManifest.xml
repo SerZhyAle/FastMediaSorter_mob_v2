@@ -325,6 +325,9 @@
              destination resolves; Phase 03 fills the screen behind it. -->
         <activity android:name=".ui.mirror.MirrorActivity" android:exported="false" android:label="@string/mirror_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
+        <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
         <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />

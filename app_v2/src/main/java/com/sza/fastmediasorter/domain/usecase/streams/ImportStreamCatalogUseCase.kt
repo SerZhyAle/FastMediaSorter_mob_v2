@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
+import com.sza.fastmediasorter.domain.delivery.DeliveryAssets
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -223,8 +224,9 @@ class ImportStreamCatalogUseCase @Inject constructor(
     }
 
     private companion object {
-        const val CATALOG_URL =
-            "https://github.com/SerZhyAle/FastMediaSorter_mob_v2/releases/download/delivery-so-v1/stream-catalog.zip"
+        // S2652: shared with the size probe that renders the Extensions row, so the number shown
+        // before the download always describes the asset this import fetches.
+        const val CATALOG_URL = DeliveryAssets.STREAM_CATALOG_URL
 
         const val BYTES_PER_MIB = 1024 * 1024
 

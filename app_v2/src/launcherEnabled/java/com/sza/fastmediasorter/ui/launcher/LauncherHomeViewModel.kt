@@ -675,7 +675,6 @@ class LauncherHomeViewModel @Inject constructor(
      * taken where the layout is - the settings dialog switch keeps writing the same flag from its screen.
      */
     fun setDesktopLocked(locked: Boolean) {
-        Timber.d("S2397: setDesktopLocked from desktop quick menu locked=$locked")
         viewModelScope.launch {
             settingsRepository.updateSettings { it.withLauncher { copy(desktopLocked = locked) } }
         }
@@ -687,7 +686,6 @@ class LauncherHomeViewModel @Inject constructor(
      * and the message names the way back because the menu that would offer it never opens while locked.
      */
     fun onLockedDesktopLongPress() {
-        Timber.d("S2397: long press on locked desktop, sending toast")
         _events.trySend(LauncherHomeEvent.Message(R.string.launcher_desktop_locked_toast))
     }
 

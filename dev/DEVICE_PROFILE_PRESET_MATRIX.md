@@ -126,6 +126,13 @@ constrained field is one entry there, not a new code path.
 The CSV may be edited in a spreadsheet (Excel / Google Sheets) and saved quoted (`"value"`) or plain;
 the loader (`DeviceProfilePresetCsvDataSource`) parses both.
 
+**A settings reset re-applies the profile (S2664).** `resetToDefaults` writes the factory defaults
+and stops there, so a reset used to turn a car head unit back into an unprofiled device while the
+profile picker still said "car head unit". `ResetSettingsToProfileDefaultsUseCase` now runs the
+stored profile's preset immediately after the reset, through the applier's settings-only half -
+the bookkeeping half records that a preset was applied AT INSTALL TIME, which a reset is not.
+Profile `Other` carries no preset and is left at the factory defaults.
+
 State/credential fields (e.g. `defaultUser`, `defaultPassword`, `lastUsedResourceId`) are
 deliberately NOT handled by the applier - even if present in the CSV they are skipped, so a profile
 apply never wipes credentials or session state. Section 6 is where that intent is declared.
@@ -180,6 +187,13 @@ was meant leaves the field absent from the CSV while the `Non-presettable fields
 move, so the mistake used to be visible only as a number that stayed put. Since S2574 the checker
 reports that case under its own label - `reviewed fields MISSING their CSV row` - instead of filing
 it with the genuinely forgotten fields.
+
+**A `fields` entry and a CSV row are mutually exclusive, and S2664 made the CSV agree.** The entry
+promises the value can never take effect, so a row carrying one is dead data that reads as a
+promise to the next person who opens the spreadsheet. S2664 deleted the 42 such rows that had
+accumulated - the CSV went from 256 data rows to 214 - so every remaining row is a field a profile
+may actually set. The registry itself did not grow: no field was moved into `fields` by that
+ticket, and the two arrays still hold 78 and 73 entries, each with its reason.
 
 **The registry does not replace the applier's `else -> skip(..)` branch.** The applier is the
 runtime safety net: it is what actually refuses to write a credential or a session-state field when

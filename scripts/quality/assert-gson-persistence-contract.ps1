@@ -160,7 +160,7 @@ function Get-TypeName {
 }
 
 function Get-Declaration {
-    param([string]$ModuleName, [string]$Name)
+    param([string]$ModuleName, [string]$Name, [string]$PreferFile)
 
     # Keyed by module, never by simple name alone: both modules declare their own WearEventEnvelope,
     # WearSyncPayload and the rest of the contract, in different packages and under different obfuscation
@@ -168,13 +168,22 @@ function Get-Declaration {
     # gate exists to prevent, and it appears only in the default 'all' run.
     $key = "${ModuleName}::${Name}"
     if (-not $declarations.ContainsKey($key)) { return $null }
+    # One module can declare the same simple name twice, and the reference being resolved names exactly one
+    # of them: `Capture` is both a backup settings group and a statistics event, and the first-wins index
+    # judged the serialized one by the other one's single property, inventing the run's only enum finding
+    # against a class that reaches no durable sink (S2653). A declaration in the referring file is the one
+    # the reference means; with no file to prefer, the index answers as before.
+    if ($PreferFile -and $declarationSets.ContainsKey($key)) {
+        $local = @($declarationSets[$key] | Where-Object { $_.file -eq $PreferFile })
+        if ($local.Count -gt 0) { return $local[0] }
+    }
     return $declarations[$key]
 }
 
 function Test-ModelName {
-    param([string]$ModuleName, [string]$Name)
+    param([string]$ModuleName, [string]$Name, [string]$PreferFile)
 
-    $declaration = Get-Declaration -ModuleName $ModuleName -Name $Name
+    $declaration = Get-Declaration -ModuleName $ModuleName -Name $Name -PreferFile $PreferFile
     return $null -ne $declaration -and $ModelKinds -contains $declaration.kind
 }
 
@@ -242,7 +251,10 @@ function Get-KeepRule {
     $rules = [System.Collections.Generic.List[object]]::new()
     if (-not (Test-Path -LiteralPath $path)) { return $rules }
 
-    $lines = Get-Content -LiteralPath $path
+    # Wrapped: Get-Content hands back a bare string for a one-line file and nothing at all for an empty
+    # one, and both shapes crashed the walk below on .Count rather than reading as a rules file with one
+    # rule or none (S2653, found by the fixture written for the nested-class case).
+    $lines = @(Get-Content -LiteralPath $path)
     for ($i = 0; $i -lt $lines.Count; $i++) {
         $match = [regex]::Match($lines[$i], '^\s*-(keep[a-z]*)((?:,[a-z]+)*)\s+(?:public |final |abstract )*(?:class|interface|enum)\s+([^\s{]+)(.*)$')
         if (-not $match.Success) { continue }
@@ -316,7 +328,7 @@ function Get-EnclosingFunction {
 }
 
 function Resolve-CallModel {
-    param([string[]]$FileLines, [int]$Index, [string]$CallPattern, [string]$ModuleName, [int]$Depth = 0)
+    param([string[]]$FileLines, [int]$Index, [string]$CallPattern, [string]$ModuleName, [string]$File, [int]$Depth = 0)
 
     $names = [System.Collections.Generic.List[string]]::new()
     $last = [Math]::Min($FileLines.Count - 1, $Index + 6)
@@ -344,14 +356,14 @@ function Resolve-CallModel {
             # reported a fully annotated model as unresolvable, which is the same false red the receiver
             # case produced (S2325). Restricted to a declared model of this module: the constructor form is
             # the only shape where a bare token is the type itself rather than a value.
-            if ($argument.Trim() -match "^(?:\w+\s*=\s*)?$token\s*\(" -and (Test-ModelName -ModuleName $ModuleName -Name $token)) {
+            if ($argument.Trim() -match "^(?:\w+\s*=\s*)?$token\s*\(" -and (Test-ModelName -ModuleName $ModuleName -Name $token -PreferFile $File)) {
                 $names.Add($token)
                 continue
             }
             $declared = Resolve-Identifier -FileLines $FileLines -Name $token
             if (-not $declared) { continue }
             $candidates = @(Get-TypeName $declared)
-            $models = @($candidates | Where-Object { Test-ModelName -ModuleName $ModuleName -Name $_ })
+            $models = @($candidates | Where-Object { Test-ModelName -ModuleName $ModuleName -Name $_ -PreferFile $File })
             if ($models.Count -gt 0) {
                 $models | ForEach-Object { $names.Add($_) }
                 continue
@@ -365,7 +377,7 @@ function Resolve-CallModel {
             for ($j = 0; $j -lt $FileLines.Count; $j++) {
                 if ($FileLines[$j] -notmatch "(?<![\w.])$enclosing\s*\(") { continue }
                 if ($FileLines[$j] -match "fun\s+(?:<[^>]*>\s*)?$enclosing\s*\(") { continue }
-                Resolve-CallModel -FileLines $FileLines -Index $j -CallPattern "(?<![\w.])$enclosing\s*\(" -ModuleName $ModuleName -Depth 1 |
+                Resolve-CallModel -FileLines $FileLines -Index $j -CallPattern "(?<![\w.])$enclosing\s*\(" -ModuleName $ModuleName -File $File -Depth 1 |
                     ForEach-Object { $names.Add($_) }
             }
         }
@@ -480,6 +492,10 @@ if ($ChangedFiles) {
 }
 
 $declarations = @{}
+# Every declaration a simple name answers to, not only the first one seen. The first-wins map above stays
+# the answer when the caller has no file to prefer, so a name reached from nowhere in particular resolves
+# exactly as it did before.
+$declarationSets = @{}
 $gsonFiles = [System.Collections.Generic.List[object]]::new()
 $rootsScanned = 0
 
@@ -496,6 +512,14 @@ foreach ($moduleName in $modules) {
             foreach ($line in $fileLines) {
                 if ($line -match '^\s*package\s+([\w.]+)') { $package = $Matches[1]; break }
             }
+            # The chain of declarations a nested one sits inside, read from the indentation of each
+            # declaration line. R8 spells a nested class Outer$Inner and matches a keep rule against that
+            # spelling, so an index that flattens it to package.Inner cannot see a rule that really covers
+            # the class - which is how the eight backup settings groups, all kept by one `Backup**` rule,
+            # were reported as unpinned debt (S2653). Indentation rather than a brace walk: ktlint enforces
+            # it across both trees, and a brace walk would have to parse everything a class body can carry
+            # to answer the one question asked here.
+            $enclosing = [System.Collections.Generic.List[object]]::new()
             for ($i = 0; $i -lt $fileLines.Count; $i++) {
                 # A literal prefilter before the declaration regex. The scan reads every line of both
                 # source trees, and the regex is the run's dominant cost; the keyword is present on well
@@ -504,17 +528,27 @@ foreach ($moduleName in $modules) {
                 if ($line -notlike '*class *' -and $line -notlike '*object *' -and $line -notlike '*interface *') { continue }
                 $match = [regex]::Match($line, $ClassDecl)
                 if (-not $match.Success) { continue }
+                $indent = $line.Length - $line.TrimStart().Length
+                while ($enclosing.Count -gt 0 -and $enclosing[$enclosing.Count - 1].indent -ge $indent) {
+                    $enclosing.RemoveAt($enclosing.Count - 1)
+                }
                 $name = $match.Groups[2].Value
-                $key = "${moduleName}::${name}"
-                if ($declarations.ContainsKey($key)) { continue }
-                $declarations[$key] = [pscustomobject]@{
+                $binary = @(@($enclosing | ForEach-Object { $_.name }) + @($name)) -join '$'
+                $enclosing.Add([pscustomobject]@{ name = $name; indent = $indent })
+                $declaration = [pscustomobject]@{
                     name   = $name
-                    fqn    = if ($package) { "$package.$name" } else { $name }
+                    fqn    = if ($package) { "$package.$binary" } else { $binary }
                     kind   = $match.Groups[1].Value
                     module = $moduleName
                     file   = $relative
                     line   = $i + 1
                 }
+                $key = "${moduleName}::${name}"
+                if (-not $declarations.ContainsKey($key)) { $declarations[$key] = $declaration }
+                if (-not $declarationSets.ContainsKey($key)) {
+                    $declarationSets[$key] = [System.Collections.Generic.List[object]]::new()
+                }
+                $declarationSets[$key].Add($declaration)
             }
             if (($fileLines -join "`n") -notmatch $GsonCall) { return }
             if ($changedSet.Count -gt 0 -and $changedSet -notcontains $relative) { return }
@@ -534,9 +568,9 @@ foreach ($file in $gsonFiles) {
     $verdict = Get-SinkVerdict -FileText ($file.lines -join "`n")
     for ($i = 0; $i -lt $file.lines.Count; $i++) {
         if ($file.lines[$i] -notmatch $GsonCall) { continue }
-        $resolved = @(Resolve-CallModel -FileLines $file.lines -Index $i -CallPattern $GsonArgs -ModuleName $file.module |
+        $resolved = @(Resolve-CallModel -FileLines $file.lines -Index $i -CallPattern $GsonArgs -ModuleName $file.module -File $file.relative |
                 Sort-Object -Unique |
-                Where-Object { Test-ModelName -ModuleName $file.module -Name $_ })
+                Where-Object { Test-ModelName -ModuleName $file.module -Name $_ -PreferFile $file.relative })
         $points.Add([pscustomobject]@{
                 module   = $file.module
                 file     = $file.relative
@@ -554,17 +588,20 @@ $durableModels = @{}
 $queue = [System.Collections.Generic.Queue[object]]::new()
 foreach ($point in ($points | Where-Object { $_.durable })) {
     foreach ($name in $point.models) {
-        $queue.Enqueue([pscustomobject]@{ module = $point.module; name = $name; sink = $point.sink; via = "$($point.file):$($point.line)" })
+        $queue.Enqueue([pscustomobject]@{ module = $point.module; name = $name; sink = $point.sink; via = "$($point.file):$($point.line)"; file = $point.file })
     }
 }
 while ($queue.Count -gt 0) {
     $item = $queue.Dequeue()
-    $key = "$($item.module)::$($item.name)"
+    $declaration = Get-Declaration -ModuleName $item.module -Name $item.name -PreferFile $item.file
+    if ($null -eq $declaration) { continue }
+    # Keyed by the binary name rather than by the simple one: two classes sharing a name are two models,
+    # and one key for both made the second reference reuse the first one's properties and verdict (S2653).
+    $key = "$($item.module)::$($declaration.fqn)"
     if ($durableModels.ContainsKey($key)) {
         $durableModels[$key].reached += $item.via
         continue
     }
-    $declaration = Get-Declaration -ModuleName $item.module -Name $item.name
     $properties = @(Get-ModelProperty -Declaration $declaration)
     $durableModels[$key] = [pscustomobject]@{
         declaration = $declaration
@@ -574,9 +611,9 @@ while ($queue.Count -gt 0) {
     }
     foreach ($property in $properties) {
         foreach ($name in (Get-TypeName $property.type)) {
-            if (-not (Test-ModelName -ModuleName $item.module -Name $name)) { continue }
-            if ($durableModels.ContainsKey("$($item.module)::$name")) { continue }
-            $queue.Enqueue([pscustomobject]@{ module = $item.module; name = $name; sink = $item.sink; via = "$($item.name).$($property.name)" })
+            # A property names a type as the declaring file sees it, so that file is what disambiguates.
+            if (-not (Test-ModelName -ModuleName $item.module -Name $name -PreferFile $declaration.file)) { continue }
+            $queue.Enqueue([pscustomobject]@{ module = $item.module; name = $name; sink = $item.sink; via = "$($declaration.name).$($property.name)"; file = $declaration.file })
         }
     }
 }
@@ -639,7 +676,7 @@ foreach ($name in ($durableModels.Keys | Sort-Object)) {
     }
     foreach ($property in $model.properties) {
         foreach ($typeName in (Get-TypeName $property.type)) {
-            $enumDeclaration = Get-Declaration -ModuleName $model.declaration.module -Name $typeName
+            $enumDeclaration = Get-Declaration -ModuleName $model.declaration.module -Name $typeName -PreferFile $model.declaration.file
             if ($null -eq $enumDeclaration -or $enumDeclaration.kind -ne 'enum class') { continue }
             $enumTargets.Add([pscustomobject]@{ property = $property.name; declaration = $enumDeclaration })
         }

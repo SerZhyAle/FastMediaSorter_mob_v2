@@ -3,6 +3,7 @@ package com.sza.fastmediasorter
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.Context
+import android.os.Build
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -17,6 +18,7 @@ import com.google.android.material.color.DynamicColors
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
@@ -43,6 +45,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
@@ -485,16 +488,28 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Configure StrictMode to detect issues while allowing necessary startup operations
         // Note: Early initialization (attachBaseContext, onCreate) wrapped in StrictModeHelper
-        StrictMode.setThreadPolicy(
-            StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectNetwork()
-                // Use penaltyLog() instead of penaltyDeath() to log violations without crashing
-                // This allows development to continue while identifying real issues
-                .penaltyLog()
-                .build()
-        )
+        val threadPolicy = StrictMode.ThreadPolicy.Builder()
+            .detectDiskReads()
+            .detectDiskWrites()
+            .detectNetwork()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // S2670: report violations through Timber so the platform's own (Samsung's Toast/Knox
+            // disk reads, attributed to this app by Binder propagation) can be dropped before they
+            // bury this app's. The listener runs on its own thread, which carries no policy, so
+            // logging a violation cannot trigger another one.
+            threadPolicy.penaltyListener(Executors.newSingleThreadExecutor()) { violation ->
+                if (!StrictModeViolationFilter.isPlatformNoise(violation)) {
+                    Timber.w(violation, "StrictMode thread policy violation")
+                }
+            }
+        } else {
+            // Below API 28 there is no listener to filter with; log everything rather than nothing.
+            // penaltyLog() over penaltyDeath() keeps development going while real issues surface.
+            threadPolicy.penaltyLog()
+        }
+
+        StrictMode.setThreadPolicy(threadPolicy.build())
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()

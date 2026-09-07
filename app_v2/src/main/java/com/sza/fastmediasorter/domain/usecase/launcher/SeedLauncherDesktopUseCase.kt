@@ -239,6 +239,14 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 screenIndex = placed.screenIndex,
             )
         }
-        desktop.seedIfEmpty(orientation, cells)
+        // S2679: the width this seed laid the cells out at is recorded only when the seed actually
+        // placed them. A `false` means this orientation already carries a desktop, whose width belongs
+        // to the surface that rendered it. Without this the landscape width stayed 0 until the user
+        // rotated the launcher once, and every placement made in between fell back to a constant far
+        // narrower than the desktop the seed had just built.
+        if (desktop.seedIfEmpty(orientation, cells)) {
+            desktop.updateColumns(orientation, columns)
+            Timber.d("S2679: seeded %s at width %d and recorded it", orientation, columns)
+        }
     }
 }

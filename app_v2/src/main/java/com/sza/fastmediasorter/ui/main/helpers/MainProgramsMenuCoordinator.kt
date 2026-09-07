@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
  * the gate predicates are unchanged - MainActivity now passes a resolved [ProgramsMenuGate] snapshot
  * each call instead of the coordinator reading its mutable flags.
  */
+@Suppress("LongParameterList")
 class MainProgramsMenuCoordinator(
     private val activity: AppCompatActivity,
     private val miniGameMenuManager: MainMiniGameMenuManager,
@@ -35,6 +36,7 @@ class MainProgramsMenuCoordinator(
     private val quickCaptureMenuManager: MainQuickCaptureMenuManager,
     private val linkDownloadMenuManager: MainLinkDownloadMenuManager,
     private val screenRecordingMenuManager: MainScreenRecordingMenuManager,
+    private val broadcastMenuManager: MainBroadcastMenuManager,
     private val hostActions: ProgramsHostActions,
 ) {
 
@@ -71,6 +73,7 @@ class MainProgramsMenuCoordinator(
         val frontFlashlight: Boolean,
         val waterFlashlight: Boolean,
         val stopwatch: Boolean,
+        val broadcast: Boolean = false,
     )
 
     // S0757: the Quick Launch Panel entry is always present (no toggle), so the count starts at 1 and
@@ -87,7 +90,8 @@ class MainProgramsMenuCoordinator(
             miniGameMenuManager.itemCount(gate.miniGame) +
             quickCaptureMenuManager.itemCount(gate.quickVoice, gate.quickCamera) +
             linkDownloadMenuManager.itemCount(gate.linkDownload) +
-            screenRecordingMenuManager.itemCount(gate.screenRecording)
+            screenRecordingMenuManager.itemCount(gate.screenRecording) +
+            broadcastMenuManager.itemCount(gate.broadcast)
 
     // S0756: excludeStreams drops the "Streams" item (the programs panel hides it when the streams
     // panel is visible, to avoid duplicating that entry point). The dropdown menu always passes false.
@@ -126,6 +130,7 @@ class MainProgramsMenuCoordinator(
             MENU_ORDER_QUICK_CAPTURE,
         )
         screenRecordingMenuManager.populate(popup, gate.screenRecording, MENU_ORDER_SCREEN_RECORDING)
+        broadcastMenuManager.populate(popup, gate.broadcast, MENU_ORDER_BROADCAST)
         if (gate.calculator) {
             popup.menu.add(0, MENU_ITEM_CALCULATOR, MENU_ORDER_CALCULATOR, R.string.calculator_title)
                 .setIcon(R.drawable.ic_calculator)
@@ -218,7 +223,8 @@ class MainProgramsMenuCoordinator(
             streamsMenuManager.handleMenuItem(itemId) ||
             quickCaptureMenuManager.handleMenuItem(itemId) ||
             linkDownloadMenuManager.handleMenuItem(itemId) ||
-            screenRecordingMenuManager.handleMenuItem(itemId)
+            screenRecordingMenuManager.handleMenuItem(itemId) ||
+            broadcastMenuManager.handleMenuItem(itemId)
         if (handledByManager) return true
         return when (itemId) {
             MENU_ITEM_CALCULATOR -> {
@@ -379,5 +385,8 @@ class MainProgramsMenuCoordinator(
         // stopwatch beside the calculator, whose presence it copies, would have pushed nine familiar
         // items down a row to buy adjacency the owner never asked for.
         private const val MENU_ORDER_STOPWATCH = 15
+
+        // S2508: live audio broadcast menu order
+        private const val MENU_ORDER_BROADCAST = 16
     }
 }

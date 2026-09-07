@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.InstalledAppDao
+import com.sza.fastmediasorter.data.local.db.LauncherCellConfigDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.data.local.db.LauncherJournalDao
 import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
@@ -35,12 +36,12 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_46_47
 import com.sza.fastmediasorter.data.local.db.MIGRATION_47_48
 import com.sza.fastmediasorter.data.local.db.MIGRATION_48_49
 import com.sza.fastmediasorter.data.local.db.MIGRATION_49_50
-import com.sza.fastmediasorter.data.local.db.LauncherCellConfigDao
 import com.sza.fastmediasorter.data.local.db.MIGRATION_50_51
 import com.sza.fastmediasorter.data.local.db.MIGRATION_51_52
 import com.sza.fastmediasorter.data.local.db.MIGRATION_52_53
 import com.sza.fastmediasorter.data.local.db.MIGRATION_53_54
 import com.sza.fastmediasorter.data.local.db.MIGRATION_54_55
+import com.sza.fastmediasorter.data.local.db.MIGRATION_55_56
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -65,7 +66,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-    
+
     private const val DB_NAME = "fastmediasorter_v2.db"
 
     @Provides
@@ -146,20 +147,21 @@ object DatabaseModule {
                 MIGRATION_51_52,
                 MIGRATION_52_53,
                 MIGRATION_53_54,
-                MIGRATION_54_55
+                MIGRATION_54_55,
+                MIGRATION_55_56
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
             // Room-internal table drop (S0731).
             .build()
     }
-    
+
     @Provides
     @Singleton
     fun provideResourceDao(database: AppDatabase): ResourceDao {
         return database.resourceDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideNetworkCredentialsDao(database: AppDatabase): NetworkCredentialsDao {
@@ -189,19 +191,19 @@ object DatabaseModule {
     fun provideStreamUserStateDao(database: AppDatabase): StreamUserStateDao {
         return database.streamUserStateDao()
     }
-    
+
     @Provides
     @Singleton
     fun providePlaybackPositionDao(database: AppDatabase): PlaybackPositionDao {
         return database.playbackPositionDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideThumbnailCacheDao(database: AppDatabase): ThumbnailCacheDao {
         return database.thumbnailCacheDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideCachedFileListDao(database: AppDatabase): CachedFileListDao {
@@ -234,7 +236,9 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDuplicateHashCacheDao(database: AppDatabase): com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao {
+    fun provideDuplicateHashCacheDao(
+        database: AppDatabase
+    ): com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao {
         return database.duplicateHashCacheDao()
     }
 

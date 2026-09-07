@@ -47,6 +47,7 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
     private val settings: SettingsRepository,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
     private val syncBaseline: LauncherShortcutSyncRepository,
+    private val resolveColumns: ResolveLauncherColumnsUseCase,
 ) {
     /**
      * S2564: the media types enabled right now, as the caller's change detector.
@@ -112,7 +113,7 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
         val now = System.currentTimeMillis()
 
         for ((orientation, storedColumns) in orientations) {
-            val columns = if (storedColumns > 0) storedColumns else FALLBACK_DESKTOP_COLUMNS
+            val columns = resolveColumns(orientation, storedColumns)
             val existingCells = desktop.observeCells(orientation).first()
             val existingTargets = existingCells.mapTo(mutableSetOf()) { it.target }
 
@@ -156,9 +157,6 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
     }
 
     private companion object {
-        /** Used when the desktop has not stored a column count yet, so the first placement still lands. */
-        const val FALLBACK_DESKTOP_COLUMNS = 4
-
         /**
          * The closed core set the starter table seeds, by virtual path (S2321).
          *

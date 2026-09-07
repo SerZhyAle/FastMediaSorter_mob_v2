@@ -142,6 +142,28 @@ Describe 'StreamPublisher.Delivery' {
         $threw | Should Be $true
     }
 
+    It 'refuses to publish a name still carrying the replacement character' {
+        $threw = $false
+        $broken = "Roxy R$([char]0xFFFD)di$([char]0xFFFD)"
+        try { Assert-CatalogNamesClean -Rows @([pscustomobject]@{ name = $broken }) } catch { $threw = $true }
+        $threw | Should Be $true
+        { Assert-CatalogNamesClean -Rows @([pscustomobject]@{ name = 'Roxy Rádió' }) } | Should Not Throw
+    }
+
+    It 'separates the rows whose name cannot be repaired, keeping the rest' {
+        $broken = "Radio Zzz$([char]0xFFFD)qqq"
+        $rows = @(
+            [pscustomobject]@{ name = 'Roxy Rádió'; url = 'http://a.test:8000/s'; license_note = 'xiph' },
+            [pscustomobject]@{ name = $broken; url = 'http://b.test:8000/s'; license_note = 'xiph' }
+        )
+        $split = Split-CatalogUnrepairableNames -Rows $rows
+        $split.Rows.Count | Should Be 1
+        $split.Rows[0].name | Should BeExactly 'Roxy Rádió'
+        $split.Dropped.Count | Should Be 1
+        $split.Dropped[0].url | Should BeExactly 'http://b.test:8000/s'
+        $split.Dropped[0].license_note | Should BeExactly 'xiph'
+    }
+
     It 'names the repair mode in its refusal and passes a repaired bank' {
         $message = ''
         try { Assert-CatalogNamesClean -Rows @([pscustomobject]@{ name = '(null)' }) } catch { $message = $_.Exception.Message }

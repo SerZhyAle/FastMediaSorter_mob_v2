@@ -44,6 +44,7 @@ class StreamsViewModelAutoGridTest {
             updateStreamSource = mockk(relaxed = true),
             importStreamPlaylist = mockk(relaxed = true),
             importStreamCatalog = mockk(relaxed = true),
+            importStreamBroadcast = mockk(relaxed = true),
             pinStreamSource = mockk(relaxed = true),
             unpinStreamSource = mockk(relaxed = true),
             reorderPinnedStream = mockk(relaxed = true),

@@ -8,6 +8,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
+import com.sza.fastmediasorter.ui.settings.SettingsProfileViewModel
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.util.showBoundTo
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +19,7 @@ import timber.log.Timber
 class GeneralSettingsResetHelper(
     private val binding: FragmentSettingsGeneralBinding,
     private val viewModel: SettingsViewModel,
+    private val profileViewModel: SettingsProfileViewModel,
     private val fragment: Fragment,
 ) {
     fun showRememberFileListHelpDialog() {
@@ -96,7 +98,7 @@ class GeneralSettingsResetHelper(
     private fun resetSettingsToDefaults() {
         fragment.lifecycleScope.launch {
             try {
-                viewModel.resetToDefaults()
+                profileViewModel.resetSettingsToProfileDefaults()
                 Toast.makeText(fragment.requireContext(), R.string.reset_settings_success, Toast.LENGTH_LONG).show()
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

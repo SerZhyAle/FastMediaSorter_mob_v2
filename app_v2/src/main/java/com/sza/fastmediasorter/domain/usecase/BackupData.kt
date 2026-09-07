@@ -466,7 +466,8 @@ data class BackupLauncherCell(
     val kind: String = "SHORTCUT",
     val target: String = "",
     val labelOverride: String? = null,
-    val addedAt: Long = 0L
+    val addedAt: Long = 0L,
+    val origin: String = "USER",
 )
 
 /**

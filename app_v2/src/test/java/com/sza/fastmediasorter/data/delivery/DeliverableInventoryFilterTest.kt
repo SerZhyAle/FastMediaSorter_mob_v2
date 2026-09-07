@@ -61,6 +61,7 @@ class DeliverableInventoryFilterTest {
             bundled = bundled,
             descriptors = descriptors,
             artworkManifest = mockk(relaxed = true),
+            assetSize = mockk(relaxed = true),
             appContext = appContext
         )
     }

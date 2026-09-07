@@ -47,7 +47,7 @@ fun View.clearBadge() {
  * Three-tier fallback for OEM Android 8.x (API 26/27) devices where
  * WindowInsetsCompat.Type.statusBars() may report 0 despite a visible status bar:
  * 1. Modern typed API (correct on API 30+ and well-behaved OEMs).
- * 2. Deprecated systemWindowInsetTop (broader OEM compatibility on API 20–29).
+ * 2. Deprecated systemWindowInsetTop (broader OEM compatibility on API 20-29).
  * 3. System resource "status_bar_height" (always available, OEM-independent).
  */
 @Suppress("DEPRECATION")
@@ -83,6 +83,13 @@ fun WindowInsetsCompat.getStatusBarHeightSafe(resources: Resources): Int {
  * (S1766 regression: the launcher desktop lost a navigation bar's height on every foreground return).
  * Re-applying only to pick up a changed inset still needs no call at all: the registered listener does
  * it, and `ViewCompat.requestApplyInsets` asks for a fresh dispatch.
+ *
+ * S2667: [suspendWhile] lets a caller sit out an inset episode it starts and ends itself. A padding
+ * change requests a layout pass over the whole subtree, and on the launcher desktop that single pass
+ * was measured at 1.53 s of a 1.555 s frame - so hiding the system bars for a full-screen black overlay
+ * cost a visible freeze on the way in and another on the way out. Skipping the recompute is safe only
+ * for an episode that restores the insets it changed, because nothing re-applies afterwards: the
+ * padding left standing is the one the view already had.
  */
 fun View.applySystemBarInsetPadding(
     applyLeft: Boolean = true,
@@ -90,6 +97,7 @@ fun View.applySystemBarInsetPadding(
     applyRight: Boolean = true,
     applyBottom: Boolean = true,
     useStatusBarHeightFallback: Boolean = true,
+    suspendWhile: (() -> Boolean)? = null,
     onApplied: ((left: Int, top: Int, right: Int, bottom: Int) -> Unit)? = null,
 ) {
     val base = systemBarInsetBasePadding()
@@ -124,7 +132,7 @@ fun View.applySystemBarInsetPadding(
     }
 
     ViewCompat.setOnApplyWindowInsetsListener(this) { _, insets ->
-        apply(insets)
+        if (suspendWhile?.invoke() != true) apply(insets)
         insets
     }
     ViewCompat.getRootWindowInsets(this)?.let(::apply) ?: ViewCompat.requestApplyInsets(this)

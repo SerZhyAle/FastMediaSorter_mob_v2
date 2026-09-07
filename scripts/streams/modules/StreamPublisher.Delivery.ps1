@@ -153,7 +153,11 @@ function Assert-CatalogNamesClean {
         @{ label = "literally '(null)'"; test = { param($n) $n.Trim() -eq '(null)' } },
         @{ label = 'no letter and no digit'; test = { param($n) $n -notmatch '[\p{L}\p{N}]' } },
         @{ label = 'an undecoded HTML entity'; test = { param($n) $n -match '&(#\d+|#x[0-9A-Fa-f]+|[A-Za-z][A-Za-z0-9]{1,31});' } },
-        @{ label = 'a serialised encoder-slot prefix'; test = { param($n) $n -match $script:CatalogNameMachinePrefix } }
+        @{ label = 'a serialised encoder-slot prefix'; test = { param($n) $n -match $script:CatalogNameMachinePrefix } },
+        # S2651: the letter is already gone in the upstream directory's own bytes, so the row shows the user a
+        # black diamond in a station name. -NormalizeNames restores it from the word table or drops the row;
+        # either way a bank reaching this gate with one left means a word the table does not know yet.
+        @{ label = 'a Unicode replacement character (U+FFFD)'; test = { param($n) $n.IndexOf([char]0xFFFD) -ge 0 } }
     )
     $offences = @()
     foreach ($class in $classes) {
@@ -424,6 +428,28 @@ function Merge-CatalogIdentityDuplicates {
     [pscustomobject]@{ Rows = $survivors; Dropped = @($dropped) }
 }
 
+# S2651: separate the rows whose name still carries U+FFFD after the word table ran. This is the one
+# terminal exit of the name pass, and it exists because the publish gate refuses such a bank: without it a
+# single unknown broken word would make the catalog unpublishable with no way forward. The dropped rows are
+# returned rather than deleted in place, so the caller reports them exactly like the collapsed duplicates -
+# a silent prune of the shipped bank is the event that cost users their pins (S1830, S1832).
+function Split-CatalogUnrepairableNames {
+    param([object[]]$Rows)
+    $kept = [System.Collections.ArrayList]::new()
+    $dropped = [System.Collections.ArrayList]::new()
+    foreach ($row in $Rows) {
+        if (([string]$row.name).IndexOf([char]0xFFFD) -ge 0) {
+            [void]$dropped.Add([pscustomobject]@{
+                    name = [string]$row.name
+                    url = [string]$row.url
+                    license_note = [string]$row.license_note
+                })
+        }
+        else { [void]$kept.Add($row) }
+    }
+    [pscustomobject]@{ Rows = @($kept); Dropped = @($dropped) }
+}
+
 function Invoke-PublisherModeDispatch {
 if ($NormalizeNames) {
     if (-not (Test-Path $ExistingCsv)) { throw "Catalog CSV not found: $ExistingCsv" }
@@ -431,6 +457,7 @@ if ($NormalizeNames) {
     $beforeCount = $nameRows.Count
     $nameResult = Normalize-CatalogNameRows -Rows $nameRows
     $mergeResult = Merge-CatalogIdentityDuplicates -Rows $nameResult.Rows
+    $unrepairable = Split-CatalogUnrepairableNames -Rows $mergeResult.Rows
 
     # Stamped, like the backup beside them. The documented flow is two runs - review the reports, then
     # re-run with -Publish - and a fixed name means the second run truncates the very reports the first
@@ -443,25 +470,28 @@ if ($NormalizeNames) {
     Write-CsvUtf8 -Rows $mergeResult.Dropped -Path $dropReport `
         -Columns @('identity', 'kept_url', 'dropped_url', 'dropped_name')
 
-    foreach ($rule in @('repair', 'derive-suffix', 'derive-replace')) {
+    $brokenReport = Join-Path $OutDir ("replacement-char-dropped.{0}.csv" -f $stamp)
+    Write-CsvUtf8 -Rows $unrepairable.Dropped -Path $brokenReport -Columns @('name', 'url', 'license_note')
+
+    foreach ($rule in @('repair', 'repair-accent', 'derive-suffix', 'derive-replace')) {
         $moved = @($nameResult.Moves | Where-Object { $_.rule -eq $rule } | Measure-Object -Property rows -Sum).Sum
         Write-Host ("Names: {0} row(s) via {1}." -f ($moved ?? 0), $rule) -ForegroundColor DarkGray
     }
-    $afterCount = $mergeResult.Rows.Count
-    Write-Host ("Names: {0} identity duplicate(s) collapsed; {1} -> {2} row(s)." -f `
-            $mergeResult.Dropped.Count, $beforeCount, $afterCount) -ForegroundColor Cyan
-    # The row count is the one number that must be explainable: anything beyond the collapsed duplicates
-    # is a channel this mode lost, which its rules forbid.
-    if ($afterCount -ne ($beforeCount - $mergeResult.Dropped.Count)) {
-        throw ("Refusing to write: {0} row(s) in, {1} out, {2} duplicate(s) collapsed - the difference is unaccounted for." -f `
-                $beforeCount, $afterCount, $mergeResult.Dropped.Count)
+    $afterCount = $unrepairable.Rows.Count
+    Write-Host ("Names: {0} identity duplicate(s) collapsed, {1} row(s) dropped with an unrepairable name; {2} -> {3} row(s)." -f `
+            $mergeResult.Dropped.Count, $unrepairable.Dropped.Count, $beforeCount, $afterCount) -ForegroundColor Cyan
+    # The row count is the one number that must be explainable: anything beyond the collapsed duplicates and
+    # the reported unrepairable names is a channel this mode lost, which its rules forbid.
+    if ($afterCount -ne ($beforeCount - $mergeResult.Dropped.Count - $unrepairable.Dropped.Count)) {
+        throw ("Refusing to write: {0} row(s) in, {1} out, {2} duplicate(s) collapsed, {3} unrepairable name(s) dropped - the difference is unaccounted for." -f `
+                $beforeCount, $afterCount, $mergeResult.Dropped.Count, $unrepairable.Dropped.Count)
     }
 
     $nameBackup = Backup-IfExists -Path $ExistingCsv
     if (-not $nameBackup) { throw "Name-normalization backup failed for $ExistingCsv" }
-    Write-CsvUtf8 -Rows $mergeResult.Rows -Path $ExistingCsv -Columns $Schema
-    Write-Host ("Names: rewrote {0}; moves -> {1}; dropped -> {2}; backup -> {3}" -f `
-            $ExistingCsv, $moveReport, $dropReport, $nameBackup) -ForegroundColor Green
+    Write-CsvUtf8 -Rows $unrepairable.Rows -Path $ExistingCsv -Columns $Schema
+    Write-Host ("Names: rewrote {0}; moves -> {1}; dropped -> {2}; unrepairable -> {3}; backup -> {4}" -f `
+            $ExistingCsv, $moveReport, $dropReport, $brokenReport, $nameBackup) -ForegroundColor Green
     if ($Publish) { Invoke-PublishCatalog }
     return $true
 }

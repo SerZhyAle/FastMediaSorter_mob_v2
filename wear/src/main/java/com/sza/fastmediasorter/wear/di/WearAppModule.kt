@@ -24,7 +24,6 @@ import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearNowPlayingRepositoryImpl
-import com.sza.fastmediasorter.wear.data.preferences.WearPreferencesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
@@ -44,10 +43,10 @@ import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearHardwareDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearHealthDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
@@ -146,16 +145,6 @@ object WearAppModule {
         contentResolver: android.content.ContentResolver
     ): WearLocalFolderRepository {
         return WearLocalFolderRepositoryImpl(context, contentResolver)
-    }
-
-    @Provides
-    @Singleton
-    fun provideWearPreferencesRepository(
-        @ApplicationContext context: Context,
-        requestWearComplicationRefreshUseCase:
-        com.sza.fastmediasorter.wear.domain.usecase.RequestWearComplicationRefreshUseCase
-    ): WearPreferencesRepository {
-        return WearPreferencesRepositoryImpl(context, requestWearComplicationRefreshUseCase)
     }
 
     @Provides

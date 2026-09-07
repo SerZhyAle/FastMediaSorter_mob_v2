@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -172,6 +173,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.CHANNEL_PREVIEW_ATLAS,
             R.string.streams_atlas_prompt_message,
+            R.string.streams_atlas_prompt_title,
             artworkManifest,
             ::reloadAtlasPreviews,
         )
@@ -185,8 +187,49 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.STREAM_LOGO_ATLAS,
             R.string.streams_logo_prompt_message,
+            R.string.streams_logo_prompt_title,
             artworkManifest,
             ::reloadLogoTiles,
+        )
+    }
+
+    // S2508: the descriptor may arrive as a scanned QR payload or as a picked file; both launchers
+    // must exist before the host reaches STARTED, so they are registered here rather than on demand.
+    private val broadcastQrScanLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        result.data
+            ?.getStringExtra(
+                com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.EXTRA_PAYLOAD
+            )
+            ?.let { payload -> viewModel.onImportBroadcastDescriptor(payload) }
+    }
+
+    // A descriptor file carries no registered MIME type, so the picker has to accept any document.
+    private val broadcastDescriptorPickerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        val payload = uri?.let { broadcastImportManager.readDescriptorFile(it) }
+        if (payload == null) {
+            if (uri != null) {
+                Toast.makeText(this, R.string.broadcast_import_malformed, Toast.LENGTH_LONG).show()
+            }
+        } else {
+            viewModel.onImportBroadcastDescriptor(payload)
+        }
+    }
+
+    private val broadcastImportManager: StreamBroadcastImportManager by lazy {
+        StreamBroadcastImportManager(
+            activity = this,
+            onScanQrRequested = {
+                broadcastQrScanLauncher.launch(
+                    com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity
+                        .createIntent(this)
+                )
+            },
+            onPickFileRequested = { broadcastDescriptorPickerLauncher.launch(arrayOf("*/*")) },
         )
     }
 
@@ -543,6 +586,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     showSourceDialog(isImport = true)
                     true
                 }
+                R.id.action_stream_import_broadcast -> {
+                    cancelHealthProbe()
+                    broadcastImportManager.showImportChoice()
+                    true
+                }
                 R.id.action_stream_display_toggle -> {
                     cancelHealthProbe()
                     viewModel.onToggleDisplayMode()
@@ -715,6 +763,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private suspend fun reloadAtlasPreviews() {
         atlasSlicer.invalidate()
         atlasPreviewCoords = channelPreviewAtlasStore.coords()
+        // S2650: the coverage line used to be emitted only on screen setup and catalog refresh, so a log
+        // taken right after a consented download could not say how much the payload actually covered.
+        logStreamArtworkState()
         repaintArtworkRows()
     }
 
@@ -722,6 +773,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private suspend fun reloadLogoTiles() {
         logoSlicer.invalidate()
         logoAtlasCoords = streamLogoAtlasStore.coords()
+        logStreamArtworkState()
         repaintArtworkRows()
     }
 

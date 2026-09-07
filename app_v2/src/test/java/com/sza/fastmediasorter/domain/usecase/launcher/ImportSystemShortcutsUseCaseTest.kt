@@ -116,6 +116,7 @@ class ImportSystemShortcutsUseCaseTest {
             every { observeApps() } returns flowOf(apps)
         },
         desktopRepository = desktop,
+        resolveColumns = ResolveLauncherColumnsUseCase(desktop),
     )
 
     private fun sectionCell(orientation: LauncherOrientation) = LauncherCell(

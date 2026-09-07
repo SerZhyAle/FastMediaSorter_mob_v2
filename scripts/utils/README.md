@@ -60,12 +60,6 @@ Development utilities and tools for FastMediaSorter v2.
 .\scripts\utils\check-typo-lint.ps1 -FailOnActivityWarnings    # non-zero exit on Activity warnings
 ```
 
-### Documentation
-
-```powershell
-.\scripts\utils\update_docs_frontmatter.ps1        # Update doc metadata
-```
-
 ### Test Assets
 
 ```powershell

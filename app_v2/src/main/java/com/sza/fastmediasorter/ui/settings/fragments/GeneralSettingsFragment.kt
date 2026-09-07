@@ -174,7 +174,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
     override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
-    private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
+    private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, profileViewModel, this) }
     private val logHelper by lazy {
         GeneralSettingsLogHelper(
             binding = binding,

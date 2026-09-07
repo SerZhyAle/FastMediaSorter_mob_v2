@@ -131,6 +131,39 @@ Describe 'StreamPublisher.Common' {
             Should BeExactly 'repair'
     }
 
+    It 'restores an accented letter the upstream directory destroyed' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "Roxy R${fffd}di${fffd}") | Should BeExactly 'Roxy Rádió'
+        (Repair-CatalogName "Radio L${fffd}beck") | Should BeExactly 'Radio Lübeck'
+        (Repair-CatalogName "RCF Li${fffd}ge") | Should BeExactly 'RCF Liège'
+        (Repair-CatalogName "R${fffd}dio Paulista FM - 99.5 FM - Avar${fffd} / SP") |
+            Should BeExactly 'Rádio Paulista FM - 99.5 FM - Avaré / SP'
+    }
+
+    It 'keeps the case the station wrote, and only the lost letter' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "${fffd}XITOS 89.7 FM") | Should BeExactly 'ÉXITOS 89.7 FM'
+        (Repair-CatalogName "ECOS DE RUMI${fffd}AHUI 88 9 FM") | Should BeExactly 'ECOS DE RUMIÑAHUI 88 9 FM'
+        # The second accent was already missing upstream; restoring it too would rename the station.
+        (Repair-CatalogName "FM P${fffd}O DE A${fffd}UCAR") | Should BeExactly 'FM PÃO DE AÇUCAR'
+    }
+
+    It 'leaves a broken word the table does not know, so the publish gate refuses the bank' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "Radio Zzz${fffd}qqq") | Should BeExactly "Radio Zzz${fffd}qqq"
+        (Repair-CatalogName 'Radio Paradise') | Should BeExactly 'Radio Paradise'
+    }
+
+    It 'reports a restored accent under its own rule' {
+        $fffd = [char]0xFFFD
+        (Resolve-CatalogName -Name "RCF Ni${fffd}vre" -Url 'http://a.test:8000/s').Rule |
+            Should BeExactly 'repair-accent'
+        (Resolve-CatalogName -Name "RCF Ni${fffd}vre" -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'RCF Nièvre'
+        (Resolve-CatalogName -Name "Radio Zzz${fffd}qqq" -Url 'http://a.test:8000/s').Rule |
+            Should BeExactly ''
+    }
+
     It 'leaves a nameless row alone when its url yields no token, so the publish gate can name it' {
         $r = Resolve-CatalogName -Name '(null)' -Url 'not a url'
         $r.Name | Should BeExactly '(null)'

@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.ui.xr.browse.ImmersiveBrowseInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.browse.ImmersiveBrowsePlaybackController
 import com.sza.fastmediasorter.ui.xr.browse.ImmersiveThumbnailDecoder
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -46,7 +47,10 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
 
-    @Inject lateinit var runtime: DiagnosticXrRuntime
+    @Inject lateinit var runtimeProvider: Lazy<DiagnosticXrRuntime>
+
+    private val runtime: DiagnosticXrRuntime
+        get() = runtimeProvider.get()
 
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
 

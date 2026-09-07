@@ -303,6 +303,64 @@ $script:CatalogNameDecodePasses = 3
 # slot, while `- NEUERSCHEINUNGEN - Radio Charts` is a real station name that begins with a dash.
 $script:CatalogNameMachinePrefix = '^\s*-\s*\d+\s*\p{L}?\s*-\s+'
 
+# S2651: words whose accented letter arrived already destroyed, as the Unicode replacement character
+# U+FFFD. Measured 2026-09-06: all 31 affected rows come from the Xiph YP directory, and its own bytes
+# carry `EF BF BD` where the letter belongs, so no re-read of the source returns it - the only cure is
+# knowing the word. The key is the broken word lower-cased, the value the word as the station writes it.
+#
+# Restore ONLY the letter that stands at the replacement character. `A<U+FFFD>UCAR` becomes `Açucar`,
+# not `Açúcar`: the second accent was already missing upstream, and adding it would make this table a
+# renamer of stations rather than a repair of one lost byte.
+$script:CatalogNameAccentRepairs = @{
+    "r$([char]0xFFFD)di$([char]0xFFFD)" = 'Rádió'      # Hungarian - Roxy, Danubius, Youventus
+    "r$([char]0xFFFD)dio"              = 'Rádio'       # Portuguese
+    "li$([char]0xFFFD)ge"              = 'Liège'
+    "ni$([char]0xFFFD)vre"             = 'Nièvre'
+    "m$([char]0xFFFD)ditation"         = 'Méditation'
+    "t$([char]0xFFFD)moignage"         = 'Témoignage'
+    "chr$([char]0xFFFD)tienne"         = 'Chrétienne'
+    "pr$([char]0xFFFD)dication"        = 'Prédication'
+    "$([char]0xFFFD)vangile"           = 'Évangile'
+    "uni$([char]0xFFFD)n"              = 'Unión'
+    "conexi$([char]0xFFFD)n"           = 'Conexión'
+    "$([char]0xFFFD)xitos"             = 'Éxitos'
+    "rumi$([char]0xFFFD)ahui"          = 'Rumiñahui'
+    "tulc$([char]0xFFFD)n"             = 'Tulcán'
+    "fayc$([char]0xFFFD)n"             = 'Faycán'
+    "l$([char]0xFFFD)beck"             = 'Lübeck'
+    "p$([char]0xFFFD)o"                = 'Pão'
+    "a$([char]0xFFFD)ucar"             = 'Açucar'
+    "avar$([char]0xFFFD)"              = 'Avaré'
+}
+
+# Restore the accented letters of one name through the table above, word by word. A word the table does
+# not know is returned untouched, so the row keeps its replacement character and the publish gate refuses
+# the bank instead of this function inventing a letter.
+function Repair-CatalogAccents {
+    param([string]$Name)
+    $value = [string]$Name
+    if ($value.IndexOf([char]0xFFFD) -lt 0) { return $value }
+    # Split on the separators only, keeping them, so punctuation and spacing survive the rebuild. U+FFFD
+    # counts as part of the word: it is a symbol, not a letter, so a plain letter-or-digit split would cut
+    # `R<U+FFFD>di<U+FFFD>` into four pieces and no table key would ever match.
+    $parts = [regex]::Split($value, "([^\p{L}\p{N}$([char]0xFFFD)]+)")
+    for ($i = 0; $i -lt $parts.Count; $i++) {
+        $word = $parts[$i]
+        if ($word.IndexOf([char]0xFFFD) -lt 0) { continue }
+        $key = $word.ToLowerInvariant()
+        if (-not $script:CatalogNameAccentRepairs.ContainsKey($key)) { continue }
+        $fixed = [string]$script:CatalogNameAccentRepairs[$key]
+        # An all-caps source word keeps its case: `<U+FFFD>XITOS 89.7 FM` is written that way by the
+        # station. A word with no cased letter besides the lost one cannot say, and takes the table value.
+        $cased = @($word.ToCharArray() | Where-Object { [char]::IsLetter($_) -and $_ -ne [char]0xFFFD })
+        if ($cased.Count -gt 0 -and -not ($cased | Where-Object { [char]::IsLower($_) })) {
+            $fixed = $fixed.ToUpperInvariant()
+        }
+        $parts[$i] = $fixed
+    }
+    return ($parts -join '')
+}
+
 # Trailing separators only. Leading punctuation is deliberately absent: `.977 Country`,
 # `#joint radio Blues Rock` and `_Funky Corner Radio (USA)` are the stations' own names, and trimming
 # them would be this repair inventing a defect of its own.
@@ -353,6 +411,7 @@ function Repair-CatalogName {
         if ($decoded -ceq $value) { break }
         $value = $decoded
     }
+    $value = Repair-CatalogAccents -Name $value
     $value = $value -replace $script:CatalogNameMachinePrefix, ''
     $value = ($value -replace '\s+', ' ').Trim()
     return $value.TrimEnd($script:CatalogNameTrailingSeparators.ToCharArray()).Trim()
@@ -454,6 +513,18 @@ function Test-CatalogNameDiscardable {
     return $script:CatalogNameNullTokens -contains $folded
 }
 
+# Name the repair that fired, so the move report reads rule by rule. A restored accent gets its own label
+# rather than joining the general `repair` count: it rewrites a letter the user reads, which is a class the
+# owner reviews on its own (S2651).
+function Get-CatalogNameRepairRule {
+    param([string]$Original, [string]$Repaired)
+    if ($Repaired -ceq ([string]$Original)) { return '' }
+    if (([string]$Original).IndexOf([char]0xFFFD) -ge 0 -and $Repaired.IndexOf([char]0xFFFD) -lt 0) {
+        return 'repair-accent'
+    }
+    return 'repair'
+}
+
 # Resolve the final name for one catalog row: repair it, then rebuild it from the row's host when the
 # result still says nothing. Returns the name and the rule that produced it ('' when nothing fired), so
 # the caller's move report can be read rule by rule instead of row by row.
@@ -461,14 +532,14 @@ function Resolve-CatalogName {
     param([string]$Name, [string]$Url)
     $repaired = Repair-CatalogName -Name $Name
     if (-not (Test-CatalogNameUninformative -Name $repaired)) {
-        $rule = if ($repaired -cne ([string]$Name)) { 'repair' } else { '' }
+        $rule = Get-CatalogNameRepairRule -Original $Name -Repaired $repaired
         return [pscustomobject]@{ Name = $repaired; Rule = $rule }
     }
     $token = Get-CatalogNameFromUrl -Url $Url
     # No host to build from: leave the row exactly as it arrived. The publish gate then refuses the bank
     # and names the row, which is the honest outcome - inventing a name here would hide the real defect.
     if (-not $token) {
-        $rule = if ($repaired -cne ([string]$Name)) { 'repair' } else { '' }
+        $rule = Get-CatalogNameRepairRule -Original $Name -Repaired $repaired
         return [pscustomobject]@{ Name = $repaired; Rule = $rule }
     }
     if (Test-CatalogNameDiscardable -Name $repaired) {

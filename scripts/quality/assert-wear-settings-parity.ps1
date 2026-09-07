@@ -195,6 +195,16 @@ foreach ($name in $paths.Keys) {
     $text[$name] = Get-Content -LiteralPath $full -Raw
 }
 
+# S2655: the watch settings live in a themed section per topic, not in one class, so "the watch
+# stores this key" and "the watch setter stamps this field" are questions about the whole
+# data/preferences tree. Reading only WearPreferencesRepositoryImpl.kt reported every shared setting
+# as unstored the day the sections were split out, while every key and every stampedEdit call was
+# still exactly where it had always been.
+$watchPrefsRoot = Join-Path $root 'wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences'
+$text.WatchPrefs = (Get-ChildItem -LiteralPath $watchPrefsRoot -Recurse -File -Filter '*.kt' |
+    Sort-Object FullName |
+    ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+
 # One WearSettingScope( .. ) block per entry. Parsed rather than executed, because the gate has to
 # read both modules and neither compiles into the other.
 function Read-RegistryEntries {
@@ -425,11 +435,11 @@ foreach ($entry in $phoneEntries) {
         if (-not $entry.WatchKey) {
             $findings += "S2093: '$field' is in the registry as BOTH but declares no watch DataStore key."
         } elseif ($entry.WatchKey -notin $prefKeys) {
-            $findings += "S2093: '$field' names watch key '$($entry.WatchKey)', which WearPreferencesRepositoryImpl does not declare."
+            $findings += "S2093: '$field' names watch key '$($entry.WatchKey)', which no watch preferences section declares."
         }
         # 7. A shared setting must record when it changed, or the merge cannot rank it.
         if ($field -notin $stampedFields) {
-            $findings += "S2093: '$field' is BOTH but no setter in WearPreferencesRepositoryImpl stamps it - add stampedEdit(""$field"")."
+            $findings += "S2093: '$field' is BOTH but no watch preferences setter stamps it - add stampedEdit(""$field"")."
         }
     } else {
         # 4. A one-sided setting without a recorded reason is indistinguishable from a forgotten one.
@@ -449,7 +459,7 @@ foreach ($entry in $phoneEntries) {
 $registryKeys = $phoneEntries.WatchKey | Where-Object { $_ }
 foreach ($stamped in ($stampedFields | Sort-Object -Unique)) {
     if ($stamped -notin $phoneFields) {
-        $findings += "S2093: WearPreferencesRepositoryImpl stamps '$stamped', which is in no WearSettingsRegistry entry."
+        $findings += "S2093: a watch preferences setter stamps '$stamped', which is in no WearSettingsRegistry entry."
     }
 }
 foreach ($entry in $watchEntries) {

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <service
+            android:name="com.sza.fastmediasorter.broadcast.BroadcastCaptureService"
+            android:exported="false"
+            android:foregroundServiceType="microphone" />
+        <!-- S2662 phase 01: throwaway transport spike, launched only via `adb shell am start`.
+             No intent filter, never linked from the interface, deleted by phase 05. -->
+        <activity
+            android:name="com.sza.fastmediasorter.broadcast.spike.VideoBroadcastSpikeActivity"
+            android:exported="false" />
+    </application>
+</manifest>

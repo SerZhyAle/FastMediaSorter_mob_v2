@@ -713,7 +713,8 @@ object BackupMapper {
             kind = entity.kind,
             target = entity.target,
             labelOverride = entity.labelOverride,
-            addedAt = entity.addedAt
+            addedAt = entity.addedAt,
+            origin = entity.origin,
         )
     }
 
@@ -728,7 +729,8 @@ object BackupMapper {
             kind = backup.kind.gsonSafe("SHORTCUT"),
             target = backup.target.gsonSafe(""),
             labelOverride = backup.labelOverride,
-            addedAt = backup.addedAt
+            addedAt = backup.addedAt,
+            origin = backup.origin.gsonSafe("USER"),
         )
     }
 

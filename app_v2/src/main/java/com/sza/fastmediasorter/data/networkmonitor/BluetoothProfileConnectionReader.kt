@@ -33,8 +33,9 @@ class BluetoothProfileConnectionReader @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
 
-    private val bluetoothManager: BluetoothManager? =
+    private val bluetoothManager: BluetoothManager? by lazy {
         context.getSystemService(Context.BLUETOOTH_SERVICE) as? BluetoothManager
+    }
 
     /**
      * The addresses of every connected device, GATT and classic profiles alike.

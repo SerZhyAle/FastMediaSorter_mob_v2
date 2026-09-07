@@ -32,6 +32,19 @@ class LauncherRoleManager @Inject constructor(
     private val contract: LauncherModeContract,
 ) {
 
+    data class LauncherModeState(
+        val roleRequestPending: Boolean,
+        val homeRoleHeld: Boolean,
+        val modeEnabled: Boolean,
+    )
+
+    /** Reads the complete durable state as one snapshot for a background screen refresh. */
+    fun readState(): LauncherModeState {
+        val roleRequestPending = isRoleRequestPending()
+        val homeRoleHeld = isHomeRoleHeld()
+        return LauncherModeState(roleRequestPending, homeRoleHeld, isModeEnabled())
+    }
+
     /** True when the HOME component is enabled, i.e. the app is a home-screen candidate. */
     fun isModeEnabled(): Boolean {
         val component = contract.homeComponent(context) ?: return false
@@ -69,8 +82,21 @@ class LauncherRoleManager @Inject constructor(
         openHomeChooser(activity)
     }
 
+    /** Performs the durable component change before the caller launches a role request on the UI thread. */
+    fun enableModeForRequest(): Intent? {
+        val component = contract.homeComponent(context) ?: return null
+        setLauncherComponentsEnabled(component, enabled = true)
+        return createRoleRequestIntent()
+    }
+
     /** Stops being a home-screen candidate; the system falls back to the previous launcher. */
     fun disableMode() {
+        val component = contract.homeComponent(context) ?: return
+        setLauncherComponentsEnabled(component, enabled = false)
+    }
+
+    /** Keeps package-manager component work out of a screen's rendering callback. */
+    fun disableModeForBackgroundRefresh() {
         val component = contract.homeComponent(context) ?: return
         setLauncherComponentsEnabled(component, enabled = false)
     }

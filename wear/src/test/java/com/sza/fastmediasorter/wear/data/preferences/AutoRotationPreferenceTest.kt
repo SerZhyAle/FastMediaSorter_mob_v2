@@ -13,14 +13,14 @@ class AutoRotationPreferenceTest {
     fun `auto-rotation preference addresses the expected key name`() {
         assertEquals(
             "wear_auto_rotation_enabled",
-            WearPreferencesRepositoryImpl.PreferencesKeys.AUTO_ROTATION_ENABLED.name
+            WearPreferenceKeys.AUTO_ROTATION_ENABLED.name
         )
     }
 
     @Test
     fun `auto-rotation key does not collide with other wear preference keys`() {
-        val keyName = WearPreferencesRepositoryImpl.PreferencesKeys.AUTO_ROTATION_ENABLED.name
-        assertNotEquals(keyName, WearPreferencesRepositoryImpl.PreferencesKeys.VIEW_MODE.name)
-        assertNotEquals(keyName, WearPreferencesRepositoryImpl.PreferencesKeys.KEEP_SCREEN_AWAKE.name)
+        val keyName = WearPreferenceKeys.AUTO_ROTATION_ENABLED.name
+        assertNotEquals(keyName, WearPreferenceKeys.VIEW_MODE.name)
+        assertNotEquals(keyName, WearPreferenceKeys.KEEP_SCREEN_AWAKE.name)
     }
 }

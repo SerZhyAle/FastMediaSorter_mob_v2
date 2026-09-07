@@ -4,6 +4,7 @@ import android.graphics.Typeface
 import android.view.LayoutInflater
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraCaptureSessionManager
 import kotlin.math.abs
@@ -14,9 +15,12 @@ import kotlin.math.abs
  * The presets are a list, not four buttons in the layout - strategic 5.3 requires a fifth value to cost
  * no layout edit, so the row is built from [PRESET_RATIOS] and one entry is inflated per ratio.
  *
- * The active preset is marked by three cues at once, because 3.2 forbids leaning on colour alone: the
- * selected background (a filled body plus a thicker outline), a bold label, and the selected state the
- * accessibility services read.
+ * The active preset is marked by three cues at once, because 3.2 forbids leaning on colour alone: an
+ * inverted body and label, a bold label, and the selected state the accessibility services read.
+ *
+ * The row carries its own opaque body rather than following the host's control tint: it sits on the
+ * glow field, which is white with the backlight on and black with it off, and the owner's 2026-09-06
+ * device run found the transparent presets unreadable against the lit field.
  */
 class MirrorZoomManager(
     private val container: LinearLayout,
@@ -27,8 +31,6 @@ class MirrorZoomManager(
     private val presets = mutableListOf<TextView>()
 
     private var activeRatio: Float = PRESET_RATIOS.first()
-
-    private var tint: Int? = null
 
     /** Builds one control per preset. Safe to call once per screen; a second call rebuilds the row. */
     fun attach() {
@@ -64,22 +66,14 @@ class MirrorZoomManager(
         render()
     }
 
-    /**
-     * The presets sit on the glow field like every other control, so their colour follows the field
-     * rather than the theme - see [com.sza.fastmediasorter.ui.mirror.MirrorActivity.applyControlTint].
-     * Held so a row rebuilt by [attach] does not fall back to the layout's default.
-     */
-    fun applyTint(color: Int) {
-        tint = color
-        render()
-    }
-
     private fun render() {
         presets.forEachIndexed { index, view ->
             val selected = PRESET_RATIOS[index] == activeRatio
             view.isSelected = selected
             view.setTypeface(null, if (selected) Typeface.BOLD else Typeface.NORMAL)
-            tint?.let { view.setTextColor(it) }
+            // The label inverts with the body, so the pair stays legible on either state of the field.
+            val label = if (selected) R.color.mirror_zoom_preset_body else R.color.mirror_zoom_preset_body_active
+            view.setTextColor(ContextCompat.getColor(view.context, label))
         }
     }
 

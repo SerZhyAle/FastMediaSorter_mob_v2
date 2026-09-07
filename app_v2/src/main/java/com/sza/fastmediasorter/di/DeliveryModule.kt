@@ -60,6 +60,13 @@ abstract class DeliveryModule {
         impl: com.sza.fastmediasorter.data.delivery.ArtworkManifestClient
     ): com.sza.fastmediasorter.domain.delivery.ArtworkManifestSource
 
+    /** S2652: live size of the republished stream-catalog archive, measured on the asset itself. */
+    @Binds
+    @Singleton
+    abstract fun bindDeliveryAssetSizeSource(
+        impl: com.sza.fastmediasorter.data.delivery.DeliveryAssetSizeClient
+    ): com.sza.fastmediasorter.domain.delivery.DeliveryAssetSizeSource
+
     companion object {
 
         /**

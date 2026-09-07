@@ -20,6 +20,9 @@ import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherClockBinding
 import com.sza.fastmediasorter.util.resolveActivityCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
@@ -91,7 +94,6 @@ private class ClockGadgetView(
         val datePattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), DATE_SKELETON)
         binding.gadgetClockDate.format12Hour = datePattern
         binding.gadgetClockDate.format24Hour = datePattern
-        applyDisplayState(stateStore.read())
         contentDescription = context.getString(R.string.launcher_gadget_clock_actions)
         isFocusable = true
         isClickable = true
@@ -115,6 +117,10 @@ private class ClockGadgetView(
             )
             true
         }
+    }
+
+    override suspend fun CoroutineScope.onActive() {
+        applyDisplayState(withContext(Dispatchers.IO) { stateStore.read() })
     }
 
     /**

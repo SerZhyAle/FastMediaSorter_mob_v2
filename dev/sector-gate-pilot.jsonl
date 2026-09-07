@@ -33,3 +33,4 @@
 {"kind":"refusal","at":"2026-09-05T10:46:10+02:00","session":"01853e70-1044-4666-8feb-da646d02cf66","tool":"Grep","pattern":"Timber\\.d\\(\"S2556:","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-09-05T22:05:58+02:00","session":"2a41f56e-6343-44c9-87d6-7c35277815ca","tool":"Grep","pattern":"fromWidget","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
 {"kind":"refusal","at":"2026-09-06T14:29:44+02:00","session":"7f76af7c-141f-4bea-94e2-cc05c27ce486","tool":"Grep","pattern":"createPlaybackRenderersFactory","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-07T00:36:19+02:00","session":"6f1f0ff0-0fd0-4930-8af7-370ffe17a50e","tool":"Grep","pattern":"Timber\\.d\\(\"S2397:","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}

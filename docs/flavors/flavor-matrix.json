@@ -34,6 +34,7 @@
     "SUPPORT_WEAR_COMPANION",
     "SUPPORT_CAST",
     "SUPPORT_NETWORK_MONITOR",
+    "SUPPORT_BROADCAST_SOURCE",
     "VR_UI_COMPOSITION_LAYER_ENABLED"
   ],
   "minSdk": {
@@ -73,6 +74,7 @@
       "SUPPORT_WEAR_COMPANION": true,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": true,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "noLegal": {
@@ -97,6 +99,7 @@
       "SUPPORT_WEAR_COMPANION": true,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": true,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": true
     },
     "lite": {
@@ -121,6 +124,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "photos": {
@@ -145,6 +149,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "legacy": {
@@ -169,6 +174,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "vr": {
@@ -193,6 +199,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": false,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": false
     },
     "foss": {
@@ -217,6 +224,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": false,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     }
   },
@@ -243,6 +251,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "noLegal": {
@@ -267,6 +276,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "flavor"
     },
     "lite": {
@@ -291,6 +301,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "photos": {
@@ -315,6 +326,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "legacy": {
@@ -339,6 +351,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "vr": {
@@ -363,6 +376,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "flavor"
     },
     "foss": {
@@ -387,6 +401,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     }
   }

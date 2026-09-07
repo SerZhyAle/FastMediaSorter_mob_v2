@@ -233,6 +233,7 @@ class SyncEnabledResourceTilesUseCaseTest {
         settings = mockk<SettingsRepository>(relaxed = true),
         provisionDefaultResources = provision,
         syncBaseline = baseline,
+        resolveColumns = ResolveLauncherColumnsUseCase(desktop),
     )
 
     private fun targetOf(resource: MediaResource): String =

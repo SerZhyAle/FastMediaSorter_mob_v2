@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
@@ -56,6 +57,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -69,7 +71,9 @@ import javax.inject.Inject
  */
 // Pre-existing large state holder (already over the param threshold); S0712 adds the persistent
 // frame store as one more injected dependency. Kept whole - each dep is a distinct stream use case.
-@Suppress("LongParameterList")
+// S2508 pushed this past the 40-function threshold with one screen intent. Splitting a state holder
+// this wide is its own ticket - every function here is one user action on one screen.
+@Suppress("LongParameterList", "TooManyFunctions")
 @HiltViewModel
 class StreamsViewModel @Inject constructor(
     observeStreamSources: ObserveStreamSourcesUseCase,
@@ -77,6 +81,8 @@ class StreamsViewModel @Inject constructor(
     private val updateStreamSource: UpdateStreamSourceUseCase,
     private val importStreamPlaylist: ImportStreamPlaylistUseCase,
     private val importStreamCatalog: ImportStreamCatalogUseCase,
+    // S2508: the listener half of the phone-broadcast pair - a scanned or picked descriptor lands here.
+    private val importStreamBroadcast: ImportStreamBroadcastUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
     private val unpinStreamSource: UnpinStreamSourceUseCase,
     // S0938: relative reorder of a pinned channel (up / down / to top) within the pinned set.
@@ -434,6 +440,24 @@ class StreamsViewModel @Inject constructor(
         } finally {
             _state.update { it.copy(isImporting = false) }
         }
+    }
+
+    /**
+     * S2508 criterion 4: a descriptor arriving by QR or file becomes an ordinary channel, so the
+     * payload goes straight to the shared import use case and only its verdict reaches the screen.
+     */
+    fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
+        Timber.d("S2508: importing a broadcast descriptor from the streams toolbar")
+        val messageRes = when (importStreamBroadcast(payload)) {
+            ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
+            ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
+            ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
+            ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
+                R.string.broadcast_import_malformed
+            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion ->
+                R.string.broadcast_import_unsupported_version
+        }
+        _events.send(StreamsEvent.Message(messageRes))
     }
 
     fun onQueryChanged(query: String) {

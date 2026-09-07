@@ -18,6 +18,15 @@ class BlackScreenOverlayManager(
     var isVisible: Boolean = false
         private set
 
+    /**
+     * S2667: true for the whole episode in which this overlay owns the window's system-bar insets -
+     * from before the bars are hidden until after they are handed back. A host whose layout is
+     * expensive to re-pad reads this to sit the episode out; [isVisible] cannot serve that purpose,
+     * because [hide] clears it before restoring the bars and the restore is the costlier half.
+     */
+    var isChangingSystemBars: Boolean = false
+        private set
+
     private var overlayView: View? = null
     private var wasFullscreenBeforeOverlay = false
 
@@ -26,6 +35,7 @@ class BlackScreenOverlayManager(
         val activity = activityRef.get() ?: return
         val decorView = activity.window.decorView as? ViewGroup ?: return
         wasFullscreenBeforeOverlay = systemBarsManager.isInFullscreenMode()
+        isChangingSystemBars = true
         systemBarsManager.enterFullscreenMode()
         val view = View(activity).apply {
             setBackgroundColor(Color.BLACK)
@@ -69,6 +79,7 @@ class BlackScreenOverlayManager(
         if (!wasFullscreenBeforeOverlay) {
             systemBarsManager.exitFullscreenMode()
         }
+        isChangingSystemBars = false
         Timber.d("BlackScreenOverlayManager: overlay hidden (restoredFullscreen=$wasFullscreenBeforeOverlay)")
     }
 

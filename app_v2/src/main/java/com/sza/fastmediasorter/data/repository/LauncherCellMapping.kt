@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.data.local.db.LauncherCellEntity
 import com.sza.fastmediasorter.data.local.db.LauncherStateEntity
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellOrigin
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopState
@@ -56,12 +57,15 @@ internal fun LauncherCell.toEntity(): LauncherCellEntity = LauncherCellEntity(
     labelOverride = labelOverride,
     addedAt = addedAt,
     screenIndex = screenIndex,
+    origin = origin.name,
 )
 
 /** A row written by a newer build (unknown orientation/kind) is skipped, never a crash. */
 internal fun LauncherCellEntity.toDomainOrNull(): LauncherCell? {
     val orientationValue = LauncherOrientation.entries.firstOrNull { it.name == orientation }
     val kindValue = LauncherCellKind.entries.firstOrNull { it.name == kind }
+    val originValue = LauncherCellOrigin.entries.firstOrNull { it.name == origin }
+        ?: LauncherCellOrigin.USER
     if (orientationValue == null || kindValue == null) {
         Timber.w("Launcher desktop: skipping cell %d with unknown orientation/kind", id)
         return null
@@ -78,6 +82,7 @@ internal fun LauncherCellEntity.toDomainOrNull(): LauncherCell? {
         labelOverride = labelOverride,
         addedAt = addedAt,
         screenIndex = screenIndex,
+        origin = originValue,
     )
 }
 

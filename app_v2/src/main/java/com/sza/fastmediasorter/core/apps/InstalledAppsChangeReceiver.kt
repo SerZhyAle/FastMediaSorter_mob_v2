@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.domain.usecase.apps.RefreshInstalledAppsUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.SyncInstalledAppShortcutUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -28,12 +29,27 @@ class InstalledAppsChangeReceiver : BroadcastReceiver() {
     lateinit var refreshInstalledApps: RefreshInstalledAppsUseCase
 
     @Inject
+    lateinit var syncInstalledAppShortcut: SyncInstalledAppShortcutUseCase
+
+    @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
-    private companion object {
+    companion object {
         /** Names the locale branch in a failure log, where there is no package name to name it by. */
-        const val LOCALE_REASON = "locale change"
+        private const val LOCALE_REASON = "locale change"
+
+        internal fun packageChange(
+            action: String?,
+            isReplacing: Boolean,
+        ): SyncInstalledAppShortcutUseCase.Change? {
+            if (isReplacing) return null
+            return when (action) {
+                Intent.ACTION_PACKAGE_ADDED -> SyncInstalledAppShortcutUseCase.Change.INSTALLED
+                Intent.ACTION_PACKAGE_REMOVED -> SyncInstalledAppShortcutUseCase.Change.REMOVED
+                else -> null
+            }
+        }
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -55,9 +71,16 @@ class InstalledAppsChangeReceiver : BroadcastReceiver() {
     private fun refreshChangedPackage(intent: Intent) {
         val replacingRemoval = intent.action == Intent.ACTION_PACKAGE_REMOVED &&
             intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+        val shortcutChange = packageChange(intent.action, intent.getBooleanExtra(Intent.EXTRA_REPLACING, false))
         val packageName = intent.data?.schemeSpecificPart
         if (packageName != null && !replacingRemoval) {
-            runInBackground(packageName) { refreshInstalledApps.refreshPackage(packageName) }
+            runInBackground(packageName) {
+                refreshInstalledApps.refreshPackage(packageName)
+                shortcutChange?.let {
+                    Timber.d("S2665: shortcut sync requested for %s", packageName)
+                    syncInstalledAppShortcut(packageName, it)
+                }
+            }
         }
     }
 

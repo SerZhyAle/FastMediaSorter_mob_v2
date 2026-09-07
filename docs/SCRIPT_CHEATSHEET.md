@@ -2074,6 +2074,18 @@ scripts/quality/assert-ctor-arg-slots.ps1
   Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
 ```
 
+### assert-delivery-size-estimates.ps1
+Gate: every download size compiled into the app still describes the asset it names (S2652).
+
+```
+scripts/quality/assert-delivery-size-estimates.ps1
+  Gate: every download size compiled into the app still describes the asset it names (S2652).
+  Params:
+    -Quiet                    [SwitchParameter]
+    -TolerancePercent         [Double] = 25.0
+  Exit: 0 - every compiled fallback is within tolerance of its published asset, or the release could
+```
+
 ### assert-deobfuscation-retained.ps1
 S1695 - assert that the most recently published release's deobfuscation payload is retained and reads back intact.
 
@@ -2492,6 +2504,22 @@ scripts/quality/assert-icon-inventory-sync.ps1
     -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -TimeoutSeconds              [Int32] = 600
   Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).; 4 - Code.Scripts is held by another session: nothing was written, the place in
+```
+
+### assert-invoked-tracked.ps1
+S2654: a script invoked by another script must also be known to git.
+
+```
+scripts/quality/assert-invoked-tracked.ps1
+  S2654: a script invoked by another script must also be known to git.
+  Params:
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Root                 [String]
+    -GitRoot              [String]
+    -Quiet                [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 every judged target is in the git index (or none judged), or -Gate was absent.; 1 at least one judged target is not in the index, and -Gate was passed.; 2 cannot verify - git absent, not a work tree, or discovery root unreadable.
 ```
 
 ### assert-launcher-contrast.ps1
@@ -3707,6 +3735,18 @@ scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   Exit: 0 every case passed; 1 at least one case failed
 ```
 
+## scripts\quality\assert-invoked-tracked.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-invoked-tracked.ps1
+
+```
+scripts/quality/assert-invoked-tracked.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-invoked-tracked.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 fixtures could not be prepared.
+```
+
 ## scripts\quality\assert-listener-symmetry.tests
 
 ### Run-Tests.ps1
@@ -4573,8 +4613,9 @@ Archive one or more specs: move their files to PLAN/archive/ and flip the record
 scripts/spec_catalog/archive.ps1
   Archive one or more specs: move their files to PLAN/archive/ and flip the records to Archived.
   Params:
-    -Id  (req)  [String[]]
-  Exit: 0 every id archived.; 1 at least one id failed (invalid, not found, already archived with nothing left to move, or a
+    -Id                    (req)  [String[]]
+    -AllowMissingArtefact         [SwitchParameter]
+  Exit: 0 every id archived (including any archived under -AllowMissingArtefact, which is behaviour
 ```
 
 ### bulk-update.ps1
@@ -4582,9 +4623,10 @@ scripts/spec_catalog/archive.ps1
 ```
 scripts/spec_catalog/bulk-update.ps1
   Params:
-    -Id        (req)  [String[]]
-    -Status           [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
-    -Priority         [Int32] = -1  {range 0..100}
+    -Id          (req)  [String[]]
+    -Status             [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
+    -Priority           [Int32] = -1  {range 0..100}
+    -StatusNote         [String] = $null
 ```
 
 ### check-audit-current.ps1
@@ -5112,6 +5154,18 @@ scripts/spec_catalog/archive.tests/Run-Tests.ps1
   Regression suite for scripts/spec_catalog/archive.ps1 - the one-process batch path (S2400).
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+```
+
+## scripts\spec_catalog\assert-closing-gates.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
+
+```
+scripts/spec_catalog/assert-closing-gates.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
+  (no param block)
+  Exit: 0 every case passed (skips are not failures).; 1 at least one case failed.; 2 could not look - the harness _lib.ps1 did not resolve, or the catalog is unreadable.
 ```
 
 ## scripts\spec_catalog\check-audit-current.tests
@@ -6254,6 +6308,7 @@ scripts/utils/run-spec-queue.ps1
     -CheapModel                [String] = 'sonnet'
     -Instance                  [String] = 'a'
     -StartDelaySeconds         [Int32] = 0
+    -ClaimGraceSeconds         [Int32] = 180
     -PromptTemplate            [String] = ''
     -PermissionMode            [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
     -Quiet                     [SwitchParameter]
@@ -6464,15 +6519,6 @@ scripts/utils/test-agent-lock-queue.ps1
   Scenario check for the agent-lock queue: fairness, ticket retirement, liveness, compatibility.
   (no param block)
   Exit: 0 - every assertion that ran passed; the sandbox is deleted. S2421: a case whose behaviour
-```
-
-### update_docs_frontmatter.ps1
-Script to add Jekyll Frontmatter to documentation files
-
-```
-scripts/utils/update_docs_frontmatter.ps1
-  Script to add Jekyll Frontmatter to documentation files
-  (no param block)
 ```
 
 ### wait-for-lock-turn.ps1
