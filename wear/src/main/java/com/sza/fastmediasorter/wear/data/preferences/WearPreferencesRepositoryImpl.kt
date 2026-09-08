@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.data.preferences
 
 import com.sza.fastmediasorter.wear.data.preferences.sections.WearAppearancePreferencesImpl
 import com.sza.fastmediasorter.wear.data.preferences.sections.WearBrowsePreferencesImpl
+import com.sza.fastmediasorter.wear.data.preferences.sections.WearDocumentPreferencesImpl
 import com.sza.fastmediasorter.wear.data.preferences.sections.WearMediaTypePreferencesImpl
 import com.sza.fastmediasorter.wear.data.preferences.sections.WearMiniAppPreferencesImpl
 import com.sza.fastmediasorter.wear.data.preferences.sections.WearPlaybackPreferencesImpl
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.wear.data.preferences.sections.WearStreamsPrefere
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearAppearancePreferences
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearBrowsePreferences
+import com.sza.fastmediasorter.wear.domain.repository.preferences.WearDocumentPreferences
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearMediaTypePreferences
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearMiniAppPreferences
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearPlaybackPreferences
@@ -22,7 +24,7 @@ import javax.inject.Inject
  *
  * S2655: holds no member of its own - each themed section owns its settings and this class only
  * composes them, so the count detekt's `TooManyFunctions` measures is one section's rather than the
- * whole settings surface of the watch. All seven sections read and write the single `wear_settings`
+ * whole settings surface of the watch. Every section reads and writes the single `wear_settings`
  * store, handed to them as [WearSettingsDataStore].
  */
 class WearPreferencesRepositoryImpl @Inject constructor(
@@ -32,6 +34,7 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     streams: WearStreamsPreferencesImpl,
     appearance: WearAppearancePreferencesImpl,
     miniApps: WearMiniAppPreferencesImpl,
+    documents: WearDocumentPreferencesImpl,
     settingsSync: WearSettingsSyncPreferencesImpl
 ) : WearPreferencesRepository,
     WearMediaTypePreferences by mediaTypes,
@@ -40,4 +43,5 @@ class WearPreferencesRepositoryImpl @Inject constructor(
     WearStreamsPreferences by streams,
     WearAppearancePreferences by appearance,
     WearMiniAppPreferences by miniApps,
+    WearDocumentPreferences by documents,
     WearSettingsSyncPreferences by settingsSync

@@ -109,8 +109,10 @@ $gradlew     = Join-Path $projectRoot "gradlew.bat"
 # reading their own clocks. It passes the decision down as -Pfms.version*, and writes nothing -
 # after ADR-4 no build touches build.gradle.kts, so no caller has to revert one.
 #   versionName: Y.YM.MDDH.Hmm (same for app_v2 + wear).
-#   versionCode app_v2: yyMMddHH + first-minute-digit (9 digits).
-#   versionCode wear:   yyMMddHH (8 digits) - wear keeps the shorter base by design.
+#   versionCode app_v2: yyMMddHH * 10 + floor(minute / 10)     - last digit 0..5 (9 digits).
+#   versionCode wear:   yyMMddHH * 10 + 6 + floor(minute / 15) - last digit 6..9 (9 digits).
+#   Both come from Get-BuildVersionStamp; the last digit is a partition, so the two can never be
+#   equal (S2721) and neither is derived from the other.
 # ReuseVersion: recover the version of the app_v2 release artifact a prior `a.ps1 r` produced,
 #   so this run's extra flavors join that release rather than opening a new one.
 # ----------------------------------------------------------------------
@@ -128,8 +130,14 @@ if ($ReuseVersion) {
     if ($appVersionCode -lt 100000000) {
         throw "-ReuseVersion expects a 9-digit release versionCode in $($prior.MetadataPath) (got $appVersionCode). Run a.ps1 r first."
     }
-    # Drop the trailing minute digit to obtain wear's 8-digit yyMMddHH code.
-    $wearVersionCode = [int][math]::Floor($appVersionCode / 10)
+    # Re-derive rather than transform: since S2721 the wear code is not a function of the app code,
+    # it is a function of the instant. The shared versionName carries that instant to the minute, so
+    # decoding it recovers exactly what the original run stamped.
+    $reusedInstant = ConvertFrom-BuildVersionName $versionName
+    if (-not $reusedInstant) {
+        throw "-ReuseVersion: versionName '$versionName' from $($prior.MetadataPath) does not decode to a build instant, so the wear versionCode cannot be re-derived. A guessed code is rejected by Play after the build and the signing - build a fresh release instead."
+    }
+    $wearVersionCode = (Get-BuildVersionStamp -Now $reusedInstant).WearVersionCode
     Write-Host "Reusing version: $versionName (app code $appVersionCode, wear code $wearVersionCode)" -ForegroundColor Green
     Write-Host "  source: $($prior.MetadataPath)" -ForegroundColor DarkGray
 } else {
@@ -348,7 +356,7 @@ if (Test-Path -LiteralPath $retainScript) {
             continue
         }
 
-        # wear carries the 8-digit yyMMddHH code by design; app_v2 carries 9 digits.
+        # Both codes are 9-digit date-time values; they differ only in the partitioned last digit.
         $codeForFlavor = if ($flavor -eq 'wear') { $wearVersionCode } else { $appVersionCode }
 
         # An array passed through `&` is positional, even when its items look like

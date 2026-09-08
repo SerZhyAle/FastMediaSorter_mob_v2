@@ -635,6 +635,9 @@ private fun StreamChannelReason.toMessageRes(): Int? = when (this) {
     StreamChannelReason.NO_LINK -> R.string.wear_stream_channel_offline
     StreamChannelReason.UNVALIDATED_LINK -> R.string.wear_stream_channel_unverified
     StreamChannelReason.BANDWIDTH_UNKNOWN -> null
+    // S2550: only the serving entry produces this, and this screen never calls it. Named rather than
+    // folded into an `else` so the next reason added still has to be answered here on purpose.
+    StreamChannelReason.NOT_ON_WIFI -> R.string.wear_stream_channel_offline
 }
 
 @Composable

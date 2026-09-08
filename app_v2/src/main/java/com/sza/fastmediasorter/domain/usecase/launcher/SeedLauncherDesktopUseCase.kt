@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
 import com.sza.fastmediasorter.core.launcher.LauncherScreenClassifier
 import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -115,6 +116,14 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // whatever the table can place by name, cannot come back a second time through this list.
             val thirdPartyApps = queryThirdPartyApps(LauncherStarterSets.candidatePackages)
 
+            // S2735: which system settings entries actually resolve on this device, behind the same
+            // already-seeded early exit as every probe above, so a desktop that will not be seeded never
+            // pays for it. A target that does not resolve is a cell that leads nowhere (strategic §3.2).
+            val resolvableOsShortcuts =
+                OsShortcutCatalog.available(context).mapTo(mutableSetOf()) { it.key }
+            Timber.d("S2735: seed resolved ${resolvableOsShortcuts.size} resolvable system settings entries")
+            Timber.d("S2717: seed resolved ${thirdPartyApps.size} third-party app(s) for the Apps section")
+
             // S2309: read behind the same already-seeded early exit as every other probe above, so a
             // desktop that will not be seeded never pays for it (strategic §3.2).
             val screenClass = deviceScreenClass()
@@ -127,6 +136,7 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,
                 thirdPartyApps = thirdPartyApps,
+                resolvableOsShortcuts = resolvableOsShortcuts,
                 screenClass = screenClass,
             )
             if (!state.seededPortrait && !state.seededLandscape) {

@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -56,20 +57,27 @@ fun OriginHomeScreen(
     positionKey: String? = null
 ) {
     val listState = rememberWearListState(positionKey = positionKey)
+    val stateScrollState = rememberScrollState()
 
     val vocabulary = categories.filterNot { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }
     val folderCategory = categories.firstOrNull { it.token == BrowseCategoryCatalog.TOKEN_BROWSE }
+    val showsStateBlock = vocabulary.isEmpty() && folderCategory == null
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: the indicator follows whatever is actually on the glass - the category list, or the
+        // state block that replaces it. Bound to the list alone it reported a position nothing moved.
+        positionIndicator = {
+            if (showsStateBlock) PositionIndicator(stateScrollState) else PositionIndicator(listState)
+        }
     ) {
-        if (vocabulary.isEmpty() && folderCategory == null) {
+        if (showsStateBlock) {
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = stringResource(R.string.wear_media_types_all_disabled),
-                onBack = onBack
+                onBack = onBack,
+                scrollState = stateScrollState
             )
             return@WearScreenScaffold
         }

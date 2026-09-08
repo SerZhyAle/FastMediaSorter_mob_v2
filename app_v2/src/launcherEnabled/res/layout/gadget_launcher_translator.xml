@@ -103,6 +103,22 @@
                 app:tint="?attr/colorControlNormal"
                 tools:ignore="MissingPrefix" />
 
+            <!-- S2732: the only reachable trigger for typed text. A multi-line input never delivers
+                 IME_ACTION_DONE - TextView forces IME_FLAG_NO_ENTER_ACTION on it - so the editor
+                 action alone left everything typed here untranslatable. -->
+            <ImageButton
+                android:id="@+id/gadgetTranslatorTranslate"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/launcher_translator_translate"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_translate"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
         </LinearLayout>
 
         <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView

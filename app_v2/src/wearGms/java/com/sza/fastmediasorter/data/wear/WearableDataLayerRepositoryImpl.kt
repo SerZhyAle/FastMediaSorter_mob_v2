@@ -6,9 +6,12 @@ import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.sza.fastmediasorter.domain.model.WearEventEnvelope
 import com.sza.fastmediasorter.domain.model.WearEventEnvelopeCodec
+import com.sza.fastmediasorter.domain.model.WearListenCommandPayload
+import com.sza.fastmediasorter.domain.model.WearListenSessionPayloadCodec
 import com.sza.fastmediasorter.domain.model.WearNode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.service.WearDataLayerPaths
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.first
@@ -30,7 +33,8 @@ import javax.inject.Singleton
 @Singleton
 class WearableDataLayerRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val settingsRepository: Provider<SettingsRepository>
+    private val settingsRepository: Provider<SettingsRepository>,
+    private val listenPayloadCodec: WearListenSessionPayloadCodec
 ) : WearableDataLayerRepository {
 
     private val envelopeCodec = WearEventEnvelopeCodec()
@@ -85,4 +89,24 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
         val bytes = envelopeCodec.encode(envelope)
         putDataItem(path, bytes)
     }
+
+    /**
+     * S2550: both listen commands go out as ordinary messages on the control plane.
+     *
+     * They ride [sendMessage] rather than a path of their own, so the companion-disabled check that
+     * guards every other outgoing message guards these too - a watch the owner switched off in
+     * settings must not be asked to open its microphone.
+     */
+    override suspend fun sendListenStart(nodeId: String, requestId: String) =
+        sendListenCommand(nodeId, WearDataLayerPaths.LISTEN_START, requestId)
+
+    override suspend fun sendListenStop(nodeId: String, requestId: String) =
+        sendListenCommand(nodeId, WearDataLayerPaths.LISTEN_STOP, requestId)
+
+    private suspend fun sendListenCommand(nodeId: String, path: String, requestId: String) =
+        sendMessage(
+            nodeId,
+            path,
+            listenPayloadCodec.encodeCommand(WearListenCommandPayload(requestId))
+        )
 }

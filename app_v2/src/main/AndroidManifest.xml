@@ -544,12 +544,17 @@
         </receiver>
 
         <!-- S1401: keeps the installed-app cache in step with installs, removals and locale changes.
-             Exported because the sender is the system; the package broadcasts are exempt from the
-             implicit-broadcast restrictions, so a manifest receiver still fires with the app stopped. -->
+             Exported because the sender is the system.
+             S2739: PACKAGE_FULLY_REMOVED is the only package broadcast exempt from the Android 8.0
+             implicit-broadcast restrictions, so on minSdk 26 it is the only one a manifest receiver
+             ever gets; the other three are kept for the legacy flavor (API 23).
+             S2745: from API 26 up, ADDED / REPLACED / REMOVED arrive through the runtime registration
+             in InstalledAppsChangeWatcher, which the restriction does not apply to. -->
         <receiver android:name=".core.apps.InstalledAppsChangeReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_ADDED" />
                 <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
                 <data android:scheme="package" />
             </intent-filter>

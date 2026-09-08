@@ -27,6 +27,15 @@ Owner policy, inherited from the phone standard and narrowed here:
 8. **The process log carries no crash, ANR or app error** for the watch process across the walk, judged from a buffer cleared immediately before launch.
 9. **No DECLARED screen is left undecided.** A screen the run could not decide - a dump that failed, or a state-dependent screen absent on a clean install - blocks the pass until a human clears it. A screen excluded under criterion 7 is out of scope by decision and does not block; a screen the walk could not observe because the display was asleep is not a verdict at all, and the walk returns 2 rather than reporting screens it never saw.
 
+## Deobfuscation retention for the watch (S2722)
+
+The watch's R8 `mapping.txt` is archived by the same scheme as the phone's, described in `docs/RELEASE_READINESS_STANDARD.md`: `scripts/release/build-release-spectrum.ps1` calls `scripts/release/retain-deobfuscation.ps1 -Variant wear` after a spectrum build that includes the watch, and the payload lands under the `Deobfuscation` sink at `<sink>\<wear versionCode>\wear-deobfuscation.zip`.
+
+- **The directory is keyed by the WATCH's versionCode**, not the phone's. Since S2721 the two codes are unrelated (`yyMMddHH * 10 + 6 + floor(minute / 15)` for the watch), and a watch-only release published through `/skill-release-wear` has no phone code to file under at all - which is why the archive is not re-keyed to one code per release.
+- **Both modules stamp the same `versionName`**, so that is what ties the two directories together. `scripts/quality/assert-deobfuscation-retained.ps1` resolves a release by name and judges every payload found under it, the watch's included. A judged release with no wear payload is reported as such in the verdict rather than passed over in silence.
+- **Recovery from a watch crash report:** `pwsh -NoProfile -File scripts/release/fetch-deobfuscation.ps1 -VersionName <version> -Variant wear`. The version string off the crash report is enough; the variant is what selects the watch's directory when the phone shipped the same version.
+- **`/skill-release-wear` creates no `release/v*` tag**, so the retention gate's tag-driven path never judges a watch-only release on its own. Ask about one explicitly with `-VersionName <version>`.
+
 ## What this gate deliberately does not cover
 
 - **Publication.** Producing an uploadable bundle is proven here; uploading it belongs to `/skill-release-wear`, the watch's own release campaign, which runs this sweep as its gate and then publishes to `wear:production` (S2081). The phone's `/skill-release` never publishes the watch. The run also **distributes nothing** - it builds with `-NoDistribute`, leaving `DOWNLOADS`, the build journal and the Google Drive mirror untouched, because a sweep that judges a build must not simultaneously hand that build to anyone. The artifact it judged stays in `wear/build/outputs`; shipping one is a separate, deliberate call.

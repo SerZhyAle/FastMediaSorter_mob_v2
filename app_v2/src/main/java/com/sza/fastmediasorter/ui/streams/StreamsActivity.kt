@@ -54,6 +54,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
@@ -106,6 +107,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // (CLAUDE.md Rule 14). Reading the build flag here instead is what the rule forbids in shared code.
     @Inject
     lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
+    // S1218: owns the "Open in VR" row's availability and its launch. Activity-scoped, so its XR
+    // detection mirror rides this screen's lifecycle.
+    @Inject
+    lateinit var streamVrLaunchManager: com.sza.fastmediasorter.ui.streams.helpers.StreamVrLaunchManager
 
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
@@ -259,6 +265,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
         onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+        vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
         wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
@@ -283,6 +291,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
         onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+        vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
         wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
@@ -323,6 +333,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
             onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+            vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
             wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
@@ -366,6 +378,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
             onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+            vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
             wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = pinnedSnapshotManager::request,
@@ -386,6 +400,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
+    private lateinit var collectionStrip: StreamsCollectionStripManager
 
     private lateinit var commandLabels: StreamsCommandLabelManager
 
@@ -638,6 +653,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
         )
         mediaKindTrigger.bind()
+
+        // S2669: the curated-collection strip. The manager owns every decision about the strip; the
+        // Activity only forwards the tap to the ViewModel.
+        collectionStrip = StreamsCollectionStripManager(
+            strip = binding.streamCollectionsStrip,
+            chipGroup = binding.streamCollectionsChips,
+            announcementTarget = binding.streamsMainHeader,
+            onCollectionSelected = { collectionId ->
+                cancelHealthProbe()
+                viewModel.onCollectionSelected(collectionId)
+            },
+        )
     }
 
     private fun setupOrientationPlacement() {
@@ -873,6 +900,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
+            // S2669: the strip decides its own visibility and selection from the delivered set.
+            collectionStrip.render(state.collections, state.filter.collectionId, state.sources.size)
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
             // repaints the inline icons on the same emission.

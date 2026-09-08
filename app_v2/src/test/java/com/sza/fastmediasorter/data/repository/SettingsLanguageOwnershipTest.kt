@@ -13,9 +13,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -64,7 +65,9 @@ class SettingsLanguageOwnershipTest {
     @After
     fun tearDown() {
         LocaleHelper.resetLanguage(RuntimeEnvironment.getApplication())
-        testScope.cancel()
+        // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
+        // returns, so an unfinished DataStore flush would meet a deleted file.
+        runBlocking { testScope.coroutineContext.job.cancelAndJoin() }
     }
 
     @Test

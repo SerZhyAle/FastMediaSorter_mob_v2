@@ -227,7 +227,9 @@ class LiveAudioPipeSinkTest {
         if (startFailure == null) {
             if (detachAfterMillis > 0L) {
                 SystemClock.sleep(detachAfterMillis)
-                sink.detach()
+                // S2509 split the old single-listener detach(): this case drives the whole session
+                // away, which is now detachAll() rather than the per-listener form.
+                sink.detachAll()
                 SystemClock.sleep(RECORD_MILLIS - detachAfterMillis)
             } else {
                 SystemClock.sleep(RECORD_MILLIS)

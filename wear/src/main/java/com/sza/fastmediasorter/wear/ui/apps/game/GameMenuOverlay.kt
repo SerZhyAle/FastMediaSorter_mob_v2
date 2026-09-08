@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.game
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -27,9 +28,16 @@ import com.sza.fastmediasorter.wear.ui.common.WearActionCloud
  *
  * A [WearActionCloud] inside an inscribed square rather than a list: the buttons wrap by content
  * width and stay within the display's visible bounds, keeping outer rows safe on round glass.
+ *
+ * @param scrollState owned by the screen so its Scaffold can mark this menu's scroll while the menu
+ * is the thing on the glass (S2754).
  */
 @Composable
-fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
+fun GameMenuOverlay(
+    actions: GameMenuActions,
+    scrollState: ScrollState,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -56,7 +64,7 @@ fun GameMenuOverlay(actions: GameMenuActions, modifier: Modifier = Modifier) {
                 }
             )
         }
-        WearActionCloud(actions = wearActions)
+        WearActionCloud(actions = wearActions, scrollState = scrollState)
     }
 }
 

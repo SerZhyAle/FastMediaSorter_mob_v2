@@ -319,6 +319,16 @@
     "ru": "Открывает журнал только для текущей сессии приложения.",
     "uk": "Відкриває журнал лише для поточної сесії застосунку."
   },
+  "btnStopwatchSettingsApply": {
+    "en": "Saves the stopwatch options and closes the window.",
+    "ru": "Сохраняет настройки секундомера и закрывает окно.",
+    "uk": "Зберігає налаштування секундоміра та закриває вікно."
+  },
+  "btnStopwatchSettingsCancel": {
+    "en": "Closes the stopwatch options without saving them.",
+    "ru": "Закрывает настройки секундомера, не сохраняя их.",
+    "uk": "Закриває налаштування секундоміра, не зберігаючи їх."
+  },
   "btnStreams": {
     "en": "Opens the Streams screen for internet audio, video and RTSP sources, where you can add or import streams and play them.",
     "ru": "Открывает экран Трансляции для интернет-аудио, видео и RTSP-источников, где можно добавить или импортировать трансляции и воспроизвести их.",
@@ -353,6 +363,11 @@
     "en": "Opens the full user guide for the app.",
     "ru": "Открывает полное руководство пользователя приложения.",
     "uk": "Відкриває повне керівництво користувача застосунку."
+  },
+  "btnWallpaperSourceChange": {
+    "en": "Opens the picker for the wallpaper source - the image file for My image, or the lens for the two camera modes.",
+    "ru": "Открывает выбор источника обоев - файл изображения для режима «Моя картинка» или объектив для двух режимов камеры.",
+    "uk": "Відкриває вибір джерела шпалер - файл зображення для режиму «Моя картинка» або об’єктив для двох режимів камери."
   },
   "btnWearCompanion": {
     "en": "Opens settings for the Wear OS companion app pairing and configuration.",
@@ -779,16 +794,6 @@
     "ru": "Отключает переходы между экранами, разворачивание и сворачивание групп, эффекты вкладок настроек, декоративные анимации и кроссфейды изображений. Аудиовизуализаторы, кольцо фокуса камеры и автоскрытие имени файла продолжают работать, потому что показывают состояние.",
     "uk": "Вимикає переходи між екранами, розгортання та згортання груп, ефекти вкладок налаштувань, декоративні анімації та кросфейди зображень. Аудіовізуалізатори, кільце фокусу камери й автоприховування назви файла продовжують працювати, бо показують стан."
   },
-  "rowPowerSaving": {
-    "en": "Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%.",
-    "ru": "Выбирает режим энергосбережения: выключен, включён или автоматически при заряде батареи ниже 30%.",
-    "uk": "Вибирає режим енергозбереження: вимкнено, увімкнено або автоматично при заряді батареї нижче 30%."
-  },
-  "wearPowerSavingTrigger": {
-    "en": "Sets the watch battery percentage threshold for activating power saving mode on Wear OS.",
-    "ru": "Задаёт пороговый процент заряда батареи часов для включения режима энергосбережения на Wear OS.",
-    "uk": "Задає пороговий відсоток заряду батареї годинника для увімкнення режиму енергозбереження на Wear OS."
-  },
   "rowDisableNineZone": {
     "en": "Turns off the 9-zone touch grid; the fullscreen player switches to a simpler 3-zone layout (previous / zoom / next) with a left-edge command-panel area.",
     "ru": "Отключает 9-зоновую сенсорную сетку; полноэкранный плеер переключается на упрощённую раскладку из 3 зон (предыдущий / зум / следующий) с областью командной панели у левого края.",
@@ -813,46 +818,6 @@
     "en": "Enables a quick-access calculator within the app.",
     "ru": "Включает быстрый доступ к калькулятору внутри приложения.",
     "uk": "Вмикає швидкий доступ до калькулятора всередині застосунку."
-  },
-  "rowEnableStopwatch": {
-    "en": "Enables a stopwatch within the app, for one run or several in a row.",
-    "ru": "Включает секундомер внутри приложения - для одного замера или нескольких подряд.",
-    "uk": "Вмикає секундомір усередині застосунку - для одного заміру або кількох поспіль."
-  },
-  "rowOpenStopwatchSettings": {
-    "en": "Opens the stopwatch's own options: participants, music and what the volume keys do.",
-    "ru": "Открывает настройки секундомера: участники, музыка и поведение кнопок громкости.",
-    "uk": "Відкриває налаштування секундоміра: учасники, музика та поведінка кнопок гучності."
-  },
-  "rowStopwatchParticipants": {
-    "en": "How many runners the stopwatch measures at once - one, two or four, each on its own area of the screen.",
-    "ru": "Сколько участников секундомер считает одновременно - одного, двух или четырёх, каждого в своей области экрана.",
-    "uk": "Скільки учасників секундомір рахує одночасно - одного, двох або чотирьох, кожного у своїй області екрана."
-  },
-  "rowStopwatchMusic": {
-    "en": "Plays the chosen track on a loop for as long as a measurement is running.",
-    "ru": "Играет выбранную дорожку по кругу, пока идёт замер.",
-    "uk": "Грає вибрану доріжку по колу, поки триває замір."
-  },
-  "rowStopwatchTrack": {
-    "en": "Picks the audio file the stopwatch plays while it runs.",
-    "ru": "Выбирает звуковой файл, который секундомер играет во время отсчёта.",
-    "uk": "Вибирає звуковий файл, який секундомір грає під час відліку."
-  },
-  "rowStopwatchVolumeKeys": {
-    "en": "Lets the volume keys start, lap and stop the measurement while the stopwatch is open. Off gives the keys back to the system.",
-    "ru": "Позволяет кнопкам громкости запускать, ставить отсечку и останавливать замер, пока секундомер открыт. Выключено - кнопки возвращаются системе.",
-    "uk": "Дозволяє кнопкам гучності запускати, ставити відсічку та зупиняти замір, поки секундомір відкритий. Вимкнено - кнопки повертаються системі."
-  },
-  "btnStopwatchSettingsApply": {
-    "en": "Saves the stopwatch options and closes the window.",
-    "ru": "Сохраняет настройки секундомера и закрывает окно.",
-    "uk": "Зберігає налаштування секундоміра та закриває вікно."
-  },
-  "btnStopwatchSettingsCancel": {
-    "en": "Closes the stopwatch options without saving them.",
-    "ru": "Закрывает настройки секундомера, не сохраняя их.",
-    "uk": "Закриває налаштування секундоміра, не зберігаючи їх."
   },
   "rowEnableCopying": {
     "en": "Allows files to be copied to Quick Sort destinations.",
@@ -908,6 +873,11 @@
     "en": "Enables anonymous usage statistics collection to help improve the app.",
     "ru": "Включает сбор анонимной статистики использования для улучшения приложения.",
     "uk": "Вмикає збір анонімної статистики використання для вдосконалення застосунку."
+  },
+  "rowEnableStopwatch": {
+    "en": "Enables a stopwatch within the app, for one run or several in a row.",
+    "ru": "Включает секундомер внутри приложения - для одного замера или нескольких подряд.",
+    "uk": "Вмикає секундомір усередині застосунку - для одного заміру або кількох поспіль."
   },
   "rowEnableStreams": {
     "en": "Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen.",
@@ -1260,9 +1230,9 @@
     "uk": "Переносить годинник із секундами в лівий край верхньої смуги лаунчера, а показники пристрою - в правий, звільняючи панель «Пуск» під більшу кількість нещодавніх застосунків; доступно лише при заміщеній системній області статусу."
   },
   "rowLauncherTrayBattery": {
-    "en": "Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10.",
-    "ru": "Показывает заряд батареи в трее лаунчера числом в обводке: ниже 30 процентов - жёлтым, ниже 15 - красным, ниже 10 - мигающим.",
-    "uk": "Показує заряд батареї в треї лаунчера числом в обводці: нижче 30 відсотків - жовтим, нижче 15 - червоним, нижче 10 - миготливим."
+    "en": "Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10; while charging the number carries a lightning mark and turns green on mains, blue on USB and purple on a wireless pad.",
+    "ru": "Показывает заряд батареи в трее лаунчера числом в обводке: ниже 30 процентов - жёлтым, ниже 15 - красным, ниже 10 - мигающим; на зарядке число получает знак молнии и становится зелёным от сети, синим по USB и фиолетовым на беспроводной площадке.",
+    "uk": "Показує заряд батареї в треї лаунчера числом в обводці: нижче 30 відсотків - жовтим, нижче 15 - червоним, нижче 10 - миготливим; на зарядці число отримує знак блискавки і стає зеленим від мережі, синім через USB і фіолетовим на бездротовій площадці."
   },
   "rowLauncherTrayBluetooth": {
     "en": "Shows a Bluetooth icon in the launcher tray while the adapter is on.",
@@ -1289,15 +1259,20 @@
     "ru": "Показывает уровень сигнала второй SIM в трее лаунчера. Нужно разрешение на чтение состояния телефона; без него или на устройстве с одной SIM индикатора нет.",
     "uk": "Показує рівень сигналу другої SIM у треї лаунчера. Потрібен дозвіл на читання стану телефона; без нього або на пристрої з однією SIM індикатора немає."
   },
+  "rowLauncherTraySpeed": {
+    "en": "Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled.",
+    "ru": "Показывает общую скорость приёма и передачи в области статуса лаунчера двумя отдельными ячейками; обновляется раз в секунду при включении.",
+    "uk": "Показує загальну швидкість прийому та передачі в області статусу лаунчера двома окремими ячейками; оновлюється раз на секунду при увімкненні."
+  },
   "rowLauncherTrayTethering": {
     "en": "Shows or hides the Wi-Fi hotspot status indicator in the launcher taskbar tray.",
     "ru": "Показывает или скрывает индикатор состояния точки доступа Wi-Fi в трее панели задач.",
     "uk": "Показує або приховує індикатор стану точки доступу Wi-Fi у треї панелі завдань."
   },
-  "rowLauncherTraySpeed": {
-    "en": "Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled.",
-    "ru": "Показывает общую скорость приёма и передачи в области статуса лаунчера двумя отдельными ячейками; обновляется раз в секунду при включении.",
-    "uk": "Показує загальну швидкість прийому та передачі в області статусу лаунчера двома окремими ячейками; оновлюється раз на секунду при увімкненні."
+  "rowLauncherUnitSystem": {
+    "en": "Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown.",
+    "ru": "Выбирает систему единиц, которую читают гаджеты погоды и точки росы на рабочем столе: метрическая показывает градусы Цельсия, американская - градусы Фаренгейта. По умолчанию метрическая; смена запрашивает показание заново, а не пересчитывает уже показанное.",
+    "uk": "Обирає систему одиниць, яку читають гаджети погоди та точки роси на робочому столі: метрична показує градуси Цельсія, американська - градуси Фаренгейта. Типово метрична; зміна запитує показання наново, а не перераховує вже показане."
   },
   "rowLauncherWallpaper": {
     "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one.",
@@ -1308,11 +1283,6 @@
     "en": "Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default).",
     "ru": "Настраивает прозрачность подложки виджетов на рабочем столе лаунчера (от 0% прозрачно до 100% непрозрачно; по умолчанию 25%).",
     "uk": "Налаштовує прозорість підкладки віджетів на робочому столі лаунчера (від 0% прозоро до 100% непрозоро; за замовчуванням 25%)."
-  },
-  "rowLauncherAnimationPalette": {
-    "en": "Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish.",
-    "ru": "Выбирает цветовую палитру для процедурной анимации волн и частиц на рабочем столе лаунчера и при воспроизведении аудио без обложки: динамическая (разноцветная), зеленоватая, розоватая или голубоватая.",
-    "uk": "Обирає колірну палітру для процедурної анімації хвиль і частинок на робочому столі лаунчера та під час відтворення аудіо без обкладинки: динамічна (різнокольорова), зеленкувата, рожувата або блакитнувата."
   },
   "rowLinkAutodownloadEnabled": {
     "en": "Automatically downloads a file when a link is shared into the app.",
@@ -1359,6 +1329,11 @@
     "ru": "Открывает экран статистики использования.",
     "uk": "Відкриває екран статистики використання."
   },
+  "rowOpenStopwatchSettings": {
+    "en": "Opens the stopwatch's own options: participants, music and what the volume keys do.",
+    "ru": "Открывает настройки секундомера: участники, музыка и поведение кнопок громкости.",
+    "uk": "Відкриває налаштування секундоміра: учасники, музика та поведінка кнопок гучності."
+  },
   "rowOpenVideoInFullscreen": {
     "en": "Launches video playback straight into fullscreen mode when a video is opened from Browse.",
     "ru": "Запускает воспроизведение видео сразу в полноэкранном режиме при открытии из браузера файлов.",
@@ -1393,6 +1368,11 @@
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
     "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
+  },
+  "rowPowerSaving": {
+    "en": "Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%.",
+    "ru": "Выбирает режим энергосбережения: выключен, включён или автоматически при заряде батареи ниже 30%.",
+    "uk": "Вибирає режим енергозбереження: вимкнено, увімкнено або автоматично при заряді батареї нижче 30%."
   },
   "rowPreventSleep": {
     "en": "Keeps the device awake while the app is in the foreground, preventing automatic sleep.",
@@ -1539,6 +1519,26 @@
     "ru": "Включает возможность добавлять SMB-ресурсы локальной сети (NAS, ПК) как удалённые ресурсы.",
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
   },
+  "rowStopwatchMusic": {
+    "en": "Plays the chosen track on a loop for as long as a measurement is running.",
+    "ru": "Играет выбранную дорожку по кругу, пока идёт замер.",
+    "uk": "Грає вибрану доріжку по колу, поки триває замір."
+  },
+  "rowStopwatchParticipants": {
+    "en": "How many runners the stopwatch measures at once - one, two or four, each on its own area of the screen.",
+    "ru": "Сколько участников секундомер считает одновременно - одного, двух или четырёх, каждого в своей области экрана.",
+    "uk": "Скільки учасників секундомір рахує одночасно - одного, двох або чотирьох, кожного у своїй області екрана."
+  },
+  "rowStopwatchTrack": {
+    "en": "Picks the audio file the stopwatch plays while it runs.",
+    "ru": "Выбирает звуковой файл, который секундомер играет во время отсчёта.",
+    "uk": "Вибирає звуковий файл, який секундомір грає під час відліку."
+  },
+  "rowStopwatchVolumeKeys": {
+    "en": "Lets the volume keys start, lap and stop the measurement while the stopwatch is open. Off gives the keys back to the system.",
+    "ru": "Позволяет кнопкам громкости запускать, ставить отсечку и останавливать замер, пока секундомер открыт. Выключено - кнопки возвращаются системе.",
+    "uk": "Дозволяє кнопкам гучності запускати, ставити відсічку та зупиняти замір, поки секундомір відкритий. Вимкнено - кнопки повертаються системі."
+  },
   "rowSupportAudio": {
     "en": "Enables audio file support so audio tracks appear in the file browser and can be played.",
     "ru": "Включает поддержку аудиофайлов: треки отображаются в браузере файлов и доступны для воспроизведения.",
@@ -1608,6 +1608,11 @@
     "en": "Automatically copies the captured video frame snapshot to the clipboard.",
     "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
     "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
+  },
+  "rowWallpaperPalette": {
+    "en": "Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish.",
+    "ru": "Выбирает цветовую палитру для процедурной анимации волн и частиц на рабочем столе лаунчера и при воспроизведении аудио без обложки: динамическая (разноцветная), зеленоватая, розоватая или голубоватая.",
+    "uk": "Обирає колірну палітру для процедурної анімації хвиль і частинок на робочому столі лаунчера та під час відтворення аудіо без обкладинки: динамічна (різнокольорова), зеленкувата, рожувата або блакитнувата."
   },
   "rowWaterFlashlight": {
     "en": "Adds the water flashlight to the programs list: the camera flash and the screen light together, and only a hardware button closes it.",
@@ -1704,15 +1709,15 @@
     "ru": "Выбирает, что часы рисуют за экранами приложения: фирменную анимацию волн и частиц или изображение, выбранное на телефоне. Выбранная картинка кадрируется и масштабируется под экран часов на телефоне и едет отдельным файловым каналом, так что часы получают готовый кадр и ничего не пересчитывают. Если изображения нет или оно не доехало, часы рисуют анимацию. Между фоном и содержимым лежит постоянное затемнение, чтобы текст читался и на светлой картинке, а сам фон не рисуется, пока приложение не на переднем плане и в ambient-режиме.",
     "uk": "Обирає, що годинник малює за екранами застосунку: фірмову анімацію хвиль і частинок або зображення, вибране на телефоні. Вибрана картинка кадрується та масштабується під екран годинника на телефоні й їде окремим файловим каналом, тож годинник отримує готовий кадр і нічого не перераховує. Якщо зображення немає або воно не доїхало, годинник малює анімацію. Між фоном і вмістом лежить постійне затемнення, щоб текст читався і на світлій картинці, а сам фон не малюється, поки застосунок не на передньому плані та в ambient-режимі."
   },
-  "wearColorScheme": {
-    "en": "Chooses the colour scheme the watch interface is drawn in: a plain dark or light scheme, or one of three accent families - green, blue or red - in either. The set matches the phone's, so a pair can be set the same way, and the accent hues are the phone's own values so a family reads as the same family on both devices. Dark is the default and reproduces the appearance the watch had before this setting existed. There is no follow-the-system option, because Wear OS gives no system light/dark switch and would always report dark. Choosing a light scheme also lightens the layer drawn behind every screen and the veil over a delivered photo, so dark content stays readable over any background. Editable on the watch and in the phone companion window; a change made on either side reaches the other.",
-    "ru": "Выбирает цветовую схему интерфейса часов: простую тёмную или светлую, либо одно из трёх акцентных семейств - зелёное, синее или красное - в тёмном или светлом исполнении. Набор совпадает с телефонным, поэтому пару можно настроить одинаково, а оттенки взяты у телефона, так что семейство узнаётся как то же самое на обоих устройствах. По умолчанию тёмная - она воспроизводит вид, который часы имели до появления этой настройки. Варианта «как в системе» нет: Wear OS не даёт системного переключателя светлой и тёмной темы и всегда сообщает тёмную. Выбор светлой схемы осветляет и слой, который рисуется под всеми экранами, и вуаль поверх присланной фотографии, поэтому тёмное содержимое остаётся читаемым на любом фоне. Меняется и на часах, и в окне компаньона на телефоне; изменение с любой стороны доезжает до другой.",
-    "uk": "Обирає колірну схему інтерфейсу годинника: просту темну чи світлу, або одне з трьох акцентних сімейств - зелене, синє чи червоне - у темному або світлому виконанні. Набір збігається з телефонним, тож пару можна налаштувати однаково, а відтінки взяті з телефона, тому сімейство впізнається як те саме на обох пристроях. За замовчуванням темна - вона відтворює вигляд, який годинник мав до появи цього налаштування. Варіанта «як у системі» немає: Wear OS не дає системного перемикача світлої та темної теми й завжди повідомляє темну. Вибір світлої схеми освітлює і шар, що малюється під усіма екранами, і вуаль поверх надісланої фотографії, тож темний вміст лишається читабельним на будь-якому тлі. Змінюється і на годиннику, і у вікні компаньйона на телефоні; зміна з будь-якого боку доїжджає до іншого."
-  },
   "wearBackgroundPlayback": {
     "en": "Keeps audio playing on Wear OS after the app is minimized, with a notification to control it. Off by default.",
     "ru": "Продолжает воспроизведение звука на Wear OS после сворачивания приложения, с уведомлением для управления. По умолчанию выключено.",
     "uk": "Продовжує відтворення звуку на Wear OS після згортання застосунку, з сповіщенням для керування. За замовчуванням вимкнено."
+  },
+  "wearColorScheme": {
+    "en": "Chooses the colour scheme the watch interface is drawn in: a plain dark or light scheme, or one of three accent families - green, blue or red - in either. The set matches the phone's, so a pair can be set the same way, and the accent hues are the phone's own values so a family reads as the same family on both devices. Dark is the default and reproduces the appearance the watch had before this setting existed. There is no follow-the-system option, because Wear OS gives no system light/dark switch and would always report dark. Choosing a light scheme also lightens the layer drawn behind every screen and the veil over a delivered photo, so dark content stays readable over any background. Editable on the watch and in the phone companion window; a change made on either side reaches the other.",
+    "ru": "Выбирает цветовую схему интерфейса часов: простую тёмную или светлую, либо одно из трёх акцентных семейств - зелёное, синее или красное - в тёмном или светлом исполнении. Набор совпадает с телефонным, поэтому пару можно настроить одинаково, а оттенки взяты у телефона, так что семейство узнаётся как то же самое на обоих устройствах. По умолчанию тёмная - она воспроизводит вид, который часы имели до появления этой настройки. Варианта «как в системе» нет: Wear OS не даёт системного переключателя светлой и тёмной темы и всегда сообщает тёмную. Выбор светлой схемы осветляет и слой, который рисуется под всеми экранами, и вуаль поверх присланной фотографии, поэтому тёмное содержимое остаётся читаемым на любом фоне. Меняется и на часах, и в окне компаньона на телефоне; изменение с любой стороны доезжает до другой.",
+    "uk": "Обирає колірну схему інтерфейсу годинника: просту темну чи світлу, або одне з трьох акцентних сімейств - зелене, синє чи червоне - у темному або світлому виконанні. Набір збігається з телефонним, тож пару можна налаштувати однаково, а відтінки взяті з телефона, тому сімейство впізнається як те саме на обох пристроях. За замовчуванням темна - вона відтворює вигляд, який годинник мав до появи цього налаштування. Варіанта «як у системі» немає: Wear OS не дає системного перемикача світлої та темної теми й завжди повідомляє темну. Вибір світлої схеми освітлює і шар, що малюється під усіма екранами, і вуаль поверх надісланої фотографії, тож темний вміст лишається читабельним на будь-якому тлі. Змінюється і на годиннику, і у вікні компаньйона на телефоні; зміна з будь-якого боку доїжджає до іншого."
   },
   "wearDisableAnimations": {
     "en": "On Wear OS, removes the video controls panel transition while keeping the same controls available immediately.",
@@ -1763,6 +1768,11 @@
     "en": "Sets the delay in seconds before the player controls panel automatically hides during video and image playback on Wear OS.",
     "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении видео и картинок на Wear OS.",
     "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення відео та картинок на Wear OS."
+  },
+  "wearPowerSavingTrigger": {
+    "en": "Sets the watch battery percentage threshold for activating power saving mode on Wear OS.",
+    "ru": "Задаёт пороговый процент заряда батареи часов для включения режима энергосбережения на Wear OS.",
+    "uk": "Задає пороговий відсоток заряду батареї годинника для увімкнення режиму енергозбереження на Wear OS."
   },
   "wearSlideshowInterval": {
     "en": "Sets the delay in seconds between slides during slideshow playback on Wear OS.",

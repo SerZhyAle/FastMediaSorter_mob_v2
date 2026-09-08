@@ -9,13 +9,14 @@
     silently diverges from every other locale, which strategic S1706 section 7 names as the live
     risk of the per-locale approach.
 
-    This gate runs the generator in -Check mode for each module and fails when what is on disk is
-    not what the current strings and template would produce. It writes nothing itself; the repair
-    is always `scripts/utils/generate-splash-brand.ps1 -Module <m>`, which is the only writer.
+    This gate runs the generator in -Check mode and fails when what is on disk is not what the
+    current strings and template would produce. It writes nothing itself; the repair is always
+    `scripts/utils/generate-splash-brand.ps1 -Module app_v2`, which is the only writer.
 
-    The two modules deliberately generate different compositions: the phone carries arrows,
-    wordmark and slogan with one variant per locale, and the watch carries the arrows alone,
-    because at watch size the text measured below the legible floor (S1706 step 05.4).
+    S2593: the phone is the only module left. The watch once generated an arrows-only variant of
+    the same drawable, but S2274 removed `windowSplashScreenAnimatedIcon` from the wear theme so
+    the platform draws the launcher icon itself (Play requirement WO-V15), which left the watch
+    glyph without a consumer; it and the generator's wear branch were retired together.
 
 .PARAMETER Module
     Restrict the check to one module. Default: every module the generator supports.
@@ -40,7 +41,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('app_v2', 'wear')]
+    [ValidateSet('app_v2')]
     [string]$Module,
 
     [switch]$Gate,
@@ -58,7 +59,7 @@ if (-not (Test-Path -LiteralPath $generator)) {
     exit 2
 }
 
-$modules = if ($Module) { @($Module) } else { @('app_v2', 'wear') }
+$modules = if ($Module) { @($Module) } else { @('app_v2') }
 $diverged = @()
 $unverifiable = @()
 

@@ -127,6 +127,16 @@ switch -Regex ($sig) {
     '^shell screencap -p( -d \d+)? \S+$'  { exit 0 }
     '^shell stat -c %s /sdcard/_fms_shot\.png$' { Write-Output '48211'; exit 0 }
 
+    # ---- system settings (font-scale) ----
+    # FMS_STUB_FONT_SCALE lets a case choose between an untouched device, which answers 'null', and
+    # one that already carries a value.
+    '^shell settings get system font_scale$' {
+        $v = $env:FMS_STUB_FONT_SCALE
+        if ([string]::IsNullOrWhiteSpace($v)) { $v = 'null' }
+        Write-Output $v; exit 0
+    }
+    '^shell settings put system font_scale \S+$' { exit 0 }
+
     # ---- run-as (prefs) ----
     '^shell run-as \S+ base64 .+settings\.preferences_pb$' { Write-Output 'c2V0dGluZ3MtcHJlZnMtZml4dHVyZQ=='; exit 0 }
 

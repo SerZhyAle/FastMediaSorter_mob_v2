@@ -112,8 +112,9 @@ abstract class BaseWearTileService : TileService() {
 
     /** The glyphs [content] needs, in a stable order so the version does not change on re-ordering alone. */
     private fun drawableIdsOf(content: WearTileContent): List<Int> = when (content) {
-        is WearTileContent.Shortcuts -> content.entries.map { it.iconResId }.distinct().sorted()
-        // The other states draw text only; their iconResId has never been populated.
+        is WearTileContent.Shortcuts ->
+            content.entries.map { tileShortcutIconFor(it.destinationId) }.distinct().sorted()
+        // The other states draw text only, which is why S2751 removed the always-null field they carried.
         is WearTileContent.Assigned,
         is WearTileContent.Unassigned,
         is WearTileContent.TargetMissing,

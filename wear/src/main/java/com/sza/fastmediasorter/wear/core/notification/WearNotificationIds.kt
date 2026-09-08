@@ -25,4 +25,7 @@ object WearNotificationIds {
 
     /** S2166: the playback service's foreground notification, carrying the media session's controls. */
     const val BACKGROUND_PLAYBACK = 4204
+
+    /** S2550: the phone asked to listen through this watch's microphone and is waiting for a tap. */
+    const val LISTEN_REQUEST = 4205
 }

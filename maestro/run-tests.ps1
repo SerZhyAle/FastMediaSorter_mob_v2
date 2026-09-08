@@ -48,11 +48,20 @@
 
 .PARAMETER Json
   Emit a single JSON object
-  { pass, total, failed, reason, launcherMode, flows:[{flow,pass,status,log}] }
+  { pass, total, failed, skipped, reason, launcherMode, flows:[{flow,pass,status,skipReason,log}] }
   instead of human-readable lines. launcherMode is on|off|unknown - the environment state that
-  changes where a back press out of MainActivity lands (S1673). status is pass|fail|execError:
+  changes where a back press out of MainActivity lands (S1673). status is pass|fail|execError|skip.
   execError is a transport failure between Maestro and the device and says nothing about the app,
-  so a consumer aggregating a release verdict must not count it as a defect (S2396).
+  so a consumer aggregating a release verdict must not count it as a defect (S2396). skip means the
+  flow was never run because its declared precondition could not be established here (S2720) - also
+  not a defect, and skipReason carries the sentence explaining it.
+
+.PARAMETER AllowHomeRoleGrant
+  Permit flows marked '# maestro-requires: home-role' to take the ROLE_HOME system role on a
+  PHYSICAL device. Emulators are allowed without it. Off by default because whether a given handset
+  may be handed a system role is a per-device authorization recorded in docs/DEVICE_FLEET.md, and
+  this script must point at that file rather than carry a copy of it. Without the switch such flows
+  are reported as skip, never as fail. The previous role holder is restored either way.
 
 .PARAMETER ListFlows
   Resolve -Suite, print the flow set and exit (0 = at least one flow, 1 = none). Runs before
@@ -72,6 +81,7 @@ param(
     [string]$DeviceId,
     [switch]$Json,
     [switch]$ListFlows,
+    [switch]$AllowHomeRoleGrant,
     # Retained for backward compatibility with existing callers
     # (scripts/utils/run-maestro-smoke.ps1, scripts/utils/run-stress.ps1) which pass -DebugMode.
     # When set, the off-context trace of any failing flow is echoed to the console for local triage.
@@ -93,16 +103,20 @@ function Write-Line {
 }
 
 function Exit-Suite {
-    param([int]$Code, [bool]$Pass, [int]$Total, [int]$Failed, [array]$Flows, [string]$Reason)
+    param([int]$Code, [bool]$Pass, [int]$Total, [int]$Failed, [int]$Skipped = 0, [array]$Flows, [string]$Reason)
     if ($Json) {
-        ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; reason = $Reason
+        ([ordered]@{ pass = $Pass; total = $Total; failed = $Failed; skipped = $Skipped; reason = $Reason
                      launcherMode = $script:LauncherMode; flows = $Flows } |
             ConvertTo-Json -Depth 5 -Compress)
     } else {
         $verdict = if ($Pass) { 'PASS' } else { 'FAIL' }
         $color   = if ($Pass) { 'Green' } else { 'Red' }
-        if ($Reason) { Write-Host "SUITE $verdict ($Code) - $Reason" -ForegroundColor $color }
-        else { Write-Host ("SUITE {0} - {1}/{2} flows passed" -f $verdict, ($Total - $Failed), $Total) -ForegroundColor $color }
+        # A skipped flow is neither passed nor failed, so it is named on its own rather than folded
+        # into either count - a summary reading "23/25 passed" with no third number is how a
+        # precondition that never held reads as coverage that did (S2720).
+        $skipNote = if ($Skipped -gt 0) { ", $Skipped skipped" } else { '' }
+        if ($Reason) { Write-Host "SUITE $verdict ($Code) - $Reason$skipNote" -ForegroundColor $color }
+        else { Write-Host ("SUITE {0} - {1}/{2} flows passed{3}" -f $verdict, ($Total - $Failed - $Skipped), $Total, $skipNote) -ForegroundColor $color }
     }
     exit $Code
 }
@@ -186,6 +200,69 @@ function Get-LauncherModeState {
         if ($line -match 'LauncherHomeActivity') { return 'on' }
     }
     return 'off'
+}
+
+# The serial this run actually targets. -DeviceId wins; otherwise the sole online device is read
+# from adb, which is the same device Maestro picks when no --device is passed. Returns $null when
+# adb is unavailable or the count is not exactly one - an ambiguous target must not be guessed at
+# when the answer decides whether a system role may be granted.
+function Resolve-TargetDevice {
+    param([string]$Sdk, [string]$Device)
+    if ($Device) { return $Device }
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return $null }
+    try { $out = & $adb devices 2>$null } catch { return $null }
+    $online = @($out) | Where-Object { $_ -match '^(\S+)\s+device\s*$' } | ForEach-Object { $Matches[1] }
+    if (@($online).Count -eq 1) { return $online[0] }
+    return $null
+}
+
+# ---------- ROLE_HOME precondition for launcher flows (S2720) ----------
+# A flow declares the requirement in its own header, `# maestro-requires: home-role`, because the
+# alternative is a list of file names inside this script that drifts from the flows it names.
+function Test-FlowRequiresHomeRole {
+    param([System.IO.FileInfo]$FlowFile)
+    $head = Get-Content -Path $FlowFile.FullName -TotalCount 20 -ErrorAction SilentlyContinue
+    return [bool](@($head) -match '^\s*#\s*maestro-requires:\s*home-role\s*$')
+}
+
+# The single package currently holding the home role, or $null when it cannot be read. `cmd role`
+# prints one holder per line; ROLE_HOME is exclusive, so the first line is the answer.
+function Get-HomeRoleHolder {
+    param([string]$Sdk, [string]$Device)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return $null }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    try {
+        $out = & $adb @target shell cmd role get-role-holders android.app.role.HOME 2>$null
+    } catch { return $null }
+    $first = @($out) | Where-Object { $_ -and $_.Trim() } | Select-Object -First 1
+    if (-not $first) { return $null }
+    return $first.Trim()
+}
+
+# Hands the home role to $Package and confirms the change by reading it back. Returns $true only on
+# a verified change: `cmd role add-role-holder` reports failure through an exception trace on stdout
+# rather than a non-zero exit, so the read-back IS the check.
+function Set-HomeRoleHolder {
+    param([string]$Sdk, [string]$Device, [string]$Package)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb -or -not $Package) { return $false }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    try {
+        & $adb @target shell cmd role add-role-holder android.app.role.HOME $Package *> $null
+    } catch { return $false }
+    return ((Get-HomeRoleHolder -Sdk $Sdk -Device $Device) -eq $Package)
+}
+
+# Whether taking a system role on this target is authorized. Emulators are created and destroyed
+# freely, so they need no opt-in; a physical handset needs -AllowHomeRoleGrant, because which serial
+# may be handed a system role is recorded in docs/DEVICE_FLEET.md and restating a per-device
+# permission inside a script is how such a copy goes stale unnoticed (CLAUDE.md Rule 35).
+function Test-HomeRoleGrantAllowed {
+    param([string]$Device)
+    if ($AllowHomeRoleGrant) { return $true }
+    return ($Device -match '^emulator-\d+$')
 }
 
 # Stylus handwriting turns text-field taps into a handwriting panel on API 34 tablet images,
@@ -387,7 +464,38 @@ Write-Line ("RUN suite '{0}': {1} flow(s) on device {2}" -f $Suite, $flows.Count
 $results  = @()
 $anyExec  = $false
 $anyFail  = $false
+$targetDevice = Resolve-TargetDevice -Sdk $sdk -Device $DeviceId
 foreach ($flow in $flows) {
+    # S2720: a flow that needs the home role gets it taken and given back around its own run, and is
+    # skipped rather than failed when that cannot be arranged here. Restoring is not housekeeping:
+    # while this app holds the role, the NEXT flow's _shared/go_home.yaml would reach a stopApp on
+    # the device's home app and hang Maestro, so an unrestored role turns two red flows into a stuck
+    # suite. Both the previous holder and the read-back live here rather than in the flow because a
+    # flow has neither adb nor the serial.
+    $needsHomeRole    = Test-FlowRequiresHomeRole -FlowFile $flow
+    $previousRoleHolder = $null
+    if ($needsHomeRole) {
+        $skipReason = $null
+        if (-not (Find-Adb -Sdk $sdk)) {
+            $skipReason = 'requires the ROLE_HOME system role and adb is unavailable, so the role cannot be restored afterwards'
+        } elseif (-not $targetDevice) {
+            $skipReason = 'requires the ROLE_HOME system role and the target device could not be resolved (pass -DeviceId when more than one is online)'
+        } elseif (-not (Test-HomeRoleGrantAllowed -Device $targetDevice)) {
+            $skipReason = ("requires the ROLE_HOME system role on physical device '{0}'; pass -AllowHomeRoleGrant only after checking that serial in docs/DEVICE_FLEET.md" -f $targetDevice)
+        } else {
+            $previousRoleHolder = Get-HomeRoleHolder -Sdk $sdk -Device $targetDevice
+            if (-not $previousRoleHolder) {
+                $skipReason = 'requires the ROLE_HOME system role and the current holder could not be read, so it could not be restored afterwards'
+            }
+        }
+        if ($skipReason) {
+            $skipped = [ordered]@{ flow = $flow.Name; status = 'skip'; pass = $false; skipReason = $skipReason; log = $null }
+            $results += $skipped
+            Write-Line ("  {0,-8} {1}  ({2})" -f 'SKIP', $skipped.flow, $skipReason) 'Yellow'
+            continue
+        }
+    }
+
     $r = Invoke-Flow -Maestro $maestro -FlowFile $flow
     # Single retry for a transient assertion failure. Emulator UI suites flake run-to-run (state
     # contamination between flows, scroll determinism); an isolated re-run almost always passes, and a
@@ -402,6 +510,18 @@ foreach ($flow in $flows) {
         $r2 = Invoke-Flow -Maestro $maestro -FlowFile $flow
         if ($r2.pass) { $r = $r2 }
     }
+
+    # Give the role back before the next flow starts, whatever this one did.
+    if ($previousRoleHolder) {
+        $restored = Set-HomeRoleHolder -Sdk $sdk -Device $targetDevice -Package $previousRoleHolder
+        if ($restored) {
+            Write-Line ("  {0,-8} {1}  (home role restored to {2})" -f 'ROLE', $r.flow, $previousRoleHolder) 'DarkGray'
+        } else {
+            Write-Line ("  {0,-8} {1}  (FAILED to restore the home role to {2} - later flows may hang in go_home; restore it by hand)" -f 'ROLE', $r.flow, $previousRoleHolder) 'Red'
+        }
+        $script:LauncherMode = Get-LauncherModeState -Sdk $sdk -Device $targetDevice
+    }
+
     $results += $r
     if ($r.status -eq 'execError') { $anyExec = $true }
     if ($r.status -eq 'fail')      { $anyFail = $true }
@@ -417,16 +537,22 @@ foreach ($flow in $flows) {
     }
 }
 
-$failedCount = @($results | Where-Object { -not $_.pass }).Count
+$skippedCount = @($results | Where-Object { $_.status -eq 'skip' }).Count
+$failedCount  = @($results | Where-Object { -not $_.pass -and $_.status -ne 'skip' }).Count
 # status rides into the JSON so a consumer can tell a transport failure from an app defect; without
 # it prerelease-verdict.ps1 saw only pass=false and counted an ADB crash against the release (S2396).
-$flowsOut    = @($results | ForEach-Object { [ordered]@{ flow = $_.flow; pass = $_.pass; status = $_.status; log = $_.log } })
+# skipReason rides along for the same reason one step further: a skip carries no log to read.
+$flowsOut     = @($results | ForEach-Object {
+    [ordered]@{ flow = $_.flow; pass = $_.pass; status = $_.status
+                skipReason = $(if ($_.Contains('skipReason')) { $_.skipReason } else { $null }); log = $_.log }
+})
 
-# Precedence: execution error (4) outranks assertion failure (3); both outrank pass.
+# Precedence: execution error (4) outranks assertion failure (3); both outrank pass. A skip enters
+# neither branch - it is a flow that was never judged, not a flow that was judged badly.
 if ($anyExec) {
-    Exit-Suite -Code 4 -Pass $false -Total $flows.Count -Failed $failedCount -Flows $flowsOut -Reason 'execution error (no device / runtime) in one or more flows'
+    Exit-Suite -Code 4 -Pass $false -Total $flows.Count -Failed $failedCount -Skipped $skippedCount -Flows $flowsOut -Reason 'execution error (no device / runtime) in one or more flows'
 }
 if ($anyFail) {
-    Exit-Suite -Code 3 -Pass $false -Total $flows.Count -Failed $failedCount -Flows $flowsOut -Reason $null
+    Exit-Suite -Code 3 -Pass $false -Total $flows.Count -Failed $failedCount -Skipped $skippedCount -Flows $flowsOut -Reason $null
 }
-Exit-Suite -Code 0 -Pass $true -Total $flows.Count -Failed 0 -Flows $flowsOut -Reason $null
+Exit-Suite -Code 0 -Pass $true -Total $flows.Count -Failed 0 -Skipped $skippedCount -Flows $flowsOut -Reason $null

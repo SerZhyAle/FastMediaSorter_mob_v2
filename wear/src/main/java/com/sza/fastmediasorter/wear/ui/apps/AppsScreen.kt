@@ -29,14 +29,17 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val APP_LABEL_MAX_LINES = 2
@@ -78,7 +81,12 @@ fun AppsScreen(
                 appItems(
                     apps = uiState.apps,
                     columns = columns,
-                    onAppClick = { app -> navController.navigate(app.route) }
+                    onAppClick = { app ->
+                        Timber.d("S2751: program tapped, id=%s", app.id)
+                        navController.navigate(
+                            WearLaunchRoutes.routeFor(destinationFor(app.id))
+                        )
+                    }
                 )
             }
         }

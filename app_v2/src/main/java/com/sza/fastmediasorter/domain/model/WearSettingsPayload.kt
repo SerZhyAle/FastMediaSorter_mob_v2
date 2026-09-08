@@ -96,5 +96,14 @@ data class WearSettingsPayload(
         const val COLOR_SCHEME_LIGHT_GREEN = "LIGHT_GREEN"
         const val COLOR_SCHEME_LIGHT_BLUE = "LIGHT_BLUE"
         const val COLOR_SCHEME_LIGHT_RED = "LIGHT_RED"
+
+        /**
+         * S2643: the watch's `WearViewMode` members, pinned here for the same reason as the two
+         * vocabularies above - the two modules share no artifact, the payload carries the member
+         * name rather than an ordinal, and an unknown name resolves to LIST on the watch.
+         */
+        const val VIEW_MODE_LIST = "LIST"
+        const val VIEW_MODE_GRID_2 = "GRID_2"
+        const val VIEW_MODE_GRID_3 = "GRID_3"
     }
 }

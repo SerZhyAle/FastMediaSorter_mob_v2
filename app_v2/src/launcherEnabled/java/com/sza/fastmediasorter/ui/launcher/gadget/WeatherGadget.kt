@@ -15,12 +15,17 @@ import com.sza.fastmediasorter.databinding.GadgetLauncherWeatherBinding
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.usecase.weather.GetLauncherWeatherUseCase
 import com.sza.fastmediasorter.util.resolveActivityCompat
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -34,6 +39,7 @@ import javax.inject.Inject
  */
 class WeatherGadget @Inject constructor(
     private val getWeather: Lazy<GetLauncherWeatherUseCase>,
+    private val settingsRepository: Lazy<SettingsRepository>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_WEATHER
@@ -46,13 +52,14 @@ class WeatherGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        WeatherGadgetView(container.context, param, getWeather.get())
+        WeatherGadgetView(container.context, param, getWeather.get(), settingsRepository.get())
 }
 
 private class WeatherGadgetView(
     context: Context,
     param: String?,
     private val getWeather: GetLauncherWeatherUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherWeatherBinding.inflate(LayoutInflater.from(context), this)
@@ -85,14 +92,22 @@ private class WeatherGadgetView(
             showMessage(R.string.launcher_gadget_weather_no_location)
             return
         }
-        while (isActive) {
-            when (val result = getWeather(place)) {
-                is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
-                is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
-                WeatherResult.Unavailable -> showMessage(R.string.launcher_gadget_weather_unavailable)
+        // S2716: the refresh loop is restarted by a unit-system change, so a switch made in settings
+        // reaches the card at once instead of waiting out the rest of the twenty-minute tick.
+        settingsRepository.getSettings()
+            .map { it.unitSystem }
+            .distinctUntilChanged()
+            .collectLatest {
+                while (currentCoroutineContext().isActive) {
+                    when (val result = getWeather(place)) {
+                        is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
+                        is WeatherResult.Stale -> showSnapshot(result.snapshot, stale = true)
+                        WeatherResult.Unavailable ->
+                            showMessage(R.string.launcher_gadget_weather_unavailable)
+                    }
+                    delay(REFRESH_INTERVAL_MS)
+                }
             }
-            delay(REFRESH_INTERVAL_MS)
-        }
     }
 
     private fun showSnapshot(snapshot: WeatherSnapshot, stale: Boolean) {

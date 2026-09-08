@@ -1,17 +1,19 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -33,7 +35,9 @@ import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
-private val SINGLE_COLUMN_TILE_SIZE: Dp = 52.dp
+/** The icon keeps the grid cell's square, so a thumbnail crops identically in both view modes. */
+private const val SQUARE_RATIO = 1f
+
 private val SINGLE_COLUMN_ROW_MIN_HEIGHT: Dp = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val SINGLE_COLUMN_TEXT_START_PADDING: Dp = 8.dp
 private val SINGLE_COLUMN_ROW_PADDING_HORIZONTAL: Dp = 4.dp
@@ -50,8 +54,15 @@ private const val SECONDARY_TEXT_ALPHA = 0.7f
  * the square icon/thumbnail tile beside its caption (with [WearCellShape] and matching
  * placeholder/thumbnail scaling), plus an optional secondary line under the caption.
  *
- * DELIBERATE, DO NOT "RESTORE" - three decisions here look like omissions and are not (owner ruling
- * 2026-09-04, judged on the watch, screenshots under `temp/scratch/`):
+ * DELIBERATE, DO NOT "RESTORE" - four decisions here look like omissions and are not (owner rulings
+ * 2026-09-04 and 2026-09-08, judged on the watch, screenshots under `temp/scratch/`):
+ *
+ * - **No plate behind the icon either, and the icon spans the row's height** (S2759, owner ruling
+ *   2026-09-08). The tile was a fixed 52 dp square filled with `surface` - the last opaque rectangle
+ *   left in the row once the chip plate went - and against the three-column grid, where the glyph
+ *   lies straight on the wallpaper and fills its cell, the list read as icons boxed in. The row now
+ *   measures at its own intrinsic height and the icon fills it, so both view modes draw one glyph the
+ *   same way. Re-introducing a fill or a fixed tile size undoes that comparison.
  *
  * - **No chip plate.** The row paints NO background and takes no `ChipColors`. It carried
  *   `ChipDefaults.primaryChipColors()`, and the owner called the resulting blue-grey slab ugly. What
@@ -98,6 +109,7 @@ fun SingleColumnTileCell(
 ) {
     val containerShape = WearCellShape
     Timber.d("S2526: SingleColumnTileCell composed for %s", caption)
+    Timber.d("S2759: single-column icon drawn plateless at row height for %s", caption)
     val borderModifier = if (selected) {
         Modifier.border(SELECTION_BORDER_WIDTH, MaterialTheme.colors.primary, containerShape)
     } else {
@@ -107,6 +119,10 @@ fun SingleColumnTileCell(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            // The row states its own height so the icon has one to fill; the minimum is applied
+            // INSIDE it, because an intrinsic pass placed outside a minimum reports the caption's
+            // bare height and would shrink the touch target below the watch minimum.
+            .height(IntrinsicSize.Min)
             .defaultMinSize(minHeight = SINGLE_COLUMN_ROW_MIN_HEIGHT)
             .clip(containerShape)
             .then(borderModifier)
@@ -130,9 +146,12 @@ fun SingleColumnTileCell(
     ) {
         Box(
             modifier = Modifier
-                .size(SINGLE_COLUMN_TILE_SIZE)
-                .clip(containerShape)
-                .background(MaterialTheme.colors.surface, containerShape),
+                // No plate, and the height is the row's own: the glyph sits on the wallpaper and
+                // spans the line it belongs to, which is exactly what the three-column cell does
+                // (S2759). A square is kept so a thumbnail crops the same way in both view modes.
+                .fillMaxHeight()
+                .aspectRatio(SQUARE_RATIO)
+                .clip(containerShape),
             contentAlignment = Alignment.Center
         ) {
             CellPicture(thumbnail = thumbnail, fallback = fallback)

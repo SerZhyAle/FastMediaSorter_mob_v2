@@ -113,6 +113,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- S2550 ADR-6: the window the listening-request notification opens. Not exported - only
+             this process may raise it, and only a tap on the notification reaches it. Starting the
+             microphone service from a window the user opened is the one platform exemption that
+             lifts both the API 31 and the API 34 background-start barriers (strategic §6.1). -->
+        <activity
+            android:name=".ui.listen.ListenRequestActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.FastMediaSorterWear" />
+
         <!-- Wearable Data Layer - receives resource push from the phone companion -->
         <service
             android:name=".data.wear.WatchWearListenerService"

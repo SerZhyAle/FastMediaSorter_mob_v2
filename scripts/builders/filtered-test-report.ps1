@@ -115,6 +115,123 @@ function Remove-StaleFilteredTestReport {
     return $removed
 }
 
+function Get-FailedTestReportFile {
+    <#
+        This run's reports that record a failure or an error.
+
+        S2743: the content test is on the `failures`/`errors` COUNTS in the <testsuite> line and on
+        the presence of a <failure>/<error> element, not on a bare word. A class named ...ErrorTest
+        would match a name test, and the whole value of this set is that it is small enough to read.
+    #>
+    param(
+        [Parameter(Mandatory)][string] $ProjectRoot,
+        [Parameter(Mandatory)][string] $Module,
+        [Parameter(Mandatory)][string] $TaskDir,
+        [Parameter(Mandatory)][datetime] $Since
+    )
+    $all = @(Get-FilteredTestReportFile -ProjectRoot $ProjectRoot -Module $Module -TaskDir $TaskDir -Since $Since)
+    return @($all | Where-Object {
+            $xml = Get-Content -LiteralPath $_.FullName -Raw -ErrorAction SilentlyContinue
+            $xml -and $xml -match '<(failure|error)[\s>/]'
+        })
+}
+
+function Save-FailedTestReport {
+    <#
+        Copies the FAILING reports of this run to temp/TEST-REPORTS/<run>/ and describes the outcome.
+
+        S2743: the reports of a red run were the one set never harvested. Save-FilteredTestReport
+        below is reached only past the `Fast check passed` line and only for a --tests run, so a red
+        FULL suite kept its evidence nowhere but the shared build/test-results directory - which the
+        next session's run wipes on entry (S2465). Measured 2026-09-08: a red run at 16:47 reported
+        `UncaughtExceptionsBeforeTest`, whose console line is a single frame and whose real cause
+        rides as a suppressed exception inside the XML only; by 17:10 a sibling's run had replaced
+        the directory, and the ticket opened on that failure could name the mechanism but never the
+        test that leaked. The run that fails is the run whose reports are worth keeping.
+
+        Only the failing files are copied, which is what keeps this affordable on the red path of a
+        4869-test suite: the set is the handful of classes a reader is about to open, not the whole
+        harvest. A green run needs none of it and is left alone.
+
+        Outcomes match Save-FilteredTestReport so a caller can print either the same way.
+        NoneWritten here means the run failed with no failing test report - a compilation error, a
+        dead worker, a refused --tests pattern - which is a different diagnosis, not a missing file.
+
+        Never throws, for Save-FilteredTestReport's reason: the copy has observed nothing about the
+        code, so it must not touch a verdict that has.
+    #>
+    param(
+        [Parameter(Mandatory)][string] $ProjectRoot,
+        [Parameter(Mandatory)][string] $Module,
+        [Parameter(Mandatory)][string] $TaskDir,
+        [Parameter(Mandatory)][datetime] $Since,
+        [Parameter(Mandatory)][string] $RunId,
+        [int] $RetentionDays = 7
+    )
+
+    $files = @()
+    try {
+        $files = @(Get-FailedTestReportFile -ProjectRoot $ProjectRoot -Module $Module -TaskDir $TaskDir -Since $Since)
+    }
+    catch {
+        return [pscustomobject]@{
+            Outcome = 'CopyFailed'
+            Files   = 0
+            Path    = $null
+            Message = "Could not read this run's test reports: $($_.Exception.Message)"
+        }
+    }
+
+    if ($files.Count -eq 0) {
+        return [pscustomobject]@{
+            Outcome = 'NoneWritten'
+            Files   = 0
+            Path    = $null
+            Message = 'This run wrote no failing test report, so the failure is not a red test - look at the build log for a compilation error, a dead worker or a --tests pattern that matched nothing.'
+        }
+    }
+
+    return Copy-TestReportFile -ProjectRoot $ProjectRoot -Files $files -RunId $RunId -RetentionDays $RetentionDays
+}
+
+function Copy-TestReportFile {
+    <#
+        The copy half shared by both harvests: prune, create, copy, describe. Extracted so the two
+        entry points cannot drift into reporting the same outcome differently (the S1621 rule).
+    #>
+    param(
+        [Parameter(Mandatory)][string] $ProjectRoot,
+        [Parameter(Mandatory)][AllowEmptyCollection()][object[]] $Files,
+        [Parameter(Mandatory)][string] $RunId,
+        [int] $RetentionDays = 7
+    )
+    try {
+        $harvestRoot = Join-Path $ProjectRoot 'temp\TEST-REPORTS'
+        $null = Remove-StaleFilteredTestReport -Root $harvestRoot -RetentionDays $RetentionDays
+        $destination = Join-Path $harvestRoot $RunId
+        if (-not (Test-Path -LiteralPath $destination)) {
+            $null = New-Item -ItemType Directory -Path $destination -Force
+        }
+        foreach ($file in $Files) {
+            Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $destination $file.Name) -Force
+        }
+        return [pscustomobject]@{
+            Outcome = 'Harvested'
+            Files   = $Files.Count
+            Path    = $destination
+            Message = $null
+        }
+    }
+    catch {
+        return [pscustomobject]@{
+            Outcome = 'CopyFailed'
+            Files   = $Files.Count
+            Path    = $null
+            Message = "Found $($Files.Count) report(s) for this run and could not copy them: $($_.Exception.Message)"
+        }
+    }
+}
+
 function Save-FilteredTestReport {
     <#
         Copies this run's reports to temp/TEST-REPORTS/<run>/ and describes the outcome.
@@ -166,29 +283,5 @@ function Save-FilteredTestReport {
         }
     }
 
-    try {
-        $harvestRoot = Join-Path $ProjectRoot 'temp\TEST-REPORTS'
-        $null = Remove-StaleFilteredTestReport -Root $harvestRoot -RetentionDays $RetentionDays
-        $destination = Join-Path $harvestRoot $RunId
-        if (-not (Test-Path -LiteralPath $destination)) {
-            $null = New-Item -ItemType Directory -Path $destination -Force
-        }
-        foreach ($file in $files) {
-            Copy-Item -LiteralPath $file.FullName -Destination (Join-Path $destination $file.Name) -Force
-        }
-        return [pscustomobject]@{
-            Outcome = 'Harvested'
-            Files   = $files.Count
-            Path    = $destination
-            Message = $null
-        }
-    }
-    catch {
-        return [pscustomobject]@{
-            Outcome = 'CopyFailed'
-            Files   = $files.Count
-            Path    = $null
-            Message = "Found $($files.Count) report(s) for this run and could not copy them: $($_.Exception.Message)"
-        }
-    }
+    return Copy-TestReportFile -ProjectRoot $ProjectRoot -Files $files -RunId $RunId -RetentionDays $RetentionDays
 }

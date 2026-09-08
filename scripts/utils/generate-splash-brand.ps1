@@ -8,8 +8,13 @@
     only writer of `ic_splash_app_brand.xml` and of every `drawable-<locale>` variant of
     it - hand-editing one of those files is caught by scripts/quality/assert-splash-brand-sync.ps1.
 
+    S2593: phone-only. The watch once took an arrows-only composition here, but S2274 removed
+    `windowSplashScreenAnimatedIcon` from the wear theme for Play requirement WO-V15 - the platform
+    draws the launcher icon itself - so the generated watch glyph lost its last consumer and both
+    it and this branch were retired.
+
 .PARAMETER Module
-    Which module's resources to generate into. Defaults to app_v2.
+    Which module's resources to generate into. app_v2 is the only one; see S2593 above.
 
 .PARAMETER Check
     Compare only. Report what would change and fail instead of writing.
@@ -21,7 +26,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('app_v2', 'wear')]
+    [ValidateSet('app_v2')]
     [string]$Module = 'app_v2',
 
     [switch]$Check
@@ -64,9 +69,6 @@ if (-not $pythonExe) {
 
 $genArgs = @($generator, '--res-root', $resRoot, '--wordmark', $wordmark)
 if ($Check) { $genArgs += '--check' }
-# The watch drops the wordmark and the slogan - measured illegible at watch size, S1706 step 05.4 -
-# so its composition is the logo alone and carries no per-locale variant.
-if ($Module -eq 'wear') { $genArgs += '--arrows-only' }
 
 & $pythonExe @genArgs
 $code = $LASTEXITCODE

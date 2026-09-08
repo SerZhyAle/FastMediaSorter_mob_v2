@@ -17,7 +17,7 @@ enum class WearTileKind {
      *
      * Carries no assignment at all, so the sentence above about storing per kind does not reach it: there
      * is nothing to store, because adding the tile to the carousel is itself the act of pinning and the
-     * grid's contents come from [com.sza.fastmediasorter.wear.ui.apps.WearAppCatalog].
+     * grid's contents come from [com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog].
      */
     PROGRAMS,
 

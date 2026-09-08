@@ -113,6 +113,7 @@ $stubDefaults = @{
     FMS_STUB_RADIUS   = '0'
     FMS_STUB_SECURE   = '0'
     FMS_STUB_WATCH    = '0'
+    FMS_STUB_FONT_SCALE = ''
 }
 
 # Run one verb through the real adb.ps1 and bring back the process exit code plus the parsed object.
@@ -325,6 +326,51 @@ if (Assert-Envelope $r 'clip-check' $false 9) {
     Assert-Equal 'OFF-GLASS' $r.json.data.findings[0].kind 'clip-check -Json: the finding carries its class'
     Assert-True ([string]::IsNullOrEmpty($r.json.reason) -eq $false) 'clip-check -Json: reason names the defect' $r.json.reason
 }
+
+# ---- font-scale: the read, the write, and the refusal that protects a real device ----
+# A large font is a Play review criterion (S2755), so this verb exists to MEASURE. Its refusal is the
+# interesting half: the same call that is routine on an emulator changes a personal device's system
+# setting, and which devices may be changed at all is docs/DEVICE_FLEET.md, never this script.
+
+$r = Invoke-Verb @('font-scale')
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-DataFields $r 'font-scale' @('id', 'scale')
+    Assert-Equal 1.0 $r.json.data.scale 'font-scale -Json: an untouched device answers null and is reported as the 1.0 default'
+}
+
+$r = Invoke-Verb @('font-scale') -Stub @{ FMS_STUB_FONT_SCALE = '1.3' }
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-Equal 1.3 $r.json.data.scale 'font-scale -Json: a device carrying a value reports that value'
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3')
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-DataFields $r 'font-scale' @('id', 'scale', 'previous', 'written')
+    Assert-Equal 1.3 $r.json.data.written 'font-scale -Json: the value asked for is reported as written'
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3') -Stub @{ FMS_STUB_DEVICES = 'RFCR110NBQJ' }
+if (Assert-Envelope $r 'font-scale' $false 11) {
+    Assert-True ($r.json.reason -like '*DEVICE_FLEET*') 'font-scale: the refusal sends the caller to the fleet roster' $r.json.reason
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3', '-Yes') -Stub @{ FMS_STUB_DEVICES = 'RFCR110NBQJ' }
+Assert-Envelope $r 'font-scale' $true 0 | Out-Null
+
+# ---- clip-check -Strict: the frame criterion, separate from the off-glass one ----
+
+# The recorded dump was named "clean" under the off-glass criterion, and it carries two CLIPPED
+# nodes. That is the whole point of the strict mode: the same frame passes one criterion and fails
+# the other, and Play applies the stricter one.
+$r = Invoke-Verb @('clip-check', '-Strict') -Stub ($watchStub + @{ FMS_STUB_TREE = $treeClean })
+if (Assert-Envelope $r 'clip-check' $false 10) {
+    Assert-Equal $true $r.json.data.strict 'clip-check -Strict -Json: the mode is recorded in the payload'
+    Assert-Equal 0 $r.json.data.offGlass 'clip-check -Strict -Json: strict does not invent an off-glass node'
+    Assert-True ($r.json.data.frameCut -gt 0) 'clip-check -Strict -Json: the frame-cut nodes are counted' $r.json.data.frameCut
+}
+
+$r = Invoke-Verb @('clip-check') -Stub ($watchStub + @{ FMS_STUB_TREE = $treeClean })
+Assert-Equal 0 $r.exit 'clip-check without -Strict: the same dump still passes the off-glass criterion'
 
 # ---- verbs that write, install or remove ----
 

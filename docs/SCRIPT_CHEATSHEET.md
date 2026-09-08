@@ -998,6 +998,8 @@ scripts/devtest/adb.ps1
     -Index              [Int32] = 1
     -OutDir             [String]
     -Json               [SwitchParameter]
+    -Strict             [SwitchParameter]
+    -Scale              [Double]
     -Yes                [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
@@ -3145,7 +3147,7 @@ S1706 - generated splash brand drawables vs their source.
 scripts/quality/assert-splash-brand-sync.ps1
   S1706 - generated splash brand drawables vs their source.
   Params:
-    -Module         [String]  {app_v2|wear}
+    -Module         [String]  {app_v2}
     -Gate           [SwitchParameter]
     -Quiet          [SwitchParameter]
   Exit: 0 every generated drawable matches its source; 1 at least one drawable diverges, or a slogan no longer fits the mask circle; 2 could not verify: the generator is missing, or python/fontTools is unavailable
@@ -3288,6 +3290,18 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-wear-canonical-key-parity.ps1
+S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
+
+```
+scripts/quality/assert-wear-canonical-key-parity.ps1
+  S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - the rule holds; or a divergence was reported without -Gate, matching the advisory shape; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: a source file is missing, or one of the two literal sets parsed to
+```
+
 ### assert-wear-mirrored-strings.ps1
 S2125: fails when a string mirrored on the phone and the watch stops reading the same.
 
@@ -3342,13 +3356,14 @@ S2547 - binds the declared watch pre-release walk to the wear module it claims t
 scripts/quality/assert-wear-walk-contract.ps1
   S2547 - binds the declared watch pre-release walk to the wear module it claims to walk.
   Params:
-    -Gate                   [SwitchParameter]
-    -UpdateBaseline         [SwitchParameter]
-    -ChangedFiles           [String]
-    -ScreenList             [String]
-    -StringsFile            [String]
-    -WearSource             [String]
-    -BaselineFile           [String]
+    -Gate                       [SwitchParameter]
+    -UpdateBaseline             [SwitchParameter]
+    -ChangedFiles               [String]
+    -ScreenListBaseline         [String]
+    -ScreenList                 [String]
+    -StringsFile                [String]
+    -WearSource                 [String]
+    -BaselineFile               [String]
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
 ```
 
@@ -4939,7 +4954,7 @@ scripts/spec_catalog/plan-tick.ps1
     -Log               [String] = ''
     -Json              [SwitchParameter]
     -Reconcile         [SwitchParameter]
-  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or neither layout holds the requested phase.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
+  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
 ### preview.ps1
@@ -5446,6 +5461,8 @@ scripts/streams/collect-stream-candidates.ps1
     -FaviconS2Fallback                [SwitchParameter] = $true
     -FaviconS2Only                    [SwitchParameter]
     -AtlasPath                        [String] = 'delivery/stream-catalog/favicon-atlas.png'
+    -BuildCollections                 [SwitchParameter]
+    -CollectionsPath                  [String] = 'delivery/stream-catalog/collections.json'
     -FaviconTimeoutSec                [Int32] = 8
     -FaviconThrottle                  [Int32] = 16
     -LogoCacheDir                     [String] = 'temp/stream-logo-src'
@@ -5558,6 +5575,13 @@ scripts/streams/modules/StreamPublisher.Artwork.ps1
   (no param block)
 ```
 
+### StreamPublisher.Collections.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Collections.ps1
+  (no param block)
+```
+
 ### StreamPublisher.Common.ps1
 
 ```
@@ -5584,6 +5608,18 @@ scripts/streams/modules/StreamPublisher.Discovery.ps1
 ```
 scripts/streams/modules/StreamPublisher.Probes.ps1
   (no param block)
+```
+
+## scripts\streams\tests
+
+### StreamPublisher.Collections.Tests.ps1
+Contract suite for the curated-collections builder and its publish gate (S2669).
+
+```
+scripts/streams/tests/StreamPublisher.Collections.Tests.ps1
+  Contract suite for the curated-collections builder and its publish gate (S2669).
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
 ## scripts\utils
@@ -6017,7 +6053,7 @@ Generate the splash brand drawable for every locale that declares `splash_slogan
 scripts/utils/generate-splash-brand.ps1
   Generate the splash brand drawable for every locale that declares `splash_slogan`.
   Params:
-    -Module         [String] = 'app_v2'  {app_v2|wear}
+    -Module         [String] = 'app_v2'  {app_v2}
     -Check          [SwitchParameter]
 ```
 
@@ -6374,7 +6410,7 @@ scripts/utils/run-spec-queue.ps1
     -Ids                       [String] = ''
     -MaxTickets                [Int32] = 0
     -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
+    -ModelPolicy               [String] = 'tiered'  {tiered|fixed|default}
     -Model                     [String] = 'opus'
     -StrongModel               [String] = 'opus'
     -CheapModel                [String] = 'sonnet'

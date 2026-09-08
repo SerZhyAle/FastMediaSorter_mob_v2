@@ -15,6 +15,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.google.android.material.color.DynamicColors
+import com.sza.fastmediasorter.core.apps.InstalledAppsChangeWatcher
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
@@ -49,8 +50,13 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+/**
+ * S2750: open for exactly one subclass, the Robolectric test application in `src/test`, which grants
+ * the synthetic `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` before this class registers its receivers.
+ * Nothing in production extends it, and no behaviour here depends on the modifier.
+ */
 @HiltAndroidApp
-class FastMediaSorterApp : Application(), Configuration.Provider {
+open class FastMediaSorterApp : Application(), Configuration.Provider {
 
     companion object {
         // Static context for Glide ModelLoader factory (needed for Hilt EntryPoint access)
@@ -158,6 +164,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     // receiver toggles live on a settings screen that must not have to know a watch exists.
     @Inject
     lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
+
+    // S2745: package installs and updates reach a runtime receiver only, so this registration is what
+    // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
+    // here for the S2149 reason above - AppStartupInitializer's constructor sits at detekt's ceiling.
+    @Inject
+    lateinit var installedAppsChangeWatcher: InstalledAppsChangeWatcher
 
     @Inject
     lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
@@ -318,6 +330,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // Keep only the genuinely early startup work here. Heavier maintenance tasks move behind
         // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
         startupInitializer.get().initialize()
+
+        // S2745: one registerReceiver call, on the eager path because an install that happens before
+        // it lands stays invisible until the next start.
+        installedAppsChangeWatcher.start()
 
         // S2149: the watch raises phone-pinned streams, which only works while the phone republishes
         // the set as it changes. Started from here rather than from a screen because pinning happens

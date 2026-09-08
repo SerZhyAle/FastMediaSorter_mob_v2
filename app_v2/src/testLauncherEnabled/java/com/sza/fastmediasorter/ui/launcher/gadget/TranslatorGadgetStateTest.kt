@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 /**
@@ -71,5 +72,23 @@ class TranslatorGadgetStateTest {
             TranslatorState.TRANSLATED,
             decideTranslatorState(input = "...", translated = "", modelMissing = false, failed = false),
         )
+    }
+
+    /**
+     * S2732: the in-flight state says the engine has not answered yet, so only the view - which knows it
+     * just started a call - may set it. Deciding it from an outcome would leave the cell claiming to be
+     * working after the work finished.
+     */
+    @Test
+    fun `the in-flight state is never decided from an outcome`() {
+        val flags = listOf(false, true)
+        val cases = listOf("", "hello").flatMap { input ->
+            listOf(null, "", "привет").flatMap { translated ->
+                flags.flatMap { modelMissing ->
+                    flags.map { failed -> decideTranslatorState(input, translated, modelMissing, failed) }
+                }
+            }
+        }
+        cases.forEach { state -> assertNotEquals(TranslatorState.IN_PROGRESS, state) }
     }
 }

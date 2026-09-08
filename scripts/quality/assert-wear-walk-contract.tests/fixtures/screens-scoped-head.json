@@ -1,0 +1,13 @@
+{
+  "_comment": [
+    "S2723 fixture: the pre-edit copy of the contract, handed to the gate as -ScreenListBaseline so a",
+    "contract edit can be expressed without committing anything. Against screens-scoped.json the only",
+    "difference is the alpha entry's own name, so this edit touched alpha and touched nothing else -",
+    "BetaScreen stays a neighbour's unclassified screen. Against screens-scoped-missing.json the gamma",
+    "entry is new, so the entry this edit added is the one that must still be judged."
+  ],
+  "screens": [
+    { "id": "alpha", "name": "Alpha (pre-edit)", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": []
+}

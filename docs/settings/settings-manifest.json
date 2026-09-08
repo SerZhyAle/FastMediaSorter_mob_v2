@@ -2281,6 +2281,16 @@
       "titleUk": "Скидання налаштувань лаунчера"
     },
     {
+      "key": "btnWallpaperSourceChange",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "BUTTON",
+      "titleEn": "Choose",
+      "titleRu": "Выбрать",
+      "titleUk": "Вибрати"
+    },
+    {
       "key": "headerLauncherAppearance",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2429,16 +2439,6 @@
       "titleEn": "App to launch",
       "titleRu": "Программа для запуска",
       "titleUk": "Програма для запуску"
-    },
-    {
-      "key": "rowLauncherAnimationPalette",
-      "sectionId": "launcher",
-      "destination": "GENERAL",
-      "layout": "dialog_launcher_settings",
-      "kind": "DROPDOWN_ROW",
-      "titleEn": "Animation color palette",
-      "titleRu": "Палитра анимации",
-      "titleUk": "Палітра анімації"
     },
     {
       "key": "rowLauncherDensity",
@@ -2731,11 +2731,21 @@
       "titleUk": "Роздача Wi-Fi"
     },
     {
-      "key": "rowLauncherWallpaper",
+      "key": "rowLauncherUnitSystem",
       "sectionId": "launcher",
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "DROPDOWN_ROW",
+      "titleEn": "Unit system",
+      "titleRu": "Система единиц",
+      "titleUk": "Система одиниць"
+    },
+    {
+      "key": "rowLauncherWallpaper",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_settings",
+      "kind": "SELECTION_ROW",
       "titleEn": "Desktop wallpaper",
       "titleRu": "Заставка рабочего стола",
       "titleUk": "Заставка робочого столу"
@@ -2759,6 +2769,16 @@
       "titleEn": "Grid density",
       "titleRu": "Плотность сетки",
       "titleUk": "Щільність сітки"
+    },
+    {
+      "key": "rowWallpaperPalette",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Animation color palette",
+      "titleRu": "Палитра анимации",
+      "titleUk": "Палітра анімації"
     },
     {
       "key": "rowRecordGnssTrack",

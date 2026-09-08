@@ -34,6 +34,22 @@ class LauncherSignalRowViewTest {
     }
 
     @Test
+    fun `a wide row is bounded at five chips plus the counter`() {
+        assertEquals(6, signalSlots(capacity = 12))
+    }
+
+    @Test
+    fun `a row exactly at the bound is left alone`() {
+        assertEquals(6, signalSlots(capacity = 6))
+    }
+
+    @Test
+    fun `a narrow row keeps the width it measured`() {
+        // The ceiling must never raise a capacity: three chips fit, and five would overlap.
+        assertEquals(3, signalSlots(capacity = 3))
+    }
+
+    @Test
     fun `counts below capacity keep the half-share unchanged`() {
         // The row looked right whenever both halves fit; the fix must not move chips in that case.
         assertEquals(2, allocateStartGroupCount(chipCount = 3, startCapacity = 6, endCapacity = 2))

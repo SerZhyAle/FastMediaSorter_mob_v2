@@ -76,6 +76,14 @@ enum class TranslatorState {
 
     /** A translation is on screen. */
     TRANSLATED,
+
+    /**
+     * The engine is working on the current input.
+     *
+     * Set by the view directly and never returned by [decideTranslatorState]: the other five describe an
+     * outcome the engine has already produced, this one describes that there is no outcome yet.
+     */
+    IN_PROGRESS,
 }
 
 /**
@@ -143,6 +151,13 @@ private class TranslatorGadgetView(
             val pasted = clipboardText()
             binding.gadgetTranslatorInput.setText(pasted)
             translate(pasted)
+        }
+        // S2732: the editor action above never arrives on a multi-line input - TextView forces
+        // IME_FLAG_NO_ENTER_ACTION there, so the keyboard offers a newline and no action at all. This
+        // button is what makes typed text translatable; the listener stays for hardware keyboards.
+        binding.gadgetTranslatorTranslate.setOnClickListener {
+            Timber.d("S2732: translator cell translate button tapped")
+            translate(binding.gadgetTranslatorInput.text?.toString().orEmpty())
         }
         binding.gadgetTranslatorSwap.setOnClickListener { swapDirection() }
         binding.gadgetTranslatorDirection.setOnClickListener { openLanguageSettings() }
@@ -228,6 +243,9 @@ private class TranslatorGadgetView(
         val activeScope = scope ?: return
         modelMissing = false
         failed = false
+        // The engine checks the language pack before it translates, which is seconds on a cold cell.
+        // Without this line that wait is indistinguishable from a cell that ignored the tap.
+        renderState(TranslatorState.IN_PROGRESS)
         activeScope.launch {
             val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
             val (source, target) = effectivePair()
@@ -242,6 +260,7 @@ private class TranslatorGadgetView(
                 binding.gadgetTranslatorResult.text = translated
             }
             val state = decideTranslatorState(text, translated, modelMissing, failed)
+            Timber.d("S2732: translator cell state after engine call: %s", state)
             renderState(state)
         }
     }
@@ -272,6 +291,7 @@ private class TranslatorGadgetView(
             TranslatorState.PAIR_UNAVAILABLE -> R.string.launcher_translator_unavailable
             TranslatorState.FAILED -> R.string.launcher_translator_unavailable
             TranslatorState.TRANSLATED -> R.string.launcher_translator_attribution
+            TranslatorState.IN_PROGRESS -> R.string.launcher_translator_in_progress
         }
         binding.gadgetTranslatorState.setText(message)
         binding.gadgetTranslatorState.isVisible = true

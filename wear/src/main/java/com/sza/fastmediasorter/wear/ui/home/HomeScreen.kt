@@ -115,7 +115,14 @@ fun HomeScreen(
                     sections = uiState.sections,
                     columns = columns,
                     getFaviconTile = viewModel::getFaviconTile,
-                    onSectionClick = { section -> section.route?.let(navController::navigate) }
+                    // S2751: the predefined rows resolve through the same path the shortcut row
+                    // above uses. A catalogued section carries no address of its own any more - it is
+                    // addressed by its id, and one resolution path keeps the two entrances identical.
+                    onSectionClick = { section ->
+                        shortcutClickScope.launch {
+                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
+                        }
+                    }
                 )
 
                 item {
@@ -361,6 +368,9 @@ private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     HomeSectionId.RESOURCES,
     HomeSectionId.PHONE,
     HomeSectionId.LOCAL,
+    // S2509: OTHER rather than STREAM. This row is a program of this app, not a channel registered
+    // in it - giving it the stream tone would say the watch has a channel to play.
+    HomeSectionId.BROADCAST,
     HomeSectionId.APPS -> WearContentType.OTHER
 }
 

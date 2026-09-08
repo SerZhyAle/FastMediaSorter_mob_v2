@@ -3,8 +3,12 @@ package com.sza.fastmediasorter.wear.domain.model
 /**
  * Which transport is carrying the watch's network right now.
  *
- * Descriptive only. S1728 ADR-2: the transport name predicts capacity badly, so no decision is taken
- * from this value - the bandwidth figures on [WearNetworkChannel] are what the stream policy reads.
+ * S1728 ADR-2: the transport name predicts capacity badly, so no CAPACITY decision is taken from this
+ * value - the bandwidth figures on [WearNetworkChannel] are what the stream policy reads.
+ *
+ * S2550 added the one reading that is not about capacity: serving audio to a phone needs a socket on
+ * the watch's own LAN, which exists on [WIFI] and on nothing else, so there the kind is the fact
+ * itself rather than a proxy for one.
  */
 enum class WearNetworkChannelKind {
     WIFI,

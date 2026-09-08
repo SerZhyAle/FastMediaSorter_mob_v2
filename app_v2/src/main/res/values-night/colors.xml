@@ -85,6 +85,11 @@
     <color name="info_color">#FF4FC3F7</color>
     <color name="scrollbar_thumb">#FF757575</color>
 
+    <!-- S2738: the two literal charging colours lightened for the dark tray; the AC and USB tokens follow
+         success_color / info_color, which this file already overrides. -->
+    <color name="launcher_tray_battery_wireless">#FFCE93D8</color>    <!-- Purple 200 -->
+    <color name="launcher_tray_battery_charging">#FF4DB6AC</color>    <!-- Teal 300 -->
+
     <!-- Focus and hover colors for keyboard/mouse navigation (dark theme) -->
     <color name="item_focused">#FF1E3A5F</color>    <!-- Dark blue for focus -->
     <color name="item_hovered">#FF2A2A2A</color>    <!-- Subtle light hover for dark -->

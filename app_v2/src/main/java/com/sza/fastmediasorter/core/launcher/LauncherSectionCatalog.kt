@@ -22,6 +22,7 @@ object LauncherSectionCatalog {
         Section(LauncherCellCommand.SECTION_WIDGETS, R.string.launcher_section_widgets),
         Section(LauncherCellCommand.SECTION_RESOURCES, R.string.launcher_section_resources),
         Section(LauncherCellCommand.SECTION_APP_FUNCTIONS, R.string.launcher_section_app_functions),
+        Section(LauncherCellCommand.SECTION_SETTINGS, R.string.launcher_section_settings),
         Section(LauncherCellCommand.SECTION_ANDROID_APPS, R.string.launcher_section_android_apps),
         Section(LauncherCellCommand.SECTION_MAIN, R.string.launcher_section_main),
         Section(LauncherCellCommand.SECTION_GOOGLE, R.string.launcher_section_google),

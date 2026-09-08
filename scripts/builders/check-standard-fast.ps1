@@ -628,6 +628,25 @@ if ($gradleExit -ne 0) {
     }
     Write-Host "`nFast check failed." -ForegroundColor Red
     [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@("Fast check failed with exit code $gradleExit."))
+    # S2743: harvest the FAILING reports before this exit, while the build domain is still held. The
+    # green harvest below never runs on this path, so until now a red suite kept its evidence only in
+    # the shared build/test-results directory, which the next session's run wipes on entry (S2465).
+    # The console line is one frame; the XML carries the stack and its suppressed causes, and for a
+    # cross-test failure such as kotlinx-coroutines-test's UncaughtExceptionsBeforeTest that
+    # suppressed cause is the only place the real culprit is named.
+    if ($Mode -eq 'Unit' -and $script:unitTaskDir) {
+        $failHarvest = Save-FailedTestReport -ProjectRoot $projectRoot -Module $Module `
+            -TaskDir $script:unitTaskDir -Since $script:gradleStartedAt `
+            -RunId "$Module-$variant$BuildType-$logTimestamp-$PID-failed"
+        if ($failHarvest.Outcome -eq 'Harvested') {
+            $failMsg = "Failing test reports ($($failHarvest.Files) file(s)): $($failHarvest.Path)"
+        }
+        else {
+            $failMsg = $failHarvest.Message
+        }
+        Write-Host $failMsg -ForegroundColor Yellow
+        [System.IO.File]::AppendAllLines($tempLogPath, [string[]]@($failMsg))
+    }
     # S1786: auto-emit structured failure digest from the current run's log
     $bfdScript = Join-Path $PSScriptRoot "build-failure-digest.ps1"
     if (Test-Path $bfdScript) {

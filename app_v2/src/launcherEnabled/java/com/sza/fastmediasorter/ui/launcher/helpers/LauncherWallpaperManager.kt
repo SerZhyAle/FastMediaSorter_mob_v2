@@ -32,6 +32,18 @@ import java.io.File
  * S2076: the camera backdrop is the one mode that raises two views - the preview and the scrim above it,
  * which keeps icon labels legible over an arbitrary live scene.
  */
+/**
+ * S2730: the three user-tunable numbers of the branded backdrop, carried together.
+ *
+ * One value rather than three flows because the manager sets all three on the same view and a change to
+ * any of them re-seeds the same frame - three collectors would re-seed it three times for one edit.
+ */
+data class LauncherWallpaperTuning(
+    val intensity: Float,
+    val animationSpeed: Float,
+    val particleDensity: Float,
+)
+
 class LauncherWallpaperManager(
     private val lifecycleOwner: LifecycleOwner,
     private val imageLayer: ImageView,
@@ -61,9 +73,10 @@ class LauncherWallpaperManager(
      * camera layers are hidden, and the desktop degrades to the branded backdrop rather than leaving a black preview.
      */
     private fun startCameraIfPolicyAllows(cameraId: String) {
+        val mayAnimate = AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)
         timber.log.Timber.d("S2536: launcher camera backdrop level=${AnimationPolicy.level}")
-        timber.log.Timber.d("S2661: launcher camera backdrop level=${AnimationPolicy.level} policyAllows=${AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)}")
-        if (AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)) {
+        timber.log.Timber.d("S2661: launcher camera backdrop level=${AnimationPolicy.level} allows=$mayAnimate")
+        if (mayAnimate) {
             stopWaves()
             cameraLayer.isVisible = true
             cameraScrim.isVisible = true
@@ -84,6 +97,13 @@ class LauncherWallpaperManager(
         lifecycleOwner.collectOnLifecycle(viewModel.wallpaper) { wallpaper ->
             current = wallpaper
             render(wallpaper)
+        }
+        lifecycleOwner.collectOnLifecycle(viewModel.wallpaperTuning) { tuning ->
+            wavesLayer.backdropIntensity = tuning.intensity
+            wavesLayer.animationSpeedScale = tuning.animationSpeed
+            wavesLayer.particleDensityScale = tuning.particleDensity
+            timber.log.Timber.d("S2729: launcher backdrop intensity=${tuning.intensity}")
+            timber.log.Timber.d("S2730: backdrop tuning applied $tuning")
         }
         lifecycleOwner.collectOnLifecycle(viewModel.animationPalette) { paletteKey ->
             wavesLayer.palette = AudioWaveParticleView.AnimationColorPalette.fromKeyOrDefault(paletteKey)

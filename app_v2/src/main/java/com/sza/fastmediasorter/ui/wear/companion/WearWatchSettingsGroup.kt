@@ -68,13 +68,13 @@ private const val PANEL_AUTO_HIDE_MAX_SECONDS = 600f
 private val SETTINGS_HELP_ICON_SIZE = 24.dp
 private val SETTINGS_HELP_ICON_GLYPH_SIZE = 18.dp
 
-// S1781: the wear module's WearViewMode enum names, mirrored here as strings - this module does not
-// depend on that one, and the payload carries the name rather than an ordinal.
-private const val WEAR_VIEW_MODE_LIST = "LIST"
+// S1781/S2643: the label table for the wear module's WearViewMode names. The names themselves live
+// in the WearSettingsPayload companion beside the background modes and the colour schemes, so all
+// three vocabularies crossing this wire are declared once and in one form.
 private val WEAR_VIEW_MODES = listOf(
-    WEAR_VIEW_MODE_LIST to R.string.wear_settings_view_mode_list,
-    "GRID_2" to R.string.wear_settings_view_mode_grid2,
-    "GRID_3" to R.string.wear_settings_view_mode_grid3
+    WearSettingsPayload.VIEW_MODE_LIST to R.string.wear_settings_view_mode_list,
+    WearSettingsPayload.VIEW_MODE_GRID_2 to R.string.wear_settings_view_mode_grid2,
+    WearSettingsPayload.VIEW_MODE_GRID_3 to R.string.wear_settings_view_mode_grid3
 )
 
 private val BACKGROUND_MODES = listOf(
@@ -118,14 +118,14 @@ private val PREVIEW_EDGE = 120.dp
 internal fun WearWatchSettingsGroup(
     viewModel: WearSyncViewModel,
     state: WatchSettingsState,
-    expanded: Boolean,
-    onExpandedChange: (Boolean) -> Unit,
     onChanged: () -> Unit
 ) {
     Timber.d("S2169: companion watch-settings block drawn in canonical watch-menu order")
     Timber.d("S2482: companion watch settings split into separate collapsible groups")
 
-    var mediaTypesExpanded by remember { mutableStateOf(expanded) }
+    // S2643: each subgroup owns its own expansion since S2482 split the block into four; the outer
+    // expansion parameter that used to seed this one was never written by anyone and is gone.
+    var mediaTypesExpanded by remember { mutableStateOf(false) }
     var slideshowExpanded by remember { mutableStateOf(false) }
     var screenExpanded by remember { mutableStateOf(false) }
     var otherExpanded by remember { mutableStateOf(false) }
@@ -174,22 +174,7 @@ internal fun WearWatchSettingsGroup(
             expanded = screenExpanded,
             onExpandedChange = { screenExpanded = it }
         ) {
-            ViewModeRow(
-                tagPrefix = "wearViewMode",
-                label = stringResource(R.string.wear_settings_view_mode),
-                selected = state.viewMode
-            ) { picked ->
-                state.viewMode = picked
-                onChanged()
-            }
-            ViewModeRow(
-                tagPrefix = "wearFileListViewMode",
-                label = stringResource(R.string.wear_settings_file_list_view),
-                selected = state.fileListViewMode
-            ) { picked ->
-                state.fileListViewMode = picked
-                onChanged()
-            }
+            ViewModeRows(state = state, onChanged = onChanged)
             BackgroundModeControls(viewModel = viewModel)
             ColorSchemeControls(viewModel = viewModel)
             SwitchRow(
@@ -255,8 +240,8 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
     // S2093: the watch's Streams row, which had no phone control at all - the one-sided setting this
     // ticket exists to remove. Default true, matching the watch's stored default.
     var streamsSectionEnabled by mutableStateOf(watchSettings?.streamsSectionEnabled ?: true)
-    var viewMode by mutableStateOf(watchSettings?.viewMode ?: WEAR_VIEW_MODE_LIST)
-    var fileListViewMode by mutableStateOf(watchSettings?.fileListViewMode ?: WEAR_VIEW_MODE_LIST)
+    var viewMode by mutableStateOf(watchSettings?.viewMode ?: WearSettingsPayload.VIEW_MODE_LIST)
+    var fileListViewMode by mutableStateOf(watchSettings?.fileListViewMode ?: WearSettingsPayload.VIEW_MODE_LIST)
     var slideshowInterval by mutableStateOf(
         (watchSettings?.slideshowIntervalSeconds ?: DEFAULT_SLIDESHOW_INTERVAL_SECONDS).toFloat()
     )
@@ -372,15 +357,33 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     )
 }
 
-/** S2169: a subgroup heading, matching the caption style the view-mode rows already use. */
+/**
+ * The Screen subgroup's two view-mode rows.
+ *
+ * S2643: held apart to keep the group's body short enough for detekt. Only literals moved here - the
+ * BackgroundModeControls and ColorSchemeControls calls stayed in the root function, because
+ * assert-wear-settings-parity resolves a row to the FIRST invocation of the helper carrying its tag,
+ * so moving a call site would slide those rows down the file and break the order it compares against
+ * the watch menu map.
+ */
 @Composable
-private fun GroupCaption(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodySmall,
-        color = MaterialTheme.colorScheme.onSurfaceVariant
-    )
-    Spacer(Modifier.height(SPACING_TINY))
+private fun ViewModeRows(state: WatchSettingsState, onChanged: () -> Unit) {
+    ViewModeRow(
+        tagPrefix = "wearViewMode",
+        label = stringResource(R.string.wear_settings_view_mode),
+        selected = state.viewMode
+    ) { picked ->
+        state.viewMode = picked
+        onChanged()
+    }
+    ViewModeRow(
+        tagPrefix = "wearFileListViewMode",
+        label = stringResource(R.string.wear_settings_file_list_view),
+        selected = state.fileListViewMode
+    ) { picked ->
+        state.fileListViewMode = picked
+        onChanged()
+    }
 }
 
 /** The Media types subgroup's four allowed-type toggles, held apart to keep the group's body flat. */

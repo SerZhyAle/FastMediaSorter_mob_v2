@@ -51,7 +51,10 @@
                          Right where there is no id to aim at - most of Compose on the watch
     clip-check           report content that leaves the physical display shape. The shape is READ
                          FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
-                         phone use one rule and neither is hardcoded
+                         phone use one rule and neither is hardcoded. -Strict also fails on CLIPPED
+    font-scale           read the device's system font scale, or set it with -Scale <n>. A large
+                         font is a Play review criterion, so this is a measurement tool, not a
+                         convenience: 1.0 restores the platform default
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
     prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
@@ -125,6 +128,12 @@
         list needs scrolling, or the target simply is not on this screen and the name was guessed
         rather than read off `uidump`
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
+   10 - `clip-check -Strict`: at least one node is CLIPPED in THIS frame. Separate from 9 because
+        the two answer different questions - 9 is "no scroll position saves it", 10 is "a reviewer
+        photographing this frame sees a cut edge", which is the criterion Play actually applied
+        when it rejected 26090503 on `Watch shapes` a second time
+   11 - `font-scale`: refused to change a physical device's system setting without -Yes. WHICH
+        devices may be changed at all is docs/DEVICE_FLEET.md, never this script
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -247,6 +256,11 @@ param(
     # Default stays temp/scratch/; point it at temp/Sxxxx/ to file the artifact with its ticket.
     [string]$OutDir,
     [switch]$Json,
+    # clip-check: judge the frame the way a store reviewer does - a node that leaves the glass HERE
+    # fails, even though scrolling could recentre it.
+    [switch]$Strict,
+    # font-scale: the multiplier to write. Omit it to read the current one; 1.0 is the default.
+    [double]$Scale,
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
     # actually fire. It waives the confirmation only: device selection and package resolution still run.
@@ -566,7 +580,7 @@ function Get-DisplayShape {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell,font-scale' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
@@ -584,7 +598,8 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  uidump     dump the UI node tree: labels, ids, bounds, tap points (-Grep regex, -Ids)" -ForegroundColor White
         Write-Host "  tap-id     tap a node by its resource-id: -ResourceId <s> [-Exact] [-Index N] - preferred" -ForegroundColor White
         Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
-        Write-Host "  clip-check report content leaving the display shape (read from the device)" -ForegroundColor White
+        Write-Host "  clip-check report content leaving the display shape (read from the device); -Strict fails on CLIPPED" -ForegroundColor White
+        Write-Host "  font-scale read the system font scale, or set it with -Scale <n> (1.0 = default)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
@@ -993,6 +1008,37 @@ switch ($Verb.ToLowerInvariant()) {
         exit 0
     }
 
+    'font-scale' {
+        $id = Select-Device
+        $script:result.device = $id
+        # An untouched device has never written the key and answers 'null'; the platform reads that
+        # as the default, so report the number the UI would show rather than the literal - and never
+        # cast the literal, which throws and takes the whole verb down.
+        $readScale = {
+            $raw = ((Invoke-Adb $id @('shell', 'settings', 'get', 'system', 'font_scale') -AllowFail) -join '').Trim()
+            if ([string]::IsNullOrWhiteSpace($raw) -or $raw -eq 'null') { '1.0' } else { $raw }
+        }
+        $current = & $readScale
+        if (-not $PSBoundParameters.ContainsKey('Scale')) {
+            if ($Json) { Emit-Ok @{ id = $id; scale = [double]$current } }
+            Write-Host "FONT SCALE $current on $id" -ForegroundColor Green
+            exit 0
+        }
+        $isEmulator = $id -like 'emulator-*'
+        if (-not $isEmulator -and -not $Yes) {
+            Fail 11 ("refusing to change the system font scale of a physical device without -Yes. " +
+                "Whether THIS device may be changed at all is docs/DEVICE_FLEET.md - read it and match the serial first")
+        }
+        # Invariant culture on purpose: a Russian Windows interpolates 1.3 as "1,3", which the
+        # platform stores verbatim and then reads back as an unusable value.
+        $written = $Scale.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+        Invoke-Adb $id @('shell', 'settings', 'put', 'system', 'font_scale', $written) | Out-Null
+        $now = & $readScale
+        if ($Json) { Emit-Ok @{ id = $id; scale = [double]$now; previous = [double]$current; written = [double]$written } }
+        Write-Host "FONT SCALE $current -> $now on $id" -ForegroundColor Green
+        exit 0
+    }
+
     'clip-check' {
         $id = Select-Device
         $script:result.device = $id
@@ -1013,13 +1059,23 @@ switch ($Verb.ToLowerInvariant()) {
             }) | Out-Null
         }
         $offGlass = @($findings | Where-Object { $_.kind -eq 'OFF-GLASS' })
+        # Strict answers the reviewer's question, not the developer's: Play photographs one frame and
+        # calls a box that leaves the glass "cut off", where CLIPPED only means a scroll could save it.
+        $frameCut = @($findings | Where-Object { $_.kind -eq 'CLIPPED' })
         if ($Json) {
             # ToArray(), never @($findings): the array subexpression around a PSObject-wrapped
             # List[object] throws "Argument types do not match" and killed this -Json path (S2079).
-            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count }
-            $script:result.ok = ($offGlass.Count -eq 0)
-            $script:result.exitCode = if ($offGlass.Count -eq 0) { 0 } else { 9 }
-            if ($offGlass.Count -gt 0) { $script:result.reason = "$($offGlass.Count) node(s) off-glass" }
+            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count; frameCut = $frameCut.Count; strict = [bool]$Strict }
+            $script:result.exitCode = 0
+            if ($Strict -and $frameCut.Count -gt 0) {
+                $script:result.exitCode = 10
+                $script:result.reason = "$($frameCut.Count) node(s) cut by the glass in this frame"
+            }
+            if ($offGlass.Count -gt 0) {
+                $script:result.exitCode = 9
+                $script:result.reason = "$($offGlass.Count) node(s) off-glass"
+            }
+            $script:result.ok = ($script:result.exitCode -eq 0)
             $script:result | ConvertTo-Json -Compress -Depth 6
             exit $script:result.exitCode
         }
@@ -1035,12 +1091,22 @@ switch ($Verb.ToLowerInvariant()) {
             Write-Host "OK - this display reports no rounded corners, so nothing can leave its glass" -ForegroundColor Cyan
             exit 0
         }
-        if ($offGlass.Count -eq 0) {
-            Write-Host ("CLEAN - {0} leaf node(s) checked, none off-glass ({1} EDGE, {2} CLIPPED are normal scrolling)" -f `
-                $judged.Count, @($findings | Where-Object { $_.kind -eq 'EDGE' }).Count, @($findings | Where-Object { $_.kind -eq 'CLIPPED' }).Count) -ForegroundColor Cyan
+        if ($offGlass.Count -gt 0) {
+            Fail 9 "$($offGlass.Count) node(s) cannot fit on the glass at any scroll position"
+        }
+        if ($Strict -and $frameCut.Count -gt 0) {
+            Fail 10 ("{0} node(s) cut by the glass in this frame: {1}. Scrolling would recentre them, but a store reviewer judges the frame" -f `
+                $frameCut.Count, (($frameCut | ForEach-Object { $_.label }) -join ', '))
+        }
+        $edgeCount = @($findings | Where-Object { $_.kind -eq 'EDGE' }).Count
+        if ($Strict) {
+            Write-Host ("CLEAN (strict) - {0} leaf node(s) checked, none off-glass and none cut in this frame ({1} EDGE)" -f `
+                $judged.Count, $edgeCount) -ForegroundColor Cyan
             exit 0
         }
-        Fail 9 "$($offGlass.Count) node(s) cannot fit on the glass at any scroll position"
+        Write-Host ("CLEAN - {0} leaf node(s) checked, none off-glass ({1} EDGE, {2} CLIPPED are normal scrolling; -Strict judges those too)" -f `
+            $judged.Count, $edgeCount, $frameCut.Count) -ForegroundColor Cyan
+        exit 0
     }
 
     'text' {

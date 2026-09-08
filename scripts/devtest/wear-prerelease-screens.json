@@ -104,6 +104,16 @@
       "note": "A clean install shows the empty hint; a device with favourites shows a list instead, which a human judges."
     },
     {
+      "id": "broadcast",
+      "name": "Broadcast",
+      "label": "Broadcast",
+      "expect": "same Wi-Fi",
+      "screen": "WearBroadcastScreen",
+      "expectRes": "wear_broadcast_idle_caption",
+      "backAfter": 1,
+      "note": "S2509: the marker is the idle caption rather than the Start broadcast chip, because that chip is drawn only once RECORD_AUDIO is granted - on a clean sweep device the screen shows the grant chip instead, and a walk keyed on Start would fail for a permission rather than for a defect. Opening this screen starts nothing: the microphone is taken by a tap, not by arrival."
+    },
+    {
       "id": "apps",
       "name": "Apps",
       "label": "Apps",
@@ -239,6 +249,15 @@
       "backAfter": 1
     },
     {
+      "id": "settings-tile-targets",
+      "name": "Settings - Tile Targets",
+      "label": "Tile Targets",
+      "expect": "Resource Tile",
+      "screen": "TileTargetsSettingsScreen",
+      "expectRes": "wear_tile_resource_label",
+      "backAfter": 1
+    },
+    {
       "id": "settings-about",
       "name": "Settings - About",
       "label": "About",
@@ -257,10 +276,20 @@
       "note2": "S2555: measured on emulator-5554 2026-09-05 - the Resources screen carried only the empty hint, Sync from Phone and Back."
     },
     {
+      "screen": "AudioPlayerScreen",
+      "reason": "needs-seeded-content",
+      "note": "Reached by tapping a row captioned with a file name, so it needs seeded media with predictable names."
+    },
+    {
       "screen": "BodySensorScreen",
       "reason": "absent-from-this-flavor",
       "note": "S2457: WearAppCatalog.apps() gives this row isAvailable = offersBodySensorDiagnostics and then filters the list by it; StandardWearRestrictedCapabilities answers false, NoLegal answers true. This sweep judges the standard build, and the walk reaches a screen only by tapping its label in the Apps list, so there is no way in. Same shape as the AddNetworkSourceScreen exclusion above.",
       "note2": "S2621: the route stays registered in BOTH flavors on purpose - it is what an existing tile shortcut resolves to, and reaching it that way prints the withheld-capability sentence. That is an external entry point, not an in-app tap, so it does not make the screen walkable here."
+    },
+    {
+      "screen": "BrandFrameScreen",
+      "reason": "timed",
+      "note": "Splash that dismisses itself after a delay, shown before the navigation graph exists."
     },
     {
       "screen": "BrowseScreen",
@@ -269,14 +298,9 @@
       "note2": "S2555: measured on emulator-5554 2026-09-05 - the screen carried only the empty-library text and Back."
     },
     {
-      "screen": "AudioPlayerScreen",
-      "reason": "needs-seeded-content",
-      "note": "Reached by tapping a row captioned with a file name, so it needs seeded media with predictable names."
-    },
-    {
-      "screen": "VideoPlayerScreen",
-      "reason": "needs-seeded-content",
-      "note": "Same file-name row as the audio player."
+      "screen": "GameRulesScreen",
+      "reason": "gesture-only",
+      "note": "Behind a long press on the game board, and adb.ps1 has no long-press verb."
     },
     {
       "screen": "ImageViewerScreen",
@@ -284,29 +308,10 @@
       "note": "Same file-name row as the audio player."
     },
     {
-      "screen": "UnsupportedFileScreen",
-      "reason": "needs-seeded-content",
-      "note": "Reached only by opening a file whose mime type has no player, so it needs a seeded unsupported file."
-    },
-    {
-      "screen": "PhoneResourceScreen",
-      "reason": "needs-seeded-content",
-      "note": "Lists what the paired phone shares; a watch with no phone answering shows nothing to walk into."
-    },
-    {
-      "screen": "NetworkSourceMediaTypeScreen",
-      "reason": "needs-seeded-content",
-      "note": "Opened by tapping a configured network source, and a clean install has none."
-    },
-    {
-      "screen": "SyncResultScreen",
-      "reason": "needs-seeded-content",
-      "note": "Its route arguments are the counts a completed sync produces, so it needs a phone that answered."
-    },
-    {
-      "screen": "WearFolderWalkScreen",
-      "reason": "needs-seeded-content",
-      "note": "Walks local folders; a clean watch has none to open."
+      "screen": "ListenRequestScreen",
+      "reason": "not-a-destination",
+      "note": "S2550: hosted by ListenRequestActivity, which is not in the navigation graph and has no route in WearRoutes. The only way in is tapping the listening-request notification, and that notification is only posted when the paired phone asks - so the walk cannot open it from inside the app at all.",
+      "note2": "Deliberately unreachable by design rather than by omission: ADR-6 makes the notification tap the one platform exemption that lets a microphone foreground service start, so giving this screen an in-app route would defeat the mechanism it exists to satisfy. Its acceptance is the paired-device pass in Phase 05, not this sweep."
     },
     {
       "screen": "NetworkMonitorDetailScreen",
@@ -314,24 +319,14 @@
       "note": "Renders no string resource of its own - every line is measured data - so no token belongs to it that a walk could match."
     },
     {
-      "screen": "BrandFrameScreen",
-      "reason": "timed",
-      "note": "Splash that dismisses itself after a delay, shown before the navigation graph exists."
+      "screen": "NetworkMonitorSummaryScreen",
+      "reason": "not-a-destination",
+      "note": "Nested composable inside the network monitor screen."
     },
     {
-      "screen": "PermissionsScreen",
-      "reason": "pre-graph-gate",
-      "note": "Shown before the NavHost, and the sweep removes it with pm grant before the walk starts."
-    },
-    {
-      "screen": "TileTargetPickerScreen",
-      "reason": "arg-external",
-      "note": "Its argument is minted by a Wear tile outside the app; no in-app tap reaches it."
-    },
-    {
-      "screen": "GameRulesScreen",
-      "reason": "gesture-only",
-      "note": "Behind a long press on the game board, and adb.ps1 has no long-press verb."
+      "screen": "NetworkSourceMediaTypeScreen",
+      "reason": "needs-seeded-content",
+      "note": "Opened by tapping a configured network source, and a clean install has none."
     },
     {
       "screen": "OriginHomeScreen",
@@ -339,9 +334,50 @@
       "note": "Nested composable used by the Local and Phone home screens."
     },
     {
-      "screen": "NetworkMonitorSummaryScreen",
-      "reason": "not-a-destination",
-      "note": "Nested composable inside the network monitor screen."
+      "screen": "PermissionsScreen",
+      "reason": "pre-graph-gate",
+      "note": "Shown before the NavHost, and the sweep removes it with pm grant before the walk starts."
+    },
+    {
+      "screen": "PhoneResourceScreen",
+      "reason": "needs-seeded-content",
+      "note": "Lists what the paired phone shares; a watch with no phone answering shows nothing to walk into."
+    },
+    {
+      "screen": "SyncResultScreen",
+      "reason": "needs-seeded-content",
+      "note": "Its route arguments are the counts a completed sync produces, so it needs a phone that answered."
+    },
+    {
+      "screen": "TileTargetPickerScreen",
+      "reason": "arg-external",
+      "note": "Its argument is minted by a Wear tile outside the app; no in-app tap reaches it."
+    },
+    {
+      "screen": "UnsupportedFileScreen",
+      "reason": "needs-seeded-content",
+      "note": "Reached only by opening a file whose mime type has no player, so it needs a seeded unsupported file.",
+      "note2": "S2532: it is now reached only by a format the watch does not RENDER - a pdf or an epub. A seeded text file no longer arrives here at all; it opens in DocumentViewerScreen."
+    },
+    {
+      "screen": "DocumentViewerScreen",
+      "reason": "needs-seeded-content",
+      "note": "S2532: reached by tapping a row captioned with a document's file name, exactly like the audio player and the image viewer, so it needs seeded text content with predictable names."
+    },
+    {
+      "screen": "VideoPlayerScreen",
+      "reason": "needs-seeded-content",
+      "note": "Same file-name row as the audio player."
+    },
+    {
+      "screen": "WearBroadcastQrScreen",
+      "reason": "needs-seeded-content",
+      "note": "S2509: the content it needs is a LIVE broadcast. The QR chip that routes here is drawn only while the session state is Live, and the screen renders the descriptor that state carries - reached any other way it has nothing to encode and says so. Seeding it means opening the microphone and serving audio for the length of the sweep, which is a side effect a pre-release walk must not have."
+    },
+    {
+      "screen": "WearFolderWalkScreen",
+      "reason": "needs-seeded-content",
+      "note": "Walks local folders; a clean watch has none to open."
     },
     {
       "screen": "WearRefineMenuScreen",

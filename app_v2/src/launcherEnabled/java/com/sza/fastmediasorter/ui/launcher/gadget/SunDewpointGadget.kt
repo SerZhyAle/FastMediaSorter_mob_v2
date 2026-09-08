@@ -14,11 +14,16 @@ import com.sza.fastmediasorter.databinding.GadgetLauncherSunDewpointBinding
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.usecase.weather.GetLauncherWeatherUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalTime
@@ -36,6 +41,7 @@ import javax.inject.Inject
  */
 class SunDewpointGadget @Inject constructor(
     private val getWeather: Lazy<GetLauncherWeatherUseCase>,
+    private val settingsRepository: Lazy<SettingsRepository>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_SUN_DEWPOINT
@@ -53,13 +59,14 @@ class SunDewpointGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        SunDewpointGadgetView(container.context, param, getWeather.get())
+        SunDewpointGadgetView(container.context, param, getWeather.get(), settingsRepository.get())
 }
 
 private class SunDewpointGadgetView(
     context: Context,
     param: String?,
     private val getWeather: GetLauncherWeatherUseCase,
+    private val settingsRepository: SettingsRepository,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherSunDewpointBinding.inflate(LayoutInflater.from(context), this)
@@ -88,10 +95,17 @@ private class SunDewpointGadgetView(
         }
         // The weather cell's cadence, deliberately not a second one: two cells on the same city must
         // land on the same cached reading rather than each keeping the other's entry warm.
-        while (isActive) {
-            render(getWeather(place))
-            delay(REFRESH_INTERVAL_MS)
-        }
+        // S2716: restarted by a unit-system change for the reason the weather cell states - the dew
+        // point rides the same snapshot, so both cards must switch scale in the same moment.
+        settingsRepository.getSettings()
+            .map { it.unitSystem }
+            .distinctUntilChanged()
+            .collectLatest {
+                while (currentCoroutineContext().isActive) {
+                    render(getWeather(place))
+                    delay(REFRESH_INTERVAL_MS)
+                }
+            }
     }
 
     private fun render(result: WeatherResult) {

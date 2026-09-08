@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.PermMedia
@@ -25,6 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -61,6 +63,7 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S2755: settings grid large-font layout")
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -73,6 +76,7 @@ fun SettingsScreen(
                 SettingsRoutes.SLIDESHOW to stringResource(R.string.slideshow_settings),
                 SettingsRoutes.SCREEN to stringResource(R.string.screen_settings_title),
                 SettingsRoutes.OTHER to stringResource(R.string.settings_group_other),
+                SettingsRoutes.TILE_TARGETS to stringResource(R.string.wear_tile_targets_title),
                 SettingsRoutes.ABOUT to stringResource(R.string.about)
             )
             WearListColumn(
@@ -149,11 +153,15 @@ private fun ScalingLazyListScope.settingsItems(
                         )
                     }
                     Text(
-                        // Wrap, never ellipsize: strategic S2042, same rule S1949 already applied
-                        // to the settings screens themselves via WearSettingsToggleCell.
+                        // Wrap over ellipsis: strategic S2042, same rule S1949 already applied
+                        // to the settings screens themselves via WearSettingsToggleCell. S2755 keeps
+                        // the wrap and only names what happens once both lines are spent - the label
+                        // still wraps first, and a font scale that outgrows two lines now ends the
+                        // second one with an ellipsis instead of cutting a glyph in half.
                         text = label,
                         style = MaterialTheme.typography.caption3,
                         maxLines = MENU_LABEL_MAX_LINES,
+                        overflow = TextOverflow.Ellipsis,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -212,6 +220,7 @@ private fun iconFor(route: String) = when (route) {
     SettingsRoutes.SLIDESHOW -> Icons.Filled.Slideshow
     SettingsRoutes.SCREEN -> Icons.Filled.Settings
     SettingsRoutes.OTHER -> Icons.Filled.MoreHoriz
+    SettingsRoutes.TILE_TARGETS -> Icons.Filled.Dashboard
     SettingsRoutes.ABOUT -> Icons.Filled.Info
     else -> Icons.Filled.Settings
 }

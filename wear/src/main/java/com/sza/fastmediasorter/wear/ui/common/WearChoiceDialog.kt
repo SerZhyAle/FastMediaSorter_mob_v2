@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -72,6 +73,8 @@ fun <T> WearChoiceDialog(
                     gridFit = gridFit
                 )
             }
+            // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own.
+            PositionIndicator(listState)
         }
     }
 }

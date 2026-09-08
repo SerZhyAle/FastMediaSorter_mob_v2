@@ -10,6 +10,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
@@ -64,13 +65,17 @@ private enum class CalculatorMemoryAction(val marker: String) {
 /** S2152: history and close, gridded together so the menu ends in a row rather than in two chips. */
 private enum class CalculatorMenuUtility { HISTORY, CLOSE }
 
+/**
+ * @param listState hoisted so the calculator's Scaffold can point its indicator at this menu while the
+ * menu is what the wearer is scrolling - the keypad behind it is standing still (S2754).
+ */
 @Composable
 fun CalculatorMenuSheet(
     memoryOccupied: Boolean,
     actions: CalculatorMenuActions,
-    viewMode: WearViewMode
+    viewMode: WearViewMode,
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
-    val listState = rememberWearListState()
 
     BoxWithConstraints(
         modifier = Modifier

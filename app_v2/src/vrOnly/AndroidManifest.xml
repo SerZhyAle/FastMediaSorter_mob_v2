@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S2726: the vr-only manifest overlay. It cannot live in src/vr/AndroidManifest.xml, which noLegal
+    also mounts via manifest.srcFile - noLegal mounts src/launcherEnabled and legitimately holds both
+    permissions below, so a removal placed there would strip them from a build that uses them.
+    Injected by addStaticManifestFile in build.gradle.kts, the same way src/launcherEnabled is.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- S1454's closure, finished for vr: the only seam onto ContactsContract is
+         ContactSnapshotDataSource, reached solely from src/launcherEnabled, which vr does not mount
+         (SUPPORT_LAUNCHER=false, src/launcherDisabled instead). Declared in src/main and unreachable
+         here, so it is dropped rather than left declared, per canon invariant 13. -->
+    <uses-permission
+        android:name="android.permission.READ_CONTACTS"
+        tools:node="remove" />
+
+    <!-- S2726: no manifest in this project and no library declares this - the manifest merger adds it
+         implicitly (it carries no source in the vr blame report) because an old dependency on the
+         cloudSdk / playServicesEnabled classpath names no targetSdkVersion. The one consumer is
+         S1415's SIM indicator in src/launcherEnabled, absent here, so the merged vr manifest carried a
+         dangerous telephony permission nothing could ever request. Removing a uses-permission cannot
+         narrow device reach, and READ_PHONE_STATE implies no android.hardware.telephony (S1415). -->
+    <uses-permission
+        android:name="android.permission.READ_PHONE_STATE"
+        tools:node="remove" />
+
+</manifest>

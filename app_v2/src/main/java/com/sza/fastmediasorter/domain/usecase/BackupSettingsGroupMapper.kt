@@ -76,7 +76,10 @@ internal object BackupSettingsGroupMapper {
             allAppsSwipeRightPayload = launcher.allAppsSwipeRightPayload,
             screenCount = launcher.screenCount,
             weatherLastLocation = launcher.weatherLastLocation,
-            widgetBackdropAlpha = launcher.widgetBackdropAlpha
+            widgetBackdropAlpha = launcher.widgetBackdropAlpha,
+            wallpaperIntensity = launcher.wallpaperIntensity,
+            wallpaperAnimationSpeed = launcher.wallpaperAnimationSpeed,
+            wallpaperParticleDensity = launcher.wallpaperParticleDensity
         )
     }
 
@@ -145,6 +148,7 @@ internal object BackupSettingsGroupMapper {
         showNowPlayingPanel = settings.showNowPlayingPanel,
         secureSensitiveScreens = settings.secureSensitiveScreens,
         powerSavingTrigger = settings.powerSavingTrigger.name,
+        unitSystem = settings.unitSystem.name,
         allowSeparateWindow = settings.allowSeparateWindow,
         enableStatistics = settings.enableStatistics,
         backgroundAudioExitBehavior = settings.backgroundAudioExitBehavior.name
@@ -261,7 +265,16 @@ internal object BackupSettingsGroupMapper {
                     ?: current.allAppsSwipeRightPayload,
                 screenCount = backup.screenCount,
                 weatherLastLocation = backup.weatherLastLocation ?: current.weatherLastLocation,
-                widgetBackdropAlpha = backup.widgetBackdropAlpha
+                widgetBackdropAlpha = backup.widgetBackdropAlpha,
+                wallpaperIntensity = backup.wallpaperIntensity
+                    ?.let(AppSettings::coerceLauncherWallpaperIntensity)
+                    ?: current.wallpaperIntensity,
+                wallpaperAnimationSpeed = backup.wallpaperAnimationSpeed
+                    ?.let(AppSettings::coerceLauncherWallpaperAnimationSpeed)
+                    ?: current.wallpaperAnimationSpeed,
+                wallpaperParticleDensity = backup.wallpaperParticleDensity
+                    ?.let(AppSettings::coerceLauncherWallpaperParticleDensity)
+                    ?: current.wallpaperParticleDensity
             )
         )
     }
@@ -347,6 +360,7 @@ internal object BackupSettingsGroupMapper {
             showNowPlayingPanel = backup.showNowPlayingPanel,
             secureSensitiveScreens = backup.secureSensitiveScreens,
             powerSavingTrigger = backup.powerSavingTrigger.toEnumOr(powerSavingTrigger),
+            unitSystem = backup.unitSystem.toEnumOr(unitSystem),
             allowSeparateWindow = backup.allowSeparateWindow,
             enableStatistics = backup.enableStatistics,
             backgroundAudioExitBehavior = backup.backgroundAudioExitBehavior

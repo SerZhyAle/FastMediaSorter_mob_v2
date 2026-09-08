@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.service
 
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
+import com.sza.fastmediasorter.domain.model.WearListenAckPayload
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
@@ -54,11 +55,25 @@ object WearSyncEvents {
         MutableSharedFlow<WearFileTransferAck>(replay = 1, extraBufferCapacity = 4)
     val fileTransferAckFlow: SharedFlow<WearFileTransferAck> = _fileTransferAckFlow.asSharedFlow()
 
+    /**
+     * S2550: the watch's answer to a listen command - an address to play, or a reason it refused.
+     *
+     * Replays the last one because the answer waits on a tap on the watch and may arrive minutes
+     * later, by which time the screen that asked can have been recreated by a rotation; without the
+     * replay the address would be delivered to a collector that no longer exists and the session
+     * would look like the watch never answered.
+     */
+    private val _listenAckFlow =
+        MutableSharedFlow<WearListenAckPayload>(replay = 1, extraBufferCapacity = 4)
+    val listenAckFlow: SharedFlow<WearListenAckPayload> = _listenAckFlow.asSharedFlow()
+
     suspend fun emitAck(json: String) = _ackFlow.emit(json)
 
     suspend fun emitStreamTransferAck(ack: WearStreamTransferAck) = _streamTransferAckFlow.emit(ack)
 
     suspend fun emitFileTransferAck(ack: WearFileTransferAck) = _fileTransferAckFlow.emit(ack)
+
+    suspend fun emitListenAck(ack: WearListenAckPayload) = _listenAckFlow.emit(ack)
 
     suspend fun emitWatchSources(payload: WearSourcesExportPayload) =
         _watchSourcesReceivedFlow.emit(payload)

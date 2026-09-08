@@ -33,6 +33,7 @@ import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
+import com.sza.fastmediasorter.core.xr.VrLaunchSourceKind
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
 import com.sza.fastmediasorter.core.xr.VrLegendPreferences
 import com.sza.fastmediasorter.core.xr.VrMediaType
@@ -43,6 +44,7 @@ import com.sza.fastmediasorter.core.xr.input.DiagnosticXrInputExitHandler
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrNativeResult
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
 import com.sza.fastmediasorter.ui.player.StereoDetector
+import com.sza.fastmediasorter.ui.xr.helpers.HudAutoHideController
 import com.sza.fastmediasorter.ui.xr.helpers.HudCanvasRenderer
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
 import com.sza.fastmediasorter.ui.xr.helpers.HudInteractionDispatcher
@@ -140,7 +142,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
     // Three separate guesses used to disagree: the image branch accepted only jpg/jpeg/png, and
     // isVideoFilename knows only mp4/mkv, so webp/heic went to ExoPlayer and mov/webm never restarted
     // on session-ready. The caller reads the type off the domain model, so nothing has to guess.
-    private data class PlaylistItem(val file: File, val mediaType: VrMediaType)
+    // S1218: the item carries a source rather than a File - a live channel has no file to carry.
+    private data class PlaylistItem(val source: VrPlaybackSource, val mediaType: VrMediaType)
 
     private var mediaPlaylist: List<PlaylistItem> = emptyList()
     private var currentPlaylistIndex: Int = -1
@@ -158,29 +161,31 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             snapshotProvider = { if (resumeFromLastPosition) launchInput.snapshot else null },
             runOnUiThread = { block -> runOnUiThread(block) },
             isHostActive = { !isFinishing && !isDestroyed },
-            onSurfaceUnavailable = { hudRenderer.isPlaying = false },
-            onError = { file, shortErr -> hudBanner.queueError(file.name, shortErr) },
-            onTracksChanged = ::refreshTrackRowsAndRepaint,
-            onCues = { cueGroup -> subtitleController?.submit(cueGroup) },
-            onPlayerChanged = { p ->
-                if (::playbackController.isInitialized) playbackController.updatePlayer(p)
-                if (p != null) {
-                    hudRenderer.isPlaying = p.playWhenReady
-                    hudRenderer.volume = p.volume
-                    // S1239: one hook covers both playback entry points - the fresh start and the
-                    // deferred restart once the native session is ready. Duration is still unset
-                    // this early, so the band appears on the first tick that finds it.
-                    refreshSeekPosition()
-                    seekTicker.start()
-                } else {
-                    subtitleController?.submitText("")
-                    seekTicker.stop()
-                    // S1239: release() also runs on the preflight-failure path, which returns from
-                    // onCreate before proceedWithInitialization assigns the HUD - the same reason
-                    // updatePlayer above is guarded.
-                    if (::hudRenderer.isInitialized) hudRenderer.seekRowVisible = false
-                }
-            },
+            callbacks = VrDiagnosticPlaybackController.Callbacks(
+                onSurfaceUnavailable = { hudRenderer.isPlaying = false },
+                onError = { name, shortErr -> hudBanner.queueError(name, shortErr) },
+                onTracksChanged = ::refreshTrackRowsAndRepaint,
+                onCues = { cueGroup -> subtitleController?.submit(cueGroup) },
+                onPlayerChanged = { p ->
+                    if (::playbackController.isInitialized) playbackController.updatePlayer(p)
+                    if (p != null) {
+                        hudRenderer.isPlaying = p.playWhenReady
+                        hudRenderer.volume = p.volume
+                        // S1239: one hook covers both playback entry points - the fresh start and the
+                        // deferred restart once the native session is ready. Duration is still unset
+                        // this early, so the band appears on the first tick that finds it.
+                        refreshSeekPosition()
+                        seekTicker.start()
+                    } else {
+                        subtitleController?.submitText("")
+                        seekTicker.stop()
+                        // S1239: release() also runs on the preflight-failure path, which returns from
+                        // onCreate before proceedWithInitialization assigns the HUD - the same reason
+                        // updatePlayer above is guarded.
+                        if (::hudRenderer.isInitialized) hudRenderer.seekRowVisible = false
+                    }
+                },
+            ),
         )
     }
 
@@ -250,6 +255,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             onTick = ::refreshSeekPosition,
         )
     }
+
+    // S1281: the idle countdown. Its expiry runs [hideHudStrip], the very action the HIDE button
+    // performs, so the app has one hidden state and one way back rather than two.
+    private val hudAutoHide = HudAutoHideController(hudRepaintHandler) { hideHudStrip() }
 
     // S0964: the panel copy buffer is deliberately separate from VrTextureDecoder's direct buffer -
     // image decodes use that one from Dispatchers.IO while panel repaints run on main, and the buffer
@@ -453,12 +462,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
             override fun onHideClick() {
                 hapticBridge.triggerClickFeedback()
-                // S1232: the quad stops drawing and stops reacting natively. Nothing is repainted -
-                // there is no pill to leave behind, and the trigger is what brings it back.
-                runtime.setHudVisible(false)
-                // S1239: an invisible strip has no bar to advance; repainting it would be pure cost.
-                hudVisible = false
-                seekTicker.stop()
+                hideHudStrip()
             }
             override fun onHelpClick() {
                 hapticBridge.triggerClickFeedback()
@@ -537,8 +541,11 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // The image/video decision now comes from the carried type rather than an extension whitelist
         // that rejected webp and heic.
         val firstItem = mediaPlaylist.getOrNull(currentPlaylistIndex)
-        if (firstItem != null && firstItem.mediaType == VrMediaType.IMAGE) {
-            val firstFile = firstItem.file
+        // S1218: only a local file is decodable here; an IMAGE is never a live source, so the cast
+        // narrows rather than filters - the branch simply does not apply to a network item.
+        val firstSource = firstItem?.source as? VrPlaybackSource.LocalFile
+        if (firstItem != null && firstItem.mediaType == VrMediaType.IMAGE && firstSource != null) {
+            val firstFile = firstSource.file
             if (decodeImageToActivityBytes(firstFile)) return true
             if (launchInput.launchMode == VrLaunchMode.FILE_URI) {
                 Timber.w("Failed to decode initial launch image ${firstFile.name}, returning DecoderFailed")
@@ -620,7 +627,22 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         // are decided together rather than the index being assumed afterwards.
         val prepared: Pair<List<PlaylistItem>, Int> = when (launchInput.launchMode) {
             VrLaunchMode.DIAGNOSTIC_PLAYLIST -> scanMediaFiles() to 0
-            VrLaunchMode.FILE_URI -> {
+            // S1218: a live channel is resolved by kind, not by walking the file resolvers - it has
+            // nothing on disk to find and, per strategic §6 Q2, no neighbouring item to navigate to,
+            // so the carried-playlist resolver is skipped entirely rather than asked and refused.
+            VrLaunchMode.FILE_URI -> if (launchInput.sourceKind == VrLaunchSourceKind.NETWORK_STREAM) {
+                val address = runCatching { launchInput.requireFileUriString() }.getOrNull()
+                if (address.isNullOrBlank()) {
+                    Timber.w("DiagnosticXrActivity: network launch carries no address")
+                    returnDispatcher.deliverReturnAndFinish(
+                        VrLaunchResult.Unavailable(VrLaunchUnavailableReason.InvalidUri)
+                    )
+                    return false
+                }
+                val stream = VrPlaybackSource.NetworkStream(address, launchInput.displayTitle.orEmpty())
+                Timber.d("S1218: immersive network launch title=${stream.displayName} live=${stream.isLive}")
+                listOf(PlaylistItem(stream, launchInput.mediaType)) to 0
+            } else {
                 val launchFile = resolveSingleLaunchFile(launchInput)
                 if (launchFile == null) {
                     Timber.w("DiagnosticXrActivity: invalid launch fileUriString=%s", launchInput.fileUriString)
@@ -632,7 +654,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 // S1233: the caller may hand over the surrounding resource list so PREV/NEXT have
                 // somewhere to go. Absent or unusable, this stays the single-element list it was.
                 resolveCarriedPlaylist(launchInput)
-                    ?: (listOf(PlaylistItem(launchFile, launchInput.mediaType)) to 0)
+                    ?: (listOf(PlaylistItem(VrPlaybackSource.LocalFile(launchFile), launchInput.mediaType)) to 0)
             }
             // S0963: RESOURCE_BROWSE is owned by ImmersiveBrowseActivity; the gateway never routes it
             // here. Reject defensively rather than scanning the diagnostic test folder.
@@ -665,7 +687,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         input.playlist.forEachIndexed { index, entry ->
             val file = resolvePlaylistEntryFile(entry) ?: return@forEachIndexed
             if (index == input.playlistIndex) launchedIndex = items.size
-            items += PlaylistItem(file, entry.mediaType)
+            items += PlaylistItem(VrPlaybackSource.LocalFile(file), entry.mediaType)
         }
         // A list whose launched entry vanished (deleted between launch and here) would start playback
         // on an unrelated file, which is worse than not navigating at all.
@@ -729,11 +751,14 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             val isVideo = isVideoFilename(filename)
             val dir = if (isVideo) movieDir else pictureDir
             File(dir, filename).takeIf { file -> file.isFile }?.let { file ->
-                PlaylistItem(file, if (isVideo) VrMediaType.VIDEO else VrMediaType.IMAGE)
+                PlaylistItem(
+                    VrPlaybackSource.LocalFile(file),
+                    if (isVideo) VrMediaType.VIDEO else VrMediaType.IMAGE,
+                )
             }
         }
 
-        val names = playlist.joinToString { it.file.name }
+        val names = playlist.joinToString { it.source.displayName }
         Timber.d("DiagnosticXrActivity: VR test playlist contains ${playlist.size} files: $names")
         return playlist
     }
@@ -745,6 +770,19 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     /** S0964: true when this launch shows the interactive panel HUD instead of the banner. */
     private fun isPanelHudMode(): Boolean = launchInput.launchMode == VrLaunchMode.FILE_URI
+
+    /**
+     * S1218 (ADR-2): the live form of the HUD, decided in one place from the source rather than by
+     * scattered visibility calls. A live channel has no duration, no position and no neighbour, so
+     * the seek band and PREV/NEXT are not painted - and the controller stops resolving their
+     * bindings, because a control that is hidden but still answers is the defect S1278 recorded.
+     */
+    private fun applyLiveMode(source: VrPlaybackSource) {
+        val live = source.isLive
+        hudRenderer.transportNavVisible = !live
+        if (live) hudRenderer.seekRowVisible = false
+        if (::playbackController.isInitialized) playbackController.liveMode = live
+    }
 
     /**
      * S1223: the legend lists what S1232 and S1240 actually wired, in the order a newcomer meets
@@ -779,6 +817,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
      */
     private fun showLegend() {
         seekTicker.stop()
+        // S1281: the legend owns the HUD channel, so the strip is not the surface the user is
+        // ignoring - a countdown running under it would hide a strip that was never on screen.
+        hudAutoHide.cancel()
         legendController?.show()
     }
 
@@ -788,6 +829,34 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         renderPanelHud()
         refreshSeekPosition()
         seekTicker.start()
+        armHudAutoHide()
+    }
+
+    /**
+     * S1281: the single hide path. The HIDE button and the idle countdown must land in exactly the
+     * same state, because a second flavour of hidden would need a second way back and S1232 shipped
+     * only one - the controller summon.
+     */
+    private fun hideHudStrip() {
+        if (isFinishing || isDestroyed) return
+        Timber.d("S1281: hideHudStrip - strip going hidden, auto-hide countdown cancelled")
+        hudAutoHide.cancel()
+        // S1232: the quad stops drawing and stops reacting natively. Nothing is repainted - there
+        // is no pill to leave behind, and the trigger is what brings it back.
+        runtime.setHudVisible(false)
+        // S1239: an invisible strip has no bar to advance; repainting it would be pure cost.
+        hudVisible = false
+        seekTicker.stop()
+    }
+
+    /**
+     * S1281: armed only where the strip is genuinely on screen and owns the HUD channel - the
+     * banner modes have no strip to hide, and a hidden one must not re-arm itself.
+     */
+    private fun armHudAutoHide() {
+        if (!isPanelHudMode() || !hudVisible) return
+        Timber.d("S1281: armHudAutoHide - idle countdown armed for the visible strip")
+        hudAutoHide.arm()
     }
 
     /**
@@ -802,6 +871,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         renderPanelHud()
         refreshSeekPosition()
         seekTicker.start()
+        armHudAutoHide()
     }
 
     /** S1271: strip quad geometry with the session's size setting applied. */
@@ -822,6 +892,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         val controller = settingsController ?: return
         if (controller.dismiss()) return
         seekTicker.stop()
+        // S1281: same reason as the legend - the panel is modal over the strip, so the countdown
+        // stands down until [restoreStripAfterSettings] re-arms it.
+        hudAutoHide.cancel()
         refreshSettingsPanelModel()
         controller.show()
     }
@@ -881,6 +954,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         override fun onLayoutCycle(step: Int) {
             hapticBridge.triggerClickFeedback()
             layoutOverride = cycleRing(LAYOUT_RING, layoutOverride, step)
+            Timber.d("S1217: manual layout override cycled to $layoutOverride (step $step)")
             reapplyRenderConfig()
             refreshSettingsPanelModel()
             settingsController?.requestRepaint()
@@ -1095,6 +1169,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
         if (current.layout != StereoLayout.MONO) return
         lifecycleScope.launch(Dispatchers.IO) {
             val fromBoxes = stereoConfigResolver.resolveFromMetadata(file.absolutePath)
+            Timber.d("S1217: metadata pass on ${file.name} -> $fromBoxes (filename said $current)")
             if (fromBoxes == null || fromBoxes.layout == StereoLayout.MONO) return@launch
             withContext(Dispatchers.Main) { applyStereoFromMetadata(fromBoxes, file.name) }
         }
@@ -1115,26 +1190,30 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     private fun loadCurrentMediaItem() {
         val item = mediaPlaylist[currentPlaylistIndex]
-        val file = item.file
-        Timber.d("Loading media item at index $currentPlaylistIndex: ${file.name}")
+        val source = item.source
+        val name = source.displayName
+        Timber.d("Loading media item at index $currentPlaylistIndex: $name")
 
-        hudRenderer.currentFilename = file.name
+        hudRenderer.currentFilename = name
         playbackCtrl.release()
 
-        val config = stereoConfigResolver.resolve(file.name)
+        val config = stereoConfigResolver.resolve(name)
         applyRenderConfig(config)
         hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
+        applyLiveMode(source)
         if (isPanelHudMode()) {
             refreshTrackRowsAndRepaint()
         } else {
-            hudBanner.queueFilename(file.name, config.projection, config.layout)
+            hudBanner.queueFilename(name, config.projection, config.layout)
         }
-        if (item.mediaType == VrMediaType.VIDEO) {
-            correctStereoFromMetadata(file, config)
+        if (item.mediaType == VrMediaType.VIDEO && source is VrPlaybackSource.LocalFile) {
+            // A live source has no container to read side-by-side metadata out of before playing.
+            correctStereoFromMetadata(source.file, config)
         }
 
         // S1233: the carried type decides, not the extension - see the PlaylistItem note.
-        if (item.mediaType == VrMediaType.IMAGE) {
+        if (item.mediaType == VrMediaType.IMAGE && source is VrPlaybackSource.LocalFile) {
+            val file = source.file
             runtime.setVideoSurfaceEnabled(false)
             // S0290 Phase 11: decode off-main via the Glide pool (VrTextureDecoder). queueFrame stays on
             // Dispatchers.IO - it copies into the native pendingFrameData vector; the decoder returns the
@@ -1164,8 +1243,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             }
         } else {
             if (sessionReady) {
-                if (!playbackCtrl.start(file)) {
-                    hudBanner.queueError(file.name, "Playback Start Failed")
+                if (!playbackCtrl.start(source)) {
+                    hudBanner.queueError(name, "Playback Start Failed")
                 }
             } else {
                 Timber.d("DiagnosticXrActivity: deferring video playback until native session is ready")
@@ -1198,6 +1277,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 // resuming the tick so the handle is never seen in its pre-hide position.
                 refreshSeekPosition()
                 seekTicker.start()
+                // S1281: a summoned strip starts its own countdown, so the summon that was meant
+                // to reach one control does not leave the strip standing for the rest of the film.
+                armHudAutoHide()
                 return@runOnUiThread
             }
             // S1240: seeking is about the item already playing, so it is not gated on the playlist
@@ -1247,6 +1329,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 settingsDispatcher.dispatch(uvX, uvY, isHover, isClick)
                 return@runOnUiThread
             }
+            // S1281: the ray is on the strip, so the user is still using it - push the deadline
+            // back. poke() is a no-op unless the countdown is armed, so the hidden and modal cases
+            // need no guard here.
+            hudAutoHide.poke()
             interactionDispatcher.dispatch(uvX, uvY, isHover, isClick)
         }
     }
@@ -1311,6 +1397,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onPause() {
         super.onPause()
+        // S1281: no Handler message may outlive the session - its expiry would call into a runtime
+        // that shutdownRenderThreadSync has already torn down.
+        hudAutoHide.cancel()
         // S0290 Phase 09 + owner round 3 (2026-05-22): order matters. Release ExoPlayer FIRST so it lets go of the Surface it received from runtime.getVideoSurface(); only then tear down the native side which destroys the underlying SurfaceTexture / GL texture. The reverse order caused VideoFrameReleaseHelper to call Surface.setFrameRate on an already-released Surface (logcat: "Surface has already been released") and MediaCodec.flush on a Released codec at every immersive exit.
         // S1239: stop the tick before the player goes away, so no repaint outlives it.
         seekTicker.stop()
@@ -1320,6 +1409,7 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
 
     override fun onDestroy() {
         // onPause normally already tore everything down (Phase 09); this is the belt-and-braces path for the rare process-death-after-pause case where onPause did not get to finish. Same ordering rule: ExoPlayer release before native shutdown.
+        hudAutoHide.cancel()
         seekTicker.stop()
         playbackCtrl.release()
         shutdownRenderThreadSync(SHUTDOWN_TIMEOUT_MS)
@@ -1395,8 +1485,9 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             sessionReady = true
             if (mediaPlaylist.isEmpty() || currentPlaylistIndex !in mediaPlaylist.indices) return@runOnUiThread
             val item = mediaPlaylist[currentPlaylistIndex]
-            val file = item.file
-            val config = stereoConfigResolver.resolve(file.name)
+            val source = item.source
+            val name = source.displayName
+            val config = stereoConfigResolver.resolve(name)
             // A native session that has just become ready owns a freshly created 1x1 placeholder
             // HUD texture, and the prior session's shutdown cleared any pending HUD bytes. Re-queue
             // the current item's filename banner here for EVERY media type so a fresh session always
@@ -1405,7 +1496,8 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
             // re-run when a session is recreated, leaving the placeholder visible on re-entry.
             applyRenderConfig(config)
             hudRenderer.depthRowVisible = config.layout != StereoLayout.MONO
-            hudRenderer.currentFilename = file.name
+            hudRenderer.currentFilename = name
+            applyLiveMode(source)
             // S0964: the quad-size override persists in native state across sessions within one
             // process, so EVERY mode must (re)assert its own size here - a diagnostic launch after
             // a VR Cinema one would otherwise stretch the banner onto the panel-sized quad.
@@ -1413,13 +1505,13 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 applyStripQuadGeometry()
             } else {
                 runtime.setHudQuadSize(BANNER_QUAD_WIDTH_M, BANNER_QUAD_HEIGHT_M, BANNER_QUAD_OFFSET_Y_M)
-                hudBanner.queueFilename(file.name, config.projection, config.layout)
+                hudBanner.queueFilename(name, config.projection, config.layout)
             }
             // S1233: was isVideoFilename, which knows only mp4/mkv - a .webm or .mov item silently
             // never restarted when a recreated session became ready.
             if (item.mediaType == VrMediaType.VIDEO) {
-                if (!playbackCtrl.start(file)) {
-                    hudBanner.queueError(file.name, "Playback Start Failed")
+                if (!playbackCtrl.start(source)) {
+                    hudBanner.queueError(name, "Playback Start Failed")
                 }
             }
             if (isPanelHudMode()) {
@@ -1427,6 +1519,10 @@ class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
                 // track rows populate later via onTracksChanged.
                 refreshTrackRows()
                 renderPanelHud()
+                // S1281: the strip is on screen from session entry, so its countdown starts here
+                // rather than only after a restore. A first-entry legend cancels it and
+                // [restoreStripAfterLegend] arms it again.
+                armHudAutoHide()
                 maybeShowLegendOnFirstEntry()
             }
         }

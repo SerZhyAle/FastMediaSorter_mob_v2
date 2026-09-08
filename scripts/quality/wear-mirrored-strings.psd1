@@ -45,6 +45,15 @@
             Mode   = 'Mirrored'
             Reason = ''
         },
+        # S2550: one session, ended from either end, and the two controls stop the same thing. The
+        # owner may be looking at the phone or at the watch when the microphone goes off, so a
+        # different wording on each side would read as two features rather than one.
+        @{
+            Phone  = 'wear_listen_stop'
+            Watch  = 'wear_listen_stop'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
         @{
             Phone  = 'wear_settings_sync_button'
             Watch  = 'wear_settings_sync_button'

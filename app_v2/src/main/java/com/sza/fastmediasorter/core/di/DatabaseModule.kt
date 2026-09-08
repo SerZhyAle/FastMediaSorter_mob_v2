@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_52_53
 import com.sza.fastmediasorter.data.local.db.MIGRATION_53_54
 import com.sza.fastmediasorter.data.local.db.MIGRATION_54_55
 import com.sza.fastmediasorter.data.local.db.MIGRATION_55_56
+import com.sza.fastmediasorter.data.local.db.MIGRATION_56_57
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -52,6 +53,7 @@ import com.sza.fastmediasorter.data.local.db.SensorSeriesDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
+import com.sza.fastmediasorter.data.local.db.StreamCollectionDao
 import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
 import com.sza.fastmediasorter.data.local.db.StreamingCacheDao
 import com.sza.fastmediasorter.data.local.db.ThumbnailCacheDao
@@ -148,7 +150,8 @@ object DatabaseModule {
                 MIGRATION_52_53,
                 MIGRATION_53_54,
                 MIGRATION_54_55,
-                MIGRATION_55_56
+                MIGRATION_55_56,
+                MIGRATION_56_57
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
@@ -190,6 +193,12 @@ object DatabaseModule {
     @Singleton
     fun provideStreamUserStateDao(database: AppDatabase): StreamUserStateDao {
         return database.streamUserStateDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideStreamCollectionDao(database: AppDatabase): StreamCollectionDao {
+        return database.streamCollectionDao()
     }
 
     @Provides

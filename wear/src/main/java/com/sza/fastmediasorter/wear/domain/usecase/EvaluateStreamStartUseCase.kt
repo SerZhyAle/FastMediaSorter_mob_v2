@@ -26,11 +26,32 @@ class EvaluateStreamStartUseCase @Inject constructor(
     private val monitor: WearNetworkChannelMonitor
 ) {
 
-    operator fun invoke(mediaKind: String): StreamChannelVerdict {
+    /** The playback side: may this watch open the stream it is about to play? */
+    operator fun invoke(mediaKind: String): StreamChannelVerdict =
+        evaluate(floorFor(mediaKind), requireWifi = false)
+
+    /**
+     * S2550 pillar E, the serving side: is this watch ready to hand its audio to a phone?
+     *
+     * The transport is read here and nowhere else. S1728 ADR-2 established that the transport name
+     * predicts capacity badly, and that still holds - this is not a capacity question. What the phone
+     * has to reach is a socket on the watch's own LAN, which exists on Wi-Fi and on nothing else, so
+     * the kind is the fact rather than a proxy for one.
+     *
+     * The Wi-Fi test precedes the bandwidth floors deliberately: a Bluetooth-carried link declares
+     * roughly 32 kbps and would fail them too, reporting a narrow channel to an owner whose actual
+     * problem is that Wi-Fi is off.
+     */
+    fun forServing(): StreamChannelVerdict = evaluate(AUDIO_FLOOR_KBPS, requireWifi = true)
+
+    private fun evaluate(floorKbps: Int, requireWifi: Boolean): StreamChannelVerdict {
         val channel = monitor.channel.value
         return when {
             channel.kind == WearNetworkChannelKind.NONE ->
                 StreamChannelVerdict.Refuse(StreamChannelReason.NO_LINK)
+
+            requireWifi && channel.kind != WearNetworkChannelKind.WIFI ->
+                StreamChannelVerdict.Refuse(StreamChannelReason.NOT_ON_WIFI)
 
             !channel.hasBandwidthEstimate ->
                 StreamChannelVerdict.AllowDegraded(StreamChannelReason.BANDWIDTH_UNKNOWN)
@@ -38,7 +59,7 @@ class EvaluateStreamStartUseCase @Inject constructor(
             !channel.isValidated ->
                 StreamChannelVerdict.AllowDegraded(StreamChannelReason.UNVALIDATED_LINK)
 
-            (channel.downstreamKbps ?: 0) >= floorFor(mediaKind) ->
+            (channel.downstreamKbps ?: 0) >= floorKbps ->
                 StreamChannelVerdict.Allow
 
             else ->

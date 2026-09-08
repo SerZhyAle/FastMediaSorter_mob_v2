@@ -34,6 +34,9 @@ data class AppSettings(
     // stops holding the screen on its own. The default matches yesterday's behaviour on a charged
     // phone; it only starts acting below 20 percent.
     val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT,
+    // S2716: the measurement system every unit-bearing surface reads. Metric by default, so an install
+    // that never opens the setting keeps showing Celsius.
+    val unitSystem: UnitSystem = UnitSystem.DEFAULT,
     val preventSleep: Boolean = true,
     // S0438: dependent player-scoped keep-screen-on. Effective only when preventSleep is off;
     // when preventSleep is on, this is logically treated as on and hidden in the settings UI.
@@ -452,6 +455,9 @@ data class AppSettings(
     val launcherWallpaperMode: String get() = launcher.wallpaperMode
     val launcherWallpaperImagePath: String get() = launcher.wallpaperImagePath
     val launcherWallpaperCameraId: String get() = launcher.wallpaperCameraId
+    val launcherWallpaperIntensity: Float get() = launcher.wallpaperIntensity
+    val launcherWallpaperAnimationSpeed: Float get() = launcher.wallpaperAnimationSpeed
+    val launcherWallpaperParticleDensity: Float get() = launcher.wallpaperParticleDensity
     val allAppsSortOrder: String get() = launcher.allAppsSortOrder
     val allAppsSortDescending: Boolean get() = launcher.allAppsSortDescending
     val launcherScreenBlackoutTimeoutSeconds: Int get() = launcher.screenBlackoutTimeoutSeconds
@@ -508,6 +514,73 @@ data class AppSettings(
          */
         fun snapLauncherWidgetBackdropAlpha(value: Float): Float =
             LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS.minBy { option -> abs(option - value) }
+
+        /**
+         * S2730: how strongly the branded desktop backdrop is drawn, 1.0 being the full-strength
+         * animation the audio player visualizer still uses.
+         *
+         * The default carries the two dimming steps taken against the original backdrop - 30% off in
+         * S2544, a further 20% off what remained in S2729 - which lived in `LauncherWallpaperManager`
+         * as a constant until this ticket made the value user-settable. An install that never opens the
+         * new screen therefore keeps exactly the look S2729 shipped.
+         */
+        const val DEFAULT_LAUNCHER_WALLPAPER_INTENSITY: Float = 0.56f
+
+        /** S2730: multiplier on the backdrop's per-frame time advance, 1.0 being the shipped speed. */
+        const val DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED: Float = 1.0f
+
+        /** S2730: multiplier on the backdrop's seeded particle count, 1.0 being the shipped count. */
+        const val DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY: Float = 1.0f
+
+        /**
+         * S2730: the intensity a slider may write.
+         *
+         * The floor is above zero because a fully transparent backdrop is what the `NONE` wallpaper mode
+         * already means - a slider that reaches it would give the same state two disagreeing controls.
+         */
+        val LAUNCHER_WALLPAPER_INTENSITY_RANGE = 0.15f..1.0f
+
+        /**
+         * S2730: the animation speed a slider may write.
+         *
+         * Capped at twice the shipped speed: the strategic spec forbids opening a combination more
+         * expensive to draw than today's, and the frame cost rises with the time advance.
+         */
+        val LAUNCHER_WALLPAPER_ANIMATION_SPEED_RANGE = 0.25f..2.0f
+
+        /**
+         * S2730: the particle density a slider may write.
+         *
+         * Zero is allowed and means no particles at all - the waves alone - while the ceiling is the
+         * shipped count, so the slider can only ever make the frame cheaper.
+         */
+        val LAUNCHER_WALLPAPER_PARTICLE_DENSITY_RANGE = 0.0f..1.0f
+
+        /** S2730: the intensity actually applied, whatever a stored or newer value claims. */
+        fun coerceLauncherWallpaperIntensity(value: Float): Float =
+            coerceWallpaperValue(value, LAUNCHER_WALLPAPER_INTENSITY_RANGE, DEFAULT_LAUNCHER_WALLPAPER_INTENSITY)
+
+        /** S2730: the animation speed actually applied, whatever a stored or newer value claims. */
+        fun coerceLauncherWallpaperAnimationSpeed(value: Float): Float = coerceWallpaperValue(
+            value,
+            LAUNCHER_WALLPAPER_ANIMATION_SPEED_RANGE,
+            DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+        )
+
+        /** S2730: the particle density actually applied, whatever a stored or newer value claims. */
+        fun coerceLauncherWallpaperParticleDensity(value: Float): Float = coerceWallpaperValue(
+            value,
+            LAUNCHER_WALLPAPER_PARTICLE_DENSITY_RANGE,
+            DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
+        )
+
+        /**
+         * The non-finite case is checked first because `coerceIn` returns NaN unchanged, and a NaN that
+         * reaches a Material slider crashes it on the next measure pass. A backup file is plain JSON, so
+         * a NaN or an infinity is one hand-edit away.
+         */
+        private fun coerceWallpaperValue(value: Float, range: ClosedFloatingPointRange<Float>, fallback: Float) =
+            if (value.isFinite()) value.coerceIn(range) else fallback
 
         /** S1741: preset screen blackout timeout seconds for launcher settings selector (0 = Off). */
         val LAUNCHER_SCREEN_TIMEOUT_PRESETS = listOf(0, 5, 15, 30, 60, 300)

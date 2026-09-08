@@ -2566,7 +2566,7 @@
     <string name="launcher_signal_scheduled_ops">定时任务正在运行</string>
     <string name="launcher_signal_duplicate_scan">正在查找重复项</string>
     <string name="launcher_signal_network_sync">正在同步网络文件夹</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">当前活动信号</string>
     <string name="launcher_settings_group_taskbar">任务栏</string>
     <string name="launcher_settings_group_top_bar">顶部栏</string>

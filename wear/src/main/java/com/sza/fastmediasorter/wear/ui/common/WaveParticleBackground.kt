@@ -60,7 +60,9 @@ private const val WAVE_HUE_STEP_MIN = 8f
 private const val WAVE_HUE_STEP_SPAN = 12f
 private const val WAVE_SATURATION = 0.80f
 private const val WAVE_LIGHTNESS = 0.65f
-private const val WAVE_ALPHA = 0.49f
+
+// S2544 took 30 % off the original 0.70f; S2729 takes a further 20 % off what that left.
+private const val WAVE_ALPHA = 0.39f
 
 private const val PARTICLE_RADIUS_MIN = 1f
 private const val PARTICLE_RADIUS_MAX = 6f
@@ -69,7 +71,7 @@ private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
 private const val PARTICLE_RANDOM_SPREAD = 0.28f
 private const val PARTICLE_SATURATION = 0.90f
 private const val PARTICLE_LIGHTNESS = 0.70f
-private const val PARTICLE_ALPHA = 0.60f
+private const val PARTICLE_ALPHA = 0.48f
 private const val COUNTER_DRIFT_CHANCE = 0.18f
 private const val COUNTER_DRIFT_SIGN = -0.35f
 

@@ -65,8 +65,10 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionActionsManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSensorPermissionManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStatusStripManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherStreamActionManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarCallbacks
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarPlacementManager
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarStripLocator
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTrayManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperManager
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
@@ -74,6 +76,7 @@ import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.BlackScreenOverlayManager
 import com.sza.fastmediasorter.ui.player.helpers.SystemBarsManager
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
+import com.sza.fastmediasorter.ui.settings.LauncherWallpaperSettingsDialogFragment
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
@@ -107,6 +110,10 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
     /** S2384: set by the double tap while its ACTION_DOWN is still being dispatched. */
     private var screenOffTakenByDoubleTap = false
+
+    // S2737: null until the policy has been applied once, which is also the point the binding is safe to
+    // touch - the re-assert on focus return reads it and must not run before that first pass.
+    private var statusBarHiddenByPolicy: Boolean? = null
 
     @Inject
     lateinit var gadgetRegistry: LauncherGadgetRegistry
@@ -221,6 +228,11 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     )
 
     private lateinit var taskbarManager: LauncherTaskbarManager
+
+    // S2728: asked on every ACTION_DOWN, so it holds its own Rect rather than allocating one per touch.
+    private val taskbarStripLocator: LauncherTaskbarStripLocator by lazy {
+        LauncherTaskbarStripLocator(binding.launcherTaskbar)
+    }
 
     private lateinit var placementManager: LauncherTaskbarPlacementManager
 
@@ -459,14 +471,16 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         taskbarManager = LauncherTaskbarManager(
             lifecycleOwner = this,
             binding = binding.launcherTaskbar,
-            onCommand = { viewModel.run(it) },
-            onStartClick = { modalSurfaces.showStartMenu() },
-            onAllAppsClick = { modalSurfaces.showAllApps() },
-            onPinRecent = { viewModel.pinRecentToTaskbar(it) },
-            onRemoveRecent = { viewModel.removeRecentCommand(it) },
-            onAddPin = { addFlowManager.openPinAppPicker() },
-            onRemovePin = { viewModel.removePin(it) },
-            onRecentsCapacity = { viewModel.recentsCapacity = it },
+            callbacks = LauncherTaskbarCallbacks(
+                onCommand = { viewModel.run(it) },
+                onStartClick = { modalSurfaces.showStartMenu() },
+                onAllAppsClick = { modalSurfaces.showAllApps() },
+                onPinRecent = { viewModel.pinRecentToTaskbar(it) },
+                onRemoveRecent = { viewModel.removeRecentCommand(it) },
+                onAddPin = { addFlowManager.openPinAppPicker() },
+                onRemovePin = { viewModel.removePin(it) },
+                onRecentsCapacity = { viewModel.recentsCapacity = it },
+            ),
         )
         placementManager = LauncherTaskbarPlacementManager(
             lifecycleOwner = this,
@@ -553,6 +567,13 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             isGestureStartAllowed = { event ->
                 !binding.launcherDesktop.hasGadgetAtScreenPosition(event.rawX, event.rawY)
             },
+            // S2728: the taskbar strips scroll on the same axis the desktop pages on, so a swipe that
+            // started inside one of them belongs to the strip. S2534's admission elsewhere is untouched.
+            isHorizontalSwipeAllowedAtStart = { event ->
+                val onStrip = taskbarStripLocator.isTouchOnScrollingStrip(event.rawX, event.rawY)
+                Timber.d("S2728: horizontal swipe admission at start (onStrip=%b)", onStrip)
+                !onStrip
+            },
             onSwipe = { direction ->
                 Timber.d("S2534: desktop swipe passed gesture admission (direction=%s)", direction)
                 val settings = viewModel.launcherDesktopSettings.value
@@ -619,7 +640,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
                 },
                 // S1466: the same picker, told which square the user pointed at (owner's ruling 2026-08-17).
                 addItemAtSlot = { row, col -> addFlowManager.openContentPicker(row, col) },
-                wallpaper = { showLauncherSettings(LauncherSettingsDialogFragment.SECTION_APPEARANCE) },
+                wallpaper = { showWallpaperSettings() },
                 launcherSettings = { showLauncherSettings() },
             ),
         )
@@ -806,9 +827,21 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * The one place this screen opens the launcher settings dialog - the Start-menu row, the desktop cell
      * and the quick menu all come through here, so the three cannot drift into three different dialogs.
      */
-    private fun showLauncherSettings(expandSection: String? = null) {
-        LauncherSettingsDialogFragment.newInstance(expandSection)
+    private fun showLauncherSettings() {
+        LauncherSettingsDialogFragment.newInstance()
             .show(supportFragmentManager, LauncherSettingsDialogFragment.TAG)
+    }
+
+    /**
+     * S2730: the desktop's wallpaper action opens the wallpaper screen itself.
+     *
+     * It used to jump into the Appearance section of the launcher settings dialog, which was where the
+     * single wallpaper row lived; that row now only opens this screen, so going through the dialog would
+     * cost the user one extra step to reach the same place.
+     */
+    private fun showWallpaperSettings() {
+        LauncherWallpaperSettingsDialogFragment.newInstance()
+            .show(supportFragmentManager, LauncherWallpaperSettingsDialogFragment.TAG)
     }
 
     /** The overlay dismisses itself on touch, so the cell only ever has to raise it. */
@@ -901,6 +934,14 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
         if (::idleScreenOffManager.isInitialized) idleScreenOffManager.onWindowFocusChanged(hasFocus)
+        // S2737: the shade, the lock screen and any foreign window take focus without stopping this
+        // activity, and each leaves the system status bar on screen. No onStart follows them, so the
+        // hide has to be re-issued here or the bar stays until the launcher is stopped outright. A
+        // transient reveal by swipe keeps focus, so the shade gesture is untouched by this.
+        if (hasFocus && statusBarHiddenByPolicy == true) {
+            Timber.d("S2737: focus returned to the desktop, re-hiding the system status bar")
+            statusBarController().hide(WindowInsetsCompat.Type.statusBars())
+        }
     }
 
     /**
@@ -1022,6 +1063,7 @@ class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
      * bar, and a stale one leaves either a gap or content under the cutout (Rule 17).
      */
     private fun applyStatusBarPolicy(replaceSystemStatusArea: Boolean) {
+        statusBarHiddenByPolicy = replaceSystemStatusArea
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val controller = statusBarController()
         if (replaceSystemStatusArea) {

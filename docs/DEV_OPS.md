@@ -889,6 +889,26 @@ pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only layout-hardc
 
 The rule lives in the shared registry (`scripts/quality/lib/source-matchers.ps1`) and rides the single tree walk with every other lexical rule, so it adds no traversal of its own: 331 files in roughly 0.3 s.
 
+### Unjoined test scope ratchet - S2748
+
+One rule, `test-unjoined-scope`, counting `CoroutineScope(` constructions under `app_v2/src/test` and `wear/src/test` whose line does not also name a test dispatcher, a test scheduler or a `TestScope`. Such a scope is not a child of `runTest`: nothing joins it, nothing can cancel it, and its coroutine runs on a real dispatcher past the end of the test body. `kotlinx-coroutines-test` then hands the escaping exception to the **next** `runTest` on that worker process, and with `forkEvery = 100L` in `app_v2/build.gradle.kts` that can be any of a hundred classes - S2743 spent a ticket clearing the name of a test that was only the witness, and S2746 found the culprit two files away.
+
+```powershell
+# Every offending construction, file:line
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only test-unjoined-scope -List
+
+# PASS/FAIL verdict
+pwsh -NoProfile -File scripts/quality/assert-source-gates.ps1 -Only test-unjoined-scope -Gate
+```
+
+Two cures, both accepted by the gate and both named in its refusal: build the scope on the test's own scheduler (`CoroutineScope(UnconfinedTestDispatcher(testScheduler))`, which also drops the construction out of the count), or join it in `@After` with `runBlocking { scope.coroutineContext.job.cancelAndJoin() }`.
+
+**The ratchet stops growth; it does not measure the repair.** The seven DataStore tests S2748 fixed take the second cure - `PreferenceDataStoreFactory.create` runs in `@Before`, where no `testScheduler` exists yet - so their `CoroutineScope(Dispatchers.IO + SupervisorJob())` fields stay counted after the fix. The baseline was seeded at the measured 20 with the nine sites already repaired, and it falls when a file converts to the first cure, never rises. The link between a field and the `@After` that should join it is not expressible in a regex, which is why the count is of constructions rather than of defects.
+
+**One entry for both modules**, unlike the phone/wear split used by `swallowed-cancellation` and `unpoliced-animation`. That split exists so a regression in shipped code cannot hide behind a cleanup in the other module; here the subject is a test-authoring habit that travels with whoever writes the test, and `wear/src/test` contributes two of the twenty sites, so a second baseline would carry more bookkeeping than signal.
+
+**Placement class: per-ticket** (Rule 33, named at birth). The subject is the changed test file itself, not the tree or a shipped artifact, so release scope does not apply; and under `-ScopeToFile` the runner judges each changed file against its own HEAD version, so a sibling session's WIP cannot fail the close.
+
 ### Layer import ratchet - S2103
 
 Four rules, printed as `ui-imports-data`, `ui-imports-room`, `ui-imports-impl` and `viewmodel-imports-repository`. They are the mechanical half of the layering rule `UI -> ViewModel -> UseCase -> Repository -> DataSource` (CLAUDE.md Rule 8, `docs/ARCHITECTURE.md`), which until S2103 was the only architectural rule in the repository with no exit code behind it - and Rule 33's own measurement is that a rule in prose holds at 1-8% while a rule with an exit code holds at 99%.
@@ -1226,8 +1246,8 @@ The three actions share one definition of "a reference", in `scripts/quality/lib
 ### Generated splash drawables - S1706
 
 ```powershell
-# THE ONLY WRITER of ic_splash_app_brand.xml, in either module
-pwsh -NoProfile -File scripts/utils/generate-splash-brand.ps1 -Module <app_v2|wear>
+# THE ONLY WRITER of ic_splash_app_brand.xml
+pwsh -NoProfile -File scripts/utils/generate-splash-brand.ps1 -Module app_v2
 
 # THE SAME COMPARISON AS A GATE (fails on a hand-edited or stale variant; in .\a.ps1 fg)
 pwsh -NoProfile -File scripts/quality/assert-splash-brand-sync.ps1
@@ -1235,7 +1255,7 @@ pwsh -NoProfile -File scripts/quality/assert-splash-brand-sync.ps1
 
 - **The drawable is generated, never authored.** The system splash window cannot render a string, so the wordmark and the slogan exist only as contours baked in from `splash_slogan` and one template. A hand edit therefore compiles, renders, and diverges silently from every other locale.
 - **`splash_slogan` is consumed at authoring time, not at run time.** Nothing under `app_v2/src` references it and nothing can, which is why it sits in the unreferenced-strings baseline with that reason rather than being deleted as dead.
-- **The two modules generate different compositions on purpose.** The phone carries arrows, wordmark and slogan with one variant per locale; the watch carries the arrows alone, because measured on a Galaxy Watch 7 the wordmark rendered 10 px tall and the slogan 12 px, roughly 5-7 dp against Wear OS's 12 sp floor. `-Module wear` therefore adds `--arrows-only`, and the watch has no per-locale variant at all.
+- **The generator is phone-only since S2593, and `-Module wear` is rejected outright.** The watch used to take an arrows-only composition of the same drawable - measured on a Galaxy Watch 7 the phone's wordmark rendered 10 px tall and its slogan 12 px, roughly 5-7 dp against Wear OS's 12 sp floor, so both were dropped. What retired the branch was not legibility but S2274: removing `windowSplashScreenAnimatedIcon` from the wear theme lets the platform draw the launcher icon itself, which is what Play requirement WO-V15 asks for, and that left the generated watch glyph with no consumer at all. Restoring the branch means re-opening that rejection, so the module, its `--arrows-only` mode and the watch drawable were deleted together rather than kept in reserve.
 
 ### Gson persistence contract - S1639
 
@@ -1628,11 +1648,20 @@ remembered to update - the actual minute.
 
 - `versionName` - `Y.YM.MDDH.Hmm`, byte-identical for `app_v2` and `wear`. `2.60.9030.953` is
   2026-09-03 09:53. This is the string on the About screen and in a support log.
-- `versionCode` - `yyMMddHH` plus the first digit of the minute for `app_v2` (9 digits), and
-  `yyMMddHH` for `wear` (8 digits), so `wear = floor(app / 10)`. The two MUST differ: both modules
-  publish under one `applicationId` (S1681) and Play refuses a release that repeats a code. The
-  minute is truncated to one digit because `yyMMddHHmm` overflows Int32 - two artifacts built inside
-  the same ten-minute block therefore share a code while their names still differ.
+- `versionCode` - nine digits for both modules, `yyMMddHH` plus one separator digit that says which
+  module it is: `app_v2` takes `floor(minute / 10)` and owns `0..5`, `wear` takes
+  `6 + floor(minute / 15)` and owns `6..9`. The two MUST differ: both modules publish under one
+  `applicationId` (S1681) and Play refuses a release that repeats a code. The minute is truncated
+  because a full `yyMMddHHmm` is ten digits and overflows the 2100000000 ceiling - so two artifacts
+  of one module built inside the same block (ten minutes for the phone, fifteen for the watch) share
+  a code while their names still differ.
+
+  The separator is a **partition, not an offset** (S2721): neither module has to know the other's
+  code to stay clear of it, which is what lets the watch release on its own cadence
+  (`/skill-release-wear`) where no phone stamp exists. Before S2721 `wear` carried the bare 8-digit
+  `yyMMddHH` - ten times smaller than the phone's code under one `applicationId`, so a fresh watch
+  build read as older than a phone build from months earlier, and its hour resolution allowed only
+  one watch release per hour.
 
 **Three sources, one order.** Resolved in `app_v2/build.gradle.kts` and `wear/build.gradle.kts`:
 
@@ -1687,8 +1716,10 @@ That file - never the build script - is what `-ReuseVersion`, `publish-github-re
   the repository that judges a result rather than an intention, so it also catches a packaging path
   that does not exist yet.
 - `scripts/quality/assert-module-version-parity.ps1` judges the **two checked-in constants**: the
-  names must match byte for byte and the codes must satisfy `wear = floor(app / 10)`. Nothing writes
-  those constants now, so a violation is a hand edit and the fix is a hand edit.
+  names must match byte for byte, and both codes must be what `Get-BuildVersionStamp` derives from
+  the instant that shared name encodes. It decodes the name rather than relating one code to the
+  other, because since S2721 neither code is a function of the other. Nothing writes those constants
+  now, so a violation is a hand edit and the fix is a hand edit.
 
 **Never write a version into a build file.** Fifteen scripts used to rewrite the constants in place
 with a regex; that is retired (ADR-4). A rewritten constant cannot be told apart from historical
@@ -1755,7 +1786,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 56 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 57 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.
@@ -1821,6 +1852,15 @@ needed.
   byte counts and the store timestamp. Variants of one release are written by separate invocations,
   so the manifest is merged, never replaced.
 
+**One release can occupy two directories (S2722).** The key is each ARTIFACT's own `versionCode`, and
+since S2721 the watch's code is not a function of the phone's, so a release that ships both modules
+writes the phone's flavors under the app code and the watch mapping under the wear code, each with its
+own manifest. It is not re-keyed to one directory per release because a watch-only release published
+through `/skill-release-wear` has no phone code to file under at all. What ties the two together is
+the `versionName`, which both modules stamp from the same build instant - so that, not a derived code,
+is what identifies a release when reading the archive. Fetching the watch payload therefore takes the
+variant as well as the name: `fetch-deobfuscation.ps1 -VersionName <version> -Variant wear`.
+
 **It happens by itself.** `a.ps1 r` retains `standard` from the bundle it just built;
 `build-release-spectrum.ps1` retains every other published flavor from `build/outputs`. Do not add a
 manual step - a step that can be forgotten is indistinguishable from having no retention. A retention
@@ -1843,7 +1883,13 @@ pwsh -NoProfile -File scripts/release/fetch-deobfuscation.ps1 -VersionName 2.60.
 tag and is gating step 0.6 of `/spec-prerelease`. It reads the stored mapping back through the archive
 and recomputes its SHA-256; presence is not accepted as proof, because a cloud folder mid-sync
 presents a correctly sized placeholder. Exit 2 blocks exactly like exit 1 - "cannot verify" is not
-"verified".
+"verified". Since S2722 it resolves the judged release by `versionName` across the whole archive
+rather than by one derived code, so the watch mapping is judged too; before that it opened the phone
+code's directory alone and its PASS naming `standard` read as "looked and found nothing" when it meant
+"did not look". A judged release with no wear payload now says so in the verdict (`wearRetained` in
+`-Json`) instead of passing over it - the archive cannot distinguish a release that published no watch
+artifact from one whose watch retention was lost, so it is stated, not failed. `/skill-release-wear`
+creates no `release/v*` tag, so a watch-only release is reached only by `-VersionName <version>`.
 
 **It is deliberately not in `assert-fast-gates.ps1` / `.\a.ps1 fg`.** The check depends on a cloud
 folder that is not mounted on every machine, and a gate that fails for environmental reasons on a

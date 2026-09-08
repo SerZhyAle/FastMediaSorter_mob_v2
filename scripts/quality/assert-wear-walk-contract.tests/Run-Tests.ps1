@@ -46,7 +46,8 @@ $script:passed = 0
 $script:failed = 0
 
 function Invoke-Gate {
-    param([string]$ScreenListName, [switch]$AsGate, [string]$SourceDir = 'src', [string]$ChangedFiles)
+    param([string]$ScreenListName, [switch]$AsGate, [string]$SourceDir = 'src', [string]$ChangedFiles,
+        [string]$ScreenListBaseline)
     $callArgs = @(
         '-NoProfile', '-File', $gate,
         '-ScreenList', (Join-Path $fixtures $ScreenListName),
@@ -56,6 +57,7 @@ function Invoke-Gate {
     )
     if ($AsGate) { $callArgs += '-Gate' }
     if ($ChangedFiles) { $callArgs += @('-ChangedFiles', $ChangedFiles) }
+    if ($ScreenListBaseline) { $callArgs += @('-ScreenListBaseline', (Join-Path $fixtures $ScreenListBaseline)) }
     $output = & pwsh @callArgs 2>&1
     return [pscustomobject]@{ Exit = $LASTEXITCODE; Output = ($output -join "`n") }
 }
@@ -137,10 +139,28 @@ Assert-Case -Label 'scoped: a divergence in a file the set names is reported' `
     -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
         -ChangedFiles 'src-scoped/Beta.kt')
 
-Assert-Case -Label 'scoped: naming the screen list restores the full project-wide judgement' `
+# S2723 - naming the screen list used to restore the full project-wide judgement, which refused a
+# closure over a neighbour's unclassified screen every time a ticket added one of its own. Ownership
+# is now per RECORD, so all four outcomes below are pinned with the screen list in the presented set.
+Assert-Case -Label 'scoped: naming the screen list does not claim a record this edit left alone' `
+    -ExpectedExit 0 -ExpectedPattern 'PASS' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'screens-scoped.json' -ScreenListBaseline 'screens-scoped-head.json')
+
+Assert-Case -Label 'scoped: a record this edit added is still judged' `
+    -ExpectedExit 1 -ExpectedPattern "screen 'GammaScreen' is not a composable" `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped-missing.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'screens-scoped-missing.json' -ScreenListBaseline 'screens-scoped-head.json')
+
+Assert-Case -Label 'scoped: a record this edit deleted is still judged' `
     -ExpectedExit 1 -ExpectedPattern 'BetaScreen : neither walked nor excluded' `
     -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
-        -ChangedFiles 'screens-scoped.json')
+        -ChangedFiles 'screens-scoped.json' -ScreenListBaseline 'screens-scoped-head-excluded.json')
+
+Assert-Case -Label 'scoped: an unobtainable pre-edit copy owns the whole contract' `
+    -ExpectedExit 1 -ExpectedPattern 'BetaScreen : neither walked nor excluded' `
+    -Result (Invoke-Gate -ScreenListName 'screens-scoped.json' -SourceDir 'src-scoped' -AsGate `
+        -ChangedFiles 'screens-scoped.json' -ScreenListBaseline 'screens-there-is-no-such-baseline.json')
 
 # The rename channel: the stale entry names a composable that exists in no file, so it is
 # attributable to no file - only the presence of a changed *Screen.kt in the set can claim it.

@@ -2567,7 +2567,7 @@
     <string name="launcher_signal_scheduled_ops">Tarea programada en ejecución</string>
     <string name="launcher_signal_duplicate_scan">Buscando duplicados</string>
     <string name="launcher_signal_network_sync">Sincronizando carpetas de red</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">Señales activas</string>
     <string name="launcher_settings_group_taskbar">Barra de tareas</string>
     <string name="launcher_settings_group_top_bar">Barra superior</string>

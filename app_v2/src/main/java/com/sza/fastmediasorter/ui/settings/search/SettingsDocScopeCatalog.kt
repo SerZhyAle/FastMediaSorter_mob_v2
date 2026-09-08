@@ -41,6 +41,14 @@ object SettingsDocScopeCatalog {
             SettingsSearchDestination.GENERAL,
             "rowLauncherSettings"
         ),
+        // S2730: the wallpaper rows moved out of the launcher settings dialog into their own screen, so
+        // they are a settings surface of its own; rowLauncherWallpaper is what opens it.
+        DocScopeSurface(
+            R.layout.dialog_launcher_wallpaper_settings,
+            "launcher",
+            SettingsSearchDestination.GENERAL,
+            "rowLauncherWallpaper"
+        ),
         // S1886: the reset confirmation carries its own density selector, so it is a settings surface
         // of its own; btnResetLauncher inside the launcher settings dialog is what opens it.
         DocScopeSurface(

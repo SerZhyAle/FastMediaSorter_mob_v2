@@ -17,11 +17,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -80,7 +82,9 @@ class SettingsRepositoryImplTest {
 
     @After
     fun tearDown() {
-        realStoreScope.cancel()
+        // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
+        // returns, so an unfinished DataStore flush would meet a deleted file.
+        runBlocking { realStoreScope.coroutineContext.job.cancelAndJoin() }
     }
 
     @Before

@@ -36,5 +36,8 @@ object HomeSectionIconCatalog {
         HomeSectionId.LOCAL -> R.drawable.ic_watch
         HomeSectionId.STREAMS -> R.drawable.ic_cast
         HomeSectionId.APPS -> R.drawable.ic_apps
+        // S2509: the share glyph, not ic_cast. Cast is already the channel glyph on two rows of this
+        // very screen, and a broadcast is the opposite direction - what this watch sends out.
+        HomeSectionId.BROADCAST -> R.drawable.ic_share
     }
 }

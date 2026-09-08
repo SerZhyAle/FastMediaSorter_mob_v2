@@ -37,6 +37,7 @@ import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperTuning
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -167,6 +168,19 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherAnimationPalette }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherAnimationPalette)
+
+    /**
+     * S2730: the branded backdrop's tuning, replacing the constant the render layer used to carry.
+     */
+    val wallpaperTuning: Flow<LauncherWallpaperTuning> = settingsRepository.getSettings()
+        .map {
+            LauncherWallpaperTuning(
+                intensity = it.launcherWallpaperIntensity,
+                animationSpeed = it.launcherWallpaperAnimationSpeed,
+                particleDensity = it.launcherWallpaperParticleDensity,
+            )
+        }
+        .distinctUntilChanged()
 
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {

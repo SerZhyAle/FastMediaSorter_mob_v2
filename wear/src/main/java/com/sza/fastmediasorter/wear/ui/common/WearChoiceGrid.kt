@@ -1,7 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -167,7 +167,9 @@ private fun <T> WearChoiceGridRow(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(GRID_CELL_HEIGHT)
+                    // S2755: a minimum, so a label the font scale grew pushes the row taller inside
+                    // the scrolling list instead of being cropped by a pinned cell.
+                    .heightIn(min = GRID_CELL_HEIGHT)
                     .semantics { this.selected = isSelected },
                 colors = chipColorsFor(isSelected, unselectedColors)
             )

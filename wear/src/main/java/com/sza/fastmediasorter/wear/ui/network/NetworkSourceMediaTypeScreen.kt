@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -78,6 +79,7 @@ fun NetworkSourceMediaTypeScreen(
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
     val source by mediaTypeViewModel.source.collectAsStateWithLifecycle()
     val listState = rememberWearListState(positionKey = "source_media_type/$sourceId")
+    val stateScrollState = rememberScrollState()
 
     val categories = remember(source, settings.allowedContentTypes()) {
         BrowseCategoryCatalog.categoriesForSource(
@@ -100,7 +102,14 @@ fun NetworkSourceMediaTypeScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: with no category to list the state block is what scrolls, so the indicator follows it.
+        positionIndicator = {
+            if (categories.isEmpty()) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         if (categories.isEmpty()) {
             // No retry: the list is empty because a settings read succeeded and returned an answer,
@@ -115,7 +124,8 @@ fun NetworkSourceMediaTypeScreen(
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = stringResource(messageFor(reason)),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                scrollState = stateScrollState
             )
             return@WearScreenScaffold
         }

@@ -28,6 +28,7 @@ import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
@@ -64,6 +65,7 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
         private val KEY_DISABLE_ANIMATIONS = booleanPreferencesKey("disable_animations")
         private val KEY_POWER_SAVING_TRIGGER = stringPreferencesKey("power_saving_trigger")
+        private val KEY_UNIT_SYSTEM = stringPreferencesKey("unit_system")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -344,6 +346,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     powerSavingTrigger = PowerSavingTrigger.fromNameOrDefault(
                         preferences[KEY_POWER_SAVING_TRIGGER]
                     ),
+                    unitSystem = UnitSystem.fromNameOrDefault(preferences[KEY_UNIT_SYSTEM]),
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
@@ -678,6 +681,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_COLOR_THEME] = storedColorTheme
                 preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
                 preferences[KEY_POWER_SAVING_TRIGGER] = settings.powerSavingTrigger.name
+                preferences[KEY_UNIT_SYSTEM] = settings.unitSystem.name
                 preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
                 preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
                 preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls

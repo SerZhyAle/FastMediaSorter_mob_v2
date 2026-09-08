@@ -18,7 +18,17 @@ enum class StreamChannelReason {
     UNVALIDATED_LINK,
 
     /** The link is up and the platform declared no usable bandwidth estimate for it. */
-    BANDWIDTH_UNKNOWN
+    BANDWIDTH_UNKNOWN,
+
+    /**
+     * S2550 pillar E: the watch has a link, but not the one it can serve audio over.
+     *
+     * Distinct from [NARROW_LINK] because it calls for a different sentence. A Bluetooth-carried link
+     * would also fail the bandwidth floor, and reporting that as "the channel is narrow" tells the
+     * owner about a measurement instead of about the one thing that fixes it - turning Wi-Fi on for
+     * the watch.
+     */
+    NOT_ON_WIFI
 }
 
 /**

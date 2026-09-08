@@ -40,5 +40,10 @@ object WearAppAccentCatalog {
         // S2457: purple, the last of the eight names this palette declares and the only one no program
         // had taken - so the seventh program needed no new tone, and the phone's half stays name-for-name.
         WearAppId.BODY_SENSOR -> R.color.color_program_accent_purple
+        // S2509: cyan, the ninth name and the first this palette does not share with the phone. A
+        // family tone shared with the Voice Recorder was the first attempt and the accent test
+        // refused it: the whole list fits one watch screen, so a repeat is two visible rows looking
+        // alike rather than a harmless collision between distant ones.
+        WearAppId.BROADCAST -> R.color.color_program_accent_cyan
     }
 }

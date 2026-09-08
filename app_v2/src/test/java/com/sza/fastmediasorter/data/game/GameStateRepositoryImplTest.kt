@@ -15,7 +15,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -53,7 +55,9 @@ class GameStateRepositoryImplTest {
 
     @After
     fun tearDown() {
-        scope.cancel()
+        // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
+        // returns, so an unfinished DataStore flush would meet a deleted file.
+        runBlocking { scope.coroutineContext.job.cancelAndJoin() }
     }
 
     @Test

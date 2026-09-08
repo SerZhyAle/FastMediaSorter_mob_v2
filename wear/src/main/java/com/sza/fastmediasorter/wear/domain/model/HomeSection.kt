@@ -13,6 +13,9 @@ enum class HomeSectionId {
     LOCAL,
     STREAMS,
     APPS,
+
+    /** S2509: the watch's own broadcast, which the owner asked to reach from Home as well as Programs. */
+    BROADCAST,
     FAVOURITES
 }
 
@@ -27,11 +30,16 @@ enum class HomeSectionId {
  * has to be resolved into one first - never neither. Only the last-used row ever takes the second form,
  * and only for a channel: a player address contains a number handed out by playback preparation, which
  * has not run on a cold start, so it cannot be built ahead of the tap.
+ *
+ * S2751: [route] belongs to the dynamic last-used rows alone, which are built in the screen's own layer
+ * and so may carry a navigation address. A catalogued section leaves it null and is addressed by its
+ * [id]; a navigation string on a record the domain hands out is what put the route table below the
+ * screens in the first place.
  */
 data class HomeSection(
     val id: HomeSectionId,
     @StringRes val labelRes: Int,
-    val route: String?,
+    val route: String? = null,
     val dynamicLabel: String? = null,
     val iconId: String? = null,
     val faviconIndex: Int? = null,

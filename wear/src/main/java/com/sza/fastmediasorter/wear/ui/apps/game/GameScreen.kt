@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,6 +36,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
@@ -104,6 +106,7 @@ fun GameScreen(
     val shorterEdgeDp = minOf(configuration.screenWidthDp, configuration.screenHeightDp)
     val levelNumber = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
     var menuOpen by rememberSaveable { mutableStateOf(false) }
+    val menuScrollState = rememberScrollState()
     val menuActions = GameMenuActions(
         onSkipTurn = { viewModel.skipTurn() },
         onRestartLevel = { viewModel.restartLevelNow() },
@@ -132,6 +135,13 @@ fun GameScreen(
     // S2558: Black background (same as calculator) to remove animated/photographic wallpaper backdrop.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
+        // S2754: the board does not scroll, but the menu drawn over it does - so the indicator exists
+        // only while the menu is up.
+        positionIndicator = if (menuOpen) {
+            { PositionIndicator(menuScrollState) }
+        } else {
+            null
+        },
         background = Color.Black
     ) {
         // One box for both shapes since S2553: the two side affordances stand in the same place on
@@ -180,7 +190,7 @@ fun GameScreen(
                 )
             }
             if (menuOpen) {
-                GameMenuOverlay(actions = menuActions)
+                GameMenuOverlay(actions = menuActions, scrollState = menuScrollState)
             }
         }
     }

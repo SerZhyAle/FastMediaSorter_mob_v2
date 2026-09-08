@@ -56,6 +56,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
@@ -79,6 +81,7 @@ import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
@@ -111,6 +114,12 @@ private const val PROGRESS_BAR_CORNER_PERCENT = 50
 
 private const val DRAG_THRESHOLD_UP_PX = -10f
 private const val DRAG_THRESHOLD_DOWN_PX = 10f
+
+/**
+ * Floor under the track name's own inset (S2273). It is what the section paid before the chord was
+ * measured, and it is the whole answer on a square screen, where the chord never narrows.
+ */
+private val TRACK_INFO_MIN_PADDING = 8.dp
 
 /**
  * Audio player screen for Wear OS.
@@ -300,14 +309,25 @@ private fun AudioPlayerContent(
                 }
             }
     ) {
+        val screenInsets = wearScreenInsets()
+        // S2273: the track name is the first child of a SpaceEvenly column, so its worst edge is the
+        // column's own top - about a tenth of the way down, where the chord is far shorter than the
+        // diameter and the proportional inset alone left the name sliced flat against the arc on both
+        // sides. Text is the one element here that can pay for the chord out of its own width: it
+        // wraps and ellipsizes, and narrower and whole beats wide and cut. What the column has already
+        // paid is subtracted because the chord is measured from the glass, not from the column.
+        val trackInfoPadding = (
+            wearChordInset(screenInsets.calculateTopPadding()) -
+                screenInsets.calculateLeftPadding(LayoutDirection.Ltr)
+            ).coerceAtLeast(TRACK_INFO_MIN_PADDING)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(wearScreenInsets()),
+                .padding(screenInsets),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            TrackInfoSection(uiState = uiState)
+            TrackInfoSection(uiState = uiState, horizontalPadding = trackInfoPadding)
 
             uiState.channelReason?.let { reason ->
                 StreamChannelNotice(reason = reason)
@@ -357,11 +377,11 @@ private fun AudioPlayerContent(
 }
 
 @Composable
-private fun TrackInfoSection(uiState: AudioPlayerUiState) {
+private fun TrackInfoSection(uiState: AudioPlayerUiState, horizontalPadding: Dp) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
+            .padding(horizontal = horizontalPadding),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         val artist = uiState.artistName
@@ -428,6 +448,9 @@ private fun StreamChannelReason.toMessageRes(): Int? = when (this) {
     StreamChannelReason.NO_LINK -> R.string.wear_stream_channel_offline
     StreamChannelReason.UNVALIDATED_LINK -> R.string.wear_stream_channel_unverified
     StreamChannelReason.BANDWIDTH_UNKNOWN -> null
+    // S2550: only the serving entry produces this, and this screen never calls it. Named rather than
+    // folded into an `else` so the next reason added still has to be answered here on purpose.
+    StreamChannelReason.NOT_ON_WIFI -> R.string.wear_stream_channel_offline
 }
 
 /**

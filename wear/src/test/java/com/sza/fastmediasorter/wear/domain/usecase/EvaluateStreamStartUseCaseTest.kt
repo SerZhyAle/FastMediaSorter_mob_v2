@@ -81,8 +81,57 @@ class EvaluateStreamStartUseCaseTest {
         assertEquals(StreamChannelVerdict.Refuse(StreamChannelReason.NARROW_LINK), verdict)
     }
 
+    @Test
+    fun `serving is allowed on a wide wifi link`() {
+        val verdict = evaluateServing(wifi(downstreamKbps = WIDE_KBPS))
+
+        assertEquals(StreamChannelVerdict.Allow, verdict)
+    }
+
+    @Test
+    fun `serving over bluetooth says wifi is off, not that the channel is narrow`() {
+        val channel = channelOf(WearNetworkChannelKind.BLUETOOTH, downstreamKbps = BLUETOOTH_KBPS)
+
+        val verdict = evaluateServing(channel)
+
+        assertEquals(StreamChannelVerdict.Refuse(StreamChannelReason.NOT_ON_WIFI), verdict)
+    }
+
+    /**
+     * A wide non-Wi-Fi link is the case that separates the two reasons: it clears every bandwidth
+     * floor, so anything that judged capacity alone would allow it - and the phone still cannot reach
+     * a socket on the watch's LAN, because there is no LAN.
+     */
+    @Test
+    fun `serving over a wide cellular link is still refused as not on wifi`() {
+        val channel = channelOf(WearNetworkChannelKind.CELLULAR, downstreamKbps = WIDE_KBPS)
+
+        val verdict = evaluateServing(channel)
+
+        assertEquals(StreamChannelVerdict.Refuse(StreamChannelReason.NOT_ON_WIFI), verdict)
+    }
+
+    @Test
+    fun `serving with no link at all is refused as no link`() {
+        val verdict = evaluateServing(WearNetworkChannel.NONE)
+
+        assertEquals(StreamChannelVerdict.Refuse(StreamChannelReason.NO_LINK), verdict)
+    }
+
+    @Test
+    fun `serving over a narrow wifi link is still refused as narrow`() {
+        val channel = wifi(downstreamKbps = BLUETOOTH_KBPS)
+
+        val verdict = evaluateServing(channel)
+
+        assertEquals(StreamChannelVerdict.Refuse(StreamChannelReason.NARROW_LINK), verdict)
+    }
+
     private fun evaluate(channel: WearNetworkChannel, mediaKind: String): StreamChannelVerdict =
         EvaluateStreamStartUseCase(monitorOf(channel)).invoke(mediaKind)
+
+    private fun evaluateServing(channel: WearNetworkChannel): StreamChannelVerdict =
+        EvaluateStreamStartUseCase(monitorOf(channel)).forServing()
 
     /**
      * An anonymous object rather than a named fake class: this package is `domain/usecase`, where the
@@ -97,8 +146,14 @@ class EvaluateStreamStartUseCaseTest {
     private fun wifi(
         downstreamKbps: Int?,
         isValidated: Boolean = true
+    ): WearNetworkChannel = channelOf(WearNetworkChannelKind.WIFI, downstreamKbps, isValidated)
+
+    private fun channelOf(
+        kind: WearNetworkChannelKind,
+        downstreamKbps: Int?,
+        isValidated: Boolean = true
     ): WearNetworkChannel = WearNetworkChannel(
-        kind = WearNetworkChannelKind.WIFI,
+        kind = kind,
         downstreamKbps = downstreamKbps,
         upstreamKbps = null,
         isMetered = false,

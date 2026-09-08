@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.data.repository.streams
 
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
+import com.sza.fastmediasorter.data.repository.StreamCollectionsJsonParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
@@ -85,6 +86,9 @@ class FaviconAtlasStoreTest {
         faviconAtlasStore = store,
         // S1469: these cases drive extractCatalog() directly, which never consults connectivity.
         networkContextAnalyzer = mockk(relaxed = true),
+        // S2669: an archive here never carries collections.json, so both collaborators stay inert.
+        collectionsParser = StreamCollectionsJsonParser(),
+        collectionRepository = mockk(relaxed = true),
     )
 
     private fun zipOf(vararg entries: Pair<String, ByteArray>): ByteArray {

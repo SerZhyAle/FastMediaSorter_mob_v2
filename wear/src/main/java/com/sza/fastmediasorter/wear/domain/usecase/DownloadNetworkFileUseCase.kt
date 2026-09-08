@@ -24,6 +24,10 @@ private const val AUDIO_CACHE_CAP_MB = 100L
 private const val VIDEO_CACHE_CAP_MB = 300L
 private const val IMAGE_CACHE_CAP_MB = 50L
 
+// S2532: the smallest of the four. A document is fetched to be read as text under a far tighter
+// in-memory cap, so anything the reader could ever show fits many times over inside this dir.
+private const val DOCUMENT_CACHE_CAP_MB = 20L
+
 private val LEGACY_CACHE_DIR_NAMES = listOf("smb_audio", "smb_video", "smb_images")
 
 /**
@@ -46,7 +50,8 @@ class DownloadNetworkFileUseCase @Inject constructor(
     enum class Kind(val cacheDirName: String, val capBytes: Long) {
         AUDIO("net_audio", AUDIO_CACHE_CAP_MB * BYTES_PER_MB),
         VIDEO("net_video", VIDEO_CACHE_CAP_MB * BYTES_PER_MB),
-        IMAGE("net_images", IMAGE_CACHE_CAP_MB * BYTES_PER_MB)
+        IMAGE("net_images", IMAGE_CACHE_CAP_MB * BYTES_PER_MB),
+        DOCUMENT("net_documents", DOCUMENT_CACHE_CAP_MB * BYTES_PER_MB)
     }
 
     suspend operator fun invoke(selected: SelectedMedia, kind: Kind): Result<File> =

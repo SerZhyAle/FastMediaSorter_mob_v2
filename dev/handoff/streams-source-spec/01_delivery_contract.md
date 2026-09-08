@@ -184,6 +184,22 @@ Full internals in `04_favicon_atlas.md`; this is the contract summary.
   {"http://chan/a.m3u8": 2, "http://chan/b.mp3": 0}
   ```
 
+### 5.3a `collections.json` - curated collections, optional third entry (S2669) **[CONTRACT]**
+- **Optional.** A ZIP without it is the two-entry archive described above, unchanged. A consumer that
+  ignores the entry keeps working exactly as before; nothing in the bank changed to make room for it.
+- **Entry name is exactly `collections.json`**, appended after the CSV and the atlas, so entry 0 stays
+  `streams.csv` and 5.1 is untouched.
+- **It is JSON and its name deliberately does NOT end in `.csv`.** Per 5.2 a `.csv` entry that is not
+  named `streams.csv` is taken as a FALLBACK bank, so a curated payload carrying that extension would be
+  loaded as the user's catalog whenever the real bank failed to parse. The producer refuses any entry
+  other than the bank whose name ends in `.csv`.
+- **It carries its own `schemaVersion`**, which the bank does not have. That number is the channel for
+  changing the shape of collections later without renegotiating the CSV.
+- Field-by-field description: `03_catalog_format.md` section 8.
+- Producer side: built and validated by `Build-StreamCollections` / `Assert-StreamCollections`
+  (`scripts/streams/modules/StreamPublisher.Collections.ps1`), both called from `Invoke-PublishCatalog`
+  before anything is packed.
+
 ### 5.4 Producer publish guard (S0925) *(producer-side; see 08)*
 - The producer **refuses to publish** a CSV that carries `favicon_index` values without a bundled atlas
   (unless explicitly overridden), because that combination makes the app wipe every user's favicons.

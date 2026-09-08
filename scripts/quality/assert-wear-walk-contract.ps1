@@ -40,8 +40,8 @@
 .PARAMETER ChangedFiles
     CSV of the paths a closure is judging. Without it the gate judges the whole module, which is what
     the fg battery and the release scope want. With it a divergence is reported only when it belongs
-    to the presented set: the screen is declared in one of those files, or the screen list itself is
-    among them - an edit to the contract owns every entry in it.
+    to the presented set: the screen is declared in one of those files, or the entry itself is one
+    this edit added, removed or changed.
 
     S2621: this exists because post-change.ps1 now calls the gate, and the gate always scans the whole
     module. Run unscoped from a closure it would refuse a ticket for a screen another session had just
@@ -49,12 +49,32 @@
     narrowed to sessions touching the watch module. The dirty-tree rule (S0826/S1338) asks a scoped
     gate to judge the delta it was handed, not a project-wide count.
 
+    S2723: ownership of the contract is by RECORD, not by file. S2621's rule read "the screen list
+    being in the set restores the full project-wide judgement", and every session that adds a screen
+    must edit the screen list, so the narrowing never applied to the sessions it was written for -
+    measured 2026-09-08, S2550's closure was refused over TileTargetsSettingsScreen, a screen S2587
+    had added in a neighbouring session forty minutes earlier. Removing the rule was not an option
+    either: it is what catches a screen renamed or deleted inside the contract with no code edit to
+    attribute it to. So a scoped run that presents the screen list now compares the contract with its
+    pre-edit copy and owns only the entries that differ, keyed by id for screens[] and by screen name
+    for excluded[]; a touched record contributes BOTH its id and its screen name, so a rename owns the
+    old name as well as the new one. A pre-edit copy that cannot be obtained falls back to owning the
+    whole contract - "could not measure the delta" is judged strictly, never leniently.
+
+.PARAMETER ScreenListBaseline
+    Path to the pre-edit copy of the screen list, used only by a scoped run that presents it. Default
+    is `git show HEAD:<screen list>` - the same delta-against-HEAD measurement the ratchet closing
+    gates already use (CLAUDE.md section 12), and a measurement of this edit rather than a claim about
+    current state. The regression suite overrides it because it cannot commit a fixture to produce a
+    contract edit.
+
 .PARAMETER ScreenList
 .PARAMETER StringsFile
 .PARAMETER WearSource
 .PARAMETER BaselineFile
     Path overrides. Default to the real tree; the regression suite points them at fixtures, which is
     the only way to prove the gate catches a rename without renaming a shipped string to find out.
+    StringsFile names ONE file and replaces the default sweep of every wear/src/main/res/values/strings*.xml.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-wear-walk-contract.ps1 -Gate
@@ -73,6 +93,7 @@ param(
     [switch]$Gate,
     [switch]$UpdateBaseline,
     [string]$ChangedFiles,
+    [string]$ScreenListBaseline,
     [string]$ScreenList,
     [string]$StringsFile,
     [string]$WearSource,
@@ -86,7 +107,18 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $screenList = if ($ScreenList) { $ScreenList } else { Join-Path $repoRoot 'scripts/devtest/wear-prerelease-screens.json' }
-$stringsFile = if ($StringsFile) { $StringsFile } else { Join-Path $repoRoot 'wear/src/main/res/values/strings.xml' }
+# S2587: the default locale keeps its strings in several files - strings.xml, strings_browse.xml,
+# strings_tiles.xml - so reading only the first one reported a key that exists as resolving to nothing,
+# and the fix an author would reach for is to weaken the walk entry rather than the lookup.
+# The @() wraps the whole `if`, not each branch: an assignment from an if-statement unwraps a
+# one-element array back to a scalar, and under StrictMode the .Count below then throws.
+$stringsFiles = @(if ($StringsFile) {
+        $StringsFile
+    } else {
+        Get-ChildItem -LiteralPath (Join-Path $repoRoot 'wear/src/main/res/values') -Filter 'strings*.xml' -File -ErrorAction SilentlyContinue |
+            Sort-Object Name |
+            ForEach-Object { $_.FullName }
+    })
 $wearSource = if ($WearSource) { $WearSource } else { Join-Path $repoRoot 'wear/src/main/java' }
 $baselineFile = if ($BaselineFile) { $BaselineFile } else { Join-Path $PSScriptRoot 'wear-walk-contract-baseline.txt' }
 
@@ -123,7 +155,10 @@ function Test-InScope {
 }
 
 if (-not (Test-Path -LiteralPath $screenList)) { Stop-Unverifiable "screen list not found: $screenList" }
-if (-not (Test-Path -LiteralPath $stringsFile)) { Stop-Unverifiable "wear strings not found: $stringsFile" }
+if ($stringsFiles.Count -eq 0) { Stop-Unverifiable "wear strings not found under wear/src/main/res/values" }
+foreach ($file in $stringsFiles) {
+    if (-not (Test-Path -LiteralPath $file)) { Stop-Unverifiable "wear strings not found: $file" }
+}
 if (-not (Test-Path -LiteralPath $wearSource)) { Stop-Unverifiable "wear source tree not found: $wearSource" }
 
 try { $walk = Get-Content -LiteralPath $screenList -Raw | ConvertFrom-Json }
@@ -135,10 +170,12 @@ if ($entries.Count -eq 0) { Stop-Unverifiable "screen list declares no screen" }
 # Resource values, read from the default locale only: the walk runs on a device left in English by
 # wear-prerelease-prepare, and a translated value would make this gate disagree with the run.
 $stringValue = @{}
-try { $stringsXml = [xml](Get-Content -LiteralPath $stringsFile -Raw) }
-catch { Stop-Unverifiable "wear strings file is not readable XML: $stringsFile" }
-foreach ($node in $stringsXml.resources.string) {
-    if ($null -ne $node.name) { $stringValue[[string]$node.name] = [string]$node.InnerText }
+foreach ($file in $stringsFiles) {
+    try { $stringsXml = [xml](Get-Content -LiteralPath $file -Raw) }
+    catch { Stop-Unverifiable "wear strings file is not readable XML: $file" }
+    foreach ($node in $stringsXml.resources.string) {
+        if ($null -ne $node.name) { $stringValue[[string]$node.name] = [string]$node.InnerText }
+    }
 }
 
 # One pass over the module: every composable whose name ends in Screen, and the full text the
@@ -165,39 +202,44 @@ $divergences = @()
 
 # S2621: every divergence records the screen it is about, so a scoped run can attribute it. The
 # unscoped run reports the same texts in the same order it always did.
+# S2723: it also records the entry id, because the contract keys its walked entries by id and a
+# divergence about an entry that declares no screen can be attributed by nothing else.
 function Add-Divergence {
-    param([string]$Text, [string]$Screen)
-    $script:divergences += [pscustomobject]@{ Text = $Text; Screen = $Screen }
+    param([string]$Text, [string]$Screen, [string]$Id)
+    $script:divergences += [pscustomobject]@{ Text = $Text; Screen = $Screen; Id = $Id }
 }
 
 foreach ($entry in $entries) {
-    $id = if ($entry.PSObject.Properties.Name -contains 'id') { [string]$entry.id } else { '<no id>' }
+    # The declared id, or $null when the entry carries none. Kept apart from the display text so that
+    # the S2723 attribution key is never the literal '<no id>' placeholder.
+    $entryId = if ($entry.PSObject.Properties.Name -contains 'id' -and $entry.id) { [string]$entry.id } else { $null }
+    $id = if ($entryId) { $entryId } else { '<no id>' }
 
     $expect = if ($entry.PSObject.Properties.Name -contains 'expect') { [string]$entry.expect } else { $null }
     $expectRes = if ($entry.PSObject.Properties.Name -contains 'expectRes') { [string]$entry.expectRes } else { $null }
     $screen = if ($entry.PSObject.Properties.Name -contains 'screen') { [string]$entry.screen } else { $null }
 
     if (-not $expectRes) {
-        Add-Divergence -Text "$id : no 'expectRes' declared" -Screen $screen
+        Add-Divergence -Text "$id : no 'expectRes' declared" -Screen $screen -Id $entryId
     }
     elseif (-not $stringValue.ContainsKey($expectRes)) {
-        Add-Divergence -Text "$id : expectRes '$expectRes' resolves to no string in wear values/strings.xml" -Screen $screen
+        Add-Divergence -Text "$id : expectRes '$expectRes' resolves to no string in wear values/strings*.xml" -Screen $screen -Id $entryId
     }
     elseif ($expect -and ($stringValue[$expectRes] -notlike "*$expect*")) {
-        Add-Divergence -Text "$id : expect '$expect' is not contained in R.string.$expectRes = '$($stringValue[$expectRes])'" -Screen $screen
+        Add-Divergence -Text "$id : expect '$expect' is not contained in R.string.$expectRes = '$($stringValue[$expectRes])'" -Screen $screen -Id $entryId
     }
 
     if ($expectRes -and $stringValue.ContainsKey($expectRes)) {
         if ($allSource -notmatch ('R\.string\.' + [regex]::Escape($expectRes) + '\b')) {
-            Add-Divergence -Text "$id : R.string.$expectRes is never referenced under wear/src/main/java - no composable can render it" -Screen $screen
+            Add-Divergence -Text "$id : R.string.$expectRes is never referenced under wear/src/main/java - no composable can render it" -Screen $screen -Id $entryId
         }
     }
 
     if (-not $screen) {
-        Add-Divergence -Text "$id : no 'screen' declared" -Screen $null
+        Add-Divergence -Text "$id : no 'screen' declared" -Screen $null -Id $entryId
     }
     elseif (-not $screenNames.Contains($screen)) {
-        Add-Divergence -Text "$id : screen '$screen' is not a composable in the wear module" -Screen $screen
+        Add-Divergence -Text "$id : screen '$screen' is not a composable in the wear module" -Screen $screen -Id $entryId
     }
 }
 
@@ -243,10 +285,85 @@ foreach ($name in $excluded) {
     }
 }
 
-# S2621: keep only what the presented set is answerable for. An edit to the screen list owns every
-# entry in it, so the contract being in the set restores the full project-wide judgement.
-if ($scopeEnabled -and -not (Test-InScope $screenList)) {
+# S2723: the contract's records, keyed the way the contract itself keys them - walked entries by id
+# (a missing id falls back to the screen name, which is what the display text does too), exclusions by
+# screen name. Each key carries the names it can be attributed under, so a touched record owns both
+# its id and its screen name.
+function Get-ContractRecords {
+    param($Walk)
+    $records = @{}
+    $names = @{}
+    $walked = @()
+    if ($Walk.PSObject.Properties.Name.Contains('screens')) { $walked = @($Walk.screens) }
+    foreach ($record in $walked) {
+        $recordScreen = if ($record.PSObject.Properties.Name -contains 'screen' -and $record.screen) { [string]$record.screen } else { $null }
+        $recordId = if ($record.PSObject.Properties.Name -contains 'id' -and $record.id) { [string]$record.id } else { $recordScreen }
+        if (-not $recordId) { continue }
+        $key = "screens/$recordId"
+        $records[$key] = ($record | ConvertTo-Json -Depth 8 -Compress)
+        $names[$key] = @($recordId, $recordScreen)
+    }
+    $excludedRaw = @()
+    if ($Walk.PSObject.Properties.Name.Contains('excluded')) { $excludedRaw = @($Walk.excluded) }
+    foreach ($record in $excludedRaw) {
+        $recordScreen = if ($record.PSObject.Properties.Name -contains 'screen' -and $record.screen) { [string]$record.screen } else { $null }
+        if (-not $recordScreen) { continue }
+        $key = "excluded/$recordScreen"
+        $records[$key] = ($record | ConvertTo-Json -Depth 8 -Compress)
+        $names[$key] = @($recordScreen)
+    }
+    return [pscustomobject]@{ Records = $records; Names = $names }
+}
+
+function Get-TouchedNames {
+    param($Current, $Baseline)
+    $touched = [System.Collections.Generic.HashSet[string]]::new()
+    foreach ($key in $Current.Records.Keys) {
+        if ((-not $Baseline.Records.ContainsKey($key)) -or ($Baseline.Records[$key] -ne $Current.Records[$key])) {
+            foreach ($name in $Current.Names[$key]) { if ($name) { [void]$touched.Add($name) } }
+        }
+    }
+    # A record the edit REMOVED has no entry left to attribute it to, and removal is one of the two
+    # faults the ownership rule exists for, so its names come from the pre-edit copy.
+    foreach ($key in $Baseline.Records.Keys) {
+        if (-not $Current.Records.ContainsKey($key)) {
+            foreach ($name in $Baseline.Names[$key]) { if ($name) { [void]$touched.Add($name) } }
+        }
+    }
+    return $touched
+}
+
+# S2723: $touchedNames stays $null when the delta could not be measured, which means "this edit owns
+# the whole contract" - the pre-S2723 behaviour, kept as the strict fallback.
+$contractPresented = $scopeEnabled -and (Test-InScope $screenList)
+$touchedNames = $null
+if ($contractPresented) {
+    $baselineText = $null
+    if ($ScreenListBaseline) {
+        if (Test-Path -LiteralPath $ScreenListBaseline) { $baselineText = Get-Content -LiteralPath $ScreenListBaseline -Raw }
+    }
+    else {
+        $relative = ([System.IO.Path]::GetRelativePath($repoRoot, (Resolve-Path -LiteralPath $screenList).Path)) -replace '\\', '/'
+        $gitOutput = & git -C $repoRoot show "HEAD:$relative" 2>$null
+        if ($LASTEXITCODE -eq 0) { $baselineText = ($gitOutput -join "`n") }
+    }
+    if ($baselineText) {
+        try { $touchedNames = Get-TouchedNames (Get-ContractRecords $walk) (Get-ContractRecords ($baselineText | ConvertFrom-Json)) }
+        catch { $touchedNames = $null }
+    }
+}
+
+# S2621 + S2723: keep only what the presented set is answerable for - a screen declared in one of the
+# presented files, a stale entry naming no file at all when the set carries a changed screen source,
+# or a contract record this edit touched.
+if ($scopeEnabled) {
     $divergences = @($divergences | Where-Object {
+        if ($contractPresented) {
+            if ($null -eq $touchedNames) { return $true }
+            if ((-not $_.Screen) -and (-not $_.Id)) { return $true }
+            if ($_.Screen -and $touchedNames.Contains($_.Screen)) { return $true }
+            if ($_.Id -and $touchedNames.Contains($_.Id)) { return $true }
+        }
         if (-not $_.Screen) { return $false }
         if ($screenFile.ContainsKey($_.Screen)) { return (Test-InScope $screenFile[$_.Screen]) }
         return $screenSourceChanged

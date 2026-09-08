@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -77,18 +78,28 @@ fun WearFolderWalkScreen(
     }
 
     val listState = rememberWearListState()
+    val stateScrollState = rememberScrollState()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: an empty folder draws the state block instead of the list, and the block carries its
+        // own scroll - so the indicator moves with it rather than with the list standing still behind.
+        positionIndicator = {
+            if (state is WearFolderWalkUiState.Empty) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         when (val current = state) {
             is WearFolderWalkUiState.Loading -> CircularProgressIndicator()
 
             is WearFolderWalkUiState.Empty -> WearStateBlock(
                 kind = WearStateKind.EMPTY,
-                onBack = { if (current.canGoUp) viewModel.navigateUp() else onExit() }
+                onBack = { if (current.canGoUp) viewModel.navigateUp() else onExit() },
+                scrollState = stateScrollState
             )
 
             is WearFolderWalkUiState.Content -> FolderWalkList(

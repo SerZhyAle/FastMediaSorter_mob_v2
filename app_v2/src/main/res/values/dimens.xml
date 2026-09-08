@@ -893,4 +893,8 @@
     <dimen name="stopwatch_reading_text_size_step">2sp</dimen>
 
     <dimen name="broadcast_share_qr_size">280dp</dimen>
+
+    <!-- S2730: the wallpaper screen's preview of the chosen image. Shorter in landscape, where the
+         screen splits into two columns and the whole block has half the height to spend. -->
+    <dimen name="launcher_wallpaper_preview_height">140dp</dimen>
 </resources>

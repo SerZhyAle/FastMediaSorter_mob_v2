@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">স্লাইডশো শুরু করুন</string>
     <string name="wear_slideshow_stop">স্লাইডশো বন্ধ করুন</string>
     <string name="wear_unsupported_file_title">এখানে খোলা যাবে না</string>
-    <string name="wear_unsupported_file_message">ঘড়িতে এই ধরনের ফাইল খোলা হয় না। আপনার ফোনে এটি খুলুন।</string>
     <string name="wear_complication_last_resource_label">শেষ সম্পদ</string>
     <string name="wear_complication_last_resource_description">অতি সম্প্রতি ব্যবহৃত মিডিয়া রিসোর্স খুলতে শর্টকাট</string>
     <string name="wear_complication_favourites_label">প্রিয়</string>

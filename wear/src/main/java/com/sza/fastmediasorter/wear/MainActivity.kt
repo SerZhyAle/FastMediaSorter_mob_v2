@@ -49,6 +49,7 @@ import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
@@ -63,7 +64,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCas
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
@@ -75,6 +76,8 @@ import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
+import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastQrScreen
+import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.LocalWearListPositions
@@ -90,6 +93,7 @@ import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
 import com.sza.fastmediasorter.wear.ui.home.PhoneHomeScreen
+import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.AddNetworkSourceScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourceMediaTypeScreen
@@ -99,6 +103,7 @@ import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
+import com.sza.fastmediasorter.wear.ui.player.document.DocumentViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.unsupported.UnsupportedFileScreen
 import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
@@ -109,6 +114,7 @@ import com.sza.fastmediasorter.wear.ui.settings.ScreenSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SlideshowSettingsScreen
+import com.sza.fastmediasorter.wear.ui.settings.TileTargetsSettingsScreen
 import com.sza.fastmediasorter.wear.ui.streams.StreamsScreen
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.ui.tile.TileTargetPickerScreen
@@ -145,7 +151,7 @@ data class WearHostUseCases(
  * repeated at every level between the Activity and the navigation host.
  */
 data class WearLaunchEntry(
-    val resolveRoute: ResolveWearLaunchRouteUseCase,
+    val resolveAddress: ResolveWearLaunchAddressUseCase,
     val pendingTarget: StateFlow<WearLaunchTarget?>,
     /** Takes the target it handled, so a newer one that arrived mid-resolution is not cleared unhandled. */
     val onHandled: (WearLaunchTarget) -> Unit,
@@ -170,6 +176,7 @@ private val SETTINGS_ROUTES = setOf(
     SettingsRoutes.SLIDESHOW,
     SettingsRoutes.SCREEN,
     SettingsRoutes.OTHER,
+    SettingsRoutes.TILE_TARGETS,
     SettingsRoutes.ABOUT
 )
 
@@ -195,7 +202,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
 
     // S1955: a tile names its target in the launch intent, and resolving it reads the stores.
-    @Inject lateinit var resolveLaunchRoute: ResolveWearLaunchRouteUseCase
+    @Inject lateinit var resolveLaunchAddress: ResolveWearLaunchAddressUseCase
 
     // S2000: injected here and handed down for the same reason the two playback use cases are -
     // the navigation host is the one place that sits above every screen the background shows behind.
@@ -259,7 +266,7 @@ class MainActivity : ComponentActivity() {
                         prepareNetworkFilePlayback = prepareNetworkFilePlayback
                     ),
                     launchEntry = WearLaunchEntry(
-                        resolveRoute = resolveLaunchRoute,
+                        resolveAddress = resolveLaunchAddress,
                         pendingTarget = pendingLaunchTarget,
                         onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
                     )
@@ -626,6 +633,11 @@ private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
  * lifted the settings block - the host sat at detekt's length ceiling and this ticket adds a line to
  * it. All three take the same single file-id argument; S2472 additionally hands each player the
  * back action, so the controller travels in here with them.
+ *
+ * S2532: the document reader joins them, on the same argument and the same back action. It is
+ * deliberately absent from [PLAYER_ROUTES] all the same - that set names the screens that cover the
+ * whole window, and the reader is a scrolling list like every other one, so it keeps the shared
+ * wallpaper and the shared back affordance.
  */
 private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
     composable(
@@ -660,6 +672,17 @@ private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
             navController.popBackStack()
         })
     }
+
+    composable(
+        route = WearRoutes.DOCUMENT_VIEWER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        DocumentViewerScreen(onBack = {
+            navController.popBackStack()
+        })
+    }
 }
 
 /**
@@ -691,6 +714,10 @@ private fun NavGraphBuilder.settingsRoutes(navController: NavHostController) {
 
     composable(SettingsRoutes.OTHER) {
         OtherSettingsScreen()
+    }
+
+    composable(SettingsRoutes.TILE_TARGETS) {
+        TileTargetsSettingsScreen(navController = navController)
     }
 
     composable(SettingsRoutes.ABOUT) {
@@ -748,7 +775,7 @@ private fun OpenFileOnWatchEffect(
             WatchFileOpenEvents.requestFlow.collect { request ->
 
                 val target = prepareFilePlayback(request)
-                navController.navigate(playerRouteFor(target.fileId, target.mimeType))
+                navController.navigate(playerRouteFor(target.fileId, target.mimeType, fileName = request.path))
                 // Confirm only after navigating, so the phone's "opened" is a report, not a promise.
                 WatchFileOpenEvents.openedFlow.emit(request.path)
             }
@@ -775,11 +802,11 @@ private fun OpenLaunchTargetEffect(
     LaunchedEffect(navController) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             launchEntry.pendingTarget.filterNotNull().collect { target ->
-                when (val route = launchEntry.resolveRoute(target)) {
+                when (val address = launchEntry.resolveAddress(target)) {
                     // The whole path is otherwise silent: a deleted resource, a channel dropped from the
                     // catalog and an ordinary launch all look identical from outside the process.
                     null -> Timber.w("Launch target no longer resolves, staying put: %s", target)
-                    else -> navigateGuarded(navController, route)
+                    else -> navigateGuarded(navController, WearLaunchRoutes.routeFor(address))
                 }
                 // Cleared even when nothing resolved, so the jump cannot be replayed.
                 launchEntry.onHandled(target)
@@ -885,8 +912,23 @@ private fun NavGraphBuilder.miniAppRoutes(
         BodySensorScreen()
     }
 
-    composable(WearRoutes.UNSUPPORTED_FILE) {
-        UnsupportedFileScreen()
+    // S2509: reached from the Home section and from this list alike - one route, two entrances, as
+    // the owner ruled. Going back from here does not stop the broadcast: the session belongs to the
+    // foreground service, and its notification carries the same stop action.
+    composable(WearRoutes.BROADCAST) {
+        WearBroadcastScreen(onShowQr = { navController.navigate(WearRoutes.BROADCAST_QR) })
+    }
+
+    composable(WearRoutes.BROADCAST_QR) {
+        WearBroadcastQrScreen()
+    }
+
+    composable(
+        route = WearRoutes.UNSUPPORTED_FILE,
+        arguments = listOf(navArgument(WearRoutes.ARG_DOCUMENT_FORMAT) { type = NavType.StringType })
+    ) { entry ->
+        val token = entry.arguments?.getString(WearRoutes.ARG_DOCUMENT_FORMAT)
+        UnsupportedFileScreen(format = WearDocumentFormat.fromToken(token))
     }
 }
 
@@ -1043,7 +1085,7 @@ private fun NavGraphBuilder.localFolderRoutes(
                         )
                     ).fileId
                 }
-                navController.navigate(playerRouteFor(fileId, row.mimeType))
+                navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
             },
             onExit = { navController.popBackStack() }
         )

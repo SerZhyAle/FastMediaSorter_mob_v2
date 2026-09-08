@@ -233,7 +233,9 @@ data class BackupSettings(
     val launcherWallpaperMode: String = "BRANDED",
     val launcherWallpaperImagePath: String = "",
     val launcherWallpaperCameraId: String = "",
-    val allAppsSortOrder: String = "LABEL",
+    // S2736: matches the model default, so a backup written before the field existed restores the
+    // current default rather than the one it replaced.
+    val allAppsSortOrder: String = "LAUNCH_FREQUENCY",
     val allAppsSortDescending: Boolean = false,
     // S2384: a backup written before this field existed restores to the current default, not to Off.
     val launcherScreenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
@@ -333,7 +335,13 @@ data class BackupSettings(
         val allAppsSwipeRightPayload: String? = null,
         val screenCount: Int = 2,
         val weatherLastLocation: String? = null,
-        val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA
+        val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
+        // S2730: nullable for the S2632 reason - all three are introduced now, so no already-written
+        // backup file carries them, and a non-null default would reset the user's real tuning on every
+        // restore from an existing file. Null means "the writer had no opinion" = keep current.
+        val wallpaperIntensity: Float? = null,
+        val wallpaperAnimationSpeed: Float? = null,
+        val wallpaperParticleDensity: Float? = null
     )
 
     /**
@@ -417,6 +425,9 @@ data class BackupSettings(
         val showNowPlayingPanel: Boolean = false,
         val secureSensitiveScreens: Boolean = true,
         val powerSavingTrigger: String? = null,
+        // S2727: null means "the payload predates this field" - restore then keeps the value already on
+        // the device instead of forcing METRIC over a user who had chosen IMPERIAL.
+        val unitSystem: String? = null,
         val allowSeparateWindow: Boolean = false,
         val enableStatistics: Boolean = true,
         val backgroundAudioExitBehavior: String? = null

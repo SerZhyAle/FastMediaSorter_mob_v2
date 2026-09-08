@@ -16,10 +16,10 @@ sealed interface WearTileContent {
      */
     data class Shortcuts(val entries: List<WearTileShortcut>) : WearTileContent
 
+    /** S2751: carried an always-null `iconResId` until this ticket; these states draw text only. */
     data class Assigned(
         val title: String,
         val subtitle: String?,
-        val iconResId: Int?,
         val launchTarget: WearLaunchTarget,
         val entries: List<String> = emptyList()
     ) : WearTileContent

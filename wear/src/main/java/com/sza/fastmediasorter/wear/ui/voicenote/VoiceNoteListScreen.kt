@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -204,9 +205,15 @@ private fun NoteRow(
         onClick = onPlay,
         onLongClick = onOpenActions,
         label = {
-            Text(text = noteTimeLabel(note), maxLines = 1)
+            // Time and duration divide one chip's width between them, so at a large font scale each
+            // has to end in an ellipsis inside its own share rather than be cut by the row (S2755).
+            Text(text = noteTimeLabel(note), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.width(ROW_LABEL_GAP))
-            Text(text = formatVoiceNoteDuration(note.durationMillis), maxLines = 1)
+            Text(
+                text = formatVoiceNoteDuration(note.durationMillis),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
         modifier = Modifier.fillMaxWidth(),
         icon = {
@@ -225,7 +232,7 @@ private fun NoteRow(
                 )
             }
         },
-        secondaryLabel = { Text(text = stateLabel, maxLines = 1) },
+        secondaryLabel = { Text(text = stateLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         colors = ChipDefaults.secondaryChipColors()
     )
 }

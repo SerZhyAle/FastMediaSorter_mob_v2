@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -31,6 +32,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
@@ -64,22 +66,26 @@ internal fun ReceiverListDialog(
         onDismissRequest = onDismiss
     ) {
         val listState = rememberWearListState()
-        WearListColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_send_to_title),
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.padding(bottom = TITLE_GAP)
-                )
-            }
+        // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own over the list.
+        Box(modifier = Modifier.fillMaxSize()) {
+            WearListColumn(
+                modifier = Modifier.fillMaxSize(),
+                state = listState
+            ) {
+                item {
+                    Text(
+                        text = stringResource(R.string.wear_send_to_title),
+                        style = MaterialTheme.typography.title3,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(bottom = TITLE_GAP)
+                    )
+                }
 
-            items(receivers, key = { it.id }) { entry ->
-                ReceiverChip(entry = entry, onClick = { onPick(entry) })
+                items(receivers, key = { it.id }) { entry ->
+                    ReceiverChip(entry = entry, onClick = { onPick(entry) })
+                }
             }
+            PositionIndicator(listState)
         }
     }
 }

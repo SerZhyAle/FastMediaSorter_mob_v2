@@ -231,6 +231,12 @@
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
 
+    <!-- S2716: entry order follows UnitSystem.entries - the row maps the selected index by ordinal. -->
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
+
     <string-array name="color_theme_options">
         <item>Auto (follow device)</item>
         <item>Light</item>
@@ -3022,7 +3028,7 @@
     <string name="launcher_signal_scheduled_ops">Scheduled task running</string>
     <string name="launcher_signal_duplicate_scan">Looking for duplicates</string>
     <string name="launcher_signal_network_sync">Syncing network folders</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">Active signals</string>
     <string name="launcher_settings_group_taskbar">Taskbar</string>
     <string name="launcher_settings_group_top_bar">Top bar</string>
@@ -3860,4 +3866,61 @@
     <string name="broadcast_import_unsupported_version">Unsupported broadcast descriptor version</string>
     <string name="broadcast_import_success">Broadcast channel added</string>
     <string name="broadcast_import_option_file">Select Descriptor File</string>
+    <string name="launcher_settings_unit_system_title">Unit system</string>
+    <string name="unit_system_metric">Metric (°C)</string>
+    <string name="unit_system_imperial">US (°F)</string>
+    <string name="wear_listen_title">Listen to the watch</string>
+    <string name="wear_listen_start">Start listening</string>
+    <string name="wear_listen_stop">Stop listening</string>
+    <string name="wear_listen_caption_idle">Hear what the watch microphone hears. The watch will ask you to confirm.</string>
+    <string name="wear_listen_caption_waiting">Waiting for you to confirm on the watch..</string>
+    <string name="wear_listen_caption_listening">Listening to the watch.</string>
+    <string name="wear_listen_refusal_not_asked">The watch could not ask you: turn its notifications on for FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">You declined the request on the watch.</string>
+    <string name="wear_listen_refusal_expired">Nobody answered on the watch in time.</string>
+    <string name="wear_listen_refusal_capture_failed">The watch could not open its microphone.</string>
+    <string name="wear_listen_refusal_no_network">Turn Wi-Fi on for the watch - sound travels over Wi-Fi, not over Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">Listening was stopped on the watch.</string>
+    <string name="wear_listen_refusal_busy">The watch is already serving another listener.</string>
+    <string name="wear_listen_refusal_unknown">The watch refused for a reason this phone does not know.</string>
+    <string name="wear_listen_no_answer">The watch did not answer.</string>
+    <string name="wear_listen_send_failed">Could not reach the watch.</string>
+    <string name="wear_listen_wifi_lost">The watch left Wi-Fi, so listening has stopped.</string>
+    <string name="stream_action_open_in_vr">Open in VR</string>
+    <string name="stream_vr_unsupported_transport">This channel uses a transport the VR player cannot open yet. It still plays in the normal player.</string>
+    <string name="launcher_translator_translate">Translate</string>
+    <string name="launcher_translator_in_progress">Translating..</string>
+    <string name="launcher_wallpaper_screen_title">Wallpaper</string>
+    <string name="launcher_wallpaper_section_mode">What is drawn</string>
+    <string name="launcher_wallpaper_section_source">Source</string>
+    <string name="launcher_wallpaper_section_tuning">Appearance</string>
+    <string name="launcher_wallpaper_section_power">Battery</string>
+    <string name="launcher_wallpaper_desc_branded">Coloured waves with drifting particles, animated all the time the desktop is open.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">The same waves, but frozen: one fresh frame is drawn each time you return to the desktop, and nothing moves after that.</string>
+    <string name="launcher_wallpaper_desc_none">No wallpaper at all - the desktop shows the flat colour of the current theme.</string>
+    <string name="launcher_wallpaper_desc_image">Your own picture, still or animated, cropped to fill the screen.</string>
+    <string name="launcher_wallpaper_desc_camera">A live picture from the camera, refreshed continuously. It costs the most battery of all the modes.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">One photo taken by the camera each time you return to the desktop; the camera is released immediately afterwards.</string>
+    <string name="launcher_wallpaper_intensity_title">Brightness</string>
+    <string name="launcher_wallpaper_intensity_hint">How strongly the wallpaper is drawn. Lower values leave more contrast for icons and labels.</string>
+    <string name="launcher_wallpaper_speed_title">Animation speed</string>
+    <string name="launcher_wallpaper_particle_density_title">Particle density</string>
+    <string name="launcher_wallpaper_particle_density_hint">At zero only the waves are drawn, with no particles.</string>
+    <string name="launcher_wallpaper_power_explanation">The wallpaper stops animating on its own when the system power saver is on or the battery runs low, and the live camera falls back to the waves. Turning animation off in the app settings stops it too.</string>
+    <string name="launcher_wallpaper_power_state_normal">Now: animating</string>
+    <string name="launcher_wallpaper_power_state_reduced">Now: reduced to save power</string>
+    <string name="launcher_wallpaper_power_state_saving">Now: stopped to save power</string>
+    <string name="launcher_wallpaper_source_empty">Nothing chosen yet</string>
+    <string name="launcher_wallpaper_source_change">Choose</string>
+    <string name="launcher_wallpaper_percent_value">%1$d%%</string>
+    <string name="launcher_wallpaper_speed_value">%1$s×</string>
+    <string name="launcher_signal_overflow_description">More notifications: %1$d</string>
+    <string name="launcher_section_settings">Settings</string>
+    <string name="launcher_tray_battery_value_charging">⚡%1$d</string>
+    <string name="launcher_tray_battery_charging_ac">Battery %1$d%%, charging from mains</string>
+    <string name="launcher_tray_battery_charging_usb">Battery %1$d%%, charging over USB</string>
+    <string name="launcher_tray_battery_charging_wireless">Battery %1$d%%, charging wirelessly</string>
+    <string name="streams_collection_all">All</string>
+    <string name="streams_collection_strip_description">Collections</string>
+    <string name="streams_collection_selected_count">%1$d channels in the collection</string>
 </resources>

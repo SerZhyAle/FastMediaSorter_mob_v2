@@ -1,0 +1,58 @@
+appId: com.sza.fastmediasorter.debug
+---
+# S2720: turn launcher mode on and leave the caller back on General -> Interface with
+# rowLauncherSettings active. Precondition: _shared/settings_open_interface.yaml has just run.
+#
+# rowLauncherSettings is enabled off state.homeRoleHeld, NOT off the enabled HOME component
+# (GeneralSettingsLauncherHelper.refreshState -> updateOpenRowEnabled). So tapping the toggle is only
+# half the job: it enables the component and launches the system ROLE_HOME request, and if that
+# request is left unanswered the next onResume finds !homeRoleHeld && modeEnabled, disables the
+# component again and clears the switch. That is the whole of the original failure - the toggle tap
+# reported COMPLETED and the scroll to rowLauncherSettings then timed out with the mode still off.
+#
+# Two properties of the system dialog, both measured on emulator-5554 2026-09-08:
+#  - Confirming needs the candidate row selected FIRST. A lone tap on android:id/button1 left the
+#    dialog standing and the role with the previous launcher.
+#  - The candidate list carries no per-row id, only a repeated title_and_subtitle; the requesting app
+#    is row 0 and the current default follows it.
+# Ids are used rather than labels because this dialog is rendered in the DEVICE locale, which is not
+# the app locale the rest of the suite matches against.
+#
+# Granting the role sends the device home, i.e. straight into LauncherHomeActivity, so the return
+# trip is mandatory. It is a plain launchApp with no stopApp: stopping the app that currently owns
+# the home role hangs Maestro outright (see _shared/go_home.yaml).
+#
+# The caller's runner restores the previous role holder after the flow - maestro/run-tests.ps1 does
+# it for every flow marked `# maestro-requires: home-role`, pass or fail.
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+        enabled: true
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+      - extendedWaitUntil:
+          visible:
+            id: "android:id/button1"
+          timeout: 15000
+      - tapOn:
+          id: "com.android.permissioncontroller:id/title_and_subtitle"
+          index: 0
+      - tapOn:
+          id: "android:id/button1"
+      - waitForAnimationToEnd
+      - launchApp:
+          appId: "com.sza.fastmediasorter.debug"
+      - waitForAnimationToEnd
+      - runFlow: settings_open_interface.yaml
+
+# Scroll rather than assert in place: the row sits below the Interface header and may be off-screen
+# after the section expands. This both brings it into view for the caller and fails here, naming the
+# launcher mode, if the role was never granted - instead of at a bare scroll timeout further down.
+- scrollUntilVisible:
+    visibilityPercentage: 30
+    element:
+      id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
+      enabled: true
+    timeout: 10000

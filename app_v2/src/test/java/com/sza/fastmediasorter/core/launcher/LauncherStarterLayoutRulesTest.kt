@@ -204,11 +204,26 @@ class LauncherStarterLayoutRulesTest {
                 StarterSectionGroup.RESOURCES,
                 StarterSectionGroup.APP_FUNCTIONS,
                 StarterSectionGroup.LAUNCHER_ACTIONS,
+                StarterSectionGroup.SETTINGS_ENTRIES,
+                StarterSectionGroup.SYSTEM_SETTINGS,
                 StarterSectionGroup.ANDROID_APPS,
                 StarterSectionGroup.GOOGLE_APPS,
             ),
             rule.sectionOrder.take(rule.firstScreenSections),
         )
+    }
+
+    @Test
+    fun `the entries into settings are unbounded on every screen class`() {
+        // S2735, ADR-1: a budget that reached this group would not shorten the settings section, it
+        // would seed a desktop with no entry into the settings.
+        for (screenClass in allScreenClasses) {
+            val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
+            assertTrue(
+                "$screenClass budgeted SETTINGS_ENTRIES, which seeds a desktop with no way into settings",
+                StarterSectionGroup.SETTINGS_ENTRIES !in rule.itemBudget,
+            )
+        }
     }
 
     @Test

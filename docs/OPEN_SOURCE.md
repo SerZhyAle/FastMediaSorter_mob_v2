@@ -95,6 +95,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | NewPipe Extractor | `com.github.TeamNewPipe:NewPipeExtractor` | [GPL-3.0-or-later](https://raw.githubusercontent.com/TeamNewPipe/NewPipeExtractor/dev/LICENSE) | noLegal | [link](https://github.com/TeamNewPipe/NewPipeExtractor) |
 | Accompanist Permissions | `com.google.accompanist:accompanist-permissions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/accompanist) |
 | Material Components for Android | `com.google.android.material:material` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/material-components/material-components-android) |
+| Gson | `com.google.code.gson:gson` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/gson) |
 | Dagger Hilt Android | `com.google.dagger:hilt-android` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/dagger) |
 | ZXing Core | `com.google.zxing:core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/zxing/zxing) |
 | SMBJ | `com.hierynomus:smbj` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/hierynomus/smbj) |
@@ -145,6 +146,7 @@ These components are not open source. They are distributed under their vendor te
 - **RTSP-Server** (`Apache-2.0`) - Published on JitPack; hosts the on-device RTSP server used by the camera broadcast (standard/noLegal/legacy only).
 - **RootEncoder** (`Apache-2.0`) - Declared explicitly rather than transitively: JitPack generates the RTSP-Server POM with runtime scope, so its base classes never reach the compile classpath.
 - **NewPipe Extractor** (`GPL-3.0-or-later`) - Copyleft without a linking exception, linked only into the sideload-only noLegal build. In accordance with GPLv3 §6, the Corresponding Source code (including both the application source code and the extractor source code) is available at https://github.com/SerZhyAle/FastMediaSorter_mob_v2 and https://github.com/TeamNewPipe/NewPipeExtractor.
+- **Gson** (`Apache-2.0`) - S2509: declared outright by the wear module, which previously took it transitively through converter-gson above. The broadcast descriptor is a cross-module wire contract, so its serializer may not rest on a version a Retrofit bump could change.
 - **ZXing Core** (`Apache-2.0`) - Licence inherited from the zxing-parent POM; the core artifact declares no licences block of its own.
 - **SMBJ** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use.
 - **Tesseract4Android** (`Apache-2.0`) - Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries.

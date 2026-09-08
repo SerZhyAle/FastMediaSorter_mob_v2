@@ -46,9 +46,27 @@ appId: com.sza.fastmediasorter.debug
       - back
       - waitForAnimationToEnd
 
-# Escape hatch - only reached when backing out failed, i.e. the foreground screen is not on the
-# app's back stack. stopApp drops whatever task is in the way; clearState is deliberately NOT set,
-# because it would wipe the registered resources every flow depends on.
+# First escape hatch - a plain relaunch, no stopApp. LauncherHomeActivity declares MAIN/HOME only
+# while MainActivity holds MAIN/LAUNCHER, so the launcher intent resolves to MainActivity even when
+# this app currently HOLDS the home role (verified 2026-09-08 on emulator-5554: the intent landed on
+# ui.main.MainActivity from the app's own desktop).
+#
+# S2720: this step exists because the stopApp hatch below hangs in exactly that state - stopping the
+# app that owns the home role leaves no home surface and Maestro never returns, which took a launcher
+# flow out at a 7-minute timeout. Trying the cheap relaunch first means the stopApp branch is only
+# reached when the role is elsewhere, where it is safe.
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/tabResourceTypes"
+    commands:
+      - launchApp:
+          appId: "com.sza.fastmediasorter.debug"
+      - waitForAnimationToEnd
+
+# Second escape hatch - only reached when the plain relaunch failed too. stopApp drops whatever task
+# is in the way; clearState is deliberately NOT set, because it would wipe the registered resources
+# every flow depends on.
 - runFlow:
     when:
       notVisible:

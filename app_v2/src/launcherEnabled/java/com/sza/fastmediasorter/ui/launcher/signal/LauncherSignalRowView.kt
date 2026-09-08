@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import com.sza.fastmediasorter.R
+import timber.log.Timber
 
 /**
  * S1421 ADR-3: the signal icons, laid out as two groups pressed to the edges with the display cutout's own
@@ -232,7 +233,9 @@ class LauncherSignalRowView @JvmOverloads constructor(
         val gap = localCutoutGap()
         val startCapacity = capacityIn(paddingStart + pinnedExtent(pinnedStart), gap.first)
         val endCapacity = capacityIn(gap.second, width - paddingEnd - pinnedExtent(pinnedEnd))
-        capacity = startCapacity + endCapacity
+        // S2734 ADR-1: the owner's limit of five caps what the width allows, it does not replace it - the
+        // side capacities stay as measured, since they only split what the bounded total already permits.
+        capacity = signalSlots(startCapacity + endCapacity)
         // The counter takes a slot of its own, so one fewer signal is drawn when it appears. Nothing is
         // dropped silently: what the row cannot show, the counter stands for and the sheet lists.
         val chipCount = when {
@@ -241,11 +244,12 @@ class LauncherSignalRowView @JvmOverloads constructor(
             else -> capacity - 1
         }
         val hidden = signals.size - chipCount
+        Timber.d("S2734: strip rebuild signals=${signals.size} slots=$capacity chips=$chipCount hidden=$hidden")
         val shown = signals.take(chipCount)
         syncChildren(chipCount, showCounter = hidden > 0 && capacity > 0)
         shown.forEachIndexed { index, signal -> bindChip(flowChildAt(index), signal) }
         if (hidden > 0 && capacity > 0) {
-            bindCounter(flowChildAt(flowCount - 1), hidden)
+            bindCounter(flowChildAt(flowCount - 1), hidden, chipCount)
         }
         // The counter rides the end group, so its slot comes off the end capacity before the split -
         // without that, a full row plus its counter still reaches one slot across the cutout's right edge.
@@ -332,10 +336,16 @@ class LauncherSignalRowView @JvmOverloads constructor(
         addView(child, flowFrom + flowCount)
     }
 
-    private fun bindCounter(counter: View, hidden: Int) {
-        val text = context.getString(R.string.launcher_signal_overflow_count, hidden)
-        (counter as TextView).text = text
-        counter.contentDescription = text
+    /**
+     * S2734 ADR-3: the button is labelled by the position it stands for - "6+" once five chips are shown -
+     * and speaks the amount behind it instead. The visible label can only carry one of the two, and read
+     * aloud it would otherwise become arithmetic ("six plus") rather than a count.
+     */
+    private fun bindCounter(counter: View, hidden: Int, chipCount: Int) {
+        (counter as TextView).text =
+            context.getString(R.string.launcher_signal_overflow_from, chipCount + 1)
+        counter.contentDescription =
+            context.getString(R.string.launcher_signal_overflow_description, hidden)
         counter.setOnClickListener { onOverflowTap() }
     }
 
@@ -354,6 +364,19 @@ class LauncherSignalRowView @JvmOverloads constructor(
         }
     }
 }
+
+/**
+ * S2734: the owner's ceiling of five signal chips, with a sixth slot left for the overflow counter.
+ */
+private const val MAX_STRIP_SIGNALS = 5
+
+/**
+ * S2734 ADR-1: how many slots the row may fill, given the [capacity] its width and cutout allow.
+ *
+ * A ceiling rather than a fixed number: a narrow screen that fits three chips keeps fitting three, because
+ * five chips forced onto it would overlap - the risk the limit was asked for in the first place.
+ */
+internal fun signalSlots(capacity: Int): Int = minOf(capacity, MAX_STRIP_SIGNALS + 1)
 
 /**
  * S2244: how many of [chipCount] chips the start group holds when each edge group is bounded by its own

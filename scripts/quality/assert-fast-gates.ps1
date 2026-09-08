@@ -17,6 +17,8 @@
                                       untracked-dialog and the two string-resource rules)
       - assert-listener-symmetry
       - assert-wear-settings-parity  (S2093 watch settings present on one side of the pair only)
+      - assert-wear-canonical-key-parity (S2579 a watch program key that is neither a phone route
+                                      key nor a declared watch-only program)
       - assert-wear-record-merge-parity (S2502 the two resource merge-rule copies diverging)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
@@ -168,6 +170,12 @@ $gates = [ordered]@{
     # gradle daemon. Per-ticket by Rule 33: only the author knows whether a new one-sided setting was
     # meant to be one-sided, and the reference it guards is read by agents between releases.
     'assert-wear-settings-parity.ps1'           = @('-Quiet')
+    # S2579: WearAppId declares canonicalKey to be the phone's route key for the same program, and
+    # nothing compared the two literal sets - the watch test checks the watch against itself. The
+    # rule is two-part because a watch-only program is legitimate, so the exceptions are declared in
+    # wear-canonical-key-watch-only-baseline.txt with their reason. Two files, no gradle daemon.
+    # Per-ticket by Rule 33: only the author of a new entry knows whether it is meant to be one-sided.
+    'assert-wear-canonical-key-parity.ps1'      = @('-Quiet')
     # S2642: eight vocabularies cross the Wear Data Layer outside settings, each written twice by hand.
     # Refuses a divergence between the two copies, and refuses a new mirrored enum added without being
     # declared in the gate's table. Dot-sources lib/wear-vocabulary-parsers.ps1; no gradle daemon.

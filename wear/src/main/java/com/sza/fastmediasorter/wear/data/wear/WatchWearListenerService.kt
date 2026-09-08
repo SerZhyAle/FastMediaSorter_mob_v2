@@ -18,7 +18,12 @@ import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
+import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
+import com.sza.fastmediasorter.wear.domain.listen.ListenRequester
+import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
+import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
+import com.sza.fastmediasorter.wear.domain.model.ListenSessionPayloadCodec
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
@@ -40,6 +45,8 @@ import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
+import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
+import com.sza.fastmediasorter.wear.service.helpers.ListenSessionTerminator
 import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.AndroidEntryPoint
@@ -89,6 +96,20 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var uploadOutcomeNotifier: com.sza.fastmediasorter.wear.core.notification.WearUploadOutcomeNotifier
 
     @Inject lateinit var gson: Gson
+
+    // S2550: the listening half. The notifier is the ONLY one of these that the start path touches -
+    // ADR-6 puts the microphone behind the owner's tap, so nothing here reaches the capture service.
+    @Inject lateinit var listenRequestNotifier: ListenRequestNotifier
+
+    @Inject lateinit var listenRequestRegistry: ListenRequestRegistry
+
+    @Inject lateinit var listenAckSender: ListenAckSender
+
+    @Inject lateinit var listenSessionTerminator: ListenSessionTerminator
+
+    @Inject lateinit var listenSessionStateHolder: ListenSessionStateHolder
+
+    @Inject lateinit var listenPayloadCodec: ListenSessionPayloadCodec
 
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
@@ -225,6 +246,8 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.STREAM_TRANSFER ->
                 handleStreamTransfer(event.sourceNodeId, event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
+            WearDataLayerPaths.LISTEN_START -> handleListenStart(event.sourceNodeId, event.data)
+            WearDataLayerPaths.LISTEN_STOP -> handleListenStop(event.sourceNodeId, event.data)
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }
@@ -246,6 +269,61 @@ class WatchWearListenerService : WearableListenerService() {
         if (metadata != null) {
             wearFileReceiverRepository.declare(metadata)
         }
+    }
+
+    /**
+     * S2550 ADR-6: the whole watch-side start path, and it deliberately starts nothing.
+     *
+     * Strategic §6.1 measured both barriers that close the silent path - API 31 refuses a background
+     * foreground-service start outside fourteen exemptions a Data Layer delivery matches nowhere, and
+     * API 34 separately refuses to create a `microphone`-typed service from the background even when
+     * the first has been waived. So this raises the request and returns; the microphone is opened from
+     * the window the owner's tap opens, and from nowhere else.
+     *
+     * The two answers it does send are the two the owner will never see: a watch with notifications
+     * off was never asked, and an unanswered request that timed out is not a request the phone should
+     * still be waiting on.
+     */
+    private fun handleListenStart(nodeId: String, data: ByteArray) {
+        val command = listenPayloadCodec.decodeCommand(data) ?: return
+        if (isListenSessionTaken()) {
+            // Refused rather than queued, and answered without touching the registry: the phone that
+            // is already waiting must keep its claim on the one answer this watch has to give.
+            listenAckSender.answerRefusalTo(nodeId, command.requestId, ListenRefusal.BUSY)
+            return
+        }
+        listenRequestRegistry.remember(ListenRequester(nodeId, command.requestId))
+        val posted = listenRequestNotifier.notifyListenRequest {
+            listenAckSender.answerRefusal(ListenRefusal.EXPIRED)
+        }
+        if (!posted) {
+            listenAckSender.answerRefusal(ListenRefusal.NOT_ASKED)
+        }
+    }
+
+    /**
+     * True while this watch owes an answer to somebody, or is already serving one.
+     *
+     * Both halves are needed and neither implies the other: a request may be posted with no session
+     * yet, and a session may be live long after its notification was spent. Without the check a
+     * second start would post a notification the confirmation path then declines to honour, because
+     * the capture service ignores a start over an open session - the newcomer would wait on silence.
+     */
+    private fun isListenSessionTaken(): Boolean =
+        listenRequestNotifier.hasPendingRequest || listenSessionStateHolder.state.value.isActive
+
+    /**
+     * The stop half. Idempotent by construction: a stop with nothing running still answers, which is
+     * what lets the phone send it without knowing what the watch has open.
+     *
+     * The requester is remembered again rather than reused, because a stop may arrive from a phone
+     * that reconnected under a new node id since it asked to listen.
+     */
+    private fun handleListenStop(nodeId: String, data: ByteArray) {
+        val command = listenPayloadCodec.decodeCommand(data) ?: return
+        listenRequestRegistry.remember(ListenRequester(nodeId, command.requestId))
+        listenSessionTerminator.end()
+        listenAckSender.answerRefusal(ListenRefusal.STOPPED)
     }
 
     private fun handleStreamTransfer(nodeId: String, data: ByteArray) {

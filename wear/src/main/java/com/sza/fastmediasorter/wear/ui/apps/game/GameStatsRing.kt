@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.MaterialTheme
@@ -75,6 +76,9 @@ private fun Counter(value: Int, description: String, modifier: Modifier = Modifi
         // instead of reading `onSurfaceVariant`, which a light scheme makes near-black on black.
         color = LocalContentColor.current.copy(alpha = COUNTER_TEXT_ALPHA),
         maxLines = 1,
+        // The three counters share one chord of the circle, so a scaled-up number has to give way
+        // inside its own share rather than be cut where the row runs out (S2755).
+        overflow = TextOverflow.Ellipsis,
         modifier = modifier.semantics { contentDescription = description }
     )
 }

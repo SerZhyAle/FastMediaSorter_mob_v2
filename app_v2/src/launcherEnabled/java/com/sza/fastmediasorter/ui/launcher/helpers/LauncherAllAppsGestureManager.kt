@@ -11,7 +11,9 @@ import kotlin.math.abs
  * Recognizes directional swipes from an eligible surface in its gesture area.
  *
  * Yields to scrolling: an upward swipe fires only at the lower desktop boundary, and a downward
- * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling.
+ * swipe fires only at the upper boundary. Horizontal swipes do not inspect vertical scrolling; instead
+ * the host may refuse the horizontal axis for a gesture that started inside a horizontally scrolling
+ * child of its own gesture area.
  *
  * The Activity forwards its raw event stream before child dispatch, because the device can route a desktop
  * touch around the NestedScrollView. Each host supplies the area and eligibility policy that match
@@ -28,6 +30,9 @@ class LauncherAllAppsGestureManager(
     private val isGestureStartAllowed: (MotionEvent) -> Boolean = { event ->
         !isTouchOnInteractiveCell(event)
     },
+    // S2728: a host whose surface carries a horizontally scrolling child answers false there, so the
+    // child's own scroll is not also read as a desktop swipe. Vertical swipes stay unaffected.
+    private val isHorizontalSwipeAllowedAtStart: (MotionEvent) -> Boolean = { true },
 ) {
 
     enum class DesktopSwipeDirection {
@@ -42,6 +47,10 @@ class LauncherAllAppsGestureManager(
     private val viewportBounds = Rect()
 
     private var gestureStartedOnEligibleSurface = false
+
+    // Decided at ACTION_DOWN and held for the gesture: by the time the fling is classified the finger has
+    // usually left the strip it started in, so the start point is the only trustworthy answer.
+    private var horizontalSwipeAllowedForGesture = true
 
     private val detector = GestureDetector(
         container.context,
@@ -64,6 +73,7 @@ class LauncherAllAppsGestureManager(
         if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             gestureStartedOnEligibleSurface =
                 isTouchWithinGestureArea(event) && isGestureStartAllowed(event)
+            horizontalSwipeAllowedForGesture = isHorizontalSwipeAllowedAtStart(event)
         }
         if (!gestureStartedOnEligibleSurface) return
         detector.onTouchEvent(event)
@@ -81,6 +91,7 @@ class LauncherAllAppsGestureManager(
         ?.takeIf { isEnabled() }
         ?.let { classifyDirection(it, e2, velocityX, velocityY) }
         ?.takeIf(::isEligibleAtViewportBoundary)
+        ?.takeIf(::isAxisAdmitted)
         ?.also { direction ->
             onSwipe(direction)
         } != null
@@ -134,6 +145,16 @@ class LauncherAllAppsGestureManager(
         DesktopSwipeDirection.DOWN -> !viewport.canScrollVertically(-1)
         DesktopSwipeDirection.LEFT,
         DesktopSwipeDirection.RIGHT,
+        -> true
+    }
+
+    /** S2728: the axis the gesture ended up on, judged against where it started. */
+    private fun isAxisAdmitted(direction: DesktopSwipeDirection): Boolean = when (direction) {
+        DesktopSwipeDirection.LEFT,
+        DesktopSwipeDirection.RIGHT,
+        -> horizontalSwipeAllowedForGesture
+        DesktopSwipeDirection.UP,
+        DesktopSwipeDirection.DOWN,
         -> true
     }
 }

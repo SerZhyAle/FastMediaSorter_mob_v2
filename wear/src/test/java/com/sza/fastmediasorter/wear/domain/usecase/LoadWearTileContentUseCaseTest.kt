@@ -21,8 +21,8 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
-import com.sza.fastmediasorter.wear.ui.apps.WearAppCatalog
-import com.sza.fastmediasorter.wear.ui.home.HomeSectionCatalog
+import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
+import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow

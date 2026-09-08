@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Audiotrack
@@ -77,6 +78,7 @@ fun FavouritesScreen(
     val viewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
     val listState = rememberWearListState(positionKey = WearRoutes.FAVOURITES)
+    val stateScrollState = rememberScrollState()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
@@ -102,7 +104,15 @@ fun FavouritesScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: the empty branch scrolls on its own state, so the indicator follows it there rather
+        // than staying on a list that is not the thing under the wearer's finger.
+        positionIndicator = {
+            if (state is FavouritesUiState.Empty) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         when (val current = state) {
             // Loading keeps its plain centred line: it is not one of the state block's three kinds,
@@ -121,7 +131,8 @@ fun FavouritesScreen(
             is FavouritesUiState.Empty -> WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = stringResource(R.string.wear_favourites_empty),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                scrollState = stateScrollState
             )
 
             is FavouritesUiState.Content -> {

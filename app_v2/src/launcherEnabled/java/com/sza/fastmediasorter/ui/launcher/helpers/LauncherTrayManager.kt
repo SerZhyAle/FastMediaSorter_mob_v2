@@ -40,6 +40,7 @@ import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBadgeMapper
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothConnectionMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayBluetoothMonitor
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayCallbacks
+import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayChargingSource
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconModel
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
@@ -521,27 +522,42 @@ class LauncherTrayManager(
         val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN)
         val charging = status == BatteryManager.BATTERY_STATUS_CHARGING ||
             status == BatteryManager.BATTERY_STATUS_FULL
-
-        indicators.trayBatteryLevel.text = context.getString(R.string.launcher_tray_battery_value, percent)
-        // The number alone is what the owner asked for (strategic §2 goal 2), so the spoken description is
-        // the only place left that says what the number means and whether the device is charging.
-        indicators.trayBatteryLevel.contentDescription = describe(
-            context.getString(
-                if (charging) R.string.launcher_tray_battery_charging else R.string.launcher_tray_battery_level,
-                percent,
-            ),
+        val chargingSource = LauncherTrayChargingSource.from(
+            intent.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0),
+            charging,
         )
-        applyBatteryLevelStyle(percent)
+
+        Timber.d("S2738: tray battery $percent%, plug source $chargingSource")
+        // S2738 strategic §2 goal 3: the lightning mark is the half of the charging signal that survives
+        // colour blindness and a warning colour, so it is on the number itself rather than on the tint.
+        val valueRes = if (chargingSource.isCharging) {
+            R.string.launcher_tray_battery_value_charging
+        } else {
+            R.string.launcher_tray_battery_value
+        }
+        indicators.trayBatteryLevel.text = context.getString(valueRes, percent)
+        // The number alone is what the owner asked for (strategic §2 goal 2), so the spoken description is
+        // the only place left that says what the number means and how the device is being charged.
+        indicators.trayBatteryLevel.contentDescription = describe(
+            context.getString(chargingSource.descriptionRes, percent),
+        )
+        applyBatteryLevelStyle(percent, chargingSource)
     }
 
     /**
      * Strategic §2 goal 3. Colour carries the warning and the number stays readable underneath it, so the
      * blink below [BATTERY_BLINK_PERCENT] repeats what red already said rather than being the only signal.
+     *
+     * S2738 ADR-1: the level warning outranks the charging colour. A low battery is the only state here
+     * that carries risk, and repainting it in a plug-type colour would trade that warning for reference
+     * information; the lightning mark keeps "charging" visible at those levels anyway.
      */
-    private fun applyBatteryLevelStyle(percent: Int) {
+    private fun applyBatteryLevelStyle(percent: Int, chargingSource: LauncherTrayChargingSource) {
+        val chargingColorRes = chargingSource.colorRes
         val color = when {
             percent < BATTERY_CRITICAL_PERCENT -> ContextCompat.getColor(context, R.color.error_color)
             percent < BATTERY_WARNING_PERCENT -> ContextCompat.getColor(context, R.color.warning_color)
+            chargingColorRes != null -> ContextCompat.getColor(context, chargingColorRes)
             else -> defaultBatteryColor
         }
         indicators.trayBatteryLevel.setTextColor(color)

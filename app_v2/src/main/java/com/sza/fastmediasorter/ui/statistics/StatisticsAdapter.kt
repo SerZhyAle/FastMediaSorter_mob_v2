@@ -42,9 +42,13 @@ class StatisticsAdapter(
         is StatisticsListItem.PrivacyNote -> TYPE_PRIVACY
     }
 
-    /** Cards and metric rows occupy one cell; all other rows span the full grid width. */
+    /**
+     * Only the summary card occupies a single cell; every other row spans the full grid width.
+     * S2719: a metric row is horizontal - icon, label, value - so half a portrait phone left the
+     * value about 40 dp and it wrapped one character per line.
+     */
     fun spanSizeFor(position: Int): Int = when (getItemViewType(position)) {
-        TYPE_CARD, TYPE_ROW -> 1
+        TYPE_CARD -> 1
         else -> spanCount
     }
 

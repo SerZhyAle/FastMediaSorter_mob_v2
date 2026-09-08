@@ -46,8 +46,12 @@ class LauncherAppGridAdapter(
     fun submitGroups(groups: List<LauncherAppGroupSection>) {
         items.clear()
         groups.forEach { group ->
-            items += DisplayItem.Header(group)
-            if (group.isPreview || group.isExpanded) {
+            if (group.isSingleApp) {
+                items += DisplayItem.App(group.apps.single())
+            } else {
+                items += DisplayItem.Header(group)
+            }
+            if (!group.isSingleApp && (group.isPreview || group.isExpanded)) {
                 group.apps.forEach { items += DisplayItem.App(it) }
             }
         }
@@ -95,6 +99,35 @@ class LauncherAppGridAdapter(
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
         super.onViewRecycled(holder)
         if (holder is AppViewHolder) holder.clear()
+    }
+
+    /**
+     * S2736: the three row heights the preview arithmetic needs, read off the children the grid has
+     * already laid out. Measured rather than taken from a dimension resource because the app cell
+     * grows with the font scale, and the margins are added back because a child's own height leaves
+     * them out while the row the grid stacks does not.
+     */
+    data class RowHeights(val previewHeaderPx: Int, val appCellPx: Int, val letterTilePx: Int)
+
+    fun measureRowHeights(recyclerView: RecyclerView): RowHeights {
+        var header = 0
+        var app = 0
+        var tile = 0
+        for (index in 0 until recyclerView.childCount) {
+            val child = recyclerView.getChildAt(index) ?: continue
+            val height = child.height + verticalMarginsOf(child)
+            when (recyclerView.getChildViewHolder(child)) {
+                is PreviewHeaderViewHolder -> if (header == 0) header = height
+                is AppViewHolder -> if (app == 0) app = height
+                is GroupTileViewHolder -> if (tile == 0) tile = height
+            }
+        }
+        return RowHeights(previewHeaderPx = header, appCellPx = app, letterTilePx = tile)
+    }
+
+    private fun verticalMarginsOf(child: View): Int {
+        val params = child.layoutParams as? ViewGroup.MarginLayoutParams ?: return 0
+        return params.topMargin + params.bottomMargin
     }
 
     fun getSpanSizeLookup(spanCount: Int): GridLayoutManager.SpanSizeLookup =

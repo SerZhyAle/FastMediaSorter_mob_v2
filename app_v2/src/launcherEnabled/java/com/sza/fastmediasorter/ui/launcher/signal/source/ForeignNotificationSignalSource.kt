@@ -47,16 +47,21 @@ class ForeignNotificationSignalSource @Inject constructor(
         if (byPackage.isEmpty() || !NotificationAccessState.isEnabled(context)) {
             emptyList()
         } else {
-            byPackage.map { (packageName, count) -> signalFor(packageName, count) }
+            // S2734: the counts arrive newest package first, so an entry's position IS its rank - the
+            // recency the owner asked for reaches the strip without this source keeping a clock of its own.
+            byPackage.entries.mapIndexed { index, (packageName, count) ->
+                signalFor(packageName, count, rank = index)
+            }
         }
     }.flowOn(Dispatchers.IO)
 
-    private fun signalFor(packageName: String, count: Int): LauncherSignal = LauncherSignal(
+    private fun signalFor(packageName: String, count: Int, rank: Int): LauncherSignal = LauncherSignal(
         id = SIGNAL_ID_PREFIX + packageName,
         kind = LauncherSignalKind.FOREIGN_NOTIFICATION,
         icon = LauncherSignalIcon.Application(packageName, fallbackRes = R.drawable.ic_apps),
         label = labelOf(packageName),
         detail = count.toString(),
+        rank = rank,
     )
 
     /**

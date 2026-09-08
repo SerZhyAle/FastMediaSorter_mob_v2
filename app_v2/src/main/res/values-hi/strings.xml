@@ -2564,7 +2564,7 @@
     <string name="launcher_signal_scheduled_ops">शेड्यूल किया गया कार्य चल रहा है</string>
     <string name="launcher_signal_duplicate_scan">डुप्लिकेट खोजे जा रहे हैं</string>
     <string name="launcher_signal_network_sync">नेटवर्क फ़ोल्डर सिंक हो रहे हैं</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">सक्रिय संकेत</string>
     <string name="launcher_settings_group_taskbar">टास्कबार</string>
     <string name="launcher_settings_group_top_bar">टॉप बार</string>

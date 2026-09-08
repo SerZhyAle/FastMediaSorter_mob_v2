@@ -298,6 +298,7 @@ _Settings -> General -> System launcher settings_
 | Import all installed apps | Adds a desktop cell for every application installed on the device, so a fresh launcher desktop can be filled without placing each one by hand. |
 | Grant notification access | Opens the system notification-access screen. Shown only while the launcher's foreign-notification row is on and the system has not granted the access. |
 | Reset launcher settings | Resets the launcher configuration and desktop cells back to defaults after confirmation. |
+| Choose | Opens the picker for the wallpaper source - the image file for My image, or the lens for the two camera modes. |
 | Appearance | Settings for launcher appearance: desktop wallpaper mode and widget backdrop opacity. |
 | Desktop | Settings for the launcher desktop itself: icon grid density, the edit lock and the wallpaper. |
 | Gestures | Settings for launcher desktop gestures: swipe up, down, left, right, and double-tap actions. |
@@ -313,7 +314,6 @@ _Settings -> General -> System launcher settings_
 | App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
 | All apps: swipe up | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only after the list is scrolled to its end; by default it expands the full app list instead of the alphabetical sections. |
 | App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
-| Animation color palette | Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish. |
 | Grid density | Sets how many icons the launcher desktop grid fits per row and column; dense by default. |
 | Double tap to lock the screen | Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default. |
 | Swipe down | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
@@ -335,7 +335,7 @@ _Settings -> General -> System launcher settings_
 | Show status tray | Master switch for the launcher's tray block; the switches below it decide which indicators the block contains. |
 | Taskbar position | Puts the taskbar with the Start button along the bottom or the top edge of the desktop. |
 | Top status bar | Moves the clock with seconds to the left of the launcher top bar and the device indicators to the right, freeing the Start panel for more recent apps; available only while the system status area is replaced. |
-| Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10. |
+| Battery | Shows the battery charge in the launcher tray as a number in an outline, yellow below 30 percent, red below 15, blinking below 10; while charging the number carries a lightning mark and turns green on mains, blue on USB and purple on a wireless pad. |
 | Bluetooth | Shows a Bluetooth icon in the launcher tray while the adapter is on. |
 | Clock | Shows the clock in the launcher tray. |
 | Network type | Shows the current connection type - Wi-Fi, mobile or wired - in the launcher tray. |
@@ -343,9 +343,11 @@ _Settings -> General -> System launcher settings_
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Transfer speed | Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled. |
 | Wi-Fi Hotspot | Shows or hides the Wi-Fi hotspot status indicator in the launcher taskbar tray. |
+| Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
 | Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
+| Animation color palette | Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish. |
 
 ## Edge gestures
 

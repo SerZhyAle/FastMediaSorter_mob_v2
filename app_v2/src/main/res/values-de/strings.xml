@@ -2567,7 +2567,7 @@
     <string name="launcher_signal_scheduled_ops">Geplante Aufgabe läuft</string>
     <string name="launcher_signal_duplicate_scan">Suche nach Duplikaten</string>
     <string name="launcher_signal_network_sync">Netzwerkordner werden synchronisiert</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">Aktive Signale</string>
     <string name="launcher_settings_group_taskbar">Taskleiste</string>
     <string name="launcher_settings_group_top_bar">Obere Leiste</string>

@@ -22,14 +22,7 @@ import timber.log.Timber
 class LauncherTaskbarManager(
     private val lifecycleOwner: LifecycleOwner,
     private val binding: LauncherTaskbarBinding,
-    private val onCommand: (LauncherCellCommand) -> Unit,
-    private val onStartClick: () -> Unit,
-    private val onAllAppsClick: () -> Unit = {},
-    private val onPinRecent: (LauncherCellCommand) -> Unit = {},
-    private val onRemoveRecent: (LauncherCellCommand) -> Unit = {},
-    private val onAddPin: () -> Unit = {},
-    private val onRemovePin: (position: Int) -> Unit = {},
-    private val onRecentsCapacity: (Int) -> Unit = {},
+    private val callbacks: LauncherTaskbarCallbacks,
 ) : DefaultLifecycleObserver {
 
     /** One recents cell: the icon plus the padding the item layout puts on each side of it. */
@@ -50,15 +43,15 @@ class LauncherTaskbarManager(
     }
 
     private val recentMenuManager = LauncherTaskbarRecentMenuManager(
-        launchCommand = onCommand,
-        pinCommand = onPinRecent,
-        removeFromRecents = onRemoveRecent,
+        launchCommand = callbacks.onCommand,
+        pinCommand = callbacks.onPinRecent,
+        removeFromRecents = callbacks.onRemoveRecent,
     )
 
     // Recents now carry any command kind (S1097), so the icon id is the encoded command - decode and
     // rerun it, exactly like the pinned strip, instead of assuming an app package.
     private val recentsAdapter = LauncherTaskbarIconAdapter(
-        onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(callbacks.onCommand) },
         onIconLongClick = { anchor, icon ->
             val command = LauncherCellCommand.decode(icon.id)
             if (command == null) {
@@ -71,20 +64,20 @@ class LauncherTaskbarManager(
     )
 
     private val pinnedAppMenuManager = LauncherTaskbarPinnedAppMenuManager(
-        launchCommand = onCommand,
-        unpin = onRemovePin,
+        launchCommand = callbacks.onCommand,
+        unpin = callbacks.onRemovePin,
     )
 
     // Only the pinned strip edits: its icons carry a pin position, so unpin routes by position and the
     // trailing "+" pins one more. Outside edit mode, installed apps also expose their narrow launch/unpin menu.
     private val pinnedAdapter = LauncherTaskbarIconAdapter(
-        onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(onCommand) },
+        onIconClick = { icon -> LauncherCellCommand.decode(icon.id)?.let(callbacks.onCommand) },
         onIconLongClick = { anchor, icon ->
             val command = LauncherCellCommand.decode(icon.id)
             if (command == null) false else pinnedAppMenuManager.show(anchor, command, icon.position)
         },
-        onRemoveClick = { icon -> onRemovePin(icon.position) },
-        onAddClick = onAddPin,
+        onRemoveClick = { icon -> callbacks.onRemovePin(icon.position) },
+        onAddClick = callbacks.onAddPin,
     )
 
     fun bind(
@@ -92,8 +85,8 @@ class LauncherTaskbarManager(
         pinned: Flow<List<LauncherTaskbarIcon>>,
         composition: Flow<LauncherTaskbarComposition>,
     ) {
-        binding.btnStart.setOnClickListener { onStartClick() }
-        binding.btnAllApps.setOnClickListener { onAllAppsClick() }
+        binding.btnStart.setOnClickListener { callbacks.onStartClick() }
+        binding.btnAllApps.setOnClickListener { callbacks.onAllAppsClick() }
         binding.taskbarRecents.layoutManager =
             LinearLayoutManager(binding.root.context, LinearLayoutManager.HORIZONTAL, false)
         binding.taskbarRecents.adapter = recentsAdapter
@@ -197,9 +190,25 @@ class LauncherTaskbarManager(
             return
         }
         reportedRecentsCapacity = capacity
-        onRecentsCapacity(capacity)
+        callbacks.onRecentsCapacity(capacity)
     }
 }
+
+/**
+ * S2741: the taskbar's eight callbacks travel as one object, mirroring [LauncherDesktopActions].
+ *
+ * The defaults stay on the fields so no construction site is forced to name a callback it does not use.
+ */
+class LauncherTaskbarCallbacks(
+    val onCommand: (LauncherCellCommand) -> Unit,
+    val onStartClick: () -> Unit,
+    val onAllAppsClick: () -> Unit = {},
+    val onPinRecent: (LauncherCellCommand) -> Unit = {},
+    val onRemoveRecent: (LauncherCellCommand) -> Unit = {},
+    val onAddPin: () -> Unit = {},
+    val onRemovePin: (position: Int) -> Unit = {},
+    val onRecentsCapacity: (Int) -> Unit = {},
+)
 
 /** Which taskbar blocks the user kept (settings-driven, strategic §3.3). */
 data class LauncherTaskbarComposition(

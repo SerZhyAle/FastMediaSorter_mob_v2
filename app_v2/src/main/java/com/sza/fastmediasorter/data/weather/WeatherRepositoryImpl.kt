@@ -2,19 +2,21 @@ package com.sza.fastmediasorter.data.weather
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WeatherRepository
 import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.weather.WeatherProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.time.LocalTime
 import java.util.Locale
 import java.util.concurrent.TimeUnit
@@ -31,6 +33,7 @@ import javax.inject.Singleton
 class WeatherRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val provider: WeatherProvider,
+    private val settingsRepository: SettingsRepository,
 ) : WeatherRepository {
 
     private val prefs: SharedPreferences by lazy {
@@ -59,8 +62,11 @@ class WeatherRepositoryImpl @Inject constructor(
 
     private suspend fun currentLocked(location: WeatherLocation, forceRefresh: Boolean): WeatherResult {
         val key = cacheKey(location)
+        // S2716: a reading in the other scale is not shown and not converted - it is refetched, so the
+        // scale the user just picked reaches the desktop on the next gadget tick instead of at the TTL.
+        val requestedUnit = requestedUnit()
         val cached = (cache[key] ?: readFromDisk(key, location)?.also { cache[key] = it })
-            ?.takeIf { it.unit == WeatherUnit.CELSIUS }
+            ?.takeIf { it.unit == requestedUnit }
         val now = System.currentTimeMillis()
         if (cached != null) {
             val ageMs = now - cached.observedAtMs
@@ -69,7 +75,7 @@ class WeatherRepositoryImpl @Inject constructor(
                 return WeatherResult.Fresh(cached)
             }
         }
-        val fetched = provider.currentWeather(location, WeatherUnit.CELSIUS)
+        val fetched = provider.currentWeather(location, requestedUnit)
         return when {
             fetched != null -> {
                 cache[key] = fetched
@@ -86,6 +92,13 @@ class WeatherRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    /** The user's measurement system, resolved per call: the setting may change between two ticks. */
+    private suspend fun requestedUnit(): WeatherUnit =
+        when (settingsRepository.getSettings().first().unitSystem) {
+            UnitSystem.METRIC -> WeatherUnit.CELSIUS
+            UnitSystem.IMPERIAL -> WeatherUnit.FAHRENHEIT
+        }
 
     /** Rounded so a hand-typed coordinate and its geocoded twin share one cache entry. */
     private fun cacheKey(location: WeatherLocation): String = String.format(

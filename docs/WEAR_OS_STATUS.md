@@ -284,7 +284,10 @@ measured - it changed nothing, so the recomposition is not the cause.
 - FTP/SFTP support
 - Image editing
 - OCR and translation
-- Documents (PDF/EPUB)
+- PDF, EPUB and office documents. Plain text documents are **not** excluded - S2532 added an on-watch
+  reader for them: a text file opens on the watch, scrolls by finger and by bezel, remembers where it
+  was left and which font size was chosen, and shows a truncation notice past the in-memory cap.
+  A format the watch does not render still reaches the refusal screen, which now names it.
 
 ---
 
@@ -760,6 +763,7 @@ single sync button both legs run in one action, and which leg ran first decided 
 - **Local Playback**: Audio, Video, Image viewing with round-screen scaffold (S1678) and edge swipe dismissal (S1705).
 - **Network Storage**: SMB, FTP, SFTP streaming and browsing.
 - **Companion Sync**: Network source and configuration sync over the Wearable Data Layer (S1681), settings in both directions since S2093.
+- **Watch Microphone Listening**: The phone can ask its paired watch to serve live microphone audio over the local Wi-Fi network after the wearer confirms on the watch; the watch keeps its microphone indicator visible throughout the session (S2550).
 - **Play Store Compliance**: Credential entry hidden on store release builds (WO-P6 / S1707), listing text localized in EN/RU/UK with Wear OS keyword.
 
 ---
@@ -774,4 +778,4 @@ single sync button both legs run in one action, and which leg ran first decided 
 
 ---
 
-**Note**: This status document reflects code and artifact verification as of 2026-08-17. All listed features are implemented and tested in the codebase.
+**Note**: This status document reflects code and artifact verification as of 2026-08-17, with the document-reader scope corrected on 2026-09-08 (S2532). All listed features are implemented and tested in the codebase.

@@ -114,6 +114,22 @@ if ($args -contains '-?' -or $args -contains '-h' -or $args -contains '--help') 
     exit 0
 }
 
+# S2703: without [CmdletBinding()] PowerShell does not refuse an undeclared switch - it binds it into
+# $args and runs the script as if it were never passed. `-DryRun` (never a parameter here) therefore
+# executed a full closure including the dev-log write, and the row it left in dev/CHANGELOG.md can only
+# be removed by the hand-edit the rules forbid. The same swallowing turns any misspelled key
+# (-ScopeToFiles, -Modul, -ShowSkip) into a green verdict about a different scope than the caller asked
+# for. Exit 2, not 1: the contract at the top of this file reserves 1 for "a gate found a defect", and
+# nothing was inspected here. The help tokens are consumed above, so anything still in $args is unknown.
+if ($args.Count -gt 0) {
+    Write-Host "post-change: CANNOT VERIFY - unrecognized argument(s):" -ForegroundColor Red
+    foreach ($unknown in $args) { Write-Host "  $unknown" -ForegroundColor Red }
+    Write-Host "  This script accepts named parameters only; there is no -DryRun mode." -ForegroundColor Yellow
+    Write-Host "  Run with -? for the declared parameter set." -ForegroundColor Yellow
+    Write-Host "  Nothing was checked and nothing was journalled." -ForegroundColor Yellow
+    exit 2
+}
+
 # S2610: the refusal that -Parameter(Mandatory) used to deliver as a prompt. Exit 2 is what the
 # contract above already means by "could not verify" - the closure did not look at anything, which
 # is a different answer from "a gate found a defect", and a caller must be able to tell them apart.
@@ -1657,6 +1673,20 @@ else {
     Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
 }
 
+# S2579: a watch mini-program's canonicalKey that is neither a phone route key nor a declared
+# watch-only program. The enum's own KDoc calls that key the phone's, four of five entries obeyed it
+# and the fifth did not, and nothing looked - the watch's test compares the watch against itself.
+# FATAL for the same reason as the two gates above: it reads two named files and judges one rule
+# between them, so another ticket's WIP cannot fail it unless that WIP is the defect.
+if (Test-AnyChangedFile '(^|/)wear/|InternalRouteCatalog\.kt$') {
+    Invoke-Gate "wear-canonical-key-parity-gate" {
+        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-canonical-key-parity.ps1") -Gate -Quiet
+    }
+}
+else {
+    Skip-Step "wear-canonical-key-parity-gate" "not applicable - no changed file touches the watch module or the phone route catalog"
+}
+
 # S2621: a wear screen that is in neither the walked nor the excluded list of the pre-release walk is
 # not opened by /spec-prerelease-wear and is not declared skipped either, so it ships unchecked in
 # silence. Until now the only caller was the project-wide fg battery, which is not bound to any
@@ -1761,6 +1791,58 @@ else {
     Skip-Step "gson-persistence-contract-gate" "not applicable - no changed file is a Kotlin source or an obfuscation rules file"
 }
 
+# S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
+# inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
+# after the drain keeps the finally cleanup a no-op once the job has already been received.
+#
+# S2725 moved this join here, above every gradle-domain gate of this closure, and the position is
+# the fix rather than a tidy-up. The job's child process takes Build.Phone; the two gates below
+# spawn check-standard-fast.ps1, which asks for the same domain and - being short class - answers a
+# busy domain by queueing and exiting 4 (S2612). post-change.ps1 itself never acquires anything, so
+# the second child inherits no FMS_BUILD_LOCK_HELD_BY and the re-entrancy exemption in
+# Get-BuildDomainState cannot fire: the closure read its own detekt as a foreign session and stopped
+# with "could not verify", writing no journal row and syncing no catalog. Observed twice in a row on
+# 2026-09-08 while closing S1218. Draining detekt first removes the contention by construction, and
+# costs no parallelism: the job still runs alongside every lexical gate above, and it could never
+# have overlapped the gradle gates - one domain, one daemon. It also disarms the orphan lock, since
+# the abort path's Stop-Job in the finally below now has no live child to kill mid-run.
+if ($runsDetektGate -and $detektPreflightFailed) {
+    Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
+}
+elseif ($runsDetektGate) {
+    Invoke-Gate "detekt-gate" {
+        # S2538: the join is bounded because the child already is. assert-detekt.ps1 caps its lock
+        # wait at 900 s and its gradle run at 600 s, so the child cannot exceed roughly 1500 s -
+        # yet this join was journalled at 34 711 s twice. Whatever holds the job past that is not
+        # detekt, and waiting for it silently is how a stalled closure reports nothing at all.
+        $joinCeilingSeconds = 1800
+        $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
+        if (-not $finished) {
+            Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
+                "the job was stopped and detekt was not judged.") -ForegroundColor Yellow
+            try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
+            try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
+            $script:detektJob = $null
+            $global:LASTEXITCODE = 2
+            return
+        }
+        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
+        $script:detektJob = $null
+        if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
+            Write-Host ($r.Output.TrimEnd())
+        }
+        # S2538: the job times itself, so the journalled number is what detekt cost, not how long
+        # the pipeline waited for a result that was already sitting there. Parity with the pool.
+        if ($r -and $r.PSObject.Properties.Name -contains 'ElapsedMs') {
+            Set-PooledElapsedMs ([int]$r.ElapsedMs)
+        }
+        $global:LASTEXITCODE = if ($r) { [int]$r.ExitCode } else { 1 }
+    }
+}
+else {
+    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
 # S1915: links the changed resources. Routed through check-standard-fast.ps1 for the same reason as the
 # gate below - the helper takes BUILD.LOCK, and calling gradlew here would race every sibling session
 # (CLAUDE.md Rule 23).
@@ -1861,46 +1943,6 @@ if ($runsAndroidTestCompileGate) {
 }
 else {
     Skip-Step "androidtest-compile-gate" "not applicable - no changed file is under src/androidTest or under any registered Room database"
-}
-
-# S0848 Phase 02: join the detekt job started before the lexical gates. Preserves the old
-# inline verdict surface (failing rule lines printed, fatal on FAIL). Nulling $detektJob right
-# after the drain keeps the finally cleanup a no-op once the job has already been received.
-if ($runsDetektGate -and $detektPreflightFailed) {
-    Skip-Step "detekt-gate" "detekt-preflight already failed on the same files - fix those findings first"
-}
-elseif ($runsDetektGate) {
-    Invoke-Gate "detekt-gate" {
-        # S2538: the join is bounded because the child already is. assert-detekt.ps1 caps its lock
-        # wait at 900 s and its gradle run at 600 s, so the child cannot exceed roughly 1500 s -
-        # yet this join was journalled at 34 711 s twice. Whatever holds the job past that is not
-        # detekt, and waiting for it silently is how a stalled closure reports nothing at all.
-        $joinCeilingSeconds = 1800
-        $finished = Wait-Job -Job $detektJob -Timeout $joinCeilingSeconds
-        if (-not $finished) {
-            Write-Host ("detekt-gate: CANNOT VERIFY - joining the detekt job exceeded ${joinCeilingSeconds}s; " +
-                "the job was stopped and detekt was not judged.") -ForegroundColor Yellow
-            try { Stop-Job -Job $detektJob -ErrorAction SilentlyContinue } catch { }
-            try { Remove-Job -Job $detektJob -Force -ErrorAction SilentlyContinue } catch { }
-            $script:detektJob = $null
-            $global:LASTEXITCODE = 2
-            return
-        }
-        $r = Receive-Job -Job $detektJob -Wait -AutoRemoveJob
-        $script:detektJob = $null
-        if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) {
-            Write-Host ($r.Output.TrimEnd())
-        }
-        # S2538: the job times itself, so the journalled number is what detekt cost, not how long
-        # the pipeline waited for a result that was already sitting there. Parity with the pool.
-        if ($r -and $r.PSObject.Properties.Name -contains 'ElapsedMs') {
-            Set-PooledElapsedMs ([int]$r.ElapsedMs)
-        }
-        $global:LASTEXITCODE = if ($r) { [int]$r.ExitCode } else { 1 }
-    }
-}
-else {
-    Skip-Step "detekt-gate" "not applicable for ChangeType $resolvedChangeType"
 }
 
 }

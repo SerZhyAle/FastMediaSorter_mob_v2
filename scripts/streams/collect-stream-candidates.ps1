@@ -117,6 +117,10 @@ param(
     # the atlas on unreachable homepages while retaining a stable 32 px icon for reachable domains.
     [switch]$FaviconS2Only,
     [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
+    # S2669: rebuild delivery/stream-catalog/collections.json from the two curator sources and
+    # validate it against the bank. -Publish implies this, so a publish never ships a stale artifact.
+    [switch]$BuildCollections,
+    [string]$CollectionsPath = 'delivery/stream-catalog/collections.json',
     [int]$FaviconTimeoutSec = 8,
     [int]$FaviconThrottle = 16,
     # Raw artwork cache. The fetch keeps the BEST (largest) image a station's site offers - usually an
@@ -317,11 +321,18 @@ $Schema = @(
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Probes.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Discovery.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Artwork.ps1')
+. (Join-Path $PSScriptRoot 'modules/StreamPublisher.Collections.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Delivery.ps1')
 
 # Must follow the dot-sources: Normalize-PruneStatuses is defined in StreamPublisher.Common.ps1, and
 # calling it above them aborted every run of this script under ErrorActionPreference='Stop'.
 $PruneStatuses = Normalize-PruneStatuses -Statuses $PruneStatuses
+
+if ($BuildCollections -and -not $Publish) {
+    Build-StreamCollections -CsvPath $ExistingCsv -OutPath $CollectionsPath | Out-Null
+    Assert-StreamCollections -CollectionsPath $CollectionsPath -CsvPath $ExistingCsv | Out-Null
+    return
+}
 
 if (Invoke-PublisherModeDispatch) { return }
 $all = [System.Collections.Generic.List[object]]::new()

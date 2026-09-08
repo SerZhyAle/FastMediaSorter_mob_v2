@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">स्लाइड शो प्रारंभ</string>
     <string name="wear_slideshow_stop">स्लाइड शो बंद करो</string>
     <string name="wear_unsupported_file_title">यहां नहीं खुल सकता</string>
-    <string name="wear_unsupported_file_message">इस प्रकार की फ़ाइल घड़ी पर नहीं खुलती है. इसे अपने फ़ोन पर खोलें.</string>
     <string name="wear_complication_last_resource_label">अंतिम संसाधन</string>
     <string name="wear_complication_last_resource_description">सबसे हाल ही में उपयोग किए गए मीडिया संसाधन को खोलने का शॉर्टकट</string>
     <string name="wear_complication_favourites_label">पसंदीदा</string>

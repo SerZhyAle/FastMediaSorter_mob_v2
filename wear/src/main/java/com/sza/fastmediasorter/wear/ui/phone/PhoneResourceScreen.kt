@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,6 +79,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuActions
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuScreen
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScrolls
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
@@ -124,6 +126,7 @@ fun PhoneResourceScreen(
     }
 
     val listState = rememberWearListState(positionKey = WearRoutes.PHONE_RESOURCE)
+    val scrolls = WearScreenScrolls(list = listState, stateBlock = rememberScrollState())
 
     // Held by the screen rather than the ViewModel: which menu is open is view state, and a rotation
     // that dropped it costs nothing, while a ViewModel that carried it would replay it.
@@ -151,12 +154,20 @@ fun PhoneResourceScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: five of this screen's seven branches draw the state block instead of the list, and
+        // the block scrolls on a state of its own - an indicator left on the list marks nothing there.
+        positionIndicator = {
+            if (state is PhoneResourceUiState.Content || state is PhoneResourceUiState.Loading) {
+                PositionIndicator(listState)
+            } else {
+                PositionIndicator(scrolls.stateBlock)
+            }
+        }
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             PhoneResourceStateBranch(
                 state = state,
-                listState = listState,
+                scrolls = scrolls,
                 presentation = PhoneListPresentation(
                     viewMode = fileListViewMode,
                     thumbnails = thumbnails,
@@ -219,7 +230,7 @@ private data class PhoneListPresentation(
 @Composable
 private fun PhoneResourceStateBranch(
     state: PhoneResourceUiState,
-    listState: ScalingLazyListState,
+    scrolls: WearScreenScrolls,
     presentation: PhoneListPresentation,
     viewModel: PhoneResourceViewModel,
     navController: NavController,
@@ -230,13 +241,13 @@ private fun PhoneResourceStateBranch(
         is PhoneResourceUiState.Loading -> CenteredMessage(
             text = stringResource(R.string.phone_resource_loading),
             showProgress = true,
-            state = listState
+            state = scrolls.list
         )
 
         is PhoneResourceUiState.Content -> Box(modifier = Modifier.fillMaxSize()) {
             PhoneResourceList(
                 items = current.items,
-                listState = listState,
+                listState = scrolls.list,
                 presentation = presentation,
                 onEntryClick = { entry ->
                     when {
@@ -268,7 +279,8 @@ private fun PhoneResourceStateBranch(
             // Retry: the folder has entries, the wearer's own narrowing is hiding them, and
             // asking the phone again would return the same page.
             message = stringResource(R.string.wear_browse_no_matches),
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
+            scrollState = scrolls.stateBlock
         )
 
         // No retry: the listing that came back empty already succeeded, so repeating it returns
@@ -283,7 +295,8 @@ private fun PhoneResourceStateBranch(
             } else {
                 stringResource(R.string.phone_resource_empty_filtered)
             },
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
+            scrollState = scrolls.stateBlock
         )
 
         // S2130: the phone answered, and its answer was a fact about the phone's own configuration.
@@ -292,7 +305,8 @@ private fun PhoneResourceStateBranch(
         is PhoneResourceUiState.NoResourceForType -> WearStateBlock(
             kind = WearStateKind.EMPTY,
             message = stringResource(R.string.phone_resource_no_resource_for_type),
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
+            scrollState = scrolls.stateBlock
         )
 
         is PhoneResourceUiState.Unavailable -> {
@@ -301,7 +315,8 @@ private fun PhoneResourceStateBranch(
                 kind = WearStateKind.UNAVAILABLE,
                 message = stringResource(current.reason.toMessageRes()),
                 onRetry = viewModel::retry,
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                scrollState = scrolls.stateBlock
             )
         }
 
@@ -310,7 +325,8 @@ private fun PhoneResourceStateBranch(
         is PhoneResourceUiState.NotPaired -> WearStateBlock(
             kind = WearStateKind.UNAVAILABLE,
             message = stringResource(R.string.phone_resource_not_paired),
-            onBack = { navController.popBackStack() }
+            onBack = { navController.popBackStack() },
+            scrollState = scrolls.stateBlock
         )
     }
 }

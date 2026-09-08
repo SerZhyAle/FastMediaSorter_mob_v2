@@ -199,6 +199,12 @@ Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSet
 }
 
 JNIEXPORT void JNICALL
+Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetInputMode(
+        JNIEnv* /*env*/, jobject /*thiz*/, jint mode) {
+    fms::xr::xr_session_set_input_mode(mode);
+}
+
+JNIEXPORT void JNICALL
 Java_com_sza_fastmediasorter_core_xr_runtime_NativeDiagnosticXrRuntime_nativeSetHudQuadDistance(
         JNIEnv* /*env*/, jobject /*thiz*/, jfloat distanceMeters) {
     fms::xr::xr_session_set_hud_quad_distance(distanceMeters);

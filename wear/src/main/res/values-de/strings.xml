@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">Diashow starten</string>
     <string name="wear_slideshow_stop">Diashow stoppen</string>
     <string name="wear_unsupported_file_title">Kann hier nicht geöffnet werden</string>
-    <string name="wear_unsupported_file_message">Diese Art von Datei lässt sich auf der Uhr nicht öffnen. Öffnen Sie es auf Ihrem Telefon.</string>
     <string name="wear_complication_last_resource_label">Letzte Ressource</string>
     <string name="wear_complication_last_resource_description">Verknüpfung zum Öffnen der zuletzt verwendeten Medienressource</string>
     <string name="wear_complication_favourites_label">Favoriten</string>

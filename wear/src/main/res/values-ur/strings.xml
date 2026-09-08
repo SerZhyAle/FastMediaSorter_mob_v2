@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">سلائیڈ شو شروع کریں۔</string>
     <string name="wear_slideshow_stop">سلائیڈ شو بند کریں۔</string>
     <string name="wear_unsupported_file_title">یہاں نہیں کھل سکتا</string>
-    <string name="wear_unsupported_file_message">اس قسم کی فائل گھڑی پر نہیں کھلتی۔ اسے اپنے فون پر کھولیں۔</string>
     <string name="wear_complication_last_resource_label">آخری وسیلہ</string>
     <string name="wear_complication_last_resource_description">حال ہی میں استعمال ہونے والے میڈیا وسائل کو کھولنے کے لیے شارٹ کٹ</string>
     <string name="wear_complication_favourites_label">پسندیدہ</string>

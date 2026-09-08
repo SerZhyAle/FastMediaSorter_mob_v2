@@ -41,6 +41,7 @@ fun WearAppBackground(
     modifier: Modifier = Modifier
 ) {
     Timber.d("S2544: dimmer wallpaper applied bg=%s running=%b", background, running)
+    Timber.d("S2729: second-pass dimmer applied bg=%s running=%b", background, running)
     // S2522: under a light scheme the content is dark, so the veil that has to sit between it and an
     // arbitrary photo is the light one. Only the side flips - the amount stays the constant above.
     val opposing = if (WearAppTheme.colors.isLight) Color.White else Color.Black

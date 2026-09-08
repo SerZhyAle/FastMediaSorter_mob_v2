@@ -31,8 +31,11 @@ abstract class BuildClockValueSource : ValueSource<String, ValueSourceParameters
 // is the other half of the one formula: the orchestrator passes a shared stamp for a multi-module
 // release (ADR-2), this net only covers the invocations nobody passed one to.
 //   versionName      Y.YM.MDDH.Hmm
-//   app versionCode  yyMMddHH + the first digit of the minute (9 digits)
-//   wear versionCode yyMMddHH (8 digits) = floor(app / 10)
+//   app versionCode  yyMMddHH * 10 + floor(minute / 10)     - last digit 0..5, 9 digits
+//   wear versionCode yyMMddHH * 10 + 6 + floor(minute / 15) - last digit 6..9, 9 digits
+// The two differ by a PARTITION of the last digit, not by an arithmetic relation between them
+// (S2721): the phone owns 0..5 and the watch owns 6..9, so neither has to know the other's code to
+// stay clear of it - which is what the watch's independent release cadence requires.
 fun stampedVersionName(raw: String): String {
     val yy = raw.substring(0, 2)
     val mon = raw.substring(2, 4)
@@ -44,7 +47,8 @@ fun stampedVersionName(raw: String): String {
 
 fun stampedAppVersionCode(raw: String): Int = raw.substring(0, 9).toInt()
 
-fun stampedWearVersionCode(raw: String): Int = raw.substring(0, 8).toInt()
+fun stampedWearVersionCode(raw: String): Int =
+    raw.substring(0, 8).toInt() * 10 + 6 + raw.substring(8, 10).toInt() / 15
 
 // startParameter.taskNames is a flat list of everything after the options - it carries task
 // OPTIONS and their VALUES too, not only task names. `--tests "*ApkInstallFailureTest*"` therefore

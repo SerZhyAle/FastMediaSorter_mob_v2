@@ -33,6 +33,9 @@ enum class StreamMenuAction(@param:DrawableRes val iconRes: Int) {
     // S1944: the second watch command, next to the first so the two read as a pair.
     OPEN_ON_WATCH(R.drawable.ic_watch),
 
+    // S1218: sits beside the watch pair - all three are "play this channel somewhere else".
+    OPEN_IN_VR(R.drawable.ic_vr_headset),
+
     // S1474: sits with the other reading actions, above sharing and well clear of removal.
     ABOUT_CHANNEL(R.drawable.ic_info),
     SHARE_LINK(R.drawable.ic_share),
@@ -76,6 +79,12 @@ object StreamActionCatalog {
         // S1799: the Wear Companion option is on AND the build carries the watch bridge. The default
         // keeps the command absent on surfaces that never learned the gate (launcher desktop).
         val wearSendAvailable: Boolean = false,
+        // S1218: the headset is present and the VR-3D toggle is on. Default keeps the immersive
+        // command absent on any surface that never learned the gate.
+        val vrLaunchAvailable: Boolean = false,
+        // S1218: the channel carries video. Radio is outside the feature by nature - there is
+        // nothing to draw on the quad - so it gets no row rather than an explained refusal.
+        val isVideoKind: Boolean = false,
     )
 
     /**
@@ -91,6 +100,9 @@ object StreamActionCatalog {
         // own probe manager. A desktop cell owns neither, and strategic §11 names only the card and the
         // player menus as entry points.
         StreamMenuAction.ABOUT_CHANNEL,
+        // S1218: the immersive entry reads XrDetectionFacade through an Activity-scoped mirror the
+        // desktop cell does not own, so it cannot answer whether the row is available.
+        StreamMenuAction.OPEN_IN_VR,
     )
 
     /**
@@ -128,6 +140,7 @@ object StreamActionCatalog {
         StreamMenuAction.EDIT -> R.string.streams_edit
         StreamMenuAction.SEND_TO_WATCH -> R.string.stream_action_send_to_watch
         StreamMenuAction.OPEN_ON_WATCH -> R.string.stream_action_open_on_watch
+        StreamMenuAction.OPEN_IN_VR -> R.string.stream_action_open_in_vr
         StreamMenuAction.ABOUT_CHANNEL -> R.string.stream_info_menu_title
         StreamMenuAction.SHARE_LINK -> R.string.streams_send_link
         StreamMenuAction.REMOVE -> R.string.streams_remove
@@ -158,6 +171,9 @@ object StreamActionCatalog {
         // right for transferring a channel and inverts for opening one: a catalog channel is already
         // on the watch, which is exactly when "play it there now" is worth offering.
         StreamMenuAction.OPEN_ON_WATCH -> facts.wearSendAvailable
+        // S1218: an RTSP channel keeps the row deliberately - it is video the user reasonably
+        // expects to open, so it must explain its refusal rather than silently offer nothing.
+        StreamMenuAction.OPEN_IN_VR -> facts.vrLaunchAvailable && facts.isVideoKind
         else -> true
     }
 }

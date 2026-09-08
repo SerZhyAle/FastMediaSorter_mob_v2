@@ -108,6 +108,8 @@ operation resources and the file-operation menu is known tappable on that device
 - `permissions.yaml` - optional system permission taps.
 - `navigate_to_add_resource.yaml` - shared add-resource navigation fragment.
 - `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`. When backing out cannot reach the tabs - the foreground screen is not on the app's back stack, as under launcher mode - it relaunches the app instead of failing (S1673).
+- `settings_open_interface.yaml` - open Settings, select the General tab and bring the Interface section into view, expanded. Extracted from the three launcher flows, which carried it verbatim (S2720).
+- `launcher_mode_enable.yaml` - turn launcher mode on and leave the caller on an active `rowLauncherSettings`. Tapping the toggle only makes the app a home-screen candidate; the row is enabled off the held `ROLE_HOME` role, so this fragment also answers the system role dialog (select the candidate row, then confirm - a lone confirm tap leaves the role where it was). A flow that runs it declares `# maestro-requires: home-role` in its header, and the runner restores the previous role holder afterwards (S2720).
 - `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
 
 ## Preconditions
@@ -132,6 +134,13 @@ Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability f
   back off. It is not a precondition: `go_home.yaml` escapes the desktop by relaunching, so the
   suite runs either way. The runner still prints the state (`launcher-mode: on|off`) in its
   header, because otherwise it is invisible in every flow trace (S1673).
+- **The `ROLE_HOME` system role** is a precondition of two flows only - `launcher_settings_open.yaml`
+  and `launcher_start_menu.yaml`, both marked `# maestro-requires: home-role`. They take it
+  themselves through the system dialog and the runner gives it back to the previous holder after
+  each one, pass or fail; leaving it held would hang the next flow's `go_home.yaml` on a `stopApp`
+  aimed at the device's home app. On a physical device the grant needs `-AllowHomeRoleGrant`,
+  because whether that serial may be handed a system role is recorded in `docs/DEVICE_FLEET.md`;
+  without it the two flows report `skip` with the reason and the suite still passes (S2720).
 
 The runner needs `resumeOnNextLaunch` and `rememberTheFileList` to stay at their defaults; the
 `go_home` and `downloads_sort_reset` fragments make flows deterministic against both. Flows do

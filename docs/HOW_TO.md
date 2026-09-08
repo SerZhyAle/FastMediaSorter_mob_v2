@@ -1447,7 +1447,7 @@ In the order they appear:
 - **System information** - a device report reachable without opening Settings.
 - **Wear Companion** - the watch screen, in builds that carry the watch bridge.
 - **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
-- **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
+- **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. The system bars go too, and the screen is pinned, so a wet hand cannot pull the notification shade down or hit a navigation button; the first time, Android asks you to confirm the pinning. Made for rain and for the shower - the two places where the glass reacts to water rather than to you. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
 
 The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
 
@@ -1458,7 +1458,7 @@ The panel and the launcher additionally carry direct camera shortcuts - take a p
 
 **Avoid This**
 
-- Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it. Only the touchscreen is locked.
+- Do not expect the water flashlight to survive a swipe home - a system navigation gesture still leaves it, and the light goes out with it.
 - Do not expect every program in every build - the list above is the full set, and a build without the underlying capability simply does not show that entry.
 
 ---

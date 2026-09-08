@@ -383,6 +383,10 @@ private class FakeWearableDataLayerRepository : WearableDataLayerRepository {
         path: String,
         envelope: com.sza.fastmediasorter.domain.model.WearEventEnvelope
     ) = Unit
+
+    override suspend fun sendListenStart(nodeId: String, requestId: String) = Unit
+
+    override suspend fun sendListenStop(nodeId: String, requestId: String) = Unit
 }
 
 private data class PutCall(

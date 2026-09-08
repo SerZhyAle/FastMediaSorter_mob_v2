@@ -152,6 +152,60 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries stream pins delta payload (S2497). */
     const val STREAM_PINS_DELTA = "/fms/watch/stream_pins_delta"
 
+    /**
+     * Message, phone → watch. Asks the paired watch to let this phone listen to its microphone
+     * (S2550).
+     *
+     * It carries no audio and never can: ADR-1 keeps every byte of sound on the watch's own LAN
+     * server, because the Data Layer's Bluetooth path is below the project's floor for audio and its
+     * Wi-Fi path routes through a node on Google servers - the intermediary S1699 excluded.
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs
+     * no manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val LISTEN_START = "/fms/phone/listen_start"
+
+    /** Message, phone → watch. Ends the listening session - server, microphone and notification. */
+    const val LISTEN_STOP = "/fms/phone/listen_stop"
+
+    /**
+     * Message, watch → phone. Answers one listen command with an address, or with a refusal (S2550).
+     *
+     * ADR-2: this answer is why no discovery is built - the watch reports its own host and port here.
+     * A refusal rides the same payload rather than arriving as silence, so this phone never has to
+     * tell "refused" from "lost". Under the `/fms/watch` prefix `src/wearGms/AndroidManifest.xml`
+     * already declares for PhoneWearListenerService, so it needs no filter of its own.
+     */
+    const val LISTEN_ACK = "/fms/watch/listen_ack"
+
+    /**
+     * Message, watch → phone. Asks this phone to open a camera and serve it on the LAN (S2551).
+     *
+     * The direction is the reverse of [LISTEN_START] and that is what decides the prefix: the three
+     * camera-session commands travel watch → phone, so they live under `/fms/watch`, which
+     * `src/wearGms/AndroidManifest.xml` already declares for PhoneWearListenerService. A path outside
+     * a declared prefix is dropped by GMS in silence (S1697), so the prefix is the delivery contract
+     * rather than a naming convention.
+     */
+    const val CAMERA_VIEW_START = "/fms/watch/camera_view_start"
+
+    /** Message, watch → phone. Ends the camera session - capture, server and notification (S2551). */
+    const val CAMERA_VIEW_STOP = "/fms/watch/camera_view_stop"
+
+    /** Message, watch → phone. Asks the running session to switch to another lens (S2551). */
+    const val CAMERA_VIEW_SWITCH = "/fms/watch/camera_view_switch"
+
+    /**
+     * Message, phone → watch. Answers one camera command with a stream URL, or with a refusal
+     * (S2551).
+     *
+     * Travels phone → watch, so it lives under the `/fms/phone` prefix
+     * `wear/src/main/AndroidManifest.xml` already declares for the watch listener - no manifest edit
+     * on either side. A refusal rides this payload rather than arriving as silence, so the watch
+     * never has to tell "refused" from "lost".
+     */
+    const val CAMERA_VIEW_ACK = "/fms/phone/camera_view_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

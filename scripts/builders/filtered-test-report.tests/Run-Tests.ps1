@@ -142,6 +142,40 @@ try {
         ($broken.Outcome -eq 'CopyFailed') "got: $($broken.Outcome)"
     Assert-That 'the failure names how many reports it could not copy' `
         ($broken.Message -match 'could not copy') "got: $($broken.Message)"
+
+    # S2743: the red run is the one whose reports are worth keeping, and it was the one run that
+    # never harvested them. The negative case is again the one that matters - a harvest that copied
+    # every report of a red suite would pass a naive suite while burying the three files a reader
+    # needs under fifteen hundred green ones.
+    Write-Host "`nCase 9 - only the failing reports of a red run are harvested" -ForegroundColor Cyan
+    $redDir = Join-Path $resultsRoot $taskDir
+    $redMark = Get-Date
+    $null = New-Report -Dir $redDir -Class 'com.sza.fastmediasorter.GreenTest' -WrittenAt $redMark.AddSeconds(5)
+    $redPath = Join-Path $redDir 'TEST-com.sza.fastmediasorter.RedTest.xml'
+    Set-Content -LiteralPath $redPath -Encoding UTF8 -Value @'
+<testsuite name="com.sza.fastmediasorter.RedTest" tests="1" failures="1">
+  <testcase name="leaks"><failure message="boom">stack</failure></testcase>
+</testsuite>
+'@
+    (Get-Item -LiteralPath $redPath).LastWriteTime = $redMark.AddSeconds(5)
+    $red = Save-FailedTestReport -ProjectRoot $sandbox -Module $module -TaskDir $taskDir `
+        -Since $redMark -RunId 'case9'
+    Assert-That 'the failing report is harvested' `
+        ($red.Outcome -eq 'Harvested' -and $red.Files -eq 1) "got: $($red.Outcome)/$($red.Files)"
+    $redCopied = @(Get-ChildItem -LiteralPath $red.Path -Filter 'TEST-*.xml' -File)
+    Assert-That 'the passing report of the same run is left behind' `
+        ($redCopied.Count -eq 1 -and $redCopied[0].Name -like '*RedTest.xml') `
+        "got: $($redCopied.Name -join ', ')"
+
+    Write-Host "`nCase 10 - a red run that produced no failing test report" -ForegroundColor Cyan
+    # A compilation error, a dead worker or a --tests pattern matching nothing all land here, and
+    # each is a different diagnosis from "a test failed" - so the message must not read as one.
+    $noRed = Save-FailedTestReport -ProjectRoot $sandbox -Module $module -TaskDir $taskDir `
+        -Since (Get-Date).AddMinutes(5) -RunId 'case10'
+    Assert-That 'no failing report reports NoneWritten' `
+        ($noRed.Outcome -eq 'NoneWritten' -and $noRed.Files -eq 0) "got: $($noRed.Outcome)/$($noRed.Files)"
+    Assert-That 'the message sends the reader to the build log, not to a missing file' `
+        ($noRed.Message -match 'not a red test') "got: $($noRed.Message)"
 }
 finally {
     Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue

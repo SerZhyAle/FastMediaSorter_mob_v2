@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamCatalogCsvParser
+import com.sza.fastmediasorter.data.repository.StreamCollectionRepository
+import com.sza.fastmediasorter.data.repository.StreamCollectionsJsonParser
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.streams.StreamCatalogFacetNormalizer
@@ -31,6 +33,9 @@ class ImportStreamCatalogUseCase @Inject constructor(
     private val repository: StreamSourceRepository,
     // S0668: persists the favicon sprite-atlas + url->index sidecar extracted from the same zip.
     private val faviconAtlasStore: FaviconAtlasStore,
+    // S2669: the second payload of the same archive - curated collections, replaced whole per import.
+    private val collectionsParser: StreamCollectionsJsonParser,
+    private val collectionRepository: StreamCollectionRepository,
     // S1469: connectivity gate. Sits in the use case rather than in its callers so all four entry
     // points are covered at once; without it a dead network is only reported once OkHttp has timed out.
     private val networkContextAnalyzer: NetworkContextAnalyzer
@@ -118,12 +123,35 @@ class ImportStreamCatalogUseCase @Inject constructor(
             return@withContext CatalogImportResult.Failure(e.message ?: "merge error")
         }
 
+        // S2669: after the merge, because a membership row names a url that is only meaningful once the
+        // bank carrying it is in place. Non-fatal by design, like the atlas above it: a collections
+        // payload that fails to parse or to store must not cost the user the bank that imported fine.
+        applyCollections(payload.collectionsJson)
+
         Timber.i("Stream catalog import done: +%d ~%d -%d", merge.added, merge.updated, merge.removed)
         CatalogImportResult.Success(
             added = merge.added,
             updated = merge.updated,
             removed = merge.removed
         )
+    }
+
+    /**
+     * S2669: replaces the stored curated collections from the archive's `collections.json`.
+     *
+     * A null argument means the archive carried no such entry, which leaves the stored set ALONE rather
+     * than clearing it - an already-released archive has no entry, and clearing on its absence would
+     * empty the strip on every import from an older publication. To clear, the publisher ships the
+     * entry with an empty `collections` array.
+     */
+    private suspend fun applyCollections(json: String?) {
+        if (json == null) return
+        try {
+            collectionRepository.replaceAll(collectionsParser.parse(json))
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.w(e, "Stream catalog import: collections could not be stored; the bank is unaffected")
+        }
     }
 
     /**
@@ -160,11 +188,19 @@ class ImportStreamCatalogUseCase @Inject constructor(
             var streamsCsv: String? = null
             var fallbackCsv: String? = null
             var atlasPng: ByteArray? = null
+            var collectionsJson: String? = null
             var entry = zip.nextEntry
             while (entry != null) {
                 val name = entry.name.lowercase()
                 when {
                     entry.isDirectory -> Unit
+                    // S2669: matched before the .csv branch so the walk's behaviour for every other
+                    // entry is untouched. Its own cap, because a collections payload is neither a bank
+                    // nor an atlas and borrowing either number would misreport what was refused.
+                    name.endsWith(COLLECTIONS_ENTRY) -> {
+                        collectionsJson = readCappedBytes(zip, MAX_COLLECTIONS_BYTES)
+                            ?.toString(Charsets.UTF_8)
+                    }
                     name.endsWith(".csv") -> {
                         val text = readCappedUtf8(zip)
                         if (name.endsWith("streams.csv")) {
@@ -181,7 +217,7 @@ class ImportStreamCatalogUseCase @Inject constructor(
                 entry = zip.nextEntry
             }
             val csv = streamsCsv ?: fallbackCsv ?: return null
-            return CatalogPayload(csv = csv, atlasPng = atlasPng)
+            return CatalogPayload(csv = csv, atlasPng = atlasPng, collectionsJson = collectionsJson)
         }
     }
 
@@ -215,7 +251,12 @@ class ImportStreamCatalogUseCase @Inject constructor(
     }
 
     /** S0668: the two things extracted from the catalog zip - the CSV text and an optional atlas PNG. */
-    internal data class CatalogPayload(val csv: String, val atlasPng: ByteArray?)
+    internal data class CatalogPayload(
+        val csv: String,
+        val atlasPng: ByteArray?,
+        /** S2669: text of the `collections.json` entry, null when the archive did not carry one. */
+        val collectionsJson: String? = null
+    )
 
     sealed interface CatalogImportResult {
         data class Success(val added: Int, val updated: Int, val removed: Int) : CatalogImportResult
@@ -239,6 +280,14 @@ class ImportStreamCatalogUseCase @Inject constructor(
         // S0668: atlas cap, separate from the CSV cap. A 16-col grid of 32 px tiles for a partial-coverage
         // catalog compresses well under this; over-cap drops the atlas but keeps the CSV.
         const val MAX_ATLAS_BYTES = 30 * 1024 * 1024
+
+        // S2669: the collections payload names urls the bank already carries, so it is bounded by the
+        // bank's own size rather than by an atlas's. 8 MiB holds every url of the current 19k-row bank
+        // several times over; over-cap drops the collections and keeps the bank, like the atlas does.
+        const val MAX_COLLECTIONS_BYTES = 8 * BYTES_PER_MIB
+
+        /** The archive entry name fixed by the delivery contract; deliberately not a `.csv`. */
+        const val COLLECTIONS_ENTRY = "collections.json"
 
         // Hard ceiling on the whole catalog fetch (DNS + connect + write + zip body read). S1820 raised
         // it from 30 s: the published zip is 7.31 MB, which 30 s demanded be pulled at ~250 KB/s with no

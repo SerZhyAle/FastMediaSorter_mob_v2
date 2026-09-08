@@ -2,6 +2,9 @@ package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -12,6 +15,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
@@ -45,6 +49,7 @@ fun WearFileActionsDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
+        val menuScrollState = rememberScrollState()
         val actions = buildList {
             ACTION_ORDER.filter { it in allowed }.forEach { kind ->
                 val label = stringResource(labelOf(kind))
@@ -73,18 +78,23 @@ fun WearFileActionsDialog(
             }
         }
 
-        WearActionColumn(
-            actions = actions,
-            header = {
-                val title = stringResource(R.string.wear_file_actions_for, file.displayName)
-                Text(
-                    text = file.displayName,
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.semantics { contentDescription = title }
-                )
-            }
-        )
+        // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own over the menu.
+        Box(modifier = Modifier.fillMaxSize()) {
+            WearActionColumn(
+                actions = actions,
+                scrollState = menuScrollState,
+                header = {
+                    val title = stringResource(R.string.wear_file_actions_for, file.displayName)
+                    Text(
+                        text = file.displayName,
+                        style = MaterialTheme.typography.title3,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.semantics { contentDescription = title }
+                    )
+                }
+            )
+            PositionIndicator(menuScrollState)
+        }
     }
 }
 

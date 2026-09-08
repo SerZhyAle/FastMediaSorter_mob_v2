@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 
 /**
@@ -80,8 +81,19 @@ object WearRoutes {
      */
     const val SYSTEM_INFO = "system_info"
 
-    /** S2006: where a file the watch cannot play lands, instead of the audio player. */
-    const val UNSUPPORTED_FILE = "unsupported_file"
+    /**
+     * S2509: the watch's own audio broadcast. Carries its `canonicalKey` like the programs above, and
+     * that key has no phone counterpart on purpose - the phone's broadcast (S2508) is a capability of
+     * the player rather than a launcher program, so it is recorded in the watch-only baseline instead.
+     */
+    const val BROADCAST = "broadcast"
+
+    /**
+     * The barcode view of a live broadcast. A destination of its own rather than a panel inside the
+     * control screen: the owner asked for QR behind a deliberate button, and the round face has no
+     * room to carry a scannable code and a one-tap stop at once.
+     */
+    const val BROADCAST_QR = "broadcast_qr"
 
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
@@ -90,6 +102,9 @@ object WearRoutes {
     const val ARG_UPDATED = "updated"
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
+
+    /** S2532: which document format was refused, named by [WearDocumentFormat.name]. */
+    const val ARG_DOCUMENT_FORMAT = "documentFormat"
 
     /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
     const val ARG_FOLDER_TOKEN = "folderToken"
@@ -121,6 +136,20 @@ object WearRoutes {
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
+
+    /** S2532: the watch's own reader for a document it renders, the fourth of the content screens. */
+    const val DOCUMENT_VIEWER_PATTERN = "document_viewer/{$ARG_FILE_ID}"
+
+    /**
+     * S2006: where a file the watch cannot play lands, instead of the audio player.
+     *
+     * S2532: it carries the refused format now, so the screen can name it. The identifier stays
+     * [UNSUPPORTED_FILE] rather than gaining a `_PATTERN` suffix because it is the name the
+     * navigation graph declares this destination under, and renaming it would silently orphan that
+     * declaration - the two ends of a route are separate string literals, which is the whole reason
+     * this object exists.
+     */
+    const val UNSUPPORTED_FILE = "unsupported_file/{$ARG_DOCUMENT_FORMAT}"
 
     /**
      * S1955: where a tile of the given kind is pointed at its target.
@@ -162,6 +191,11 @@ object WearRoutes {
     fun videoPlayer(fileId: Long): String = "video_player/$fileId"
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
+
+    fun documentViewer(fileId: Long): String = "document_viewer/$fileId"
+
+    /** The refusal, told which format it is refusing. Enum names need no encoding. */
+    fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"
 
     fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
 

@@ -175,7 +175,8 @@ function Assert-CatalogNamesClean {
 function Assert-CatalogZipEntries {
     param(
         [Parameter(Mandatory = $true)][string]$ZipPath,
-        [Parameter(Mandatory = $true)][bool]$BundledAtlas
+        [Parameter(Mandatory = $true)][bool]$BundledAtlas,
+        [bool]$BundledCollections = $false
     )
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $archive = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path $ZipPath).Path)
@@ -187,6 +188,17 @@ function Assert-CatalogZipEntries {
         }
         if ($BundledAtlas -and -not ($entryNames -ccontains 'favicon-atlas.png')) {
             throw ("Compat invariant violated: an atlas was bundled but no entry is named exactly 'favicon-atlas.png' (entries: {0})." -f ($entryNames -join ', '))
+        }
+        if ($BundledCollections -and -not ($entryNames -ccontains 'collections.json')) {
+            throw ("Compat invariant violated: collections were bundled but no entry is named exactly 'collections.json' (entries: {0})." -f ($entryNames -join ', '))
+        }
+        # S2669: both released parsers - phone and watch - take ANY .csv entry as a stream table and
+        # load a second one as the fallback bank when streams.csv itself fails to parse. A payload
+        # that is not the bank must therefore never carry that extension, or a user whose bank
+        # stumbled is shown the other file's contents as their catalog.
+        $strayCsv = @($entryNames | Where-Object { $_ -cne 'streams.csv' -and $_.ToLowerInvariant().EndsWith('.csv') })
+        if ($strayCsv.Count -gt 0) {
+            throw ("Compat invariant violated: entry '{0}' ends in .csv but is not the bank. Released builds load any .csv entry as a fallback stream table, so such a payload reaches users as their catalog. Rename it." -f $strayCsv[0])
         }
         return $entryNames
     }
@@ -205,7 +217,12 @@ function Assert-CatalogZipEntries {
 # the cap it is skipped (CSV-only publish) because the app deliberately drops an over-cap atlas while
 # still importing its CSV.
 function Invoke-PublishCatalog {
-    param([string]$CsvPath = $ExistingCsv, [string]$Tag = $PublishTag, [string]$AtlasFile = $AtlasPath)
+    param(
+        [string]$CsvPath = $ExistingCsv,
+        [string]$Tag = $PublishTag,
+        [string]$AtlasFile = $AtlasPath,
+        [string]$CollectionsFile = $CollectionsPath
+    )
     if (-not (Test-Path $CsvPath)) { throw "Catalog CSV not found for publish: $CsvPath" }
     $ghExe = Get-GhExe
     if (-not (Test-Path 'temp')) { New-Item -ItemType Directory -Path 'temp' -Force | Out-Null }
@@ -225,6 +242,13 @@ function Invoke-PublishCatalog {
                 $blankRows.Count, $rowCount)
     }
     Assert-CatalogNamesClean -Rows $catalogRows
+    # S2669: -Publish implies a rebuild of the curated collections, so a publish can never ship a
+    # committed artifact that has gone stale against the bank it names. The refusal is the same one
+    # -BuildCollections gives, and it aborts before anything is zipped or uploaded.
+    if (Test-Path (Join-Path (Get-StreamCollectionsSourceDir) 'rules.json')) {
+        Build-StreamCollections -CsvPath $CsvPath -OutPath $CollectionsFile | Out-Null
+        Assert-StreamCollections -CollectionsPath $CollectionsFile -CsvPath $CsvPath | Out-Null
+    }
     Write-Host ''
     Write-Host ("Publishing catalog ({0} rows): zipping {1} -> {2} .." -f $rowCount, $CsvPath, $zip) -ForegroundColor Cyan
 
@@ -252,7 +276,16 @@ function Invoke-PublishCatalog {
     # text (portrait icon-only chips show no icon at all). Fail loudly unless explicitly acknowledged.
     Assert-FaviconIndexPairing -Rows $catalogRows -BundledAtlas $bundledAtlas -AllowFaviconlessPublish:$AllowFaviconlessPublish
 
-    $entryNames = @(Assert-CatalogZipEntries -ZipPath $zip -BundledAtlas $bundledAtlas)
+    # S2669: curated collections, appended third. Absent file = a two-entry archive exactly as before,
+    # which is what an app with no collections is specified to see.
+    $bundledCollections = $false
+    if (Test-Path $CollectionsFile) {
+        Compress-Archive -Path $CollectionsFile -DestinationPath $zip -Update
+        $bundledCollections = $true
+        Write-Host ("  + {0} ({1:N1} KB) [appended]" -f (Split-Path -Leaf $CollectionsFile), ((Get-Item $CollectionsFile).Length / 1KB)) -ForegroundColor DarkGray
+    }
+
+    $entryNames = @(Assert-CatalogZipEntries -ZipPath $zip -BundledAtlas $bundledAtlas -BundledCollections $bundledCollections)
     Write-Host ("  zip entries: {0}" -f ($entryNames -join ', ')) -ForegroundColor DarkGray
 
     $zipBytes = (Get-Item $zip).Length
@@ -266,6 +299,7 @@ function Invoke-PublishCatalog {
             ($zipBytes / 1MB), ($maxZipBytes / 1MB))
     }
     $bundleNote = if ($bundledAtlas) { 'csv + atlas' } else { 'csv-only' }
+    if ($bundledCollections) { $bundleNote += ' + collections' }
     Write-Host ("  zip {0:N1} KB ({1}); uploading to release {2} (--clobber) .." -f $zipKb, $bundleNote, $Tag) -ForegroundColor Cyan
     & $ghExe release upload $Tag $zip --clobber
     if ($LASTEXITCODE -ne 0) { throw "gh release upload failed (exit $LASTEXITCODE)" }

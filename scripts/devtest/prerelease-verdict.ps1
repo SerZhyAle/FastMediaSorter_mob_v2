@@ -200,8 +200,14 @@ $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; a
 # operator happened to look at. It is reported on its own line instead of being swallowed: an
 # infrastructure failure means the suite did not finish judging that flow, which the reader must
 # see. A flow object with no status field is a pre-S2396 JSON and keeps the old behaviour.
+#
+# And except a flow whose status is skip (S2720): the runner never ran it, because a precondition it
+# declares - today the ROLE_HOME system role, which docs/DEVICE_FLEET.md forbids on some handsets -
+# could not be established on this device. That is a gap in coverage, not a defect in the app, so it
+# gets its own line for the reader instead of a red verdict; the reason travels in the JSON.
 $maestroFailures = @()
 $maestroInfra = @()
+$maestroSkipped = @()
 $maestroTotal = 0
 $maestroPass = $true
 if ($MaestroResults -and (Test-Path $MaestroResults)) {
@@ -213,13 +219,17 @@ if ($MaestroResults -and (Test-Path $MaestroResults)) {
         $status = if ($flow.PSObject.Properties.Name -contains 'status') { "$($flow.status)" } else { 'fail' }
         if ($status -eq 'execError') {
             $maestroInfra += "$($flow.flow)"
+        } elseif ($status -eq 'skip') {
+            $reason = if ($flow.PSObject.Properties.Name -contains 'skipReason' -and $flow.skipReason) { " - $($flow.skipReason)" } else { '' }
+            $maestroSkipped += "$($flow.flow)$reason"
         } else {
             $maestroPass = $false
             $maestroFailures += "$($flow.flow)"
         }
     }
 }
-$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures; infra = $maestroInfra }
+$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures
+                                infra = $maestroInfra; skipped = $maestroSkipped }
 
 # screenshot: evidence only. A present ScreensDir reports the number of captured screenshots
 # but does not contribute to PASS/FAIL.
@@ -310,6 +320,9 @@ else {
     Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} walk={4} screenshots={5}" -f $word, $logPass, $perfPass, $maestroPass, $walkPass, $screenshotCount)
     if ($maestroInfra.Count -gt 0) {
         Write-Host ("  maestro infra (not counted as a defect, flow not judged): {0}" -f ($maestroInfra -join ', '))
+    }
+    foreach ($skippedFlow in $maestroSkipped) {
+        Write-Host ("  maestro skipped (precondition not established, flow not run): {0}" -f $skippedFlow)
     }
 }
 

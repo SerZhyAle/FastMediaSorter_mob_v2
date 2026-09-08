@@ -39,6 +39,6 @@ enum class InstalledAppSortOrder {
     companion object {
         /** Tolerant read: an unknown or missing stored name falls back to the default order. */
         fun fromNameOrDefault(name: String?): InstalledAppSortOrder =
-            entries.firstOrNull { it.name == name } ?: LABEL
+            entries.firstOrNull { it.name == name } ?: LAUNCH_FREQUENCY
     }
 }

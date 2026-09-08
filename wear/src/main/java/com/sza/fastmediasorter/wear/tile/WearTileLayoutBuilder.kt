@@ -10,7 +10,6 @@ import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.CompactChip
 import androidx.wear.protolayout.material.Text
 import androidx.wear.protolayout.material.Typography
-import androidx.wear.protolayout.material.layouts.LayoutDefaults.MultiButtonLayoutDefaults.MAX_BUTTONS
 import androidx.wear.protolayout.material.layouts.MultiButtonLayout
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchExtra
@@ -22,13 +21,15 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
 
-private const val MAX_FAVOURITES_PREVIEW_ENTRIES = 3
-
 /**
  * S1955: Builds ProtoLayout element trees for Wear OS tiles based on [WearTileContent].
  *
  * Checks `deviceParameters.rendererSchemaVersion` to avoid drawing elements that require a higher
  * schema version than the watch's renderer supports.
+ *
+ * S2589: every decision this used to take on its own now comes from `WearTileLayoutPlan`; what is left here
+ * is the drawing, which no JVM test can reach. The dispatch below stays an exhaustive `when` over the sealed
+ * content type with no `else`, so a sixth state fails compilation rather than drawing nothing.
  */
 class WearTileLayoutBuilder @Inject constructor(
     @ApplicationContext private val context: Context
@@ -38,6 +39,7 @@ class WearTileLayoutBuilder @Inject constructor(
         content: WearTileContent,
         deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.Layout {
+        Timber.d("S2589: tile layout built from %s", content::class.simpleName)
         val rootElement = when (content) {
             is WearTileContent.Assigned -> buildAssignedLayout(content)
             is WearTileContent.Unassigned -> buildUnassignedLayout(
@@ -77,15 +79,13 @@ class WearTileLayoutBuilder @Inject constructor(
             )
         }
 
-        if (content.entries.isNotEmpty()) {
-            content.entries.take(MAX_FAVOURITES_PREVIEW_ENTRIES).forEach { entry ->
-                columnBuilder.addContent(
-                    Text.Builder(context, entry)
-                        .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                        .setMaxLines(1)
-                        .build()
-                )
-            }
+        planAssignedPreview(content.entries).forEach { entry ->
+            columnBuilder.addContent(
+                Text.Builder(context, entry)
+                    .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                    .setMaxLines(1)
+                    .build()
+            )
         }
 
         val launchAction = buildLaunchAction(content.launchTarget)
@@ -107,37 +107,30 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
-    /**
-     * S2511: a grid of icon buttons, one per shortcut.
-     *
-     * The list is cut to [MAX_BUTTONS] here rather than trusted to be short enough. `MultiButtonLayout`
-     * throws above that count instead of truncating, and an exception inside a tile request hands the
-     * system an error tile in place of content - while the two catalogs feeding this grid are documented as
-     * growing by a single line, by authors who have no reason to know a tile reads them.
-     */
+    /** S2511: a grid of icon buttons, one per shortcut, cut to what the grid holds by `planShortcutGrid`. */
     private fun buildShortcutsLayout(
         content: WearTileContent.Shortcuts
     ): LayoutElementBuilders.LayoutElement {
-        val shown = content.entries.take(MAX_BUTTONS)
-        Timber.d("S2511: shortcut grid drawing %d button(s)", shown.size)
-        if (content.entries.size > shown.size) {
+        val plan = planShortcutGrid(content.entries)
+        Timber.d("S2511: shortcut grid drawing %d button(s)", plan.shown.size)
+        if (plan.dropped > 0) {
             Timber.w(
                 "Shortcut tile holds %d entries, %d fit - dropped the last %d",
                 content.entries.size,
-                shown.size,
-                content.entries.size - shown.size
+                plan.shown.size,
+                plan.dropped
             )
         }
 
         val layoutBuilder = MultiButtonLayout.Builder()
-        shown.forEach { shortcut ->
+        plan.shown.forEach { shortcut ->
             val clickable = ModifiersBuilders.Clickable.Builder()
                 .setOnClick(buildLaunchAction(shortcut.launchTarget))
                 .setId(shortcut.launchTarget.clickId())
                 .build()
             layoutBuilder.addButtonContent(
                 Button.Builder(context, clickable)
-                    .setIconContent(tileImageResourceId(shortcut.iconResId))
+                    .setIconContent(tileImageResourceId(tileShortcutIconFor(shortcut.destinationId)))
                     .setContentDescription(shortcut.contentDescription)
                     .build()
             )
@@ -154,16 +147,7 @@ class WearTileLayoutBuilder @Inject constructor(
         kind: WearTileKind,
         deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
-        val labelRes = when (kind) {
-            WearTileKind.RESOURCE -> R.string.wear_tile_unassigned_resource
-            WearTileKind.STREAM -> R.string.wear_tile_unassigned_stream
-            // Unreachable for the two grids - they have no assignment, so they never reach this state
-            // (S2511). Named rather than sent to an else so a future kind must still be classified.
-            WearTileKind.FAVOURITES,
-            WearTileKind.PROGRAMS,
-            WearTileKind.SECTIONS -> R.string.wear_tile_favourites_empty
-        }
-        val labelText = context.getString(labelRes)
+        val labelText = context.getString(unassignedLabelRes(kind))
         val pickText = context.getString(R.string.wear_tile_pick_action)
 
         val launchTarget = WearLaunchTarget.Pick(kind)

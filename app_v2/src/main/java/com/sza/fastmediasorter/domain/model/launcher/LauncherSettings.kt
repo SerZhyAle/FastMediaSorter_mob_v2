@@ -103,9 +103,17 @@ data class LauncherSettings(
     // S2076: chosen camera lens id in [CameraLensEntry.id] form; empty unless [wallpaperMode]
     // is [AppSettings.LAUNCHER_WALLPAPER_CAMERA].
     val wallpaperCameraId: String = "",
+    // S2730: how strongly the branded backdrop is drawn. Was a constant in the render layer until this
+    // ticket; it lives here so it reaches the settings backup, which is what S2632 and S2727 lost.
+    val wallpaperIntensity: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_INTENSITY,
+    // S2730: multiplier on the backdrop's per-frame time advance.
+    val wallpaperAnimationSpeed: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+    // S2730: multiplier on the backdrop's seeded particle count; 0 draws the waves without particles.
+    val wallpaperParticleDensity: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
     // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
-    val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
+    // S2736: the owner's default, so the list opens on what he actually launches.
+    val allAppsSortOrder: String = InstalledAppSortOrder.LAUNCH_FREQUENCY.name,
     val allAppsSortDescending: Boolean = false,
     // S1741/S2384: idle seconds before the launcher turns the screen off (0 = Off, on by default).
     val screenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,

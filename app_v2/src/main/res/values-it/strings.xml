@@ -2568,7 +2568,7 @@
     <string name="launcher_signal_scheduled_ops">Attività pianificata in esecuzione</string>
     <string name="launcher_signal_duplicate_scan">Ricerca duplicati in corso</string>
     <string name="launcher_signal_network_sync">Sincronizzazione cartelle di rete in corso</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">Segnali attivi</string>
     <string name="launcher_settings_group_taskbar">Barra delle applicazioni</string>
     <string name="launcher_settings_group_top_bar">Barra superiore</string>

@@ -1,9 +1,16 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,6 +24,7 @@ import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 
 private val MESSAGE_PADDING = 16.dp
 private val ACTION_SPACING = 8.dp
@@ -81,6 +89,11 @@ internal fun stateActionsFor(kind: WearStateKind, hasRetry: Boolean): List<WearS
  * No glyph is drawn on purpose: the module currently marks content with three unrelated visual
  * vocabularies, and unifying them belongs to the ticket that owns the icon contract - baking one of
  * them in here would have to be undone there.
+ *
+ * @param scrollState hoisted so the hosting screen can point its Scaffold's `positionIndicator` at
+ * the content actually on the glass (S2754). While this block replaces a list, the list's own state
+ * is standing still, so an indicator left bound to it reports a position nothing here can move -
+ * which is what Google Play rejected the watch build for.
  */
 @Composable
 fun WearStateBlock(
@@ -89,53 +102,72 @@ fun WearStateBlock(
     modifier: Modifier = Modifier,
     message: String? = null,
     onRetry: (() -> Unit)? = null,
-    extraActions: List<WearStateExtraAction> = emptyList()
+    extraActions: List<WearStateExtraAction> = emptyList(),
+    scrollState: ScrollState = rememberScrollState()
 ) {
     val text = message ?: defaultMessageFor(kind)
     val retryLabel = stringResource(R.string.retry)
     val backLabel = stringResource(R.string.wear_state_back)
     val actions = stateActionsFor(kind, onRetry != null)
+    val squareSide = wearMaxSquareSide()
 
     Box(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(wearScreenInsets()),
+        modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                text = text,
-                style = MaterialTheme.typography.body1,
-                color = if (kind == WearStateKind.ERROR) {
-                    MaterialTheme.colors.error
-                } else {
-                    MaterialTheme.colors.onSurface
-                },
-                textAlign = TextAlign.Center,
+        // S2568: the message plus its chips is taller than the round screen's content box on a 227 dp
+        // watch, so the last action - the only way off an empty Resources screen - was drawn under the
+        // glass edge, collapsed to a one-pixel line. The form is WearActionCloud's, which is the one
+        // shape in this module measured to actually scroll: the fixed-side Box carries the scroll and
+        // the inner Column only claims that height as a minimum. Hanging verticalScroll on the Column
+        // itself was tried, shipped to a device and changed nothing (dev/REFUTED_APPROACHES.md).
+        Box(
+            modifier = Modifier
+                .size(squareSide)
+                .rotaryActionScroll(scrollState)
+                .verticalScroll(scrollState)
+        ) {
+            Column(
                 modifier = Modifier
-                    .padding(MESSAGE_PADDING)
-                    .semantics { contentDescription = text }
-            )
-            if (actions.contains(WearStateAction.RETRY)) {
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = squareSide),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.body1,
+                    color = if (kind == WearStateKind.ERROR) {
+                        MaterialTheme.colors.error
+                    } else {
+                        MaterialTheme.colors.onSurface
+                    },
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(MESSAGE_PADDING)
+                        .semantics { contentDescription = text }
+                )
+                if (actions.contains(WearStateAction.RETRY)) {
+                    StateChip(
+                        label = retryLabel,
+                        onClick = { onRetry?.invoke() },
+                        primary = true
+                    )
+                }
+                extraActions.forEach { extra ->
+                    StateChip(
+                        label = extra.label,
+                        onClick = extra.onClick,
+                        primary = extraActions.first() === extra && !actions.contains(WearStateAction.RETRY),
+                        enabled = extra.enabled
+                    )
+                }
                 StateChip(
-                    label = retryLabel,
-                    onClick = { onRetry?.invoke() },
-                    primary = true
+                    label = backLabel,
+                    onClick = onBack,
+                    primary = false
                 )
             }
-            extraActions.forEach { extra ->
-                StateChip(
-                    label = extra.label,
-                    onClick = extra.onClick,
-                    primary = extraActions.first() === extra && !actions.contains(WearStateAction.RETRY),
-                    enabled = extra.enabled
-                )
-            }
-            StateChip(
-                label = backLabel,
-                onClick = onBack,
-                primary = false
-            )
         }
     }
 }

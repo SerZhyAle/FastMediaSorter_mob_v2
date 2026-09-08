@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,6 +69,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuActions
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuScreen
 import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScrolls
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
@@ -142,13 +144,14 @@ fun BrowseScreen(
     }
 
     val listState = rememberWearListState(positionKey = "browse/$mediaTypeArg/$sourceId")
+    val scrolls = WearScreenScrolls(list = listState, stateBlock = rememberScrollState())
 
     val refineState by viewModel.refineState.collectAsStateWithLifecycle()
     val refineUi = rememberBrowseRefineUi(viewModel, refineState)
 
     BrowseScaffold(
         uiState = uiState,
-        listState = listState,
+        scrolls = scrolls,
         refine = refineUi,
         presentation = BrowseListPresentation(
             title = title,
@@ -622,7 +625,7 @@ private fun navigateToPlayer(
     mediaType: MediaType
 ) {
     // The file's own mime type decides; the screen's media type answers only for an unknown one.
-    val route = playerRouteFor(file.id, file.mimeType, mediaType)
+    val route = playerRouteFor(file.id, file.mimeType, mediaType, file.name)
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
 }
@@ -803,7 +806,7 @@ private data class BrowseStateActions(
 @Composable
 private fun BrowseScaffold(
     uiState: BrowseUiState,
-    listState: ScalingLazyListState,
+    scrolls: WearScreenScrolls,
     refine: BrowseRefineUi,
     presentation: BrowseListPresentation,
     selection: MediaSelectionState,
@@ -812,22 +815,25 @@ private fun BrowseScaffold(
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
-        scrollState = listState,
-        // Only the list branch scrolls, so only it has a position to indicate.
-        positionIndicator = if (uiState is BrowseUiState.Success) {
-            { PositionIndicator(listState) }
-        } else {
-            null
+        scrollState = scrolls.list,
+        // S2754: the list branch is not the only one that scrolls - the state block replacing it
+        // carries its own scroll, and leaving that one unmarked is what Play rejected.
+        positionIndicator = {
+            if (uiState is BrowseUiState.Success) {
+                PositionIndicator(scrolls.list)
+            } else {
+                PositionIndicator(scrolls.stateBlock)
+            }
         }
     ) {
         // The header sits over the list rather than inside it (strategic 5.3): as a list item it
         // would scroll away, and it has to stay reachable in exactly the states that need it - a
         // search that emptied the list is undone from this row and nowhere else.
-        val overlayVisible = rememberOverlayVisibleOnIdle(listState)
+        val overlayVisible = rememberOverlayVisibleOnIdle(scrolls.list)
         Box(modifier = Modifier.fillMaxSize()) {
             BrowseStateBranch(
                 uiState = uiState,
-                listState = listState,
+                scrolls = scrolls,
                 presentation = presentation,
                 selection = selection,
                 actions = actions,
@@ -895,7 +901,7 @@ private fun BrowseUiState.hasRefinableContent(): Boolean =
 @Composable
 private fun BrowseStateBranch(
     uiState: BrowseUiState,
-    listState: ScalingLazyListState,
+    scrolls: WearScreenScrolls,
     presentation: BrowseListPresentation,
     selection: MediaSelectionState,
     actions: MediaFileActions,
@@ -913,7 +919,7 @@ private fun BrowseStateBranch(
                     thumbnails = presentation.thumbnails,
                     mediaType = presentation.mediaType
                 ),
-                listState = listState,
+                listState = scrolls.list,
                 viewMode = presentation.viewMode,
                 selection = selection,
                 actions = actions,
@@ -925,7 +931,8 @@ private fun BrowseStateBranch(
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = state.message.resolveText(),
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
         is BrowseUiState.NoMatches -> {
@@ -935,7 +942,8 @@ private fun BrowseStateBranch(
                 modifier = Modifier.padding(top = WearRefineHeaderHeight),
                 kind = WearStateKind.EMPTY,
                 message = stringResource(R.string.wear_browse_no_matches),
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
         is BrowseUiState.Error -> {
@@ -944,7 +952,8 @@ private fun BrowseStateBranch(
                 kind = WearStateKind.ERROR,
                 message = state.message.resolveText(),
                 onRetry = stateActions.onRetry,
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
     }

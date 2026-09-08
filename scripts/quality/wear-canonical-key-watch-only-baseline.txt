@@ -1,0 +1,11 @@
+# S2579: watch mini-programs whose canonicalKey has no InternalRouteCatalog counterpart.
+#
+# A row is an exception, not a habit. Remove the row the day the phone gains the program - the gate
+# reports a spent row on its own. Adding a row is a boundary decision about where a program belongs,
+# taken and written down, never a way to make a red gate green.
+#
+# One key per line; everything after '#' is the reason.
+
+motion_monitor  # S2458: live motion and activity readings from the watch's own body-worn sensors - the phone has no program of this kind.
+body_sensor     # S2457: one foreground heart-rate reading; the phone carries no heart-rate program at all, and Play gates the permission against use cases a media sorter does not match.
+broadcast       # S2509: the watch broadcasts its own microphone as a launcher program. The phone broadcasts too (S2508), but from the player rather than as a program, so InternalRouteCatalog has no key to match.

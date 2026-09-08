@@ -3,28 +3,38 @@ package com.sza.fastmediasorter.data.repository
 import android.content.Context
 import android.content.SharedPreferences
 import com.sza.fastmediasorter.data.datasource.DeviceProfileLocalDataSource
+import com.sza.fastmediasorter.data.model.DetectionConfidence
 import com.sza.fastmediasorter.data.model.DeviceProfile
 import com.sza.fastmediasorter.data.model.DeviceProfileSource
 import com.sza.fastmediasorter.data.model.DeviceProfileType
-import com.sza.fastmediasorter.data.model.DetectionConfidence
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+/**
+ * S2746: every test builds the repository on a scope tied to its own scheduler. The repository's
+ * init coroutine used to run on a self-built scope over the real IO pool, so it outlived the test
+ * body and any throw from it landed in the global handler, where kotlinx-coroutines-test charged it
+ * to whatever unrelated test ran next on that worker.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
 class RealDeviceProfileRepositoryTest {
 
     private val context = mockk<Context>(relaxed = true)
     private val appPrefs = mockk<SharedPreferences>(relaxed = true)
     private val welcomePrefs = mockk<SharedPreferences>(relaxed = true)
     private val appPrefsEditor = mockk<SharedPreferences.Editor>(relaxed = true)
-    
+
     private val detector = mockk<DeviceProfileDetector>()
     private val localDataSource = mockk<DeviceProfileLocalDataSource>(relaxed = true)
     private lateinit var repository: RealDeviceProfileRepository
@@ -45,15 +55,20 @@ class RealDeviceProfileRepositoryTest {
         every { appPrefs.getBoolean("device_profile_initialized", false) } returns false
         every { welcomePrefs.getBoolean("welcome_completed", false) } returns true
 
-        repository = RealDeviceProfileRepository(detector, localDataSource, context)
+        repository = RealDeviceProfileRepository(
+            detector,
+            localDataSource,
+            context,
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+        )
 
-        coVerify(timeout = 2000) {
+        coVerify {
             localDataSource.saveProfile(
                 match {
                     it.type == DeviceProfileType.OTHER &&
-                    it.source == DeviceProfileSource.MIGRATION_EXISTING &&
-                    it.confidence == DetectionConfidence.NONE &&
-                    it.presetVersion == 0
+                        it.source == DeviceProfileSource.MIGRATION_EXISTING &&
+                        it.confidence == DetectionConfidence.NONE &&
+                        it.presetVersion == 0
                 }
             )
         }
@@ -75,7 +90,12 @@ class RealDeviceProfileRepositoryTest {
             )
         )
 
-        repository = RealDeviceProfileRepository(detector, localDataSource, context)
+        repository = RealDeviceProfileRepository(
+            detector,
+            localDataSource,
+            context,
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+        )
 
         assertTrue(repository.isMigrationExisting())
     }
@@ -96,7 +116,12 @@ class RealDeviceProfileRepositoryTest {
             )
         )
 
-        repository = RealDeviceProfileRepository(detector, localDataSource, context)
+        repository = RealDeviceProfileRepository(
+            detector,
+            localDataSource,
+            context,
+            CoroutineScope(UnconfinedTestDispatcher(testScheduler))
+        )
 
         repository.updatePresetApplied(3)
 
@@ -104,8 +129,8 @@ class RealDeviceProfileRepositoryTest {
             localDataSource.saveProfile(
                 match {
                     it.type == DeviceProfileType.TV_MEDIA_BOX &&
-                    it.presetVersion == 3 &&
-                    it.appliedAtInstallTime
+                        it.presetVersion == 3 &&
+                        it.appliedAtInstallTime
                 }
             )
         }

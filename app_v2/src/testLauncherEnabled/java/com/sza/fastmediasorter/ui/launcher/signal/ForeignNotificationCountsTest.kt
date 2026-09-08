@@ -181,6 +181,40 @@ class ForeignNotificationCountsTest {
         assertEquals(mapOf(CHAT to 1), counts.counts.value)
     }
 
+    /**
+     * S2734: the published order is what places a chip in the strip, so it is asserted as a sequence of
+     * keys rather than as a map - a map comparison passes whatever the order is.
+     */
+    @Test
+    fun `the package that posted last leads the published order`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.onPosted(MAIL, key = "b", isGroupSummary = false)
+
+        assertEquals(listOf(MAIL, CHAT), counts.counts.value.keys.toList())
+    }
+
+    @Test
+    fun `re-posting an existing key leaves the order alone`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.onPosted(MAIL, key = "b", isGroupSummary = false)
+
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+
+        assertEquals(listOf(MAIL, CHAT), counts.counts.value.keys.toList())
+        assertEquals(mapOf(MAIL to 1, CHAT to 1), counts.counts.value)
+    }
+
+    @Test
+    fun `a package that emptied and posted again leads the order`() {
+        counts.onPosted(CHAT, key = "a", isGroupSummary = false)
+        counts.onPosted(MAIL, key = "b", isGroupSummary = false)
+
+        counts.onRemoved(CHAT, key = "a")
+        counts.onPosted(CHAT, key = "c", isGroupSummary = false)
+
+        assertEquals(listOf(CHAT, MAIL), counts.counts.value.keys.toList())
+    }
+
     private companion object {
         const val CHAT = "com.example.chat"
         const val MAIL = "com.example.mail"

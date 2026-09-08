@@ -9,11 +9,11 @@ import timber.log.Timber
 import java.io.IOException
 import java.io.OutputStream
 import java.net.Inet4Address
+import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.ServerSocket
 import java.net.Socket
 import java.net.SocketException
-import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 
 /** Port 0 asks the platform for a free port, which is then reported back over the control channel. */
@@ -24,6 +24,27 @@ private const val LOOPBACK_HOST = "127.0.0.1"
 
 /** A request head longer than this is not a browser being verbose, it is something to hang up on. */
 private const val MAX_REQUEST_HEAD_BYTES = 8_192
+
+/**
+ * S2509: what a watch is willing to spend on being heard by strangers.
+ *
+ * The owner chose broadcast semantics over S2550's single known listener (strategic §6 question 5) and
+ * required explicit resource limits in the same ruling, because the serving device is the weakest one
+ * in the exchange. Both numbers are small on purpose and both are enforced rather than documented:
+ * the server refuses a connection past [MAX_LISTENERS] outright instead of queueing it, and each
+ * admitted listener buffers at most [LISTENER_BUFFER_FRAMES] frames before its oldest are discarded.
+ *
+ * Worst case is therefore bounded and computable rather than a function of who connects: four
+ * listeners times thirty-two frames of about four kilobytes is well under a megabyte held at once.
+ */
+object LiveAudioLimits {
+
+    /** A refused fifth listener is a clear answer; a queued one is a feature that appears broken. */
+    const val MAX_LISTENERS = 4
+
+    /** Roughly a second of speech-grade audio. Deep enough for a hiccup, shallow enough to stay live. */
+    const val LISTENER_BUFFER_FRAMES = 32
+}
 
 /**
  * ADR-4: the response declares no body length, because the stream has none - that is what tells the
@@ -38,7 +59,7 @@ private const val STREAM_HEADER = "HTTP/1.0 200 OK\r\n" +
     "Connection: close\r\n" +
     "\r\n"
 
-/** A second listener is refused outright rather than queued - a stall reads as a broken feature. */
+/** Past the limit a listener is refused outright rather than queued - a stall reads as broken. */
 private const val BUSY_HEADER = "HTTP/1.0 503 Service Unavailable\r\n" +
     "Content-Type: text/plain\r\n" +
     "Connection: close\r\n" +
@@ -49,53 +70,82 @@ private const val BUSY_HEADER = "HTTP/1.0 503 Service Unavailable\r\n" +
  *
  * The server is the consumer, so it owns the shape of its dependency: that keeps the socket half
  * testable on the JVM, where `ParcelFileDescriptor` does not exist and a real pipe cannot be opened.
+ *
+ * S2509 split what used to be one `detach()` in two. With several listeners on one capture, "end this
+ * connection" and "end them all" stopped being the same sentence, and a single name for both is how a
+ * departing listener would have taken the broadcast down with it.
  */
 interface LiveAudioSource {
 
-    /** Attaches [sink] and suspends for the listener's whole session. False = already taken. */
+    /** Attaches [sink] and suspends for that listener's whole session. False = the limit is reached. */
     suspend fun readInto(sink: OutputStream): Boolean
 
-    /** Ends the current listener without touching capture. */
-    fun detach()
+    /** Ends the session of [sink] alone. Other listeners and the capture are untouched. */
+    fun detach(sink: OutputStream)
+
+    /** Ends every listener at once, still without touching capture. */
+    fun detachAll()
 }
 
 /**
- * S2550 strategic §6.3: the watch's own one-endpoint responder, hand-rolled over [ServerSocket].
+ * The watch's own responder for its live microphone, hand-rolled over [ServerSocket].
  *
  * The whole job is one endpoint, a fixed response header and byte pumping. There is no request
- * parsing, no routing, no ranges and no second client, so a library would land an amount of code on
- * a watch of which a fraction of a percent is used.
+ * parsing, no routing and no ranges, so a library would land an amount of code on a watch of which a
+ * fraction of a percent is used.
+ *
+ * S2550 built it for exactly one listener - the paired phone, known in advance. S2509 broadened it to
+ * a bounded set, because a broadcast whose descriptor anyone may open cannot know its audience. The
+ * limit lives in [LiveAudioLimits] and is refused here rather than deep in the capture side, so the
+ * fifth listener gets an HTTP answer instead of a socket that opens and then goes quiet.
  *
  * The invariant it inherits from [LiveAudioPipeSink]: this class closes client sockets and its own
  * listening socket, never the pipe. A listener that walks away must not reach the recorder.
  */
 class LiveAudioLanServer @Inject constructor() {
 
+    private val lock = Any()
+    private val clients = mutableListOf<Socket>()
     private var serverSocket: ServerSocket? = null
     private var acceptJob: Job? = null
-    private val client = AtomicReference<Socket?>(null)
 
     /** True between [start] and [stop]. */
     val isRunning: Boolean
         get() = serverSocket != null
 
+    /** How many listeners are connected right now, for the screen that says the broadcast is heard. */
+    val listenerCount: Int
+        get() = synchronized(lock) { clients.size }
+
     /**
      * Binds on a platform-chosen port and starts accepting. The returned endpoint is what travels
-     * back to the phone over the control channel, which is why nothing here discovers anything.
+     * into the published descriptor, which is why nothing here discovers anything.
+     *
+     * S2509: [bindAddress] is the address of the network a broadcast session is holding. Given one,
+     * the listening socket is bound to it and the endpoint reports it, so the address a listener is
+     * handed and the network the session keeps alive are the same by construction rather than by
+     * coincidence. The paired-phone listening session of S2550 passes `null` and keeps its original
+     * behaviour - bind on every interface, then report whichever LAN address is up.
      */
-    fun start(scope: CoroutineScope, source: LiveAudioSource): LiveAudioEndpoint {
+    fun start(
+        scope: CoroutineScope,
+        source: LiveAudioSource,
+        bindAddress: InetAddress? = null
+    ): LiveAudioEndpoint {
         check(!isRunning) { "The live audio server is already running" }
-        val socket = ServerSocket(EPHEMERAL_PORT)
+        val socket = ServerSocket(EPHEMERAL_PORT, ACCEPT_BACKLOG, bindAddress)
         serverSocket = socket
         acceptJob = scope.launch(Dispatchers.IO) { acceptLoop(scope, socket, source) }
-        return LiveAudioEndpoint(host = lanAddress(), port = socket.localPort)
+        val host = bindAddress?.hostAddress ?: lanAddress()
+        return LiveAudioEndpoint(host = host, port = socket.localPort)
     }
 
-    /** Closes the listening socket and any live connection. Never touches the capture sink. */
+    /** Closes the listening socket and every live connection. Never touches the capture sink. */
     fun stop() {
         acceptJob?.cancel()
         acceptJob = null
-        closeQuietly(client.getAndSet(null))
+        val open = synchronized(lock) { clients.toList().also { clients.clear() } }
+        open.forEach { closeQuietly(it) }
         val socket = serverSocket
         serverSocket = null
         closeQuietly(socket)
@@ -103,7 +153,8 @@ class LiveAudioLanServer @Inject constructor() {
 
     /**
      * Each connection is served in its own coroutine, so an attached listener does not block the
-     * accept loop - without that, a second listener would hang instead of being told it is refused.
+     * accept loop - without that, a listener past the limit would hang instead of being refused, and
+     * the second admitted listener could not be served at all.
      */
     private fun acceptLoop(scope: CoroutineScope, server: ServerSocket, source: LiveAudioSource) {
         var running = true
@@ -126,13 +177,15 @@ class LiveAudioLanServer @Inject constructor() {
     }
 
     private suspend fun serve(socket: Socket, source: LiveAudioSource) {
-        if (!client.compareAndSet(null, socket)) {
+        if (!admit(socket)) {
             refuse(socket)
             return
         }
+        var attached: OutputStream? = null
         try {
             discardRequestHead(socket)
             val output = socket.getOutputStream()
+            attached = output
             // The header goes out and is flushed BEFORE the sink is attached: ADR-7's second reason
             // for the pipe existing is that the recorder cannot write this and it must come first.
             output.write(STREAM_HEADER.toByteArray())
@@ -141,10 +194,26 @@ class LiveAudioLanServer @Inject constructor() {
         } catch (e: IOException) {
             Timber.i(e, "The live audio listener ended")
         } finally {
-            source.detach()
-            client.compareAndSet(socket, null)
+            // This listener only. Ending them all here is what would let one departing listener take
+            // the whole broadcast down, which is the failure S2509 exists to avoid.
+            attached?.let { source.detach(it) }
+            release(socket)
             closeQuietly(socket)
         }
+    }
+
+    /** Answers whether there is room, and takes the room in the same step so two racing accepts cannot both win. */
+    private fun admit(socket: Socket): Boolean = synchronized(lock) {
+        if (clients.size >= LiveAudioLimits.MAX_LISTENERS) {
+            false
+        } else {
+            clients.add(socket)
+            true
+        }
+    }
+
+    private fun release(socket: Socket) {
+        synchronized(lock) { clients.remove(socket) }
     }
 
     private fun refuse(socket: Socket) {
@@ -153,7 +222,7 @@ class LiveAudioLanServer @Inject constructor() {
             output.write(BUSY_HEADER.toByteArray())
             output.flush()
         } catch (e: IOException) {
-            Timber.i(e, "Could not tell a second listener that the watch is already being heard")
+            Timber.i(e, "Could not tell a listener that the watch is already serving its limit")
         } finally {
             closeQuietly(socket)
         }
@@ -220,6 +289,8 @@ class LiveAudioLanServer @Inject constructor() {
     }
 
     private companion object {
+        /** Small on purpose: past MAX_LISTENERS a connection is refused, never held pending. */
+        const val ACCEPT_BACKLOG = 8
         const val LINE_FEED = 10
         const val CARRIAGE_RETURN = 13
     }

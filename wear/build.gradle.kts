@@ -15,9 +15,12 @@ plugins {
 // Versioning is one system across both modules, stamped together by
 // scripts/release/build-release-spectrum.ps1 from a single timestamp:
 //   versionName  Y.YM.MDDH.Hmm  - byte-identical to app_v2, the watch and the phone ship one version.
-//   versionCode  yyMMddHH (8 digits) - app_v2 appends the first minute digit and gets 9. The two
-//     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
-//     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
+//   versionCode  yyMMddHH * 10 + 6 + floor(minute / 15) (9 digits) - app_v2 uses the same 8-digit
+//     prefix with floor(minute / 10) instead, so the phone owns last digits 0..5 and the watch owns
+//     6..9. The two codes MUST differ: both modules publish under the same applicationId (S1681),
+//     and Play refuses a release whose artifacts repeat a versionCode. The separator digit is a
+//     partition, not an offset (S2721): the watch derives its code from the build instant alone,
+//     which is what its independent release cadence requires.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
 //
 // S1873: the version has three sources, in this order.
@@ -27,11 +30,11 @@ plugins {
 //      property. Covers the paths no wrapper script reaches.
 //   3. The checked-in constant below, which after ADR-4 has no writer and is a deliberately
 //      non-releasable sentinel.
-// The watch takes the 8-digit width from the shared derivation, so the two modules still differ by
-// exactly the documented rule rather than by two independently written formulas.
+// The watch takes its separator digit from the shared derivation, so the two modules still differ
+// by exactly the documented rule rather than by two independently written formulas.
 apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
 
-val defaultAppVersionCode = 26090121
+val defaultAppVersionCode = 260901218
 val defaultAppVersionName = "2.60.9012.140"
 
 // S2585: single source for the unit-test task ceiling, shared with app_v2 through gradle.properties.
@@ -358,6 +361,15 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // S2509: declared outright rather than taken from converter-gson above. The broadcast descriptor
+    // is a cross-module wire contract, and a transitive version that a Retrofit bump could change or
+    // drop is not something a contract may rest on.
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    // S2509: QR presentation of the broadcast descriptor. Core decoder only, exactly as app_v2 takes
+    // it - the android-embedded artifact drags in a legacy camera1 stack the watch has no use for.
+    implementation("com.google.zxing:core:3.5.3")
     
     // SMB client for network storage
     implementation("com.hierynomus:smbj:0.12.1")

@@ -95,12 +95,22 @@ if (-not (Test-Path -LiteralPath $fetchScript)) {
 }
 
 # ----------------------------------------------------------------------
-# versionName -> versionCode, mirroring the formula in build-aab-release.ps1.
-# versionName is Y.YM.MDDH.Hmm; versionCode is yyMMddHH plus the first minute
-# digit. Both are derived from the same build timestamp, so the code is
-# recoverable from the name without consulting the archive - which matters
-# because the baseline decision has to be made for releases that were never
-# retained and therefore have no manifest to read.
+# versionName -> versionCode for app_v2, mirroring Get-BuildVersionStamp's
+# AppVersionCode. versionName is Y.YM.MDDH.Hmm; the code is yyMMddHH plus the
+# first minute digit. Both are derived from the same build timestamp, so the
+# code is recoverable from the name without consulting the archive - which
+# matters because the baseline decision has to be made for releases that were
+# never retained and therefore have no manifest to read.
+#
+# app_v2 only, and since S2722 used for the retention-baseline decision alone -
+# not to choose a directory. The wear code follows a different rule since S2721
+# (yyMMddHH * 10 + 6 + floor(minute / 15), so the phone owns last digits 0..5
+# and the watch owns 6..9) and is not recoverable from the app code, so a gate
+# that opened one derived code opened the phone's directory and silently ignored
+# the watch mapping filed beside it. The archive is selected by versionName
+# below instead; the baseline question ("does this release predate the scheme")
+# is about the phone's numbering and needs no archive lookup, which is why this
+# formula survives.
 # ----------------------------------------------------------------------
 function ConvertTo-VersionCode {
     param([Parameter(Mandatory)] [string] $Name)
@@ -178,41 +188,86 @@ if (-not (Test-Path -LiteralPath $ArchiveRoot)) {
 # ----------------------------------------------------------------------
 # Which variants to judge. 'standard' is mandatory - a.ps1 r always builds it, so
 # a release without a retained standard payload is a retention failure regardless
-# of what else shipped. Everything else is judged from what the manifest records,
+# of what else shipped. Everything else is judged from what the manifests record,
 # because strategic section 3.3 scopes retention to the variants the release
 # actually published, and only the release itself knows which those were.
+#
+# S2722: a release occupies as many archive directories as it has artifacts with
+# their own versionCode - retain-deobfuscation.ps1 keys the directory by the code
+# it is handed, and build-release-spectrum.ps1 hands it the WEAR code for the
+# watch mapping. The two modules stamp the SAME versionName from the same build
+# instant, so the versionName is what identifies a release across the archive and
+# the derived phone code is not. Each variant carries the code of the directory
+# it was found in, because that is what fetch-deobfuscation.ps1 -Verify is keyed
+# by.
 # ----------------------------------------------------------------------
-$releaseDir = Join-Path $ArchiveRoot "$versionCode"
-$manifestPath = Join-Path $releaseDir 'manifest.json'
+$targets = @([pscustomobject]@{ Variant = 'standard'; VersionCode = $versionCode })
 
-$variants = @('standard')
-if (Test-Path -LiteralPath $manifestPath) {
+foreach ($dir in @(Get-ChildItem -LiteralPath $ArchiveRoot -Directory -ErrorAction SilentlyContinue)) {
+    $manifestPath = Join-Path $dir.FullName 'manifest.json'
+    if (-not (Test-Path -LiteralPath $manifestPath)) { continue }
     try {
         $manifest = [System.IO.File]::ReadAllText($manifestPath) | ConvertFrom-Json
-        foreach ($record in @($manifest.variants)) {
-            if ($record.variant -and $record.variant -notin $variants) { $variants += $record.variant }
-        }
     }
     catch {
-        Exit-Gate -Message "manifest for $versionCode is unreadable: $manifestPath ($_)" -Code 1
+        # Unreadable rather than absent: an archive directory that cannot be parsed
+        # may be the one holding this release, so it is a failure to verify, never
+        # a silent skip.
+        Exit-Gate -Message "archive manifest is unreadable: $manifestPath ($_)" -Code 1
+    }
+
+    if ("$($manifest.versionName)".Trim() -ne $judgedVersion) { continue }
+
+    $dirCode = if ($manifest.versionCode) { [int]$manifest.versionCode } else { $versionCode }
+    foreach ($record in @($manifest.variants)) {
+        if (-not $record.variant) { continue }
+        $known = $targets | Where-Object { $_.Variant -eq $record.variant } | Select-Object -First 1
+        if ($known) {
+            # 'standard' is seeded with the derived code before any manifest is read,
+            # so its real directory replaces that assumption when found.
+            $known.VersionCode = $dirCode
+        }
+        else {
+            $targets += [pscustomobject]@{ Variant = $record.variant; VersionCode = $dirCode }
+        }
+    }
+}
+
+# A watch-only release publishes no phone artifact at all, so the mandatory
+# 'standard' seed above would report it as unretained when nothing is wrong. Only
+# a diagnostic -VersionName run can reach one: /skill-release-wear creates no
+# release/v* tag (checked 2026-09-08 - the tag list holds none of the watch-only
+# versions), so the tag-driven path this gate runs on keeps 'standard' mandatory
+# unconditionally. The relaxation needs every payload found to be a watch payload:
+# a phone release that lost its standard directory while keeping lite or vr still
+# fails.
+$foundStandard = $targets | Where-Object { $_.Variant -eq 'standard' -and $_.VersionCode -ne $versionCode }
+$onlyWear = @($targets | Where-Object { $_.Variant -ne 'standard' }).Count -gt 0 -and
+            @($targets | Where-Object { $_.Variant -ne 'standard' -and $_.Variant -ne 'wear' }).Count -eq 0
+if ($VersionName -and -not $foundStandard -and $onlyWear) {
+    $targets = @($targets | Where-Object { $_.Variant -ne 'standard' })
+    if (-not $Quiet) {
+        Write-Host "  standard : not published by this release - judging the watch payload alone" -ForegroundColor Yellow
     }
 }
 
 $failures = @()
-foreach ($variant in $variants) {
+foreach ($target in $targets) {
     # Delegated rather than reimplemented: fetch-deobfuscation.ps1 -Verify already
     # streams the stored mapping back and recomputes its hash, and two copies of
     # that logic would be two chances to disagree about what "retained" means.
-    & $fetchScript -Verify -VersionCode $versionCode -Variant $variant -ArchiveRoot $ArchiveRoot 2>&1 |
+    & $fetchScript -Verify -VersionCode $target.VersionCode -Variant $target.Variant -ArchiveRoot $ArchiveRoot 2>&1 |
         ForEach-Object { if (-not $Quiet) { Write-Host "  $_" } }
 
     if ($LASTEXITCODE -ne 0) {
-        $failures += $variant
+        $failures += $target.Variant
     }
     elseif (-not $Quiet) {
-        Write-Host "  $variant : verified" -ForegroundColor Green
+        Write-Host "  $($target.Variant) (code $($target.VersionCode)) : verified" -ForegroundColor Green
     }
 }
+
+$variants = @($targets | ForEach-Object { $_.Variant })
 
 if ($failures.Count -gt 0) {
     if ($Json) {
@@ -227,15 +282,35 @@ if ($failures.Count -gt 0) {
     Write-Host 'To repair, re-run retention against the shipped artifact for each failed variant:' -ForegroundColor Yellow
     foreach ($variant in $failures) {
         $sourceFlag = if ($variant -eq 'standard') { '-Bundle <path-to-shipped.aab>' } else { '-Mapping <path-to-mapping.txt>' }
-        Write-Host "  pwsh -NoProfile -File scripts/release/retain-deobfuscation.ps1 -Variant $variant -VersionCode $versionCode -VersionName $judgedVersion $sourceFlag" -ForegroundColor Yellow
+        # The code is the failed variant's own, not the release's phone code: the
+        # watch mapping is filed under the wear code and repairing it under the
+        # phone's would write a second directory nothing reads.
+        $repairCode = ($targets | Where-Object { $_.Variant -eq $variant } | Select-Object -First 1).VersionCode
+        Write-Host "  pwsh -NoProfile -File scripts/release/retain-deobfuscation.ps1 -Variant $variant -VersionCode $repairCode -VersionName $judgedVersion $sourceFlag" -ForegroundColor Yellow
     }
 
     Exit-Gate -Message "FAIL - release $judgedVersion (code $versionCode) is not retained for: $($failures -join ', ')." -Code 1
 }
 
+# S2722: name the absence rather than passing over it. The archive cannot tell a
+# release that published no watch artifact from one whose watch retention was
+# lost, and phone-only releases are the common case, so this is stated and not
+# failed - but stating it is the whole point: a bare PASS listing 'standard' read
+# as "looked and found nothing" when it meant "did not look".
+$wearRetained = 'wear' -in $variants
 if ($Json) {
-    [ordered]@{ verdict = 'ok'; versionName = $judgedVersion; versionCode = $versionCode; variants = $variants } | ConvertTo-Json -Depth 4
+    [ordered]@{
+        verdict      = 'ok'
+        versionName  = $judgedVersion
+        versionCode  = $versionCode
+        variants     = $variants
+        wearRetained = $wearRetained
+    } | ConvertTo-Json -Depth 4
 } else {
-    Write-Host "assert-deobfuscation-retained: PASS - release $judgedVersion (code $versionCode) retained and verified for: $($variants -join ', ')." -ForegroundColor Green
+    $verdict = "assert-deobfuscation-retained: PASS - release $judgedVersion (code $versionCode) retained and verified for: $($variants -join ', ')."
+    if (-not $wearRetained) {
+        $verdict += " No wear payload is retained under this versionName - either the release published no watch artifact, or its retention was lost."
+    }
+    Write-Host $verdict -ForegroundColor Green
 }
 exit 0

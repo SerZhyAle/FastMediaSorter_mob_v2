@@ -27,7 +27,10 @@ enum class WearDestinationId {
     SYSTEM_INFO,
     WATER_FLASHLIGHT,
     MOTION_MONITOR,
-    BODY_SENSOR
+    BODY_SENSOR,
+
+    /** S2509: the watch's own audio broadcast, addressable as a shortcut like every program above. */
+    BROADCAST
 }
 
 /**
@@ -45,6 +48,7 @@ fun destinationFor(id: WearAppId): WearDestinationId = when (id) {
     WearAppId.WATER_FLASHLIGHT -> WearDestinationId.WATER_FLASHLIGHT
     WearAppId.MOTION_MONITOR -> WearDestinationId.MOTION_MONITOR
     WearAppId.BODY_SENSOR -> WearDestinationId.BODY_SENSOR
+    WearAppId.BROADCAST -> WearDestinationId.BROADCAST
 }
 
 /**
@@ -61,5 +65,8 @@ fun destinationFor(id: HomeSectionId): WearDestinationId? = when (id) {
     HomeSectionId.STREAMS -> WearDestinationId.STREAMS
     HomeSectionId.APPS -> WearDestinationId.APPS
     HomeSectionId.FAVOURITES -> WearDestinationId.FAVOURITES
+    // S2509: the same destination the Programs row resolves to - two entrances, one address, so a
+    // tile pointed at either of them lands in the same place.
+    HomeSectionId.BROADCAST -> WearDestinationId.BROADCAST
     HomeSectionId.LAST_USED_RESOURCE, HomeSectionId.LAST_USED_STREAM -> null
 }

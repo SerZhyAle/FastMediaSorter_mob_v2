@@ -598,3 +598,8 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.PowerSavingTrigger {
     <fields>;
 }
+# S2716: the measurement system, restored the same way - a stored constant name matched against the
+# entries, degrading to METRIC, so a rename would silently return an imperial user to Celsius.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.UnitSystem {
+    <fields>;
+}

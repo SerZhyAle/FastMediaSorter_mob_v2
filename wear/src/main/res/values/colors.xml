@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- S1706: the watch splash reuses the phone's sampled launcher-icon blues so both surfaces
-         show the same brand colour; the generator emits these names into the brand drawable.
-         The watch composition is the logo alone - the wordmark and slogan colours the phone
-         declares have no consumer here. -->
-    <color name="splash_logo_gradient_start">#FF98CFF1</color>
-    <color name="splash_logo_gradient_end">#FF0B82EB</color>
     <color name="tile_preview_bg">#FF202124</color>
     <color name="tile_preview_accent">#FF0B82EB</color>
 
@@ -63,4 +57,11 @@
     <color name="color_program_accent_blue">#FF51789A</color>
     <color name="color_program_accent_indigo">#FF5A6096</color>
     <color name="color_program_accent_purple">#FF80608C</color>
+    <!-- S2509: the ninth name, and the first one the phone does not declare. The eight above are a
+         name-for-name contract with app_v2 because each of those programs exists on both devices;
+         the broadcast is a watch-only program (see the watch-only canonical-key baseline), so its
+         tone has no phone counterpart to agree with. Desaturated like its neighbours, and distinct
+         from the teal the Network Monitor holds - the accent test forbids a repeat because the whole
+         list fits one watch screen at once. -->
+    <color name="color_program_accent_cyan">#FF4A7E8C</color>
 </resources>

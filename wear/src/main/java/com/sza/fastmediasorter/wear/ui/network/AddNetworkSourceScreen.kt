@@ -8,7 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -83,6 +83,7 @@ fun AddNetworkSourceScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val listState = rememberWearListState()
     val viewMode by viewModel.viewMode.collectAsState()
+    Timber.d("S2755: network form large-font layout")
 
     // S2486: the gate's second boundary. Both routes to this screen stay registered so a back-stack entry
     // saved by an older build still resolves, which means the flavor that withholds credential entry has to
@@ -422,7 +423,9 @@ private fun AddFieldRow(
                 onClick = { onEdit(field) },
                 modifier = Modifier
                     .weight(1f)
-                    .height(GRID_CELL_HEIGHT)
+                    // S2755: a minimum, so a two-line field cell grows with the font scale instead of
+                    // cropping its own value.
+                    .heightIn(min = GRID_CELL_HEIGHT)
             )
         }
     }

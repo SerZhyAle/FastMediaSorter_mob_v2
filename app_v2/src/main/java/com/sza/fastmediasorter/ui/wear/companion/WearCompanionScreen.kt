@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -33,9 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +47,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
+import com.sza.fastmediasorter.ui.settings.WearListenState
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import timber.log.Timber
@@ -58,6 +58,9 @@ internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
 internal val SPACING_CARD = 12.dp
 internal val SPACING_SECTION = 16.dp
+
+/** Matches the height of the label beside it, so the card does not change size while it waits. */
+private val LISTEN_PROGRESS_SIZE = 24.dp
 
 /**
  * S2000: the companion window's frame - an action area that is always visible, then the groups.
@@ -96,8 +99,7 @@ fun WearCompanionScreen(
     val watchAppVersion by viewModel.watchAppVersion.collectAsState()
     val pendingWatchSources by viewModel.pendingWatchSources.collectAsState()
     val watchPlaybackState by viewModel.watchPlaybackState.collectAsState()
-
-    var watchSettingsExpanded by remember { mutableStateOf(false) }
+    val listenState by viewModel.listenState.collectAsState()
 
     // The content is taller than the window on a short phone, and before this the slideshow slider
     // and the push button were the parts that fell past the fold (S1730).
@@ -127,23 +129,10 @@ fun WearCompanionScreen(
         }
 
         if (showResourceSelection) {
-            Spacer(Modifier.height(SPACING_SMALL))
-            OutlinedButton(
-                onClick = onSelectResourcesClick,
-                modifier = Modifier.testTag("wearSelectResources")
-            ) {
-                Text(stringResource(R.string.wear_resource_selection_title))
-            }
-
-            // S2034: the watch's own storage as a resource, added on the first tap and opened on
-            // every later one - the label says both because the button is one entry point, not two.
-            Spacer(Modifier.height(SPACING_SMALL))
-            OutlinedButton(
-                onClick = onWatchResourceClick,
-                modifier = Modifier.testTag("wearWatchResource")
-            ) {
-                Text(stringResource(R.string.wear_companion_add_open_resource))
-            }
+            ResourceActionButtons(
+                onSelectResourcesClick = onSelectResourcesClick,
+                onWatchResourceClick = onWatchResourceClick
+            )
         }
 
         pendingWatchSources?.let { pending ->
@@ -159,6 +148,13 @@ fun WearCompanionScreen(
             Spacer(Modifier.height(SPACING_CARD))
             NowPlayingCard(playing = playing, onCommand = viewModel::sendPlaybackCommand)
         }
+
+        Spacer(Modifier.height(SPACING_CARD))
+        ListenToWatchCard(
+            state = listenState,
+            onStart = viewModel::startListening,
+            onStop = viewModel::stopListening
+        )
 
         Spacer(Modifier.height(SPACING_SECTION))
 
@@ -177,14 +173,37 @@ fun WearCompanionScreen(
         WearWatchSettingsGroup(
             viewModel = viewModel,
             state = watchSettingsState,
-            expanded = watchSettingsExpanded,
-            onExpandedChange = { watchSettingsExpanded = it },
             onChanged = { viewModel.updateWatchSettingsLocally(watchSettingsState.payload(context)) }
         )
 
         Spacer(Modifier.height(SPACING_SECTION))
 
         WearDocsLinkBlock(onOpenDocLink = onOpenDocLink)
+    }
+}
+
+/** The two resource actions the flavor may withhold, kept together because one gate decides both. */
+@Composable
+private fun ResourceActionButtons(
+    onSelectResourcesClick: () -> Unit,
+    onWatchResourceClick: () -> Unit
+) {
+    Spacer(Modifier.height(SPACING_SMALL))
+    OutlinedButton(
+        onClick = onSelectResourcesClick,
+        modifier = Modifier.testTag("wearSelectResources")
+    ) {
+        Text(stringResource(R.string.wear_resource_selection_title))
+    }
+
+    // S2034: the watch's own storage as a resource, added on the first tap and opened on every
+    // later one - the label says both because the button is one entry point, not two.
+    Spacer(Modifier.height(SPACING_SMALL))
+    OutlinedButton(
+        onClick = onWatchResourceClick,
+        modifier = Modifier.testTag("wearWatchResource")
+    ) {
+        Text(stringResource(R.string.wear_companion_add_open_resource))
     }
 }
 
@@ -449,4 +468,73 @@ private fun NowPlayingCard(
             }
         }
     }
+}
+
+/**
+ * S2550: hearing what the watch's microphone hears, and the only way to ask for it.
+ *
+ * A card, because listening is live state about the watch like the two above it - but unlike them it
+ * is always drawn, since a control that appeared only once a session existed could never begin one.
+ * The three appearances are the three states and nothing else: idle offers the start, waiting shows
+ * that the request is with the owner's wrist, and listening offers the stop.
+ */
+@Composable
+private fun ListenToWatchCard(
+    state: WearListenState,
+    onStart: () -> Unit,
+    onStop: () -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(SPACING_CARD)) {
+            Text(
+                text = stringResource(R.string.wear_listen_title),
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(Modifier.height(SPACING_TINY))
+            Text(text = stringResource(listenCaptionOf(state)), style = MaterialTheme.typography.bodySmall)
+            (state as? WearListenState.Idle)?.messageRes?.let { messageRes ->
+                Spacer(Modifier.height(SPACING_TINY))
+                Text(
+                    text = stringResource(messageRes),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.testTag("wearListenMessage")
+                )
+            }
+            Spacer(Modifier.height(SPACING_SMALL))
+            ListenAction(state = state, onStart = onStart, onStop = onStop)
+        }
+    }
+}
+
+@Composable
+private fun ListenAction(state: WearListenState, onStart: () -> Unit, onStop: () -> Unit) {
+    when (state) {
+        is WearListenState.Idle -> Button(
+            onClick = onStart,
+            modifier = Modifier.testTag("wearListenStart")
+        ) {
+            Text(stringResource(R.string.wear_listen_start))
+        }
+        // No cancel beside it: the request lives on the watch now, and the watch is where it is
+        // declined or left to expire - a phone-side cancel would be a second answer to one question.
+        WearListenState.Awaiting -> CircularProgressIndicator(
+            modifier = Modifier
+                .size(LISTEN_PROGRESS_SIZE)
+                .testTag("wearListenWaiting")
+        )
+        WearListenState.Listening -> OutlinedButton(
+            onClick = onStop,
+            modifier = Modifier.testTag("wearListenStop")
+        ) {
+            Text(stringResource(R.string.wear_listen_stop))
+        }
+    }
+}
+
+@StringRes
+private fun listenCaptionOf(state: WearListenState): Int = when (state) {
+    is WearListenState.Idle -> R.string.wear_listen_caption_idle
+    WearListenState.Awaiting -> R.string.wear_listen_caption_waiting
+    WearListenState.Listening -> R.string.wear_listen_caption_listening
 }

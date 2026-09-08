@@ -142,6 +142,30 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Carries stream pins delta payload (S2497). */
     const val STREAM_PINS_DELTA = "/fms/watch/stream_pins_delta"
 
+    /**
+     * Message, phone → watch. Asks this watch to let the phone listen to its microphone (S2550).
+     *
+     * It carries no audio and never can: ADR-1 keeps every byte of sound on the watch's own LAN
+     * server, because the Data Layer's Bluetooth path is below the project's floor for audio and its
+     * Wi-Fi path routes through a node on Google servers.
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs
+     * no manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val LISTEN_START = "/fms/phone/listen_start"
+
+    /** Message, phone → watch. Ends the listening session - server, microphone and notification. */
+    const val LISTEN_STOP = "/fms/phone/listen_stop"
+
+    /**
+     * Message, watch → phone. Answers one listen command with an address, or with a refusal (S2550).
+     *
+     * ADR-2: this answer is why no discovery is built - the watch reports its own host and port here.
+     * A refusal rides the same payload rather than arriving as silence, so the phone never has to tell
+     * "refused" from "lost".
+     */
+    const val LISTEN_ACK = "/fms/watch/listen_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

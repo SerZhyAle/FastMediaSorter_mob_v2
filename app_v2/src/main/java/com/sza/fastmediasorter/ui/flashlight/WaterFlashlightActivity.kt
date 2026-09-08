@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.flashlight
 
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -10,6 +11,7 @@ import com.sza.fastmediasorter.core.screencapture.gesture.DeviceActionHandler
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityWaterFlashlightBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.ui.flashlight.helpers.WaterFlashlightLockdownManager
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
 import java.util.Date
@@ -28,6 +30,9 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
 
     @Inject
     lateinit var deviceActionHandler: DeviceActionHandler
+
+    @Inject
+    lateinit var lockdown: WaterFlashlightLockdownManager
 
     // Re-posted at each minute boundary rather than on a fixed tick, so the displayed minute changes
     // when it actually changes and the screen is not woken 60 times for one visible update.
@@ -64,6 +69,22 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
         super.onStart()
         Timber.d("S2516: water flashlight entered foreground, requesting torch on")
         deviceActionHandler.setTorch(this, true)
+    }
+
+    /**
+     * S2718: the pin is taken here rather than in [onStart] because [Activity.startLockTask] refuses an
+     * activity that is not resumed, and it is what blocks the shade and the navigation buttons the
+     * screen's own touch handling cannot reach.
+     */
+    override fun onResume() {
+        super.onResume()
+        Timber.d("S2718: water flashlight resumed, engaging system lockdown")
+        lockdown.engage(this)
+    }
+
+    override fun onPause() {
+        lockdown.release(this)
+        super.onPause()
     }
 
     override fun onStop() {

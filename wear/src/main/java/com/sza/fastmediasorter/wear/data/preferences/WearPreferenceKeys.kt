@@ -59,6 +59,15 @@ internal object WearPreferenceKeys {
     val STREAMS_SELECTED_TOPIC = stringPreferencesKey("wear_streams_selected_topic")
     val STREAMS_SELECTED_LANGUAGE = stringPreferencesKey("wear_streams_selected_language")
 
+    /**
+     * S2532: the reader's own two memories - the text size, and where each document was left.
+     *
+     * The positions are one string rather than a key per document: this store is flat, and a key
+     * per file would leave a row behind for every file ever opened, with nothing to remove it.
+     */
+    val DOCUMENT_FONT_SIZE = stringPreferencesKey("wear_document_font_size")
+    val DOCUMENT_READING_POSITIONS = stringPreferencesKey("wear_document_reading_positions")
+
     val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
     val CALCULATOR_MEMORY = stringPreferencesKey("wear_calculator_memory")
     val GAME_STATE = stringPreferencesKey("wear_game_state")

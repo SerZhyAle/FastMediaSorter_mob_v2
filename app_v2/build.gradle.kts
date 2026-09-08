@@ -354,6 +354,9 @@ android {
         // The two flavor-and-switch axes are set per variant in androidComponents.onVariants below,
         // beside the manifest injections they mirror, because their value is not a literal.
         buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
+        // S2742: reach of the src/vr source set, which is mounted by exactly two flavors
+        // (noLegal and vr) and so cannot be named by any single existing flag row.
+        buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "false")
     }
     
     // Product Flavors: Different app versions for different use cases.
@@ -526,6 +529,7 @@ android {
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
             buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
+            buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: mounts src/vr
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -707,6 +711,7 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
             buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
+            buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: owns src/vr
         }
 
         // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
@@ -1563,6 +1568,13 @@ androidComponents {
             // S1433: same reason - src/networkMonitor is mounted by directory, so its permission
             // manifest needs its own injection or the Monitor's grants never reach the merge.
             variant.sources.manifests.addStaticManifestFile("src/networkMonitor/AndroidManifest.xml")
+        }
+
+        // S2726: the vr-only permission overlay. It cannot go in src/vr/AndroidManifest.xml - noLegal
+        // mounts that same file via manifest.srcFile and legitimately holds READ_CONTACTS and
+        // READ_PHONE_STATE, so the removals need a file only vr reads.
+        if (flavorName == "vr") {
+            variant.sources.manifests.addStaticManifestFile("src/vrOnly/AndroidManifest.xml")
         }
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection

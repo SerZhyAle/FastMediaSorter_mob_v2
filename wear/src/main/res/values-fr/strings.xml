@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">Démarrer le diaporama</string>
     <string name="wear_slideshow_stop">Arrêter le diaporama</string>
     <string name="wear_unsupported_file_title">Impossible d\'ouvrir ici</string>
-    <string name="wear_unsupported_file_message">Ce genre de fichier ne s\'ouvre pas sur la montre. Ouvrez-le sur votre téléphone.</string>
     <string name="wear_complication_last_resource_label">Dernière ressource</string>
     <string name="wear_complication_last_resource_description">Raccourci pour ouvrir la ressource multimédia la plus récemment utilisée</string>
     <string name="wear_complication_favourites_label">Favoris</string>

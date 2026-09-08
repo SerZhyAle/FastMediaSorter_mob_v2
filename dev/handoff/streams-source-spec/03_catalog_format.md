@@ -339,8 +339,52 @@ From the current `streams.csv` (19,534 data rows): **AUDIO 16,616, VIDEO 2,917, 
 
 ---
 
-## 8. Ticket index for this file
+## 8. `collections.json` - curated collections (S2669) **[CONTRACT]**
+
+An optional third ZIP entry (see `01_delivery_contract.md` 5.3a for the packaging rules). It names groups
+of bank rows; it changes no column of `streams.csv` and adds none.
+
+```json
+{
+  "schemaVersion": 1,
+  "collections": [
+    {
+      "id": "tv-ru",
+      "order": 10,
+      "names": { "en": "Russian TV", "ru": "TV России", "uk": "Телебачення Росії" },
+      "members": [ { "url": "https://example/stream.m3u8", "order": 1 } ]
+    }
+  ]
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `schemaVersion` | int | Currently `1`. A consumer that reads a number it does not know MUST ignore the whole payload rather than guess at it. |
+| `collections[].id` | string | Stable kebab-case identifier, unique within the file, never reused for a different collection. Not shown to the user. |
+| `collections[].order` | int | Ascending; the order in which collections are presented. Not necessarily contiguous. |
+| `collections[].names` | object | Open map of BCP-47 language tag to display name. `en`, `ru` and `uk` are always present - the producer refuses a collection missing any of them. Further locales are optional and appear without any client change. |
+| `collections[].members[].url` | string | **The member key: the bank's `url` column, byte-identical.** Not the channel name, not a synthetic id. |
+| `collections[].members[].order` | int | Contiguous from 1 within the collection; the curator's reading order. |
+
+### 8.1 Rules a consumer can rely on **[CONTRACT]**
+
+- **A url may appear in several collections.** That is the point of the entry: nothing is duplicated in
+  the bank to express membership, and a channel legitimately belongs to "Russian TV" and to "News" at once.
+- **Every member url exists in the `streams.csv` shipped in the same ZIP.** The producer refuses to publish
+  otherwise, so a consumer needs no missing-member branch beyond ordinary defensive coding.
+- **No collection is empty** and **no id repeats** - both refused by the producer.
+- **Name resolution:** pick the full locale tag, then the language-only tag, then `en`. `en` is guaranteed,
+  so a raw id must never reach a user's screen.
+- **Replacement, not merge.** The payload is the whole truth about collections at publication time. A client
+  that stores them replaces its stored set; there is no per-collection delta and no user-authored member.
+- **Absence means "unchanged", not "empty".** A ZIP with no `collections.json` leaves a client's stored
+  collections alone. To clear them, the producer publishes the entry with an empty `collections` array.
+
+---
+
+## 9. Ticket index for this file
 
 S0570 (catalog CSV + parser + import), S0668 (`favicon_index` column), S0583 (import size/timeout budgets),
-S0761 (`country` column), S0805 (deep-signal append gate in the collector), plus the classifier and m3u
-paths under S0565.
+S0761 (`country` column), S0805 (deep-signal append gate in the collector), S2669 (`collections.json`),
+plus the classifier and m3u paths under S0565.

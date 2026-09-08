@@ -1662,7 +1662,8 @@
   {
     "coordinate": "com.google.zxing:core",
     "modules": [
-      "app_v2"
+      "app_v2",
+      "wear"
     ],
     "name": "ZXing Core",
     "spdx": "Apache-2.0",

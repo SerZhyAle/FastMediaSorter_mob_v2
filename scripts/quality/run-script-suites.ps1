@@ -241,10 +241,19 @@ if ($ListOnly) {
         # -AsArray: a one-suite selection would otherwise serialise as a bare object, and the
         # consumer's `@(ConvertFrom-Json)` would then iterate the object's properties.
         $listPath = if ([System.IO.Path]::IsPathRooted($Json)) { $Json } else { Join-Path $repoRoot $Json }
-        $selected |
-            ForEach-Object { [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved } } |
-            ConvertTo-Json -Depth 4 -AsArray |
-            Set-Content -LiteralPath $listPath -Encoding utf8NoBOM
+        # Materialised before serialising rather than piped: an EMPTY selection sends nothing down
+        # the pipeline, ConvertTo-Json is never invoked, and Set-Content leaves no file behind while
+        # the line below still reports one as written. assert-suite-tracked.ps1 then read exit 0 with
+        # no list and refused the whole closure as CANNOT VERIFY - a change touching no suite's
+        # subject is the ordinary case, so "nothing selected" must serialise as `[]` (S2720).
+        $listRecords = @($selected | ForEach-Object {
+            [pscustomobject]@{ Suite = $_.Rel; Subjects = @($_.Subjects); Resolved = $_.Resolved }
+        })
+        # -InputObject instead of the pipeline, and therefore WITHOUT -AsArray: an array handed over
+        # this way already serialises as a JSON array at every length, including zero, while -AsArray
+        # on top of it wraps the whole thing a second time.
+        Set-Content -LiteralPath $listPath -Encoding utf8NoBOM `
+            -Value (ConvertTo-Json -InputObject $listRecords -Depth 4)
         Write-Host "Written: $listPath"
     }
     exit 0

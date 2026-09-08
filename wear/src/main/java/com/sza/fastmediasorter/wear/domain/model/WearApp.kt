@@ -53,7 +53,15 @@ enum class WearAppId(val canonicalKey: String) {
      * against six admitted use cases and a media sorter matches none (ADR-1), so the catalog answers
      * `isAvailable` from the build rather than listing it everywhere and explaining the absence inside.
      */
-    BODY_SENSOR("body_sensor")
+    BODY_SENSOR("body_sensor"),
+
+    /**
+     * S2509: the watch's own audio broadcast. Watch-only by boundary decision rather than by omission -
+     * the phone broadcasts too (S2508), but it does so from the player rather than as a launcher
+     * program, so there is no `InternalRouteCatalog` key for this one to match. Recorded with that
+     * reason in `scripts/quality/wear-canonical-key-watch-only-baseline.txt`.
+     */
+    BROADCAST("broadcast")
 }
 
 /**
@@ -66,6 +74,5 @@ enum class WearAppId(val canonicalKey: String) {
 data class WearApp(
     val id: WearAppId,
     @StringRes val labelRes: Int,
-    val route: String,
     val isAvailable: Boolean = true
 )

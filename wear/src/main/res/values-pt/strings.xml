@@ -346,7 +346,6 @@
     <string name="wear_slideshow_start">Iniciar apresentação de slides</string>
     <string name="wear_slideshow_stop">Parar apresentação de slides</string>
     <string name="wear_unsupported_file_title">Não é possível abrir aqui</string>
-    <string name="wear_unsupported_file_message">Este tipo de arquivo não abre no relógio. Abra-o no seu telefone.</string>
     <string name="wear_complication_last_resource_label">Último recurso</string>
     <string name="wear_complication_last_resource_description">Atalho para abrir o recurso de mídia usado mais recentemente</string>
     <string name="wear_complication_favourites_label">Favoritos</string>

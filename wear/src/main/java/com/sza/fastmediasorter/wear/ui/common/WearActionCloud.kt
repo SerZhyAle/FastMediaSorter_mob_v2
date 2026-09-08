@@ -3,6 +3,7 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -73,16 +74,21 @@ fun WearActionButton(
  * a wrapping cloud or action set is two-dimensional content whose outer rows sit where the round glass
  * has already narrowed. Housing content within the inscribed square guarantees no element clips the round
  * glass boundary in any row. Vertical centring is provided via a plain scroll state with rotary binding.
+ *
+ * @param scrollState hoisted since S2754. A host drawn inside a Scaffold points that Scaffold's
+ * `positionIndicator` at it; a host drawn beside one - a file-action menu raised over a screen -
+ * draws the indicator itself. Neither is possible while the state stays private here, which is how
+ * these menus reached Google Play with no scroll indicator at all.
  */
 @Composable
 private fun WearActionSquareHost(
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
     onDismiss: (() -> Unit)? = null,
+    scrollState: ScrollState = rememberScrollState(),
     content: @Composable () -> Unit
 ) {
     val squareSide = wearMaxSquareSide()
-    val scrollState = rememberScrollState()
     val cancelLabel = stringResource(R.string.cancel)
     if (onDismiss != null) {
         // While the menu is up it owns back, so the system button and TalkBack's back gesture cancel
@@ -167,13 +173,15 @@ fun WearActionColumn(
     actions: List<WearAction>,
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)? = null,
+    scrollState: ScrollState = rememberScrollState()
 ) {
     timber.log.Timber.d("S2469: WearActionColumn actions=%d", actions.size)
     WearActionSquareHost(
         modifier = modifier,
         header = header,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        scrollState = scrollState
     ) {
         Column(
             modifier = Modifier.width(IntrinsicSize.Min),
@@ -199,13 +207,15 @@ fun WearActionCloud(
     actions: List<WearAction>,
     modifier: Modifier = Modifier,
     header: (@Composable () -> Unit)? = null,
-    onDismiss: (() -> Unit)? = null
+    onDismiss: (() -> Unit)? = null,
+    scrollState: ScrollState = rememberScrollState()
 ) {
     timber.log.Timber.d("S2469: WearActionCloud actions=%d", actions.size)
     WearActionSquareHost(
         modifier = modifier,
         header = header,
-        onDismiss = onDismiss
+        onDismiss = onDismiss,
+        scrollState = scrollState
     ) {
         FlowRow(
             horizontalArrangement = Arrangement.spacedBy(BUTTON_GAP, Alignment.CenterHorizontally),

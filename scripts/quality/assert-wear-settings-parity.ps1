@@ -56,10 +56,10 @@
     finding and no build error, so its absence is invisible unless something looks for it.
 
     Each side is read where it actually lives rather than where it ought to. The phone declares its
-    three mirrors in three shapes - a real enum, a const block under one prefix, and a listOf of
-    value-to-label pairs in the companion window - and normalising them into WearSettingsPayload is
-    S2643's subject, deliberately not this ticket's. A gate that only started working after an
-    unrelated refactor landed would not have been run.
+    three mirrors in two shapes - a real enum, or a const block under one prefix - since S2643 moved
+    the view modes into WearSettingsPayload beside the other two. Before that they sat in the
+    companion window as a listOf of value-to-label pairs and this gate read them there, because a
+    gate that only starts working after an unrelated refactor lands would not have been run.
 
     A row literal may sit inside a helper composable defined below its call site (the bottom-helper
     idiom these screens use). Both order checks resolve such a literal to the helper's FIRST
@@ -151,13 +151,13 @@ $orderRoots = @{
 # tell a free-text field from one carrying a constant name. Same shape and lifetime as the two tables
 # above, which is why it is a table here and not a .psd1 beside the script.
 #
-# 'Kind' says how to read a side, and there are three shapes because the phone declares its mirrors in
-# three places - a real enum, a const block under one prefix, and a listOf of value-to-label pairs in
-# the companion window. The third is the weakest and its consolidation into WearSettingsPayload is
-# S2643's subject, not this gate's: that file carries three detekt findings this ticket did not create
-# and cannot safely clear, one of which needs a UI decision left over from S2482. Reading the
-# vocabulary where it actually lives keeps the check honest today and costs one parser; the row moves
-# to a 'const' kind the day S2643 moves the constants.
+# 'Kind' says how to read a side, and there are two shapes: a real enum, or a const block under one
+# prefix. There were three until S2643 - the companion window declared the view modes as a listOf of
+# value-to-label pairs, the weakest of the forms, and S2620 could not consolidate it because that file
+# carried three detekt findings it had not created. S2643 cleared them and moved the constants into
+# WearSettingsPayload, so this row reads them by prefix like its two neighbours and the 'pairs' parser
+# is gone. The listOf in the companion window survives as a label table only, and its values now come
+# from the same constants this row reads.
 $mirroredEnums = @(
     @{
         Name       = 'PowerSavingTrigger'
@@ -169,7 +169,7 @@ $mirroredEnums = @(
         Name       = 'WearViewMode'
         Fields     = @('viewMode', 'fileListViewMode')
         WatchKey   = 'WatchViewMode';    WatchKind = 'enum';  WatchType = 'WearViewMode'
-        PhoneKey   = 'PhoneRows';        PhoneKind = 'pairs'; PhoneList = 'WEAR_VIEW_MODES'
+        PhoneKey   = 'PhonePayload';     PhoneKind = 'const'; PhonePrefix = 'VIEW_MODE_'
     },
     @{
         Name       = 'WearBackgroundMode'
@@ -343,32 +343,6 @@ function Read-ConstValues {
     param([string]$Source, [string]$Prefix)
 
     return @((Get-KotlinConstMap -Source $Source -Prefix $Prefix).Values)
-}
-
-# S2620: the values of a `val <ListName> = listOf(<value> to <label>, ..)` table. An entry names its
-# value either as a literal or through a const declared in the same file, and both spellings occur in
-# the one list this reads, so an identifier is resolved back to its const before being returned - a
-# parser that took identifiers at face value would compare 'WEAR_VIEW_MODE_LIST' against 'LIST' and
-# report a divergence on a tree that has none.
-function Read-PairListValues {
-    param([string]$Source, [string]$ListName)
-
-    $list = [regex]::Match($Source, "(?s)val\s+$([regex]::Escape($ListName))\s*=\s*listOf\((?<body>.*?)\n\)")
-    if (-not $list.Success) { return @() }
-
-    $values = @()
-    foreach ($m in [regex]::Matches($list.Groups['body'].Value, '(?m)^\s*(?<v>"[^"]+"|[A-Za-z_]\w*)\s+to\s')) {
-        $token = $m.Groups['v'].Value
-        if ($token.StartsWith('"')) {
-            $values += $token.Trim('"')
-            continue
-        }
-        $const = [regex]::Match($Source, "const\s+val\s+$([regex]::Escape($token))\s*=\s*""(?<v>[^""]+)""")
-        # An identifier that resolves to no const in this file is reported as itself, so the set diff
-        # names it rather than silently dropping it and shrinking the vocabulary being compared.
-        $values += if ($const.Success) { $const.Groups['v'].Value } else { $token }
-    }
-    return $values
 }
 
 # S2620: which payload fields the watch resolves through an enum, read from the apply(..) call sites
@@ -690,9 +664,8 @@ foreach ($pair in $mirroredEnums) {
         Read-ConstValues -Source $text[$pair.WatchKey] -Prefix $pair.WatchPrefix
     }
     $phoneSet = switch ($pair.PhoneKind) {
-        'enum'  { Read-EnumMembers   -Source $text[$pair.PhoneKey] -TypeName $pair.PhoneType }
-        'pairs' { Read-PairListValues -Source $text[$pair.PhoneKey] -ListName $pair.PhoneList }
-        default { Read-ConstValues    -Source $text[$pair.PhoneKey] -Prefix $pair.PhonePrefix }
+        'enum'  { Read-EnumMembers -Source $text[$pair.PhoneKey] -TypeName $pair.PhoneType }
+        default { Read-ConstValues -Source $text[$pair.PhoneKey] -Prefix $pair.PhonePrefix }
     }
     foreach ($f in $pair.Fields) { $declaredEnumFields[$f] = $pair }
 

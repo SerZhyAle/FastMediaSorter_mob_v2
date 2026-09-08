@@ -17,6 +17,7 @@ import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrLaunchPlaylistFactory
 import com.sza.fastmediasorter.core.xr.VrLaunchPoint
 import com.sza.fastmediasorter.core.xr.VrLaunchResult
+import com.sza.fastmediasorter.core.xr.VrLaunchSourceKind
 import com.sza.fastmediasorter.core.xr.VrLaunchUnavailableReason
 import com.sza.fastmediasorter.core.xr.VrMediaType
 import com.sza.fastmediasorter.core.xr.VrPanelReturnTarget
@@ -175,11 +176,20 @@ internal class PlayerVrLaunchManager(
             VrMediaType.VIDEO,
             VrMediaType.GIF -> currentFile.toLaunchUriString()
         }
+        // S1218: a VIDEO-kind channel reaches this player as a MediaFile whose path is its address,
+        // so the badge is already visible on a live channel - it just failed validation. Naming the
+        // kind is what turns that failure into a launch (strategic §4).
+        val isNetworkStream = mediaType == VrMediaType.VIDEO && currentFile.path.isNetworkAddress()
         // S1233: the ordered list the immersive HUD's PREV/NEXT walk - see VrLaunchPlaylistFactory.
-        val (playlist, playlistIndex) = VrLaunchPlaylistFactory.build(
-            files = viewModel.state.value.files,
-            current = currentFile,
-        )
+        // A live channel has no neighbour to walk to, so it hands over nothing (strategic §6 Q2).
+        val (playlist, playlistIndex) = if (isNetworkStream) {
+            emptyList<com.sza.fastmediasorter.core.xr.VrPlaylistEntry>() to -1
+        } else {
+            VrLaunchPlaylistFactory.build(
+                files = viewModel.state.value.files,
+                current = currentFile,
+            )
+        }
         return com.sza.fastmediasorter.core.xr.StartVrPlaybackRequest(
             launchMode = VrLaunchMode.FILE_URI,
             fileUriString = fileUriString,
@@ -188,6 +198,12 @@ internal class PlayerVrLaunchManager(
             snapshot = snapshot,
             playlist = playlist,
             playlistIndex = playlistIndex,
+            sourceKind = if (isNetworkStream) {
+                VrLaunchSourceKind.NETWORK_STREAM
+            } else {
+                VrLaunchSourceKind.LOCAL_FILE
+            },
+            displayTitle = if (isNetworkStream) currentFile.name else null,
         )
     }
 
@@ -418,6 +434,12 @@ internal class PlayerVrLaunchManager(
             VrLaunchUnavailableReason.DecoderFailed -> R.string.player_vr_badge_error_retry
         }
     }
+
+    // S1218: http(s) only. An rtsp channel is still a network source, but it never reaches this
+    // player through the flat stream path, and calling it LOCAL_FILE here would be a lie the
+    // validator would then answer with the wrong refusal.
+    private fun String.isNetworkAddress(): Boolean =
+        startsWith("http://", ignoreCase = true) || startsWith("https://", ignoreCase = true)
 
     private fun MediaType.toVrMediaType(): VrMediaType = when (this) {
         MediaType.IMAGE -> VrMediaType.IMAGE

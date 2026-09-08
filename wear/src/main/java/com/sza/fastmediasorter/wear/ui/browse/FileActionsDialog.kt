@@ -1,9 +1,13 @@
 package com.sza.fastmediasorter.wear.ui.browse
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SelectAll
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -11,6 +15,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
 import com.sza.fastmediasorter.wear.R
@@ -112,17 +117,24 @@ internal fun FileActionsDialog(
         addAll(operationActions)
     }
 
-    WearActionColumn(
-        actions = actions,
-        onDismiss = callbacks.onDismiss,
-        header = {
-            Text(
-                text = stringResource(R.string.wear_file_op_title, state.selectedCount),
-                textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
-            )
-        }
-    )
+    // S2754: this menu is raised beside the screen's Scaffold rather than inside it, so nothing else
+    // can mark its scroll - it draws the indicator over itself.
+    val menuScrollState = rememberScrollState()
+    Box(modifier = Modifier.fillMaxSize()) {
+        WearActionColumn(
+            actions = actions,
+            onDismiss = callbacks.onDismiss,
+            scrollState = menuScrollState,
+            header = {
+                Text(
+                    text = stringResource(R.string.wear_file_op_title, state.selectedCount),
+                    textAlign = TextAlign.Center,
+                    style = MaterialTheme.typography.title3
+                )
+            }
+        )
+        PositionIndicator(menuScrollState)
+    }
 }
 
 /**

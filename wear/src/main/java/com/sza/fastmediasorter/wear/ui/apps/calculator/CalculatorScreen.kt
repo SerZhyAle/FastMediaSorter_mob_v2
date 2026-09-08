@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.ButtonColors
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.LocalContentColor
@@ -57,10 +59,13 @@ import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceSize
+import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
@@ -94,16 +99,22 @@ private const val ODD_DIGIT_TINT_ALPHA = 0.12f
 private const val EVEN_DIVISOR = 2
 
 /**
- * S2493: how many keypad columns the value itself spends, with the last column left to the operation
- * element.
+ * S2273: the size the system PUBLISHES for a node, which is not the size it was laid out at.
  *
- * Weights rather than a measured width, so the operation element lands exactly under the outer keypad
- * column without this row repeating the keypad's column arithmetic. S2152 spent one of these columns on
- * the clear key standing beside the number; the owner priced that column as the value's on 2026-09-03,
- * so clear left this row for one of its own below the keypad and the number gained the column back.
+ * A node smaller than the platform's minimum touch target is reported to accessibility - and so to
+ * every shape check, `adb.ps1 clip-check` and Play's reviewer included - inflated to this size about
+ * its own centre, then trimmed only where a neighbour's inflated box meets it. Measured on
+ * `Wear_OS_Small_Round` 2026-09-08: the operation element was laid out 33.1 dp wide inside a row that
+ * ended 15.6 px further left, and was published at exactly 48 dp, its right edge 211.4 px from the
+ * centre of a 192 px glass. The row's own arithmetic was right and the published box was still off the
+ * glass, which is why the 2026-09-04 fix passed its log probe and was rejected again.
+ *
+ * Both children of the value row therefore carry this size in the dimension where they fall short of
+ * it: the row is at least this tall so the inflation has nowhere to grow upwards, and the operation
+ * element is exactly this wide so it has nowhere to grow sideways. What is judged is then the row's
+ * real box, which [wearMaxSquareSide] and [wearRingInset] already keep whole.
  */
-private const val VALUE_COLUMN_SPAN = 3f
-private const val FLANK_COLUMN_SPAN = 1f
+private val TOUCH_TARGET = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 
 /** S2493: how many columns a keypad row divides into, which is what sizes the clear key below it. */
 private const val KEYPAD_COLUMNS = 4
@@ -192,7 +203,7 @@ private fun calculatorShape(): CalculatorShape {
         )
     )
     LaunchedEffect(shape) {
-        Timber.d("S2273: value ${shape.valueRowWidth} top ${shape.valueRowTop} pad $sideInset")
+        Timber.d("S2755: calculator large-font layout")
     }
     return shape
 }
@@ -239,6 +250,10 @@ fun CalculatorScreen(
     val clipboard = LocalClipboardManager.current
     var menuOpen by remember { mutableStateOf(false) }
     var historyOpen by remember { mutableStateOf(false) }
+    // S2754: the two overlays scroll their own lists inside this same Scaffold, so their states are
+    // held here - an indicator left on the keypad marks a column nothing is touching while one is up.
+    val menuListState = rememberWearListState()
+    val historyListState = rememberWearListState()
     var copyConfirmationShown by remember { mutableStateOf(false) }
     val shape = calculatorShape()
     // S2007: no `scrollState` is handed to the scaffold. That parameter exists only to scroll
@@ -249,7 +264,13 @@ fun CalculatorScreen(
     // An opaque black container also keeps the keypad's contrast independent of the chosen picture.
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
-        positionIndicator = { PositionIndicator(keypadScrollState) },
+        positionIndicator = {
+            when {
+                historyOpen -> PositionIndicator(historyListState)
+                menuOpen -> PositionIndicator(menuListState)
+                else -> PositionIndicator(keypadScrollState)
+            }
+        },
         background = Color.Black
     ) {
         Column(
@@ -296,6 +317,7 @@ fun CalculatorScreen(
             CalculatorMenuOverlay(
                 memoryOccupied = uiState.memoryOccupied,
                 viewMode = uiState.viewMode,
+                listState = menuListState,
                 viewModel = viewModel,
                 onClose = { menuOpen = false },
                 onHistory = {
@@ -312,6 +334,7 @@ fun CalculatorScreen(
         if (historyOpen) {
             CalculatorHistoryPage(
                 entries = uiState.history,
+                listState = historyListState,
                 onEntryPicked = { entry ->
                     viewModel.onHistoryEntryPicked(entry)
                     historyOpen = false
@@ -334,6 +357,7 @@ fun CalculatorScreen(
 private fun CalculatorMenuOverlay(
     memoryOccupied: Boolean,
     viewMode: WearViewMode,
+    listState: ScalingLazyListState,
     viewModel: CalculatorViewModel,
     onClose: () -> Unit,
     onHistory: () -> Unit,
@@ -341,6 +365,7 @@ private fun CalculatorMenuOverlay(
     CalculatorMenuSheet(
         memoryOccupied = memoryOccupied,
         viewMode = viewMode,
+        listState = listState,
         actions = CalculatorMenuActions(
             onFunction = { function ->
                 viewModel.onFunction(function)
@@ -412,9 +437,15 @@ private fun CalculatorDisplay(
         // position that could redeem it - and both of its children were exactly that on 192 dp. Width
         // and top offset are the two halves of one statement and have to stay together: the square is
         // only whole while it sits in the band the ring inset leaves it.
+        //
+        // [TOUCH_TARGET] is the third part of that statement. Both children sit centred in this row, so each one
+        // publishes a box of at least that size centred on the ROW's centre line: a row shorter than
+        // the target reaches above its own top edge by the difference, which is how a box placed at
+        // 28.8 dp came to be reported starting at 21.5 dp.
         modifier = Modifier
             .width(shape.valueRowWidth)
-            .padding(top = shape.valueRowTop, bottom = VALUE_ROW_BOTTOM_GAP),
+            .padding(top = shape.valueRowTop, bottom = VALUE_ROW_BOTTOM_GAP)
+            .heightIn(min = TOUCH_TARGET),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -435,7 +466,11 @@ private fun CalculatorDisplay(
             // The number keeps its own type size and takes whatever the small element leaves;
             // strategic 3.2 fixes legibility, so the element is what stays small, not the value.
             modifier = Modifier
-                .weight(VALUE_COLUMN_SPAN)
+                // Whatever the operation element does not spend. S2493 divided this row by keypad
+                // weights so the element would land under the outer keypad column; S2273 narrowed the
+                // row to the glass, which parted the two anyway, so the element now takes a stated
+                // width and the number keeps the rest.
+                .weight(1f)
                 // S2152: the gesture is on the value alone and not on the row, so it never shares a
                 // touch target with the operation element standing beside it.
                 .then(
@@ -450,7 +485,7 @@ private fun CalculatorDisplay(
         OperationElement(
             operation = uiState.operation,
             onOperation = onOperation,
-            modifier = Modifier.weight(FLANK_COLUMN_SPAN)
+            modifier = Modifier.width(TOUCH_TARGET)
         )
     }
 }
@@ -517,10 +552,9 @@ private fun ClearKey(modifier: Modifier, onClick: () -> Unit) {
         shape = RoundedCornerShape(4.dp),
         colors = keyColorsFor(CalculatorKey.Clear)
     ) {
-        Text(
+        WearFitText(
             text = labelFor(CalculatorKey.Clear),
             style = labelStyleFor(CalculatorKey.Clear),
-            maxLines = 1,
             // S2493: first position of its row, so the label hugs the end edge - which now points at
             // the middle of the glass, the part of a bottom-row key the round display never crops.
             modifier = Modifier
@@ -552,16 +586,15 @@ private fun OperationElement(
         R.string.wear_calc_current_operation,
         stringResource(operationDescriptionRes(operation))
     )
-    Text(
+    WearFitText(
         text = glyphFor(operation),
         style = MaterialTheme.typography.title3.copy(fontWeight = FontWeight.Bold),
-        maxLines = 1,
         modifier = modifier
             .height(KEY_HEIGHT)
             .clickable { onOperation(operation.symbol) }
             .semantics { contentDescription = description }
-            // S2152: this element stands in the last column of the value row, so it takes the same
-            // column rule as a last-column key rather than being treated as its own special case.
+            // S2152: the glyph keeps its distance from the cell's own edge, the same way a hugged
+            // key label does, rather than being treated as its own special case.
             .padding(horizontal = LABEL_HUG_PADDING),
         textAlign = TextAlign.Start
     )
@@ -616,10 +649,9 @@ private fun CalculatorKeyRow(
                 shape = RoundedCornerShape(4.dp),
                 colors = keyColorsFor(key)
             ) {
-                Text(
+                WearFitText(
                     text = label,
                     style = labelStyleFor(key),
-                    maxLines = 1,
                     // S2152: only the drawing of the label moves. The tap area, the height and the
                     // order of the keys are the ones the owner already pressed on the watch.
                     modifier = Modifier

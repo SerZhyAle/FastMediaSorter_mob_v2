@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,6 +60,7 @@ fun NetworkSourcesScreen(
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
     val listState = rememberWearListState(positionKey = WearRoutes.NETWORK_SOURCES)
+    val stateScrollState = rememberScrollState()
     val viewMode by viewModel.viewMode.collectAsState()
     val connectionTestState by viewModel.connectionTestState.collectAsState()
 
@@ -80,12 +82,14 @@ fun NetworkSourcesScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        // The sources list is the only branch whose length is unbounded, so it is the only one whose
-        // position is worth indicating.
-        positionIndicator = if (uiState is NetworkSourcesUiState.Success) {
-            { PositionIndicator(listState) }
-        } else {
-            null
+        // The sources list is the only branch whose length is unbounded, but the state block that
+        // replaces it scrolls too - and S2754 is the Play rejection for leaving that one unmarked.
+        positionIndicator = {
+            if (uiState is NetworkSourcesUiState.Success) {
+                PositionIndicator(listState)
+            } else {
+                PositionIndicator(stateScrollState)
+            }
         }
     ) {
         when (val state = uiState) {
@@ -137,6 +141,7 @@ fun NetworkSourcesScreen(
                     kind = if (syncFailure != null) WearStateKind.ERROR else WearStateKind.EMPTY,
                     message = syncFailure ?: stringResource(R.string.wear_resources_empty_hint),
                     onBack = { navController.popBackStack() },
+                    scrollState = stateScrollState,
                     extraActions = emptyResourceActions(
                         syncState = syncState,
                         offersCredentialEntry = viewModel.offersCredentialEntry,
@@ -153,7 +158,8 @@ fun NetworkSourcesScreen(
                     onRetry = {
                         Timber.d("Retrying network sources load")
                         viewModel.retryLoad()
-                    }
+                    },
+                    scrollState = stateScrollState
                 )
             }
         }

@@ -36,6 +36,11 @@ class SendStreamToWatchUseCaseTest {
         }
 
         override suspend fun putEnvelopeDataItem(path: String, envelope: WearEventEnvelope) = Unit
+
+        // S2550 added these to the interface; this test is about the stream transfer path only.
+        override suspend fun sendListenStart(nodeId: String, requestId: String) = Unit
+
+        override suspend fun sendListenStop(nodeId: String, requestId: String) = Unit
     }
 
     private val gson = Gson()

@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
+import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
@@ -14,12 +15,14 @@ import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveLastUsedResourceUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.service.WearPlaybackService
+import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.streams.WearFaviconAtlasSlicer
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -44,7 +47,7 @@ private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 class HomeViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val resolveLastUsedResource: ResolveLastUsedResourceUseCase,
-    private val resolveLaunchRoute: ResolveWearLaunchRouteUseCase,
+    private val resolveLaunchAddress: ResolveWearLaunchAddressUseCase,
     private val backgroundSessionState: WearBackgroundSessionState,
     private val faviconAtlasStore: WearFaviconAtlasStore,
     @ApplicationContext private val context: Context,
@@ -157,7 +160,12 @@ class HomeViewModel @Inject constructor(
      * keeps them from becoming two answers to "open this channel".
      */
     suspend fun resolveShortcutRoute(section: HomeSection): String? {
-        val route = section.route ?: section.targetRef?.let { resolveLaunchRoute(WearLaunchTarget.Open(it)) }
+        Timber.d("S2751: home shortcut resolving, id=%s", section.id)
+        val route = section.route
+            ?: destinationFor(section.id)?.let(WearLaunchRoutes::routeFor)
+            ?: section.targetRef
+                ?.let { resolveLaunchAddress(WearLaunchTarget.Open(it)) }
+                ?.let(WearLaunchRoutes::routeFor)
         if (route == null) {
             Timber.w("Home shortcut no longer resolves, staying put: %s", section.dynamicLabel)
         }

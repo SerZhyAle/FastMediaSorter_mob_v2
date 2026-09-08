@@ -2566,7 +2566,7 @@
     <string name="launcher_signal_scheduled_ops">مهمة مجدولة قيد التشغيل</string>
     <string name="launcher_signal_duplicate_scan">جارِ البحث عن التكرارات</string>
     <string name="launcher_signal_network_sync">جارِ مزامنة مجلدات الشبكة</string>
-    <string name="launcher_signal_overflow_count">+%1$d</string>
+    <string name="launcher_signal_overflow_from">%1$d+</string>
     <string name="launcher_signal_list_title">الإشارات النشطة</string>
     <string name="launcher_settings_group_taskbar">شريط المهام</string>
     <string name="launcher_settings_group_top_bar">الشريط العلوي</string>

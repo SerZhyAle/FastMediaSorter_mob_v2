@@ -327,6 +327,18 @@
                         app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
                         app:sdr_title="@string/launcher_settings_screen_timeout_title" />
 
+                    <!-- S2716: portrait counterpart carries the same row - one ViewBinding covers both. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowLauncherUnitSystem"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_tiny"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_entries="@array/unit_system_options"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_inline="true"
+                        app:sdr_title="@string/launcher_settings_unit_system_title" />
+
                 </LinearLayout>
 
                 <!-- 5. Gestures group -->
@@ -556,15 +568,16 @@
                     android:paddingEnd="@dimen/margin_small"
                     android:paddingBottom="@dimen/margin_small">
 
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                    <!-- S2730: was a six-entry dropdown until the wallpaper gained its own screen; the row
+                         now opens that screen and shows the chosen mode as its value. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                         android:id="@+id/rowLauncherWallpaper"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:layout_marginBottom="@dimen/margin_small"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                        app:sdr_inline="true"
-                        app:sdr_title="@string/launcher_settings_wallpaper_title" />
+                        app:ssr_navMode="true"
+                        app:ssr_title="@string/launcher_settings_wallpaper_title" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowLauncherWidgetBackdropAlpha"
@@ -575,16 +588,6 @@
                         app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
                         app:sdr_inline="true"
                         app:sdr_title="@string/launcher_settings_widget_backdrop_alpha_title" />
-
-                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                        android:id="@+id/rowLauncherAnimationPalette"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="@dimen/margin_tiny"
-                        android:layout_marginBottom="@dimen/margin_small"
-                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                        app:sdr_inline="true"
-                        app:sdr_title="@string/launcher_settings_animation_palette_title" />
 
                 </LinearLayout>
 

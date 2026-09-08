@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLanguageCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.documents.DocumentFontSize
+import com.sza.fastmediasorter.wear.domain.documents.DocumentReadingAnchor
 import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
@@ -542,6 +544,16 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val streamsFilterKindName: Flow<String?> = MutableStateFlow(null)
     override val streamsSelectedTopic: Flow<String?> = MutableStateFlow(null)
     override val streamsSelectedLanguage: Flow<String?> = MutableStateFlow(null)
+
+    // S2532: the reader's font size and per-document anchors. Not part of the settings exchange this
+    // file exercises - the members exist because the interface declares them.
+    override val documentFontSize: Flow<DocumentFontSize> = MutableStateFlow(DocumentFontSize.MEDIUM)
+
+    override suspend fun setDocumentFontSize(size: DocumentFontSize) = Unit
+
+    override suspend fun readingPositionFor(key: String, sizeBytes: Long): DocumentReadingAnchor? = null
+
+    override suspend fun setReadingPosition(key: String, sizeBytes: Long, index: Int, offset: Int) = Unit
 
     override suspend fun setAnimationsDisabled(disabled: Boolean) {
         animationsDisabledValue = disabled

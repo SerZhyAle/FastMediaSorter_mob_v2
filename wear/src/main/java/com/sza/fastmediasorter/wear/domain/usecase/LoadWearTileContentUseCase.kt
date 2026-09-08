@@ -3,6 +3,8 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.catalog.HomeSectionCatalog
+import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionVisibility
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
@@ -17,10 +19,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearTileAssignmentRepository
-import com.sza.fastmediasorter.wear.ui.apps.WearAppCatalog
-import com.sza.fastmediasorter.wear.ui.apps.WearAppIconCatalog
-import com.sza.fastmediasorter.wear.ui.home.HomeSectionCatalog
-import com.sza.fastmediasorter.wear.ui.home.HomeSectionIconCatalog
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -40,7 +38,12 @@ class LoadWearTileContentUseCase @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val capabilities: WearRestrictedCapabilities
 ) {
-    suspend operator fun invoke(kind: WearTileKind): WearTileContent = when (kind) {
+    suspend operator fun invoke(kind: WearTileKind): WearTileContent {
+        Timber.d("S2751: tile content requested, kind=%s", kind)
+        return contentFor(kind)
+    }
+
+    private suspend fun contentFor(kind: WearTileKind): WearTileContent = when (kind) {
         WearTileKind.RESOURCE -> loadResourceContent()
         WearTileKind.STREAM -> loadStreamContent()
         WearTileKind.FAVOURITES -> loadFavouritesContent()
@@ -60,7 +63,7 @@ class LoadWearTileContentUseCase @Inject constructor(
         return WearTileContent.Shortcuts(
             apps.map { app ->
                 WearTileShortcut(
-                    iconResId = WearAppIconCatalog.iconFor(app.id),
+                    destinationId = destinationFor(app.id),
                     contentDescription = context.getString(app.labelRes),
                     launchTarget = WearLaunchTarget.Destination(destinationFor(app.id))
                 )
@@ -82,7 +85,7 @@ class LoadWearTileContentUseCase @Inject constructor(
             HomeSectionCatalog.sectionsFor(visibility).mapNotNull { section ->
                 destinationFor(section.id)?.let { destination ->
                     WearTileShortcut(
-                        iconResId = HomeSectionIconCatalog.iconFor(section.id),
+                        destinationId = destination,
                         contentDescription = context.getString(section.labelRes),
                         launchTarget = WearLaunchTarget.Destination(destination)
                     )
@@ -106,7 +109,6 @@ class LoadWearTileContentUseCase @Inject constructor(
                     WearTileContent.Assigned(
                         title = source.name,
                         subtitle = source.server,
-                        iconResId = null,
                         launchTarget = WearLaunchTarget.Open(assignment)
                     )
                 }
@@ -131,7 +133,6 @@ class LoadWearTileContentUseCase @Inject constructor(
                     WearTileContent.Assigned(
                         title = channel.name,
                         subtitle = channel.url,
-                        iconResId = null,
                         launchTarget = WearLaunchTarget.Open(assignment)
                     )
                 }
@@ -151,7 +152,6 @@ class LoadWearTileContentUseCase @Inject constructor(
                 // S2511: was an English literal, so the tile read the same on every locale.
                 title = context.getString(R.string.wear_tile_favourites_label),
                 subtitle = null,
-                iconResId = null,
                 launchTarget = WearLaunchTarget.Open(WearTileTargetRef.Favourites),
                 entries = entries
             )

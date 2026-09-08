@@ -22,6 +22,7 @@ import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -136,6 +137,17 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val WAVE_LIGHTNESS_LIGHT = 0.35f
         private const val PARTICLE_LIGHTNESS_DARK = 0.70f
         private const val PARTICLE_LIGHTNESS_LIGHT = 0.30f
+
+        // Fully opaque blit - the default, and the scale [backdropIntensity] is expressed against.
+        private const val BLIT_ALPHA_OPAQUE = 255f
+
+        // S2730: the bounds the two tuning scales are clamped to here, so a caller that reads a stored
+        // value cannot drive the renderer outside what it was measured at. The settings layer names the
+        // same bounds for its sliders; this clamp is the renderer's own last word.
+        private const val SPEED_SCALE_MIN = 0.25f
+        private const val SPEED_SCALE_MAX = 2f
+        private const val DENSITY_SCALE_MIN = 0f
+        private const val DENSITY_SCALE_MAX = 1f
     }
 
     /**
@@ -200,6 +212,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
     /** Actual particle count this session (15..55). */
     private var particleCountCurrent = 55
 
+    /** S2730: the count the session rolled, before [particleDensityScale] is applied to it. */
+    private var particleCountBase = 55
+
     /** Randomized flow direction for the full playback session in degrees. */
     private var waveDirectionAngleDeg = 0f
 
@@ -250,6 +265,58 @@ class AudioWaveParticleView @JvmOverloads constructor(
     // Full-opacity blit: copy off-screen buffer to the real canvas each frame.
     private val blitPaint = Paint()
 
+    /**
+     * S2729: visible strength of the finished frame, 0f..1f, applied to the single blit in [onDraw].
+     * That blit is the one output path both the animated and the static wallpaper end on, so one lever
+     * dims both and adds no drawing pass; the weakened frame blends towards the host's own background
+     * colour rather than towards grey.
+     *
+     * It is per instance rather than a companion constant because three surfaces share this class -
+     * the launcher backdrop, the player's audio visualizer and the welcome screen - and only the
+     * backdrop is meant to fade. A constant would have taken the visualizer down with it.
+     */
+    var backdropIntensity: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            field = clamped
+            blitPaint.alpha = (clamped * BLIT_ALPHA_OPAQUE).toInt()
+            invalidate()
+        }
+
+    /**
+     * S2730: multiplier on the per-frame time advance, 1f being the shipped speed.
+     *
+     * Per instance for [backdropIntensity]'s reason - three surfaces share this class and only the
+     * launcher backdrop is user-tunable - and defaulting to 1f so a consumer that never assigns it
+     * animates exactly as before.
+     */
+    var animationSpeedScale: Float = 1f
+        set(value) {
+            field = value.coerceIn(SPEED_SCALE_MIN, SPEED_SCALE_MAX)
+        }
+
+    /**
+     * S2730: multiplier on the seeded particle count, 1f being the count the session rolled.
+     *
+     * Scaling the rolled count rather than the roll's bounds keeps the per-session variety the class
+     * is built around: at 1f the frame is byte-identical to the pre-S2730 one, and 0f draws the waves
+     * with no particles at all.
+     */
+    var particleDensityScale: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(DENSITY_SCALE_MIN, DENSITY_SCALE_MAX)
+            if (clamped == field) return
+            field = clamped
+            particleCountCurrent = scaledParticleCount()
+            if (width <= 0 || height <= 0) return
+            initParticles(width, height)
+            // A frozen frame - the static wallpaper mode, or an animation the power policy stopped - has
+            // no tick left in which to notice the new particle set, and onDraw only blits the buffer the
+            // ticks accumulated. Without this rebuild the slider would appear dead in exactly the two
+            // states a user is most likely to be looking at while tuning it.
+            if (animator.isRunning) invalidate() else renderStaticFrame()
+        }
+
     private val wavePath = Path()
 
     // Drives time increments and invalidation; actual animation value is unused.
@@ -258,7 +325,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         repeatCount = ValueAnimator.INFINITE
         interpolator = LinearInterpolator()
         addUpdateListener {
-            time += TIME_INCREMENT
+            advanceTime()
             tick()
             invalidate()
         }
@@ -345,7 +412,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
      */
     private fun renderResizedFrame() {
         wavePaint.strokeWidth = waveStrokeWidth
-        time += TIME_INCREMENT
+        advanceTime()
         tick()
         invalidate()
     }
@@ -354,7 +421,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private fun renderStaticFrame() {
         wavePaint.strokeWidth = waveStrokeWidth
         repeat(STATIC_FRAME_PASSES) {
-            time += TIME_INCREMENT
+            advanceTime()
             tick()
         }
         invalidate()
@@ -397,7 +464,8 @@ class AudioWaveParticleView @JvmOverloads constructor(
         }
         waveAmplitude = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
         particleSpeedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
-        particleCountCurrent = Random.nextInt(pMin, pMax + 1)
+        particleCountBase = Random.nextInt(pMin, pMax + 1)
+        particleCountCurrent = scaledParticleCount()
         waveDirectionAngleDeg = Random.nextFloat() * 360f
 
         val angleRad = Math.toRadians(waveDirectionAngleDeg.toDouble())
@@ -406,6 +474,15 @@ class AudioWaveParticleView @JvmOverloads constructor(
         waveNormalX = -waveDirY
         waveNormalY = waveDirX
     }
+
+    /** S2730: one tick of the shared clock, scaled by [animationSpeedScale]. */
+    private fun advanceTime() {
+        time += TIME_INCREMENT * animationSpeedScale
+    }
+
+    /** S2730: the rolled particle count after [particleDensityScale], never above the roll. */
+    private fun scaledParticleCount(): Int =
+        (particleCountBase * particleDensityScale).roundToInt().coerceIn(0, particleCountBase)
 
     private fun initParticles(w: Int, h: Int) {
         particles.clear()

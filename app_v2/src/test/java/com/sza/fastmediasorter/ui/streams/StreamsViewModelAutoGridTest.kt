@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FavoritesUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.testing.MainDispatcherRule
@@ -38,6 +39,10 @@ class StreamsViewModelAutoGridTest {
         every { favoritesUseCase.observeFavoriteStreamIdentities() } returns flowOf(emptySet())
         val observeStreamPlayOutcomes = mockk<ObserveStreamPlayOutcomesUseCase>()
         every { observeStreamPlayOutcomes() } returns flowOf(emptyMap())
+        // S2669: the collections Flow is one of the combine's inputs - a relaxed mock would answer null
+        // and the pipeline would never emit, so this grid-focused test declares an empty delivery.
+        val observeStreamCollections = mockk<ObserveStreamCollectionsUseCase>()
+        every { observeStreamCollections() } returns flowOf(emptyList())
         return StreamsViewModel(
             observeStreamSources = observeStreamSources,
             addStreamSource = mockk(relaxed = true),
@@ -69,6 +74,8 @@ class StreamsViewModelAutoGridTest {
             // S1799: wear-send gate and use case are inert in this grid-focused test.
             mediaCapabilities = mockk(relaxed = true),
             sendStreamToWatchUseCase = mockk(relaxed = true),
+            observeStreamCollections = observeStreamCollections,
+            streamCollectionRepository = mockk(relaxed = true),
         )
     }
 

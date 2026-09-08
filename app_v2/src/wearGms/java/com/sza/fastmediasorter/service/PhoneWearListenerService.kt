@@ -24,6 +24,7 @@ import com.sza.fastmediasorter.domain.model.WearFavoritesDeltaPayload
 import com.sza.fastmediasorter.domain.model.WearFileReceiveAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.domain.model.WearFileTransferMetadata
+import com.sza.fastmediasorter.domain.model.WearListenSessionPayloadCodec
 import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneAck
 import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.domain.model.WearOpenOnPhoneRequest
@@ -96,6 +97,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var mergeWearSettingsReportUseCase: MergeWearSettingsReportUseCase
 
+    @Inject lateinit var listenPayloadCodec: WearListenSessionPayloadCodec
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -123,6 +126,7 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
+            WearDataLayerPaths.LISTEN_ACK -> handleListenAck(event.data)
         }
     }
 
@@ -255,6 +259,18 @@ class PhoneWearListenerService : WearableListenerService() {
                 Timber.e(e, "Failed to deserialize stream transfer ack")
             }
         }
+    }
+
+    /**
+     * S2550 ADR-2: the watch saying where it is serving, or why it is not.
+     *
+     * Both outcomes ride the same payload and both are published, because "refused" and "lost" call
+     * for different words on screen and only the watch can tell them apart. Nothing is opened here -
+     * the address goes to the UI layer, which decides whether to play it.
+     */
+    private fun handleListenAck(data: ByteArray) {
+        val ack = listenPayloadCodec.decodeAck(data) ?: return
+        applicationScope.launch { WearSyncEvents.emitListenAck(ack) }
     }
 
     private fun handleFileTransferAck(data: ByteArray) {

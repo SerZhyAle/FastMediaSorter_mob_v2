@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -52,6 +53,19 @@ private val SQUARE_INSET = 4.dp
  * glass radius of 0.5, so every corner is outside the display (S2008).
  */
 private const val ROUND_SQUARE_FRACTION = 0.70f
+
+/**
+ * The two scroll positions a browse-style screen owns: its list, and the state block that stands in
+ * for the list when there is nothing to list.
+ *
+ * Carried as one value because the branch helpers that need both already take a presentation and an
+ * action carrier, and detekt caps a function at eight parameters - the grouping [WearRefineMenuScreen]
+ * already applies for the same reason.
+ */
+data class WearScreenScrolls(
+    val list: ScalingLazyListState,
+    val stateBlock: ScrollState
+)
 
 /**
  * Common root for every screen in the module: a Wear [Scaffold] that always draws [TimeText].
@@ -239,8 +253,80 @@ fun wearSideBandInset(controlHeight: Dp): Dp {
     if (!configuration.isScreenRound) {
         return SQUARE_INSET
     }
-    val radius = minOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat() / 2
-    val halfHeight = controlHeight.value / 2
-    val sagitta = radius - sqrt((radius * radius - halfHeight * halfHeight).coerceAtLeast(0f))
-    return sagitta.dp.coerceAtLeast(SQUARE_INSET)
+    val radius = wearScreenRadius()
+    return sagitta(radius, controlHeight.value / 2).dp.coerceAtLeast(SQUARE_INSET)
 }
+
+/**
+ * Horizontal clearance a full-width element needs when its worst edge stands [edgeOffset] from the
+ * top or the bottom of the display.
+ *
+ * The module's fifth statement about screen shape, and the one the first four could not make.
+ * [wearScreenInsets] states a single proportional clearance for the whole screen, which is true at the
+ * vertical middle, where the chord is the full diameter, and too small everywhere else; [wearRingInset]
+ * and [wearSideBandInset] answer for a box and for a control at the middle of a side. None of them
+ * answers for a band that reaches the full width near an edge. On a 227 dp watch the chord 24 dp below
+ * the top is about 136 dp, so a band inset by that screen's own tenth still runs about 22 dp past the
+ * glass on each side - which is what Google Play rejected the watch build for on 2026-09-08 (S2273),
+ * on two screens that were already applying [wearScreenInsets].
+ *
+ * Measure at the element's WORST edge - the top edge of a band near the top, the bottom edge of one
+ * near the bottom - because that is where its chord is shortest. [SQUARE_INSET] is the floor and the
+ * whole answer on a screen that is not round.
+ *
+ * @param edgeOffset distance from the nearer of the top and bottom edges of the display to the edge of
+ * the element being placed.
+ */
+@Composable
+fun wearChordInset(edgeOffset: Dp): Dp {
+    val configuration = LocalConfiguration.current
+    if (!configuration.isScreenRound) {
+        return SQUARE_INSET
+    }
+    val radius = wearScreenRadius()
+    val distanceFromCentre = (radius - edgeOffset.value).coerceIn(0f, radius)
+    return sagitta(radius, distanceFromCentre).dp.coerceAtLeast(SQUARE_INSET)
+}
+
+/**
+ * How far from the top or the bottom edge of the display a band of fixed width [bandWidth] has to
+ * stand before the glass is wide enough to hold it.
+ *
+ * The module's sixth statement about screen shape, and [wearChordInset] read backwards: the same
+ * sagitta over the same chord, asked as "how far down must this move" instead of "how narrow must this
+ * become". The two answers are not interchangeable to a caller, which is why both exist. A row of
+ * finger-sized buttons cannot pay the first one: taking the inset out of its own width drops every
+ * target under the 48 dp minimum the module protects everywhere else, so the only move left is to
+ * lower the row until the chord admits it (S2273).
+ *
+ * Exact inverses, so lowering a band to this offset and then asking [wearChordInset] for that offset
+ * returns the padding that leaves exactly [bandWidth] between its two sides.
+ *
+ * @param bandWidth width the element cannot give up.
+ */
+@Composable
+fun wearBandEdgeOffset(bandWidth: Dp): Dp {
+    val configuration = LocalConfiguration.current
+    if (!configuration.isScreenRound) {
+        return SQUARE_INSET
+    }
+    val radius = wearScreenRadius()
+    return sagitta(radius, bandWidth.value / 2).dp.coerceAtLeast(SQUARE_INSET)
+}
+
+/** Radius of the glass in dp, from the shape the platform reports rather than from a known watch. */
+@Composable
+private fun wearScreenRadius(): Float {
+    val configuration = LocalConfiguration.current
+    return minOf(configuration.screenWidthDp, configuration.screenHeightDp).toFloat() / 2
+}
+
+/**
+ * Rise of the arc over a chord whose half-length is [halfChord]: `r - sqrt(r^2 - halfChord^2)`.
+ *
+ * The one piece of geometry the shape helpers share, so a correction lands in one place. Clamped at
+ * zero because a caller may name a chord wider than the display, and a negative square root would
+ * answer that with a crash rather than with the largest inset the screen can give.
+ */
+private fun sagitta(radius: Float, halfChord: Float): Float =
+    radius - sqrt((radius * radius - halfChord * halfChord).coerceAtLeast(0f))

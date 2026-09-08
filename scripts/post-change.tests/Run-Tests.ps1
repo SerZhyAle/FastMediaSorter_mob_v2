@@ -430,4 +430,34 @@ foreach ($scopedGate in @('focus-highlight-gate', 'neuroslop-gate', 'rtl-layout-
     }
 }
 
+# S2703 - an undeclared switch. Without [CmdletBinding()] PowerShell binds one into $args instead of
+# refusing it, so `-DryRun` used to run a full closure - gates, dev-log row and all - under a flag the
+# caller believed suppressed every write. The failure is silent by construction: the facade prints a
+# clean PASS and its only trace is the journal row, which is why the assertion has to live here.
+$changelogPath = Join-Path $repoRoot 'dev/CHANGELOG.md'
+$changelogBefore = if (Test-Path -LiteralPath $changelogPath) {
+    (Get-Item -LiteralPath $changelogPath).Length
+}
+else { -1 }
+
+$refusedUnknown = & pwsh -NoProfile -File $facadePath `
+    -File 'scripts/post-change.ps1' `
+    -Target 'post-change-tests' `
+    -Description 'reject an undeclared switch' `
+    -ChangeType Script -DryRun 2>&1 | Out-String
+if ($LASTEXITCODE -ne 2) {
+    throw "post-change accepted an undeclared switch (-DryRun): exit $LASTEXITCODE, expected 2."
+}
+if ($refusedUnknown -notmatch 'unrecognized argument' -or $refusedUnknown -notmatch 'DryRun') {
+    throw 'post-change refused an undeclared switch without naming it.'
+}
+
+$changelogAfter = if (Test-Path -LiteralPath $changelogPath) {
+    (Get-Item -LiteralPath $changelogPath).Length
+}
+else { -1 }
+if ($changelogAfter -ne $changelogBefore) {
+    throw 'A refused post-change run wrote to dev/CHANGELOG.md.'
+}
+
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

@@ -18,6 +18,7 @@ A rule that lives only in correspondence is not a rule. Most of the obligations 
 ## Consumer: StreamsPlayer (Windows)
 
 - **Reads:** `stream-catalog.zip` (the `streams.csv` entry and the `favicon-atlas.png` entry), plus the revisioned channel-preview assets attached to the same GitHub release.
+- **Described but not read:** the `collections.json` entry (S2669 curated collections). It was written into `dev/handoff/streams-source-spec/01_delivery_contract.md` 5.3a and `03_catalog_format.md` section 8 before the first archive carrying it was published, which is the order this document's policy requires. Reading it is the consumer's decision and its own repository's work; ignoring it costs nothing, because the entry is additive and the bank is unchanged.
 - **Reader component:** `StreamBankReader`, in the consumer's repository.
 - **Pinned numbers:** `StreamBankReader.MaximumAtlasBytes` = 30 MiB. This is a second independent literal for the same number our publisher holds as `$MaxAtlasBytes = 31457280`. The consumer has asked to reference a shared declaration once one exists; the ticket owning that number is S1827.
 - **Pinned numbers, channel-preview sheet:** 48 MiB, declared by the consumer for the preview sheet specifically. Our publisher holds it as `$MaxPreviewAtlasBytes = 50331648` (S1831). **This is a different contract from the 30 MiB above and the two must not be conflated** - 30 MiB is the favicon atlas, and applying it to the preview sheet would refuse a legal build, while applying 48 MiB to the favicon atlas would let an over-cap one ship and wipe every user's icons. Until 2026-08-20 the number lived only in the S1828 correspondence and the preview sheet was checked against nothing at all; a reader consulting this table found the 30 MiB row and applied it to the wrong asset. The consumer declared no limit on tile count or row count, and none is assumed: the 2026-08-20 build is 2830 tiles in 84 rows at 15.9 MiB.
@@ -58,6 +59,8 @@ Names the consumer has hard-coded. Its clients fetch these addresses and do not 
 
 The revision substitution happens in `Invoke-PublishChannelPreviewAtlas` and `Invoke-PublishStreamLogoAtlas`, from the two script parameters `$SheetRev` and `$CoordsRev`. Both default to `v3`.
 
+**This table holds standalone release assets only, not ZIP entries.** `streams.csv`, `favicon-atlas.png` and `collections.json` are entries inside `stream-catalog.zip`; their names are pinned by the invariant table below, which is where a check can actually see them. Putting a ZIP entry here is a mistake the gate catches on the spot: `assert-stream-asset-revisions.ps1` looks for a release asset named `<base>-<rev>.<ext>` and reports a `default` row it cannot find as an asset that stopped being published (S2669 tried it and was refused).
+
 `scripts/quality/assert-stream-asset-revisions.ps1` reads the block above and refuses a publication in which a `default` row stopped being produced - which is what a raised revision default looks like before anybody decides what happens to the revision it displaced.
 
 ---
@@ -89,6 +92,9 @@ The `Address` column is where the verdict is re-checked when someone returns to 
 | Rows with an empty `name` or `url` must not ship | checked | `Invoke-PublishCatalog` counts them before packing and refuses; it deliberately refuses rather than stripping, because stripping is a silent prune (S1835) |
 | The channel-preview sheet must not exceed 48 MiB | checked | `Build-ChannelPreviewAtlas` measures the encoded sheet against `$MaxPreviewAtlasBytes`, deletes it and refuses; checked where the sheet is made, not next to the upload (S1831) |
 | The channel-preview sheet's height follows the tile count and is never truncated to fit | checked | `Build-ChannelPreviewAtlas` throws when the sheet would exceed the 16383 px WebP dimension limit, naming how many channels would be left uncovered. Before S1831 it silently dropped the overflow with a `Write-Warning` and published a partial sheet - 877 of 2917 video channels had no tile for that reason alone |
+| No archive entry other than the bank may end in `.csv` | checked | `Assert-CatalogZipEntries` in `scripts/streams/modules/StreamPublisher.Delivery.ps1` refuses any entry whose name ends in `.csv` and is not `streams.csv`. Both released clients load ANY `.csv` entry as a fallback stream table when the bank itself fails to parse, so a non-bank payload with that extension reaches users as their catalog (S2669) |
+| The curated-collections entry must be named exactly `collections.json` when it is bundled | checked | `Assert-CatalogZipEntries`, tested by case-sensitive equality like the two entry names beside it (S2669) |
+| A collection member must name a url that exists in the bank, and a collection must be non-empty and carry `en`, `ru` and `uk` names | checked | `Assert-StreamCollections` in `scripts/streams/modules/StreamPublisher.Collections.ps1`, called from `Invoke-PublishCatalog` before anything is packed (S2669) |
 | A consumer must not assume a preview-sheet row count | by-construction | The width is fixed at 34 columns and the height is derived; the app's own `ChannelPreviewAtlasSlicer` declares only `TILE_W`/`TILE_H`/`COLS` and takes the atlas dimensions as arguments, so it needs no row count either |
 
 <!-- invariants:end -->

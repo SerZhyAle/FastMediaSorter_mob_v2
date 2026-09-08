@@ -87,6 +87,11 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
     private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
     private val KEY_LAUNCHER_WALLPAPER_CAMERA_ID = stringPreferencesKey("launcher_wallpaper_camera_id")
+    private val KEY_LAUNCHER_WALLPAPER_INTENSITY = floatPreferencesKey("launcher_wallpaper_intensity")
+    private val KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED =
+        floatPreferencesKey("launcher_wallpaper_animation_speed")
+    private val KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY =
+        floatPreferencesKey("launcher_wallpaper_particle_density")
     private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
     private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
     private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
@@ -131,7 +136,43 @@ object LauncherSettingsStore {
             allAppsSwipeRightPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_PAYLOAD, ""),
         )
 
-    private fun readCore(preferences: Preferences): LauncherSettings = LauncherSettings(
+    private fun readCore(preferences: Preferences): LauncherSettings =
+        readCoreValues(preferences).withWallpaperTuning(preferences)
+
+    /**
+     * S2730: the branded backdrop's three tuning values, applied on top of the core read.
+     *
+     * They sit in their own step rather than inline above because [readCoreValues] is already at the
+     * length ceiling, and because every one of them is coerced on read - a value from a newer build, or
+     * one a later ticket narrows the range of, has to paint what the settings slider shows instead of
+     * the two disagreeing (the S2320 lesson).
+     */
+    private fun LauncherSettings.withWallpaperTuning(preferences: Preferences): LauncherSettings = copy(
+        wallpaperIntensity = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_INTENSITY,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_INTENSITY,
+            AppSettings::coerceLauncherWallpaperIntensity,
+        ),
+        wallpaperAnimationSpeed = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+            AppSettings::coerceLauncherWallpaperAnimationSpeed,
+        ),
+        wallpaperParticleDensity = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
+            AppSettings::coerceLauncherWallpaperParticleDensity,
+        ),
+    )
+
+    /** S2730: one stored wallpaper tuning value, fitted to the range the renderer was measured at. */
+    private fun Preferences.readWallpaperFloat(
+        key: Preferences.Key<Float>,
+        default: Float,
+        coerce: (Float) -> Float,
+    ): Float = coerce(getOrDefault(key, default))
+
+    private fun readCoreValues(preferences: Preferences): LauncherSettings = LauncherSettings(
         // S2320: reads the canonical default rather than a literal - this line carried its own copy of
         // the old 1.0f and would have kept a fresh install on the previous density after it moved.
         densityFactor = preferences
@@ -275,6 +316,9 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
         preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
         preferences[KEY_LAUNCHER_WALLPAPER_CAMERA_ID] = settings.launcherWallpaperCameraId
+        preferences[KEY_LAUNCHER_WALLPAPER_INTENSITY] = settings.launcherWallpaperIntensity
+        preferences[KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED] = settings.launcherWallpaperAnimationSpeed
+        preferences[KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY] = settings.launcherWallpaperParticleDensity
         preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
         preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
         preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =

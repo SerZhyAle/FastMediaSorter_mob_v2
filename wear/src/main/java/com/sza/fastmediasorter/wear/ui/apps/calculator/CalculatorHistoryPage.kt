@@ -15,6 +15,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -34,15 +35,18 @@ private val EMPTY_TEXT_PADDING = 16.dp
  *
  * Tapping an entry puts its result back on the display, so the history is a source of operands rather
  * than a log to read.
+ *
+ * @param listState hoisted for the same reason as the menu sheet's: while this page is up it is what
+ * scrolls, and the calculator's Scaffold has to mark it rather than the keypad (S2754).
  */
 @Composable
 fun CalculatorHistoryPage(
     entries: List<WearCalculatorHistoryEntry>,
     onEntryPicked: (WearCalculatorHistoryEntry) -> Unit,
     onClearHistory: () -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
-    val listState = rememberWearListState()
 
     // S1719: the crown steps the history's type size, mirroring the phone's pinch through the same
     // five sizes. The rotary helper consumes the event by design, so the crown no longer scrolls this
