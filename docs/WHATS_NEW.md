@@ -6,7 +6,48 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9021.951** (September 2026)
+**Current release: 2.60.9080.211** (September 2026)
+
+> Changes since version 2.60.9021.951
+
+---
+
+## What's New
+
+- **Stopwatch** - a built-in stopwatch with a multi-participant screen and a home-screen widget.
+- **Mirror** - the front camera as a mirror, one tap from the programs menu.
+- **Water flashlight** - a light no wet touch can switch off, on the phone and on the watch.
+- **Mono audio and stereo balance** - fold both channels into one, or pick a balance preset.
+- **Swipe a file row** - run an action you chose by swiping a row left or right in Browse.
+- **Folder transfer undo** - a whole folder copy or move can be taken back.
+- **The watch stands on its own** - tiles for programs and sections, a now-playing home row, background audio, a voice recorder, motion and environmental sensors, and folder walks over a network resource.
+- **The watch looks like the phone** - colour schemes set from the phone, matching accent colours, wallpapers, and tap zones with pinch zoom in the image viewer.
+- **Resources stay in step across devices** - an edit or a delete on either device reaches the other.
+- **Desktop gadgets grow** - sunrise, sunset and dew point, several cities on the weather gadget, a Wi-Fi hotspot indicator and a network speed readout.
+- **The desktop locks itself** - lock it from the desktop, or let an idle screen do it.
+- **Automatic shortcuts** - app functions and installed packages seed the desktop and follow their toggles.
+- **Power saving that explains itself** - an automatic mode on phone and watch, and an honest message when a battery threshold cannot work.
+- **Backup carries 124 more settings** - every screenshot gesture and the launcher readout included.
+- **Cloud sources survive a new device** - a move keeps you signed in.
+
+## What's Fixed
+
+- Changing the interface language now applies everywhere and sticks after a restart.
+- Clearing a text field by tapping its cross no longer crashes the screen.
+- The stream catalog no longer opens on a screen of nameless entries.
+- Backup restore and legacy import now start from the fresh-install defaults.
+- A watch database upgrade across modules no longer resets the watch.
+- Voice notes survive a watch database failure.
+- Wide desktop cells seat inside the grid instead of overhanging it.
+- Incomplete rows on the round watch display are centred instead of falling off the glass.
+- Watch lists start at the top edge, so the first row is reachable.
+- A watch network resource says why it offers no browse category.
+- App-function shortcuts appear and disappear with their toggles.
+- The calculator clear button on the watch sits where it can be hit.
+
+---
+
+## Previous Release: 2.60.9021.951 (September 2026)
 
 > Changes since version 2.60.8241.708
 

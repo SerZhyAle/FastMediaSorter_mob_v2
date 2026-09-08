@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.9021.951 (September 2026)
+## What's New in v2.60.9080.211 (September 2026)
 
 **New:**
-Reconnect a folder through the system chooser, honest wording when a connection cannot reach documents, camera shooting modes with tap-to-focus, a watch that browses its own storage and carries tiles, two-way watch settings sync, live map / world clock / YouTube desktop gadgets, launcher paging and edge gestures, picture-in-picture from every host, host ping and hop-by-hop traceroute, grouped and translated stream rubrics, a resource list that remembers its filter and sort.
+A built-in stopwatch with a home-screen widget, a mirror program, a water flashlight on phone and watch, mono audio and stereo balance presets, swipe actions on a file row, folder transfer undo, a watch that carries tiles and a now-playing row and walks network folders on its own, watch colour schemes set from the phone, resource edits and deletes that reach both devices, sunrise / sunset / dew point and multi-city weather gadgets, a desktop that locks itself, automatic app-function and package shortcuts, automatic power saving, 124 more settings in backup, cloud sources that survive a new device.
 
 **Fixed:**
-Document previews on a folder connected through the system chooser, the search overlay hiding under the status bar, stale file counts after an operation, the reconnect dialog lost on rotation, an empty stream catalog showing nothing, cancelled watch playback logged as an error, the watch database reset on upgrade, launcher shortcut import and alignment.
+Interface language changes not applying everywhere, a crash when clearing a text field, a stream catalog of nameless entries, backup restore starting from stale defaults, a watch database reset across module upgrades, voice notes lost to a watch database failure, wide desktop cells overhanging the grid, incomplete rows falling off the round watch display, watch lists starting below the top edge, a watch network resource offering no browse category without saying why, app-function shortcuts ignoring their toggles, the watch calculator clear button out of reach.
 
 [Full release notes →](docs/WHATS_NEW.md)
 

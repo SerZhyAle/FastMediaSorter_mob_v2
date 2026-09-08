@@ -31393,3 +31393,4 @@ Format: | datetime | file | target | description |
 | 2026-09-08 01:31:51 | `PLAN/S1565_settings-data-drive-transfer.md` | `spec-quiz` | S1565: BlockQuestions -> Draft via quiz (3 questions) [branch: DEBUG-v037] |
 | 2026-09-08 02:07:05 | `PLAN/S2719_bugfix-stats-two-column-labels.md` | `spec` | Scaffold compact bugfix spec skeleton S2719 [branch: DEBUG-v037] |
 | 2026-09-08 02:10:12 | `scripts/quality/assert-release-scope-gates.ps1` | `spec-prerelease` | S2687: prerelease sweep for release package 37; fix assert-release-scope-gates passing -Gate to gates that do not declare it [set of 4: PLAN/S2687_prerelease-release-r37.md, PLAN/S2720_maestro-launcher-flows-cannot-enable-launcher-mode.md, PLAN/RELEASE_QUEUE.md] [branch: DEBUG-v037] |
+| 2026-09-08 02:15:31 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.60.9080.211 - plateau merge from DEBUG-v037 [branch: DEBUG-v037] |
