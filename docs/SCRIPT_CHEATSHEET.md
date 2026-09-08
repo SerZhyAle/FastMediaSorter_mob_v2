@@ -4939,7 +4939,7 @@ scripts/spec_catalog/plan-tick.ps1
     -Log               [String] = ''
     -Json              [SwitchParameter]
     -Reconcile         [SwitchParameter]
-  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
+  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or neither layout holds the requested phase.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
 ### preview.ps1
@@ -6374,7 +6374,7 @@ scripts/utils/run-spec-queue.ps1
     -Ids                       [String] = ''
     -MaxTickets                [Int32] = 0
     -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|fixed|default}
+    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
     -Model                     [String] = 'opus'
     -StrongModel               [String] = 'opus'
     -CheapModel                [String] = 'sonnet'

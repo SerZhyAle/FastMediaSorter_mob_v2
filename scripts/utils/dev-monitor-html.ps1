@@ -317,11 +317,27 @@ tr:hover td{background:#0d1117}
       // `unknown` printed in full for every agent is a column of noise that says the same thing a
       // dim `?` says; the field is still shown, so nothing is lost.
       var unk = function (v) { return (!v || v === 'unknown') ? '<span class="dim">?</span>' : esc(v); };
-      rows.push(tr([name(a.name), cls(a.silent ? 'warn' : 'norm', a.silent ? 'SILENT' : 'live'), { n: mins(a.ageMinutes) }, unk(a.runtime) + '/' + unk(a.model) + (a.instance && a.instance !== '-' ? ' ' + esc(a.instance) : ''), id(a.lease), { w: where }, bold(a.lastKind) + (a.lastTicket ? ' ' + id(a.lastTicket) : ''), { w: esc(a.lastNote) }]));
+      var context = a.contextBand ? cls(a.contextOverThreshold ? 'bad' : 'dim', a.contextBand) : '<span class="dim">-</span>';
+      rows.push(tr([name(a.name), cls(a.silent ? 'warn' : 'norm', a.silent ? 'SILENT' : 'live'), { n: mins(a.ageMinutes) }, unk(a.runtime) + '/' + unk(a.model) + (a.instance && a.instance !== '-' ? ' ' + esc(a.instance) : ''), context, id(a.lease), { w: where }, bold(a.lastKind) + (a.lastTicket ? ' ' + id(a.lastTicket) : ''), { w: esc(a.lastNote) }]));
     });
     var w = s.windows || {};
     el('agents-note').textContent = (s.agents || []).length + ' agents in the ' + (w.retentionMinutes || '?') + ' min window, SILENT after ' + (w.silentMinutes || '?') + ' min';
-    table('agents', ['agent', 'state', '#last msg', 'runtime/model', 'lease', 'phase', 'last kind', 'last note'], rows, 'nobody has written');
+    table('agents', ['agent', 'state', '#last msg', 'runtime/model', 'context', 'lease', 'phase', 'last kind', 'last note'], rows, 'nobody has written');
+
+    rows = [];
+    (s.gates || []).forEach(function (g) {
+      var failed = (g.failures || []).map(function (f) {
+        return esc(f.gate) + ' [' + esc(f.scope === 'set-named' ? 'named your file' : (f.scope || 'unknown')) + ']';
+      }).join(', ') || 'clean';
+      rows.push(tr([cls(g.status === 'PASS' ? 'norm' : 'bad', g.status || '?'), esc(g.runner), { w: failed }]));
+    });
+    table('gates', ['status', 'runner', 'failed gates'], rows, 'source silent');
+
+    rows = [];
+    (s.watchdog || []).forEach(function (w) {
+      rows.push(tr([esc(w.at), bold(w.action), { w: esc(w.detail) }]));
+    });
+    table('watchdog', ['time', 'action', 'detail'], rows, 'source silent');
 
     rows = [];
     var nu = s.nextUp || {};
@@ -351,7 +367,7 @@ tr:hover td{background:#0d1117}
     rows = [];
     var FINISHED_HEAD = ['ticket', 'status', 'moved', 'outcome', '#took', 'model', 'finished'];
     (s.instances || []).forEach(function (inst) {
-      rows.push(tr([{ w: '<span class="dim">instance ' + esc(inst.instance) + ': ' + esc(inst.recorded) + ' run, ' + esc(inst.moved) + ' moved, ' + esc(inst.stayed) + ' stayed put</span>', span: FINISHED_HEAD.length }], 'group'));
+      rows.push(tr([{ w: '<span class="dim">instance ' + esc(inst.instance) + ': ' + esc(inst.recorded) + ' run, ' + esc(inst.moved) + ' moved, ' + esc(inst.stayed) + ' stayed put; idle ' + esc(inst.idleToday) + ', timeouts ' + esc(inst.timeoutsToday) + ', cheap model ' + esc(inst.cheapModelShare) + '%</span>', span: FINISHED_HEAD.length }], 'group'));
       (inst.rows || []).forEach(function (r) {
         var k = r.moved ? 'norm' : (r.outcome !== 'ok' ? 'bad' : 'warn');
         rows.push(tr([id(r.id), esc(r.statusBefore) + ' -> ' + statusCls(r.statusAfter), cls(k, r.moved ? 'moved' : 'stayed'), cls(r.outcome === 'ok' ? 'norm' : 'bad', r.outcome), { n: num(r.minutes) + ' min' }, esc(r.model), local(r.finishedAt)]));
@@ -425,6 +441,10 @@ tr:hover td{background:#0d1117}
 <div id="locks"></div>
 <h2>agents <small id="agents-note"></small></h2>
 <div id="agents"></div>
+<h2>gate health <small>recent closures and batches</small></h2>
+<div id="gates"></div>
+<h2>watchdog actions <small>latest reaper and supervisor work</small></h2>
+<div id="watchdog"></div>
 <h2>next up <small id="nextup-note"></small></h2>
 <div id="nextup"></div>
 <h2>chat <small>newest first</small></h2>

@@ -76,8 +76,9 @@ try {
     $forbidden = @('animation', 'transition', '@keyframes', 'http://', 'https://', '<link', '<img')
     $found = @($forbidden | Where-Object { $shell -match [regex]::Escape($_) })
     Assert-That 'shell has no animation, transition, keyframes or external reference' ($found.Count -eq 0) ($found -join ',')
-    $missingSections = @(@('running', 'ticket leases', 'locks', 'agents', 'next up', 'chat', 'findings', 'finished', 'stop') | Where-Object { $shell -notmatch ('<h2>' + [regex]::Escape($_)) })
+    $missingSections = @(@('running', 'ticket leases', 'locks', 'agents', 'gate health', 'watchdog actions', 'next up', 'chat', 'findings', 'finished', 'stop') | Where-Object { $shell -notmatch ('<h2>' + [regex]::Escape($_)) })
     Assert-That 'shell is English-labelled and lists every section' ($missingSections.Count -eq 0) ($missingSections -join ',')
+    Assert-That 'shell labels a set-named failure for the affected file' ($shell -match 'named your file') ''
     # Read the stamp off the raw text: ConvertFrom-Json turns an ISO string into a DateTime, and the
     # page compares strings.
     $stampMatch = [regex]::Match([IO.File]::ReadAllText((Join-Path $fixture 'snapshot.js')), '"shellStamp":"([^"]+)"')

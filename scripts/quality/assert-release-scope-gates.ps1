@@ -1,4 +1,4 @@
-#requires -Version 7.0
+﻿#requires -Version 7.0
 <#
 .SYNOPSIS
     S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
@@ -269,8 +269,17 @@ foreach ($entry in $gates.GetEnumerator()) {
         continue
     }
 
+    # -Gate only reaches a gate that declares it. Passing it blindly made two gates that do not
+    # (assert-play-listing-graphics, assert-delivery-size-estimates) die on parameter binding before
+    # they read anything, and the loop below scored that as FAIL - so "could not verify" was
+    # reported as "found a defect in the release scope" on every sweep, and neither gate was ever
+    # actually judged. S2687, measured 2026-09-08.
     $sw = [System.Diagnostics.Stopwatch]::StartNew()
-    & $pwshExe -NoProfile -File $path -Gate @($entry.Value) | Write-Host
+    $gateArgs = @($entry.Value)
+    if ((Get-Command -Name $path -ErrorAction SilentlyContinue)?.Parameters.ContainsKey('Gate')) {
+        $gateArgs = @('-Gate') + $gateArgs
+    }
+    & $pwshExe -NoProfile -File $path @gateArgs | Write-Host
     $sw.Stop()
     $status = ($LASTEXITCODE -eq 0) ? 'PASS' : 'FAIL'
     $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = $status; Ms = [int]$sw.Elapsed.TotalMilliseconds })

@@ -31378,3 +31378,18 @@ Format: | datetime | file | target | description |
 | 2026-09-07 23:42:18 | `PLAN/S2717_bugfix-desktop-section-shortcuts-autofill.md` | `spec` | Scaffold strategic spec skeleton S2717 [branch: DEBUG-v037] |
 | 2026-09-07 23:47:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S2715` | S2715: backfill virtual resource file counts at startup so a fresh install shows real media counts [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/ResourceScanCoordinator.kt] [branch: DEBUG-v037] |
 | 2026-09-07 23:50:00 | `scripts/devtest/device-ready.tests/Run-Tests.ps1` | `spec-all` | Repair release-scope script suite fixtures [set of 3: scripts/spec_catalog/check-audit-recorded.tests/Run-Tests.ps1, PLAN/S2712_script-suites-red-in-release-scope.md] [branch: DEBUG-v037] |
+| 2026-09-08 00:13:57 | `PLAN/S2712_script-suites-red-in-release-scope.md` | `spec-check` | Audit S2712 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v037] |
+| 2026-09-08 00:24:27 | `PLAN/S2718_water-flashlight-block-system-ui.md` | `spec` | Scaffold strategic spec skeleton S2718 [branch: DEBUG-v037] |
+| 2026-09-08 00:38:25 | `PLAN/S2700_dev-monitor-parallel-work-signals.md` | `spec-tech` | Status to Tactical and research resolved for S2700 [branch: DEBUG-v037] |
+| 2026-09-08 00:38:26 | `PLAN/S2700_dev-monitor-parallel-work-signals/INDEX.md` | `spec-tech` | Create tactical plan for S2700 [branch: DEBUG-v037] |
+| 2026-09-08 00:38:28 | `PLAN/S2700_dev-monitor-parallel-work-signals/PHASE_01__snapshot-signals.md` | `spec-tech` | Phase 01 snapshot signals [branch: DEBUG-v037] |
+| 2026-09-08 00:38:29 | `PLAN/S2700_dev-monitor-parallel-work-signals/PHASE_02__monitor-renders.md` | `spec-tech` | Phase 02 monitor renders [branch: DEBUG-v037] |
+| 2026-09-08 00:38:30 | `PLAN/S2700_dev-monitor-parallel-work-signals/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03 docs catalog cleanup [branch: DEBUG-v037] |
+| 2026-09-08 00:46:16 | `scripts/utils/dev-monitor-html.ps1` | `spec-all` | S2700 development monitor parallel-work signals [set of 5: scripts/utils/dev-monitor-snapshot.tests/Run-Tests.ps1, scripts/utils/dev-monitor-writer.tests/Run-Tests.ps1, docs/DEV_OPS.md, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v037] |
+| 2026-09-08 01:10:22 | `PLAN/S2704_wear-source-empty-reason-unreachable.md` | `spec-code` | S2704: retain unreachable Wear source diagnostic for a future consumer [branch: DEBUG-v037] |
+| 2026-09-08 01:10:22 | `PLAN/S2704_wear-source-empty-reason-unreachable/research/01__diagnostic-retention-decision.md` | `spec-code` | S2704: record owner diagnostic-retention decision [branch: DEBUG-v037] |
+| 2026-09-08 01:16:25 | `PLAN/S2551_wear-view-phone-stream.md` | `spec-quiz` | S2551: BlockQuestions -> Approved via quiz (1 question) [branch: DEBUG-v037] |
+| 2026-09-08 01:26:31 | `PLAN/S2568_bugfix-wear-off-glass-four-screens.md` | `spec-quiz` | S2568: BlockQuestions -> Approved via quiz (1 question) [branch: DEBUG-v037] |
+| 2026-09-08 01:31:51 | `PLAN/S1565_settings-data-drive-transfer.md` | `spec-quiz` | S1565: BlockQuestions -> Draft via quiz (3 questions) [branch: DEBUG-v037] |
+| 2026-09-08 02:07:05 | `PLAN/S2719_bugfix-stats-two-column-labels.md` | `spec` | Scaffold compact bugfix spec skeleton S2719 [branch: DEBUG-v037] |
+| 2026-09-08 02:10:12 | `scripts/quality/assert-release-scope-gates.ps1` | `spec-prerelease` | S2687: prerelease sweep for release package 37; fix assert-release-scope-gates passing -Gate to gates that do not declare it [set of 4: PLAN/S2687_prerelease-release-r37.md, PLAN/S2720_maestro-launcher-flows-cannot-enable-launcher-mode.md, PLAN/RELEASE_QUEUE.md] [branch: DEBUG-v037] |

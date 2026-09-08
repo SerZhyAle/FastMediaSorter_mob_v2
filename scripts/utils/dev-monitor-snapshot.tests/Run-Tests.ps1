@@ -58,7 +58,7 @@ $savedAgentId = $env:FMS_AGENT_ID
 $savedAgentName = $env:FMS_AGENT_NAME
 $nowMs = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds()
 try {
-    foreach ($d in @('temp/SPEC-TICKET.LEASES', 'temp/CODE.PHONE.QUEUE', 'temp/spec-queue', 'PLAN', 'scope', 'chat')) {
+    foreach ($d in @('temp/SPEC-TICKET.LEASES', 'temp/CODE.PHONE.QUEUE', 'temp/spec-queue', 'temp/metrics', 'temp/context-signal', 'temp/scratch/watchdog', 'PLAN', 'scope', 'chat')) {
         New-Item -ItemType Directory -Path (Join-Path $fixture $d) -Force | Out-Null
     }
     $utf8 = New-Object System.Text.UTF8Encoding($false)
@@ -73,6 +73,12 @@ try {
         '{"id":"S0102","model":"opus","statusBefore":"Tactical","statusAfter":"BlockNeedUserTest","moved":true,"outcome":"ok","exitCode":0,"minutes":62,"finishedAt":"2026-09-02T11:05:31"}',
         '{"id":"S0103","model":"sonnet","statusBefore":"Approved","statusAfter":"Approved","moved":false,"outcome":"timeout","exitCode":1,"minutes":90,"finishedAt":"2026-09-02T12:40:00"}'
     ) -join "`n") + "`n", $utf8)
+    [IO.File]::WriteAllText((Join-Path $fixture 'temp/metrics/gate-executions.jsonl'),
+        '{"timestampUtc":"2026-09-02T12:40:00Z","runner":"post-change","runId":"gate-fx","gate":"neuroslop","status":"FAIL","exitCode":1,"elapsedMs":12,"scope":"set-named"}' + "`n", $utf8)
+    [IO.File]::WriteAllText((Join-Path $fixture 'temp/context-signal/agent-fx.json'),
+        '{"commandDriven":false,"signalled":true}' + "`n", $utf8)
+    [IO.File]::WriteAllText((Join-Path $fixture 'temp/scratch/watchdog/watchdog.log'),
+        '2026-09-02 12:41:00  DROPPED CODE.PHONE.QUEUE/0001.json - enqueuing pid 7 no longer exists' + "`n", $utf8)
     [IO.File]::WriteAllText((Join-Path $fixture 'temp/STOP-SPEC-QUEUE'), 'stop', $utf8)
     [IO.File]::WriteAllText((Join-Path $fixture 'PLAN/RELEASE_QUEUE.md'), (@(
         '# Release Queue',
@@ -167,9 +173,16 @@ try {
     Assert-That 'chat tail newest first' (@($s.chat).Count -eq 2 -and $s.chat[0].kind -eq 'lock' -and $s.chat[1].kind -eq 'phase') (($s.chat | ConvertTo-Json -Compress))
     Assert-That 'the scoped finding is alive' (@($s.findings).Count -eq 1 -and $s.findings[0].topic -eq 'check:fixture' -and $s.findingsDead -eq 0) "alive=$(@($s.findings).Count) dead=$($s.findingsDead)"
     Assert-That 'windows come from the lock timings' ($s.windows.silentMinutes -gt 0 -and $s.windows.retentionMinutes -gt 0) (($s.windows | ConvertTo-Json -Compress))
+    Assert-That 'agent context signal is joined and marked over threshold' ($a.contextBand -eq 'over threshold' -and $a.contextOverThreshold) (($a | ConvertTo-Json -Compress))
+
+    Write-Host 'Parallel-work signals'
+    Assert-That 'gate tail exposes failed set-named gate' (@($s.gates).Count -eq 1 -and $s.gates[0].status -eq 'FAIL' -and $s.gates[0].failures[0].scope -eq 'set-named') (($s.gates | ConvertTo-Json -Compress -Depth 4))
+    Assert-That 'watchdog tail exposes an action' (@($s.watchdog).Count -eq 1 -and $s.watchdog[0].action -eq 'DROPPED') (($s.watchdog | ConvertTo-Json -Compress))
+    Assert-That 'source timings are additive' ($s.timings.gates -ge 0 -and $s.timings.context -ge 0 -and $s.timings.watchdog -ge 0) (($s.timings | ConvertTo-Json -Compress))
 
     Write-Host 'Journals, stop, children'
     Assert-That 'one instance, counts by regex, tail by parse' (@($s.instances).Count -eq 1 -and $s.instances[0].instance -eq 'a' -and $s.instances[0].recorded -eq 3 -and $s.instances[0].moved -eq 1 -and $s.instances[0].stayed -eq 2 -and @($s.instances[0].rows).Count -eq 2) (($s.instances | ConvertTo-Json -Compress -Depth 3))
+    Assert-That 'instance exposes idle and timeout summary' ($s.instances[0].idleToday -eq 1 -and $s.instances[0].timeoutsToday -eq 1 -and $null -ne $s.instances[0].cheapModelShare) (($s.instances | ConvertTo-Json -Compress -Depth 3))
     Assert-That 'tail rows are the last ones' ($s.instances[0].rows[0].id -eq 'S0102' -and $s.instances[0].rows[1].id -eq 'S0103' -and $s.instances[0].rows[1].outcome -eq 'timeout') ''
     Assert-That 'stop flag with its age' (@($s.stop).Count -eq 1 -and $s.stop[0].name -eq 'STOP-SPEC-QUEUE' -and $null -ne $s.stop[0].requestedMinutes) ''
     Assert-That 'children is an array' ($null -ne $s.children -and $s.children -is [array]) ''
@@ -197,7 +210,7 @@ try {
     Assert-That 'monitor -Json parses' ($jsonCode -eq 0 -and $null -ne $parsed -and $parsed.schema -eq 1 -and $parsed.leases[0].id -eq 'S0001') "exit=$jsonCode $($jsonOut.Substring(0, [math]::Min(200, $jsonOut.Length)))"
     $text = & $pwshExe -NoProfile -File $monitor -RepoRoot $fixture -Tail 2 2>&1 | Out-String
     $textCode = $LASTEXITCODE
-    $sections = @('ticket leases', 'locks', 'agent chat', 'finished tickets', 'stop requested', 'running')
+    $sections = @('ticket leases', 'locks', 'agent chat', 'gate health', 'runner health', 'watchdog actions', 'finished tickets', 'stop requested', 'running')
     $missing = @($sections | Where-Object { $text -notmatch [regex]::Escape($_) })
     Assert-That 'monitor prints every section' ($textCode -eq 0 -and $missing.Count -eq 0) "exit=$textCode missing=$($missing -join ',')"
     Assert-That 'monitor names the fixture lease and the held domain' ($text -match 'S0001' -and $text -match 'Code\.Phone\s+HELD') ''
