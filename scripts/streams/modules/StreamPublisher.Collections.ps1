@@ -155,7 +155,14 @@ function Build-StreamCollections {
     }
     $json = ($payload | ConvertTo-Json -Depth 8) -replace "`r`n", "`n"
     if (-not $json.EndsWith("`n")) { $json += "`n" }
-    [System.IO.File]::WriteAllText($OutPath, $json, [System.Text.UTF8Encoding]::new($false))
+    # The default OutPath is a delivery/ render target, which the Code.Scripts domain owns (S2635):
+    # take the domain on the write only, so the contract suite writing to a %TEMP% path - which no
+    # domain owns - acquires nothing. Re-entry is the helper's own concern, not this caller's.
+    . (Join-Path $PSScriptRoot '..\..\utils\code-lock-scope.ps1')
+    $scope = Enter-CodeLockOrExit -Path $OutPath -Reason 'StreamPublisher.Collections.ps1 (delivery/stream-catalog/collections.json)'
+    try {
+        [System.IO.File]::WriteAllText($OutPath, $json, [System.Text.UTF8Encoding]::new($false))
+    } finally { Exit-CodeLockScope -Scope $scope }
     Write-Host ("Collections built: {0} collection(s) -> {1}" -f $built.Count, $OutPath) -ForegroundColor Cyan
     return $payload
 }

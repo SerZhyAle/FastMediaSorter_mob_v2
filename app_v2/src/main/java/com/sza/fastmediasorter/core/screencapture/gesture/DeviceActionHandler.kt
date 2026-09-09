@@ -56,7 +56,6 @@ class DeviceActionHandler @Inject constructor() {
      * hand back a lit torch to a caller that found one already burning.
      */
     fun setTorch(context: Context, enabled: Boolean): Boolean {
-        Timber.d("S2516: setTorch requested enabled=%b", enabled)
         val cameraManager = context.getSystemService(Context.CAMERA_SERVICE) as? CameraManager
         val flashCameraId = cameraManager?.let(::findFlashCameraId)
         return when {

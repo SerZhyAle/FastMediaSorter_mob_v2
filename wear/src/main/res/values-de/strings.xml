@@ -667,4 +667,5 @@
     <string name="wear_phone_camera_failed_not_supported">Diese Telefonversion kann kein Video senden</string>
     <string name="wear_phone_camera_failed_unknown">Das Telefon hat abgelehnt, ohne Grund</string>
     <string name="wear_player_file_actions">Dateiaktionen</string>
+    <string name="wear_tile_shortcut_more">Mehr</string>
 </resources>

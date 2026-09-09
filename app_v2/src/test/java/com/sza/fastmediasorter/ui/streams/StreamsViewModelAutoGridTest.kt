@@ -75,7 +75,6 @@ class StreamsViewModelAutoGridTest {
             mediaCapabilities = mockk(relaxed = true),
             sendStreamToWatchUseCase = mockk(relaxed = true),
             observeStreamCollections = observeStreamCollections,
-            streamCollectionRepository = mockk(relaxed = true),
         )
     }
 

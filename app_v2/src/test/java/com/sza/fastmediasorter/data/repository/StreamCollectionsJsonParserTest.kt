@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import com.sza.fastmediasorter.data.repository.StreamCollectionsJsonParser.ParsedStreamCollection
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test

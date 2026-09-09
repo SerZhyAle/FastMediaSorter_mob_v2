@@ -74,13 +74,19 @@ class LoadWearTileContentUseCase @Inject constructor(
      * S2511: the home sections, composed from the catalog the home screen itself draws.
      *
      * The Streams row is a runtime user preference rather than a build flag, so the real visibility is read
-     * here: a tile built from a hardcoded `true` would offer a section the owner switched off.
+     * here: a tile built from a hardcoded `true` would offer a section the owner switched off. Reading it is
+     * only half the answer - the tile is drawn once and kept, so [SetStreamsSectionEnabledUseCase] is what
+     * makes the system come back and ask again after the switch moves.
+     *
+     * The tile order, not the screen order: the grid is shorter than the catalog, and which sections it can
+     * afford to lose is a decision the catalog states rather than one the clamp takes by accident.
      */
     private suspend fun loadSectionsContent(): WearTileContent {
         val streamsEnabled = preferencesRepository.streamsSectionEnabled.first()
         val visibility = HomeSectionVisibility(streamsEnabled = streamsEnabled)
+        Timber.d("S2511: sections tile content, streamsEnabled=%s", streamsEnabled)
         return WearTileContent.Shortcuts(
-            HomeSectionCatalog.sectionsFor(visibility).mapNotNull { section ->
+            HomeSectionCatalog.tileSectionsFor(visibility).mapNotNull { section ->
                 destinationFor(section.id)?.let { destination ->
                     WearTileShortcut(
                         destinationId = destination,

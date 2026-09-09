@@ -8,10 +8,12 @@ import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearStreamUsage
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
@@ -53,7 +55,9 @@ class StreamsViewModel @Inject constructor(
     private val preparePlayback: PrepareWearStreamPlaybackUseCase,
     private val streamPinsRepository: WearStreamPinsRepository,
     private val phonePinsRepository: WearPhonePinsRepository,
-    private val usageRepository: WearStreamUsageRepository
+    private val usageRepository: WearStreamUsageRepository,
+    // S2669: the curated collections delivered with the catalog, as one more picker input.
+    private val collectionRepository: WearStreamCollectionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StreamsUiState())
@@ -109,6 +113,22 @@ class StreamsViewModel @Inject constructor(
             streamPinsRepository.observeWatchPins().collect { identities ->
                 _uiState.update { it.copy(pinnedStreamIds = identities) }
                 projectionInputs.update { it.copy(pinnedIdentities = identities) }
+            }
+        }
+
+        // S2669: the delivered collections arrive on their own schedule (the archive entry is
+        // optional), so they are collected rather than read once. A refresh that no longer carries
+        // the selected collection clears the selection here: leaving the id set would filter the
+        // list against a membership set that can never be repopulated, i.e. show nothing with no
+        // picker row to clear it.
+        viewModelScope.launch {
+            collectionRepository.observeCollections().collect { collections ->
+                val selected = _uiState.value.selectedCollectionId
+                    ?.takeIf { id -> collections.any { it.id == id } }
+                _uiState.update { it.copy(availableCollections = collections, selectedCollectionId = selected) }
+                projectionInputs.update {
+                    it.copy(selectedCollectionMemberUrls = memberUrlsOf(selected, collections))
+                }
             }
         }
 
@@ -363,6 +383,11 @@ internal data class ProjectionInputs(
     val pinnedIdentities: Set<String> = emptySet(),
     val phonePinnedIdentities: Set<String> = emptySet(),
     /**
+     * S2669: the selected curated collection's member urls, carried in as a ready set. Empty means
+     * no collection is selected and the filter contributes nothing.
+     */
+    val selectedCollectionMemberUrls: Set<String> = emptySet(),
+    /**
      * S2146: the play counter, read once per catalogue emission and carried in as a ready map. A row
      * that looked its own count up would turn scrolling nineteen thousand rows into a store read per
      * frame, which strategic §7 names as the performance risk of this ticket.
@@ -519,6 +544,12 @@ internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamCh
         result = result.filter { ch ->
             ch.language?.split(",")?.any { it.trim().equals(selectedLanguage, ignoreCase = true) } == true
         }
+    }
+
+    // S2669: the curated collection is one more narrowing condition beside the facets, not a
+    // separate mode - search, kind, topic and language all keep applying inside it.
+    if (inputs.selectedCollectionMemberUrls.isNotEmpty()) {
+        result = result.filter { it.url in inputs.selectedCollectionMemberUrls }
     }
 
     result = sortChannels(result, inputs.sortOrder, inputs.usageByIdentity)

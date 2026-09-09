@@ -4,7 +4,7 @@
     S2126: entry point for the streams.tests suite - runs the folder's Pester specs.
 
 .DESCRIPTION
-    These four files are Pester specs (`Describe` / `It`), so neither of the repository's other two
+    These five files are Pester specs (`Describe` / `It`), so neither of the repository's other two
     conventions reaches them: dot-sourcing defines blocks that nothing executes, and running a file
     with `pwsh -File` fails on an unloaded `Describe`. Either way zero tests run and the folder
     reports green, which is the failure mode this ticket exists to remove.

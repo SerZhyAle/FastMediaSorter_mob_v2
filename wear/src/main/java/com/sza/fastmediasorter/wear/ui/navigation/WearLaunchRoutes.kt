@@ -42,6 +42,8 @@ internal object WearLaunchRoutes {
         // S2551: the mirror entrance of the row above, and a separate address for the same reason -
         // one of them opens this watch's microphone, the other the phone's camera.
         WearDestinationId.PHONE_CAMERA -> WearRoutes.PHONE_CAMERA
+        // S2511: the overflow cell of a shortcut grid, which offers what the grid could not hold.
+        WearDestinationId.HOME -> WearRoutes.HOME
     }
 
     fun routeFor(address: WearLaunchAddress): String = when (address) {

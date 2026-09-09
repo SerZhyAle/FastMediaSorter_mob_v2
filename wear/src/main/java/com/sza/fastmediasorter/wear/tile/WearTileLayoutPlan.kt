@@ -22,8 +22,8 @@ const val MAX_FAVOURITES_PREVIEW_ENTRIES = 3
 /**
  * What the shortcut grid will actually draw, and what it had to leave out.
  *
- * [dropped] is carried out rather than logged here so the count stays a fact about the data and the warning
- * stays where the rest of the tile's logging is.
+ * [dropped] counts the entries no cell of [shown] carries. It is carried out rather than logged here so the
+ * count stays a fact about the data and the warning stays where the rest of the tile's logging is.
  */
 data class WearShortcutGridPlan(
     val shown: List<WearTileShortcut>,
@@ -31,11 +31,18 @@ data class WearShortcutGridPlan(
 )
 
 /**
- * S2511: cuts the shortcut list to what the grid holds.
+ * S2511: cuts the shortcut list to what the grid holds, spending the last cell on [overflow] when it cuts.
  *
  * `MultiButtonLayout` throws above its capacity instead of truncating, and an exception inside a tile
  * request hands the system an error tile in place of content - while the two catalogs feeding this grid are
  * documented as growing by a single line, by authors who have no reason to know a tile reads them.
+ *
+ * Truncating alone was not enough: on the tree that added an eighth section the clamp silently swallowed
+ * Favourites, so the tile answered a question the owner never asked it. [overflow] is the cell that leads to
+ * the screen listing everything, which turns "one entry disappeared" into "the rest are one tap further".
+ * It is passed in rather than built here because it carries a translated label, and a label needs a
+ * `Context` this file exists to stay clear of. A null [overflow] keeps the bare clamp, which is what the
+ * caller with nowhere to send the owner wants.
  *
  * [capacity] is a parameter so a test can state its own bound instead of depending on the library's value,
  * which is what makes the clamp checkable at all; the default is that value, and a separate test pins the
@@ -43,10 +50,20 @@ data class WearShortcutGridPlan(
  */
 fun planShortcutGrid(
     entries: List<WearTileShortcut>,
+    overflow: WearTileShortcut? = null,
     capacity: Int = MAX_BUTTONS
 ): WearShortcutGridPlan {
-    val shown = entries.take(capacity)
-    return WearShortcutGridPlan(shown = shown, dropped = entries.size - shown.size)
+    val keptCount = when {
+        entries.size <= capacity -> entries.size
+        overflow == null -> capacity
+        else -> capacity - 1
+    }
+    val kept = entries.take(keptCount)
+    val overflows = kept.size < entries.size
+    return WearShortcutGridPlan(
+        shown = if (overflows && overflow != null) kept + overflow else kept,
+        dropped = entries.size - kept.size
+    )
 }
 
 /** The entries an assigned tile previews under its title. */

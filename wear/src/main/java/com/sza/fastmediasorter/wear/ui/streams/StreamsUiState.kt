@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 enum class StreamFilterKind {
@@ -56,6 +57,14 @@ data class StreamsUiState(
     val selectedLanguage: String? = null,
     val availableTopics: List<StreamFacetValue> = emptyList(),
     val availableLanguages: List<StreamFacetValue> = emptyList(),
+    /**
+     * S2669: the curated collections delivered with the catalog. Empty when the archive carried no
+     * entry or delivered none, which is also what hides the picker section - a watch that never got
+     * collections must show the filter dialog exactly as before (strategic criterion 7).
+     */
+    val availableCollections: List<WearStreamCollection> = emptyList(),
+    /** S2669: the selected curated collection, or null for the whole catalog. */
+    val selectedCollectionId: String? = null,
     val showSearchDialog: Boolean = false,
     /**
      * S1946: no activity answered the request for text or speech input. The screen has to say so -

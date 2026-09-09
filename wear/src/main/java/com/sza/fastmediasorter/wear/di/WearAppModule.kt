@@ -322,6 +322,12 @@ object WearAppModule {
 
     @Provides
     @Singleton
+    fun provideWearStreamCollectionRepository(
+        impl: com.sza.fastmediasorter.wear.data.repository.WearStreamCollectionRepositoryImpl
+    ): com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository = impl
+
+    @Provides
+    @Singleton
     fun provideWearNetworkChannelMonitor(
         impl: WearNetworkChannelMonitorImpl
     ): WearNetworkChannelMonitor = impl

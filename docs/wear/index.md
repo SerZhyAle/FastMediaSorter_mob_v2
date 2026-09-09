@@ -55,7 +55,7 @@ FastMedia Wear turns your smartwatch into a full-featured standalone media hub a
 
 ### 🧩 Wear OS Tiles
 - **Five Dedicated Tiles:** Add Network Resource, Stream, Favourites, Programs, and Sections tiles to your Wear OS tile carousel.
-- **Shortcut Grids:** The Programs tile opens every mini-program in the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it.
+- **Shortcut Grids:** The Programs tile opens the mini-programs of the Apps section in one tap; the Sections tile does the same for the app's own sections. Neither needs assigning - adding it to the carousel is all there is to it. A grid holds seven cells: when there is more to show than that, the last cell opens the app itself, where the rest are listed.
 - **Quick Assignment:** Point an unassigned Resource or Stream tile to your target directly from the watch.
 - **Standalone & Offline:** Launch assigned network shares, streams, or favourites list instantly from your watch face, completely independent of the phone or network state.
 

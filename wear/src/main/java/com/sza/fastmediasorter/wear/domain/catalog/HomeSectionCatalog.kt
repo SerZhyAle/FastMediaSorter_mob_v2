@@ -84,4 +84,38 @@ object HomeSectionCatalog {
             )
         )
     }
+
+    /**
+     * S2511: the same sections, in the order the shortcut tile offers them.
+     *
+     * The screen scrolls and the tile does not: its grid holds seven cells, one of which goes to the way
+     * out when there are more sections than that. So the tile needs an answer to "which ones come first"
+     * that the screen never has to give, and it is declared here beside the screen's order rather than in
+     * the tile layer - a second list of sections living somewhere else is how the two come to disagree
+     * about what a section even is.
+     *
+     * A section absent from [TILE_ORDER] sorts last, which is deliberate: a future row lands behind the
+     * ones the owner named in the request and is reached through the overflow cell, rather than pushing
+     * one of those off the tile the moment it is added.
+     */
+    fun tileSectionsFor(visibility: HomeSectionVisibility): List<HomeSection> =
+        sectionsFor(visibility).sortedBy { section ->
+            TILE_ORDER.indexOf(section.id).takeIf { it >= 0 } ?: TILE_ORDER.size
+        }
+
+    /**
+     * The sections the owner named when asking for this tile, ahead of the rows added by later tickets.
+     *
+     * FAVOURITES sits among them rather than last as on the screen: it is one of the six the request lists,
+     * and leaving it in screen position is exactly what dropped it off the grid once the catalog reached
+     * eight rows.
+     */
+    private val TILE_ORDER = listOf(
+        HomeSectionId.RESOURCES,
+        HomeSectionId.PHONE,
+        HomeSectionId.LOCAL,
+        HomeSectionId.STREAMS,
+        HomeSectionId.APPS,
+        HomeSectionId.FAVOURITES
+    )
 }

@@ -105,6 +105,12 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder {
     <fields>;
 }
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.documents.DocumentFontSize {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.game.GameDifficulty {
     <fields>;
 }

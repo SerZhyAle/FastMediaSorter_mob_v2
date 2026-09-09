@@ -702,4 +702,7 @@
     <string name="wear_phone_camera_failed_not_supported">Ця збірка телефона не вміє передавати відео</string>
     <string name="wear_phone_camera_failed_unknown">Телефон відмовив без пояснення</string>
     <string name="wear_player_file_actions">Дії з файлом</string>
+    <string name="wear_tile_shortcut_more">Ще</string>
+    <string name="wear_streams_filter_collections_header">Добірки</string>
+    <string name="wear_streams_filter_collections_all">Усі добірки</string>
 </resources>

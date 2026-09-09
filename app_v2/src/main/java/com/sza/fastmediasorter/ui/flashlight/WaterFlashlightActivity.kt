@@ -67,7 +67,6 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
      */
     override fun onStart() {
         super.onStart()
-        Timber.d("S2516: water flashlight entered foreground, requesting torch on")
         deviceActionHandler.setTorch(this, true)
     }
 
@@ -78,7 +77,6 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
      */
     override fun onResume() {
         super.onResume()
-        Timber.d("S2718: water flashlight resumed, engaging system lockdown")
         lockdown.engage(this)
     }
 
@@ -88,7 +86,6 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
     }
 
     override fun onStop() {
-        Timber.d("S2516: water flashlight left foreground, requesting torch off")
         deviceActionHandler.setTorch(this, false)
         super.onStop()
     }
@@ -111,7 +108,6 @@ class WaterFlashlightActivity : BaseActivity<ActivityWaterFlashlightBinding>() {
      * (ADR-2). The down event is swallowed too, so the exit press does not also move the volume.
      */
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
-        Timber.d("S2516: water flashlight saw key %d action %d", event.keyCode, event.action)
         if (event.keyCode !in EXIT_KEYS) return super.dispatchKeyEvent(event)
         if (event.action == KeyEvent.ACTION_UP) {
             Timber.d("water flashlight left by hardware key %d", event.keyCode)

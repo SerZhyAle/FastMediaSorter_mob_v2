@@ -25,7 +25,12 @@ class ApplyWearSettingsUseCase @Inject constructor(
      * for every Data Layer message, not only for a settings push - an eager dependency would pull the
      * voice-note database into the construction path of every message the watch receives.
      */
-    private val refreshVoiceNoteTitles: Lazy<RefreshVoiceNoteTitlesUseCase>
+    private val refreshVoiceNoteTitles: Lazy<RefreshVoiceNoteTitlesUseCase>,
+    /**
+     * S2511: the Streams switch is written through its own use case, because moving it also has to
+     * invalidate the sections tile - a phone push changes it exactly as the watch's own screen does.
+     */
+    private val setStreamsSectionEnabled: SetStreamsSectionEnabledUseCase
 ) {
 
     /**
@@ -74,7 +79,7 @@ class ApplyWearSettingsUseCase @Inject constructor(
             preferencesRepository.setDownloadAlbumArt(it)
         }
         apply(resolver, "streamsSectionEnabled", payload.streamsSectionEnabled) {
-            preferencesRepository.setStreamsSectionEnabled(it)
+            setStreamsSectionEnabled(it)
         }
     }
 

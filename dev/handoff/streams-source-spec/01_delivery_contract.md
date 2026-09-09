@@ -232,6 +232,32 @@ Provenance model: each stored channel has an origin - `CATALOG` (from this bank)
 URL), or `IMPORTED` (user imported an `.m3u`/`.m3u8` playlist). Only CATALOG rows participate in
 merge/prune and carry `category/topic/language/country`.
 
+### 6.1 Portable origins and cross-project conformance **[CONTRACT]**
+
+The `stream-catalog.zip` archive is the **cross-project publication format**. A producer such as FMS
+for Windows may generate it, and a consumer such as StreamsPlayer may import, show, and route its rows
+without implementing Android code.
+
+- **Catalog origin** is a row received from this ZIP. It is the only origin that the catalog refresh may
+  update or prune.
+- **Local origin** is a channel created from a user-entered address, a playlist, or another local import.
+  A catalog refresh must never overwrite or remove it, including when a later catalog no longer contains
+  its URL.
+- **Phone-transfer origin** is a channel sent from the Android phone to its paired watch. Its JSON message
+  is a Data Layer implementation contract, not a published interchange format. The watch retains a
+  transferred row absent from a later catalog and lets a catalog row with the same URL supersede it.
+
+**Producer conformance.** Emit UTF-8 RFC-4180 `streams.csv` as ZIP entry zero, match the published
+header names, and package the favicon atlas from the same build whenever any row has `favicon_index`.
+Adding columns is allowed; renaming an existing header or publishing CSV indices against another atlas is
+not.
+
+**Consumer conformance.** Match headers by name, drop rows missing `name` or `url`, display available
+metadata, and route playback from `media_kind` with the documented URL fallback. Merge catalog rows by
+URL while preserving local and phone-transfer origins. If this build's atlas is missing, corrupt, or over
+the consumer cap, discard this build's icon indices too and render no icon rather than pairing them with
+an older atlas.
+
 ---
 
 ## 7. Backward / forward compatibility **[CONTRACT]**

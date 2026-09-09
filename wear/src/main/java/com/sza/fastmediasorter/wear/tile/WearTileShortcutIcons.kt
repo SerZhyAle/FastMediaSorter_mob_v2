@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.tile
 
 import androidx.annotation.DrawableRes
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
@@ -40,4 +41,7 @@ internal fun tileShortcutIconFor(destination: WearDestinationId): Int = when (de
     WearDestinationId.WATER_FLASHLIGHT -> WearAppIconCatalog.iconFor(WearAppId.WATER_FLASHLIGHT)
     WearDestinationId.MOTION_MONITOR -> WearAppIconCatalog.iconFor(WearAppId.MOTION_MONITOR)
     WearDestinationId.BODY_SENSOR -> WearAppIconCatalog.iconFor(WearAppId.BODY_SENSOR)
+    // S2511: no catalog answers for the overflow cell - it stands for no entity, it is the way out of the
+    // grid into the screen that lists the rest, which is what the "open elsewhere" glyph says.
+    WearDestinationId.HOME -> R.drawable.ic_open_in_new
 }

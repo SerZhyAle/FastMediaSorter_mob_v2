@@ -7,7 +7,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.chip.ChipDrawable
 import com.google.android.material.chip.ChipGroup
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.data.local.db.StreamCollectionEntity
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase.StreamCollection
 import java.util.Locale
 
 /**
@@ -36,8 +36,8 @@ class StreamsCollectionStripManager(
      * [matchedCount] is the size of the list the current filter produced. It is passed in rather than
      * derived here because this manager does not see the catalog - it only reports what changed.
      */
-    fun render(collections: List<StreamCollectionEntity>, selectedId: String?, matchedCount: Int) {
-        val ids = collections.map { it.collectionId }
+    fun render(collections: List<StreamCollection>, selectedId: String?, matchedCount: Int) {
+        val ids = collections.map { it.id }
         if (ids != renderedIds) {
             rebuildChips(collections)
             renderedIds = ids
@@ -46,7 +46,7 @@ class StreamsCollectionStripManager(
         applySelection(selectedId, matchedCount)
     }
 
-    private fun rebuildChips(collections: List<StreamCollectionEntity>) {
+    private fun rebuildChips(collections: List<StreamCollection>) {
         chipGroup.removeAllViews()
         if (collections.isEmpty()) return
         val locale = ConfigurationCompat.getLocales(chipGroup.resources.configuration)
@@ -54,11 +54,11 @@ class StreamsCollectionStripManager(
         chipGroup.addView(newChip(chipGroup.context.getString(R.string.streams_collection_all), null))
         collections.forEach { collection ->
             val name = StreamCollectionNameResolver.resolve(
-                collectionId = collection.collectionId,
+                collectionId = collection.id,
                 namesJson = collection.namesJson,
                 locale = locale,
             )
-            chipGroup.addView(newChip(name, collection.collectionId))
+            chipGroup.addView(newChip(name, collection.id))
         }
         // A rebuilt group has no checked chip; force the next applySelection to paint one.
         selectionEverApplied = false

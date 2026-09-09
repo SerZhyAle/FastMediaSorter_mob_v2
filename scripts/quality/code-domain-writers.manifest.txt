@@ -64,6 +64,7 @@ scripts/utils/fix-house-style.ps1 | B | Code.Phone, Code.Wear, Code.Scripts | do
 scripts/wear/generate-wear-resource-icons.ps1 | B | Code.Wear | wear res/drawable/ico_*.xml and the registry .kt
 scripts/release/gen_fastlane_changelog.ps1 | B | Code.Scripts | fastlane/metadata/android/<locale>/changelogs/*.txt
 scripts/utils/install-sza-forwarders.ps1 | B | Code.Scripts | every path in scripts/utils/sza-forwarders.manifest.txt
+scripts/streams/modules/StreamPublisher.Collections.ps1 | B | Code.Scripts | delivery/stream-catalog/collections.json (Build-StreamCollections; lock on the write only, so the %TEMP% writes of the contract suite stay domain-free)
 
 # --- Class B: this registry's own gate -----------------------------------------------------
 # Class B and not A although it runs inside the fg battery: it writes ONLY under -UpdateBaseline

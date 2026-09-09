@@ -164,9 +164,9 @@
             android:id="@+id/streamCollectionsStrip"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="4dp"
+            android:paddingStart="@dimen/streams_collections_strip_side_padding"
+            android:paddingEnd="@dimen/streams_collections_strip_side_padding"
+            android:paddingBottom="@dimen/streams_collections_strip_bottom_padding"
             android:scrollbars="none"
             android:visibility="gone"
             android:contentDescription="@string/streams_collection_strip_description">

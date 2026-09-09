@@ -702,4 +702,7 @@
     <string name="wear_phone_camera_failed_not_supported">This phone build cannot send video</string>
     <string name="wear_phone_camera_failed_unknown">The phone refused, without saying why</string>
     <string name="wear_player_file_actions">File actions</string>
+    <string name="wear_tile_shortcut_more">More</string>
+    <string name="wear_streams_filter_collections_header">Collections</string>
+    <string name="wear_streams_filter_collections_all">All collections</string>
 </resources>

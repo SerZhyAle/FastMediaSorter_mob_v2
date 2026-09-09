@@ -37,7 +37,6 @@ import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.findActivity
 import com.sza.fastmediasorter.wear.ui.player.common.rememberRotaryFocus
 import kotlinx.coroutines.delay
-import timber.log.Timber
 import java.util.Date
 
 /**
@@ -75,7 +74,6 @@ fun WaterFlashlightScreen(onLeave: () -> Unit) {
             // a per-model fact this repository has never measured, and being unable to leave is a far
             // worse failure than leaving by an unexpected button (strategic §6.1).
             .onPreviewKeyEvent { event ->
-                Timber.d("S2516: wear water flashlight key %d", event.nativeKeyEvent.keyCode)
                 if (event.type == KeyEventType.KeyUp) {
                     onLeave()
                 }
@@ -85,7 +83,6 @@ fun WaterFlashlightScreen(onLeave: () -> Unit) {
             // than mechanical this is a touch, so the device pass has to say whether a wet wrist can
             // trigger it - if it can, this line goes and the keys carry the exit alone.
             .onRotaryScrollEvent {
-                Timber.d("S2516: wear water flashlight rotary input, leaving")
                 onLeave()
                 true
             }

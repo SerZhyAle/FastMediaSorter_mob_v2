@@ -111,10 +111,11 @@ class WearTileLayoutBuilder @Inject constructor(
     private fun buildShortcutsLayout(
         content: WearTileContent.Shortcuts
     ): LayoutElementBuilders.LayoutElement {
-        val plan = planShortcutGrid(content.entries)
+        val plan = planShortcutGrid(content.entries, overflow = overflowShortcut(context))
+        Timber.d("S2511: shortcut grid drawing %d cell(s), %d behind the way out", plan.shown.size, plan.dropped)
         if (plan.dropped > 0) {
             Timber.w(
-                "Shortcut tile holds %d entries, %d fit - dropped the last %d",
+                "Shortcut tile holds %d entries, %d cells - the last %d are behind the overflow cell",
                 content.entries.size,
                 plan.shown.size,
                 plan.dropped

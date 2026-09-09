@@ -33,7 +33,18 @@ enum class WearDestinationId {
     BROADCAST,
 
     /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
-    PHONE_CAMERA
+    PHONE_CAMERA,
+
+    /**
+     * S2511: the app's own home screen, which lists every section a shortcut grid could not fit.
+     *
+     * Last because it is no section and no program: it is the address the grid's overflow cell carries, so
+     * a catalog longer than the grid loses nothing - what does not fit stays one tap away instead of
+     * vanishing. Naming it here rather than launching with no target at all keeps every grid cell answering
+     * the same contract, so a tap that lands on the home screen is a stated destination rather than the
+     * fallback an unreadable intent also produces.
+     */
+    HOME
 }
 
 /**

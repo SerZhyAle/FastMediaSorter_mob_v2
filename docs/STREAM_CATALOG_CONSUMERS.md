@@ -27,6 +27,17 @@ A rule that lives only in correspondence is not a rule. Most of the obligations 
 - **Acceptance signal:** one line saying the upload happened is enough. The consumer then runs `dotnet run --project tools/StreamsPlayer.CatalogHarness -- artifacts/favicon-sample.png`, which downloads the live asset with the same limits the product uses and reports whether `streams.csv` is entry zero, how many rows parsed, the atlas byte count, the maximum tile index, and cuts a real tile to a file for visual inspection.
 - **Parser tolerance:** an unrecognised `access` token reads as "open", so restoring a producer for that column needs no release on the consumer's side.
 
+## Portable contract adopters
+
+`dev/handoff/streams-source-spec/01_delivery_contract.md` §6.1 is the portable contract for any
+generator and consumer. It distinguishes the published ZIP from local imports and the Android
+phone-to-watch transfer, which remains an internal Data Layer message.
+
+- **FMS for Windows:** may generate `stream-catalog.zip` when it satisfies the Producer conformance
+  rules. This documents compatibility; it does not claim that a Windows publisher is already released.
+- **StreamsPlayer:** may import, show, and route catalog rows when it satisfies the Consumer conformance
+  rules. Its existing pinned assets and harness expectations above remain in force.
+
 ## Asset with no declared consumer: the stream-logo sheet
 
 - **Read by:** nobody outside this repository has declared themselves. In-app the readers are `StreamLogoAtlasSlicer` and `StreamLogoAtlasStore`, both here.

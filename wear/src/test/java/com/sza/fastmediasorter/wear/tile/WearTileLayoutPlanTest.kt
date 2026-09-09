@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.model.WearTileShortcut
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -85,6 +86,52 @@ class WearTileLayoutPlanTest {
 
         assertEquals(MAX_BUTTONS, plan.shown.size)
         assertEquals(1, plan.dropped)
+    }
+
+    private val overflow = WearTileShortcut(
+        destinationId = WearDestinationId.HOME,
+        contentDescription = "more",
+        launchTarget = WearLaunchTarget.Destination(WearDestinationId.HOME)
+    )
+
+    @Test
+    fun `an overflowing list spends its last cell on the way out`() {
+        val entries = shortcuts(testCapacity + 3)
+
+        val plan = planShortcutGrid(entries, overflow = overflow, capacity = testCapacity)
+
+        assertEquals(testCapacity, plan.shown.size)
+        assertEquals(overflow, plan.shown.last())
+        assertEquals(entries.take(testCapacity - 1), plan.shown.dropLast(1))
+        assertEquals(4, plan.dropped)
+    }
+
+    /**
+     * The defect this replaced: the eighth section was cut off and nothing said so. The count has to name
+     * every entry no cell carries, including the one whose place the overflow cell took.
+     */
+    @Test
+    fun `the dropped count includes the entry the overflow cell displaced`() {
+        val plan = planShortcutGrid(shortcuts(testCapacity), overflow = overflow, capacity = testCapacity)
+
+        assertEquals(0, plan.dropped)
+        assertFalse(plan.shown.contains(overflow))
+    }
+
+    @Test
+    fun `a list that fits keeps every entry and no way out`() {
+        val entries = shortcuts(testCapacity - 1)
+
+        val plan = planShortcutGrid(entries, overflow = overflow, capacity = testCapacity)
+
+        assertEquals(entries, plan.shown)
+    }
+
+    @Test
+    fun `an empty list offers no way out either`() {
+        val plan = planShortcutGrid(emptyList(), overflow = overflow, capacity = testCapacity)
+
+        assertTrue(plan.shown.isEmpty())
     }
 
     @Test

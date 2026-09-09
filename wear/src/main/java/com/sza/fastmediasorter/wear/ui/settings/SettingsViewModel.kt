@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.SetStreamsSectionEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -66,7 +67,8 @@ class SettingsViewModel @Inject constructor(
     private val preferencesRepository: WearPreferencesRepository,
     private val logReportClient: WearLogReportClient,
     private val reportWearSettingsUseCase: ReportWearSettingsUseCase,
-    private val openUrlOnPhoneRepository: WearOpenUrlOnPhoneRepository
+    private val openUrlOnPhoneRepository: WearOpenUrlOnPhoneRepository,
+    private val setStreamsSectionEnabled: SetStreamsSectionEnabledUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -258,7 +260,9 @@ class SettingsViewModel @Inject constructor(
 
     fun toggleStreamsSection() {
         viewModelScope.launch {
-            preferencesRepository.setStreamsSectionEnabled(!_uiState.value.streamsSectionEnabled)
+            // S2511: through the use case, which also asks the system to redraw the sections tile - the
+            // tile lists Streams exactly while this switch is on, and nothing else invalidates it.
+            setStreamsSectionEnabled(!_uiState.value.streamsSectionEnabled)
         }
     }
 

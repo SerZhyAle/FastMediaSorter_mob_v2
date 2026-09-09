@@ -8,9 +8,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.di.DefaultDispatcher
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
-import com.sza.fastmediasorter.data.local.db.StreamCollectionEntity
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
-import com.sza.fastmediasorter.data.repository.StreamCollectionRepository
 import com.sza.fastmediasorter.data.repository.settings.StreamsSessionStore
 import com.sza.fastmediasorter.data.repository.streams.StreamFramePersistentStore
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -31,6 +29,7 @@ import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCa
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase.StreamCollection
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
@@ -123,11 +122,10 @@ class StreamsViewModel @Inject constructor(
     private val mediaCapabilities: MediaCapabilities,
     // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
     private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
-    // S2669: the curated collections delivered with the catalog, as one more pipeline input.
-    observeStreamCollections: ObserveStreamCollectionsUseCase,
-    // S2669: membership is read on demand, once per selection change, so it is a direct repository call
-    // rather than a Flow folded into the combine - see onCollectionSelected.
-    private val streamCollectionRepository: StreamCollectionRepository,
+    // S2669: the curated collections delivered with the catalog, as one more pipeline input. The UI's
+    // only door to them (S2103): it also serves the on-demand membership read below, so no UI file
+    // needs the repository or the Room entity behind it.
+    private val observeStreamCollections: ObserveStreamCollectionsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -564,7 +562,7 @@ class StreamsViewModel @Inject constructor(
     private suspend fun applyCollectionSelection(collectionId: String?) {
         if (_filter.value.collectionId == collectionId) return
         val memberOrder = collectionId
-            ?.let { id -> streamCollectionRepository.membersOf(id).associate { it.url to it.sortOrder } }
+            ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()
         _filter.update {
             it.copy(
@@ -582,7 +580,7 @@ class StreamsViewModel @Inject constructor(
      */
     private suspend fun dropSelectionIfCollectionGone(state: StreamsUiState) {
         val selected = state.filter.collectionId ?: return
-        if (state.collections.none { it.collectionId == selected }) applyCollectionSelection(null)
+        if (state.collections.none { it.id == selected }) applyCollectionSelection(null)
     }
 
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */
@@ -769,19 +767,15 @@ class StreamsViewModel @Inject constructor(
 
         /**
          * One row against every active facet, ANDed. Split out of [applyFilter] so each half stays
-         * within the complexity budget: this is the facet logic, [applyFilter] is the ordering.
-         * `query` arrives pre-trimmed but in the user's original case - it is the same for every row,
-         * and each comparison folds case itself rather than allocating a lowercased copy of the row.
+         * within the complexity budget: this is the facet logic, [applyFilter] is the ordering, and
+         * the free-text half lives in [matchesQuery].
          */
         private fun matchesFacets(
             source: StreamSourceEntity,
             filter: StreamsFilter,
             query: String,
         ): Boolean {
-            val queryHit = query.isEmpty() ||
-                source.title.contains(query, ignoreCase = true) ||
-                source.topic?.contains(query, ignoreCase = true) == true ||
-                source.language?.contains(query, ignoreCase = true) == true
+            val queryHit = matchesQuery(source, query)
             val categoryHit = filter.category == null || source.category == filter.category
             val languageHit = filter.language == null ||
                 source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
@@ -801,6 +795,18 @@ class StreamsViewModel @Inject constructor(
             return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit &&
                 pinnedHit && collectionHit
         }
+
+        /**
+         * The free-text half of [matchesFacets], split out for the same reason that function was
+         * split out of `applyFilter`: each half stays within the complexity budget. `query` arrives
+         * pre-trimmed but in the user's original case - it is the same for every row, and each
+         * comparison folds case itself rather than allocating a lowercased copy of the row.
+         */
+        private fun matchesQuery(source: StreamSourceEntity, query: String): Boolean =
+            query.isEmpty() ||
+                source.title.contains(query, ignoreCase = true) ||
+                source.topic?.contains(query, ignoreCase = true) == true ||
+                source.language?.contains(query, ignoreCase = true) == true
 
         /**
          * S2669: membership is a map lookup, never a scan. The map was built once when the selection
@@ -858,8 +864,9 @@ class StreamsViewModel @Inject constructor(
         val filter: StreamsFilter = StreamsFilter(),
         val facets: StreamsFacets = StreamsFacets(),
         // S2669: the delivered curated collections, still carrying their raw locale maps - the display
-        // name depends on the app locale, which is resolved at the presentation edge.
-        val collections: List<StreamCollectionEntity> = emptyList(),
+        // name depends on the app locale, which is resolved at the presentation edge. The domain model,
+        // not the Room entity, so screens stay decoupled from the schema (S2103).
+        val collections: List<StreamCollection> = emptyList(),
         val isLoading: Boolean = true,
         val isImporting: Boolean = false,
         val displayMode: DisplayMode = DisplayMode.LIST,

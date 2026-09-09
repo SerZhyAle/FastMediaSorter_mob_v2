@@ -66,6 +66,10 @@
          keep inline stream audio alive, so it re-reads them in onConfigurationChanged. -->
     <dimen name="streams_list_side_padding">0dp</dimen>
     <dimen name="streams_mini_control_min_height">56dp</dimen>
+    <!-- S2669: curated-collection chip strip paddings - aligns the strip's chips with the control row
+         text above it, with a smaller bottom gap so the list header follows closely. -->
+    <dimen name="streams_collections_strip_side_padding">12dp</dimen>
+    <dimen name="streams_collections_strip_bottom_padding">4dp</dimen>
     <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
          labels; small captions must override it or the contour swallows the glyph. -->
     <dimen name="outline_text_stroke_width">2dp</dimen>

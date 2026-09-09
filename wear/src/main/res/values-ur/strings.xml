@@ -667,4 +667,5 @@
     <string name="wear_phone_camera_failed_not_supported">یہ فون ورژن ویڈیو نہیں بھیج سکتا</string>
     <string name="wear_phone_camera_failed_unknown">فون نے وجہ بتائے بغیر انکار کیا</string>
     <string name="wear_player_file_actions">فائل کے اعمال</string>
+    <string name="wear_tile_shortcut_more">مزید</string>
 </resources>

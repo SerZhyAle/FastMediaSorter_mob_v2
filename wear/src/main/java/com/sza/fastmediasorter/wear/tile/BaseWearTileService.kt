@@ -111,8 +111,14 @@ abstract class BaseWearTileService : TileService() {
 
     /** The glyphs [content] needs, in a stable order so the version does not change on re-ordering alone. */
     private fun drawableIdsOf(content: WearTileContent): List<Int> = when (content) {
+        // S2511: the planned cells, not the raw entries. A grid that overflowed draws a cell no entry
+        // carries, and publishing the entries instead would leave that cell's glyph unaddressable.
         is WearTileContent.Shortcuts ->
-            content.entries.map { tileShortcutIconFor(it.destinationId) }.distinct().sorted()
+            planShortcutGrid(content.entries, overflow = overflowShortcut(this))
+                .shown
+                .map { tileShortcutIconFor(it.destinationId) }
+                .distinct()
+                .sorted()
         // The other states draw text only, which is why S2751 removed the always-null field they carried.
         is WearTileContent.Assigned,
         is WearTileContent.Unassigned,

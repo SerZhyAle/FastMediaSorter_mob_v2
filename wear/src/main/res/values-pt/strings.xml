@@ -667,4 +667,5 @@
     <string name="wear_phone_camera_failed_not_supported">Esta versão do telefone não pode enviar vídeo</string>
     <string name="wear_phone_camera_failed_unknown">O telefone recusou, sem dizer o motivo</string>
     <string name="wear_player_file_actions">Ações do arquivo</string>
+    <string name="wear_tile_shortcut_more">Mais</string>
 </resources>
