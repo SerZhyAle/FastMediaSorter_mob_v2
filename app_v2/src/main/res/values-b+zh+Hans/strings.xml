@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>自动（跟随设备）</item>
         <item>浅色</item>
@@ -3368,4 +3372,61 @@
     <string name="broadcast_import_unsupported_version">不支持的广播描述符版本</string>
     <string name="broadcast_import_success">已添加广播频道</string>
     <string name="broadcast_import_option_file">选择描述符文件</string>
+    <string name="launcher_settings_unit_system_title">单位制式</string>
+    <string name="unit_system_metric">公制 (°C)</string>
+    <string name="wear_listen_title">收听手表</string>
+    <string name="wear_listen_start">开始收听</string>
+    <string name="wear_listen_stop">停止收听</string>
+    <string name="wear_listen_caption_idle">听手表麦克风听到的声音. 手表会请你确认.</string>
+    <string name="wear_listen_caption_waiting">正在等待你在手表上确认..</string>
+    <string name="wear_listen_caption_listening">正在收听手表.</string>
+    <string name="wear_listen_refusal_not_asked">手表无法向你请求: 请为 FastMediaSorter 打开它的通知.</string>
+    <string name="wear_listen_refusal_declined">你在手表上拒绝了该请求.</string>
+    <string name="wear_listen_refusal_expired">手表上没有人及时回应.</string>
+    <string name="wear_listen_refusal_capture_failed">手表无法打开其麦克风.</string>
+    <string name="wear_listen_refusal_no_network">请在手表上打开 Wi-Fi - 声音通过 Wi-Fi 传输, 而不是蓝牙.</string>
+    <string name="wear_listen_refusal_stopped">已在手表上停止收听.</string>
+    <string name="wear_listen_refusal_busy">手表已在为另一位听众服务.</string>
+    <string name="wear_listen_refusal_unknown">手表以本手机未知的原因拒绝了请求.</string>
+    <string name="wear_listen_no_answer">手表没有回应.</string>
+    <string name="wear_listen_send_failed">无法连接到手表.</string>
+    <string name="wear_listen_wifi_lost">手表已离开 Wi-Fi, 收听已停止.</string>
+    <string name="stream_action_open_in_vr">在 VR 中打开</string>
+    <string name="stream_vr_unsupported_transport">此频道使用的传输方式 VR 播放器暂时无法打开. 它仍会在普通播放器中播放.</string>
+    <string name="launcher_translator_translate">翻译</string>
+    <string name="launcher_translator_in_progress">正在翻译..</string>
+    <string name="launcher_wallpaper_screen_title">壁纸</string>
+    <string name="launcher_wallpaper_section_mode">绘制内容</string>
+    <string name="launcher_wallpaper_section_source">来源</string>
+    <string name="launcher_wallpaper_section_tuning">外观</string>
+    <string name="launcher_wallpaper_section_power">电池</string>
+    <string name="launcher_wallpaper_desc_branded">带有漂浮粒子的彩色波浪, 只要桌面处于打开状态就会持续动画.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">同样的波浪, 但是静止的: 每次返回桌面都会绘制一帧新画面, 之后不再有任何移动.</string>
+    <string name="launcher_wallpaper_desc_none">完全没有壁纸 - 桌面显示当前主题的纯色.</string>
+    <string name="launcher_wallpaper_desc_image">你自己的图片, 静态或动态, 经过裁剪以填满屏幕.</string>
+    <string name="launcher_wallpaper_desc_camera">摄像头的实时画面, 持续刷新. 在所有模式中最耗电.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">每次返回桌面时由摄像头拍摄一张照片; 之后摄像头会立即释放.</string>
+    <string name="launcher_wallpaper_intensity_title">亮度</string>
+    <string name="launcher_wallpaper_intensity_hint">壁纸绘制的强度. 数值越低, 为图标和标签留出的对比度越高.</string>
+    <string name="launcher_wallpaper_speed_title">动画速度</string>
+    <string name="launcher_wallpaper_particle_density_title">粒子密度</string>
+    <string name="launcher_wallpaper_particle_density_hint">为零时只绘制波浪, 没有粒子.</string>
+    <string name="launcher_wallpaper_power_explanation">当系统省电模式开启或电量不足时, 壁纸会自动停止动画, 实时摄像头也会回退到波浪效果. 在应用设置中关闭动画同样会停止它.</string>
+    <string name="launcher_wallpaper_power_state_normal">当前: 动画中</string>
+    <string name="launcher_wallpaper_power_state_reduced">当前: 已降低以省电</string>
+    <string name="launcher_wallpaper_power_state_saving">当前: 已停止以省电</string>
+    <string name="launcher_wallpaper_source_empty">尚未选择</string>
+    <string name="launcher_wallpaper_source_change">选择</string>
+    <string name="launcher_signal_overflow_description">更多通知: %1$d</string>
+    <string name="launcher_section_settings">设置</string>
+    <string name="launcher_tray_battery_charging_ac">电量 %1$d%%, 正在使用市电充电</string>
+    <string name="launcher_tray_battery_charging_usb">电量 %1$d%%, 正在通过 USB 充电</string>
+    <string name="launcher_tray_battery_charging_wireless">电量 %1$d%%, 正在无线充电</string>
+    <string name="streams_collection_all">全部</string>
+    <string name="streams_collection_strip_description">收藏集</string>
+    <string name="streams_collection_selected_count">收藏集中有 %1$d 个频道</string>
+    <string name="camera_session_consent_channel_name">手表摄像头请求</string>
+    <string name="camera_session_consent_notification_title">你的手表想查看此摄像头</string>
+    <string name="camera_session_consent_notification_text">允许手表查看此手机的摄像头和麦克风.</string>
+    <string name="camera_session_consent_allow">允许</string>
 </resources>

@@ -146,6 +146,35 @@ leave the circle" test fires on every list head and tail:
 Only leaf nodes are judged: a container's box is the extent of a group, not of anything visible, and
 the launcher's home-screen container was the first thing the verb called a defect on a normal phone.
 
+### Two shape checks, and why merging them would lose the one Play applies (S2757)
+
+`clip-check` judges TOUCH TARGETS, not ink. Compose publishes every node to the accessibility tree
+as `touchBoundsInRoot` - the layout rectangle inflated to the 48 dp minimum touch target around its
+centre - and uiautomator, so clip-check, reads that inflated box. Measured 2026-09-08 on the watch
+calculator: both children of a value row were already 48 dp, their published boxes therefore
+overhung the row by 14.9 px right and 14.6 px up, clip-check called them `OFF-GLASS`, and a pixel
+read of the same frame showed the ink sitting exactly where `calculatorShape()` put it - inside the
+glass. The finding was true about tappability and false about the rejection it was being used to
+investigate.
+
+Play reads no tree. It photographs the frame and writes `cut off by the screen edges`. So
+`scripts/devtest/wear-ink-clip.ps1` is the second, independent check: it captures the frame, masks
+everything beyond the glass outline, takes the modal colour of that outside region as the background
+(never an assumed black - a watch capture is a square bitmap and the app paints its window
+background across all of it), and reports 8-connected clusters of pixels that differ from it. Both
+tools read the outline through the same `clip-check -Json` shape block, so they cannot end up
+judging two different circles on one device.
+
+- `clip-check` - exit **9** `OFF-GLASS`, exit **10** with `-Strict` when any node is `CLIPPED` in
+  this frame. A target leaving the glass is partly untappable: a usability defect, fixed as one.
+- `wear-ink-clip.ps1` - exit **0** clean, **9** ink outside the glass, **2** could not verify. Only
+  this one proves or refutes Play's claim.
+
+Exit **2** is a verdict of its own and must not be read as a pass: a capture taken while the splash
+still animates is a single colour end to end and would satisfy every pixel test for the wrong
+reason. Contract suite: `scripts/devtest/wear-ink-clip.tests/Run-Tests.ps1`, which draws its frames
+and needs no device.
+
 `log` picks lines by process id, so the app's own Timber output survives even though Timber tags
 a line with the class name and never with the package (S1332); the package-text arm remains, and is
 what keeps the system-side lines about the app. A `WARN` verdict instead of `OK` means the filter
@@ -1156,6 +1185,8 @@ pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial
 - The content gates common to both modules run from `scripts/quality/assert-prerelease-content-gates.ps1`, which the phone sweep calls as well - adding a gate there covers the watch without editing either command file.
 - The declared screen list `scripts/devtest/wear-prerelease-screens.json` is gated by `scripts/quality/assert-wear-walk-contract.ps1` with the ratchet baseline `scripts/quality/wear-walk-contract-baseline.txt`. It binds every entry to the screen it opens and the string resource it expects, and refuses a `*Screen` that is neither walked nor excluded with a reason. It runs per ticket and not on the sweep, because the subject is a wear screen and a rename has to fail in the ticket that made it (S2547). S2621 made "per ticket" literal: `scripts/post-change.ps1` runs it whenever the changed set carries a `wear/**/*Screen.kt` or the list itself, scoped to that set with `-ChangedFiles` so a neighbour's unclassified screen cannot refuse your closure. The whole-tree run stays in `.\a.ps1 fg` and in the release scope, where nothing is scoped away.
 - The walk refuses to report screens it could not have seen: it requires `mWakefulness=Awake`, manages ambient mode for the duration and restores it, and returns 2 rather than a list of failures when the watch will not wake.
+- **Every scroll stops at the end of the list, and `-MaxScrolls` is a safety cap rather than the budget (S2767).** The walk reaches for a control where it stands, and only when that misses does it settle the list to the top and hunt downwards, reading the UI tree after each swipe and stopping the moment two consecutive reads agree. The blind fixed-count version was not merely imprecise: measured on `emulator-5556` 2026-09-09, four back-to-back overscroll swipes on an already-at-top list OPEN the row under the finger - on Home that is the last-used shortcut, so the walk left for the audio player, started playback, and judged every later entry against the player while the app-in-front guard saw the same package throughout. Four screens were reported unreachable for that reason and none of them was a product defect. Raising the count made it worse, which is why the cap is documented as a backstop: the measured depths are Home 6 swipes, Apps 5, Settings 4, and Home has no fixed length at all - it draws one row per last-used resource.
+- **`unreachable` is its own outcome, apart from `failed` (S2767).** `failed` now means one thing only: the screen opened and its expected token was not on it - a product defect. A screen whose control was never found is `unreachable`, counted and printed separately by both the walk and `prerelease-verdict.ps1`, and it blocks the PASS exactly as `failed` does, because a screen nobody opened satisfies no Play requirement. Both used to print `failed (tap)`, which read as a regression on fifteen screens and cost two rebuilds before it turned out to be the walk's own scrolling.
 
 ## OCR OVERLAY ACCURACY CORPUS (S1716)
 

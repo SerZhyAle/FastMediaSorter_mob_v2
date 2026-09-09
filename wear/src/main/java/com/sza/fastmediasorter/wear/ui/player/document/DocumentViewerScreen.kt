@@ -49,7 +49,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filter
@@ -151,12 +150,10 @@ private fun DocumentContent(
     )
 
     WearListColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            // S2049: this pinned Wear Compose build wires no rotary input into the scaling column, so
-            // the bezel reaches a scrolling screen only where the screen asks for it - and strategic
-            // §2 goal 2 makes the bezel a way of reading this one, not a convenience.
-            .rotaryActionScroll(listState),
+        // S2763 moved the rotary hookup into WearListColumn, which every list of the module goes
+        // through: strategic §2 goal 2 makes the bezel a way of reading this screen rather than a
+        // convenience, and it now arrives here by default instead of being asked for.
+        modifier = Modifier.fillMaxSize(),
         state = listState
     ) {
         item { DocumentTitle(uiState.fileName) }

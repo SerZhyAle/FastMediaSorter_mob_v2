@@ -101,7 +101,9 @@ The upper bound on what any repo-side change can recover is **14.0% of the bill*
 75.7k-token floor is repo- or owner-authored, the rest is the harness's own system prompt and tool
 schemas. A proposal promising more than that has an arithmetic error. And this is a bill lever only:
 context correlates with turn latency at +0.065 against +0.681 for output volume (2026-08-28), so
-nothing here is a speed improvement and it must not be sold as one.
+nothing here is a speed improvement and it must not be sold as one. Speed has its own document and
+its own evidence shape: `docs/AGENT_LATENCY_PLAYBOOK.md` (S2760), which measures the four stages
+separately and refuses a cost figure in a latency field.
 
 ---
 

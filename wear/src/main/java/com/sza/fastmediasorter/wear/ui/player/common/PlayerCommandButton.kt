@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
@@ -21,21 +24,84 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import timber.log.Timber
 
 // Declared as const rather than as a `val ..: Dp` because detekt's MagicNumber is active on this
 // module's main sources and exempts a constant declaration but not a property one.
 private const val COMMAND_TOUCH_TARGET_DP = 48
 private const val COMMAND_GLYPH_DP = 32
+private const val BACK_GLYPH_DP = 24
 private val COMMAND_GRID_GAP = 4.dp
 private const val COMMAND_GRID_COLUMNS = 4
 
-/** Gives every player command row one equal-width four-cell grid. */
+/**
+ * S2766: previous, play/pause and next - the three Google names as the primary media commands, and
+ * the count at which a 48 dp target fits the small round glass, where four never can.
+ */
+internal const val PRIMARY_ROW_COLUMNS = 3
+
+private const val SECONDARY_ROW_COLUMNS_COMPACT = 2
+private const val SECONDARY_ROW_COLUMNS_WIDE = 3
+
+/**
+ * S2766: the secondary row carries two commands below the compact-screen breakpoint and three above
+ * it. It lives here rather than in a screen because all three players draw the same row, and a
+ * composition rule kept per screen is one that drifts per screen.
+ */
 @Composable
-internal fun PlayerCommandGrid(content: @Composable RowScope.(Dp) -> Unit) {
-    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
-        val targetSize = (maxWidth - COMMAND_GRID_GAP * (COMMAND_GRID_COLUMNS - 1)) /
-            COMMAND_GRID_COLUMNS
+internal fun secondaryRowColumns(): Int {
+    val compact = wearIsCompactScreen()
+    Timber.d("S2766: secondary row columns, compact=%s", compact)
+    return if (compact) SECONDARY_ROW_COLUMNS_COMPACT else SECONDARY_ROW_COLUMNS_WIDE
+}
+
+/**
+ * The width a [columns]-command row cannot go under, plus one gap of clearance on each side.
+ *
+ * S2273: a caller placing this row against a round display needs this before it can ask where the
+ * glass is that wide. The clearance is one grid gap rather than a number of its own, because a row
+ * placed for exactly its own width lands its outer corners ON the arc, which reads as a mark
+ * touching the rim.
+ *
+ * S2766: the count is a parameter because a row lifted to where the glass is this wide charges the
+ * column for the lift, and a shorter row stands lower and gives part of it back.
+ *
+ * S2766 also raised the per-cell floor from [COMMAND_GLYPH_DP] to [COMMAND_TOUCH_TARGET_DP]. The
+ * glyph was the right floor while four commands shared the row: 48 dp each was arithmetically
+ * impossible there, so the only question left was whether a mark overhung its neighbour. At three
+ * commands the target fits, so the row is placed for the target - and the difference is not
+ * cosmetic. Measured on emulator-5556 at 227 dp with the glyph floor: the row was lowered to where
+ * the glass holds 112 dp, then charged the chord inset for standing there, and its cells came out
+ * 42.7 dp wide. Because [wearBandEdgeOffset] and [wearChordInset] are exact inverses, placing the
+ * row for the width it actually needs leaves exactly that width between its sides.
+ *
+ * @param columns how many cells the row will be divided into.
+ */
+internal fun playerCommandBandWidth(columns: Int = COMMAND_GRID_COLUMNS): Dp =
+    COMMAND_TOUCH_TARGET_DP.dp * columns + COMMAND_GRID_GAP * (columns + 1)
+
+/**
+ * Gives every player command row one equal-width four-cell grid.
+ *
+ * @param horizontalPadding clearance the caller has measured against its own screen, subtracted from
+ * the cells rather than added around them, so the row keeps its columns instead of losing one.
+ * @param columns how many cells the row divides into. S2766: below the compact-screen breakpoint a
+ * player draws three primary and two secondary commands, because four 48 dp cells ask for 204 dp of
+ * a 192 dp glass and three ask for 152 dp of a 153.6 dp content box.
+ */
+@Composable
+internal fun PlayerCommandGrid(
+    horizontalPadding: Dp = 0.dp,
+    columns: Int = COMMAND_GRID_COLUMNS,
+    content: @Composable RowScope.(Dp) -> Unit
+) {
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = horizontalPadding)
+    ) {
+        val targetSize = (maxWidth - COMMAND_GRID_GAP * (columns - 1)) / columns
         Timber.d("S2479: PlayerCommandGrid cell size=%s", targetSize)
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -58,8 +124,23 @@ internal fun PlayerCommandGrid(content: @Composable RowScope.(Dp) -> Unit) {
  * the accessibility constraint asks for two, so a state told apart by colour alone is not told apart
  * on a watch held at arm's length or by an eye that does not separate those hues.
  *
- * The caller's [modifier] is applied after the default size, so a grid cell can replace that default
- * while other callers keep the standard touch target.
+ * S2766: the box is no longer square, and the two sides are unequal for different reasons. Width is
+ * [size], which the glass fixes - four 48 dp commands ask for 204 dp of row and a small round watch is
+ * 192 dp across, so no padding anywhere can buy that width back. Height is not fixed by anything: the
+ * player column is laid out `SpaceEvenly` and carries slack between its rows, so the box takes the full
+ * [COMMAND_TOUCH_TARGET_DP] there for free and the row keeps its horizontal arithmetic untouched.
+ * Measured on emulator-5556 at 227 dp on 2026-09-09: 42.5 x 42.5 and 34.2 x 34.2 before, the same widths
+ * at 48 dp tall after. The glyph stays tied to the WIDTH, because it is the narrow side that decides
+ * whether a mark overhangs its neighbour.
+ *
+ * [size] is how a grid cell narrows the button, and it is a parameter rather than a `Modifier.size` the
+ * caller chains on, because chaining one does NOT work: `Modifier.size(48.dp).then(caller)` fixes the
+ * constraints at 48 dp first and the caller's own size is then coerced into them. Measured on
+ * emulator-5556 at 192 dp on 2026-09-09 (S2273): every cell drew at 96 px while [PlayerCommandGrid] had
+ * computed 71, the row therefore asked for 204 dp of a 154 dp container, `Row` gave the fourth child
+ * the nothing that was left, and the accessibility tree carried it as bounds `[0,0][0,0]` - a command
+ * that is not merely off-screen but unreachable by touch and by TalkBack alike. That is the shape
+ * Google Play photographed. The KDoc that stood here claimed the opposite and was believed for a day.
  *
  * S2140: a button carrying [onLongClick] should also carry [onLongClickLabel]. Without it TalkBack
  * offers the gesture as a bare "double tap and hold", which names the motion and not the command, so a
@@ -69,13 +150,18 @@ internal fun PlayerCommandGrid(content: @Composable RowScope.(Dp) -> Unit) {
  * every one of the three players took the default, so it disabled nothing; kept alongside the long-press
  * pair it would have pushed this list to detekt's LongParameterList threshold for a switch nobody threw.
  */
+// Eight parameters, exactly as many as before S2273: `size` replaced the `modifier` no caller passed
+// any more, so nothing was added. detekt re-raises its baselined finding whenever this signature is
+// touched at all, and folding the long-press pair into an object to get under the threshold would
+// change nine call sites to silence a count that did not move.
+@Suppress("LongParameterList")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 internal fun PlayerCommandButton(
     onClick: () -> Unit,
     icon: ImageVector,
     contentDescription: String,
-    modifier: Modifier = Modifier,
+    size: Dp = COMMAND_TOUCH_TARGET_DP.dp,
     checked: Boolean? = null,
     iconTint: Color? = null,
     onLongClick: (() -> Unit)? = null,
@@ -91,13 +177,17 @@ internal fun PlayerCommandButton(
     } else {
         MaterialTheme.colors.onSurface
     }
-    val glyphSize = if (isBackIcon) 24.dp else COMMAND_GLYPH_DP.dp
+    // The mark never grows past its cell. A 32 dp glyph in a cell narrower than that overhangs its
+    // neighbour instead of shrinking, which is how a row that merely overflowed became a row of
+    // overlapping marks in the frames Google returned.
+    val glyphCeiling = if (isBackIcon) BACK_GLYPH_DP.dp else COMMAND_GLYPH_DP.dp
+    val glyphSize = minOf(glyphCeiling, size)
 
     Box(
         contentAlignment = if (isBackIcon) Alignment.CenterStart else Alignment.Center,
         modifier = Modifier
-            .size(COMMAND_TOUCH_TARGET_DP.dp)
-            .then(modifier)
+            .width(size)
+            .height(maxOf(size, COMMAND_TOUCH_TARGET_DP.dp))
             .combinedClickable(
                 role = Role.Button,
                 onLongClickLabel = onLongClickLabel,

@@ -55,6 +55,14 @@ private val SQUARE_INSET = 4.dp
 private const val ROUND_SQUARE_FRACTION = 0.70f
 
 /**
+ * Shorter screen edge below which a screen is compact.
+ *
+ * Declared as a const rather than as a `val ..: Dp` because detekt's MagicNumber is active on this
+ * module's main sources and exempts a constant declaration but not a property one.
+ */
+private const val COMPACT_SCREEN_BREAKPOINT_DP = 225
+
+/**
  * The two scroll positions a browse-style screen owns: its list, and the state block that stands in
  * for the list when there is nothing to list.
  *
@@ -312,6 +320,22 @@ fun wearBandEdgeOffset(bandWidth: Dp): Dp {
     }
     val radius = wearScreenRadius()
     return sagitta(radius, bandWidth.value / 2).dp.coerceAtLeast(SQUARE_INSET)
+}
+
+/**
+ * Whether this screen is small enough to need a different set of children rather than smaller ones.
+ *
+ * The module's fifth statement about screen shape, and the only one that does not return a
+ * measurement. The other four scale a number to the glass, which is right whenever the content fits
+ * and only has to be placed; this one answers the case where it does not fit at all, and a
+ * proportion cannot remove a child (S2766). The threshold is Google's own break between a small and
+ * a large round watch, and it separates the profiles this module verifies against - 192 dp below
+ * it, 227 dp and 240 dp above.
+ */
+@Composable
+fun wearIsCompactScreen(): Boolean {
+    val configuration = LocalConfiguration.current
+    return minOf(configuration.screenWidthDp, configuration.screenHeightDp) < COMPACT_SCREEN_BREAKPOINT_DP
 }
 
 /** Radius of the glass in dp, from the shape the platform reports rather than from a known watch. */

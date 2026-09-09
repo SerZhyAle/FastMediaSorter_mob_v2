@@ -64,10 +64,10 @@ class SettingsLanguageOwnershipTest {
 
     @After
     fun tearDown() {
-        LocaleHelper.resetLanguage(RuntimeEnvironment.getApplication())
         // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
         // returns, so an unfinished DataStore flush would meet a deleted file.
         runBlocking { testScope.coroutineContext.job.cancelAndJoin() }
+        LocaleHelper.resetLanguage(RuntimeEnvironment.getApplication())
     }
 
     @Test
@@ -118,7 +118,9 @@ class SettingsLanguageOwnershipTest {
     }
 
     private companion object {
-        const val AWAIT_TIMEOUT_MS = 5_000L
+        // S2748: 20 s, not 5 s. These are wall-clock polls, and the joined teardown plus a JVM
+        // shared with the rest of the package pushed the re-emit wait past a 5 s budget twice.
+        const val AWAIT_TIMEOUT_MS = 20_000L
         const val POLL_INTERVAL_MS = 20L
     }
 }

@@ -32,7 +32,8 @@
       - assert-gate-timing-claims      (S2453 documented run times vs the gate telemetry journal)
       - assert-play-listing-locales    (S2340 Play listing locales vs locales_config.xml)
       - assert-play-listing-graphics   (S2597 declared single images have a source and one artwork)
-      - assert-play-listing-screenshot-geometry (S2602 caption band under 20%, one shape per carousel)
+      - assert-play-listing-screenshot-geometry (S2602 caption band under 20%, one shape per
+                                        carousel; S2764 no transparency, no wear device frame)
       - assert-delivery-size-estimates (S2652 compiled download sizes vs the published assets)
       - assert-unreferenced-strings    (S1568 string keys nothing under <module>/src references)
       - assert-splash-brand-sync       (S1706 generated splash drawables vs strings and template)
@@ -202,8 +203,10 @@ $gates = [ordered]@{
     # measured 7735 ms against their 373 and 1765. The family reads as one block in the .DESCRIPTION
     # list above, which is where grouping by subject belongs.
     #
-    # EXPECTED RED until S2602 Phase 03 and Phase 04 recapture both sets. That is the point: the
-    # defect the ticket exists to clear is now reproduced by a check rather than only by prose.
+    # It was EXPECTED RED until S2602 Phase 03 and Phase 04 recaptured both sets; measured
+    # 2026-09-09 it is green, at 10.5-10.6% band share against the 20% ceiling. The claim is kept
+    # rather than deleted because it says what a red verdict here means: a recapture that has not
+    # happened, not a gate that broke.
     # Not passed -Quiet - which frame breached the ceiling, and by how much, is the whole report.
     'assert-play-listing-screenshot-geometry.ps1' = @()
     # S2110. Every lexical ratchet baseline, judged over the WHOLE tree. Rule 33 puts it here on

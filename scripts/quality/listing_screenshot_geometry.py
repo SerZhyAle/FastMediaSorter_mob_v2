@@ -2,8 +2,10 @@
 """Measure the geometry of every composed Play listing screenshot (S2602 Phase 02).
 
 Walks play/listing/<locale>/images/<type>/*.png and reports, per file: its pixel size, its aspect
-ratio as long edge over short edge, and the height of the caption band at its top edge as a share
-of image height. Emits JSON on stdout for assert-play-listing-screenshot-geometry.ps1 to judge.
+ratio as long edge over short edge, the height of the caption band at its top edge as a share of
+image height, the share of its pixels that are transparent, and - on a square image - the width of
+the content-free ring at its rim (S2764). Emits JSON on stdout for
+assert-play-listing-screenshot-geometry.ps1 to judge.
 
 MEASURES ONLY, DECIDES NOTHING. No threshold lives here - not the 20% tagline ceiling, not the Play
 size bounds. The gate applies those, so a change of policy edits one file and a change of technique
@@ -69,6 +71,17 @@ DEFAULT_COMPOSER = os.path.join(REPO_ROOT, 'scripts', 'release', 'compose-play-s
 BAND_ROW_FRACTION = 0.5
 COLOR_TOLERANCE = 8
 
+# A device frame is a band around the round content that carries no UI at all, so it is found by
+# looking for where content STOPS: rings of this width are walked outwards and the frame begins at
+# the innermost radius from which every ring is both flat and dark. The two constants say what
+# "no content here" means, and they are not a tuning surface either - measured 2026-09-08 across
+# the flatness range 8..20 the five live wear frames stay at or below 0.025 while four synthetic
+# framed ones stay at or above 0.10, so the separation does not depend on where inside that range
+# the constant sits (S2764 §3.2).
+RING_STEP = 0.005
+RING_FLAT_STD = 12.0
+RING_DARK_MEAN = 40.0
+
 
 def read_composer_constants(composer_path):
     """Return (band_color, min_edge, max_edge, max_aspect) parsed from the composer's source."""
@@ -120,6 +133,56 @@ def leading_band_rows(image, band_color):
     return rows, round(thinnest, 4)
 
 
+def alpha_shares(image):
+    """Return (fully_transparent_share, partially_transparent_share) for one image.
+
+    An image with no alpha channel answers (0.0, 0.0) rather than being skipped, so the fields are
+    always present and the gate above never has to branch on their absence. The two are separated
+    because they describe different defects: a fully transparent pixel is the one Play names, while
+    a partially transparent one is a composition that never got flattened onto a background.
+    """
+    if 'A' not in image.getbands() and image.mode != 'P':
+        return 0.0, 0.0
+    alpha = np.asarray(image.convert('RGBA'))[:, :, 3]
+    total = alpha.size
+    zero = int((alpha == 0).sum())
+    partial = int(((alpha > 0) & (alpha < 255)).sum())
+    return round(zero / total, 6), round(partial / total, 6)
+
+
+def frame_ring(image):
+    """Return (ring_width, ring_edge) for the content-free band at a square image's rim.
+
+    Rings are measured against the INSCRIBED circle, so the square's corners - which a round watch
+    leaves black on every honest screenshot - are outside the measurement and cannot be mistaken for
+    a frame. The width is what separates a frame from the app's own dark background; the brightness
+    step at the ring's inner edge was measured and rejected, because a bezel painted over dim
+    content is BRIGHTER than that content and the step goes negative on exactly the images the gate
+    must catch (S2764 §3.2).
+
+    Only a square image is measured: the criterion is circular, and a phone or tablet frame has no
+    round content for a ring to surround.
+    """
+    width, height = image.size
+    if width != height:
+        return 0.0, 0.0
+    grey = np.asarray(image.convert('L'), dtype=np.float64)
+    radius = min(height, width) / 2.0
+    rows, cols = np.mgrid[0:height, 0:width]
+    distance = np.sqrt((rows - (height - 1) / 2.0) ** 2 + (cols - (width - 1) / 2.0) ** 2) / radius
+    edges = np.arange(0.30, 1.0, RING_STEP)
+    means = np.empty(edges.size)
+    stds = np.empty(edges.size)
+    for index, inner in enumerate(edges):
+        ring = grey[(distance >= inner) & (distance < inner + RING_STEP)]
+        means[index] = ring.mean()
+        stds[index] = ring.std()
+    for index, inner in enumerate(edges):
+        if stds[index:].max() <= RING_FLAT_STD and means[index:].max() <= RING_DARK_MEAN:
+            return round(float(1.0 - inner), 4), round(float(inner), 4)
+    return 0.0, 0.0
+
+
 def measure_tree(listing_root, band_color):
     """One record per PNG under <locale>/images/<type>/, sorted for a stable report."""
     records = []
@@ -144,6 +207,8 @@ def measure_tree(listing_root, band_color):
                     with Image.open(path) as image:
                         width, height = image.size
                         band_rows, band_min_row_share = leading_band_rows(image, band_color)
+                        alpha_zero, alpha_partial = alpha_shares(image)
+                        ring_width, ring_edge = frame_ring(image)
                 except OSError as exc:
                     print(f"ERROR: cannot measure {path}: {exc}", file=sys.stderr)
                     sys.exit(2)
@@ -165,6 +230,14 @@ def measure_tree(listing_root, band_color):
                     'bandRows': band_rows,
                     'bandShare': round(band_rows / height, 4),
                     'bandMinRowShare': band_min_row_share,
+                    'alphaZeroShare': alpha_zero,
+                    'alphaPartialShare': alpha_partial,
+                    # Radius at which content stops, and the width of the content-free band beyond
+                    # it. Both are 0.0 on a non-square image, which is not a measurement of "no
+                    # frame" but a statement that this criterion does not apply - the gate reads it
+                    # only for wearScreenshots.
+                    'frameRingEdge': ring_edge,
+                    'frameRingWidth': ring_width,
                 })
     return records
 

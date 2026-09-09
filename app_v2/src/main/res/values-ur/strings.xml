@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>خودکار (آلے کے مطابق)</item>
         <item>ہلکا</item>
@@ -3373,4 +3377,61 @@
     <string name="broadcast_import_unsupported_version">نشریاتی ڈسکرپٹر کا ورژن معاون نہیں</string>
     <string name="broadcast_import_success">نشریاتی چینل شامل ہو گیا</string>
     <string name="broadcast_import_option_file">ڈسکرپٹر فائل منتخب کریں</string>
+    <string name="launcher_settings_unit_system_title">اکائی نظام</string>
+    <string name="unit_system_metric">میٹرک (°C)</string>
+    <string name="wear_listen_title">گھڑی سنیں</string>
+    <string name="wear_listen_start">سننا شروع کریں</string>
+    <string name="wear_listen_stop">سننا بند کریں</string>
+    <string name="wear_listen_caption_idle">وہ سنیں جو گھڑی کا مائیکروفون سنتا ہے. گھڑی آپ سے تصدیق کے لیے کہے گی.</string>
+    <string name="wear_listen_caption_waiting">گھڑی پر آپ کی تصدیق کا انتظار ہے..</string>
+    <string name="wear_listen_caption_listening">گھڑی سنی جا رہی ہے.</string>
+    <string name="wear_listen_refusal_not_asked">گھڑی آپ سے پوچھ نہیں سکی: FastMediaSorter کے لیے اس کے نوٹیفیکیشنز آن کریں.</string>
+    <string name="wear_listen_refusal_declined">آپ نے گھڑی پر درخواست مسترد کر دی.</string>
+    <string name="wear_listen_refusal_expired">وقت پر گھڑی پر کسی نے جواب نہیں دیا.</string>
+    <string name="wear_listen_refusal_capture_failed">گھڑی اپنا مائیکروفون نہیں کھول سکی.</string>
+    <string name="wear_listen_refusal_no_network">گھڑی پر Wi-Fi آن کریں - آواز Wi-Fi سے سفر کرتی ہے، Bluetooth سے نہیں.</string>
+    <string name="wear_listen_refusal_stopped">گھڑی پر سننا بند کر دیا گیا.</string>
+    <string name="wear_listen_refusal_busy">گھڑی پہلے ہی کسی اور سننے والے کی خدمت کر رہی ہے.</string>
+    <string name="wear_listen_refusal_unknown">گھڑی نے ایسی وجہ سے انکار کیا جو یہ فون نہیں جانتا.</string>
+    <string name="wear_listen_no_answer">گھڑی نے جواب نہیں دیا.</string>
+    <string name="wear_listen_send_failed">گھڑی تک نہیں پہنچا جا سکا.</string>
+    <string name="wear_listen_wifi_lost">گھڑی Wi-Fi سے نکل گئی، اس لیے سننا بند ہو گیا.</string>
+    <string name="stream_action_open_in_vr">VR میں کھولیں</string>
+    <string name="stream_vr_unsupported_transport">یہ چینل ایسی ٹرانسپورٹ استعمال کرتا ہے جسے VR پلیئر ابھی نہیں کھول سکتا. یہ عام پلیئر میں چلتا رہتا ہے.</string>
+    <string name="launcher_translator_translate">ترجمہ کریں</string>
+    <string name="launcher_translator_in_progress">ترجمہ ہو رہا ہے..</string>
+    <string name="launcher_wallpaper_screen_title">وال پیپر</string>
+    <string name="launcher_wallpaper_section_mode">کیا بنایا جاتا ہے</string>
+    <string name="launcher_wallpaper_section_source">ماخذ</string>
+    <string name="launcher_wallpaper_section_tuning">ظاہری شکل</string>
+    <string name="launcher_wallpaper_section_power">بیٹری</string>
+    <string name="launcher_wallpaper_desc_branded">بہتے ذرات کے ساتھ رنگین لہریں، جب تک ڈیسک ٹاپ کھلا رہے متحرک.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">وہی لہریں، مگر ساکت: ڈیسک ٹاپ پر ہر واپسی پر ایک نیا فریم بنتا ہے، اس کے بعد کچھ حرکت نہیں کرتا.</string>
+    <string name="launcher_wallpaper_desc_none">کوئی وال پیپر نہیں - ڈیسک ٹاپ موجودہ تھیم کا سادہ رنگ دکھاتا ہے.</string>
+    <string name="launcher_wallpaper_desc_image">آپ کی اپنی تصویر، ساکت یا متحرک، اسکرین بھرنے کے لیے کراپ کی گئی.</string>
+    <string name="launcher_wallpaper_desc_camera">کیمرے کی لائیو تصویر، مسلسل ریفریش ہوتی رہتی ہے. یہ تمام موڈز میں سب سے زیادہ بیٹری خرچ کرتا ہے.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">ڈیسک ٹاپ پر ہر واپسی پر کیمرے سے لی گئی ایک تصویر؛ اس کے فوراً بعد کیمرہ چھوڑ دیا جاتا ہے.</string>
+    <string name="launcher_wallpaper_intensity_title">چمک</string>
+    <string name="launcher_wallpaper_intensity_hint">وال پیپر کتنی شدت سے بنایا جاتا ہے. کم قدریں آئیکنز اور لیبلز کے لیے زیادہ کنٹراسٹ چھوڑتی ہیں.</string>
+    <string name="launcher_wallpaper_speed_title">اینیمیشن کی رفتار</string>
+    <string name="launcher_wallpaper_particle_density_title">ذرات کی کثافت</string>
+    <string name="launcher_wallpaper_particle_density_hint">صفر پر صرف لہریں بنتی ہیں، کوئی ذرات نہیں.</string>
+    <string name="launcher_wallpaper_power_explanation">سسٹم کا پاور سیور آن ہونے یا بیٹری کم ہونے پر وال پیپر خود بخود متحرک ہونا بند کر دیتا ہے، اور لائیو کیمرہ لہروں پر واپس چلا جاتا ہے. ایپ کی سیٹنگز میں اینیمیشن بند کرنے سے بھی یہ رک جاتا ہے.</string>
+    <string name="launcher_wallpaper_power_state_normal">ابھی: متحرک ہو رہا ہے</string>
+    <string name="launcher_wallpaper_power_state_reduced">ابھی: بیٹری بچانے کے لیے کم کیا گیا</string>
+    <string name="launcher_wallpaper_power_state_saving">ابھی: بیٹری بچانے کے لیے روکا گیا</string>
+    <string name="launcher_wallpaper_source_empty">ابھی تک کچھ منتخب نہیں کیا گیا</string>
+    <string name="launcher_wallpaper_source_change">منتخب کریں</string>
+    <string name="launcher_signal_overflow_description">مزید نوٹیفیکیشنز: %1$d</string>
+    <string name="launcher_section_settings">ترتیبات</string>
+    <string name="launcher_tray_battery_charging_ac">بیٹری %1$d%%، مینز سے چارج ہو رہی ہے</string>
+    <string name="launcher_tray_battery_charging_usb">بیٹری %1$d%%، USB سے چارج ہو رہی ہے</string>
+    <string name="launcher_tray_battery_charging_wireless">بیٹری %1$d%%، وائرلیس چارج ہو رہی ہے</string>
+    <string name="streams_collection_all">تمام</string>
+    <string name="streams_collection_strip_description">مجموعے</string>
+    <string name="streams_collection_selected_count">مجموعے میں %1$d چینلز</string>
+    <string name="camera_session_consent_channel_name">گھڑی کیمرہ کی درخواستیں</string>
+    <string name="camera_session_consent_notification_title">آپ کی گھڑی یہ کیمرہ دیکھنا چاہتی ہے</string>
+    <string name="camera_session_consent_notification_text">گھڑی کو اس فون کا کیمرہ اور مائیکروفون دیکھنے دیں.</string>
+    <string name="camera_session_consent_allow">اجازت دیں</string>
 </resources>

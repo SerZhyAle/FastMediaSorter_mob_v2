@@ -12,9 +12,14 @@
     the dump and the tap sends a coordinate into the neighbouring row, which is exactly how two taps
     in one earlier watch sweep hit the wrong control (CLAUDE.md section 9).
 
-    Four outcomes per screen, and the difference between them matters more than the count:
-      observed - the expected token was in the UI dump.
-      failed   - the tap errored, or the dump succeeded and the token was not there.
+    Five outcomes per screen, and the difference between them matters more than the count:
+      observed    - the expected token was in the UI dump.
+      failed      - the screen opened and the expected token was not on it. A product defect.
+      unreachable - the control that opens the screen was never found, so the screen was never
+                    opened and nothing about it was judged (S2767). Blocks the PASS exactly as
+                    `failed` does - a screen nobody reached satisfies no Play requirement - but it
+                    is reported apart from it, because "the walk could not get there" and "the app
+                    is broken" call for opposite reactions and both used to print `failed (tap)`.
       manual   - nothing could be decided: the dump itself failed, or the screen is state-dependent
                  and its absence on a clean install proves nothing. A human still has to look.
       skipped  - an entry declared `optional` whose control is not on screen in this run. The first
@@ -50,7 +55,8 @@
 .NOTES
     Exit codes:
       0  every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing
-      1  at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding
+      1  at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
+         log audit reported a finding
       2  could not verify: the watch display could not be woken (S2547 - every reading under a
          sleeping display describes the watch face, not this app), the screen list is missing or
          unreadable, no device, or a called script is absent. A screen recorded `manual` does not by
@@ -67,9 +73,15 @@ param(
     # Milliseconds to let a screen settle before its tree is read. A per-entry `settleMs` overrides it.
     [int]$SettleMs = 1200,
 
-    # How many times a control may be scrolled toward before the walk calls it unreachable. A per-entry
-    # `maxScrolls` overrides it.
-    [int]$MaxScrolls = 4,
+    # Safety cap on the swipes any one scroll may spend, NOT the budget it is expected to use: since
+    # S2767 every scroll here stops the moment the UI tree stops changing, which is the end of the
+    # list, so this number is only what stops a list that never settles. Measured on emulator-5556
+    # (384x384, one last-used shortcut on Home): Home takes 6 swipes top to bottom, Apps 5, Settings
+    # 4 - so the old default of 4 was below the longest declared list and the walk reported reachable
+    # screens as failures. 12 leaves room for one more screenful of shortcuts, and it has to leave
+    # room rather than match a count: Home draws one row per last-used resource with no limit, so its
+    # length is a property of the user's history, not of the app. A per-entry `maxScrolls` overrides it.
+    [int]$MaxScrolls = 12,
 
     [switch]$SkipLogAudit,
 
@@ -243,15 +255,48 @@ function Read-UiNodes {
     return @($nodes | ForEach-Object { "$($_.label) $($_.desc) $($_.resId)" }) -join "`n"
 }
 
+function Invoke-ScrollUntilSettled {
+    # Swipe one way until the list stops moving, reading the tree after every swipe. Returns the last
+    # readable tree, or $null when no dump could be read at all.
+    #
+    # S2767 - the two halves of this are what the fix is. It stops AT the end of the list instead of
+    # swiping a fixed number of times past it, and it puts a tree read between consecutive swipes.
+    # Both were needed: measured on emulator-5556 2026-09-09, one overscroll swipe on an
+    # already-at-top list is harmless and changes nothing, while four of them back to back OPEN the
+    # first row of the list - the last-used shortcut on Home - and start playback. Every reading after
+    # that describes the audio player, and the app-in-front guard cannot see it because the player is
+    # the same package. That is the whole of why four screens were called unreachable with the budget
+    # raised to ten: the bigger budget meant MORE overscroll, not more reach.
+    #
+    # The caller's cap is a backstop against a list that never settles, not the expected spend.
+    param(
+        [Parameter(Mandatory)][hashtable]$Swipe,
+        [int]$Cap,
+        [int]$SettleFor,
+        [scriptblock]$StopWhen
+    )
+    $previous = Read-UiNodes
+    for ($step = 0; $step -lt $Cap; $step++) {
+        if ($StopWhen -and (& $StopWhen $previous)) { return $previous }
+        Invoke-AdbVerb -Arguments @('swipe', '-X', $Swipe.X1, '-Y', $Swipe.Y1, '-X2', $Swipe.X2, '-Y2', $Swipe.Y2, '-Duration', '400') | Out-Null
+        Start-Sleep -Milliseconds $SettleFor
+        $current = Read-UiNodes
+        # An unreadable dump is not "the list stopped": it is no information at all, so the loop keeps
+        # its previous reading and spends another swipe rather than concluding from a failure.
+        if ($null -eq $current) { continue }
+        if ($current -eq $previous) { return $current }
+        $previous = $current
+    }
+    return $previous
+}
+
 function Reset-ListToTop {
     # Put the list back where the previous entry found it. Every entry then starts from one known
     # position instead of from wherever its predecessor happened to stop, which is what makes two runs
     # of this walk comparable at all - the whole point of a declared screen list.
-    param([int]$Times, [int]$SettleFor)
-    for ($u = 0; $u -lt $Times; $u++) {
-        Invoke-AdbVerb -Arguments @('swipe', '-X', $swipeUp.X1, '-Y', $swipeUp.Y1, '-X2', $swipeUp.X2, '-Y2', $swipeUp.Y2, '-Duration', '400') | Out-Null
-    }
-    if ($Times -gt 0) { Start-Sleep -Milliseconds $SettleFor }
+    param([int]$Cap, [int]$SettleFor)
+    if ($Cap -le 0) { return }
+    Invoke-ScrollUntilSettled -Swipe $swipeUp -Cap $Cap -SettleFor $SettleFor | Out-Null
 }
 
 $rows = @()
@@ -303,23 +348,40 @@ foreach ($screen in $screens) {
     $scrolls = if ($null -ne $screen.maxScrolls) { [int]$screen.maxScrolls }
                elseif ($screen.optional) { 0 }
                else { $MaxScrolls }
+    $reachControl = {
+        if ($screen.resourceId) { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $screen.resourceId) }
+        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $screen.label) }
+    }
     if ($screen.resourceId -or $screen.label) {
-        # Start from the top of whatever list this is. The hunt below travels one way only, so without
-        # this an entry sitting above the previous entry's stopping point is unreachable no matter how
-        # many times it scrolls - and which entries those are depends on where the last one stopped,
-        # which is precisely the run-to-run divergence this list exists to remove.
-        Reset-ListToTop -Times $scrolls -SettleFor $entrySettleMs
-        for ($try = 0; $try -le $scrolls; $try++) {
-            $tap = if ($screen.resourceId) {
-                Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $screen.resourceId)
-            } else {
-                Invoke-AdbVerb -Arguments @('tap-label', '-Label', $screen.label)
-            }
+        # Reach for the control where the walk is standing BEFORE moving the list (S2767). Most entries
+        # return to their parent list exactly where their control still shows, so the common case costs
+        # one tap and no scrolling at all - and since the settling reset below reads the tree after
+        # every swipe, skipping it when it is not needed is most of this walk's running time. It is
+        # also the safer order: the fewer swipes a run spends, the fewer chances a swipe has to land
+        # on something.
+        $tap = & $reachControl
+        if ($tap.Exit -ne 0) {
+            # Start from the top of whatever list this is. The hunt below travels one way only, so
+            # without this an entry sitting above the previous entry's stopping point is unreachable
+            # no matter how many times it scrolls - and which entries those are depends on where the
+            # last one stopped, which is precisely the run-to-run divergence this list exists to remove.
+            Reset-ListToTop -Cap $scrolls -SettleFor $entrySettleMs
+        }
+        # Then hunt downwards from the top, one swipe and one reach at a time. An `optional` entry
+        # passes 0 here and so is reached for exactly once, where it stands, and never hunted.
+        $lastSeen = $null
+        for ($try = 0; $try -lt $scrolls -and $tap.Exit -ne 0; $try++) {
+            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
+            Start-Sleep -Milliseconds $entrySettleMs
+            $tap = & $reachControl
             if ($tap.Exit -eq 0) { break }
-            if ($try -lt $scrolls) {
-                Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
-                Start-Sleep -Milliseconds $entrySettleMs
-            }
+            # S2767: stop at the end of the list rather than at the end of the budget. Past the last
+            # row every further swipe is an overscroll, and a run of those is what opens the row under
+            # the finger - so spending a leftover budget here is not merely wasted, it moves the walk
+            # to a screen the next entry will be judged on.
+            $current = Read-UiNodes
+            if ($null -ne $current -and $current -eq $lastSeen) { break }
+            if ($null -ne $current) { $lastSeen = $current }
         }
     }
 
@@ -334,10 +396,19 @@ foreach ($screen in $screens) {
             if (-not $Json) { Write-Host "walk: $($screen.id) -> skipped (optional)" -ForegroundColor Gray }
             continue
         }
-        $row.outcome = 'failed'
-        $row.detail = "could not reach the screen: $($tap.Output)"
+        # S2767: never opened, so nothing about this screen was judged - which is a different report
+        # from "opened and wrong", not a milder one. Both block the PASS; only this one means the walk
+        # itself came up short, and printing both as `failed (tap)` is what made an unreached screen
+        # read as a product regression and cost two rebuilds on the 2026-09-09 run.
+        #
+        # No BACK here, deliberately. `backAfter` says how many levels to climb out of a screen that
+        # OPENED; the tap never fired, so the walk is still standing on the parent list, and climbing
+        # out of that would leave the section its neighbouring entries are still walking. The cascade
+        # this branch used to start is removed where it began - the reset above no longer navigates.
+        $row.outcome = 'unreachable'
+        $row.detail = "could not reach the screen, so it was never opened or judged: $($tap.Output)"
         $rows += [pscustomobject]$row
-        if (-not $Json) { Write-Host "walk: $($screen.id) -> failed (tap)" -ForegroundColor Red }
+        if (-not $Json) { Write-Host "walk: $($screen.id) -> unreachable (control not found)" -ForegroundColor Red }
         continue
     }
 
@@ -375,21 +446,19 @@ foreach ($screen in $screens) {
     # The upward hunt is still right - it is why a marker the list scrolled past is still found - but
     # it was being justified by a screen element that does not exist, which is the same wrong belief
     # that put four unmatchable markers in wear-prerelease-screens.json.
+    #
+    # S2767: both hunts stop at the end of the list, not at the end of the budget. The upward one used
+    # to spend twice the budget unconditionally - 24 swipes at the current default - and every swipe
+    # past the top row is an overscroll, which in a run is what opens the row under the finger.
+    $expectToken = [string]$screen.expect
+    $stopOnExpect = { param($seen) $null -ne $seen -and $seen -match [regex]::Escape($expectToken) }
     if (-not $present -and $null -ne $tree) {
-        for ($hunt = 0; $hunt -lt $MaxScrolls; $hunt++) {
-            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
-            Start-Sleep -Milliseconds $settleMs
-            $haystack = Read-UiNodes
-            if ($null -ne $haystack -and $haystack -match [regex]::Escape([string]$screen.expect)) { $present = $true; break }
-        }
+        $seen = Invoke-ScrollUntilSettled -Swipe $swipe -Cap $MaxScrolls -SettleFor $settleMs -StopWhen $stopOnExpect
+        if (& $stopOnExpect $seen) { $present = $true }
     }
     if (-not $present -and $null -ne $tree) {
-        for ($hunt = 0; $hunt -lt ($MaxScrolls * 2); $hunt++) {
-            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipeUp.X1, '-Y', $swipeUp.Y1, '-X2', $swipeUp.X2, '-Y2', $swipeUp.Y2, '-Duration', '400') | Out-Null
-            Start-Sleep -Milliseconds $settleMs
-            $haystack = Read-UiNodes
-            if ($null -ne $haystack -and $haystack -match [regex]::Escape([string]$screen.expect)) { $present = $true; break }
-        }
+        $seen = Invoke-ScrollUntilSettled -Swipe $swipeUp -Cap $MaxScrolls -SettleFor $settleMs -StopWhen $stopOnExpect
+        if (& $stopOnExpect $seen) { $present = $true }
     }
 
     if (-not $tree) {
@@ -458,6 +527,7 @@ $shapeFailuresCount = @($rows | Where-Object { $_.shapeExit -and $_.shapeExit -n
 $result.counts = [ordered]@{
     observed      = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
     failed        = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
+    unreachable   = @($rows | Where-Object { $_.outcome -eq 'unreachable' }).Count
     manual        = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
     shapeFailures = $shapeFailuresCount
 }
@@ -492,7 +562,10 @@ Restore-AmbientSetting
 $walkPath = Join-Path $outPath 'walk.json'
 [pscustomobject]$result | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $walkPath -Encoding UTF8
 
-$verdict = if ($result.counts.failed -gt 0 -or $shapeFailuresCount -gt 0 -or $result.logAuditExit -eq 1) { 1 }
+# S2767: an unreachable screen counts against the run exactly as a failed one does. It satisfied no
+# Play requirement, and letting it pass would be the green verdict about the unseen that this walk
+# exists to prevent.
+$verdict = if ($result.counts.failed -gt 0 -or $result.counts.unreachable -gt 0 -or $shapeFailuresCount -gt 0 -or $result.logAuditExit -eq 1) { 1 }
            elseif ($result.logAuditExit -eq 2) { 2 }
            else { 0 }
 
@@ -501,6 +574,6 @@ $result.ok = ($verdict -eq 0)
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
-    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

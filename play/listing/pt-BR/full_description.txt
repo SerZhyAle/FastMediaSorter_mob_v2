@@ -34,7 +34,7 @@ Para cada tela e cada forma de entrada:
 • Navegação completa por teclado, controle remoto de TV / D-pad e gamepad.
 • Widgets de tela inicial - abrir recurso, continuar a leitura, música aleatória, fotos da câmera.
 • Bloco nas Configurações rápidas para áudio em segundo plano. Busca em todas as configurações.
-• Wear OS - um app de relógio autônomo: navegue pela mídia guardada no relógio, ouça rádio e TV pela internet, três blocos e três complicações de mostrador, além de calculadora, monitor de rede e gravador de voz. Compartilhamentos de rede e arquivos chegam do app do celular.
+• Wear OS - relógio: fotos, vídeo, música, textos, rádio e TV pela internet, favoritos, enviar arquivo ao celular, navegar suas pastas, cinco blocos, três complicações, calculadora, monitor de rede, gravador de voz, lanterna, monitor de movimento, sistema, minijogo. Rede: do celular.
 
 Livre, aberto e privado - o código-fonte é publicado sob a Apache License 2.0, e a navegação local, SMB, FTP e SFTP, além dos visualizadores de imagem, vídeo, áudio, PDF e EPUB, funcionam totalmente offline, sem nenhuma conta.
 

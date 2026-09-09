@@ -77,11 +77,11 @@ fun WearRefineMenuScreen(
         showDialog = true,
         onDismissRequest = actions.onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         val filterColors = ChipDefaults.childChipColors()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val widthDp = maxWidth.value.toInt()
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {

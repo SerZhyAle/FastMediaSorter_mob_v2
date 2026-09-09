@@ -68,6 +68,15 @@ object HomeSectionCatalog {
                 labelRes = R.string.wear_section_broadcast
             )
         )
+        // S2551: the opposite direction of the row above - the phone's camera watched here, rather
+        // than this watch's microphone heard there. Unconditional for the same reason: both Wear
+        // flavors carry it, and the phone half answers NOT_SUPPORTED where its own build cannot.
+        add(
+            HomeSection(
+                id = HomeSectionId.PHONE_CAMERA,
+                labelRes = R.string.wear_section_phone_camera
+            )
+        )
         add(
             HomeSection(
                 id = HomeSectionId.FAVOURITES,

@@ -21,9 +21,11 @@ import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordin
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequester
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
+import com.sza.fastmediasorter.wear.domain.model.CameraSessionPayloadCodec
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
 import com.sza.fastmediasorter.wear.domain.model.ListenSessionPayloadCodec
+import com.sza.fastmediasorter.wear.domain.model.PhoneCameraSessionState
 import com.sza.fastmediasorter.wear.domain.model.WearEventEnvelopeCodec
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFileReceiveResult
@@ -39,6 +41,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
+import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
+import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
@@ -110,6 +114,12 @@ class WatchWearListenerService : WearableListenerService() {
     @Inject lateinit var listenSessionStateHolder: ListenSessionStateHolder
 
     @Inject lateinit var listenPayloadCodec: ListenSessionPayloadCodec
+
+    // S2551: the camera-viewing half, which runs the other way - this watch asks and the phone
+    // answers, so only the answer arrives here and there is no request to notify anyone about.
+    @Inject lateinit var cameraPayloadCodec: CameraSessionPayloadCodec
+
+    @Inject lateinit var phoneCameraSessionHolder: PhoneCameraSessionHolder
 
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
@@ -248,6 +258,7 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
             WearDataLayerPaths.LISTEN_START -> handleListenStart(event.sourceNodeId, event.data)
             WearDataLayerPaths.LISTEN_STOP -> handleListenStop(event.sourceNodeId, event.data)
+            WearDataLayerPaths.CAMERA_VIEW_ACK -> handleCameraViewAck(event.data)
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }
@@ -319,6 +330,35 @@ class WatchWearListenerService : WearableListenerService() {
      * The requester is remembered again rather than reused, because a stop may arrive from a phone
      * that reconnected under a new node id since it asked to listen.
      */
+    /**
+     * S2551: the phone's answer to a camera command.
+     *
+     * Two answers are dropped rather than acted on. An undecodable payload comes from a phone on
+     * another build, and the codec's null is how this process is left exactly as it was found rather
+     * than crashing a service the system restarts. An ack naming another request answers a command
+     * the owner already walked away from, and its address is a port that has since closed.
+     */
+    private fun handleCameraViewAck(data: ByteArray) {
+        val ack = cameraPayloadCodec.decodeAck(data)
+        val awaited = phoneCameraSessionHolder.awaitingRequestId
+        when {
+            ack == null -> Timber.w("Dropped an undecodable camera ack")
+
+            ack.requestId != awaited ->
+                Timber.w("Dropped a camera ack for %s while awaiting %s", ack.requestId, awaited)
+
+            ack.refusal != null -> phoneCameraSessionHolder.markRefused(ack.refusal.asSessionFailure())
+
+            else -> phoneCameraSessionHolder.markLive(
+                PhoneCameraSessionState.Live(
+                    url = ack.url,
+                    lenses = ack.lenses,
+                    activeLensId = ack.activeLensId
+                )
+            )
+        }
+    }
+
     private fun handleListenStop(nodeId: String, data: ByteArray) {
         val command = listenPayloadCodec.decodeCommand(data) ?: return
         listenRequestRegistry.remember(ListenRequester(nodeId, command.requestId))

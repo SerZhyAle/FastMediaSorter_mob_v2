@@ -39,6 +39,9 @@ internal object WearLaunchRoutes {
         // S2509: one route for both entrances, so a shortcut pinned from the Home section and one
         // pinned from the Programs grid land on the same control screen.
         WearDestinationId.BROADCAST -> WearRoutes.BROADCAST
+        // S2551: the mirror entrance of the row above, and a separate address for the same reason -
+        // one of them opens this watch's microphone, the other the phone's camera.
+        WearDestinationId.PHONE_CAMERA -> WearRoutes.PHONE_CAMERA
     }
 
     fun routeFor(address: WearLaunchAddress): String = when (address) {

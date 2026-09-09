@@ -30,7 +30,10 @@ enum class WearDestinationId {
     BODY_SENSOR,
 
     /** S2509: the watch's own audio broadcast, addressable as a shortcut like every program above. */
-    BROADCAST
+    BROADCAST,
+
+    /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
+    PHONE_CAMERA
 }
 
 /**
@@ -68,5 +71,6 @@ fun destinationFor(id: HomeSectionId): WearDestinationId? = when (id) {
     // S2509: the same destination the Programs row resolves to - two entrances, one address, so a
     // tile pointed at either of them lands in the same place.
     HomeSectionId.BROADCAST -> WearDestinationId.BROADCAST
+    HomeSectionId.PHONE_CAMERA -> WearDestinationId.PHONE_CAMERA
     HomeSectionId.LAST_USED_RESOURCE, HomeSectionId.LAST_USED_STREAM -> null
 }

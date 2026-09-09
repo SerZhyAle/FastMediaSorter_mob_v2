@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>Automático (según el dispositivo)</item>
         <item>Claro</item>
@@ -3372,4 +3376,61 @@
     <string name="broadcast_import_unsupported_version">Versión del descriptor de transmisión no compatible</string>
     <string name="broadcast_import_success">Canal de transmisión añadido</string>
     <string name="broadcast_import_option_file">Seleccionar archivo descriptor</string>
+    <string name="launcher_settings_unit_system_title">Sistema de unidades</string>
+    <string name="unit_system_metric">Métrico (°C)</string>
+    <string name="wear_listen_title">Escuchar el reloj</string>
+    <string name="wear_listen_start">Empezar a escuchar</string>
+    <string name="wear_listen_stop">Dejar de escuchar</string>
+    <string name="wear_listen_caption_idle">Escucha lo que oye el micrófono del reloj. El reloj te pedirá confirmación.</string>
+    <string name="wear_listen_caption_waiting">Esperando tu confirmación en el reloj..</string>
+    <string name="wear_listen_caption_listening">Escuchando el reloj.</string>
+    <string name="wear_listen_refusal_not_asked">El reloj no pudo preguntarte: activa sus notificaciones para FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">Rechazaste la solicitud en el reloj.</string>
+    <string name="wear_listen_refusal_expired">Nadie respondió en el reloj a tiempo.</string>
+    <string name="wear_listen_refusal_capture_failed">El reloj no pudo abrir su micrófono.</string>
+    <string name="wear_listen_refusal_no_network">Activa el Wi-Fi en el reloj: el sonido viaja por Wi-Fi, no por Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">La escucha se detuvo en el reloj.</string>
+    <string name="wear_listen_refusal_busy">El reloj ya está atendiendo a otro oyente.</string>
+    <string name="wear_listen_refusal_unknown">El reloj rechazó la solicitud por un motivo que este teléfono desconoce.</string>
+    <string name="wear_listen_no_answer">El reloj no respondió.</string>
+    <string name="wear_listen_send_failed">No se pudo contactar con el reloj.</string>
+    <string name="wear_listen_wifi_lost">El reloj salió del Wi-Fi, así que la escucha se detuvo.</string>
+    <string name="stream_action_open_in_vr">Abrir en VR</string>
+    <string name="stream_vr_unsupported_transport">Este canal usa un transporte que el reproductor VR aún no puede abrir. Sigue reproduciéndose en el reproductor normal.</string>
+    <string name="launcher_translator_translate">Traducir</string>
+    <string name="launcher_translator_in_progress">Traduciendo..</string>
+    <string name="launcher_wallpaper_screen_title">Fondo de pantalla</string>
+    <string name="launcher_wallpaper_section_mode">Qué se dibuja</string>
+    <string name="launcher_wallpaper_section_source">Origen</string>
+    <string name="launcher_wallpaper_section_tuning">Apariencia</string>
+    <string name="launcher_wallpaper_section_power">Batería</string>
+    <string name="launcher_wallpaper_desc_branded">Olas de colores con partículas flotantes, animadas todo el tiempo que el escritorio está abierto.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">Las mismas olas, pero congeladas: se dibuja un fotograma nuevo cada vez que vuelves al escritorio, y nada se mueve después.</string>
+    <string name="launcher_wallpaper_desc_none">Sin fondo de pantalla - el escritorio muestra el color plano del tema actual.</string>
+    <string name="launcher_wallpaper_desc_image">Tu propia imagen, estática o animada, recortada para llenar la pantalla.</string>
+    <string name="launcher_wallpaper_desc_camera">Una imagen en vivo de la cámara, actualizada continuamente. Es el modo que más batería consume.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">Una foto tomada por la cámara cada vez que vuelves al escritorio; la cámara se libera de inmediato después.</string>
+    <string name="launcher_wallpaper_intensity_title">Brillo</string>
+    <string name="launcher_wallpaper_intensity_hint">Con qué intensidad se dibuja el fondo de pantalla. Valores más bajos dejan más contraste para iconos y etiquetas.</string>
+    <string name="launcher_wallpaper_speed_title">Velocidad de la animación</string>
+    <string name="launcher_wallpaper_particle_density_title">Densidad de partículas</string>
+    <string name="launcher_wallpaper_particle_density_hint">En cero solo se dibujan las olas, sin partículas.</string>
+    <string name="launcher_wallpaper_power_explanation">El fondo de pantalla deja de animarse por sí solo cuando el ahorro de batería del sistema está activo o la batería está baja, y la cámara en vivo vuelve a las olas. Desactivar la animación en los ajustes de la app también lo detiene.</string>
+    <string name="launcher_wallpaper_power_state_normal">Ahora: animando</string>
+    <string name="launcher_wallpaper_power_state_reduced">Ahora: reducido para ahorrar batería</string>
+    <string name="launcher_wallpaper_power_state_saving">Ahora: detenido para ahorrar batería</string>
+    <string name="launcher_wallpaper_source_empty">Nada elegido todavía</string>
+    <string name="launcher_wallpaper_source_change">Elegir</string>
+    <string name="launcher_signal_overflow_description">Más notificaciones: %1$d</string>
+    <string name="launcher_section_settings">Ajustes</string>
+    <string name="launcher_tray_battery_charging_ac">Batería %1$d%%, cargando desde la red eléctrica</string>
+    <string name="launcher_tray_battery_charging_usb">Batería %1$d%%, cargando por USB</string>
+    <string name="launcher_tray_battery_charging_wireless">Batería %1$d%%, cargando de forma inalámbrica</string>
+    <string name="streams_collection_all">Todos</string>
+    <string name="streams_collection_strip_description">Colecciones</string>
+    <string name="streams_collection_selected_count">%1$d canales en la colección</string>
+    <string name="camera_session_consent_channel_name">Solicitudes de cámara del reloj</string>
+    <string name="camera_session_consent_notification_title">Tu reloj quiere ver esta cámara</string>
+    <string name="camera_session_consent_notification_text">Permite que el reloj vea la cámara y el micrófono de este teléfono.</string>
+    <string name="camera_session_consent_allow">Permitir</string>
 </resources>

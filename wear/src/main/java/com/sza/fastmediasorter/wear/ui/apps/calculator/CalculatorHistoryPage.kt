@@ -47,7 +47,6 @@ fun CalculatorHistoryPage(
     onDismiss: () -> Unit,
     listState: ScalingLazyListState = rememberWearListState()
 ) {
-
     // S1719: the crown steps the history's type size, mirroring the phone's pinch through the same
     // five sizes. The rotary helper consumes the event by design, so the crown no longer scrolls this
     // list - a swipe still does, and reading a result was the point of scaling it (strategic 2.3).
@@ -62,7 +61,11 @@ fun CalculatorHistoryPage(
     ) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState
+            state = listState,
+            // The one screen that declines the module-wide rotary scroll S2763 wired into the wrapper:
+            // the crown here is already bound to the type size above, by the S1719 decision this page
+            // exists to carry, and scrolling would take that binding back.
+            rotary = false
         ) {
             item {
                 Text(

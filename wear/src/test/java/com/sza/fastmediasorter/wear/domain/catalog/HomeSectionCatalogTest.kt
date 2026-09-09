@@ -57,6 +57,23 @@ class HomeSectionCatalogTest {
         assertEquals(HomeSectionId.FAVOURITES, sections.last().id)
     }
 
+    /**
+     * S2551: the two directions are separate rows, and the order says which is which.
+     *
+     * Asserted as a relation rather than as a cell number, because STREAMS above them is conditional
+     * and the count of drawn rows therefore varies with the owner's settings.
+     */
+    @Test
+    fun `the phone camera row sits directly after the broadcast row and before favourites`() {
+        val ids = HomeSectionCatalog.sectionsFor(visibility(streamsEnabled = true)).map { it.id }
+
+        val broadcast = ids.indexOf(HomeSectionId.BROADCAST)
+        val phoneCamera = ids.indexOf(HomeSectionId.PHONE_CAMERA)
+
+        assertEquals("the phone camera row is missing", broadcast + 1, phoneCamera)
+        assertEquals(HomeSectionId.FAVOURITES, ids.last())
+    }
+
     private fun visibility(streamsEnabled: Boolean = false) = HomeSectionVisibility(
         streamsEnabled = streamsEnabled
     )

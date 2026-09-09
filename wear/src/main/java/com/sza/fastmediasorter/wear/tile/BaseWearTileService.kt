@@ -83,7 +83,6 @@ abstract class BaseWearTileService : TileService() {
         serviceScope.launch {
             try {
                 val drawableIds = drawableIdsOf(loadWearTileContentUseCase(kind))
-                Timber.d("S2511: tile %s publishing %d image(s)", kind, drawableIds.size)
                 val builder = ResourceBuilders.Resources.Builder()
                     .setVersion(versionOf(drawableIds))
                 drawableIds.forEach { drawableId ->

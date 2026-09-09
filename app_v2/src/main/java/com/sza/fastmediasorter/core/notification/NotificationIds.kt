@@ -41,6 +41,9 @@ object NotificationIds {
     /** S2142: a file the watch sent here to be handed on to one of this phone's «Send to..» receivers. */
     const val WEAR_SEND_TO_FROM_WATCH = 4207
 
+    /** S2551: the paired watch is asking to see this phone's camera and the owner must allow it. */
+    const val WEAR_CAMERA_SESSION_CONSENT = 4208
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

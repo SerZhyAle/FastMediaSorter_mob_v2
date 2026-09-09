@@ -3850,4 +3850,8 @@
     <string name="streams_collection_all">Усі</string>
     <string name="streams_collection_strip_description">Добірки</string>
     <string name="streams_collection_selected_count">Каналів у добірці: %1$d</string>
+    <string name="camera_session_consent_channel_name">Запити камери з годинника</string>
+    <string name="camera_session_consent_notification_title">Годинник просить показати камеру</string>
+    <string name="camera_session_consent_notification_text">Дозволити годиннику дивитися з камери та мікрофона цього телефона.</string>
+    <string name="camera_session_consent_allow">Дозволити</string>
 </resources>

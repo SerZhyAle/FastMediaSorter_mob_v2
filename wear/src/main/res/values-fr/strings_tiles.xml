@@ -16,4 +16,6 @@
     <string name="wear_tile_picker_empty_stream">Aucun flux trouvé. Ajoutez un flux ou synchronisez un catalogue depuis le téléphone.</string>
     <string name="wear_tile_programs_label">Programmes</string>
     <string name="wear_tile_sections_label">Sections</string>
+    <string name="wear_tile_targets_title">Cibles des tuiles</string>
+    <string name="wear_tile_targets_none">Non sélectionné</string>
 </resources>

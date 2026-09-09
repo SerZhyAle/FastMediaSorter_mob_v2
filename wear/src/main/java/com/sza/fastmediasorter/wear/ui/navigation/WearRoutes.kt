@@ -95,6 +95,15 @@ object WearRoutes {
      */
     const val BROADCAST_QR = "broadcast_qr"
 
+    /**
+     * S2551: the control screen for a view of the paired phone's camera.
+     *
+     * Its own address rather than a mode of [BROADCAST]: that screen opens the watch's microphone
+     * for the phone, and this one asks the phone to open its camera for the watch. One route over
+     * two opposite directions would make a pinned shortcut ambiguous about which device it starts.
+     */
+    const val PHONE_CAMERA = "phone_camera"
+
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
     const val ARG_SOURCE_NAME = "sourceName"

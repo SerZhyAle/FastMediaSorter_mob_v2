@@ -117,6 +117,87 @@ Assert-Equal -Label 'the wakefulness check runs before the app-in-front guard' `
     -Expected $true `
     -Actual ($walkText.IndexOf('Is the display still awake?') -lt $walkText.IndexOf('Is the app still in front?'))
 
+# --- S2767: a scroll stops at the end of the list, never at the end of the budget ----------------
+#
+# The defect these guard was not a wrong number. Reset-ListToTop spent its whole budget in blind
+# back-to-back swipes, and measured on emulator-5556 2026-09-09 four of those on an already-at-top
+# list OPEN the first row - the last-used shortcut on Home - and start playback, after which every
+# later entry is judged against the audio player. Raising the budget made it worse, which is why the
+# assertions below are about the SHAPE of the loop and not about the size of the cap.
+
+Assert-Equal -Label 'the reset reads the tree between swipes instead of swiping blind' `
+    -Expected $true -Actual ($walkText -match 'function Invoke-ScrollUntilSettled')
+
+Assert-Equal -Label 'the reset goes through the settling scroll, not through a bare for loop' `
+    -Expected $true `
+    -Actual ($walkText -match '(?s)function Reset-ListToTop.*?Invoke-ScrollUntilSettled.*?\r?\n\}')
+
+Assert-Equal -Label 'the settling scroll stops when two consecutive reads agree' `
+    -Expected $true -Actual ($walkText -match '\$current -eq \$previous')
+
+Assert-Equal -Label 'an unreadable dump is not read as "the list stopped"' `
+    -Expected $true -Actual ($walkText -match '(?s)if \(\$null -eq \$current\) \{ continue \}')
+
+Assert-Equal -Label 'the upward expect-hunt no longer spends twice the budget unconditionally' `
+    -Expected $false -Actual ($walkText -match '\$MaxScrolls \* 2')
+
+Assert-Equal -Label 'the default scroll cap covers the longest measured list (Home, 6 swipes)' `
+    -Expected $true -Actual ($walkText -match '\$MaxScrolls = 12')
+
+# --- S2767: "never opened" is its own outcome, and it still blocks the PASS ----------------------
+
+Assert-Equal -Label 'a control that was never found scores unreachable, not failed' `
+    -Expected $true -Actual ($walkText -match "\`$row\.outcome = 'unreachable'")
+
+Assert-Equal -Label 'unreachable is counted in its own right' `
+    -Expected $true -Actual ($walkText -match 'unreachable\s+= @\(\$rows \| Where-Object')
+
+Assert-Equal -Label 'an unreachable screen loses the walk its exit 0' `
+    -Expected $true -Actual ($walkText -match '\$result\.counts\.unreachable -gt 0')
+
+$verdictScript = Join-Path (Split-Path -Parent $PSScriptRoot) 'prerelease-verdict.ps1'
+Assert-Equal -Label 'the verdict script is where the tests expect it' `
+    -Expected $true -Actual (Test-Path -LiteralPath $verdictScript)
+
+# The one case run end to end rather than matched: a walk whose every screen passed except one that
+# was never reached must not report PASS. Read as a product failure it sent two rebuilds after a
+# defect that did not exist; read as a pass it ships an unjudged screen - it is neither.
+$verdictTemp = Join-Path ([System.IO.Path]::GetTempPath()) ("s2767-walk-" + [guid]::NewGuid().ToString('N') + '.json')
+@{
+    screens = @(
+        @{ id = 'home'; outcome = 'observed'; detail = $null },
+        @{ id = 'broadcast'; outcome = 'unreachable'; detail = 'could not reach the screen' }
+    )
+    coverage = @{ walked = 2; excluded = 0; entries = 2 }
+} | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $verdictTemp -Encoding UTF8
+
+$verdictLog = Join-Path ([System.IO.Path]::GetTempPath()) ("s2767-log-" + [guid]::NewGuid().ToString('N') + '.log')
+Set-Content -LiteralPath $verdictLog -Value 'no findings in this capture' -Encoding UTF8
+
+try {
+    # -LogFile is mandatory: the verdict never answers about a walk alone, so the walk half is
+    # exercised beside a log that carries nothing rather than on its own.
+    $verdictOut = & pwsh -NoProfile -File $verdictScript -LogFile $verdictLog -WalkResults $verdictTemp -Json 2>&1
+    $verdictJson = $null
+    try { $verdictJson = ($verdictOut | Where-Object { $_ -match '^\s*\{' } | Select-Object -First 1) | ConvertFrom-Json } catch { $verdictJson = $null }
+
+    Assert-Equal -Label 'the verdict parses a walk carrying an unreachable screen' `
+        -Expected $true -Actual ($null -ne $verdictJson)
+
+    Assert-Equal -Label 'one unreachable screen is enough to lose the PASS' `
+        -Expected $false -Actual ([bool]$verdictJson.pass)
+
+    Assert-Equal -Label 'the verdict reports the unreachable count apart from the failed one' `
+        -Expected 1 -Actual $verdictJson.breakdown.walk.unreachable
+
+    Assert-Equal -Label 'and does not inflate the failed count with it' `
+        -Expected 0 -Actual $verdictJson.breakdown.walk.failed
+}
+finally {
+    Remove-Item -LiteralPath $verdictTemp -Force -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath $verdictLog -Force -ErrorAction SilentlyContinue
+}
+
 Write-Host ""
 Write-Host "wear-prerelease-walk.tests: $script:passed passed, $script:failed failed."
 if ($script:failed -gt 0) { exit 1 }

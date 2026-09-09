@@ -3865,4 +3865,8 @@
     <string name="streams_collection_all">Все</string>
     <string name="streams_collection_strip_description">Подборки</string>
     <string name="streams_collection_selected_count">Каналов в подборке: %1$d</string>
+    <string name="camera_session_consent_channel_name">Запросы камеры с часов</string>
+    <string name="camera_session_consent_notification_title">Часы просят показать камеру</string>
+    <string name="camera_session_consent_notification_text">Разрешить часам смотреть с камеры и микрофона этого телефона.</string>
+    <string name="camera_session_consent_allow">Разрешить</string>
 </resources>

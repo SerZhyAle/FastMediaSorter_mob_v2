@@ -1,8 +1,9 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Gate: no composed Play listing screenshot buries its own frame under a caption band, and the
-    images inside one carousel all have one shape (S2602).
+    Gate: no composed Play listing screenshot buries its own frame under a caption band, the images
+    inside one carousel all have one shape (S2602), no screenshot carries transparency and no wear
+    frame carries a device frame (S2764).
 
 .DESCRIPTION
     Google states it plainly - "Taglines should not take up more than 20% of the image"
@@ -13,7 +14,7 @@
     validated Play's hard limits on size and aspect, which the set passed, and the tagline share was
     a recommendation nobody had turned into a check.
 
-    THREE FINDINGS, NAMED APART BECAUSE THEY CALL FOR DIFFERENT REPAIRS:
+    FIVE FINDINGS, NAMED APART BECAUSE THEY CALL FOR DIFFERENT REPAIRS:
 
       1. BAND    - a caption band over the ceiling share of the image height. Repair: recapture and
                    recompose that set with the current composer, which sizes the band off canvas
@@ -27,6 +28,25 @@
                    both read from the composer rather than restated here. Repair: recompose from a
                    raw shot the composer can fit; this is a hard Play limit and an upload carrying
                    it is rejected outright.
+      4. ALPHA   - a screenshot carrying transparent pixels, which Play forbids outright. Repair:
+                   flatten the image onto an opaque background and re-export.
+      5. FRAME   - a device frame around a wear screenshot, which Play forbids for that type.
+                   Repair: recapture the frame without the watch bezel.
+
+    ALPHA AND FRAME ARE THE S2764 PAIR, AND THEY EXIST BECAUSE THIS GATE ALREADY OPENED THE FILES.
+    Play's wear rule is four requirements - 1:1, at least 384 px, no device frame, no transparency -
+    and until S2764 only the first two were judged by anything, while this gate's own report said so
+    in a line nobody could act on. The five live wear frames are RGBA, so their alpha channel was
+    visible and their transparency was not: measured 2026-09-08 both alpha shares are exactly zero
+    on all 39 images in the tree, which is the answer the report could not previously give.
+
+    FRAME IS DECIDED BY THE WIDTH OF THE CONTENT-FREE RING, NOT BY HOW DARK THE RIM IS. This app's
+    wear screens are dark, so average rim brightness cannot tell a bezel from the app's own
+    background. The brightness STEP at the ring's inner edge was measured too and rejected: a bezel
+    painted over dim content is brighter than that content, so the step goes negative on two of four
+    synthetic framed frames while reaching 25 on a real unframed one - wrong in both directions. The
+    width separates them by a factor of four (live 0.0-0.005 against synthetic 0.10-0.22) and holds
+    across the whole 8..20 range of the measurement's flatness constant.
 
     BOUNDS IS APPLIED ONLY TO THE TYPES THE COMPOSER ACTUALLY WRITES, and the report says which
     types it therefore left unbounded. The tree carries a third screenshot type, wearScreenshots,
@@ -62,7 +82,8 @@
     repair; every finding prints its own path and its own measured number; and recomposing a set is
     one run whenever it is done. Wiring it into post-change.ps1 would redden every session that
     closed a ticket until this ticket's recapture finished - the class S1939 measured at 68 of 191
-    red lines. It is EXPECTED TO FAIL until S2602 Phase 03 and Phase 04 recompose both sets.
+    red lines. It was expected to fail until S2602 Phase 03 and Phase 04 recomposed both sets;
+    measured 2026-09-09 it passes, at 10.5-10.6% band share against the 20% ceiling.
 
 .PARAMETER ListingRoot
     Directory holding <locale>/images/<type>/. Defaults to play/listing. Point it at a candidate
@@ -70,6 +91,11 @@
 
 .PARAMETER MaxBandShare
     Caption-band ceiling as a share of image height. Defaults to 0.20, Google's stated figure.
+
+.PARAMETER MaxFrameRingWidth
+    Widest content-free ring a wear screenshot may carry at its rim, as a share of the inscribed
+    radius. Defaults to 0.04, which sits four times above the live corpus and four times below every
+    synthetic framed frame measured for S2764.
 
 .PARAMETER Gate
     Accepted for the release-scope runner's uniform child invocation; this gate is always fatal on
@@ -89,8 +115,10 @@
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7):
-      0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play bounds.
-      1 - at least one BAND, MIXED or BOUNDS finding. The output names each file and its number.
+      0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
+          bounds, carries no transparency, and no wear frame carries a device frame.
+      1 - at least one BAND, MIXED, BOUNDS, ALPHA or FRAME finding. The output names each file and
+          its number.
       2 - cannot verify: the venv python, the measurement script or the listing root is absent, the
           measurement did not return readable JSON or was missing a field this gate reads, or the
           tree held no PNG at all. Distinct from 1 on purpose - "did not look" and "found a defect"
@@ -101,6 +129,7 @@
 param(
     [string]$ListingRoot,
     [double]$MaxBandShare = 0.20,
+    [double]$MaxFrameRingWidth = 0.04,
     [switch]$Gate,
     [switch]$Quiet,
     [switch]$Help
@@ -117,6 +146,11 @@ if ($Help) {
 # Matches the tolerance compose-play-screenshots.py uses in odd_shaped_siblings, so the composer's
 # own mixed-shape warning and this gate cannot reach opposite verdicts about one set.
 $aspectTolerance = 0.01
+
+# Play's own directory name for the watch carousel. Unlike BAND_COLOR and the size bounds this is
+# not a constant belonging to another file that could drift under us - it is the name the Play
+# Console requires on disk, so there is nothing to read it out of.
+$wearType = 'wearScreenshots'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..' '..')).Path
 $venvPython = Join-Path $repoRoot '.venv/Scripts/python.exe'
@@ -151,7 +185,19 @@ catch {
 # The measurement is produced by another file in another language, so its shape is checked before
 # it is trusted. Under Set-StrictMode a renamed field would throw, and an uncaught throw leaves
 # pwsh -File exiting 1 - the code this gate reserves for a real listing defect.
-foreach ($field in 'images', 'minEdge', 'maxEdge', 'maxAspect', 'composedTypes') {
+foreach ($field in 'images', 'minEdge', 'maxEdge', 'maxAspect', 'composedTypes',
+    'alphaZeroShare', 'alphaPartialShare', 'frameRingWidth') {
+    if ($field -in 'alphaZeroShare', 'alphaPartialShare', 'frameRingWidth') {
+        # Per-image fields, checked on the first record: the loop below reads them under
+        # Set-StrictMode, where a renamed field throws and pwsh -File exits 1 - the code this gate
+        # reserves for a real listing defect.
+        $first = @($measured.images) | Select-Object -First 1
+        if ($first -and -not $first.PSObject.Properties[$field]) {
+            Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement image record has no '$field'" -ForegroundColor Yellow
+            exit 2
+        }
+        continue
+    }
     if (-not $measured.PSObject.Properties[$field]) {
         Write-Host "assert-play-listing-screenshot-geometry: CANNOT VERIFY - measurement JSON has no '$field'" -ForegroundColor Yellow
         exit 2
@@ -173,6 +219,18 @@ try {
             $findings += ("BAND    {0} -> caption band is {1:P1} of image height, over the {2:P0} ceiling. " -f
                 $image.path, $image.bandShare, $MaxBandShare) +
             'Repair: recompose this set with compose-play-screenshots.py, which sizes the band off canvas height (S2573).'
+        }
+
+        if ($image.alphaZeroShare -gt 0 -or $image.alphaPartialShare -gt 0) {
+            $findings += ("ALPHA   {0} -> {1:P2} of pixels fully transparent, {2:P2} partially. " -f
+                $image.path, $image.alphaZeroShare, $image.alphaPartialShare) +
+            'Repair: flatten onto an opaque background and re-export - Play rejects a screenshot carrying transparency.'
+        }
+
+        if ($image.type -eq $wearType -and $image.frameRingWidth -gt $MaxFrameRingWidth) {
+            $findings += ("FRAME   {0} -> a content-free ring {1:N3} of the radius wide at the rim, over the {2:N2} ceiling. " -f
+                $image.path, $image.frameRingWidth, $MaxFrameRingWidth) +
+            'Repair: recapture without the watch bezel - Play forbids a device frame on a wear screenshot.'
         }
 
         # See .DESCRIPTION: these bounds describe the composer's own output and nothing else.
@@ -218,8 +276,14 @@ if (-not $Quiet) {
     foreach ($carousel in ($carousels | Sort-Object Name)) {
         $worst = ($carousel.Group | Sort-Object bandShare -Descending | Select-Object -First 1)
         $bounded = if ($composedTypes -contains $carousel.Group[0].type) { '' } else { ', bounds not judged' }
-        Write-Host ("  {0,-28} {1} image(s), shape {2:N3}, widest band {3:P1}{4}" -f
-            $carousel.Name, $carousel.Count, $worst.shape, $worst.bandShare, $bounded) -ForegroundColor DarkGray
+        # The ring is only meaningful where it is judged; printing it for a phone carousel would
+        # show a column of zeroes that reads as a passed check rather than an inapplicable one.
+        $ring = if ($carousel.Group[0].type -eq $wearType) {
+            ", widest frame ring {0:N3}" -f ($carousel.Group | Measure-Object frameRingWidth -Maximum).Maximum
+        }
+        else { '' }
+        Write-Host ("  {0,-28} {1} image(s), shape {2:N3}, widest band {3:P1}{4}{5}" -f
+            $carousel.Name, $carousel.Count, $worst.shape, $worst.bandShare, $bounded, $ring) -ForegroundColor DarkGray
     }
     # The detection's own margin over the whole set. See the measurement's docstring: the exposed
     # side is a caption dense enough to fill half a row, and this number is how close it came.
@@ -230,5 +294,8 @@ if (-not $Quiet) {
 $unbounded = @($images | Where-Object { $composedTypes -notcontains $_.type } |
     ForEach-Object { $_.type } | Sort-Object -Unique)
 $note = if ($unbounded.Count -gt 0) { "; Play bounds not judged for $($unbounded -join ', ') - not composed here" } else { '' }
-Write-Host ("assert-play-listing-screenshot-geometry: PASS ($($images.Count) image(s) across $($carousels.Count) carousel(s); every band under {0:P0}{1})" -f $MaxBandShare, $note) -ForegroundColor Green
+$wearCount = @($images | Where-Object { $_.type -eq $wearType }).Count
+$wearNote = if ($wearCount -gt 0) { "; $wearCount wear frame(s) free of a device frame" } else { '' }
+Write-Host ("assert-play-listing-screenshot-geometry: PASS ($($images.Count) image(s) across $($carousels.Count) carousel(s); every band under {0:P0}; no transparency{1}{2})" -f
+    $MaxBandShare, $wearNote, $note) -ForegroundColor Green
 exit 0

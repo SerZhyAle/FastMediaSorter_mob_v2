@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>Auto (selon l\'appareil)</item>
         <item>Clair</item>
@@ -3373,4 +3377,61 @@
     <string name="broadcast_import_unsupported_version">Version du descripteur de diffusion non prise en charge</string>
     <string name="broadcast_import_success">Canal de diffusion ajouté</string>
     <string name="broadcast_import_option_file">Sélectionner le fichier descripteur</string>
+    <string name="launcher_settings_unit_system_title">Système d\'unités</string>
+    <string name="unit_system_metric">Métrique (°C)</string>
+    <string name="wear_listen_title">Écouter la montre</string>
+    <string name="wear_listen_start">Démarrer l\'écoute</string>
+    <string name="wear_listen_stop">Arrêter l\'écoute</string>
+    <string name="wear_listen_caption_idle">Entendez ce que capte le micro de la montre. La montre vous demandera de confirmer.</string>
+    <string name="wear_listen_caption_waiting">En attente de votre confirmation sur la montre..</string>
+    <string name="wear_listen_caption_listening">Écoute de la montre en cours.</string>
+    <string name="wear_listen_refusal_not_asked">La montre n\'a pas pu vous demander : activez ses notifications pour FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">Vous avez refusé la demande sur la montre.</string>
+    <string name="wear_listen_refusal_expired">Personne n\'a répondu sur la montre à temps.</string>
+    <string name="wear_listen_refusal_capture_failed">La montre n\'a pas pu ouvrir son micro.</string>
+    <string name="wear_listen_refusal_no_network">Activez le Wi-Fi sur la montre - le son passe par le Wi-Fi, pas par le Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">L\'écoute a été arrêtée sur la montre.</string>
+    <string name="wear_listen_refusal_busy">La montre sert déjà un autre auditeur.</string>
+    <string name="wear_listen_refusal_unknown">La montre a refusé pour une raison inconnue de ce téléphone.</string>
+    <string name="wear_listen_no_answer">La montre n\'a pas répondu.</string>
+    <string name="wear_listen_send_failed">Impossible de joindre la montre.</string>
+    <string name="wear_listen_wifi_lost">La montre a quitté le Wi-Fi, l\'écoute s\'est donc arrêtée.</string>
+    <string name="stream_action_open_in_vr">Ouvrir en VR</string>
+    <string name="stream_vr_unsupported_transport">Cette chaîne utilise un transport que le lecteur VR ne peut pas encore ouvrir. Elle continue de se lire dans le lecteur normal.</string>
+    <string name="launcher_translator_translate">Traduire</string>
+    <string name="launcher_translator_in_progress">Traduction en cours..</string>
+    <string name="launcher_wallpaper_screen_title">Fond d\'écran</string>
+    <string name="launcher_wallpaper_section_mode">Ce qui est dessiné</string>
+    <string name="launcher_wallpaper_section_source">Source</string>
+    <string name="launcher_wallpaper_section_tuning">Apparence</string>
+    <string name="launcher_wallpaper_section_power">Batterie</string>
+    <string name="launcher_wallpaper_desc_branded">Vagues colorées avec des particules flottantes, animées tant que le bureau est ouvert.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">Les mêmes vagues, mais figées : une nouvelle image est dessinée à chaque retour au bureau, et plus rien ne bouge ensuite.</string>
+    <string name="launcher_wallpaper_desc_none">Aucun fond d\'écran - le bureau affiche la couleur unie du thème actuel.</string>
+    <string name="launcher_wallpaper_desc_image">Votre propre image, fixe ou animée, recadrée pour remplir l\'écran.</string>
+    <string name="launcher_wallpaper_desc_camera">Une image en direct de la caméra, actualisée en continu. C\'est le mode qui consomme le plus de batterie.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">Une photo prise par la caméra à chaque retour au bureau ; la caméra est libérée immédiatement après.</string>
+    <string name="launcher_wallpaper_intensity_title">Luminosité</string>
+    <string name="launcher_wallpaper_intensity_hint">Avec quelle intensité le fond d\'écran est dessiné. Des valeurs plus basses laissent plus de contraste aux icônes et libellés.</string>
+    <string name="launcher_wallpaper_speed_title">Vitesse d\'animation</string>
+    <string name="launcher_wallpaper_particle_density_title">Densité des particules</string>
+    <string name="launcher_wallpaper_particle_density_hint">À zéro, seules les vagues sont dessinées, sans particules.</string>
+    <string name="launcher_wallpaper_power_explanation">Le fond d\'écran arrête de s\'animer automatiquement quand l\'économiseur de batterie du système est actif ou que la batterie est faible, et la caméra en direct revient aux vagues. Désactiver l\'animation dans les paramètres de l\'app l\'arrête aussi.</string>
+    <string name="launcher_wallpaper_power_state_normal">Maintenant : animation en cours</string>
+    <string name="launcher_wallpaper_power_state_reduced">Maintenant : réduit pour économiser la batterie</string>
+    <string name="launcher_wallpaper_power_state_saving">Maintenant : arrêté pour économiser la batterie</string>
+    <string name="launcher_wallpaper_source_empty">Rien n\'est encore choisi</string>
+    <string name="launcher_wallpaper_source_change">Choisir</string>
+    <string name="launcher_signal_overflow_description">Plus de notifications : %1$d</string>
+    <string name="launcher_section_settings">Paramètres</string>
+    <string name="launcher_tray_battery_charging_ac">Batterie %1$d%%, en charge sur secteur</string>
+    <string name="launcher_tray_battery_charging_usb">Batterie %1$d%%, en charge par USB</string>
+    <string name="launcher_tray_battery_charging_wireless">Batterie %1$d%%, en charge sans fil</string>
+    <string name="streams_collection_all">Tout</string>
+    <string name="streams_collection_strip_description">Collections</string>
+    <string name="streams_collection_selected_count">%1$d chaînes dans la collection</string>
+    <string name="camera_session_consent_channel_name">Demandes de caméra de la montre</string>
+    <string name="camera_session_consent_notification_title">Votre montre veut voir cette caméra</string>
+    <string name="camera_session_consent_notification_text">Autorisez la montre à voir la caméra et le micro de ce téléphone.</string>
+    <string name="camera_session_consent_allow">Autoriser</string>
 </resources>

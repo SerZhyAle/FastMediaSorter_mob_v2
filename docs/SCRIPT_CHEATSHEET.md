@@ -326,6 +326,35 @@ scripts/test-compatibility.ps1
     -ApiLevel         [String] = "all"  {28|29|30|33|35|all}
 ```
 
+## scripts\agent_latency
+
+### compare-routes.ps1
+S2760: compares stored latency records route against route, on one control task at a time.
+
+```
+scripts/agent_latency/compare-routes.ps1
+  S2760: compares stored latency records route against route, on one control task at a time.
+  Params:
+    -Path                [String] = 'temp/S2760/records'
+    -ControlTask         [String]
+    -Json                [SwitchParameter]
+  Exit: 2 there is not enough data to compare; 3 the record directory could not be read.
+```
+
+### record-run.ps1
+S2760: validates one agent latency record and stores it under the ticket's evidence root.
+
+```
+scripts/agent_latency/record-run.ps1
+  S2760: validates one agent latency record and stores it under the ticket's evidence root.
+  Params:
+    -Record          (req)  [String]
+    -OutRoot                [String] = 'temp/S2760'
+    -ToolDurationMs         [Double] = -1
+    -QueueWaitMs            [Double] = -1
+    -Json                   [SwitchParameter]
+```
+
 ## scripts\all_features
 
 ### _lib.ps1
@@ -1215,6 +1244,27 @@ scripts/devtest/streams-perf-seed.ps1
   Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
 ```
 
+### wear-ink-clip.ps1
+S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
+
+```
+scripts/devtest/wear-ink-clip.ps1
+  S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
+  Params:
+    -Image                [String]
+    -DeviceId             [String]
+    -Round                [SwitchParameter]
+    -CornerRadius         [Int32] = -1
+    -Tolerance            [Int32] = 24
+    -MinPixels            [Int32] = 40
+    -Feather              [Int32] = 2
+    -DensityDpi           [Int32] = 0
+    -OutDir               [String]
+    -Json                 [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 - clean: no ink outside the glass.; 2 - could not verify: bad arguments, unreadable image, no device, or a uniform frame.; 9 - ink found outside the glass.
+```
+
 ### wear-prerelease-prepare.ps1
 S1984 - prepare a watch for the pre-release run: qualify the device, build the release artifacts, record which artifact is about to be judged, install it and start it.
 
@@ -1241,11 +1291,11 @@ scripts/devtest/wear-prerelease-walk.ps1
     -OutDir                 [String] = 'temp/scratch/wear-prerelease'
     -ScreenList             [String]
     -SettleMs               [Int32] = 1200
-    -MaxScrolls             [Int32] = 4
+    -MaxScrolls             [Int32] = 12
     -SkipLogAudit           [SwitchParameter]
     -SkipShapeCheck         [SwitchParameter]
     -Json                   [SwitchParameter]
-  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding; 2 could not verify: the watch display could not be woken (S2547 - every reading under a
+  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
 ```
 
 ### wear-shape-bench.ps1
@@ -1486,6 +1536,19 @@ scripts/devtest/resolve-ticket-module.tests/Run-Tests.ps1
   S2611 contract suite for scripts/devtest/resolve-ticket-module.ps1.
   (no param block)
   Exit: 0 - every case passed; 1 - at least one case failed; 2 - the suite could not run (the subject script is missing)
+```
+
+## scripts\devtest\wear-ink-clip.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/devtest/wear-ink-clip.ps1 (S2757).
+
+```
+scripts/devtest/wear-ink-clip.tests/Run-Tests.ps1
+  Contract suite for scripts/devtest/wear-ink-clip.ps1 (S2757).
+  Params:
+    -KeepArtifacts         [SwitchParameter]
+  Exit: 0 clean, 2 could not verify, 9 ink outside the glass. A case that only asserted "not zero" would
 ```
 
 ## scripts\devtest\wear-prerelease-walk.tests
@@ -2877,18 +2940,19 @@ scripts/quality/assert-play-listing-locales.ps1
 ```
 
 ### assert-play-listing-screenshot-geometry.ps1
-Gate: no composed Play listing screenshot buries its own frame under a caption band, and the images inside one carousel all have one shape (S2602).
+Gate: no composed Play listing screenshot buries its own frame under a caption band, the images inside one carousel all have one shape (S2602), no screenshot carries transparency and no wear frame carries a device frame (S2764).
 
 ```
 scripts/quality/assert-play-listing-screenshot-geometry.ps1
-  Gate: no composed Play listing screenshot buries its own frame under a caption band, and the images inside one carousel all have one shape (S2602).
+  Gate: no composed Play listing screenshot buries its own frame under a caption band, the images inside one carousel all have one shape (S2602), no screenshot carries transparency and no wear frame carries a device frame (S2764).
   Params:
-    -ListingRoot          [String]
-    -MaxBandShare         [Double] = 0.20
-    -Gate                 [SwitchParameter]
-    -Quiet                [SwitchParameter]
-    -Help                 [SwitchParameter]
-  Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play bounds.; 1 - at least one BAND, MIXED or BOUNDS finding. The output names each file and its number.; 2 - cannot verify: the venv python, the measurement script or the listing root is absent, the
+    -ListingRoot               [String]
+    -MaxBandShare              [Double] = 0.20
+    -MaxFrameRingWidth         [Double] = 0.04
+    -Gate                      [SwitchParameter]
+    -Quiet                     [SwitchParameter]
+    -Help                      [SwitchParameter]
+  Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -3904,6 +3968,18 @@ scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1549) - regression suite for the orientation/layout pairing gate.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-play-listing-screenshot-geometry.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+
+```
+scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
 ```
 
 ## scripts\quality\assert-script-references.tests

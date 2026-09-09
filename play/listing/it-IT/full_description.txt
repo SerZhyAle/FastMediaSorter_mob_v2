@@ -34,7 +34,7 @@ Per ogni schermo e ogni tipo di comando:
 • Navigazione completa con tastiera, telecomando TV / D-pad e gamepad.
 • Widget della schermata Home - apri risorsa, continua a leggere, musica casuale, foto della fotocamera.
 • Riquadro nelle Impostazioni rapide per l'audio in background. Ricerca in tutte le impostazioni.
-• Wear OS - un'app per orologio autonoma: sfoglia i media salvati sull'orologio, ascolta radio e TV via internet, tre riquadri e tre complicazioni del quadrante, più calcolatrice, monitor di rete e registratore vocale. Le condivisioni di rete e i file arrivano dall'app del telefono.
+• Wear OS - app per orologio: foto, video, musica, testi, radio e TV via internet, preferiti, invio di un file al telefono, sfoglia le sue cartelle, cinque riquadri, tre complicazioni del quadrante, calcolatrice, monitor di rete, registratore vocale, torcia, monitor di movimento, dati di sistema, minigioco. Condivisioni di rete: dal telefono.
 
 Libero, aperto e privato - il codice sorgente è pubblicato con licenza Apache License 2.0, e la navigazione locale, SMB, FTP e SFTP, insieme ai visualizzatori di immagini, video, audio, PDF ed EPUB, funzionano del tutto offline, senza alcun account.
 

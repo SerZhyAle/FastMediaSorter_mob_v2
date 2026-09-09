@@ -4,13 +4,18 @@ import android.content.Context
 import android.net.Uri
 import android.util.Base64
 import androidx.annotation.OptIn
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
+import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
+import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.source.MediaSource
+import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import timber.log.Timber
 
 /**
@@ -39,11 +44,62 @@ object WearStreamDataSourceFactoryProvider {
         return DataSource.Factory { WearRadioHttpDataSource(httpFactory.createDataSource()) }
     }
 
-    fun createMediaSourceFactory(context: Context): DefaultMediaSourceFactory {
+    fun createMediaSourceFactory(context: Context): MediaSource.Factory {
         Timber.d("S2498: wear stream media source factory built")
         val httpFactory = createHttpDataSourceFactory()
         val dataSourceFactory = DefaultDataSource.Factory(context, httpFactory)
-        return DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
+        val default = DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)
+        return WearSchemeAwareMediaSourceFactory(default)
+    }
+}
+
+/**
+ * Sends `rtsp://` through a factory that interleaves RTP over the RTSP TCP connection, and everything
+ * else through the default one (S2551).
+ *
+ * The default factory does build an RTSP source when the module is on the classpath, but it leaves
+ * the transport to negotiation, which on a LAN delivers unpredictably. The phone answered the same
+ * question the same way in `FullStreamProtocolSupport`; a watch deciding differently would make the
+ * two halves of one stream disagree about their own transport.
+ */
+@OptIn(UnstableApi::class)
+private class WearSchemeAwareMediaSourceFactory(
+    private val default: MediaSource.Factory,
+) : MediaSource.Factory {
+
+    private val rtsp = RtspMediaSource.Factory().setForceUseRtpTcp(true)
+
+    /** Applied to both, because the caller cannot know which one will serve the next item. */
+    override fun setDrmSessionManagerProvider(
+        drmSessionManagerProvider: DrmSessionManagerProvider,
+    ): MediaSource.Factory {
+        default.setDrmSessionManagerProvider(drmSessionManagerProvider)
+        rtsp.setDrmSessionManagerProvider(drmSessionManagerProvider)
+        return this
+    }
+
+    override fun setLoadErrorHandlingPolicy(
+        loadErrorHandlingPolicy: LoadErrorHandlingPolicy,
+    ): MediaSource.Factory {
+        default.setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
+        rtsp.setLoadErrorHandlingPolicy(loadErrorHandlingPolicy)
+        return this
+    }
+
+    override fun getSupportedTypes(): IntArray = default.supportedTypes
+
+    override fun createMediaSource(mediaItem: MediaItem): MediaSource =
+        if (isRtsp(mediaItem)) {
+            rtsp.createMediaSource(mediaItem)
+        } else {
+            default.createMediaSource(mediaItem)
+        }
+
+    private fun isRtsp(mediaItem: MediaItem): Boolean =
+        mediaItem.localConfiguration?.uri?.scheme.equals(SCHEME_RTSP, ignoreCase = true)
+
+    private companion object {
+        const val SCHEME_RTSP = "rtsp"
     }
 }
 

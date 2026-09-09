@@ -1,0 +1,159 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://fastmediasorter.local/schemas/latency-record-1.json",
+  "title": "Agent latency evidence record",
+  "description": "One agent task run, measured so that model time, tool time, local-command time and resource waiting stay separable, and so that the quality of the result is recorded next to its duration. S2760. A cost or context figure is never a latency figure and never a quality figure: this schema has no field that accepts one, and a record that reports a saved token count in place of a measured duration is invalid by construction.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "recordId",
+    "date",
+    "taskClass",
+    "controlTaskId",
+    "routeId",
+    "firstResponseMs",
+    "toolDurationMs",
+    "queueWaitMs",
+    "totalCompletionMs",
+    "qualityVerdict",
+    "acceptanceCriteria",
+    "validationEvidence"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "description": "Version of this record shape. Bumped when a field changes meaning, never when a field is added.",
+      "type": "integer",
+      "const": 1
+    },
+    "recordId": {
+      "description": "Stable identifier of this run, unique inside the ticket's evidence directory.",
+      "type": "string",
+      "minLength": 1
+    },
+    "date": {
+      "description": "Absolute date of the run, YYYY-MM-DD. Relative wording does not survive the comparison it feeds.",
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+    },
+    "ticket": {
+      "description": "Ticket the run was performed under, when it had one.",
+      "type": "string",
+      "pattern": "^S[0-9]{4}$"
+    },
+    "taskClass": {
+      "description": "Owner-named class of work. The three classes are the control set: mechanical or script work, code search and research, Kotlin development and build.",
+      "type": "string",
+      "enum": ["mechanical", "research", "engineering"]
+    },
+    "controlTaskId": {
+      "description": "Identifier of the control task. Two records may only be compared when this value matches, because a duration without a fixed task measures the task, not the route.",
+      "type": "string",
+      "minLength": 1
+    },
+    "routeId": {
+      "description": "The route under test: which model, which reasoning effort, inline or subagent, and any verbosity setting, spelled out enough to be reproduced.",
+      "type": "string",
+      "minLength": 1
+    },
+    "routeSettings": {
+      "description": "The individual settings behind routeId, so a later reader can tell which lever moved.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "model": { "type": "string" },
+        "reasoningEffort": { "type": "string" },
+        "verbosity": { "type": "string" },
+        "execution": { "type": "string", "enum": ["inline", "subagent", "workflow"] }
+      }
+    },
+    "firstResponseMs": {
+      "description": "Client-observed milliseconds from submitting the request to the first visible output token. Not measurable by any repository script - it is supplied by the operator from the client.",
+      "$ref": "#/definitions/measurement"
+    },
+    "modelDurationMs": {
+      "description": "Client-observed milliseconds the model spent reasoning and emitting output, when the client exposes it. Frequently unavailable, which is why it is optional and why 'unavailable' must carry a reason.",
+      "$ref": "#/definitions/measurement"
+    },
+    "toolDurationMs": {
+      "description": "Milliseconds spent inside tool and local-command execution - gradle, gates, scripts, greps. Repository-observed and measured monotonically.",
+      "$ref": "#/definitions/measurement"
+    },
+    "queueWaitMs": {
+      "description": "Milliseconds spent waiting for a resource rather than working: a build or code domain lock, a ticket lease, a queued sibling session. Repository-observed. Zero is a real measurement and must be written as zero, never omitted.",
+      "$ref": "#/definitions/measurement"
+    },
+    "totalCompletionMs": {
+      "description": "Milliseconds from request to the finished, accepted result. This is the number the owner feels; the stages above explain where it went.",
+      "$ref": "#/definitions/measurement"
+    },
+    "qualityVerdict": {
+      "description": "Whether the run produced the accepted result. 'incomplete' means the route did not finish the task and disqualifies it regardless of its durations.",
+      "type": "string",
+      "enum": ["accepted", "accepted-with-rework", "incomplete", "rejected"]
+    },
+    "acceptanceCriteria": {
+      "description": "The criteria the result was judged against. Compared routes must carry an identical set, or the comparison measures two different tasks.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "validationEvidence": {
+      "description": "Each mandatory check that was run, with its exit code or PASS/FAIL. An empty list is not allowed: a run with no evidence has no verdict to compare.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["check", "outcome"],
+        "properties": {
+          "check": { "type": "string", "minLength": 1 },
+          "outcome": { "type": "string", "minLength": 1 },
+          "exitCode": { "type": "integer" }
+        }
+      }
+    },
+    "reworkCount": {
+      "description": "Number of fix iterations needed after the first result was presented. A faster route that needs a second pass is not faster.",
+      "type": "integer",
+      "minimum": 0
+    },
+    "notes": {
+      "description": "Free operator remarks. Never a substitute for a measurement or an unavailable-metric reason.",
+      "type": "string"
+    }
+  },
+  "definitions": {
+    "measurement": {
+      "description": "A measured duration, or an explicit statement that it could not be measured together with the reason it could not. There is no third form: an absent metric with no reason silently reads as zero in every later average, which is the failure this shape exists to prevent.",
+      "oneOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["valueMs", "source"],
+          "properties": {
+            "valueMs": { "type": "number", "minimum": 0 },
+            "source": {
+              "description": "Who observed it. A client-observed field may not be filled in by a repository script, and a repository-observed field may not be typed in from a feeling.",
+              "type": "string",
+              "enum": ["client", "repository"]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["unavailable", "unavailableReason"],
+          "properties": {
+            "unavailable": { "type": "boolean", "const": true },
+            "unavailableReason": {
+              "description": "Why this stage could not be measured on this run - for example the client exposes no reasoning duration.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    }
+  }
+}

@@ -55,7 +55,6 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
      * must, because a shortcut grid is tapped on a watch where the app may never have run.
      */
     private fun screenFor(id: WearDestinationId): WearLaunchAddress.Screen {
-        Timber.d("S2511: shortcut tapped, destination=%s", id)
         return WearLaunchAddress.Screen(id)
     }
 

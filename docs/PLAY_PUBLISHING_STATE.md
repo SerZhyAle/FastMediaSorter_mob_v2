@@ -92,6 +92,30 @@ reports how old it is and changes nothing in it.
 | 3 | `Wear App Quality Guidelines: Missing app icon in splash screen` | S2274 |
 | 4 | `Wear App Quality Guidelines: Watch shapes` | S2273 |
 
+**Transcribed:** 2026-09-09, from the owner's Play verdict letter of 2026-09-08 (quoted verbatim in
+S2756 section 0), Routing ID `ZLFS`, versionCode `26090503`.
+
+`Update rejected` - one row, dated 2026-09-08, Wear:
+
+| Row | Claim | Carrier |
+|-----|-------|---------|
+| 1 | `Issue found: Wear app functionality not working as described` / `The functionality of your app doesn't work as described.` | S2755, S2756 |
+
+This is a **separate verdict on a separate artifact**, not a restatement of the rows above: the
+2026-08-31 batch carried versionCode `26082501` (block 2, `wear:production`), this letter carries
+`26090503` and its own Routing ID. Both entries therefore stand, each under its own date, exactly as
+the rule at the top of this file requires.
+
+**This entry is the letter, not the page.** `Policy status` in the Console has not been re-read
+since 2026-08-31, so nothing here says whether the four August rows are still listed there. A letter
+reports one submission's verdict; the page reports the app's standing claims. The next screenshot
+transcription is what reconciles them - until then, treat the August table as unmeasured rather than
+as current.
+
+The claim is carried from both sides, per the owner's decision of 2026-09-08 recorded in S2756: the
+watch behaviour by **S2755** (text cut off at large font), the listing text by **S2756** (the store
+description now matches what the watch build actually implements).
+
 `App updates with these issues will be rejected`:
 
 - `App must target Android 16 (API level 36) or higher` - `Enforced Aug 31, 2026`, warning sent
@@ -181,10 +205,20 @@ An ordinary `standard` campaign, with no watch artifact in the batch.
 **Proof:** all three carriers closed, S1984's pre-release walk run on a real watch, then a watch-only
 campaign.
 
-The three Wear claims are carried by **S2273** (watch shapes), **S2274** (missing splash-screen icon)
-and **S2275** (functionality not as described - which covers both identical rows, since they are one
-subject stated twice). No watch submission is attempted before all three are closed and the
-pre-release walk of **S1984** has run on device: a rejection costs a full review cycle.
+Every Wear claim recorded in block 3 with its carrier and that carrier's status, checked in the
+catalog on 2026-09-09:
+
+- `Watch shapes` (2026-08-31) - **S2273**, `Broken`. Open.
+- `Missing app icon in splash screen` (2026-08-31) - **S2274**, `Archived`. Closed.
+- `Functionality not working as described` (2026-08-31, both identical rows - one subject stated
+  twice) - **S2275**, `Archived`. Closed.
+- `Wear app functionality not working as described` (2026-09-08, versionCode `26090503`) -
+  **S2755**, `BlockNeedUserTest`, and **S2756**, `Verified`. S2755 is open: the status means the
+  device verdict has not been taken yet, not that the work passed.
+
+No watch submission is attempted before every open carrier above is closed and the pre-release walk
+of **S1984** has run on device: a rejection costs a full review cycle. Open as of this check: S2273
+and S2755.
 
 **Step 3 does not wait on step 4, and never will.** That dependency is the exact failure this record
 exists to prevent - one watch defect held a phone release for which there was not a single claim.

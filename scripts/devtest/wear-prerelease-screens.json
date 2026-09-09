@@ -114,6 +114,16 @@
       "note": "S2509: the marker is the idle caption rather than the Start broadcast chip, because that chip is drawn only once RECORD_AUDIO is granted - on a clean sweep device the screen shows the grant chip instead, and a walk keyed on Start would fail for a permission rather than for a defect. Opening this screen starts nothing: the microphone is taken by a tap, not by arrival."
     },
     {
+      "id": "phone-camera",
+      "name": "Phone camera",
+      "label": "Phone camera",
+      "expect": "over Wi-Fi",
+      "screen": "PhoneCameraScreen",
+      "expectRes": "wear_phone_camera_idle_caption",
+      "backAfter": 1,
+      "note": "S2551: the marker is the idle caption rather than the Start chip, whose label is one word this screen shares with several others. Opening it asks the phone for nothing - the command is sent by a tap, not by arrival - so the walk costs no camera on the paired phone."
+    },
+    {
       "id": "apps",
       "name": "Apps",
       "label": "Apps",

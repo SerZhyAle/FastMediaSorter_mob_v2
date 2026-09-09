@@ -63,7 +63,6 @@ fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S2755: settings grid large-font layout")
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,

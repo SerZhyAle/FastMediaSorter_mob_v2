@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>Automático (seguir dispositivo)</item>
         <item>Claro</item>
@@ -3372,4 +3376,61 @@
     <string name="broadcast_import_unsupported_version">Versão do descritor de transmissão não suportada</string>
     <string name="broadcast_import_success">Canal de transmissão adicionado</string>
     <string name="broadcast_import_option_file">Selecionar ficheiro descritor</string>
+    <string name="launcher_settings_unit_system_title">Sistema de unidades</string>
+    <string name="unit_system_metric">Métrico (°C)</string>
+    <string name="wear_listen_title">Ouvir o relógio</string>
+    <string name="wear_listen_start">Começar a ouvir</string>
+    <string name="wear_listen_stop">Parar de ouvir</string>
+    <string name="wear_listen_caption_idle">Ouça o que o microfone do relógio capta. O relógio vai pedir a sua confirmação.</string>
+    <string name="wear_listen_caption_waiting">Aguardando a sua confirmação no relógio..</string>
+    <string name="wear_listen_caption_listening">Ouvindo o relógio.</string>
+    <string name="wear_listen_refusal_not_asked">O relógio não conseguiu perguntar: ative as notificações dele para o FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">Você recusou o pedido no relógio.</string>
+    <string name="wear_listen_refusal_expired">Ninguém respondeu no relógio a tempo.</string>
+    <string name="wear_listen_refusal_capture_failed">O relógio não conseguiu abrir o microfone.</string>
+    <string name="wear_listen_refusal_no_network">Ative o Wi-Fi no relógio - o som viaja pelo Wi-Fi, não pelo Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">A escuta foi interrompida no relógio.</string>
+    <string name="wear_listen_refusal_busy">O relógio já está atendendo outro ouvinte.</string>
+    <string name="wear_listen_refusal_unknown">O relógio recusou por um motivo que este telefone não conhece.</string>
+    <string name="wear_listen_no_answer">O relógio não respondeu.</string>
+    <string name="wear_listen_send_failed">Não foi possível contatar o relógio.</string>
+    <string name="wear_listen_wifi_lost">O relógio saiu do Wi-Fi, então a escuta foi interrompida.</string>
+    <string name="stream_action_open_in_vr">Abrir em VR</string>
+    <string name="stream_vr_unsupported_transport">Este canal usa um transporte que o player de VR ainda não consegue abrir. Ele continua tocando no player normal.</string>
+    <string name="launcher_translator_translate">Traduzir</string>
+    <string name="launcher_translator_in_progress">Traduzindo..</string>
+    <string name="launcher_wallpaper_screen_title">Papel de parede</string>
+    <string name="launcher_wallpaper_section_mode">O que é desenhado</string>
+    <string name="launcher_wallpaper_section_source">Origem</string>
+    <string name="launcher_wallpaper_section_tuning">Aparência</string>
+    <string name="launcher_wallpaper_section_power">Bateria</string>
+    <string name="launcher_wallpaper_desc_branded">Ondas coloridas com partículas flutuantes, animadas o tempo todo em que a área de trabalho está aberta.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">As mesmas ondas, mas congeladas: um novo quadro é desenhado a cada vez que você volta à área de trabalho, e nada se move depois disso.</string>
+    <string name="launcher_wallpaper_desc_none">Nenhum papel de parede - a área de trabalho mostra a cor lisa do tema atual.</string>
+    <string name="launcher_wallpaper_desc_image">Sua própria imagem, estática ou animada, recortada para preencher a tela.</string>
+    <string name="launcher_wallpaper_desc_camera">Uma imagem ao vivo da câmera, atualizada continuamente. É o modo que mais consome bateria.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">Uma foto tirada pela câmera a cada retorno à área de trabalho; a câmera é liberada imediatamente depois.</string>
+    <string name="launcher_wallpaper_intensity_title">Brilho</string>
+    <string name="launcher_wallpaper_intensity_hint">Com que intensidade o papel de parede é desenhado. Valores mais baixos deixam mais contraste para ícones e rótulos.</string>
+    <string name="launcher_wallpaper_speed_title">Velocidade da animação</string>
+    <string name="launcher_wallpaper_particle_density_title">Densidade de partículas</string>
+    <string name="launcher_wallpaper_particle_density_hint">Em zero, apenas as ondas são desenhadas, sem partículas.</string>
+    <string name="launcher_wallpaper_power_explanation">O papel de parede para de animar sozinho quando a economia de bateria do sistema está ativa ou a bateria está baixa, e a câmera ao vivo volta para as ondas. Desativar a animação nas configurações do app também a interrompe.</string>
+    <string name="launcher_wallpaper_power_state_normal">Agora: animando</string>
+    <string name="launcher_wallpaper_power_state_reduced">Agora: reduzido para economizar bateria</string>
+    <string name="launcher_wallpaper_power_state_saving">Agora: parado para economizar bateria</string>
+    <string name="launcher_wallpaper_source_empty">Nada escolhido ainda</string>
+    <string name="launcher_wallpaper_source_change">Escolher</string>
+    <string name="launcher_signal_overflow_description">Mais notificações: %1$d</string>
+    <string name="launcher_section_settings">Configurações</string>
+    <string name="launcher_tray_battery_charging_ac">Bateria %1$d%%, carregando na tomada</string>
+    <string name="launcher_tray_battery_charging_usb">Bateria %1$d%%, carregando via USB</string>
+    <string name="launcher_tray_battery_charging_wireless">Bateria %1$d%%, carregando sem fio</string>
+    <string name="streams_collection_all">Todos</string>
+    <string name="streams_collection_strip_description">Coleções</string>
+    <string name="streams_collection_selected_count">%1$d canais na coleção</string>
+    <string name="camera_session_consent_channel_name">Solicitações de câmera do relógio</string>
+    <string name="camera_session_consent_notification_title">Seu relógio quer ver esta câmera</string>
+    <string name="camera_session_consent_notification_text">Permita que o relógio veja a câmera e o microfone deste telefone.</string>
+    <string name="camera_session_consent_allow">Permitir</string>
 </resources>

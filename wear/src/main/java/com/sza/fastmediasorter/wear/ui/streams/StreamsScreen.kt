@@ -67,11 +67,13 @@ import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
+import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearDialogListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChoiceRows
@@ -79,7 +81,6 @@ import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamLanguageLabels
 import com.sza.fastmediasorter.wear.ui.streams.helpers.WearStreamRubricCatalog
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -360,13 +361,10 @@ private fun StreamsMainContent(
             )
         } else {
             WearListColumn(
-                // S2049: the only list-like screen in the module with no rotary hookup - the crown
-                // already scrolls the player and steps the calculator, so its silence here read as a
-                // real gap, not a deliberate one. Plain scroll, not a stepped action: nothing here
-                // consumes discrete steps.
-                modifier = Modifier
-                    .fillMaxSize()
-                    .rotaryActionScroll(listState),
+                // S2049 wired the crown here by hand, this screen being the first list to get it;
+                // S2763 found that made it one of two out of forty and moved the hookup into
+                // WearListColumn, so the modifier below no longer carries it.
+                modifier = Modifier.fillMaxSize(),
                 state = listState,
                 // S1945: start rule is owned by WearListColumn (S2466).
                 contentPadding = PaddingValues(
@@ -683,10 +681,10 @@ private fun StreamSearchDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own over the list.
         Box(modifier = Modifier.fillMaxSize()) {
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
@@ -762,7 +760,7 @@ private fun StreamFilterDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         Timber.d("S2754: streams filter dialog composed with its own position indicator")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
@@ -770,7 +768,7 @@ private fun StreamFilterDialog(
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = true
             )
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {
@@ -890,7 +888,7 @@ private fun StreamSortDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         Timber.d("S2754: streams sort dialog composed with its own position indicator")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
@@ -898,7 +896,7 @@ private fun StreamSortDialog(
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = true
             )
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {

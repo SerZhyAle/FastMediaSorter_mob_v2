@@ -307,7 +307,13 @@ for ($y = 0; $y -lt $h; $y++) {
     $leftEnd = if ($half -lt 0) { $radius - 1 } else { [int][Math]::Ceiling($radius - $half) - 1 }
     $rightStart = if ($half -lt 0) { $w - $radius } else { $w - 1 - $radius + [int][Math]::Floor($half) + 1 }
     $rowBase = $y * $stride
-    foreach ($range in @(@(0, [Math]::Min($leftEnd, $radius - 1)), @([Math]::Max($rightStart, $w - $radius), $w - 1))) {
+    # The comma binds tighter than the minus, so every arithmetic element of an array literal is
+    # parenthesised here: @(3, $w - 1) parses as ($3, $w) - 1 and dies on op_Subtraction.
+    $leftStop = [Math]::Min($leftEnd, ($radius - 1))
+    $rightFrom = [Math]::Max($rightStart, ($w - $radius))
+    $ranges = @(, @(0, $leftStop))
+    $ranges += , @($rightFrom, ($w - 1))
+    foreach ($range in $ranges) {
         for ($x = $range[0]; $x -le $range[1]; $x++) {
             if ($x -lt 0 -or $x -ge $w) { continue }
             $o = $rowBase + $x * 4

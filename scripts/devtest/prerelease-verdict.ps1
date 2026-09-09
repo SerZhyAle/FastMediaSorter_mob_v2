@@ -38,7 +38,8 @@
 .PARAMETER WalkResults
   S1984. `walk.json` written by wear-prerelease-walk.ps1. Present: each declared screen is listed and
   a `manual` screen - one nothing could be decided about - blocks the PASS without counting as a
-  failure. Absent: the phone sweep, unchanged.
+  failure. S2767: an `unreachable` screen - one the walk never opened - is counted and reported on
+  its own line and blocks the PASS exactly as a `failed` one does. Absent: the phone sweep, unchanged.
 
 .PARAMETER Json
   Emit a single JSON verdict object instead of human-readable lines.
@@ -279,15 +280,20 @@ if ($WalkResults) {
     $walkScreens = @($walk.screens)
     $manualOpen = @($walkScreens | Where-Object { $_.outcome -eq 'manual' }).Count
     $walkBreakdown = [ordered]@{
-        observed = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
-        failed   = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
-        manual   = $manualOpen
-        coverage = $walk.coverage
-        screens  = @($walkScreens | ForEach-Object { [ordered]@{ id = $_.id; outcome = $_.outcome; detail = $_.detail } })
+        observed    = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
+        failed      = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
+        # S2767: reported apart from `failed` and weighed the same. A screen the walk never opened
+        # was judged against no Play requirement at all, so counting it as a pass would be the green
+        # verdict about the unseen; counting it as a product failure sent two rebuilds after a defect
+        # that did not exist. It is neither, and now it says so.
+        unreachable = @($walkScreens | Where-Object { $_.outcome -eq 'unreachable' }).Count
+        manual      = $manualOpen
+        coverage    = $walk.coverage
+        screens     = @($walkScreens | ForEach-Object { [ordered]@{ id = $_.id; outcome = $_.outcome; detail = $_.detail } })
     }
 }
 
-$walkPass = (-not $walkBreakdown) -or ($walkBreakdown.failed -eq 0)
+$walkPass = (-not $walkBreakdown) -or (($walkBreakdown.failed -eq 0) -and ($walkBreakdown.unreachable -eq 0))
 $pass = $logPass -and $perfPass -and $maestroPass -and $walkPass
 
 # ---------- emit verdict (step 04.3) ----------

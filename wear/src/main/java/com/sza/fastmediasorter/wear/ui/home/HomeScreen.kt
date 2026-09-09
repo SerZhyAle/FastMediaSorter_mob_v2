@@ -371,6 +371,10 @@ private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     // S2509: OTHER rather than STREAM. This row is a program of this app, not a channel registered
     // in it - giving it the stream tone would say the watch has a channel to play.
     HomeSectionId.BROADCAST,
+    // S2551: OTHER for the same reason as the row above. What this one opens IS a stream, but it is
+    // one that exists only while the session does - giving it the stream tone would place it beside
+    // the registered channels, which is exactly what the ticket's non-goal keeps it out of.
+    HomeSectionId.PHONE_CAMERA,
     HomeSectionId.APPS -> WearContentType.OTHER
 }
 

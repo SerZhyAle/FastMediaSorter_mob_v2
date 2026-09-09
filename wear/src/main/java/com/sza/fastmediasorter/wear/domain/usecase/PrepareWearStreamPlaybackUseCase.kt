@@ -45,7 +45,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         siblings: List<WearStreamChannel> = emptyList(),
     ): WearStreamPlaybackTarget {
         val isVideo = channel.isVideoKind()
-        val mediaFile = channel.toMediaFile(isVideo)
+        val mediaFile = channel.toWearMediaFile(isVideo)
 
         // S2146: counted here rather than in the list's ViewModel, because this is the one point the
         // list entrance and the phone's Data Layer request already share - counting at either
@@ -78,25 +78,30 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         // the user mid-gesture.
         val set = siblings.filter { it.isVideoKind() == isVideo }.ifEmpty { listOf(channel) }
         val startIndex = set.indexOfFirst { it.url == channel.url }.coerceAtLeast(0)
-        playbackSetManager.publish(set.map { it.toMediaFile(isVideo) }, startIndex)
+        playbackSetManager.publish(set.map { it.toWearMediaFile(isVideo) }, startIndex)
 
         return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = isVideo)
     }
-
-    private fun WearStreamChannel.toMediaFile(isVideo: Boolean) = WearMediaFile(
-        id = url.hashCode().toLong(),
-        name = name,
-        uri = Uri.parse(url),
-        mimeType = if (isVideo) MIME_VIDEO else MIME_AUDIO,
-        size = 0L,
-        dateModified = 0L,
-    )
-
-    private companion object {
-        const val MIME_VIDEO = "video/*"
-        const val MIME_AUDIO = "audio/*"
-    }
 }
+
+private const val MIME_VIDEO = "video/*"
+private const val MIME_AUDIO = "audio/*"
+
+/**
+ * The one mapping from a channel to the file a player opens.
+ *
+ * At file level rather than private to the use case above, because S2551's ephemeral path needs the
+ * same mapping and this class's own KDoc forbids a second copy - two answers to "which player, and
+ * what is next in the set" drift, and the drift is only ever visible on a watch.
+ */
+internal fun WearStreamChannel.toWearMediaFile(isVideo: Boolean) = WearMediaFile(
+    id = url.hashCode().toLong(),
+    name = name,
+    uri = Uri.parse(url),
+    mimeType = if (isVideo) MIME_VIDEO else MIME_AUDIO,
+    size = 0L,
+    dateModified = 0L,
+)
 
 /**
  * A catalog row carries its kind as free text, so VIDEO and RTSP both mean "the video player". Kept

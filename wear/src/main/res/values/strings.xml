@@ -680,4 +680,26 @@
     <string name="wear_document_font_medium">Medium</string>
     <string name="wear_document_font_large">Large</string>
     <string name="wear_document_font_selected">%1$s, selected</string>
+    <string name="wear_section_phone_camera">Phone camera</string>
+    <string name="wear_phone_camera_idle_caption">Watch what your phone sees, over Wi-Fi</string>
+    <string name="wear_phone_camera_start">Start</string>
+    <string name="wear_phone_camera_requested">Asking the phone..</string>
+    <string name="wear_phone_camera_live">Live from the phone</string>
+    <string name="wear_phone_camera_stop">Stop</string>
+    <string name="wear_phone_camera_stopped">Session ended</string>
+    <string name="wear_phone_camera_lenses">Cameras</string>
+    <string name="wear_phone_camera_lens_back">Back camera</string>
+    <string name="wear_phone_camera_lens_front">Front camera</string>
+    <string name="wear_phone_camera_failed_no_phone">The phone did not answer</string>
+    <string name="wear_phone_camera_failed_not_on_wifi">Turn on Wi-Fi on the watch</string>
+    <string name="wear_phone_camera_failed_no_network">The watch has no network</string>
+    <string name="wear_phone_camera_failed_narrow_link">This Wi-Fi is too slow for video</string>
+    <string name="wear_phone_camera_failed_not_asked">Notifications are off on the phone</string>
+    <string name="wear_phone_camera_failed_declined">The request was declined on the phone</string>
+    <string name="wear_phone_camera_failed_expired">Nobody answered on the phone</string>
+    <string name="wear_phone_camera_failed_capture">The phone could not open its camera</string>
+    <string name="wear_phone_camera_failed_busy">The phone is already streaming</string>
+    <string name="wear_phone_camera_failed_not_supported">This phone build cannot send video</string>
+    <string name="wear_phone_camera_failed_unknown">The phone refused, without saying why</string>
+    <string name="wear_player_file_actions">File actions</string>
 </resources>

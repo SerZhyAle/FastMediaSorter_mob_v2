@@ -10,6 +10,7 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
@@ -42,6 +44,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,17 +82,26 @@ import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WaveParticleBackground
+import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearBandEdgeOffset
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
+import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
+import com.sza.fastmediasorter.wear.ui.player.common.playerCommandBandWidth
+import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
+import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
 
 /** Keeps white text readable over the animation, made 33% more visible per S1866. */
@@ -120,6 +132,14 @@ private const val DRAG_THRESHOLD_DOWN_PX = 10f
  * measured, and it is the whole answer on a square screen, where the chord never narrows.
  */
 private val TRACK_INFO_MIN_PADDING = 8.dp
+
+/** Keeps text ink and rounded layout coordinates from landing exactly on a round-glass chord. */
+private val TRACK_INFO_EDGE_SAFETY = 1.dp
+
+@Composable
+private fun trackInfoPadding(topInset: Dp, sideInset: Dp): Dp = (
+    wearChordInset(topInset) - sideInset + TRACK_INFO_EDGE_SAFETY
+    ).coerceAtLeast(TRACK_INFO_MIN_PADDING)
 
 /**
  * Audio player screen for Wear OS.
@@ -294,6 +314,8 @@ private fun AudioPlayerContent(
     // S2477: The audio player elements are fitted onto a single screen without vertical list scrolling.
     // Vertical drag gesture / rotary wheel controls volume level.
     Timber.d("S2477: AudioPlayerContent single-screen layout composed")
+    Timber.d("S2769: Audio track title chord safety margin active")
+    var showMenu by rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -314,64 +336,202 @@ private fun AudioPlayerContent(
         // column's own top - about a tenth of the way down, where the chord is far shorter than the
         // diameter and the proportional inset alone left the name sliced flat against the arc on both
         // sides. Text is the one element here that can pay for the chord out of its own width: it
-        // wraps and ellipsizes, and narrower and whole beats wide and cut. What the column has already
-        // paid is subtracted because the chord is measured from the glass, not from the column.
-        val trackInfoPadding = (
-            wearChordInset(screenInsets.calculateTopPadding()) -
-                screenInsets.calculateLeftPadding(LayoutDirection.Ltr)
-            ).coerceAtLeast(TRACK_INFO_MIN_PADDING)
+        // wraps and ellipsizes, and narrower and whole beats wide and cut. The chord is measured from glass.
+        val screenSideInset = screenInsets.calculateLeftPadding(LayoutDirection.Ltr)
+        val trackInfoPadding = trackInfoPadding(screenInsets.calculateTopPadding(), screenSideInset)
+        // S2273: measured at 192 dp, where the bottom command row failed `clip-check` at 206.8 px
+        // against a 192 px limit. That row is four touch targets and cannot pay a chord inset out of
+        // its own width past the glyphs, so it does both: it stands where the glass is at least
+        // [playerCommandBandWidth] wide, and it takes exactly that width there. The lift comes out of
+        // the column's SpaceEvenly gaps, which is why nothing else on the screen moves; the row is the
+        // last child, so the column's own bottom is what places it.
+        // S2766: the lift is charged for the row actually drawn. A two-command row is narrower, so it
+        // stands lower and hands the difference back to the column, which is where the compact
+        // composition finds part of the height its children were short of.
+        val commandRowBottom = wearBandEdgeOffset(playerCommandBandWidth(secondaryRowColumns()))
+            .coerceAtLeast(screenInsets.calculateBottomPadding())
+        val commandRowPadding = (wearChordInset(commandRowBottom) - screenSideInset)
+            .coerceAtLeast(0.dp)
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(screenInsets),
+                .padding(
+                    start = screenSideInset,
+                    top = screenInsets.calculateTopPadding(),
+                    end = screenSideInset,
+                    bottom = commandRowBottom
+                ),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            TrackInfoSection(uiState = uiState, horizontalPadding = trackInfoPadding)
-
-            uiState.channelReason?.let { reason ->
-                StreamChannelNotice(reason = reason)
-            }
-
-            PlaybackTimeRow(
-                currentPosition = uiState.currentPositionFormatted,
-                duration = uiState.durationFormatted,
-                progress = uiState.progress,
-                durationMs = uiState.durationMs,
-                onSeekTo = actions.seek.onSeekTo
-            )
-
-            PlaybackControls(
-                isPlaying = uiState.isPlaying,
-                playbackMode = uiState.playbackMode,
-                onPlayPause = actions.onPlayPause,
-                onSkipNext = actions.onSkipNext,
-                onSkipPrevious = actions.onSkipPrevious,
-                onTogglePlaybackMode = actions.onTogglePlaybackMode,
-                seek = actions.seek
-            )
-
-            SecondaryControls(
+            PlayerColumnContent(
+                uiState = uiState,
                 isFavorite = isFavorite,
-                isPinned = isPinned,
-                isStream = uiState.isStream,
-                actions = actions
+                actions = actions,
+                paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
+                onOpenMenu = { showMenu = true }
             )
-
-            if (!uiState.isStream && uiState.positionText.isNotEmpty()) {
-                Text(
-                    text = uiState.positionText,
-                    style = MaterialTheme.typography.caption2,
-                    color = Color.Gray,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
         }
 
         // S2477: Right side bar for volume overlay when volume is visible/changing
         if (uiState.isVolumeVisible) {
             VolumeIndicatorSideBar(level = uiState.volumeLevel, max = uiState.volumeMax)
+        }
+    }
+
+    if (showMenu) {
+        PlayerOverflowMenu(
+            actions = playerMenuActions(
+                uiState = uiState,
+                isFavorite = isFavorite,
+                isPinned = isPinned,
+                actions = actions,
+                onDismiss = { showMenu = false }
+            ),
+            onDismiss = { showMenu = false }
+        )
+    }
+}
+
+/** The two clearances the column's children need, each measured against the round glass. */
+private data class PlayerColumnPaddings(
+    val trackInfo: Dp,
+    val commandRow: Dp
+)
+
+/**
+ * The children of the player column, in the order the glass shows them.
+ *
+ * S2766: which children there are depends on the screen size class, which is the whole reason this
+ * ticket exists - a proportion can shrink a child but cannot remove one, and at 192 dp one had to go.
+ */
+@Composable
+private fun ColumnScope.PlayerColumnContent(
+    uiState: AudioPlayerUiState,
+    isFavorite: Boolean,
+    actions: AudioPlayerActions,
+    paddings: PlayerColumnPaddings,
+    onOpenMenu: () -> Unit
+) {
+    TrackInfoSection(uiState = uiState, horizontalPadding = paddings.trackInfo)
+
+    uiState.channelReason?.let { reason ->
+        StreamChannelNotice(reason = reason)
+    }
+
+    // S2766: the time row is what the compact column cannot afford - its children ask about 23.5 dp
+    // more than the glass leaves them at 192 dp, and this row costs about 24. Below the breakpoint
+    // the position moves onto the ring around the play button instead.
+    if (!wearIsCompactScreen()) {
+        PlaybackTimeRow(
+            currentPosition = uiState.currentPositionFormatted,
+            duration = uiState.durationFormatted,
+            progress = uiState.progress,
+            durationMs = uiState.durationMs,
+            onSeekTo = actions.seek.onSeekTo
+        )
+    }
+
+    PlaybackControls(
+        isPlaying = uiState.isPlaying,
+        progress = uiState.progress,
+        onPlayPause = actions.onPlayPause,
+        onSkipNext = actions.onSkipNext,
+        onSkipPrevious = actions.onSkipPrevious,
+        seek = actions.seek
+    )
+
+    SecondaryControls(
+        isFavorite = isFavorite,
+        actions = actions,
+        horizontalPadding = paddings.commandRow,
+        onOpenMenu = onOpenMenu
+    )
+
+    if (!uiState.isStream && uiState.positionText.isNotEmpty()) {
+        Text(
+            text = uiState.positionText,
+            style = MaterialTheme.typography.caption2,
+            color = Color.Gray,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+/**
+ * Everything the two command rows shed, in one list.
+ *
+ * S2766: the rows carry three primary and two or three secondary commands now, so the commands they
+ * no longer show need a container that is itself reachable - otherwise they have not moved, they have
+ * disappeared. The favourite appears here only below the breakpoint, because above it the secondary
+ * row still has the slot.
+ *
+ * The file operations stay their own entry rather than being merged in: that dialog answers what the
+ * file capability policy allows (ADR-4), and a playback mode inside it would make that answer wrong.
+ */
+@Composable
+private fun playerMenuActions(
+    uiState: AudioPlayerUiState,
+    isFavorite: Boolean,
+    isPinned: Boolean,
+    actions: AudioPlayerActions,
+    onDismiss: () -> Unit
+): List<WearAction> {
+    val playbackModeIcon = when (uiState.playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeLabel = stringResource(
+        when (uiState.playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
+    )
+    val favoriteLabel = stringResource(R.string.wear_toggle_favorite)
+    val pinLabel = stringResource(
+        if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
+    )
+    val screenOffLabel = stringResource(R.string.wear_screen_off)
+    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
+    val showFavorite = wearIsCompactScreen()
+
+    return buildList {
+        add(
+            playerMenuAction(
+                playbackModeLabel,
+                playbackModeIcon,
+                onDismiss,
+                actions.onTogglePlaybackMode
+            )
+        )
+        if (showFavorite) {
+            val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
+        }
+        if (uiState.isStream) {
+            val icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
+            add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
+        }
+        add(
+            playerMenuAction(
+                screenOffLabel,
+                Icons.Filled.DarkMode,
+                onDismiss,
+                actions.onToggleDimmed
+            )
+        )
+        if (!uiState.isStream) {
+            add(
+                playerMenuAction(
+                    fileActionsLabel,
+                    Icons.AutoMirrored.Filled.List,
+                    onDismiss,
+                    actions.onFileOperations
+                )
+            )
         }
     }
 }
@@ -589,19 +749,24 @@ private fun RowScope.SeekBar(
 }
 
 /**
- * S1701: the four buttons the owner ruled on 2026-08-16 - previous, play and pause, next, shuffle.
- * Width recomputed for this composition rather than inherited from S1683: four 48.dp targets and
- * three 4.dp gaps span 204.dp of the 226.dp screen this ticket was reported on, leaving 11.dp either
- * side at the centre chord. Seeking left this row with the ring: it lives on the bar above.
+ * S1701 gave this row the four buttons the owner ruled on 2026-08-16 - previous, play and pause,
+ * next, shuffle.
+ *
+ * S2766 takes it back to three. Google describes the primary media row as previous, play/pause and
+ * next, and the playback mode is not one of them - it moves to the player menu. The arithmetic says
+ * the same thing: four 48 dp cells with their gaps ask for 204 dp of row and the small round glass is
+ * 192 dp across, while three ask for 152 dp of a 153.6 dp content box.
+ *
+ * Below the breakpoint the position rides a ring around the play button, because the compact
+ * composition has no separate time row for it to live on.
  */
 @Composable
 private fun PlaybackControls(
     isPlaying: Boolean,
-    playbackMode: WearPlaybackMode,
+    progress: Float,
     onPlayPause: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
-    onTogglePlaybackMode: () -> Unit,
     seek: PlayerSeekActions
 ) {
     Timber.d("S2529: AudioPlayerScreen PlaybackControls composed, isPlaying=$isPlaying")
@@ -610,128 +775,115 @@ private fun PlaybackControls(
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
-    val playbackModeIcon = when (playbackMode) {
-        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
-        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
-        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
-    }
-    val playbackModeDesc = stringResource(
-        when (playbackMode) {
-            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
-            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
-            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
-        }
-    )
+    val ringed = wearIsCompactScreen()
 
-    PlayerCommandGrid { targetSize ->
+    PlayerCommandGrid(columns = PRIMARY_ROW_COLUMNS) { targetSize ->
         PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
             contentDescription = previousDesc,
-            modifier = Modifier.size(targetSize),
+            size = targetSize,
             onLongClick = seek.onSeekBackward,
             onLongClickLabel = seekBackwardDesc
         )
 
-        PlayerCommandButton(
-            onClick = onPlayPause,
-            icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+        PlayPauseCommand(
+            isPlaying = isPlaying,
             contentDescription = playPauseDesc,
-            modifier = Modifier.size(targetSize),
-            checked = true,
-            iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.MUSIC))
-        )
-
-        PlayerCommandButton(
-            onClick = onTogglePlaybackMode,
-            icon = playbackModeIcon,
-            contentDescription = playbackModeDesc,
-            modifier = Modifier.size(targetSize),
-            checked = playbackMode != WearPlaybackMode.SEQUENTIAL
+            size = targetSize,
+            progress = progress.takeIf { ringed },
+            onPlayPause = onPlayPause
         )
 
         PlayerCommandButton(
             onClick = onSkipNext,
             icon = Icons.Filled.SkipNext,
             contentDescription = nextDesc,
-            modifier = Modifier.size(targetSize),
+            size = targetSize,
             onLongClick = seek.onSeekForward,
             onLongClickLabel = seekForwardDesc
         )
     }
 }
 
+/** The play button, wrapped in the position ring when [progress] is given and bare when it is not. */
+@Composable
+private fun PlayPauseCommand(
+    isPlaying: Boolean,
+    contentDescription: String,
+    size: Dp,
+    progress: Float?,
+    onPlayPause: () -> Unit
+) {
+    val button: @Composable () -> Unit = {
+        PlayerCommandButton(
+            onClick = onPlayPause,
+            icon = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = contentDescription,
+            size = size,
+            checked = true,
+            iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.MUSIC))
+        )
+    }
+    if (progress == null) {
+        button()
+    } else {
+        PlayerProgressRing(progress = progress, content = button)
+    }
+}
+
 /**
  * S1701: the second row the owner ruled on. It is no longer conditional on the set being known -
  * a favourite can be marked on a single file just as much as on one inside a browsed folder, and a
- * control that appears and disappears is the harder thing to learn. The set marker rides along here
- * because the buttons that move it now sit in the row above, and dropping it would leave a wrapping
- * folder without the landmark S1683 added it for.
+ * control that appears and disappears is the harder thing to learn.
  *
  * S2472: the back command opens the row. This screen's controls are permanent list rows, so its back
  * button is permanent too - the affordance follows the window's logic, and this window never hides
  * its controls.
+ *
+ * S2766 narrows the row rather than cancelling either ruling: Google caps a secondary media row at
+ * two commands below the breakpoint and three above it. Back stays because S2472 made it permanent,
+ * "more" stays because without it everything this row shed is unreachable, and the favourite is the
+ * one that fits the third slot on the larger glass. Everything else opens from the menu.
  */
 @Composable
 private fun SecondaryControls(
     isFavorite: Boolean,
-    isPinned: Boolean,
-    isStream: Boolean,
-    actions: AudioPlayerActions
+    actions: AudioPlayerActions,
+    horizontalPadding: Dp,
+    onOpenMenu: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
-    val pinDesc = stringResource(
-        if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
-    )
-    val fileOpDesc = stringResource(R.string.wear_file_op_actions)
+    val menuDesc = stringResource(R.string.wear_file_op_actions)
 
-    PlayerCommandGrid { targetSize ->
+    PlayerCommandGrid(
+        horizontalPadding = horizontalPadding,
+        columns = secondaryRowColumns()
+    ) { targetSize ->
         PlayerCommandButton(
             onClick = actions.onBack,
             icon = Icons.AutoMirrored.Filled.ArrowBack,
             contentDescription = stringResource(R.string.wear_navigate_back),
-            modifier = Modifier.size(targetSize)
+            size = targetSize
         )
 
-        PlayerCommandButton(
-            onClick = actions.onToggleFavorite,
-            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = favoriteDesc,
-            modifier = Modifier.size(targetSize),
-            checked = isFavorite
-        )
-
-        if (isStream) {
+        if (!wearIsCompactScreen()) {
             PlayerCommandButton(
-                onClick = actions.onTogglePin,
-                icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                contentDescription = pinDesc,
-                modifier = Modifier.size(targetSize),
-                checked = isPinned
-            )
-        } else {
-            PlayerCommandButton(
-                onClick = actions.onFileOperations,
-                icon = Icons.Default.MoreVert,
-                contentDescription = fileOpDesc,
-                modifier = Modifier.size(targetSize)
+                onClick = actions.onToggleFavorite,
+                icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = favoriteDesc,
+                size = targetSize,
+                checked = isFavorite
             )
         }
 
-        ScreenOffButton(onToggleDimmed = actions.onToggleDimmed, modifier = Modifier.size(targetSize))
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = menuDesc,
+            size = targetSize
+        )
     }
-}
-
-@Composable
-private fun ScreenOffButton(onToggleDimmed: () -> Unit, modifier: Modifier) {
-    val screenOffDesc = stringResource(R.string.wear_screen_off)
-
-    PlayerCommandButton(
-        onClick = onToggleDimmed,
-        icon = Icons.Filled.DarkMode,
-        contentDescription = screenOffDesc,
-        modifier = modifier
-    )
 }
 
 @Composable

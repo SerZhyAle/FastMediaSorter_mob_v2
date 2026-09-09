@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
@@ -68,9 +69,6 @@ private const val STAT_TEXT_ALPHA = 0.7f
 /** Square screens only: the gap between the counter row and the board it sits above. */
 private val SQUARE_ROW_SPACING = 2.dp
 
-/** Round screens: clearance fraction from the edge ring so board tiles do not overlap stats ring. */
-private const val ROUND_BOARD_INSET_FRACTION = 0.35f
-
 /**
  * Pause between finishing a level and the next board appearing, matching the phone's.
  *
@@ -107,12 +105,9 @@ fun GameScreen(
     val levelNumber = uiState.level?.config?.levelNumber ?: FIRST_LEVEL_DISPLAYED
     var menuOpen by rememberSaveable { mutableStateOf(false) }
     val menuScrollState = rememberScrollState()
-    val menuActions = GameMenuActions(
-        onSkipTurn = { viewModel.skipTurn() },
-        onRestartLevel = { viewModel.restartLevelNow() },
-        onNewGame = { viewModel.startNewGame() },
-        onOpenRules = { navController.navigate(WearRoutes.GAME_RULES) },
-        onExit = { navController.popBackStack() },
+    val menuActions = rememberGameMenuActions(
+        viewModel = viewModel,
+        navController = navController,
         onDismiss = { menuOpen = false }
     )
 
@@ -124,13 +119,7 @@ fun GameScreen(
     val boardKey = uiState.level?.config?.let { config -> config.levelNumber to config.seed }
     val showGuideArrow = rememberGuideArrowVisibility(boardKey)
 
-    LaunchedEffect(uiState.status, levelNumber) {
-        if (uiState.status == GameStatus.LEVEL_WON) {
-            Timber.d("S2158: level %d won, advancing in %d ms", levelNumber, AUTO_ADVANCE_DELAY_MS)
-            delay(AUTO_ADVANCE_DELAY_MS)
-            viewModel.restart()
-        }
-    }
+    AutoAdvanceOnWin(status = uiState.status, levelNumber = levelNumber) { viewModel.restart() }
 
     // S2558: Black background (same as calculator) to remove animated/photographic wallpaper backdrop.
     WearScreenScaffold(
@@ -196,6 +185,47 @@ fun GameScreen(
     }
 }
 
+/**
+ * Draws the finished level for [AUTO_ADVANCE_DELAY_MS] and then asks for the next one.
+ *
+ * Its own composable so [GameScreen] stays a layout. Keyed on the level as well as the status: two
+ * consecutive wins carry the same status, and without the level in the key the second one would not
+ * restart the effect and the game would stop advancing.
+ */
+@Composable
+private fun AutoAdvanceOnWin(status: GameStatus, levelNumber: Int, onAdvance: () -> Unit) {
+    LaunchedEffect(status, levelNumber) {
+        if (status == GameStatus.LEVEL_WON) {
+            Timber.d("S2158: level %d won, advancing in %d ms", levelNumber, AUTO_ADVANCE_DELAY_MS)
+            delay(AUTO_ADVANCE_DELAY_MS)
+            onAdvance()
+        }
+    }
+}
+
+/**
+ * The in-play menu's six entries, bound to the view model and the back stack once.
+ *
+ * Kept out of [GameScreen] so that function stays a layout, and remembered on the two objects it
+ * closes over: rebuilding the block on every recomposition would hand the menu a new set of lambdas
+ * each frame and defeat the skipping the menu's own composable relies on.
+ */
+@Composable
+private fun rememberGameMenuActions(
+    viewModel: GameViewModel,
+    navController: NavController,
+    onDismiss: () -> Unit
+): GameMenuActions = remember(viewModel, navController, onDismiss) {
+    GameMenuActions(
+        onSkipTurn = { viewModel.skipTurn() },
+        onRestartLevel = { viewModel.restartLevelNow() },
+        onNewGame = { viewModel.startNewGame() },
+        onOpenRules = { navController.navigate(WearRoutes.GAME_RULES) },
+        onExit = { navController.popBackStack() },
+        onDismiss = onDismiss
+    )
+}
+
 @Composable
 private fun BoxScope.RoundScreenLayout(
     uiState: GameUiState,
@@ -206,12 +236,19 @@ private fun BoxScope.RoundScreenLayout(
     onOpenMenu: () -> Unit,
     onRestart: () -> Unit
 ) {
+    val boardSide = wearMaxSquareSide()
+    LaunchedEffect(boardSide) {
+        Timber.d("S2770: round game board capped at inscribed square %s", boardSide)
+    }
     GameBoard(
         uiState = uiState,
+        // S2770: the board is capped by the largest square the glass admits, never by a fraction of
+        // the ring inset. A square reaches further from the centre at its corners than at its edges,
+        // so a padding that clears the arc at the middle of a side still puts the corner cells off
+        // the glass - measured 429.6 px of board inside a 480 px circle on the Galaxy Watch 7.
         modifier = Modifier
             .align(Alignment.Center)
-            .fillMaxSize()
-            .padding(wearRingInset() * ROUND_BOARD_INSET_FRACTION),
+            .size(boardSide),
         menuOpen = menuOpen,
         showGuideArrow = showGuideArrow,
         onMove = onMove,

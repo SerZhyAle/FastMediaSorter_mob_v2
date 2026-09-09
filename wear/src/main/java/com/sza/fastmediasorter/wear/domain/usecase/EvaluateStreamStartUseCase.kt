@@ -44,6 +44,17 @@ class EvaluateStreamStartUseCase @Inject constructor(
      */
     fun forServing(): StreamChannelVerdict = evaluate(AUDIO_FLOOR_KBPS, requireWifi = true)
 
+    /**
+     * S2551 pillar E: may this watch open the camera stream the phone serves on its own LAN?
+     *
+     * The playback entrance [invoke] cannot answer this. It passes `requireWifi = false`, so a link
+     * that declares no bandwidth at all returns `AllowDegraded(BANDWIDTH_UNKNOWN)` and the player
+     * opens on a link that can never route to the phone's LAN address - the endless load the
+     * strategic criterion 4 forbids. A cellular link is the mirror case: it clears the video floor
+     * and still reaches nothing.
+     */
+    fun forPhoneCamera(): StreamChannelVerdict = evaluate(VIDEO_FLOOR_KBPS, requireWifi = true)
+
     private fun evaluate(floorKbps: Int, requireWifi: Boolean): StreamChannelVerdict {
         val channel = monitor.channel.value
         return when {

@@ -166,6 +166,34 @@ object WearDataLayerPaths {
      */
     const val LISTEN_ACK = "/fms/watch/listen_ack"
 
+    /**
+     * Message, watch → phone. Asks the paired phone to serve its camera and microphone (S2551).
+     *
+     * Under the `/fms/watch` prefix `app_v2/src/wearGms/AndroidManifest.xml` already declares for
+     * `PhoneWearListenerService`, so it needs no manifest edit; a path outside a declared prefix is
+     * dropped by GMS in silence (S1697).
+     *
+     * Hand-mirrored from the phone's `WearDataLayerPaths.kt` - the modules share no code, so this
+     * literal is the entire contract and one differing character produces a message nobody receives.
+     */
+    const val CAMERA_VIEW_START = "/fms/watch/camera_view_start"
+
+    /** Message, watch → phone. Ends the camera session - server, camera and notification (S2551). */
+    const val CAMERA_VIEW_STOP = "/fms/watch/camera_view_stop"
+
+    /** Message, watch → phone. Switches the live lens without ending the session (S2551). */
+    const val CAMERA_VIEW_SWITCH = "/fms/watch/camera_view_switch"
+
+    /**
+     * Message, phone → watch. Answers one camera command with a URL, or with a refusal (S2551).
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares. The address
+     * arrives as a finished URL rather than a host and a port, which is what keeps this wire
+     * independent of the phone's transport choice; a refusal rides the same payload rather than
+     * arriving as silence, so the watch never has to tell "refused" from "lost".
+     */
+    const val CAMERA_VIEW_ACK = "/fms/phone/camera_view_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */

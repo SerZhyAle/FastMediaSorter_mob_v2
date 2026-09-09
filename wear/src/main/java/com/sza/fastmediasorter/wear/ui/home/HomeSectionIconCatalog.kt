@@ -39,5 +39,8 @@ object HomeSectionIconCatalog {
         // S2509: the share glyph, not ic_cast. Cast is already the channel glyph on two rows of this
         // very screen, and a broadcast is the opposite direction - what this watch sends out.
         HomeSectionId.BROADCAST -> R.drawable.ic_share
+        // S2551: the camera glyph, not ic_share. This row is the opposite direction of the one above -
+        // something is watched here rather than sent out - and the entity it stands for is a camera.
+        HomeSectionId.PHONE_CAMERA -> R.drawable.ic_camera_capture
     }
 }

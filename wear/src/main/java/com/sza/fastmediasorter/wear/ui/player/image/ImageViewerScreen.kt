@@ -7,17 +7,16 @@ import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellati
 import androidx.compose.foundation.gestures.calculatePan
 import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.horizontalDrag
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
 import androidx.compose.material.icons.filled.CropFree
@@ -38,6 +37,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -65,15 +65,19 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
-import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
-import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
+import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
+import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
 
 /** The scrim behind the panel, dark enough to read white text over any picture. */
@@ -246,6 +250,9 @@ private fun ImageViewerContent(
             }
     ) {
         var isImageLoading by remember { mutableStateOf(true) }
+        // Held outside the panel: the panel is dismissed by a tap on the picture, and a menu hosted
+        // inside it would take the wearer's half-made choice with it.
+        var showMenu by rememberSaveable { mutableStateOf(false) }
 
         ZoomableImage(
             uiState = uiState,
@@ -266,7 +273,20 @@ private fun ImageViewerContent(
                 uiState = uiState,
                 isFavorite = isFavorite,
                 actions = actions,
+                onOpenMenu = { showMenu = true },
                 modifier = Modifier.align(Alignment.BottomCenter)
+            )
+        }
+
+        if (showMenu) {
+            PlayerOverflowMenu(
+                actions = imageMenuActions(
+                    uiState = uiState,
+                    isFavorite = isFavorite,
+                    actions = actions,
+                    onDismiss = { showMenu = false }
+                ),
+                onDismiss = { showMenu = false }
             )
         }
     }
@@ -367,6 +387,7 @@ private fun ImageBottomPanel(
     uiState: ImageViewerUiState,
     isFavorite: Boolean,
     actions: ImageViewerActions,
+    onOpenMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -401,17 +422,14 @@ private fun ImageBottomPanel(
             uiState = uiState,
             onPrevious = actions.onSwipeRight,
             onNext = actions.onSwipeLeft,
-            onToggleSlideshow = actions.onToggleSlideshow,
-            onTogglePlaybackMode = actions.onTogglePlaybackMode
+            onToggleSlideshow = actions.onToggleSlideshow
         )
 
         ImageSecondaryRow(
-            uiState = uiState,
             isFavorite = isFavorite,
             onBack = actions.onBack,
             onToggleFavorite = actions.onToggleFavorite,
-            onToggleScaleMode = actions.onToggleScaleMode,
-            onFileOperations = actions.onFileOperations
+            onOpenMenu = onOpenMenu
         )
 
         // S2476: Position counter rendered on its own line under control buttons, matching audio player
@@ -430,112 +448,148 @@ private fun ImageBottomPanel(
     }
 }
 
-/** Row 1: Previous, Play/Pause (Slideshow), Traversal Mode (Sort/Shuffle/Repeat), Next. */
+/**
+ * Row 1: previous, the slideshow toggle, next.
+ *
+ * S2766: three commands, matching the other two players - the slideshow toggle is this screen's
+ * play/pause, and the traversal mode is not a primary command, so it moved to the player menu.
+ */
 @Composable
 private fun ImageCommandRow(
     uiState: ImageViewerUiState,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
-    onToggleSlideshow: () -> Unit,
-    onTogglePlaybackMode: () -> Unit
+    onToggleSlideshow: () -> Unit
 ) {
     Timber.d("S2529: ImageViewerScreen ImageCommandRow composed, slideshowActive=${uiState.isSlideshowActive}")
     val slideshowDesc = stringResource(
         if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
     )
-    val playbackModeIcon = when (uiState.playbackMode) {
-        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
-        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
-        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
-    }
-    val playbackModeDesc = stringResource(
-        when (uiState.playbackMode) {
-            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
-            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
-            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
-        }
-    )
 
-    PlayerCommandGrid { targetSize ->
+    PlayerCommandGrid(columns = PRIMARY_ROW_COLUMNS) { targetSize ->
         PlayerCommandButton(
             onClick = onPrevious,
             icon = Icons.Filled.SkipPrevious,
             contentDescription = stringResource(R.string.previous),
-            modifier = Modifier.size(targetSize)
+            size = targetSize
         )
 
         PlayerCommandButton(
             onClick = onToggleSlideshow,
             icon = if (uiState.isSlideshowActive) Icons.Filled.Pause else Icons.Filled.PlayArrow,
             contentDescription = slideshowDesc,
-            modifier = Modifier.size(targetSize),
+            size = targetSize,
             checked = true,
             iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.IMAGE))
-        )
-
-        PlayerCommandButton(
-            onClick = onTogglePlaybackMode,
-            icon = playbackModeIcon,
-            contentDescription = playbackModeDesc,
-            modifier = Modifier.size(targetSize),
-            checked = uiState.playbackMode != WearPlaybackMode.SEQUENTIAL
         )
 
         PlayerCommandButton(
             onClick = onNext,
             icon = Icons.Filled.SkipNext,
             contentDescription = stringResource(R.string.next),
-            modifier = Modifier.size(targetSize)
+            size = targetSize
         )
     }
 }
 
-/** Row 2: Back, Favorite, ScaleMode. */
+/**
+ * Row 2: back, the favourite where a third slot exists, and the menu button.
+ *
+ * S2766: the same two-or-three composition the other players draw. The scale mode left the row for
+ * the menu. This screen shows no playing position, so it takes no progress ring.
+ */
 @Composable
 private fun ImageSecondaryRow(
-    uiState: ImageViewerUiState,
     isFavorite: Boolean,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onToggleScaleMode: () -> Unit,
-    onFileOperations: () -> Unit
+    onOpenMenu: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+
+    PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
+        PlayerCommandButton(
+            onClick = onBack,
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.wear_navigate_back),
+            size = targetSize
+        )
+
+        if (!wearIsCompactScreen()) {
+            PlayerCommandButton(
+                onClick = onToggleFavorite,
+                icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = favoriteDesc,
+                size = targetSize,
+                checked = isFavorite
+            )
+        }
+
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = stringResource(R.string.wear_file_op_actions),
+            size = targetSize
+        )
+    }
+}
+
+/**
+ * Everything the image viewer's rows shed, in one list.
+ *
+ * S2766: the traversal mode and the scale mode, plus the favourite below the breakpoint where the
+ * row has no slot for it, and the file operations as their own entry opening the existing dialog.
+ */
+@Composable
+private fun imageMenuActions(
+    uiState: ImageViewerUiState,
+    isFavorite: Boolean,
+    actions: ImageViewerActions,
+    onDismiss: () -> Unit
+): List<WearAction> {
+    val playbackModeIcon = when (uiState.playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeLabel = stringResource(
+        when (uiState.playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
+    )
+    val favoriteLabel = stringResource(R.string.wear_toggle_favorite)
+    val scaleLabel = stringResource(R.string.wear_scale_mode)
+    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
     val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
         Icons.Filled.AspectRatio
     } else {
         Icons.Filled.CropFree
     }
+    val showFavorite = wearIsCompactScreen()
 
-    PlayerCommandGrid { targetSize ->
-        PlayerCommandButton(
-            onClick = onBack,
-            icon = Icons.AutoMirrored.Filled.ArrowBack,
-            contentDescription = stringResource(R.string.wear_navigate_back),
-            modifier = Modifier.size(targetSize)
+    return buildList {
+        add(
+            playerMenuAction(
+                playbackModeLabel,
+                playbackModeIcon,
+                onDismiss,
+                actions.onTogglePlaybackMode
+            )
         )
-
-        PlayerCommandButton(
-            onClick = onToggleFavorite,
-            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = favoriteDesc,
-            modifier = Modifier.size(targetSize),
-            checked = isFavorite
-        )
-
-        PlayerCommandButton(
-            onClick = onFileOperations,
-            icon = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.wear_file_op_actions),
-            modifier = Modifier.size(targetSize)
-        )
-
-        PlayerCommandButton(
-            onClick = onToggleScaleMode,
-            icon = scaleIcon,
-            contentDescription = stringResource(R.string.wear_scale_mode),
-            modifier = Modifier.size(targetSize),
-            checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+        if (showFavorite) {
+            val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
+        }
+        add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
+        add(
+            playerMenuAction(
+                fileActionsLabel,
+                Icons.AutoMirrored.Filled.List,
+                onDismiss,
+                actions.onFileOperations
+            )
         )
     }
 }

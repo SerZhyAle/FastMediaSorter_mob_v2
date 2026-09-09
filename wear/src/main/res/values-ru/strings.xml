@@ -680,4 +680,26 @@
     <string name="wear_document_font_medium">Средний</string>
     <string name="wear_document_font_large">Крупный</string>
     <string name="wear_document_font_selected">%1$s, выбран</string>
+    <string name="wear_section_phone_camera">Камера телефона</string>
+    <string name="wear_phone_camera_idle_caption">Смотрите то, что видит телефон, по Wi-Fi</string>
+    <string name="wear_phone_camera_start">Начать</string>
+    <string name="wear_phone_camera_requested">Запрос отправлен на телефон..</string>
+    <string name="wear_phone_camera_live">Идёт трансляция с телефона</string>
+    <string name="wear_phone_camera_stop">Остановить</string>
+    <string name="wear_phone_camera_stopped">Сеанс завершён</string>
+    <string name="wear_phone_camera_lenses">Камеры</string>
+    <string name="wear_phone_camera_lens_back">Тыловая камера</string>
+    <string name="wear_phone_camera_lens_front">Фронтальная камера</string>
+    <string name="wear_phone_camera_failed_no_phone">Телефон не ответил</string>
+    <string name="wear_phone_camera_failed_not_on_wifi">Включите Wi-Fi на часах</string>
+    <string name="wear_phone_camera_failed_no_network">У часов нет сети</string>
+    <string name="wear_phone_camera_failed_narrow_link">Этот Wi-Fi слишком медленный для видео</string>
+    <string name="wear_phone_camera_failed_not_asked">На телефоне выключены уведомления</string>
+    <string name="wear_phone_camera_failed_declined">Запрос отклонён на телефоне</string>
+    <string name="wear_phone_camera_failed_expired">На телефоне никто не ответил</string>
+    <string name="wear_phone_camera_failed_capture">Телефон не смог открыть камеру</string>
+    <string name="wear_phone_camera_failed_busy">Телефон уже ведёт трансляцию</string>
+    <string name="wear_phone_camera_failed_not_supported">Эта сборка телефона не умеет передавать видео</string>
+    <string name="wear_phone_camera_failed_unknown">Телефон отказал без объяснения</string>
+    <string name="wear_player_file_actions">Действия с файлом</string>
 </resources>

@@ -1,15 +1,15 @@
 package com.sza.fastmediasorter.wear.ui.apps.calculator
 
 import android.os.Build
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -62,9 +61,9 @@ import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceSize
 import com.sza.fastmediasorter.wear.ui.common.WearFitText
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -175,7 +174,15 @@ private val KEYPAD_TRAILING_SPACE = KEY_HEIGHT * 2
 private data class CalculatorShape(
     val valueRowWidth: Dp,
     val valueRowTop: Dp,
-    val keypadPadding: PaddingValues
+    val keypadPadding: PaddingValues,
+    /**
+     * S2770: how far above the bottom of the display the keypad's VIEWPORT ends.
+     *
+     * Bounding the viewport is what makes [keypadPadding] answerable at all: a scrolling row passes
+     * through every height its viewport spans, so the width it must fit is the chord at the viewport's
+     * worst edge, not the chord where the row happens to rest.
+     */
+    val keypadViewportBottom: Dp
 )
 
 /**
@@ -183,29 +190,68 @@ private data class CalculatorShape(
  *
  * The value row takes [wearMaxSquareSide] and sits at [wearRingInset], which is the module's own
  * answer for a box that must be whole at the TOP of a circle - the band where the chord is shortest
- * and where every node Play's reviewer rejected was standing. The keypad takes the ordinary
- * [wearScreenInsets] instead, because it scrolls: a scrolling row only has to fit the widest chord it
- * can reach, and paying the square's clearance would narrow the keys on every watch to buy nothing.
+ * and where every node Play's reviewer rejected was standing.
+ *
+ * S2770: the keypad no longer takes the ordinary `wearScreenInsets`. That inset is uniform, so it
+ * inscribes a RECTANGLE in a round display - the middle of a row gets clearance to spare while the
+ * outer keys of the top and bottom rows stand off the arc. Measured on the Galaxy Watch 7, the corner
+ * keys of the last row put 3205 px and 3284 px of ink outside a 240 px radius and the backspace key's
+ * own centre landed 248.7 px out, past any finger. Bounding the viewport with [wearRingInset] and
+ * taking the width from [wearChordInset] over that same edge fits every row at every scroll offset,
+ * because no row can reach lower than the viewport it scrolls inside.
  */
 @Composable
 private fun calculatorShape(): CalculatorShape {
-    val insets = wearScreenInsets()
-    val layoutDirection = LocalLayoutDirection.current
-    val sideInset = insets.calculateStartPadding(layoutDirection)
+    val viewportBottom = wearRingInset()
+    val sideInset = wearChordInset(viewportBottom)
     val shape = CalculatorShape(
         valueRowWidth = wearMaxSquareSide(),
         valueRowTop = wearRingInset(),
         keypadPadding = PaddingValues(
             start = sideInset,
             top = KEY_GAP,
-            end = insets.calculateEndPadding(layoutDirection),
+            end = sideInset,
             bottom = KEY_GAP + KEYPAD_TRAILING_SPACE
-        )
+        ),
+        keypadViewportBottom = viewportBottom
     )
     LaunchedEffect(shape) {
-        Timber.d("S2755: calculator large-font layout")
+        Timber.d("S2770: keypad viewport bottom %s, chord side inset %s", viewportBottom, sideInset)
     }
     return shape
+}
+
+/**
+ * The scrolling keypad, drawn under the value row and inside the arc.
+ *
+ * Its own composable rather than a block inside the screen so the viewport bound and the chord inset
+ * that S2770 introduced sit next to each other and cannot be read apart.
+ */
+@Composable
+private fun ColumnScope.CalculatorKeypad(
+    shape: CalculatorShape,
+    scrollState: ScrollState,
+    onKey: (CalculatorKey) -> Unit,
+    onLongKey: (CalculatorKey) -> Unit,
+    onLeave: () -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .weight(1f)
+            // S2770: the bottom padding sits BEFORE the scroll, so it shortens the viewport instead
+            // of the content. A row scrolled to the bottom of a full-height viewport stands where the
+            // chord is shortest, which no content padding can undo.
+            .padding(bottom = shape.keypadViewportBottom)
+            .verticalScroll(scrollState)
+            .padding(shape.keypadPadding),
+        verticalArrangement = Arrangement.spacedBy(KEY_GAP)
+    ) {
+        keypadRows().forEach { row ->
+            CalculatorKeyRow(cells = row, onKey = onKey, onLongKey = onLongKey)
+        }
+        ClearKeyRow(onKey = onKey, onLeave = onLeave)
+    }
 }
 
 /**
@@ -291,26 +337,13 @@ fun CalculatorScreen(
                     copyConfirmationShown = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
                 }
             )
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .verticalScroll(keypadScrollState)
-                    .padding(shape.keypadPadding),
-                verticalArrangement = Arrangement.spacedBy(KEY_GAP)
-            ) {
-                keypadRows().forEach { row ->
-                    CalculatorKeyRow(
-                        cells = row,
-                        onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
-                        onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
-                    )
-                }
-                ClearKeyRow(
-                    onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
-                    onLeave = onLeave,
-                )
-            }
+            CalculatorKeypad(
+                shape = shape,
+                scrollState = keypadScrollState,
+                onKey = { key -> dispatch(key, viewModel) { menuOpen = true } },
+                onLongKey = { key -> dispatchLongPress(key, viewModel, onLeave) },
+                onLeave = onLeave
+            )
         }
 
         if (menuOpen) {

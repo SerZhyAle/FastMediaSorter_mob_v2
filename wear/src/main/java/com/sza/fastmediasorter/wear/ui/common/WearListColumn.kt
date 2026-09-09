@@ -19,6 +19,7 @@ import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.ScalingParams
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
+import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
@@ -159,6 +160,69 @@ private fun wearListDefaultContentPadding(): PaddingValues {
 }
 
 /**
+ * Content padding for a list drawn inside a `Dialog` rather than inside a screen scaffold (S2762).
+ *
+ * A screen list pays [wearScreenInsets], a single proportional clearance that is true at the vertical
+ * middle, where the chord is the full diameter, and too small at either end - the row it leaves is 0.8
+ * of the diameter wide, while the chord 23 dp below the top of a 227 dp watch is about 136 dp. Google
+ * Play rejected the watch build on 2026-09-08 for `Watch shapes` on two frames that were dialogs, not
+ * screens.
+ *
+ * The answer reuses the shape helpers rather than inventing a seventh: horizontally [wearRingInset],
+ * which narrows the row to the inscribed square that the action menus already stand in and that the
+ * rejection did not touch; vertically [wearBandEdgeOffset] of that same width, which is [wearChordInset]
+ * read backwards and so places the first and last row exactly where the glass is wide enough to hold
+ * them. A row passing an edge mid-scroll is left to `WearGridScalingParams` - in a scrolling list every
+ * row reaches an edge eventually, and shrinking it there is the only lever that applies.
+ */
+@Composable
+fun wearDialogListContentPadding(): PaddingValues = PaddingValues(
+    horizontal = wearRingInset(),
+    vertical = wearBandEdgeOffset(wearMaxSquareSide())
+)
+
+/**
+ * List state for a dialog: opens where the layout puts it, never on [WEAR_LIST_ANCHOR] (S2762).
+ *
+ * The opening anchor states that the second row of DATA belongs in the middle of the frame, which is a
+ * rule about a screen the user navigated to. A dialog's first item is its own title, and scrolling past
+ * it drives the title and the first row under the top arc - the `All channels` tile cut flat in the
+ * rejected frame - while on a short dialog the same scroll presses the last row into the bottom arc.
+ *
+ * @param positionKey deliberately absent: a dialog shares its route with the screen behind it, and
+ * [rememberWearListState] already records that a shared key would restore one list's position into
+ * another.
+ */
+@Composable
+fun rememberWearDialogListState(): ScalingLazyListState =
+    rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
+
+/**
+ * [WearListColumn] for a dialog: the same list, with the dialog's padding instead of the screen's.
+ *
+ * Kept as its own entry point rather than as a flag on the screen list so a dialog added later is safe
+ * without asking for it, which is how the six list-based dialogs of this module all reached Google Play
+ * on the screen padding (S2762).
+ */
+@Composable
+fun WearDialogListColumn(
+    state: ScalingLazyListState,
+    modifier: Modifier = Modifier,
+    contentPadding: PaddingValues = wearDialogListContentPadding(),
+    verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
+    content: ScalingLazyListScope.() -> Unit
+) {
+    Timber.d("S2762: dialog list padding top=%s", contentPadding.calculateTopPadding())
+    WearListColumn(
+        state = state,
+        modifier = modifier,
+        contentPadding = contentPadding,
+        verticalArrangement = verticalArrangement,
+        content = content
+    )
+}
+
+/**
  * Common list wrapper for all scrolling lists on Wear OS (S2466).
  *
  * Enforces one half of the module-wide list start rule: no blank centering reservation above the first
@@ -173,8 +237,17 @@ private fun wearListDefaultContentPadding(): PaddingValues {
  * @param scalingParams scaling behavior at viewport edges; defaults to [WearGridScalingParams].
  * @param verticalArrangement vertical spacing between items.
  * @param centered explicit opt-out; passing true restores [AutoCenteringParams] for fixed control panels.
+ * @param rotary opt-out for a host that binds rotation to something other than scrolling. Rotary input
+ * is wired here rather than per screen because this wrapper is the single point through which the
+ * module's lists are built, and the pinned Wear Compose Foundation build wires none into
+ * `ScalingLazyColumn` itself - which is why the bezel scrolled two screens out of forty (S2763).
  * @param content list content DSL.
  */
+// Eight parameters is one past detekt's threshold, and every one of them has a live caller: `centered`
+// is passed by eight screens and `rotary` by the calculator's history page. A Compose wrapper's
+// parameters ARE its API, so the alternatives are a second near-identical entry point or a parameter
+// object that every existing caller would have to construct - both worse to read than this list.
+@Suppress("LongParameterList")
 @Composable
 fun WearListColumn(
     state: ScalingLazyListState,
@@ -183,10 +256,11 @@ fun WearListColumn(
     scalingParams: ScalingParams = WearGridScalingParams,
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
     centered: Boolean = false,
+    rotary: Boolean = true,
     content: ScalingLazyListScope.() -> Unit
 ) {
     ScalingLazyColumn(
-        modifier = modifier,
+        modifier = if (rotary) modifier.rotaryActionScroll(state) else modifier,
         state = state,
         contentPadding = contentPadding,
         scalingParams = scalingParams,

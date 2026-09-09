@@ -112,7 +112,6 @@ class WearTileLayoutBuilder @Inject constructor(
         content: WearTileContent.Shortcuts
     ): LayoutElementBuilders.LayoutElement {
         val plan = planShortcutGrid(content.entries)
-        Timber.d("S2511: shortcut grid drawing %d button(s)", plan.shown.size)
         if (plan.dropped > 0) {
             Timber.w(
                 "Shortcut tile holds %d entries, %d fit - dropped the last %d",
@@ -254,7 +253,6 @@ class WearTileLayoutBuilder @Inject constructor(
             .setClassName("com.sza.fastmediasorter.wear.MainActivity")
 
         val extras = target.extras()
-        Timber.d("S2511: tile launch action carries %d extra(s)", extras.size)
         extras.forEach { (key, extra) ->
             val value = when (extra) {
                 is WearLaunchExtra.Text -> ActionBuilders.stringExtra(extra.value)

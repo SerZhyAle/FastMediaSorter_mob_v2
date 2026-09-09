@@ -59,7 +59,6 @@ class LoadWearTileContentUseCase @Inject constructor(
      */
     private fun loadProgramsContent(): WearTileContent {
         val apps = WearAppCatalog.apps(capabilities.offersBodySensorDiagnostics)
-        Timber.d("S2511: programs tile content, %d shortcut(s)", apps.size)
         return WearTileContent.Shortcuts(
             apps.map { app ->
                 WearTileShortcut(
@@ -79,7 +78,6 @@ class LoadWearTileContentUseCase @Inject constructor(
      */
     private suspend fun loadSectionsContent(): WearTileContent {
         val streamsEnabled = preferencesRepository.streamsSectionEnabled.first()
-        Timber.d("S2511: sections tile content, streamsEnabled=%s", streamsEnabled)
         val visibility = HomeSectionVisibility(streamsEnabled = streamsEnabled)
         return WearTileContent.Shortcuts(
             HomeSectionCatalog.sectionsFor(visibility).mapNotNull { section ->

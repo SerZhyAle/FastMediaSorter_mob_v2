@@ -3923,4 +3923,8 @@
     <string name="streams_collection_all">All</string>
     <string name="streams_collection_strip_description">Collections</string>
     <string name="streams_collection_selected_count">%1$d channels in the collection</string>
+    <string name="camera_session_consent_channel_name">Watch camera requests</string>
+    <string name="camera_session_consent_notification_title">Your watch wants to see this camera</string>
+    <string name="camera_session_consent_notification_text">Allow the watch to view this phone\'s camera and microphone.</string>
+    <string name="camera_session_consent_allow">Allow</string>
 </resources>

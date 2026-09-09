@@ -42,14 +42,14 @@ fun <T> WearChoiceDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
                 viewMode = viewMode,
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = fixedEnumeration
             )
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {

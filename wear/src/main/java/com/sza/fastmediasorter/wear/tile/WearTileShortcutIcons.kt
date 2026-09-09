@@ -29,6 +29,9 @@ internal fun tileShortcutIconFor(destination: WearDestinationId): Int = when (de
     // carry the same glyph, so either would answer - the section is taken because this destination is
     // listed first among the sections in WearDestinationId.
     WearDestinationId.BROADCAST -> HomeSectionIconCatalog.iconFor(HomeSectionId.BROADCAST)
+    // S2551: a Home section only - it is no program of the Apps grid, so the section table is the
+    // only one that answers for it.
+    WearDestinationId.PHONE_CAMERA -> HomeSectionIconCatalog.iconFor(HomeSectionId.PHONE_CAMERA)
     WearDestinationId.CALCULATOR -> WearAppIconCatalog.iconFor(WearAppId.CALCULATOR)
     WearDestinationId.NETWORK_MONITOR -> WearAppIconCatalog.iconFor(WearAppId.NETWORK_MONITOR)
     WearDestinationId.GAME -> WearAppIconCatalog.iconFor(WearAppId.GAME)

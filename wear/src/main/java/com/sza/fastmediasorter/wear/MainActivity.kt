@@ -81,10 +81,12 @@ import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
 import com.sza.fastmediasorter.wear.ui.common.LocalWearListPositions
+import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
 import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
+import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
 import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
@@ -102,6 +104,7 @@ import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
+import com.sza.fastmediasorter.wear.ui.phonecamera.PhoneCameraScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
 import com.sza.fastmediasorter.wear.ui.player.document.DocumentViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
@@ -245,7 +248,13 @@ class MainActivity : ComponentActivity() {
         val hasPermissions = hasMediaPermissions()
 
         setContent {
-            CompositionLocalProvider(LocalWearListPositions provides listPositions) {
+            // S2763: one rotary stack for the whole watch UI. It has to span the screen and everything
+            // drawn over it - dialogs, the action cloud - or each side would believe it owns the crown.
+            val rotaryFocus = remember { WearRotaryFocusStack() }
+            CompositionLocalProvider(
+                LocalWearListPositions provides listPositions,
+                LocalWearRotaryFocusStack provides rotaryFocus
+            ) {
                 AskNotificationPermissionEffect(
                     alreadyAsked = preferencesRepository.notificationPermissionAsked,
                     onAsked = {
@@ -921,6 +930,15 @@ private fun NavGraphBuilder.miniAppRoutes(
 
     composable(WearRoutes.BROADCAST_QR) {
         WearBroadcastQrScreen()
+    }
+
+    // S2551: leaving this screen DOES end the session, unlike the broadcast above - the camera runs
+    // on the phone with no surface here to stop it from, so the screen's own lifetime is the
+    // session's (strategic criterion 3).
+    composable(WearRoutes.PHONE_CAMERA) {
+        PhoneCameraScreen(
+            onWatch = { target -> navController.navigate(WearRoutes.videoPlayer(target.fileId)) }
+        )
     }
 
     composable(

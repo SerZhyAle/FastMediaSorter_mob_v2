@@ -16,4 +16,6 @@
     <string name="wear_tile_picker_empty_stream">未找到任何流。从手机添加流或同步目录。</string>
     <string name="wear_tile_programs_label">程序</string>
     <string name="wear_tile_sections_label">分区</string>
+    <string name="wear_tile_targets_title">表盘目标</string>
+    <string name="wear_tile_targets_none">未选择</string>
 </resources>

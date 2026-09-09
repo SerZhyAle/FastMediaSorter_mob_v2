@@ -65,10 +65,10 @@ internal fun ReceiverListDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberWearListState()
+        val listState = rememberWearDialogListState()
         // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own over the list.
         Box(modifier = Modifier.fillMaxSize()) {
-            WearListColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
             ) {

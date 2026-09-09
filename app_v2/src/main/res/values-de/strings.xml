@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>Automatisch (Gerät folgen)</item>
         <item>Hell</item>
@@ -3372,4 +3376,61 @@
     <string name="broadcast_import_unsupported_version">Nicht unterstützte Version des Übertragungsdeskriptors</string>
     <string name="broadcast_import_success">Übertragungskanal hinzugefügt</string>
     <string name="broadcast_import_option_file">Deskriptordatei auswählen</string>
+    <string name="launcher_settings_unit_system_title">Maßeinheiten</string>
+    <string name="unit_system_metric">Metrisch (°C)</string>
+    <string name="wear_listen_title">Uhr abhören</string>
+    <string name="wear_listen_start">Abhören starten</string>
+    <string name="wear_listen_stop">Abhören beenden</string>
+    <string name="wear_listen_caption_idle">Höre, was das Mikrofon der Uhr hört. Die Uhr bittet dich um Bestätigung.</string>
+    <string name="wear_listen_caption_waiting">Warte auf deine Bestätigung an der Uhr..</string>
+    <string name="wear_listen_caption_listening">Uhr wird abgehört.</string>
+    <string name="wear_listen_refusal_not_asked">Die Uhr konnte dich nicht fragen: Aktiviere ihre Benachrichtigungen für FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">Du hast die Anfrage an der Uhr abgelehnt.</string>
+    <string name="wear_listen_refusal_expired">Niemand hat rechtzeitig an der Uhr geantwortet.</string>
+    <string name="wear_listen_refusal_capture_failed">Die Uhr konnte ihr Mikrofon nicht öffnen.</string>
+    <string name="wear_listen_refusal_no_network">Schalte WLAN an der Uhr ein - der Ton läuft über WLAN, nicht über Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">Das Abhören wurde an der Uhr beendet.</string>
+    <string name="wear_listen_refusal_busy">Die Uhr bedient bereits einen anderen Zuhörer.</string>
+    <string name="wear_listen_refusal_unknown">Die Uhr hat aus einem Grund abgelehnt, den dieses Telefon nicht kennt.</string>
+    <string name="wear_listen_no_answer">Die Uhr hat nicht geantwortet.</string>
+    <string name="wear_listen_send_failed">Die Uhr war nicht erreichbar.</string>
+    <string name="wear_listen_wifi_lost">Die Uhr hat das WLAN verlassen, das Abhören wurde daher beendet.</string>
+    <string name="stream_action_open_in_vr">In VR öffnen</string>
+    <string name="stream_vr_unsupported_transport">Dieser Kanal nutzt einen Übertragungsweg, den der VR-Player noch nicht öffnen kann. Er läuft weiterhin im normalen Player.</string>
+    <string name="launcher_translator_translate">Übersetzen</string>
+    <string name="launcher_translator_in_progress">Wird übersetzt..</string>
+    <string name="launcher_wallpaper_screen_title">Hintergrundbild</string>
+    <string name="launcher_wallpaper_section_mode">Was gezeichnet wird</string>
+    <string name="launcher_wallpaper_section_source">Quelle</string>
+    <string name="launcher_wallpaper_section_tuning">Erscheinungsbild</string>
+    <string name="launcher_wallpaper_section_power">Akku</string>
+    <string name="launcher_wallpaper_desc_branded">Farbige Wellen mit treibenden Partikeln, animiert die ganze Zeit, in der der Desktop geöffnet ist.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">Dieselben Wellen, aber eingefroren: Bei jeder Rückkehr zum Desktop wird ein neues Bild gezeichnet, danach bewegt sich nichts mehr.</string>
+    <string name="launcher_wallpaper_desc_none">Kein Hintergrundbild - der Desktop zeigt die einfarbige Fläche des aktuellen Designs.</string>
+    <string name="launcher_wallpaper_desc_image">Dein eigenes Bild, statisch oder animiert, zugeschnitten auf die Bildschirmfläche.</string>
+    <string name="launcher_wallpaper_desc_camera">Ein Livebild der Kamera, laufend aktualisiert. Verbraucht von allen Modi den meisten Akku.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">Ein Foto, das die Kamera bei jeder Rückkehr zum Desktop aufnimmt; die Kamera wird danach sofort wieder freigegeben.</string>
+    <string name="launcher_wallpaper_intensity_title">Helligkeit</string>
+    <string name="launcher_wallpaper_intensity_hint">Wie stark das Hintergrundbild gezeichnet wird. Niedrigere Werte lassen mehr Kontrast für Symbole und Beschriftungen.</string>
+    <string name="launcher_wallpaper_speed_title">Animationsgeschwindigkeit</string>
+    <string name="launcher_wallpaper_particle_density_title">Partikeldichte</string>
+    <string name="launcher_wallpaper_particle_density_hint">Bei null werden nur die Wellen gezeichnet, ohne Partikel.</string>
+    <string name="launcher_wallpaper_power_explanation">Das Hintergrundbild hört von selbst auf zu animieren, wenn der Energiesparmodus des Systems aktiv ist oder der Akku knapp wird, und die Live-Kamera fällt dann auf die Wellen zurück. Das Abschalten der Animation in den App-Einstellungen stoppt sie ebenfalls.</string>
+    <string name="launcher_wallpaper_power_state_normal">Jetzt: animiert</string>
+    <string name="launcher_wallpaper_power_state_reduced">Jetzt: zur Akkuschonung reduziert</string>
+    <string name="launcher_wallpaper_power_state_saving">Jetzt: zur Akkuschonung gestoppt</string>
+    <string name="launcher_wallpaper_source_empty">Noch nichts ausgewählt</string>
+    <string name="launcher_wallpaper_source_change">Auswählen</string>
+    <string name="launcher_signal_overflow_description">Weitere Benachrichtigungen: %1$d</string>
+    <string name="launcher_section_settings">Einstellungen</string>
+    <string name="launcher_tray_battery_charging_ac">Akku %1$d%%, lädt am Netzteil</string>
+    <string name="launcher_tray_battery_charging_usb">Akku %1$d%%, lädt über USB</string>
+    <string name="launcher_tray_battery_charging_wireless">Akku %1$d%%, lädt kabellos</string>
+    <string name="streams_collection_all">Alle</string>
+    <string name="streams_collection_strip_description">Sammlungen</string>
+    <string name="streams_collection_selected_count">%1$d Kanäle in der Sammlung</string>
+    <string name="camera_session_consent_channel_name">Kameraanfragen der Uhr</string>
+    <string name="camera_session_consent_notification_title">Deine Uhr möchte diese Kamera sehen</string>
+    <string name="camera_session_consent_notification_text">Erlaube der Uhr, Kamera und Mikrofon dieses Telefons zu sehen.</string>
+    <string name="camera_session_consent_allow">Erlauben</string>
 </resources>

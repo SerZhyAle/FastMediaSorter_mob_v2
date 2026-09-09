@@ -99,6 +99,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var listenPayloadCodec: WearListenSessionPayloadCodec
 
+    @Inject lateinit var phoneCameraSessionCommandManager: PhoneCameraSessionCommandManager
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -127,6 +129,12 @@ class PhoneWearListenerService : WearableListenerService() {
             WearDataLayerPaths.FILE_TRANSFER_ACK -> handleFileTransferAck(event.data)
             WearDataLayerPaths.FILE_TRANSFER_META -> handleFileTransferMeta(event.data)
             WearDataLayerPaths.LISTEN_ACK -> handleListenAck(event.data)
+            WearDataLayerPaths.CAMERA_VIEW_START ->
+                phoneCameraSessionCommandManager.handleStart(event.sourceNodeId, event.data)
+            WearDataLayerPaths.CAMERA_VIEW_STOP ->
+                phoneCameraSessionCommandManager.handleStop(event.sourceNodeId, event.data)
+            WearDataLayerPaths.CAMERA_VIEW_SWITCH ->
+                phoneCameraSessionCommandManager.handleSwitch(event.sourceNodeId, event.data)
         }
     }
 

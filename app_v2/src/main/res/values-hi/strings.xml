@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>स्वतः (डिवाइस के अनुसार)</item>
         <item>हल्का</item>
@@ -3369,4 +3373,61 @@
     <string name="broadcast_import_unsupported_version">प्रसारण डिस्क्रिप्टर का यह संस्करण समर्थित नहीं है</string>
     <string name="broadcast_import_success">प्रसारण चैनल जोड़ा गया</string>
     <string name="broadcast_import_option_file">डिस्क्रिप्टर फ़ाइल चुनें</string>
+    <string name="launcher_settings_unit_system_title">इकाई प्रणाली</string>
+    <string name="unit_system_metric">मीट्रिक (°C)</string>
+    <string name="wear_listen_title">घड़ी सुनें</string>
+    <string name="wear_listen_start">सुनना शुरू करें</string>
+    <string name="wear_listen_stop">सुनना बंद करें</string>
+    <string name="wear_listen_caption_idle">घड़ी का माइक्रोफ़ोन जो सुनता है वह सुनें. घड़ी आपसे पुष्टि माँगेगी.</string>
+    <string name="wear_listen_caption_waiting">घड़ी पर आपकी पुष्टि का इंतज़ार हो रहा है..</string>
+    <string name="wear_listen_caption_listening">घड़ी को सुना जा रहा है.</string>
+    <string name="wear_listen_refusal_not_asked">घड़ी आपसे पूछ नहीं सकी: FastMediaSorter के लिए उसकी सूचनाएँ चालू करें.</string>
+    <string name="wear_listen_refusal_declined">आपने घड़ी पर अनुरोध अस्वीकार कर दिया.</string>
+    <string name="wear_listen_refusal_expired">समय पर घड़ी पर किसी ने जवाब नहीं दिया.</string>
+    <string name="wear_listen_refusal_capture_failed">घड़ी अपना माइक्रोफ़ोन नहीं खोल सकी.</string>
+    <string name="wear_listen_refusal_no_network">घड़ी पर Wi-Fi चालू करें - आवाज़ Wi-Fi से जाती है, Bluetooth से नहीं.</string>
+    <string name="wear_listen_refusal_stopped">घड़ी पर सुनना बंद कर दिया गया.</string>
+    <string name="wear_listen_refusal_busy">घड़ी पहले से ही किसी और श्रोता की सेवा कर रही है.</string>
+    <string name="wear_listen_refusal_unknown">घड़ी ने ऐसे कारण से मना किया जो यह फ़ोन नहीं जानता.</string>
+    <string name="wear_listen_no_answer">घड़ी ने जवाब नहीं दिया.</string>
+    <string name="wear_listen_send_failed">घड़ी तक नहीं पहुँचा जा सका.</string>
+    <string name="wear_listen_wifi_lost">घड़ी ने Wi-Fi छोड़ दिया, इसलिए सुनना बंद हो गया.</string>
+    <string name="stream_action_open_in_vr">VR में खोलें</string>
+    <string name="stream_vr_unsupported_transport">यह चैनल ऐसे ट्रांसपोर्ट का उपयोग करता है जिसे VR प्लेयर अभी नहीं खोल सकता. यह सामान्य प्लेयर में चलता रहता है.</string>
+    <string name="launcher_translator_translate">अनुवाद करें</string>
+    <string name="launcher_translator_in_progress">अनुवाद हो रहा है..</string>
+    <string name="launcher_wallpaper_screen_title">वॉलपेपर</string>
+    <string name="launcher_wallpaper_section_mode">क्या बनाया जाता है</string>
+    <string name="launcher_wallpaper_section_source">स्रोत</string>
+    <string name="launcher_wallpaper_section_tuning">दिखावट</string>
+    <string name="launcher_wallpaper_section_power">बैटरी</string>
+    <string name="launcher_wallpaper_desc_branded">बहते कणों के साथ रंगीन लहरें, जब तक डेस्कटॉप खुला रहता है तब तक एनिमेटेड.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">वही लहरें, पर स्थिर: डेस्कटॉप पर हर बार लौटने पर एक नई फ़्रेम बनती है, उसके बाद कुछ नहीं हिलता.</string>
+    <string name="launcher_wallpaper_desc_none">कोई वॉलपेपर नहीं - डेस्कटॉप मौजूदा थीम का सपाट रंग दिखाता है.</string>
+    <string name="launcher_wallpaper_desc_image">आपकी अपनी तस्वीर, स्थिर या एनिमेटेड, स्क्रीन भरने के लिए क्रॉप की गई.</string>
+    <string name="launcher_wallpaper_desc_camera">कैमरे से लाइव तस्वीर, लगातार अपडेट होती रहती है. यह सभी मोड में सबसे ज़्यादा बैटरी खर्च करता है.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">डेस्कटॉप पर हर बार लौटने पर कैमरे से ली गई एक तस्वीर; उसके तुरंत बाद कैमरा छोड़ दिया जाता है.</string>
+    <string name="launcher_wallpaper_intensity_title">चमक</string>
+    <string name="launcher_wallpaper_intensity_hint">वॉलपेपर कितनी तीव्रता से बनाया जाता है. कम मान आइकनों और लेबल के लिए ज़्यादा कंट्रास्ट छोड़ते हैं.</string>
+    <string name="launcher_wallpaper_speed_title">एनिमेशन की गति</string>
+    <string name="launcher_wallpaper_particle_density_title">कणों का घनत्व</string>
+    <string name="launcher_wallpaper_particle_density_hint">शून्य पर केवल लहरें बनती हैं, कोई कण नहीं.</string>
+    <string name="launcher_wallpaper_power_explanation">सिस्टम का पावर सेवर चालू होने या बैटरी कम होने पर वॉलपेपर अपने आप एनिमेट होना बंद कर देता है, और लाइव कैमरा लहरों पर वापस चला जाता है. ऐप सेटिंग्स में एनिमेशन बंद करने से भी यह रुक जाता है.</string>
+    <string name="launcher_wallpaper_power_state_normal">अभी: एनिमेट हो रहा है</string>
+    <string name="launcher_wallpaper_power_state_reduced">अभी: बैटरी बचाने के लिए घटाया गया</string>
+    <string name="launcher_wallpaper_power_state_saving">अभी: बैटरी बचाने के लिए रोका गया</string>
+    <string name="launcher_wallpaper_source_empty">अभी तक कुछ नहीं चुना गया</string>
+    <string name="launcher_wallpaper_source_change">चुनें</string>
+    <string name="launcher_signal_overflow_description">और सूचनाएँ: %1$d</string>
+    <string name="launcher_section_settings">सेटिंग्स</string>
+    <string name="launcher_tray_battery_charging_ac">बैटरी %1$d%%, मेन्स से चार्ज हो रही है</string>
+    <string name="launcher_tray_battery_charging_usb">बैटरी %1$d%%, USB से चार्ज हो रही है</string>
+    <string name="launcher_tray_battery_charging_wireless">बैटरी %1$d%%, वायरलेस चार्ज हो रही है</string>
+    <string name="streams_collection_all">सभी</string>
+    <string name="streams_collection_strip_description">संग्रह</string>
+    <string name="streams_collection_selected_count">संग्रह में %1$d चैनल</string>
+    <string name="camera_session_consent_channel_name">घड़ी कैमरा अनुरोध</string>
+    <string name="camera_session_consent_notification_title">आपकी घड़ी यह कैमरा देखना चाहती है</string>
+    <string name="camera_session_consent_notification_text">घड़ी को इस फ़ोन का कैमरा और माइक्रोफ़ोन देखने दें.</string>
+    <string name="camera_session_consent_allow">अनुमति दें</string>
 </resources>

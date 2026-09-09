@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>تلقائي (حسب الجهاز)</item>
         <item>فاتح</item>
@@ -3370,4 +3374,61 @@
     <string name="broadcast_import_unsupported_version">إصدار واصف البث غير مدعوم</string>
     <string name="broadcast_import_success">تمت إضافة قناة البث</string>
     <string name="broadcast_import_option_file">اختيار ملف الواصف</string>
+    <string name="launcher_settings_unit_system_title">نظام الوحدات</string>
+    <string name="unit_system_metric">متري (°C)</string>
+    <string name="wear_listen_title">الاستماع إلى الساعة</string>
+    <string name="wear_listen_start">بدء الاستماع</string>
+    <string name="wear_listen_stop">إيقاف الاستماع</string>
+    <string name="wear_listen_caption_idle">استمع إلى ما يسمعه ميكروفون الساعة. ستطلب منك الساعة التأكيد.</string>
+    <string name="wear_listen_caption_waiting">في انتظار تأكيدك على الساعة..</string>
+    <string name="wear_listen_caption_listening">جارٍ الاستماع إلى الساعة.</string>
+    <string name="wear_listen_refusal_not_asked">لم تتمكن الساعة من سؤالك: فعّل إشعاراتها لتطبيق FastMediaSorter.</string>
+    <string name="wear_listen_refusal_declined">لقد رفضت الطلب على الساعة.</string>
+    <string name="wear_listen_refusal_expired">لم يرد أحد على الساعة في الوقت المحدد.</string>
+    <string name="wear_listen_refusal_capture_failed">لم تتمكن الساعة من فتح الميكروفون الخاص بها.</string>
+    <string name="wear_listen_refusal_no_network">فعّل Wi-Fi على الساعة - ينتقل الصوت عبر Wi-Fi، وليس عبر Bluetooth.</string>
+    <string name="wear_listen_refusal_stopped">تم إيقاف الاستماع على الساعة.</string>
+    <string name="wear_listen_refusal_busy">الساعة تخدم بالفعل مستمعًا آخر.</string>
+    <string name="wear_listen_refusal_unknown">رفضت الساعة لسبب لا يعرفه هذا الهاتف.</string>
+    <string name="wear_listen_no_answer">لم ترد الساعة.</string>
+    <string name="wear_listen_send_failed">تعذر الوصول إلى الساعة.</string>
+    <string name="wear_listen_wifi_lost">غادرت الساعة شبكة Wi-Fi، لذا توقف الاستماع.</string>
+    <string name="stream_action_open_in_vr">فتح في الواقع الافتراضي</string>
+    <string name="stream_vr_unsupported_transport">تستخدم هذه القناة وسيلة نقل لا يستطيع مشغّل الواقع الافتراضي فتحها بعد. تستمر في التشغيل في المشغّل العادي.</string>
+    <string name="launcher_translator_translate">ترجمة</string>
+    <string name="launcher_translator_in_progress">جارٍ الترجمة..</string>
+    <string name="launcher_wallpaper_screen_title">الخلفية</string>
+    <string name="launcher_wallpaper_section_mode">ما الذي يُرسم</string>
+    <string name="launcher_wallpaper_section_source">المصدر</string>
+    <string name="launcher_wallpaper_section_tuning">المظهر</string>
+    <string name="launcher_wallpaper_section_power">البطارية</string>
+    <string name="launcher_wallpaper_desc_branded">موجات ملونة بجزيئات متحركة، متحركة طوال الوقت الذي يكون فيه سطح المكتب مفتوحًا.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">نفس الموجات، لكن مجمّدة: يُرسم إطار جديد في كل مرة تعود فيها إلى سطح المكتب، ولا يتحرك شيء بعد ذلك.</string>
+    <string name="launcher_wallpaper_desc_none">بلا خلفية على الإطلاق - يعرض سطح المكتب اللون الموحد للسمة الحالية.</string>
+    <string name="launcher_wallpaper_desc_image">صورتك الخاصة، ثابتة أو متحركة، مقصوصة لملء الشاشة.</string>
+    <string name="launcher_wallpaper_desc_camera">صورة مباشرة من الكاميرا، تُحدَّث باستمرار. تستهلك أكبر قدر من البطارية بين كل الأوضاع.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">صورة تلتقطها الكاميرا في كل مرة تعود فيها إلى سطح المكتب؛ ثم يتم تحرير الكاميرا فورًا بعد ذلك.</string>
+    <string name="launcher_wallpaper_intensity_title">السطوع</string>
+    <string name="launcher_wallpaper_intensity_hint">مدى قوة رسم الخلفية. القيم المنخفضة تترك تباينًا أكبر للأيقونات والتسميات.</string>
+    <string name="launcher_wallpaper_speed_title">سرعة الحركة</string>
+    <string name="launcher_wallpaper_particle_density_title">كثافة الجزيئات</string>
+    <string name="launcher_wallpaper_particle_density_hint">عند الصفر تُرسم الموجات فقط، دون جزيئات.</string>
+    <string name="launcher_wallpaper_power_explanation">تتوقف الخلفية عن الحركة تلقائيًا عند تفعيل موفر طاقة النظام أو انخفاض البطارية، وتعود الكاميرا المباشرة إلى الموجات. كما يوقفها إيقاف الحركة في إعدادات التطبيق.</string>
+    <string name="launcher_wallpaper_power_state_normal">الآن: تتحرك</string>
+    <string name="launcher_wallpaper_power_state_reduced">الآن: مخفَّضة لتوفير البطارية</string>
+    <string name="launcher_wallpaper_power_state_saving">الآن: متوقفة لتوفير البطارية</string>
+    <string name="launcher_wallpaper_source_empty">لم يتم اختيار شيء بعد</string>
+    <string name="launcher_wallpaper_source_change">اختيار</string>
+    <string name="launcher_signal_overflow_description">إشعارات إضافية: %1$d</string>
+    <string name="launcher_section_settings">الإعدادات</string>
+    <string name="launcher_tray_battery_charging_ac">البطارية %1$d%%، تشحن من الكهرباء</string>
+    <string name="launcher_tray_battery_charging_usb">البطارية %1$d%%، تشحن عبر USB</string>
+    <string name="launcher_tray_battery_charging_wireless">البطارية %1$d%%، تشحن لاسلكيًا</string>
+    <string name="streams_collection_all">الكل</string>
+    <string name="streams_collection_strip_description">المجموعات</string>
+    <string name="streams_collection_selected_count">%1$d قناة في المجموعة</string>
+    <string name="camera_session_consent_channel_name">طلبات كاميرا من الساعة</string>
+    <string name="camera_session_consent_notification_title">تريد ساعتك رؤية هذه الكاميرا</string>
+    <string name="camera_session_consent_notification_text">اسمح للساعة برؤية كاميرا وميكروفون هذا الهاتف.</string>
+    <string name="camera_session_consent_allow">السماح</string>
 </resources>

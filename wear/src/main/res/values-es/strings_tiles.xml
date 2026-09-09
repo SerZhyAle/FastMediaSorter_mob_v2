@@ -16,4 +16,6 @@
     <string name="wear_tile_picker_empty_stream">No se encontraron transmisiones. Agregue una transmisión o sincronice el catálogo desde el teléfono.</string>
     <string name="wear_tile_programs_label">Programas</string>
     <string name="wear_tile_sections_label">Secciones</string>
+    <string name="wear_tile_targets_title">Objetivos de mosaico</string>
+    <string name="wear_tile_targets_none">Sin seleccionar</string>
 </resources>

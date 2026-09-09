@@ -83,7 +83,6 @@ fun AddNetworkSourceScreen(
     var passwordVisible by remember { mutableStateOf(false) }
     val listState = rememberWearListState()
     val viewMode by viewModel.viewMode.collectAsState()
-    Timber.d("S2755: network form large-font layout")
 
     // S2486: the gate's second boundary. Both routes to this screen stay registered so a back-stack entry
     // saved by an older build still resolves, which means the flavor that withholds credential entry has to

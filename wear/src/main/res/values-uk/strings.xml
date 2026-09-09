@@ -680,4 +680,26 @@
     <string name="wear_document_font_medium">Середній</string>
     <string name="wear_document_font_large">Великий</string>
     <string name="wear_document_font_selected">%1$s, вибрано</string>
+    <string name="wear_section_phone_camera">Камера телефона</string>
+    <string name="wear_phone_camera_idle_caption">Дивіться те, що бачить телефон, через Wi-Fi</string>
+    <string name="wear_phone_camera_start">Почати</string>
+    <string name="wear_phone_camera_requested">Запит надіслано на телефон..</string>
+    <string name="wear_phone_camera_live">Триває трансляція з телефона</string>
+    <string name="wear_phone_camera_stop">Зупинити</string>
+    <string name="wear_phone_camera_stopped">Сеанс завершено</string>
+    <string name="wear_phone_camera_lenses">Камери</string>
+    <string name="wear_phone_camera_lens_back">Тилова камера</string>
+    <string name="wear_phone_camera_lens_front">Фронтальна камера</string>
+    <string name="wear_phone_camera_failed_no_phone">Телефон не відповів</string>
+    <string name="wear_phone_camera_failed_not_on_wifi">Увімкніть Wi-Fi на годиннику</string>
+    <string name="wear_phone_camera_failed_no_network">У годинника немає мережі</string>
+    <string name="wear_phone_camera_failed_narrow_link">Цей Wi-Fi надто повільний для відео</string>
+    <string name="wear_phone_camera_failed_not_asked">На телефоні вимкнено сповіщення</string>
+    <string name="wear_phone_camera_failed_declined">Запит відхилено на телефоні</string>
+    <string name="wear_phone_camera_failed_expired">На телефоні ніхто не відповів</string>
+    <string name="wear_phone_camera_failed_capture">Телефон не зміг відкрити камеру</string>
+    <string name="wear_phone_camera_failed_busy">Телефон уже веде трансляцію</string>
+    <string name="wear_phone_camera_failed_not_supported">Ця збірка телефона не вміє передавати відео</string>
+    <string name="wear_phone_camera_failed_unknown">Телефон відмовив без пояснення</string>
+    <string name="wear_player_file_actions">Дії з файлом</string>
 </resources>

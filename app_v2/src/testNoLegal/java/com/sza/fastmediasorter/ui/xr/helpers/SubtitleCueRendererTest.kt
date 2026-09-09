@@ -5,9 +5,8 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * S0986: unit coverage for the pure subtitle line-builder ([buildLines]). This is the one piece of
- * the immersive subtitle feature verifiable without a Quest - the OpenXR quad render is on-device
- * only (spec S0986 section 4). Runs under testNoLegal (the flavor that mounts src/vr).
+ * Unit coverage for the pure subtitle line-builder ([buildLines]) in the noLegal variant that
+ * supplies the XR renderer. The OpenXR quad render is verified on-device separately.
  */
 class SubtitleCueRendererTest {
 
@@ -35,7 +34,7 @@ class SubtitleCueRendererTest {
 
     @Test
     fun long_line_wraps_into_two_lines() {
-        val text = (1..8).joinToString(" ") { "aaaa" } // 39 chars, one line > 32
+        val text = (1..8).joinToString(" ") { "aaaa" }
         val lines = buildLines(text, maxChars)
         assertEquals(2, lines.size)
         assertTrue(lines.all { it.length <= maxChars })
@@ -43,7 +42,7 @@ class SubtitleCueRendererTest {
 
     @Test
     fun overflow_clamps_to_two_lines_with_ellipsis() {
-        val text = (1..40).joinToString(" ") { "word" } // far more than two lines
+        val text = (1..40).joinToString(" ") { "word" }
         val lines = buildLines(text, maxChars)
         assertEquals(SubtitleCueRenderer.MAX_LINES, lines.size)
         assertTrue(lines.last().endsWith(".."))

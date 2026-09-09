@@ -834,9 +834,11 @@ android {
             kotlin.directories.add("src/testLauncherEnabled/java")
         }
         getByName("testNoLegal") {
+            // S2768: Kotlin does not add this flavor's conventional test directory to the
+            // noLegal variant inputs automatically, unlike the shared mounted test sets below.
+            kotlin.directories.add("src/testNoLegal/java")
             kotlin.directories.add("src/testNetworkMonitor/java")
             kotlin.directories.add("src/testLauncherEnabled/java")
-            kotlin.directories.add("src/testVr/java")
         }
         // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
         // exactly what makes its unit tests compilable again.

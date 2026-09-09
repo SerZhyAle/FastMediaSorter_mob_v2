@@ -16,6 +16,15 @@ enum class HomeSectionId {
 
     /** S2509: the watch's own broadcast, which the owner asked to reach from Home as well as Programs. */
     BROADCAST,
+
+    /**
+     * S2551: watching the paired phone's camera on the wrist.
+     *
+     * Distinct from [BROADCAST], which goes the other way - that row opens the watch's own
+     * microphone for the phone to listen to. One label over two opposite directions would leave the
+     * owner to guess which device is the source.
+     */
+    PHONE_CAMERA,
     FAVOURITES
 }
 

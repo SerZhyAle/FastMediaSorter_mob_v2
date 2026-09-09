@@ -184,6 +184,10 @@
         <item>@string/pref_power_saving_below_20</item>
         <item>@string/pref_power_saving_below_30</item>
     </string-array>
+    <string-array name="unit_system_options">
+        <item>@string/unit_system_metric</item>
+        <item>@string/unit_system_imperial</item>
+    </string-array>
     <string-array name="color_theme_options">
         <item>স্বয়ংক্রিয় (ডিভাইস অনুসরণ করে)</item>
         <item>হালকা</item>
@@ -3371,4 +3375,61 @@
     <string name="broadcast_import_unsupported_version">সম্প্রচার ডেসক্রিপ্টরের সংস্করণ সমর্থিত নয়</string>
     <string name="broadcast_import_success">সম্প্রচার চ্যানেল যোগ হয়েছে</string>
     <string name="broadcast_import_option_file">ডেসক্রিপ্টর ফাইল নির্বাচন করুন</string>
+    <string name="launcher_settings_unit_system_title">একক পদ্ধতি</string>
+    <string name="unit_system_metric">মেট্রিক (°C)</string>
+    <string name="wear_listen_title">ঘড়ি শুনুন</string>
+    <string name="wear_listen_start">শোনা শুরু করুন</string>
+    <string name="wear_listen_stop">শোনা বন্ধ করুন</string>
+    <string name="wear_listen_caption_idle">ঘড়ির মাইক্রোফোন যা শোনে তা শুনুন. ঘড়ি আপনাকে নিশ্চিত করতে বলবে.</string>
+    <string name="wear_listen_caption_waiting">ঘড়িতে আপনার নিশ্চিতকরণের জন্য অপেক্ষা করা হচ্ছে..</string>
+    <string name="wear_listen_caption_listening">ঘড়ি শোনা হচ্ছে.</string>
+    <string name="wear_listen_refusal_not_asked">ঘড়ি আপনাকে জিজ্ঞাসা করতে পারেনি: FastMediaSorter-এর জন্য এর বিজ্ঞপ্তি চালু করুন.</string>
+    <string name="wear_listen_refusal_declined">আপনি ঘড়িতে অনুরোধটি প্রত্যাখ্যান করেছেন.</string>
+    <string name="wear_listen_refusal_expired">সময়মতো ঘড়িতে কেউ উত্তর দেয়নি.</string>
+    <string name="wear_listen_refusal_capture_failed">ঘড়ি তার মাইক্রোফোন খুলতে পারেনি.</string>
+    <string name="wear_listen_refusal_no_network">ঘড়িতে Wi-Fi চালু করুন - শব্দ Wi-Fi দিয়ে যায়, Bluetooth দিয়ে নয়.</string>
+    <string name="wear_listen_refusal_stopped">ঘড়িতে শোনা বন্ধ করা হয়েছে.</string>
+    <string name="wear_listen_refusal_busy">ঘড়ি ইতিমধ্যে অন্য একজন শ্রোতাকে সেবা দিচ্ছে.</string>
+    <string name="wear_listen_refusal_unknown">ঘড়ি এমন একটি কারণে প্রত্যাখ্যান করেছে যা এই ফোন জানে না.</string>
+    <string name="wear_listen_no_answer">ঘড়ি উত্তর দেয়নি.</string>
+    <string name="wear_listen_send_failed">ঘড়ির সাথে যোগাযোগ করা যায়নি.</string>
+    <string name="wear_listen_wifi_lost">ঘড়ি Wi-Fi ছেড়ে গেছে, তাই শোনা বন্ধ হয়ে গেছে.</string>
+    <string name="stream_action_open_in_vr">VR-এ খুলুন</string>
+    <string name="stream_vr_unsupported_transport">এই চ্যানেলটি এমন একটি ট্রান্সপোর্ট ব্যবহার করে যা VR প্লেয়ার এখনও খুলতে পারে না. এটি স্বাভাবিক প্লেয়ারে চলতেই থাকে.</string>
+    <string name="launcher_translator_translate">অনুবাদ করুন</string>
+    <string name="launcher_translator_in_progress">অনুবাদ হচ্ছে..</string>
+    <string name="launcher_wallpaper_screen_title">ওয়ালপেপার</string>
+    <string name="launcher_wallpaper_section_mode">কী আঁকা হয়</string>
+    <string name="launcher_wallpaper_section_source">উৎস</string>
+    <string name="launcher_wallpaper_section_tuning">চেহারা</string>
+    <string name="launcher_wallpaper_section_power">ব্যাটারি</string>
+    <string name="launcher_wallpaper_desc_branded">ভাসমান কণা সহ রঙিন ঢেউ, ডেস্কটপ খোলা থাকা পর্যন্ত সবসময় অ্যানিমেটেড.</string>
+    <string name="launcher_wallpaper_desc_static_stripes">একই ঢেউ, তবে স্থির: ডেস্কটপে প্রতিবার ফিরে এলে একটি নতুন ফ্রেম আঁকা হয়, তারপর আর কিছু নড়ে না.</string>
+    <string name="launcher_wallpaper_desc_none">কোনো ওয়ালপেপার নেই - ডেস্কটপ বর্তমান থিমের সমতল রং দেখায়.</string>
+    <string name="launcher_wallpaper_desc_image">আপনার নিজের ছবি, স্থির বা অ্যানিমেটেড, স্ক্রিন পূরণ করতে ক্রপ করা.</string>
+    <string name="launcher_wallpaper_desc_camera">ক্যামেরার লাইভ ছবি, ক্রমাগত রিফ্রেশ হয়. সব মোডের মধ্যে এটি সবচেয়ে বেশি ব্যাটারি খরচ করে.</string>
+    <string name="launcher_wallpaper_desc_instant_photo">ডেস্কটপে প্রতিবার ফিরে এলে ক্যামেরার তোলা একটি ছবি; এরপর সাথে সাথেই ক্যামেরা ছেড়ে দেওয়া হয়.</string>
+    <string name="launcher_wallpaper_intensity_title">উজ্জ্বলতা</string>
+    <string name="launcher_wallpaper_intensity_hint">ওয়ালপেপার কতটা তীব্রভাবে আঁকা হয়. কম মান আইকন ও লেবেলের জন্য বেশি কনট্রাস্ট রাখে.</string>
+    <string name="launcher_wallpaper_speed_title">অ্যানিমেশনের গতি</string>
+    <string name="launcher_wallpaper_particle_density_title">কণার ঘনত্ব</string>
+    <string name="launcher_wallpaper_particle_density_hint">শূন্যে শুধু ঢেউ আঁকা হয়, কোনো কণা ছাড়াই.</string>
+    <string name="launcher_wallpaper_power_explanation">সিস্টেমের পাওয়ার সেভার চালু থাকলে বা ব্যাটারি কম থাকলে ওয়ালপেপার নিজে থেকেই অ্যানিমেট করা বন্ধ করে দেয়, এবং লাইভ ক্যামেরা ঢেউয়ে ফিরে যায়. অ্যাপ সেটিংসে অ্যানিমেশন বন্ধ করলেও এটি থেমে যায়.</string>
+    <string name="launcher_wallpaper_power_state_normal">এখন: অ্যানিমেট হচ্ছে</string>
+    <string name="launcher_wallpaper_power_state_reduced">এখন: ব্যাটারি বাঁচাতে কমানো হয়েছে</string>
+    <string name="launcher_wallpaper_power_state_saving">এখন: ব্যাটারি বাঁচাতে থামানো হয়েছে</string>
+    <string name="launcher_wallpaper_source_empty">এখনও কিছু বেছে নেওয়া হয়নি</string>
+    <string name="launcher_wallpaper_source_change">বেছে নিন</string>
+    <string name="launcher_signal_overflow_description">আরও বিজ্ঞপ্তি: %1$d</string>
+    <string name="launcher_section_settings">সেটিংস</string>
+    <string name="launcher_tray_battery_charging_ac">ব্যাটারি %1$d%%, মেইন থেকে চার্জ হচ্ছে</string>
+    <string name="launcher_tray_battery_charging_usb">ব্যাটারি %1$d%%, USB দিয়ে চার্জ হচ্ছে</string>
+    <string name="launcher_tray_battery_charging_wireless">ব্যাটারি %1$d%%, ওয়্যারলেস চার্জ হচ্ছে</string>
+    <string name="streams_collection_all">সব</string>
+    <string name="streams_collection_strip_description">সংগ্রহ</string>
+    <string name="streams_collection_selected_count">সংগ্রহে %1$d চ্যানেল</string>
+    <string name="camera_session_consent_channel_name">ঘড়ির ক্যামেরা অনুরোধ</string>
+    <string name="camera_session_consent_notification_title">আপনার ঘড়ি এই ক্যামেরাটি দেখতে চায়</string>
+    <string name="camera_session_consent_notification_text">ঘড়িকে এই ফোনের ক্যামেরা ও মাইক্রোফোন দেখতে দিন.</string>
+    <string name="camera_session_consent_allow">অনুমতি দিন</string>
 </resources>
