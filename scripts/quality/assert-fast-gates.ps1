@@ -163,6 +163,13 @@ $gates = [ordered]@{
     # Rule 33 - the subject is a wear string, so a rename must fail in the ticket that made it rather
     # than months later on the pre-release run, where the failure reads as a broken screen instead.
     'assert-wear-walk-contract.ps1'             = @()
+    # S2380: the declared phone UI sweep against the module it claims to walk. Same four failure modes
+    # as the watch gate above, plus a coverage half the watch one does not need - the phone catalog is
+    # built from two sources (the activity catalog and the settings manifest), so a screen can go
+    # missing from the sweep by being added to the module and to neither list. Per-ticket by Rule 33:
+    # the subject is an app_v2 string or activity, so a rename must fail in the ticket that made it
+    # rather than on the sweep run months later, where it reads as a broken screen instead of a rename.
+    'assert-ui-sweep-catalog.ps1'               = @()
     # S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The
     # list used to live in four independently maintained places, so a one-sided setting diverged in
     # silence and was found only when the owner could not see it where it was expected. Reads the two

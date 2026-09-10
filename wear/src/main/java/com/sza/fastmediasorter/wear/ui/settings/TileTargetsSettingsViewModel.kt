@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /** What the row says under the tile's name about the target chosen for it right now. */
@@ -78,7 +77,6 @@ class TileTargetsSettingsViewModel @Inject constructor(
                         caption = captionFor(loadWearTileContentUseCase(kind))
                     )
                 }
-            Timber.d("S2587: tile target rows read, ${rows.size} row(s): ${rows.map { it.caption }}")
             _uiState.value = TileTargetsUiState(rows = rows, isLoading = false)
         }
     }

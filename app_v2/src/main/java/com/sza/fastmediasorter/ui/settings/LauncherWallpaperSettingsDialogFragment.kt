@@ -19,7 +19,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperScreenManage
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -91,7 +90,6 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             dismiss()
             return
         }
-        Timber.d("S2730: wallpaper screen opened mode=${viewModel.settings.value.launcherWallpaperMode}")
         binding.btnClose.setOnClickListener { dismiss() }
         val source = LauncherWallpaperSettingsManager(
             host = this,
@@ -119,6 +117,7 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
             applyPalette = { palette ->
                 viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(animationPalette = palette) })
             },
+            applyScreens = ::applyScreens,
         ).also { it.setup() }
 
         viewLifecycleOwner.collectOnLifecycle(viewModel.settings) { settings ->
@@ -142,7 +141,6 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
      * screen is already rendering, so two sliders dragged in quick succession cannot overwrite each other.
      */
     private fun applyTuning(intensity: Float?, speed: Float?, density: Float?) {
-        Timber.d("S2730: wallpaper tuning write intensity=$intensity speed=$speed density=$density")
         val settings = viewModel.settings.value
         viewModel.updateSettings(
             settings.withLauncher {
@@ -150,6 +148,19 @@ class LauncherWallpaperSettingsDialogFragment : DialogFragment() {
                     wallpaperIntensity = intensity ?: wallpaperIntensity,
                     wallpaperAnimationSpeed = speed ?: wallpaperAnimationSpeed,
                     wallpaperParticleDensity = density ?: wallpaperParticleDensity,
+                )
+            }
+        )
+    }
+
+    /** One write per edit, for the same reason as [applyTuning] - the untouched setting is read back. */
+    private fun applyScreens(count: Int?, showNumber: Boolean?) {
+        val settings = viewModel.settings.value
+        viewModel.updateSettings(
+            settings.withLauncher {
+                copy(
+                    screenCount = count ?: screenCount,
+                    showScreenNumber = showNumber ?: showScreenNumber,
                 )
             }
         )

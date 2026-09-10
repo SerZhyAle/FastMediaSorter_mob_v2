@@ -17,6 +17,19 @@ android {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         testInstrumentationRunnerArguments["androidx.benchmark.suppressErrors"] = "EMULATOR"
+        // S0722: app_v2 declares a `version` flavor dimension the producer does not share, so
+        // without an explicit pick dependency resolution cannot choose between its seven release
+        // variants and the connected task fails before it reaches the device.
+        missingDimensionStrategy("version", "standard")
+    }
+
+    buildTypes {
+        // S0722: the journey entry points (BenchmarkRouteActivity, BenchmarkSetupReceiver) live in
+        // app_v2's `benchmark` build type source set, which `release` does not include - a producer
+        // variant named anything else consumes an app that cannot answer the journey intents.
+        create("benchmark") {
+            isDebuggable = false
+        }
     }
 
     compileOptions {

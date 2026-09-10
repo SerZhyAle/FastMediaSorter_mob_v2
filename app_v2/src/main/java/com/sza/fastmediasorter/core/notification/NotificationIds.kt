@@ -44,6 +44,9 @@ object NotificationIds {
     /** S2551: the paired watch is asking to see this phone's camera and the owner must allow it. */
     const val WEAR_CAMERA_SESSION_CONSENT = 4208
 
+    /** S2776: the permanent shade entry that lights and extinguishes the camera flash on a tap. */
+    const val FLASHLIGHT_SHORTCUT = 4209
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 

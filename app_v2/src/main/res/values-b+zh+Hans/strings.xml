@@ -2319,7 +2319,6 @@
     <string name="launcher_weather_location_searching">正在搜索..</string>
     <string name="launcher_app_shortcut_start_failed">此操作已不再可用。</string>
     <string name="launcher_settings_lock_desktop_title">锁定桌面</string>
-    <string name="launcher_settings_wallpaper_title">桌面壁纸</string>
     <string name="launcher_settings_wallpaper_branded">波纹与粒子</string>
     <string name="launcher_settings_wallpaper_none">无</string>
     <string name="launcher_settings_wallpaper_image">我的图片</string>
@@ -2476,7 +2475,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d 米</string>
     <string name="launcher_gadget_compass_calibrate">将手机沿 8 字形晃动</string>
-    <string name="launcher_gadget_speed_value">%1$d 千米/小时</string>
     <string name="launcher_gadget_sensor_no_fix">正在等待定位..</string>
     <string name="launcher_gadget_sensor_no_permission">定位已关闭，请在应用权限中允许。</string>
     <string name="launcher_gadget_compass_description">指南针。方向 %1$s，海拔 %2$s</string>
@@ -2486,8 +2484,6 @@
     <string name="launcher_gadget_chart_reset">重置</string>
     <string name="launcher_gadget_chart_reset_description">清除图表并从现在重新开始记录</string>
     <string name="launcher_gadget_chart_empty">暂无数据 - 移动时图表会逐渐填充。</string>
-    <string name="launcher_gadget_chart_distance">%1$s 千米</string>
-    <string name="launcher_gadget_chart_altitude_current">当前 %1$d 米</string>
     <string name="launcher_gadget_speed_chart_description">速度图表。当前 %1$s，自重置以来 %2$s</string>
     <string name="launcher_gadget_altitude_chart_description">海拔图表。当前 %1$s，自重置以来 %2$s，已行驶 %3$s</string>
     <string name="launcher_gadget_steps">步数</string>
@@ -2808,7 +2804,6 @@
     <string name="launcher_action_all_apps">所有应用</string>
     <string name="launcher_action_black_screen">黑屏</string>
     <string name="launcher_gadget_altitude">海拔</string>
-    <string name="launcher_gadget_altitude_value">%1$d 米</string>
     <string name="launcher_gadget_altitude_description">海拔高度：%1$s</string>
     <string name="launcher_gadget_altitude_unknown">暂无海拔数据</string>
     <string name="launcher_gadget_satellites">卫星</string>
@@ -3395,7 +3390,6 @@
     <string name="stream_vr_unsupported_transport">此频道使用的传输方式 VR 播放器暂时无法打开. 它仍会在普通播放器中播放.</string>
     <string name="launcher_translator_translate">翻译</string>
     <string name="launcher_translator_in_progress">正在翻译..</string>
-    <string name="launcher_wallpaper_screen_title">壁纸</string>
     <string name="launcher_wallpaper_section_mode">绘制内容</string>
     <string name="launcher_wallpaper_section_source">来源</string>
     <string name="launcher_wallpaper_section_tuning">外观</string>

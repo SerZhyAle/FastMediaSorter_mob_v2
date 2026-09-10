@@ -321,7 +321,7 @@ class PhotoVideoStandaloneActivity :
 
     // S0393 wave-C: OCR the displayed image and show extracted text in a scrollable, copyable dialog.
     private fun ocrCurrentImage() {
-        if (!capabilityAvailability.isTranslationAvailable()) return
+        if (!capabilityAvailability.isTranslationAvailable(this)) return
         val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
             Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
             return
@@ -346,7 +346,7 @@ class PhotoVideoStandaloneActivity :
 
     // S0393 wave-C: OCR + translate the displayed image, show the translation in a dialog.
     private fun translateCurrentImage() {
-        if (!capabilityAvailability.isTranslationAvailable()) return
+        if (!capabilityAvailability.isTranslationAvailable(this)) return
         val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
             Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
             return
@@ -715,11 +715,11 @@ class PhotoVideoStandaloneActivity :
             // The item stays in the shared menu (other hosts reference it), so hide it explicitly.
             popup.menu.findItem(R.id.menu_google_lens).isVisible = false
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             popup.menu.findItem(R.id.menu_image_text_settings).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             // S0610: print is now a receiver of the unified «Send to..» menu (btnShareCmd), so the
             // isolated overflow print item is dropped for this host to keep a single invocation point.
             popup.menu.findItem(R.id.menu_print).isVisible = false

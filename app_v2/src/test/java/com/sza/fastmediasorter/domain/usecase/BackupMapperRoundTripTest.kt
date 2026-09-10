@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.StreamDefaultSort
 import com.sza.fastmediasorter.domain.repository.RawAuthSession
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -363,5 +364,79 @@ class BackupMapperRoundTripTest {
         assertNull(parsed.appearance)
         assertNull(parsed.playerExtra)
         assertNull(parsed.integration)
+    }
+
+    /**
+     * S2843: the nine settings this ticket carried into the backup DTO must survive a full round trip
+     * through [BackupMapper]. Each was absent from [BackupSettings] before this ticket, so a value the
+     * user set was lost on every restore - this test pins all nine at once.
+     */
+    @Test
+    fun s2843_nineCarriedSettings_surviveTheRoundTrip() {
+        val configured = AppSettings().copy(
+            streamsVisualizeAsMusic = true,
+            broadcastStreamTitle = "My Stream",
+            broadcastBitRateBps = 256_000,
+            broadcastPort = 5000,
+            broadcastSampleRateHz = 48_000,
+            broadcastChannelCount = 2,
+            broadcastAutoOpenShare = false,
+            flashlightShortcutNotificationEnabled = true,
+            suppressWearMediaTakeover = true
+        )
+
+        val restored = BackupMapper.toAppSettings(
+            BackupMapper.toBackupSettings(configured),
+            AppSettings(),
+            BackupPayload.CURRENT_VERSION
+        )
+
+        assertTrue(restored.streamsVisualizeAsMusic)
+        assertEquals("My Stream", restored.broadcastStreamTitle)
+        assertEquals(256_000, restored.broadcastBitRateBps)
+        assertEquals(5000, restored.broadcastPort)
+        assertEquals(48_000, restored.broadcastSampleRateHz)
+        assertEquals(2, restored.broadcastChannelCount)
+        assertFalse(restored.broadcastAutoOpenShare)
+        assertTrue(restored.flashlightShortcutNotificationEnabled)
+        assertTrue(restored.suppressWearMediaTakeover)
+    }
+
+    /**
+     * S2843: a backup written before this ticket carries the groups but not the nine new keys, so each
+     * nullable field arrives null and the restore must keep the value already on the device. A non-null
+     * default in the DTO would instead reset every setting the user had tuned - the same silent loss
+     * this ticket fixes, moved one step later.
+     */
+    @Test
+    fun s2843_backupWrittenBeforeTheFieldsExisted_keepsCurrentSettings() {
+        val current = AppSettings().copy(
+            streamsVisualizeAsMusic = true,
+            broadcastStreamTitle = "My Stream",
+            broadcastBitRateBps = 256_000,
+            broadcastPort = 5000,
+            broadcastSampleRateHz = 48_000,
+            broadcastChannelCount = 2,
+            broadcastAutoOpenShare = false,
+            flashlightShortcutNotificationEnabled = true,
+            suppressWearMediaTakeover = true
+        )
+        val legacyBackup = BackupSettings(
+            streams = BackupSettings.Streams(),
+            programs = BackupSettings.Programs(),
+            integration = BackupSettings.Integration()
+        )
+
+        val restored = BackupMapper.toAppSettings(legacyBackup, current, BackupPayload.CURRENT_VERSION)
+
+        assertTrue(restored.streamsVisualizeAsMusic)
+        assertEquals("My Stream", restored.broadcastStreamTitle)
+        assertEquals(256_000, restored.broadcastBitRateBps)
+        assertEquals(5000, restored.broadcastPort)
+        assertEquals(48_000, restored.broadcastSampleRateHz)
+        assertEquals(2, restored.broadcastChannelCount)
+        assertFalse(restored.broadcastAutoOpenShare)
+        assertTrue(restored.flashlightShortcutNotificationEnabled)
+        assertTrue(restored.suppressWearMediaTakeover)
     }
 }

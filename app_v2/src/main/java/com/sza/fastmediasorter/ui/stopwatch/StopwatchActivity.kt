@@ -75,6 +75,10 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
         )
         regionBinder.attachListeners()
         binding.btnStopwatchResetAll.setOnClickListener { viewModel.resetAll() }
+        binding.btnStopwatchStartAll.setOnClickListener {
+            Timber.d("S2792: start-all pressed, anyRunning=${viewModel.state.value.anyRunning}")
+            if (viewModel.state.value.anyRunning) viewModel.stopAll() else viewModel.startAll()
+        }
         binding.btnStopwatchResult.setOnClickListener { openResultDialog() }
         setupVolumeSlider()
         binding.btnStopwatchSettings.setOnClickListener {
@@ -148,13 +152,17 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
 
     /**
      * Volume up starts or laps, volume down stops. Everything else keeps its base behaviour, and with
-     * the escape hatch off - or with focus outside every region - the system gets the keys back.
+     * the escape hatch off - or on the availability fallback - the system gets the keys back.
+     *
+     * The region resolves with a touch-mode default rather than requiring focus (S2792), because in
+     * touch mode no view is focused and the old root-focus test dropped every press to the system.
      */
     override fun onTvNavigation(action: TvNavAction): Boolean {
-        val participantId = addressedRegion()
+        val participantId = volumeKeyRegion()
         if (!volumeKeysDriveMeasurement || participantId == StopwatchRegionBinder.NO_REGION) {
             return false
         }
+        Timber.d("S2792: volume key drives participant $participantId ($action)")
         return when (action) {
             TvNavAction.VolumeUp -> consume(StopwatchCommand.StartOrLap(participantId))
             TvNavAction.VolumeDown -> consume(StopwatchCommand.Stop(participantId))
@@ -223,10 +231,11 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
         volumeKeysDriveMeasurement &&
             event.keyCode in VOLUME_KEYS &&
             event.action != KeyEvent.ACTION_DOWN &&
-            addressedRegion() != StopwatchRegionBinder.NO_REGION
+            volumeKeyRegion() != StopwatchRegionBinder.NO_REGION
 
     /**
-     * The region a region-less key belongs to, or [StopwatchRegionBinder.NO_REGION].
+     * The region a region-less centre/enter key belongs to. The volume vocabulary resolves through
+     * [volumeKeyRegion] instead (S2792).
      *
      * Key dispatch can outrun [setupViews] on a cold start, so the binder is asked only once it exists.
      */
@@ -238,6 +247,19 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
             return StopwatchRegionBinder.NO_REGION
         }
         val participantId = regionBinder.focusedParticipantId()
+        return participantId.takeIf { it in 0 until viewModel.state.value.participantCount }
+            ?: StopwatchRegionBinder.NO_REGION
+    }
+
+    /**
+     * The region a volume key drives: the same S2613 availability gate as [addressedRegion], but the
+     * resolution carries a touch-mode default instead of requiring focus (S2792).
+     */
+    private fun volumeKeyRegion(): Int {
+        if (!::regionBinder.isInitialized || !binding.stopwatchContentGroup.isVisible) {
+            return StopwatchRegionBinder.NO_REGION
+        }
+        val participantId = regionBinder.volumeKeyParticipantId()
         return participantId.takeIf { it in 0 until viewModel.state.value.participantCount }
             ?: StopwatchRegionBinder.NO_REGION
     }

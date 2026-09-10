@@ -91,7 +91,6 @@ fun NetworkSourceMediaTypeScreen(
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
-        Timber.d("S2692: source %s offers %s", sourceId, categories.joinToString { it.token })
         val only = categories.singleOrNull() ?: return@LaunchedEffect
         Timber.d("S2487: auto-skip single category %s for source %s", only.token, sourceId)
         navController.navigate(routeFor(only, sourceId, sourceName, source)) {
@@ -120,7 +119,6 @@ fun NetworkSourceMediaTypeScreen(
                 source = source,
                 allowedTypes = settings.allowedContentTypes()
             )
-            Timber.d("S2640: source %s offers no category, reason %s", sourceId, reason)
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = stringResource(messageFor(reason)),
@@ -181,7 +179,6 @@ private fun routeFor(
         return WearRoutes.browseSource(category.token, sourceId, sourceName)
     }
     val entryPath = NetworkBasePath.normalize(source.basePath, source.type, source.shareName)
-    Timber.d("S2694: browse category opens the network walk at '%s' of source %s", entryPath, sourceId)
     return WearRoutes.networkFolder(sourceId = sourceId, path = entryPath, sourceName = sourceName)
 }
 

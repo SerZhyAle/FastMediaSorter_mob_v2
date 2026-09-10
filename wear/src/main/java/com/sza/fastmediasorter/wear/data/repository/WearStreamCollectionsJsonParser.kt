@@ -4,9 +4,9 @@ import com.google.gson.JsonElement
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import timber.log.Timber
 
 /**
  * S2669: reads the `collections.json` entry of the stream-catalog archive on the watch.
@@ -24,22 +24,34 @@ import timber.log.Timber
 @Singleton
 class WearStreamCollectionsJsonParser @Inject constructor() {
 
-    fun parse(json: String): List<WearStreamCollection> {
-        val root = try {
-            JsonParser.parseString(json).asJsonObject
-        } catch (e: Exception) {
-            Timber.w(e, "Wear stream collections: payload is not a JSON object, ignoring it")
-            return emptyList()
-        }
-        val version = root.primitiveInt("schemaVersion") ?: -1
-        if (version != SCHEMA_VERSION) {
+    fun parse(json: String): List<WearStreamCollection> = when (val root = readRoot(json)) {
+        null -> emptyList()
+        else -> parseCollections(root)
+    }
+
+    /**
+     * The payload root, or null when the whole entry must be ignored. An unknown `schemaVersion` is
+     * not an error on our side: the producer is entitled to raise the version, and a client that
+     * guessed at an unknown shape would be worse than one that shows today's screen.
+     */
+    private fun readRoot(json: String): JsonObject? {
+        val root = runCatching { JsonParser.parseString(json) }
+            .onFailure { e -> Timber.w(e, "Wear stream collections: payload is not a JSON object, ignoring it") }
+            .getOrNull()
+        val objectRoot = root?.takeIf(JsonElement::isJsonObject)?.asJsonObject
+        val version = objectRoot?.primitiveInt("schemaVersion") ?: -1
+        if (objectRoot != null && version != SCHEMA_VERSION) {
             Timber.w(
                 "Wear stream collections: schemaVersion %d is not %d, ignoring the entry",
                 version,
                 SCHEMA_VERSION
             )
-            return emptyList()
+            return null
         }
+        return objectRoot
+    }
+
+    private fun parseCollections(root: JsonObject): List<WearStreamCollection> {
         val array = root.get("collections")?.takeIf(JsonElement::isJsonArray)?.asJsonArray
             ?: return emptyList()
         val parsed = ArrayList<WearStreamCollection>(array.size())
@@ -51,11 +63,12 @@ class WearStreamCollectionsJsonParser @Inject constructor() {
         if (dropped > 0) {
             Timber.w("Wear stream collections: dropped %d incomplete collection(s) of %d", dropped, array.size())
         }
-        return parsed.sortedWith(
-            compareBy<WearStreamCollection> { it.sortOrder }.thenBy { it.id }
-        )
+        // Delivery order, ties by id: the repository stores what it is handed and the picker reads
+        // top to bottom, so the curator's `order` reaches the wearer without a second sort anywhere.
+        return parsed.sortedWith(compareBy<WearStreamCollection> { it.sortOrder }.thenBy { it.id })
     }
 
+    /** One collection, or null when it is incomplete and must be dropped without failing the rest. */
     private fun readCollection(element: JsonElement): WearStreamCollection? {
         if (!element.isJsonObject) return null
         val collection = element.asJsonObject
@@ -63,13 +76,16 @@ class WearStreamCollectionsJsonParser @Inject constructor() {
         val names = readNames(collection.get("names"))
         val members = readMembers(collection.get("members"))
         val complete = id.isNotEmpty() && names.containsKey(FALLBACK_LOCALE) && members.isNotEmpty()
-        if (!complete) return null
-        return WearStreamCollection(
-            id = id,
-            sortOrder = collection.primitiveInt("order") ?: 0,
-            names = names,
-            memberUrls = members
-        )
+        return if (!complete) {
+            null
+        } else {
+            WearStreamCollection(
+                id = id,
+                sortOrder = collection.primitiveInt("order") ?: 0,
+                names = names,
+                memberUrls = members
+            )
+        }
     }
 
     private fun readNames(element: JsonElement?): Map<String, String> {
@@ -96,12 +112,10 @@ class WearStreamCollectionsJsonParser @Inject constructor() {
     }
 
     private fun JsonObject.primitiveInt(member: String): Int? =
-        get(member)?.takeIf(JsonElement::isJsonPrimitive)?.takeIf { it.asJsonPrimitive.isNumber }
-            ?.asInt
+        get(member)?.takeIf(JsonElement::isJsonPrimitive)?.takeIf { it.asJsonPrimitive.isNumber }?.asInt
 
     private fun JsonObject.primitiveString(member: String): String? =
-        get(member)?.takeIf(JsonElement::isJsonPrimitive)?.takeIf { it.asJsonPrimitive.isString }
-            ?.asString
+        get(member)?.takeIf(JsonElement::isJsonPrimitive)?.takeIf { it.asJsonPrimitive.isString }?.asString
 
     private companion object {
         const val SCHEMA_VERSION = 1

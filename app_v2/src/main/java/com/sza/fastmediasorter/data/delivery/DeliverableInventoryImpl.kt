@@ -111,7 +111,7 @@ class DeliverableInventoryImpl @Inject constructor(
                 )
             )
         }
-        if (capabilityAvailability.isTranslationAvailable()) {
+        if (capabilityAvailability.isTranslationAvailable(appContext)) {
             add(
                 ExtensionItem.Module(
                     id = moduleKey(DeliverableSet.TRANSLATION),

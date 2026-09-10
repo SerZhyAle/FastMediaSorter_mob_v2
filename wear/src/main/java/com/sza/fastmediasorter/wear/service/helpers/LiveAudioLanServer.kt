@@ -130,14 +130,35 @@ class LiveAudioLanServer @Inject constructor() {
     fun start(
         scope: CoroutineScope,
         source: LiveAudioSource,
-        bindAddress: InetAddress? = null
+        bindAddress: InetAddress? = null,
+        preferredPort: Int? = null
     ): LiveAudioEndpoint {
         check(!isRunning) { "The live audio server is already running" }
-        val socket = ServerSocket(EPHEMERAL_PORT, ACCEPT_BACKLOG, bindAddress)
+        val socket = bind(preferredPort, bindAddress)
         serverSocket = socket
         acceptJob = scope.launch(Dispatchers.IO) { acceptLoop(scope, socket, source) }
         val host = bindAddress?.hostAddress ?: lanAddress()
         return LiveAudioEndpoint(host = host, port = socket.localPort)
+    }
+
+    /**
+     * S2813: takes the port the previous session used when it is still free, so a repeated broadcast
+     * hands out the same address and the same QR image.
+     *
+     * A refused port falls back to an ephemeral one rather than failing the start: the stable barcode
+     * is a convenience and being heard at all is the feature, and the port can be held by anything on
+     * the watch, including this server's own socket still in TIME_WAIT.
+     */
+    private fun bind(preferredPort: Int?, bindAddress: InetAddress?): ServerSocket {
+        if (preferredPort == null || preferredPort <= EPHEMERAL_PORT) {
+            return ServerSocket(EPHEMERAL_PORT, ACCEPT_BACKLOG, bindAddress)
+        }
+        return try {
+            ServerSocket(preferredPort, ACCEPT_BACKLOG, bindAddress)
+        } catch (e: IOException) {
+            Timber.i(e, "Preferred broadcast port %d is taken; falling back to an ephemeral one", preferredPort)
+            ServerSocket(EPHEMERAL_PORT, ACCEPT_BACKLOG, bindAddress)
+        }
     }
 
     /** Closes the listening socket and every live connection. Never touches the capture sink. */

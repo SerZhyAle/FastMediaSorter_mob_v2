@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
@@ -13,8 +12,10 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.DialogStreamInfoBinding
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamFormatProbeManager
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoGroup
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoProperty
@@ -23,6 +24,7 @@ import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoResources
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamInfoValue
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamMeasuredFormats
 import com.sza.fastmediasorter.ui.dialog.helpers.StreamPropertiesFormatter
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -213,14 +215,18 @@ class StreamInfoDialog(
 /** S1474: the platform side of [StreamInfoResources] - the half a unit test replaces with a fake. */
 private class DialogStreamInfoResources(private val context: Context) : StreamInfoResources {
 
+    // S2795: a Dialog's helper is built by hand, not by Hilt, so it reaches the format seam the way
+    // the project's other out-of-graph surfaces do. The system itself is read per call, so a switched
+    // setting shows the next time the window is opened.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
+
     override fun string(@StringRes resId: Int): String = context.getString(resId)
 
-    /** The device's own date and time format, so the window reads like the rest of the system. */
-    override fun dateTime(epochMillis: Long): String {
-        val date = DateFormat.getDateFormat(context).format(epochMillis)
-        val time = DateFormat.getTimeFormat(context).format(epochMillis)
-        return "$date $time"
-    }
+    /** The app's own date and time format, so the window agrees with the file list behind it. */
+    override fun dateTime(epochMillis: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.DateTime(epochMillis), unitSeam.unitSystemProvider().value)
 
     override fun pictureSize(width: Int, height: Int): String =
         context.getString(R.string.stream_info_value_picture_size, width, height)

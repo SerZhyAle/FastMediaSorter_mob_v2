@@ -227,7 +227,7 @@ class WelcomeEnableAllManager @Inject constructor(
                 it.copy(enableOcr = true, cameraOcrTranslationEnabled = true)
             }
         }
-        if (capabilityAvailability.isTranslationAvailable()) {
+        if (capabilityAvailability.isTranslationAvailable(context)) {
             enqueueAndEnableOnInstall(DeliverableSet.TRANSLATION) { it.copy(enableTranslation = true) }
         }
         if (capabilityAvailability.isStreamsAvailable()) {

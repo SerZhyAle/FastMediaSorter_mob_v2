@@ -90,6 +90,9 @@ object WearSettingsRegistry {
             "fileListViewMode",
             "backgroundMode",
             "colorScheme",
+            // S2773: drawn between the colour scheme and the keep-awake toggle, and only in the
+            // sideload flavor - a row the store build skips, never one it reorders.
+            "geometryMode",
             "keepScreenAwakeOutsidePlayers"
         ),
         "OTHER" to listOf(
@@ -264,6 +267,19 @@ object WearSettingsRegistry {
                 "that may do nothing."
         ),
         WearSettingScope(
+            field = "geometryMode",
+            watchPreferenceKey = "wear_geometry_mode",
+            docScopeId = "wearOriginalLayout",
+            valueType = TYPE_ENUM_NAME,
+            ownership = WearSettingOwnership.WATCH_ONLY,
+            watchRowAnchor = "toggleGeometryMode",
+            companionRowTag = null,
+            exceptionReason = "S2773: names how content is laid out against the round glass of one " +
+                "watch, so a phone switch would describe a display the phone does not have. It is also " +
+                "offered only in the sideload flavor (ADR-3), while the companion window is built from " +
+                "the store one and would have nothing to show."
+        ),
+        WearSettingScope(
             field = "voiceNoteSendPolicy",
             watchPreferenceKey = "wear_voice_note_send_policy",
             docScopeId = "wearVoiceNoteSendPolicy",
@@ -291,6 +307,15 @@ object WearSettingsRegistry {
             ownership = WearSettingOwnership.PHONE_ONLY,
             exceptionReason = "Strategic section 2 Non-goals: the language list is a heavy element and " +
                 "stays on the phone; S1814 has the watch inherit the phone's active language."
+        ),
+        WearSettingScope(
+            field = "unitSystem",
+            watchPreferenceKey = "wear_unit_system",
+            docScopeId = null,
+            valueType = TYPE_ENUM_NAME,
+            ownership = WearSettingOwnership.PHONE_ONLY,
+            exceptionReason = "S2731: no watch surface reads or shows a unit-dependent value yet; the " +
+                "field rides the envelope one-way so a future consumer needs no new sync plumbing."
         ),
         WearSettingScope(
             field = "backgroundImage",
@@ -331,7 +356,7 @@ object WearSettingsRegistry {
         require(unknownMapped.isEmpty()) {
             "WearSettingsRegistry: menu map names unknown field(s) $unknownMapped"
         }
-        val expectedUnmapped = setOf("appLanguage", "backgroundImage")
+        val expectedUnmapped = setOf("appLanguage", "backgroundImage", "unitSystem")
         val unmapped = entryFields - mappedFields.toSet()
         require(unmapped == expectedUnmapped) {
             "WearSettingsRegistry: entries outside the menu map are $unmapped, expected $expectedUnmapped"

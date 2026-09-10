@@ -20,7 +20,9 @@ import javax.inject.Singleton
  * axis). Both are ANDed in [SettingsSearchRegistry], so a row gated on both axes (the camera-OCR
  * rows) must pass each. Each branch mirrors a runtime predicate so search visibility cannot drift
  * from UI visibility:
- *  - `rowEnablePip` - `PlaybackSettingsFragment` shows `layoutPip` only on API 31+ (PiP support).
+ *  - `rowEnablePip` / `rowStreamsEnablePip` (S2787) - `PlaybackSettingsFragment` and
+ *    `StreamsSettingsFragment` show their PiP wrapper only on API 31+ (PiP support). Both copies
+ *    write the same flag, so they must leave the index at the same threshold.
  *  - `rowFollowSystemRotation` / `rowFollowSystemRotationPlayer` - `OperationsSettingsFragment` /
  *    `PlaybackSettingsFragment` show the rotation rows only when an accelerometer is present.
  *  - `rowCameraOcrTranslationEnabled` / `rowCameraOcrOnly` - `OperationsSettingsFragment` shows the
@@ -62,7 +64,7 @@ class SettingsSearchDeviceFeatureGate @Inject constructor(
             hasAccelerometer: Boolean,
             supportsOcr: Boolean
         ): Boolean = when (key) {
-            "rowEnablePip" -> supportsPictureInPicture
+            "rowEnablePip", "rowStreamsEnablePip" -> supportsPictureInPicture
             "rowFollowSystemRotation", "rowFollowSystemRotationPlayer" -> hasAccelerometer
             // Camera-OCR rows + the in-app OCR pickers (S0603): on a device that fails
             // DeviceCapabilities.isOcrSupported the OCR toggle is force-disabled, so these spinners

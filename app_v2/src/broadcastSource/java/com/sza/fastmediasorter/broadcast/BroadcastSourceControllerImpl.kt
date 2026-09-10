@@ -24,4 +24,8 @@ class BroadcastSourceControllerImpl @Inject constructor(
     override fun stop() {
         BroadcastCaptureService.stop(context)
     }
+
+    override fun acknowledgeFailure() {
+        BroadcastCaptureService.clearFailure()
+    }
 }

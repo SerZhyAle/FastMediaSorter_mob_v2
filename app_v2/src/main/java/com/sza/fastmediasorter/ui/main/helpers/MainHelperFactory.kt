@@ -2,9 +2,11 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.appcompat.widget.PopupMenu
 import androidx.lifecycle.LifecycleOwner
 import com.google.android.material.tabs.TabLayout
+import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
@@ -63,6 +65,23 @@ class MainHelperFactory @Inject constructor(
         val settings = currentSettings()
         settings != null && panelRouteAvailability.resolveOrNull(routeKey, settings)?.isLaunchable == true
     }
+
+    /**
+     * S2817: the broadcast helper reads the auto-open-share preference, so it needs the settings
+     * repository. Built here rather than in the host, which must declare no repository of its own.
+     */
+    fun createBroadcastManager(
+        activity: FragmentActivity,
+        controller: BroadcastSourceController,
+        requestRecordAudioPermission: () -> Unit,
+        requestPostNotificationsPermission: () -> Unit,
+    ): MainBroadcastManager = MainBroadcastManager(
+        activity = activity,
+        controller = controller,
+        settingsRepository = settingsRepository,
+        requestRecordAudioPermission = requestRecordAudioPermission,
+        requestPostNotificationsPermission = requestPostNotificationsPermission,
+    )
 
     fun createResumePlaybackHelper(
         activity: AppCompatActivity,

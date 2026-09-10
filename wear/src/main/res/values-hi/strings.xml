@@ -208,9 +208,6 @@
     <string name="wear_streams_search">स्ट्रीम खोजें</string>
     <string name="wear_streams_filter">स्ट्रीम फ़िल्टर करें</string>
     <string name="wear_streams_sort">स्ट्रीम क्रमबद्ध करें</string>
-    <string name="wear_streams_filter_all">सभी चैनल</string>
-    <string name="wear_streams_filter_audio">केवल ऑडियो</string>
-    <string name="wear_streams_filter_video">केवल वीडियो</string>
     <string name="wear_streams_sort_name_asc">नाम (A-Z)</string>
     <string name="wear_streams_sort_name_desc">नाम (Z-A)</string>
     <string name="wear_streams_sort_kind">मीडिया प्रकार के अनुसार</string>

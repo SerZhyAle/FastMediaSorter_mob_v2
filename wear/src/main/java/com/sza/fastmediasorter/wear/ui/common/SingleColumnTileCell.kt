@@ -109,7 +109,6 @@ fun SingleColumnTileCell(
 ) {
     val containerShape = WearCellShape
     Timber.d("S2526: SingleColumnTileCell composed for %s", caption)
-    Timber.d("S2759: single-column icon drawn plateless at row height for %s", caption)
     val borderModifier = if (selected) {
         Modifier.border(SELECTION_BORDER_WIDTH, MaterialTheme.colors.primary, containerShape)
     } else {

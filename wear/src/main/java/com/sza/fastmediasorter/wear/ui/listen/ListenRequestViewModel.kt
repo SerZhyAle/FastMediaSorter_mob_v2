@@ -70,7 +70,6 @@ class ListenRequestViewModel @Inject constructor(
      * whose established wording also tells the owner to enable the watch Wi-Fi.
      */
     private fun startIfTheWatchCanServe() {
-        Timber.d("S2550: watch owner confirmed the listening request")
         val verdict = evaluateStreamStart.forServing()
         if (verdict is StreamChannelVerdict.Refuse) {
             Timber.i("The watch cannot serve a listening session: %s", verdict.reason)

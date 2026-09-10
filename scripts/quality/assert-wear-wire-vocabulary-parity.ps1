@@ -59,6 +59,15 @@
           LocalOnly row carries no reason - so nothing was actually checked. A caller must tell this
           from 1: "found a defect" and "did not look" are different answers, and an empty parse
           reported as PASS is precisely the silent success this gate exists to prevent.
+      3 - S2828: a divergence was found, but no file this gate reads is in -ChangedFiles, so it is
+          not attributable to this run. The findings are printed. Distinct from 1 because the caller
+          cannot fix it and from 0 because something IS wrong in the tree.
+
+.PARAMETER ChangedFiles
+    S2828: repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the
+    gate decline to charge a divergence between two files this change never opened - the same fork
+    S2824 gave the sibling gate assert-wear-settings-parity.ps1. Omit it and every divergence stays
+    fatal.
 #>
 
 [CmdletBinding()]
@@ -66,13 +75,18 @@ param(
     [switch]$Gate,
     [switch]$Quiet,
     [string]$PhoneRoot,
-    [string]$WatchRoot
+    [string]$WatchRoot,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/wear-vocabulary-parsers.ps1')
+# S2828: the chargeability test, shared with the other fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $PhoneRoot) { $PhoneRoot = Join-Path $root 'app_v2/src/main/java/com/sza/fastmediasorter' }
@@ -109,6 +123,18 @@ $vocabularies = @(
     @{ Name = 'WearOpenOnPhoneOutcome'; Kind = 'Mirrored'; Compare = 'enum'
        PhoneFile = 'domain/model/WearOpenOnPhonePayload.kt'; WatchFile = 'domain/model/WearOpenOnPhonePayload.kt'
        Type = 'WearOpenOnPhoneOutcome' },
+
+    @{ Name = 'WearCastOrigin'; Kind = 'Mirrored'; Compare = 'enum'
+       PhoneFile = 'domain/model/WearCastPayload.kt'; WatchFile = 'domain/model/WearCastPayload.kt'
+       Type = 'WearCastOrigin' },
+
+    @{ Name = 'WearCastMediaType'; Kind = 'Mirrored'; Compare = 'enum'
+       PhoneFile = 'domain/model/WearCastPayload.kt'; WatchFile = 'domain/model/WearCastPayload.kt'
+       Type = 'WearCastMediaType' },
+
+    @{ Name = 'WearCastOutcome'; Kind = 'Mirrored'; Compare = 'enum'
+       PhoneFile = 'domain/model/WearCastPayload.kt'; WatchFile = 'domain/model/WearCastPayload.kt'
+       Type = 'WearCastOutcome' },
 
     @{ Name = 'WearPhoneResourceRequestKind'; Kind = 'Mirrored'; Compare = 'serializedVsPlain'
        PhoneFile = 'domain/model/WearPhoneResourcePayload.kt'; WatchFile = 'domain/model/WearPhoneResourcePayload.kt'
@@ -289,6 +315,20 @@ if ($unreadable.Count -gt 0) {
 }
 
 if ($problems.Count -gt 0) {
+    # S2828: the input set is both halves of what this gate actually read - the sixteen declared
+    # sides of the eight rows, and the Wear*.kt files the discovery half globbed. A divergence
+    # between two of them that this change never opened belongs to the session writing it.
+    $declaredInputs = @($vocabularies | ForEach-Object {
+            (Join-Path $PhoneRoot $_.PhoneFile), (Join-Path $WatchRoot $_.WatchFile)
+        }) + @(
+        (Join-Path $PhoneRoot 'domain/model'), (Join-Path $WatchRoot 'domain/model') |
+            Where-Object { Test-Path $_ } |
+            ForEach-Object { (Get-ChildItem -Path $_ -Filter 'Wear*.kt' -File).FullName }
+    )
+    if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
+        Write-NotChargedVerdict -GateName 'assert-wear-wire-vocabulary-parity' -Findings @($problems)
+        exit 3
+    }
     foreach ($p in $problems) { Write-Error "assert-wear-wire-vocabulary-parity: $p" -ErrorAction Continue }
     if ($Gate) { exit 1 }
     exit 0

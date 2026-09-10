@@ -25,6 +25,7 @@ import androidx.wear.compose.material.Scaffold
 import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import kotlin.math.sqrt
 
 /**
@@ -61,6 +62,14 @@ private const val ROUND_SQUARE_FRACTION = 0.70f
  * module's main sources and exempts a constant declaration but not a property one.
  */
 private const val COMPACT_SCREEN_BREAKPOINT_DP = 225
+
+/**
+ * Share of [wearRingInset] the game board stood clear of the display edge by before S2770 capped it.
+ *
+ * S2773: reproduced, not chosen. It is the `ROUND_BOARD_INSET_FRACTION` that ticket deleted, kept here
+ * so the ORIGINAL view answers the box the owner actually had rather than a fresh guess at it.
+ */
+private const val ORIGINAL_BOARD_INSET_FRACTION = 0.35f
 
 /**
  * The two scroll positions a browse-style screen owns: its list, and the state block that stands in
@@ -188,13 +197,26 @@ fun WearScreenScaffold(
  * happens to own - a padding tuned to a single device breaks silently on the next one.
  */
 @Composable
-fun wearScreenInsets(): PaddingValues {
+fun wearScreenInsets(): PaddingValues = PaddingValues(uniformRoundInset())
+
+/**
+ * The module's uniform clearance: [ROUND_INSET_FRACTION] of the shorter edge on a round display,
+ * [SQUARE_INSET] otherwise.
+ *
+ * Stated once because two different questions need the same number (S2773). [wearScreenInsets] is the
+ * padding a screen applies, and it is also the answer the ORIGINAL geometry gives for [wearChordInset]
+ * and [wearBandEdgeOffset] - those two did not exist before the Play shape fix, and this is what their
+ * callers paid instead. Two copies of the fraction would let the shared view and the restored one
+ * drift apart while both looked correct.
+ */
+@Composable
+private fun uniformRoundInset(): Dp {
     val configuration = LocalConfiguration.current
     return if (configuration.isScreenRound) {
         val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
-        PaddingValues(shorterEdge * ROUND_INSET_FRACTION)
+        shorterEdge * ROUND_INSET_FRACTION
     } else {
-        PaddingValues(SQUARE_INSET)
+        SQUARE_INSET
     }
 }
 
@@ -288,8 +310,13 @@ fun wearSideBandInset(controlHeight: Dp): Dp {
 @Composable
 fun wearChordInset(edgeOffset: Dp): Dp {
     val configuration = LocalConfiguration.current
-    if (!configuration.isScreenRound) {
-        return SQUARE_INSET
+    // S2773: before this function existed, every one of its callers paid the module's uniform inset -
+    // the streams toolbar, the audio player's title and command row, the calculator keypad. The
+    // original view answers that, which restores each of them without any of them being edited. The
+    // square screen joins that branch because the uniform inset IS SQUARE_INSET there.
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    if (!configuration.isScreenRound || original) {
+        return uniformRoundInset()
     }
     val radius = wearScreenRadius()
     val distanceFromCentre = (radius - edgeOffset.value).coerceIn(0f, radius)
@@ -315,11 +342,57 @@ fun wearChordInset(edgeOffset: Dp): Dp {
 @Composable
 fun wearBandEdgeOffset(bandWidth: Dp): Dp {
     val configuration = LocalConfiguration.current
-    if (!configuration.isScreenRound) {
-        return SQUARE_INSET
+    // S2773: before this function existed no band was lowered at all - each sat within the module's
+    // uniform inset and lost whatever the arc took. The original view answers that same uniform inset,
+    // so a band returns to where it stood and is clipped rather than moved. The square screen joins
+    // that branch because the uniform inset IS SQUARE_INSET there.
+    val original = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    if (!configuration.isScreenRound || original) {
+        return uniformRoundInset()
     }
     val radius = wearScreenRadius()
     return sagitta(radius, bandWidth.value / 2).dp.coerceAtLeast(SQUARE_INSET)
+}
+
+/**
+ * How far above the bottom of the display a SCROLLING viewport has to end.
+ *
+ * S2773's first addition, and the reason it exists: S2770 did not change a shape function, it added a
+ * call that had no predecessor. A scrolling row passes through every height its viewport spans, so a
+ * full-height viewport puts its last row where the chord is shortest and no content padding can undo
+ * that - bounding the viewport is what makes a width answerable at all. The ORIGINAL view answers zero,
+ * which is a viewport reaching the full height and a last row the glass cuts, and that is precisely the
+ * keypad the owner asked to have back.
+ *
+ * A caller uses this INSTEAD of [wearRingInset], never in addition to it.
+ */
+@Composable
+fun wearScrollViewportInset(): Dp = if (LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL) {
+    0.dp
+} else {
+    wearRingInset()
+}
+
+/**
+ * Side of a square panel that stands alone in the middle of the display - a board, a grid, a dial.
+ *
+ * S2773's second addition, for the same reason as [wearScrollViewportInset]: S2770 replaced an invented
+ * fraction here with the largest square the glass admits, so the two views differ by a call site that
+ * gained a cap rather than by a function that changed its answer. The ORIGINAL view reproduces the box
+ * that stood before that cap - the full display inset by [ORIGINAL_BOARD_INSET_FRACTION] of the ring
+ * inset on each side - whose corners do reach past the arc. That is the point of it.
+ *
+ * Distinct from [wearMaxSquareSide], which predates the rejection and is shared by both views: a screen
+ * that already used that helper before the fix keeps using it.
+ */
+@Composable
+fun wearCenteredSquareSide(): Dp {
+    if (LocalWearGeometryMode.current != WearGeometryMode.ORIGINAL) {
+        return wearMaxSquareSide()
+    }
+    val configuration = LocalConfiguration.current
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    return shorterEdge - wearRingInset() * ORIGINAL_BOARD_INSET_FRACTION * 2
 }
 
 /**

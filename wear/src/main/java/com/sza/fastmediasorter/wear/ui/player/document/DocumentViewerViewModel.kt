@@ -96,7 +96,6 @@ class DocumentViewerViewModel @Inject constructor(
      */
     fun onScrollStopped(index: Int, offset: Int) {
         val key = documentKey ?: return
-        Timber.d("S2532: reading position settled index=%d offset=%d", index, offset)
         viewModelScope.launch {
             preferences.setReadingPosition(key, documentSizeBytes, index, offset)
         }
@@ -117,7 +116,6 @@ class DocumentViewerViewModel @Inject constructor(
         documentKey = key
         documentSizeBytes = file.size
         _uiState.update { it.copy(fileName = file.name) }
-        Timber.d("S2532: reader opening %s size=%d restoring=%s", file.name, file.size, key)
         val content = readDocumentText(file)
         // The anchor is resolved BEFORE the text is published, so the screen never sees a frame where
         // the paragraphs exist and the restored position has not been decided yet - in that frame it

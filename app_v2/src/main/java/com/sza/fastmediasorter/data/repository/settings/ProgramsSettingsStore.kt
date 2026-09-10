@@ -26,11 +26,17 @@ object ProgramsSettingsStore {
     // programs panel, share targets). See WearSettingsMirrorStore's KDoc for the symmetric case - a
     // field that only the companion sheet itself ever reads back.
     private val KEY_ENABLE_WEAR_COMPANION = booleanPreferencesKey("enable_wear_companion")
+
+    // S2810: phone-only behaviour toggle, so it persists with the programs group like enableWearCompanion.
+    private val KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER =
+        booleanPreferencesKey("suppress_wear_media_takeover")
     private val KEY_RECORD_GNSS_TRACK = booleanPreferencesKey("record_gnss_track")
     private val KEY_EMBEDDED_GAME_ENABLED = booleanPreferencesKey("embedded_game_enabled")
     private val KEY_FRONT_FLASHLIGHT_ENABLED = booleanPreferencesKey("front_flashlight_enabled")
     private val KEY_FRONT_FLASHLIGHT_COLOR = intPreferencesKey("front_flashlight_color")
     private val KEY_WATER_FLASHLIGHT_ENABLED = booleanPreferencesKey("water_flashlight_enabled")
+    private val KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION =
+        booleanPreferencesKey("flashlight_shortcut_notification_enabled")
     private val KEY_MIRROR_ENABLED = booleanPreferencesKey("mirror_enabled")
     private val KEY_MIRROR_ZOOM_RATIO = floatPreferencesKey("mirror_zoom_ratio")
     private val KEY_MIRROR_HORIZONTALLY_FLIPPED = booleanPreferencesKey("mirror_horizontally_flipped")
@@ -45,11 +51,13 @@ object ProgramsSettingsStore {
         val enableNetworkMonitor: Boolean,
         val enableSystemInfo: Boolean,
         val enableWearCompanion: Boolean,
+        val suppressWearMediaTakeover: Boolean,
         val recordGnssTrack: Boolean,
         val embeddedGameEnabled: Boolean,
         val frontFlashlightEnabled: Boolean,
         val frontFlashlightColor: Int,
         val waterFlashlightEnabled: Boolean,
+        val flashlightShortcutNotificationEnabled: Boolean,
         val mirrorEnabled: Boolean,
         val mirrorZoomRatio: Float,
         val mirrorHorizontallyFlipped: Boolean,
@@ -64,6 +72,7 @@ object ProgramsSettingsStore {
         enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
         enableSystemInfo = preferences[KEY_ENABLE_SYSTEM_INFO] ?: false,
         enableWearCompanion = preferences[KEY_ENABLE_WEAR_COMPANION] ?: false,
+        suppressWearMediaTakeover = preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] ?: false,
         // S1433: recording a satellite track is a separate choice from opening the Monitor.
         recordGnssTrack = preferences[KEY_RECORD_GNSS_TRACK] ?: false,
         embeddedGameEnabled = preferences[KEY_EMBEDDED_GAME_ENABLED] ?: false,
@@ -71,6 +80,8 @@ object ProgramsSettingsStore {
         frontFlashlightColor = preferences[KEY_FRONT_FLASHLIGHT_COLOR]
             ?: AppSettings.FRONT_FLASHLIGHT_DEFAULT_COLOR,
         waterFlashlightEnabled = preferences[KEY_WATER_FLASHLIGHT_ENABLED] ?: false,
+        flashlightShortcutNotificationEnabled =
+        preferences[KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION] ?: false,
         // S1924 ADR-3: the mirror starts on where the flashlight starts off, so the fallback here is
         // true rather than the false every switch above it defaults to.
         mirrorEnabled = preferences[KEY_MIRROR_ENABLED] ?: true,
@@ -92,11 +103,13 @@ object ProgramsSettingsStore {
         enableNetworkMonitor = values.enableNetworkMonitor,
         enableSystemInfo = values.enableSystemInfo,
         enableWearCompanion = values.enableWearCompanion,
+        suppressWearMediaTakeover = values.suppressWearMediaTakeover,
         recordGnssTrack = values.recordGnssTrack,
         embeddedGameEnabled = values.embeddedGameEnabled,
         frontFlashlightEnabled = values.frontFlashlightEnabled,
         frontFlashlightColor = values.frontFlashlightColor,
         waterFlashlightEnabled = values.waterFlashlightEnabled,
+        flashlightShortcutNotificationEnabled = values.flashlightShortcutNotificationEnabled,
         mirrorEnabled = values.mirrorEnabled,
         mirrorZoomRatio = values.mirrorZoomRatio,
         mirrorHorizontallyFlipped = values.mirrorHorizontallyFlipped,
@@ -111,11 +124,14 @@ object ProgramsSettingsStore {
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
         preferences[KEY_ENABLE_SYSTEM_INFO] = settings.enableSystemInfo
         preferences[KEY_ENABLE_WEAR_COMPANION] = settings.enableWearCompanion
+        preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] = settings.suppressWearMediaTakeover
         preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack
         preferences[KEY_EMBEDDED_GAME_ENABLED] = settings.embeddedGameEnabled
         preferences[KEY_FRONT_FLASHLIGHT_ENABLED] = settings.frontFlashlightEnabled
         preferences[KEY_FRONT_FLASHLIGHT_COLOR] = settings.frontFlashlightColor
         preferences[KEY_WATER_FLASHLIGHT_ENABLED] = settings.waterFlashlightEnabled
+        preferences[KEY_FLASHLIGHT_SHORTCUT_NOTIFICATION] =
+            settings.flashlightShortcutNotificationEnabled
         preferences[KEY_MIRROR_ENABLED] = settings.mirrorEnabled
         preferences[KEY_MIRROR_ZOOM_RATIO] = settings.mirrorZoomRatio
         preferences[KEY_MIRROR_HORIZONTALLY_FLIPPED] = settings.mirrorHorizontallyFlipped

@@ -208,9 +208,6 @@
     <string name="wear_streams_search">স্ট্রিম খুঁজুন</string>
     <string name="wear_streams_filter">স্ট্রিম ফিল্টার করুন</string>
     <string name="wear_streams_sort">স্ট্রিম সাজান</string>
-    <string name="wear_streams_filter_all">সব চ্যানেল</string>
-    <string name="wear_streams_filter_audio">শুধু অডিও</string>
-    <string name="wear_streams_filter_video">শুধু ভিডিও</string>
     <string name="wear_streams_sort_name_asc">নাম (A-Z)</string>
     <string name="wear_streams_sort_name_desc">নাম (Z-A)</string>
     <string name="wear_streams_sort_kind">মিডিয়ার ধরন অনুসারে</string>

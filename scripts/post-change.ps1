@@ -479,6 +479,38 @@ function Invoke-AdvisoryStep([string]$Label, [scriptblock]$Action, [string]$Advi
     }
 }
 
+# S2824: the call site for a fixed-input gate - one that reads a short, enumerated list of source
+# files and judges one rule between them. Given the changed set it answers 3 for "a divergence
+# stands in the tree, but no file I read is in that set", which is an advisory here: its author is
+# another session, and charging this closure for it made CLAUDE.md section 12's promise false for
+# these gates exactly as S1889/S1895 did for the ticket-log gate. Codes 1 and 2 stay fatal.
+#
+# The child runs OUTSIDE the wrapper because the verdict shape is chosen from its exit code and
+# Invoke-AdvisoryStep's catch turns any exception into a SKIP - raising one for code 1 would
+# downgrade this change's own divergence instead of scoping it. The pooled duration is carried
+# across by hand, because Invoke-Gate's Reset-PooledElapsedMs would otherwise leave the wrapper's
+# own near-zero stopwatch in the telemetry that measure-gate-frequency.ps1 ranks gates by.
+function Invoke-FixedInputGate([string]$Label, [string[]]$Argv, [string]$GateScript) {
+    Invoke-GateChild @Argv
+    $exitCode = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+    $elapsedMs = Get-PooledElapsedMs
+
+    if ($exitCode -eq 3) {
+        Invoke-AdvisoryStep $Label { $global:LASTEXITCODE = 3 } `
+            -AdvisoryDetails ("a divergence stands in the tree between files this change never opened, so this " +
+                "closure is not charged for it - its author owns it. Run $GateScript with no -ChangedFiles for " +
+                "the project-wide verdict.")
+        return
+    }
+
+    # Restored INSIDE the action: Invoke-Gate opens with Reset-PooledElapsedMs, so a value set
+    # before the call is wiped before the step result reads it.
+    Invoke-Gate $Label {
+        if ($null -ne $elapsedMs) { Set-PooledElapsedMs $elapsedMs }
+        $global:LASTEXITCODE = $exitCode
+    }
+}
+
 $resolvedChangeType = if ($PSBoundParameters.ContainsKey('ChangeType')) {
     $ChangeType
 }
@@ -729,12 +761,14 @@ $runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|Wea
 # gradle) so a doc edit stays fast; also runs as stage 5 of the settings-doc
 # composite so a manifest/vocab change re-checks every guide.
 $runsHowToPathGate = Test-AnyChangedFile 'docs/(HOW_TO|README|QUICK_START|FAQ|TROUBLESHOOTING)[A-Z_]*\.md$'
-# S1548 rule-digest gate. Fires when a file holding one of the four mirroring roles is in the
-# changed set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md)
-# or the pointer (GEMINI.md). Editing any of them is exactly when a digest can fall behind, and the
-# check is pure text over four markdown files, so it costs nothing on the fast path.
+# S1548 rule-digest gate. Fires when a file holding one of the mirroring roles is in the changed
+# set: the authority (CLAUDE.md), a full digest (AGENTS.md, .github/copilot-instructions.md), the
+# pointer (GEMINI.md), or - since S2583 - the authority's path-scoped detail file, whose
+# '## Closing gates' section supplies the second citation unit. S2828 added that fifth file: the
+# gate had declared it an input for weeks while the trigger knew four, so the one edit that adds or
+# renames a closing gate closed unchecked. The check is pure text over five markdown files.
 # Roles and their obligations: dev/RULE_AND_SKILL_AUTHORING.md "Rule mirroring contract".
-$runsRuleDigestGate = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|GEMINI\.md|\.github/copilot-instructions\.md)$'
+$runsRuleDigestGate = Test-AnyChangedFile '^(CLAUDE\.md|AGENTS\.md|GEMINI\.md|\.github/copilot-instructions\.md|\.claude/rules/spec-catalog\.md)$'
 # S0684 dialog-cancel-style gate. Fires only when a dialog / bottom-sheet layout is touched -
 # a cancel/negative action button in such a pair must use Widget.FastMediaSorter.Button.DialogCancel,
 # never a one-off cancel style. Baseline ratchets DOWN. Narrow trigger keeps it cheap.
@@ -942,6 +976,7 @@ if (-not [string]::IsNullOrWhiteSpace($resourceSourceSet)) { $argvStringFormat +
 $argvAcceptanceProbe = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-ticket-acceptance-probes.ps1"), '-Gate')
 $argvDocPinsSync = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/generate-toolchain-pins.ps1"), '-Check')
 $argvDocPinDrift = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-pin-drift.ps1"), '-Gate', '-Quiet')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocPinDrift += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocScriptRefs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-references.ps1"), '-Docs', '-Quiet')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
@@ -1105,7 +1140,12 @@ else {
 }
 
 if ($runsDocPinDrift) {
-    Invoke-Gate "doc-pin-drift" { Invoke-GateChild @argvDocPinDrift }
+    # S2827: a fixed-input gate in the S2824 sense - nine named files, one rule between them - so a
+    # drift it cannot attribute to the changed set is reported and not charged. Its trigger is a
+    # ChangeType category rather than a path, which made it the widest-exposed of the shape: S2815's
+    # closure over three docs/howto/ pages was refused by a room-schema bump another ticket had left
+    # undocumented. The path list stays in the gate (S1621) - pins.psd1 and GradleParser own it.
+    Invoke-FixedInputGate "doc-pin-drift" $argvDocPinDrift 'assert-doc-pin-drift.ps1'
 }
 else {
     Skip-Step "doc-pin-drift" "not applicable for ChangeType $resolvedChangeType"
@@ -1365,10 +1405,19 @@ $argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/ass
 $argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
 $argvCodeDomainWriters = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-code-domain-writers.ps1"), '-Gate', '-Quiet')
 $argvFlavorMatrixDoc = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-flavor-matrix-docs.ps1"), '-Gate', '-Quiet')
+# S2828: -ChangedFiles joins the vector BEFORE Start-PooledGate, so the pool is keyed by the same
+# vector the gate is later invoked with.
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvFlavorMatrixDoc += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvOssNotices = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-oss-notices.ps1"), '-Gate', '-Quiet')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvOssNotices += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvRuleDigest = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-rule-digest-sync.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvRuleDigest += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvLauncherReset = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-launcher-reset-coverage.ps1"), '-Gate', '-Quiet')
+# S2824: scoped HERE, not at the call site - Start-PooledGate below keys the warmed job by the exact
+# argument vector, so a call site that consumed a different one would miss the pool and run inline.
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvLauncherReset += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvWearWireVocabularyParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-vocabulary-parity.ps1"), '-Gate', '-Quiet')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvWearWireVocabularyParity += @('-ChangedFiles', ($changedFiles -join ',')) }
 
 if ($runsNeuroslopGate) { Start-PooledGate @argvNeuroslop }
 if ($runsOrientationFeatureGate) { Start-PooledGate @argvOrientationFeature }
@@ -1486,18 +1535,20 @@ if ($runsSettingsDocGate) {
     # S2604: same shape as ticket-log-audit above, and for the same reason - only code 3 is
     # advisory, and deciding that inside Invoke-AdvisoryStep is not an option because its catch
     # block turns any exception into a SKIP, which would downgrade this change's OWN drift.
-    # Code 3 means every stage passed except the project-wide reference re-render, whose finding
-    # belongs to whichever ticket last moved a renderer input.
+    # Code 3 means every stage passed except one or more whose finding this changed set cannot own.
+    # S2831 widened that from the reference re-render alone to the catalog and annotation stages too,
+    # so this text must not name one artifact: the gate above already named the stage and the finding,
+    # and a hint naming the render where the annotations diverged sends the reader to regenerate the
+    # wrong file.
     $settingsDocOutput = & $pwsh @settingsDocArgs 2>&1 | Out-String
     $settingsDocExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
     if (-not [string]::IsNullOrWhiteSpace($settingsDocOutput)) { Write-Host $settingsDocOutput.TrimEnd() }
 
     if ($ScopeToFile -and $settingsDocExit -eq 3) {
         Invoke-AdvisoryStep "settings-doc-sync-gate" { $global:LASTEXITCODE = 3 } `
-            -AdvisoryDetails ("docs/SETTINGS_REFERENCE* diverges from a fresh render, and no file in this " +
-                "changed set feeds that render - so the divergence belongs to whichever ticket last moved " +
-                "the manifest, the annotations or an availability module, and regenerating it here would " +
-                "commit that ticket's user-visible text under this change. Run " +
+            -AdvisoryDetails ("a stage found a divergence no file in this changed set can have caused - the " +
+                "gate named the stage and the finding above. It belongs to whichever ticket last moved that " +
+                "stage's inputs, and resolving it here would commit that ticket's work under this change. Run " +
                 "assert-settings-doc-sync.ps1 with no -ChangedFiles for the project-wide verdict.")
     }
     else {
@@ -1518,7 +1569,10 @@ else {
 }
 
 if ($runsWearWireVocabularyParityGate) {
-    Invoke-Gate "wear-wire-vocabulary-parity-gate" { Invoke-GateChild @argvWearWireVocabularyParity }
+    # S2828: same fixed-input form as the wear-settings-parity gate below, so the same fork - fatal
+    # when a side it reads is in the changed set, child exit 3 when none is. The trigger names
+    # eleven classes and stays wide because the path list lives in the gate (S1621).
+    Invoke-FixedInputGate "wear-wire-vocabulary-parity-gate" $argvWearWireVocabularyParity 'assert-wear-wire-vocabulary-parity.ps1'
 }
 else {
     Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file declares a side of a phone/watch wire vocabulary"
@@ -1542,26 +1596,35 @@ else {
 }
 
 if ($runsFlavorMatrixDocGate) {
-    # Strict even under -ScopeToFile: the gate judges each declared table against the generated
-    # snapshot, so its verdict is attributable to the tables named in this change and never to
-    # another ticket's in-flight drift. Nothing about it is a project-wide count ratchet.
-    Invoke-Gate "flavor-matrix-doc-gate" { Invoke-GateChild @argvFlavorMatrixDoc }
+    # S2828 withdrew the claim that stood here - that the verdict is attributable to the tables
+    # named in this change. It is not: the trigger fires on any edit to the multi-thousand-line
+    # app_v2/build.gradle.kts, while the gate judges five documents and a snapshot the change may
+    # never have opened, and both failures it ever recorded were a stale snapshot another ticket
+    # owed (2026-08-27, consecutive). Fixed-input form: fatal when a declared input is in the set,
+    # child exit 3 when none is. The path list stays in the gate (S1621).
+    Invoke-FixedInputGate "flavor-matrix-doc-gate" $argvFlavorMatrixDoc 'assert-flavor-matrix-docs.ps1'
 }
 else {
     Skip-Step "flavor-matrix-doc-gate" "not applicable - no changed file is the flavor grid, the generated matrix, or a doc carrying a checked flavor table"
 }
 
 if ($runsOssNoticesGate) {
-    # Strict even under -ScopeToFile: both findings are attributable to the change that fired
-    # them - a coordinate this change declared, or a page this change edited. Not a count ratchet.
-    Invoke-Gate "oss-notices-gate" { Invoke-GateChild @argvOssNotices }
+    # S2828: both findings ARE attributable to a change - but not necessarily to this one. The
+    # trigger fires on any edit to either build.gradle.kts, and one run in four was red (14 FAIL
+    # against 48 PASS over seventeen days) on a coordinate or a page belonging to whoever added the
+    # dependency. Fixed-input form: fatal when a declared input is in the set, child exit 3 when
+    # none is. The path list stays in the gate (S1621).
+    Invoke-FixedInputGate "oss-notices-gate" $argvOssNotices 'assert-oss-notices.ps1'
 }
 else {
     Skip-Step "oss-notices-gate" "not applicable - no changed file is a build file, the licence manifest, the notice pipeline, or a rendered notice page"
 }
 
 if ($runsRuleDigestGate) {
-    Invoke-Gate "rule-digest-sync-gate" { Invoke-GateChild @argvRuleDigest }
+    # S2828: fixed-input form over the five files of the role table. A rule stated in CLAUDE.md and
+    # not yet mirrored is the mirroring session's debt, and any prose edit to CLAUDE.md used to be
+    # charged for it.
+    Invoke-FixedInputGate "rule-digest-sync-gate" $argvRuleDigest 'assert-rule-digest-sync.ps1'
 }
 else {
     Skip-Step "rule-digest-sync-gate" "not applicable - no changed file is the rule authority, a full digest or the pointer"
@@ -1653,21 +1716,32 @@ else {
 # scripts/quality/assert-release-scope-gates.ps1 does once, over the whole release scope.
 
 # S1540: the fourth edit adding a launcher setting needs - the line in the launcher reset - had no gate,
-# so a forgotten one reached the user as a reset that leaves that setting alone. Stays FATAL under
-# -ScopeToFile, unlike the matrix gate above: it reads exactly two files and judges one rule between
-# them, so another ticket's WIP cannot make it fail unless that WIP is itself the defect.
-Invoke-Gate "launcher-reset-coverage-gate" { Invoke-GateChild @argvLauncherReset }
+# so a forgotten one reached the user as a reset that leaves that setting alone. Fatal on a violation
+# between the two files it reads, and since S2824 it declines to charge one when neither of them is in
+# the changed set - it has no trigger, so it runs on every closure in the repo.
+Invoke-FixedInputGate "launcher-reset-coverage-gate" $argvLauncherReset 'assert-launcher-reset-coverage.ps1'
 
 # S2093: a watch setting present on one side of the phone/watch pair and absent on the other. The list
 # lived in four independently maintained places, so a one-sided setting diverged in silence and was
 # found only when the owner could not see it where it was expected. Here and not only in the fg batch:
 # the closure is where a ticket is judged, and a check the closure never runs cannot stop the ticket
-# that skipped a side. FATAL for the same reason as the launcher gate above - it reads six named files
-# and judges one rule between them, so another ticket's WIP cannot fail it unless that WIP is the defect.
+# that skipped a side.
+#
+# S2824 removed the claim that stood here - that a sibling session's WIP could not fail this gate
+# unless the WIP was itself the defect. S2820 refuted it: a changed set lying entirely in
+# wear/../ui/streams/ was refused by a half-written pair another session was mid-way through, and the
+# gate journal shows 40 such refusals in seventeen days, nineteen of them consecutive on one night
+# (temp/metrics/gate-executions.jsonl). What holds instead is that the gate charges
+# its findings only when a file it declares as an input is in the changed set. The trigger stays wide
+# because the path list lives in the gate (S1621) and duplicating it here would drift; it fires on 825
+# files while only 24 can be charged, and the gap between those two numbers is what code 3 covers.
 if (Test-AnyChangedFile '(^|/)wear/|Wear[A-Za-z]*\.kt$|SettingsDocScopeCatalog\.kt$') {
-    Invoke-Gate "wear-settings-parity-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-settings-parity.ps1") -Gate -Quiet
+    $argvWearSettingsParity = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-wear-settings-parity.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvWearSettingsParity += @('-ChangedFiles', ($changedFiles -join ','))
     }
+    Invoke-FixedInputGate "wear-settings-parity-gate" $argvWearSettingsParity 'assert-wear-settings-parity.ps1'
 }
 else {
     Skip-Step "wear-settings-parity-gate" "not applicable - no changed file touches the watch module or a watch-settings surface"
@@ -1676,12 +1750,15 @@ else {
 # S2579: a watch mini-program's canonicalKey that is neither a phone route key nor a declared
 # watch-only program. The enum's own KDoc calls that key the phone's, four of five entries obeyed it
 # and the fifth did not, and nothing looked - the watch's test compares the watch against itself.
-# FATAL for the same reason as the two gates above: it reads two named files and judges one rule
-# between them, so another ticket's WIP cannot fail it unless that WIP is the defect.
+# Fatal on a divergence between the three files it reads, and since S2824 it declines to charge one
+# when none of them is in the changed set, for the reason recorded at the gate above.
 if (Test-AnyChangedFile '(^|/)wear/|InternalRouteCatalog\.kt$') {
-    Invoke-Gate "wear-canonical-key-parity-gate" {
-        & $pwsh -NoProfile -File (Join-Path $root "scripts/quality/assert-wear-canonical-key-parity.ps1") -Gate -Quiet
+    $argvWearCanonicalKeyParity = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-wear-canonical-key-parity.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvWearCanonicalKeyParity += @('-ChangedFiles', ($changedFiles -join ','))
     }
+    Invoke-FixedInputGate "wear-canonical-key-parity-gate" $argvWearCanonicalKeyParity 'assert-wear-canonical-key-parity.ps1'
 }
 else {
     Skip-Step "wear-canonical-key-parity-gate" "not applicable - no changed file touches the watch module or the phone route catalog"

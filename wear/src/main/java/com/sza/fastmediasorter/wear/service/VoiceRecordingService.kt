@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorSerializer
+import com.sza.fastmediasorter.wear.data.broadcast.WearBroadcastIdentityStore
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
@@ -95,6 +96,10 @@ class VoiceRecordingService : Service() {
 
     @Inject
     lateinit var descriptorSerializer: BroadcastDescriptorSerializer
+
+    /** S2813: the port and the source id that must not change between two broadcasts of this watch. */
+    @Inject
+    lateinit var broadcastIdentity: WearBroadcastIdentityStore
 
     /**
      * S2509: the broadcast binds its server to the network this hands out, so "held" and "served on"
@@ -250,7 +255,6 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a broadcast start: the microphone session is already open")
             return
         }
-        Timber.d("S2509: broadcast start requested on the watch")
         val notification = buildNotification(R.string.wear_broadcast_notification_title, withStopAction = true)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         broadcastSession.publish(WearBroadcastSessionState.Starting)
@@ -278,13 +282,17 @@ class VoiceRecordingService : Service() {
             failBroadcast(WearBroadcastFailure.CAPTURE_FAILED)
             return
         }
+        val preferredPort = broadcastIdentity.preferredPort()
         // Off the main thread: binding the socket is a blocking syscall and this coroutine runs on
         // the service's Main dispatcher. The accept loop the server launches picks its own IO one.
         val endpoint = withContext(Dispatchers.IO) {
-            lanServer.start(serviceScope, sessionManager.liveSink, lease.address)
+            lanServer.start(serviceScope, sessionManager.liveSink, lease.address, preferredPort)
         }
-        Timber.d("S2509: watch broadcast live at %s", endpoint.url)
-        broadcastSession.publish(liveStateOf(endpoint))
+        Timber.d("S2813: broadcast bound port ${endpoint.port}, preferred was $preferredPort")
+        // Recorded after the bind, not before it: a refused preferred port falls back, and the next
+        // session must start from the port that actually worked.
+        broadcastIdentity.rememberPort(endpoint.port)
+        broadcastSession.publish(liveStateOf(endpoint, broadcastIdentity.sourceId()))
     }
 
     /**
@@ -292,8 +300,12 @@ class VoiceRecordingService : Service() {
      * screen and any later relay therefore encode the same address by construction - two encoders
      * reading the endpoint separately is how they would come to disagree.
      */
-    private fun liveStateOf(endpoint: LiveAudioEndpoint): WearBroadcastSessionState.Live {
-        val descriptor = BroadcastDescriptorDto(url = endpoint.url, title = Build.MODEL)
+    private fun liveStateOf(endpoint: LiveAudioEndpoint, sourceId: String): WearBroadcastSessionState.Live {
+        val descriptor = BroadcastDescriptorDto(
+            url = endpoint.url,
+            title = Build.MODEL,
+            sourceId = sourceId
+        )
         return WearBroadcastSessionState.Live(
             endpoint = endpoint,
             descriptorJson = descriptorSerializer.serialize(descriptor),
@@ -303,7 +315,6 @@ class VoiceRecordingService : Service() {
 
     /** Every failed-start path: the network goes back, the state says why, and the service ends. */
     private fun failBroadcast(reason: WearBroadcastFailure) {
-        Timber.d("S2509: broadcast start refused, reason=%s", reason)
         releaseBroadcastLease()
         broadcastSession.publish(WearBroadcastSessionState.Failed(reason))
         stopForegroundAndSelf()
@@ -314,7 +325,6 @@ class VoiceRecordingService : Service() {
      * session closes the pipe, and the network is given back only once nothing is left to serve on it.
      */
     private suspend fun stopBroadcastSession() {
-        Timber.d("S2509: broadcast stop requested, listeners=%s", lanServer.listenerCount)
         lanServer.stop()
         sessionManager.stop()
         releaseBroadcastLease()

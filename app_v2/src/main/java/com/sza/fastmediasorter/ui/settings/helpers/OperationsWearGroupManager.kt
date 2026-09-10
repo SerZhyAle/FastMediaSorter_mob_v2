@@ -56,6 +56,12 @@ class OperationsWearGroupManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableWearCompanion = isChecked))
         }
+        // S2810: independent of enableWearCompanion - it suppresses the Wear OS system media-control
+        // takeover regardless of whether the app's own companion is on.
+        binding.rowSuppressWearMediaTakeover.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(suppressWearMediaTakeover = isChecked))
+        }
         binding.btnWearCompanion.setOnClickListener {
             fragment.startActivity(WearCompanionActivity.createIntent(fragment.requireContext()))
         }
@@ -77,6 +83,9 @@ class OperationsWearGroupManager(
         }
         if (binding.rowEnableWearCompanion.isChecked != settings.enableWearCompanion) {
             binding.rowEnableWearCompanion.setCheckedSilently(settings.enableWearCompanion)
+        }
+        if (binding.rowSuppressWearMediaTakeover.isChecked != settings.suppressWearMediaTakeover) {
+            binding.rowSuppressWearMediaTakeover.setCheckedSilently(settings.suppressWearMediaTakeover)
         }
         // The explanation and the link stay visible in both states - they are what tells the reader
         // what the checkbox above them switches on.
@@ -115,20 +124,6 @@ class OperationsWearGroupManager(
             fragment.startActivity(SupportIntentFactory.openUrl(url))
         } catch (e: ActivityNotFoundException) {
             Timber.w(e, "No browser to open the Wear install guide")
-            Toast.makeText(
-                fragment.requireContext(),
-                fragment.getString(R.string.settings_no_browser_for_docs),
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
-    }
-
-    private fun openWebPortal() {
-        val url = SupportIntentFactory.wearWebPortalUrl(fragment.requireContext())
-        try {
-            fragment.startActivity(SupportIntentFactory.openUrl(url))
-        } catch (e: ActivityNotFoundException) {
-            Timber.w(e, "No browser to open the Wear web portal")
             Toast.makeText(
                 fragment.requireContext(),
                 fragment.getString(R.string.settings_no_browser_for_docs),

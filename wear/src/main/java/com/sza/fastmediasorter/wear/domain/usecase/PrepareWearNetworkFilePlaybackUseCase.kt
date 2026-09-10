@@ -4,7 +4,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearFilePlaybackTarget
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -36,7 +35,6 @@ class PrepareWearNetworkFilePlaybackUseCase @Inject constructor(
      */
     operator fun invoke(request: WearNetworkFileOpenRequest): WearFilePlaybackTarget {
         val address = request.uri.toString()
-        Timber.d("S2694: walk file handed to a player: %s of source %s", address, request.sourceId)
         val mediaFile = WearMediaFile(
             id = address.hashCode().toLong(),
             name = request.name,

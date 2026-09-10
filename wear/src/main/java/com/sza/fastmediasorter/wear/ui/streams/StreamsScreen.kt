@@ -32,6 +32,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -40,6 +41,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
+import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
@@ -59,6 +61,7 @@ import androidx.wear.compose.material.dialog.Dialog
 import androidx.wear.input.RemoteInputIntentHelper
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
@@ -70,6 +73,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearChoiceGridFit
 import com.sza.fastmediasorter.wear.ui.common.WearDialogListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearSegmentedToggleRow
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
@@ -128,6 +132,8 @@ private data class StreamsActions(
     val onFilterClick: () -> Unit,
     val onSortClick: () -> Unit,
     val onClearSearch: () -> Unit,
+    /** S2820: drop every narrowing - offered only where the narrowing is what emptied the list. */
+    val onClearFilters: () -> Unit,
     val onBack: () -> Unit
 )
 
@@ -147,13 +153,18 @@ private data class StreamsFilterDialogState(
     // it. Selection stays a raw id above, so a count that changes on the next catalogue import cannot
     // invalidate what the owner picked.
     val availableTopics: List<StreamFacetValue>,
-    val availableLanguages: List<StreamFacetValue>
+    val availableLanguages: List<StreamFacetValue>,
+    // S2669: the curated collections, already in delivery order; the id is the selection key, the
+    // localized name is only the label (the same split the topic rows make).
+    val availableCollections: List<WearStreamCollection> = emptyList(),
+    val selectedCollectionId: String? = null
 )
 
 private data class StreamsFilterDialogActions(
     val onFilterSelected: (StreamFilterKind) -> Unit,
     val onTopicSelected: (String?) -> Unit,
-    val onLanguageSelected: (String?) -> Unit
+    val onLanguageSelected: (String?) -> Unit,
+    val onCollectionSelected: (String?) -> Unit = {}
 )
 
 @Composable
@@ -225,6 +236,7 @@ fun StreamsScreen(
         onFilterClick = { viewModel.setShowFilterDialog(true) },
         onSortClick = { viewModel.setShowSortDialog(true) },
         onClearSearch = { viewModel.setSearchQuery("") },
+        onClearFilters = { viewModel.clearNarrowing() },
         onBack = { navController.popBackStack() }
     )
 
@@ -296,21 +308,22 @@ private fun StreamsDialogsHost(
                 selectedTopic = uiState.selectedTopic,
                 selectedLanguage = uiState.selectedLanguage,
                 availableTopics = uiState.availableTopics,
-                availableLanguages = uiState.availableLanguages
+                availableLanguages = uiState.availableLanguages,
+                availableCollections = uiState.availableCollections,
+                selectedCollectionId = uiState.selectedCollectionId
             ),
             actions = StreamsFilterDialogActions(
                 onFilterSelected = viewModel::setFilterKind,
                 onTopicSelected = viewModel::setSelectedTopic,
-                onLanguageSelected = viewModel::setSelectedLanguage
+                onLanguageSelected = viewModel::setSelectedLanguage,
+                onCollectionSelected = viewModel::setSelectedCollection
             ),
-            viewMode = uiState.viewMode,
             onDismiss = { viewModel.setShowFilterDialog(false) }
         )
     }
     if (uiState.showSortDialog) {
         StreamSortDialog(
             selectedSort = uiState.sortOrder,
-            viewMode = uiState.viewMode,
             onSortSelected = viewModel::setSortOrder,
             onDismiss = { viewModel.setShowSortDialog(false) }
         )
@@ -484,6 +497,11 @@ private val StreamsUiState.showsStateBlock: Boolean
  * slot. An empty catalogue is not a failure - the fetch succeeded and returned nothing - so per the
  * block's own rule it carries no Retry, and the refresh is offered as the screen's own action
  * instead. Both keep a visible way back.
+ *
+ * S2820: a third case sits between them. When the catalogue holds channels and the narrowing is what
+ * left none showing, refreshing cannot change the answer, so the message names the filter and the
+ * offered action drops it - the wearer's only way back to the list, the query chip having gone with
+ * the list this block replaced.
  */
 @Composable
 private fun StreamsStateBlock(
@@ -493,7 +511,9 @@ private fun StreamsStateBlock(
     modifier: Modifier = Modifier
 ) {
     val failed = uiState.error != null
+    val narrowed = !failed && uiState.isNarrowedEmpty
     val refreshLabel = stringResource(R.string.wear_streams_refresh)
+    val clearFiltersLabel = stringResource(R.string.wear_streams_clear_filters)
     WearStateBlock(
         // S2178: the control header keeps painting over this branch, so the block centres its message
         // in the area below the row rather than in the whole screen. The caller owns that box because
@@ -501,17 +521,19 @@ private fun StreamsStateBlock(
         // centring area; every other caller of the block has nothing pinned above it.
         modifier = modifier,
         kind = if (failed) WearStateKind.ERROR else WearStateKind.EMPTY,
-        message = if (failed) {
-            stringResource(R.string.wear_streams_update_failed)
-        } else {
-            stringResource(R.string.wear_streams_empty)
+        message = when {
+            failed -> stringResource(R.string.wear_streams_update_failed)
+            narrowed -> stringResource(R.string.wear_streams_empty_filtered)
+            else -> stringResource(R.string.wear_streams_empty)
         },
         onBack = actions.onBack,
         onRetry = if (failed) actions.onRefresh else null,
-        extraActions = if (failed) {
-            emptyList()
-        } else {
-            listOf(WearStateExtraAction(label = refreshLabel, onClick = actions.onRefresh))
+        extraActions = when {
+            failed -> emptyList()
+            narrowed -> listOf(
+                WearStateExtraAction(label = clearFiltersLabel, onClick = actions.onClearFilters)
+            )
+            else -> listOf(WearStateExtraAction(label = refreshLabel, onClick = actions.onRefresh))
         },
         scrollState = scrollState
     )
@@ -749,25 +771,28 @@ private fun StreamSearchDialog(
     }
 }
 
+/**
+ * S2819: the kind choice is a single compact toggle row, the facet sections below it stay list rows.
+ *
+ * The dialog no longer takes the screen's view mode: the kind row has one shape by construction, and
+ * every facet below is a data-driven set that S1947 pinned to one column regardless of view mode. So
+ * nothing here could still read that parameter, and carrying it would leave the grid the owner called
+ * unreadable one edit away from returning.
+ */
 @Composable
 private fun StreamFilterDialog(
     state: StreamsFilterDialogState,
     actions: StreamsFilterDialogActions,
-    viewMode: WearViewMode,
     onDismiss: () -> Unit
 ) {
+    Timber.d("S2819: streams filter dialog opened with the segmented kind row")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
         val listState = rememberWearDialogListState()
-        Timber.d("S2754: streams filter dialog composed with its own position indicator")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val gridFit = WearChoiceGridFit(
-                viewMode = viewMode,
-                availableWidthDp = maxWidth.value.toInt(),
-                fixedEnumeration = true
-            )
+            val gridFit = oneColumnFit(maxWidth.value.toInt())
             WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -781,22 +806,30 @@ private fun StreamFilterDialog(
                     )
                 }
 
-                wearChoiceRows(
-                    options = listOf(StreamFilterKind.ALL, StreamFilterKind.AUDIO_ONLY, StreamFilterKind.VIDEO_ONLY),
-                    selected = state.selectedFilter,
-                    labelOf = { filter ->
-                        when (filter) {
-                            StreamFilterKind.ALL -> stringResource(R.string.wear_streams_filter_all)
-                            StreamFilterKind.AUDIO_ONLY -> stringResource(R.string.wear_streams_filter_audio)
-                            StreamFilterKind.VIDEO_ONLY -> stringResource(R.string.wear_streams_filter_video)
-                        }
-                    },
-                    onSelected = { actions.onFilterSelected(it) },
-                    gridFit = gridFit
-                )
+                item {
+                    WearSegmentedToggleRow(
+                        options = listOf(
+                            StreamFilterKind.ALL,
+                            StreamFilterKind.AUDIO_ONLY,
+                            StreamFilterKind.VIDEO_ONLY
+                        ),
+                        selected = state.selectedFilter,
+                        labelOf = { filter ->
+                            when (filter) {
+                                StreamFilterKind.ALL -> stringResource(R.string.wear_streams_filter_kind_all)
+                                StreamFilterKind.AUDIO_ONLY ->
+                                    stringResource(R.string.wear_streams_filter_kind_audio)
+                                StreamFilterKind.VIDEO_ONLY ->
+                                    stringResource(R.string.wear_streams_filter_kind_video)
+                            }
+                        },
+                        onSelected = { actions.onFilterSelected(it) }
+                    )
+                }
 
                 streamTopicFilterChoices(state, actions, gridFit)
                 streamLanguageFilterChoices(state, actions, gridFit)
+                streamCollectionFilterChoices(state, actions, gridFit)
             }
             // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own.
             PositionIndicator(listState)
@@ -832,7 +865,7 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
             } ?: stringResource(R.string.wear_streams_filter_topic_all)
         },
         onSelected = { actions.onTopicSelected(it) },
-        gridFit = gridFit.copy(fixedEnumeration = false)
+        gridFit = gridFit
     )
 }
 
@@ -873,29 +906,72 @@ private fun ScalingLazyListScope.streamLanguageFilterChoices(
                 ?: stringResource(R.string.wear_streams_filter_language_all)
         },
         onSelected = { actions.onLanguageSelected(it) },
-        gridFit = gridFit.copy(fixedEnumeration = false)
+        gridFit = gridFit
     )
 }
 
+/**
+ * S2669: the curated-collections section. Absent entirely when nothing was delivered - a watch whose
+ * archive carried no entry must open this dialog exactly as before (strategic criterion 7). One
+ * column like the data-driven facets above: collection names come from the catalog and can be
+ * arbitrarily long, so the grid shape S1947 measured as unusable is not offered here either. The
+ * name is resolved by the model's locale fall-through (tag, language, `en`), the same order the
+ * phone's resolver follows.
+ */
+private fun ScalingLazyListScope.streamCollectionFilterChoices(
+    state: StreamsFilterDialogState,
+    actions: StreamsFilterDialogActions,
+    gridFit: WearChoiceGridFit
+) {
+    if (state.availableCollections.isEmpty()) return
+    item {
+        Text(
+            text = stringResource(R.string.wear_streams_filter_collections_header),
+            style = MaterialTheme.typography.caption1,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    wearChoiceRows(
+        options = listOf<String?>(null) + state.availableCollections.map { it.id },
+        selected = state.selectedCollectionId,
+        // The locale is read inside the label lambda, because reading LocalConfiguration is itself
+        // composable and this section function is not.
+        labelOf = { collectionId ->
+            val locale = ConfigurationCompat.getLocales(LocalConfiguration.current).get(0)
+                ?: java.util.Locale.getDefault()
+            collectionId
+                ?.let { id -> state.availableCollections.firstOrNull { it.id == id } }
+                ?.let { collection -> collection.displayName(locale) }
+                ?: stringResource(R.string.wear_streams_filter_collections_all)
+        },
+        onSelected = { actions.onCollectionSelected(it) },
+        gridFit = gridFit
+    )
+}
+
+/**
+ * S2819: four options, one column, whatever the channel list is set to.
+ *
+ * A grid of four buys no scrolling back - the dialog is one screen either way - and pays for it by
+ * cropping each order's name into a narrow cell, which is what made the button unreadable in two- and
+ * three-column mode. The browse refine menu decided the same thing at its own call site (S2473); the
+ * shared builder keeps offering grids to callers that want them.
+ */
 @Composable
 private fun StreamSortDialog(
     selectedSort: StreamSortOrder,
-    viewMode: WearViewMode,
     onSortSelected: (StreamSortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
+    Timber.d("S2819: streams sort dialog opened in single-column shape")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
         val listState = rememberWearDialogListState()
-        Timber.d("S2754: streams sort dialog composed with its own position indicator")
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val gridFit = WearChoiceGridFit(
-                viewMode = viewMode,
-                availableWidthDp = maxWidth.value.toInt(),
-                fixedEnumeration = true
-            )
+            val gridFit = oneColumnFit(maxWidth.value.toInt())
             WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -930,6 +1006,18 @@ private fun StreamSortDialog(
         }
     }
 }
+
+/**
+ * S2819: both dialogs' shape, said once.
+ *
+ * `LIST` is passed for completeness only - `fixedEnumeration = false` already pins the count - so the
+ * screen's view mode cannot reach a dialog even by being handed back as a parameter later.
+ */
+private fun oneColumnFit(widthDp: Int): WearChoiceGridFit = WearChoiceGridFit(
+    viewMode = WearViewMode.LIST,
+    availableWidthDp = widthDp,
+    fixedEnumeration = false
+)
 
 private fun ScalingLazyListScope.streamItems(
     channels: List<WearStreamChannel>,

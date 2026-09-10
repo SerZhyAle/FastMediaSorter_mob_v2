@@ -279,16 +279,6 @@
                     app:sdr_inline="true"
                     app:sdr_title="@string/launcher_settings_density_title" />
 
-                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                    android:id="@+id/rowLauncherScreenCount"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_tiny"
-                    android:layout_marginBottom="@dimen/margin_small"
-                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                    app:sdr_inline="true"
-                    app:sdr_title="@string/launcher_settings_screen_count_title" />
-
                 <!-- S1090: blocks the long-press entry into desktop edit mode. -->
                 <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                     android:id="@+id/rowLauncherLockDesktop"
@@ -316,19 +306,6 @@
                     app:sdr_inline="true"
                     app:sdr_subtitle="@string/launcher_settings_screen_timeout_subtitle"
                     app:sdr_title="@string/launcher_settings_screen_timeout_title" />
-
-                <!-- S2716: read by the desktop weather and dew-point gadgets, which live on this group's
-                     screens - hence the desktop group rather than a general settings screen. -->
-                <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                    android:id="@+id/rowLauncherUnitSystem"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="@dimen/margin_tiny"
-                    android:layout_marginBottom="@dimen/margin_small"
-                    app:sdr_entries="@array/unit_system_options"
-                    app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                    app:sdr_inline="true"
-                    app:sdr_title="@string/launcher_settings_unit_system_title" />
 
             </LinearLayout>
 
@@ -560,7 +537,7 @@
                 android:paddingBottom="@dimen/margin_small">
 
                 <!-- S2730: was a six-entry dropdown until the wallpaper gained its own screen; the row
-                     now opens that screen and shows the chosen mode as its value. -->
+                     now opens that screen and shows the number of desktop screens as its value. -->
                 <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
                     android:id="@+id/rowLauncherWallpaper"
                     android:layout_width="match_parent"
@@ -568,7 +545,7 @@
                     android:layout_marginTop="@dimen/margin_tiny"
                     android:layout_marginBottom="@dimen/margin_small"
                     app:ssr_navMode="true"
-                    app:ssr_title="@string/launcher_settings_wallpaper_title" />
+                    app:ssr_title="@string/launcher_settings_screens_title" />
 
                 <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                     android:id="@+id/rowLauncherWidgetBackdropAlpha"

@@ -99,6 +99,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Accessibility Service quick disable before banking** `[noLegal]`: 1-tap disabling of Accessibility Service from Settings, Android Quick Settings Tile, or 1x1 homescreen AppWidget for safe banking app execution.
 
 - **Mini-programs on the watch** `[Wear OS]`: The calculator, the network monitor and the mini-game each get their own watch screen, so the wrist is not just a remote.
+- **Blood pressure tracking on the watch** `[Wear OS]`: Manually enter systolic and diastolic blood pressure readings on the watch and review them in a history list with timestamps.
 - **System information as a program** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The full device report sits in the programs menu instead of behind Settings, and the watch has its own screen for it.
 - **Automatic power saving** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The app steps down its own activity on phone and watch, and says when a battery threshold cannot work.
 - **Backup carries 124 more settings** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A restore brings back the screenshot gestures and launcher readouts a backup used to drop.

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.player.standalone
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -124,6 +125,12 @@ class AudioStandaloneActivity :
 
     /** Path of the file last handed to the viewManager; lets folder paging re-render on change. */
     private var lastShownPath: String? = null
+
+    // S1143: stream mode - the host renders the reduced live-channel surface instead of a file.
+    private var streamMode = false
+    private var streamChannelId = -1L
+    private var streamUrl: String? = null
+    private var streamName: String? = null
 
     /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
     private var folderPagingEnabled = false
@@ -457,6 +464,10 @@ class AudioStandaloneActivity :
     }
 
     private fun parseIncomingIntent() {
+        if (!parseStreamIntent()) parseFileIntent()
+    }
+
+    private fun parseFileIntent() {
         val uri = when (intent?.action) {
             Intent.ACTION_VIEW -> intent.data
             Intent.ACTION_SEND -> {
@@ -489,6 +500,26 @@ class AudioStandaloneActivity :
         // Folder paging enumerates only audio neighbours - the only type this host renders.
         viewModel.setHostSupportedTypes(setOf(MediaType.AUDIO))
         viewModel.loadFromUri(uri, intent?.type, displayName)
+    }
+
+    /**
+     * S1143: consumes the stream-mode extras and reports whether this launch is a live channel.
+     * The channel kind is already known from the catalog row, so the URI-type sniffing that rejects
+     * non-audio content is skipped here rather than being taught about http addresses.
+     */
+    private fun parseStreamIntent(): Boolean {
+        val incoming = intent?.takeIf { it.getBooleanExtra(EXTRA_STREAM_MODE, false) } ?: return false
+        val url = incoming.getStringExtra(EXTRA_STREAM_URL)
+        if (url.isNullOrBlank()) {
+            Toast.makeText(this, R.string.error_opening_file_simple, Toast.LENGTH_SHORT).show()
+            finish()
+        } else {
+            streamMode = true
+            streamChannelId = incoming.getLongExtra(EXTRA_STREAM_ID, -1L)
+            streamUrl = url
+            streamName = incoming.getStringExtra(EXTRA_STREAM_NAME)
+        }
+        return true
     }
 
     override fun observeData() {
@@ -622,4 +653,26 @@ class AudioStandaloneActivity :
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
     override fun requestFinishAfterDelete() = finish()
+
+    companion object {
+        private const val EXTRA_STREAM_MODE = "com.sza.fastmediasorter.extra.STREAM_MODE"
+        private const val EXTRA_STREAM_ID = "com.sza.fastmediasorter.extra.STREAM_ID"
+        private const val EXTRA_STREAM_URL = "com.sza.fastmediasorter.extra.STREAM_URL"
+        private const val EXTRA_STREAM_NAME = "com.sza.fastmediasorter.extra.STREAM_NAME"
+
+        /**
+         * S1143: opens an audio channel in this host's reduced stream mode. Explicit and non-exported -
+         * the exported legacy alias carries no visualizer, lyrics or sleep timer (strategic ADR-1a).
+         */
+        fun createStreamIntent(
+            context: Context,
+            channelId: Long,
+            url: String,
+            displayName: String,
+        ): Intent = Intent(context, AudioStandaloneActivity::class.java)
+            .putExtra(EXTRA_STREAM_MODE, true)
+            .putExtra(EXTRA_STREAM_ID, channelId)
+            .putExtra(EXTRA_STREAM_URL, url)
+            .putExtra(EXTRA_STREAM_NAME, displayName)
+    }
 }

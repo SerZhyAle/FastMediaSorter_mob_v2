@@ -19,7 +19,11 @@ import androidx.room.PrimaryKey
         // S1832: deliberately NOT unique. 58 groups of published catalog rows fold onto a
         // single identity; a unique index would turn each of them into an insert conflict
         // and shrink the catalog on the first import after the upgrade.
-        Index(value = ["identityKey"], name = "index_stream_sources_identityKey")
+        Index(value = ["identityKey"], name = "index_stream_sources_identityKey"),
+        // S2813: deliberately NOT unique. Null is the normal state for every manual and every catalog
+        // row, and the one-row-per-device invariant is enforced in ImportStreamBroadcastUseCase, where
+        // a second scan of a known device can be answered with a message instead of a constraint crash.
+        Index(value = ["sourceDeviceId"], name = "index_stream_sources_sourceDeviceId")
     ]
 )
 data class StreamSourceEntity(
@@ -56,5 +60,12 @@ data class StreamSourceEntity(
     // The @ColumnInfo default is what MIGRATION_51_52 backfills over, declared here because
     // runMigrationsAndValidate compares defaults as well as names and types.
     @ColumnInfo(defaultValue = "")
-    val identityKey: String = ""
+    val identityKey: String = "",
+
+    // S2813: the device that broadcasts this stream, when the row came from scanning one. The address
+    // is a session's property and changes with the port and the network; this is the source's own, so a
+    // re-scanned broadcast refreshes the row the user already pinned instead of inserting a second one.
+    // Null on every row that no device named itself for - manual entries, catalog imports, and every
+    // row that existed before MIGRATION_57_58.
+    val sourceDeviceId: String? = null
 )

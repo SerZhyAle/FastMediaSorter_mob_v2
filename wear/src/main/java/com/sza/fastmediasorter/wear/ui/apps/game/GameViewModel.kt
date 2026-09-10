@@ -6,12 +6,16 @@ import com.sza.fastmediasorter.wear.domain.game.GameBoard
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.game.GameDifficulty
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
+import com.sza.fastmediasorter.wear.domain.game.GameEnemyType
+import com.sza.fastmediasorter.wear.domain.game.GameEvent
 import com.sza.fastmediasorter.wear.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
+import com.sza.fastmediasorter.wear.domain.game.GamePosition
 import com.sza.fastmediasorter.wear.domain.game.GameRulesEngine
 import com.sza.fastmediasorter.wear.domain.game.GameSeedSource
 import com.sza.fastmediasorter.wear.domain.game.GameStateSnapshot
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
+import com.sza.fastmediasorter.wear.domain.game.GameTurnResult
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -72,7 +76,8 @@ class GameViewModel @Inject constructor(
         if (!result.accepted) {
             return
         }
-        publish(result.state)
+        val (type, position) = captureFrom(result)
+        publish(result.state, type, position)
     }
 
     /**
@@ -114,7 +119,8 @@ class GameViewModel @Inject constructor(
         if (!result.accepted) {
             return
         }
-        publish(result.state)
+        val (type, position) = captureFrom(result)
+        publish(result.state, type, position)
     }
 
     /**
@@ -160,11 +166,29 @@ class GameViewModel @Inject constructor(
         publish(generated)
     }
 
-    private fun publish(state: GameLevelState) {
-        _uiState.value = GameUiState(state, state.stats, state.status)
+    private fun publish(
+        state: GameLevelState,
+        capturedBy: GameEnemyType? = null,
+        capturedByPosition: GamePosition? = null
+    ) {
+        _uiState.value = GameUiState(state, state.stats, state.status, capturedBy, capturedByPosition)
         viewModelScope.launch {
             preferencesRepository.setGameState(GameStateSnapshot.fromLevelState(state).toStorage())
         }
+    }
+
+    /**
+     * Extracts the killer's type and position from a turn result's [GameEvent.PlayerCaptured] event.
+     *
+     * Returns null for both when no capture happened this turn, so [publish] clears the fields on every
+     * non-capturing move rather than leaving a stale killer from a previous game-over.
+     */
+    private fun captureFrom(result: GameTurnResult): Pair<GameEnemyType?, GamePosition?> {
+        val capture = result.events.filterIsInstance<GameEvent.PlayerCaptured>().firstOrNull()
+            ?: return null to null
+        val killer = result.state.enemies.firstOrNull { it.id == capture.enemyId }
+        Timber.d("S2804: captured by %s at %s", capture.type, killer?.position)
+        return capture.type to killer?.position
     }
 
     /**

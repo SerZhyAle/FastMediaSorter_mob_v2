@@ -34,4 +34,17 @@ interface WearRestrictedCapabilities {
      * behind it to keep reachable.
      */
     val offersBodySensorDiagnostics: Boolean
+
+    /**
+     * Whether this build may hold the system shade shut while a screen asks for it - the pull-down that
+     * reaches airplane mode and brightness over a screen the user cannot touch away.
+     *
+     * The mechanism is lock task mode, which leaves a task with no shade at all; an ordinary app entering
+     * it is screen pinning. Play reviews a kiosk-shaped capability against a short list of admitted uses -
+     * dedicated devices, enterprise deployment, guided access - and a media sorter matches none of them,
+     * so the store build does not ask for it (S2812). The overlay route that would otherwise cover the
+     * shade is closed twice over: Wear OS 4 removed the system UI granting `SYSTEM_ALERT_WINDOW`, and an
+     * application overlay may not draw over the status bar in any case.
+     */
+    val locksSystemShade: Boolean
 }

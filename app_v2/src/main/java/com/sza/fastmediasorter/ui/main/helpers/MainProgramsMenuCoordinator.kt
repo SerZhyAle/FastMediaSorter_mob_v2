@@ -156,7 +156,6 @@ class MainProgramsMenuCoordinator(
                 .firstOrNull { MENU_ORDER_REGISTRY_BASE + it.order == item.order }
                 ?.let { SubProgramAccentCatalog.accentFor(it.routeKey) }
                 ?: continue
-            timber.log.Timber.d("S2510: menu item order=%d accent=%d", item.order, accentRes)
             MenuItemCompat.setIconTintList(
                 item,
                 ColorStateList.valueOf(ContextCompat.getColor(activity, accentRes)),

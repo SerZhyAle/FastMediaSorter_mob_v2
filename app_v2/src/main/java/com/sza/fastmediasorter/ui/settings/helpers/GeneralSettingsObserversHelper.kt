@@ -119,6 +119,12 @@ class GeneralSettingsObserversHelper(
                 binding.rowDisableAnimations?.setCheckedSilently(settings.disableAnimations)
             }
             bindPowerSavingRow(settings.powerSavingTrigger)
+            // S2731: moved here from the launcher settings dialog - restore selection the same way
+            // rowPowerSaving does, entries in UnitSystem declaration order so position IS the ordinal.
+            binding.rowUnitSystem?.let { row ->
+                val position = settings.unitSystem.ordinal
+                if (row.getSelectedIndex() != position) row.setSelection(position)
+            }
             // S0911: main-window programs panel toggle (moved from Operations > Additional Programs).
             if (binding.rowShowProgramsPanel.isChecked != settings.showProgramsPanelInMainWindow) {
                 binding.rowShowProgramsPanel.setCheckedSilently(settings.showProgramsPanelInMainWindow)

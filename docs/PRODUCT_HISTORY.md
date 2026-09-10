@@ -58,7 +58,7 @@ These do not prove the first day of v2, but they do prove that the app already e
 |:--|:--|:--|
 | 2025-11-09 | Existing Android UI screenshots show the app was already running and visually documented by early November 2025. | `docs/images/Screenshot_20251109_*.png`, `docs/README*.md` |
 | 2025-11-14 | Additional player screenshot indicates the player surface already existed by mid-November 2025. | `docs/images/Screenshot_20251114_184930.png`, `docs/README*.md` |
-| 2025-11-30 | Privacy-policy file dates show public/legal documentation was already being maintained by late November 2025. | `docs/PRIVACY_POLICY.uk.md` |
+| 2025-11-30 | Privacy-policy file dates show public/legal documentation was already being maintained by late November 2025. | `docs/PRIVACY_POLICY-uk.md` |
 | 2025-12 | Versioning examples in tooling reference December 2025 builds, which supports the claim that Android development and build discipline were already active in 2025. | `dev/build-with-version.ps1` |
 
 ## 5. Main Milestones in the Current Checkout

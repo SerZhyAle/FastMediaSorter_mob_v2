@@ -86,6 +86,11 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var settingsRepository: dagger.Lazy<SettingsRepository>
 
+    /** S2776: starts the collector that keeps the flashlight shade shortcut level with its setting. */
+    @Inject
+    lateinit var flashlightShortcutCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.core.notification.FlashlightShortcutCoordinator>
+
     @Inject
     lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
@@ -248,6 +253,12 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
             // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
             // which is what keeps the listeners below from firing on every battery tick.
             powerStateObserver.get().level.collect { level -> AnimationPolicy.update(level) }
+        }
+
+        // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where
+        // its collector starts. Off the main thread because the first read opens the settings store.
+        applicationScope.launch(Dispatchers.IO) {
+            flashlightShortcutCoordinator.get().start()
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so

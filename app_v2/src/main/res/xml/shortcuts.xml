@@ -27,4 +27,17 @@
             android:targetClass="com.sza.fastmediasorter.ui.main.MainActivity" />
     </shortcut>
 
+    <!-- S2818: Live Broadcast entry - opens the confirmation screen, never starts the session directly. -->
+    <shortcut
+        android:shortcutId="broadcast"
+        android:enabled="true"
+        android:icon="@drawable/ic_display"
+        android:shortcutShortLabel="@string/shortcut_broadcast_short"
+        android:shortcutLongLabel="@string/shortcut_broadcast_long">
+        <intent
+            android:action="com.sza.fastmediasorter.action.OPEN_BROADCAST_ENTRY"
+            android:targetPackage="com.sza.fastmediasorter"
+            android:targetClass="com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity" />
+    </shortcut>
+
 </shortcuts>

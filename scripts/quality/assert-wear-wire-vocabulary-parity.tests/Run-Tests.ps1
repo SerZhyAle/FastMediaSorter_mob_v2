@@ -158,6 +158,20 @@ enum class WearOpenOnPhoneOutcome { SUCCESS, NOT_FOUND }
 
     @'
 package com.sza.fastmediasorter.domain.model
+enum class WearCastOrigin { STREAM, NETWORK_SOURCE }
+enum class WearCastMediaType { IMAGE, VIDEO, AUDIO }
+enum class WearCastOutcome { CASTING, PICKER_NEEDED }
+'@ | Set-Content (Join-Path $phoneModel 'WearCastPayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.wear.domain.model
+enum class WearCastOrigin { STREAM, NETWORK_SOURCE }
+enum class WearCastMediaType { IMAGE, VIDEO, AUDIO }
+enum class WearCastOutcome { CASTING, PICKER_NEEDED }
+'@ | Set-Content (Join-Path $watchModel 'WearCastPayload.kt') -Encoding utf8NoBOM
+
+    @'
+package com.sza.fastmediasorter.domain.model
 enum class WearPhoneResourceRequestKind { @SerializedName("AUDIO") AUDIO }
 enum class WearPhoneResourceResponseStatus { @SerializedName("OK") OK }
 '@ | Set-Content (Join-Path $phoneModel 'WearPhoneResourcePayload.kt') -Encoding utf8NoBOM

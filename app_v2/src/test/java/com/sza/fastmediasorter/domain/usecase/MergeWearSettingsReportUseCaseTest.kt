@@ -19,6 +19,19 @@ private const val PHONE_INTERVAL = 42
 private const val WATCH_VERSION = "2.60.9021.951"
 private const val PHONE_VERSION = "2.61.0000.001"
 
+private const val WATCH_POWER_SAVING = "BELOW_15"
+private const val PHONE_POWER_SAVING = "OFF"
+private const val WATCH_PANEL_AUTO_HIDE = 3
+private const val PHONE_PANEL_AUTO_HIDE = 8
+
+// S2799: the three shared fields the merge omitted - added to the contract after its field list was
+// written, and each dropped on the way back from the watch until that ticket.
+private val LATE_ADDED_SHARED_FIELDS = listOf(
+    "disableAnimations",
+    "powerSavingTrigger",
+    "panelAutoHideSeconds"
+)
+
 // S2462: the boolean half of the six fields that predate nullability. slideshowIntervalSeconds is the
 // sixth and is exercised separately, its absence being visible as a number rather than a flag.
 private val FIRST_WAVE_BOOLEANS = listOf(
@@ -262,6 +275,59 @@ class MergeWearSettingsReportUseCaseTest {
 
         assertEquals(WATCH_VERSION, merged.appVersionName)
     }
+
+    // S2799: one case per direction rather than one per field - the defect was the field's absence from
+    // the merge's hand-written list, not a rule that could differ between the three.
+    @Test
+    fun `S2799 a watch edit to the late-added shared fields reaches the mirror`() = runTest {
+        val store = FakeWearSettingsMirrorStore().apply {
+            settings = lateAddedPhoneSet()
+            stamps = LATE_ADDED_SHARED_FIELDS.associateWith { EARLY_EDIT }
+        }
+
+        val merged = MergeWearSettingsReportUseCase(store)(
+            lateAddedWatchSet().copy(
+                fieldTimestamps = LATE_ADDED_SHARED_FIELDS.associateWith { LATE_EDIT }
+            ),
+            EXCHANGE_AT,
+            EXCHANGE_AT
+        )
+
+        assertEquals(true, merged.disableAnimations)
+        assertEquals(WATCH_POWER_SAVING, merged.powerSavingTrigger)
+        assertEquals(WATCH_PANEL_AUTO_HIDE, merged.panelAutoHideSeconds)
+        LATE_ADDED_SHARED_FIELDS.forEach {
+            assertEquals("$it must carry the stamp of the edit that won", LATE_EDIT, store.stamps[it])
+        }
+    }
+
+    @Test
+    fun `S2799 a late-added shared field the watch never sent leaves the stored value alone`() = runTest {
+        val store = FakeWearSettingsMirrorStore().apply { settings = lateAddedPhoneSet() }
+
+        val merged = MergeWearSettingsReportUseCase(store)(
+            lateAddedWatchSet(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - LATE_ADDED_SHARED_FIELDS
+        )
+
+        assertEquals(false, merged.disableAnimations)
+        assertEquals(PHONE_POWER_SAVING, merged.powerSavingTrigger)
+        assertEquals(PHONE_PANEL_AUTO_HIDE, merged.panelAutoHideSeconds)
+    }
+
+    private fun lateAddedPhoneSet() = phoneSet().copy(
+        disableAnimations = false,
+        powerSavingTrigger = PHONE_POWER_SAVING,
+        panelAutoHideSeconds = PHONE_PANEL_AUTO_HIDE
+    )
+
+    private fun lateAddedWatchSet() = watchSet().copy(
+        disableAnimations = true,
+        powerSavingTrigger = WATCH_POWER_SAVING,
+        panelAutoHideSeconds = WATCH_PANEL_AUTO_HIDE
+    )
 
     private fun watchSet() = WearSettingsPayload(
         audioEnabled = true,

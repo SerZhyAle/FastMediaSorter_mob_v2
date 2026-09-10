@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.domain.usecase.OpenPhoneResourceChannelUseCase
 import com.sza.fastmediasorter.domain.usecase.PhoneResourceChannel
 import com.sza.fastmediasorter.domain.usecase.ReceiveWatchFileUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
+import com.sza.fastmediasorter.service.helpers.WearCastRequestHandler
 import com.sza.fastmediasorter.ui.player.dispatch.StandalonePlayerDispatcherActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
@@ -101,6 +102,8 @@ class PhoneWearListenerService : WearableListenerService() {
 
     @Inject lateinit var phoneCameraSessionCommandManager: PhoneCameraSessionCommandManager
 
+    @Inject lateinit var wearCastRequestHandler: WearCastRequestHandler
+
     // S2462: built from the injected Gson rather than injected itself - it carries no state and no
     // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
     private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
@@ -123,6 +126,10 @@ class PhoneWearListenerService : WearableListenerService() {
                 handlePhoneResourceOpen(event.sourceNodeId, event.data)
             WearDataLayerPaths.OPEN_ON_PHONE_REQUEST ->
                 handleOpenOnPhone(event.sourceNodeId, event.data)
+            WearDataLayerPaths.CAST_REQUEST ->
+                wearCastRequestHandler.handle(event.sourceNodeId, event.data)
+            WearDataLayerPaths.CAST_STOP ->
+                wearCastRequestHandler.handleStop(event.sourceNodeId, event.data)
             WearDataLayerPaths.LOG_REPORT_REQUEST ->
                 handleLogReport(event.sourceNodeId, event.data)
             WearDataLayerPaths.STREAM_TRANSFER_ACK -> handleStreamTransferAck(event.data)

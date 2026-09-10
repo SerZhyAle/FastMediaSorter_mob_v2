@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,12 +12,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.ButtonDefaults
-import androidx.wear.compose.material.Card
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -27,27 +27,25 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
-import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
-import com.sza.fastmediasorter.wear.ui.common.RectangularButton
-import com.sza.fastmediasorter.wear.ui.common.WearCaptionText
-import com.sza.fastmediasorter.wear.ui.common.WearCellShape
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 6.dp
 private val ROW_SPACING = 4.dp
-private val CARD_PADDING = 4.dp
-private val CARD_LINE_SPACING = 2.dp
+private val HEADER_LINE_SPACING = 2.dp
 
 /**
  * Root Dashboard screen of the Wear Network Monitor.
  *
- * Renders the top summary card (active connection, local IP, external IP / reachability)
- * and a grid of square section tiles showing section name and live status fact.
+ * One report, not a grid of tiles (S2805): the header states the active link and the two addresses,
+ * then every section takes a full-width row of its own carrying its name and its live fact. The
+ * general view-mode setting is deliberately not read here - at the two and three columns it asks
+ * for, a section cell keeps about 54 dp of an inscribed 170 dp square, which truncated the fact
+ * away and left a panel that reported nothing.
  */
 @Composable
 fun NetworkMonitorSummaryScreen(
@@ -59,148 +57,123 @@ fun NetworkMonitorSummaryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     Timber.d("S2470: Network Monitor compact overview shown")
     val snapshot = state.snapshot
+    val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
+    Timber.d("S2805: Network Monitor summary as one-column report, sections=%d", nonSummarySections.size)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val availableWidthDp = maxWidth.value.toInt()
-            val columns = GridColumnFit.columnsFor(state.viewMode, availableWidthDp)
-            val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
-            WearListColumn(
-                modifier = modifier.fillMaxSize(),
-                state = listState,
-                verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
-            ) {
-                item {
-                    Text(
-                        text = stringResource(R.string.wear_netmon_summary),
-                        style = MaterialTheme.typography.title3,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = TITLE_BOTTOM_PADDING),
-                        textAlign = TextAlign.Center
-                    )
-                }
+        WearListColumn(
+            modifier = modifier.fillMaxSize(),
+            state = listState,
+            verticalArrangement = Arrangement.spacedBy(ROW_SPACING)
+        ) {
+            item {
+                Text(
+                    text = stringResource(R.string.wear_netmon_summary),
+                    style = MaterialTheme.typography.title3,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = TITLE_BOTTOM_PADDING),
+                    textAlign = TextAlign.Center
+                )
+            }
 
-                item {
-                    SummaryHeaderCard(
-                        snapshot = snapshot,
-                        externalIp = state.externalIp,
-                        onCopyIp = { label, ip -> viewModel.copyToClipboard(label, ip) }
-                    )
-                }
+            item {
+                SummaryHeaderBlock(snapshot = snapshot, externalIp = state.externalIp)
+            }
 
-                if (columns == 1) {
-                    items(nonSummarySections) { section ->
-                        SectionTile(
-                            section = section,
-                            fact = state.sectionFacts[section] ?: WearSectionFact.None,
-                            onClick = { onNavigateToSection(section.key) }
-                        )
-                    }
-                } else {
-                    items(nonSummarySections.chunked(columns)) { rowSections ->
-                        CenteredGridRow(
-                            columns = columns,
-                            itemCount = rowSections.size,
-                            gap = ROW_SPACING
-                        ) {
-                            rowSections.forEach { section ->
-                                val fact = state.sectionFacts[section] ?: WearSectionFact.None
-                                val title = stringResource(section.titleRes())
-                                val factText = fact.render()
-                                val fullText = if (factText.isNullOrEmpty()) title else "$title: $factText"
-                                val weight = fullText.length.coerceAtLeast(1).toFloat()
-                                SectionTile(
-                                    section = section,
-                                    fact = fact,
-                                    modifier = Modifier.weight(weight),
-                                    onClick = { onNavigateToSection(section.key) }
-                                )
-                            }
-                        }
-                    }
-                }
+            item { WearReportDivider() }
+
+            items(nonSummarySections) { section ->
+                SectionRow(
+                    section = section,
+                    fact = state.sectionFacts[section] ?: WearSectionFact.None,
+                    onClick = { onNavigateToSection(section.key) }
+                )
             }
         }
     }
 }
 
 /**
- * The phone summary's three lines in a watch-sized card: the active link, then the local and the
+ * The phone summary's three lines in a watch-sized block: the active link, then the local and the
  * external address, in that order (strategic section 6, owner decision 6).
+ *
+ * The addresses are ordinary information rows, which already copy their value on a long press
+ * (S2775) - the card that used to wrap them carried a tap handler doing the same thing for one of
+ * the two, and a block reads as part of the report where a card reads as a control.
  */
 @Composable
-private fun SummaryHeaderCard(
-    snapshot: WearNetworkSnapshot?,
-    externalIp: String?,
-    onCopyIp: (String, String) -> Unit
-) {
-    val localIpLabel = stringResource(R.string.wear_netmon_field_local_ip)
-    Card(
-        onClick = {
-            snapshot?.localIp?.let { onCopyIp(localIpLabel, it) }
-        },
-        modifier = Modifier.fillMaxWidth()
+private fun SummaryHeaderBlock(snapshot: WearNetworkSnapshot?, externalIp: String?) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(HEADER_LINE_SPACING)
     ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(CARD_PADDING),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(CARD_LINE_SPACING)
-        ) {
-            Text(
-                text = snapshot?.activeTransport?.let { stringResource(it.labelRes()) }
-                    ?: stringResource(R.string.wear_netmon_unavailable),
-                style = MaterialTheme.typography.caption1,
-                color = MaterialTheme.colors.primary,
-                textAlign = TextAlign.Center
-            )
+        Text(
+            text = snapshot?.activeTransport?.let { stringResource(it.labelRes()) }
+                ?: stringResource(R.string.wear_netmon_unavailable),
+            style = MaterialTheme.typography.caption1,
+            color = MaterialTheme.colors.primary,
+            textAlign = TextAlign.Center
+        )
 
-            WearInformationRow(
-                labelRes = R.string.wear_netmon_field_local_ip,
-                value = snapshot?.localIp ?: stringResource(R.string.wear_netmon_unavailable)
-            )
+        WearInformationRow(
+            labelRes = R.string.wear_netmon_field_local_ip,
+            value = snapshot?.localIp ?: stringResource(R.string.wear_netmon_unavailable)
+        )
 
-            WearInformationRow(
-                labelRes = R.string.wear_netmon_field_external_ip,
-                value = externalIp ?: stringResource(R.string.wear_netmon_unavailable)
-            )
-        }
-    }
-}
-
-@Composable
-private fun SectionTile(
-    section: WearNetworkSection,
-    fact: WearSectionFact,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    val title = stringResource(section.titleRes())
-    val factText = fact.render()
-    val fullText = if (factText.isNullOrEmpty()) title else "$title: $factText"
-
-    RectangularButton(
-        onClick = onClick,
-        colors = ButtonDefaults.secondaryButtonColors(),
-        shape = WearCellShape,
-        modifier = modifier.fillMaxWidth()
-    ) {
-        WearCaptionText(
-            text = fullText,
-            maxLines = 1,
-            textAlign = TextAlign.Center,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 2.dp)
+        WearInformationRow(
+            labelRes = R.string.wear_netmon_field_external_ip,
+            value = externalIp ?: stringResource(R.string.wear_netmon_unavailable)
         )
     }
 }
 
-/** Where a named fact becomes words. Null means the button carries its name alone. */
+/**
+ * One section of the report: its name, its live fact under it, and the whole row opening the
+ * section's page.
+ *
+ * A chip rather than an information row because this row is a control - the chip gives it the
+ * interactive height a caption pair does not reach, and states its button role to TalkBack.
+ */
+@Composable
+private fun SectionRow(
+    section: WearNetworkSection,
+    fact: WearSectionFact,
+    onClick: () -> Unit
+) {
+    val factText = fact.render()
+    Chip(
+        onClick = onClick,
+        colors = ChipDefaults.secondaryChipColors(),
+        label = {
+            Text(
+                text = stringResource(section.titleRes()),
+                style = MaterialTheme.typography.caption1,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        secondaryLabel = factText?.takeIf { it.isNotEmpty() }?.let { text ->
+            {
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.caption2,
+                    color = MaterialTheme.colors.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+/** Where a named fact becomes words. Null means the row carries its name alone. */
 @Composable
 internal fun WearSectionFact.render(): String? = when (this) {
     is WearSectionFact.None -> null

@@ -26,7 +26,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.8151.948` | Aug 15, 2026 | data-callback key 141 | 2026-09-02 |
+| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-09 |
 
 Reader exit code: 0.
 
@@ -47,13 +47,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.8232.251` | `260823225` | completed | 2026-09-02 |
-| `beta` | - | - | no release | 2026-09-02 |
-| `alpha` | - | - | no release | 2026-09-02 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-02 |
-| `wear:beta` | - | - | no release | 2026-09-02 |
-| `wear:internal` | - | - | no release | 2026-09-02 |
-| `wear:production` | `2.60.8250.134` | `26082501` | completed | 2026-09-02 |
+| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-09 |
+| `beta` | - | - | no release | 2026-09-09 |
+| `alpha` | - | - | no release | 2026-09-09 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-09 |
+| `wear:beta` | - | - | no release | 2026-09-09 |
+| `wear:internal` | - | - | no release | 2026-09-09 |
+| `wear:production` | `2.60.9021.951` | `260909148` | completed | 2026-09-09 |
 
 Reader exit code: 0.
 
@@ -213,12 +213,24 @@ catalog on 2026-09-09:
 - `Functionality not working as described` (2026-08-31, both identical rows - one subject stated
   twice) - **S2275**, `Archived`. Closed.
 - `Wear app functionality not working as described` (2026-09-08, versionCode `26090503`) -
-  **S2755**, `BlockNeedUserTest`, and **S2756**, `Verified`. S2755 is open: the status means the
-  device verdict has not been taken yet, not that the work passed.
+  **S2755**, `Verified`, and **S2756**, `Verified`. Closed.
 
 No watch submission is attempted before every open carrier above is closed and the pre-release walk
-of **S1984** has run on device: a rejection costs a full review cycle. Open as of this check: S2273
-and S2755.
+of **S1984** has run on device: a rejection costs a full review cycle. Open as of this check: none.
+
+**Second submission sent, 2026-09-09 - `260909148` / `2.60.9021.951`.** All three 2026-09-08 carriers
+were closed first, and release package 36 was closed on the artifact that reached the track (owner
+instruction, `PLAN/RELEASE_QUEUE_DONE.md`). The review verdict is not in yet, so this submission is
+recorded here and nowhere else - a rejection of it lands as fresh tickets in package 38, never as a
+third reopening of 36.
+
+**What was traded to send it, named rather than buried.** The precondition "no `BlockNeedUserTest`
+left in the package" was waived by the owner on 2026-09-09; 25 of the 46 rows the package shipped went
+out unmeasured on glass, S2757 (the full watch retest) is still In Progress and moved to package 38,
+and S2770 - content outside the round glass, the same class as the `Watch shapes` claim - was closed
+by code audit with no device measurement. That is the configuration that produced the 2026-09-08
+rejection. If this submission is rejected on a shape or functionality claim, read this paragraph
+before re-deriving why.
 
 **Step 3 does not wait on step 4, and never will.** That dependency is the exact failure this record
 exists to prevent - one watch defect held a phone release for which there was not a single claim.

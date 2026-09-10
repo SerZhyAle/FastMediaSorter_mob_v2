@@ -316,8 +316,8 @@ function ConvertTo-EscapedXmlSegment([AllowEmptyString()][string]$Text) {
     # makes the pass idempotent: an already-escaped value collapses to the same single-backslash form
     # rather than growing a second slash, which AAPT2 refuses for an apostrophe and ships as a literal
     # slash for a quote.
-    $escaped = [regex]::Replace($escaped, '\\?&apos;', "\'")
-    return [regex]::Replace($escaped, '\\?&quot;', '\"')
+    $escaped = [regex]::Replace($escaped, '\\\\?&apos;', "\'")
+    return [regex]::Replace($escaped, '\\\\?&quot;', '\"')
 }
 
 function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {

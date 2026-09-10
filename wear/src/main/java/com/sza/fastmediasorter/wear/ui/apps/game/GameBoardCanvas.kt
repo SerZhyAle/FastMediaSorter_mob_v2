@@ -8,6 +8,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.wear.compose.material.MaterialTheme
@@ -17,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.game.GameEnemyType
 import com.sza.fastmediasorter.wear.domain.game.GameGuideArrow
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
 import com.sza.fastmediasorter.wear.domain.game.GamePosition
+import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.theme.LocalWearAppColors
 import kotlin.math.PI
 import kotlin.math.atan2
@@ -35,6 +37,17 @@ private const val SHADOW_ALPHA = 0.55f
 
 /** Half of something - a gap split over two neighbours, a centre offset inside a cell. */
 private const val HALF = 0.5f
+
+/** The exit is a portal: a filled disc with a ring around it, so it never reads as a wall square. */
+private const val EXIT_FILL_FRACTION = 0.36f
+private const val EXIT_RING_FRACTION = 0.46f
+private const val EXIT_STROKE_WIDTH_FRACTION = 0.06f
+
+/** The capture bar is a thick line from the killer to the player, shown on game-over. */
+private const val CAPTURE_BAR_FRACTION = 0.16f
+
+/** When killer and player share a tile, a crosshair replaces the zero-length line. */
+private const val CROSSHAIR_ARM_FRACTION = 0.22f
 
 /**
  * S2494: the start-of-level arrow, in the phone's proportions.
@@ -75,7 +88,9 @@ fun GameBoardCanvas(
     level: GameLevelState,
     contentDescription: String,
     modifier: Modifier = Modifier,
-    showGuideArrow: Boolean = false
+    showGuideArrow: Boolean = false,
+    capturedBy: GameEnemyType? = null,
+    capturedByPosition: GamePosition? = null
 ) {
     val palette = BoardPalette(
         floor = MaterialTheme.colors.surface,
@@ -97,6 +112,9 @@ fun GameBoardCanvas(
             drawGuideArrow(level, metrics, palette)
         }
         drawActors(level, metrics, palette)
+        if (level.status == GameStatus.GAME_OVER && capturedBy != null && capturedByPosition != null) {
+            drawCaptureBar(level, metrics, palette, capturedBy, capturedByPosition)
+        }
     }
 }
 
@@ -154,22 +172,33 @@ private fun DrawScope.drawCells(board: GameBoard, metrics: BoardMetrics, palette
     for (row in 0 until board.height) {
         for (col in 0 until board.width) {
             val cell = board.cellAt(GamePosition(row, col))
-            val colour = when (cell) {
-                GameCell.FLOOR -> palette.floor
-                GameCell.WALL -> palette.wall
-                GameCell.EXIT -> palette.exit
-                GameCell.VOID -> null
-            } ?: continue
-            drawRect(
-                color = colour,
-                topLeft = Offset(
-                    x = metrics.originX + col * metrics.cell + gap * HALF,
-                    y = metrics.originY + row * metrics.cell + gap * HALF
-                ),
-                size = Size(tile, tile)
+            val topLeft = Offset(
+                x = metrics.originX + col * metrics.cell + gap * HALF,
+                y = metrics.originY + row * metrics.cell + gap * HALF
             )
+            when (cell) {
+                GameCell.FLOOR -> drawRect(palette.floor, topLeft, Size(tile, tile))
+                GameCell.WALL -> drawRect(palette.wall, topLeft, Size(tile, tile))
+                GameCell.EXIT -> drawExitCell(palette, topLeft, tile)
+                GameCell.VOID -> { }
+            }
         }
     }
+}
+
+private fun DrawScope.drawExitCell(palette: BoardPalette, topLeft: Offset, tile: Float) {
+    val centre = Offset(topLeft.x + tile * HALF, topLeft.y + tile * HALF)
+    drawCircle(
+        color = palette.exit,
+        radius = tile * EXIT_FILL_FRACTION,
+        center = centre
+    )
+    drawCircle(
+        color = palette.exit,
+        radius = tile * EXIT_RING_FRACTION,
+        center = centre,
+        style = Stroke(width = tile * EXIT_STROKE_WIDTH_FRACTION)
+    )
 }
 
 private fun DrawScope.drawActors(
@@ -191,6 +220,49 @@ private fun DrawScope.drawActors(
         radius = metrics.cell * ACTOR_RADIUS_FRACTION,
         center = centreOf(level.player.position, metrics)
     )
+}
+
+/**
+ * The capture bar: a thick coloured line from the killer's tile to the player's, drawn on game-over so
+ * the board shows who caught the player. When the two share a tile (the player walked into the enemy),
+ * a crosshair replaces the zero-length line.
+ */
+private fun DrawScope.drawCaptureBar(
+    level: GameLevelState,
+    metrics: BoardMetrics,
+    palette: BoardPalette,
+    capturedBy: GameEnemyType,
+    capturedByPosition: GamePosition
+) {
+    val from = centreOf(capturedByPosition, metrics)
+    val to = centreOf(level.player.position, metrics)
+    val color = if (capturedBy == GameEnemyType.KRYVAVITSA) palette.kryvavitsa else palette.shadow
+    val width = metrics.cell * CAPTURE_BAR_FRACTION
+    if (from == to) {
+        val arm = metrics.cell * CROSSHAIR_ARM_FRACTION
+        drawLine(
+            color = color,
+            start = Offset(from.x - arm, from.y),
+            end = Offset(from.x + arm, from.y),
+            strokeWidth = width,
+            cap = StrokeCap.Round
+        )
+        drawLine(
+            color = color,
+            start = Offset(from.x, from.y - arm),
+            end = Offset(from.x, from.y + arm),
+            strokeWidth = width,
+            cap = StrokeCap.Round
+        )
+    } else {
+        drawLine(
+            color = color,
+            start = from,
+            end = to,
+            strokeWidth = width,
+            cap = StrokeCap.Round
+        )
+    }
 }
 
 private fun centreOf(position: GamePosition, metrics: BoardMetrics): Offset = Offset(

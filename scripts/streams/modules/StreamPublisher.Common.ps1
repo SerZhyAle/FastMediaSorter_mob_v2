@@ -187,8 +187,18 @@ function Get-CanonicalTopic {
 # Grouping values are a producer contract: the Android filter matches these ids directly, so each source
 # must converge before a candidate reaches a CSV write. Categories and countries preserve an unknown value
 # for review; topics intentionally keep their existing closed-set fallback of General.
+# Rubrics that make a row a camera. Assigning the category from the RUBRIC rather than from the
+# collecting source is what lets one rule cover both new candidates and the rows already shipped:
+# the published CSV has no 'source' column, so a source-keyed rule could never reach them (S1476).
+$script:CameraTopics = @('Webcam', 'Traffic cams')
+
 function Get-CanonicalCategory {
-    param([string]$Category)
+    param([string]$Category, [string]$Topic)
+    # The camera test runs on the CANONICAL topic, not the raw one, so this does not depend on whether
+    # the caller has already folded the topic - Normalize-CatalogFacetRows normalizes category first.
+    if ($PSBoundParameters.ContainsKey('Topic') -and -not [string]::IsNullOrWhiteSpace($Topic)) {
+        if ((Get-CanonicalTopic $Topic) -in $script:CameraTopics) { return 'Webcam' }
+    }
     $normalized = ($Category ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
     switch ($normalized) {
         { $_ -in @('radio', 'radio (somafm)', 'somafm') } { return 'Radio' }
@@ -197,6 +207,7 @@ function Get-CanonicalCategory {
             return 'On-demand video'
         }
         { $_ -in @('test', 'test stream', 'test streams') } { return 'Test streams' }
+        { $_ -in @('webcam', 'webcams', 'cam', 'cams') } { return 'Webcam' }
         default { return $Category.Trim() }
     }
 }

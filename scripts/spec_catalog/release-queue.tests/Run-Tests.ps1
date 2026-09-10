@@ -6,11 +6,16 @@ $queuePath = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE.md'
 # S1698: the subject ticket and its package are read from the live queue, never hardcoded. The
 # original pair (S1183, release 32) shipped, `-List -Release $fixtureRelease` went empty, and the lease case
 # failed for a reason that had nothing to do with leases - a test that expires on every release.
-$subjectLine = @(& pwsh -NoProfile -File $queueScript -List | Where-Object { $_ -match '^\s*(\d+|--)\s+S\d{4}_' })[0]
-if (-not $subjectLine) { throw 'PLAN/RELEASE_QUEUE.md holds no ticket line to test against.' }
-if ($subjectLine -notmatch '^\s*(\d+|--)\s+(S(\d{4}))_') { throw "Unparsable queue line: $subjectLine" }
-$fixtureRelease = $Matches[1]
-$fixtureId = $Matches[2]
+# S2852: -List prints the package as a section heading, so the subject's package is the last
+# heading seen above its row rather than a column on it.
+$listing = @(& pwsh -NoProfile -File $queueScript -List)
+$fixtureRelease = $null
+$fixtureId = $null
+foreach ($listed in $listing) {
+    if ($listed -match '^\s*(\d+|--)\s*$') { $fixtureRelease = $Matches[1]; continue }
+    if ($listed -match '^\s*(S(\d{4}))_' -and $fixtureRelease) { $fixtureId = $Matches[1]; break }
+}
+if (-not $fixtureId) { throw 'PLAN/RELEASE_QUEUE.md holds no ticket line to test against.' }
 $fixtureSessionId = "s1518-release-queue-test-$PID"
 $fixtureDirectory = Join-Path $repoRoot 'temp\S1518'
 $fixturePath = Join-Path $fixtureDirectory "release-queue-lease-fixture-$PID.json"
@@ -31,7 +36,7 @@ function New-MarkedQueueFixture {
     # when the ticket filter never filtered anything (S2420).
     param([Parameter(Mandatory)][string] $Line)
     $path = Join-Path $fixtureDirectory "release-queue-marked-$PID.md"
-    [System.IO.File]::WriteAllLines($path, @('# sandbox marked queue', $Line))
+    [System.IO.File]::WriteAllLines($path, @('# sandbox marked queue', '40', $Line))
     return $path
 }
 
@@ -79,7 +84,7 @@ try {
     # read as part of the status column and drifts the whole file against the catalog. A stale
     # marker (no live lease behind it) must disappear on the next write, since that is the whole
     # "the process died, the ticket is free again" signal.
-    $markedLine = (Format-ReleaseQueueLine -Release '40' -Ticket 'S9004_delta' -Changed '2026-08-01' -Status 'In Progress') +
+    $markedLine = (Format-ReleaseQueueLine -Ticket 'S9004_delta' -Changed '26-08-01 09:00' -Status 'In Progress') +
         '   [taken 15:42, /spec-all, be08adb0]'
     # Read-ReleaseFile returns through `return ,` against unrolling, so a BARE call piped straight
     # into a filter hands that filter the whole List as ONE object - `$_.Kind` then unrolls over
@@ -106,17 +111,21 @@ try {
         '',
         'current-next-release: 40',
         '',
-        'rel  ticket                                                         changed     status',
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9001_alpha' -Changed '2026-08-01' -Status 'Draft'),
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9001_alpha' -Changed '2026-08-01' -Status 'Draft'),
-        (Format-ReleaseQueueLine -Release '41' -Ticket 'S9003_gamma' -Changed '2026-08-01' -Status 'Draft')
+        'ticket                                                         changed         status',
+        '40',
+        (Format-ReleaseQueueLine -Ticket 'S9001_alpha' -Changed '26-08-01 09:00' -Status 'Draft'),
+        (Format-ReleaseQueueLine -Ticket 'S9001_alpha' -Changed '26-08-01 09:00' -Status 'Draft'),
+        '41',
+        (Format-ReleaseQueueLine -Ticket 'S9003_gamma' -Changed '26-08-01 09:00' -Status 'Draft')
     )
     $sandboxReady = @(
         '# sandbox ready',
         '',
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9002_beta' -Changed '2026-08-02' -Status 'Verified'),
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9002_beta' -Changed '2026-08-02' -Status 'Verified'),
-        (Format-ReleaseQueueLine -Release '41' -Ticket 'S9003_gamma' -Changed '2026-08-02' -Status 'Verified')
+        '40',
+        (Format-ReleaseQueueLine -Ticket 'S9002_beta' -Changed '26-08-02 09:00' -Status 'Verified'),
+        (Format-ReleaseQueueLine -Ticket 'S9002_beta' -Changed '26-08-02 09:00' -Status 'Verified'),
+        '41',
+        (Format-ReleaseQueueLine -Ticket 'S9003_gamma' -Changed '26-08-02 09:00' -Status 'Verified')
     )
     [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $sandboxQueue)
     [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, $sandboxReady)
@@ -133,7 +142,7 @@ try {
     $readyAfter = @(Get-Content -LiteralPath $script:ReleaseReadyPath)
     $countIn = {
         param($lines, $id)
-        @($lines | Where-Object { $_ -match "\s$id`_" }).Count
+        @($lines | Where-Object { $_ -match "^$id`_" }).Count
     }
 
     Assert-Condition ((& $countIn $queueAfter 'S9001') -eq 1) 'Duplicate queue line survived reconcile.'
@@ -144,7 +153,21 @@ try {
     Assert-Condition ((Get-ReleaseQueueDuplicatesDropped) -eq 3) 'Dropped-duplicate count is wrong.'
     # The owner's package assignment and prose survive the repair.
     Assert-Condition (($queueAfter -join "`n") -match 'current-next-release: 40') 'Reconcile ate a verbatim line.'
-    Assert-Condition (@($queueAfter | Where-Object { $_ -match '^40\s+S9001_alpha\s' }).Count -eq 1) 'Reconcile rewrote the rel column.'
+    # S2852: the package is the heading above the row, so "the assignment survived" is asserted on
+    # the section a row sits under, not on a column. A row re-homed into another package is exactly
+    # the failure the rel-column assertion used to catch, and it is now invisible on the row itself.
+    $sectionOf = {
+        param($lines, $id)
+        $seen = $null
+        foreach ($l in $lines) {
+            if ($l -match '^\s*(\d+|--)\s*$') { $seen = $Matches[1]; continue }
+            if ($l -match "^$id`_") { return $seen }
+        }
+        return $null
+    }
+    Assert-Condition ((& $sectionOf $queueAfter 'S9001') -eq '40') 'Reconcile moved a ticket out of its package section.'
+    Assert-Condition ((& $sectionOf $readyAfter 'S9003') -eq '41') 'A ticket crossing to the ready file lost its package.'
+    Assert-Condition (@($queueAfter | Where-Object { $_ -match '^S9001_alpha\s+\d{2}-\d{2}-\d{2} \d{2}:\d{2}\s' }).Count -eq 1) 'The changed column lost its minute precision.'
 
     # Idempotent: a second pass over the repaired files finds nothing left to drop.
     Sync-ReleaseQueue -Records ([object[]]$records)

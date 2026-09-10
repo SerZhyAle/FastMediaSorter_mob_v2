@@ -12,7 +12,7 @@ This guide now has two layers:
 - **Scenario Groups** for richer real-life workflows and combinations of features.
 - **Core Task Reference** for direct one-feature recipes further below.
 
-[Русский](HOW_TO_RU.md) | [Українська](HOW_TO_UK.md)
+[Русский](HOW_TO-ru.md) | [Українська](HOW_TO-uk.md)
 
 ---
 
@@ -20,18 +20,18 @@ This guide now has two layers:
 
 Some features are only available in specific flavors. The table below is derived from [FLAVOR_MATRIX.md](FLAVOR_MATRIX.md), which is generated from the build itself; the XR / noLegal surface is intentionally kept as one column because it depends on headset hardware and sideload build rules.
 
-| Feature | Standard | Lite | Photos | Legacy | XR / noLegal |
-|---------|----------|------|--------|--------|--------------|
-| Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ |
-| Audio playback & lyrics | ✓ | ✓ | ✗ | ✓ | ✓ |
-| Background audio playback | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ |
-| EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ |
-| Image editing | ✓ | ✓ | ✓ | ✓ | ✓ |
-| Home-screen (launcher) mode | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Feature | Standard | Lite | Photos | Legacy | XR / noLegal | FOSS |
+|---------|----------|------|--------|--------|--------------|------|
+| Network folders (SMB, SFTP, FTP) | ✓ | ✗ | ✓ | ✓ | ✓ | ✓ |
+| Cloud storage (Google Drive, OneDrive, Dropbox) | ✓ | ✗ | ✓ | ✓ | ✓ | ✗ |
+| Audio playback & lyrics | ✓ | ✓ | ✗ | ✓ | ✓ | ✓ |
+| Background audio playback | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ |
+| Internet Streams (radio, HLS/DASH, RTSP) | ✓ | ✗ | ✗ | ✓ | ✓ | ✗ |
+| Document viewer (PDF, Text) | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ |
+| EPUB reader | ✓ | ✗ | ✗ | ✓ | ✓ | ✓ |
+| Translation & OCR | ✓ | ✗ | ✗ | ✓ | ✓ | ✗ |
+| Image editing | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| Home-screen (launcher) mode | ✓ | ✗ | ✗ | ✗ | ✓ | ✗ |
 
 Home-screen mode is the one row where the combined last column splits: it ships in the **noLegal** sideload build but not in the VR/XR build, where the headset provides its own home environment.
 
@@ -204,6 +204,7 @@ These sections are intentionally more varied than the core reference blocks belo
 **Scenario Walkthrough**
 
 - The curated catalog arrives with topic and language chips; filter by genre or language via the filter button (dot indicator when active). The AND/OR toggle lets you match stations that fit all criteria or any one of them.
+- The catalog also arrives grouped into named collections - "Russian TV", "Radio of the former USSR", "African TV" and more. They appear as a scrolling strip of chips right under the toolbar; tap one to see only its channels, in the order the curator arranged them, and tap **All** to come back. One and the same channel can belong to several collections, so you may meet it under both a country and a continent. A collection is one more filter condition, not a separate screen: search, sorting, the genre and language filters and your pins all keep working inside it. If the downloaded catalog carries no collections, the strip is simply not there.
 - The two small icons right of the search field split radio from video in one tap: tap the audio or the video glyph to keep only that kind, tap the lit one again to show everything.
 - Pin your favourite stations to the top with the pin icon - order is independent of global Favorites.
 - Switch the toolbar view toggle to **Grid** to see channels as tiles with their last captured frame - handy for browsing video streams at a glance. Your choice of list or grid is remembered next time you open Streams.
@@ -1447,7 +1448,7 @@ In the order they appear:
 - **System information** - a device report reachable without opening Settings.
 - **Wear Companion** - the watch screen, in builds that carry the watch bridge.
 - **Front flashlight** - turns the screen itself into a lamp: it opens white at full window brightness, a vertical swipe changes the brightness, a small top-left button picks and remembers another colour, and a single tap closes it. Only the window brightness is touched, so your device setting is unchanged afterwards.
-- **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. The system bars go too, and the screen is pinned, so a wet hand cannot pull the notification shade down or hit a navigation button; the first time, Android asks you to confirm the pinning. Made for rain and for the shower - the two places where the glass reacts to water rather than to you. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
+- **Water flashlight** - the same light for wet hands. It lights the camera flash and the screen together, then locks the screen: the time and a short reminder are all you see, and touching the glass does nothing at all - a volume button closes it. The system bars go too, so a wet hand does not meet a navigation button; a deliberate swipe can still bring them back. Made for rain and for the shower - the two places where the glass reacts to water rather than to you. Leaving through a system gesture turns the light off as well, so it never stays burning in a pocket. On the watch there is no flash, so the display alone is the light. It does not replace the water-lock mode built into a watch or a phone; no app can switch that one on.
 
 The panel and the launcher additionally carry direct camera shortcuts - take a photo and send it on, take a photo and edit it, take a photo and translate it, start a video recording, and open the camera folder.
 

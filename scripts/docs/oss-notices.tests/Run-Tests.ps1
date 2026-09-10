@@ -180,7 +180,7 @@ Assert-That -Name 'the tree is restored after the refusal case' -Condition ((& {
 
 Write-Host 'Generator - rendered pages'
 
-foreach ($page in @('docs/OPEN_SOURCE.md', 'docs/OPEN_SOURCE.ru.md', 'docs/OPEN_SOURCE.uk.md')) {
+foreach ($page in @('docs/OPEN_SOURCE.md', 'docs/OPEN_SOURCE-ru.md', 'docs/OPEN_SOURCE-uk.md')) {
     $full = Join-Path $RepoRoot $page
     Assert-That -Name "$page exists" -Condition (Test-Path -LiteralPath $full)
     $body = Get-Content -LiteralPath $full -Raw

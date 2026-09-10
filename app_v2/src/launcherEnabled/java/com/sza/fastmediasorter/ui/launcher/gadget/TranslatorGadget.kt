@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.databinding.GadgetLauncherTranslatorBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
@@ -236,6 +237,13 @@ private class TranslatorGadgetView(
      * the expensive part of this cell and strategic §3.2 caps it at explicit use.
      */
     private fun translate(text: String) {
+        // S1625: the cell reaches the ML Kit engine directly, so it needs the licence gate of its own -
+        // every other translation surface asks the contract and this one asked nothing at all.
+        if (!CapabilityAvailabilityAccessor.isTranslationAvailable(context)) {
+            binding.gadgetTranslatorState.setText(R.string.translation_unavailable_device_licence)
+            binding.gadgetTranslatorState.isVisible = true
+            return
+        }
         if (text.isBlank()) {
             renderState(TranslatorState.EMPTY_INPUT)
             return

@@ -103,7 +103,7 @@ class StopwatchViewModel @Inject constructor(
         _state.value = if (_state.value.participants.getOrNull(participantId)?.running == true) {
             StopwatchEngine.lap(_state.value, participantId, nowMillis)
         } else {
-            StopwatchEngine.start(_state.value, participantId, nowMillis)
+            StopwatchEngine.start(_state.value, participantId, nowMillis, System.currentTimeMillis())
         }
     }
 
@@ -117,6 +117,19 @@ class StopwatchViewModel @Inject constructor(
 
     fun resetAll() {
         _state.value = StopwatchEngine.resetAll(_state.value)
+    }
+
+    /**
+     * The wall-clock stamp is read beside the monotonic one here and nowhere else, so interval math
+     * keeps reading only [ElapsedClock] (S1411 ADR-8) while the result text gets its calendar date
+     * (S2792).
+     */
+    fun startAll() {
+        _state.value = StopwatchEngine.startAll(_state.value, clock.nowMillis(), System.currentTimeMillis())
+    }
+
+    fun stopAll() {
+        _state.value = StopwatchEngine.stopAll(_state.value, clock.nowMillis())
     }
 
     fun setParticipantCount(count: Int) {

@@ -53,9 +53,17 @@
       2 - the gate itself cannot run: a declared file is missing, the authority parses
           to no numbered rules, or the closing-gate detail file is missing or has no
           '## Closing gates' section, so nothing could be compared.
+      3 - S2828: an uncited rule or gate stands, but no file of the role table is in
+          -ChangedFiles, so it is not attributable to this run. The failures are printed.
+          Distinct from 1 because the caller cannot fix it and from 0 because something
+          IS wrong in the tree.
 
 .PARAMETER Gate
     Fail-closed: exit 1 when any rule is uncited or any pointer is unreachable.
+
+.PARAMETER ChangedFiles
+    S2828: repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the
+    gate decline to charge a failure when no file of the role table is among them.
 
 .PARAMETER RepoRoot
     Root to read the four role files from. Defaults to this repository. Overridable so the
@@ -69,11 +77,17 @@
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [string]$RepoRoot
+    [string]$RepoRoot,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# S2828: the chargeability test, shared with the other fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $repoRoot = if ($RepoRoot) { $RepoRoot } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
 
@@ -205,6 +219,15 @@ if ($failures.Count -gt 0) {
     Write-Host "assert-rule-digest-sync: FAIL ($($failures.Count) issue(s))" -ForegroundColor Red
     $failures | ForEach-Object { Write-Host "  $_" }
     Write-Host "  roles: dev/RULE_AND_SKILL_AUTHORING.md 'Rule mirroring contract'"
+    # S2828: the role table above IS the declared input set, so no second path list appears here
+    # (S1621). A rule stated in CLAUDE.md and not yet mirrored belongs to the session writing it;
+    # a closure that opened none of the five files cannot be its cause.
+    $declaredInputs = @($authorityPath) + $fullDigestPaths + $pointerPaths + @($closingGatePath) |
+        ForEach-Object { Join-Path $repoRoot $_ }
+    if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
+        Write-NotChargedVerdict -GateName 'assert-rule-digest-sync' -Findings @($failures)
+        exit 3
+    }
     if ($Gate) { exit 1 }
     exit 0
 }

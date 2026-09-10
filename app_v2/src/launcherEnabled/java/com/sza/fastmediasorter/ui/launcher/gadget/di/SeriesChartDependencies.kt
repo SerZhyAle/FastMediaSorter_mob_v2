@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.launcher.gadget.di
 
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
 import com.sza.fastmediasorter.domain.usecase.sensors.ObserveSensorSeriesUseCase
 import com.sza.fastmediasorter.domain.usecase.sensors.RecordSensorSeriesPointUseCase
@@ -21,4 +23,8 @@ class SeriesChartDependencies @Inject constructor(
     val observeMotion: ObserveMotionUseCase,
     val recordPoint: RecordSensorSeriesPointUseCase,
     val resetSeries: ResetSensorSeriesUseCase,
+    // S2795: the chart labels a value with a unit, so the seam and the current system belong to the
+    // same holder - passing them separately would put the provider past detekt's parameter threshold.
+    val quantityFormatter: QuantityFormatter,
+    val unitSystemProvider: UnitSystemProvider,
 )

@@ -12,12 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Icon
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 
 private val BAR_VERTICAL_PADDING = 8.dp
 private val COMMAND_BUTTON_SIZE = 48.dp
@@ -52,7 +54,8 @@ fun HomeCommandBar(
         CommandButton(
             icon = Icons.Filled.Settings,
             labelRes = R.string.settings,
-            onClick = onSettingsClick
+            onClick = onSettingsClick,
+            modifier = Modifier.testTag(WearTestTags.WEAR_SETTINGS_ENTRY)
         )
     }
 }
@@ -65,11 +68,12 @@ fun HomeCommandBar(
 private fun CommandButton(
     icon: ImageVector,
     @StringRes labelRes: Int,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     RectangularButton(
         onClick = onClick,
-        modifier = Modifier.size(COMMAND_BUTTON_SIZE),
+        modifier = modifier.size(COMMAND_BUTTON_SIZE),
         colors = ButtonDefaults.secondaryButtonColors()
     ) {
         Icon(

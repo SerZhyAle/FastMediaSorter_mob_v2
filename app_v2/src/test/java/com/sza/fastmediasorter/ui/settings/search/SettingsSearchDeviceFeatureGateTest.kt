@@ -11,14 +11,18 @@ import org.junit.Test
  */
 class SettingsSearchDeviceFeatureGateTest {
 
+    // S2787: both copies of the PiP toggle write the same flag and share one API floor, so a copy
+    // left out of the decision table would survive in the index on a device that hides it.
     @Test
     fun `suppresses PiP row when picture-in-picture unsupported`() {
         assertFalse(decide("rowEnablePip", supportsPictureInPicture = false))
+        assertFalse(decide("rowStreamsEnablePip", supportsPictureInPicture = false))
     }
 
     @Test
     fun `keeps PiP row when picture-in-picture supported`() {
         assertTrue(decide("rowEnablePip", supportsPictureInPicture = true))
+        assertTrue(decide("rowStreamsEnablePip", supportsPictureInPicture = true))
     }
 
     @Test

@@ -10,7 +10,7 @@
     Every rule comes from scripts/quality/lib/house-text-style.ps1; nothing is declared here.
 
     The yo rule is language-bound, so by default it is applied only to a Russian locale directory
-    and to a _RU documentation file. Naming it in -Rules overrides that and applies it everywhere.
+    and to a -ru documentation file. Naming it in -Rules overrides that and applies it everywhere.
 
 .PARAMETER Area
     Prose (markdown), ResourceValue (string resources), or Both. Default Both.
@@ -101,7 +101,7 @@ function Resolve-Targets {
 function Get-RulesForFile {
     param([System.IO.FileInfo]$File, [string]$ForArea)
     if ($Rules) { return $Rules }
-    $isRussian = if ($ForArea -eq 'Prose') { $File.Name -match '_RU\.md$' } else { $File.Directory.Name -match '^values-ru\b' }
+    $isRussian = if ($ForArea -eq 'Prose') { $File.Name -match '-ru\.md$' } else { $File.Directory.Name -match '^values-ru\b' }
     if ($isRussian) { return @('ellipsis', 'long-dash', 'yo') }
     return @('ellipsis', 'long-dash')
 }

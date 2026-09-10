@@ -47,6 +47,7 @@ object LauncherGadgetSeedPolicy {
     const val KEY_MEDIA_DOCUMENT_WINDOW = "media_document_window"
     const val KEY_MEDIA_IMAGE_WINDOW = "media_image_window"
     const val KEY_STREAM_WINDOW = "stream_window"
+    const val KEY_YOUTUBE_CHANNEL_WINDOW = "youtube_channel_window"
     const val KEY_WORLD_CLOCK = "world_clock"
     const val KEY_SUN_DEWPOINT = "sun_dewpoint"
     const val KEY_RANDOM_PHOTO_FRAME = "random_photo_frame"
@@ -123,6 +124,9 @@ object LauncherGadgetSeedPolicy {
         // A channel, a zone, a place and an indicator. Without the param the first three say so on the
         // tile; network_indicator is worse - it substitutes a default indicator nobody chose.
         put(KEY_STREAM_WINDOW, notSeeded(NoSeedReason.REQUIRES_PICKED_PARAM))
+        // S2032: a channel, like the stream window above - a seeded cell would carry no channel and
+        // could only say so, and the owner's own reason for placing it is which channel it names.
+        put(KEY_YOUTUBE_CHANNEL_WINDOW, notSeeded(NoSeedReason.REQUIRES_PICKED_PARAM))
         put(KEY_WORLD_CLOCK, notSeeded(NoSeedReason.REQUIRES_PICKED_PARAM))
         put(KEY_SUN_DEWPOINT, notSeeded(NoSeedReason.REQUIRES_PICKED_PARAM))
         put(KEY_NETWORK_INDICATOR, notSeeded(NoSeedReason.REQUIRES_PICKED_PARAM))

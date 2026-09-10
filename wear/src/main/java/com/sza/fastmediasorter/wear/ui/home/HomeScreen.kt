@@ -14,6 +14,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -44,6 +45,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -237,6 +239,7 @@ private fun HomeSectionChip(
         thumbnail = thumbnail,
         caption = label,
         onClick = onClick,
+        modifier = Modifier.testTag(WearTestTags.homeSection(section.id)),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(glyph.painterRes),
@@ -299,7 +302,7 @@ private fun HomeSectionCell(
         thumbnail = thumbnail,
         caption = label,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier.testTag(WearTestTags.homeSection(section.id))
     ) { glyphModifier ->
         val glyph = glyphFor(section)
         Icon(

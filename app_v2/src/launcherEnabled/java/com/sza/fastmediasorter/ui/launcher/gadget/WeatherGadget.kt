@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.app.SearchManager
 import android.content.Context
 import android.content.Intent
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -11,7 +10,10 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherWeatherBinding
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
@@ -29,7 +31,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -40,6 +41,7 @@ import javax.inject.Inject
 class WeatherGadget @Inject constructor(
     private val getWeather: Lazy<GetLauncherWeatherUseCase>,
     private val settingsRepository: Lazy<SettingsRepository>,
+    private val quantityFormatter: Lazy<QuantityFormatter>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_WEATHER
@@ -52,7 +54,13 @@ class WeatherGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        WeatherGadgetView(container.context, param, getWeather.get(), settingsRepository.get())
+        WeatherGadgetView(
+            container.context,
+            param,
+            getWeather.get(),
+            settingsRepository.get(),
+            quantityFormatter.get(),
+        )
 }
 
 private class WeatherGadgetView(
@@ -60,11 +68,17 @@ private class WeatherGadgetView(
     param: String?,
     private val getWeather: GetLauncherWeatherUseCase,
     private val settingsRepository: SettingsRepository,
+    private val quantityFormatter: QuantityFormatter,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherWeatherBinding.inflate(LayoutInflater.from(context), this)
 
     private val location: WeatherLocation? = WeatherLocation.decode(param)
+
+    // S2795: what the "updated at" stamp is printed with. Held as state rather than passed down because
+    // a tap refresh renders outside the settings collection that supplies it; the default is only ever
+    // read by a tap landing before the first emission, which the collection replaces at once.
+    private var unitSystem: UnitSystem = UnitSystem.DEFAULT
 
     init {
         contentDescription = context.getString(R.string.launcher_gadget_weather_actions)
@@ -97,7 +111,8 @@ private class WeatherGadgetView(
         settingsRepository.getSettings()
             .map { it.unitSystem }
             .distinctUntilChanged()
-            .collectLatest {
+            .collectLatest { system ->
+                unitSystem = system
                 while (currentCoroutineContext().isActive) {
                     when (val result = getWeather(place)) {
                         is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
@@ -118,7 +133,7 @@ private class WeatherGadgetView(
         binding.gadgetWeatherTemperature.text = formatTemperature(snapshot)
         binding.gadgetWeatherPlace.text = snapshot.location.label
         binding.gadgetWeatherPlace.isVisible = true
-        val formattedTime = DateFormat.getTimeFormat(context).format(Date(snapshot.observedAtMs))
+        val formattedTime = quantityFormatter.format(Quantity.Instant(snapshot.observedAtMs), unitSystem)
         binding.gadgetWeatherUpdatedAt.text =
             context.getString(R.string.launcher_gadget_weather_updated_at, formattedTime)
         binding.gadgetWeatherUpdatedAt.isVisible = true

@@ -199,7 +199,10 @@ class PlayerLifecycleManager(
         activity.pipManager?.release()
         activity.pipManager = null
         if (activity._textViewerManager != null) activity.textViewerManager.release()
-        try { activity.castMediaManager.release() } catch (_: UninitializedPropertyAccessException) {}
+        try {
+            activity.activeCastControllerHolder.detach(activity.castMediaManager)
+            activity.castMediaManager.release()
+        } catch (_: UninitializedPropertyAccessException) {}
 
         // Cancel all active network operations for current resource
         activeResourceKey?.let { resourceKey ->

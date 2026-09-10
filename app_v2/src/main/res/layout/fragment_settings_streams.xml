@@ -25,17 +25,18 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- S0835: portrait - each selector on its own full-width row with title+value on one
-             inline line (sdr_inline), mirroring the canonical Language/Color-theme rows in
-             fragment_settings_general.xml. -->
+        <!-- S0835/S2783: each selector on its own full-width row in the canonical value-text form -
+             value drawn on the title line, trailing chevron, whole row as the trigger - so this block
+             reads exactly like the Language/Color-theme/Device-profile block in
+             fragment_settings_general.xml. The outlined field it replaced was the only settings
+             selector left with a boxed value. -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowDefaultSort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_sort" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -44,8 +45,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_filter" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -54,8 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_catalog_refresh" />
 
         <!-- S1144: global default track languages for streams. A channel that remembers its own pick
@@ -66,8 +65,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_audio_language" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -76,8 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_subtitle_language" />
 
         <!-- S1148: opt-in resilient radio buffering (bigger start cushion + silent reconnects). -->
@@ -89,6 +86,36 @@
             android:clickable="true"
             app:str_title="@string/settings_streams_smart_buffering"
             app:str_subtitle="@string/settings_streams_smart_buffering_summary" />
+
+        <!-- S1143: an audio channel opens in the full-screen visualizer player instead of the inline row. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowVisualizeAsMusic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            app:str_title="@string/settings_streams_visualize_as_music"
+            app:str_subtitle="@string/settings_streams_visualize_as_music_summary" />
+
+        <!-- S2787: mirror of the Playback-section PiP toggle - streams open the same PlayerActivity,
+             so the flag governs them too. Outer wrapper preserved for the API 31+ visibility gate. -->
+        <LinearLayout
+            android:id="@+id/layoutStreamsPip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowStreamsEnablePip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                app:str_icon="@drawable/ic_picture_in_picture"
+                app:str_title="@string/setting_enable_pip"
+                app:str_subtitle="@string/setting_enable_pip_desc" />
+
+        </LinearLayout>
 
         <!-- S0835: maintenance + open-streams buttons share one row (clear left, Streams right). -->
         <LinearLayout

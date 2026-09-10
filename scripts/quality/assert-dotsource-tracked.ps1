@@ -233,18 +233,29 @@ function Get-CandidateScript {
 
 # -ChangedFiles narrows the CONSUMERS. Matched on the repository-relative tail so a caller may pass
 # either spelling; post-change.ps1 passes repository-relative paths.
-$changedKeys = [System.Collections.Generic.HashSet[string]]::new()
+# De-duplicated by a lower-cased key, but the VALUE keeps the caller's own spelling, and the walk
+# below uses the value. Get-Item echoes back whatever casing it was handed rather than the casing on
+# disk, so a lower-cased entry travels all the way into the `git ls-files` pathspec - and git matches
+# a pathspec case-SENSITIVELY. A lower-cased `dev/catalog/..` then selects nothing from an index that
+# holds `dev/CATALOG/..`, git stays silent, and silence is this gate's evidence of absence: a file
+# staged seconds earlier was reported as existing on this machine only, with the printed `git add`
+# fix being the command that had just been run (S2837, 2026-09-10). It is the same normalization
+# mistake the shared lib beside this gate was extracted to hold once - the lib compares
+# case-insensitively on both sides and is correct; the case was already destroyed before it was called.
+$changedPaths = [ordered]@{}
 foreach ($entry in @($ChangedFiles | ForEach-Object { ([string]$_) -split ',' })) {
     $trimmed = $entry.Trim()
-    if ($trimmed) { [void]$changedKeys.Add(($trimmed -replace '\\', '/').ToLowerInvariant()) }
+    if (-not $trimmed) { continue }
+    $key = ($trimmed -replace '\\', '/').ToLowerInvariant()
+    if (-not $changedPaths.Contains($key)) { $changedPaths[$key] = $trimmed }
 }
 
 try {
-    if ($changedKeys.Count -gt 0) {
+    if ($changedPaths.Count -gt 0) {
         # A named changed set addresses its files directly - walking the tree to then discard all but
         # a handful is the per-ticket half paying the release half's price on every closure.
         $candidates = @(
-            $changedKeys |
+            $changedPaths.Values |
                 ForEach-Object {
                     $rooted = if ([System.IO.Path]::IsPathRooted($_)) { $_ } else { Join-Path $discoveryRoot $_ }
                     if (Test-Path -LiteralPath $rooted -PathType Leaf) { Get-Item -LiteralPath $rooted }

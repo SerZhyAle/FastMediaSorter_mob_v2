@@ -1,0 +1,24 @@
+# maestro-requires: watch
+appId: com.sza.fastmediasorter.debug
+---
+# S2548: the home hops, each addressed by a WearTestTags id and each asserted by the destination's
+# own marker. The flow returns to Home so a failing hop is attributable on its own rather than
+# leaving the app on a deep screen for the next flow.
+- launchApp:
+    clearState: false
+- assertVisible:
+    id: "wear_nav_root"
+
+- tapOn:
+    id: "wear_home_section_local"
+- assertVisible: "Audio"
+- pressKey: Back
+- assertVisible:
+    id: "wear_home_section_local"
+
+- tapOn:
+    id: "wear_home_section_phone"
+- assertVisible: "Recents"
+- pressKey: Back
+- assertVisible:
+    id: "wear_home_section_resources"

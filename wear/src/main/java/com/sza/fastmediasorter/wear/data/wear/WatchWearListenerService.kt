@@ -43,6 +43,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
+import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
@@ -134,6 +135,10 @@ class WatchWearListenerService : WearableListenerService() {
     // S2142: the phone's «Send to..» list. Its own store rather than a watch setting - it is a
     // derivative of the owner's settings, and the settings mirrors are gated on parity of six files.
     @Inject lateinit var wearSendToReceiversRepository: WearSendToReceiversRepository
+
+    // S2531: the cast replies land here rather than on a listener the repository registers, because the
+    // phone pushes session state between requests and two receivers would race over the same two paths.
+    @Inject lateinit var wearCastRepository: WearCastRepository
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
@@ -259,6 +264,8 @@ class WatchWearListenerService : WearableListenerService() {
             WearDataLayerPaths.LISTEN_START -> handleListenStart(event.sourceNodeId, event.data)
             WearDataLayerPaths.LISTEN_STOP -> handleListenStop(event.sourceNodeId, event.data)
             WearDataLayerPaths.CAMERA_VIEW_ACK -> handleCameraViewAck(event.data)
+            WearDataLayerPaths.CAST_ACK -> wearCastRepository.onAckReceived(event.data)
+            WearDataLayerPaths.CAST_STATE -> wearCastRepository.onStateReceived(event.data)
             else -> Timber.d("WatchWearListenerService: unhandled message path ${event.path}")
         }
     }

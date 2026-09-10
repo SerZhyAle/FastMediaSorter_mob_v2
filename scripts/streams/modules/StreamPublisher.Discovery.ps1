@@ -27,7 +27,7 @@ function New-Candidate {
     )
     $https = $url.ToLowerInvariant().StartsWith('https')
     [pscustomobject]@{
-        category      = Get-CanonicalCategory -Category $category
+        category      = Get-CanonicalCategory -Category $category -Topic $topic
         topic         = Get-CanonicalTopic -topic $topic
         name          = ($name -replace '\s+', ' ').Trim()
         url           = $url.Trim()
@@ -58,12 +58,12 @@ function New-Candidate {
 function Get-RadioBrowserStations {
     param([string]$axis, [string]$kind, [string]$key, [string]$topicHint)
     $enc = [uri]::EscapeDataString($key)
-    $path = if ($kind -eq 'tag') {
-        "/json/stations/bytagexact/${enc}?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
+    $endpoint = switch ($kind) {
+        'tag' { 'bytagexact' }
+        'language' { 'bylanguageexact' }
+        default { 'bycountrycodeexact' }
     }
-    else {
-        "/json/stations/bycountrycodeexact/${enc}?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
-    }
+    $path = "/json/stations/${endpoint}/${enc}?hidebroken=true&order=clickcount&reverse=true&limit=$PerQuery"
     $stations = @()
     try { $stations = Invoke-RadioBrowser $path } catch { Write-Warning $_; return @() }
 

@@ -48,7 +48,8 @@ private val VALUE_VERTICAL_PADDING = 6.dp
 @Composable
 fun BodySensorScreen(
     viewModel: BodySensorViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(),
+    onHistoryClick: (() -> Unit)? = null
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val requested = remember { listOf(heartRatePermission()) }
@@ -73,6 +74,9 @@ fun BodySensorScreen(
             item { ReadingValue(state.reading) }
             if (state.canMeasure) {
                 item { MeasureChip(onClick = { measureOrAsk(permissionsState, viewModel) }) }
+            }
+            if (onHistoryClick != null) {
+                item { HistoryChip(onClick = onHistoryClick) }
             }
         }
     }
@@ -116,7 +120,7 @@ private fun ReadingValue(reading: BodySensorReading) {
     if (text != null) {
         Text(
             text = text,
-            style = MaterialTheme.typography.title3,
+            style = MaterialTheme.typography.display2,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = VALUE_VERTICAL_PADDING),
@@ -132,6 +136,16 @@ private fun MeasureChip(onClick: () -> Unit) {
         label = { Text(stringResource(R.string.body_sensor_measure)) },
         modifier = Modifier.fillMaxWidth(),
         colors = ChipDefaults.primaryChipColors()
+    )
+}
+
+@Composable
+private fun HistoryChip(onClick: () -> Unit) {
+    CompactChip(
+        onClick = onClick,
+        label = { Text(stringResource(R.string.body_sensor_history)) },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.secondaryChipColors()
     )
 }
 

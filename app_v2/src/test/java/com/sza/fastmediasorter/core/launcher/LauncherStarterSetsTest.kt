@@ -50,7 +50,7 @@ class LauncherStarterSetsTest {
     /**
      * S2735: the launcher actions a profile seeds, in catalogue order.
      *
-     * The two settings actions are excluded because they moved to the settings section - see
+     * The three settings actions are excluded because they moved to the settings section - see
      * [settingsSection].
      */
     private fun actionTargets(profile: DeviceProfileType): List<String> =
@@ -62,15 +62,26 @@ class LauncherStarterSetsTest {
     private val settingsActionKeys = setOf(
         LauncherActionCatalog.KEY_APP_SETTINGS,
         LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
+        LauncherActionCatalog.KEY_EDIT_DESKTOP,
     )
 
     /**
+     * S2836: the entries `settingsEntryGroup` seeds, in its order, declared once.
+     *
+     * Two cases below assert the settings section as a whole list while being about the `os:` budget only,
+     * so they pick this run up incidentally - spelled out per case, it went stale the moment Edit desktop
+     * joined the group and the suite failed twice.
+     */
+    private val settingsEntryTargets =
+        listOf("act:app_settings", "act:launcher_settings", "act:edit_desktop", "os:settings")
+
+    /**
      * S2735: the whole settings section as it is seeded on [mediumWide] - its header, the three entries
-     * into the app's own settings, then the budgeted Android quick entries in catalogue order.
+     * into the app's own settings and Edit desktop, then the budgeted Android quick entries in catalogue order.
      */
     private fun settingsSection(budget: Int = SYSTEM_SETTINGS_BUDGET_MEDIUM): List<String> =
         listOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS)) +
-            listOf("act:app_settings", "act:launcher_settings", "os:settings") +
+            settingsEntryTargets +
             systemSettingsTargets(budget)
 
     private fun systemSettingsTargets(budget: Int = SYSTEM_SETTINGS_BUDGET_MEDIUM): List<String> =
@@ -199,8 +210,7 @@ class LauncherStarterSetsTest {
         val settingsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
         val section = targets.drop(settingsStart + 1).takeWhile { !it.startsWith("sec:") }
         assertEquals(
-            listOf("act:app_settings", "act:launcher_settings", "os:settings") +
-                systemSettingsTargets(SYSTEM_SETTINGS_BUDGET_COMPACT),
+            settingsEntryTargets + systemSettingsTargets(SYSTEM_SETTINGS_BUDGET_COMPACT),
             section,
         )
     }
@@ -219,7 +229,7 @@ class LauncherStarterSetsTest {
         val settingsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
         val section = targets.drop(settingsStart + 1).takeWhile { !it.startsWith("sec:") }
         assertEquals(
-            listOf("act:app_settings", "act:launcher_settings", "os:settings", "os:wifi"),
+            settingsEntryTargets + "os:wifi",
             section,
         )
     }

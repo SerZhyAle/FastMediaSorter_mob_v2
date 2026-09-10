@@ -263,6 +263,9 @@ class LoadWearTileContentUseCaseTest {
 private class TileContentFakeCapabilities : WearRestrictedCapabilities {
     override val offersCredentialEntry: Boolean = true
     override val offersBodySensorDiagnostics: Boolean = true
+
+    // S2812: the tile catalog does not read this one; it is answered only because the contract has it.
+    override val locksSystemShade: Boolean = false
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

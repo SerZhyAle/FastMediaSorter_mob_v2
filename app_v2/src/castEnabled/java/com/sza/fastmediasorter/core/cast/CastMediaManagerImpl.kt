@@ -278,6 +278,15 @@ class CastMediaManagerImpl(
         }
     }
 
+    /**
+     * S2531: ends the session the way the notification's own stop does, so the receiver returns to
+     * its idle screen rather than being left holding the last frame.
+     */
+    override fun stopCasting() {
+        downloadJob?.cancel()
+        castContext?.sessionManager?.endCurrentSession(true)
+    }
+
     // ── Internal ─────────────────────────────────────────────────────────────
 
     private suspend fun resolveAndSend(file: MediaFile, stereoCrop: CastStereoCrop?) {

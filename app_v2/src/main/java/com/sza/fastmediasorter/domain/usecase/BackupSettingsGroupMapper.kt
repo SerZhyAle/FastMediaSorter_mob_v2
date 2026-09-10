@@ -79,7 +79,8 @@ internal object BackupSettingsGroupMapper {
             widgetBackdropAlpha = launcher.widgetBackdropAlpha,
             wallpaperIntensity = launcher.wallpaperIntensity,
             wallpaperAnimationSpeed = launcher.wallpaperAnimationSpeed,
-            wallpaperParticleDensity = launcher.wallpaperParticleDensity
+            wallpaperParticleDensity = launcher.wallpaperParticleDensity,
+            showScreenNumber = launcher.showScreenNumber
         )
     }
 
@@ -120,7 +121,8 @@ internal object BackupSettingsGroupMapper {
         mirrorBacklightOn = settings.mirrorBacklightOn,
         showProgramsPanelInMainWindow = settings.showProgramsPanelInMainWindow,
         programsPanelCollapsed = settings.programsPanelCollapsed,
-        showBlackScreenButton = settings.showBlackScreenButton
+        showBlackScreenButton = settings.showBlackScreenButton,
+        flashlightShortcutNotificationEnabled = settings.flashlightShortcutNotificationEnabled
     )
 
     fun toStreams(settings: AppSettings): BackupSettings.Streams = BackupSettings.Streams(
@@ -135,7 +137,14 @@ internal object BackupSettingsGroupMapper {
         showStreamsPanelInMainWindow = settings.showStreamsPanelInMainWindow,
         streamingCacheCleanupMode = settings.streamingCacheCleanupMode.name,
         streamingCacheTtlDays = settings.streamingCacheTtlDays,
-        prefetchCacheMultiplier = settings.prefetchCacheMultiplier.name
+        prefetchCacheMultiplier = settings.prefetchCacheMultiplier.name,
+        streamsVisualizeAsMusic = settings.streamsVisualizeAsMusic,
+        broadcastStreamTitle = settings.broadcastStreamTitle,
+        broadcastBitRateBps = settings.broadcastBitRateBps,
+        broadcastPort = settings.broadcastPort,
+        broadcastSampleRateHz = settings.broadcastSampleRateHz,
+        broadcastChannelCount = settings.broadcastChannelCount,
+        broadcastAutoOpenShare = settings.broadcastAutoOpenShare
     )
 
     fun toAppearance(settings: AppSettings): BackupSettings.Appearance = BackupSettings.Appearance(
@@ -172,7 +181,8 @@ internal object BackupSettingsGroupMapper {
         isPrimaryMediaPlayer = settings.isPrimaryMediaPlayer,
         enabledShareTargets = settings.enabledShareTargets,
         disabledShareTargets = settings.disabledShareTargets,
-        scheduledOperationsPaused = settings.scheduledOperationsPaused
+        scheduledOperationsPaused = settings.scheduledOperationsPaused,
+        suppressWearMediaTakeover = settings.suppressWearMediaTakeover
     )
 
     /** Applies every group present in [backup] onto [settings], leaving absent ones untouched. */
@@ -274,7 +284,8 @@ internal object BackupSettingsGroupMapper {
                     ?: current.wallpaperAnimationSpeed,
                 wallpaperParticleDensity = backup.wallpaperParticleDensity
                     ?.let(AppSettings::coerceLauncherWallpaperParticleDensity)
-                    ?: current.wallpaperParticleDensity
+                    ?: current.wallpaperParticleDensity,
+                showScreenNumber = backup.showScreenNumber ?: current.showScreenNumber
             )
         )
     }
@@ -321,7 +332,9 @@ internal object BackupSettingsGroupMapper {
             mirrorBacklightOn = backup.mirrorBacklightOn,
             showProgramsPanelInMainWindow = backup.showProgramsPanelInMainWindow,
             programsPanelCollapsed = backup.programsPanelCollapsed,
-            showBlackScreenButton = backup.showBlackScreenButton
+            showBlackScreenButton = backup.showBlackScreenButton,
+            flashlightShortcutNotificationEnabled = backup.flashlightShortcutNotificationEnabled
+                ?: flashlightShortcutNotificationEnabled
         )
     }
 
@@ -344,7 +357,14 @@ internal object BackupSettingsGroupMapper {
             streamingCacheCleanupMode = backup.streamingCacheCleanupMode
                 .toEnumOr(streamingCacheCleanupMode),
             streamingCacheTtlDays = backup.streamingCacheTtlDays,
-            prefetchCacheMultiplier = backup.prefetchCacheMultiplier.toEnumOr(prefetchCacheMultiplier)
+            prefetchCacheMultiplier = backup.prefetchCacheMultiplier.toEnumOr(prefetchCacheMultiplier),
+            streamsVisualizeAsMusic = backup.streamsVisualizeAsMusic ?: streamsVisualizeAsMusic,
+            broadcastStreamTitle = backup.broadcastStreamTitle ?: broadcastStreamTitle,
+            broadcastBitRateBps = backup.broadcastBitRateBps ?: broadcastBitRateBps,
+            broadcastPort = backup.broadcastPort ?: broadcastPort,
+            broadcastSampleRateHz = backup.broadcastSampleRateHz ?: broadcastSampleRateHz,
+            broadcastChannelCount = backup.broadcastChannelCount ?: broadcastChannelCount,
+            broadcastAutoOpenShare = backup.broadcastAutoOpenShare ?: broadcastAutoOpenShare
         )
     }
 
@@ -391,7 +411,8 @@ internal object BackupSettingsGroupMapper {
             isPrimaryMediaPlayer = backup.isPrimaryMediaPlayer,
             enabledShareTargets = backup.enabledShareTargets ?: enabledShareTargets,
             disabledShareTargets = backup.disabledShareTargets ?: disabledShareTargets,
-            scheduledOperationsPaused = backup.scheduledOperationsPaused
+            scheduledOperationsPaused = backup.scheduledOperationsPaused,
+            suppressWearMediaTakeover = backup.suppressWearMediaTakeover ?: suppressWearMediaTakeover
         )
     }
 }

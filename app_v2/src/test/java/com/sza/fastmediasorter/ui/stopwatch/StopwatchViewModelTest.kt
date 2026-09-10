@@ -10,6 +10,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.emptyFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -148,5 +149,24 @@ class StopwatchViewModelTest {
         model.setParticipantCount(3)
 
         assertEquals(2, model.state.value.participantCount)
+    }
+
+    @Test
+    fun `startAll and stopAll drive visible participants only`() {
+        val model = viewModel()
+        model.setParticipantCount(2)
+        clock.value = 0L
+
+        model.startAll()
+        clock.value = 3_000L
+        model.stopAll()
+
+        assertEquals(3_000L, model.state.value.participants[0].accumulatedMillis)
+        assertEquals(3_000L, model.state.value.participants[1].accumulatedMillis)
+        assertFalse(model.state.value.participants[0].running)
+        // The wall-clock stamp landed with the start, and hidden participants stay untouched.
+        assertTrue(model.state.value.participants[0].startedAtEpochMillis != null)
+        assertFalse(model.state.value.participants[2].running)
+        assertNull(model.state.value.participants[2].startedAtEpochMillis)
     }
 }

@@ -77,7 +77,7 @@ $ErrorActionPreference = 'Stop'
 $invPath = Join-Path $RepoRoot 'docs/icons/icon-inventory.json'
 $svgDir  = Join-Path $RepoRoot 'docs/icons/svg'
 $renderer = Join-Path $RepoRoot 'scripts/docs/render-icon-legend.ps1'
-$legendFiles = [ordered]@{ en = 'ICON_LEGEND.md'; ru = 'ICON_LEGEND_RU.md'; uk = 'ICON_LEGEND_UK.md' }
+$legendFiles = [ordered]@{ en = 'ICON_LEGEND.md'; ru = 'ICON_LEGEND-ru.md'; uk = 'ICON_LEGEND-uk.md' }
 $resBase = Join-Path $RepoRoot 'app_v2/src/main/res'
 $layoutDir = Join-Path $resBase 'layout'
 $drawableDirs = @(Get-ChildItem -Path $resBase -Directory | Where-Object { $_.Name -like 'drawable*' })

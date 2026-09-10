@@ -49,7 +49,6 @@ class WearActivityRecognitionState @Inject constructor(
             !isGranted() -> WearSensorAvailability.PermissionDenied
             else -> WearSensorAvailability.Available
         }
-        Timber.d("S2458: step availability %s -> %s (declared=%s)", streamId, availability, declared)
         return availability
     }
 

@@ -10,7 +10,7 @@ permalink: /docs/README.html
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📖 Other Languages:** [🇷🇺 Русский](README_RU.md) | [🇺🇦 Українська](README_UK.md)
+**📖 Other Languages:** [🇷🇺 Русский](README-ru.md) | [🇺🇦 Українська](README-uk.md)
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
@@ -245,7 +245,7 @@ The following files should be treated as the authoritative sources for user-faci
 - [Complete Feature List](FEATURES.md)
 - [Documentation Map](DOCS_MAP.md)
 - [Product History](PRODUCT_HISTORY.md)
-- [Downloads (EN)](DOWNLOADS_EN.md)
+- [Downloads (EN)](DOWNLOADS.md)
 - [How-To Guides](HOW_TO.md)
 - [Program Limitations](LIMITATIONS.md)
 - [Quick Start Guide](QUICK_START.md)
@@ -263,28 +263,28 @@ Detailed guides are available in multiple languages:
 - [FAQ](FAQ.md)
 - [Troubleshooting](TROUBLESHOOTING.md)
 - [Program Limitations](LIMITATIONS.md)
-- [Downloads Guide](DOWNLOADS_EN.md)
+- [Downloads Guide](DOWNLOADS.md)
 - [Complete Feature List](FEATURES.md)
 
 **🇷🇺 Русский:**
 
-- [История продукта](PRODUCT_HISTORY_RU.md)
-- [Руководства](HOW_TO_RU.md)
-- [Быстрый Старт](QUICK_START_RU.md)
-- [FAQ](FAQ_RU.md)
-- [Устранение неполадок](TROUBLESHOOTING_RU.md)
-- [Ограничения программы](LIMITATIONS_RU.md)
-- [Скачивание сборок](DOWNLOADS_RU.md)
+- [История продукта](PRODUCT_HISTORY-ru.md)
+- [Руководства](HOW_TO-ru.md)
+- [Быстрый Старт](QUICK_START-ru.md)
+- [FAQ](FAQ-ru.md)
+- [Устранение неполадок](TROUBLESHOOTING-ru.md)
+- [Ограничения программы](LIMITATIONS-ru.md)
+- [Скачивание сборок](DOWNLOADS-ru.md)
 
 **🇺🇦 Українська:**
 
-- [Історія продукту](PRODUCT_HISTORY_UK.md)
-- [Посібники](HOW_TO_UK.md)
-- [Швидкий Старт](QUICK_START_UK.md)
-- [FAQ](FAQ_UK.md)
-- [Вирішення проблем](TROUBLESHOOTING_UK.md)
-- [Обмеження програми](LIMITATIONS_UK.md)
-- [Завантаження збірок](DOWNLOADS_UK.md)
+- [Історія продукту](PRODUCT_HISTORY-uk.md)
+- [Посібники](HOW_TO-uk.md)
+- [Швидкий Старт](QUICK_START-uk.md)
+- [FAQ](FAQ-uk.md)
+- [Вирішення проблем](TROUBLESHOOTING-uk.md)
+- [Обмеження програми](LIMITATIONS-uk.md)
+- [Завантаження збірок](DOWNLOADS-uk.md)
 
 **Technical / Developer Docs:**
 

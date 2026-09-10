@@ -201,6 +201,16 @@ if (Assert-Envelope $r 'devices' $true 0) {
     Assert-Equal 'Pixel 7'       $r.json.data[0].model 'devices -Json: data[0].model'
 }
 
+# An mDNS service name may carry a space: a watch advertised by a second adb server comes back as
+# "adb-<serial>-xxxx (2)._adb-tls-connect._tcp". Get-OnlineDevices split on whitespace until
+# 2026-09-09 and dropped that row silently, so `install -Module wear` saw only the phone.
+$spacedId = 'adb-RFGL1148CRZ-2fv3Pn (2)._adb-tls-connect._tcp'
+$r = Invoke-Verb @('devices') -Stub @{ FMS_STUB_DEVICES = $spacedId } -NoOutDir
+if (Assert-Envelope $r 'devices' $true 0) {
+    Assert-Equal 1          $r.json.data.Count 'devices -Json: an id containing a space is not dropped'
+    Assert-Equal $spacedId  $r.json.data[0].id 'devices -Json: the spaced id survives whole'
+}
+
 $r = Invoke-Verb @('props')
 if (Assert-Envelope $r 'props' $true 0) {
     Assert-DataFields $r 'props' @('id', 'model', 'android', 'sdk', 'density', 'size')
@@ -371,6 +381,23 @@ if (Assert-Envelope $r 'clip-check' $false 10) {
 
 $r = Invoke-Verb @('clip-check') -Stub ($watchStub + @{ FMS_STUB_TREE = $treeClean })
 Assert-Equal 0 $r.exit 'clip-check without -Strict: the same dump still passes the off-glass criterion'
+
+# ---- rotary (S2548) ----
+# Driven from here because it needs $watchStub. Both halves matter, and the refusal more than the turn:
+# both modules publish under one applicationId, so a bezel aimed at a phone would be silent, not red.
+
+$r = Invoke-Verb @('rotary', '-Axis', '1.5', '-Repeat', '2') -Stub $watchStub
+if (Assert-Envelope $r 'rotary' $true 0) {
+    Assert-Equal 1.5 $r.json.data.axis   'rotary -Json: data.axis is the caller value'
+    Assert-Equal 2   $r.json.data.repeat 'rotary -Json: data.repeat'
+}
+
+$r = Invoke-Verb @('rotary', '-Axis', '1.0')
+Assert-Equal 12 $r.exit 'rotary on a device that is not a watch: process exit 12'
+Assert-Equal $false $r.json.ok 'rotary on a device that is not a watch: ok is false'
+
+$r = Invoke-Verb @('rotary') -Stub $watchStub
+Assert-Equal 1 $r.exit 'rotary without -Axis: process exit 1'
 
 # ---- verbs that write, install or remove ----
 

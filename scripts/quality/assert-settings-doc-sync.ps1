@@ -30,13 +30,16 @@
           such instead of as drift (S1338 step 04.5); or stage 2 waited out
           -WaitTimeoutSeconds for a sibling BUILD.LOCK holder and gave up without
           building at all (S1349) - same "did not look" contract, different cause.
-      3 - every stage passed except stage 4, which found a reference divergence the
-          changed set cannot have caused (S2604). Returned only when -ChangedFiles was
-          supplied, i.e. on a scoped per-ticket closure: stage 4 re-renders the whole
-          SETTINGS_REFERENCE family, so its finding belongs to whichever ticket last
-          moved a renderer input, and charging this closure for it blocked the close on
-          another session's in-flight row. An unscoped run never returns 3 - it keeps
-          the strict project-wide judgement and fails with 1.
+      3 - every stage passed except one or more whose finding this changed set cannot
+          own, and the advisory block names them. Returned only when -ChangedFiles was
+          supplied, i.e. on a scoped per-ticket closure. Three stages carry that fork:
+          stage 1 (catalog-complete) enumerates every res/layout* in the tree, stage 3
+          (annotations) judges the manifest/annotations pair whole, and stage 4
+          (reference-fresh) re-renders the whole SETTINGS_REFERENCE family - so each
+          finding belongs to whichever ticket last moved that stage's inputs, and
+          charging this closure for it blocked the close on another session's in-flight
+          row (S2604 for stage 4, S2831 for stages 1 and 3). An unscoped run never
+          returns 3 - it keeps the strict project-wide judgement and fails with 1.
 #>
 param(
     [switch] $Gate,
@@ -68,40 +71,60 @@ function CannotVerify([string] $stage, [string] $detail) {
     exit 2
 }
 
-# Stage 1 - catalog completeness ------------------------------------------------
-& (Join-Path $PSScriptRoot 'assert-settings-catalog-complete.ps1') -RepoRoot $RepoRoot
-if ($LASTEXITCODE -ne 0) { Fail 'catalog-complete' 'a settings layout with rows is missing from SettingsSearchLayoutCatalog' }
-
-# Stage 2 delta path (S1338 step 04.7). The manifest is produced by scanning the settings
-# LAYOUTS through LayoutSettingsSearchSource + SettingsSearchTabMapping and resolving titles
-# from values*/strings*.xml, so only those inputs can change it. A closure that touched none
-# of them cannot have moved the manifest, and paying ~28 s of gradle to re-prove that is the
-# 35 s-per-run cost this gate was cited for. Everything else in the file is still judged: the
-# four cheap stages always run.
-# S2604 moved the patterns themselves into scripts/quality/lib/settings-doc-inputs.ps1, where
-# post-change.ps1's trigger reads them too; the behaviour of this stage is unchanged.
+# Which stages may charge their findings to this run -----------------------------
+# S2831: every chargeability question is answered here, before the first stage runs, because stage 1
+# used to run above this block and so had no way to ask it. The predicates live in the shared input
+# map, which post-change.ps1's trigger reads too (S1621).
 $scoped = @(Expand-SettingsDocPaths -ChangedFiles $ChangedFiles)
 $manifestAffected = Test-SettingsManifestInput -ChangedFiles $ChangedFiles -RepoRoot $RepoRoot
+$referenceAffected = Test-SettingsReferenceInput -ChangedFiles $ChangedFiles -RepoRoot $RepoRoot
+$annotationsAffected = Test-SettingsAnnotationsInput -ChangedFiles $ChangedFiles
+$catalogAffected = Test-SettingsCatalogInput -ChangedFiles $ChangedFiles
+
+# Populated by stages 1, 3 and 4 instead of failing when that stage's own inputs are outside the
+# changed set. Reported after stage 5, so a real HOW_TO recipe failure still exits 1 rather than
+# being masked by an early exit 3.
+$foreignStageFindings = [System.Collections.Generic.List[string]]::new()
+
+function Write-StageAdvisoryNotice([string] $stage, [string] $inputs) {
+    Write-Host "settings-doc-sync: $stage stage runs advisory - none of the $($scoped.Count) changed file(s) feeds $inputs." -ForegroundColor Yellow
+}
+
 if ($scoped.Count -gt 0 -and -not $manifestAffected) {
     Write-Host "settings-doc-sync: manifest stage skipped - none of the $($scoped.Count) changed file(s) feeds the settings scan (a layout carrying a settings row, strings, ui/settings, settings-search DI)." -ForegroundColor Yellow
 }
-
-# S2604 stage 4 delta path. Stage 4 re-renders the whole SETTINGS_REFERENCE family and
-# byte-compares it, so a divergence it finds belongs to whichever ticket last moved a renderer
-# input - not necessarily to this closure. When the changed set feeds none of those inputs, the
-# divergence is recorded and reported, and the script ends in exit 3 for the caller to downgrade;
-# it is never silently dropped. The predicate is the RENDERER's input set, deliberately wider
-# than the manifest scan's: an annotations-only change skips stage 2 and still owns the render.
-$referenceAffected = Test-SettingsReferenceInput -ChangedFiles $ChangedFiles -RepoRoot $RepoRoot
-if ($scoped.Count -gt 0 -and -not $referenceAffected) {
-    Write-Host "settings-doc-sync: reference stage runs advisory - none of the $($scoped.Count) changed file(s) feeds the SETTINGS_REFERENCE render (manifest, annotations, a per-flavor availability module, the icon map, the renderer)." -ForegroundColor Yellow
+if ($scoped.Count -gt 0 -and -not $catalogAffected) {
+    Write-StageAdvisoryNotice 'catalog-complete' 'the settings-catalog scan (a res/layout* file, SettingsSearchLayoutCatalog, SettingsDocScopeCatalog, the scope exclusions)'
 }
-# Populated by stage 4 instead of failing when $referenceAffected is false. Reported after
-# stage 5, so a real HOW_TO recipe failure still exits 1 rather than being masked by an
-# early exit 3.
-$deferredReferenceDrift = [System.Collections.Generic.List[string]]::new()
+if ($scoped.Count -gt 0 -and -not $annotationsAffected) {
+    Write-StageAdvisoryNotice 'annotations' 'the annotation pair (settings-manifest.json, settings-annotations.json)'
+}
+# S2604 stage 4 delta path. The predicate is the RENDERER's input set, deliberately wider than the
+# manifest scan's: an annotations-only change skips stage 2 and still owns the render.
+if ($scoped.Count -gt 0 -and -not $referenceAffected) {
+    Write-StageAdvisoryNotice 'reference' 'the SETTINGS_REFERENCE render (manifest, annotations, a per-flavor availability module, the icon map, the renderer)'
+}
+
+# Stage 1 - catalog completeness ------------------------------------------------
+$catalogOutput = & (Join-Path $PSScriptRoot 'assert-settings-catalog-complete.ps1') -RepoRoot $RepoRoot 2>&1 | Out-String
+$catalogExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+if (-not [string]::IsNullOrWhiteSpace($catalogOutput)) { Write-Host $catalogOutput.TrimEnd() }
+if ($catalogExit -ne 0) {
+    # Exit 2 is "could not look" - a missing catalog file or unparsable JSON - and that is not a
+    # finding anyone can own, so it stays fatal whoever ran it.
+    if ($catalogExit -ne 1 -or $catalogAffected) {
+        Fail 'catalog-complete' 'a settings layout with rows is missing from SettingsSearchLayoutCatalog'
+    }
+    $foreignStageFindings.Add("stage 'catalog-complete': an app_v2 settings layout is unclassified (see the lines above)")
+}
 
 # Stage 2 - manifest freshness (verify-mode test) -------------------------------
+# Delta path (S1338 step 04.7). The manifest is produced by scanning the settings LAYOUTS through
+# LayoutSettingsSearchSource + SettingsSearchTabMapping and resolving titles from values*/strings*.xml,
+# so only those inputs can change it. A closure that touched none of them cannot have moved the
+# manifest, and paying ~28 s of gradle to re-prove that is the 35 s-per-run cost this gate was cited
+# for. This stage is SKIPPED rather than deferred: it is the expensive one, and not running it costs
+# nothing to report.
 if (-not $SkipManifestTest -and $manifestAffected) {
     $reportFileFiltered = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest-filtered/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
     $reportFileStandard = Join-Path $RepoRoot 'app_v2/build/test-results/testStandardDebugUnitTest/TEST-com.sza.fastmediasorter.ui.settings.search.SettingsManifestExportTest.xml'
@@ -160,8 +183,19 @@ if (-not $SkipManifestTest -and $manifestAffected) {
 }
 
 # Stage 3 - annotation coverage/parity ------------------------------------------
-& (Join-Path $RepoRoot 'scripts/docs/check-settings-annotations.ps1')
-if ($LASTEXITCODE -ne 0) { Fail 'annotations' 'a manifest key is unannotated, orphaned, or has an empty en/ru/uk value' }
+# S2831: the check judges the manifest/annotations pair whole - coverage, orphans, empty locales -
+# so an uncommitted row one session added to the annotations file made every OTHER session's scoped
+# closure red. Measured 2026-09-10: S2795 closed a 60-file set holding neither JSON and was failed
+# by five orphan annotations a sibling had just written.
+$annotationsOutput = & (Join-Path $RepoRoot 'scripts/docs/check-settings-annotations.ps1') 2>&1 | Out-String
+$annotationsExit = if ($LASTEXITCODE) { [int]$LASTEXITCODE } else { 0 }
+if (-not [string]::IsNullOrWhiteSpace($annotationsOutput)) { Write-Host $annotationsOutput.TrimEnd() }
+if ($annotationsExit -ne 0) {
+    if ($annotationsAffected) {
+        Fail 'annotations' 'a manifest key is unannotated, orphaned, or has an empty en/ru/uk value'
+    }
+    $foreignStageFindings.Add("stage 'annotations': the manifest/annotations pair diverges (see the lines above)")
+}
 
 # Stage 4 - reference freshness (re-render + diff) ------------------------------
 $tmp = Join-Path $RepoRoot 'temp/_settings_ref_gate'
@@ -170,7 +204,7 @@ New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 try {
     & (Join-Path $RepoRoot 'scripts/docs/render-settings-reference.ps1') -RepoRoot $RepoRoot -OutDir $tmp | Out-Null
     if ($LASTEXITCODE -ne 0) { Fail 'reference-render' 'renderer returned non-zero' }
-    $published = @('SETTINGS_REFERENCE.md', 'SETTINGS_REFERENCE_RU.md', 'SETTINGS_REFERENCE_UK.md')
+    $published = @('SETTINGS_REFERENCE.md', 'SETTINGS_REFERENCE-ru.md', 'SETTINGS_REFERENCE-uk.md')
     foreach ($f in $published) {
         $committed = Join-Path $RepoRoot "docs/$f"
         $fresh = Join-Path $tmp $f
@@ -181,7 +215,7 @@ try {
         $b = [System.IO.File]::ReadAllText($fresh)
         if ($a -ne $b) {
             if ($referenceAffected) { Fail 'reference-fresh' "docs/$f is stale - re-run scripts/docs/render-settings-reference.ps1" }
-            $deferredReferenceDrift.Add("docs/$f")
+            $foreignStageFindings.Add("stage 'reference-fresh': docs/$f differs from a fresh render")
         }
     }
 } finally {
@@ -202,15 +236,16 @@ if (-not $SkipHowToStage) {
 $manifestVerdict = if (-not $SkipManifestTest -and $manifestAffected) { 'manifest fresh' } else { 'manifest stage NOT run' }
 $howToVerdict = if ($SkipHowToStage) { 'HOW_TO recipes judged by the caller' } else { 'HOW_TO recipes in sync' }
 
-# S2604: every other stage passed and stage 4 found a divergence this changed set cannot have
-# produced. Name the files - an advisory whose text does not say WHAT diverged sends the reader
-# to re-run the render just to find out, which is the work the downgrade exists to avoid.
-if ($deferredReferenceDrift.Count -gt 0) {
-    Write-Host "settings-doc-sync: ADVISORY at stage 'reference-fresh' - $($deferredReferenceDrift.Count) rendered file(s) differ from the committed copy:" -ForegroundColor Yellow
-    foreach ($drifted in $deferredReferenceDrift) { Write-Host "  $drifted" }
-    Write-Host "  No changed file feeds the reference render, so this divergence belongs to whichever ticket last moved a renderer input - regenerating it here would commit that ticket's user-visible text under this change." -ForegroundColor Yellow
+# S2604, widened by S2831: every other stage passed, and one or more stages found a divergence this
+# changed set cannot have produced. Name the stage and the finding - an advisory whose text does not
+# say WHAT diverged sends the reader to re-run the whole gate just to find out, which is the work the
+# downgrade exists to avoid.
+if ($foreignStageFindings.Count -gt 0) {
+    Write-Host "settings-doc-sync: ADVISORY - $($foreignStageFindings.Count) finding(s) stand in the tree that no file in this changed set can have caused:" -ForegroundColor Yellow
+    foreach ($finding in $foreignStageFindings) { Write-Host "  $finding" }
+    Write-Host "  Each belongs to whichever ticket last moved that stage's inputs; resolving it here would commit that ticket's work under this change." -ForegroundColor Yellow
     Write-Host "  Project-wide verdict: re-run this script with no -ChangedFiles." -ForegroundColor Yellow
-    Write-Host "settings-doc-sync: OK WITH ADVISORY - catalog complete, $manifestVerdict, annotations covered, reference divergence NOT attributed to this change, $howToVerdict." -ForegroundColor Yellow
+    Write-Host "settings-doc-sync: OK WITH ADVISORY - $manifestVerdict, $howToVerdict, and the finding(s) above NOT attributed to this change." -ForegroundColor Yellow
     exit 3
 }
 

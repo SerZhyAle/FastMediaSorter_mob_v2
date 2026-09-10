@@ -25,7 +25,9 @@ class WearAppCatalogTest {
                 WearAppId.WATER_FLASHLIGHT,
                 WearAppId.MOTION_MONITOR,
                 WearAppId.BODY_SENSOR,
-                WearAppId.BROADCAST
+                WearAppId.BLOOD_PRESSURE,
+                WearAppId.BROADCAST,
+                WearAppId.STOPWATCH
             ),
             ids
         )

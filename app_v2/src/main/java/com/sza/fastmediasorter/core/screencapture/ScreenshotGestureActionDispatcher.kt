@@ -208,7 +208,7 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
      * unavailable for this flavor. Always handled, so the gesture never falls through to capture.
      */
     private fun launchOcrPhotoCapture(context: Context): Boolean {
-        if (capabilityAvailability.isTranslationAvailable()) {
+        if (capabilityAvailability.isTranslationAvailable(context)) {
             launchOcrCaptureFlow(context)
         } else {
             Timber.i("ScreenshotGestureActionDispatcher: translation unavailable, saving photo")

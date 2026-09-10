@@ -7,8 +7,13 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -202,6 +207,85 @@ abstract class VerifyNoPlatformNamesTask : DefaultTask() {
     }
 }
 
+// S0403: the foss variant is the F-Droid artifact, and F-Droid refuses proprietary libraries. Every
+// other guard in this file judges SOURCE; this one judges the resolved dependency graph, which is
+// where the failure actually happens - a capability flag set to false leaves the SDK on the
+// classpath, so `lite` linked all five cloud SDKs while reporting no cloud support.
+@CacheableTask
+abstract class VerifyNoProprietaryDepsTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val denyListFile: RegularFileProperty
+
+    // The resolved graph root, not a pre-mapped list of strings: a Provider.map lambda written in
+    // build.gradle.kts captures the script object, which the configuration cache cannot store.
+    // ResolvedComponentResult is a supported input type, so the walk happens in the action below.
+    @get:Input
+    abstract val rootComponent: Property<ResolvedComponentResult>
+
+    @get:Input
+    abstract val configurationName: Property<String>
+
+    @get:OutputFile
+    abstract val reportFile: RegularFileProperty
+
+    @TaskAction
+    fun verify() {
+        val prefixes = denyListFile.asFile.get().readLines()
+            .map(String::trim)
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+
+        val resolved = collectModuleCoordinates(rootComponent.get()).sorted()
+        val violations = resolved.filter { coordinate ->
+            prefixes.any { prefix -> coordinate == prefix || coordinate.startsWith("$prefix:") }
+        }
+
+        val report = reportFile.asFile.get()
+        report.parentFile.mkdirs()
+
+        if (violations.isNotEmpty()) {
+            report.writeText(violations.joinToString(System.lineSeparator()))
+            throw GradleException(
+                buildString {
+                    appendLine(
+                        "Proprietary dependencies on the ${configurationName.get()} classpath - " +
+                            "the F-Droid variant may not link them."
+                    )
+                    appendLine(
+                        "Remove the dependency from the foss variant (declare it per-flavor), or " +
+                            "review and edit app_v2/compliance/proprietary-deps-denylist.txt."
+                    )
+                    appendLine()
+                    violations.forEach { appendLine(it) }
+                }
+            )
+        }
+
+        report.writeText(
+            "OK configuration=${configurationName.get()} components=${resolved.size} " +
+                "prefixes=${prefixes.size}${System.lineSeparator()}"
+        )
+    }
+
+    private fun collectModuleCoordinates(root: ResolvedComponentResult): Set<String> {
+        val coordinates = sortedSetOf<String>()
+        val seen = mutableSetOf<ResolvedComponentResult>()
+
+        fun walk(component: ResolvedComponentResult) {
+            if (!seen.add(component)) return
+            (component.id as? ModuleComponentIdentifier)?.let { id ->
+                coordinates += "${id.group}:${id.module}"
+            }
+            component.dependencies
+                .filterIsInstance<ResolvedDependencyResult>()
+                .forEach { walk(it.selected) }
+        }
+
+        walk(root)
+        return coordinates
+    }
+}
+
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
@@ -232,6 +316,14 @@ val defaultAppVersionName = "2.60.9012.140"
 // it. The full rationale - and the measurement that picked 20 - is on the property itself.
 val unitTestTimeoutMinutes: Long =
     providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
+
+// S2851: how many test worker JVMs run at once, shared with wear through gradle.properties for the
+// same reason the timeout above is. Declared at the top level, not inside testOptions.unitTests.all,
+// because that lambda binds `it` to the Test task and a nested provider lambda would shadow it.
+// The measurement that picked the shipped value is on the property itself.
+val unitTestMaxParallelForks: Int =
+    providers.gradleProperty("fms.unitTestMaxParallelForks").orNull?.toIntOrNull()?.coerceAtLeast(1)
+        ?: 1
 val stampedAppVersionCode = extra.properties["fmsStampedAppVersionCode"] as Int?
 val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
@@ -1081,6 +1173,14 @@ android {
                 // natively - exit value 10, no Java-level OOM, truncated suite. Recycling the
                 // worker every 100 classes caps that peak; cost is a few JVM warmups per run.
                 it.forkEvery = 100L
+                // S2851: how many of those workers run at once. Left at Gradle's default of 1 the
+                // suite is strictly serial: measured 2026-09-10 on a 20-processor host, 695 classes
+                // and 5033 tests took 429 s of wall clock against 415.6 s of reported test time, so
+                // 97% of the run is one worker executing tests one after another and only 13.4 s is
+                // Gradle. Each concurrent worker costs another `maxHeapSize` above, which is why the
+                // value is a measurement rather than a core count - the two limits above exist
+                // because this suite has twice been killed by exactly that memory peak.
+                it.maxParallelForks = unitTestMaxParallelForks
                 // S2585: bound the task's WALL CLOCK, next to the two limits that bound the worker's
                 // heap and lifetime. This one is different in kind and the difference matters: it
                 // ends the task, not the worker - Gradle's timeout only interrupts its own
@@ -1464,8 +1564,8 @@ val verifyNoPlatformNames = tasks.register<VerifyNoPlatformNamesTask>("verifyNoP
     )
     sourceFiles.from(
         rootProject.layout.projectDirectory.file("docs/FEATURES.md"),
-        rootProject.layout.projectDirectory.file("docs/FEATURES_RU.md"),
-        rootProject.layout.projectDirectory.file("docs/FEATURES_UK.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES-ru.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES-uk.md"),
     )
     reportFile.set(layout.buildDirectory.file("reports/compliance/verifyNoPlatformNames.txt"))
 }
@@ -1529,6 +1629,36 @@ androidComponents {
             )
         }
 
+        // S0403: the F-Droid artifact is proved clean per variant, because the runtime classpath is
+        // per variant - there is no single "the foss dependencies" to check once. Only foss carries
+        // the gate: the other six flavors link these coordinates on purpose.
+        if (flavorName == "foss") {
+            val verifyTaskName = "verifyNoProprietaryDeps${variant.name.replaceFirstChar { it.uppercase() }}"
+            val runtimeClasspath = "${variant.name}RuntimeClasspath"
+            val verifyNoProprietaryDeps = tasks.register<VerifyNoProprietaryDepsTask>(verifyTaskName) {
+                group = "verification"
+                description = "Fails the build when the $runtimeClasspath graph links a proprietary coordinate."
+                denyListFile.set(layout.projectDirectory.file("compliance/proprietary-deps-denylist.txt"))
+                configurationName.set(runtimeClasspath)
+                rootComponent.set(
+                    configurations.named(runtimeClasspath)
+                        .flatMap { it.incoming.resolutionResult.rootComponent }
+                )
+                reportFile.set(
+                    layout.buildDirectory.file("reports/compliance/$verifyTaskName.txt")
+                )
+            }
+            // S0403: onVariants runs before AGP registers the pre<Variant>Build anchors, so
+            // tasks.named() here fails configuration with UnknownTaskException. Match by name
+            // through configureEach, which is evaluated when the anchor is actually created.
+            val preBuildTaskName = "pre${variant.name.replaceFirstChar { it.uppercase() }}Build"
+            tasks.configureEach {
+                if (name == preBuildTaskName) {
+                    dependsOn(verifyNoProprietaryDeps)
+                }
+            }
+        }
+
         // S0183: noLegal flavor source set sets manifest.srcFile to src/vr/AndroidManifest.xml
         // (VR overlay). That call REPLACES the auto-detected src/noLegal/AndroidManifest.xml,
         // so noLegal-specific manifest entries (e.g. REQUEST_INSTALL_PACKAGES) were silently
@@ -1570,6 +1700,15 @@ androidComponents {
             // S1433: same reason - src/networkMonitor is mounted by directory, so its permission
             // manifest needs its own injection or the Monitor's grants never reach the merge.
             variant.sources.manifests.addStaticManifestFile("src/networkMonitor/AndroidManifest.xml")
+        }
+
+        // S2793: src/broadcastSource is mounted by directory only, so its manifest - which declares
+        // BroadcastCaptureService and the video spike activity - never reached the merge and the
+        // service was undeclared in every shipped APK. startForegroundService then no-ops silently,
+        // which is the whole of the "Live Broadcast does nothing" report. Same class as S0403/S1433.
+        val broadcastFlavors = setOf("standard", "noLegal", "legacy")
+        if (flavorName in broadcastFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
         }
 
         // S2726: the vr-only permission overlay. It cannot go in src/vr/AndroidManifest.xml - noLegal
@@ -1874,7 +2013,16 @@ dependencies {
     // Kotlin Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    // S0403: this artifact pulls play-services-basement and play-services-tasks transitively, which
+    // the F-Droid denylist refuses. Its only consumers are the GMS-backed source sets (castEnabled,
+    // cloudEnabled, cloudSdk, playServicesEnabled, translationMlKit, wearGms) - foss mounts none of
+    // them, so it is declared per-flavor for the six that do.
+    "standardImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "noLegalImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "liteImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "photosImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "legacyImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    "vrImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
     
     // ExoPlayer (HLS/DASH re-enabled per-flavor below for S0116; SmoothStreaming stays excluded)
     implementation("androidx.media3:media3-exoplayer:1.2.1") {
@@ -2129,17 +2277,34 @@ dependencies {
     "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
     "noLegalImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
 
-    // SW AV1 decoder (libgav1) - source-only extension, not published on Google Maven.
-    // TODO: build from source (same pipeline as fms-ffmpeg-dts.aar) before enabling.
+    // SW AV1 decoder (libgav1) - source-only extension. androidx.media3 publishes NO decoder
+    // extension artifact at all (its Google Maven group index lists media3-decoder and nothing
+    // else), so these coordinates cannot resolve at any version - they are kept only as a
+    // reminder of the next iteration, which S1126 §3.1 defers behind VP9.
+    // TODO: build from source (same pipeline as fms-vpx.aar) before enabling.
     // "standardImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "legacyImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
     // "vrImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
 
-    // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) - source-only extension, not on Maven.
-    // TODO: build from source before enabling.
-    // "standardImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
-    // "legacyImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
-    // "vrImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+    // ── Custom libvpx VP9 AAR (software video decode backstop) ────────────────────────────────
+    // S1126: software VP9 renderer as the target of media3's decoder fallback. With
+    // EXTENSION_RENDERER_MODE_ON (see PlaybackRenderersFactory) media3 reflectively loads
+    // androidx.media3.decoder.vp9.LibvpxVideoRenderer and appends it AFTER MediaCodecVideoRenderer,
+    // so the platform decoder stays first and libvpx is reached only when it fails or is absent -
+    // a backstop, not the default path. No Kotlin change is needed; the classpath IS the wiring.
+    //
+    // Build script: scripts/builders/build-libvpx-vp9.sh (+ compile-vp9-classes.ps1 for classes.jar)
+    // Built from media3 1.2.1 sources + libvpx v1.8.0, NDK r25c, four ABIs,
+    // -Wl,-z,max-page-size=16384. readelf LOAD Align=0x4000 (16 KB). Play-safe.
+    // Raising the media3 pin invalidates this AAR - rebuild it from the matching source tree.
+    //
+    // noLegal bundles it like the other three rather than delivering it on demand: VP9 is
+    // royalty-free, and on-demand delivery exists for payloads that cannot be bundled, not for
+    // every native payload - fms-ffmpeg-dts.aar is already bundled into noLegal a few lines below.
+    "standardImplementation"(files("libs/fms-vpx.aar"))
+    "noLegalImplementation"(files("libs/fms-vpx.aar"))
+    "legacyImplementation"(files("libs/fms-vpx.aar"))
+    "vrImplementation"(files("libs/fms-vpx.aar"))
 
     // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
     // DTS/extended codec decoder via custom FFmpeg AAR - built from media3 1.2.1 sources.

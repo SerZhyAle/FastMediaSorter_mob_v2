@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
@@ -39,6 +40,7 @@ import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -77,6 +79,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStartWindowRedirectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
@@ -259,6 +262,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var networkMonitorContract: NetworkMonitorContract
 
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherStartWindowManager: LauncherStartWindowManager
+
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
     lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
@@ -266,11 +275,19 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     // S2508: broadcast permission launchers - registered pre-STARTED
     private val broadcastRecordAudioLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (::broadcastManager.isInitialized && granted) broadcastManager.startBroadcast() }
+    ) { granted ->
+        if (::broadcastManager.isInitialized) {
+            broadcastManager.onPermissionResult(android.Manifest.permission.RECORD_AUDIO, granted)
+        }
+    }
 
     private val broadcastPostNotificationsLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
-    ) { granted -> if (::broadcastManager.isInitialized && granted) broadcastManager.startBroadcast() }
+    ) { granted ->
+        if (::broadcastManager.isInitialized) {
+            broadcastManager.onPermissionResult(android.Manifest.permission.POST_NOTIFICATIONS, granted)
+        }
+    }
 
     // S0774: empty except on standard (fms.screenCapture=on) + noLegal; gates the screen-recording scenario.
     @Inject
@@ -385,11 +402,28 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         routeToSettingsIfRequested(intent)
 
         // If restart was triggered from SettingsActivity, return user there
-        if (!returnToSettingsRequested && LocaleHelper.consumeReturnToSettings(this)) {
+        val returningToSettings = !returnToSettingsRequested && LocaleHelper.consumeReturnToSettings(this)
+        if (returningToSettings) {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
-            return
         }
+
+        // S2811: the one place that answers "which window does a cold start open". It is evaluated after
+        // every redirect above, so onboarding and the system returns keep their destinations, and before
+        // the brand frame below, which a finishing instance must not schedule. The settings return shares
+        // this exit rather than owning one of its own - onCreate's return budget is spent (detekt
+        // ReturnCount), and annotating the function would unbaseline two findings by changing its
+        // detekt signature.
+        val startWindowRedirect = MainStartWindowRedirectManager(
+            contract = launcherModeContract,
+            startWindowManager = launcherStartWindowManager,
+            isResumingAudio = {
+                AudioPlaybackService.isRunning && AudioPlaybackService.currentResourceId > 0L
+            },
+        )
+        val redirected = returningToSettings ||
+            startWindowRedirect.redirectIfRequested(this, intent, savedInstanceState, returnToSettingsRequested)
+        if (redirected) return
 
         // S2556: the startup brand frame, placed here for the same reason as the notices below -
         // after every early-return redirect, so the welcome path and the settings return never carry
@@ -916,7 +950,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecordingMenuManager = MainScreenRecordingMenuManager(
             onScreenRecording = { screenRecordingManager.start() },
         )
-        broadcastManager = MainBroadcastManager(
+        broadcastManager = mainHelperFactory.createBroadcastManager(
             activity = this,
             controller = broadcastSourceController,
             requestRecordAudioPermission = {

@@ -3,10 +3,8 @@ package com.sza.fastmediasorter.wear.ui.player.audio
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,6 +22,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -90,16 +91,20 @@ import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerProgressRing
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerSeekActions
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
 import com.sza.fastmediasorter.wear.ui.player.common.playerCommandBandWidth
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
+import com.sza.fastmediasorter.wear.ui.player.common.playerMenuCycleAction
+import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionSteps
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
@@ -145,17 +150,14 @@ private fun trackInfoPadding(topInset: Dp, sideInset: Dp): Dp = (
  * Audio player screen for Wear OS.
  * Shows album art, track info, progress, and playback controls.
  */
+/**
+ * The screen's host-lifecycle wiring, in one place.
+ *
+ * Lifted out of [AudioPlayerScreen] under S2849: the body had reached the length ceiling, and these
+ * three effects are the one part of it that says nothing about what the screen draws.
+ */
 @Composable
-fun AudioPlayerScreen(
-    viewModel: AudioPlayerViewModel = hiltViewModel(),
-    onBack: () -> Unit
-) {
-    val uiState by viewModel.uiState.collectAsState()
-    val isFavorite by viewModel.isFavorite.collectAsState()
-    val isPinned by viewModel.isPinned.collectAsState()
-    // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
-    val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
-
+private fun AudioPlayerLifecycleEffects(viewModel: AudioPlayerViewModel) {
     // S0902: pause playback when the host activity stops (screen off / app backgrounded) -
     // onDispose only fires on navigation away, so without this the player kept running.
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) {
@@ -165,7 +167,33 @@ fun AudioPlayerScreen(
     // S2166: attach to background session when the host activity returns to foreground.
     LifecycleEventEffect(Lifecycle.Event.ON_START) {
         viewModel.onHostStarted()
+        // S2802: the watch's own volume UI could have moved the level while this screen was away,
+        // and the permanent indicator must not keep showing the level from before that.
+        viewModel.onVolumeRefresh()
     }
+
+    // S2802: navigating here happens after the host is already started, so the ON_START effect
+    // above does not fire on first entry - without this the permanent indicator would open at zero.
+    LaunchedEffect(Unit) {
+        Timber.d("S2802: audio player entered, refreshing volume readout")
+        viewModel.onVolumeRefresh()
+    }
+}
+
+@Composable
+fun AudioPlayerScreen(
+    viewModel: AudioPlayerViewModel = hiltViewModel(),
+    onBack: () -> Unit
+) {
+    val uiState by viewModel.uiState.collectAsState()
+    val isFavorite by viewModel.isFavorite.collectAsState()
+    val isPinned by viewModel.isPinned.collectAsState()
+    val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
+    val isCasting = castState.isCasting
+    // Hoisted out of the content so the scaffold drives its scroll indicator from the same state.
+    val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
+
+    AudioPlayerLifecycleEffects(viewModel)
 
     Timber.d("S2481: AudioPlayerScreen composed")
 
@@ -179,7 +207,7 @@ fun AudioPlayerScreen(
         }
     }
 
-    KeepScreenOnEffect(enabled = uiState.isPlaying || uiState.isDimmed)
+    KeepScreenOnEffect(enabled = uiState.holdsDisplay)
 
     val actions = rememberAudioPlayerActions(
         viewModel = viewModel,
@@ -212,6 +240,7 @@ fun AudioPlayerScreen(
                     uiState = uiState,
                     isFavorite = isFavorite,
                     isPinned = isPinned,
+                    isCasting = isCasting,
                     onRotaryStep = { step ->
                         // S1701 (ADR-1): the bezel now serves volume, the Wear OS media convention. It no
                         // longer seeks - phase 02 gave the screen a progress bar, which is a better way to
@@ -223,7 +252,7 @@ fun AudioPlayerScreen(
             }
         }
         if (uiState.isDimmed) {
-            DimOverlay(onExit = viewModel::toggleDimmed)
+            PlayerDimOverlay(onExit = viewModel::toggleDimmed)
         }
     }
 
@@ -239,6 +268,8 @@ fun AudioPlayerScreen(
         ),
         currentFileName = uiState.mediaFile?.name
     )
+
+    PlayerCastMessage(viewModel.castManager)
 }
 
 @Composable
@@ -257,36 +288,12 @@ private fun rememberAudioPlayerActions(
         onToggleDimmed = viewModel::toggleDimmed,
         onTogglePlaybackMode = viewModel::togglePlaybackMode,
         onFileOperations = onShowActions,
+        onToggleCast = viewModel::toggleCast,
         seek = PlayerSeekActions(
             onSeekTo = viewModel::seekTo,
             onSeekBackward = viewModel::seekBackward,
             onSeekForward = viewModel::seekForward
         )
-    )
-}
-
-/**
- * S1683: an opaque black sheet over the whole player that any touch dismisses. It is deliberately not
- * a real display timeout, and S2166 halved the reason. The reason still holds with the background
- * playback setting off: the screen pauses on ON_STOP (S0902), so letting the watch sleep would stop
- * the music this mode exists to keep playing. With the setting on and the track playing, the sleeping
- * watch keeps playing from the service, and what this sheet is left doing is keeping the screen
- * reachable in one touch rather than keeping the sound alive. On an OLED watch the pixels under an
- * opaque black sheet are unlit anyway, which is why the cheaper mode was never worth swapping in.
- */
-@Composable
-private fun DimOverlay(onExit: () -> Unit) {
-    val exitDesc = stringResource(R.string.wear_screen_off_exit)
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black)
-            .clickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = onExit
-            )
-            .semantics { contentDescription = exitDesc }
     )
 }
 
@@ -300,7 +307,8 @@ private data class AudioPlayerActions(
     val onToggleDimmed: () -> Unit,
     val onTogglePlaybackMode: () -> Unit,
     val onFileOperations: () -> Unit,
-    val seek: PlayerSeekActions
+    val seek: PlayerSeekActions,
+    val onToggleCast: () -> Unit
 )
 
 @Composable
@@ -308,13 +316,13 @@ private fun AudioPlayerContent(
     uiState: AudioPlayerUiState,
     isFavorite: Boolean,
     isPinned: Boolean,
+    isCasting: Boolean,
     onRotaryStep: (Int) -> Unit,
     actions: AudioPlayerActions
 ) {
     // S2477: The audio player elements are fitted onto a single screen without vertical list scrolling.
     // Vertical drag gesture / rotary wheel controls volume level.
     Timber.d("S2477: AudioPlayerContent single-screen layout composed")
-    Timber.d("S2769: Audio track title chord safety margin active")
     var showMenu by rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -367,16 +375,21 @@ private fun AudioPlayerContent(
             PlayerColumnContent(
                 uiState = uiState,
                 isFavorite = isFavorite,
+                isPinned = isPinned,
                 actions = actions,
                 paddings = PlayerColumnPaddings(trackInfoPadding, commandRowPadding),
                 onOpenMenu = { showMenu = true }
             )
         }
 
-        // S2477: Right side bar for volume overlay when volume is visible/changing
-        if (uiState.isVolumeVisible) {
-            VolumeIndicatorSideBar(level = uiState.volumeLevel, max = uiState.volumeMax)
-        }
+        // S2802: the level is on the glass at all times, on the left, and dims instead of
+        // disappearing once the user stops turning the bezel.
+        VolumeIndicatorSideBar(
+            level = uiState.volumeLevel,
+            max = uiState.volumeMax,
+            atStartEdge = true,
+            isChanging = uiState.isVolumeVisible
+        )
     }
 
     if (showMenu) {
@@ -385,6 +398,7 @@ private fun AudioPlayerContent(
                 uiState = uiState,
                 isFavorite = isFavorite,
                 isPinned = isPinned,
+                isCasting = isCasting,
                 actions = actions,
                 onDismiss = { showMenu = false }
             ),
@@ -409,6 +423,7 @@ private data class PlayerColumnPaddings(
 private fun ColumnScope.PlayerColumnContent(
     uiState: AudioPlayerUiState,
     isFavorite: Boolean,
+    isPinned: Boolean,
     actions: AudioPlayerActions,
     paddings: PlayerColumnPaddings,
     onOpenMenu: () -> Unit
@@ -433,9 +448,9 @@ private fun ColumnScope.PlayerColumnContent(
     }
 
     PlaybackControls(
-        isPlaying = uiState.isPlaying,
-        progress = uiState.progress,
+        uiState = uiState,
         onPlayPause = actions.onPlayPause,
+        onTogglePlaybackMode = actions.onTogglePlaybackMode,
         onSkipNext = actions.onSkipNext,
         onSkipPrevious = actions.onSkipPrevious,
         seek = actions.seek
@@ -443,6 +458,8 @@ private fun ColumnScope.PlayerColumnContent(
 
     SecondaryControls(
         isFavorite = isFavorite,
+        isPinned = isPinned,
+        isStream = uiState.isStream,
         actions = actions,
         horizontalPadding = paddings.commandRow,
         onOpenMenu = onOpenMenu
@@ -475,6 +492,7 @@ private fun playerMenuActions(
     uiState: AudioPlayerUiState,
     isFavorite: Boolean,
     isPinned: Boolean,
+    isCasting: Boolean,
     actions: AudioPlayerActions,
     onDismiss: () -> Unit
 ): List<WearAction> {
@@ -496,14 +514,18 @@ private fun playerMenuActions(
     )
     val screenOffLabel = stringResource(R.string.wear_screen_off)
     val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
+    // S2531: the wording carries the state, not a colour - strategic 3.2 accessibility.
+    val castLabel = stringResource(
+        if (isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
+    )
+    val castIcon = if (isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
     val showFavorite = wearIsCompactScreen()
 
     return buildList {
         add(
-            playerMenuAction(
+            playerMenuCycleAction(
                 playbackModeLabel,
                 playbackModeIcon,
-                onDismiss,
                 actions.onTogglePlaybackMode
             )
         )
@@ -515,6 +537,7 @@ private fun playerMenuActions(
             val icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin
             add(playerMenuAction(pinLabel, icon, onDismiss, actions.onTogglePin))
         }
+        add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
         add(
             playerMenuAction(
                 screenOffLabel,
@@ -762,13 +785,16 @@ private fun RowScope.SeekBar(
  */
 @Composable
 private fun PlaybackControls(
-    isPlaying: Boolean,
-    progress: Float,
+    uiState: AudioPlayerUiState,
     onPlayPause: () -> Unit,
+    onTogglePlaybackMode: () -> Unit,
     onSkipNext: () -> Unit,
     onSkipPrevious: () -> Unit,
     seek: PlayerSeekActions
 ) {
+    val isPlaying = uiState.isPlaying
+    val playbackMode = uiState.playbackMode
+    val progress = uiState.progress
     Timber.d("S2529: AudioPlayerScreen PlaybackControls composed, isPlaying=$isPlaying")
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
@@ -776,8 +802,25 @@ private fun PlaybackControls(
     val seekForwardDesc = stringResource(R.string.wear_seek_forward)
     val playPauseDesc = stringResource(if (isPlaying) R.string.pause else R.string.play)
     val ringed = wearIsCompactScreen()
+    // S2803: the ORIGINAL view restores the row of four, the composition S1701's owner ruling drew -
+    // previous, play/pause, playback mode, next - and the bare play button that stood before S2766
+    // moved the position onto the ring for the compact column. The STORE branch keeps that ring.
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: audio primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
+    val playbackModeIcon = when (playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeDesc = stringResource(
+        when (playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
+    )
 
-    PlayerCommandGrid(columns = PRIMARY_ROW_COLUMNS) { targetSize ->
+    PlayerCommandGrid(columns = playerPrimaryRowColumns()) { targetSize ->
         PlayerCommandButton(
             onClick = onSkipPrevious,
             icon = Icons.Filled.SkipPrevious,
@@ -791,9 +834,19 @@ private fun PlaybackControls(
             isPlaying = isPlaying,
             contentDescription = playPauseDesc,
             size = targetSize,
-            progress = progress.takeIf { ringed },
+            progress = progress.takeIf { ringed && !restored },
             onPlayPause = onPlayPause
         )
+
+        if (restored) {
+            PlayerCommandButton(
+                onClick = onTogglePlaybackMode,
+                icon = playbackModeIcon,
+                contentDescription = playbackModeDesc,
+                size = targetSize,
+                checked = playbackMode != WearPlaybackMode.SEQUENTIAL
+            )
+        }
 
         PlayerCommandButton(
             onClick = onSkipNext,
@@ -849,12 +902,23 @@ private fun PlayPauseCommand(
 @Composable
 private fun SecondaryControls(
     isFavorite: Boolean,
+    isPinned: Boolean,
+    isStream: Boolean,
     actions: AudioPlayerActions,
     horizontalPadding: Dp,
     onOpenMenu: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
+    val pinDesc = stringResource(
+        if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
+    )
+    val screenOffDesc = stringResource(R.string.wear_screen_off)
+    // S2803: the primary row's answer names the view in force - four means the restored composition,
+    // three the reviewed one. The restored secondary row is back, favorite, pin-or-file-operations and
+    // screen off, the four of the pre-S2766 tree, so the menu has nothing left to hold.
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: audio secondary restored=%b columns=%s", restored, secondaryRowColumns())
 
     PlayerCommandGrid(
         horizontalPadding = horizontalPadding,
@@ -867,7 +931,7 @@ private fun SecondaryControls(
             size = targetSize
         )
 
-        if (!wearIsCompactScreen()) {
+        if (restored || !wearIsCompactScreen()) {
             PlayerCommandButton(
                 onClick = actions.onToggleFavorite,
                 icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -877,12 +941,38 @@ private fun SecondaryControls(
             )
         }
 
-        PlayerCommandButton(
-            onClick = onOpenMenu,
-            icon = Icons.Default.MoreVert,
-            contentDescription = menuDesc,
-            size = targetSize
-        )
+        if (restored) {
+            if (isStream) {
+                PlayerCommandButton(
+                    onClick = actions.onTogglePin,
+                    icon = if (isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+                    contentDescription = pinDesc,
+                    size = targetSize,
+                    checked = isPinned
+                )
+            } else {
+                PlayerCommandButton(
+                    onClick = actions.onFileOperations,
+                    icon = Icons.Default.MoreVert,
+                    contentDescription = menuDesc,
+                    size = targetSize
+                )
+            }
+
+            PlayerCommandButton(
+                onClick = actions.onToggleDimmed,
+                icon = Icons.Filled.DarkMode,
+                contentDescription = screenOffDesc,
+                size = targetSize
+            )
+        } else {
+            PlayerCommandButton(
+                onClick = onOpenMenu,
+                icon = Icons.Default.MoreVert,
+                contentDescription = menuDesc,
+                size = targetSize
+            )
+        }
     }
 }
 

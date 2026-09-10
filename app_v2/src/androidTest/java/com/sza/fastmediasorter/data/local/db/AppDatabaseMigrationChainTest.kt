@@ -71,7 +71,8 @@ class AppDatabaseMigrationChainTest {
             MIGRATION_53_54,
             MIGRATION_54_55,
             MIGRATION_55_56,
-            MIGRATION_56_57
+            MIGRATION_56_57,
+            MIGRATION_57_58
         )
 
         db.query("SELECT uri FROM favorites WHERE id = ?", arrayOf<Any>(FAVORITE_ID)).use { cursor ->
@@ -97,7 +98,7 @@ class AppDatabaseMigrationChainTest {
         // The version AppDatabase declares. Kept in step with it by the chain-test dimension of
         // assert-migration-schema-conformance.ps1 - a chain test frozen at an older target stops
         // covering the newest hop while still passing, which is the failure this file exists to end.
-        const val CURRENT_SCHEMA = 57
+        const val CURRENT_SCHEMA = 58
 
         const val FAVORITE_ID = 1L
         const val FAVORITE_URI = "content://chain/kept.mp4"

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2847: replaces selectableItemBackgroundBorderless on mirror ImageButtons. Wraps the
+     colored border ring in a ripple so the tap feedback is preserved alongside the ring. -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="?android:attr/colorControlHighlight">
+    <item android:id="@android:id/mask"
+        android:drawable="@drawable/mirror_control_button_border" />
+    <item android:drawable="@drawable/mirror_control_button_border" />
+</ripple>

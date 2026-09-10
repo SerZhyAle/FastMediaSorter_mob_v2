@@ -22,4 +22,11 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
      * a path here and the Apps catalog offers its row.
      */
     override val offersBodySensorDiagnostics: Boolean = true
+
+    /**
+     * S2812: the water flashlight exists to survive a wet screen, and a shade that still pulls down over it
+     * hands that wet screen the airplane-mode toggle. The sideload build takes the lock task mode the store
+     * review would refuse.
+     */
+    override val locksSystemShade: Boolean = true
 }

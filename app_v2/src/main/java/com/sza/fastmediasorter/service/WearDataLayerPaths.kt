@@ -131,6 +131,18 @@ object WearDataLayerPaths {
     /** Message, phone → watch. Answers one open request - shown, notified, or refused. */
     const val OPEN_ON_PHONE_ACK = "/fms/phone/open_on_phone_ack"
 
+    /** Message, watch → phone. Asks the phone to cast the content the watch is showing (S2531). */
+    const val CAST_REQUEST = "/fms/watch/cast_request"
+
+    /** Message, watch → phone. Asks the phone to end the cast session it is running (S2531). */
+    const val CAST_STOP = "/fms/watch/cast_stop"
+
+    /** Message, phone → watch. Answers one cast request - casting, picker needed, or refused. */
+    const val CAST_ACK = "/fms/phone/cast_ack"
+
+    /** Message, phone → watch. The phone's current cast session, which the watch only displays. */
+    const val CAST_STATE = "/fms/phone/cast_state"
+
     /**
      * Reserved name the watch background frame is transferred under (S2000).
      *

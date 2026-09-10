@@ -58,7 +58,8 @@ class BackupSettingsCoverageTest {
          * survive a backup/restore round trip, and every entry carries the reason it must not.
          *
          * S2632 froze 132 names here as a ratchet over a defect it had measured but not fixed; S2648
-         * classified all 132 and carried 124 of them, leaving only the eight below. Growing this list
+         * classified all 132 and carried 124 of them, leaving eight; S2843 triaged the ten fields that
+         * had drifted in since, carrying nine and adding the ninth entry below. Growing this list
          * needs a stated reason, because each new line is one more setting the user loses when they
          * move to a new device.
          */
@@ -75,6 +76,10 @@ class BackupSettingsCoverageTest {
             // renders a wrong step count.
             "stepsResetCount",
             "stepsResetTimestamp",
+            // S2843: this phone's stable identity as a broadcast source. Restored onto a second phone
+            // it would give two sources one identity, and a receiver that scanned either of them would
+            // keep overwriting one catalog entry instead of holding two.
+            "broadcastSourceDeviceId",
 
             // Derived, session-scoped or dead - there is nothing durable to carry.
             // A content:// URI whose read permission was granted to this install and does not travel.

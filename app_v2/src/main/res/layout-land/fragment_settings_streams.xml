@@ -25,42 +25,37 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- S0835: landscape keeps the sort+filter pair 2-up (own-row split is portrait-only), but
-             both render title+value on one inline line. -->
-        <LinearLayout
+        <!-- S0835/S2783: the 2-up sort+filter pair is unfolded. The group hands its shared label
+             column only to its own row children, so a row nested in an intermediate container cannot
+             join it - landscape aligned three of five. Same trade the General block already made
+             (S0644): density gives way, alignment does not. All five now use the canonical
+             value-text form, as in fragment_settings_general.xml. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultSort"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:baselineAligned="false"
-            android:orientation="horizontal">
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            app:sdr_valueAsText="true"
+            app:sdr_title="@string/settings_streams_default_sort" />
 
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowDefaultSort"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/settings_streams_default_sort" />
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowDefaultMediaFilter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            app:sdr_valueAsText="true"
+            app:sdr_title="@string/settings_streams_default_filter" />
 
-            <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                android:id="@+id/rowDefaultMediaFilter"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                app:sdr_inline="true"
-                app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
-                app:sdr_title="@string/settings_streams_default_filter" />
-        </LinearLayout>
-
-        <!-- S0835: catalog-refresh now stands alone (the clear button moved to the Streams row). -->
+        <!-- S0835: catalog-refresh stands alone (the clear button moved to the Streams row). -->
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
             android:id="@+id/rowCatalogRefresh"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_catalog_refresh" />
 
         <!-- S1144: global default track languages for streams. A channel that remembers its own pick
@@ -71,8 +66,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_audio_language" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -81,8 +75,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
-            app:sdr_inline="true"
-            app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+            app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_streams_default_subtitle_language" />
 
         <!-- S1148: opt-in resilient radio buffering (bigger start cushion + silent reconnects). -->
@@ -94,6 +87,36 @@
             android:clickable="true"
             app:str_title="@string/settings_streams_smart_buffering"
             app:str_subtitle="@string/settings_streams_smart_buffering_summary" />
+
+        <!-- S1143: an audio channel opens in the full-screen visualizer player instead of the inline row. -->
+        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+            android:id="@+id/rowVisualizeAsMusic"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            app:str_title="@string/settings_streams_visualize_as_music"
+            app:str_subtitle="@string/settings_streams_visualize_as_music_summary" />
+
+        <!-- S2787: mirror of the Playback-section PiP toggle - streams open the same PlayerActivity,
+             so the flag governs them too. Outer wrapper preserved for the API 31+ visibility gate. -->
+        <LinearLayout
+            android:id="@+id/layoutStreamsPip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                android:id="@+id/rowStreamsEnablePip"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                app:str_icon="@drawable/ic_picture_in_picture"
+                app:str_title="@string/setting_enable_pip"
+                app:str_subtitle="@string/setting_enable_pip_desc" />
+
+        </LinearLayout>
 
         <!-- S0835: maintenance + open-streams buttons share one row (clear left, Streams right). -->
         <LinearLayout

@@ -247,6 +247,19 @@ object SettingsDocScopeCatalog {
             titleRu = "Фон на часах",
             titleUk = "Фон на годиннику"
         ),
+        // S2773: the watch's screen geometry, in its Screen group beside the other view settings. A
+        // toggle rather than a radio group because it names one thing rather than picking among
+        // several, and it is drawn only in the sideload flavor - the published build lays out with the
+        // reviewed geometry and offers no way back to the one the review refused (ADR-3). Documented
+        // regardless of that gating, because Rule 22 covers the setting's existence, not its reach.
+        WearDocEntry(
+            key = "wearOriginalLayout",
+            layout = "wear_screen_settings",
+            kind = "TOGGLE_ROW",
+            titleEn = "Original layout",
+            titleRu = "Оригинальная раскладка",
+            titleUk = "Оригінальне розкладення"
+        ),
         // S2522: the watch's own colour scheme, at its canonical Screen position beside the background
         // it shares a group with. Editable from both sides, like the background mode above.
         WearDocEntry(

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.data.repository
 
 import android.content.Context
 import com.google.gson.Gson
-import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
@@ -14,7 +13,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
-import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -52,18 +50,22 @@ class WearStreamCollectionRepositoryImpl @Inject constructor(
 
     private fun readFromFile(): List<WearStreamCollection> {
         val file = collectionsFile
-        if (!file.isFile) return emptyList()
-        return try {
-            val json = file.readText(Charsets.UTF_8)
-            val type = object : TypeToken<List<WearStreamCollection>>() {}.type
-            gson.fromJson<List<WearStreamCollection>>(json, type) ?: emptyList()
-        } catch (e: IOException) {
-            Timber.w(e, "WearStreamCollectionRepository: Failed to read collections from file")
-            emptyList()
-        } catch (e: JsonSyntaxException) {
-            Timber.w(e, "WearStreamCollectionRepository: Failed to read collections from file")
-            emptyList()
-        }
+        val json = if (file.isFile) {
+            runCatching { file.readText(Charsets.UTF_8) }
+                .onFailure { e ->
+                    Timber.w(e, "WearStreamCollectionRepository: Failed to read collections from file")
+                }
+                .getOrNull()
+        } else {
+            null
+        } ?: return emptyList()
+        val type = object : TypeToken<List<WearStreamCollection>>() {}.type
+        return runCatching { gson.fromJson<List<WearStreamCollection>>(json, type).orEmpty() }
+            .onFailure { e ->
+                Timber.w(e, "WearStreamCollectionRepository: Failed to read collections from file")
+            }
+            .getOrNull()
+            .orEmpty()
     }
 
     private fun writeAtomically(target: File, bytes: ByteArray) {

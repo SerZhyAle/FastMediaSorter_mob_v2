@@ -341,7 +341,10 @@ data class BackupSettings(
         // restore from an existing file. Null means "the writer had no opinion" = keep current.
         val wallpaperIntensity: Float? = null,
         val wallpaperAnimationSpeed: Float? = null,
-        val wallpaperParticleDensity: Float? = null
+        val wallpaperParticleDensity: Float? = null,
+        // S2730: nullable for the same S2632 reason as the three above - an existing backup file predates
+        // the switch, and a non-null default would turn the badge off for a user who had turned it on.
+        val showScreenNumber: Boolean? = null
     )
 
     /**
@@ -395,7 +398,10 @@ data class BackupSettings(
         val mirrorBacklightOn: Boolean = true,
         val showProgramsPanelInMainWindow: Boolean = false,
         val programsPanelCollapsed: Boolean = false,
-        val showBlackScreenButton: Boolean = false
+        val showBlackScreenButton: Boolean = false,
+        // S2843: nullable for the S2730 reason - an older backup file carries no key here, and a
+        // non-null default would silently turn the shade shortcut's notification back off.
+        val flashlightShortcutNotificationEnabled: Boolean? = null
     )
 
     /** S2648: the streams feature and the streaming cache that serves it. */
@@ -411,7 +417,18 @@ data class BackupSettings(
         val showStreamsPanelInMainWindow: Boolean = false,
         val streamingCacheCleanupMode: String? = null,
         val streamingCacheTtlDays: Int = 7,
-        val prefetchCacheMultiplier: String? = null
+        val prefetchCacheMultiplier: String? = null,
+        // S2843: nullable for the S2730 reason - a backup file written before this ticket carries no
+        // key here, and a non-null default would push the class default over a value the user chose.
+        // The broadcast block below is the audio-broadcast session the user tuned; the source device
+        // id is deliberately absent, because it addresses one phone (see BackupSettingsCoverageTest).
+        val streamsVisualizeAsMusic: Boolean? = null,
+        val broadcastStreamTitle: String? = null,
+        val broadcastBitRateBps: Int? = null,
+        val broadcastPort: Int? = null,
+        val broadcastSampleRateHz: Int? = null,
+        val broadcastChannelCount: Int? = null,
+        val broadcastAutoOpenShare: Boolean? = null
     )
 
     /** S2648: appearance and the general interaction settings that shape every screen. */
@@ -438,7 +455,7 @@ data class BackupSettings(
         val playerFollowSystemRotation: Boolean = false,
         val programFollowSystemRotation: Boolean = true,
         val playerRotationSensorEnabled: Boolean = true,
-        val playerPanelAutoHideSeconds: Int = 15,
+        val playerPanelAutoHideSeconds: Int = 10,
         val playerShowFps: Boolean = false,
         val vrShowFps: Boolean = false,
         val vrPlayerEntryPromptDismissed: Boolean = false,
@@ -461,7 +478,10 @@ data class BackupSettings(
         val isPrimaryMediaPlayer: Boolean = false,
         val enabledShareTargets: Set<String>? = null,
         val disabledShareTargets: Set<String>? = null,
-        val scheduledOperationsPaused: Boolean = false
+        val scheduledOperationsPaused: Boolean = false,
+        // S2843: nullable for the S2730 reason - an older backup file carries no key here, and a
+        // non-null default would hand the watch's media takeover back to a user who had refused it.
+        val suppressWearMediaTakeover: Boolean? = null
     )
 }
 

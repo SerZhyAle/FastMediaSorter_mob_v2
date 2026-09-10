@@ -28,7 +28,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 
@@ -82,7 +81,6 @@ fun TileTargetsSettingsScreen(
             items(uiState.rows) { row ->
                 Chip(
                     onClick = {
-                        Timber.d("S2587: opening the tile target picker for ${row.kind} from settings")
                         navController.navigate(WearRoutes.tileTargetPicker(row.kind.name))
                     },
                     label = { Text(stringResource(row.labelRes)) },

@@ -1,11 +1,11 @@
 package com.sza.fastmediasorter.ui.browse.managers
 
 import android.app.Activity
-import android.text.format.DateFormat
 import android.view.View
 import androidx.annotation.StringRes
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
@@ -13,6 +13,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseState
@@ -25,8 +26,8 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.clearBadge
 import com.sza.fastmediasorter.utils.setBadgeText
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
-import java.util.Date
 
 /**
  * Applies BrowseState changes to the UI: filter badge, selection panel, display mode,
@@ -58,6 +59,13 @@ class BrowseStateUiUpdater(
 
     /** Cached no-thumbnail flag - grid span count differs for the no-thumbnail "plank" layout (S0419). */
     private var currentDisableThumbnails: Boolean? = null
+
+    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
+    // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
+    // the next time the strip is redrawn.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(activity.applicationContext, UnitSystemEntryPoint::class.java)
+    }
 
     /**
      * Apply all UI changes derived from the current [state].
@@ -135,11 +143,10 @@ class BrowseStateUiUpdater(
      * ones the Main manager uses, so the sentence stays translated on a RU or UK device.
      */
     private fun describeFilter(filter: FileFilter): String {
-        val dateFormat = DateFormat.getDateFormat(activity)
         val parts = mutableListOf<String>()
         filter.nameContains?.takeIf { it.isNotBlank() }?.let { parts.add("\"$it\"") }
-        filter.minDate?.let { parts.add(label(R.string.min_date, dateFormat.format(Date(it)))) }
-        filter.maxDate?.let { parts.add(label(R.string.max_date, dateFormat.format(Date(it)))) }
+        filter.minDate?.let { parts.add(label(R.string.min_date, formatDate(it))) }
+        filter.maxDate?.let { parts.add(label(R.string.max_date, formatDate(it))) }
         filter.minSizeMb?.let { parts.add(label(R.string.min_size_mb, it.toString())) }
         filter.maxSizeMb?.let { parts.add(label(R.string.max_size_mb, it.toString())) }
         filter.mediaTypes?.takeIf { it.isNotEmpty() }?.let { types ->
@@ -151,6 +158,9 @@ class BrowseStateUiUpdater(
 
     private fun label(@StringRes titleRes: Int, value: String): String =
         activity.getString(titleRes) + ": " + value
+
+    private fun formatDate(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.Date(timestamp), unitSeam.unitSystemProvider().value)
 
     /**
      * Only the eight types the filter dialog can actually select carry a translated name; the binary

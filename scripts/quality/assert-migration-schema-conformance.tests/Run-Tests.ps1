@@ -54,7 +54,10 @@ function New-WearHalf {
         # S2355 step 04.0: plant a `const val version = 9` ABOVE the annotation. The gate must still
         # read the annotated version - reading the decoy would compare every migration in the module
         # against the wrong exported schema while printing PASS.
-        [bool]$DecoyVersionConstant
+        [bool]$DecoyVersionConstant,
+        # S2830: see New-Sandbox for why these two shapes have to exist in the sandbox at all.
+        [bool]$AggregateMigration,
+        [string]$UnclaimedMigrationFile
     )
     $wearDbDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
     $wearDiDir = Join-Path $Sandbox 'wear/src/main/java/com/sza/fastmediasorter/wear/di'
@@ -62,8 +65,45 @@ function New-WearHalf {
     New-Item -ItemType Directory -Force -Path $wearDbDir, $wearDiDir | Out-Null
     if (-not $OmitSchemaDir) { New-Item -ItemType Directory -Force -Path $wearSchemaDir | Out-Null }
 
+    # S2829: the watch's other two databases sit in the same directory, at version 1 with an exported
+    # schema and no migration. They are written into every sandbox rather than only into the cases
+    # that name them, because the gate reads the real registry - a sandbox missing them would exit 2
+    # on every case and the suite would stop testing what each case was written for. Their presence is
+    # also the property under test: the third and fourth database must not disturb the first two.
+    foreach ($sibling in @('WearHeartRateDatabase', 'WearBloodPressureDatabase')) {
+        Set-Content -Path (Join-Path $wearDbDir "$sibling.kt") -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.data.db
+
+@Database(entities = [${sibling}Entity::class], version = 1, exportSchema = true)
+abstract class $sibling
+"@
+        $siblingSchemaDir = Join-Path $Sandbox "wear/schemas/com.sza.fastmediasorter.wear.data.db.$sibling"
+        New-Item -ItemType Directory -Force -Path $siblingSchemaDir | Out-Null
+        Set-Content -Path (Join-Path $siblingSchemaDir '1.json') -Encoding utf8NoBOM -Value (
+            [pscustomobject]@{ formatVersion = 1; database = [pscustomobject]@{
+                    version = 1; identityHash = 's1'
+                    entities = @([pscustomobject]@{ tableName = 'history'; fields = @(
+                                [pscustomobject]@{ fieldPath = 'id'; columnName = 'id'; affinity = 'INTEGER'; notNull = $true }) })
+                }
+            } | ConvertTo-Json -Depth 12)
+    }
+
     $hasMigration = -not [string]::IsNullOrWhiteSpace($MigrationSql)
     $wearVersion = if ($hasMigration) { 2 } else { 1 }
+
+    # S2830: a hop nobody claims. Written whatever the migration state is, because a directory with
+    # no registered migration at all is exactly where the old gate was most confidently wrong.
+    if (-not [string]::IsNullOrWhiteSpace($UnclaimedMigrationFile)) {
+        Set-Content -Path (Join-Path $wearDbDir $UnclaimedMigrationFile) -Encoding utf8NoBOM -Value @'
+package com.sza.fastmediasorter.wear.data.db
+
+val MIGRATION_2_3 = object : Migration(2, 3) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `voice_notes` ADD COLUMN `nothing_reads_me` INTEGER")
+    }
+}
+'@
+    }
 
     $decoy = if ($DecoyVersionConstant) { "const val version = 9$([Environment]::NewLine)" } else { '' }
     Set-Content -Path (Join-Path $wearDbDir 'WearVoiceNoteDatabase.kt') -Encoding utf8NoBOM -Value @"
@@ -75,7 +115,25 @@ abstract class WearVoiceNoteDatabase
 
     $wearRegistration = ''
     if ($hasMigration) {
-        Set-Content -Path (Join-Path $wearDbDir 'Migration1To2.kt') -Encoding utf8NoBOM -Value @"
+        # The aggregate form is the registry's WearVoiceNoteMigrations.kt as the real tree carries it:
+        # a hop with no address in its file name, wrapped in an object so its body is one brace level
+        # deeper than the per-hop form. Both forms must reach the same verdict (S2830).
+        if ($AggregateMigration) {
+            Set-Content -Path (Join-Path $wearDbDir 'WearVoiceNoteMigrations.kt') -Encoding utf8NoBOM -Value @"
+package com.sza.fastmediasorter.wear.data.db
+
+object WearVoiceNoteMigrations {
+
+    val MIGRATION_1_2 = object : Migration(1, 2) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("$MigrationSql")
+        }
+    }
+}
+"@
+        }
+        else {
+            Set-Content -Path (Join-Path $wearDbDir 'Migration1To2.kt') -Encoding utf8NoBOM -Value @"
 package com.sza.fastmediasorter.wear.data.db
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -84,6 +142,7 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 "@
+        }
         if ($Register) { $wearRegistration = ".addMigrations(`n                MIGRATION_1_2,`n            )" }
 
         $chainDir = Join-Path $Sandbox 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
@@ -158,7 +217,15 @@ function New-Sandbox {
         [string]$WearSchemaColumnName = 'transferState',
         [bool]$WearRegister = $true,
         [bool]$OmitWearSchemaDir = $false,
-        [bool]$WearDecoyVersionConstant = $false
+        [bool]$WearDecoyVersionConstant = $false,
+        # S2830: write the wear migration as an aggregate object file rather than as Migration1To2.kt.
+        # A case that only ever plants its defect in a per-hop file proves nothing about the shape
+        # that was invisible - the gate printed "no migration yet" for it and every case stayed green.
+        [bool]$WearAggregateMigration = $false,
+        # S2830: an extra .kt in the wear migration directory declaring a hop under a name matching no
+        # row's prefix and listed in no row's aggregate files. It stands for the file nobody has
+        # written yet, which is the only thing goal 2 is a claim about.
+        [string]$WearUnclaimedMigrationFile
     )
     $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ('s2306-' + [System.IO.Path]::GetRandomFileName())
     $qualityDir = Join-Path $sandbox 'scripts/quality'
@@ -177,7 +244,8 @@ function New-Sandbox {
     }
 
     New-WearHalf -Sandbox $sandbox -MigrationSql $WearMigrationSql -SchemaColumnName $WearSchemaColumnName `
-        -Register $WearRegister -OmitSchemaDir $OmitWearSchemaDir -DecoyVersionConstant $WearDecoyVersionConstant
+        -Register $WearRegister -OmitSchemaDir $OmitWearSchemaDir -DecoyVersionConstant $WearDecoyVersionConstant `
+        -AggregateMigration $WearAggregateMigration -UnclaimedMigrationFile $WearUnclaimedMigrationFile
 
     Set-Content -Path (Join-Path $dbDir 'AppDatabase.kt') -Encoding utf8NoBOM -Value @'
 package com.sza.fastmediasorter.data.local.db
@@ -383,7 +451,21 @@ $cases = @(
             SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
         }
         Expect  = 0
-        Contain = 'wear version 1: no migration yet'
+        Contain = 'wear-voice-note version 1: no migration yet'
+    },
+    # ---- S2829: three databases out of one directory ----------------------------------------
+    @{
+        # The voice-note database owns Migration1To2.kt and the other two share its directory. A
+        # neighbour that claimed that file would be reported at version 1 with a migration whose
+        # target schema it never exported - a finding invented out of somebody else's hop.
+        Name    = "a sibling database does not claim the voice-note database's migration file"
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transferState` INTEGER'
+            WearSchemaColumnName = 'transferState'
+        }
+        Expect  = 0
+        Contain = 'wear-heart-rate version 1: no migration yet'
     },
     @{
         Name    = 'a column-name disagreement in the wear database is found and names wear'
@@ -393,7 +475,7 @@ $cases = @(
             WearSchemaColumnName = 'transferState'
         }
         Expect  = 1
-        Contain = 'wear: ADD COLUMN "transfer_state"'
+        Contain = 'wear-voice-note: ADD COLUMN "transfer_state"'
     },
     @{
         Name    = 'an app_v2 baseline key does not suppress the same finding in wear'
@@ -404,7 +486,7 @@ $cases = @(
             BaselineText = 'app_v2|1To2|column-name|voice_notes.transfer_state'
         }
         Expect  = 1
-        Contain = 'wear: ADD COLUMN "transfer_state"'
+        Contain = 'wear-voice-note: ADD COLUMN "transfer_state"'
     },
     @{
         Name    = 'a wear migration file the wear builder never registers is found'
@@ -414,7 +496,42 @@ $cases = @(
             WearRegister = $false
         }
         Expect  = 2
-        Contain = 'wear: 1 migration file(s) exist but no MIGRATION_N_M reference'
+        Contain = 'wear-voice-note: 1 migration(s) are declared but no MIGRATION_N_M reference'
+    },
+    @{
+        # S2830 replay. Before this ticket the gate reported this sandbox as "no migration yet,
+        # exported schema only" and exited 0 - the S2251 defect sitting in plain text, unread,
+        # because the hop was declared inside an object instead of inside a file named after it.
+        Name    = 'S2830 replay: a column-name defect inside an AGGREGATE migration file is found'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transfer_state` INTEGER'
+            WearSchemaColumnName = 'transferState'
+            WearAggregateMigration = $true
+        }
+        Expect  = 1
+        Contain = 'wear-voice-note: ADD COLUMN "transfer_state" but schema 2 declares no such column'
+    },
+    @{
+        Name    = 'an aggregate migration that agrees with its schema passes'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearMigrationSql = 'ALTER TABLE `voice_notes` ADD COLUMN `transferState` INTEGER'
+            WearAggregateMigration = $true
+        }
+        Expect  = 0
+        Contain = 'PASS'
+    },
+    @{
+        # Goal 2 is a claim about a file nobody has written yet, so the only way to hold it is to
+        # write one: a hop under a name no prefix matches, listed in no row's aggregate files.
+        Name    = 'a migration declaration no registry row claims is reported'
+        Args    = @{ MigrationSql = 'ALTER TABLE `launcher_cells` ADD COLUMN `screenIndex` INTEGER NOT NULL DEFAULT 0'
+            SchemaColumnName = 'screenIndex'; SchemaNotNull = $true; SchemaDefault = '0'
+            WearUnclaimedMigrationFile = 'ExtraVoiceNoteMigrations.kt'
+        }
+        Expect  = 1
+        Contain = 'ExtraVoiceNoteMigrations.kt declares Migration(2, 3) but no registry row reads it'
     },
     @{
         Name    = 'a missing wear schema directory exits 2 and names wear'
@@ -423,7 +540,7 @@ $cases = @(
             OmitWearSchemaDir = $true
         }
         Expect  = 2
-        Contain = 'wear: registry SchemaDir does not exist'
+        Contain = 'wear-voice-note: registry SchemaDir does not exist'
     },
     @{
         # S2355 step 04.0. Before the fix the version was read with a bare `version = (\d+)` over the
@@ -436,7 +553,7 @@ $cases = @(
             WearDecoyVersionConstant = $true
         }
         Expect  = 0
-        Contain = 'wear version 1'
+        Contain = 'wear-voice-note version 1'
     }
 )
 

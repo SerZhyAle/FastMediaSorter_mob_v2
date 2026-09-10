@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryPolicy
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.domain.stats.ViewKind
@@ -63,6 +64,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -104,6 +107,14 @@ class AudioPlaybackService : MediaSessionService() {
     // play exactly like the inline player does.
     @Inject
     lateinit var recordStreamPlayOutcome: RecordStreamPlayOutcomeUseCase
+
+    // S2810: read by onConnect to refuse the Wear OS companion bridge. Collected into a volatile so the
+    // deny check is a cheap read on the callback thread without a DataStore round-trip per controller.
+    @Inject
+    lateinit var settingsRepository: SettingsRepository
+
+    @Volatile
+    private var suppressWearMediaTakeover: Boolean = false
 
     private var mediaSession: MediaSession? = null
     private var player: ExoPlayer? = null
@@ -297,6 +308,15 @@ class AudioPlaybackService : MediaSessionService() {
         @Volatile
         var isRunning: Boolean = false
 
+        /**
+         * S2810: the package of the Wear OS companion app on the phone, which bridges the phone's
+         * active MediaSession to the watch's system "now playing" surface. Refused in
+         * [AudioSessionCallback.onConnect] when `suppressWearMediaTakeover` is on, so the watch stops
+         * surfacing this service's player. A constant rather than a runtime lookup because the bridge
+         * package is fixed by the Wear OS platform.
+         */
+        const val WEAR_COMPANION_PACKAGE = "com.google.android.wearable.app"
+
         /** Direction for the next navigation event triggered via hardware media buttons.
          *  Set by ForwardingPlayer when the user presses NEXT or PREVIOUS.
          *  Read (and reset) by PlayerActivity.onAudioServicePlaybackEnded. */
@@ -329,6 +349,15 @@ class AudioPlaybackService : MediaSessionService() {
 
         // Create notification channel (required for Android 8+)
         MediaNotificationManager.createNotificationChannel(this)
+
+        // S2810: keep the suppression flag current for onConnect. distinctUntilChanged so a no-op
+        // settings emission never touches the volatile.
+        serviceScope.launch {
+            settingsRepository.getSettings()
+                .map { it.suppressWearMediaTakeover }
+                .distinctUntilChanged()
+                .collect { suppressWearMediaTakeover = it }
+        }
 
         // S0172: call startForeground immediately so the OS 5-second deadline never fires on
         // cold start (e.g. car media-button restart with no track loaded yet).
@@ -970,6 +999,14 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
+            // S2810: refuse the Wear OS companion bridge so the watch stops surfacing this service's
+            // player as a system "now playing" screen. Only the bridge package is refused - the app's
+            // own UI (same package), the system `android` (lockscreen/Bluetooth) and every other
+            // controller keep the existing accept path, so on-phone controls are unaffected.
+            if (suppressWearMediaTakeover && controller.packageName == WEAR_COMPANION_PACKAGE) {
+                Timber.d("S2810: refused Wear OS companion media-session connection")
+                return ConnectionResult.reject()
+            }
             // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons
             // even for single-file playback (Activity handles the actual advance).
             val playerCommands = ConnectionResult.DEFAULT_PLAYER_COMMANDS.buildUpon()

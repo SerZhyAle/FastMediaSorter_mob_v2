@@ -19,6 +19,12 @@ import timber.log.Timber
  * The network monitor is the one row that can be absent from a build, so its availability arrives as a
  * constructor value the way [OperationsCaptureManager] takes the screen-recording one, rather than by
  * this manager reaching for the contract itself.
+ *
+ * S2776 added the eighth row, the flashlight shade shortcut, and it is the one exception to the
+ * paragraph above: it is still one boolean, but switching it ON needs the notification permission
+ * first. That request and the device's flash-unit answer come from a collaborator built here from the
+ * binding, deliberately not passed in - the host is exactly at detekt's `LargeClass` ceiling and one
+ * more constructor argument on it is one too many.
  */
 class OperationsProgramsManager(
     private val binding: FragmentSettingsDestinationsBinding,
@@ -26,6 +32,11 @@ class OperationsProgramsManager(
     private val networkMonitorAvailableInBuild: Boolean,
     private val isUpdatingFromSettings: () -> Boolean,
 ) {
+
+    // Built here from the binding this manager already holds, so the flashlight row costs the host
+    // class not one statement - it sits exactly at detekt's LargeClass ceiling (S2776).
+    private val flashlightShortcut =
+        OperationsFlashlightShortcutPermissionManager(binding.root.context) { viewModel }
 
     fun setup() {
         binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
@@ -57,6 +68,18 @@ class OperationsProgramsManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             Timber.d("water flashlight toggle -> $isChecked")
             viewModel.updateSettings(viewModel.settings.value.copy(waterFlashlightEnabled = isChecked))
+        }
+        binding.rowFlashlightShortcut.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            if (isChecked && !flashlightShortcut.ensureGranted()) {
+                // The request is now on screen; the row stays off until its grant callback writes the
+                // setting, so a denial leaves the switch honest instead of on and producing nothing.
+                binding.rowFlashlightShortcut.setCheckedSilently(false)
+                return@setOnCheckedChangeListener
+            }
+            viewModel.updateSettings(
+                viewModel.settings.value.copy(flashlightShortcutNotificationEnabled = isChecked)
+            )
         }
         binding.rowMirror.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
@@ -91,6 +114,12 @@ class OperationsProgramsManager(
         }
         if (binding.rowWaterFlashlight.isChecked != settings.waterFlashlightEnabled) {
             binding.rowWaterFlashlight.setCheckedSilently(settings.waterFlashlightEnabled)
+        }
+        // S2776: hidden where the device has no flash unit, so the row never offers what the hardware
+        // cannot do - the same reason the Monitor row above checks its build.
+        binding.rowFlashlightShortcut.isVisible = flashlightShortcut.isFlashUnitAvailable
+        if (binding.rowFlashlightShortcut.isChecked != settings.flashlightShortcutNotificationEnabled) {
+            binding.rowFlashlightShortcut.setCheckedSilently(settings.flashlightShortcutNotificationEnabled)
         }
         if (binding.rowMirror.isChecked != settings.mirrorEnabled) {
             binding.rowMirror.setCheckedSilently(settings.mirrorEnabled)

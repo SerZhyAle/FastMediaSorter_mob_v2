@@ -14,12 +14,21 @@ import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchScreenState
  */
 object StopwatchEngine {
 
-    fun start(state: StopwatchScreenState, participantId: Int, nowMillis: Long): StopwatchScreenState =
+    fun start(
+        state: StopwatchScreenState,
+        participantId: Int,
+        nowMillis: Long,
+        startedAtEpochMillis: Long,
+    ): StopwatchScreenState =
         state.mapParticipant(participantId) { participant ->
             if (participant.running) {
                 participant
             } else {
-                participant.copy(running = true, startMark = nowMillis)
+                participant.copy(
+                    running = true,
+                    startMark = nowMillis,
+                    startedAtEpochMillis = startedAtEpochMillis,
+                )
             }
         }
 
@@ -55,6 +64,43 @@ object StopwatchEngine {
 
     fun resetAll(state: StopwatchScreenState): StopwatchScreenState =
         state.copy(participants = state.participants.map { StopwatchParticipant(id = it.id) })
+
+    /**
+     * Starts every visible participant that is not running in one transition (S2792). A participant
+     * already running keeps its original marks, so a repeated Start all never restarts a live clock.
+     */
+    fun startAll(
+        state: StopwatchScreenState,
+        nowMillis: Long,
+        startedAtEpochMillis: Long,
+    ): StopwatchScreenState = state.copy(
+        participants = state.participants.mapIndexed { index, participant ->
+            val visible = index < state.participantCount
+            when {
+                !visible || participant.running -> participant
+                else -> participant.copy(
+                    running = true,
+                    startMark = nowMillis,
+                    startedAtEpochMillis = startedAtEpochMillis,
+                )
+            }
+        },
+    )
+
+    /** Stops every visible running participant in one transition (S2792); laps and hidden ones stay. */
+    fun stopAll(state: StopwatchScreenState, nowMillis: Long): StopwatchScreenState = state.copy(
+        participants = state.participants.mapIndexed { index, participant ->
+            val visible = index < state.participantCount
+            when {
+                !visible || !participant.running -> participant
+                else -> participant.copy(
+                    running = false,
+                    accumulatedMillis = participant.elapsedAt(nowMillis),
+                    startMark = 0L,
+                )
+            }
+        },
+    )
 
     /**
      * Switches how many regions the screen shows. A count the split layout has no shape for is coerced

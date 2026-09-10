@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- S0404: the clock gadget. TextClock registers its own time/timezone receivers on attach and drops
-     them on detach, and follows the 12/24h system setting by itself - so this gadget has no lifecycle
-     wiring and no receiver to keep symmetric. Same correction the taskbar tray took in Phase 05.
-     No weather here: S0426 extends this gadget through the gadget contract (strategic §6.7). -->
+     them on detach, so this gadget keeps no receiver of its own. Same correction the taskbar tray took
+     in Phase 05. No weather here: S0426 extends this gadget through the gadget contract (strategic §6.7).
+     S2795: the 12/24h choice is NO LONGER the device's - ClockGadget rewrites both format attributes
+     from the app's unit system on attach, setting exactly one of them. The pair below is only the
+     first-frame and layout-editor default, never the shipped behaviour. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -38,8 +40,6 @@
             android:autoSizeMinTextSize="14sp"
             android:autoSizeTextType="uniform"
             android:ellipsize="end"
-            android:format12Hour="h:mm:ss"
-            android:format24Hour="H:mm:ss"
             android:gravity="center"
             android:maxLines="1"
             android:textColor="?attr/launcherDesktopText"

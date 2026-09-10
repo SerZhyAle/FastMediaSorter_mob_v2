@@ -108,6 +108,14 @@ private fun WearListOpeningAnchor(state: ScalingLazyListState, index: Int, resto
  *
  * The restore cannot ride on `initialCenterItemIndex` alone: folder, stream and note lists are filled
  * asynchronously, so on the first frame the list is still empty and any initial index is discarded.
+ *
+ * The restore waits for a list long enough to HOLD the saved anchor, not merely for a non-empty one
+ * (S2816): the first non-empty layout can be scaffolding alone - the Apps screen's title item, the
+ * home screen's loading row - and restoring against that layout coerced the saved index to zero,
+ * which read on the watch as "the position was never remembered". A list that never grows past the
+ * saved anchor is content the position was not saved from: it gets neither the restore nor the
+ * write-back, for the same reason the store is not persisted - an index into different content
+ * points at a different row.
  */
 @Composable
 private fun WearListPositionMemory(
@@ -125,9 +133,9 @@ private fun WearListPositionMemory(
 
     LaunchedEffect(positionKey) {
         val saved = store.peek(positionKey) ?: return@LaunchedEffect
-        val itemCount = snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > 0 }
-        val target = saved.index.coerceIn(0, itemCount - 1)
-        state.scrollToItem(target, saved.offset)
+        snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > saved.index }
+        Timber.d("S2816: list restored key=%s index=%d offset=%d", positionKey, saved.index, saved.offset)
+        state.scrollToItem(saved.index, saved.offset)
         settled.value = true
     }
 
@@ -136,6 +144,7 @@ private fun WearListPositionMemory(
             val index = state.centerItemIndex
             val offset = state.centerItemScrollOffset
             if (settled.value && state.layoutInfo.totalItemsCount > 0) {
+                Timber.d("S2816: list saved key=%s index=%d offset=%d", positionKey, index, offset)
                 store.save(positionKey, index, offset)
             }
         }
@@ -212,7 +221,6 @@ fun WearDialogListColumn(
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(4.dp),
     content: ScalingLazyListScope.() -> Unit
 ) {
-    Timber.d("S2762: dialog list padding top=%s", contentPadding.calculateTopPadding())
     WearListColumn(
         state = state,
         modifier = modifier,

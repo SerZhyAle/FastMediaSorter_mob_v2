@@ -37,6 +37,8 @@ scripts/docs/generate-flavor-matrix.ps1 | B | Code.Scripts | docs/FLAVOR_MATRIX.
 scripts/docs/generate-oss-notices.ps1 | B | Code.Phone, Code.Scripts | docs/legal/*, docs/OPEN_SOURCE*.md, app_v2 res/raw/oss_notices_*.json
 scripts/quality/generate-toolchain-pins.ps1 | B | Code.Scripts | managed blocks in CLAUDE.md and docs/TECH_STACK.md
 scripts/utils/help.ps1 | B | Code.Scripts | docs/SCRIPT_CHEATSHEET.md
+scripts/utils/normalize-all-features-areas.ps1 | B | Code.Scripts | docs/ALL_FEATURES*.jsonl
+scripts/utils/repoint-doc-locale-references.ps1 | B | Code.Scripts | localized documentation references under Scripts scope
 
 # --- Class B: ratchet-baseline writers (S2635 phase 02) -----------------------------------
 scripts/quality/assert-memory-budget.ps1 | B | Code.Scripts | scripts/quality/memory-budget-baseline.txt

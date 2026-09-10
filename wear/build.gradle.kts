@@ -42,6 +42,14 @@ val defaultAppVersionName = "2.60.9012.140"
 // nested provider lambda would shadow. Rationale and the measurement behind 20: the property itself.
 val unitTestTimeoutMinutes: Long =
     providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
+
+// S2851: the same fork count app_v2 reads, from the same gradle.properties value, so the two modules
+// cannot drift apart. This module's suite measures 55 s serially and is not what the property was
+// introduced for; it honours the value so that a host-wide budget stays one number, and so that a
+// future watch suite does not have to rediscover the setting.
+val unitTestMaxParallelForks: Int =
+    providers.gradleProperty("fms.unitTestMaxParallelForks").orNull?.toIntOrNull()?.coerceAtLeast(1)
+        ?: 1
 val stampedAppVersionCode = extra.properties["fmsStampedWearVersionCode"] as Int?
 val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
@@ -235,6 +243,7 @@ android {
                 // interrupt flag holds its task open, and a held task holds Build.Wear. The timeout
                 // ends the task so the wrapper reaches its finally and reaps the worker there.
                 it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
+                it.maxParallelForks = unitTestMaxParallelForks
             }
         }
     }

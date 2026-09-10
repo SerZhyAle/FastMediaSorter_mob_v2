@@ -208,9 +208,6 @@
     <string name="wear_streams_search">Procurar transmissões</string>
     <string name="wear_streams_filter">Filtrar transmissões</string>
     <string name="wear_streams_sort">Ordenar transmissões</string>
-    <string name="wear_streams_filter_all">Todos os canais</string>
-    <string name="wear_streams_filter_audio">Apenas áudio</string>
-    <string name="wear_streams_filter_video">Apenas vídeo</string>
     <string name="wear_streams_sort_name_asc">Nome (A-Z)</string>
     <string name="wear_streams_sort_name_desc">Nome (Z-A)</string>
     <string name="wear_streams_sort_kind">Por tipo de multimédia</string>

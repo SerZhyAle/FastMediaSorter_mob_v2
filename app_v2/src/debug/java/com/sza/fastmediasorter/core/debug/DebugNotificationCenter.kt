@@ -27,6 +27,15 @@ object DebugNotificationCenter : Application.ActivityLifecycleCallbacks {
         }
     }
 
+    /**
+     * S2380: the Activity currently resumed, or null when the app is in the background.
+     *
+     * Exposed rather than tracked a second time: this object is registered from
+     * [DebugToolsBootstrap.install] at process start in every debug build, so a second
+     * ActivityLifecycleCallbacks would follow the same edges and count as an extra unpaired listener.
+     */
+    fun resumedActivity(): Activity? = resumedActivityRef?.get()
+
     fun showError(message: String, throwable: Throwable? = null) {
         show(message, throwable, true)
     }

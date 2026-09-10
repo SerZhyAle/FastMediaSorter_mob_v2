@@ -39,7 +39,6 @@ class WearTileLayoutBuilder @Inject constructor(
         content: WearTileContent,
         deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.Layout {
-        Timber.d("S2589: tile layout built from %s", content::class.simpleName)
         val rootElement = when (content) {
             is WearTileContent.Assigned -> buildAssignedLayout(content)
             is WearTileContent.Unassigned -> buildUnassignedLayout(
@@ -112,7 +111,6 @@ class WearTileLayoutBuilder @Inject constructor(
         content: WearTileContent.Shortcuts
     ): LayoutElementBuilders.LayoutElement {
         val plan = planShortcutGrid(content.entries, overflow = overflowShortcut(context))
-        Timber.d("S2511: shortcut grid drawing %d cell(s), %d behind the way out", plan.shown.size, plan.dropped)
         if (plan.dropped > 0) {
             Timber.w(
                 "Shortcut tile holds %d entries, %d cells - the last %d are behind the overflow cell",

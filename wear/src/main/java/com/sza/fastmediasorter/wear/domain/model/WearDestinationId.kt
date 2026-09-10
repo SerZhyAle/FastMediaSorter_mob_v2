@@ -29,8 +29,14 @@ enum class WearDestinationId {
     MOTION_MONITOR,
     BODY_SENSOR,
 
+    /** S2809: the blood pressure program, addressable as a shortcut. */
+    BLOOD_PRESSURE,
+
     /** S2509: the watch's own audio broadcast, addressable as a shortcut like every program above. */
     BROADCAST,
+
+    /** S2825: the watch stopwatch, addressable as a shortcut like every program above. */
+    STOPWATCH,
 
     /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
     PHONE_CAMERA,
@@ -62,7 +68,9 @@ fun destinationFor(id: WearAppId): WearDestinationId = when (id) {
     WearAppId.WATER_FLASHLIGHT -> WearDestinationId.WATER_FLASHLIGHT
     WearAppId.MOTION_MONITOR -> WearDestinationId.MOTION_MONITOR
     WearAppId.BODY_SENSOR -> WearDestinationId.BODY_SENSOR
+    WearAppId.BLOOD_PRESSURE -> WearDestinationId.BLOOD_PRESSURE
     WearAppId.BROADCAST -> WearDestinationId.BROADCAST
+    WearAppId.STOPWATCH -> WearDestinationId.STOPWATCH
 }
 
 /**

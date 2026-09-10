@@ -2,8 +2,13 @@ package com.sza.fastmediasorter.ui.main.helpers
 
 import android.app.Activity
 import android.view.ViewGroup
+import android.widget.TextClock
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.ViewStartupBrandFrameBinding
+import com.sza.fastmediasorter.domain.model.UnitScale
+import com.sza.fastmediasorter.domain.model.UnitSystem
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
 
 /**
@@ -41,11 +46,30 @@ object StartupBrandFrameManager {
         val alreadyUp = (0 until host.childCount).any { host.getChildAt(it).id == R.id.startup_brand_frame }
         if (alreadyUp) return
 
-        val frame = ViewStartupBrandFrameBinding.inflate(activity.layoutInflater, host, false).root
+        val binding = ViewStartupBrandFrameBinding.inflate(activity.layoutInflater, host, false)
+        applyClockFormat(activity, binding.startupBrandClock)
+        val frame = binding.root
         host.addView(frame)
         Timber.d("S2556: phone startup brand frame attached, holding ${FRAME_DURATION_MS}ms")
         // The parent is read at removal time, not captured now: the activity may be finishing by
         // then, and a detached view must make this a no-op rather than a crash.
         frame.postDelayed({ (frame.parent as? ViewGroup)?.removeView(frame) }, FRAME_DURATION_MS)
+    }
+
+    /**
+     * S2795: exactly one format attribute carries a pattern and the other stays null, because
+     * TextClock falls back to whichever one is set when the one matching the DEVICE's 12/24-hour
+     * switch is missing. That is what makes the app's unit system, not the device, decide the clock
+     * length. The frame lives for one beat, so the value is read once and never observed.
+     */
+    private fun applyClockFormat(activity: Activity, clock: TextClock) {
+        val system = EntryPointAccessors
+            .fromApplication(activity.applicationContext, UnitSystemEntryPoint::class.java)
+            .unitSystemProvider()
+            .value
+        val pattern = UnitScale.timePattern(system, withSeconds = true)
+        val imperial = system == UnitSystem.IMPERIAL
+        clock.format12Hour = pattern.takeIf { imperial }
+        clock.format24Hour = pattern.takeIf { !imperial }
     }
 }

@@ -189,6 +189,47 @@ class StreamSourceRepository @Inject constructor(
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
 
+    /** S2813: the row a broadcasting device already owns, found by the device rather than the address. */
+    suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity? =
+        dao.getBySourceDeviceId(deviceId)
+
+    /**
+     * S2813: move a broadcast row onto the address its device is using now, keeping everything the user
+     * authored about it.
+     *
+     * The derived identity follows the address, exactly as it does on a manual edit (S1832) - leaving
+     * the old key behind would file the new address under an address it no longer has. That would also
+     * strand the durable `stream_user_state` row, which holds the pin, its position and the last play
+     * outcome, so the state is carried onto the new key inside the same transaction and the old key is
+     * dropped. Without that carry the row would survive the reconnect unpinned, which is the half of
+     * the complaint about "not getting it where I listened before" that a new address alone explains.
+     */
+    suspend fun refreshSourceAddress(id: String, url: String) =
+        db.withTransaction {
+            val previousIdentity = dao.identityOf(id) ?: return@withTransaction
+            val nextIdentity = StreamChannelIdentity.of(url)
+            dao.updateSourceAddress(id, url, nextIdentity)
+            if (nextIdentity == previousIdentity) return@withTransaction
+            val carried = streamUserStateDao.stateFor(previousIdentity) ?: return@withTransaction
+            val now = System.currentTimeMillis()
+            streamUserStateDao.setPin(
+                identityKey = nextIdentity,
+                pinned = carried.pinned,
+                sortIndex = carried.sortIndex,
+                atMillis = now
+            )
+            val outcome = carried.playOutcome
+            if (outcome != null) {
+                streamUserStateDao.setOutcome(
+                    identityKey = nextIdentity,
+                    outcome = outcome,
+                    recordedAt = carried.outcomeAt ?: now,
+                    atMillis = now
+                )
+            }
+            streamUserStateDao.deleteByIdentity(previousIdentity)
+        }
+
     /** S0404: resolve a channel a launcher shortcut pinned by id (null once the user removes it). */
     suspend fun getById(id: String): StreamSourceEntity? = dao.getById(id)
 

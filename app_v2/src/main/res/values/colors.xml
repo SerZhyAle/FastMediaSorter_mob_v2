@@ -525,4 +525,8 @@
          survives greyscale, unlike a colour swap. -->
     <color name="mirror_zoom_preset_body">#FF212121</color>
     <color name="mirror_zoom_preset_body_active">#FFFFFFFF</color>
+
+    <!-- S2847: vivid orange ring around mirror control buttons, visible on both the white glow
+         field and the black root background. Fixed colour - does not flip with backlight state. -->
+    <color name="mirror_control_border_color">#FF6D00</color>
 </resources>

@@ -2321,7 +2321,6 @@
     <string name="launcher_weather_location_searching">Ricerca in corso..</string>
     <string name="launcher_app_shortcut_start_failed">Questa azione non è più disponibile.</string>
     <string name="launcher_settings_lock_desktop_title">Blocca desktop</string>
-    <string name="launcher_settings_wallpaper_title">Sfondo del desktop</string>
     <string name="launcher_settings_wallpaper_branded">Onde e particelle</string>
     <string name="launcher_settings_wallpaper_none">Vuoto</string>
     <string name="launcher_settings_wallpaper_image">Mia immagine</string>
@@ -2478,7 +2477,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d m</string>
     <string name="launcher_gadget_compass_calibrate">Muovi il telefono descrivendo un otto</string>
-    <string name="launcher_gadget_speed_value">%1$d km/h</string>
     <string name="launcher_gadget_sensor_no_fix">In attesa di una posizione..</string>
     <string name="launcher_gadget_sensor_no_permission">La posizione è disattivata. Consentila nelle autorizzazioni dell\'app.</string>
     <string name="launcher_gadget_compass_description">Bussola. Direzione %1$s, altitudine %2$s</string>
@@ -2488,8 +2486,6 @@
     <string name="launcher_gadget_chart_reset">Reimposta</string>
     <string name="launcher_gadget_chart_reset_description">Cancella il grafico e lo riavvia da adesso</string>
     <string name="launcher_gadget_chart_empty">Ancora nessuna rilevazione - il grafico si riempie mentre ti muovi.</string>
-    <string name="launcher_gadget_chart_distance">%1$s km</string>
-    <string name="launcher_gadget_chart_altitude_current">Ora %1$d m</string>
     <string name="launcher_gadget_speed_chart_description">Grafico velocità. Ora %1$s, %2$s dall\'ultimo azzeramento</string>
     <string name="launcher_gadget_altitude_chart_description">Grafico altitudine. Ora %1$s, %2$s dall\'ultimo azzeramento, %3$s percorsi</string>
     <string name="launcher_gadget_steps">Passi</string>
@@ -2812,7 +2808,6 @@
     <string name="launcher_action_all_apps">Tutte le app</string>
     <string name="launcher_action_black_screen">Schermo nero</string>
     <string name="launcher_gadget_altitude">Altitudine</string>
-    <string name="launcher_gadget_altitude_value">%1$d m</string>
     <string name="launcher_gadget_altitude_description">Altitudine sul livello del mare: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">Ancora nessuna altitudine</string>
     <string name="launcher_gadget_satellites">Satelliti</string>
@@ -3400,7 +3395,6 @@
     <string name="stream_vr_unsupported_transport">Questo canale usa un trasporto che il player VR non può ancora aprire. Viene comunque riprodotto nel player normale.</string>
     <string name="launcher_translator_translate">Traduci</string>
     <string name="launcher_translator_in_progress">Traduzione in corso..</string>
-    <string name="launcher_wallpaper_screen_title">Sfondo</string>
     <string name="launcher_wallpaper_section_mode">Cosa viene disegnato</string>
     <string name="launcher_wallpaper_section_source">Origine</string>
     <string name="launcher_wallpaper_section_tuning">Aspetto</string>

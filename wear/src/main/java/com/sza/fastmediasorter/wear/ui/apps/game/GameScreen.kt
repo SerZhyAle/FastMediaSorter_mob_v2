@@ -41,11 +41,13 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
+import com.sza.fastmediasorter.wear.domain.game.GameEnemyType
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
+import com.sza.fastmediasorter.wear.ui.common.wearCenteredSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
@@ -236,16 +238,15 @@ private fun BoxScope.RoundScreenLayout(
     onOpenMenu: () -> Unit,
     onRestart: () -> Unit
 ) {
-    val boardSide = wearMaxSquareSide()
-    LaunchedEffect(boardSide) {
-        Timber.d("S2770: round game board capped at inscribed square %s", boardSide)
-    }
+    val boardSide = wearCenteredSquareSide()
     GameBoard(
         uiState = uiState,
-        // S2770: the board is capped by the largest square the glass admits, never by a fraction of
-        // the ring inset. A square reaches further from the centre at its corners than at its edges,
-        // so a padding that clears the arc at the middle of a side still puts the corner cells off
-        // the glass - measured 429.6 px of board inside a 480 px circle on the Galaxy Watch 7.
+        // S2770: in the store view the board is capped by the largest square the glass admits, never by
+        // a fraction of the ring inset. A square reaches further from the centre at its corners than at
+        // its edges, so a padding that clears the arc at the middle of a side still puts the corner
+        // cells off the glass - measured 429.6 px of board inside a 480 px circle on the Galaxy Watch 7.
+        // S2773: the original view answers the looser box that stood before that cap, corners past the
+        // arc included, because that is the board the owner asked to have back.
         modifier = Modifier
             .align(Alignment.Center)
             .size(boardSide),
@@ -259,6 +260,7 @@ private fun BoxScope.RoundScreenLayout(
         GameOutcomeChip(
             status = uiState.status,
             modifier = Modifier.align(Alignment.Center),
+            capturedBy = uiState.capturedBy,
             onAct = onRestart
         )
     }
@@ -362,7 +364,12 @@ private fun SquareScreenLayout(
             onOpenMenu = onOpenMenu
         )
         if (uiState.status != GameStatus.PLAYING) {
-            GameOutcomeChip(status = uiState.status, modifier = Modifier.fillMaxWidth(), onAct = onRestart)
+            GameOutcomeChip(
+                status = uiState.status,
+                modifier = Modifier.fillMaxWidth(),
+                capturedBy = uiState.capturedBy,
+                onAct = onRestart
+            )
         }
     }
 }
@@ -381,6 +388,8 @@ private fun GameBoard(
         level = level,
         contentDescription = stringResource(R.string.wear_game_board_description),
         showGuideArrow = showGuideArrow,
+        capturedBy = uiState.capturedBy,
+        capturedByPosition = uiState.capturedByPosition,
         modifier = modifier
             .aspectRatio(1f)
             // Two detectors, two modifiers: sharing one gesture scope would make the long press and
@@ -397,9 +406,19 @@ private fun Modifier.longPressToOpenMenu(onOpenMenu: () -> Unit): Modifier =
     }
 
 @Composable
-private fun GameOutcomeChip(status: GameStatus, modifier: Modifier = Modifier, onAct: () -> Unit) {
+private fun GameOutcomeChip(
+    status: GameStatus,
+    modifier: Modifier = Modifier,
+    capturedBy: GameEnemyType? = null,
+    onAct: () -> Unit
+) {
     val won = status == GameStatus.LEVEL_WON
-    val outcome = if (won) R.string.wear_game_level_completed else R.string.wear_game_level_lost
+    val outcome = when {
+        won -> R.string.wear_game_level_completed
+        capturedBy == GameEnemyType.KRYVAVITSA -> R.string.wear_game_caught_by_kryvavitsa
+        capturedBy == GameEnemyType.SHADOW -> R.string.wear_game_caught_by_shadow
+        else -> R.string.wear_game_level_lost
+    }
     val action = if (won) R.string.wear_game_continue else R.string.wear_game_restart
     Chip(
         onClick = onAct,

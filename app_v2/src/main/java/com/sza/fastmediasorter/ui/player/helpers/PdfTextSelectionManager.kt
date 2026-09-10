@@ -14,8 +14,8 @@ import android.widget.ScrollView
 import android.widget.TextView
 import androidx.annotation.RequiresApi
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -133,7 +133,7 @@ class PdfTextSelectionManager(
                 tvText.setText(pageText, TextView.BufferType.SPANNABLE)
                 // Attach the selection ActionMode callback
                 tvText.customSelectionActionModeCallback = DocumentSelectionActionModeCallback(
-                    showTranslate  = BuildConfig.ENABLE_TRANSLATION,
+                    showTranslate  = CapabilityAvailabilityAccessor.isTranslationAvailable(root.context),
                     showReadAloud  = onReadAloud != null,
                     getSelectedText = {
                         val start = tvText.selectionStart.coerceAtLeast(0)

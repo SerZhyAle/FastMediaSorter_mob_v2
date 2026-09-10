@@ -63,12 +63,23 @@ object WearAppCatalog {
             labelRes = R.string.wear_app_body_sensor,
             isAvailable = offersBodySensorDiagnostics
         ),
+        // S2809: available in both flavors - manual entry needs no permission or Health Services.
+        WearApp(
+            id = WearAppId.BLOOD_PRESSURE,
+            labelRes = R.string.wear_app_blood_pressure
+        ),
         // S2509: the second of the two equal entrances the owner chose; the first is the Home section.
         // Listed in both flavors - strategic §3.2 rules that the microphone broadcast is not hidden
         // behind WearRestrictedCapabilities, unlike the row above it.
         WearApp(
             id = WearAppId.BROADCAST,
             labelRes = R.string.wear_broadcast_app
+        ),
+        // S2825: listed in both flavors - the stopwatch needs no permission and no hardware, so there
+        // is nothing here for a store review to withhold.
+        WearApp(
+            id = WearAppId.STOPWATCH,
+            labelRes = R.string.wear_app_stopwatch
         )
     ).filter { it.isAvailable }
 }

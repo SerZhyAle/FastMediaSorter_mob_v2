@@ -111,6 +111,8 @@ class SyncEnabledResourceTilesUseCaseTest {
         override suspend fun syncedRoutes(): Set<String>? = null
         override suspend fun setSyncedRoutes(routeKeys: Set<String>) = Unit
         override suspend fun clearSyncedRoutes() = Unit
+        override suspend fun isStopwatchShortcutBackfilled(): Boolean = false
+        override suspend fun setStopwatchShortcutBackfilled() = Unit
 
         override suspend fun syncedResourcePaths(): Set<String>? = paths
 

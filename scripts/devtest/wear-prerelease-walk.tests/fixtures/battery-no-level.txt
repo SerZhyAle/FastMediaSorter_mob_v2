@@ -1,0 +1,8 @@
+Current Battery Service state:
+  AC powered: false
+  USB powered: true
+  status: 2
+  health: 2
+  present: true
+  scale: 100
+  voltage: 3900

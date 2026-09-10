@@ -30,6 +30,7 @@ object LauncherSettingsStore {
 
     private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
     private val KEY_LAUNCHER_SCREEN_COUNT = intPreferencesKey("launcher_screen_count")
+    private val KEY_LAUNCHER_SHOW_SCREEN_NUMBER = booleanPreferencesKey("launcher_show_screen_number")
     private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
     private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
     private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
@@ -181,6 +182,10 @@ object LauncherSettingsStore {
             KEY_LAUNCHER_SCREEN_COUNT,
             DEFAULT_LAUNCHER_SCREEN_COUNT
         ).coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
+        showScreenNumber = preferences.getOrDefault(
+            KEY_LAUNCHER_SHOW_SCREEN_NUMBER,
+            AppSettings.DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER,
+        ),
         taskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
         taskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
         taskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
@@ -274,6 +279,7 @@ object LauncherSettingsStore {
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
         preferences[KEY_LAUNCHER_SCREEN_COUNT] = settings.launcherScreenCount
+        preferences[KEY_LAUNCHER_SHOW_SCREEN_NUMBER] = settings.launcherShowScreenNumber
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray

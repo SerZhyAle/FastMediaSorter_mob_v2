@@ -93,7 +93,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `suppresses ocr and translation rows when translation capability absent`() {
-        val capability = capabilityAvailability { every { isTranslationAvailable() } returns false }
+        val capability = capabilityAvailability { every { isTranslationAvailable(any()) } returns false }
         val gate = gate(capability = capability)
 
         assertFalse(gate.isAvailable(entry(key = "rowEnableTranslation")))
@@ -105,7 +105,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `keeps ocr and translation rows when translation capability present`() {
-        val capability = capabilityAvailability { every { isTranslationAvailable() } returns true }
+        val capability = capabilityAvailability { every { isTranslationAvailable(any()) } returns true }
         val gate = gate(capability = capability)
 
         assertTrue(gate.isAvailable(entry(key = "rowEnableTranslation")))
@@ -113,7 +113,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `suppresses ocr spinner and language picker rows when translation capability absent`() {
-        val capability = capabilityAvailability { every { isTranslationAvailable() } returns false }
+        val capability = capabilityAvailability { every { isTranslationAvailable(any()) } returns false }
         val gate = gate(capability = capability)
 
         assertFalse(gate.isAvailable(entry(key = "spinnerTranslationSourceLanguage")))
@@ -124,7 +124,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `keeps ocr spinner and language picker rows when translation capability present`() {
-        val capability = capabilityAvailability { every { isTranslationAvailable() } returns true }
+        val capability = capabilityAvailability { every { isTranslationAvailable(any()) } returns true }
         val gate = gate(capability = capability)
 
         assertTrue(gate.isAvailable(entry(key = "spinnerTranslationSourceLanguage")))
@@ -133,7 +133,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `suppresses extensions button when extensions screen unavailable`() {
-        val capability = capabilityAvailability { every { isExtensionsScreenAvailable() } returns false }
+        val capability = capabilityAvailability { every { isExtensionsScreenAvailable(any()) } returns false }
         val gate = gate(capability = capability)
 
         assertFalse(gate.isAvailable(entry(key = "btnDownloadableExtensions")))
@@ -141,7 +141,7 @@ class SettingsSearchCapabilityGateTest {
 
     @Test
     fun `keeps extensions button when extensions screen available`() {
-        val capability = capabilityAvailability { every { isExtensionsScreenAvailable() } returns true }
+        val capability = capabilityAvailability { every { isExtensionsScreenAvailable(any()) } returns true }
         val gate = gate(capability = capability)
 
         assertTrue(gate.isAvailable(entry(key = "btnDownloadableExtensions")))
@@ -205,6 +205,7 @@ class SettingsSearchCapabilityGateTest {
         screenGestureControllers = controllers,
         menuScreenshotLaunchers = launchers,
         mediaCapabilities = media,
+        appContext = mockk(relaxed = true),
         capabilityAvailability = capability,
         launcherModeContract = mockk(relaxed = true) { every { isAvailableInBuild } returns launcherAvailable }
     )
@@ -220,8 +221,8 @@ class SettingsSearchCapabilityGateTest {
         stub: CapabilityAvailability.() -> Unit = {}
     ): CapabilityAvailability = mockk(relaxed = true) {
         every { isPersistentAudioPlaybackAvailable() } returns true
-        every { isTranslationAvailable() } returns true
-        every { isExtensionsScreenAvailable() } returns true
+        every { isTranslationAvailable(any()) } returns true
+        every { isExtensionsScreenAvailable(any()) } returns true
         stub()
     }
 

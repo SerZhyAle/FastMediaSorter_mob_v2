@@ -43,7 +43,7 @@ function Assert-That([string]$name, [bool]$ok, [string]$detail) {
     }
 }
 
-# Builds a sandbox with both registered databases. Each module's migration hops and test files are
+# Builds a sandbox with every registered database. Each database's migration hops and test files are
 # named explicitly, so a case says exactly which pairing it is asserting.
 function New-Sandbox {
     param(
@@ -51,7 +51,23 @@ function New-Sandbox {
         [string[]]$PhoneTests = @('AppDatabaseMigration53To54Test'),
         [string[]]$WearMigrations = @(),
         [string[]]$WearTests = @(),
-        [string]$BaselineText
+        # S2829: the watch's heart-rate database shares the voice-note database's directory, so its
+        # hops are named separately here to prove the two sets stay apart.
+        [string[]]$HeartRateMigrations = @(),
+        [string[]]$HeartRateTests = @(),
+        [string]$BaselineText,
+        # S2832: aggregate declarations - hops the registry row names in MigrationAggregateFiles,
+        # each written as "from,to". A hop declared only here is invisible to a name-only listing,
+        # which is the defect the new cases exist to pin.
+        [string[]]$PhoneAggregateHops = @(),
+        [string[]]$WearVoiceAggregateHops = @(),
+        # S2832: test file bodies - a hop may be paired by the test's TEXT (MIGRATION_N_M) rather
+        # than its file name, so a case must be able to say what the test file contains.
+        [hashtable]$TestTexts = @{},
+        # S2832: the whole-chain test, which mentions every hop by constant name and must therefore
+        # stay outside pairing.
+        [string]$PhoneChainTest = '',
+        [string]$PhoneChainTestText = ''
     )
     $sandbox = Join-Path ([System.IO.Path]::GetTempPath()) ('s2355-pairing-' + [System.IO.Path]::GetRandomFileName())
     $qualityDir = Join-Path $sandbox 'scripts/quality'
@@ -73,17 +89,49 @@ function New-Sandbox {
 
         # Wrapped in @(): an empty array returned from an `if` collapses to $null, and $null.Count is
         # a terminating error under StrictMode - the same trap the gate itself documents.
-        $migrations = @(if ($db.Module -eq 'wear') { $WearMigrations } else { $PhoneMigrations })
-        $tests = @(if ($db.Module -eq 'wear') { $WearTests } else { $PhoneTests })
+        # S2829: selected by Key, not by Module - three of the four rows are the wear module, and a
+        # case that wants a hop in one of them must not plant it in all three.
+        $migrations = @(switch ($db.Key) {
+                'wear-voice-note' { $WearMigrations }
+                'wear-heart-rate' { $HeartRateMigrations }
+                'app_v2' { $PhoneMigrations }
+            })
+        $tests = @(switch ($db.Key) {
+                'wear-voice-note' { $WearTests }
+                'wear-heart-rate' { $HeartRateTests }
+                'app_v2' { $PhoneTests }
+            })
 
         foreach ($hop in $migrations) {
-            Set-Content -Path (Join-Path $db.MigrationDir "Migration$hop.kt") -Value "// Migration$hop" -Encoding utf8NoBOM
+            $fileName = "$($db.MigrationFilePrefix)$hop.kt"
+            Set-Content -Path (Join-Path $db.MigrationDir $fileName) -Value "// $fileName" -Encoding utf8NoBOM
+        }
+        # S2832: aggregate files, one hop per line, exactly the Migration(N, M) shape the shared
+        # discovery parses.
+        if ($db.Key -eq 'app_v2' -and $PhoneAggregateHops.Count -gt 0) {
+            $lines = foreach ($pair in $PhoneAggregateHops) {
+                $f, $t = $pair -split ','
+                "val MIGRATION_${f}_${t} = Migration($f, $t)"
+            }
+            Set-Content -Path (Join-Path $db.MigrationDir 'AppDatabase.kt') -Value ($lines -join "`n") -Encoding utf8NoBOM
+        }
+        if ($db.Key -eq 'wear-voice-note' -and $WearVoiceAggregateHops.Count -gt 0) {
+            $lines = foreach ($pair in $WearVoiceAggregateHops) {
+                $f, $t = $pair -split ','
+                "val MIGRATION_${f}_${t} = Migration($f, $t)"
+            }
+            Set-Content -Path (Join-Path $db.MigrationDir 'WearVoiceNoteMigrations.kt') -Value ($lines -join "`n") -Encoding utf8NoBOM
         }
         if ($tests.Count -gt 0) {
             New-Item -ItemType Directory -Force -Path $db.AndroidTestDir | Out-Null
             foreach ($test in $tests) {
-                Set-Content -Path (Join-Path $db.AndroidTestDir "$test.kt") -Value "// $test" -Encoding utf8NoBOM
+                $body = if ($TestTexts.ContainsKey($test)) { $TestTexts[$test] } else { "// $test" }
+                Set-Content -Path (Join-Path $db.AndroidTestDir "$test.kt") -Value $body -Encoding utf8NoBOM
             }
+        }
+        if ($db.Key -eq 'app_v2' -and $PhoneChainTest) {
+            New-Item -ItemType Directory -Force -Path $db.AndroidTestDir | Out-Null
+            Set-Content -Path (Join-Path $db.AndroidTestDir "$PhoneChainTest.kt") -Value $PhoneChainTestText -Encoding utf8NoBOM
         }
     }
     return $sandbox
@@ -105,19 +153,28 @@ $cases = @(
         Name    = 'wear with no migration at all is clean, not unverifiable'
         Args    = @{}
         Expect  = 0
-        Contain = 'wear 0 (schema only)'
+        Contain = 'wear-voice-note 0 (schema only)'
     },
     @{
         Name    = 'a wear migration with no test is found and names wear'
         Args    = @{ WearMigrations = @('1To2') }
         Expect  = 1
-        Contain = '[wear] Migration1To2.kt has no matching'
+        Contain = '[wear-voice-note] Migration1To2.kt has no matching'
     },
     @{
         Name    = 'a wear migration with its test passes'
         Args    = @{ WearMigrations = @('1To2'); WearTests = @('WearVoiceNoteDatabaseMigration1To2Test') }
         Expect  = 0
         Contain = 'PASS'
+    },
+    @{
+        # S2829: the two databases share one directory, so the only thing keeping their hops apart is
+        # the file-name prefix. A heart-rate hop must be reported against the heart-rate database and
+        # must leave the voice-note database at zero - the neighbour has no such migration to test.
+        Name    = 'a hop in one watch database is not charged to the one sharing its directory'
+        Args    = @{ HeartRateMigrations = @('1To2') }
+        Expect  = 1
+        Contain = '[wear-heart-rate] HeartRateMigration1To2.kt has no matching'
     },
     @{
         # The collision the module prefix exists to prevent: both databases start at version 1, so an
@@ -127,7 +184,7 @@ $cases = @(
             BaselineText = 'app_v2:1To2'
         }
         Expect  = 1
-        Contain = '[wear] Migration1To2.kt has no matching'
+        Contain = '[wear-voice-note] Migration1To2.kt has no matching'
     },
     @{
         Name    = 'a module-prefixed baseline key suppresses its own module'
@@ -148,6 +205,39 @@ $cases = @(
         Args    = @{ PhoneMigrations = @('53To54'); PhoneTests = @() }
         Expect  = 1
         Contain = '[app_v2] Migration53To54.kt has no matching'
+    },
+    @{
+        # S2832: the aggregate declaration the old directory listing never saw.
+        Name    = 'a hop declared only in an aggregate file with no test is found'
+        Args    = @{ PhoneMigrations = @(); PhoneAggregateHops = @('31,32'); PhoneTests = @() }
+        Expect  = 1
+        Contain = '[app_v2] AppDatabase.kt has no matching Migration31To32'
+    },
+    @{
+        # S2832: WearVoiceNoteMigrationTest proves its hop by invoking the constant - pairing by
+        # test TEXT must accept it without demanding a rename.
+        Name    = 'an aggregate hop paired by test TEXT passes'
+        Args    = @{ PhoneMigrations = @(); PhoneAggregateHops = @('31,32'); PhoneTests = @('AppDatabaseAggregate31To32Test')
+            TestTexts = @{ AppDatabaseAggregate31To32Test = 'val carried = MIGRATION_31_32' } }
+        Expect  = 0
+        Contain = 'PASS'
+    },
+    @{
+        # S2832: the whole-chain test mentions every hop by constant name; counting it would
+        # dissolve the frozen baseline in silence.
+        Name    = 'a hop mentioned only by the chain test stays untested'
+        Args    = @{ PhoneMigrations = @(); PhoneAggregateHops = @('31,32'); PhoneTests = @()
+            PhoneChainTest = 'AppDatabaseMigrationChainTest'; PhoneChainTestText = 'val walked = MIGRATION_31_32' }
+        Expect  = 1
+        Contain = '[app_v2] AppDatabase.kt has no matching Migration31To32'
+    },
+    @{
+        # S2832: the aggregate belongs to the row that NAMES it - the heart-rate database sharing
+        # the directory stays at zero.
+        Name    = 'an aggregate hop is not charged to the watch database sharing its directory'
+        Args    = @{ WearVoiceAggregateHops = @('1,2') }
+        Expect  = 1
+        Contain = '[wear-voice-note] WearVoiceNoteMigrations.kt has no matching Migration1To2'
     }
 )
 

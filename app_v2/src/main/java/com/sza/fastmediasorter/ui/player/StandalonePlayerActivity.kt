@@ -24,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -1049,7 +1050,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private fun updateEpubTranslatorVisibility() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         binding.btnTranslateEpubCmd.isVisible =
-            BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
+            CapabilityAvailabilityAccessor.isTranslationAvailable(this) && cachedTranslationEnabled &&
+                isLandscape && viewManager.isEpubActive()
     }
 
     /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the app settings stream. */

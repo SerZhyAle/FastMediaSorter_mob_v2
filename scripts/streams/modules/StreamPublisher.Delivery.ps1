@@ -310,7 +310,7 @@ function Normalize-CatalogFacetRows {
     param([object[]]$Rows)
     $moves = @{}
     $normalizers = @(
-        @{ facet = 'category'; apply = { param($value) Get-CanonicalCategory -Category $value } },
+        @{ facet = 'category'; apply = { param($value, $row) Get-CanonicalCategory -Category $value -Topic ([string]$row.topic) } },
         @{ facet = 'topic'; apply = { param($value) Get-CanonicalTopic -topic $value } },
         @{ facet = 'language'; apply = { param($value) Get-CanonicalLanguages -Languages $value } },
         @{ facet = 'country'; apply = { param($value) Get-CanonicalCountry -Country $value } }
@@ -319,7 +319,7 @@ function Normalize-CatalogFacetRows {
         foreach ($normalizer in $normalizers) {
             $facet = [string]$normalizer.facet
             $old = [string]$row.$facet
-            $new = [string](& $normalizer.apply $old)
+            $new = [string](& $normalizer.apply $old $row)
             if ($old -eq $new) { continue }
             $key = "{0}`u{001F}{1}`u{001F}{2}" -f $facet, $old, $new
             $moves[$key] = 1 + $(if ($moves.ContainsKey($key)) { $moves[$key] } else { 0 })

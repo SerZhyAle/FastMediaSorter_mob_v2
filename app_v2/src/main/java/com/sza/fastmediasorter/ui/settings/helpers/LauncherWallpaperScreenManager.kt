@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.databinding.DialogLauncherWallpaperSettingsBinding
 import com.sza.fastmediasorter.databinding.ItemLauncherWallpaperModeBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import timber.log.Timber
 import java.io.File
 import java.util.Locale
 import kotlin.math.roundToInt
@@ -39,6 +40,7 @@ class LauncherWallpaperScreenManager(
     private val applyMode: (String) -> Unit,
     private val applyTuning: (intensity: Float?, speed: Float?, density: Float?) -> Unit,
     private val applyPalette: (String) -> Unit,
+    private val applyScreens: (count: Int?, showNumber: Boolean?) -> Unit,
 ) {
     private val modeRows = mutableMapOf<String, ItemLauncherWallpaperModeBinding>()
 
@@ -46,6 +48,7 @@ class LauncherWallpaperScreenManager(
 
     fun setup() {
         buildModeRows()
+        setupScreensSection()
         setupSliders()
         setupPaletteRow()
         binding.btnWallpaperSourceChange.setOnClickListener {
@@ -56,9 +59,35 @@ class LauncherWallpaperScreenManager(
     fun render(settings: AppSettings) {
         val mode = settings.launcherWallpaperMode
         modeRows.forEach { (rowMode, rowBinding) -> rowBinding.radioWallpaperMode.isChecked = rowMode == mode }
+        renderScreensSection(settings)
         renderSource(settings, mode)
         renderTuning(settings, mode)
         renderPowerState()
+    }
+
+    /**
+     * S2730: the desktop's screen count and the screen-number badge, the two settings that describe the
+     * surfaces themselves rather than what is painted on them.
+     */
+    private fun setupScreensSection() {
+        binding.rowScreenCount.setEntries(SCREEN_COUNT_ENTRIES)
+        binding.rowScreenCount.setOnItemSelectedListener { index ->
+            if (isUpdating()) return@setOnItemSelectedListener
+            Timber.d("S2730: screen count row -> ${index + FIRST_SCREEN_COUNT}")
+            applyScreens(index + FIRST_SCREEN_COUNT, null)
+        }
+        binding.rowShowScreenNumber.setOnCheckedChangeListener { isChecked ->
+            if (isUpdating()) return@setOnCheckedChangeListener
+            Timber.d("S2730: show screen number row -> $isChecked")
+            applyScreens(null, isChecked)
+        }
+    }
+
+    private fun renderScreensSection(settings: AppSettings) {
+        val index = (settings.launcherScreenCount - FIRST_SCREEN_COUNT)
+            .coerceIn(0, SCREEN_COUNT_ENTRIES.lastIndex)
+        binding.rowScreenCount.setSelection(index)
+        binding.rowShowScreenNumber.setCheckedSilently(settings.launcherShowScreenNumber)
     }
 
     private fun buildModeRows() {
@@ -244,6 +273,10 @@ class LauncherWallpaperScreenManager(
     private companion object {
         const val PERCENT_SCALE = 100f
         const val MULTIPLIER_FORMAT = "%.2f"
+
+        /** The 1..5 range LauncherSettingsStore coerces to; the dropdown shows its index, not the value. */
+        val SCREEN_COUNT_ENTRIES = listOf("1", "2", "3", "4", "5")
+        const val FIRST_SCREEN_COUNT = 1
 
         fun toPercent(value: Float): Int = (value * PERCENT_SCALE).roundToInt()
 

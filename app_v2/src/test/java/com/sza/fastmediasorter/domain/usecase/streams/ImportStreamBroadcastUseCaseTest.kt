@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.testing.InMemoryRoomRule
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -44,7 +45,7 @@ class ImportStreamBroadcastUseCaseTest {
     private val parser = BroadcastDescriptorParser()
     private val serializer = BroadcastDescriptorSerializer()
     private val addStreamUseCase get() = AddStreamSourceUseCase(repo, StreamMediaKindClassifier(), stats)
-    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase)
+    private val importUseCase get() = ImportStreamBroadcastUseCase(parser, addStreamUseCase, repo)
 
     @Test
     fun importFromValidCompressedPayload_addsOrdinaryStreamSourceEntity() = runTest {
@@ -101,5 +102,64 @@ class ImportStreamBroadcastUseCaseTest {
         val result = importUseCase(serializer.serialize(dto))
 
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion, result)
+    }
+
+    // S2813: the four ways a scanned descriptor can meet the catalog. They differ only in stored
+    // state, which is exactly what a device walk cannot tell apart.
+
+    @Test
+    fun importFromUnknownDevice_recordsTheDeviceOnTheNewRow() = runTest {
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, result)
+        assertEquals(WATCH_ID, dao.getByUrl(FIRST_URL)?.sourceDeviceId)
+    }
+
+    @Test
+    fun importFromKnownDeviceOnANewAddress_refreshesTheRowInsteadOfAddingOne() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL)))
+        val before = dao.getByUrl(FIRST_URL)
+        repo.pinToTop(requireNotNull(before).id)
+
+        val result = importUseCase(serializer.serialize(watchDto(SECOND_URL)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("the watch must still own exactly one row", 1, dao.observeAll().first().size)
+        val after = dao.getByUrl(SECOND_URL)
+        assertEquals(before.id, after?.id)
+        assertEquals("the pin must survive the address change", true, after?.pinned)
+    }
+
+    @Test
+    fun importFromKnownDeviceOnTheSameAddress_isADuplicate() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL)))
+
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+    }
+
+    @Test
+    fun importWithoutASourceId_behavesExactlyAsBefore() = runTest {
+        val first = importUseCase(serializer.serialize(watchDto(FIRST_URL, sourceId = null)))
+        val second = importUseCase(serializer.serialize(watchDto(SECOND_URL, sourceId = null)))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, first)
+        assertEquals("a nameless source still adds a second row", 2, dao.observeAll().first().size)
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, second)
+    }
+
+    private fun watchDto(url: String, sourceId: String? = WATCH_ID) = BroadcastDescriptorDto(
+        schemaVersion = 1,
+        url = url,
+        title = "Galaxy Watch",
+        mode = "AUDIO_ONLY",
+        sourceId = sourceId
+    )
+
+    private companion object {
+        const val WATCH_ID = "6f1a8f0e-0f4e-4a2b-9d1c-2b7f1a8f0e00"
+        const val FIRST_URL = "http://192.168.1.77:41000/live-audio.aac"
+        const val SECOND_URL = "http://192.168.1.77:52311/live-audio.aac"
     }
 }

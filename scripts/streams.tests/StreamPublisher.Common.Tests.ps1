@@ -52,6 +52,23 @@ Describe 'StreamPublisher.Common' {
         (Get-CanonicalCountry 'Future country') | Should Be 'Future country'
     }
 
+    It 'assigns the Webcam category from the rubric, not from the collecting source' {
+        # The published CSV carries no source column, so the rubric is the only signal that reaches the
+        # rows already shipped - these are the exact shapes the webcam collectors and TfL emit (S1476).
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'Webcam') | Should Be 'Webcam'
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'Traffic cams') | Should Be 'Webcam'
+        # The rubric is canonicalized first, so a raw source topic lands in the camera set too.
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'outdoor') | Should Be 'Webcam'
+        # A non-camera rubric leaves the category alone.
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'News') | Should Be 'Live TV'
+        (Get-CanonicalCategory -Category 'Radio' -Topic 'Jazz & Blues') | Should Be 'Radio'
+        # Omitting the topic keeps the pre-S1476 behaviour for every caller that has none.
+        (Get-CanonicalCategory 'Radio (SomaFM)') | Should Be 'Radio'
+        (Get-CanonicalCategory -Category 'Live TV' -Topic '') | Should Be 'Live TV'
+        # A source that already names the category converges on the same spelling.
+        (Get-CanonicalCategory 'webcams') | Should Be 'Webcam'
+    }
+
     It 'normalizes comma-separated prune statuses' {
         $statuses = @(Normalize-PruneStatuses @('dead, unknown', 'geo', ''))
         $statuses.Count | Should Be 3

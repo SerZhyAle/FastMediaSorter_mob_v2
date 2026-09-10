@@ -42,6 +42,7 @@
                 'legacy'   = 'legacy'
                 'vr'       = 'vr'
                 'nolegal'  = 'noLegal'
+                'foss'     = 'foss'
             }
             ColMap = @{
                 'video'   = 'SUPPORT_VIDEO'
@@ -80,6 +81,7 @@
                 'legacy' = 'legacy'
                 'vr'     = 'vr'
                 'nol'    = 'noLegal'
+                'foss'   = 'foss'
             }
         }
         @{
@@ -117,6 +119,7 @@
                 'photos'   = 'photos'
                 'legacy'   = 'legacy'
                 'vr'       = 'vr'
+                'foss'     = 'foss'
             }
         }
         @{
@@ -142,11 +145,12 @@
                 'photos'       = 'photos'
                 'legacy'       = 'legacy'
                 'xr / nolegal' = @('vr', 'noLegal')
+                'foss'         = 'foss'
             }
         }
         @{
             Id     = 'howto-availability-ru'
-            Path   = 'docs/HOW_TO_RU.md'
+            Path   = 'docs/HOW_TO-ru.md'
             Anchor = '## Примечание: Доступность функций по версиям'
             Axis   = 'FlagRows'
             Glyphs = @{ True = @([char]0x2713); False = @([char]0x2717); Absent = @() }
@@ -167,11 +171,12 @@
                 'photos'       = 'photos'
                 'legacy'       = 'legacy'
                 'xr / nolegal' = @('vr', 'noLegal')
+                'foss'         = 'foss'
             }
         }
         @{
             Id     = 'howto-availability-uk'
-            Path   = 'docs/HOW_TO_UK.md'
+            Path   = 'docs/HOW_TO-uk.md'
             Anchor = '## Примітка: Доступність функцій за версіями'
             Axis   = 'FlagRows'
             Glyphs = @{ True = @([char]0x2713); False = @([char]0x2717); Absent = @() }
@@ -192,6 +197,7 @@
                 'photos'       = 'photos'
                 'legacy'       = 'legacy'
                 'xr / nolegal' = @('vr', 'noLegal')
+                'foss'         = 'foss'
             }
         }
     )

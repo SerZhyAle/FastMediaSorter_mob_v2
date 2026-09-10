@@ -24,6 +24,12 @@
     { "field": "launcherScreenCount", "reason": "how many desktop pages the person keeps - gadget and shortcut placements are stored per screen index, so a profile lowering the count would strand arrangements the user made himself (S2295)" },
     { "field": "frontFlashlightColor", "reason": "personal taste - the flashlight glow colour is the user's pick, and the default white is already what every device class wants (S1796)" },
     { "field": "launcherAnimationPalette", "reason": "personal taste - see frontFlashlightColor: the colour of the launcher waves and particles is the owner's pick, and the DYNAMIC default already adapts on every device class (S2223)" },
+    { "field": "broadcastStreamTitle", "reason": "personal session label - belongs to the broadcaster, never to a device profile" },
+    { "field": "broadcastBitRateBps", "reason": "receiver compatibility choice - belongs to the broadcaster, never to a device profile" },
+    { "field": "broadcastPort", "reason": "LAN endpoint choice - belongs to the broadcaster's network, never to a device profile" },
+    { "field": "broadcastSampleRateHz", "reason": "receiver compatibility choice - belongs to the broadcaster, never to a device profile" },
+    { "field": "broadcastChannelCount", "reason": "receiver compatibility choice - belongs to the broadcaster, never to a device profile" },
+    { "field": "broadcastAutoOpenShare", "reason": "personal workflow choice - belongs to the broadcaster, never to a device profile" },
 
     { "field": "screenCaptureDisclosureAccepted", "reason": "consent - only the user can give it" },
     { "field": "screenRecordingDisclosureAccepted", "reason": "consent - only the user can give it" },
@@ -166,6 +172,6 @@
     { "field": "stopwatchVolumeKeysControl", "reason": "reviewed for release 37 - see stopwatchParticipantCount: behaviour of a sub-program that is off by default (S2574)" },
     { "field": "waterFlashlightEnabled", "reason": "reviewed for release 37 - S2516 ships the water flashlight off until asked for, and no device class implies it; the applier branch already exists, so a profile value added later takes effect without a code change (S2574)" },
     { "field": "browseSwipeRightAction", "reason": "reviewed for release 37 - the SEND_TO default is non-destructive and useful on every device class, unlike the left slot whose DELETE default the photo frame overrides (S2574)" },
-    { "field": "playerPanelAutoHideSeconds", "reason": "reviewed for release 37 - fifteen seconds suits every device class; a different timeout is a matter of taste rather than a property of the class the profile names (S2574)" }
+    { "field": "playerPanelAutoHideSeconds", "reason": "reviewed for release 37 - ten seconds suits every device class; a different timeout is a matter of taste rather than a property of the class the profile names (S2574)" }
   ]
 }

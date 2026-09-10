@@ -5,13 +5,11 @@ import android.content.ClipboardManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSnapshot
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkTransport
 import com.sza.fastmediasorter.wear.domain.netmonitor.sectionsFor
 import com.sza.fastmediasorter.wear.domain.repository.WearNetworkMonitorRepository
-import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -54,7 +52,6 @@ private data class MonitorLocalState(
 @HiltViewModel
 class NetworkMonitorViewModel @Inject constructor(
     private val repository: WearNetworkMonitorRepository,
-    private val preferencesRepository: WearPreferencesRepository,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -80,15 +77,10 @@ class NetworkMonitorViewModel @Inject constructor(
 
     val uiState: StateFlow<NetworkMonitorUiState> = combine(
         repository.snapshots(),
-        preferencesRepository.viewMode,
         localState
-    ) { snapshot, viewMode, local ->
-        record(snapshot, viewMode, local)
+    ) { snapshot, local ->
+        record(snapshot, local)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(), initialState)
-
-    init {
-        Timber.d("S2156: NetworkMonitorViewModel opened, sections=%d", sections.size)
-    }
 
     fun probeConnection(host: String = "1.1.1.1") {
         viewModelScope.launch {
@@ -179,7 +171,6 @@ class NetworkMonitorViewModel @Inject constructor(
 
     private fun record(
         snapshot: WearNetworkSnapshot,
-        viewMode: WearViewMode,
         local: MonitorLocalState
     ): NetworkMonitorUiState {
         if (history.isEmpty() || history.last().activeTransport != snapshot.activeTransport) {
@@ -206,7 +197,6 @@ class NetworkMonitorViewModel @Inject constructor(
             capabilities = capabilities,
             snapshot = snapshot,
             sectionFacts = facts,
-            viewMode = viewMode,
             permissionsMissing = !repository.permissionsGranted(),
             history = history.toList(),
             signalHistory = signalWindow.toList(),

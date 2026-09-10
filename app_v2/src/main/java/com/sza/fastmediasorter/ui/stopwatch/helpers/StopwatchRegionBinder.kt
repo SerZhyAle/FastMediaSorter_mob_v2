@@ -49,6 +49,12 @@ class StopwatchRegionBinder(
             }
         }
         rows.forEach { row -> row.isVisible = hasVisibleRegion(row) }
+        // S2792: one button carries both global transitions; with a single participant the region's
+        // own controls already cover it, so the bar keeps its width for the rest.
+        binding.btnStopwatchStartAll.isVisible = state.participantCount > StopwatchScreenState.SINGLE_PARTICIPANT
+        binding.btnStopwatchStartAll.setText(
+            if (state.anyRunning) R.string.stopwatch_action_stop_all else R.string.stopwatch_action_start_all,
+        )
         applyFocusChain(state.participantCount)
     }
 
@@ -93,11 +99,13 @@ class StopwatchRegionBinder(
     }
 
     /**
-     * The participant a region-less key applies to, or [NO_REGION] when the key belongs to nobody.
+     * The participant a region-less key of the centre/enter vocabulary applies to, or [NO_REGION] when
+     * the key belongs to nobody.
      *
      * It tests the region root itself rather than [View.hasFocus], because a focused Start or Stop
      * button inside a region already answers a centre press with its own action - claiming the key for
-     * the region would turn a press on the Stop button into a start.
+     * the region would turn a press on the Stop button into a start. The volume vocabulary is not
+     * bound by that concern and resolves through [volumeKeyParticipantId] instead.
      */
     fun focusedParticipantId(): Int {
         val focused = regions.indexOfFirst { it.root.isVisible && it.root.isFocused }
@@ -105,9 +113,26 @@ class StopwatchRegionBinder(
             return focused
         }
         // With one region on screen there is nothing to disambiguate, so a stray key still starts it.
-        // With several, a key that landed outside every region must not pick one for the user.
+        // With several, a centre key that landed outside every region must not pick one for the user.
         val visibleCount = regions.count { it.root.isVisible }
         return if (visibleCount == StopwatchScreenState.SINGLE_PARTICIPANT) 0 else NO_REGION
+    }
+
+    /**
+     * The participant a hardware volume key applies to (S2792), or [NO_REGION] when none is visible.
+     *
+     * Unlike [focusedParticipantId] this accepts subtree focus: a volume key never activates the
+     * focused view's own action, so the region owning a focused Start or Stop button may claim it.
+     * When nothing inside a region holds focus - the normal touch-mode state, where taps leave no view
+     * focused - the first visible region is the default, because the root-focus requirement used to
+     * drop every touch-mode press to the system and the keys looked dead.
+     */
+    fun volumeKeyParticipantId(): Int {
+        val subtreeFocused = regions.indexOfFirst { it.root.isVisible && it.root.hasFocus() }
+        if (subtreeFocused >= 0) {
+            return subtreeFocused
+        }
+        return regions.indexOfFirst { it.root.isVisible }.takeIf { it >= 0 } ?: NO_REGION
     }
 
     /** Moves focus to a region, which is how a number key selects a participant without a tap. */
@@ -130,7 +155,7 @@ class StopwatchRegionBinder(
         val afterRegions = if (binding.stopwatchVolumeRow.isVisible) {
             binding.sliderStopwatchVolume.id
         } else {
-            binding.btnStopwatchResetAll.id
+            binding.btnStopwatchStartAll.id
         }
         visible.forEachIndexed { index, view ->
             val next = visible.getOrNull(index + 1)?.id ?: afterRegions
@@ -138,12 +163,21 @@ class StopwatchRegionBinder(
             view.nextFocusRightId = next
             view.nextFocusForwardId = next
         }
+        // S2792: the action bar walks its own XML order (Start all, Reset all, Result, Settings), so
+        // no global action is unreachable by D-pad; the chain previously jumped from Reset all
+        // straight to Settings and skipped Result on the way right.
         binding.sliderStopwatchVolume.nextFocusUpId = visible.lastOrNull()?.id ?: View.NO_ID
-        binding.sliderStopwatchVolume.nextFocusDownId = binding.btnStopwatchResetAll.id
-        binding.sliderStopwatchVolume.nextFocusForwardId = binding.btnStopwatchResetAll.id
+        binding.sliderStopwatchVolume.nextFocusDownId = binding.btnStopwatchStartAll.id
+        binding.sliderStopwatchVolume.nextFocusForwardId = binding.btnStopwatchStartAll.id
+        binding.btnStopwatchStartAll.nextFocusUpId = afterRegions
+        binding.btnStopwatchStartAll.nextFocusRightId = binding.btnStopwatchResetAll.id
+        binding.btnStopwatchStartAll.nextFocusForwardId = binding.btnStopwatchResetAll.id
         binding.btnStopwatchResetAll.nextFocusUpId = afterRegions
-        binding.btnStopwatchResetAll.nextFocusRightId = binding.btnStopwatchSettings.id
-        binding.btnStopwatchResetAll.nextFocusForwardId = binding.btnStopwatchSettings.id
+        binding.btnStopwatchResetAll.nextFocusRightId = binding.btnStopwatchResult.id
+        binding.btnStopwatchResetAll.nextFocusForwardId = binding.btnStopwatchResult.id
+        binding.btnStopwatchResult.nextFocusUpId = afterRegions
+        binding.btnStopwatchResult.nextFocusRightId = binding.btnStopwatchSettings.id
+        binding.btnStopwatchResult.nextFocusForwardId = binding.btnStopwatchSettings.id
         binding.btnStopwatchSettings.nextFocusUpId = afterRegions
     }
 

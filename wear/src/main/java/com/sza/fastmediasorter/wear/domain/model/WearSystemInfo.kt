@@ -34,7 +34,8 @@ sealed interface WearSystemInfoValue {
 /** One report line: the name the user reads and the value it names. */
 data class WearSystemInfoField(
     @StringRes val labelRes: Int,
-    val value: WearSystemInfoValue
+    val value: WearSystemInfoValue,
+    val accentHint: Boolean = false
 )
 
 /**

@@ -6,7 +6,6 @@ import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
 import android.provider.CalendarContract
-import android.text.format.DateFormat
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.LayoutInflater
@@ -14,17 +13,20 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
 import android.widget.FrameLayout
+import android.widget.TextClock
 import androidx.core.graphics.ColorUtils
-import androidx.core.view.doOnLayout
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherClockBinding
+import com.sza.fastmediasorter.domain.model.UnitScale
+import com.sza.fastmediasorter.domain.model.UnitSystem
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.util.resolveActivityCompat
+import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.util.Locale
 import javax.inject.Inject
 import kotlin.math.abs
 import kotlin.random.Random
@@ -35,6 +37,7 @@ import kotlin.random.Random
  */
 class ClockGadget @Inject constructor(
     private val stateStore: ClockGadgetStateStore,
+    private val unitSystemProvider: Lazy<UnitSystemProvider>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_CLOCK
@@ -53,20 +56,24 @@ class ClockGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        ClockGadgetView(container.context, stateStore)
+        ClockGadgetView(container.context, stateStore, unitSystemProvider.get())
 }
 
 /**
- * No lifecycle work at all: both [android.widget.TextClock]s drive themselves. The base class is still
- * the right parent - it is what makes "a gadget owns its own teardown" true by construction rather
- * than by review.
+ * Both [android.widget.TextClock]s tick on their own; the only lifecycle work is following the
+ * unit-system setting (S2795), which decides the clock length and therefore the patterns they tick with.
  */
 private class ClockGadgetView(
     context: Context,
     private val stateStore: ClockGadgetStateStore,
+    private val unitSystemProvider: UnitSystemProvider,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherClockBinding.inflate(LayoutInflater.from(context), this)
+
+    private var displayState: ClockGadgetDisplayState? = null
+
+    private var unitSystem: UnitSystem = unitSystemProvider.value
 
     private val configuration = ViewConfiguration.get(context)
 
@@ -89,16 +96,9 @@ private class ClockGadgetView(
     private var isFlingHandled = false
 
     init {
-        // The date line has no fixed shape across locales - ask the platform for this locale's pattern
-        // instead of hardcoding one that reads wrong outside en-US.
-        val datePattern = DateFormat.getBestDateTimePattern(Locale.getDefault(), DATE_SKELETON)
-        binding.gadgetClockDate.format12Hour = datePattern
-        binding.gadgetClockDate.format24Hour = datePattern
         contentDescription = context.getString(R.string.launcher_gadget_clock_actions)
         isFocusable = true
         isClickable = true
-        doOnLayout {
-        }
         setOnClickListener { openSystemClock(context) }
         setOnLongClickListener {
             openCalendar(context)
@@ -119,8 +119,17 @@ private class ClockGadgetView(
         }
     }
 
+    /**
+     * The collection is scoped by [LauncherGadgetView], which already runs this only while attached and
+     * STARTED - a settings flip made while the desktop is on screen must reach a clock that is already
+     * ticking, and one made while it is not is picked up by the next start.
+     */
     override suspend fun CoroutineScope.onActive() {
-        applyDisplayState(withContext(Dispatchers.IO) { stateStore.read() })
+        val storedState = withContext(Dispatchers.IO) { stateStore.read() }
+        unitSystemProvider.current.collect { system ->
+            unitSystem = system
+            applyDisplayState(displayState ?: storedState)
+        }
     }
 
     /**
@@ -182,16 +191,9 @@ private class ClockGadgetView(
     }
 
     private fun applyDisplayState(state: ClockGadgetDisplayState) {
-        binding.gadgetClockTime.format12Hour = if (state.secondsVisible) {
-            TIME_FORMAT_12_WITH_SECONDS
-        } else {
-            TIME_FORMAT_12
-        }
-        binding.gadgetClockTime.format24Hour = if (state.secondsVisible) {
-            TIME_FORMAT_24_WITH_SECONDS
-        } else {
-            TIME_FORMAT_24
-        }
+        displayState = state
+        applyPattern(binding.gadgetClockTime, UnitScale.timePattern(unitSystem, state.secondsVisible))
+        applyPattern(binding.gadgetClockDate, WEEKDAY_FIELD + UnitScale.shortDatePattern(unitSystem))
         binding.gadgetClockTime.setTextColor(
             state.dialColor ?: MaterialColors.getColor(
                 binding.gadgetClockTime,
@@ -207,6 +209,19 @@ private class ClockGadgetView(
         binding.gadgetClockTime.typeface = ClockDialTypeface
             .fromPersistedName(state.dialTypefaceName)
             .resolveTypeface()
+    }
+
+    /**
+     * Exactly one attribute carries the pattern and the other is null, because TextClock falls back to
+     * whichever one is set when the one matching the DEVICE's 12/24-hour switch is missing. That is what
+     * makes the app's unit system, not the device, decide the clock length (S2795); setting both would
+     * hand the choice back to the device, which is what this gadget did before.
+     */
+    private fun applyPattern(clock: TextClock, pattern: String) {
+        val imperial = unitSystem == UnitSystem.IMPERIAL
+        Timber.d("S2795: desktop clock pattern=%s imperial=%s", pattern, imperial)
+        clock.format12Hour = pattern.takeIf { imperial }
+        clock.format24Hour = pattern.takeIf { !imperial }
     }
 
     private fun randomTypefaceName(currentName: String): String = ClockDialTypeface.entries
@@ -252,12 +267,11 @@ private class ClockGadgetView(
     }
 
     private companion object {
-        /** Weekday + day + short month; the platform orders them per locale. */
-        const val DATE_SKELETON = "EEEdMMM"
-        const val TIME_FORMAT_12 = "h:mm"
-        const val TIME_FORMAT_12_WITH_SECONDS = "h:mm:ss"
-        const val TIME_FORMAT_24 = "H:mm"
-        const val TIME_FORMAT_24_WITH_SECONDS = "H:mm:ss"
+        /**
+         * The weekday, translated by the locale, in front of the system's own day-month order. The full
+         * date pattern is not used here: this line autosizes down to 9sp and has no room for a year.
+         */
+        const val WEEKDAY_FIELD = "EEE "
         const val HUE_DEGREES = 360f
         const val DIAL_SATURATION = 0.72f
         const val LIGHT_SURFACE_DIAL_LIGHTNESS = 0.25f

@@ -1,0 +1,48 @@
+{
+  "_comment": [
+    "S2380 - the phone screen geometries the automated UI sweep runs on, as data rather than as a",
+    "remembered AVD name. Strategic 5.1 declares the screen dimension of the run matrix here, so a",
+    "third form factor is one record in this file and not an edit to the walker.",
+    "",
+    "Two records on purpose: the narrow bench, where a fixed-width row or a two-pane layout runs out",
+    "of room first, and the tall bench, where a list shows enough rows that spacing and empty states",
+    "become visible. A frame is evidence about the screen it was taken on, so the walker asserts the",
+    "profile before each combination rather than trusting the AVD it asked the emulator to boot.",
+    "",
+    "widthPx / heightPx / densityDpi are the device profile's own hw.lcd.* values, which is what",
+    "avdmanager writes into a fresh AVD and what `wm size` / `wm density` report back. dp = px /",
+    "densityDpi * 160. The pair is compared unordered by the bench: the sweep rotates the device, and",
+    "a rotated reading must not read as a different bench.",
+    "",
+    "The watch profiles in wear-shape-profiles.json are a separate file with a separate consumer and",
+    "are never touched from here (strategic 5.3, ADR-2).",
+    "",
+    "Consumed by scripts/devtest/ui-sweep-bench.ps1 and the S2380 matrix walker."
+  ],
+  "ticket": "S2380",
+  "systemImageNote": "Both AVDs are created on an API 33+ image: READ_MEDIA_IMAGES / READ_MEDIA_VIDEO / READ_MEDIA_AUDIO, which ui-sweep-seed.ps1 grants before first launch, do not exist below API 33.",
+  "profiles": [
+    {
+      "id": "small-phone",
+      "avdName": "UI_Sweep_Small_Phone",
+      "deviceProfile": "small_phone",
+      "widthPx": 720,
+      "heightPx": 1280,
+      "densityDpi": 320,
+      "widthDp": 360,
+      "heightDp": 640,
+      "note": "The narrow bench. 360 dp is the width most Android layout guidance treats as the compact floor, and it is where a fixed-width row, a long localized label or a two-pane split fails first - so a defect visible only here is exactly the one a sweep run on the desk device would miss."
+    },
+    {
+      "id": "large-phone",
+      "avdName": "UI_Sweep_Large_Phone",
+      "deviceProfile": "pixel_9",
+      "widthPx": 1080,
+      "heightPx": 2424,
+      "densityDpi": 420,
+      "widthDp": 411.4,
+      "heightDp": 923.4,
+      "note": "The tall bench, close to the owner's own phone. 283 dp more height than the small profile means a list renders enough rows for spacing, dividers and the empty state below the fold to be judged, which a 640 dp screen cuts off."
+    }
+  ]
+}

@@ -74,6 +74,15 @@ object WearRoutes {
     /** S2457: the foreground heart-rate diagnostic. Carries its `canonicalKey` like the programs above. */
     const val BODY_SENSOR = "body_sensor"
 
+    /** S2808: the heart-rate measurement history screen, reached from the body sensor screen. */
+    const val HEART_RATE_HISTORY = "heart_rate_history"
+
+    /** S2809: the blood pressure input screen. Available in both flavors - no permission needed. */
+    const val BLOOD_PRESSURE = "blood_pressure"
+
+    /** S2809: the blood pressure history screen, reached from the blood pressure screen. */
+    const val BLOOD_PRESSURE_HISTORY = "blood_pressure_history"
+
     /**
      * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
      * `canonicalKey` like the four above, which is what the Apps catalog's route-equals-key test reads;
@@ -103,6 +112,12 @@ object WearRoutes {
      * two opposite directions would make a pinned shortcut ambiguous about which device it starts.
      */
     const val PHONE_CAMERA = "phone_camera"
+
+    /**
+     * S2825: the watch stopwatch. Ships in both watch flavors with no `WearRestrictedCapabilities`
+     * gate - it needs no permission and no hardware the phone half does not already assume.
+     */
+    const val STOPWATCH = "stopwatch"
 
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"

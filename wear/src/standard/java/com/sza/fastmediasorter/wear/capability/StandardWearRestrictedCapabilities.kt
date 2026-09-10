@@ -25,4 +25,10 @@ class StandardWearRestrictedCapabilities @Inject constructor() : WearRestrictedC
      * the Apps catalog withholds its row rather than offering one that could only report a refusal.
      */
     override val offersBodySensorDiagnostics: Boolean = false
+
+    /**
+     * S2812: the store build leaves the system shade alone. Nothing else about the water flashlight changes -
+     * the screen still lights, still swallows touch, and still leaves on a hardware key.
+     */
+    override val locksSystemShade: Boolean = false
 }

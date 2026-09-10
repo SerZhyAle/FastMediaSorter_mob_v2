@@ -77,9 +77,9 @@
 
         <ImageButton
             android:id="@+id/btnMirrorClose"
-            android:layout_width="@dimen/control_button_size"
-            android:layout_height="@dimen/control_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
             android:contentDescription="@string/mirror_close_button"
             android:focusable="true"
             android:padding="@dimen/padding_normal"
@@ -99,9 +99,9 @@
 
         <ImageButton
             android:id="@+id/btnMirrorBacklight"
-            android:layout_width="@dimen/control_button_size"
-            android:layout_height="@dimen/control_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
             android:contentDescription="@string/mirror_backlight_button"
             android:focusable="true"
             android:padding="@dimen/padding_normal"
@@ -111,9 +111,9 @@
 
         <ImageButton
             android:id="@+id/btnMirrorFlip"
-            android:layout_width="@dimen/control_button_size"
-            android:layout_height="@dimen/control_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
             android:contentDescription="@string/mirror_flip_button"
             android:focusable="true"
             android:padding="@dimen/padding_normal"
@@ -143,9 +143,9 @@
 
         <ImageButton
             android:id="@+id/btnMirrorPhoto"
-            android:layout_width="@dimen/control_button_size"
-            android:layout_height="@dimen/control_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
             android:contentDescription="@string/mirror_photo_button"
             android:focusable="true"
             android:padding="@dimen/padding_normal"
@@ -155,9 +155,9 @@
 
         <ImageButton
             android:id="@+id/btnMirrorVideo"
-            android:layout_width="@dimen/control_button_size"
-            android:layout_height="@dimen/control_button_size"
-            android:background="?attr/selectableItemBackgroundBorderless"
+            android:layout_width="@dimen/mirror_control_button_size"
+            android:layout_height="@dimen/mirror_control_button_size"
+            android:background="@drawable/mirror_control_button_background"
             android:contentDescription="@string/mirror_video_button"
             android:focusable="true"
             android:padding="@dimen/padding_normal"

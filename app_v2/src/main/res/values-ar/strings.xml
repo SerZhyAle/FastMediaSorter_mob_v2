@@ -2319,7 +2319,6 @@
     <string name="launcher_weather_location_searching">جارِ البحث..</string>
     <string name="launcher_app_shortcut_start_failed">هذا الإجراء لم يعد متاحًا.</string>
     <string name="launcher_settings_lock_desktop_title">قفل سطح المكتب</string>
-    <string name="launcher_settings_wallpaper_title">خلفية سطح المكتب</string>
     <string name="launcher_settings_wallpaper_branded">موجات وجسيمات</string>
     <string name="launcher_settings_wallpaper_none">فارغة</string>
     <string name="launcher_settings_wallpaper_image">صورتي</string>
@@ -2476,7 +2475,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d م</string>
     <string name="launcher_gadget_compass_calibrate">حرِّك الهاتف على شكل رقم ثمانية</string>
-    <string name="launcher_gadget_speed_value">%1$d كم/س</string>
     <string name="launcher_gadget_sensor_no_fix">بانتظار تحديد الموقع..</string>
     <string name="launcher_gadget_sensor_no_permission">الموقع متوقف. فعِّله من أذونات التطبيق.</string>
     <string name="launcher_gadget_compass_description">البوصلة. الاتجاه %1$s، الارتفاع %2$s</string>
@@ -2486,8 +2484,6 @@
     <string name="launcher_gadget_chart_reset">إعادة ضبط</string>
     <string name="launcher_gadget_chart_reset_description">يمسح المخطط ويبدأه من جديد من الآن</string>
     <string name="launcher_gadget_chart_empty">لا توجد قراءات بعد - يمتلئ المخطط مع تحركك.</string>
-    <string name="launcher_gadget_chart_distance">%1$s كم</string>
-    <string name="launcher_gadget_chart_altitude_current">الآن %1$d م</string>
     <string name="launcher_gadget_speed_chart_description">مخطط السرعة. الآن %1$s، %2$s منذ إعادة الضبط</string>
     <string name="launcher_gadget_altitude_chart_description">مخطط الارتفاع. الآن %1$s، %2$s منذ إعادة الضبط، %3$s مقطوعة</string>
     <string name="launcher_gadget_steps">الخطوات</string>
@@ -2810,7 +2806,6 @@
     <string name="launcher_action_all_apps">كل التطبيقات</string>
     <string name="launcher_action_black_screen">شاشة سوداء</string>
     <string name="launcher_gadget_altitude">الارتفاع</string>
-    <string name="launcher_gadget_altitude_value">%1$d م</string>
     <string name="launcher_gadget_altitude_description">الارتفاع فوق مستوى سطح البحر: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">لا يوجد ارتفاع بعد</string>
     <string name="launcher_gadget_satellites">الأقمار الصناعية</string>
@@ -3397,7 +3392,6 @@
     <string name="stream_vr_unsupported_transport">تستخدم هذه القناة وسيلة نقل لا يستطيع مشغّل الواقع الافتراضي فتحها بعد. تستمر في التشغيل في المشغّل العادي.</string>
     <string name="launcher_translator_translate">ترجمة</string>
     <string name="launcher_translator_in_progress">جارٍ الترجمة..</string>
-    <string name="launcher_wallpaper_screen_title">الخلفية</string>
     <string name="launcher_wallpaper_section_mode">ما الذي يُرسم</string>
     <string name="launcher_wallpaper_section_source">المصدر</string>
     <string name="launcher_wallpaper_section_tuning">المظهر</string>

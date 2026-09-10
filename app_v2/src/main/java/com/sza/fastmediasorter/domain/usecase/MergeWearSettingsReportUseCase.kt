@@ -61,6 +61,8 @@ class MergeWearSettingsReportUseCase @Inject constructor(
         // absent local stamp, which the resolver already answers with "take the incoming value", so the
         // first report needs no branch of its own.
         val merged = mergeAgainst(stored ?: incoming, incoming, merge)
+        Timber.d("S2799: merged anim=${merged.disableAnimations} pwr=${merged.powerSavingTrigger}")
+        Timber.d("S2799: merged hide=${merged.panelAutoHideSeconds}")
         mirrorStore.writeSettings(merged)
         mirrorStore.writeFieldTimestamps(stamps)
         // S2461: the version rides in on the same call as the time, because this line is the single
@@ -123,6 +125,26 @@ class MergeWearSettingsReportUseCase @Inject constructor(
             "streamsSectionEnabled",
             incoming.streamsSectionEnabled,
             stored.streamsSectionEnabled
+        ),
+        // S2799: the three shared fields this list omitted until that ticket. Each was added to the
+        // contract after the list was written, and nothing compared the two, so a watch edit to any of
+        // them was dropped here while every other stage of the exchange carried it. All three are
+        // optional for the S1781 reason - the value is nullable, and an absent one means the watch did
+        // not report the setting rather than switching it off.
+        disableAnimations = merge.optional(
+            "disableAnimations",
+            incoming.disableAnimations,
+            stored.disableAnimations
+        ),
+        powerSavingTrigger = merge.optional(
+            "powerSavingTrigger",
+            incoming.powerSavingTrigger,
+            stored.powerSavingTrigger
+        ),
+        panelAutoHideSeconds = merge.optional(
+            "panelAutoHideSeconds",
+            incoming.panelAutoHideSeconds,
+            stored.panelAutoHideSeconds
         ),
         // appLanguage is deliberately absent: it is the PHONE_ONLY entry the copy above preserves, and
         // the resolver would refuse it anyway.

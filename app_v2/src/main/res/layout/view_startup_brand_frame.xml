@@ -39,14 +39,14 @@
             android:contentDescription="@null"
             android:importantForAccessibility="no" />
 
-        <!-- TextClock owns the ticking: it registers its own time and time-zone receivers and
-             follows the system 12/24-hour setting, which is exactly the lifecycle wiring a
-             hand-rolled ticker in the host would have to reproduce and keep correct. -->
+        <!-- TextClock owns the ticking: it registers its own time and time-zone receivers, which is
+             exactly the lifecycle wiring a hand-rolled ticker in the host would have to reproduce and
+             keep correct. Which of the two formats it ticks with is set in code from the app's unit
+             system (S2795) - declaring both here would hand that choice back to the device. -->
         <TextClock
+            android:id="@+id/startup_brand_clock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:format12Hour="h:mm:ss a"
-            android:format24Hour="HH:mm:ss"
             android:textColor="@color/splash_content"
             android:textSize="@dimen/splash_clock_text_size"
             android:importantForAccessibility="no" />

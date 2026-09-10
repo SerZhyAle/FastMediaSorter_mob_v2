@@ -5,9 +5,10 @@
      autosize inside a declared share of the height instead of measuring at a fixed size.
      tools:ignore - autosize needs a free layout_height, which is what 0dp plus a weight gives it; the
      lint check does not model the weighted parent.
-     The 12-hour pattern carries the meridiem where the local clock's does not: on a device set to
-     12-hour, Tokyo's 14:39 rendered as a bare "2:39", which inverts day and night - the one thing a
-     remote clock exists to tell. Locally the user already knows which half of the day it is. -->
+     S2795: neither format attribute is declared here. Declaring both let the DEVICE's 12/24-hour switch
+     pick between them, while the app's unit system is what must decide the clock length; the view sets
+     exactly one of them and nulls the other. The meridiem the imperial pattern carries is still the
+     point of a remote clock - a bare "2:39" for Tokyo inverts day and night. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -29,8 +30,6 @@
             android:autoSizeMinTextSize="14sp"
             android:autoSizeTextType="uniform"
             android:ellipsize="end"
-            android:format12Hour="h:mm a"
-            android:format24Hour="H:mm"
             android:gravity="center"
             android:maxLines="1"
             android:textColor="?attr/launcherDesktopText"

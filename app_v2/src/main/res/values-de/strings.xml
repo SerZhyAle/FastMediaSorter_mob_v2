@@ -2320,7 +2320,6 @@
     <string name="launcher_weather_location_searching">Suche läuft..</string>
     <string name="launcher_app_shortcut_start_failed">Diese Aktion ist nicht mehr verfügbar.</string>
     <string name="launcher_settings_lock_desktop_title">Desktop sperren</string>
-    <string name="launcher_settings_wallpaper_title">Desktop-Hintergrund</string>
     <string name="launcher_settings_wallpaper_branded">Wellen und Partikel</string>
     <string name="launcher_settings_wallpaper_none">Leer</string>
     <string name="launcher_settings_wallpaper_image">Mein Bild</string>
@@ -2477,7 +2476,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d m</string>
     <string name="launcher_gadget_compass_calibrate">Bewege das Telefon in einer Acht</string>
-    <string name="launcher_gadget_speed_value">%1$d km/h</string>
     <string name="launcher_gadget_sensor_no_fix">Warte auf Position..</string>
     <string name="launcher_gadget_sensor_no_permission">Standort ist aus. In den App-Berechtigungen erlauben.</string>
     <string name="launcher_gadget_compass_description">Kompass. Richtung %1$s, Höhe %2$s</string>
@@ -2487,8 +2485,6 @@
     <string name="launcher_gadget_chart_reset">Zurücksetzen</string>
     <string name="launcher_gadget_chart_reset_description">Löscht das Diagramm und startet es ab jetzt neu</string>
     <string name="launcher_gadget_chart_empty">Noch keine Messwerte - das Diagramm füllt sich, während du dich bewegst.</string>
-    <string name="launcher_gadget_chart_distance">%1$s km</string>
-    <string name="launcher_gadget_chart_altitude_current">Jetzt %1$d m</string>
     <string name="launcher_gadget_speed_chart_description">Geschwindigkeitsdiagramm. Jetzt %1$s, %2$s seit dem Zurücksetzen</string>
     <string name="launcher_gadget_altitude_chart_description">Höhendiagramm. Jetzt %1$s, %2$s seit dem Zurücksetzen, %3$s zurückgelegt</string>
     <string name="launcher_gadget_steps">Schritte</string>
@@ -2811,7 +2807,6 @@
     <string name="launcher_action_all_apps">Alle Apps</string>
     <string name="launcher_action_black_screen">Schwarzer Bildschirm</string>
     <string name="launcher_gadget_altitude">Höhe</string>
-    <string name="launcher_gadget_altitude_value">%1$d m</string>
     <string name="launcher_gadget_altitude_description">Höhe über dem Meeresspiegel: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">Noch keine Höhe</string>
     <string name="launcher_gadget_satellites">Satelliten</string>
@@ -3399,7 +3394,6 @@
     <string name="stream_vr_unsupported_transport">Dieser Kanal nutzt einen Übertragungsweg, den der VR-Player noch nicht öffnen kann. Er läuft weiterhin im normalen Player.</string>
     <string name="launcher_translator_translate">Übersetzen</string>
     <string name="launcher_translator_in_progress">Wird übersetzt..</string>
-    <string name="launcher_wallpaper_screen_title">Hintergrundbild</string>
     <string name="launcher_wallpaper_section_mode">Was gezeichnet wird</string>
     <string name="launcher_wallpaper_section_source">Quelle</string>
     <string name="launcher_wallpaper_section_tuning">Erscheinungsbild</string>

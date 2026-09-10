@@ -266,7 +266,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     // (copy is universal; translate is flavor-gated). Were present-but-gone (dead-weight) before.
     private fun setupTextActionButtons() {
         binding.btnCopyTextCmd.isVisible = true
-        binding.btnTranslateTextCmd.isVisible = capabilityAvailability.isTranslationAvailable()
+        binding.btnTranslateTextCmd.isVisible = capabilityAvailability.isTranslationAvailable(this)
         binding.btnSearchTextCmd.isVisible = true
         binding.btnSearchTextCmd.setOnClickListener { showTextSearchDialog() }
     }

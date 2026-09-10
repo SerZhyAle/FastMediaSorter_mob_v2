@@ -1,0 +1,12 @@
+# Watch flow suite (S2548).
+#
+# The id below is identical to the phone suite's on purpose: both modules publish under one
+# applicationId (S1681 - Play Services routes the Data Layer by package name), so the watch debug
+# build and the phone debug build ARE the same package. The platform is chosen by device serial,
+# never by package - see maestro/wear/README.md and the runner's exit 5.
+appId: com.sza.fastmediasorter.debug
+
+env:
+  DEFAULT_TIMEOUT: "30000"
+  SHORT_TIMEOUT: "5000"
+  LONG_TIMEOUT: "60000"

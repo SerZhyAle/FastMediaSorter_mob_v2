@@ -60,7 +60,6 @@ class WearDocumentRepositoryImpl @Inject constructor(
     override suspend fun readText(uri: Uri, capBytes: Long): WearDocumentContent =
         withContext(Dispatchers.IO) {
             val result = readFrom(capBytes) { contentResolver.openInputStream(uri) }
-            Timber.d("S2532: document read cap=%d outcome=%s", capBytes, result.javaClass.simpleName)
             result
         }
 

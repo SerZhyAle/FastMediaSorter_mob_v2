@@ -278,8 +278,8 @@ dev/CATALOG/wear.md
 
 # noLegal private feature inventory (sideload-only, not for public repo - S0156 §6.9)
 docs/FEATURES_noLegal.md
-docs/FEATURES_noLegal_RU.md
-docs/FEATURES_noLegal_UK.md
+docs/FEATURES_noLegal-ru.md
+docs/FEATURES_noLegal-uk.md
 docs/ALL_FEATURES_noLegal.jsonl
 docs/SETTINGS_REFERENCE_noLegal.md
 

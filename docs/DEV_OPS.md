@@ -79,7 +79,8 @@ emulator / device - runs natively (~0 LLM tokens), auto-discovers adb (not on PA
 takes `-DeviceId` / `-Release` / `-Package` / `-OutDir` / `-Json`, and uses stable exit codes
 (0 ok / 1 no-adb-or-bad-args / 2 no-device / 3 multi-device / 4 pkg-not-installed /
 5 destructive verb refused / 6 pull: no such remote path / 7 adb-failed / 8 `tap-label` / `tap-id`:
-the target is not on screen and nothing was tapped / 9 clip-check: content off-glass).
+the target is not on screen and nothing was tapped / 9 clip-check: content off-glass / 12 `rotary`:
+the selected device is not a watch and nothing was sent).
 
 **Two verbs are one-way and both require `-Yes`: `wipe-data` and `uninstall`.** The verb that used to be
 called `clear` is gone - it was twice read as "clear the log" and wiped app data instead (S1167, S1572), so
@@ -103,8 +104,20 @@ called `clear` is gone - it was twice read as "clear the log" and wiped app data
 .\a.ps1 adb tap-id -ResourceId rowExport      # tap by resource-id; -Exact, -Index N; exit 8 if absent
 .\a.ps1 adb tap-label -Label "Media Types"    # tap by label; -Exact, -Index N; exit 8 if absent
 .\a.ps1 adb clip-check                        # content leaving the display shape; exit 9 on a defect
+.\a.ps1 adb rotary -Axis 1.0 -Repeat 3        # turn the watch bezel; watch only, exit 12 elsewhere
 .\a.ps1 adb shell -Cmd "getprop ro.product.cpu.abi"
 ```
+
+### `rotary` is the bezel, because the flow language has none (S2548)
+
+Maestro has no rotary expression, so a watch scenario that must reach its target by rotation rather
+than by touch calls `rotary` from the runner around the flow, never from inside the `.yaml`. It sends
+`input rotaryencoder scroll <axis>`, repeated `-Repeat` times: a list scrolls by repeating a small
+turn, and one large axis value flings instead. The verb refuses (exit 12, nothing sent) when the
+selected device does not report `watch` in `ro.build.characteristics` - a rotary encoder exists on no
+other form factor, and both modules publish under one `applicationId`, so nothing else would have
+caught the wrong target. Reaching an off-screen item by touch is a different question and stays inside
+the flow, where `scrollUntilVisible` answers it.
 
 ### `install` refuses a module/device mismatch (S2043)
 
@@ -584,6 +597,14 @@ The second render of the queue monitor: what `.\a.ps1 rm` prints, in a browser t
 
 One collector, two renders (S1621): `scripts/utils/dev-monitor-snapshot.ps1` is the only code that reads the sources - leases (judged by the same `Get-AgentTicketLiveness` the lease script uses, in-process instead of through a child pwsh), locks and queues, chat, journals, stop flags, headless children, the release queue, gate telemetry, context signals and the watchdog log - and returns one object (`schema` 1) with its own `durationMs` plus per-source `timings`. `monitor-spec-queue.ps1` prints it; `-Json` emits it verbatim; the page renders it. It writes nothing: every chat read passes `-NoSweep`, no lock, no chat post, no child process. Measured 2026-09-02 on the live tree: 476-518 ms cold, 209-230 ms warm (median 229), against a 1000 ms budget - one third of the 3 s interval - and the 1176 ms the old terminal snapshot took with its 434 ms lease child.
 
+**One roster, not four identity spaces** (owner finding 2026-09-10). The page opened with a `running` table that admitted only two kinds of agent: the owner of a live lease, and one whose *newest* chat message was `kind=session`. An agent that was actually working - posting `phase`, `progress` or `lock` - matched neither and was absent from it, while the lock table below named holders and queue waiters that appeared in no other section; a fourth spelling came from the harness name fallback, which slices the first eight characters of an id that never posted a message, so several distinct `codex-takeover-<epoch>` sessions all printed as `codex-ta`. Measured on the 12:20 snapshot of that day: `Code.Scripts` was held by `jade-gecko-0910-1120`, listed nowhere else on the page. The reader was left to guess that four spellings were one agent, which is the one thing the page exists to answer.
+
+`running` and `agents` are now one section, and it opens the page while `gate health` - reference rather than a live signal - closes it. The roster is keyed by session id: one row per agent carrying its ticket, its phase, the domains it **holds**, the domains it is **waiting for** with its queue position, and the freshest of its three clocks (lease heartbeat, chat message, session record - the oldest of them reads a working agent as quiet). Rows are ordered blockers first, then the blocked, then by freshness. The roster shows what is happening **now**: an agent quiet longer than thirty minutes collapses into one line that still names six of them, rather than the chat window's three hours of history.
+
+**The last note is a row, not a column,** spanning the table directly under its agent, whose own row drops its bottom border so the pair reads as one entry. It is the only wrapping cell on the page, so as a column it set the height of every row it appeared on and squeezed the eight narrow columns into a strip.
+
+**A quiet agent that still owns something is red** (`NO LIFE`), and its note row says what it is still holding and for how long. This is a deliberately wider net than the `stalls` array above it: that verdict needs a queue behind the holder before it fires, while an agent sitting on a ticket nobody is waiting for still blocks that ticket. A lease the harness itself judges `foreign-stale` is red however recent the agent's chat is - the lease verdict is made from the lease's own evidence and wins. What counts as **owned** - a lock domain, a queue position or a ticket lease - is one predicate shared by the alarm and by the rule that keeps a row out of the collapsed line; they were written separately at first and disagreed on exactly one case, a quiet agent holding only a ticket, which the cut therefore hid - the single row the alarm exists to show. The live tree had no such agent, so only a fixture (`temp/S2406/verify/`) found it. The join happens in the renderer, not the collector: `locks[].sessionId`, `locks[].queue[].sessionId`, `leases[].sessionId`, `agents[].id` and `sessions[].id` were all in `schema` 1 already. Two disciplines carry over from the child rows - a ticket that does not come from a lease is printed with a dim `?` naming where it came from, and a `name` that is a prefix of its own id is printed as `unnamed` beside a short id rather than as a nickname (a uuid shortens from the head, a `codex-takeover-<epoch>` id from the tail, because that is where each one is unique). A headless `claude -p` child stays process-shaped in its own rows below the sessions: it is joined to work by ticket and never by pid.
+
 S2700 adds the parallel-work signals without adding a journal: gate health comes from a bounded tail of `temp/metrics/gate-executions.jsonl`; runner health is summarized from the existing run journals; agent context is the last context-signal marker for its session; and watchdog actions are a bounded tail of `temp/scratch/watchdog/watchdog.log`. A missing or empty source reads as `source silent`, not as a red failure. The page puts gate health and watchdog actions in their own tables, annotates a `set-named` gate as `named your file`, and colors an agent context marker only when it says `over threshold`. The terminal exposes the same fields. A source reader must stay in the snapshot function - neither renderer reads any of these files directly.
 
 Two files under `temp/monitor/`, both written by `scripts/utils/dev-monitor-writer.ps1`:
@@ -980,6 +1001,15 @@ The rules live in the shared registry (`scripts/quality/lib/source-matchers.ps1`
 Every ratchet baseline in this repository is enforced by the same runner in two different senses, and the difference is the whole point:
 
 - **The per-ticket closure judges the named file set.** `post-change.ps1 -ScopeToFile` hands the runner `-ChangedFiles`, which puts it in delta mode: each file's working copy is counted against its own `HEAD` version, and only growth fails. This is what keeps a closure from going red on a sibling session's in-flight work (S1338).
+
+### The three shapes of a scoped gate - which gate is in which class
+
+`CLAUDE.md` section 12 states the three shapes; the membership lives here, because it changes with every new gate and an always-loaded page pays for that churn on every request of every session (S2828).
+
+- **Count ratchet, FATAL on a per-file delta against HEAD:** `neuroslop`, `listener-symmetry`, `flavor-flag`, `deprecated-pm`, `public-mutable-flow`, `focus-highlight`. A sibling's WIP raises the project-wide count and still cannot fail your close.
+- **Repo-wide re-render, advisory under `-ScopeToFile`:** `icon-inventory`, `script-cheatsheet`, `device-profile-matrix`, plus three stages of `settings-doc-sync` - `catalog-complete`, `annotations` and `reference-fresh` - each advisory only when the set feeds none of that stage's own inputs, and fatal the moment it feeds one (S2604 for the render, S2831 for the other two). Each regenerates from or judges the whole tree, so its drift is not attributable to one changed file; the gate names the stage and the finding and returns exit 3 for the facade to downgrade.
+- **Fixed input, FATAL only when a declared input is in the set:** every gate dot-sourcing `scripts/quality/lib/fixed-input-scope.ps1` and invoked through `Invoke-FixedInputGate` - today `doc-pin-drift`, `flavor-matrix-doc`, `launcher-reset-coverage`, `oss-notices`, `rule-digest-sync`, `wear-canonical-key-parity`, `wear-settings-parity`, `wear-wire-vocabulary-parity`. Outside the set the gate prints its findings and returns child exit 3, which the closure reports as an advisory naming the script to re-run project-wide. Read the membership off the dot-source, never off this list: S2824 gave three gates the fork, S2827 a fourth and S2828 four more inside two days, and the name lists in `CLAUDE.md` and `AGENTS.md` were stale both times.
+
 ### The gate placement review (S2537)
 
 `assert-release-scope-gates.ps1` ends with `measure-gate-frequency.ps1 -Placement`, printed as a report and never as a gate. It reads `temp/metrics/gate-executions.jsonl` and gives every gate its executions, findings, **median** run, typical total (median x executions) and cost per finding, marking the rows worth re-judging by CLAUDE.md Rule 33. It is advisory on purpose: the runner collapses every non-zero code to FAIL, and a candidate is a row a human then judges by the four-part test, whose exceptions - later work builds on the defect, the evidence exists only at the moment of the change, agents read the artifact between releases - no arithmetic over this journal can see.
@@ -1187,6 +1217,8 @@ pwsh -NoProfile -File scripts/devtest/wear-prerelease-walk.ps1 -DeviceId <serial
 - The walk refuses to report screens it could not have seen: it requires `mWakefulness=Awake`, manages ambient mode for the duration and restores it, and returns 2 rather than a list of failures when the watch will not wake.
 - **Every scroll stops at the end of the list, and `-MaxScrolls` is a safety cap rather than the budget (S2767).** The walk reaches for a control where it stands, and only when that misses does it settle the list to the top and hunt downwards, reading the UI tree after each swipe and stopping the moment two consecutive reads agree. The blind fixed-count version was not merely imprecise: measured on `emulator-5556` 2026-09-09, four back-to-back overscroll swipes on an already-at-top list OPEN the row under the finger - on Home that is the last-used shortcut, so the walk left for the audio player, started playback, and judged every later entry against the player while the app-in-front guard saw the same package throughout. Four screens were reported unreachable for that reason and none of them was a product defect. Raising the count made it worse, which is why the cap is documented as a backstop: the measured depths are Home 6 swipes, Apps 5, Settings 4, and Home has no fixed length at all - it draws one row per last-used resource.
 - **`unreachable` is its own outcome, apart from `failed` (S2767).** `failed` now means one thing only: the screen opened and its expected token was not on it - a product defect. A screen whose control was never found is `unreachable`, counted and printed separately by both the walk and `prerelease-verdict.ps1`, and it blocks the PASS exactly as `failed` does, because a screen nobody opened satisfies no Play requirement. Both used to print `failed (tap)`, which read as a regression on fifteen screens and cost two rebuilds before it turned out to be the walk's own scrolling.
+- **The walk tracks where it is standing, and recovers when it stops knowing (S2779).** The position is a stack of the labels tapped to reach the current screen, pushed only by an entry that actually OPENED and popped by that entry's `backAfter` presses - the model is `scripts/devtest/lib/wear-walk-position.ps1`, pure and driven by the suite without a watch. On `-RehomeAfterUnreachable` consecutive `unreachable` entries (default 2) the walk relaunches the app and taps back down that stack, and the existing app-in-front guard now shares the same recovery instead of stopping at the relaunch: a bare relaunch lands on Home, from which every settings page and every Apps page is unreachable by construction, so it converted one lost position into a cascade of its own. Why it is keyed on a run of failures: on the 2026-09-09 watch run eleven consecutive entries after `apps-water-flashlight` were recorded unreachable and spent 23 of the run's 35 minutes hunting for controls that were never on screen, which is one swallowed BACK rather than eleven absent screens - and the app never left the foreground, so the guard could not see it. A re-home is reported (`counts.rehomes`, and per row `rehomed` / `rehomeReason` / `rehomeRestored`) and never scored: the sweep handling its own navigation is not the app failing. It does sharpen the report - an `unreachable` reached for from a position restored in full says the control is not where the screen list places it, which is a screen-list edit, while one from a position that could not be restored leaves both explanations open.
+- **A re-home force-stops before it launches, and that is the part that makes it a re-home (S2779).** `adb.ps1 launch` is `am start -n <pkg>/<activity>`, which RESUMES a live task at whatever screen it was left on - so relaunching an app stuck inside the Calculator returns to the Calculator, and the recovery recovers nothing. Measured on `emulator-5554` 2026-09-09: with the launch alone the replay restored 0 of 2 levels twice in a row, and with the force-stop in front of it 2 of 2. The app-in-front guard had carried this since S1984, where it is least visible: an app that left the foreground usually still has its task, so the guard's relaunch was returning to the screen the walk had wandered off to rather than to Home. The replay also reaches each level through the same hunt an entry uses, because a bare tap sees only what is rendered and `Apps` is the fourth row of Home on a 384x384 round face.
 
 ## OCR OVERLAY ACCURACY CORPUS (S1716)
 
@@ -1775,23 +1807,24 @@ That gate reads glyph table CELLS and, by its own manifest, never looks at prose
 | **legacy**       | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [-] |
 | **vr**           | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [-] |
 | **noLegal**      | [+]   | [+]   | [+]    | [+]   | [+]     | [+]  | [+]  | [+]     | [+] |
+| **foss**         | [+]   | [+]   | [+]    | [-]   | [+]     | [+]  | [+]  | [-]     | [-] |
 
 `NETWORK` = `SUPPORT_LOCAL_NETWORK` (SMB/SFTP/FTP), `STREAMS` = `SUPPORT_STREAMS`, `VR` = `SUPPORT_VR_PLAYER`. Those two network/streams columns are the pair that defines `lite` and were missing here until S1392; `lite` is the only flavor with neither.
 
 ### Extended per-flavor flags
 
-| Flag | std | lite | photos | legacy | vr | noL |
-|:-----|:---:|:----:|:------:|:------:|:--:|:---:|
-| `SUPPORT_MIC_RECORDING`            | [+] | [-] | [-] | [+] | [+] | [+] |
-| `ENABLE_EPUB`                      | [+] | [-] | [-] | [+] | [+] | [+] |
-| `ENABLE_TRANSLATION`               | [+] | [-] | [-] | [+] | [+] | [+] |
-| `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] |
-| `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] |
-| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [-] | [-] | [+] |
-| `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] |
-| `SUPPORT_VR_PLAYER`                | [-] | [-] | [-] | [-] | [-] | [+] |
-| `VR_UI_COMPOSITION_LAYER_ENABLED`  | n/a | n/a | n/a | n/a | [-] | [+] |
-| `IS_NO_LEGAL_FLAVOR`               | [-] | [-] | [-] | [-] | [-] | [+] |
+| Flag | std | lite | photos | legacy | vr | noL | foss |
+|:-----|:---:|:----:|:------:|:------:|:--:|:---:|:----:|
+| `SUPPORT_MIC_RECORDING`            | [+] | [-] | [-] | [+] | [+] | [+] | [-] |
+| `ENABLE_EPUB`                      | [+] | [-] | [-] | [+] | [+] | [+] | [+] |
+| `ENABLE_TRANSLATION`               | [+] | [-] | [-] | [+] | [+] | [+] | [-] |
+| `ENABLE_PERSISTENT_AUDIO_PLAYBACK` | [+] | [-] | [-] | [+] | [+] | [+] | [+] |
+| `SUPPORTS_DEFAULT_PLAYER`          | [+] | [-] | [+] | [+] | [+] | [+] | [+] |
+| `SUPPORT_WEAR_COMPANION`           | [+] | [-] | [-] | [-] | [-] | [+] | [-] |
+| `SUPPORT_CAST`                     | [+] | [+] | [+] | [+] | [-] | [+] | [-] |
+| `SUPPORT_VR_PLAYER`                | [-] | [-] | [-] | [-] | [-] | [+] | [-] |
+| `VR_UI_COMPOSITION_LAYER_ENABLED`  | n/a | n/a | n/a | n/a | [-] | [+] | n/a |
+| `IS_NO_LEGAL_FLAVOR`               | [-] | [-] | [-] | [-] | [-] | [+] | [-] |
 
 `noL` = `noLegal`. `n/a` means the field is not declared for that flavor at all, so it is absent from its `BuildConfig` and only a flavor-specific source set can reference it - distinct from `[-]`, which is a declared `false`.
 
@@ -1817,7 +1850,7 @@ Cast is disabled in `vr` (Horizon OS lacks the Google Play Services Cast module)
 
 ## DATABASE
 
-Room schema version: 57 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
+Room schema version: 58 (`@Database(version = ..)` in `AppDatabase.kt` is the source of truth - read it rather than this line).
 Library: `room-runtime:2.7.0`.
 Migrations: one `MigrationNNToNN.kt` file per step in `data/local/db/`, registered in `core/di/DatabaseModule.kt`.
 Exported schemas: `app_v2/schemas/<db-class>/<version>.json`, generated by the build and committed.
@@ -1888,9 +1921,12 @@ since S2721 the watch's code is not a function of the phone's, so a release that
 writes the phone's flavors under the app code and the watch mapping under the wear code, each with its
 own manifest. It is not re-keyed to one directory per release because a watch-only release published
 through `/skill-release-wear` has no phone code to file under at all. What ties the two together is
-the `versionName`, which both modules stamp from the same build instant - so that, not a derived code,
-is what identifies a release when reading the archive. Fetching the watch payload therefore takes the
-variant as well as the name: `fetch-deobfuscation.ps1 -VersionName <version> -Variant wear`.
+the `versionName`, which both modules stamp from the same build instant in a joint release - so that,
+not a derived code, is what identifies a release when reading the archive. Fetching the watch payload
+therefore takes the variant as well as the name:
+`fetch-deobfuscation.ps1 -VersionName <version> -Variant wear`. A watch-only release ties to nothing:
+since S2788 it stamps its own name from its own instant, so it occupies a directory of its own, named
+after the build its crash reports came from.
 
 **It happens by itself.** `a.ps1 r` retains `standard` from the bundle it just built;
 `build-release-spectrum.ps1` retains every other published flavor from `build/outputs`. Do not add a

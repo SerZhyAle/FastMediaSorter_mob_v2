@@ -99,6 +99,7 @@ class SyncEnabledToolShortcutsUseCaseTest {
     private class FakeLauncherShortcutSyncRepository(
         var routes: Set<String>?,
     ) : LauncherShortcutSyncRepository {
+        var stopwatchShortcutBackfilled = false
         override suspend fun syncedRoutes(): Set<String>? = routes
 
         override suspend fun setSyncedRoutes(routeKeys: Set<String>) {
@@ -107,6 +108,12 @@ class SyncEnabledToolShortcutsUseCaseTest {
 
         override suspend fun clearSyncedRoutes() {
             routes = null
+        }
+
+        override suspend fun isStopwatchShortcutBackfilled(): Boolean = stopwatchShortcutBackfilled
+
+        override suspend fun setStopwatchShortcutBackfilled() {
+            stopwatchShortcutBackfilled = true
         }
 
         // S2564: the resource baseline shares this repository but no route test reads it, so the
@@ -342,6 +349,30 @@ class SyncEnabledToolShortcutsUseCaseTest {
         assertEquals(emptyList<Long>(), desktopRepo.removedIds)
     }
 
+    @Test
+    fun `backfills Stopwatch once when the old baseline already contains it`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(STOPWATCH_KEY))
+
+        useCaseWith(desktopRepo, setOf(STOPWATCH_KEY), baseline)()
+        useCaseWith(desktopRepo, setOf(STOPWATCH_KEY), baseline)()
+
+        val stopwatchCells = desktopRepo.addedCells.filter { it.first.target == STOPWATCH_TARGET }
+        assertEquals(2, stopwatchCells.size)
+        assertTrue(baseline.stopwatchShortcutBackfilled)
+    }
+
+    @Test
+    fun `does not complete Stopwatch backfill while Stopwatch is unavailable`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(STOPWATCH_KEY))
+
+        useCaseWith(desktopRepo, emptySet(), baseline)()
+
+        assertTrue(desktopRepo.addedCells.isEmpty())
+        assertTrue(!baseline.stopwatchShortcutBackfilled)
+    }
+
     /**
      * S2679: the landscape width stays 0 on a desktop the user has never rotated, and the placement
      * used to answer that with a constant four - narrower than the seven columns the seeded section
@@ -372,6 +403,8 @@ class SyncEnabledToolShortcutsUseCaseTest {
     private companion object {
         const val CALCULATOR_KEY = "calculator"
         const val CALCULATOR_TARGET = "fn:calculator"
+        const val STOPWATCH_KEY = "stopwatch"
+        const val STOPWATCH_TARGET = "fn:stopwatch"
         const val COLUMNS = 4
         const val SEEDED_LANDSCAPE_COLUMNS = 11
     }

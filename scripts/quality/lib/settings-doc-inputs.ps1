@@ -72,7 +72,7 @@ $script:SettingsReferenceInputPatterns = @(
     '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearchAvailabilityModule\.kt$',
     '(^|/)docs/icons/doc-icon-map\.json$',
     '(^|/)scripts/docs/render-settings-reference\.ps1$',
-    '(^|/)docs/SETTINGS_REFERENCE[A-Za-z_]*\.md$'
+    '(^|/)docs/SETTINGS_REFERENCE[A-Za-z_-]*\.md$'
 )
 
 # The docs/ artifacts that feed at least one stage. This is the closure facade's trigger and
@@ -87,7 +87,26 @@ $script:SettingsDocArtifactPatterns = @(
     '(^|/)docs/settings/settings-scope-exclusions\.json$',
     '(^|/)docs/settings/howto-path-vocab\.json$',
     '(^|/)docs/icons/doc-icon-map\.json$',
-    '(^|/)docs/SETTINGS_REFERENCE[A-Za-z_]*\.md$'
+    '(^|/)docs/SETTINGS_REFERENCE[A-Za-z_-]*\.md$'
+)
+
+# S2831: stage 3 (annotations) reads exactly the two JSON files and judges the relation between
+# them - coverage, orphans, empty locales. Nothing else can move that verdict, which is why this
+# list is two entries long and not the reference render's six.
+$script:SettingsAnnotationsInputPatterns = @(
+    '(^|/)docs/settings/settings-manifest\.json$',
+    '(^|/)docs/settings/settings-annotations\.json$'
+)
+
+# S2831: stage 1 (assert-settings-catalog-complete.ps1) enumerates every res/layout* file under
+# app_v2/src, then classifies each discovered layout against the two Kotlin catalogs and the
+# exclusions file. Every layout path is an input, not only one carrying a settings row: a row
+# ADDED to a previously row-less layout is exactly the unclassified case the stage exists to
+# catch, so narrowing by widget tag here would hide the finding it owns.
+$script:SettingsCatalogInputPatterns = @(
+    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchLayoutCatalog\.kt$',
+    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/settings/search/SettingsDocScopeCatalog\.kt$',
+    '(^|/)docs/settings/settings-scope-exclusions\.json$'
 )
 
 function Test-SettingsPathAgainst {
@@ -169,6 +188,48 @@ function Test-SettingsDocArtifactInput {
 
     foreach ($f in (Expand-SettingsDocPaths -ChangedFiles $ChangedFiles)) {
         if (Test-SettingsPathAgainst -Path $f -Patterns $script:SettingsDocArtifactPatterns) { return $true }
+    }
+    return $false
+}
+
+<#
+.SYNOPSIS
+    Does the changed set feed the annotation coverage/parity check (stage 3)?
+
+.DESCRIPTION
+    S2831. Narrower than the reference predicate: the renderer also reads the icon map and the
+    per-flavor availability modules, none of which stage 3 can see. An empty set answers $true so
+    an unscoped run keeps judging the whole pair.
+#>
+function Test-SettingsAnnotationsInput {
+    param([string[]] $ChangedFiles)
+
+    $scoped = @(Expand-SettingsDocPaths -ChangedFiles $ChangedFiles)
+    if ($scoped.Count -eq 0) { return $true }
+
+    foreach ($f in $scoped) {
+        if (Test-SettingsPathAgainst -Path $f -Patterns $script:SettingsAnnotationsInputPatterns) { return $true }
+    }
+    return $false
+}
+
+<#
+.SYNOPSIS
+    Does the changed set feed the settings-catalog completeness scan (stage 1)?
+
+.DESCRIPTION
+    S2831. Any res/layout* file under app_v2/src counts, plus the two classifying catalogs and the
+    exclusions file. An empty set answers $true, as everywhere else in this file.
+#>
+function Test-SettingsCatalogInput {
+    param([string[]] $ChangedFiles)
+
+    $scoped = @(Expand-SettingsDocPaths -ChangedFiles $ChangedFiles)
+    if ($scoped.Count -eq 0) { return $true }
+
+    foreach ($f in $scoped) {
+        if ($f -match $script:SettingsLayoutPathPattern) { return $true }
+        if (Test-SettingsPathAgainst -Path $f -Patterns $script:SettingsCatalogInputPatterns) { return $true }
     }
     return $false
 }

@@ -2321,7 +2321,6 @@
     <string name="launcher_weather_location_searching">تلاش ہو رہی ہے..</string>
     <string name="launcher_app_shortcut_start_failed">یہ عمل اب دستیاب نہیں ہے۔</string>
     <string name="launcher_settings_lock_desktop_title">ڈیسک ٹاپ مقفل کریں</string>
-    <string name="launcher_settings_wallpaper_title">ڈیسک ٹاپ وال پیپر</string>
     <string name="launcher_settings_wallpaper_branded">لہریں اور ذرات</string>
     <string name="launcher_settings_wallpaper_none">خالی</string>
     <string name="launcher_settings_wallpaper_image">میری تصویر</string>
@@ -2478,7 +2477,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d میٹر</string>
     <string name="launcher_gadget_compass_calibrate">فون کو آٹھ کی شکل میں گھمائیں</string>
-    <string name="launcher_gadget_speed_value">%1$d کلومیٹر/گھنٹہ</string>
     <string name="launcher_gadget_sensor_no_fix">پوزیشن کا انتظار ہے..</string>
     <string name="launcher_gadget_sensor_no_permission">لوکیشن بند ہے۔ اسے ایپ کی اجازتوں میں فعال کریں۔</string>
     <string name="launcher_gadget_compass_description">قطب نما۔ رخ %1$s، بلندی %2$s</string>
@@ -2488,8 +2486,6 @@
     <string name="launcher_gadget_chart_reset">ری سیٹ کریں</string>
     <string name="launcher_gadget_chart_reset_description">چارٹ صاف کرتا ہے اور اسے ابھی سے دوبارہ شروع کرتا ہے</string>
     <string name="launcher_gadget_chart_empty">ابھی تک کوئی ریڈنگ نہیں - آپ کے حرکت کرنے پر چارٹ بھرتا جائے گا۔</string>
-    <string name="launcher_gadget_chart_distance">%1$s کلومیٹر</string>
-    <string name="launcher_gadget_chart_altitude_current">ابھی %1$d میٹر</string>
     <string name="launcher_gadget_speed_chart_description">رفتار کا چارٹ۔ ابھی %1$s، ری سیٹ کے بعد سے %2$s</string>
     <string name="launcher_gadget_altitude_chart_description">بلندی کا چارٹ۔ ابھی %1$s، ری سیٹ کے بعد سے %2$s، %3$s طے شدہ</string>
     <string name="launcher_gadget_steps">قدم</string>
@@ -2812,7 +2808,6 @@
     <string name="launcher_action_all_apps">تمام ایپس</string>
     <string name="launcher_action_black_screen">سیاہ اسکرین</string>
     <string name="launcher_gadget_altitude">بلندی</string>
-    <string name="launcher_gadget_altitude_value">%1$d میٹر</string>
     <string name="launcher_gadget_altitude_description">سطح سمندر سے بلندی: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">ابھی کوئی بلندی نہیں</string>
     <string name="launcher_gadget_satellites">سیٹلائٹس</string>
@@ -3400,7 +3395,6 @@
     <string name="stream_vr_unsupported_transport">یہ چینل ایسی ٹرانسپورٹ استعمال کرتا ہے جسے VR پلیئر ابھی نہیں کھول سکتا. یہ عام پلیئر میں چلتا رہتا ہے.</string>
     <string name="launcher_translator_translate">ترجمہ کریں</string>
     <string name="launcher_translator_in_progress">ترجمہ ہو رہا ہے..</string>
-    <string name="launcher_wallpaper_screen_title">وال پیپر</string>
     <string name="launcher_wallpaper_section_mode">کیا بنایا جاتا ہے</string>
     <string name="launcher_wallpaper_section_source">ماخذ</string>
     <string name="launcher_wallpaper_section_tuning">ظاہری شکل</string>

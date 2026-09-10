@@ -3,14 +3,16 @@ package com.sza.fastmediasorter.ui.launcher.gadget
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherStepsBinding
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -20,7 +22,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
-import java.util.Date
 import java.util.Locale
 import javax.inject.Inject
 
@@ -34,6 +35,7 @@ class StepsGadget @Inject constructor(
     private val availability: SensorAvailabilityRepository,
     private val observeStepCount: Lazy<ObserveStepCountUseCase>,
     private val settingsRepository: Lazy<SettingsRepository>,
+    private val quantityFormatter: Lazy<QuantityFormatter>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_STEPS
@@ -48,13 +50,19 @@ class StepsGadget @Inject constructor(
     override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.STEP_COUNTER)
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        StepsGadgetView(container.context, observeStepCount.get(), settingsRepository.get())
+        StepsGadgetView(
+            container.context,
+            observeStepCount.get(),
+            settingsRepository.get(),
+            quantityFormatter.get(),
+        )
 }
 
 private class StepsGadgetView(
     context: Context,
     private val observeStepCount: ObserveStepCountUseCase,
     private val settingsRepository: SettingsRepository,
+    private val quantityFormatter: QuantityFormatter,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherStepsBinding.inflate(LayoutInflater.from(context), this)
@@ -84,6 +92,9 @@ private class StepsGadgetView(
                     stepsSinceBoot = stepsSinceBoot,
                     resetCount = settings.launcherStepsResetCount,
                     resetTimestamp = settings.launcherStepsResetTimestamp,
+                    // S2795: the measurement system rides the settings emission the reset counters
+                    // already arrive on, so a switch redraws the caption without a second source.
+                    system = settings.unitSystem,
                 )
             }
         } finally {
@@ -111,6 +122,7 @@ private class StepsGadgetView(
         stepsSinceBoot: Long,
         resetCount: Long,
         resetTimestamp: Long,
+        system: UnitSystem,
     ) {
         val displaySteps = maxOf(0L, stepsSinceBoot - resetCount)
         val formattedSteps = NumberFormat.getIntegerInstance(Locale.getDefault()).format(displaySteps)
@@ -119,11 +131,9 @@ private class StepsGadgetView(
         binding.gadgetStepsMessage.isVisible = false
 
         if (resetTimestamp > 0L) {
-            val formattedDate = DateFormat.getDateFormat(context).format(Date(resetTimestamp))
-            val formattedTime = DateFormat.getTimeFormat(context).format(Date(resetTimestamp))
-            val dateTimeString = "$formattedDate $formattedTime"
+            val stamp = quantityFormatter.format(Quantity.DateTime(resetTimestamp), system)
             binding.gadgetStepsCaption.text =
-                context.getString(R.string.launcher_gadget_steps_since_date, dateTimeString)
+                context.getString(R.string.launcher_gadget_steps_since_date, stamp)
         } else {
             binding.gadgetStepsCaption.setText(R.string.launcher_gadget_steps_since_boot)
         }

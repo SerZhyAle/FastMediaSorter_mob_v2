@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LauncherSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
@@ -333,6 +334,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 Timber.d("S2603: snapshot from store videoSizeMin=${mediaSize.videoSizeMin}")
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
+                val broadcast = BroadcastSettingsStore.read(preferences)
                 val programs = ProgramsSettingsStore.read(preferences)
                 val stopwatch = StopwatchSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
@@ -423,8 +425,16 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
                     showStreamsPanelInMainWindow = streams.showStreamsPanelInMainWindow,
                     streamsSmartBuffering = streams.streamsSmartBuffering,
+                    streamsVisualizeAsMusic = streams.streamsVisualizeAsMusic,
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
+                    broadcastStreamTitle = broadcast.streamTitle,
+                    broadcastBitRateBps = broadcast.bitRateBps,
+                    broadcastPort = broadcast.port,
+                    broadcastSampleRateHz = broadcast.sampleRateHz,
+                    broadcastChannelCount = broadcast.channelCount,
+                    broadcastAutoOpenShare = broadcast.autoOpenShare,
+                    broadcastSourceDeviceId = broadcast.sourceDeviceId,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -465,7 +475,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
-                    playerPanelAutoHideSeconds = preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] ?: 15,
+                    playerPanelAutoHideSeconds = preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] ?: 10,
                     openVideoInFullscreen = preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
@@ -732,6 +742,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
                 TextRecognitionSettingsStore.write(preferences, settings)
                 StreamsSettingsStore.write(preferences, settings)
+                BroadcastSettingsStore.write(preferences, settings)
                 preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
                 SlideshowSettingsStore.write(preferences, settings)
                 preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow

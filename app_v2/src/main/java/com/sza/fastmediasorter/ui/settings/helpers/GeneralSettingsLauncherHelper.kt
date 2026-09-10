@@ -7,6 +7,7 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
@@ -33,6 +34,7 @@ class GeneralSettingsLauncherHelper(
     private val fragment: Fragment,
     private val launcherModeContract: LauncherModeContract,
     private val launcherRoleManager: LauncherRoleManager,
+    private val launcherStartWindowManager: LauncherStartWindowManager,
     private val launcherRoleLauncher: ActivityResultLauncher<Intent>,
     private val scopeProvider: () -> CoroutineScope = { fragment.viewLifecycleOwner.lifecycleScope },
     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
@@ -48,8 +50,18 @@ class GeneralSettingsLauncherHelper(
     fun setup() {
         if (!launcherModeContract.isAvailableInBuild) {
             binding.rowLauncherModeEnabled.isVisible = false
+            binding.rowLauncherStartWindow.isVisible = false
             binding.rowLauncherSettings.isVisible = false
             return
+        }
+        // S2811: deliberately not tied to homeRoleHeld, unlike the launcher-settings button below - the
+        // start window is the entry for the user who declined the home role, so coupling the two would
+        // put back the dependency this setting exists to remove.
+        binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
+        binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
+            coroutineScope.launch {
+                withContext(ioDispatcher) { launcherStartWindowManager.setEnabled(isChecked) }
+            }
         }
         binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
             val host = fragment.activity ?: return@setOnCheckedChangeListener

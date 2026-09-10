@@ -9,6 +9,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.domain.netmonitor.WearNetworkSection
+import timber.log.Timber
 
 /**
  * Screen hosting a single section detail view of the Network Monitor.
@@ -29,7 +30,7 @@ fun NetworkMonitorDetailScreen(
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)
     val canRequestPermissions = requestable.isNotEmpty() && !permissionsState.allPermissionsGranted
     val section = WearNetworkSection.fromKey(sectionKey)
-
+    Timber.d("S2156: Network Monitor section opened as its own graph destination, key=%s", sectionKey)
 
     NetworkMonitorSectionPage(
         section = section,

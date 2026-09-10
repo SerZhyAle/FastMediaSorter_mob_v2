@@ -17,7 +17,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 Set-Location $projectRoot
 
 $gradleCommand = New-Object System.Collections.Generic.List[string]
-$null = $gradleCommand.Add(":benchmark:connectedBenchmarkReleaseAndroidTest")
+$null = $gradleCommand.Add(":benchmark:connectedBenchmarkAndroidTest")
 $null = $gradleCommand.Add("-Pchaquopy.enabled=false")
 
 if ($GradleArgs) {

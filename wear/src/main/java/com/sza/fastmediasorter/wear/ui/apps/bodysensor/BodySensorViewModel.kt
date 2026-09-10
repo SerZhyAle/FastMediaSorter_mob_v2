@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorReading
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReason
 import com.sza.fastmediasorter.wear.domain.bodysensor.WearBodySensorDataSource
+import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,13 +24,15 @@ import javax.inject.Inject
  */
 @HiltViewModel
 class BodySensorViewModel @Inject constructor(
-    private val bodySensorDataSource: WearBodySensorDataSource
+    private val bodySensorDataSource: WearBodySensorDataSource,
+    private val historyRepository: HeartRateHistoryRepository
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(BodySensorUiState())
     val state: StateFlow<BodySensorUiState> = _state.asStateFlow()
 
     private var measurement: Job? = null
+    private var lastHeartRate: BodySensorReading.HeartRate? = null
 
     init {
         refreshAvailability()
@@ -42,22 +45,43 @@ class BodySensorViewModel @Inject constructor(
     fun refreshAvailability() {
         measurement?.cancel()
         measurement = null
+        savePendingReading()
         viewModelScope.launch {
             publish(bodySensorDataSource.availability())
         }
     }
 
     fun startMeasurement() {
-        Timber.d("S2457: heart-rate measurement requested from the diagnostic screen")
         // A second press must not leave the first session registered: the previous flow is cancelled
         // before the new one is collected, and cancellation is what runs its awaitClose.
         measurement?.cancel()
+        savePendingReading()
+        lastHeartRate = null
         measurement = viewModelScope.launch {
             bodySensorDataSource.measure().collect(::publish)
+        }
+        measurement?.invokeOnCompletion { savePendingReading() }
+    }
+
+    /**
+     * S2808: saves the last heart-rate reading of the session that just ended, if one was received.
+     * Called from [invokeOnCompletion] on the measurement job, which fires on both cancellation
+     * (leaving the screen, starting a new measurement) and normal completion - so one history entry
+     * is written per session, carrying the last BPM the sensor delivered.
+     */
+    private fun savePendingReading() {
+        val reading = lastHeartRate
+        if (reading != null) {
+            lastHeartRate = null
+            Timber.d("S2808: saving heart rate ${reading.beatsPerMinute} bpm to history")
+            viewModelScope.launch { historyRepository.save(reading.beatsPerMinute) }
         }
     }
 
     private fun publish(reading: BodySensorReading) {
+        if (reading is BodySensorReading.HeartRate) {
+            lastHeartRate = reading
+        }
         _state.value = BodySensorUiState(reading = reading, canMeasure = isRetryable(reading))
     }
 

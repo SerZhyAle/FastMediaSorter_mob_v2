@@ -103,7 +103,6 @@ class LauncherWallpaperManager(
             wavesLayer.animationSpeedScale = tuning.animationSpeed
             wavesLayer.particleDensityScale = tuning.particleDensity
             timber.log.Timber.d("S2729: launcher backdrop intensity=${tuning.intensity}")
-            timber.log.Timber.d("S2730: backdrop tuning applied $tuning")
         }
         lifecycleOwner.collectOnLifecycle(viewModel.animationPalette) { paletteKey ->
             wavesLayer.palette = AudioWaveParticleView.AnimationColorPalette.fromKeyOrDefault(paletteKey)

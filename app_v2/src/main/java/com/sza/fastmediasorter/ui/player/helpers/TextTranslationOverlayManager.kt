@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.util.TypedValue
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
@@ -20,7 +19,8 @@ import timber.log.Timber
  * - Expand/collapse the overlay between compact and fullscreen modes
  * - Hide the overlay and reset state
  *
- * Requires [BuildConfig.ENABLE_TRANSLATION] to be true for translation calls to proceed.
+ * Reached only where translation is available - the callers gate on the capability contract, which
+ * since S1625 answers both "compiled into this build" and "licensed for this device class".
  */
 class TextTranslationOverlayManager(
     private val context: Context,
@@ -87,6 +87,7 @@ class TextTranslationOverlayManager(
             withContext(Dispatchers.Main) {
                 safeViews.tvTranslatedText.text =
                     translated ?: context.getString(R.string.translation_error)
+                showAttribution(translated != null)
             }
         }
     }
@@ -97,6 +98,7 @@ class TextTranslationOverlayManager(
     fun hideOverlay() {
         safeViews.translationOverlay.isVisible = false
         safeViews.translationOverlayBackground.isVisible = false
+        showAttribution(false)
         if (isTranslationExpanded) {
             isTranslationExpanded = true // set true so toggle flips to false
             toggleOverlaySize()
@@ -163,6 +165,14 @@ class TextTranslationOverlayManager(
 
     // ===== Private helpers =====
 
+    /**
+     * S1625: the ML Kit Translation terms tie the Google attribution to a shown result, so it appears
+     * with a translation and leaves with it - never over the original text, never over a failure.
+     */
+    private fun showAttribution(hasResult: Boolean) {
+        safeViews.translationAttribution.isVisible = hasResult
+    }
+
     private fun translateCurrentText(text: String) {
         if (text.isBlank()) {
             callback.showError(context.getString(R.string.translation_error_no_text))
@@ -193,6 +203,7 @@ class TextTranslationOverlayManager(
                     safeViews.tvTranslatedText.text =
                         context.getString(R.string.translation_failed)
                 }
+                showAttribution(translated != null)
             }
         }
     }

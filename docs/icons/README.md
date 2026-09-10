@@ -22,7 +22,7 @@ Generated - **never hand-edit** these:
   drawable, asset format). Produced by the `IconInventoryExportTest` from the same app
   registries the UI ships, so it cannot silently drift from the interface.
 - `svg/*.svg` (and any `svg/*.png`) - the web assets, one per public drawable.
-- `ICON_LEGEND.md` / `ICON_LEGEND_RU.md` / `ICON_LEGEND_UK.md` - the trilingual legend
+- `ICON_LEGEND.md` / `ICON_LEGEND-ru.md` / `ICON_LEGEND-uk.md` - the trilingual legend
   pages. Meanings are pulled live from the app's own string table, so they stay in sync.
 
 Hand-authored - the **only** editable file here:

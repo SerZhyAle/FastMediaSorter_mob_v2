@@ -208,9 +208,6 @@
     <string name="wear_streams_search">البحث في البث</string>
     <string name="wear_streams_filter">تصفية البث</string>
     <string name="wear_streams_sort">ترتيب البث</string>
-    <string name="wear_streams_filter_all">كل القنوات</string>
-    <string name="wear_streams_filter_audio">صوت فقط</string>
-    <string name="wear_streams_filter_video">فيديو فقط</string>
     <string name="wear_streams_sort_name_asc">الاسم (أ-ي)</string>
     <string name="wear_streams_sort_name_desc">الاسم (ي-أ)</string>
     <string name="wear_streams_sort_kind">حسب نوع الوسائط</string>

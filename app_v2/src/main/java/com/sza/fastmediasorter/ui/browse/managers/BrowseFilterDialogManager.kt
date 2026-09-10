@@ -8,20 +8,27 @@ import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.DialogFilterBinding
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.util.showBoundToHost
-import java.text.SimpleDateFormat
+import dagger.hilt.android.EntryPointAccessors
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 internal class BrowseFilterDialogManager(
     private val activity: AppCompatActivity,
     private val callbacks: BrowseDialogHelper.DialogCallbacks,
     private val mediaCapabilities: MediaCapabilities
 ) {
+    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
+    // other out-of-graph surfaces do. The system itself is read per call, which is what makes a
+    // switched setting show the next time the dialog is built.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(activity.applicationContext, UnitSystemEntryPoint::class.java)
+    }
+
     fun showFilterDialog(currentFilter: FileFilter?, allowedMediaTypes: Set<MediaType>? = null) {
         val dialogBinding = DialogFilterBinding.inflate(LayoutInflater.from(activity))
 
@@ -119,10 +126,8 @@ internal class BrowseFilterDialogManager(
         com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper.applyInitialFocus(dialog)
     }
 
-    fun formatDate(timestamp: Long): String {
-        val format = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-        return format.format(Date(timestamp))
-    }
+    fun formatDate(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.Date(timestamp), unitSeam.unitSystemProvider().value)
 
     private fun showDatePicker(currentDate: Long?, onDateSelected: (Long) -> Unit) {
         val calendar = Calendar.getInstance()

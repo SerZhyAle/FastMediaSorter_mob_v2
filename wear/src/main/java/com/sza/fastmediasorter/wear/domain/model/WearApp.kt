@@ -56,12 +56,26 @@ enum class WearAppId(val canonicalKey: String) {
     BODY_SENSOR("body_sensor"),
 
     /**
+     * S2809: manual blood pressure entry with history. Available in both flavors - no
+     * permission or Health Services dependency, unlike the body sensor above. Watch-only,
+     * recorded in the watch-only canonical-key baseline.
+     */
+    BLOOD_PRESSURE("blood_pressure"),
+
+    /**
      * S2509: the watch's own audio broadcast. Watch-only by boundary decision rather than by omission -
      * the phone broadcasts too (S2508), but it does so from the player rather than as a launcher
      * program, so there is no `InternalRouteCatalog` key for this one to match. Recorded with that
      * reason in `scripts/quality/wear-canonical-key-watch-only-baseline.txt`.
      */
-    BROADCAST("broadcast")
+    BROADCAST("broadcast"),
+
+    /**
+     * S2825: the watch's stopwatch, sharing the phone's `stopwatch` route key. The phone half (S1411)
+     * is addressed by that key in launcher cells and panel layouts, so the watch spells it identically
+     * rather than inventing a second name for one program.
+     */
+    STOPWATCH("stopwatch")
 }
 
 /**

@@ -57,6 +57,10 @@
     <!-- Media content area: audio playback surface (PlayerView with artwork) -->
     <FrameLayout android:id="@+id/mediaContentArea" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
 
+        <!-- S1143: stream-mode visualization. First child so the player view, the buffering indicator
+             and the transport row keep drawing above it. -->
+        <com.sza.fastmediasorter.ui.player.helpers.AudioWaveParticleView android:id="@+id/audioWaveParticleView" android:layout_width="match_parent" android:layout_height="match_parent" android:visibility="gone" android:clickable="false" android:focusable="false" android:contentDescription="@null" />
+
         <!-- Audio: artwork fallback to a music note, always-on controls, no hide-on-touch.
              Same controller layout as the unified player so the playback controls render consistently. -->
         <!-- S1007: not D-pad/keyboard focusable - the video/artwork surface itself must never wear the
@@ -71,6 +75,9 @@
         </FrameLayout>
 
         <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
+
+        <!-- S1143: shared lyrics overlay, inflated only when the user opens lyrics. -->
+        <ViewStub android:id="@+id/lyricsViewerStub" android:inflatedId="@+id/lyricsViewerContainer" android:layout="@layout/player_lyrics_viewer_container" android:layout_width="match_parent" android:layout_height="match_parent" />
 
     </FrameLayout>
 

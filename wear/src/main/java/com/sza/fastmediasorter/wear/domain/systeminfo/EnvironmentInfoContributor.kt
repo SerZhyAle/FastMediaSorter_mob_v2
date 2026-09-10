@@ -8,7 +8,6 @@ import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentKind
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentReading
 import com.sza.fastmediasorter.wear.domain.repository.WearReadingAccuracy
-import timber.log.Timber
 import java.util.Locale
 import javax.inject.Inject
 
@@ -28,7 +27,6 @@ class EnvironmentInfoContributor @Inject constructor(
 
     override suspend fun sections(): List<WearSystemInfoSection> {
         val readings = dataSource.sample()
-        Timber.d("S2459: environment section built from %s reading(s)", readings?.size)
         return listOf(
             WearSystemInfoSection(
                 titleRes = R.string.system_info_section_environment,

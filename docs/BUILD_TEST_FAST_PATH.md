@@ -520,7 +520,7 @@ Avoid these habits:
 - running `.\a.ps1 d` for every Kotlin change
 - running `clean` to "be safe" in normal loops
 - using `dav` during normal development
-- jumping to the full unit suite before a targeted test
+- jumping to the full unit suite before a targeted test. This line carried no price until S2851 measured one, and unpriced it did not hold: on 2026-09-10 several sessions ran the whole suite to check their own edit. It is 695 classes and 5033 tests, 429 s of wall clock (415.6 s of that test execution, 13.4 s Gradle), and it holds `Build.Phone` for the whole 429 s while siblings queue - two of them waited 11 minutes each, one of those to run a single filtered class. The same proof, filtered to the classes the change touches, measured 20 s.
 - using standard fast checks for `noLegal` tasks
 - proving a `wear/` change with `fk`/`fr`/`fc`/`fu` - they check `app_v2` and pass without touching the watch module (S1807)
 - wiping all Gradle caches before trying targeted KAPT recovery

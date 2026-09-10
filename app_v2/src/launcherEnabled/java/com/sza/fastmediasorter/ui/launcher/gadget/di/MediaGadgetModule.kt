@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.ui.launcher.gadget.ImageWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.StreamWindowGadget
 import com.sza.fastmediasorter.ui.launcher.gadget.VideoWindowGadget
+import com.sza.fastmediasorter.ui.launcher.gadget.YouTubeChannelWindowGadget
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -42,5 +43,9 @@ object MediaGadgetModule {
         // family because it is the same idea (one thing, played inside its cell) and because a sixth
         // direct parameter on the registry is what this module exists to avoid.
         streamWindow: StreamWindowGadget,
-    ): List<LauncherGadget> = listOf(audio, video, document, image, streamWindow)
+        // S2032: the sixth window - one YouTube channel. It joins here beside the stream window for the
+        // same two reasons: it is the same idea, and the registry constructor is one parameter from
+        // detekt's threshold.
+        youTubeChannelWindow: YouTubeChannelWindowGadget,
+    ): List<LauncherGadget> = listOf(audio, video, document, image, streamWindow, youTubeChannelWindow)
 }

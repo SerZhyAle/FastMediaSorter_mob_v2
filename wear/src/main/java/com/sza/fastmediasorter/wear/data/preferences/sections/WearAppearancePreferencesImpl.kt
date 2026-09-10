@@ -5,8 +5,10 @@ import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceKeys
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceSection
 import com.sza.fastmediasorter.wear.data.preferences.WearSettingsDataStore
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearAppearancePreferences
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -39,6 +41,20 @@ class WearAppearancePreferencesImpl @Inject constructor(
     override suspend fun setColorScheme(scheme: WearColorScheme) {
         stampedEdit("colorScheme") { prefs ->
             prefs[WearPreferenceKeys.COLOR_SCHEME] = scheme.name
+        }
+    }
+
+    // S2773: an unrecognised name reads as nothing stored rather than throwing. Downgrading to a build
+    // that predates a mode is the ordinary way such a name appears, and `valueOf` would answer that by
+    // failing every read of the settings store on launch.
+    override val storedGeometryMode: Flow<WearGeometryMode?> = store.data.map { prefs ->
+        val stored = prefs[WearPreferenceKeys.WEAR_GEOMETRY_MODE]
+        WearGeometryMode.entries.firstOrNull { it.name == stored }
+    }
+
+    override suspend fun setGeometryMode(mode: WearGeometryMode) {
+        stampedEdit("geometryMode") { prefs ->
+            prefs[WearPreferenceKeys.WEAR_GEOMETRY_MODE] = mode.name
         }
     }
 
@@ -88,5 +104,15 @@ class WearAppearancePreferencesImpl @Inject constructor(
 
     override suspend fun setAppLanguage(languageCode: String?) {
         writeNullableString(WearPreferenceKeys.APP_LANGUAGE, languageCode)
+    }
+
+    override val unitSystem: Flow<UnitSystem> = store.data.map { prefs ->
+        UnitSystem.fromNameOrDefault(prefs[WearPreferenceKeys.WEAR_UNIT_SYSTEM])
+    }
+
+    override suspend fun setUnitSystem(system: UnitSystem) {
+        stampedEdit("unitSystem") { prefs ->
+            prefs[WearPreferenceKeys.WEAR_UNIT_SYSTEM] = system.name
+        }
     }
 }

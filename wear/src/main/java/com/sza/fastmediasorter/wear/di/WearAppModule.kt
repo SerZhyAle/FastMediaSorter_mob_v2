@@ -6,11 +6,15 @@ import androidx.room.Room
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.google.gson.Gson
+import com.sza.fastmediasorter.wear.data.db.BloodPressureHistoryDao
+import com.sza.fastmediasorter.wear.data.db.HeartRateHistoryDao
 import com.sza.fastmediasorter.wear.data.db.MediaMetadataVoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteIndexRebuilder
 import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
+import com.sza.fastmediasorter.wear.data.db.WearHeartRateDatabase
+import com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteMigrations
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
@@ -25,7 +29,10 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearNowPlayingRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.HeartRateHistoryRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.BloodPressureHistoryRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.WearCastRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileReceiverRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFileSenderRepositoryImpl
@@ -43,8 +50,11 @@ import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
+import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
+import com.sza.fastmediasorter.wear.domain.repository.BloodPressureHistoryRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearHardwareDataSource
@@ -262,6 +272,12 @@ object WearAppModule {
 
     @Provides
     @Singleton
+    fun provideWearCastRepository(
+        impl: WearCastRepositoryImpl
+    ): WearCastRepository = impl
+
+    @Provides
+    @Singleton
     fun provideWearOpenOnPhoneRepository(
         impl: WearOpenOnPhoneRepositoryImpl
     ): WearOpenOnPhoneRepository = impl
@@ -412,6 +428,74 @@ object WearAppModule {
     @Provides
     @Singleton
     fun provideVoiceNoteRepository(impl: VoiceNoteRepositoryImpl): VoiceNoteRepository = impl
+
+    // S2808: the heart-rate history store. Room, version 1 - no migration exists. The open is
+    // forced here for the same reason as the voice-note database: a validation failure on a
+    // lazy open would land on whichever caller reached the DAO first, not on the one place
+    // that owns the recovery. Recovery is simpler: there are no files to rebuild from, so the
+    // database is deleted and recreated empty.
+    @Provides
+    @Singleton
+    @Suppress("TooGenericExceptionCaught")
+    fun provideWearHeartRateDatabase(
+        @ApplicationContext context: Context
+    ): WearHeartRateDatabase = try {
+        buildWearHeartRateDatabase(context).also { it.openHelper.writableDatabase }
+    } catch (e: RuntimeException) {
+        Timber.e(e, "Wear heart-rate database failed to open - recreating it")
+        context.deleteDatabase(WearHeartRateDatabase.DATABASE_NAME)
+        buildWearHeartRateDatabase(context).also { it.openHelper.writableDatabase }
+    }
+
+    private fun buildWearHeartRateDatabase(context: Context): WearHeartRateDatabase =
+        Room.databaseBuilder(
+            context,
+            WearHeartRateDatabase::class.java,
+            WearHeartRateDatabase.DATABASE_NAME
+        ).build()
+
+    @Provides
+    @Singleton
+    fun provideHeartRateHistoryDao(database: WearHeartRateDatabase): HeartRateHistoryDao =
+        database.heartRateHistoryDao()
+
+    @Provides
+    @Singleton
+    fun provideHeartRateHistoryRepository(impl: HeartRateHistoryRepositoryImpl): HeartRateHistoryRepository = impl
+
+    // S2809: the blood pressure history store. Room, version 1 - no migration exists. The open is
+    // forced here for the same reason as the heart-rate database: a validation failure on a
+    // lazy open would land on whichever caller reached the DAO first, not on the one place
+    // that owns the recovery. Recovery is simpler: there are no files to rebuild from, so the
+    // database is deleted and recreated empty.
+    @Provides
+    @Singleton
+    @Suppress("TooGenericExceptionCaught")
+    fun provideWearBloodPressureDatabase(
+        @ApplicationContext context: Context
+    ): WearBloodPressureDatabase = try {
+        buildWearBloodPressureDatabase(context).also { it.openHelper.writableDatabase }
+    } catch (e: RuntimeException) {
+        Timber.e(e, "Wear blood pressure database failed to open - recreating it")
+        context.deleteDatabase(WearBloodPressureDatabase.DATABASE_NAME)
+        buildWearBloodPressureDatabase(context).also { it.openHelper.writableDatabase }
+    }
+
+    private fun buildWearBloodPressureDatabase(context: Context): WearBloodPressureDatabase =
+        Room.databaseBuilder(
+            context,
+            WearBloodPressureDatabase::class.java,
+            WearBloodPressureDatabase.DATABASE_NAME
+        ).build()
+
+    @Provides
+    @Singleton
+    fun provideBloodPressureHistoryDao(database: WearBloodPressureDatabase): BloodPressureHistoryDao =
+        database.bloodPressureHistoryDao()
+
+    @Provides
+    @Singleton
+    fun provideBloodPressureHistoryRepository(impl: BloodPressureHistoryRepositoryImpl): BloodPressureHistoryRepository = impl
 
     /**
      * Application-scoped by construction: the recording service writes here and the recorder screen

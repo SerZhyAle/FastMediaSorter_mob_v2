@@ -44,15 +44,16 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.ui.settings.WearListenState
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
-import java.text.DateFormat
-import java.util.Date
 
 internal val SPACING_TINY = 4.dp
 internal val SPACING_SMALL = 8.dp
@@ -93,6 +94,8 @@ fun WearCompanionScreen(
     // because the sync action that sends it sits outside that group (S2460).
     val context = LocalContext.current
     val watchSettingsState = remember(watchSettings) { WatchSettingsState(watchSettings) }
+    // S2731: no companion-window row edits this - it rides the phone's current setting, same as appLanguage.
+    val unitSystem by viewModel.unitSystem.collectAsState()
     // collectAsState, matching the sibling groups on this island: app_v2 does not carry
     // lifecycle-runtime-compose, and the island is torn down with the screen that hosts it.
     val lastSyncedAt by viewModel.lastSyncedAt.collectAsState()
@@ -164,7 +167,7 @@ fun WearCompanionScreen(
             pushEnabled = state !is WearSyncUiState.Sending,
             onPush = {
                 Timber.d("S2460: sync row push tapped from screen level")
-                viewModel.pushSettings(watchSettingsState.payload(context))
+                viewModel.pushSettings(watchSettingsState.payload(context, unitSystem))
             }
         )
 
@@ -173,7 +176,9 @@ fun WearCompanionScreen(
         WearWatchSettingsGroup(
             viewModel = viewModel,
             state = watchSettingsState,
-            onChanged = { viewModel.updateWatchSettingsLocally(watchSettingsState.payload(context)) }
+            onChanged = {
+                viewModel.updateWatchSettingsLocally(watchSettingsState.payload(context, unitSystem))
+            }
         )
 
         Spacer(Modifier.height(SPACING_SECTION))
@@ -307,13 +312,21 @@ private fun LastSyncedCaption(
     modifier: Modifier = Modifier
 ) {
     val synced = lastSyncedAtEpochMillis > 0L
+    // S2795: this island is outside the injection graph, so the format seam is resolved from the
+    // context. The system is read as state rather than once, so flipping the setting behind this
+    // window recomposes the caption instead of leaving the previous clock length standing.
+    val context = LocalContext.current
+    val formatSeam = remember(context) {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
+    val unitSystem by formatSeam.unitSystemProvider().current.collectAsState()
     val caption = if (!synced) {
         stringResource(R.string.wear_settings_sync_never)
     } else {
         stringResource(
             R.string.wear_settings_last_synced,
-            DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-                .format(Date(lastSyncedAtEpochMillis))
+            formatSeam.quantityFormatter()
+                .format(Quantity.DateTime(lastSyncedAtEpochMillis), unitSystem)
         )
     }
     Column(modifier = modifier) {

@@ -270,18 +270,23 @@ function Assert-RoomRows {
         [string] $Case,
         [string[]] $ChangedSet,
         [string[]] $Fields,
-        [string[]] $ExpectedModules
+        [string[]] $ExpectedKeys
     )
     $rows = @(& $roomRowHarness $ChangedSet $Fields)
-    if ($rows.Count -ne $ExpectedModules.Count) {
-        throw "Room rows [$Case]: expected $($ExpectedModules.Count) row(s), got $($rows.Count)."
+    if ($rows.Count -ne $ExpectedKeys.Count) {
+        throw "Room rows [$Case]: expected $($ExpectedKeys.Count) row(s), got $($rows.Count)."
     }
     # The defect surfaced as a property access, not as a wrong count: the phantom element is an
-    # Object[], so reading .Module on it throws. Touch the property on every returned row.
-    $actual = @($rows | ForEach-Object { $_.Module } | Sort-Object)
-    $expected = @($ExpectedModules | Sort-Object)
+    # Object[], so reading a property on it throws. Touch the property on every returned row.
+    #
+    # S2835: the property read is Key, not Module. A row is a DATABASE, and Module stopped naming one
+    # the day S2829 gave the watch three of them sharing a directory - by that field the suite could
+    # not tell "three databases matched" from "one database emitted three times", so a registry the
+    # consumers were happy with read as a regression on every closure whose set held post-change.ps1.
+    $actual = @($rows | ForEach-Object { $_.Key } | Sort-Object)
+    $expected = @($ExpectedKeys | Sort-Object)
     if (($actual -join ',') -ne ($expected -join ',')) {
-        throw "Room rows [$Case]: expected module(s) '$($expected -join ',')', got '$($actual -join ',')'."
+        throw "Room rows [$Case]: expected key(s) '$($expected -join ',')', got '$($actual -join ',')'."
     }
 }
 
@@ -290,35 +295,45 @@ $roomContractFields = @('MigrationDir', 'SchemaDir', 'RegistrationFile')
 
 # Set size is irrelevant to the match - asserted at one and at three files because the ticket that
 # opened this recorded a size-dependent symptom that direct measurement refuted.
-Assert-RoomRows -Case 'docs-only, one file' -Fields $roomAndroidTestFields -ExpectedModules @() `
+$wearKeys = @('wear-voice-note', 'wear-heart-rate', 'wear-blood-pressure')
+
+Assert-RoomRows -Case 'docs-only, one file' -Fields $roomAndroidTestFields -ExpectedKeys @() `
     -ChangedSet @('PLAN/S2416_post-change-crashes-empty-room-row-set.md')
-Assert-RoomRows -Case 'docs-only, three files' -Fields $roomAndroidTestFields -ExpectedModules @() `
+Assert-RoomRows -Case 'docs-only, three files' -Fields $roomAndroidTestFields -ExpectedKeys @() `
     -ChangedSet @('PLAN/a.md', 'PLAN/b.md', 'PLAN/c.md')
-Assert-RoomRows -Case 'docs-only, contract fields' -Fields $roomContractFields -ExpectedModules @() `
+Assert-RoomRows -Case 'docs-only, contract fields' -Fields $roomContractFields -ExpectedKeys @() `
     -ChangedSet @('PLAN/a.md', 'PLAN/b.md', 'PLAN/c.md')
 # A Kotlin change that touches no registered database is still zero rows - the gate is keyed on the
 # database directories, not on the file extension.
-Assert-RoomRows -Case 'kotlin outside any database' -Fields $roomContractFields -ExpectedModules @() `
+Assert-RoomRows -Case 'kotlin outside any database' -Fields $roomContractFields -ExpectedKeys @() `
     -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/ui/Foo.kt')
 # The positive cases: the fix must not have bought a clean skip by never matching anything.
-Assert-RoomRows -Case 'phone database source' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+Assert-RoomRows -Case 'phone database source' -Fields $roomContractFields -ExpectedKeys @('app_v2') `
     -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt')
-Assert-RoomRows -Case 'phone registration file' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+Assert-RoomRows -Case 'phone registration file' -Fields $roomContractFields -ExpectedKeys @('app_v2') `
     -ChangedSet @('app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt')
-Assert-RoomRows -Case 'wear androidTest' -Fields $roomAndroidTestFields -ExpectedModules @('wear') `
+# One instrumented directory, three databases behind it: every wear row comes back, once each.
+Assert-RoomRows -Case 'wear androidTest' -Fields $roomAndroidTestFields -ExpectedKeys $wearKeys `
     -ChangedSet @('wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db/WearDbTest.kt')
-# Both databases in one set must come back as two DISTINCT rows - the shape the caller relies on to
-# name the module it is about to judge (S2355).
-Assert-RoomRows -Case 'both databases' -Fields $roomContractFields -ExpectedModules @('app_v2', 'wear') `
+# Both modules in one set must come back as DISTINCT rows - the shape the caller relies on to name
+# the module it is about to judge (S2355). The wear source sits in the MigrationDir all three watch
+# databases share, so it carries all three.
+Assert-RoomRows -Case 'both databases' -Fields $roomContractFields -ExpectedKeys (@('app_v2') + $wearKeys) `
     -ChangedSet @(
         'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/1.json',
         'wear/src/main/java/com/sza/fastmediasorter/wear/data/db/WearVoiceNoteDatabase.kt')
 # A database row must be reported ONCE even when several of its paths are in the set.
-Assert-RoomRows -Case 'one database, many paths' -Fields $roomContractFields -ExpectedModules @('app_v2') `
+Assert-RoomRows -Case 'one database, many paths' -Fields $roomContractFields -ExpectedKeys @('app_v2') `
     -ChangedSet @(
         'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt',
         'app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt',
         'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase/1.json')
+# S2835, the symmetric half of the case above: several databases sharing ONE directory are each
+# reported once. Stated as its own case because the suite could not express it while rows were
+# named by Module - three watch databases and one emitted three times read identically there, and
+# the count mismatch that produced coloured every closure whose set held post-change.ps1.
+Assert-RoomRows -Case 'many databases, one shared path' -Fields $roomAndroidTestFields -ExpectedKeys $wearKeys `
+    -ChangedSet @('wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db/WearVoiceNoteDatabaseMigrationChainTest.kt')
 
 # Both call sites must keep wrapping in @(): the function emits rows one at a time, so an unwrapped
 # single match binds a bare row and `.Count` on it reads 1 for a hashtable-like object by accident.

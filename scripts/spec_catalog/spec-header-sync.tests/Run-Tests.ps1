@@ -138,12 +138,13 @@ function New-Sandbox {
     Set-Content -LiteralPath (Join-Path $root 'PLAN/spec-catalog-archive.jsonl') -Encoding utf8NoBOM -Value ''
     Set-Content -LiteralPath (Join-Path $root 'PLAN/RELEASE_QUEUE.md') -Encoding utf8NoBOM -Value @(
         '# Release Queue', '', 'current-release: 37', '', '```',
-        'rel  ticket                                                         changed     status',
-        "37   $slug                                    2026-09-05  $JournalStatus", '```'
+        'ticket                                                         changed         status',
+        '37',
+        "$slug                                    26-09-05 10:00  $JournalStatus", '```'
     )
     Set-Content -LiteralPath (Join-Path $root 'PLAN/RELEASE_READY.md') -Encoding utf8NoBOM -Value @(
         '# Release Ready', '', '```',
-        'rel  ticket                                                         changed     status', '```'
+        'ticket                                                         changed         status', '```'
     )
     return [pscustomobject]@{ Root = $root; SpecPath = $specPath; Slug = $slug }
 }

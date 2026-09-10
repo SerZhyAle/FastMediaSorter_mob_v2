@@ -751,6 +751,16 @@
       "titleUk": "Компаньйон годинника"
     },
     {
+      "key": "rowFlashlightShortcut",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Flashlight in the notification shade",
+      "titleRu": "Фонарь в шторке уведомлений",
+      "titleUk": "Ліхтар у шторці сповіщень"
+    },
+    {
       "key": "rowFollowSystemRotation",
       "sectionId": "destinations",
       "destination": "OPERATIONS",
@@ -909,6 +919,16 @@
       "titleEn": "Screen video recording",
       "titleRu": "Видеозапись экрана",
       "titleUk": "Відеозапис екрана"
+    },
+    {
+      "key": "rowSuppressWearMediaTakeover",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Suppress media control on watch",
+      "titleRu": "Подавлять медиа-управление на часах",
+      "titleUk": "Пригнічувати медіа-керування на годиннику"
     },
     {
       "key": "rowUseTrash",
@@ -1661,6 +1681,16 @@
       "titleUk": "Налаштування системного лаунчера"
     },
     {
+      "key": "rowLauncherStartWindow",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Open the desktop when the app starts",
+      "titleRu": "Открывать рабочий стол при запуске приложения",
+      "titleUk": "Відкривати робочий стіл під час запуску застосунку"
+    },
+    {
       "key": "rowOpenStatistics",
       "sectionId": "general",
       "destination": "GENERAL",
@@ -1789,6 +1819,16 @@
       "titleEn": "Wi-Fi only preload",
       "titleRu": "Только по Wi-Fi",
       "titleUk": "Лише через Wi-Fi"
+    },
+    {
+      "key": "rowUnitSystem",
+      "sectionId": "general",
+      "destination": "GENERAL",
+      "layout": "fragment_settings_general",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Unit system",
+      "titleRu": "Система единиц",
+      "titleUk": "Система одиниць"
     },
     {
       "key": "row_saved_authorizations",
@@ -2581,16 +2621,6 @@
       "titleUk": "Приховувати системний рядок стану"
     },
     {
-      "key": "rowLauncherScreenCount",
-      "sectionId": "launcher",
-      "destination": "GENERAL",
-      "layout": "dialog_launcher_settings",
-      "kind": "DROPDOWN_ROW",
-      "titleEn": "Number of screens",
-      "titleRu": "Количество экранов",
-      "titleUk": "Кількість екранів"
-    },
-    {
       "key": "rowLauncherScreenTimeout",
       "sectionId": "launcher",
       "destination": "GENERAL",
@@ -2731,24 +2761,14 @@
       "titleUk": "Роздача Wi-Fi"
     },
     {
-      "key": "rowLauncherUnitSystem",
-      "sectionId": "launcher",
-      "destination": "GENERAL",
-      "layout": "dialog_launcher_settings",
-      "kind": "DROPDOWN_ROW",
-      "titleEn": "Unit system",
-      "titleRu": "Система единиц",
-      "titleUk": "Система одиниць"
-    },
-    {
       "key": "rowLauncherWallpaper",
       "sectionId": "launcher",
       "destination": "GENERAL",
       "layout": "dialog_launcher_settings",
       "kind": "SELECTION_ROW",
-      "titleEn": "Desktop wallpaper",
-      "titleRu": "Заставка рабочего стола",
-      "titleUk": "Заставка робочого столу"
+      "titleEn": "Launcher screens",
+      "titleRu": "Экраны лаунчера",
+      "titleUk": "Екрани лаунчера"
     },
     {
       "key": "rowLauncherWidgetBackdropAlpha",
@@ -2769,6 +2789,26 @@
       "titleEn": "Grid density",
       "titleRu": "Плотность сетки",
       "titleUk": "Щільність сітки"
+    },
+    {
+      "key": "rowScreenCount",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Number of screens",
+      "titleRu": "Количество экранов",
+      "titleUk": "Кількість екранів"
+    },
+    {
+      "key": "rowShowScreenNumber",
+      "sectionId": "launcher",
+      "destination": "GENERAL",
+      "layout": "dialog_launcher_wallpaper_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Show screen number",
+      "titleRu": "Показывать номер экрана",
+      "titleUk": "Показувати номер екрана"
     },
     {
       "key": "rowWallpaperPalette",
@@ -3301,6 +3341,16 @@
       "titleUk": "Надрозумна буферизація трансляцій"
     },
     {
+      "key": "rowStreamsEnablePip",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable Picture-in-Picture",
+      "titleRu": "Включить картинку в картинке",
+      "titleUk": "Увімкнути картинку в картинці"
+    },
+    {
       "key": "spinnerFontFamily",
       "sectionId": "translation",
       "destination": "MEDIA",
@@ -3329,16 +3379,6 @@
       "titleEn": "Translation result in blocks",
       "titleRu": "Результат перевода в блоках",
       "titleUk": "Результат перекладу в блоках"
-    },
-    {
-      "key": "btnClearSnapshotResource",
-      "sectionId": "video",
-      "destination": "MEDIA",
-      "layout": "fragment_settings_video",
-      "kind": "BUTTON",
-      "titleEn": "Clear Selection",
-      "titleRu": "Очистить выбор",
-      "titleUk": "Очистити вибір"
     },
     {
       "key": "btnSelectSnapshotResource",
@@ -3539,6 +3579,16 @@
       "titleEn": "Keep screen on",
       "titleRu": "Не гасить экран",
       "titleUk": "Не гасити екран"
+    },
+    {
+      "key": "wearOriginalLayout",
+      "sectionId": "wear",
+      "destination": "MEDIA",
+      "layout": "wear_screen_settings",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Original layout",
+      "titleRu": "Оригинальная раскладка",
+      "titleUk": "Оригінальне розкладення"
     },
     {
       "key": "wearPanelAutoHide",

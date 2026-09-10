@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2792. A transient chooser, not a settings surface: plain list rows rather than the Settings*
+     row widgets, so the settings documentation catalog discovers nothing to register here (the
+     result dialog set that precedent). Built on demand only. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="@dimen/margin_medium">
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/listMusicTracks"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:overScrollMode="ifContentScrolls" />
+
+    <TextView
+        android:id="@+id/textMusicPickerEmpty"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:minHeight="@dimen/touch_target_min_height"
+        android:padding="@dimen/margin_small"
+        android:text="@string/stopwatch_music_picker_empty"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small"
+        android:visibility="gone" />
+</LinearLayout>

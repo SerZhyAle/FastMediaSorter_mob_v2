@@ -479,10 +479,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private fun updateEpubTranslatorVisibility() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val epubActive = safeViews.epubWebViewOrNull?.isVisible == true
-        binding.btnTranslateEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable() &&
+        binding.btnTranslateEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable(this) &&
             cachedTranslationEnabled && isLandscape && epubActive
         // S0393 wave-C: EPUB OCR button (ML-Kit-gated like translation).
-        binding.btnOcrEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable() && epubActive
+        binding.btnOcrEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable(this) && epubActive
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

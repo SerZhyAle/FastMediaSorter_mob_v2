@@ -28,6 +28,12 @@ interface LauncherShortcutSyncRepository {
      */
     suspend fun clearSyncedRoutes()
 
+    /** Whether S2791's one-time Stopwatch desktop correction has already been applied. */
+    suspend fun isStopwatchShortcutBackfilled(): Boolean
+
+    /** Records completion of S2791's one-time Stopwatch desktop correction. */
+    suspend fun setStopwatchShortcutBackfilled()
+
     /**
      * S2564: the aggregate virtual paths whose desktop tile is already accounted for.
      *

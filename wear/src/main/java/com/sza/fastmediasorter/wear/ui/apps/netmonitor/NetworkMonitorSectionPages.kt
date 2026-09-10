@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.apps.netmonitor
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -23,8 +21,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.material.Button
-import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -42,11 +38,14 @@ import com.sza.fastmediasorter.wear.domain.netmonitor.WearWifiDetails
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatRate
 import com.sza.fastmediasorter.wear.domain.netmonitor.formatTrafficTotal
 import com.sza.fastmediasorter.wear.domain.netmonitor.signalFraction
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import java.util.Date
+import timber.log.Timber
 import java.util.Locale
 
 private val TITLE_BOTTOM_PADDING = 6.dp
@@ -82,6 +81,7 @@ fun NetworkMonitorSectionPage(
     modifier: Modifier = Modifier,
     listState: ScalingLazyListState = rememberWearListState()
 ) {
+    Timber.d("S2805: Network Monitor section page with chip actions, section=%s", section.key)
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -187,6 +187,34 @@ private fun PermissionNotice(canRequest: Boolean, onRequest: () -> Unit) {
     )
 }
 
+/**
+ * Every action of a section page, in one shape (S2805).
+ *
+ * A chip and never `androidx.wear.compose.material.Button`, which is circular by definition and
+ * clipped labels such as "Reset counters" into an unreadable arc; the label needs the full width of
+ * the screen, which is what the system-information report gives its own action.
+ */
+@Composable
+private fun ActionChip(
+    text: String,
+    onClick: () -> Unit,
+    primary: Boolean = false
+) {
+    Chip(
+        onClick = onClick,
+        colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors(),
+        label = {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
 @Composable
 private fun NoticeCaption(text: String) {
     Text(
@@ -240,35 +268,31 @@ private fun WifiFields(
         )
         LabelValue(R.string.wear_netmon_field_wifi_standard, wifi?.wifiStandard)
 
-        SignalTrend(samples = signalHistory, onRestart = onRestartSignalWindow)
+        SignalTrend(samples = signalHistory)
 
-        if (!wifi?.ipAddress.isNullOrBlank()) {
-            Chip(
-                onClick = { onCopyIp(copyLabel, wifi?.ipAddress.orEmpty()) },
-                colors = ChipDefaults.secondaryChipColors(),
-                label = {
-                    Text(
-                        text = stringResource(R.string.wear_netmon_action_copy_ip) + ": " + wifi?.ipAddress,
-                        style = MaterialTheme.typography.caption2,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
         if (!wifi?.visibleNetworks.isNullOrEmpty()) {
             LabelValue(
                 R.string.wear_netmon_field_wifi_visible,
                 wifi?.visibleNetworks?.joinToString(separator = ", ")
             )
         }
-        Button(
-            onClick = { NetworkMonitorActions.openWifiSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(stringResource(R.string.wear_netmon_action_open_settings))
+
+        WearReportDivider()
+
+        if (!wifi?.ipAddress.isNullOrBlank()) {
+            ActionChip(
+                text = stringResource(R.string.wear_netmon_action_copy_ip) + ": " + wifi?.ipAddress,
+                onClick = { onCopyIp(copyLabel, wifi?.ipAddress.orEmpty()) }
+            )
         }
+        ActionChip(
+            text = stringResource(R.string.wear_netmon_action_restart_window),
+            onClick = onRestartSignalWindow
+        )
+        ActionChip(
+            text = stringResource(R.string.wear_netmon_action_open_settings),
+            onClick = { NetworkMonitorActions.openWifiSettings(context) }
+        )
     }
 }
 
@@ -277,9 +301,12 @@ private fun WifiFields(
  *
  * Bars rather than a line: on a round glass a polyline's ends fall into the curvature, and a bar row
  * degrades to something still readable when only two or three samples exist.
+ *
+ * The action that restarts the window lives with the section's other actions below the divider
+ * (S2805), so the page reads as data first and controls last.
  */
 @Composable
-private fun SignalTrend(samples: List<Int>, onRestart: () -> Unit) {
+private fun SignalTrend(samples: List<Int>) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -317,13 +344,6 @@ private fun SignalTrend(samples: List<Int>, onRestart: () -> Unit) {
                 }
             }
         }
-
-        Button(
-            onClick = onRestart,
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(stringResource(R.string.wear_netmon_action_restart_window))
-        }
     }
 }
 
@@ -347,12 +367,13 @@ private fun MobileFields(snapshot: WearNetworkSnapshot?, hasMobileHardware: Bool
                 modifier = Modifier.padding(vertical = 4.dp)
             )
         }
-        Button(
-            onClick = { NetworkMonitorActions.openWirelessSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(stringResource(R.string.wear_netmon_action_open_settings))
-        }
+
+        WearReportDivider()
+
+        ActionChip(
+            text = stringResource(R.string.wear_netmon_action_open_settings),
+            onClick = { NetworkMonitorActions.openWirelessSettings(context) }
+        )
     }
 }
 
@@ -372,12 +393,13 @@ private fun BluetoothFields(snapshot: WearNetworkSnapshot?) {
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = 2.dp)
         )
-        Button(
-            onClick = { NetworkMonitorActions.openBluetoothSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(stringResource(R.string.wear_netmon_action_open_settings))
-        }
+
+        WearReportDivider()
+
+        ActionChip(
+            text = stringResource(R.string.wear_netmon_action_open_settings),
+            onClick = { NetworkMonitorActions.openBluetoothSettings(context) }
+        )
     }
 }
 
@@ -385,33 +407,14 @@ private fun ScalingLazyListScope.gnssSectionContent(
     gnss: WearGnssDetails?,
     onCopyIp: (String, String) -> Unit
 ) {
+    val coordsText = gnss.formatCoordinates()
     item {
-        val coordsText = if (gnss?.latitude != null && gnss.longitude != null) {
-            String.format(Locale.US, "%.5f, %.5f", gnss.latitude, gnss.longitude)
-        } else {
-            null
-        }
         Column(
             modifier = Modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             LabelValue(R.string.wear_netmon_field_coordinates, coordsText)
-            if (coordsText != null) {
-                Chip(
-                    onClick = { onCopyIp("Coordinates", coordsText) },
-                    colors = ChipDefaults.secondaryChipColors(),
-                    label = {
-                        Text(
-                            text = stringResource(R.string.wear_netmon_action_copy_ip) + " (" + coordsText + ")",
-                            style = MaterialTheme.typography.caption2,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
             LabelValue(
                 R.string.wear_netmon_field_accuracy,
                 gnss?.accuracyMeters?.let { stringResource(R.string.wear_netmon_value_meters, it) }
@@ -422,10 +425,13 @@ private fun ScalingLazyListScope.gnssSectionContent(
                     stringResource(R.string.wear_netmon_satellites_count, it.satellitesUsed, it.satellitesVisible)
                 }
             )
-            val fixFormat = DateFormat.getTimeFormat(LocalContext.current)
+            // S2795: the stored measurement system, not the watch's 12/24 switch - the fix time is read
+            // next to the app's other clocks, so it has to be in the same form as them.
+            val fixFormatter = LocalWearDateTimeFormatter.current
+            val fixSystem = LocalWearUnitSystem.current
             LabelValue(
                 R.string.wear_netmon_field_fix_time,
-                gnss?.fixTimestampMillis?.let { fixFormat.format(Date(it)) }
+                gnss?.fixTimestampMillis?.let { fixFormatter.formatTime(it, fixSystem) }
             )
         }
     }
@@ -438,13 +444,32 @@ private fun ScalingLazyListScope.gnssSectionContent(
 
     item {
         val context = LocalContext.current
-        Button(
-            onClick = { NetworkMonitorActions.openLocationSettings(context) },
-            colors = ButtonDefaults.secondaryButtonColors()
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(ROW_SPACING),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(stringResource(R.string.wear_netmon_action_open_settings))
+            WearReportDivider()
+
+            if (coordsText != null) {
+                ActionChip(
+                    text = stringResource(R.string.wear_netmon_action_copy_ip) + " (" + coordsText + ")",
+                    onClick = { onCopyIp("Coordinates", coordsText) }
+                )
+            }
+            ActionChip(
+                text = stringResource(R.string.wear_netmon_action_open_settings),
+                onClick = { NetworkMonitorActions.openLocationSettings(context) }
+            )
         }
     }
+}
+
+/** The fix as one string, or null when this watch has no position - read by both the value row and the copy action. */
+private fun WearGnssDetails?.formatCoordinates(): String? {
+    val lat = this?.latitude
+    val lon = this?.longitude
+    return if (lat != null && lon != null) String.format(Locale.US, "%.5f, %.5f", lat, lon) else null
 }
 
 @Composable
@@ -496,12 +521,12 @@ private fun TrafficFields(
             R.string.wear_netmon_field_traffic_tx,
             totals?.second?.let { formatTrafficTotal(it) }
         )
-        Button(
-            onClick = onResetTotals,
-            colors = ButtonDefaults.secondaryButtonColors()
-        ) {
-            Text(stringResource(R.string.wear_netmon_action_reset_counters))
-        }
+        WearReportDivider()
+
+        ActionChip(
+            text = stringResource(R.string.wear_netmon_action_reset_counters),
+            onClick = onResetTotals
+        )
     }
 }
 
@@ -520,31 +545,24 @@ private fun InternetFields(
     ) {
         LabelValue(R.string.wear_netmon_field_internet_state, snapshot?.hasInternet.asYesNo())
         LabelValue(R.string.wear_netmon_field_transport, snapshot?.activeTransport.asLabel())
+
+        WearReportDivider()
+
         if (!snapshot?.localIp.isNullOrBlank()) {
-            Chip(
-                onClick = { onCopyIp("Local IP", snapshot?.localIp.orEmpty()) },
-                colors = ChipDefaults.secondaryChipColors(),
-                label = {
-                    Text(
-                        text = stringResource(R.string.wear_netmon_action_copy_ip) + ": " + snapshot?.localIp,
-                        style = MaterialTheme.typography.caption2,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                modifier = Modifier.fillMaxWidth()
+            ActionChip(
+                text = stringResource(R.string.wear_netmon_action_copy_ip) + ": " + snapshot?.localIp,
+                onClick = { onCopyIp("Local IP", snapshot?.localIp.orEmpty()) }
             )
         }
 
         if (isProbing) {
             CircularProgressIndicator(modifier = Modifier.padding(4.dp))
         } else {
-            Button(
+            ActionChip(
+                text = stringResource(R.string.wear_netmon_action_probe),
                 onClick = onProbe,
-                colors = ButtonDefaults.primaryButtonColors()
-            ) {
-                Text(stringResource(R.string.wear_netmon_action_probe))
-            }
+                primary = true
+            )
         }
 
         if (probeResult != null) {
@@ -584,14 +602,14 @@ private fun ScalingLazyListScope.historySectionContent(
 
 @Composable
 private fun HistoryRow(entry: WearNetworkSnapshot) {
-    val context = LocalContext.current
-    val timeFormat = remember(context) { DateFormat.getTimeFormat(context) }
+    val timeFormatter = LocalWearDateTimeFormatter.current
+    val system = LocalWearUnitSystem.current
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = ROW_SPACING),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = timeFormat.format(Date(entry.recordedAtMillis)),
+            text = timeFormatter.formatTime(entry.recordedAtMillis, system),
             style = MaterialTheme.typography.caption2,
             color = MaterialTheme.colors.onSurfaceVariant,
             textAlign = TextAlign.Center

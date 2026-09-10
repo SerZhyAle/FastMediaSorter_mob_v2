@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -40,14 +41,15 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
-import java.text.DateFormat
-import java.util.Date
 
 private const val SINGLE_COLUMN = 1
 private const val MENU_LABEL_MAX_LINES = 2
@@ -117,7 +119,11 @@ private fun ScalingLazyListScope.settingsItems(
 ) {
     if (columns == SINGLE_COLUMN) {
         items(destinations) { (route, label) ->
-            Chip(onClick = { onClick(route) }, label = { Text(label) })
+            Chip(
+                onClick = { onClick(route) },
+                label = { Text(label) },
+                modifier = Modifier.testTag(WearTestTags.settingsRow(route))
+            )
         }
         return
     }
@@ -132,6 +138,7 @@ private fun ScalingLazyListScope.settingsItems(
                 Column(
                     modifier = Modifier
                         .weight(1f)
+                        .testTag(WearTestTags.settingsRow(route))
                         .semantics { contentDescription = label },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
@@ -208,11 +215,11 @@ private fun SyncSettingsCell(
     }
 }
 
-// Short local date and time rather than a full timestamp: the caption sits under a chip on a round
-// screen, where a long form wraps to three lines and pushes the chip off the readable band.
-private fun formatSyncTime(epochMillis: Long): String = DateFormat
-    .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
-    .format(Date(epochMillis))
+// S2795: date and time in the owner's measurement system rather than in the device's, so this caption
+// reads the same way as the clock two screens away.
+@Composable
+private fun formatSyncTime(epochMillis: Long): String =
+    LocalWearDateTimeFormatter.current.formatDateTime(epochMillis, LocalWearUnitSystem.current)
 
 private fun iconFor(route: String) = when (route) {
     SettingsRoutes.MEDIA_TYPES -> Icons.Filled.PermMedia

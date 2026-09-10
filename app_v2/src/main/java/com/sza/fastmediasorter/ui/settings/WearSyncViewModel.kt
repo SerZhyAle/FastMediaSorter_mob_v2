@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.core.di.ApplicationScope
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
 import com.sza.fastmediasorter.domain.model.WearListenAckPayload
 import com.sza.fastmediasorter.domain.model.WearListenRefusal
@@ -28,6 +29,7 @@ import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
+import com.sza.fastmediasorter.domain.usecase.ObserveUnitSystemUseCase
 import com.sza.fastmediasorter.domain.usecase.SendWearBackgroundImageUseCase
 import com.sza.fastmediasorter.service.WearDataLayerPaths
 import com.sza.fastmediasorter.service.WearSyncEvents
@@ -41,11 +43,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapNotNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -135,6 +139,9 @@ sealed class WearListenState {
     data object Listening : WearListenState()
 }
 
+// Every parameter is a distinct collaborator this screen needs (sync legs, watch resource ops,
+// listening, settings mirror) - S2731 added settingsRepository for the one read-only unitSystem value.
+@Suppress("LongParameterList")
 @HiltViewModel
 class WearSyncViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -145,9 +152,17 @@ class WearSyncViewModel @Inject constructor(
     private val sendWearBackgroundImageUseCase: SendWearBackgroundImageUseCase,
     private val wearFileTransferRepository: WearFileTransferRepository,
     private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore,
+    private val observeUnitSystemUseCase: ObserveUnitSystemUseCase,
     // S2515 (ADR-4): mirror writes outlive this ViewModel on purpose - see rememberSettings.
     @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : ViewModel() {
+
+    /**
+     * S2731: the phone's own measurement system, so the companion window's `payload()` builder can
+     * send it without a dedicated UI row (no `companionRowTag` - see `WearSettingsRegistry`).
+     */
+    val unitSystem: StateFlow<UnitSystem> = observeUnitSystemUseCase()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, UnitSystem.DEFAULT)
 
     // S1885: seeded Unknown so the settings row starts neutral instead of claiming a watch is
     // absent before the bridge has been asked.
@@ -479,7 +494,6 @@ class WearSyncViewModel @Inject constructor(
         // BottomSheetDialogFragment and is routinely closed in the same gesture that edits a setting,
         // which would cancel a viewModelScope write and lose exactly what the mirror exists to keep.
         applicationScope.launch {
-            Timber.d("S2515: mirror write on ${Thread.currentThread().name}")
             wearSettingsMirrorStore.writeSettings(settings)
             if (changed.isNotEmpty()) {
                 wearSettingsMirrorStore.writeFieldTimestamps(
@@ -521,7 +535,6 @@ class WearSyncViewModel @Inject constructor(
     }
 
     fun updateColorScheme(scheme: String) {
-        Timber.d("S2522: companion updateColorScheme scheme=%s", scheme)
         _colorScheme.value = scheme
         _watchSettingsState.value?.let { rememberSettings(it.copy(colorScheme = scheme)) }
     }
@@ -660,7 +673,6 @@ class WearSyncViewModel @Inject constructor(
         if (_listenState.value !is WearListenState.Idle) {
             return
         }
-        Timber.d("S2550: phone requested a watch listening session")
         val requestId = UUID.randomUUID().toString()
         listenRequestId = requestId
         _listenState.value = WearListenState.Awaiting

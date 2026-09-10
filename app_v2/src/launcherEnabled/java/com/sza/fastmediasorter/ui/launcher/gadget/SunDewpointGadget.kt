@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -10,7 +9,10 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherSunDewpointBinding
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
@@ -42,6 +44,7 @@ import javax.inject.Inject
 class SunDewpointGadget @Inject constructor(
     private val getWeather: Lazy<GetLauncherWeatherUseCase>,
     private val settingsRepository: Lazy<SettingsRepository>,
+    private val quantityFormatter: Lazy<QuantityFormatter>,
 ) : LauncherGadget {
 
     override val key: String = LauncherGadgetRegistry.KEY_SUN_DEWPOINT
@@ -59,7 +62,13 @@ class SunDewpointGadget @Inject constructor(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        SunDewpointGadgetView(container.context, param, getWeather.get(), settingsRepository.get())
+        SunDewpointGadgetView(
+            container.context,
+            param,
+            getWeather.get(),
+            settingsRepository.get(),
+            quantityFormatter.get(),
+        )
 }
 
 private class SunDewpointGadgetView(
@@ -67,12 +76,18 @@ private class SunDewpointGadgetView(
     param: String?,
     private val getWeather: GetLauncherWeatherUseCase,
     private val settingsRepository: SettingsRepository,
+    private val quantityFormatter: QuantityFormatter,
 ) : LauncherGadgetView(context) {
 
     private val binding = GadgetLauncherSunDewpointBinding.inflate(LayoutInflater.from(context), this)
 
     // The same codec the weather cell reads, so one picker serves both (strategic ADR-2).
     private val location: WeatherLocation? = WeatherLocation.decode(param)
+
+    // S2795: what the sunrise and sunset lines are printed with. Held as state rather than passed down
+    // because a tap refresh renders outside the settings collection that supplies it; the default is
+    // only ever read by a tap landing before the first emission, which the collection replaces at once.
+    private var unitSystem: UnitSystem = UnitSystem.DEFAULT
 
     init {
         contentDescription = context.getString(R.string.launcher_gadget_sun_dewpoint_actions)
@@ -100,7 +115,8 @@ private class SunDewpointGadgetView(
         settingsRepository.getSettings()
             .map { it.unitSystem }
             .distinctUntilChanged()
-            .collectLatest {
+            .collectLatest { system ->
+                unitSystem = system
                 while (currentCoroutineContext().isActive) {
                     render(getWeather(place))
                     delay(REFRESH_INTERVAL_MS)
@@ -173,6 +189,9 @@ private class SunDewpointGadgetView(
      * The digits are the PLACE's own wall-clock time, so they are planted into a local calendar and read
      * back by a local formatter: both halves use one zone, which is what makes the printed hour survive a
      * device sitting in a different one. Formatting the instant instead would shift it (research/01 §4).
+     *
+     * S2795: the clock length now comes from the app's unit system rather than the device's 12/24-hour
+     * switch, which is why the planted moment goes through the format seam instead of `DateFormat`.
      */
     private fun formatTime(time: LocalTime): String {
         val calendar = Calendar.getInstance().apply {
@@ -181,7 +200,7 @@ private class SunDewpointGadgetView(
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
         }
-        return DateFormat.getTimeFormat(context).format(calendar.time)
+        return quantityFormatter.format(Quantity.Instant(calendar.timeInMillis), unitSystem)
     }
 
     /** The weather cell's own formatting, keyed off the same unit - one desktop, one kind of degree. */

@@ -27,7 +27,6 @@ import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
 import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection
-import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
@@ -37,7 +36,6 @@ import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeActionPic
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherDesktopSwipeSettingsManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherScreenTimeoutSettingsManager
 import com.sza.fastmediasorter.ui.settings.helpers.LauncherSwipePayloadPickerManager
-import com.sza.fastmediasorter.ui.settings.helpers.LauncherWallpaperSettingsManager
 import com.sza.fastmediasorter.ui.settings.helpers.ScreenshotGestureActionPickerManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -257,7 +255,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val factor = options.getOrElse(index) { options[DENSITY_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(densityFactor = factor) })
         }
-        setupScreenCountRow()
         binding.rowLauncherWallpaper.setOnRowClickListener {
             LauncherWallpaperSettingsDialogFragment.newInstance()
                 .show(parentFragmentManager, LauncherWallpaperSettingsDialogFragment.TAG)
@@ -273,7 +270,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             )
         }
         requireNotNull(screenTimeoutSettingsManager).setupRow()
-        setupUnitSystemRow()
         setupWidgetBackdropAlphaRow()
         binding.rowLauncherOpenHomeSettings.setOnClickListener {
             val host = activity ?: return@setOnClickListener
@@ -321,18 +317,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
         }
     }
 
-    /**
-     * S2716: the measurement system the desktop weather pair reads. Entry order follows
-     * [UnitSystem.entries], so the selected index is the ordinal and no second mapping can drift.
-     */
-    private fun setupUnitSystemRow() {
-        binding.rowLauncherUnitSystem.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val system = UnitSystem.entries.getOrElse(index) { UnitSystem.DEFAULT }
-            viewModel.updateSettings(viewModel.settings.value.copy(unitSystem = system))
-        }
-    }
-
     private fun setupWidgetBackdropAlphaRow() {
         binding.rowLauncherWidgetBackdropAlpha.setEntries(
             listOf(
@@ -349,15 +333,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             val options = AppSettings.LAUNCHER_WIDGET_BACKDROP_ALPHA_OPTIONS
             val alpha = options.getOrElse(index) { options[BACKDROP_ALPHA_DEFAULT_INDEX] }
             viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(widgetBackdropAlpha = alpha) })
-        }
-    }
-
-    private fun setupScreenCountRow() {
-        binding.rowLauncherScreenCount.setEntries(listOf("1", "2", "3", "4", "5"))
-        binding.rowLauncherScreenCount.setOnItemSelectedListener { index ->
-            if (isUpdatingFromSettings) return@setOnItemSelectedListener
-            val count = index + 1
-            viewModel.updateSettings(viewModel.settings.value.withLauncher { copy(screenCount = count) })
         }
     }
 
@@ -466,12 +441,9 @@ class LauncherSettingsDialogFragment : DialogFragment() {
             )
             val densityIndex = AppSettings.LAUNCHER_DENSITY_OPTIONS.indexOf(settings.launcherDensityFactor)
             binding.rowLauncherDensity.setSelection(if (densityIndex >= 0) densityIndex else DENSITY_DEFAULT_INDEX)
-            val screenCountIndex = (settings.launcherScreenCount - 1).coerceIn(0, MAX_SCREEN_COUNT_INDEX)
-            binding.rowLauncherScreenCount.setSelection(screenCountIndex)
-            binding.rowLauncherUnitSystem.setSelection(settings.unitSystem.ordinal)
-            binding.rowLauncherWallpaper.setValue(
-                getText(LauncherWallpaperSettingsManager.labelOf(settings.launcherWallpaperMode))
-            )
+            // S2730: the row leads to the launcher screens screen, so it states that screen's subject -
+            // how many desktops there are - rather than the wallpaper mode it used to preview.
+            binding.rowLauncherWallpaper.setValue(settings.launcherScreenCount.toString())
             screenTimeoutSettingsManager?.render(settings)
             renderWidgetBackdropAlphaRow(settings)
             isUpdatingFromSettings = false
@@ -506,6 +478,7 @@ class LauncherSettingsDialogFragment : DialogFragment() {
     private fun desktopSwipeActionPicker(): LauncherDesktopSwipeActionPickerManager =
         LauncherDesktopSwipeActionPickerManager(
             ScreenshotGestureActionPickerManager(
+                appContext = requireContext().applicationContext,
                 capabilityAvailability = capabilityAvailability,
                 screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
                 systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),
@@ -632,7 +605,6 @@ class LauncherSettingsDialogFragment : DialogFragment() {
                     kotlin.math.abs(it - AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR) < OPTION_MATCH_EPSILON
                 }
                 .coerceAtLeast(0)
-        private const val MAX_SCREEN_COUNT_INDEX = 4
 
         // Alpha and density are stored as floats, so a row matches its option by proximity rather
         // than by equality.

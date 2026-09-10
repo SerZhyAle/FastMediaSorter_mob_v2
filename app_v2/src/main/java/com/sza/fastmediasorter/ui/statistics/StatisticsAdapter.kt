@@ -192,7 +192,7 @@ class StatisticsAdapter(
             MetricFormat.COUNT -> StatisticsRowFormatter.formatCount(value)
             MetricFormat.BYTES -> StatisticsRowFormatter.formatBytes(view.context, value)
             MetricFormat.DURATION_MS -> StatisticsRowFormatter.formatDuration(view.context, value)
-            MetricFormat.DATE -> StatisticsRowFormatter.formatDate(value)
+            MetricFormat.DATE -> StatisticsRowFormatter.formatDate(view.context, value)
             MetricFormat.TEXT -> textValue.orEmpty()
         }
 

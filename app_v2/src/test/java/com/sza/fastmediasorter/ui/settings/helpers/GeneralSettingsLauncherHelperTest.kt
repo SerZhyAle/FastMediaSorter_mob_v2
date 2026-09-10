@@ -5,6 +5,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.testing.MainDispatcherRule
@@ -35,6 +36,7 @@ class GeneralSettingsLauncherHelperTest {
     private val fragment = mockk<Fragment>(relaxed = true)
     private val launcherModeContract = mockk<LauncherModeContract>()
     private val launcherRoleManager = mockk<LauncherRoleManager>(relaxed = true)
+    private val launcherStartWindowManager = mockk<LauncherStartWindowManager>(relaxed = true)
     private val launcherRoleLauncher = mockk<ActivityResultLauncher<Intent>>(relaxed = true)
 
     private lateinit var helper: GeneralSettingsLauncherHelper
@@ -50,6 +52,7 @@ class GeneralSettingsLauncherHelperTest {
             fragment = fragment,
             launcherModeContract = launcherModeContract,
             launcherRoleManager = launcherRoleManager,
+            launcherStartWindowManager = launcherStartWindowManager,
             launcherRoleLauncher = launcherRoleLauncher,
             scopeProvider = { CoroutineScope(dispatcherRule.testDispatcher) },
             ioDispatcher = dispatcherRule.testDispatcher,

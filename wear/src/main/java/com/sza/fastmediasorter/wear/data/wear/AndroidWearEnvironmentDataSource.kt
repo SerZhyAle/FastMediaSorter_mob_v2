@@ -60,7 +60,6 @@ class AndroidWearEnvironmentDataSource @Inject constructor(
             manager.getDefaultSensor(type)?.let { sensor -> kind to sensor }
         }.toMap()
         val measured = if (present.isEmpty()) emptyMap() else awaitFirstEvents(manager, present)
-        Timber.d("S2459: %d sensor(s) fitted, %d answered in time", present.size, measured.size)
         return SENSOR_TYPES.keys.map { kind -> readingFor(kind, present, measured) }
     }
 

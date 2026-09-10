@@ -87,6 +87,10 @@ td.wrap{white-space:pre-wrap;word-break:break-word;min-width:18em}
 th{color:#8b949e;font-weight:600}
 tr.group td{color:#8b949e;padding-top:3px;border-bottom:none}
 tr.none td{color:#6e7681}
+tr.hasnote td{border-bottom:none}
+tr.note td{padding:0 8px 2px 14px;white-space:pre-wrap;word-break:break-word}
+tr.alarm td{background:#2d0f10}
+tr.alarm:hover td{background:#3d1416}
 tr:hover td{background:#0d1117}
 .dim{color:#6e7681}
 .num{text-align:right;white-space:nowrap}
@@ -225,13 +229,237 @@ tr:hover td{background:#0d1117}
     (s.leases || []).forEach(function (l) { claim(l.id, l.name, 'holds the lease'); });
     (s.agents || []).forEach(function (a) { claim(a.lease, a.name, 'agent row carries this lease'); });
     (s.agents || []).forEach(function (a) { claim(a.lastTicket, a.name, 'last agent to write about the ticket - the lease is held by nobody'); });
+    function ticketFromReason(reason) {
+      var found = String(reason || '').match(/\bS\d{4}\b/);
+      return found ? found[0] : '';
+    }
+    // The session id travels with the name so a lock row joins by eye with its roster row above -
+    // a nickname alone was ambiguous exactly where it mattered, because an identity that never
+    // posted to the chat is named by a slice of its own id.
+    function lockExecutor(ticket, executor, sessionId) {
+      var who = (executor ? name(executor) : '<span class="dim">unnamed</span>') +
+        (sessionId ? ' <span class="dim">' + esc(shortId(sessionId)) + '</span>' : '');
+      var owner = ticket ? nameByTicket[ticket] : null;
+      if (!owner) { return who; }
+      if (owner.name === executor) {
+        return who + '<br><span class="dim">ticket ' + id(ticket) + ' owner</span>';
+      }
+      return who + '<br><span class="dim">ticket ' + id(ticket) + ' owner ' + name(owner.name) + '</span>';
+    }
 
     // Two headless children on one ticket is either a launch race or an orphan left behind; the
     // pair looks perfectly ordinary row by row, so the duplication itself is what gets said.
     var perTicket = {};
     (s.children || []).forEach(function (c) { perTicket[c.ticket] = (perTicket[c.ticket] || 0) + 1; });
 
+    // One roster keyed by session id (owner finding 2026-09-10). The page used to carry four
+    // disjoint identity spaces: `running` admitted only live-lease owners and agents whose NEWEST
+    // chat message was `kind=session`, so an agent that was actually working - posting phase,
+    // progress or lock - was absent from it, while the lock table named holders and queue waiters
+    // that appeared nowhere else. Measured on the 12:20 snapshot: Code.Scripts was held by
+    // jade-gecko-0910-1120, which no other section listed, and its queue head printed as `codex-ta`.
+    // Every source below already carries the session id - the page simply never joined on it, so
+    // the reader was left to guess that four spellings were one agent.
+    var roster = {};
+    var order = [];
+    function slot(sid) {
+      if (!sid) { return null; }
+      if (!roster[sid]) {
+        roster[sid] = {
+          id: sid, name: '', runtime: '', model: '', instance: '',
+          ticket: '', ticketSrc: '', phase: '', phaseNote: '', phaseAge: null,
+          holds: [], waits: [], seen: null, note: '', lastKind: '',
+          silent: null, context: null, contextOver: false, liveness: ''
+        };
+        order.push(sid);
+      }
+      return roster[sid];
+    }
+    // The freshest evidence wins: a lease heartbeat, a chat message and a session record are three
+    // different clocks on one agent, and the oldest of them would report a working agent as quiet.
+    function freshest(row, m) {
+      if (m === null || m === undefined) { return; }
+      if (row.seen === null || m < row.seen) { row.seen = m; }
+    }
+    // A lease is the only authoritative ticket; the rest are marked as guesses, the same discipline
+    // the child rows below already apply to a name.
+    function ticketGuess(row, ticket, src) {
+      if (!ticket || row.ticketSrc === 'lease') { return; }
+      if (row.ticket && row.ticketSrc) { return; }
+      row.ticket = ticket; row.ticketSrc = src;
+    }
+    // A uuid is unique in its first eight characters and a `codex-takeover-<epoch>` id is unique only
+    // in its last: the harness name fallback slices the HEAD of both, which is why several distinct
+    // codex sessions all printed as `codex-ta` and joined with nothing.
+    function shortId(v) {
+      var t = String(v || '');
+      if (t.length <= 12) { return t; }
+      if (/^[0-9a-f]{8}-/i.test(t)) { return t.slice(0, 8); }
+      return '..' + t.slice(-8);
+    }
+    // The harness falls back to the id's first eight characters when an identity never posted a
+    // message, so a `name` that is a prefix of its own id is not a nickname and must not read as one.
+    function rosterName(row) {
+      var real = row.name && !(row.name.length === 8 && row.id.indexOf(row.name) === 0);
+      return (real ? name(row.name) : '<span class="dim">unnamed</span>') +
+        ' <span class="dim">' + esc(shortId(row.id)) + '</span>';
+    }
+    var stalledDomains = {};
+    (s.stalls || []).forEach(function (k) { stalledDomains[k.domain] = k.rule || 'stalled'; });
+
+    (s.agents || []).forEach(function (a) {
+      var row = slot(a.id); if (!row) { return; }
+      if (!row.name) { row.name = a.name; }
+      row.runtime = a.runtime; row.model = a.model; row.instance = a.instance;
+      row.silent = a.silent; row.lastKind = a.lastKind; row.note = a.lastNote;
+      row.context = a.contextBand; row.contextOver = a.contextOverThreshold;
+      row.phase = a.phase; row.phaseNote = a.phaseNote; row.phaseAge = a.phaseAgeMinutes;
+      if (a.lease) { row.ticket = a.lease; row.ticketSrc = 'lease'; }
+      else { ticketGuess(row, a.phaseTicket, 'phase message'); ticketGuess(row, a.lastTicket, 'last message'); }
+      freshest(row, a.ageMinutes);
+    });
+    (s.sessions || []).forEach(function (x) {
+      var row = slot(x.id); if (!row) { return; }
+      if (!row.name) { row.name = x.name; }
+      if (!row.runtime || row.runtime === 'unknown') { row.runtime = x.runtime; }
+      if (x.ticket) { row.ticket = x.ticket; row.ticketSrc = 'lease'; }
+      freshest(row, x.ageMinutes);
+    });
+    (s.leases || []).forEach(function (l) {
+      var row = slot(l.sessionId); if (!row) { return; }
+      if (!row.name) { row.name = l.name; }
+      row.ticket = l.id; row.ticketSrc = 'lease'; row.liveness = l.liveness;
+      freshest(row, l.lastSeenMinutes);
+    });
+    (s.locks || []).forEach(function (k) {
+      if (k.held && k.sessionId) {
+        var row = slot(k.sessionId);
+        if (!row.name) { row.name = k.name; }
+        row.holds.push({ domain: k.domain, minutes: k.heldMinutes, reason: k.reason, stalled: stalledDomains[k.domain] });
+        ticketGuess(row, ticketFromReason(k.reason), 'lock reason');
+      }
+      (k.queue || []).forEach(function (t, qi) {
+        if (!t || !t.sessionId) { return; }
+        var qr = slot(t.sessionId);
+        if (!qr.name) { qr.name = t.name; }
+        var cold = t.lastSeenMinutes === null || t.lastSeenMinutes === undefined || t.lastSeenMinutes > 5;
+        qr.waits.push({ domain: k.domain, position: qi + 1, minutes: t.waitedMinutes, reason: t.reason, cold: cold });
+        ticketGuess(qr, ticketFromReason(t.reason), 'queue reason');
+      });
+    });
+
+    // Whoever is blocking someone reads first, then whoever is blocked, then by freshness: the two
+    // questions the page is opened with are "who is holding this" and "who is stuck behind it".
+    function rank(row) {
+      if (row.holds.length) { return 0; }
+      if (row.waits.length) { return 1; }
+      if (row.silent === true) { return 3; }
+      return 2;
+    }
+    order.sort(function (a, b) {
+      var ra = rank(roster[a]), rb = rank(roster[b]);
+      if (ra !== rb) { return ra - rb; }
+      var sa = roster[a].seen, sb = roster[b].seen;
+      if (sa === null) { return 1; }
+      if (sb === null) { return -1; }
+      return sa - sb;
+    });
+
+    // The chat window is three hours wide, so the roster's raw length is a history, not a picture:
+    // measured 2026-09-10, 38 of 60 agents had said nothing for 45 minutes and held nothing. Those
+    // collapse into one line. The cut is thirty minutes rather than the harness `SilentMinutes` of
+    // 45 (owner ruling 2026-09-10): an agent that finished its ticket half an hour ago is history,
+    // and the page answers what is happening now. An agent that holds or waits for a domain is NEVER
+    // collapsed however quiet it is - that combination is precisely the stalled holder the page
+    // exists to expose, and hiding it would turn the one row that matters into the one row missing.
+    var ROSTER_ACTIVE_MINUTES = 30;
+    // What is OWNED - a lock domain, a queue position or a ticket lease - decides both that a row
+    // survives the cut and that a quiet row is an alarm, so the two rules read one predicate. They
+    // were written separately at first and disagreed on exactly one case: a quiet agent holding only
+    // a ticket was collapsed into the hidden line, so the red row the cut exists to expose was the
+    // one row it removed. Caught by a fixture, never by the live tree, which had no such agent.
+    function ownsSomething(row) {
+      return row.holds.length > 0 || row.waits.length > 0 || row.ticketSrc === 'lease';
+    }
+    var hidden = [];
+    var shown = [];
+    order.forEach(function (sid) {
+      var row = roster[sid];
+      if (ownsSomething(row)) { shown.push(sid); return; }
+      if (row.seen === null || row.seen > ROSTER_ACTIVE_MINUTES) { hidden.push(row); return; }
+      shown.push(sid);
+    });
+
+    var ROSTER_HEAD = ['kind', 'agent', 'runtime/model', 'ticket', 'phase', 'holds', 'waiting for', '#seen'];
+    // The note is the widest thing on the page and the only cell that wraps, so as a column it set
+    // the height of every row it sat on and pushed the eight narrow columns into a strip on the left
+    // (owner ruling 2026-09-10). It moves to a row of its own directly under its agent, spanning the
+    // table; the agent row drops its bottom border so the pair still reads as one entry.
+    function noteRow(html, alarm) {
+      return tr([{ w: '<span class="dim">' + html + '</span>', span: ROSTER_HEAD.length }], 'note' + (alarm ? ' alarm' : ''));
+    }
     rows = [];
+    shown.forEach(function (sid) {
+      var row = roster[sid];
+      var stalled = row.holds.some(function (h) { return h.stalled; });
+      // An agent that has gone quiet while still holding a domain or a ticket is the one failure the
+      // page must not render as an ordinary row (owner ruling 2026-09-10): everyone queued behind it
+      // waits on something that is not coming back. It is a WIDER net than the `stalls` array above -
+      // that verdict needs a queue behind the holder before it fires, and a dead agent sitting on a
+      // ticket nobody is waiting for still blocks that ticket. A stale lease liveness counts however
+      // recent the chat is: the harness judges a lease by its own evidence, and that verdict wins.
+      var quiet = row.seen === null || row.seen > ROSTER_ACTIVE_MINUTES;
+      var dead = (quiet && ownsSomething(row)) || row.liveness === 'foreign-stale';
+      var state, klass;
+      if (stalled) { state = 'STALLED'; klass = 'bad'; }
+      else if (dead) { state = 'NO LIFE'; klass = 'bad'; }
+      else if (row.holds.length) { state = 'holds'; klass = 'warn'; }
+      else if (row.waits.length) { state = 'waiting'; klass = 'warn'; }
+      else if (row.silent === true) { state = 'SILENT'; klass = 'warn'; }
+      else { state = 'live'; klass = 'norm'; }
+      var unk = function (v) { return (!v || v === 'unknown') ? '<span class="dim">?</span>' : esc(v); };
+      var ticket = row.ticket
+        ? id(row.ticket) + (row.ticketSrc === 'lease' ? '' : '<span class="dim" title="' + esc(row.ticketSrc) + '"> ?</span>')
+        : '<span class="dim">-</span>';
+      var phase = row.phase
+        ? esc(row.phase) + (row.phaseNote ? ' <span class="dim">' + esc(row.phaseNote) + '</span>' : '') +
+          (row.phaseAge !== null && row.phaseAge !== undefined ? ' <span class="dim">(' + mins(row.phaseAge) + ' ago)</span>' : '')
+        : '<span class="dim">-</span>';
+      var holds = row.holds.length
+        ? row.holds.map(function (h) {
+            return '<span title="' + esc(h.reason) + '">' + cls(h.stalled ? 'bad' : 'warn', h.domain) + ' ' + mins(h.minutes) +
+              (h.stalled ? ' ' + cls('bad', h.stalled) : '') + '</span>';
+          }).join('<br>')
+        : '<span class="dim">-</span>';
+      var waits = row.waits.length
+        ? row.waits.map(function (q) {
+            return '<span title="' + esc(q.reason) + '">' + cls(q.cold ? 'warn' : 'dim', q.domain + ' #' + q.position) +
+              ' ' + mins(q.minutes) + (q.cold ? ' ' + cls('warn', 'cold') : '') + '</span>';
+          }).join('<br>')
+        : '<span class="dim">-</span>';
+      var context = row.contextOver ? ' ' + cls('bad', row.context) : '';
+      var alarm = stalled || dead;
+      // The alarm names what is still held and how long the silence has run, because the row above
+      // says only that something is wrong - the reader's next question is always "on what".
+      var held = row.holds.map(function (h) { return h.domain; })
+        .concat(row.ticketSrc === 'lease' && row.ticket ? ['ticket ' + row.ticket] : []).join(' + ');
+      var note = (row.lastKind ? bold(row.lastKind) + ' ' : '') + esc(row.note);
+      if (dead) {
+        note = cls('bad', 'quiet ' + mins(row.seen) + ' and still holding ' + (held || 'something') +
+          (row.liveness === 'foreign-stale' ? '; the lease itself reads stale' : '')) +
+          (note ? ' &middot; last: ' + note : '');
+      }
+      rows.push(tr([
+        cls(klass, state),
+        rosterName(row),
+        unk(row.runtime) + '/' + unk(row.model) + (row.instance && row.instance !== '-' ? ' ' + esc(row.instance) : '') + context,
+        ticket, { w: phase }, { w: holds }, { w: waits }, { n: mins(row.seen) }
+      ], (alarm ? 'alarm ' : '') + (note ? 'hasnote' : '')));
+      if (note) { rows.push(noteRow(note, alarm)); }
+    });
+    // A headless child is a PROCESS and a nickname belongs to a SESSION, so it keeps its own rows
+    // below the sessions rather than being folded into one: measured 2026-09-03, one `-p` run showed
+    // children 27264 and 20056 against a lease whose pid was 26808.
     (s.children || []).forEach(function (c) {
       var q = c.quietMinutes;
       var sameAsAge = q !== null && q !== undefined && c.ageMinutes !== null && c.ageMinutes !== undefined && Math.abs(q - c.ageMinutes) < 0.05;
@@ -243,9 +471,29 @@ tr:hover td{background:#0d1117}
         ? (hit.src === 'holds the lease' ? name(hit.name) : '<span class="dim" title="' + esc(hit.src) + '">' + esc(hit.name) + ' ?</span>')
         : '<span class="dim">unnamed</span>';
       var tk = id(c.ticket) + (perTicket[c.ticket] > 1 ? ' ' + cls('warn', 'x' + perTicket[c.ticket] + ' duplicate') : '');
-      rows.push(tr(['<span class="big">' + esc(c.pid) + '</span>', who, tk, esc(c.model), { n: mins(c.ageMinutes) }, cls(qc, mins(q) + (q >= 15 ? ' quiet' : '')), { w: lw }]));
+      rows.push(tr([
+        '<span class="dim">child ' + esc(c.pid) + '</span>', who, esc(c.model), tk,
+        '<span class="dim">-</span>', '<span class="dim">-</span>', '<span class="dim">-</span>',
+        { n: mins(c.ageMinutes) }
+      ], 'hasnote'));
+      rows.push(noteRow(cls(qc, mins(q) + (q >= 15 ? ' quiet' : '')) + '  ' + lw, false));
     });
-    table('children', ['pid', 'agent', 'ticket', 'model', '#age', 'quiet', 'last write'], rows, 'no headless claude child is running');
+    if (hidden.length) {
+      // Named, not merely counted: the reader is usually looking for one agent he remembers, and a
+      // bare count would send him to the chat section to find out whether it is even on the machine.
+      var some = hidden.slice(0, 6).map(function (r) { return r.name || shortId(r.id); }).join(', ');
+      rows.push(tr([{
+        w: '<span class="dim">' + hidden.length + ' agent(s) hidden - quiet over ' + ROSTER_ACTIVE_MINUTES +
+          ' min, nothing held, nothing queued: ' + esc(some) +
+          (hidden.length > 6 ? ' and ' + (hidden.length - 6) + ' more' : '') + '</span>',
+        span: ROSTER_HEAD.length
+      }], 'group'));
+    }
+    var rw = s.windows || {};
+    el('agents-note').textContent = shown.length + ' active of ' + order.length + ' agent(s), ' +
+      (s.children || []).length + ' headless child(ren); active = seen in the last ' +
+      ROSTER_ACTIVE_MINUTES + ' min, or holding or queued for a domain at any age';
+    table('agents', ROSTER_HEAD, rows, 'no agent, lease, lock or headless child observable');
 
     rows = [];
     (s.leases || []).forEach(function (l) {
@@ -302,27 +550,17 @@ tr:hover td{background:#0d1117}
       else { state = 'free'; klass = 'norm'; }
       var dom = k.legacy ? esc(k.domain.toUpperCase()) + '.LOCK (pre-split, covers every ' + esc(k.domain.toLowerCase()) + ' domain)' : esc(k.domain);
       if (k.held || q.length) { dom = '<b>' + dom + '</b>'; }
-      rows.push(tr([dom, cls(klass, state), k.held ? name(k.name) : '', { n: k.held ? mins(k.heldMinutes) : '' }, k.held ? local(k.acquiredAtUtc) : '', { w: k.unreadable ? cls('bad', 'unreadable lock file') : esc(k.reason) }]));
+      var ticket = ticketFromReason(k.reason);
+      rows.push(tr([dom, cls(klass, state), k.held ? lockExecutor(ticket, k.name, k.sessionId) : '', { n: k.held ? mins(k.heldMinutes) : '' }, k.held ? local(k.acquiredAtUtc) : '', { w: k.unreadable ? cls('bad', 'unreadable lock file') : esc(k.reason) }]));
       for (i = 0; i < q.length; i++) {
         var t = q[i];
         var cold = t.lastSeenMinutes === null || t.lastSeenMinutes === undefined || t.lastSeenMinutes > 5;
-        rows.push(tr(['<span class="dim">    #' + (i + 1) + ' queued</span>', cls(cold ? 'warn' : 'dim', 'waiting ' + mins(t.waitedMinutes)), name(t.name), { n: '' }, cls(cold ? 'warn' : 'dim', 'seen ' + mins(t.lastSeenMinutes) + (cold ? ' cold' : '')), { w: esc(t.reason) }]));
+        var waiter = (t.name ? name(t.name) : '<span class="dim">unnamed</span>') +
+          (t.sessionId ? ' <span class="dim">' + esc(shortId(t.sessionId)) + '</span>' : '');
+        rows.push(tr(['<span class="dim">    #' + (i + 1) + ' queued</span>', cls(cold ? 'warn' : 'dim', 'waiting ' + mins(t.waitedMinutes)), waiter, { n: '' }, cls(cold ? 'warn' : 'dim', 'seen ' + mins(t.lastSeenMinutes) + (cold ? ' cold' : '')), { w: esc(t.reason) }]));
       }
     });
-    table('locks', ['domain', 'state', 'holder', '#held', 'since', 'reason'], rows, 'no lock domain known');
-
-    rows = [];
-    (s.agents || []).forEach(function (a) {
-      var where = a.phaseTicket ? id(a.phaseTicket + (a.phase ? '/' + a.phase : '')) + (a.phaseNote ? ' ' + esc(a.phaseNote) : '') + ' <span class="dim">(' + mins(a.phaseAgeMinutes) + ' ago)</span>' : '<span class="dim">-</span>';
-      // `unknown` printed in full for every agent is a column of noise that says the same thing a
-      // dim `?` says; the field is still shown, so nothing is lost.
-      var unk = function (v) { return (!v || v === 'unknown') ? '<span class="dim">?</span>' : esc(v); };
-      var context = a.contextBand ? cls(a.contextOverThreshold ? 'bad' : 'dim', a.contextBand) : '<span class="dim">-</span>';
-      rows.push(tr([name(a.name), cls(a.silent ? 'warn' : 'norm', a.silent ? 'SILENT' : 'live'), { n: mins(a.ageMinutes) }, unk(a.runtime) + '/' + unk(a.model) + (a.instance && a.instance !== '-' ? ' ' + esc(a.instance) : ''), context, id(a.lease), { w: where }, bold(a.lastKind) + (a.lastTicket ? ' ' + id(a.lastTicket) : ''), { w: esc(a.lastNote) }]));
-    });
-    var w = s.windows || {};
-    el('agents-note').textContent = (s.agents || []).length + ' agents in the ' + (w.retentionMinutes || '?') + ' min window, SILENT after ' + (w.silentMinutes || '?') + ' min';
-    table('agents', ['agent', 'state', '#last msg', 'runtime/model', 'context', 'lease', 'phase', 'last kind', 'last note'], rows, 'nobody has written');
+    table('locks', ['domain', 'state', 'lock executor', '#held', 'since', 'reason'], rows, 'no lock domain known');
 
     rows = [];
     (s.gates || []).forEach(function (g) {
@@ -429,20 +667,16 @@ tr:hover td{background:#0d1117}
     $body = @'
 <h1>dev monitor</h1>
 <div id="head" class="warn">loading snapshot.js ..</div>
-<h2>running <small>headless claude children (-p)</small></h2>
-<div id="children"></div>
+<h2>agents <small id="agents-note"></small></h2>
+<div id="agents"></div>
 <h2>ticket leases <small>what is claimed now</small></h2>
 <div id="leases"></div>
 <div id="stalls-box" style="display:none">
 <h2>stalled holders <small>quiet, holding, and blocking someone</small></h2>
 <div id="stalls"></div>
 </div>
-<h2>locks <small>who is building or editing, who waits, and - when nothing is held - who held one last</small></h2>
+<h2>locks <small>per domain, in queue order; every name here also has a row under agents</small></h2>
 <div id="locks"></div>
-<h2>agents <small id="agents-note"></small></h2>
-<div id="agents"></div>
-<h2>gate health <small>recent closures and batches</small></h2>
-<div id="gates"></div>
 <h2>watchdog actions <small>latest reaper and supervisor work</small></h2>
 <div id="watchdog"></div>
 <h2>next up <small id="nextup-note"></small></h2>
@@ -455,6 +689,8 @@ tr:hover td{background:#0d1117}
 <div id="finished"></div>
 <h2>stop <small>queue stop flags</small></h2>
 <div id="stop"></div>
+<h2>gate health <small>recent closures and batches</small></h2>
+<div id="gates"></div>
 '@
 
     return @"

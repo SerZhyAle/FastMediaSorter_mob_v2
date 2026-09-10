@@ -2321,7 +2321,6 @@
     <string name="launcher_weather_location_searching">Recherche en cours..</string>
     <string name="launcher_app_shortcut_start_failed">Cette action n\'est plus disponible.</string>
     <string name="launcher_settings_lock_desktop_title">Verrouiller le bureau</string>
-    <string name="launcher_settings_wallpaper_title">Fond d\'écran du bureau</string>
     <string name="launcher_settings_wallpaper_branded">Vagues et particules</string>
     <string name="launcher_settings_wallpaper_none">Aucun</string>
     <string name="launcher_settings_wallpaper_image">Mon image</string>
@@ -2478,7 +2477,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d m</string>
     <string name="launcher_gadget_compass_calibrate">Agitez le téléphone en formant un huit</string>
-    <string name="launcher_gadget_speed_value">%1$d km/h</string>
     <string name="launcher_gadget_sensor_no_fix">En attente d\'une position..</string>
     <string name="launcher_gadget_sensor_no_permission">La localisation est désactivée. Autorisez-la dans les permissions de l\'application.</string>
     <string name="launcher_gadget_compass_description">Boussole. Cap %1$s, altitude %2$s</string>
@@ -2488,8 +2486,6 @@
     <string name="launcher_gadget_chart_reset">Réinitialiser</string>
     <string name="launcher_gadget_chart_reset_description">Efface le graphique et le redémarre à partir de maintenant</string>
     <string name="launcher_gadget_chart_empty">Pas encore de mesures - le graphique se remplit à mesure que vous vous déplacez.</string>
-    <string name="launcher_gadget_chart_distance">%1$s km</string>
-    <string name="launcher_gadget_chart_altitude_current">Maintenant %1$d m</string>
     <string name="launcher_gadget_speed_chart_description">Graphique de vitesse. Maintenant %1$s, %2$s depuis la réinitialisation</string>
     <string name="launcher_gadget_altitude_chart_description">Graphique d\'altitude. Maintenant %1$s, %2$s depuis la réinitialisation, %3$s parcourus</string>
     <string name="launcher_gadget_steps">Pas</string>
@@ -2812,7 +2808,6 @@
     <string name="launcher_action_all_apps">Toutes les applications</string>
     <string name="launcher_action_black_screen">Écran noir</string>
     <string name="launcher_gadget_altitude">Altitude</string>
-    <string name="launcher_gadget_altitude_value">%1$d m</string>
     <string name="launcher_gadget_altitude_description">Altitude au-dessus du niveau de la mer : %1$s</string>
     <string name="launcher_gadget_altitude_unknown">Pas encore d\'altitude</string>
     <string name="launcher_gadget_satellites">Satellites</string>
@@ -3400,7 +3395,6 @@
     <string name="stream_vr_unsupported_transport">Cette chaîne utilise un transport que le lecteur VR ne peut pas encore ouvrir. Elle continue de se lire dans le lecteur normal.</string>
     <string name="launcher_translator_translate">Traduire</string>
     <string name="launcher_translator_in_progress">Traduction en cours..</string>
-    <string name="launcher_wallpaper_screen_title">Fond d\'écran</string>
     <string name="launcher_wallpaper_section_mode">Ce qui est dessiné</string>
     <string name="launcher_wallpaper_section_source">Source</string>
     <string name="launcher_wallpaper_section_tuning">Apparence</string>

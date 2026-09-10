@@ -105,7 +105,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
      */
     private fun applyFlavorRestrictions() {
         // Translation and OCR rows are visible only when the build compiles the translation capability.
-        if (!capabilityAvailability.isTranslationAvailable()) {
+        if (!capabilityAvailability.isTranslationAvailable(requireContext())) {
             // After migration the row IS the visible element; no extra wrapper container.
             binding.rowEnableTranslation.isVisible = false
             binding.layoutTranslationLanguages.isVisible = false
@@ -388,7 +388,7 @@ class OtherMediaSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun updateTranslationPrewarmStatus(status: TranslationModelPrewarmStatus) {
-        if (!capabilityAvailability.isTranslationAvailable() || !viewModel.settings.value.enableTranslation) {
+        if (!capabilityAvailability.isTranslationAvailable(requireContext()) || !viewModel.settings.value.enableTranslation) {
             binding.layoutTranslationPrewarmStatus.isVisible = false
             binding.btnTranslationPrewarmRetry.isVisible = false
             return

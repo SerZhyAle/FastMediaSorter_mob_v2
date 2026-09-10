@@ -54,6 +54,31 @@ Describe 'StreamPublisher.Delivery' {
         ($result.Moves | Where-Object { $_.facet -eq 'country' }).Count | Should Be 1
     }
 
+    It 'recategorizes an already-shipped camera row from its rubric' {
+        # The regression this guards: the webcam collectors emit category 'Live TV', so without the
+        # rubric rule the shipped rows keep it and no Webcam filter can ever find them (S1476).
+        $rows = @(
+            [pscustomobject]@{
+                category = 'Live TV'; topic = 'Webcam'; language = 'english'
+                country = 'US'; url = 'https://example.test/cam'; name = 'Beach Cam'
+            },
+            [pscustomobject]@{
+                category = 'Live TV'; topic = 'Traffic cams'; language = 'english'
+                country = 'GB'; url = 'https://example.test/jam'; name = 'JamCam'
+            },
+            [pscustomobject]@{
+                category = 'Live TV'; topic = 'News'; language = 'english'
+                country = 'FR'; url = 'https://example.test/news'; name = 'News channel'
+            }
+        )
+        $result = Normalize-CatalogFacetRows -Rows $rows
+        $result.Rows[0].category | Should Be 'Webcam'
+        $result.Rows[1].category | Should Be 'Webcam'
+        # A non-camera rubric is untouched, so the rule cannot swallow the rest of the catalog.
+        $result.Rows[2].category | Should Be 'Live TV'
+        $result.Rows[1].topic | Should Be 'Traffic cams'
+    }
+
     # BeExactly throughout: Pester 3's Be is case-insensitive, and half of what this key promises is which
     # parts keep their case. Be would pass on a function that folded the path too.
     It 'derives the same channel identity the app derives' {

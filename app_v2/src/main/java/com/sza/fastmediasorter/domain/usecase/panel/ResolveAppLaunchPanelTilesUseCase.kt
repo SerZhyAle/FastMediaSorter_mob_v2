@@ -99,7 +99,6 @@ class ResolveAppLaunchPanelTilesUseCase @Inject constructor(
                 // Feature glyphs are monochrome (ic_calculator, ic_cast, ..) - tint to stay legible.
                 // S2510: a sub-program is tinted to its own accent rather than the neutral on-surface.
                 val accent = SubProgramAccentCatalog.accentFor(target.routeKey)
-                timber.log.Timber.d("S2510: panel route=%s accent=%s", target.routeKey, accent)
                 tileUi(
                     tile,
                     context.getString(route.labelRes),

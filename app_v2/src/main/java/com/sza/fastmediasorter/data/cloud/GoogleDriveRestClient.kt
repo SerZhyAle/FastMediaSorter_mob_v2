@@ -19,6 +19,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.BufferedInputStream
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.HttpURLConnection
@@ -792,6 +793,51 @@ class GoogleDriveRestClient @Inject constructor(
                 Timber.e(e, "Failed to find folder: $folderName")
                 CloudResult.Error(context.getString(R.string.cloud_search_failed), e)
             }
+        }
+    }
+
+    /**
+     * S1565: write [content] as the one persistent file named [fileName] inside [parentFolderId],
+     * replacing whatever file of that exact name was there.
+     *
+     * Composed from the verbs this class already owns rather than a second upload implementation:
+     * S1361 replaced the buffered upload with a streaming one inside [uploadFile], and a private
+     * path here would not inherit it. The previous file is deleted only after the new one uploaded,
+     * so a failed upload leaves the old persistent file intact.
+     */
+    suspend fun uploadReplacingByName(
+        fileName: String,
+        parentFolderId: String,
+        mimeType: String,
+        content: ByteArray
+    ): CloudResult<CloudFile> {
+        val previousId = (resolveFileIdFromName(fileName, parentFolderId) as? CloudResult.Success)?.data
+        val uploaded = uploadFile(
+            inputStream = content.inputStream(),
+            fileName = fileName,
+            mimeType = mimeType,
+            parentFolderId = parentFolderId,
+            fileSize = content.size.toLong()
+        )
+        if (uploaded is CloudResult.Success && previousId != null && previousId != uploaded.data.id) {
+            deleteFile(previousId)
+        }
+        return uploaded
+    }
+
+    /**
+     * S1565: read the persistent file named [fileName] from [parentFolderId].
+     *
+     * A missing file is `Success(null)`, not an error - the caller reports "nothing stored yet" and
+     * leaves local data alone, which strategic §5.2 requires.
+     */
+    suspend fun downloadByName(fileName: String, parentFolderId: String): CloudResult<ByteArray?> {
+        val resolved = resolveFileIdFromName(fileName, parentFolderId)
+        if (resolved !is CloudResult.Success) return CloudResult.Success(null)
+        val sink = ByteArrayOutputStream()
+        return when (val downloaded = downloadFile(resolved.data, sink)) {
+            is CloudResult.Success -> CloudResult.Success(sink.toByteArray())
+            is CloudResult.Error -> downloaded
         }
     }
 

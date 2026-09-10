@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.core.power.PowerStateObserver
@@ -86,6 +87,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var launcherModeContract: LauncherModeContract
 
     @Inject lateinit var launcherRoleManager: LauncherRoleManager
+
+    @Inject lateinit var launcherStartWindowManager: LauncherStartWindowManager
 
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
@@ -272,6 +275,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             this,
             launcherModeContract,
             launcherRoleManager,
+            launcherStartWindowManager,
             launcherRoleLauncher,
         )
     }
@@ -334,7 +338,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
         // the activity FragmentManager so the full-screen overlay attaches to a real container.
         // S0547: hide on flavors with nothing to download (lite/photos) - mirrors the welcome page gate.
-        if (!capabilityAvailability.isExtensionsScreenAvailable()) {
+        if (!capabilityAvailability.isExtensionsScreenAvailable(requireContext())) {
             binding.btnDownloadableExtensions?.visibility = View.GONE
         } else {
             binding.btnDownloadableExtensions?.setOnClickListener {

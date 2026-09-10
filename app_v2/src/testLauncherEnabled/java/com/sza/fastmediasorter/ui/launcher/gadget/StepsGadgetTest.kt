@@ -5,6 +5,7 @@ import android.view.ContextThemeWrapper
 import android.view.View
 import android.widget.FrameLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
@@ -59,6 +60,7 @@ class StepsGadgetTest {
             availability,
             Lazy { observeStepCountUseCase },
             Lazy { settingsRepository },
+            Lazy { QuantityFormatter(context) },
         )
         assertTrue(gadget.isAvailable())
     }
@@ -69,6 +71,7 @@ class StepsGadgetTest {
             availability,
             Lazy { observeStepCountUseCase },
             Lazy { settingsRepository },
+            Lazy { QuantityFormatter(context) },
         )
         val container = FrameLayout(context)
         val view = gadget.createView(container, host, null)

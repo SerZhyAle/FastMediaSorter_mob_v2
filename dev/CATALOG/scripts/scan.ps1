@@ -46,37 +46,8 @@ if (-not $OutFile) {
     $OutFile = Join-Path $Root "dev\CATALOG\$Module.jsonl"
 }
 
-$srcRoots = @(
-    (Join-Path $Root "$Module\src\main\java"),
-    (Join-Path $Root "$Module\src\standard\java"),
-    (Join-Path $Root "$Module\src\lite\java"),
-    (Join-Path $Root "$Module\src\photos\java"),
-    (Join-Path $Root "$Module\src\legacy\java"),
-    (Join-Path $Root "$Module\src\vr\java"),
-    (Join-Path $Root "$Module\src\vrStub\java"),
-    (Join-Path $Root "$Module\src\noLegal\java"),
-    (Join-Path $Root "$Module\src\streamingEnabled\java"),
-    (Join-Path $Root "$Module\src\translationEnabled\java"),
-    (Join-Path $Root "$Module\src\translationDynamicFeature\java"),
-    (Join-Path $Root "$Module\src\translationMlKit\java"),
-    (Join-Path $Root "$Module\src\vrOnly\java"),
-    (Join-Path $Root "$Module\src\cloudEnabled\java"),
-    (Join-Path $Root "$Module\src\cloudDisabled\java"),
-    (Join-Path $Root "$Module\src\ocrEnabled\java"),
-    (Join-Path $Root "$Module\src\ocrDisabled\java"),
-    (Join-Path $Root "$Module\src\screenCapture\java"),
-    (Join-Path $Root "$Module\src\standardScreenCapture\java"),
-    (Join-Path $Root "$Module\src\standardEdgeTile\java"),
-    # S0404: launcher-mode capability source sets. Added 2026-07-17
-    (Join-Path $Root "$Module\src\launcherEnabled\java"),
-    (Join-Path $Root "$Module\src\launcherDisabled\java"),
-    # S1558: the Cast seam implementations. Added 2026-08-14
-    (Join-Path $Root "$Module\src\castEnabled\java"),
-    (Join-Path $Root "$Module\src\castDisabled\java"),
-    # S1802: the Wear Data Layer seam. Added 2026-08-18
-    (Join-Path $Root "$Module\src\wearGms\java"),
-    (Join-Path $Root "$Module\src\wearStub\java")
-) | Where-Object { Test-Path -LiteralPath $_ }
+. (Join-Path $PSScriptRoot '_source-roots.ps1')
+$srcRoots = Get-CatalogSourceRoots -Module $Module -Root $Root
 if (-not $srcRoots -or $srcRoots.Count -eq 0) {
     throw "No supported source roots found for module '$Module'"
 }

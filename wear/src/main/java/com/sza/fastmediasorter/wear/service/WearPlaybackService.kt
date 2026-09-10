@@ -12,6 +12,7 @@ import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
@@ -21,8 +22,11 @@ import androidx.media3.session.MediaSessionService
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
+import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
@@ -100,6 +104,13 @@ class WearPlaybackService : MediaSessionService() {
     private var progressTicker: PlaybackProgressTicker? = null
 
     /**
+     * S2848: the only teardown path for a session that wants to play and makes no sound. The three
+     * paths below it - ended/idle, an explicit pause, the task being removed - all leave that state
+     * running, which is what emptied the battery overnight.
+     */
+    private var stallWatchdog: WearPlaybackStallWatchdog? = null
+
+    /**
      * Stops the service the moment the sound stops, rather than waiting for the system to reclaim it.
      * Strategic §7 names a notification outliving its sound as a risk to design against: an idle or
      * ended player still holding a media notification tells the owner the watch is playing when it is
@@ -109,7 +120,20 @@ class WearPlaybackService : MediaSessionService() {
         override fun onPlaybackStateChanged(playbackState: Int) {
             if (playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE) {
                 stopPlaybackAndSelf()
+                return
             }
+            updateStallWatch()
+        }
+
+        /**
+         * S2848: a stream error that Media3 does not consider fatal never reaches STATE_IDLE, so
+         * without its own exit it was left to the retry loop. The watchdog would catch it as a stall
+         * anyway; ending here means the battery does not pay for the timeout first.
+         */
+        override fun onPlayerError(error: PlaybackException) {
+            Timber.d("S2848: background playback error ends the session")
+            Timber.w(error, "WearPlaybackService: playback error, ending the background session")
+            stopPlaybackAndSelf()
         }
 
         override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -145,6 +169,7 @@ class WearPlaybackService : MediaSessionService() {
                     return
                 }
             }
+            updateStallWatch()
             backgroundSessionState.updateProgress(currentPositionMs(), isPlaying)
             publishPlaybackState(isPlaying)
         }
@@ -163,6 +188,14 @@ class WearPlaybackService : MediaSessionService() {
         player = exoPlayer
         progressTicker = PlaybackProgressTicker(serviceScope, exoPlayer) { position ->
             backgroundSessionState.updateProgress(position, exoPlayer.isPlaying)
+        }
+        stallWatchdog = WearPlaybackStallWatchdog(serviceScope, WEAR_PLAYBACK_STALL_TIMEOUT_MS) {
+            Timber.d("S2848: stalled background session releases foreground service")
+            Timber.w(
+                "WearPlaybackService: no sound for %d ms, ending the background session",
+                WEAR_PLAYBACK_STALL_TIMEOUT_MS
+            )
+            stopPlaybackAndSelf()
         }
         // The session sees the set-aware wrapper, the service keeps the raw player: only the wrapper
         // can answer NEXT and PREVIOUS on a one-item player, and only the raw one can be released.
@@ -238,6 +271,22 @@ class WearPlaybackService : MediaSessionService() {
     private fun currentPositionMs(): Long = player?.currentPosition?.coerceAtLeast(0) ?: 0L
 
     /**
+     * S2848: read straight off the player rather than from the callback's argument - a stall is a
+     * combination of three of its properties, and a listener carries only one of them at a time.
+     */
+    private fun updateStallWatch() {
+        val exoPlayer = player ?: return
+        val playbackState = exoPlayer.playbackState
+        stallWatchdog?.onActivityChanged(
+            WearPlaybackStallPolicy.activityOf(
+                playWhenReady = exoPlayer.playWhenReady,
+                isPlaying = exoPlayer.isPlaying,
+                isEndedOrIdle = playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE
+            )
+        )
+    }
+
+    /**
      * Strategic §5.2: while the app is minimized this service is the only thing that knows what is
      * playing, so the complication and the phone have to read it from here or read a screen's last
      * word - which is a session that already ended.
@@ -277,6 +326,8 @@ class WearPlaybackService : MediaSessionService() {
     override fun onDestroy() {
         progressTicker?.stop()
         progressTicker = null
+        stallWatchdog?.cancel()
+        stallWatchdog = null
         backgroundSessionState.clear()
         streamPlaybackSession.clear()
         // The scope outlives this callback by exactly one write. Cancelling it here instead would

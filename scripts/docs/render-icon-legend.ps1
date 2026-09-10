@@ -7,7 +7,7 @@
     OWN trilingual string table and the hand-authored sidecar
     docs/icons/icon-annotations.json (surface headings + resource-type / override
     labels), then emits one Markdown legend per locale:
-      docs/ICON_LEGEND.md (en) / _RU.md (ru) / _UK.md (uk)
+      docs/ICON_LEGEND.md (en) / ICON_LEGEND-ru.md (ru) / ICON_LEGEND-uk.md (uk)
 
     Meaning resolution per locale L (first hit wins):
       overrides[key][L] -> resourceTypes[feature][L] (feature is an enum name)
@@ -203,8 +203,8 @@ function Render-Legend([string] $locale, [string] $permalinkName) {
 $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
 $targets = @(
     @{ locale = 'en'; permalink = 'ICON_LEGEND';    file = 'ICON_LEGEND.md' }
-    @{ locale = 'ru'; permalink = 'ICON_LEGEND_RU'; file = 'ICON_LEGEND_RU.md' }
-    @{ locale = 'uk'; permalink = 'ICON_LEGEND_UK'; file = 'ICON_LEGEND_UK.md' }
+    @{ locale = 'ru'; permalink = 'ICON_LEGEND_RU'; file = 'ICON_LEGEND-ru.md' }
+    @{ locale = 'uk'; permalink = 'ICON_LEGEND_UK'; file = 'ICON_LEGEND-uk.md' }
 )
 $codeScope = $null
 try {

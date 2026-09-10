@@ -35,6 +35,16 @@ internal object WearPreferenceKeys {
     val DOWNLOAD_ALBUM_ART = booleanPreferencesKey("wear_download_album_art")
     val WEAR_DISABLE_ANIMATIONS = booleanPreferencesKey("wear_disable_animations")
     val WEAR_POWER_SAVING_TRIGGER = stringPreferencesKey("wear_power_saving_trigger")
+    val WEAR_UNIT_SYSTEM = stringPreferencesKey("wear_unit_system")
+
+    /**
+     * S2773: the screen geometry the user picked, stored by enum name.
+     *
+     * A string rather than a boolean because an absent entry has to stay distinguishable from a real
+     * choice: no stored value means "take the answer of this build variant", which a false could not
+     * say. Every other appearance key above defaults to a value; this one defaults to a question.
+     */
+    val WEAR_GEOMETRY_MODE = stringPreferencesKey("wear_geometry_mode")
 
     val SHUFFLE_ENABLED = booleanPreferencesKey("wear_shuffle_enabled")
 
@@ -68,9 +78,29 @@ internal object WearPreferenceKeys {
     val DOCUMENT_FONT_SIZE = stringPreferencesKey("wear_document_font_size")
     val DOCUMENT_READING_POSITIONS = stringPreferencesKey("wear_document_reading_positions")
 
+    /**
+     * S2813: the broadcast's own identity - the port the last session actually bound, and the id that
+     * names this watch as a stream source to whoever scans its code.
+     *
+     * The port is absent rather than zero while no session has ever succeeded: zero is the value that
+     * asks the platform for an ephemeral port, so it cannot also mean "nothing to ask for yet".
+     */
+    val BROADCAST_PORT = intPreferencesKey("wear_broadcast_port")
+    val BROADCAST_SOURCE_ID = stringPreferencesKey("wear_broadcast_source_id")
+
     val CALCULATOR_HISTORY = stringPreferencesKey("wear_calculator_history")
     val CALCULATOR_MEMORY = stringPreferencesKey("wear_calculator_memory")
     val GAME_STATE = stringPreferencesKey("wear_game_state")
+
+    /**
+     * S2825: the stopwatch's own two durable fields - how many participants the screen splits into, and
+     * the text of the last finished measurement.
+     *
+     * The measurement itself is deliberately absent: it is derived from a monotonic instant that does not
+     * survive a reboot, so storing it would promise a continuity the clock cannot keep.
+     */
+    val STOPWATCH_PARTICIPANT_COUNT = intPreferencesKey("wear_stopwatch_participant_count")
+    val STOPWATCH_LAST_RESULT = stringPreferencesKey("wear_stopwatch_last_result")
     val AUTO_ROTATION_ENABLED = booleanPreferencesKey("wear_auto_rotation_enabled")
     val APP_LANGUAGE = stringPreferencesKey("wear_app_language")
     val VOICE_NOTE_SEND_POLICY = stringPreferencesKey("wear_voice_note_send_policy")

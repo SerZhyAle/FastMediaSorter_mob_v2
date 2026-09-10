@@ -18,38 +18,41 @@ import java.util.concurrent.CopyOnWriteArrayList
  * Local HTTP server broadcasting live audio with ICY metadata headers over LAN.
  */
 @Suppress("MagicNumber")
-class BroadcastHttpServer(private val context: Context) {
+class BroadcastHttpServer(
+    private val context: Context,
+    private val config: BroadcastSessionConfig,
+) {
 
     companion object {
-        private val CANDIDATE_PORTS = intArrayOf(8768, 8769, 8770)
         const val ENDPOINT = "/live-audio.aac"
         private const val DEFAULT_LAN_IP = "127.0.0.1"
         private const val BUFFER_SIZE_BYTES = 65536
     }
 
     private var server: InternalServer? = null
-    private var activePort: Int = CANDIDATE_PORTS[0]
+    private var activePort: Int = config.port
 
     private val outputStreams = CopyOnWriteArrayList<PipedOutputStream>()
 
     fun getBroadcastUrl(): String = "http://${getLanIp()}:$activePort$ENDPOINT"
 
+    /**
+     * Binds the single configured port. Returns the port on success or -1 when the port is occupied,
+     * so the caller can report a typed failure instead of silently trying another port.
+     */
     @Suppress("TooGenericExceptionCaught")
     fun start(): Int {
-        for (port in CANDIDATE_PORTS) {
-            try {
-                val srv = InternalServer(port)
-                srv.start()
-                server = srv
-                activePort = port
-                Timber.d("BroadcastHttpServer: started on port $port")
-                return port
-            } catch (e: Exception) {
-                Timber.w("BroadcastHttpServer: port $port unavailable - ${e.message}")
-            }
+        return try {
+            val srv = InternalServer(config.port)
+            srv.start()
+            server = srv
+            activePort = config.port
+            Timber.d("BroadcastHttpServer: started on port ${config.port}")
+            config.port
+        } catch (e: Exception) {
+            Timber.w("BroadcastHttpServer: port ${config.port} unavailable - ${e.message}")
+            -1
         }
-        Timber.e("BroadcastHttpServer: failed to bind candidate ports")
-        return -1
     }
 
     @Suppress("TooGenericExceptionCaught", "SwallowedException")
@@ -143,10 +146,10 @@ class BroadcastHttpServer(private val context: Context) {
 
             val clientStream = createClientStream()
             val response = newChunkedResponse(Response.Status.OK, "audio/aac", clientStream)
-            response.addHeader("icy-name", "Phone Audio Broadcast")
+            response.addHeader("icy-name", config.streamTitle)
             response.addHeader("icy-genre", "Live Audio")
             response.addHeader("icy-pub", "1")
-            response.addHeader("icy-br", "128")
+            response.addHeader("icy-br", (config.bitRateBps / 1000).toString())
             response.addHeader("Accept-Ranges", "none")
             return response
         }

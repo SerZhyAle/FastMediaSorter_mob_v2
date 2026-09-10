@@ -45,7 +45,6 @@ fun WearAppBackground(
     // S2522: under a light scheme the content is dark, so the veil that has to sit between it and an
     // arbitrary photo is the light one. Only the side flips - the amount stays the constant above.
     val opposing = if (WearAppTheme.colors.isLight) Color.White else Color.Black
-    Timber.d("S2522: background layer light=%b", WearAppTheme.colors.isLight)
     Box(
         modifier = modifier
             .fillMaxSize()

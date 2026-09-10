@@ -7,6 +7,7 @@ import androidx.lifecycle.LifecycleCoroutineScope
 import com.bumptech.glide.load.resource.gif.GifDrawable
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -57,8 +58,8 @@ class ImageOcrManager(
      */
     fun extractTextFromCurrentImage(currentFile: MediaFile?) {
         // Guard: OCR requires translation infrastructure
-        if (!BuildConfig.ENABLE_TRANSLATION) {
-            Timber.d("ImageOcrManager: OCR not available (ENABLE_TRANSLATION=false)")
+        if (!CapabilityAvailabilityAccessor.isTranslationAvailable(binding.root.context)) {
+            Timber.d("ImageOcrManager: OCR not available - translation capability is off")
             return
         }
         

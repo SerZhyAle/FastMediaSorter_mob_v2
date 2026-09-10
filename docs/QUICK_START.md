@@ -7,7 +7,7 @@ permalink: /docs/QUICK_START.html
 
 *Get started in 5 minutes! Simple guide for beginners.*
 
-[Русский](QUICK_START_RU.md) | [Українська](QUICK_START_UK.md)
+[Русский](QUICK_START-ru.md) | [Українська](QUICK_START-uk.md)
 
 ---
 

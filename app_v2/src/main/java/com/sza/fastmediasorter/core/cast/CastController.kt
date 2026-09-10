@@ -45,4 +45,12 @@ interface CastController {
      * file and every failed crop falls back to.
      */
     fun sendCurrentMedia(file: MediaFile, stereoCrop: CastStereoCrop? = null)
+
+    /**
+     * End the active session, if any; a no-op when nothing is casting (S2531).
+     *
+     * Separate from [release], which tears this controller down without touching the session - the
+     * watch asks to stop the broadcast, not to close the player that started it.
+     */
+    fun stopCasting()
 }

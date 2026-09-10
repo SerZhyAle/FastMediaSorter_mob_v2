@@ -16,6 +16,59 @@ class StopwatchResultRendererTest {
         laps = "laps",
     )
 
+    private val labelsWithStamp = StopwatchResultLabels(
+        participant = { index -> "Participant ${index + 1}" },
+        laps = "laps",
+        measuredAt = { stamp -> "Measured at $stamp" },
+    )
+
+    @Test
+    fun `a started participant carries the measured-at line between note and readings`() {
+        val state = stateOf(
+            StopwatchParticipant(id = 0, accumulatedMillis = 1_000L, startedAtEpochMillis = 1_700_000_000_000L),
+        )
+
+        val rendered = StopwatchResultRenderer.render(
+            state,
+            nowMillis = 0L,
+            description = "Morning run",
+            note = "Cold and windy",
+            labels = labelsWithStamp,
+        )
+
+        assertEquals(
+            listOf(
+                "Morning run",
+                "Cold and windy",
+                "Measured at 1700000000000",
+                "Participant 1: 0:01.00",
+            ),
+            rendered.lines(),
+        )
+    }
+
+    @Test
+    fun `a participant that never started produces no measured-at line`() {
+        val state = stateOf(participantOf(id = 0, accumulatedMillis = 1_000L))
+
+        val rendered = StopwatchResultRenderer.render(state, 0L, "", "", labelsWithStamp)
+
+        assertEquals(listOf("Participant 1: 0:01.00"), rendered.lines())
+    }
+
+    @Test
+    fun `the earliest visible start wins the stamp`() {
+        val state = stateOf(
+            StopwatchParticipant(id = 0, accumulatedMillis = 1_000L, startedAtEpochMillis = 2_000L),
+            StopwatchParticipant(id = 1, accumulatedMillis = 1_000L, startedAtEpochMillis = 1_000L),
+            participantCount = StopwatchScreenState.PAIR_PARTICIPANTS,
+        )
+
+        val rendered = StopwatchResultRenderer.render(state, 0L, "", "", labelsWithStamp)
+
+        assertEquals("Measured at 1000", rendered.lines().first())
+    }
+
     @Test
     fun `a single participant with no laps renders one line`() {
         val state = stateOf(participantOf(id = 0, accumulatedMillis = 83_450L))

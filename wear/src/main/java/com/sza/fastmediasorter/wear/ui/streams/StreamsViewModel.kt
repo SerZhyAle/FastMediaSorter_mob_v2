@@ -286,6 +286,60 @@ class StreamsViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setStreamsSelectedLanguage(language) }
     }
 
+    /**
+     * S2669: select a curated collection, or pass null to return to the whole catalogue. The
+     * membership set is read here and only here - once per selection change - so the projection's
+     * filter stays a set lookup per row rather than a walk over a collection's members.
+     */
+    fun setSelectedCollection(collectionId: String?) {
+        _uiState.update { it.copy(selectedCollectionId = collectionId, showFilterDialog = false) }
+        val memberUrls = memberUrlsOf(collectionId, _uiState.value.availableCollections)
+        projectionInputs.update { it.copy(selectedCollectionMemberUrls = memberUrls) }
+    }
+
+    /**
+     * S2820: drop every narrowing at once - the one action the filtered-empty screen offers.
+     *
+     * The search query goes with the filters because in that state the query chip lives inside the
+     * list the state block replaced, so leaving the query on would keep the screen empty and give the
+     * wearer no second way out (strategic §3.3). Persistence writes exactly what the four selection
+     * setters write, so criterion 3 holds across a restart; the collection is deliberately absent from
+     * that list, matching [setSelectedCollection], which persists nothing either.
+     */
+    fun clearNarrowing() {
+        Timber.d("S2820: clearNarrowing from filtered-empty state")
+        _uiState.update {
+            it.copy(
+                searchQuery = "",
+                filterKind = StreamFilterKind.ALL,
+                selectedTopic = null,
+                selectedLanguage = null,
+                selectedCollectionId = null,
+                showFilterDialog = false,
+                searchInputUnavailable = false
+            )
+        }
+        projectionInputs.update {
+            it.copy(
+                query = "",
+                filterKind = StreamFilterKind.ALL,
+                selectedTopic = null,
+                selectedLanguage = null,
+                selectedCollectionMemberUrls = emptySet()
+            )
+        }
+        viewModelScope.launch {
+            preferencesRepository.setStreamsFilterKindName(StreamFilterKind.ALL.name)
+            preferencesRepository.setStreamsSelectedTopic(null)
+            preferencesRepository.setStreamsSelectedLanguage(null)
+        }
+    }
+
+    private fun memberUrlsOf(collectionId: String?, collections: List<WearStreamCollection>): Set<String> =
+        collectionId
+            ?.let { id -> collections.firstOrNull { it.id == id }?.memberUrls?.toSet() }
+            .orEmpty()
+
     fun setSortOrder(order: StreamSortOrder) {
         _uiState.update { it.copy(sortOrder = order, showSortDialog = false) }
         projectionInputs.update { it.copy(sortOrder = order) }

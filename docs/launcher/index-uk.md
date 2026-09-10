@@ -5,7 +5,7 @@ permalink: /docs/launcher/index-uk.html
 ---
 # <img src="../icons/doc/ic_launcher_mode.png" alt="" width="24" height="24" style="vertical-align:text-bottom"> Веб-портал FastMedia Launcher
 
-[📱 Головний сайт застосунку](../README_UK.md) | [📖 Усі інструкції](../howto/index-uk.md) | [⌚ Портал Wear OS](../wear/index-uk.md) | [English](index.md) | [Русский](index-ru.md)
+[📱 Головний сайт застосунку](../README-uk.md) | [📖 Усі інструкції](../howto/index-uk.md) | [⌚ Портал Wear OS](../wear/index-uk.md) | [English](index.md) | [Русский](index-ru.md)
 
 Ласкаво просимо на **веб-портал FastMedia Launcher** - довідник із перетворення стандартного екрана Android на налаштовуваний робочий стіл для автомобільних магнітол, планшетів-фоторамок, TV-приставок та автономних дисплеїв.
 
@@ -68,7 +68,7 @@ FastMedia Launcher перетворює будь-який Android-пристрі
 ### Завантаження та збірки
 - [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Завантаження з офіційного магазину Google Play.
 - [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Збірки з відкритим вихідним кодом.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Пряме завантаження APK**](../DOWNLOADS_UK.md) - Прямі APK-файли для встановлення на магнітолу або планшет.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Пряме завантаження APK**](../DOWNLOADS-uk.md) - Прямі APK-файли для встановлення на магнітолу або планшет.
 
 ---
 

@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
   S1796: the glow field is the whole window and its colour is set at runtime, so no background colour
-  is declared here. One orientation-agnostic file on purpose - the two controls are pinned to opposite
-  top corners of a plain frame, which reads the same in portrait and landscape.
+  is declared here.
+  S2777: still one orientation-agnostic file - the clock hangs off a guideline placed by a FRACTION of
+  the height and the control row follows it, so both land in the same relative place on a tall screen
+  and on a wide one. The controls were moved off the top edge because the notification shade is pulled
+  from there and swallowed taps meant for the colour button.
 -->
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -12,34 +15,164 @@
 
     <!-- Insets padding is applied in code: the controls stay inside the safe bounds while the glow
          itself keeps covering the cutout and the system-bar areas. -->
-    <FrameLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/controlsOverlay"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:paddingHorizontal="@dimen/margin_medium">
 
-        <ImageButton
-            android:id="@+id/btnColor"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_gravity="start|top"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@string/front_flashlight_color_button"
-            android:focusable="true"
-            android:padding="14dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_color_palette"
-            app:tint="@color/black" />
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/clockGuideline"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintGuide_percent="0.25" />
 
         <TextView
             android:id="@+id/tvClock"
             android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_gravity="end|top"
-            android:gravity="center_vertical"
+            android:layout_height="wrap_content"
+            android:gravity="center"
             android:textColor="@color/black"
-            android:textSize="18sp" />
+            android:textSize="@dimen/front_flashlight_clock_text_size"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@id/clockGuideline" />
 
-    </FrameLayout>
+        <LinearLayout
+            android:id="@+id/controlsRow"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_large"
+            android:baselineAligned="false"
+            android:orientation="horizontal"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvClock">
+
+            <ImageButton
+                android:id="@+id/btnColor"
+                android:layout_width="@dimen/front_flashlight_control_size"
+                android:layout_height="@dimen/front_flashlight_control_size"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/front_flashlight_color_button"
+                android:focusable="true"
+                android:padding="@dimen/front_flashlight_control_padding"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_color_palette"
+                app:tint="@color/black" />
+
+            <!-- The strip takes the width the button leaves, so five cells stay reachable on a narrow
+                 screen; the cell is as tall as the button, which keeps the touch target large even
+                 where each cell ends up narrow. -->
+            <LinearLayout
+                android:id="@+id/brightnessBar"
+                android:layout_width="0dp"
+                android:layout_height="@dimen/front_flashlight_control_size"
+                android:layout_marginStart="@dimen/margin_medium"
+                android:layout_weight="1"
+                android:baselineAligned="false"
+                android:orientation="horizontal">
+
+                <FrameLayout
+                    android:id="@+id/brightnessLevel1"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_flashlight_brightness_level"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <View
+                        android:layout_width="@dimen/front_flashlight_level_bar_width"
+                        android:layout_height="@dimen/front_flashlight_level_bar_height_1"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="@color/black" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/brightnessLevel2"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_flashlight_brightness_level"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <View
+                        android:layout_width="@dimen/front_flashlight_level_bar_width"
+                        android:layout_height="@dimen/front_flashlight_level_bar_height_2"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="@color/black" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/brightnessLevel3"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_flashlight_brightness_level"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <View
+                        android:layout_width="@dimen/front_flashlight_level_bar_width"
+                        android:layout_height="@dimen/front_flashlight_level_bar_height_3"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="@color/black" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/brightnessLevel4"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_flashlight_brightness_level"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <View
+                        android:layout_width="@dimen/front_flashlight_level_bar_width"
+                        android:layout_height="@dimen/front_flashlight_level_bar_height_4"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="@color/black" />
+
+                </FrameLayout>
+
+                <FrameLayout
+                    android:id="@+id/brightnessLevel5"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_flashlight_brightness_level"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground">
+
+                    <View
+                        android:layout_width="@dimen/front_flashlight_level_bar_width"
+                        android:layout_height="@dimen/front_flashlight_level_bar_height_5"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:layout_marginBottom="@dimen/margin_small"
+                        android:background="@color/black" />
+
+                </FrameLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </FrameLayout>

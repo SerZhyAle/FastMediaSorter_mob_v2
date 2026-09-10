@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearThermalState
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
+import timber.log.Timber
 
 private const val DECI = 10.0
 private const val MICRO_PER_MILLI = 1000
@@ -27,26 +28,33 @@ class HealthInfoContributor @Inject constructor(
 
     override val order: Int = WearSystemInfoOrder.HEALTH
 
-    override suspend fun sections(): List<WearSystemInfoSection> = listOf(
-        section(
-            titleRes = R.string.system_info_section_health,
-            fields = listOfNotNull(
-                thermalField(),
-                text(R.string.system_info_health_battery_temp, batteryTemperature()),
-                text(R.string.system_info_health_battery_voltage, batteryVoltage()),
-                text(R.string.system_info_health_battery_charge, chargeLeft()),
-                text(R.string.system_info_health_uptime, uptime()),
-                text(R.string.system_info_health_boot_count, dataSource.bootCount?.toString()),
-                yesNo(R.string.system_info_health_doze_exempt, dataSource.ignoringBatteryOptimizations),
-                backgroundStanding(),
-                lastExit()
-            ),
-            emptyReasonRes = R.string.system_info_empty_unreadable
+    override suspend fun sections(): List<WearSystemInfoSection> {
+        Timber.d("S2775: health section built with accent wiring")
+        return listOf(
+            section(
+                titleRes = R.string.system_info_section_health,
+                fields = listOfNotNull(
+                    thermalField(),
+                    text(R.string.system_info_health_battery_temp, batteryTemperature()),
+                    text(R.string.system_info_health_battery_voltage, batteryVoltage()),
+                    text(R.string.system_info_health_battery_charge, chargeLeft()),
+                    text(R.string.system_info_health_uptime, uptime()),
+                    text(R.string.system_info_health_boot_count, dataSource.bootCount?.toString()),
+                    yesNo(R.string.system_info_health_doze_exempt, dataSource.ignoringBatteryOptimizations),
+                    backgroundStanding(),
+                    lastExit()
+                ),
+                emptyReasonRes = R.string.system_info_empty_unreadable
+            )
         )
-    )
+    }
 
     private fun thermalField(): WearSystemInfoField? = dataSource.thermalState?.let { state ->
-        label(R.string.system_info_health_thermal, thermalLabel(state))
+        label(
+            R.string.system_info_health_thermal,
+            thermalLabel(state),
+            accentHint = state >= WearThermalState.SEVERE
+        )
     }
 
     private fun thermalLabel(state: WearThermalState): Int = when (state) {
@@ -94,7 +102,13 @@ class HealthInfoContributor @Inject constructor(
         }
 
     private fun lastExit(): WearSystemInfoField? = dataSource.lastExitReason?.let { reason ->
-        label(R.string.system_info_health_last_exit, exitLabel(reason))
+        label(
+            R.string.system_info_health_last_exit,
+            exitLabel(reason),
+            accentHint = reason == WearExitReason.CRASH ||
+                reason == WearExitReason.NATIVE_CRASH ||
+                reason == WearExitReason.NOT_RESPONDING
+        )
     }
 
     private fun exitLabel(reason: WearExitReason): Int = when (reason) {

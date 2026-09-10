@@ -41,7 +41,7 @@ class DeliverableInventorySizeLabelTest {
         descriptors: Map<DeliverableSet, DeliverableSourceDescriptor> = emptyMap()
     ): DeliverableInventoryImpl {
         every { capabilityAvailability.isOcrAvailable(any()) } returns false
-        every { capabilityAvailability.isTranslationAvailable() } returns false
+        every { capabilityAvailability.isTranslationAvailable(any()) } returns false
         every { capabilityAvailability.isStreamsAvailable() } returns true
         every { bundled.contains(any()) } returns false
         return DeliverableInventoryImpl(

@@ -52,6 +52,23 @@
                     android:textSize="@dimen/player_audio_info_text_size"
                     android:lineSpacingMultiplier="1.2" />
             </ScrollView>
+
+            <!-- S1625: the ML Kit Translation terms bind the attribution to the displayed result, so it
+                 sits under the result rather than in the settings dialog, and it is a real view rather
+                 than canvas text so TalkBack announces it. -->
+            <TextView
+                android:id="@+id/translationAttribution"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/translationScrollView"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="@dimen/player_close_button_padding"
+                android:layout_marginBottom="@dimen/player_close_button_padding"
+                android:text="@string/launcher_translator_attribution"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size_small"
+                android:importantForAccessibility="yes"
+                android:visibility="gone" />
         </RelativeLayout>
     </androidx.cardview.widget.CardView>
 

@@ -1,33 +1,42 @@
 package com.sza.fastmediasorter.ui.browse
 
 import android.content.Context
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.core.util.formatMediaDuration
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.Quantity
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
 
 /**
- * Pure formatting helpers for MediaFileAdapter list items. Still stateless - the object holds no fields.
- * The size-bearing builders take a [Context] because the unit label is a localized resource (S2351), not
- * because the formatter caches anything from it.
+ * Formatting helpers for MediaFileAdapter list items. The size- and date-bearing builders take a
+ * [Context] because the unit label is a localized resource (S2351) and because the measurement system
+ * that decides the date order is resolved through it (S2795).
  */
 object AdapterFileInfoFormatter {
 
-    // Per-bind formatting hot path: cache one SimpleDateFormat per thread instead of re-parsing the
-    // pattern and allocating Calendar/SpannableStringBuilder on every RecyclerView row. SimpleDateFormat
-    // is not thread-safe, so confine via ThreadLocal. API23-safe form (no ThreadLocal.withInitial).
-    private val timestampFormat = object : ThreadLocal<java.text.SimpleDateFormat>() {
-        override fun initialValue() = java.text.SimpleDateFormat("yy-MM-dd HH:mm", java.util.Locale.US)
-    }
+    // S2795: this object is not in the injection graph, so it resolves the seam the way the project's
+    // other out-of-graph surfaces do. The application-scoped singletons behind it are safe to hold; the
+    // system itself is read per call, which is what makes a switched setting show on the next bind.
+    @Volatile
+    private var cachedSeam: UnitSystemEntryPoint? = null
+
+    private fun seam(context: Context): UnitSystemEntryPoint = cachedSeam ?: EntryPointAccessors
+        .fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+        .also { cachedSeam = it }
 
     /**
-     * "yy-MM-dd HH:mm" timestamp. Locale.US is deliberate: the pattern is purely numeric (no localized
-     * month/day names or AM/PM), and android.text.format.DateFormat.format - which this replaced - emits
-     * ASCII digits for such patterns regardless of system locale, so the rendered text is unchanged for
-     * every supported locale. A fixed locale also keeps the cached formatter deterministic.
+     * Date and time in the user's measurement system - year-first and 24-hour under metric, the
+     * American order and a 12-hour clock under imperial (S2795). The pattern is no longer chosen here:
+     * a row that picks its own would drift from the same value shown in a dialog beside it.
      */
-    fun formatTimestamp(millis: Long): String = timestampFormat.get()!!.format(java.util.Date(millis))
+    fun formatTimestamp(context: Context, millis: Long): String {
+        val entryPoint = seam(context)
+        return entryPoint.quantityFormatter()
+            .format(Quantity.DateTime(millis), entryPoint.unitSystemProvider().value)
+    }
 
     /** "Artist - Title" for the top line in audio-only mode. Falls back to filename if metadata absent. */
     fun buildAudioDisplayName(file: MediaFile): String {
@@ -53,7 +62,7 @@ object AdapterFileInfoFormatter {
     /** "size • date • duration" for the bottom line in audio-only mode. */
     fun buildAudioDetailLine(context: Context, file: MediaFile): String {
         val size = if (file.size > 0) formatFileSize(context, file.size) else null
-        val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else null
+        val date = if (file.createdDate > 0) formatTimestamp(context, file.createdDate) else null
         val duration = formatDuration(file.duration)
         return listOfNotNull(size, date, duration).joinToString(" • ")
     }
@@ -99,7 +108,7 @@ object AdapterFileInfoFormatter {
 
             MediaType.IMAGE, MediaType.GIF -> {
                 val resolution = if (file.width != null && file.height != null) "${file.width}x${file.height}" else null
-                val dateTaken = file.exifDateTime?.let { formatTimestamp(it) }
+                val dateTaken = file.exifDateTime?.let { formatTimestamp(context, it) }
                 val parts = listOfNotNull(resolution, dateTaken, sizeSegment)
                 if (parts.isNotEmpty()) parts.joinToString(" • ") else legacyInfo
             }
@@ -111,7 +120,7 @@ object AdapterFileInfoFormatter {
     private fun buildLegacyFileInfo(context: Context, file: MediaFile): String {
         // Hide invalid FTP metadata (size=0 or date=1970-01-01)
         val size = if (file.size > 0) formatFileSize(context, file.size) else "-"
-        val date = if (file.createdDate > 0) formatTimestamp(file.createdDate) else "-"
+        val date = if (file.createdDate > 0) formatTimestamp(context, file.createdDate) else "-"
         return "$size • $date"
     }
 

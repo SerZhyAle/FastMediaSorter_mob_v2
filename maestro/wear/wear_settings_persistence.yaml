@@ -1,0 +1,29 @@
+# maestro-requires: watch
+appId: com.sza.fastmediasorter.debug
+---
+# S2548: the smallest watch path whose result is a state change rather than a navigation - a media
+# type toggled, the screen left, re-entered, and the new value still there. The last steps put the
+# value back so a second run starts from the state the first one found.
+- launchApp:
+    clearState: false
+- scrollUntilVisible:
+    element:
+      id: "wear_settings_entry"
+    direction: DOWN
+- tapOn:
+    id: "wear_settings_entry"
+- assertVisible:
+    id: "wear_settings_row_settings_media_types"
+
+- tapOn:
+    id: "wear_settings_row_settings_media_types"
+- assertVisible: "Audio"
+- tapOn: "Audio"
+- pressKey: Back
+
+- tapOn:
+    id: "wear_settings_row_settings_media_types"
+- assertVisible: "Audio"
+- tapOn: "Audio"
+- pressKey: Back
+- pressKey: Back

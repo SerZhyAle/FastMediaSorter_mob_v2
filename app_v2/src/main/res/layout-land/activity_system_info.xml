@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/system_info_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        android:title="@string/settings_system_info_title"
+        app:navigationIcon="@drawable/ic_arrow_back" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:orientation="horizontal">
+        <com.google.android.material.button.MaterialButton android:id="@+id/system_info_copy" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/copy" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/system_info_save" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/save" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/system_info_share" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/share" />
+    </LinearLayout>
+
+    <ScrollView android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1">
+        <LinearLayout android:id="@+id/system_info_content" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" />
+    </ScrollView>
+</LinearLayout>

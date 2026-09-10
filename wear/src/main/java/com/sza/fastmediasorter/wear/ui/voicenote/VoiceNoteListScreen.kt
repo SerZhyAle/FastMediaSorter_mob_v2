@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.voicenote
 
-import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -21,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +41,8 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
@@ -51,7 +51,6 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import timber.log.Timber
-import java.util.Date
 
 private val TITLE_VERTICAL_PADDING = 8.dp
 private val TEXT_HORIZONTAL_PADDING = 8.dp
@@ -356,13 +355,13 @@ private fun DialogChip(
     )
 }
 
-/** The watch's own clock format, so a 24-hour watch never shows a note stamped in AM/PM. */
+/**
+ * S2795: the app's measurement system, not the watch's clock switch - a note's stamp is read beside
+ * the app's other times, and the owner set one format for all of them on the phone.
+ */
 @Composable
-private fun noteTimeLabel(note: VoiceNote): String {
-    val context = LocalContext.current
-    val timeFormat = remember(context) { DateFormat.getTimeFormat(context) }
-    return timeFormat.format(Date(note.createdAtMillis))
-}
+private fun noteTimeLabel(note: VoiceNote): String =
+    LocalWearDateTimeFormatter.current.formatTime(note.createdAtMillis, LocalWearUnitSystem.current)
 
 @StringRes
 private fun deliveryLabelOf(state: VoiceNoteDeliveryState): Int = when (state) {

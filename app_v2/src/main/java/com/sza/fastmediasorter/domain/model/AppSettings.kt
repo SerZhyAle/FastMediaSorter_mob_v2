@@ -58,6 +58,10 @@ data class AppSettings(
     val frontFlashlightColor: Int = FRONT_FLASHLIGHT_DEFAULT_COLOR,
     // S2516: the water flashlight is its own program beside the one above, off until asked for.
     val waterFlashlightEnabled: Boolean = false,
+    // S2776: the camera flashlight has no switch of its own - it is offered wherever the device has a
+    // flash - so its shade shortcut needs one here, and a permanent notification nobody asked for is
+    // a defect rather than a service.
+    val flashlightShortcutNotificationEnabled: Boolean = false,
     // S1924: on by default wherever a front lens exists, unlike the flashlight above - ADR-3 records
     // the divergence so a later reader does not take it for an oversight and align the two.
     val mirrorEnabled: Boolean = true,
@@ -76,6 +80,12 @@ data class AppSettings(
     // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
     // watch bridge, which is a separate condition read from MediaCapabilities.
     val enableWearCompanion: Boolean = false,
+    // S2810: suppress the Wear OS system media-control takeover of the watch screen. When ON, the
+    // phone's AudioPlaybackService refuses a MediaSession connection from the Wear OS companion bridge
+    // so the watch stops surfacing the phone's player as a system "now playing" screen. Off by default
+    // so an update never changes current behavior. Phone-only toggle (read by the phone service), not a
+    // watch-mirror field, so it lives here rather than in WearSettingsMirrorStore (see S2050).
+    val suppressWearMediaTakeover: Boolean = false,
     // S0755: mirror the programs "three-dots" menu as a horizontal panel on the main window. Default
     // OFF (no behaviour change on upgrade); when ON the top three-dots button is hidden (panel replaces it).
     val showProgramsPanelInMainWindow: Boolean = false,
@@ -163,6 +173,21 @@ data class AppSettings(
     // silent loader-level reconnects on network errors instead of a full player restart. Default OFF =
     // factory ExoPlayer behavior; mirrored to SharedPreferences for synchronous reads at player build.
     val streamsSmartBuffering: Boolean = false,
+    // S1143: opt-in - an audio channel opens in the full-screen visualizer player instead of the inline
+    // mini-control. Default OFF keeps the inline path as the only owner of the stream.
+    val streamsVisualizeAsMusic: Boolean = false,
+
+    // S2817: an absent preference preserves the broadcast session defaults used before settings existed.
+    val broadcastStreamTitle: String = "Phone Audio Stream",
+    val broadcastBitRateBps: Int = 128_000,
+    val broadcastPort: Int = 8768,
+    val broadcastSampleRateHz: Int = 44_100,
+    val broadcastChannelCount: Int = 1,
+    val broadcastAutoOpenShare: Boolean = true,
+    // S2814: stable identity of this phone as a broadcast source. Null until the first broadcast
+    // generates a UUID and persists it; a receiver that scanned this phone before recognises it
+    // across address changes instead of adding a second catalog entry.
+    val broadcastSourceDeviceId: String? = null,
 
     // Translation settings (always available, works with Images/PDF/TXT)
     val enableTranslation: Boolean = false, // S0386: default OFF - translation engine delivered on demand
@@ -205,7 +230,7 @@ data class AppSettings(
     val hideSystemUiInFullscreen: Boolean = true, // Hide OS system UI (status bar, navigation bar) in fullscreen/slideshow mode
     val defaultIconSize: Int = 96, // dp (must be 32 + 8*N for slider validation)
     val defaultShowCommandPanel: Boolean = true, // Play media with command panel visible by default
-    val playerPanelAutoHideSeconds: Int = 15, // seconds (default 15, range 1-600)
+    val playerPanelAutoHideSeconds: Int = 10, // seconds (default 10, range 1-600)
     // S0820: video files opened from Browse enter fullscreen immediately when this is on;
     // per-resource showCommandPanel override still wins.
     val openVideoInFullscreen: Boolean = true,
@@ -418,6 +443,7 @@ data class AppSettings(
     // valid; a write goes through `copy(launcher = launcher.copy(..))`.
     val launcherDensityFactor: Float get() = launcher.densityFactor
     val launcherScreenCount: Int get() = launcher.screenCount
+    val launcherShowScreenNumber: Boolean get() = launcher.showScreenNumber
     val launcherTaskbarPlacement: String get() = launcher.taskbarPlacement
     val launcherTaskbarShowRecents: Boolean get() = launcher.taskbarShowRecents
     val launcherTaskbarShowPinned: Boolean get() = launcher.taskbarShowPinned
@@ -531,6 +557,15 @@ data class AppSettings(
 
         /** S2730: multiplier on the backdrop's seeded particle count, 1.0 being the shipped count. */
         const val DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY: Float = 1.0f
+
+        /**
+         * S2730: whether the desktop draws its screen number while paging.
+         *
+         * Off, because the owner asked for an opt-in and because S2323 shipped the badge only on the
+         * no-animation branch - defaulting it on would put a number over every existing install's
+         * desktop without being asked.
+         */
+        const val DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER: Boolean = false
 
         /**
          * S2730: the intensity a slider may write.

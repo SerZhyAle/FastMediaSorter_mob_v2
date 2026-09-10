@@ -291,6 +291,16 @@
       "note": "Reached by tapping a row captioned with a file name, so it needs seeded media with predictable names."
     },
     {
+      "screen": "BloodPressureHistoryScreen",
+      "reason": "needs-seeded-content",
+      "note": "Reached only by the History chip on BloodPressureScreen, which renders rows from recorded measurements. A fresh install has none, so the walk would open an empty list carrying no marker of its own. S2795 classified it while migrating its timestamps to the unit-system seam."
+    },
+    {
+      "screen": "HeartRateHistoryScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "Reached only by the History chip on BodySensorScreen, which the entry below excludes for the same reason: the standard build answers offersBodySensorDiagnostics false and the Apps list drops the row, so there is no in-app tap that reaches the parent, let alone this child. S2795 classified it while migrating its timestamps to the unit-system seam."
+    },
+    {
       "screen": "BodySensorScreen",
       "reason": "absent-from-this-flavor",
       "note": "S2457: WearAppCatalog.apps() gives this row isAvailable = offersBodySensorDiagnostics and then filters the list by it; StandardWearRestrictedCapabilities answers false, NoLegal answers true. This sweep judges the standard build, and the walk reaches a screen only by tapping its label in the Apps list, so there is no way in. Same shape as the AddNetworkSourceScreen exclusion above.",

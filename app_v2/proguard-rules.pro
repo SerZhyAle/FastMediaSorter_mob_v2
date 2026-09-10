@@ -139,6 +139,15 @@
 -keepclassmembers,allowobfuscation class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
+# S0722: `-keepattributes Signature` above preserves the attribute only on classes R8 keeps, and an
+# anonymous `object : TypeToken<Map<String, Long>>() {}` is not one of them - R8 erases its generic
+# superclass and Gson throws `RuntimeException: Missing type parameter.` in the class initializer.
+# Caught by the macrobenchmark harness on the minified standardBenchmark variant, where
+# WearResourceStampStore.<clinit> crashed MainActivity at launch; the same rules build the shipped
+# release APK, so this was a release crash waiting for the first caller. Gson ships these rules
+# itself from 2.10 - keep them here until the dependency moves.
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
 # Keep all Kotlin data class component functions and field names
 # This prevents obfuscation of constructor parameter names used by Gson
@@ -601,5 +610,31 @@
 # S2716: the measurement system, restored the same way - a stored constant name matched against the
 # entries, degrading to METRIC, so a rename would silently return an imperial user to Celsius.
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.UnitSystem {
+    <fields>;
+}
+# S2840: the transfer kind stamps the file it travels in. ExportPinnedStreamsUseCase writes
+# `TransferDataKind.PINNED_STREAMS.name` into the payload's `kind` field, and ApplyTransferPayloadUseCase
+# compares the stamp it reads against `kind.name`, refusing the file when the two differ. The file is
+# read by another device and another build, so a rename here makes an export unreadable by its own
+# importer - reported as an incompatible file rather than as a mismatch.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.TransferDataKind {
+    <fields>;
+}
+# S2840: the two enums the watch-to-phone cast request carries. Gson writes an enum constant by the
+# constant's own name, never by the field's, so the @SerializedName annotations WearCastRequest already
+# carries on `origin` and `mediaType` pin the field names and leave these constants exposed. A rule
+# rather than annotations on the constants: WearCastPayload.kt is mirrored verbatim in the wear module
+# and held there by assert-wear-wire-vocabulary-parity, and a rule in this file touches neither copy.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastOrigin {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastMediaType {
+    <fields>;
+}
+# S2840: the answer side of the same wire. WearCastAck carries `outcome` back to the watch, and the watch
+# reads that constant by name to tell a cast that started from one that was refused - the two produce
+# opposite screens. Reached only once the gate could resolve `gson.toJson(ack)`, which it could not while
+# its identifier walk read `val ack = if (..)` as a constructor call.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastOutcome {
     <fields>;
 }

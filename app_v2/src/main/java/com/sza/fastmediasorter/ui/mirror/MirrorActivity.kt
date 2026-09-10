@@ -119,6 +119,7 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     override fun keepScreenAwakeFor(settings: AppSettings): Boolean = true
 
     override fun setupViews() {
+        Timber.d("S2847: mirror setupViews - enlarged buttons with colored borders")
         applyControlInsets()
         zoomManager = MirrorZoomManager(
             container = binding.mirrorCornerBottomStart,
@@ -372,16 +373,15 @@ class MirrorActivity : BaseActivity<ActivityMirrorBinding>() {
     }
 
     /**
-     * The icon controls sit on the glow field, so their colour follows the field rather than the theme:
-     * black while the field is lit, white once it is hidden and the black root shows through. A themed
-     * `?attr/colorOnSurface` would resolve to white in the dark theme and hide every button on the white
-     * field - in the mirror's default state, since the backlight starts on.
+     * The icon controls sit on an opaque dark circle (S2847), so their tint is fixed white:
+     * white on dark reads on both the white glow field and the black root, and the orange ring
+     * carries the contrast the circle itself does not.
      *
      * The zoom row is deliberately out of this: it carries an opaque body of its own, so it reads on
      * either state of the field without being repainted.
      */
-    private fun applyControlTint(backlightOn: Boolean) {
-        val tint = ContextCompat.getColor(this, if (backlightOn) R.color.black else R.color.white)
+    private fun applyControlTint(@Suppress("UNUSED_PARAMETER") backlightOn: Boolean) {
+        val tint = ContextCompat.getColor(this, R.color.white)
         listOf(
             binding.btnMirrorClose,
             binding.btnMirrorBacklight,

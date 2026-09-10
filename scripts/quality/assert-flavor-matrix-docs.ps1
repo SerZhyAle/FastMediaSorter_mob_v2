@@ -33,6 +33,11 @@
 .PARAMETER Table
     Restrict to one manifest table Id (diagnostic aid while editing a single document).
 
+.PARAMETER ChangedFiles
+    S2828: repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the
+    gate decline to charge a drift when none of the files it declares as an input is among them.
+    Omit it - as assert-fast-gates.ps1 and the release path do - and every drift stays fatal.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-flavor-matrix-docs.ps1
     pwsh -NoProfile -File scripts/quality/assert-flavor-matrix-docs.ps1 -Gate -Quiet
@@ -43,16 +48,26 @@
       1  -Gate and at least one finding
       2  could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale
          relative to app_v2/build.gradle.kts
+      3  S2828: a finding stands - a stale snapshot, or a table that disagrees with it - but no file
+         this gate declares as an input is in -ChangedFiles, so it is not attributable to this run.
+         The findings are printed. Distinct from 1 because the caller cannot fix it and from 0
+         because something IS wrong in the tree.
 #>
 [CmdletBinding()]
 param(
     [switch] $Gate,
     [switch] $Quiet,
     [string] $Table,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]] $ChangedFiles,
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 )
 
 $ErrorActionPreference = 'Stop'
+
+# S2828: the chargeability test, shared with the other fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $manifestPath = Join-Path $PSScriptRoot 'flavor-matrix-docs.psd1'
 $snapshotPath = Join-Path $RepoRoot 'docs/flavors/flavor-matrix.json'
@@ -144,11 +159,30 @@ catch { Fail-Unverifiable "manifest unreadable: $($_.Exception.Message)" }
 try { $snapshot = Get-Content -LiteralPath $snapshotPath -Raw | ConvertFrom-Json }
 catch { Fail-Unverifiable "snapshot unreadable: $($_.Exception.Message)" }
 
+# S2828: the declared input set - the documents carrying a checked table, the manifest that maps
+# them, the generated snapshot they are judged against, and the two files the snapshot is derived
+# from. Built from $manifest so the path list stays in one place (S1621).
+$declaredInputs = @(
+    $manifestPath
+    $snapshotPath
+    (Join-Path $RepoRoot 'app_v2/build.gradle.kts')
+    (Join-Path $RepoRoot 'scripts/docs/generate-flavor-matrix.ps1')
+) + @(@($manifest.Tables) | ForEach-Object { Join-Path $RepoRoot $_.Path })
+$chargeable = Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs
+
 # A stale snapshot would let the gate certify documents against yesterday's build file.
 $generator = Join-Path $RepoRoot 'scripts/docs/generate-flavor-matrix.ps1'
 if (Test-Path -LiteralPath $generator) {
     & (Get-Process -Id $PID).Path -NoProfile -File $generator -Check -Quiet 2>$null | Out-Null
     if ($LASTEXITCODE -ne 0) {
+        # Staleness is the snapshot lagging app_v2/build.gradle.kts, which is another ticket's
+        # unfinished regeneration whenever that file is not in the changed set - and both failures
+        # this gate ever recorded were this one, consecutive, on the same night.
+        if (-not $chargeable) {
+            Write-NotChargedVerdict -GateName 'assert-flavor-matrix-docs' -Findings @(
+                'stale: docs/flavors/flavor-matrix.json lags app_v2/build.gradle.kts - regenerate it')
+            exit 3
+        }
         Fail-Unverifiable 'snapshot is stale relative to app_v2/build.gradle.kts - regenerate it before gating documents.'
     }
 }
@@ -294,6 +328,14 @@ if ($findings.Count -gt 0) {
         Write-Host ("  {0}:{1} [{2}/{3}] {4}" -f $f.Path, $f.Line, $f.TableId, $f.Class, $f.Message)
     }
     Write-Host "expected: 0 finding(s) | actual: $($findings.Count)"
+    # S2828: a table this change never opened, disagreeing with a snapshot it never regenerated,
+    # belongs to the session writing it. $declaredInputs is the whole input set, so "no declared
+    # input in the changed set" is decidable without attributing each finding to a file.
+    if (-not $chargeable) {
+        Write-NotChargedVerdict -GateName 'assert-flavor-matrix-docs' -Findings @(
+            $findings | ForEach-Object { "{0}:{1} [{2}] {3}" -f $_.Path, $_.Line, $_.Class, $_.Message })
+        exit 3
+    }
     if ($Gate) {
         Write-Error "assert-flavor-matrix-docs: FAIL - documentation disagrees with docs/flavors/flavor-matrix.json." -ErrorAction Continue
         exit 1

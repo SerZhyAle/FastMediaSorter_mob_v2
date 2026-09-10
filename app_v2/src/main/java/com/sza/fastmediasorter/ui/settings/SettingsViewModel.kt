@@ -49,11 +49,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -170,18 +172,44 @@ class SettingsViewModel @Inject constructor(
     // Without this, rapid consecutive switch toggles read a stale .value and overwrite
     // each other's changes (e.g. Black Screen toggle turns off on next switch press).
     private val _settingsOverride = MutableStateFlow<AppSettings?>(null)
+
+    // S2800: the written snapshot the persisted flow must catch up to before the
+    // optimistic override is released. Set alongside _settingsOverride right before
+    // the write; cleared by the settings flow's own persisted emission (event-driven)
+    // or by awaitOverrideRelease's timeout fallback, whichever fires first.
+    private val _pendingClearSnapshot = MutableStateFlow<AppSettings?>(null)
+
     private val persistedSettingsLoaded = CompletableDeferred<Unit>()
     private val persistedSettings = settingsRepository.getSettings()
         .onEach { persistedSettingsLoaded.complete(Unit) }
+
+    // Carries the resolved value alongside the raw persisted snapshot so the onEach
+    // below can decide whether the store has caught up to the written object.
+    private data class SettingsResolution(val value: AppSettings, val persisted: AppSettings)
 
     // S1535: seeded with AppSettings(), so `.value` read during fragment setup can still be the
     // constructor defaults rather than anything stored. Fine for rendering (the real value arrives
     // and re-renders); never sound for a decision that compares against a stored value - use
     // [awaitPersistedSettings] there.
+    // S2800: the override is released from inside this pipeline (onEach, downstream of combine)
+    // once persistedSettings re-emits the written snapshot. Releasing it here - after the combine
+    // has already incorporated the post-write persisted value - guarantees the override=null
+    // re-emission carries the post-write snapshot, never the pre-write one. A separate coroutine
+    // clearing the override can race ahead of the combine's own subscription and republish the
+    // pre-write value for one tick, which is the defect this fixes.
     val settings: StateFlow<AppSettings> = combine(
         persistedSettings,
         _settingsOverride
-    ) { persisted, override -> override ?: persisted }
+    ) { persisted, override -> SettingsResolution(override ?: persisted, persisted) }
+        .onEach { resolution ->
+            val pending = _pendingClearSnapshot.value
+            if (pending != null && resolution.persisted == pending) {
+                _settingsOverride.value = null
+                _pendingClearSnapshot.value = null
+                Timber.d("S2800: override released by persisted emission (caught up)")
+            }
+        }
+        .map { it.value }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.Eagerly,
@@ -196,6 +224,22 @@ class SettingsViewModel @Inject constructor(
      */
     suspend fun awaitPersistedSettings(): AppSettings =
         _settingsOverride.value ?: persistedSettings.first()
+
+    /**
+     * S2800: waits for the event-driven release in [settings] to fire, with a bounded timeout.
+     *
+     * The onEach in the settings pipeline normally releases the override the instant the persisted
+     * flow re-emits the written snapshot. This suspend is the fallback for the normalization edge
+     * case (fields rewritten on save so the persisted emission never equals the written object):
+     * bounded by [PERSISTED_SYNC_TIMEOUT_MS], after which the caller clears the override itself.
+     * By then the persisted flow has re-emitted the post-write value, so the forced clear still
+     * carries the post-write snapshot rather than the pre-write one.
+     */
+    private suspend fun awaitOverrideRelease(written: AppSettings) {
+        withTimeoutOrNull(PERSISTED_SYNC_TIMEOUT_MS) {
+            _settingsOverride.first { it != written }
+        }
+    }
 
     val destinations: StateFlow<List<MediaResource>> = getDestinationsUseCase()
         .stateIn(
@@ -219,11 +263,15 @@ class SettingsViewModel @Inject constructor(
 
         val prev = this.settings.value
         _settingsOverride.value = settings // Optimistic update: makes settings.value current immediately
+        _pendingClearSnapshot.value = settings // S2800: snapshot the persisted flow must catch up to
         viewModelScope.launch {
             try {
                 settingsRepository.updateSettings(settings)
+                awaitOverrideRelease(settings)
                 if (_settingsOverride.value == settings) {
                     _settingsOverride.value = null
+                    _pendingClearSnapshot.value = null
+                    Timber.d("S2800: override released by timeout fallback (normalization)")
                 }
                 applySettingsSideEffects(prev, settings)
             } catch (e: Exception) {
@@ -231,6 +279,7 @@ class SettingsViewModel @Inject constructor(
                 if (_settingsOverride.value == settings) {
                     _settingsOverride.value = null
                 }
+                _pendingClearSnapshot.value = null
                 Timber.e(e, "Error updating settings")
             }
         }
@@ -252,17 +301,21 @@ class SettingsViewModel @Inject constructor(
                     transform(current).also {
                         updated = it
                         _settingsOverride.value = it
+                        _pendingClearSnapshot.value = it // S2800
                     }
                 }
                 val oldSettings = previous ?: return@launch
                 val newSettings = updated ?: return@launch
+                awaitOverrideRelease(newSettings)
                 if (_settingsOverride.value == newSettings) {
                     _settingsOverride.value = null
+                    _pendingClearSnapshot.value = null
                 }
                 applySettingsSideEffects(oldSettings, newSettings)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 _settingsOverride.value = null
+                _pendingClearSnapshot.value = null
                 Timber.e(e, "Error updating settings")
             }
         }
@@ -399,6 +452,7 @@ class SettingsViewModel @Inject constructor(
             try {
                 settingsRepository.resetToDefaults()
                 _settingsOverride.value = null
+                _pendingClearSnapshot.value = null
                 // Settings reset
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
@@ -421,17 +475,21 @@ class SettingsViewModel @Inject constructor(
         if (!persistedSettingsLoaded.isCompleted) return
         val optimisticSettings = settings.value.copy(enableStatistics = enabled)
         _settingsOverride.value = optimisticSettings
+        _pendingClearSnapshot.value = optimisticSettings // S2800
         viewModelScope.launch {
             try {
                 setStatisticsCollectionEnabledUseCase(enabled)
+                awaitOverrideRelease(optimisticSettings)
                 if (_settingsOverride.value == optimisticSettings) {
                     _settingsOverride.value = null
+                    _pendingClearSnapshot.value = null
                 }
             } catch (e: Exception) {
                 e.rethrowIfCancellation()
                 if (_settingsOverride.value == optimisticSettings) {
                     _settingsOverride.value = null
                 }
+                _pendingClearSnapshot.value = null
                 Timber.e(e, "Error updating statistics collection flag")
             }
         }
@@ -935,5 +993,13 @@ class SettingsViewModel @Inject constructor(
                 Timber.e(e, "Error adding resource")
             }
         }
+    }
+
+    companion object {
+        // S2800: fallback deadline for the persisted flow to catch up to a write before the
+        // optimistic override is released unconditionally. Only the normalization edge case
+        // (fields rewritten on save so the persisted emission never equals the written object)
+        // reaches this; the event-driven clear in the settings flow normally fires immediately.
+        private const val PERSISTED_SYNC_TIMEOUT_MS = 500L
     }
 }

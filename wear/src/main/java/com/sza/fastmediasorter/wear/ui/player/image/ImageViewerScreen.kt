@@ -19,6 +19,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -77,6 +80,7 @@ import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
 import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
+import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
 import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
 
@@ -115,6 +119,8 @@ fun ImageViewerScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
+    val isCasting = castState.isCasting
 
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -126,8 +132,11 @@ fun ImageViewerScreen(
         }
     }
 
-    // An image has no playing state, so having one on screen is itself the active condition.
-    KeepScreenOnEffect(enabled = uiState.mediaFile != null)
+    // S2850: a running slideshow is the only thing this screen does by itself, so it is the only
+    // thing that earns the display. A picture the wearer stopped on is left to the watch's own
+    // display timeout, like every other still screen - holding it for an open file meant an arm
+    // dropped over an open photo lit the watch until the battery went.
+    KeepScreenOnEffect(enabled = uiState.isSlideshowActive)
 
     WearScreenScaffold(
         showTimeText = uiState.showControls,
@@ -153,7 +162,9 @@ fun ImageViewerScreen(
                         onTogglePlaybackMode = viewModel::togglePlaybackMode,
                         onToggleScaleMode = viewModel::toggleScaleMode,
                         onScreenTap = viewModel::onScreenTap,
-                        onFileOperations = { showActions = true }
+                        onFileOperations = { showActions = true },
+                        onToggleCast = viewModel::toggleCast,
+                        isCasting = isCasting
                     )
                 )
             }
@@ -172,6 +183,8 @@ fun ImageViewerScreen(
         ),
         currentFileName = uiState.mediaFile?.name
     )
+
+    com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage(viewModel.castManager)
 }
 
 /** The image viewer's callbacks, bundled the way the audio and video players already bundle theirs. */
@@ -184,7 +197,10 @@ private data class ImageViewerActions(
     val onTogglePlaybackMode: () -> Unit,
     val onToggleScaleMode: () -> Unit,
     val onScreenTap: () -> Unit,
-    val onFileOperations: () -> Unit
+    val onFileOperations: () -> Unit,
+    val onToggleCast: () -> Unit,
+    /** The phone's reported session, which decides only the wording of the one cast entry (S2531). */
+    val isCasting: Boolean
 )
 
 /**
@@ -422,13 +438,17 @@ private fun ImageBottomPanel(
             uiState = uiState,
             onPrevious = actions.onSwipeRight,
             onNext = actions.onSwipeLeft,
-            onToggleSlideshow = actions.onToggleSlideshow
+            onToggleSlideshow = actions.onToggleSlideshow,
+            onTogglePlaybackMode = actions.onTogglePlaybackMode
         )
 
         ImageSecondaryRow(
+            uiState = uiState,
             isFavorite = isFavorite,
             onBack = actions.onBack,
             onToggleFavorite = actions.onToggleFavorite,
+            onToggleScaleMode = actions.onToggleScaleMode,
+            onFileOperations = actions.onFileOperations,
             onOpenMenu = onOpenMenu
         )
 
@@ -453,20 +473,38 @@ private fun ImageBottomPanel(
  *
  * S2766: three commands, matching the other two players - the slideshow toggle is this screen's
  * play/pause, and the traversal mode is not a primary command, so it moved to the player menu.
+ *
+ * S2803: the ORIGINAL view restores the row of four the pre-S2766 tree drew - previous, slideshow,
+ * traversal mode, next. STORE keeps the three.
  */
 @Composable
 private fun ImageCommandRow(
     uiState: ImageViewerUiState,
     onPrevious: () -> Unit,
     onNext: () -> Unit,
-    onToggleSlideshow: () -> Unit
+    onToggleSlideshow: () -> Unit,
+    onTogglePlaybackMode: () -> Unit
 ) {
     Timber.d("S2529: ImageViewerScreen ImageCommandRow composed, slideshowActive=${uiState.isSlideshowActive}")
     val slideshowDesc = stringResource(
         if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
     )
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: image primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
+    val playbackModeIcon = when (uiState.playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeDesc = stringResource(
+        when (uiState.playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
+    )
 
-    PlayerCommandGrid(columns = PRIMARY_ROW_COLUMNS) { targetSize ->
+    PlayerCommandGrid(columns = playerPrimaryRowColumns()) { targetSize ->
         PlayerCommandButton(
             onClick = onPrevious,
             icon = Icons.Filled.SkipPrevious,
@@ -483,6 +521,16 @@ private fun ImageCommandRow(
             iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.IMAGE))
         )
 
+        if (restored) {
+            PlayerCommandButton(
+                onClick = onTogglePlaybackMode,
+                icon = playbackModeIcon,
+                contentDescription = playbackModeDesc,
+                size = targetSize,
+                checked = uiState.playbackMode != WearPlaybackMode.SEQUENTIAL
+            )
+        }
+
         PlayerCommandButton(
             onClick = onNext,
             icon = Icons.Filled.SkipNext,
@@ -497,15 +545,29 @@ private fun ImageCommandRow(
  *
  * S2766: the same two-or-three composition the other players draw. The scale mode left the row for
  * the menu. This screen shows no playing position, so it takes no progress ring.
+ *
+ * S2803: the ORIGINAL view restores back, favourite, file operations and scale mode - the four the
+ * pre-S2766 tree drew; this screen has no stream pin. The menu button then has nothing to open.
  */
 @Composable
 private fun ImageSecondaryRow(
+    uiState: ImageViewerUiState,
     isFavorite: Boolean,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
+    onToggleScaleMode: () -> Unit,
+    onFileOperations: () -> Unit,
     onOpenMenu: () -> Unit
 ) {
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+    val menuDesc = stringResource(R.string.wear_file_op_actions)
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: image secondary restored=%b columns=%s", restored, secondaryRowColumns())
+    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
+        Icons.Filled.AspectRatio
+    } else {
+        Icons.Filled.CropFree
+    }
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(
@@ -515,7 +577,7 @@ private fun ImageSecondaryRow(
             size = targetSize
         )
 
-        if (!wearIsCompactScreen()) {
+        if (restored || !wearIsCompactScreen()) {
             PlayerCommandButton(
                 onClick = onToggleFavorite,
                 icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
@@ -525,12 +587,29 @@ private fun ImageSecondaryRow(
             )
         }
 
-        PlayerCommandButton(
-            onClick = onOpenMenu,
-            icon = Icons.Default.MoreVert,
-            contentDescription = stringResource(R.string.wear_file_op_actions),
-            size = targetSize
-        )
+        if (restored) {
+            PlayerCommandButton(
+                onClick = onFileOperations,
+                icon = Icons.Default.MoreVert,
+                contentDescription = menuDesc,
+                size = targetSize
+            )
+
+            PlayerCommandButton(
+                onClick = onToggleScaleMode,
+                icon = scaleIcon,
+                contentDescription = stringResource(R.string.wear_scale_mode),
+                size = targetSize,
+                checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+            )
+        } else {
+            PlayerCommandButton(
+                onClick = onOpenMenu,
+                icon = Icons.Default.MoreVert,
+                contentDescription = menuDesc,
+                size = targetSize
+            )
+        }
     }
 }
 
@@ -562,6 +641,11 @@ private fun imageMenuActions(
     val favoriteLabel = stringResource(R.string.wear_toggle_favorite)
     val scaleLabel = stringResource(R.string.wear_scale_mode)
     val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
+    // S2531: the wording carries the state, not a colour - strategic §3.2 accessibility.
+    val castLabel = stringResource(
+        if (actions.isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
+    )
+    val castIcon = if (actions.isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
     val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
         Icons.Filled.AspectRatio
     } else {
@@ -583,6 +667,7 @@ private fun imageMenuActions(
             add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
         }
         add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
+        add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
         add(
             playerMenuAction(
                 fileActionsLabel,

@@ -9,10 +9,13 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.DialogStopwatchResultBinding
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchScreenState
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultFileWriter
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultLabels
 import com.sza.fastmediasorter.ui.stopwatch.helpers.StopwatchResultRenderer
@@ -21,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
+import javax.inject.Inject
 
 /**
  * Collects a description and a note for a finished measurement and sends the result on its way
@@ -38,6 +42,12 @@ class StopwatchResultDialogFragment : DialogFragment() {
 
     private val viewModel: StopwatchViewModel by activityViewModels()
 
+    @Inject
+    lateinit var quantityFormatter: QuantityFormatter
+
+    @Inject
+    lateinit var unitSystemProvider: UnitSystemProvider
+
     private var _binding: DialogStopwatchResultBinding? = null
     private val binding get() = requireNotNull(_binding) { "Binding is only valid while the dialog exists" }
 
@@ -48,6 +58,10 @@ class StopwatchResultDialogFragment : DialogFragment() {
         _binding = DialogStopwatchResultBinding.inflate(layoutInflater)
         frozenState = viewModel.state.value
         frozenNowMillis = viewModel.nowMillis()
+        val measuredAtStamp = frozenState.visibleParticipants
+            .mapNotNull { it.startedAtEpochMillis }
+            .minOrNull()
+        Timber.d("S2792: result dialog opened, measuredAt=$measuredAtStamp")
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.stopwatch_result_title)
@@ -84,6 +98,13 @@ class StopwatchResultDialogFragment : DialogFragment() {
         labels = StopwatchResultLabels(
             participant = { index -> getString(R.string.stopwatch_region_label, index + 1) },
             laps = getString(R.string.stopwatch_result_laps),
+            // S2792: the dialog owns the formatting, the renderer owns the line - this seam is what
+            // keeps the renderer Context-free while the stamp still reads in the user's calendar.
+            // S2795: the field order and the clock length come from the app's measurement system, not
+            // from the locale, so a saved result matches the times shown everywhere else.
+            measuredAt = { epochMillis ->
+                quantityFormatter.format(Quantity.DateTime(epochMillis), unitSystemProvider.value)
+            },
         ),
     )
 

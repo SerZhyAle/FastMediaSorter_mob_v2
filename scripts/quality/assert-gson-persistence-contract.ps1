@@ -118,6 +118,10 @@ $GsonCall = '\.toJson\s*\(\s*(?!\))|\.fromJson\s*\(\s*(?!\))'
 $GsonArgs = '\.(?:toJson|fromJson)\s*\('
 # Container names carry no wire names of their own - only their element type does.
 $Containers = '^(List|MutableList|ArrayList|Set|MutableSet|Collection|Array|Map|MutableMap|Iterable|Sequence|Pair)$'
+# Gson's own tree types. A point reading or writing one of them carries no project field and no project
+# name, so R8 has nothing there to rename: "unresolvable" would mean "nothing to resolve", and the only way
+# to silence it would be a registry entry justifying a pin for names that do not exist (S2840).
+$GsonTreeTypes = '^(JsonObject|JsonArray|JsonElement|JsonPrimitive|JsonNull)$'
 
 function Get-SourceRoot {
     param([string]$ModuleName)
@@ -177,6 +181,22 @@ function Get-Declaration {
         $local = @($declarationSets[$key] | Where-Object { $_.file -eq $PreferFile })
         if ($local.Count -gt 0) { return $local[0] }
     }
+    # An import already bound this simple name, and the binding outranks the index: `Instant` in a file that
+    # imports java.time.Instant is that type, not the project's nested Quantity$Instant, which the index
+    # answered with and the walk then judged for unannotated fields it never serializes (S2840 - the same
+    # class of error S2364 fixed in the enum gate). Returning null rather than the index entry is the point:
+    # an imported type carries no project name for R8 to rename, so there is nothing here to pin.
+    if ($PreferFile -and $fileImports.ContainsKey($PreferFile) -and $fileImports[$PreferFile].ContainsKey($Name)) {
+        $bound = $fileImports[$PreferFile][$Name]
+        if ($declarationSets.ContainsKey($key)) {
+            # Matched against the fully qualified name with '$' read as '.', so a nested model imported by
+            # its outer path (`import a.b.Outer.Nested`) still finds its own declaration.
+            $importedFqn = "$($bound.package).$($bound.name)"
+            $imported = @($declarationSets[$key] | Where-Object { $_.fqn.Replace('$', '.') -eq $importedFqn })
+            if ($imported.Count -gt 0) { return $imported[0] }
+        }
+        return $null
+    }
     return $declarations[$key]
 }
 
@@ -225,7 +245,14 @@ function Resolve-Identifier {
             # below is still the better answer rather than a type of nothing.
             if ($type) { return $type }
         }
-        if ($line -match "$Name\s*=\s*([A-Za-z_]\w*)\s*\(") { return $Matches[1] }
+        # A constructor call names a type, and a Kotlin type name is capitalised. Accepting any identifier
+        # here read `val ack = if (request == null) {` as a construction of a type called `if`, and since the
+        # walk returns at the first line that mentions the name, the parameter `ack: WearCastAck` two lines
+        # below the serialization point was never reached and the point was reported as unresolvable (S2840).
+        # A lowercase head is a factory or a control-flow keyword: neither names a model, so skipping it and
+        # reading on can only find a better answer than the one it replaces. Case-sensitive by -cmatch:
+        # PowerShell's -match ignores case, under which [A-Z] accepts `if` and the fix would do nothing.
+        if ($line -cmatch "$Name\s*=\s*([A-Z]\w*)\s*\(") { return $Matches[1] }
     }
     return $null
 }
@@ -496,6 +523,9 @@ $declarations = @{}
 # the answer when the caller has no file to prefer, so a name reached from nowhere in particular resolves
 # exactly as it did before.
 $declarationSets = @{}
+# What each file's explicit imports bind every simple name to. A name the file imported from another package
+# is that package's type, whatever the project happens to declare under the same simple name (S2840).
+$fileImports = @{}
 $gsonFiles = [System.Collections.Generic.List[object]]::new()
 $rootsScanned = 0
 
@@ -509,9 +539,20 @@ foreach ($moduleName in $modules) {
             # carry and one it cannot.
             $fileLines = [System.IO.File]::ReadAllLines($_.FullName)
             $package = ''
+            $imports = @{}
             foreach ($line in $fileLines) {
-                if ($line -match '^\s*package\s+([\w.]+)') { $package = $Matches[1]; break }
+                # A literal prefilter before either regex, for the reason the declaration walk below carries
+                # one: this loop reads every line of both source trees.
+                if ($line -notlike 'package *' -and $line -notlike 'import *') { continue }
+                if (-not $package -and $line -match '^\s*package\s+([\w.]+)') { $package = $Matches[1]; continue }
+                # A star import binds no particular name, so it is deliberately not recorded: it cannot tell
+                # the walk that a given simple name belongs elsewhere.
+                if ($line -match '^\s*import\s+([\w.]+)\.([A-Za-z_]\w*)\s*(?:as\s+([A-Za-z_]\w*))?\s*$') {
+                    $bound = if ($Matches[3]) { $Matches[3] } else { $Matches[2] }
+                    $imports[$bound] = [pscustomobject]@{ package = $Matches[1]; name = $Matches[2] }
+                }
             }
+            if ($imports.Count -gt 0) { $fileImports[$relative] = $imports }
             # The chain of declarations a nested one sits inside, read from the indentation of each
             # declaration line. R8 spells a nested class Outer$Inner and matches a keep rule against that
             # spelling, so an index that flattens it to package.Inner cannot see a rule that really covers
@@ -536,12 +577,13 @@ foreach ($moduleName in $modules) {
                 $binary = @(@($enclosing | ForEach-Object { $_.name }) + @($name)) -join '$'
                 $enclosing.Add([pscustomobject]@{ name = $name; indent = $indent })
                 $declaration = [pscustomobject]@{
-                    name   = $name
-                    fqn    = if ($package) { "$package.$binary" } else { $binary }
-                    kind   = $match.Groups[1].Value
-                    module = $moduleName
-                    file   = $relative
-                    line   = $i + 1
+                    name    = $name
+                    package = $package
+                    fqn     = if ($package) { "$package.$binary" } else { $binary }
+                    kind    = $match.Groups[1].Value
+                    module  = $moduleName
+                    file    = $relative
+                    line    = $i + 1
                 }
                 $key = "${moduleName}::${name}"
                 if (-not $declarations.ContainsKey($key)) { $declarations[$key] = $declaration }
@@ -568,17 +610,18 @@ foreach ($file in $gsonFiles) {
     $verdict = Get-SinkVerdict -FileText ($file.lines -join "`n")
     for ($i = 0; $i -lt $file.lines.Count; $i++) {
         if ($file.lines[$i] -notmatch $GsonCall) { continue }
-        $resolved = @(Resolve-CallModel -FileLines $file.lines -Index $i -CallPattern $GsonArgs -ModuleName $file.module -File $file.relative |
-                Sort-Object -Unique |
-                Where-Object { Test-ModelName -ModuleName $file.module -Name $_ -PreferFile $file.relative })
+        $named = @(Resolve-CallModel -FileLines $file.lines -Index $i -CallPattern $GsonArgs -ModuleName $file.module -File $file.relative |
+                Sort-Object -Unique)
+        $resolved = @($named | Where-Object { Test-ModelName -ModuleName $file.module -Name $_ -PreferFile $file.relative })
         $points.Add([pscustomobject]@{
-                module   = $file.module
-                file     = $file.relative
-                line     = $i + 1
-                models   = $resolved
-                resolved = $resolved.Count -gt 0
-                durable  = $verdict.Durable
-                sink     = $verdict.Sink
+                module      = $file.module
+                file        = $file.relative
+                line        = $i + 1
+                models      = $resolved
+                resolved    = $resolved.Count -gt 0
+                nothingToPin = $resolved.Count -eq 0 -and @($named | Where-Object { $_ -match $GsonTreeTypes }).Count -gt 0
+                durable     = $verdict.Durable
+                sink        = $verdict.Sink
             })
     }
 }
@@ -719,7 +762,7 @@ $trackedCount = 0
 
 $violations = @($verdicts | Where-Object { $_.violation -and -not $exemptions.Contains($_.fqn) })
 $enumOffenders = @($verdicts | Where-Object { @($_.enumIssues | Where-Object { -not $exemptions.Contains($_.enum) }).Count -gt 0 })
-$unresolvedPoints = @($points | Where-Object { $_.durable -and -not $_.resolved -and -not $exemptions.Contains($_.file) })
+$unresolvedPoints = @($points | Where-Object { $_.durable -and -not $_.resolved -and -not $_.nothingToPin -and -not $exemptions.Contains($_.file) })
 
 foreach ($verdict in $verdicts) {
     $keys = [System.Collections.Generic.List[string]]::new()

@@ -49,6 +49,13 @@
 # Exit codes:
 #   0   all cases pass.
 #   1   at least one case failed.
+#   2   could not verify: the resolved SZA harness predates S2834 and does not define
+#       Test-BlockerReleased. Distinct from 1 because "the rule is broken" and "the copy of the
+#       rule on this machine is older than the suite" call for opposite reactions - the second is
+#       fixed by a plugin update, not by an edit. 2 and not 3 because that is the code
+#       run-script-suites.ps1 reads as "could not verify" and routes to its advisory lane; a 3
+#       lands in the FAIL lane and turns a stale plugin cache into a red closure (measured here
+#       2026-09-10, exactly that).
 
 [CmdletBinding()]
 param()
@@ -112,7 +119,18 @@ $script:probeIdBySlug = @{
     'preview-tests-probe-draft-blocker' = 'S9995'
     'preview-tests-probe-blocker-bnut'  = 'S9996'
     'preview-tests-probe-bnut'          = 'S9997'
+    'preview-tests-probe-blocker-mid'   = 'S9986'
+    'preview-tests-probe-mid'           = 'S9987'
+    'preview-tests-probe-blocker-full'  = 'S9988'
+    'preview-tests-probe-full'          = 'S9989'
+    'preview-tests-probe-blocker-nocnt' = 'S9984'
+    'preview-tests-probe-nocnt'         = 'S9985'
 }
+
+# Tactical folders written by case I, cleaned in the same finally as the spec files. Tracked
+# separately because a probe's cleanup removes its `.md` and nothing else, so a folder left here
+# would survive every later run and quietly satisfy the assertion it was written to test.
+$script:probeFolders = @()
 
 # Insert a throwaway spec through the CLI and remember it for the finally block. Body is written
 # verbatim so a case can shape the exact section-10 / statusNote combination it wants to exercise.
@@ -144,13 +162,36 @@ function New-Probe {
 
 . (Join-Path $PSScriptRoot '..\_status-sets.ps1')
 
+# The suite asks the harness a question the harness may be too old to answer (S2834). Both the
+# predicate and preview.ps1's `depends_on[].file` arrived in the same canon change, and this file
+# runs under Set-StrictMode, so against a pre-S2834 harness case A does not FAIL - it throws
+# "The property 'file' cannot be found on this object" from inside a Where-Object, 40 lines from
+# anything that names the cause. A stale plugin cache is the NORMAL state between a canon commit
+# and the owner's `claude plugin update`, so this is a routine condition wearing a crash's clothes.
+if (-not (Get-Command Test-BlockerReleased -ErrorAction SilentlyContinue)) {
+    Write-Host 'preview tests: the resolved SZA harness predates S2834 - Test-BlockerReleased is not defined.' -ForegroundColor Yellow
+    Write-Host '  Update the plugin:  claude plugin update sza@sza-unified-rules' -ForegroundColor Yellow
+    Write-Host '  Or point at a checkout carrying the change:' -ForegroundColor Yellow
+    Write-Host "      `$env:SZA_HARNESS_ROOT = '<canon-repo>\tools\harness'" -ForegroundColor Yellow
+    Write-Host 'preview tests: COULD NOT VERIFY (harness too old)' -ForegroundColor Yellow
+    exit 2
+}
+
 try {
     # --- A: no live BlockByOtherTask spec is offered while its blocker is still open, whatever names
     # that blocker. A spec whose every named blocker is released (Implemented, Verified, BlockNeedUserTest,
     # Archived - S1864) IS offered on purpose - that is the documented conditional eligibility
     # (.claude/reference/spec-next.md), and it is how a ticket returns to the queue once the thing it
     # waited for lands. Asserting the blanket "never offered" made the suite red exactly when the
-    # mechanism worked (S1433 / S1463). ---
+    # mechanism worked (S1433 / S1463).
+    #
+    # The predicate is Test-BlockerReleased, not Test-BlockerReleasedStatus (S2834): status alone is
+    # what this suite used to ask, and it made case A red on the day the mechanism started working
+    # correctly for the third time. S2551 is the live example - blocker S2662 sits in
+    # BlockNeedUserTest at `**Phases:** 0 / 5 done`, so it is released by status and NOT released in
+    # fact, and the old reading demanded the ticket be offered. Case A mirrors production's own
+    # verdict here on purpose; the hermetic fixtures in case I are what pin the rule itself, so a
+    # regression in the predicate cannot hide behind whatever the live journal happens to hold. ---
     Write-Host 'A: a BlockByOtherTask spec is offered only once its blockers are released' -ForegroundColor Yellow
     $blocked = @(& $pwshExe -NoProfile -File $searchPs1 -Status BlockByOtherTask -Format json | ConvertFrom-Json)
     Assert-That 'A0 the catalog still has BlockByOtherTask specs to check' ($blocked.Count -gt 0) 'none found'
@@ -158,7 +199,9 @@ try {
         $pv = Get-Preview $b.id
         $skip = if ($pv -and $pv.auto_skip) { $pv.auto_skip } else { 'null' }
         $deps = @($pv.depends_on)
-        $unreleasedDeps = @($deps | Where-Object { -not (Test-BlockerReleasedStatus -Status ([string]$_.status)) })
+        $unreleasedDeps = @($deps | Where-Object {
+                -not (Test-BlockerReleased -Status ([string]$_.status) -Id ([string]$_.id) -File ([string]$_.file))
+            })
         if ($deps.Count -gt 0 -and $unreleasedDeps.Count -eq 0) {
             $named = ($deps | ForEach-Object { "$($_.id)($($_.status))" }) -join ','
             Assert-That "A1 $($b.id) is released because its blockers released [$named]" ($skip -eq 'null') "still skipped as '$skip'"
@@ -354,8 +397,103 @@ Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. D
     } else {
         Write-Host '  SKIP  H - no Draft specs to use as fixtures' -ForegroundColor DarkGray
     }
+
+    # --- I (S2834): a release-ready blocker releases only if its OWN tactical plan is finished ---
+    #
+    # Case H above covers the same branch from the other side: its BlockNeedUserTest blocker owns no
+    # tactical folder, so it exercises the fail-open path and must keep returning null. The three
+    # fixtures here vary only the blocker's INDEX.md counter, which is the whole of the new test.
+    #
+    # I3 is not decoration. S1864 widened the releasing set and S1878 narrowed it again, each under
+    # its own failure, and this is the third movement; the measurement that opened S2834 found 21 of
+    # 111 tactical INDEX files carrying no `**Phases:**` line at all, so a fail-closed reading would
+    # have traded one false release for twenty-one false refusals. Without I3 that regression passes
+    # every gate in the repository.
+    Write-Host 'I (S2834): release-ready blocker releases only with a finished tactical plan' -ForegroundColor Yellow
+
+    function New-BlockerWithPlan {
+        param(
+            [Parameter(Mandatory = $true)][string]$BlockerSlug,
+            [Parameter(Mandatory = $true)][string]$DependentSlug,
+            # $null writes an INDEX.md with no `**Phases:**` line at all.
+            [string]$PhaseCounter
+        )
+
+        $blockerId = New-Probe -Slug $BlockerSlug -Status 'BlockNeedUserTest' -Body @"
+# <ID> - preview.tests probe blocker, plan counter '$PhaseCounter' (S2834)
+
+**Status:** BlockNeedUserTest
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+"@
+        if (-not $blockerId) { return $null }
+
+        $folder = Join-Path $repoRoot "PLAN/${blockerId}_$BlockerSlug"
+        New-Item -ItemType Directory -Path $folder -Force | Out-Null
+        $script:probeFolders += $folder
+        $counterLine = if ($PhaseCounter) { "**Phases:** $PhaseCounter done" } else { '**Phases counter deliberately absent.**' }
+        [System.IO.File]::WriteAllText((Join-Path $folder 'INDEX.md'), @"
+# $blockerId - tactical index (preview.tests fixture)
+
+**Status:** fixture
+$counterLine
+"@)
+
+        $dependentId = New-Probe -Slug $DependentSlug -Body @"
+# <ID> - preview.tests probe dependent, blocker plan '$PhaseCounter' (S2834)
+
+**Status:** Draft
+
+Temporary fixture written by scripts/spec_catalog/preview.tests/Run-Tests.ps1. Deleted by the same run.
+
+**Depends on:** $blockerId
+"@
+        if (-not $dependentId) { return $null }
+        return [PSCustomObject]@{ blocker = $blockerId; dependent = $dependentId }
+    }
+
+    # I1 - blocker parked at 0 of 3 phases: skipped, and the reason names the counter.
+    $midI = New-BlockerWithPlan -BlockerSlug 'preview-tests-probe-blocker-mid' `
+        -DependentSlug 'preview-tests-probe-mid' -PhaseCounter '0 / 3'
+    Assert-That 'I0 mid-plan fixtures inserted' ([bool]$midI) "insert.ps1 exit $LASTEXITCODE"
+    if ($midI) {
+        $pvI1 = Get-Preview $midI.dependent
+        if ($pvI1) {
+            $skipI1 = if ($pvI1.auto_skip) { $pvI1.auto_skip } else { 'null' }
+            Assert-That 'I1 mid-plan blocker skips the dependent' ($skipI1 -eq 'blocker-not-verified') "got '$skipI1'"
+            Assert-That 'I1b reason names the phase counter' ([string]$pvI1.auto_skip_reason -match 'phases\s*0/3') "got '$($pvI1.auto_skip_reason)'"
+        }
+    }
+
+    # I2 - same status, plan finished: released, exactly as before S2834.
+    $fullI = New-BlockerWithPlan -BlockerSlug 'preview-tests-probe-blocker-full' `
+        -DependentSlug 'preview-tests-probe-full' -PhaseCounter '3 / 3'
+    Assert-That 'I0b complete-plan fixtures inserted' ([bool]$fullI) "insert.ps1 exit $LASTEXITCODE"
+    if ($fullI) {
+        $pvI2 = Get-Preview $fullI.dependent
+        if ($pvI2) {
+            $skipI2 = if ($pvI2.auto_skip) { $pvI2.auto_skip } else { 'null' }
+            Assert-That 'I2 finished-plan blocker releases the dependent' ($skipI2 -eq 'null') "got '$skipI2'"
+        }
+    }
+
+    # I3 - tactical folder present, counter line absent: fail-open, released.
+    $noCntI = New-BlockerWithPlan -BlockerSlug 'preview-tests-probe-blocker-nocnt' `
+        -DependentSlug 'preview-tests-probe-nocnt' -PhaseCounter $null
+    Assert-That 'I0c counter-less fixtures inserted' ([bool]$noCntI) "insert.ps1 exit $LASTEXITCODE"
+    if ($noCntI) {
+        $pvI3 = Get-Preview $noCntI.dependent
+        if ($pvI3) {
+            $skipI3 = if ($pvI3.auto_skip) { $pvI3.auto_skip } else { 'null' }
+            Assert-That 'I3 blocker with no **Phases:** line fails OPEN and releases' ($skipI3 -eq 'null') "got '$skipI3'"
+        }
+    }
 }
 finally {
+    foreach ($folder in $script:probeFolders) {
+        Remove-Item -LiteralPath $folder -Recurse -Force -ErrorAction SilentlyContinue
+    }
+
     # Per record, never the whole journal (S1490) - see the header note.
     $residue = @()
     foreach ($p in $script:probeIds) {

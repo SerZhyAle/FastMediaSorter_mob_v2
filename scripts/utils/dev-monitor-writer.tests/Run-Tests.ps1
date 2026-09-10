@@ -76,9 +76,51 @@ try {
     $forbidden = @('animation', 'transition', '@keyframes', 'http://', 'https://', '<link', '<img')
     $found = @($forbidden | Where-Object { $shell -match [regex]::Escape($_) })
     Assert-That 'shell has no animation, transition, keyframes or external reference' ($found.Count -eq 0) ($found -join ',')
-    $missingSections = @(@('running', 'ticket leases', 'locks', 'agents', 'gate health', 'watchdog actions', 'next up', 'chat', 'findings', 'finished', 'stop') | Where-Object { $shell -notmatch ('<h2>' + [regex]::Escape($_)) })
+    $missingSections = @(@('agents', 'ticket leases', 'locks', 'gate health', 'watchdog actions', 'next up', 'chat', 'findings', 'finished', 'stop') | Where-Object { $shell -notmatch ('<h2>' + [regex]::Escape($_)) })
     Assert-That 'shell is English-labelled and lists every section' ($missingSections.Count -eq 0) ($missingSections -join ',')
     Assert-That 'shell labels a set-named failure for the affected file' ($shell -match 'named your file') ''
+    Assert-That 'lock rows distinguish the executor from a ticket lease owner' (
+        $shell -match 'lock executor' -and $shell -match 'ticket.*owner' -and $shell -match 'ticketFromReason'
+    ) ''
+    # The roster is the whole point of the section (owner finding 2026-09-10): four identity spaces
+    # became one, so the assertion is that every identity SOURCE feeds the same keyed map. Naming the
+    # sources rather than the rendered text is deliberate - a page that drops `s.locks` from the join
+    # looks perfectly ordinary and silently reinstates the defect.
+    $rosterSources = @('(s.agents || []).forEach', '(s.sessions || []).forEach', '(s.leases || []).forEach', '(s.locks || []).forEach', '(s.children || []).forEach')
+    $missingSources = @($rosterSources | Where-Object { $shell -notmatch [regex]::Escape($_) })
+    Assert-That 'the agent roster joins agents, sessions, leases, locks and children' (
+        $missingSources.Count -eq 0 -and $shell -match 'function slot\(sid\)' -and $shell -match 'roster\[sid\]'
+    ) ($missingSources -join ',')
+    Assert-That 'a lock holder and a queue waiter carry the session id that joins them to the roster' (
+        $shell -match 'function shortId' -and $shell -match 'lockExecutor\(ticket, k\.name, k\.sessionId\)' -and $shell -match 'shortId\(t\.sessionId\)'
+    ) ''
+    Assert-That 'headless children stay process-shaped, below the sessions' (
+        $shell -match 'A headless child is a PROCESS' -and $shell -match "child ' \+ esc\(c\.pid\)"
+    ) ''
+    # The note is the only wrapping cell, so as a column it dictated every row's height (owner ruling
+    # 2026-09-10). It lives on a spanning row of its own now, and the agent row above it drops its
+    # border so the pair reads as one entry.
+    Assert-That 'the last note is a spanning row under its agent, not a column' (
+        $shell -match 'function noteRow' -and $shell -match "span: ROSTER_HEAD\.length" -and
+        $shell -match 'tr\.hasnote td\{border-bottom:none\}' -and $shell -match 'tr\.note td\{' -and
+        $shell -notmatch "'waiting for', '#seen', 'last note'"
+    ) ''
+    # A quiet agent that still owns something is the one failure the page must not render as an
+    # ordinary row. The show rule and the alarm rule must read ONE predicate: when they were written
+    # separately, a quiet agent holding only a ticket was collapsed into the hidden line, so the red
+    # row the cut exists to expose was the single row it removed.
+    Assert-That 'a quiet owner of a lock or a ticket is an alarm, and one predicate decides it' (
+        $shell -match 'function ownsSomething' -and
+        $shell -match "ownsSomething\(row\)\) \{ shown\.push\(sid\)" -and
+        $shell -match 'quiet && ownsSomething\(row\)' -and
+        $shell -match "foreign-stale" -and $shell -match "'NO LIFE'" -and $shell -match 'tr\.alarm td\{'
+    ) ''
+    # Gate health is reference, not a live signal, so it sits below everything that changes tick to
+    # tick (owner ruling 2026-09-10).
+    $sectionOrder = @([regex]::Matches($shell, '<h2>([a-z ]+)') | ForEach-Object { $_.Groups[1].Value.Trim() })
+    Assert-That 'the agent roster opens the page and gate health closes it' (
+        $sectionOrder.Count -gt 2 -and $sectionOrder[0] -eq 'agents' -and $sectionOrder[-1] -eq 'gate health'
+    ) ($sectionOrder -join ' > ')
     # Read the stamp off the raw text: ConvertFrom-Json turns an ISO string into a DateTime, and the
     # page compares strings.
     $stampMatch = [regex]::Match([IO.File]::ReadAllText((Join-Path $fixture 'snapshot.js')), '"shellStamp":"([^"]+)"')

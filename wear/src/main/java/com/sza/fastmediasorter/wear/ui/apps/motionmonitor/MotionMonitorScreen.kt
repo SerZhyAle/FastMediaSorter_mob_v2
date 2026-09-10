@@ -34,7 +34,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
-import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val GROUP_TOP_PADDING = 10.dp
@@ -53,7 +52,6 @@ fun MotionMonitorScreen(
     viewModel: MotionMonitorViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState()
 ) {
-    Timber.d("S2458: motion monitor screen opened")
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val requestable = remember { requestableActivityPermissions() }
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)

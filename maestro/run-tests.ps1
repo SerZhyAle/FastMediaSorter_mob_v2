@@ -35,6 +35,10 @@
     2 - Maestro CLI not found
     3 - one or more flows failed (step / assertion)
     4 - execution error (no device / runtime error - a flow never completed)
+    5 - the 'wear' suite was aimed at a device that does not report a watch, so NOTHING was run
+        (S2548). Both modules publish under one applicationId, so a watch flow pointed at a phone
+        launches the phone app, passes its opening steps and returns a verdict about the wrong
+        platform - the serial is the only thing that distinguishes them
 
   With -ListFlows only 0 (the selection resolved to at least one flow) and 1 (it resolved to none)
   are reachable - nothing is run, so no verdict beyond the selection exists.
@@ -82,6 +86,10 @@ param(
     [switch]$Json,
     [switch]$ListFlows,
     [switch]$AllowHomeRoleGrant,
+    # S2548: asserts the stand carries the media a '# maestro-requires: seeded-content' flow needs.
+    # A switch rather than a probe: what counts as seeded differs per flow, and a wrong guess here
+    # turns a skip into a red flow about the stand rather than about the app.
+    [switch]$WithSeededContent,
     # Retained for backward compatibility with existing callers
     # (scripts/utils/run-maestro-smoke.ps1, scripts/utils/run-stress.ps1) which pass -DebugMode.
     # When set, the off-context trace of any failing flow is echoed to the console for local triage.
@@ -220,10 +228,57 @@ function Resolve-TargetDevice {
 # ---------- ROLE_HOME precondition for launcher flows (S2720) ----------
 # A flow declares the requirement in its own header, `# maestro-requires: home-role`, because the
 # alternative is a list of file names inside this script that drifts from the flows it names.
-function Test-FlowRequiresHomeRole {
+function Get-FlowRequirements {
     param([System.IO.FileInfo]$FlowFile)
     $head = Get-Content -Path $FlowFile.FullName -TotalCount 20 -ErrorAction SilentlyContinue
-    return [bool](@($head) -match '^\s*#\s*maestro-requires:\s*home-role\s*$')
+    $tokens = @()
+    foreach ($line in @($head)) {
+        $m = [regex]::Match($line, '^\s*#\s*maestro-requires:\s*([a-z0-9-]+)\s*$')
+        if ($m.Success) { $tokens += $m.Groups[1].Value }
+    }
+    return , $tokens
+}
+
+function Test-FlowRequiresHomeRole {
+    param([System.IO.FileInfo]$FlowFile)
+    return (Get-FlowRequirements -FlowFile $FlowFile) -contains 'home-role'
+}
+
+# S2548: the watch reports its form factor, and content the stand does not carry cannot be conjured,
+# so a flow that needs either says so in its own header and is SKIPPED rather than failed. The token
+# spellings are the excluded[] reason codes of scripts/devtest/wear-prerelease-screens.json - a second
+# vocabulary for the same idea is how the walk and the suite come to disagree about why a path is out
+# of reach.
+function Get-UnmetRequirement {
+    param([System.IO.FileInfo]$FlowFile, [string]$Sdk, [string]$Device)
+    foreach ($token in (Get-FlowRequirements -FlowFile $FlowFile)) {
+        switch ($token) {
+            'watch' {
+                if (-not (Test-WatchTarget -Sdk $Sdk -Device $Device)) {
+                    return 'requires a watch and the target does not report one in ro.build.characteristics'
+                }
+            }
+            'seeded-content' {
+                if (-not $WithSeededContent) {
+                    return 'requires seeded media on the device; pass -WithSeededContent once the stand carries it'
+                }
+            }
+        }
+    }
+    return $null
+}
+
+# The form-factor read, shared by the suite guard and the per-flow 'watch' precondition so the two
+# cannot answer differently about the same device.
+function Test-WatchTarget {
+    param([string]$Sdk, [string]$Device)
+    $adb = Find-Adb -Sdk $Sdk
+    if (-not $adb) { return $false }
+    $target = if ($Device) { @('-s', $Device) } else { @() }
+    try {
+        $chars = (& $adb @target shell getprop ro.build.characteristics 2>$null) -join ''
+    } catch { return $false }
+    return ($chars -match 'watch')
 }
 
 # The single package currently holding the home role, or $null when it cannot be read. `cmd role`
@@ -336,7 +391,16 @@ function Get-FlowSet {
         # features/launcher, not smoke/; settings_dropdown_select.yaml in smoke/, not
         # features/settings). Flow file names are unique across the tree, so the directory carries no
         # information the name does not; refusing on it only costs a half-hour full-suite re-run (S2396).
-        return @(Get-ChildItem -Path $MaestroDir -Recurse -Filter (Split-Path -Leaf $norm) -File)
+        # S2548: refuse an ambiguous name rather than returning every match. Once the watch owns a root
+        # of its own, one file name can resolve on two platforms, and silently widening a single-flow
+        # re-run into two runs on two devices is the failure this fallback would otherwise introduce.
+        $byName = @(Get-ChildItem -Path $MaestroDir -Recurse -Filter (Split-Path -Leaf $norm) -File)
+        if ($byName.Count -gt 1) {
+            $named = ($byName | ForEach-Object { Get-RelativeFlowPath -File $_ }) -join ', '
+            Exit-Suite -Code 1 -Pass $false -Total 0 -Failed 0 -Flows @() `
+                -Reason ("selection '{0}' matches {1} flows - name one of them by its path: {2}" -f $Selection, $byName.Count, $named)
+        }
+        return $byName
     }
 
     if ($Selection.ToLower() -eq 'all') {
@@ -362,7 +426,12 @@ function Get-FlowSet {
     $norm = $Selection -replace '/', '\'
     $dir  = Join-Path $MaestroDir $norm
     if (Test-Path -Path $dir -PathType Container) {
-        return @(Get-ChildItem -Path $dir -Recurse -Filter '*.yaml' -File)
+        # S2548: a suite root may own a 'config.yaml' - Maestro's per-root configuration, which
+        # declares appId and timeouts and carries no commands. Handing it to the CLI as a flow makes
+        # every watch run report one permanent FAIL beside its passing flows, so a suite that did
+        # exactly what it was written to do never returns exit 0 and can never become a gate.
+        return @(Get-ChildItem -Path $dir -Recurse -Filter '*.yaml' -File |
+            Where-Object { $_.Name -ne 'config.yaml' })
     }
 
     return @()
@@ -459,6 +528,18 @@ if ($flows.Count -eq 0) {
         -Reason "no flow matched selection '$Suite' (try: all | smoke | critical | features | features\\<category> | <flow>.yaml)"
 }
 
+# S2548: the watch suite refuses a target that is not a watch instead of running the phone app under
+# a watch flow's name. Checked before the first flow so nothing is executed on the wrong platform,
+# and applied whether the serial was given or resolved implicitly - taking "the single online device"
+# is exactly how the wrong one gets picked.
+if (@($flows | Where-Object { $_.FullName -match '[\\/]wear[\\/]' }).Count -gt 0) {
+    $wearTarget = Resolve-TargetDevice -Sdk $sdk -Device $DeviceId
+    if (-not (Test-WatchTarget -Sdk $sdk -Device $wearTarget)) {
+        Exit-Suite -Code 5 -Pass $false -Total 0 -Failed 0 -Flows @() `
+            -Reason ("suite '{0}' selects watch flows, but device '{1}' does not report a watch in ro.build.characteristics - nothing was run. Aim it with -DeviceId <watch serial>" -f $Suite, $(if ($wearTarget) { $wearTarget } else { '(unresolved)' }))
+    }
+}
+
 Write-Line ("RUN suite '{0}': {1} flow(s) on device {2}" -f $Suite, $flows.Count, $(if ($DeviceId) { $DeviceId } else { '(auto)' })) 'Cyan'
 
 $results  = @()
@@ -472,6 +553,16 @@ foreach ($flow in $flows) {
     # the device's home app and hang Maestro, so an unrestored role turns two red flows into a stuck
     # suite. Both the previous holder and the read-back live here rather than in the flow because a
     # flow has neither adb nor the serial.
+    # S2548: an environment precondition the stand cannot meet is a skip with its token as the reason,
+    # never a failure - a red flow about a missing file reads as a defect in the app.
+    $unmet = Get-UnmetRequirement -FlowFile $flow -Sdk $sdk -Device $targetDevice
+    if ($unmet) {
+        $skippedEnv = [ordered]@{ flow = $flow.Name; status = 'skip'; pass = $false; skipReason = $unmet; log = $null }
+        $results += $skippedEnv
+        Write-Line ("  {0,-8} {1}  ({2})" -f 'SKIP', $skippedEnv.flow, $unmet) 'Yellow'
+        continue
+    }
+
     $needsHomeRole    = Test-FlowRequiresHomeRole -FlowFile $flow
     $previousRoleHolder = $null
     if ($needsHomeRole) {

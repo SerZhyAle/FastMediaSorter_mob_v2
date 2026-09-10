@@ -18,6 +18,7 @@
 # add the probe instead.
 
 S1606  Durable-evidence closing gate - script-only change, no .kt touched (per its own status note).
+S2798  Script-only fix: set-android-string.ps1 and seed-locale-tranche.ps1 regex patterns. Verification: run with apostrophe values and inspect XML output.
 S1620  Archived-spec relocation - tooling-only change, no .kt touched (per its own status note).
 S1183  adb.ps1 verb output made pipeable - script-only change; the piped files and command output are the evidence.
 S1520  devtest screenshot gate on secure screens - script-only change; the SHOT/TREE output is the evidence.
@@ -49,3 +50,5 @@ S1902  Option D declined adding privileged APIs (Device Admin / Accessibility Se
 S2565  Deletes two orphaned wear splash resources and touches no Kotlin, so there is no changed flow to instrument. The splash window is drawn by the platform before the first line of app code runs - the same reason S1706 is on this list - so no Timber line could observe it; the device check is a cold start on the watch showing the launcher icon and no crash.
 S1270  Splits one native translation unit into four (.cpp/.h plus CMakeLists and a gate baseline) and touches no Kotlin, so there is nowhere to put a Timber line. The changed code is the OpenXR session, which runs on a Quest and reaches no Android log the app writes; the evidence is the owner's Quest session showing the diagnostic XR view render, respond to input and exit exactly as before the split.
 S2760  Adds a measurement schema, two PowerShell commands and two documents, and touches no Kotlin, so there is no changed flow to instrument. What is unobserved is not a device behaviour at all: the first-response and total-completion stages are client-observed by definition, so the baseline runs across the three control classes can only be produced by the owner in the client and handed back through record-run.ps1.
+S2823  Test-only change: two stale test fixtures brought in line with already-shipped code (BLOOD_PRESSURE in WearAppCatalogTest, unitSystem in both WearSettingsPayloadDecoderTest copies). No production code flow changed, so there is no entry point a probe could sit in; the evidence is the unit suite verdict (fwu pass for wear, fu pending S2813 for phone), not a device flow.
+S2757  A retest campaign, not a code change: the remaining work runs the device walk scripts (wear-prerelease-walk.ps1, adb.ps1 clip-check, wear-ink-clip.ps1) on watch hardware, and every .kt flow it re-verifies already carries its own ticket's probe, so there is no S2757 flow entry to instrument. The evidence is the per-screen verdict set in temp/S2757/ from the Phase 02 walk.

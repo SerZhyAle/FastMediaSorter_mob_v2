@@ -82,6 +82,29 @@ interface StreamSourceDao {
     suspend fun getByIdentity(identityKey: String): StreamSourceEntity?
 
     /**
+     * S2813: the row a broadcasting device already owns, whatever address it is carrying today.
+     *
+     * The device index is not unique, so this takes the most recently added of any duplicates. A
+     * duplicate can only arise from a database edited by hand or restored from a backup written before
+     * the column existed; picking one is still a better answer than failing the import.
+     */
+    @Query(
+        "SELECT * FROM stream_sources WHERE sourceDeviceId = :deviceId " +
+            "ORDER BY addedAt DESC LIMIT 1"
+    )
+    suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity?
+
+    /**
+     * S2813: moves a row onto the address its device is broadcasting on now.
+     *
+     * Unlike [updateUserFields] this touches neither the title nor the origin and is not restricted to
+     * MANUAL rows: the address is the device's property and the title may be the user's, and the user's
+     * rename must survive a reconnect.
+     */
+    @Query("UPDATE stream_sources SET url = :url, identityKey = :identityKey WHERE id = :id")
+    suspend fun updateSourceAddress(id: String, url: String, identityKey: String)
+
+    /**
      * S1832: repaint the pin projection on the catalog rows from the durable user state, in one
      * statement. Called at the end of a merge, so a channel that just returned to the bank as a brand new
      * row picks the pin and the position back up.

@@ -76,7 +76,7 @@ Assert-Equal 'annotations-only IS a reference input'    $true  (Test-SettingsRef
 # --- The other reference inputs, which are not in docs/settings/ --------------------------------
 $otherReferenceInputs = @(
     'docs/SETTINGS_REFERENCE.md',
-    'docs/SETTINGS_REFERENCE_RU.md',
+    'docs/SETTINGS_REFERENCE-ru.md',
     'docs/SETTINGS_REFERENCE_noLegal.md',
     'docs/icons/doc-icon-map.json',
     'scripts/docs/render-settings-reference.ps1',
@@ -103,6 +103,53 @@ Assert-Equal 'empty set | manifest  -> true'  $true  (Test-SettingsManifestInput
 Assert-Equal 'empty set | reference -> true'  $true  (Test-SettingsReferenceInput -ChangedFiles @() -RepoRoot $repoRoot)
 Assert-Equal 'empty set | artifact  -> false' $false (Test-SettingsDocArtifactInput -ChangedFiles @())
 
+# --- S2831: the annotations and catalog stages answer the same chargeability question --------------
+# The measurement that opened S2831: closing S2795 with a 60-file set holding neither settings JSON
+# was failed by five orphan annotations a sibling session had written into the working tree. The
+# stage had no chargeability fork, so it judged the whole pair and charged whoever ran next.
+$foreignSet = @('app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt')
+Assert-Equal 'foreign set | annotations -> false' $false (Test-SettingsAnnotationsInput -ChangedFiles $foreignSet)
+Assert-Equal 'foreign set | catalog     -> false' $false (Test-SettingsCatalogInput -ChangedFiles $foreignSet)
+
+Assert-Equal 'annotations json | annotations -> true'  $true  (Test-SettingsAnnotationsInput -ChangedFiles $annotations)
+Assert-Equal 'annotations json | catalog     -> false' $false (Test-SettingsCatalogInput -ChangedFiles $annotations)
+Assert-Equal 'manifest json | annotations -> true' $true (Test-SettingsAnnotationsInput -ChangedFiles @('docs/settings/settings-manifest.json'))
+
+# A layout feeds the catalog scan whether or not it carries a settings row today: a row ADDED to a
+# row-less layout is the unclassified case stage 1 exists to catch.
+$layout = @('app_v2/src/main/res/layout/fragment_settings_general.xml')
+Assert-Equal 'layout | catalog     -> true'  $true  (Test-SettingsCatalogInput -ChangedFiles $layout)
+Assert-Equal 'layout | annotations -> false' $false (Test-SettingsAnnotationsInput -ChangedFiles $layout)
+Assert-Equal 'layout-land | catalog -> true' $true (Test-SettingsCatalogInput -ChangedFiles @('app_v2/src/main/res/layout-land/fragment_settings_general.xml'))
+
+foreach ($catalogInput in @(
+        'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchLayoutCatalog.kt',
+        'app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsDocScopeCatalog.kt',
+        'docs/settings/settings-scope-exclusions.json')) {
+    Assert-Equal "catalog | $catalogInput" $true (Test-SettingsCatalogInput -ChangedFiles @($catalogInput))
+}
+Assert-Equal 'scope exclusions | annotations -> false' $false (Test-SettingsAnnotationsInput -ChangedFiles @('docs/settings/settings-scope-exclusions.json'))
+
+# The empty set keeps the unscoped project-wide judgement on both new stages, exactly as it does on
+# the two predicates above - that is what leaves `.\a.ps1 fg` and the release path fatal.
+Assert-Equal 'empty set | annotations -> true' $true (Test-SettingsAnnotationsInput -ChangedFiles @())
+Assert-Equal 'empty set | catalog     -> true' $true (Test-SettingsCatalogInput -ChangedFiles @())
+
+# Separator and comma spellings agree, as for the older predicates.
+$pairCsv = @('app_v2/src/main/res/layout/fragment_settings_general.xml,docs/settings/settings-annotations.json')
+$pairArr = @('app_v2/src/main/res/layout/fragment_settings_general.xml', 'docs/settings/settings-annotations.json')
+Assert-Equal 'csv == array | annotations' (Test-SettingsAnnotationsInput -ChangedFiles $pairArr) (Test-SettingsAnnotationsInput -ChangedFiles $pairCsv)
+Assert-Equal 'csv == array | catalog'     (Test-SettingsCatalogInput -ChangedFiles $pairArr) (Test-SettingsCatalogInput -ChangedFiles $pairCsv)
+Assert-Equal 'backslash spelling | catalog' $true (Test-SettingsCatalogInput -ChangedFiles @('app_v2\src\main\res\layout\fragment_settings_general.xml'))
+
+# --- The gate is forked on both new predicates, and the facade's hint is stage-neutral -------------
+# Wiring checks, like the facade block below: the advisory route for these two stages can only be
+# exercised end to end while the tree carries a foreign divergence, which is another ticket's state.
+$syncGate = [System.IO.File]::ReadAllText((Join-Path $repoRoot 'scripts/quality/assert-settings-doc-sync.ps1'))
+Assert-Equal 'gate forks the annotations stage' $true ($syncGate -match 'Test-SettingsAnnotationsInput')
+Assert-Equal 'gate forks the catalog stage'     $true ($syncGate -match 'Test-SettingsCatalogInput')
+Assert-Equal 'gate defers by stage, not by render' $true ($syncGate -match 'foreignStageFindings')
+
 # --- Comma-joined and backslash spellings agree with the array form -------------------------------
 # post-change.ps1 hands -ChangedFiles a comma-joined string; Windows supplies both separators.
 $csv = @('docs/settings/device-profile-nonpresettable.json,docs/settings/settings-annotations.json')
@@ -128,6 +175,10 @@ Assert-Equal 'facade trigger uses the predicate'     $true ($postChange -match '
 Assert-Equal "facade no longer prefixes 'docs/settings/'" $false ($postChange -match "Test-AnyChangedFile 'docs/settings/'")
 Assert-Equal 'facade downgrades exit 3'              $true ($postChange -match 'settingsDocExit -eq 3')
 Assert-Equal 'facade advisory names this gate'       $true ($postChange -match 'Invoke-AdvisoryStep "settings-doc-sync-gate"')
+# S2831: the hint must state the general rule. Naming the render there sends the author of a failed
+# close to regenerate SETTINGS_REFERENCE when what diverged was the annotation pair.
+$advisoryBlock = [regex]::Match($postChange, 'Invoke-AdvisoryStep "settings-doc-sync-gate".*?\r?\n\s*\}', 'Singleline').Value
+Assert-Equal 'facade hint is stage-neutral' $false ($advisoryBlock -match 'render')
 
 Write-Host ""
 if ($script:fail -gt 0) {

@@ -27,7 +27,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textColor="@color/black"
-            android:textSize="@dimen/text_size_large" />
+            android:textSize="@dimen/water_flashlight_clock_text_size" />
 
         <TextView
             android:id="@+id/tvLockedHint"
@@ -37,7 +37,7 @@
             android:gravity="center"
             android:text="@string/water_flashlight_locked_hint"
             android:textColor="@color/black"
-            android:textSize="@dimen/text_size_small" />
+            android:textSize="@dimen/water_flashlight_hint_text_size" />
 
     </LinearLayout>
 

@@ -49,6 +49,7 @@ import com.bumptech.glide.signature.ObjectKey
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import com.sza.fastmediasorter.ui.settings.WearBackgroundDeliveryState
@@ -249,7 +250,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         (watchSettings?.panelAutoHideSeconds ?: DEFAULT_PANEL_AUTO_HIDE_SECONDS).toFloat()
     )
 
-    fun payload(context: Context? = null) = WearSettingsPayload(
+    fun payload(context: Context? = null, unitSystem: UnitSystem? = null) = WearSettingsPayload(
         audioEnabled = audioEnabled,
         videoEnabled = videoEnabled,
         imagesEnabled = imagesEnabled,
@@ -265,7 +266,10 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         disableAnimations = disableAnimations,
         powerSavingTrigger = powerSavingTrigger,
         backgroundPlaybackEnabled = backgroundPlaybackEnabled,
-        panelAutoHideSeconds = panelAutoHideSeconds.toInt()
+        panelAutoHideSeconds = panelAutoHideSeconds.toInt(),
+        // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
+        // rides the phone's current AppSettings the same way appLanguage rides the current locale.
+        unitSystem = unitSystem?.name
     )
 }
 

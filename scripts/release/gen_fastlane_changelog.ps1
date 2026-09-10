@@ -6,15 +6,15 @@
 .DESCRIPTION
     Spec S0215 - fdroid-publish-research, Phase 04 Step 04.1.
 
-    Reads docs/WHATS_NEW.md, docs/WHATS_NEW_RU.md, docs/WHATS_NEW_UK.md and
+    Reads docs/WHATS_NEW.md, docs/WHATS_NEW-ru.md, docs/WHATS_NEW-uk.md and
     writes per-locale fastlane changelog files at:
 
       fastlane/metadata/android/<locale>/changelogs/<VersionCode>.txt
 
     Locale mapping:
       en-US  <- docs/WHATS_NEW.md
-      ru-RU  <- docs/WHATS_NEW_RU.md
-      uk-UA  <- docs/WHATS_NEW_UK.md
+      ru-RU  <- docs/WHATS_NEW-ru.md
+      uk-UA  <- docs/WHATS_NEW-uk.md
 
     Section extraction:
       Locates the "Current release" block bounded by:
@@ -84,8 +84,8 @@ if (-not $FastlaneRoot)  { $FastlaneRoot  = Join-Path $repoRoot "fastlane/metada
 # CurrentReleasePrefix: locale-specific text that precedes the version on the "Current release" line.
 $localeMap = @(
     @{ Locale = "en-US"; File = "WHATS_NEW.md";    CurrentReleasePrefix = "Current release:"    },
-    @{ Locale = "ru-RU"; File = "WHATS_NEW_RU.md"; CurrentReleasePrefix = "Текущий релиз:"      },
-    @{ Locale = "uk-UA"; File = "WHATS_NEW_UK.md"; CurrentReleasePrefix = "Поточний реліз:"     }
+    @{ Locale = "ru-RU"; File = "WHATS_NEW-ru.md"; CurrentReleasePrefix = "Текущий релиз:"      },
+    @{ Locale = "uk-UA"; File = "WHATS_NEW-uk.md"; CurrentReleasePrefix = "Поточний реліз:"     }
 )
 
 function Extract-CurrentReleaseBlock {

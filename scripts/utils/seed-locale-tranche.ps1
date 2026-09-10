@@ -187,8 +187,8 @@ function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
     # The optional leading backslash is what makes this idempotent: a value that already arrived
     # escaped matches too and collapses to the same single-backslash form, instead of growing a
     # second slash that AAPT2 either refuses (apostrophe) or ships literally (quote).
-    $escaped = [regex]::Replace($escaped, '\\?&apos;', "\'")
-    return [regex]::Replace($escaped, '\\?&quot;', '\"')
+    $escaped = [regex]::Replace($escaped, '\\\\?&apos;', "\'")
+    return [regex]::Replace($escaped, '\\\\?&quot;', '\"')
 }
 
 function Get-FormatSignature([AllowEmptyString()][string]$Text) {

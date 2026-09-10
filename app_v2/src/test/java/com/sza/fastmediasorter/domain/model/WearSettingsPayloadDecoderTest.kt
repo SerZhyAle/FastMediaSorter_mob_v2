@@ -116,7 +116,8 @@ class WearSettingsPayloadDecoderTest {
             "panelAutoHideSeconds" to "15",
             "appVersionName" to "\"2.60.8250.134\"",
             "fieldTimestamps" to "{\"audioEnabled\":1}",
-            "capabilities" to "{\"autoRotationSensor\":true}"
+            "capabilities" to "{\"autoRotationSensor\":true}",
+            "unitSystem" to "\"METRIC\""
         )
         base.putAll(overrides)
         nulled.forEach { base[it] = "null" }

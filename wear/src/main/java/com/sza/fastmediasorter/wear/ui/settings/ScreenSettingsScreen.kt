@@ -21,6 +21,7 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -75,6 +76,8 @@ fun ScreenSettingsScreen(
             )
         }
     }
+    val geometryLabel = stringResource(R.string.wear_setting_original_layout)
+    val geometryItems = geometryModeItems(uiState, viewModel)
     val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
     val keepAwakeItems = listOf(
         WearSettingsItem { _ ->
@@ -115,10 +118,42 @@ fun ScreenSettingsScreen(
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = colorSchemeLabel) }
                 items(packSettingsRows(colorSchemeItems, columns)) { row -> WearSettingsRow(row) }
+                if (geometryItems.isNotEmpty()) {
+                    item { GroupCaption(text = geometryLabel) }
+                    items(packSettingsRows(geometryItems, columns)) { row -> WearSettingsRow(row) }
+                }
                 items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
             }
         }
     }
+}
+
+/**
+ * S2773 / ADR-3: the geometry row, built only where the build variant allows the view to be changed.
+ *
+ * In the published variant the list is empty, so the caller draws neither the row nor its caption and
+ * the group leaves no gap behind. Its own function rather than a block in the screen because the screen
+ * already sits at detekt's length ceiling, and because the emptiness IS the store-variant behaviour and
+ * deserves to be stated somewhere it can be read.
+ */
+@Composable
+private fun geometryModeItems(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+): List<WearSettingsItem> {
+    if (!uiState.offersGeometryModeSwitch) {
+        return emptyList()
+    }
+    val summary = stringResource(R.string.wear_setting_original_layout_summary)
+    return listOf(
+        WearSettingsItem(fullWidth = true) { _ ->
+            WearSettingsToggleCell(
+                label = summary,
+                checked = uiState.geometryMode == WearGeometryMode.ORIGINAL,
+                onToggle = { viewModel.toggleGeometryMode() }
+            )
+        }
+    )
 }
 
 private fun viewModeItems(

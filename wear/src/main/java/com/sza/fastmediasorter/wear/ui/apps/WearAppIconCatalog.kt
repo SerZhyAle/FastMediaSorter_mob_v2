@@ -33,8 +33,11 @@ object WearAppIconCatalog {
         // S2457: no phone counterpart to reuse a glyph from - the diagnostic exists on the watch only,
         // so this is the one icon of the table drawn for this module rather than mirrored into it.
         WearAppId.BODY_SENSOR -> R.drawable.ic_body_sensor
+        WearAppId.BLOOD_PRESSURE -> R.drawable.ic_blood_pressure
         // S2509: the share glyph, matching the Home section's row - one entity wears one glyph across
         // both entrances. Not ic_cast, which already stands for a channel this app plays.
         WearAppId.BROADCAST -> R.drawable.ic_share
+        // S2825: the phone's own stopwatch glyph, copied name-for-name rather than redrawn.
+        WearAppId.STOPWATCH -> R.drawable.ic_stopwatch
     }
 }

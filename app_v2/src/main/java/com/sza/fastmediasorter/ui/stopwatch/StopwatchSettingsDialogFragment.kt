@@ -1,10 +1,8 @@
 package com.sza.fastmediasorter.ui.stopwatch
 
 import android.app.Dialog
-import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.net.toUri
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
@@ -14,6 +12,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.databinding.DialogStopwatchSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.repository.MusicTrackRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -27,6 +26,10 @@ import javax.inject.Inject
  * Unlike the calculator's dialog it is reachable from two places - the tool's own gear button and a row
  * on the Settings screen's Operations tab (§6.4) - so it takes its state from the shared settings
  * repository rather than from a host screen's ViewModel, and its catalog entry carries a host key.
+ *
+ * The track row opens the in-app music picker (S2792): the system document picker's audio filter is
+ * only as good as the OEM file provider, and the owner's device showed every file for a choice that
+ * must be music and nothing else.
  */
 @AndroidEntryPoint
 class StopwatchSettingsDialogFragment : DialogFragment() {
@@ -35,21 +38,23 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
 
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
+    @Inject lateinit var musicTrackRepository: MusicTrackRepository
+
     private var _binding: DialogStopwatchSettingsBinding? = null
     private val binding get() = requireNotNull(_binding) { "Binding is only valid while the dialog exists" }
 
     /** Edited in place and written back only when the user confirms, so cancel really cancels. */
     private var draft: AppSettings? = null
 
-    private val selectTrackLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            onTrackChosen(uri)
-        }
-    }
-
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         _binding = DialogStopwatchSettingsBinding.inflate(layoutInflater)
         bindStaticRows()
+        childFragmentManager.setFragmentResultListener(MusicPickerDialogFragment.REQUEST_KEY, this) { _, bundle ->
+            val uri = bundle.getString(MusicPickerDialogFragment.KEY_URI)
+            if (!uri.isNullOrBlank()) {
+                onTrackChosen(uri.toUri(), bundle.getString(MusicPickerDialogFragment.KEY_TITLE).orEmpty())
+            }
+        }
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.stopwatch_settings_title)
@@ -95,6 +100,16 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
         }
     }
 
+    private suspend fun trackLabelFor(uri: String): CharSequence {
+        if (uri.isEmpty()) {
+            return getString(R.string.stopwatch_settings_track_none)
+        }
+        // A MediaStore pick resolves back to its title; a legacy SAF uri keeps the file name it
+        // always showed, because the media store knows nothing about it.
+        val title = musicTrackRepository.titleOf(uri.toUri())
+        return title ?: uri.toUri().lastPathSegment ?: uri
+    }
+
     private fun renderDraft(settings: AppSettings) {
         val index = AppSettings.STOPWATCH_PARTICIPANT_OPTIONS
             .indexOf(settings.stopwatchParticipantCount)
@@ -102,7 +117,9 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
         binding.rowStopwatchParticipants.setSelection(index)
         binding.rowStopwatchMusic.setCheckedSilently(settings.stopwatchMusicEnabled)
         binding.rowStopwatchVolumeKeys.setCheckedSilently(settings.stopwatchVolumeKeysControl)
-        binding.rowStopwatchTrack.setValue(trackLabel(settings.stopwatchMusicUri))
+        lifecycleScope.launch {
+            binding.rowStopwatchTrack.setValue(trackLabelFor(settings.stopwatchMusicUri))
+        }
     }
 
     private fun bindListeners() {
@@ -119,34 +136,26 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
     }
 
     private fun openTrackPicker() {
-        runCatching { selectTrackLauncher.launch(arrayOf(AUDIO_MIME)) }
-            .onFailure { error ->
-                // No document provider answers the intent on some minimal builds; the dialog stays
-                // usable and the track simply remains unchosen.
-                Timber.w(error, "Stopwatch settings could not open the track picker")
-            }
+        runCatching {
+            MusicPickerDialogFragment.newInstance()
+                .show(childFragmentManager, MusicPickerDialogFragment.TAG)
+        }.onFailure { error ->
+            Timber.w(error, "Stopwatch settings could not open the music picker")
+        }
     }
 
-    private fun onTrackChosen(uri: Uri) {
-        // Without the persistable grant the uri stops resolving after a reboot, and the setting would
-        // point at a track the tool can no longer open.
-        runCatching {
-            requireContext().contentResolver
-                .takePersistableUriPermission(uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }.onFailure { error ->
-            Timber.w(error, "Stopwatch settings could not persist read access to the chosen track")
-        }
+    /**
+     * A MediaStore uri is stable and already readable by this app, so unlike the old SAF pick it
+     * needs no persistable grant - taking one on a media uri simply fails.
+     */
+    private fun onTrackChosen(uri: Uri, title: String) {
+        Timber.d("S2792: track chosen via picker, draft updated")
         draft = draft?.copy(stopwatchMusicUri = uri.toString(), stopwatchMusicEnabled = true)
-        binding.rowStopwatchTrack.setValue(trackLabel(uri.toString()))
+        binding.rowStopwatchTrack.setValue(
+            title.ifBlank { uri.lastPathSegment ?: uri.toString() },
+        )
         binding.rowStopwatchMusic.setCheckedSilently(true)
     }
-
-    private fun trackLabel(uri: String): CharSequence =
-        if (uri.isEmpty()) {
-            getString(R.string.stopwatch_settings_track_none)
-        } else {
-            uri.toUri().lastPathSegment ?: uri
-        }
 
     private fun applyAndDismiss(dialog: Dialog) {
         val edited = draft
@@ -162,8 +171,6 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "StopwatchSettingsDialog"
-
-        private const val AUDIO_MIME = "audio/*"
 
         fun newInstance(): StopwatchSettingsDialogFragment = StopwatchSettingsDialogFragment()
     }

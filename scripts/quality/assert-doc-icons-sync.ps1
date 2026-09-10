@@ -70,7 +70,7 @@ foreach ($f in 'index.html', 'index-ru.html', 'index-uk.html') {
 
 # 4: referenced markdown PNGs exist.
 foreach ($f in 'docs/howto/index.md', 'docs/howto/index-ru.md', 'docs/howto/index-uk.md', 'docs/DOCS_MAP.md',
-    'docs/SETTINGS_REFERENCE.md', 'docs/SETTINGS_REFERENCE_RU.md', 'docs/SETTINGS_REFERENCE_UK.md') {
+    'docs/SETTINGS_REFERENCE.md', 'docs/SETTINGS_REFERENCE-ru.md', 'docs/SETTINGS_REFERENCE-uk.md') {
     $p = Join-Path $repoRoot $f
     if (-not (Test-Path $p)) { continue }
     foreach ($m in [regex]::Matches((Get-Content -LiteralPath $p -Raw), 'icons/doc/([a-z0-9_]+)\.png')) {

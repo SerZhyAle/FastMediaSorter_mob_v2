@@ -31,6 +31,22 @@
     meant to exist on the watch alone, and the answer is cheapest at the moment the entry is
     written.
 
+    S2824 kept that class and narrowed what it charges, for the reason recorded in
+    lib/fixed-input-scope.ps1: per-ticket placement means the AUTHOR pays, and a gate reading three
+    named files while judging any changed set billed whichever session closed first. With
+    -ChangedFiles a divergence between files the caller never opened is reported and not charged.
+
+.PARAMETER Gate
+    Fail-closed: exit 1 when a divergence is found and chargeable.
+
+.PARAMETER Quiet
+    Suppress the PASS line. Findings and the failure verdict are still printed.
+
+.PARAMETER ChangedFiles
+    Repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the gate
+    decline to charge a divergence when neither enum nor the baseline is among them. Omit it - as
+    assert-fast-gates.ps1 and the release path do - and every divergence stays fatal.
+
 .NOTES
     Exit codes:
       0 - the rule holds; or a divergence was reported without -Gate, matching the advisory shape
@@ -40,15 +56,24 @@
           zero entries. A caller must tell this from 1 - "found a defect" and "did not look" are
           different answers, and an empty parse would otherwise report the silent PASS this script
           exists to prevent.
+      3 - S2824: a divergence was found, but no file this gate declares as an input is in
+          -ChangedFiles, so it is not attributable to this run. The findings are printed. Distinct
+          from 1 because the caller cannot fix it and from 0 because something IS wrong in the tree.
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# S2824: the chargeability test, shared with the other two fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
@@ -119,6 +144,13 @@ if ($findings.Count -eq 0) {
             "against $($phoneKeys.Count) phone route key(s), $($baselineKeys.Count) declared watch-only.")
     }
     exit 0
+}
+
+# S2824: the baseline counts as a declared input - editing the exception list is editing this rule.
+if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles `
+            -InputPaths @($watchEnumPath, $phoneCatalogPath, $baselinePath))) {
+    Write-NotChargedVerdict -GateName 'assert-wear-canonical-key-parity' -Findings $findings
+    exit 3
 }
 
 Write-Error ("assert-wear-canonical-key-parity: FAIL - " + $findings.Count + " divergence(s):`n" +

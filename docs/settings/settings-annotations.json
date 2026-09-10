@@ -44,11 +44,6 @@
     "ru": "Очищает зелёные и красные отметки воспроизведения на всех каналах. Сами каналы остаются.",
     "uk": "Очищає зелені та червоні позначки відтворення на всіх каналах. Самі канали залишаються."
   },
-  "btnClearSnapshotResource": {
-    "en": "Clears the currently selected snapshot destination resource.",
-    "ru": "Очищает выбранный ресурс-назначение для снимков видеокадров.",
-    "uk": "Очищає вибраний ресурс призначення для знімків відеокадрів."
-  },
   "btnClearStreamingCache": {
     "en": "Deletes temporary files buffered during streaming playback.",
     "ru": "Удаляет временные файлы, накопленные при потоковом воспроизведении.",
@@ -624,10 +619,25 @@
     "ru": "Выбирает, что показывать вместо отсутствующей обложки альбома при воспроизведении аудио.",
     "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
   },
+  "rowAudioFormat": {
+    "en": "Chooses the sample rate and channel layout used when the phone broadcasts its audio, so a listening device receives a format it can play.",
+    "ru": "Выбирает частоту дискретизации и число каналов при вещании звука с телефона, чтобы принимающее устройство получило воспроизводимый формат.",
+    "uk": "Вибирає частоту дискретизації та кількість каналів під час трансляції звуку з телефона, щоб пристрій-приймач отримав формат, який він може відтворити."
+  },
+  "rowAutoOpenShare": {
+    "en": "Opens the sharing screen with the QR code automatically as soon as a broadcast goes live.",
+    "ru": "Автоматически открывает экран с QR-кодом, как только вещание вышло в эфир.",
+    "uk": "Автоматично відкриває екран із QR-кодом, щойно трансляція вийшла в ефір."
+  },
   "rowBigButtonsMode": {
     "en": "Enlarges the player control buttons for easier tapping on large or touch-only screens.",
     "ru": "Увеличивает кнопки управления плеером для удобства нажатия на больших экранах или при сенсорном управлении.",
     "uk": "Збільшує кнопки керування плеєром для зручного натискання на великих або сенсорних екранах."
+  },
+  "rowBitRate": {
+    "en": "Sets the audio quality of the broadcast; the same value is reported to the listening device, so what it is told matches what it receives.",
+    "ru": "Задаёт качество звука вещания; это же значение сообщается принимающему устройству, поэтому заявленное совпадает с получаемым.",
+    "uk": "Задає якість звуку трансляції; це саме значення повідомляється пристрою-приймачу, тому заявлене збігається з отриманим."
   },
   "rowBrowseSwipeLeftAction": {
     "en": "Sets the action executed when swiping left on a file in the file browser.",
@@ -919,6 +929,11 @@
     "ru": "Поворачивает экран плеера вместе с системным авто-поворотом устройства, независимо от общей настройки.",
     "uk": "Повертає екран плеєра разом із системним авто-поворотом пристрою, незалежно від загального налаштування."
   },
+  "rowFlashlightShortcut": {
+    "en": "Keeps a permanent entry in the notification shade that lights the camera flash on a tap and puts it out on the next one; needs permission to show notifications, and is hidden on a device with no flash.",
+    "ru": "Держит в шторке уведомлений постоянную запись: касание зажигает вспышку камеры, следующее - гасит. Нужно разрешение показывать уведомления; на устройстве без вспышки ряд скрыт.",
+    "uk": "Тримає у шторці сповіщень постійний запис: дотик запалює спалах камери, наступний - гасить. Потрібен дозвіл показувати сповіщення; на пристрої без спалаху рядок приховано."
+  },
   "rowFrontFlashlight": {
     "en": "Adds the front flashlight to the programs list: the screen itself becomes a lamp.",
     "ru": "Добавляет фронтальный фонарик в список программ: сам экран становится лампой.",
@@ -1189,11 +1204,6 @@
     "ru": "Заменяет системную строку состояния собственной областью часов/статуса лаунчера; выключено - остаётся системная строка состояния.",
     "uk": "Замінює системний рядок стану власною областю годинника/статусу лаунчера; вимкнено - лишається системний рядок стану."
   },
-  "rowLauncherScreenCount": {
-    "en": "Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one.",
-    "ru": "Задаёт, сколько рабочих столов у лаунчера, чтобы закреплённые значки и виджеты можно было разложить по нескольким страницам, а не по одной.",
-    "uk": "Задає, скільки робочих столів має лаунчер, щоб закріплені піктограми та віджети можна було розкласти по кількох сторінках, а не по одній."
-  },
   "rowLauncherScreenTimeout": {
     "en": "Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off).",
     "ru": "Гасит экран при простое на рабочем столе лаунчера: блокирует устройство там, где системная блокировка доступна, иначе показывает чёрный экран. По умолчанию включено с задержкой 30 секунд; предустановки от 5 до 300 секунд, заданное вручную число секунд или без отключения.",
@@ -1218,6 +1228,11 @@
     "en": "Master switch for the launcher's tray block; the switches below it decide which indicators the block contains.",
     "ru": "Общий выключатель блока трея лаунчера; переключатели ниже решают, какие индикаторы в него входят.",
     "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
+  },
+  "rowLauncherStartWindow": {
+    "en": "Opens the app on the launcher desktop instead of the file list when it is started from its icon; the device home screen is not affected.",
+    "ru": "Открывает приложение на рабочем столе лаунчера вместо списка файлов при запуске с иконки; домашний экран устройства не затрагивается.",
+    "uk": "Відкриває застосунок на робочому столі лаунчера замість списку файлів під час запуску з іконки; домашній екран пристрою не змінюється."
   },
   "rowLauncherTaskbarPlacement": {
     "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
@@ -1268,11 +1283,6 @@
     "en": "Shows or hides the Wi-Fi hotspot status indicator in the launcher taskbar tray.",
     "ru": "Показывает или скрывает индикатор состояния точки доступа Wi-Fi в трее панели задач.",
     "uk": "Показує або приховує індикатор стану точки доступу Wi-Fi у треї панелі завдань."
-  },
-  "rowLauncherUnitSystem": {
-    "en": "Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown.",
-    "ru": "Выбирает систему единиц, которую читают гаджеты погоды и точки росы на рабочем столе: метрическая показывает градусы Цельсия, американская - градусы Фаренгейта. По умолчанию метрическая; смена запрашивает показание заново, а не пересчитывает уже показанное.",
-    "uk": "Обирає систему одиниць, яку читають гаджети погоди та точки роси на робочому столі: метрична показує градуси Цельсія, американська - градуси Фаренгейта. Типово метрична; зміна запитує показання наново, а не перераховує вже показане."
   },
   "rowLauncherWallpaper": {
     "en": "Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one.",
@@ -1360,14 +1370,19 @@
     "uk": "Чекає завершення відтворення відео або аудіо перед переходом до наступного слайду в слайдшоу."
   },
   "rowPlayerPanelAutoHide": {
-    "en": "Sets the delay in seconds before the player controls panel automatically hides during playback.",
-    "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении.",
-    "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення."
+    "en": "Sets the delay in seconds before the player controls panel automatically hides during playback. Type any value or pick one from the list beside the field.",
+    "ru": "Задаёт задержку в секундах перед автоматическим скрытием панели управления плеера при воспроизведении. Значение можно ввести вручную или выбрать из списка рядом с полем.",
+    "uk": "Задає затримку в секундах перед автоматичним приховуванням панелі керування плеєра під час відтворення. Значення можна ввести вручну або вибрати зі списку поряд із полем."
   },
   "rowPlayerShowFps": {
     "en": "Displays the current frames-per-second counter over the video while it is playing.",
     "ru": "Показывает счётчик кадров в секунду поверх видео во время воспроизведения.",
     "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
+  },
+  "rowPort": {
+    "en": "Sets the network port the broadcast is served on; if it is already in use, the broadcast reports the conflict instead of moving to another port.",
+    "ru": "Задаёт сетевой порт, на котором раздаётся вещание; если порт занят, вещание сообщает о конфликте, а не переходит на другой порт.",
+    "uk": "Задає мережевий порт, на якому роздається трансляція; якщо порт зайнятий, трансляція повідомляє про конфлікт, а не переходить на інший порт."
   },
   "rowPowerSaving": {
     "en": "Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%.",
@@ -1413,6 +1428,11 @@
     "en": "Caches downloaded track metadata and cover art on the device to avoid re-fetching.",
     "ru": "Кэширует загруженные метаданные треков и обложки, чтобы не скачивать их повторно.",
     "uk": "Кешує завантажені метадані треків і обкладинки, щоб не завантажувати їх повторно."
+  },
+  "rowScreenCount": {
+    "en": "Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one.",
+    "ru": "Задаёт, сколько рабочих столов у лаунчера, чтобы закреплённые значки и виджеты можно было разложить по нескольким страницам, а не по одной.",
+    "uk": "Задає, скільки робочих столів має лаунчер, щоб закріплені піктограми та віджети можна було розкласти по кількох сторінках, а не по одній."
   },
   "rowScreenRecordingEnabled": {
     "en": "Enables the built-in screen video recording feature.",
@@ -1469,6 +1489,11 @@
     "ru": "Показывает горизонтальную панель программ и сценариев над списком ресурсов в основном окне, дублируя меню программ.",
     "uk": "Показує горизонтальну панель програм і сценаріїв над списком ресурсів у головному вікні, дублюючи меню програм."
   },
+  "rowShowScreenNumber": {
+    "en": "Draws the desktop screen's number over the wallpaper while paging between screens. Off by default, and independent of whether animation is allowed - the number appears with the sliding transition as well as without it.",
+    "ru": "Рисует номер рабочего стола поверх обоев при листании экранов. По умолчанию выключено и не зависит от того, разрешены ли анимации: номер появляется и со слайдом, и без него.",
+    "uk": "Малює номер робочого столу поверх шпалер під час гортання екранів. Типово вимкнено й не залежить від того, чи дозволені анімації: номер з'являється і зі слайдом, і без нього."
+  },
   "rowShowStreamsPanel": {
     "en": "Shows a horizontal panel of pinned stream channels above the resource list on the main window, with a shortcut to the Streams section.",
     "ru": "Показывает горизонтальную панель закреплённых каналов трансляций над списком ресурсов в основном окне, с переходом к разделу трансляций.",
@@ -1518,6 +1543,16 @@
     "en": "Enables adding local-network SMB shares (NAS, PC) as remote resources.",
     "ru": "Включает возможность добавлять SMB-ресурсы локальной сети (NAS, ПК) как удалённые ресурсы.",
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
+  },
+  "rowStreamTitle": {
+    "en": "Sets the name a listening device shows for this broadcast; the same name is used everywhere the stream identifies itself.",
+    "ru": "Задаёт имя, под которым вещание видно на принимающем устройстве; это же имя используется везде, где поток себя называет.",
+    "uk": "Задає ім'я, під яким трансляція видна на пристрої-приймачі; це саме ім'я використовується всюди, де потік себе називає."
+  },
+  "rowStreamsEnablePip": {
+    "en": "Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section.",
+    "ru": "Включает режим «Картинка в картинке», позволяя продолжить воспроизведение в плавающем окне при выходе из плеера. Та же настройка, что и в разделе воспроизведения.",
+    "uk": "Вмикає режим «Картинка в картинці», дозволяючи продовжити відтворення у плаваючому вікні при виході з плеєра. Те саме налаштування, що й у розділі відтворення."
   },
   "rowStopwatchMusic": {
     "en": "Plays the chosen track on a loop for as long as a measurement is running.",
@@ -1579,6 +1614,11 @@
     "ru": "Включает поддержку видеофайлов: видео отображаются в браузере файлов и доступны для воспроизведения.",
     "uk": "Вмикає підтримку відеофайлів: відео відображаються в браузері файлів і доступні для відтворення."
   },
+  "rowSuppressWearMediaTakeover": {
+    "en": "Stops the Wear OS system from surfacing the phone's player as a media-control screen on the watch. The phone's own media notification, lockscreen and Bluetooth buttons keep working; only the bridge to the watch is refused. Off by default so an update never changes current behavior.",
+    "ru": "Не даёт Wear OS выводить плеер телефона как системный экран управления медиа на часах. Собственная media-нотификация телефона, lockscreen и Bluetooth-кнопки продолжают работать; отказ получает только мост к часам. По умолчанию выключено, чтобы обновление не меняло текущее поведение.",
+    "uk": "Не дає Wear OS виводити плеєр телефона як системний екран керування медіа на годиннику. Власна media-сповіщення телефона, екран блокування та Bluetooth-кнопки продовжують працювати; відмова стосується лише моста до годинника. Типово вимкнено, щоб оновлення не змінювало поточну поведінку."
+  },
   "rowThumbnailPreloadWifiOnly": {
     "en": "Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data.",
     "ru": "Ограничивает предзагрузку миниатюр соединением по Wi-Fi, чтобы не расходовать мобильный трафик.",
@@ -1588,6 +1628,11 @@
     "en": "Displays translation results in overlay blocks on top of the image instead of a separate panel.",
     "ru": "Показывает результаты перевода в виде блоков поверх изображения вместо отдельной панели.",
     "uk": "Показує результати перекладу у вигляді блоків поверх зображення замість окремої панелі."
+  },
+  "rowUnitSystem": {
+    "en": "Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown.",
+    "ru": "Выбирает систему единиц, которую читают гаджеты погоды и точки росы на рабочем столе: метрическая показывает градусы Цельсия, американская - градусы Фаренгейта. По умолчанию метрическая; смена запрашивает показание заново, а не пересчитывает уже показанное.",
+    "uk": "Обирає систему одиниць, яку читають гаджети погоди та точки роси на робочому столі: метрична показує градуси Цельсія, американська - градуси Фаренгейта. Типово метрична; зміна запитує показання наново, а не перераховує вже показане."
   },
   "rowUseTrash": {
     "en": "Moves deleted files to a .trash folder instead of removing them immediately.",
@@ -1763,6 +1808,11 @@
     "en": "Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless.",
     "ru": "Держит экран часов включённым на каждом экране вне проигрывателей, включая заставку и экран разрешений; аудио, видео и просмотр изображений удерживают его в любом случае.",
     "uk": "Тримає екран годинника увімкненим на кожному екрані поза програвачами, включно із заставкою та екраном дозволів; аудіо, відео та перегляд зображень утримують його в будь-якому разі."
+  },
+  "wearOriginalLayout": {
+    "en": "Lays the watch screens out the way they were before the geometry was tightened for the Google Play store review: content takes the full width of the display, and the round glass cuts the outer edges of the calculator's outermost keys and of the game board. That clipping is what the setting is for, not a fault in it - the owner asked for the layout he had built over several rounds rather than the one the review bought. It applies to every watch screen at once, not to the calculator alone: the lists, the players and Streams follow the same geometry, because one shared layer answers how much room the glass leaves and every screen asks it. Turning it off returns the reviewed layout, which stands clear of the arc everywhere. Offered only in the sideloaded build, which is never submitted to the store; the published build always uses the reviewed layout. The change takes effect at once, with no restart.",
+    "ru": "Размещает экраны часов так, как они выглядели до того, как геометрию ужали под ревью магазина Google Play: содержимое занимает всю ширину дисплея, а круглое стекло срезает края крайних клавиш калькулятора и игрового поля. Этот срез - и есть смысл настройки, а не её дефект: владелец попросил вернуть раскладку, которую сам выстраивал несколько итераций, вместо той, что купило ревью. Настройка действует сразу на все экраны часов, а не на один калькулятор: списки, плееры и «Потоки» следуют той же геометрии, потому что на вопрос «сколько места оставляет стекло» отвечает один общий слой, и спрашивают его все экраны. Выключение возвращает проверенную ревью раскладку, которая всюду отступает от дуги. Предлагается только в сборке для ручной установки, которая в магазин не подаётся; публикуемая сборка всегда использует проверенную раскладку. Изменение вступает в силу сразу, без перезапуска.",
+    "uk": "Розміщує екрани годинника так, як вони виглядали до того, як геометрію стиснули під ревю крамниці Google Play: вміст займає всю ширину дисплея, а кругле скло зрізає краї крайніх клавіш калькулятора та ігрового поля. Цей зріз - і є сенс налаштування, а не його дефект: власник попросив повернути розкладення, яке сам вибудовував кілька ітерацій, замість того, що купило ревю. Налаштування діє одразу на всі екрани годинника, а не на один калькулятор: списки, програвачі та «Потоки» дотримуються тієї самої геометрії, бо на питання «скільки місця лишає скло» відповідає один спільний шар, і запитують його всі екрани. Вимкнення повертає перевірене ревю розкладення, яке всюди відступає від дуги. Пропонується лише у збірці для ручного встановлення, яка до крамниці не подається; опублікована збірка завжди використовує перевірене розкладення. Зміна набуває чинності одразу, без перезапуску."
   },
   "wearPanelAutoHide": {
     "en": "Sets the delay in seconds before the player controls panel automatically hides during video and image playback on Wear OS.",

@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceKeys
 import com.sza.fastmediasorter.wear.data.preferences.WearPreferenceSection
 import com.sza.fastmediasorter.wear.data.preferences.WearSettingsDataStore
 import com.sza.fastmediasorter.wear.domain.repository.preferences.WearMiniAppPreferences
+import com.sza.fastmediasorter.wear.domain.stopwatch.WearStopwatchState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -49,5 +50,27 @@ class WearMiniAppPreferencesImpl @Inject constructor(
 
     override suspend fun setGameState(value: String?) {
         writeNullableString(WearPreferenceKeys.GAME_STATE, value)
+    }
+
+    // S2825: snapped on the way out rather than on the way in, so a count written by an older build
+    // still opens a screen instead of leaving the reader with a region the layout cannot draw.
+    override val stopwatchParticipantCount: Flow<Int> = store.data.map { prefs ->
+        WearStopwatchState.snapCount(
+            prefs[WearPreferenceKeys.STOPWATCH_PARTICIPANT_COUNT] ?: WearStopwatchState.DEFAULT_COUNT
+        )
+    }
+
+    override suspend fun setStopwatchParticipantCount(count: Int) {
+        store.edit { prefs ->
+            prefs[WearPreferenceKeys.STOPWATCH_PARTICIPANT_COUNT] = WearStopwatchState.snapCount(count)
+        }
+    }
+
+    override val stopwatchLastResult: Flow<String?> = store.data.map { prefs ->
+        prefs[WearPreferenceKeys.STOPWATCH_LAST_RESULT]
+    }
+
+    override suspend fun setStopwatchLastResult(value: String?) {
+        writeNullableString(WearPreferenceKeys.STOPWATCH_LAST_RESULT, value)
     }
 }

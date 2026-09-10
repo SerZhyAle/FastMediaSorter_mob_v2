@@ -66,8 +66,10 @@
       1  FAIL - -Gate and detekt reported a new finding (in -ChangedFiles when diff-scoped).
       2  Cannot verify - gradlew.bat missing, or -ChangedFiles given but a run module's
          detekt.xml is absent/unparseable/older than the changed files, so the failure cannot
-         be narrowed. Never a PASS: "could not check" is a different fact from "checked and
-         found nothing". S1189 added the staleness case, which used to be narrowed silently
+         be narrowed; or (S2833) the gradle run itself failed before detekt wrote any report -
+         a configuration, build-script or worker failure, never a finding. Never a PASS:
+         "could not check" is a different fact from "checked and found nothing". S1189 added
+         the staleness case, which used to be narrowed silently
          against a previous run's report.
 
 .EXAMPLE
@@ -224,6 +226,10 @@ try {
     # not pull those tasks in - measured over 6 runs: entry stored then reused,
     # zero configuration-cache problems, 23.4s -> 18.8s warm. Enabled here only,
     # so the global opt-out stays intact for every other caller.
+    # S2833: remembered so a report stamp can be compared against it - a detekt.xml that
+    # was not rewritten during the run means detekt never executed, which is the line
+    # between "checked and found" and "the gradle run died first".
+    $runStart = Get-Date
     $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $repoRoot `
         -ArgumentList (@($tasks) + '--configuration-cache') -TimeoutSeconds $TimeoutSeconds
     $output = $run.Output
@@ -388,6 +394,21 @@ if ($ChangedFiles -and $ChangedFiles.Count -gt 0) {
         exit 1
     }
     exit 0
+}
+
+# S2833: a gradle run that failed before detekt wrote any report is "could not check", not
+# "checked and found". Every report stamp predating the run start means detekt never executed -
+# the failure is gradle-level (a configuration error, a broken build script, a dead worker) - so
+# the findings verdict with its baseline advice would answer a question this run never asked.
+$reportsRefreshed = @($reportStamps.Values | Where-Object { $_ -and $runStart -and $_ -ge $runStart })
+if ($reportsRefreshed.Count -eq 0) {
+    Write-Host "assert-detekt: raw gradle output (the failure happened before detekt wrote any report):" -ForegroundColor Yellow
+    $output | Select-Object -Last 40 | ForEach-Object { Write-Host "  $_" }
+    $why = 'assert-detekt: CANNOT VERIFY - the gradle run failed before detekt executed (a ' +
+    'configuration, build-script or worker failure - see the gradle output above). No rule was ' +
+    'judged and no finding exists from this run. Fix the gradle failure, then re-run.'
+    Write-Error $why -ErrorAction Continue
+    exit 2
 }
 
 # Surface the detekt summary lines so the failing rule(s) are visible without

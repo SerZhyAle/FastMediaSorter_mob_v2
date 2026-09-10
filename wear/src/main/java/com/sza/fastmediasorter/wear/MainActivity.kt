@@ -28,10 +28,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -47,18 +51,22 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.core.util.WearUnitDateTimeFormatter
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearGeometryModeUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
@@ -66,13 +74,17 @@ import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseC
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.BloodPressureScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.history.BloodPressureHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
+import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
 import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
@@ -80,13 +92,18 @@ import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastQrScreen
 import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.LocalWearListPositions
 import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.LocalWearSectionExpansion
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
 import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
 import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
 import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
 import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
@@ -119,6 +136,7 @@ import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SlideshowSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.TileTargetsSettingsScreen
 import com.sza.fastmediasorter.wear.ui.streams.StreamsScreen
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.ui.tile.TileTargetPickerScreen
 import com.sza.fastmediasorter.wear.ui.voicenote.VoiceNoteListScreen
@@ -144,6 +162,9 @@ data class WearHostUseCases(
     val resolveBackground: ResolveWearBackgroundUseCase,
     val prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
     val prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase,
+    // S2773: the screen geometry in force. Travels here rather than as a parameter of its own for the
+    // same reason as the rest: the navigation host is the only thing that needs it.
+    val observeGeometryMode: ObserveWearGeometryModeUseCase,
 )
 
 /**
@@ -211,6 +232,8 @@ class MainActivity : ComponentActivity() {
     // the navigation host is the one place that sits above every screen the background shows behind.
     @Inject lateinit var resolveBackground: ResolveWearBackgroundUseCase
 
+    @Inject lateinit var observeGeometryMode: ObserveWearGeometryModeUseCase
+
     // S1961: the pending-open notification is this app's own, so it is this app that puts it away
     // once the user is here and no longer needs it.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
@@ -218,6 +241,14 @@ class MainActivity : ComponentActivity() {
     // S2543: list positions outlive the screens that produced them, so the store is held by the process
     // and handed to composition here - a screen popped off the back stack takes its own state with it.
     @Inject lateinit var listPositions: WearListPositionStore
+
+    // S2806: which groups of a grouped report were open survives the screen for the same reason its
+    // scroll anchor does - the screen is destroyed by navigation, the process is not.
+    @Inject lateinit var sectionExpansion: WearSectionExpansionStore
+
+    // S2795: handed to composition here for the same reason the two stores above are - every screen
+    // that shows a time needs it, and the pattern cache is worth nothing if each screen builds its own.
+    @Inject lateinit var dateTimeFormatter: WearUnitDateTimeFormatter
 
     /**
      * S1955: what this launch asked to open, until the navigation host has opened it.
@@ -251,9 +282,17 @@ class MainActivity : ComponentActivity() {
             // S2763: one rotary stack for the whole watch UI. It has to span the screen and everything
             // drawn over it - dialogs, the action cloud - or each side would believe it owns the crown.
             val rotaryFocus = remember { WearRotaryFocusStack() }
+            // S2795: collected above every screen, because the measurement system decides the clock
+            // format on surfaces that share nothing else - the brand frame, a history list, the
+            // flashlight's clock. A push from the phone lands here and recomposes all of them.
+            val units by preferencesRepository.unitSystem
+                .collectAsStateWithLifecycle(initialValue = UnitSystem.DEFAULT)
             CompositionLocalProvider(
+                LocalWearUnitSystem provides units,
                 LocalWearListPositions provides listPositions,
-                LocalWearRotaryFocusStack provides rotaryFocus
+                LocalWearSectionExpansion provides sectionExpansion,
+                LocalWearRotaryFocusStack provides rotaryFocus,
+                LocalWearDateTimeFormatter provides dateTimeFormatter
             ) {
                 AskNotificationPermissionEffect(
                     alreadyAsked = preferencesRepository.notificationPermissionAsked,
@@ -272,7 +311,8 @@ class MainActivity : ComponentActivity() {
                         prepareFilePlayback = prepareFilePlayback,
                         resolveBackground = resolveBackground,
                         prepareVoiceNotePlayback = prepareVoiceNotePlayback,
-                        prepareNetworkFilePlayback = prepareNetworkFilePlayback
+                        prepareNetworkFilePlayback = prepareNetworkFilePlayback,
+                        observeGeometryMode = observeGeometryMode
                     ),
                     launchEntry = WearLaunchEntry(
                         resolveAddress = resolveLaunchAddress,
@@ -497,6 +537,7 @@ private fun AskNotificationPermissionEffect(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainNavigation(
     hostUseCases: WearHostUseCases,
@@ -533,12 +574,22 @@ fun MainNavigation(
     Timber.d("S2475: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
     Timber.d("S2542: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
 
+    // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
+    // every screen already calls read it from here. The initial value is the reviewed view, so the one
+    // frame drawn before DataStore answers is never the shape Play rejected.
+    val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
+        initialValue = WearGeometryMode.STORE
+    )
+
+    Timber.d("S2773: geometry mode published to the screen tree = %s", geometryMode)
+
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
             background = background,
             showsWallpaper = showWallpaper,
             isResumed = isResumed
-        )
+        ),
+        LocalWearGeometryMode provides geometryMode
     ) {
         Box(
             modifier = Modifier
@@ -548,6 +599,11 @@ fun MainNavigation(
             SwipeDismissableNavHost(
                 navController = navController,
                 startDestination = WearRoutes.HOME,
+                // S2548: declared once for the whole graph - a testTag anywhere below reaches the
+                // UiAutomator tree as a resource-id only through this opt-in.
+                modifier = Modifier
+                    .testTag(WearTestTags.WEAR_NAV_ROOT)
+                    .semantics { testTagsAsResourceId = true },
             ) {
                 composable(WearRoutes.HOME) {
                     HomeScreen(navController = navController)
@@ -607,6 +663,9 @@ private fun showsNavBackAffordance(route: String?): Boolean =
         route !in PLAYER_ROUTES &&
         route != WearRoutes.GAME &&
         route != WearRoutes.CALCULATOR &&
+        // S2825: the same reason as the calculator - the stopwatch's regions reach the screen edge,
+        // and an arrow drawn over one of them takes a tap meant for a participant.
+        route != WearRoutes.STOPWATCH &&
         // S2516: the back arrow is a touch target, and this screen exists to have none - drawing it
         // would hand a wet wrist the exit the program is built to withhold.
         route != WearRoutes.WATER_FLASHLIGHT
@@ -859,6 +918,11 @@ private fun NavGraphBuilder.miniAppRoutes(
         CalculatorScreen(onLeave = { navController.popBackStack() })
     }
 
+    composable(WearRoutes.STOPWATCH) {
+        // S2825: holding the menu control leaves the stopwatch, the calculator's gesture.
+        WearStopwatchScreen(onLeave = { navController.popBackStack() })
+    }
+
     composable(WearRoutes.NETWORK_MONITOR) {
         NetworkMonitorScreen(
             onNavigateToSection = { sectionKey ->
@@ -918,7 +982,25 @@ private fun NavGraphBuilder.miniAppRoutes(
     // otherwise be a dead tap; reaching the screen in `standard` prints the withheld-capability
     // sentence, which is an answer, and leaving it ends any session through the flow's own awaitClose.
     composable(WearRoutes.BODY_SENSOR) {
-        BodySensorScreen()
+        BodySensorScreen(
+            onHistoryClick = { navController.navigate(WearRoutes.HEART_RATE_HISTORY) }
+        )
+    }
+
+    composable(WearRoutes.HEART_RATE_HISTORY) {
+        HeartRateHistoryScreen()
+    }
+
+    // S2809: registered in both flavors. The program needs no permission or Health Services,
+    // so it is offered in standard and noLegal alike, unlike the body sensor above.
+    composable(WearRoutes.BLOOD_PRESSURE) {
+        BloodPressureScreen(
+            onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
+        )
+    }
+
+    composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {
+        BloodPressureHistoryScreen()
     }
 
     // S2509: reached from the Home section and from this list alike - one route, two entrances, as

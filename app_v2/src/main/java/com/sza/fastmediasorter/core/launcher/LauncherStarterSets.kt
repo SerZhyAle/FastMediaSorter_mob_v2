@@ -459,6 +459,7 @@ object LauncherStarterSets {
     private fun settingsEntryGroup(): List<StarterItem> = listOf(
         shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_APP_SETTINGS)),
         shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_LAUNCHER_SETTINGS)),
+        shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_EDIT_DESKTOP)),
         shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
     )
 
@@ -810,7 +811,7 @@ object LauncherStarterSets {
      * chose (strategic §3.1.1, §6.5). S1560: black_screen remains in this action section only for
      * [BLACK_SCREEN_PROFILES] (strategic §6.4).
      *
-     * S2735: the two settings actions are excluded here and seeded by [settingsEntryGroup] instead. The
+     * S2791: the settings actions and Edit desktop are excluded here and seeded by [settingsEntryGroup]. The
      * catalogue itself is untouched - the Start menu still lists all six in its own order.
      */
     private fun launcherActions(profile: DeviceProfileType, screenIndex: Int = 0): List<StarterItem> =
@@ -822,6 +823,7 @@ object LauncherStarterSets {
     private val SETTINGS_ACTION_KEYS = setOf(
         LauncherActionCatalog.KEY_APP_SETTINGS,
         LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
+        LauncherActionCatalog.KEY_EDIT_DESKTOP,
     )
 
     /** The utilities every profile closes with, below the second header. */

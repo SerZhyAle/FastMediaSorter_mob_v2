@@ -14,7 +14,7 @@ Format: | datetime | file | target | description |
 | 2026-03-02 01:03:12 | `.agent/CUSTOM_RULES.md` | `CUSTOM_RULES` | Added Dev Changelog Rule section with script usage and examples |
 | 2026-03-02 01:03:17 | `dev/universal_copilot_instructions.md` | `AI_AGENT_DIRECTIVES` | Added mandatory DEV_CHANGELOG directive to agent-specific section |
 | 2026-03-02 01:03:22 | `.github/copilot-instructions.md` | `strict_constraints` | Added DEV_CHANGELOG constraint to copilot instructions |
-| 2026-03-02 01:03:27 | `dev/WORK_PLAN_ACTIONABLE_RU.md` | `P2-4` | Marked P2-4 (A1-T13..T15) as completed - 31 tests, 4 classes |
+| 2026-03-02 01:03:27 | `dev/WORK_PLAN_ACTIONABLE-ru.md` | `P2-4` | Marked P2-4 (A1-T13..T15) as completed - 31 tests, 4 classes |
 | 2026-03-02 01:12:20 | `app_v2/src/test/.../CloudFileOperationHandlerTest.kt` | `CloudFileOperationHandlerTest` | Fixed MockK exception: stubbed cloudPathParser.isCloudPath + relaxed context mock |
 | 2026-03-02 01:12:20 | `dev/TECH_REQUIREMENTS.md` | `TECH_REQUIREMENTS` | Created full tech stack document: platform, 60+ libraries, constraints, min/recommended requirements |
 | 2026-03-02 01:12:20 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Added TECH_REQUIREMENTS.md reference to Technical Specifications section |
@@ -62,20 +62,20 @@ Format: | datetime | file | target | description |
 | 2026-03-04 18:56:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | Added PIN gate before NavigateToAddResourceCopy for protected resources |
 | 2026-03-04 20:12:04 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Created comprehensive improvement proposal document covering documentation, UI/UX, functionality, stability, and web presence |
 | 2026-03-04 20:18:22 | `docs/V2_Specification.md` | `V2_Specification` | Added missing technical specification page with stable permalink for landing links |
-| 2026-03-04 20:18:22 | `docs/V2_Specification_RU.md` | `V2_Specification_RU` | Added missing Russian technical specification page with stable permalink |
+| 2026-03-04 20:18:22 | `docs/V2_Specification-ru.md` | `V2_Specification_RU` | Added missing Russian technical specification page with stable permalink |
 | 2026-03-04 20:18:22 | `docs/V2_architecture_overview.md` | `V2_architecture_overview` | Added missing architecture overview page with stable permalink |
 | 2026-03-04 20:18:22 | `docs/V2_TERMS.md` | `V2_TERMS` | Added missing terminology reference page with stable permalink |
 | 2026-03-04 20:18:22 | `docs/TODO_V2.md` | `TODO_V2` | Added missing roadmap page with stable permalink |
 | 2026-03-04 20:18:35 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Marked task I.1 as completed after adding missing landing documentation pages |
 | 2026-03-04 20:22:51 | `gradle.properties` | `org.gradle.jvmargs` | Replaced R:/temp java.io.tmpdir with project-local ./temp |
 | 2026-03-04 20:23:09 | `scripts/utils/init-ramdisk.ps1` | `init-ramdisk` | Migrated directory initialization from R: RAM disk to project temp/* paths |
-| 2026-03-04 20:25:06 | `docs/V2_Specification_UK.md` | `V2_Specification_UK` | Added missing Ukrainian technical specification page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/V2_architecture_overview_RU.md` | `V2_architecture_overview_RU` | Added missing Russian architecture overview page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/V2_architecture_overview_UK.md` | `V2_architecture_overview_UK` | Added missing Ukrainian architecture overview page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/V2_TERMS_RU.md` | `V2_TERMS_RU` | Added missing Russian terminology page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/V2_TERMS_UK.md` | `V2_TERMS_UK` | Added missing Ukrainian terminology page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/TODO_V2_RU.md` | `TODO_V2_RU` | Added missing Russian roadmap page with stable permalink |
-| 2026-03-04 20:25:06 | `docs/TODO_V2_UK.md` | `TODO_V2_UK` | Added missing Ukrainian roadmap page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_Specification-uk.md` | `V2_Specification_UK` | Added missing Ukrainian technical specification page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_architecture_overview-ru.md` | `V2_architecture_overview_RU` | Added missing Russian architecture overview page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_architecture_overview-uk.md` | `V2_architecture_overview_UK` | Added missing Ukrainian architecture overview page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_TERMS-ru.md` | `V2_TERMS_RU` | Added missing Russian terminology page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/V2_TERMS-uk.md` | `V2_TERMS_UK` | Added missing Ukrainian terminology page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/TODO_V2-ru.md` | `TODO_V2_RU` | Added missing Russian roadmap page with stable permalink |
+| 2026-03-04 20:25:06 | `docs/TODO_V2-uk.md` | `TODO_V2_UK` | Added missing Ukrainian roadmap page with stable permalink |
 | 2026-03-04 20:25:06 | `index-ru.html` | `index-ru Documentation section` | Switched V2 documentation cards to Russian-localized pages |
 | 2026-03-04 20:25:06 | `index-uk.html` | `index-uk Documentation section` | Switched V2 documentation cards to Ukrainian-localized pages |
 | 2026-03-04 20:25:06 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | Updated I.1 status to fully completed for all three languages |
@@ -141,7 +141,7 @@ Format: | datetime | file | target | description |
 | 2026-03-04 21:16:37 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | II.6 Touch Zones: обновлён статус на ЧАСТИЧНО РЕАЛИЗОВАНО - overlay/настройки есть, кнопка ? в toolbar плеера отсутствует |
 | 2026-03-04 21:17:15 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | III.1: marked as covered by existing filter - no separate search needed; updated priority section |
 | 2026-03-04 21:20:42 | `dev/IMPROVEMENT_PROPOSAL.md` | `IMPROVEMENT_PROPOSAL` | III.6 Wear OS: переведён в высокий приоритет; уточнён MVP - кнопки экспорта/импорта ресурсов через Wearable Data Layer API |
-| 2026-03-04 21:20:53 | `docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md` | `FAQ (3 langs)` | Added 'How to find a file by name' Q&A: filter panel covers search scenario, no separate search bar needed |
+| 2026-03-04 21:20:53 | `docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md` | `FAQ (3 langs)` | Added 'How to find a file by name' Q&A: filter panel covers search scenario, no separate search bar needed |
 | 2026-03-04 21:32:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/DynamicBackgroundProcessor.kt` | `DynamicBackgroundProcessor` | Remove 150ms artificial debounce delay: job cancellation already acts as debounce; fixes strips appearing late vs image |
 | 2026-03-04 21:32:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `ImageLoadingManager` | Fix strip/image order mismatch: always clear old background on navigation; skip crossfade in slideshow mode so strips and image appear simultaneously |
 | 2026-03-04 21:39:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt` | `PlayerNavigationManager` | Enable slideshow bias for prefetch queue during slideshow: improves next image loading time |
@@ -429,15 +429,15 @@ Format: | datetime | file | target | description |
 | 2026-03-13 23:09:43 | `app_v2/src/.../RestoreFromGoogleDriveUseCase.kt` | `RestoreFromGoogleDriveUseCase` | Lenient Gson; null-safe payload access; version warning; per-resource try-catch isolation |
 | 2026-03-13 23:21:08 | `app_v2/src/.../BackupRestoreViewModel.kt` | `BackupRestoreViewModel/BackupRestoreUiState` | Added NeedsSignIn state; emit it after pendingAction set (was: silent auth fail produced no state change, sign-in never launched) |
 | 2026-03-13 23:28:45 | `docs/FEATURES.md` | `FEATURES` | Created canonical user-facing feature inventory (EN) |
-| 2026-03-13 23:28:45 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Created Russian translation of feature inventory |
-| 2026-03-13 23:28:45 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Created Ukrainian translation of feature inventory |
-| 2026-03-13 23:28:52 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Created Russian translation of feature inventory |
-| 2026-03-13 23:28:52 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Created Ukrainian translation of feature inventory |
-| 2026-03-13 23:35:03 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Added FEATURES.md row to User Guides table; added FEATURES_RU.md and FEATURES_UK.md to multi-language section |
+| 2026-03-13 23:28:45 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Created Russian translation of feature inventory |
+| 2026-03-13 23:28:45 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Created Ukrainian translation of feature inventory |
+| 2026-03-13 23:28:52 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Created Russian translation of feature inventory |
+| 2026-03-13 23:28:52 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Created Ukrainian translation of feature inventory |
+| 2026-03-13 23:35:03 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Added FEATURES.md row to User Guides table; added FEATURES-ru.md and FEATURES-uk.md to multi-language section |
 | 2026-03-13 23:35:03 | `README.md` | `README` | Added link to docs/FEATURES.md in English Documentation section |
 | 2026-03-13 23:35:03 | `docs/README.md` | `README` | Added link to docs/FEATURES.md in English Documentation section |
-| 2026-03-13 23:35:03 | `docs/README_RU.md` | `README_RU` | Added link to docs/FEATURES_RU.md in Russian Documentation section |
-| 2026-03-13 23:35:03 | `docs/README_UK.md` | `README_UK` | Added link to docs/FEATURES_UK.md in Ukrainian Documentation section |
+| 2026-03-13 23:35:03 | `docs/README-ru.md` | `README_RU` | Added link to docs/FEATURES-ru.md in Russian Documentation section |
+| 2026-03-13 23:35:03 | `docs/README-uk.md` | `README_UK` | Added link to docs/FEATURES-uk.md in Ukrainian Documentation section |
 | 2026-03-13 23:35:03 | `index.html` | `index.html` | Added FEATURES.html card in Documentation section |
 | 2026-03-13 23:35:03 | `index-ru.html` | `index-ru.html` | Added FEATURES_RU.html card in Dokumentaciya section |
 | 2026-03-13 23:35:03 | `index-uk.html` | `index-uk.html` | Added FEATURES_UK.html card in Dokumentaciya section |
@@ -581,8 +581,8 @@ Format: | datetime | file | target | description |
 | 2026-03-16 00:47:36 | `app_v2/src/.../domain/model/ResumeState.kt` | `ResumeState` | Step 1: Created ResumeState model, ScreenType enum, ResumeStateRepository interface+impl (SharedPreferences), 3 UseCases (Save/Get/Clear), Hilt binding in RepositoryModule |
 | 2026-03-16 00:54:32 | `app_v2/src/.../ui/player/PlayerViewModel.kt` | `PlayerViewModel,BrowseViewModel,PlayerActivity,BrowseActivity` | Step 2: Integrated ClearResumeStateUseCase - clear on explicit exit (doFinish, handleOnBackPressed, btnBack) and resource switch (BrowseViewModel.init) |
 | 2026-03-16 01:04:30 | `docs/FEATURES.md` | `FEATURES` | Added Resume Next Time feature to Russian, Ukrainian and English docs |
-| 2026-03-16 01:04:45 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Added Resume Next Time feature to Russian, Ukrainian and English docs |
-| 2026-03-16 01:04:56 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Added Resume Next Time feature to Russian, Ukrainian and English docs |
+| 2026-03-16 01:04:45 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Added Resume Next Time feature to Russian, Ukrainian and English docs |
+| 2026-03-16 01:04:56 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Added Resume Next Time feature to Russian, Ukrainian and English docs |
 | 2026-03-16 01:05:50 | `app_v2/src/.../PlayerViewModel.kt, VideoPlayerManager.kt, PlayerActivity.kt, BrowseViewModel.kt` | `Resume State Save` | Step 3: Integrated SaveResumeStateUseCase - periodic save via VideoPlayerManager timer (5s), onPause, inline play/pause/track-change in BrowseViewModel |
 | 2026-03-16 01:08:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Fixed missing saveResumeState() triggers on play/pause and track changes |
 | 2026-03-16 01:23:34 | `app_v2/src/.../ui/main/MainActivity.kt` | `MainActivity` | Step 4: Resume routing logic - shouldAttemptResume, attemptResumePlayback, checkResourceAvailability, dismissResumeLoading |
@@ -597,8 +597,8 @@ Format: | datetime | file | target | description |
 | 2026-03-16 01:30:09 | `docs/FEATURES.md` | `FEATURES_TOC` | Added Table of Contents at the top of the English features list |
 | 2026-03-16 01:37:41 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Added resume_unavailable and resume_checking translations |
 | 2026-03-16 01:37:45 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Added resume_unavailable and resume_checking translations |
-| 2026-03-16 01:39:58 | `docs/FEATURES_RU.md` | `FEATURES_RU_TRANSLATION` | Translated the full features list to Russian based on the English version |
-| 2026-03-16 01:40:09 | `docs/FEATURES_UK.md` | `FEATURES_UK_TRANSLATION` | Translated the full features list to Ukrainian based on the English version |
+| 2026-03-16 01:39:58 | `docs/FEATURES-ru.md` | `FEATURES_RU_TRANSLATION` | Translated the full features list to Russian based on the English version |
+| 2026-03-16 01:40:09 | `docs/FEATURES-uk.md` | `FEATURES_UK_TRANSLATION` | Translated the full features list to Ukrainian based on the English version |
 | 2026-03-16 01:48:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Fix: add onResume() lifecycle override to resume ExoPlayer after Activity returns from background |
 | 2026-03-16 01:48:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Fix: preserve isPaused state on reloadFiles() instead of resetting to resumeIsPlaying==false |
 | 2026-03-16 18:14:30 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CleanupOrphanedTempFilesUseCase.kt` | `CleanupOrphanedTempFilesUseCase` | Add VirtualPathUtils.isVirtualPath() guard to skip virtual:// paths (all_audio/all_video/all_images) - fixes IllegalArgumentException spam in logs on every virtual resource open |
@@ -670,8 +670,8 @@ Format: | datetime | file | target | description |
 | 2026-03-19 11:14:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerManager.kt` | `DefaultPlayerManager` | Phase 7 fix: filter VIEW/SEND aliases by BuildConfig.SUPPORT_* flags so partially-limited flavors (photos) never activate unsupported handlers |
 | 2026-03-19 12:22:42 | `README.md` | `README Key Features` | Added concise default-player integration bullet |
 | 2026-03-19 12:22:42 | `docs/README.md` | `docs README Key Features` | Added concise default-player integration bullet |
-| 2026-03-19 12:22:42 | `docs/README_RU.md` | `README_RU Key Features` | Added concise default-player integration bullet |
-| 2026-03-19 12:22:42 | `docs/README_UK.md` | `README_UK Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 12:22:42 | `docs/README-ru.md` | `README_RU Key Features` | Added concise default-player integration bullet |
+| 2026-03-19 12:22:42 | `docs/README-uk.md` | `README_UK Key Features` | Added concise default-player integration bullet |
 | 2026-03-19 14:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity` | Phase 4 fix Medium: gate default player onboarding card with BuildConfig.SUPPORTS_DEFAULT_PLAYER so lite flavor never shows it |
 | 2026-03-19 14:30:00 | `app_v2/src/main/AndroidManifest.xml` | `StandaloneDocsPlayer` | Phase 2 fix High: added text/xml, text/html, text/csv, text/markdown, application/json, application/xml MIME types to match MediaTypeUtils coverage |
 | 2026-03-19 14:30:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Phase 1 implementation: new helper routing IMAGE/GIF→Glide, VIDEO→ExoPlayer, AUDIO→AudioServiceController, PDF/EPUB/TEXT→full viewer managers |
@@ -851,8 +851,8 @@ Format: | datetime | file | target | description |
 | 2026-03-22 04:07:18 | `app_v2/src/main/res/values-ru/strings.xml` | `strings.xml (ru)` | Added Camera Photos virtual folder strings (RU) |
 | 2026-03-22 04:07:22 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml (uk)` | Added Camera Photos virtual folder strings (UK) |
 | 2026-03-22 04:08:46 | `docs/FEATURES.md` | `FEATURES.md` | Added Camera Photos virtual folder documentation (EN) |
-| 2026-03-22 04:08:53 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added Camera Photos virtual folder documentation (RU) |
-| 2026-03-22 04:09:00 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added Camera Photos virtual folder documentation (UK) |
+| 2026-03-22 04:08:53 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Added Camera Photos virtual folder documentation (RU) |
+| 2026-03-22 04:09:00 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Added Camera Photos virtual folder documentation (UK) |
 | 2026-03-22 04:09:33 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ResourceLaunchWidgetProvider.kt` | `ResourceLaunchWidgetProvider` | Added icon mapping for VIRTUAL_PATH_CAMERA_PHOTOS |
 | 2026-03-22 04:17:18 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCaseTest.kt` | `ProvisionDefaultResourcesUseCaseTest` | Updated assertions to expect VIRTUAL_PATH_CAMERA_PHOTOS and ALL_IMAGES |
 | 2026-03-22 04:17:20 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ScanLocalFoldersUseCase.kt` | `ScanLocalFoldersUseCase` | Fixed missing DisplayMode import |
@@ -875,12 +875,12 @@ Format: | datetime | file | target | description |
 | 2026-03-22 05:54:40 | `docs/FEATURES.md` | `Section17+header` | add Android 8+ platform note and 2 missing widgets (RandomMusic, CameraPhotos) to all 3 language docs |
 | 2026-03-22 06:16:30 | `docs/README.md` | `README` | Added Google Play Store link to Download section |
 | 2026-03-22 06:16:30 | `README.md` | `README` | Added Google Play Store link to Download section |
-| 2026-03-22 06:16:30 | `docs/README_RU.md` | `README_RU` | Added Google Play Store link to Download section (RU) |
-| 2026-03-22 06:16:30 | `docs/README_UK.md` | `README_UK` | Added Google Play Store link to Download section (UK) |
-| 2026-03-22 06:27:21 | `README.md, docs/README.md, docs/README_RU.md, docs/README_UK.md` | `Documentation` | Add predefined resources (All Music/Videos/Photos), hardware button support bullet, car stereo use case (#10), enhanced tablet photo frame scenario (#7) |
+| 2026-03-22 06:16:30 | `docs/README-ru.md` | `README_RU` | Added Google Play Store link to Download section (RU) |
+| 2026-03-22 06:16:30 | `docs/README-uk.md` | `README_UK` | Added Google Play Store link to Download section (UK) |
+| 2026-03-22 06:27:21 | `README.md, docs/README.md, docs/README-ru.md, docs/README-uk.md` | `Documentation` | Add predefined resources (All Music/Videos/Photos), hardware button support bullet, car stereo use case (#10), enhanced tablet photo frame scenario (#7) |
 | 2026-03-22 06:37:58 | `index.html, index-ru.html, index-uk.html, sitemap.xml, _config.yml` | `SEO` | Comprehensive SEO overhaul: improved titles/descriptions/keywords (3 langs), added author/robots/theme-color meta, OG image → real screenshot, Twitter summary_large_image, h2→h3 heading hierarchy fix, expanded JSON-LD schema (featureList/keywords/downloadUrl/screenshot/version), new car stereo+tablet scenarios, predefined resources + hardware buttons in feature lists, sitemap lastmod updated |
-| 2026-03-22 06:38:21 | `docs/README.md,docs/README_RU.md,docs/README_UK.md,README.md,index.html,index-ru.html` | `Usage Scenarios` | Expand scenario 8 with detailed VR use cases: giant virtual cinema, VR music player, wall-sized VR photo frame |
-| 2026-03-22 06:43:32 | `docs/FAQ.md,docs/FAQ_RU.md,docs/FAQ_UK.md` | `FAQ` | Fix Android minimum version: API 28 -> API 26 (Android 8+), add Legacy flavor API 23 note |
+| 2026-03-22 06:38:21 | `docs/README.md,docs/README-ru.md,docs/README-uk.md,README.md,index.html,index-ru.html` | `Usage Scenarios` | Expand scenario 8 with detailed VR use cases: giant virtual cinema, VR music player, wall-sized VR photo frame |
+| 2026-03-22 06:43:32 | `docs/FAQ.md,docs/FAQ-ru.md,docs/FAQ-uk.md` | `FAQ` | Fix Android minimum version: API 28 -> API 26 (Android 8+), add Legacy flavor API 23 note |
 | 2026-03-22 15:54:38 | `app_v2/src/main/res/layout/fragment_settings_documents.xml` | `fragment_settings_documents.xml` | Added missing description for show_pdf_thumbnails switch |
 | 2026-03-22 16:10:25 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `fragment_settings_playback.xml` | Refactored Touch Zones switches to include inline descriptions |
 | 2026-03-22 16:12:06 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `fragment_settings_destinations.xml` | Added description for switchGoToNextAfterCopy and string keys |
@@ -1053,18 +1053,18 @@ Format: | datetime | file | target | description |
 | 2026-03-27 01:08:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExecuteScheduledOperationUseCase.kt` | `ExecuteScheduledOperationUseCase` | Add pre-flight checks: log+skip if no files, probe target reachability before work |
 | 2026-03-27 01:11:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExecuteScheduledOperationUseCase.kt` | `ExecuteScheduledOperationUseCase` | Refactor logging: per-file entries in ops log, Timber debug-only for file details, release logs only run event |
 | 2026-03-27 01:13:48 | `docs/FEATURES.md` | `FEATURES` | Add section 22: Scheduled File Operations (EN) |
-| 2026-03-27 01:13:48 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add section 22: Scheduled File Operations (RU) |
-| 2026-03-27 01:13:48 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add section 22: Scheduled File Operations (UK) |
+| 2026-03-27 01:13:48 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add section 22: Scheduled File Operations (RU) |
+| 2026-03-27 01:13:48 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add section 22: Scheduled File Operations (UK) |
 | 2026-03-27 01:20:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DeleteResourceUseCase.kt` | `DeleteResourceUseCase` | Step 14: cancel WorkManager tasks for scheduled ops when resource is deleted |
 | 2026-03-27 01:25:54 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupPayload` | Add BackupScheduledOperation, bump CURRENT_VERSION to 3 |
 | 2026-03-27 01:26:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportSettingsUseCase.kt` | `ExportSettingsUseCase` | Export ScheduledOperations to XML version 3.0 |
 | 2026-03-27 01:26:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ImportSettingsUseCase.kt` | `ImportSettingsUseCase` | Import ScheduledOperations from XML v3+ with WorkManager reschedule |
 | 2026-03-27 01:28:37 | `docs/README.md` | `Key Features` | Add Scheduled Operations feature bullet and usage scenario 11 |
-| 2026-03-27 01:28:37 | `docs/README_RU.md` | `Key Features` | Add Scheduled Operations feature bullet (RU) |
-| 2026-03-27 01:28:37 | `docs/README_UK.md` | `Key Features` | Add Scheduled Operations feature bullet (UK) |
+| 2026-03-27 01:28:37 | `docs/README-ru.md` | `Key Features` | Add Scheduled Operations feature bullet (RU) |
+| 2026-03-27 01:28:37 | `docs/README-uk.md` | `Key Features` | Add Scheduled Operations feature bullet (UK) |
 | 2026-03-27 01:28:37 | `docs/FAQ.md` | `Scheduled Operations` | Add Scheduled Operations FAQ section |
-| 2026-03-27 01:28:37 | `docs/FAQ_RU.md` | `Scheduled Operations` | Add Scheduled Operations FAQ section (RU) |
-| 2026-03-27 01:28:38 | `docs/FAQ_UK.md` | `Scheduled Operations` | Add Scheduled Operations FAQ section (UK) |
+| 2026-03-27 01:28:37 | `docs/FAQ-ru.md` | `Scheduled Operations` | Add Scheduled Operations FAQ section (RU) |
+| 2026-03-27 01:28:38 | `docs/FAQ-uk.md` | `Scheduled Operations` | Add Scheduled Operations FAQ section (UK) |
 | 2026-03-27 01:35:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt` | `BackupMapper` | Add toBackupScheduledOperation and toScheduledOperation mappers |
 | 2026-03-27 01:35:38 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt` | `BackupToGoogleDriveUseCase` | Include ScheduledOperations in Google Drive backup payload |
 | 2026-03-27 01:35:39 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreFromGoogleDriveUseCase.kt` | `RestoreFromGoogleDriveUseCase` | Restore ScheduledOperations from Google Drive backup v3+ |
@@ -1159,8 +1159,8 @@ Format: | datetime | file | target | description |
 | 2026-03-28 21:14:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerEventHandler.kt` | `PlayerEventHandler` | Handle CastStateChanged event with Toast feedback |
 | 2026-03-28 21:15:13 | `app_v2/proguard-rules.pro` | `proguard` | Add Cast SDK, MediaRouter and NanoHTTPD keep rules |
 | 2026-03-28 21:16:14 | `docs/FEATURES.md` | `FEATURES` | Add Cast to Chromecast feature entry (EN) |
-| 2026-03-28 21:16:14 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Cast to Chromecast feature entry (RU) |
-| 2026-03-28 21:16:14 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Cast to Chromecast feature entry (UK) |
+| 2026-03-28 21:16:14 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add Cast to Chromecast feature entry (RU) |
+| 2026-03-28 21:16:14 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add Cast to Chromecast feature entry (UK) |
 | 2026-03-28 21:17:09 | `docs/TECH_STACK.md` | `TECH_STACK` | Add Cast SDK, MediaRouter, NanoHTTPD to tech stack |
 | 2026-03-28 21:17:09 | `dev/PROJECT_OPERATIONS_INDEX.md` | `PROJECT_OPERATIONS_INDEX` | Add Cast output feature path (core/cast/ + CastMediaManager) |
 | 2026-03-28 21:17:10 | `PLAN/spec_cast-chromecast.md` | `spec` | Mark spec X.2 as Implemented |
@@ -1206,8 +1206,8 @@ Format: | datetime | file | target | description |
 | 2026-03-29 01:26:10 | `app_v2/src/main/res/layout-land/dialog_scheduled_operation.xml` | `layout-land` | Add landscape layout for dialog_scheduled_operation (buttons pinned outside scroll) |
 | 2026-03-29 01:26:11 | `app_v2/src/main/res/layout-land/dialog_color_picker.xml` | `layout-land` | Add landscape layout for dialog_color_picker (buttons at top, RV capped) |
 | 2026-03-29 01:27:52 | `docs/FEATURES.md` | `FEATURES` | Add landscape-adaptive dialogs bullet to Settings section |
-| 2026-03-29 01:27:52 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add landscape-adaptive dialogs bullet to Settings section (RU) |
-| 2026-03-29 01:27:52 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add landscape-adaptive dialogs bullet to Settings section (UK) |
+| 2026-03-29 01:27:52 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add landscape-adaptive dialogs bullet to Settings section (RU) |
+| 2026-03-29 01:27:52 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add landscape-adaptive dialogs bullet to Settings section (UK) |
 | 2026-03-29 01:28:05 | `PLAN/spec_landscape_dialogs.md` | `spec_landscape_dialogs` | Mark spec as Implemented |
 | 2026-03-29 22:41:03 | `PLAN/spec_standalone_player_file_ops.md` | `spec` | Update III.11 spec: reflect implemented state, lifecycle fix, API matrix, accessibility, ADRs |
 | 2026-03-29 22:41:07 | `PLAN/spec_standalone_player_delete_fix.md` | `spec` | Add BUG-III.11 spec: delete API-level correctness (isDocumentUri, API 29, API 30+) |
@@ -1247,8 +1247,8 @@ Format: | datetime | file | target | description |
 | 2026-03-29 23:33:44 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add Now Playing UI strings UK |
 | 2026-03-29 23:33:44 | `app_v2/src/main/res/values/dimens.xml` | `dimens` | Add mini Now Playing bar dimension values |
 | 2026-03-29 23:36:07 | `docs/FEATURES.md` | `FEATURES` | Add Now Playing UI feature entry (III.13) EN |
-| 2026-03-29 23:36:07 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Now Playing UI feature entry (III.13) RU |
-| 2026-03-29 23:36:07 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Now Playing UI feature entry (III.13) UK |
+| 2026-03-29 23:36:07 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add Now Playing UI feature entry (III.13) RU |
+| 2026-03-29 23:36:07 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add Now Playing UI feature entry (III.13) UK |
 | 2026-03-29 23:36:07 | `index.html` | `index.html` | Add Now Playing UI to key features list EN |
 | 2026-03-29 23:36:08 | `index-ru.html` | `index-ru.html` | Add Now Playing UI to key features list RU |
 | 2026-03-29 23:36:08 | `index-uk.html` | `index-uk.html` | Add Now Playing UI to key features list UK |
@@ -1399,8 +1399,8 @@ Format: | datetime | file | target | description |
 | 2026-04-01 03:50:17 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | Added RU unarchive strings (dialog, progress, errors, open action) |
 | 2026-04-01 03:50:17 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | Added UK unarchive strings (dialog, progress, errors, open action) |
 | 2026-04-01 03:50:17 | `docs/FEATURES.md` | `FEATURES EN` | Added user-facing feature bullet for ZIP extraction on click in Browse with percent progress and Open action |
-| 2026-04-01 03:50:17 | `docs/FEATURES_RU.md` | `FEATURES RU` | Added user-facing feature bullet for ZIP extraction on click in Browse |
-| 2026-04-01 03:50:17 | `docs/FEATURES_UK.md` | `FEATURES UK` | Added user-facing feature bullet for ZIP extraction on click in Browse |
+| 2026-04-01 03:50:17 | `docs/FEATURES-ru.md` | `FEATURES RU` | Added user-facing feature bullet for ZIP extraction on click in Browse |
+| 2026-04-01 03:50:17 | `docs/FEATURES-uk.md` | `FEATURES UK` | Added user-facing feature bullet for ZIP extraction on click in Browse |
 | 2026-04-01 03:53:36 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl.getSettings` | Changed DataStore fallback for enableScheduledOperations from false to true so clean installs default scheduled operations to enabled |
 | 2026-04-01 03:53:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `AppSettings.enableScheduledOperations` | Changed domain default for enableScheduledOperations from false to true to keep initial state and reset defaults consistent |
 | 2026-04-01 03:53:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt` | `BackupData.enableScheduledOperations` | Changed backup/import model default for enableScheduledOperations from false to true for consistency with app defaults |
@@ -1494,7 +1494,7 @@ Format: | datetime | file | target | description |
 | 2026-04-01 22:02:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesViewModel.kt` | `DuplicatesViewModel` | Added pinnedResourceId to state, autoDeleteMode field, initWithResource() and applyPinnedResource() methods |
 | 2026-04-01 22:02:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/duplicates/DuplicatesFragment.kt` | `DuplicatesFragment` | Read launch args, call initWithResource(); sort chips with pinned resource first; auto-delete on ScanComplete when autoDeleteMode=true |
 | 2026-04-01 22:02:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | Split action_find_duplicates and action_delete_duplicates into separate branches; pass EXTRA_RESOURCE_ID and EXTRA_AUTO_DELETE via Intent |
-| 2026-04-01 22:02:20 | `docs/FEATURES.md,docs/FEATURES_RU.md,docs/FEATURES_UK.md` | `FEATURES docs` | Updated duplicate detection description: documented two distinct modes and context-aware resource pre-selection |
+| 2026-04-01 22:02:20 | `docs/FEATURES.md,docs/FEATURES-ru.md,docs/FEATURES-uk.md` | `FEATURES docs` | Updated duplicate detection description: documented two distinct modes and context-aware resource pre-selection |
 | 2026-04-01 22:06:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel.removeFiles` | Fixed: now also updates MediaFilesCacheManager and cachedFileListRepository (DB) and totalFileCount to prevent ghost files after deletion |
 | 2026-04-01 22:21:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `applyEdgeToEdgeInsets` | Fix: add requestApplyInsets() to force re-dispatch after post{} - insets were missed on first frame; also fixed accumulating toolbar padding |
 | 2026-04-01 22:24:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Skip missing-file dialog when initial path exists in unfiltered list but is filtered by media type |
@@ -1526,13 +1526,13 @@ Format: | datetime | file | target | description |
 | 2026-04-02 02:25:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `addSmbResourceManually` | Fix: strip port from server field before saving credentials to prevent host:port being stored in server column |
 | 2026-04-02 02:38:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `syncWithCache` | Fix: skip root-cache overwrite when in subfolder mode - reload loadDirectoryContents(currentPath) instead to prevent list reset to root while breadcrumb keeps subfolder path |
 | 2026-04-02 10:58:37 | `index.html` | `full-features-panel` | Added auto-loading full feature list section (marked.js fetch docs/FEATURES.md) |
-| 2026-04-02 10:58:37 | `index-ru.html` | `full-features-panel` | Added auto-loading full feature list section (fetch docs/FEATURES_RU.md, RU) |
-| 2026-04-02 10:58:37 | `index-uk.html` | `full-features-panel` | Added auto-loading full feature list section (fetch docs/FEATURES_UK.md, UK) |
+| 2026-04-02 10:58:37 | `index-ru.html` | `full-features-panel` | Added auto-loading full feature list section (fetch docs/FEATURES-ru.md, RU) |
+| 2026-04-02 10:58:37 | `index-uk.html` | `full-features-panel` | Added auto-loading full feature list section (fetch docs/FEATURES-uk.md, UK) |
 | 2026-04-02 10:58:37 | `styles.css` | `full-features-panel` | Added styles for full feature list panel and rendered markdown content |
 | 2026-04-02 11:56:23 | `PLAN/spec_toselectfolder.md` | `spec_toselectfolder` | Corrected As-Is analysis: main panel buttons already destination-agnostic; added MediaFileAdapter hasDestinations gate as primary change target; fixed BrowseActionBarManager (stub); corrected SFTP/FTP client paths; updated flow diagrams and class responsibilities table; clarified SettingsRepository as persistence layer |
 | 2026-04-02 11:59:05 | `docs/FEATURES.md` | `Section 2.10 + Section 11.7` | Fixed 2 doc inaccuracies: removed false 10K thumbnail auto-disable claim; replaced EPUB System Default theme with correct OLED Black |
-| 2026-04-02 11:59:05 | `docs/FEATURES_RU.md` | `Section 2.10 + Section 11.7` | RU mirror: same 2 doc fixes (thumbnails + EPUB themes) |
-| 2026-04-02 11:59:05 | `docs/FEATURES_UK.md` | `Section 2.10 + Section 11.7` | UK mirror: same 2 doc fixes (thumbnails + EPUB themes) |
+| 2026-04-02 11:59:05 | `docs/FEATURES-ru.md` | `Section 2.10 + Section 11.7` | RU mirror: same 2 doc fixes (thumbnails + EPUB themes) |
+| 2026-04-02 11:59:05 | `docs/FEATURES-uk.md` | `Section 2.10 + Section 11.7` | UK mirror: same 2 doc fixes (thumbnails + EPUB themes) |
 | 2026-04-02 12:18:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `executeOperationToPath` | Fixed executeOperationToPath: replaced incompatible FileCopyProgressDialog with toast-based approach matching executeMoveDirectly pattern |
 | 2026-04-02 12:18:12 | `app_v2/src/main/res/layout-land/dialog_copy_to.xml` | `btnSelectFolder` | Added btnSelectFolder to landscape layout variant to fix nullable ViewBinding compile error |
 | 2026-04-02 12:18:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `executeOperationToPath` | Fixed executeOperationToPath: replaced incompatible FileCopyProgressDialog with toast-based approach |
@@ -1565,12 +1565,12 @@ Format: | datetime | file | target | description |
 | 2026-04-02 12:40:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | Add VirtualPath guard to canCreateFolder condition; update comment |
 | 2026-04-02 12:40:47 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManagerTest.kt` | `ResourceOpsMenuManagerTest` | Add unit tests for canCreateFolder guard (virtual path, read-only, null, happy path) |
 | 2026-04-02 12:40:47 | `docs/FEATURES.md` | `Section 2 Browsing` | Add bullet: Create subfolder from Browse menu |
-| 2026-04-02 12:40:47 | `docs/FEATURES_RU.md` | `Section 2 Browsing` | Add bullet (RU): Create subfolder from Browse menu |
-| 2026-04-02 12:40:47 | `docs/FEATURES_UK.md` | `Section 2 Browsing` | Add bullet (UK): Create subfolder from Browse menu |
+| 2026-04-02 12:40:47 | `docs/FEATURES-ru.md` | `Section 2 Browsing` | Add bullet (RU): Create subfolder from Browse menu |
+| 2026-04-02 12:40:47 | `docs/FEATURES-uk.md` | `Section 2 Browsing` | Add bullet (UK): Create subfolder from Browse menu |
 | 2026-04-02 12:40:53 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManagerTest.kt` | `ResourceOpsMenuManagerTest` | Add unit tests for canCreateFolder guard (virtual path, read-only, null, happy path) |
 | 2026-04-02 12:40:53 | `docs/FEATURES.md` | `Section 2 Browsing` | Add bullet: Create subfolder from Browse menu |
-| 2026-04-02 12:40:53 | `docs/FEATURES_RU.md` | `Section 2 Browsing` | Add bullet (RU): Create subfolder from Browse menu |
-| 2026-04-02 12:40:53 | `docs/FEATURES_UK.md` | `Section 2 Browsing` | Add bullet (UK): Create subfolder from Browse menu |
+| 2026-04-02 12:40:53 | `docs/FEATURES-ru.md` | `Section 2 Browsing` | Add bullet (RU): Create subfolder from Browse menu |
+| 2026-04-02 12:40:53 | `docs/FEATURES-uk.md` | `Section 2 Browsing` | Add bullet (UK): Create subfolder from Browse menu |
 | 2026-04-02 12:42:52 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManagerTest.kt` | `ResourceOpsMenuManagerTest` | Use LocalMediaScanner virtual path constants in canCreateFolder guard tests |
 | 2026-04-02 12:42:52 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/browse/managers/CanCreateFolderGuardTest.kt` | `CanCreateFolderGuardTest` | Remove duplicate canCreateFolder guard test class; keep canonical ResourceOpsMenuManagerTest |
 | 2026-04-02 12:56:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Add renameDirectory(); partition deleteSelectedFiles() by isDirectory; inject DeleteDirectoriesUseCase + UnifiedFileOperationHandler |
@@ -1633,8 +1633,8 @@ Format: | datetime | file | target | description |
 | 2026-04-06 00:24:54 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add RU error strings for standalone player playback failures |
 | 2026-04-06 00:24:54 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add UK error strings for standalone player playback failures |
 | 2026-04-06 00:24:55 | `docs/FEATURES.md` | `StandalonePlayer` | Document lifecycle, wake lock, error feedback |
-| 2026-04-06 00:24:55 | `docs/FEATURES_RU.md` | `StandalonePlayer` | Document lifecycle, wake lock, error feedback (RU) |
-| 2026-04-06 00:24:55 | `docs/FEATURES_UK.md` | `StandalonePlayer` | Document lifecycle, wake lock, error feedback (UK) |
+| 2026-04-06 00:24:55 | `docs/FEATURES-ru.md` | `StandalonePlayer` | Document lifecycle, wake lock, error feedback (RU) |
+| 2026-04-06 00:24:55 | `docs/FEATURES-uk.md` | `StandalonePlayer` | Document lifecycle, wake lock, error feedback (UK) |
 | 2026-04-06 00:28:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioFocusManager.kt` | `AudioFocusManager` | New: audio focus request/release with API 26+ and legacy support |
 | 2026-04-06 00:28:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PictureInPictureManager.kt` | `PictureInPictureManager` | Refactor: replace VideoPlayerManager param with getPlayer/onPlay/onPause lambdas for standalone reuse |
 | 2026-04-06 00:28:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity` | Update PictureInPictureManager constructor call to lambda-based API |
@@ -1642,14 +1642,14 @@ Format: | datetime | file | target | description |
 | 2026-04-06 00:28:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire PictureInPictureManager: pipManager field, onUserLeaveHint, onPictureInPictureModeChanged, release |
 | 2026-04-06 00:28:14 | `app_v2/src/main/AndroidManifest.xml` | `StandalonePlayerActivity` | Add android:supportsPictureInPicture=true |
 | 2026-04-06 00:28:14 | `docs/FEATURES.md` | `StandalonePlayer` | Document PiP (Android 12+) and audio focus management features |
-| 2026-04-06 00:28:14 | `docs/FEATURES_RU.md` | `StandalonePlayer` | Document PiP and audio focus (RU) |
-| 2026-04-06 00:28:14 | `docs/FEATURES_UK.md` | `StandalonePlayer` | Document PiP and audio focus (UK) |
+| 2026-04-06 00:28:14 | `docs/FEATURES-ru.md` | `StandalonePlayer` | Document PiP and audio focus (RU) |
+| 2026-04-06 00:28:14 | `docs/FEATURES-uk.md` | `StandalonePlayer` | Document PiP and audio focus (UK) |
 | 2026-04-06 00:29:02 | `app_v2/src/main/AndroidManifest.xml` | `StandalonePlayerActivity` | Add supportsPictureInPicture=true |
 | 2026-04-06 00:37:07 | `app_v2/src/main/AndroidManifest.xml` | `StandalonePlayerActivity` | Add screenOrientation=sensor, FullScreen theme, keyboardHidden configChange |
 | 2026-04-06 00:37:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Add setupWindowAndInsets(), onConfigurationChanged(), WindowCompat/ViewCompat insets wiring for UX parity with PlayerActivity |
 | 2026-04-06 00:39:18 | `docs/FEATURES.md` | `Standalone player section` | Add video UX parity bullet (insets + sensor rotation) |
-| 2026-04-06 00:39:18 | `docs/FEATURES_RU.md` | `Standalone player section` | Add video UX parity bullet (RU) |
-| 2026-04-06 00:39:18 | `docs/FEATURES_UK.md` | `Standalone player section` | Add video UX parity bullet (UK) |
+| 2026-04-06 00:39:18 | `docs/FEATURES-ru.md` | `Standalone player section` | Add video UX parity bullet (RU) |
+| 2026-04-06 00:39:18 | `docs/FEATURES-uk.md` | `Standalone player section` | Add video UX parity bullet (UK) |
 | 2026-04-06 00:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoControlsManager.kt` | `StandaloneVideoControlsManager` | New: speed/audio/subtitle button setup and track visibility for standalone video |
 | 2026-04-06 00:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoTouchDelegate.kt` | `StandaloneVideoTouchDelegate` | New: GestureDetector for brightness/volume/seek/double-tap/single-tap in standalone video |
 | 2026-04-06 00:40:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandalonePlayerSettingsManager.kt` | `StandalonePlayerSettingsManager` | New: speed/audio/subtitle dialogs + subtitle styling for standalone player |
@@ -1660,8 +1660,8 @@ Format: | datetime | file | target | description |
 | 2026-04-06 00:40:03 | `app_v2/src/main/res/values-ru/strings.xml` | `strings` | Add cd_playback_speed, cd_audio_track, cd_subtitle_track RU |
 | 2026-04-06 00:40:03 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | Add cd_playback_speed, cd_audio_track, cd_subtitle_track UK |
 | 2026-04-06 00:41:01 | `docs/FEATURES.md` | `StandalonePlayer` | Document video controls: speed, tracks, gestures, fullscreen |
-| 2026-04-06 00:41:01 | `docs/FEATURES_RU.md` | `StandalonePlayer` | Document video controls (RU) |
-| 2026-04-06 00:41:01 | `docs/FEATURES_UK.md` | `StandalonePlayer` | Document video controls (UK) |
+| 2026-04-06 00:41:01 | `docs/FEATURES-ru.md` | `StandalonePlayer` | Document video controls (RU) |
+| 2026-04-06 00:41:01 | `docs/FEATURES-uk.md` | `StandalonePlayer` | Document video controls (UK) |
 | 2026-04-06 00:44:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | III.18: Add playback position save/restore for standalone video (getPosition on load, periodic 5s save, save on pause/destroy) |
 | 2026-04-06 00:44:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix Unresolved binding.bottomPanelsContainer: replace with root.findViewById (landscape-only view not in portrait binding) |
 | 2026-04-06 00:44:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | III.18: Add playback position save/restore for standalone video (getPosition on load, 5s periodic save, save on pause/destroy) |
@@ -1675,8 +1675,8 @@ Format: | datetime | file | target | description |
 | 2026-04-06 01:14:26 | `app_v2/src/main/AndroidManifest.xml` | `StandalonePlayerActivity` | Add screenOrientation=sensor, FullScreen theme, keyboardHidden configChange |
 | 2026-04-06 01:14:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Add setupWindowAndInsets() and onConfigurationChanged for edge-to-edge insets and rotation support |
 | 2026-04-06 01:14:26 | `docs/FEATURES.md` | `StandalonePlayer` | Document rotation + insets fix |
-| 2026-04-06 01:14:26 | `docs/FEATURES_RU.md` | `StandalonePlayer` | Document rotation + insets fix (RU) |
-| 2026-04-06 01:14:26 | `docs/FEATURES_UK.md` | `StandalonePlayer` | Document rotation + insets fix (UK) |
+| 2026-04-06 01:14:26 | `docs/FEATURES-ru.md` | `StandalonePlayer` | Document rotation + insets fix (RU) |
+| 2026-04-06 01:14:26 | `docs/FEATURES-uk.md` | `StandalonePlayer` | Document rotation + insets fix (UK) |
 | 2026-04-07 23:26:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix: performClick() now fires only on ACTION_UP in video touch listener; suppress ClickableViewAccessibility lint |
 | 2026-04-07 23:34:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/NetworkFileManager.kt` | `NetworkFileManager` | Fix prepareFileForRead: handle content:// URIs from external intents (copy to temp file) |
 | 2026-04-07 23:40:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Added copyPageTextToClipboard(): OCR current page and copy to clipboard without switching views |
@@ -1793,10 +1793,10 @@ Format: | datetime | file | target | description |
 | 2026-04-10 23:00:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `BrowseViewModel` | Inject DropboxClient + OneDriveRestClient for cloud early-auth check |
 | 2026-04-10 23:02:00 | `app_v2/src/main/res/layout/item_resource_grid.xml` | `tvResourceName` | Add includeFontPadding=true to fix StaticLayout maxLineHeight=-1 warning |
 | 2026-04-10 23:02:00 | `app_v2/src/main/res/layout/item_resource.xml` | `tvResourceComment` | Add includeFontPadding=true to fix StaticLayout maxLineHeight=-1 warning |
-| 2026-04-10 23:04:42 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Localized Subfolder Operations description |
-| 2026-04-10 23:04:42 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Localized Subfolder Operations description |
+| 2026-04-10 23:04:42 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Localized Subfolder Operations description |
+| 2026-04-10 23:04:42 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Localized Subfolder Operations description |
 | 2026-04-10 23:04:42 | `maestro/smoke/browse_subfolder_ops.yaml` | `Maestro Smoke Test` | Added E2E test for subfolder operations |
-| 2026-04-10 23:07:30 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add subfolder operations bullet (copy/move/rename/delete) to §2 Browsing |
+| 2026-04-10 23:07:30 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add subfolder operations bullet (copy/move/rename/delete) to §2 Browsing |
 | 2026-04-10 23:08:43 | `app_v2/src/main/res/layout/activity_main.xml` | `tabResourceTypes` | Remove tabGravity=fill from XML; fix MODE_SCROLLABLE+GRAVITY_FILL conflict |
 | 2026-04-10 23:08:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `createTabs` | Set tabGravity co-located with tabMode to eliminate W-level TabLayout warning |
 | 2026-04-10 23:26:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseResourceLoadManager.kt` | `BrowseResourceLoadManager` | Add unified cloud early-auth check for Dropbox/OneDrive before scan |
@@ -1827,37 +1827,37 @@ Format: | datetime | file | target | description |
 | 2026-04-11 03:48:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Add toggleEpubTranslation(), togglePdfTranslation(), isEpubActive() delegate methods |
 | 2026-04-11 03:48:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire btnTranslateEpubCmd and btnTranslatePdfCmd; add orientation-aware EPUB translator visibility |
 | 2026-04-11 03:49:19 | `docs/FEATURES.md` | `FEATURES` | Add translator-parity note for standalone mode |
-| 2026-04-11 03:49:19 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add translator-parity note for standalone mode |
-| 2026-04-11 03:49:19 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add translator-parity note for standalone mode |
+| 2026-04-11 03:49:19 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add translator-parity note for standalone mode |
+| 2026-04-11 03:49:19 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add translator-parity note for standalone mode |
 | 2026-04-11 03:51:55 | `maestro/smoke/standalone_doc_translator.yaml` | `MaestroSmoke` | Add smoke test for standalone EPUB/PDF translator button |
 | 2026-04-11 03:52:40 | `PLAN/spec_standalone-doc-rename-parity.md` | `spec` | Add specification NEW.4: Standalone Player Rename Button Parity - btnRenameCmd visible but unwired; requires DocumentsContract.renameDocument() for SAF URIs, ContentResolver.update() for MediaStore; capability check before showing button |
 | 2026-04-11 03:53:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Add epubViewerManagerProvider/pdfViewerManagerProvider/textViewerManagerProvider for SearchControlsManager wiring |
 | 2026-04-11 03:53:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire SearchControlsManager in standalone: PDF/TXT/EPUB inline search panel + remove BottomSheet EPUB search listener |
 | 2026-04-11 03:54:45 | `docs/FEATURES.md` | `FEATURES` | Add inline search panel standalone parity bullet (PDF/EPUB/TXT) |
-| 2026-04-11 03:54:46 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add inline search panel standalone parity bullet (PDF/EPUB/TXT) |
-| 2026-04-11 03:54:46 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add inline search panel standalone parity bullet (PDF/EPUB/TXT) |
+| 2026-04-11 03:54:46 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add inline search panel standalone parity bullet (PDF/EPUB/TXT) |
+| 2026-04-11 03:54:46 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add inline search panel standalone parity bullet (PDF/EPUB/TXT) |
 | 2026-04-11 03:59:17 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add rename_failed_generic string for standalone rename error |
 | 2026-04-11 03:59:20 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU rename_failed_generic |
 | 2026-04-11 03:59:20 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK rename_failed_generic |
 | 2026-04-11 03:59:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModel.kt` | `StandalonePlayerViewModel` | Add onRenameComplete(newUri, newName) for standalone rename state update |
 | 2026-04-11 03:59:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire btnRenameCmd: capability check via DocumentsContract/MediaStore, standalone rename dialog, onRenameComplete state update |
 | 2026-04-11 03:59:32 | `docs/FEATURES.md` | `FEATURES` | Add standalone rename via SAF/MediaStore |
-| 2026-04-11 03:59:32 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add standalone rename via SAF/MediaStore |
-| 2026-04-11 03:59:32 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add standalone rename via SAF/MediaStore |
+| 2026-04-11 03:59:32 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add standalone rename via SAF/MediaStore |
+| 2026-04-11 03:59:32 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add standalone rename via SAF/MediaStore |
 | 2026-04-11 03:59:38 | `PLAN/spec_standalone-audio-rename-parity.md` | `spec` | Add specification NEW.5: Standalone Player Audio Rename Parity (MP3/FLAC/OGG/WAV/M4A) - same root as NEW.4; adds SAF URI hot-swap via StandaloneViewManager.updateAudioMediaItem() and replaceMediaItem() to prevent ExoPlayer buffering failure after rename |
 | 2026-04-11 04:03:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Add updateAudioMediaItem(newUri) for hot-swap after SAF rename without interrupting playback |
 | 2026-04-11 04:03:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire audio URI update in performStandaloneRename: call viewManager.updateAudioMediaItem when SAF URI changes |
 | 2026-04-11 04:03:19 | `docs/FEATURES.md` | `FEATURES` | Expand standalone rename note: includes audio files (MP3/FLAC/OGG/WAV/M4A), hot-swap ExoPlayer source |
-| 2026-04-11 04:03:19 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Expand rename note: включает аудиофайлы, горячая замена источника ExoPlayer |
-| 2026-04-11 04:03:19 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Expand rename note: включає аудіофайли, гаряча заміна джерела ExoPlayer |
+| 2026-04-11 04:03:19 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Expand rename note: включает аудиофайлы, горячая замена источника ExoPlayer |
+| 2026-04-11 04:03:19 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Expand rename note: включає аудіофайли, гаряча заміна джерела ExoPlayer |
 | 2026-04-11 04:03:27 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add rename_failed_generic string for standalone rename error |
 | 2026-04-11 04:04:00 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU rename_failed_generic |
 | 2026-04-11 04:04:01 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK rename_failed_generic |
 | 2026-04-11 04:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModel.kt` | `StandalonePlayerViewModel` | Add onRenameComplete(newUri, newName) for standalone rename state update |
 | 2026-04-11 04:04:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wire btnRenameCmd: capability check via DocumentsContract, standalone rename dialog, onRenameComplete state update; fix contentLoaded guard to prevent viewer reload on rename |
 | 2026-04-11 04:04:01 | `docs/FEATURES.md` | `FEATURES` | Add standalone rename via SAF/MediaStore |
-| 2026-04-11 04:04:02 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add RU standalone rename via SAF/MediaStore |
-| 2026-04-11 04:04:02 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add UK standalone rename via SAF/MediaStore |
+| 2026-04-11 04:04:02 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add RU standalone rename via SAF/MediaStore |
+| 2026-04-11 04:04:02 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add UK standalone rename via SAF/MediaStore |
 | 2026-04-11 04:05:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Fix performStandaloneRename: MediaStore ContentResolver.update() result check - return null on 0 rows to correctly report failure instead of silently showing success |
 | 2026-04-11 04:08:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/PagingMediaFileAdapter.kt` | `PagingMediaFileAdapter` | Remove UTF-8 BOM that was introduced during dontAnimate() refactor |
 | 2026-04-11 04:08:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `StandaloneViewManager` | Move togglePdfTranslation() to translation group next to toggleEpubTranslation() |
@@ -2073,8 +2073,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 00:42:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `ForwardingPlayer` | Fix: override isCommandAvailable/getAvailableCommands so Next button always shows in notification |
 | 2026-04-14 01:38:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `AudioPlaybackService` | Fix unresolved 'Commands' import - use Player.Commands (nested class) instead of non-existent top-level androidx.media3.common.Commands |
 | 2026-04-14 03:12:44 | `docs/FEATURES.md` | `FEATURES.md` | Added section 23: Apps FMS Can Replace - Competitor Comparison (EN) |
-| 2026-04-14 03:12:47 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added section 23: competitor comparison with popular apps (RU) |
-| 2026-04-14 03:12:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added section 23: competitor comparison with popular apps (UK) |
+| 2026-04-14 03:12:47 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Added section 23: competitor comparison with popular apps (RU) |
+| 2026-04-14 03:12:50 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Added section 23: competitor comparison with popular apps (UK) |
 | 2026-04-14 10:09:48 | `PLAN/spec_wear_resource_sync.md` | `spec` | Improve spec III.6: add flavor scope, ADRs, SyncResultScreen, phone UI detail, accessibility, fix section numbering |
 | 2026-04-14 10:53:16 | `PLAN/spec_wear_master.md` | `spec` | Create Wear OS master plan: unified strategic + tactical spec for all 4 phases |
 | 2026-04-14 11:03:15 | `app_v2/build.gradle.kts` | `dependencies` | P1-01: Add play-services-wearable:18.1.0 for phone-side Wearable Data Layer |
@@ -2111,8 +2111,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 11:20:19 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/ImportNetworkSourcesUseCaseTest.kt` | `ImportNetworkSourcesUseCaseTest` | P1-24: Add unit tests for ImportNetworkSourcesUseCase |
 | 2026-04-14 11:20:22 | `wear/build.gradle.kts` | `wear build` | P1-24: Add kotlinx-coroutines-test dependency for unit tests |
 | 2026-04-14 11:21:05 | `docs/FEATURES.md` | `FEATURES` | P1-25: Add one-tap network source sync feature entry (Wear OS section) |
-| 2026-04-14 11:21:08 | `docs/FEATURES_RU.md` | `FEATURES_RU` | P1-25: Add one-tap sync entry (RU) |
-| 2026-04-14 11:21:11 | `docs/FEATURES_UK.md` | `FEATURES_UK` | P1-25: Add one-tap sync entry (UK) |
+| 2026-04-14 11:21:08 | `docs/FEATURES-ru.md` | `FEATURES_RU` | P1-25: Add one-tap sync entry (RU) |
+| 2026-04-14 11:21:11 | `docs/FEATURES-uk.md` | `FEATURES_UK` | P1-25: Add one-tap sync entry (UK) |
 | 2026-04-14 11:21:25 | `PLAN/spec_wear_master.md` | `spec_wear_master` | P1-24/25 marked complete - Phase 1 fully done |
 | 2026-04-14 12:11:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | Wrap saveLogsLauncher.launch in try-catch for ActivityNotFoundException; add showSaveLogsNotSupportedDialog fallback to share action |
 | 2026-04-14 12:11:12 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Add <queries> block for ACTION_CREATE_DOCUMENT (SAF package visibility on API 30+) |
@@ -2127,8 +2127,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 12:25:11 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Restored wear sync JVM test using fakes instead of mocks |
 | 2026-04-14 12:25:11 | `PLAN/spec_wear_master.md` | `spec_wear_master` | Marked Phase 3 UX polish checklist complete |
 | 2026-04-14 12:25:11 | `docs/FEATURES.md` | `FEATURES` | Documented Wear UX polish and reactive source refresh |
-| 2026-04-14 12:25:11 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Documented Wear UX polish and reactive source refresh (RU) |
-| 2026-04-14 12:25:11 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Documented Wear UX polish and reactive source refresh (UK) |
+| 2026-04-14 12:25:11 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Documented Wear UX polish and reactive source refresh (RU) |
+| 2026-04-14 12:25:11 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Documented Wear UX polish and reactive source refresh (UK) |
 | 2026-04-14 12:27:53 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Aligned fake credentials with real JVM password fallback paths |
 | 2026-04-14 12:29:51 | `PLAN/spec_wear_master.md` | `spec_wear_master` | Marked Phase 2 partial progress and refreshed Phase 2/3/4 implementation status notes |
 | 2026-04-14 12:31:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioWaveParticleView.kt` | `AudioWaveParticleView` | Fix blank screen on slow tablets: defer startAnimation() via pendingStart flag until onSizeChanged fires; auto-reduce wave/particle count on isLowRamDevice |
@@ -2142,8 +2142,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 12:48:43 | `wear/src/main/res/values/strings.xml` | `strings` | Added AddNetworkSource strings and validation messages (EN/RU/UK) |
 | 2026-04-14 12:50:36 | `PLAN/spec_wear_master.md` | `spec_wear_master` | Marked Phase 2 complete and refreshed Wear add-source status |
 | 2026-04-14 12:50:36 | `docs/FEATURES.md` | `FEATURES` | Documented on-watch SMB FTP SFTP source creation and delete flow |
-| 2026-04-14 12:50:36 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Documented on-watch SMB FTP SFTP source creation and delete flow (RU) |
-| 2026-04-14 12:50:36 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Documented on-watch SMB FTP SFTP source creation and delete flow (UK) |
+| 2026-04-14 12:50:36 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Documented on-watch SMB FTP SFTP source creation and delete flow (RU) |
+| 2026-04-14 12:50:36 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Documented on-watch SMB FTP SFTP source creation and delete flow (UK) |
 | 2026-04-14 13:48:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OpenSourceLicensesFragment.kt` | `OpenSourceLicensesFragment` | TASK-01: Wrap ACTION_VIEW browser intent in try-catch ActivityNotFoundException with URL Toast fallback |
 | 2026-04-14 13:48:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | TASK-02: Wrap Google Maps ACTION_VIEW intent in try-catch ActivityNotFoundException with Toast fallback |
 | 2026-04-14 13:48:16 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add no_maps_app_available string resource |
@@ -2182,8 +2182,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 22:40:28 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add action_read_aloud_selection and epub_text_empty_tts string resources (RU) |
 | 2026-04-14 22:40:28 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add action_read_aloud_selection and epub_text_empty_tts string resources (UK) |
 | 2026-04-14 22:40:28 | `docs/FEATURES.md` | `FEATURES` | Add TTS Read Aloud bullets for PDF and EPUB sections |
-| 2026-04-14 22:40:28 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add TTS Read Aloud bullets for PDF and EPUB sections (RU) |
-| 2026-04-14 22:40:28 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add TTS Read Aloud bullets for PDF and EPUB sections (UK) |
+| 2026-04-14 22:40:28 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add TTS Read Aloud bullets for PDF and EPUB sections (RU) |
+| 2026-04-14 22:40:28 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add TTS Read Aloud bullets for PDF and EPUB sections (UK) |
 | 2026-04-14 22:40:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTextSelectionManager.kt` | `PdfTextSelectionManager` | Expose extractPageTextForTts() wrapper (internal); add onReadAloud ctor param; pass to DocumentSelectionActionModeCallback |
 | 2026-04-14 22:40:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfViewerManager.kt` | `PdfViewerManager` | Add TTS Read Aloud: ttsManager, toggleReadAloud(), speakText(), stopTtsOnPageChange(), releaseTts(); stop on page nav; release in close() |
 | 2026-04-14 22:42:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `EpubViewerManager` | Wire EpubTtsDelegate: add ttsDelegate, toggleReadAloud(), stopTtsOnChapterChange(); stop TTS on chapter nav; release in release() |
@@ -2195,8 +2195,8 @@ Format: | datetime | file | target | description |
 | 2026-04-14 22:43:05 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add action_read_aloud_selection and epub_text_empty_tts string resources (RU) |
 | 2026-04-14 22:43:08 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add action_read_aloud_selection and epub_text_empty_tts string resources (UK) |
 | 2026-04-14 22:43:12 | `docs/FEATURES.md` | `FEATURES` | Add TTS Read Aloud bullets for PDF and EPUB sections (EN) |
-| 2026-04-14 22:43:12 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add TTS Read Aloud bullets for PDF and EPUB sections (RU) |
-| 2026-04-14 22:43:12 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add TTS Read Aloud bullets for PDF and EPUB sections (UK) |
+| 2026-04-14 22:43:12 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add TTS Read Aloud bullets for PDF and EPUB sections (RU) |
+| 2026-04-14 22:43:12 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add TTS Read Aloud bullets for PDF and EPUB sections (UK) |
 | 2026-04-14 22:46:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTextSelectionManager.kt` | `PdfTextSelectionManager` | Remove duplicate extractPageTextForTts; expose internal extractPageTextForTts for PdfTtsDelegate |
 | 2026-04-14 22:46:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PdfTtsDelegate.kt` | `PdfTtsDelegate` | New delegate: TTS Read Aloud for PDF pages (extracts text via PdfTextSelectionManager) |
 | 2026-04-14 22:46:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubTtsDelegate.kt` | `EpubTtsDelegate` | New delegate: TTS Read Aloud for EPUB chapters (extracts text via WebView JS innerText) |
@@ -2274,8 +2274,8 @@ Format: | datetime | file | target | description |
 | 2026-04-15 18:18:27 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `containerDocLinks` | Add btnHowToGuides button (portrait + landscape layouts) |
 | 2026-04-15 18:18:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | Wire btnHowToGuides click - opens HOW_TO.html (EN/RU/UK) |
 | 2026-04-15 18:27:47 | `docs/FAQ.md` | `FAQ` | Add HOW_TO, Quick Start, Troubleshooting links to footer |
-| 2026-04-15 18:27:47 | `docs/FAQ_RU.md` | `FAQ_RU` | Add HOW_TO_RU, Quick Start, Troubleshooting links to footer |
-| 2026-04-15 18:27:47 | `docs/FAQ_UK.md` | `FAQ_UK` | Add HOW_TO_UK, Quick Start, Troubleshooting links to footer |
+| 2026-04-15 18:27:47 | `docs/FAQ-ru.md` | `FAQ_RU` | Add HOW_TO_RU, Quick Start, Troubleshooting links to footer |
+| 2026-04-15 18:27:47 | `docs/FAQ-uk.md` | `FAQ_UK` | Add HOW_TO_UK, Quick Start, Troubleshooting links to footer |
 | 2026-04-15 18:34:07 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GetDestinationsUseCase.kt` | `GetDestinationsUseCase` | Exclude virtual:// paths from all destination lists (copy/move dialog) |
 | 2026-04-15 18:40:24 | `app_v2/src/main/res/layout/item_media_file.xml` | `item_media_file` | Double action button size: 24dp -> 48dp, padding 6dp -> 12dp |
 | 2026-04-15 18:40:30 | `app_v2/src/main/res/layout/item_media_file_grid_operations.xml` | `item_media_file_grid_operations` | Double action button size: 24dp -> 48dp, padding 0dp -> 12dp |
@@ -2399,8 +2399,8 @@ Format: | datetime | file | target | description |
 | 2026-04-17 15:43:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageLoadingManager.kt` | `ImageLoadingManager` | Add onZoomInteraction lambda; isPhotoViewImageLoaded flag prevents load-time false positives from PhotoView scale listener |
 | 2026-04-17 15:43:56 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/FilenameOverlayAutoHideManagerTest.kt` | `FilenameOverlayAutoHideManagerTest` | NEW: 17 MockK unit tests covering timeout mapping fullscreen guard pause/zoom re-show lifecycle and cancel |
 | 2026-04-17 15:44:03 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/FilenameOverlayAutoHideManagerTest.kt` | `FilenameOverlayAutoHideManagerTest` | Replaced timeout asserts with JUnit assertEquals in the committed test file and revalidated the focused overlay test suite |
-| 2026-04-17 16:57:24 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Synced with EN rewrite: advantage-focused, removed obvious items, trimmed competitor tables |
-| 2026-04-17 16:57:24 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Synced with EN rewrite: advantage-focused, removed obvious items, trimmed competitor tables |
+| 2026-04-17 16:57:24 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Synced with EN rewrite: advantage-focused, removed obvious items, trimmed competitor tables |
+| 2026-04-17 16:57:24 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Synced with EN rewrite: advantage-focused, removed obvious items, trimmed competitor tables |
 | 2026-04-17 17:08:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerObserverManager.kt` | `PlayerObserverManager` | Included isPaused in the UI observation key so pause/resume triggers updateUI and filename overlay re-show logic |
 | 2026-04-17 17:47:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Synced ViewModel pause state from AudioPlaybackService playWhenReady so audio filename overlay reappears after pause |
 | 2026-04-17 18:05:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ExoPlayerControlsManager.kt` | `ExoPlayerControlsManager` | Replaced bottom speed/audio/subtitle quick actions with unified Control entry point |
@@ -2417,8 +2417,8 @@ Format: | datetime | file | target | description |
 | 2026-04-17 18:06:22 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml uk` | Added Ukrainian labels for video Control dialog tabs and sliders |
 | 2026-04-17 18:08:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneVideoControlsManager.kt` | `StandaloneVideoControlsManager` | Moved standalone speed audio subtitle actions behind the new Control button menu |
 | 2026-04-17 18:08:38 | `docs/FEATURES.md` | `FEATURES.md` | Added tabbed video Control dialog entry to video player feature inventory |
-| 2026-04-17 18:08:38 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added Russian entry for the tabbed video Control dialog |
-| 2026-04-17 18:08:39 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added Ukrainian entry for the tabbed video Control dialog |
+| 2026-04-17 18:08:38 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Added Russian entry for the tabbed video Control dialog |
+| 2026-04-17 18:08:39 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Added Ukrainian entry for the tabbed video Control dialog |
 | 2026-04-17 18:12:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | Routed video command-panel Edit action to the unified Control dialog |
 | 2026-04-17 18:12:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerKeyboardCallbackImpl.kt` | `PlayerKeyboardCallbackImpl` | Routed video keyboard Edit action to the unified Control dialog |
 | 2026-04-17 18:13:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Fix mute toggle: now updates volume label and button text on click; set seekSpeed.max programmatically from speedSteps.size |
@@ -2447,8 +2447,8 @@ Format: | datetime | file | target | description |
 | 2026-04-17 18:40:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `StandalonePlayerActivity` | Wired standalone video controls and gestures to the unified Control dialog and shared Media3 color state |
 | 2026-04-17 18:40:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlaybackControlDialogFragment.kt` | `StandalonePlaybackControlDialogFragment` | Added standalone tabbed video Control dialog with volume audio subtitles HUE brightness speed and reset actions |
 | 2026-04-17 18:40:33 | `docs/FEATURES.md` | `FEATURES.md` | Updated video Control dialog feature entry to include standalone parity and GPU color controls |
-| 2026-04-17 18:40:33 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Updated video Control dialog feature entry to include standalone parity and GPU color controls |
-| 2026-04-17 18:40:34 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Updated video Control dialog feature entry to include standalone parity and GPU color controls |
+| 2026-04-17 18:40:33 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Updated video Control dialog feature entry to include standalone parity and GPU color controls |
+| 2026-04-17 18:40:34 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Updated video Control dialog feature entry to include standalone parity and GPU color controls |
 | 2026-04-17 21:20:41 | `PLAN/spec_adaptive-playback-strategy.md` | `spec_adaptive-playback-strategy` | Expanded spec with detailed 9-step developer implementation plan for Phase 1 MVP |
 | 2026-04-17 22:39:40 | `app_v2/src/main/res/drawable/ic_search.xml` | `ic_search` | NEW: Custom VectorDrawable replacing @android:drawable/ic_menu_search |
 | 2026-04-17 22:39:44 | `app_v2/src/main/res/drawable/` | `ic_skip_next,ic_skip_previous,ic_fast_forward,ic_fast_rewind,ic_info,ic_add,ic_toc,ic_error_outline,ic_lock` | NEW: 9 VectorDrawable icons replacing @android:drawable/ic_media_* and ic_menu_* system drawables |
@@ -2666,14 +2666,14 @@ Format: | datetime | file | target | description |
 | 2026-04-18 22:36:38 | `scripts/builders/README.md` | `builders/README` | Added VR build scripts section (debug, device, release, AAB) |
 | 2026-04-18 22:36:41 | `docs/DEV_OPS.md` | `DEV_OPS` | Added VR flavor build commands and VR column to feature flags table |
 | 2026-04-18 22:36:45 | `docs/FEATURES.md` | `FEATURES.md` | Added 3D stereo detection and VR edition feature bullets to Video Player section |
-| 2026-04-18 22:36:50 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Added 3D stereo detection and VR edition feature bullets (RU) |
-| 2026-04-18 22:36:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Added 3D stereo detection and VR edition feature bullets (UK) |
+| 2026-04-18 22:36:50 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Added 3D stereo detection and VR edition feature bullets (RU) |
+| 2026-04-18 22:36:50 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Added 3D stereo detection and VR edition feature bullets (UK) |
 | 2026-04-18 22:36:55 | `docs/VR_EDITION.md` | `VR_EDITION` | New: VR edition overview doc (EN) - features, differences, build commands, distribution |
-| 2026-04-18 22:36:55 | `docs/VR_EDITION_RU.md` | `VR_EDITION_RU` | New: VR edition overview doc (RU) |
-| 2026-04-18 22:36:55 | `docs/VR_EDITION_UK.md` | `VR_EDITION_UK` | New: VR edition overview doc (UK) |
+| 2026-04-18 22:36:55 | `docs/VR_EDITION-ru.md` | `VR_EDITION_RU` | New: VR edition overview doc (RU) |
+| 2026-04-18 22:36:55 | `docs/VR_EDITION-uk.md` | `VR_EDITION_UK` | New: VR edition overview doc (UK) |
 | 2026-04-18 22:37:01 | `docs/VR_SIDELOAD.md` | `VR_SIDELOAD` | New: Quest sideloading guide (EN) - ADB setup, build, install, wireless ADB |
-| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD_RU.md` | `VR_SIDELOAD_RU` | New: Quest sideloading guide (RU) |
-| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD_UK.md` | `VR_SIDELOAD_UK` | New: Quest sideloading guide (UK) |
+| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD-ru.md` | `VR_SIDELOAD_RU` | New: Quest sideloading guide (RU) |
+| 2026-04-18 22:37:01 | `docs/VR_SIDELOAD-uk.md` | `VR_SIDELOAD_UK` | New: Quest sideloading guide (UK) |
 | 2026-04-18 22:37:04 | `docs/MODULE_SELECTION.md` | `MODULE_SELECTION` | Added vr flavor to module table, run configurations, and build commands |
 | 2026-04-18 22:41:40 | `app_v2/src/main/res/values/themes.xml` | `Theme.FastMediaSorter.App` | Remove windowDisablePreview=true - fixes black screen on cold start (day theme) |
 | 2026-04-18 22:41:40 | `app_v2/src/main/res/values-night/themes.xml` | `Theme.FastMediaSorter.App` | Remove windowDisablePreview=true - fixes black screen on cold start (night theme) |
@@ -2751,8 +2751,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 01:57:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `impl` | Expand 3D tab visibility: show when stereo content detected (not just VR flavor) |
 | 2026-04-19 01:57:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `impl` | Add stereoMode collector for image re-rendering on 3D tab mode switch |
 | 2026-04-19 01:57:09 | `docs/FEATURES.md` | `docs` | Add 3D Image Viewing feature entry (EN) |
-| 2026-04-19 01:57:09 | `docs/FEATURES_RU.md` | `docs` | Add 3D Image Viewing feature entry (RU) |
-| 2026-04-19 01:57:09 | `docs/FEATURES_UK.md` | `docs` | Add 3D Image Viewing feature entry (UK) |
+| 2026-04-19 01:57:09 | `docs/FEATURES-ru.md` | `docs` | Add 3D Image Viewing feature entry (RU) |
+| 2026-04-19 01:57:09 | `docs/FEATURES-uk.md` | `docs` | Add 3D Image Viewing feature entry (UK) |
 | 2026-04-19 02:42:02 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrVideoSurfaceTextureBridge.kt` | `VrVideoSurfaceTextureBridge` | New: OES texture + SurfaceTexture + Surface factory for ExoPlayer→GL pipeline |
 | 2026-04-19 02:42:06 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Rewritten: GLSL shader program, VBO quad, per-eye UV-crop rendering |
 | 2026-04-19 02:42:09 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Updated: bridge integration, initializeVrRenderPipeline(), renderVrFrame() |
@@ -2794,8 +2794,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 15:26:11 | `PLAN/tasks/phase_03_mp4_spatial_boxes.md` | `phase_03_mp4_spatial_boxes` | Marked Phase 3 complete and documented MP4 spatial metadata implementation |
 | 2026-04-19 15:26:11 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Synced master VR spec to Phase 3 completion and MP4 spatial metadata support |
 | 2026-04-19 15:26:11 | `docs/FEATURES.md` | `FEATURES.md` | Documented MP4 Spatial Media auto-detection for 360 degree video |
-| 2026-04-19 15:26:11 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Documented MP4 Spatial Media auto-detection for 360 degree video in Russian |
-| 2026-04-19 15:26:11 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Documented MP4 Spatial Media auto-detection for 360 degree video in Ukrainian |
+| 2026-04-19 15:26:11 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Documented MP4 Spatial Media auto-detection for 360 degree video in Russian |
+| 2026-04-19 15:26:11 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Documented MP4 Spatial Media auto-detection for 360 degree video in Ukrainian |
 | 2026-04-19 15:26:57 | `PLAN/tasks/phase_03_mp4_spatial_boxes.md` | `phase_03_mp4_spatial_boxes` | Removed duplicate acceptance criterion after Phase 3 doc sync |
 | 2026-04-19 18:53:56 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/StereoDetectorTest.kt` | `StereoDetectorTest` | Fix deprecated createTempDir -> createTempDirectory (kotlin.io.path) |
 | 2026-04-19 18:55:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrLayerType.kt` | `VrLayerType` | Added stable VR layer type enum shared with native OpenXR bridge |
@@ -2811,8 +2811,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 18:57:54 | `PLAN/tasks/phase_04_layer_factory.md` | `phase_04_layer_factory` | Marked Phase 4 complete and documented implemented layer factory and native composition-layer routing |
 | 2026-04-19 18:57:54 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Updated master VR roadmap to mark Phase 4 complete and list implemented layer-factory stack |
 | 2026-04-19 18:57:54 | `docs/FEATURES.md` | `FEATURES.md` | Updated VR feature inventory with implemented OpenXR layer-factory routing details |
-| 2026-04-19 18:57:54 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Updated VR feature inventory with implemented OpenXR layer-factory routing details (RU) |
-| 2026-04-19 18:57:54 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Updated VR feature inventory with implemented OpenXR layer-factory routing details (UK) |
+| 2026-04-19 18:57:54 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Updated VR feature inventory with implemented OpenXR layer-factory routing details (RU) |
+| 2026-04-19 18:57:54 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Updated VR feature inventory with implemented OpenXR layer-factory routing details (UK) |
 | 2026-04-19 19:03:02 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrRenderContext.kt` | `VrRenderContext` | Added immutable XR frame context carrying layer type, eye, render mode, target size, and source aspect for Phase 5 renderer dispatch |
 | 2026-04-19 19:03:02 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Refactored renderer to build layer-aware render plans, keep spherical paths flat, and letterbox cinema quad via viewport policy |
 | 2026-04-19 19:03:02 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Updated XR render callback to pass full VrRenderContext including target size and source aspect into renderer |
@@ -2820,8 +2820,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 19:04:35 | `PLAN/tasks/phase_05_sphere_cylinder_render.md` | `phase_05_sphere_cylinder_render` | Marked Phase 5 complete and documented implemented layer-aware renderer dispatch and validation scope |
 | 2026-04-19 19:04:35 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Updated master VR roadmap to mark Phase 5 complete and advance next milestone to Phase 6 |
 | 2026-04-19 19:04:35 | `docs/FEATURES.md` | `FEATURES.md` | Updated VR feature inventory to describe implemented flat-pixel spherical and cylinder renderer dispatch |
-| 2026-04-19 19:04:35 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Updated VR feature inventory to describe implemented flat-pixel spherical and cylinder renderer dispatch (RU) |
-| 2026-04-19 19:04:35 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Updated VR feature inventory to describe implemented flat-pixel spherical and cylinder renderer dispatch (UK) |
+| 2026-04-19 19:04:35 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Updated VR feature inventory to describe implemented flat-pixel spherical and cylinder renderer dispatch (RU) |
+| 2026-04-19 19:04:35 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Updated VR feature inventory to describe implemented flat-pixel spherical and cylinder renderer dispatch (UK) |
 | 2026-04-19 19:10:17 | `app_v2/src/main/java/com/sza/fastmediasorter/vr/render/VrRenderContext.kt` | `VrRenderContext,VrEye` | Move pure data types from src/vr to src/main for test visibility |
 | 2026-04-19 19:10:17 | `app_v2/src/main/java/com/sza/fastmediasorter/vr/render/VrRenderPlanner.kt` | `VrRenderPlanner` | Extract pure UV/viewport computation from VrStereoRenderer for unit testing without GL context |
 | 2026-04-19 19:10:17 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/render/VrStereoRenderer.kt` | `VrStereoRenderer` | Delegate buildRenderPlan/calculateUvParams/calculateCinemaViewport to VrRenderPlanner |
@@ -2871,8 +2871,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 20:05:15 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Phase 8: split UK VR settings strings and arrays into flat and spherical options |
 | 2026-04-19 20:08:56 | `PLAN/tasks/phase_08_settings_360.md` | `phase_08_settings_360` | Phase 8: marked VR split forced-format task as implemented with validation note |
 | 2026-04-19 20:08:56 | `docs/FEATURES.md` | `FEATURES` | Phase 8: documented split flat and spherical VR forced-format settings |
-| 2026-04-19 20:08:56 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 8: documented split flat and spherical VR forced-format settings in Russian |
-| 2026-04-19 20:08:56 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 8: documented split flat and spherical VR forced-format settings in Ukrainian |
+| 2026-04-19 20:08:56 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Phase 8: documented split flat and spherical VR forced-format settings in Russian |
+| 2026-04-19 20:08:56 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Phase 8: documented split flat and spherical VR forced-format settings in Ukrainian |
 | 2026-04-19 20:09:34 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 8: synced master VR spec with split flat and spherical forced-format settings |
 | 2026-04-19 20:09:34 | `PLAN/tasks/phase_07_dialog_spherical.md` | `phase_07_dialog_spherical` | Phase 8: updated Phase 7 task note to reference split VR settings |
 | 2026-04-19 20:10:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `resolveStereoFamily` | Fix: explicit flat modes (SBS/OU/MONO) now return FLAT directly instead of falling back to detectedStereoMode |
@@ -2891,8 +2891,8 @@ Format: | datetime | file | target | description |
 | 2026-04-19 20:22:28 | `PLAN/tasks/phase_09_stereo_snapshot.md` | `phase_09_stereo_snapshot` | Phase 9: marked stereo snapshot task implemented and added validation commands |
 | 2026-04-19 20:22:28 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 9: marked stereo snapshot complete in VR master spec |
 | 2026-04-19 20:22:28 | `docs/FEATURES.md` | `FEATURES` | Phase 9: refined VR feature inventory entry with stereo snapshot save/open details |
-| 2026-04-19 20:22:28 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 9: refined RU VR feature inventory entry with stereo snapshot save/open details |
-| 2026-04-19 20:22:28 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 9: refined UK VR feature inventory entry with stereo snapshot save/open details |
+| 2026-04-19 20:22:28 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Phase 9: refined RU VR feature inventory entry with stereo snapshot save/open details |
+| 2026-04-19 20:22:28 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Phase 9: refined UK VR feature inventory entry with stereo snapshot save/open details |
 | 2026-04-19 20:36:05 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `StereoSnapshot` | Fix data race: changed ready from plain bool to std::atomic<bool> with release/acquire ordering |
 | 2026-04-19 20:36:08 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/openxr/OpenXrSessionManager.kt` | `StereoSnapshotPixels` | Override equals/hashCode to use contentEquals for IntArray fields (data class value semantics) |
 | 2026-04-19 20:36:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/commands/PlayerCommandOverrides.kt` | `PlayerCommandOverrides` | Phase 10: added optional player command override contracts for flavor-specific behavior |
@@ -2909,13 +2909,13 @@ Format: | datetime | file | target | description |
 | 2026-04-19 20:36:20 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | Phase 10: added UK VR fullscreen command toast |
 | 2026-04-19 20:36:36 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/ui/VrControlOverlayManagerTest.kt` | `VrControlOverlayManagerTest` | Phase 10: added focused VR unit test for control overlay state and command filtering |
 | 2026-04-19 20:37:22 | `docs/FEATURES.md` | `FEATURES.md` | Moved VR capabilities into a dedicated VR Edition section and renumbered sections |
-| 2026-04-19 20:37:22 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
-| 2026-04-19 20:37:22 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
+| 2026-04-19 20:37:22 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
+| 2026-04-19 20:37:22 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Moved VR capabilities into a dedicated VR section and renumbered sections |
 | 2026-04-19 20:39:12 | `PLAN/tasks/phase_10_vr_commands.md` | `phase_10_vr_commands` | Phase 10: marked VR command override task implemented with validation commands |
 | 2026-04-19 20:39:12 | `PLAN/spec_vr-master.md` | `spec_vr-master` | Phase 10: marked VR command overrides complete in master spec |
 | 2026-04-19 20:39:12 | `docs/FEATURES.md` | `FEATURES` | Phase 10: documented VR fullscreen and system-ui command behavior |
-| 2026-04-19 20:39:12 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 10: documented RU VR fullscreen and system-ui command behavior |
-| 2026-04-19 20:39:12 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 10: documented UK VR fullscreen and system-ui command behavior |
+| 2026-04-19 20:39:12 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Phase 10: documented RU VR fullscreen and system-ui command behavior |
+| 2026-04-19 20:39:12 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Phase 10: documented UK VR fullscreen and system-ui command behavior |
 | 2026-04-19 20:59:17 | `app_v2/build.gradle.kts` | `disableNativeBuild()` | Fix: set abiFilters=arm64-v8a for non-VR flavors - was empty (all ABIs), causing standard APK to be 3-4x larger than vr |
 | 2026-04-19 21:43:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `PlayerActivity.createIntent` | Fix: use BuildConfig.PLAYER_ACTIVITY_CLASS to route to VrPlayerActivity in vr flavor instead of hardcoded PlayerActivity::class.java |
 | 2026-04-19 21:43:17 | `app_v2/build.gradle.kts` | `productFlavors` | Fix: add PLAYER_ACTIVITY_CLASS buildConfigField per flavor (vr=VrPlayerActivity, others=PlayerActivity) |
@@ -3044,8 +3044,8 @@ Format: | datetime | file | target | description |
 | 2026-04-20 22:50:48 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add random file accessibility string |
 | 2026-04-20 22:50:48 | `app_v2/src/main/res/drawable/ic_random_nav.xml` | `ic_random_nav` | Add dice icon for random file navigation |
 | 2026-04-20 22:50:48 | `docs/FEATURES.md` | `FEATURES` | Document random player navigation for audio and photo libraries |
-| 2026-04-20 22:50:48 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document random player navigation for audio and photo libraries |
-| 2026-04-20 22:50:48 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document random player navigation for audio and photo libraries |
+| 2026-04-20 22:50:48 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Document random player navigation for audio and photo libraries |
+| 2026-04-20 22:50:48 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Document random player navigation for audio and photo libraries |
 | 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Add random navigation button to player command panel and show it only for audio/photo library profiles |
 | 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerNavigationManager.kt` | `PlayerNavigationManager` | Add random file navigation that jumps to a non-current file from the active player list |
 | 2026-04-20 22:52:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `PlayerViewModel` | Add jumpToIndex() helper for random player navigation while preserving resume state sync |
@@ -3057,8 +3057,8 @@ Format: | datetime | file | target | description |
 | 2026-04-20 22:52:27 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU random_file_description string for the player random navigation button |
 | 2026-04-20 22:52:27 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK random_file_description string for the player random navigation button |
 | 2026-04-20 22:52:28 | `docs/FEATURES.md` | `FEATURES` | Document random file jump button in player for audio and photo libraries |
-| 2026-04-20 22:52:28 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document random file jump button in player for audio and photo libraries (RU) |
-| 2026-04-20 22:52:28 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document random file jump button in player for audio and photo libraries (UK) |
+| 2026-04-20 22:52:28 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Document random file jump button in player for audio and photo libraries (RU) |
+| 2026-04-20 22:52:28 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Document random file jump button in player for audio and photo libraries (UK) |
 | 2026-04-20 22:55:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Extend speed range from 2.0x to 3.0x (add 2.5x, 3.0x steps) |
 | 2026-04-20 23:03:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlDialogFragment.kt` | `PlaybackControlDialogFragment` | Add 50% and MAX volume presets with mute state sync and accessibility |
 | 2026-04-20 23:03:23 | `app_v2/src/main/res/layout/dialog_playback_control.xml` | `dialog_playback_control` | Add volume preset buttons and emphasize mute action in portrait dialog |
@@ -3104,8 +3104,8 @@ Format: | datetime | file | target | description |
 | 2026-04-21 00:39:40 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add RU strings for VR 3D image immersive routing fallback errors |
 | 2026-04-21 00:39:43 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add UK strings for VR 3D image immersive routing fallback errors |
 | 2026-04-21 00:39:47 | `docs/FEATURES.md` | `FEATURES` | Document VR 3D image immersive routing and explicit fallback errors |
-| 2026-04-21 00:39:50 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document VR 3D image immersive routing and explicit fallback errors |
-| 2026-04-21 00:40:07 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:39:50 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Document VR 3D image immersive routing and explicit fallback errors |
+| 2026-04-21 00:40:07 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Document VR 3D image immersive routing and explicit fallback errors |
 | 2026-04-21 00:41:14 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix missing R import for VR immersive fallback string resources |
 | 2026-04-21 00:43:14 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Fix MediaFile test fixture for VR route decision helper compile |
 | 2026-04-21 00:45:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LanguageBadgeDrawable.kt` | `LanguageBadgeDrawable` | Default forcedColor changed to Color.WHITE - ensures badge text is visible on dark player background |
@@ -3121,8 +3121,8 @@ Format: | datetime | file | target | description |
 | 2026-04-21 00:45:34 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Fix pre-existing build error: add updateResourcesDisplayOrder stub to FakeResourceRepository |
 | 2026-04-21 00:45:34 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Move from src/test/ to src/testVr/ - fix pre-existing compilation error (vr source set not in standard flavor) |
 | 2026-04-21 00:45:34 | `docs/FEATURES.md` | `FEATURES` | Add Print bullet in PDF Viewer section: portrait/landscape, PDF/TEXT/IMAGE, remote file caching |
-| 2026-04-21 00:45:34 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
-| 2026-04-21 00:45:34 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
+| 2026-04-21 00:45:34 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
+| 2026-04-21 00:45:34 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
 | 2026-04-21 00:45:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Change PRINT barCapable to true: bar-first, overflow on space shortage |
 | 2026-04-21 00:45:49 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd ImageButton to portrait adaptive command bar |
 | 2026-04-21 00:45:49 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified_land` | Add btnPrintCmd ImageButton to landscape command bar |
@@ -3131,15 +3131,15 @@ Format: | datetime | file | target | description |
 | 2026-04-21 00:45:49 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/SendResourcesToWatchUseCaseTest.kt` | `SendResourcesToWatchUseCaseTest` | Fix pre-existing: add updateResourcesDisplayOrder stub to FakeResourceRepository |
 | 2026-04-21 00:45:49 | `app_v2/src/testVr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelperTest.kt` | `VrRouteDecisionHelperTest` | Fix pre-existing: move to testVr source set (not compiled for standard flavor) |
 | 2026-04-21 00:45:49 | `docs/FEATURES.md` | `FEATURES` | Add Print bullet in PDF Viewer section: portrait+landscape, PDF/TEXT/IMAGE, remote caching |
-| 2026-04-21 00:45:49 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
-| 2026-04-21 00:45:49 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
+| 2026-04-21 00:45:49 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add Print bullet in PDF Viewer section (RU) |
+| 2026-04-21 00:45:49 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add Print bullet in PDF Viewer section (UK) |
 | 2026-04-21 00:45:57 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd portrait bar |
 | 2026-04-21 00:45:57 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified` | Add btnPrintCmd landscape bar |
 | 2026-04-21 00:45:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `PlayerBindingSafeViews` | Register btnPrintCmd |
 | 2026-04-21 00:45:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | Wire btnPrintCmd: click, overflow list, barView, landscape visibility |
 | 2026-04-21 00:45:57 | `docs/FEATURES.md` | `FEATURES` | Add Print feature bullet (EN) |
-| 2026-04-21 00:45:57 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add Print feature bullet (RU) |
-| 2026-04-21 00:45:57 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add Print feature bullet (UK) |
+| 2026-04-21 00:45:57 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add Print feature bullet (RU) |
+| 2026-04-21 00:45:57 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add Print feature bullet (UK) |
 | 2026-04-21 01:21:01 | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2` | Rebuilt fms-ffmpeg-dts.aar with NDK r25c + -Wl,-z,max-page-size=16384. All LOAD segments now Align=0x4000 (16 KB). arm64-v8a only. libffmpegJNI.so verified in standard debug APK. DTS restored in standard/legacy/vr/vrUnlicensed flavors. |
 | 2026-04-21 01:21:05 | `app_v2/build.gradle.kts` | `app_v2` | Restored ENABLE_DTS_DECODER=true for standard/legacy/vr flavors. Added standardImplementation/legacyImplementation/vrImplementation for fms-ffmpeg-dts.aar. Removed temporary 16 KB compliance fallback comments. |
 | 2026-04-21 01:43:38 | `app_v2/src/vr/cpp/OpenXrNative.cpp` | `createSessionAndSwapchains` | xrGetGraphicsRequirementsOpenGLESKHR lookup failure treated as non-fatal (Meta Quest HorizonOS v69+ workaround) - was crashing XR session init with result=-7 |
@@ -3268,8 +3268,8 @@ Format: | datetime | file | target | description |
 | 2026-04-21 17:31:48 | `maestro/smoke/video_prefetch_indicator.yaml` | `video_prefetch_indicator` | Add smoke flow: prefetch overlay pill appears and auto-dismisses during network video |
 | 2026-04-21 17:31:48 | `maestro/critical/video_offload_flow.yaml` | `video_offload_flow` | Add critical flow: full offload accept + progress + cleanup prompt path |
 | 2026-04-21 17:31:48 | `docs/FEATURES.md` | `FEATURES` | Document adaptive pre-cache playback strategy feature (EN) |
-| 2026-04-21 17:31:48 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Document adaptive pre-cache playback strategy feature (RU) |
-| 2026-04-21 17:31:48 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Document adaptive pre-cache playback strategy feature (UK) |
+| 2026-04-21 17:31:48 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Document adaptive pre-cache playback strategy feature (RU) |
+| 2026-04-21 17:31:48 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Document adaptive pre-cache playback strategy feature (UK) |
 | 2026-04-21 17:33:38 | `app_v2/src/main/res/values/strings.xml` | `strings` | Add missing Phase D strings: prefetch overlay pill, offload dialog row labels (EN) |
 | 2026-04-21 17:33:38 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add missing Phase D strings: prefetch overlay pill, offload dialog row labels (RU) |
 | 2026-04-21 17:33:38 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add missing Phase D strings: prefetch overlay pill, offload dialog row labels (UK) |
@@ -3374,11 +3374,11 @@ Format: | datetime | file | target | description |
 | 2026-04-22 22:36:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFullscreenManager.kt` | `StandaloneFullscreenManager` | Replaced deprecated SYSTEM_UI_FLAG_* with WindowInsetsControllerCompat to resolve Google Play Console edge-to-edge API deprecation warnings on Android 15 |
 | 2026-04-22 22:43:50 | `app_v2/build.gradle.kts` | `build.release.ndk.abiFilters` | Restore multi-ABI release (arm64-v8a + armeabi-v7a + x86 + x86_64) - recover ~5.2k devices lost by prior arm64-only restriction |
 | 2026-04-22 22:53:22 | `docs/VR_EDITION.md` | `VR_EDITION` | Add Technical Constraints section (ABI arm64-only, OpenXR runtime, no Wear, dual distribution, fallback screen) |
-| 2026-04-22 22:53:26 | `docs/VR_EDITION_RU.md` | `VR_EDITION_RU` | Mirror: add Technical Constraints section (RU) |
-| 2026-04-22 22:53:29 | `docs/VR_EDITION_UK.md` | `VR_EDITION_UK` | Mirror: add Technical Constraints section (UK) |
+| 2026-04-22 22:53:26 | `docs/VR_EDITION-ru.md` | `VR_EDITION_RU` | Mirror: add Technical Constraints section (RU) |
+| 2026-04-22 22:53:29 | `docs/VR_EDITION-uk.md` | `VR_EDITION_UK` | Mirror: add Technical Constraints section (UK) |
 | 2026-04-22 22:53:33 | `docs/LIMITATIONS.md` | `LIMITATIONS` | Add VR Edition subsection under Functional Constraints (hardware, distribution, Wear caveat) |
-| 2026-04-22 22:53:37 | `docs/LIMITATIONS_RU.md` | `LIMITATIONS_RU` | Mirror: add VR Edition subsection (RU) |
-| 2026-04-22 22:53:40 | `docs/LIMITATIONS_UK.md` | `LIMITATIONS_UK` | Mirror: add VR Edition subsection (UK) |
+| 2026-04-22 22:53:37 | `docs/LIMITATIONS-ru.md` | `LIMITATIONS_RU` | Mirror: add VR Edition subsection (RU) |
+| 2026-04-22 22:53:40 | `docs/LIMITATIONS-uk.md` | `LIMITATIONS_UK` | Mirror: add VR Edition subsection (UK) |
 | 2026-04-22 23:02:04 | `PLAN/spec_ffmpeg-dts-multi-abi.md` | `spec` | Add specification for multi-ABI FFmpeg/DTS AAR build (arm64-v8a + armeabi-v7a + x86 + x86_64) |
 | 2026-04-22 23:14:53 | `scripts/builders/build-ffmpeg-dts.sh` | `build-ffmpeg-dts` | Multi-ABI support: ABIS includes arm64-v8a + armeabi-v7a + x86 + x86_64; added x86/x86_64 case arms; per-ABI 16 KB alignment loop |
 | 2026-04-22 23:14:57 | `scripts/builders/build-ffmpeg-dts-wsl.ps1` | `build-ffmpeg-dts-wsl` | Update post-build hint to enumerate all 4 ABIs in readelf verification loop |
@@ -3412,8 +3412,8 @@ Format: | datetime | file | target | description |
 | 2026-04-23 01:10:24 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru` | Add vr_toggle_enter_description and vr_toggle_exit_description (RU) |
 | 2026-04-23 01:10:24 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk` | Add vr_toggle_enter_description and vr_toggle_exit_description (UK) |
 | 2026-04-23 01:13:46 | `docs/FEATURES.md` | `FEATURES` | Add 3DVR toggle button feature (VR edition section) |
-| 2026-04-23 01:13:46 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add 3DVR toggle button feature (VR edition section, RU) |
-| 2026-04-23 01:13:46 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add 3DVR toggle button feature (VR edition section, UK) |
+| 2026-04-23 01:13:46 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add 3DVR toggle button feature (VR edition section, RU) |
+| 2026-04-23 01:13:46 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add 3DVR toggle button feature (VR edition section, UK) |
 | 2026-04-23 01:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Add onPlayerCreated callback for VR surface race fix |
 | 2026-04-23 01:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerSetupHelper.kt` | `PlayerSetupHelper` | Invoke onPlayerCreated after fresh ExoPlayer is ready |
 | 2026-04-23 01:41:22 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `VrPlayerActivity` | Fix VR black-screen race: pending surface queue + flushPendingVrSurfaceIfReady; fix button state to flip only after actual VR render start; reset vrRenderingActive on forceStop |
@@ -3421,8 +3421,8 @@ Format: | datetime | file | target | description |
 | 2026-04-23 01:41:22 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `layout-land` | Move btn3dVrCmd next to btnEditCmd (landscape) |
 | 2026-04-23 01:41:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CommandPanelLayoutPlanner.kt` | `CommandPanelLayoutPlanner` | Re-prioritize VR_3D to 211 so it sits adjacent to EDIT in portrait adaptive layout |
 | 2026-04-23 02:13:01 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Add EN What is New doc for release 2.60.422.246 |
-| 2026-04-23 02:13:01 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Add RU What is New doc for release 2.60.422.246 |
-| 2026-04-23 02:13:01 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Add UK What is New doc for release 2.60.422.246 |
+| 2026-04-23 02:13:01 | `docs/WHATS_NEW-ru.md` | `WHATS_NEW_RU` | Add RU What is New doc for release 2.60.422.246 |
+| 2026-04-23 02:13:01 | `docs/WHATS_NEW-uk.md` | `WHATS_NEW_UK` | Add UK What is New doc for release 2.60.422.246 |
 | 2026-04-23 02:13:01 | `docs/DOCS_MAP.md` | `DOCS_MAP` | Add What is New links (EN/RU/UK) to docs map |
 | 2026-04-23 02:13:01 | `index.html` | `index.html` | Add What is New card to EN landing page User Guides section |
 | 2026-04-23 02:13:01 | `index-ru.html` | `index-ru.html` | Add What is New card to RU landing page |
@@ -3540,11 +3540,11 @@ Format: | datetime | file | target | description |
 | 2026-04-24 15:44:16 | `app_v2/src/test/java/com/sza/fastmediasorter/vr/helpers/VrControllerInputManagerTest.kt` | `test` | Add unit tests for VrControllerInputManager: 3-layer routing (OpenXR + keyboard + mouse) |
 | 2026-04-24 15:44:16 | `app_v2/src/test/java/com/sza/fastmediasorter/vr/ui/VrZoomManagerTest.kt` | `test` | Add unit tests for VrZoomManager: clamp, discrete steps, grip delta |
 | 2026-04-24 19:20:25 | `docs/FEATURES.md` | `docs` | Add VR Immersive Controls to feature list EN |
-| 2026-04-24 19:20:25 | `docs/FEATURES_RU.md` | `docs` | Add VR Immersive Controls to feature list RU |
-| 2026-04-24 19:20:25 | `docs/FEATURES_UK.md` | `docs` | Add VR Immersive Controls to feature list UK |
+| 2026-04-24 19:20:25 | `docs/FEATURES-ru.md` | `docs` | Add VR Immersive Controls to feature list RU |
+| 2026-04-24 19:20:25 | `docs/FEATURES-uk.md` | `docs` | Add VR Immersive Controls to feature list UK |
 | 2026-04-24 19:20:25 | `docs/VR_CONTROLS.md` | `docs` | Add user-facing VR controls documentation EN |
-| 2026-04-24 19:20:25 | `docs/VR_CONTROLS_RU.md` | `docs` | Add user-facing VR controls documentation RU |
-| 2026-04-24 19:20:25 | `docs/VR_CONTROLS_UK.md` | `docs` | Add user-facing VR controls documentation UK |
+| 2026-04-24 19:20:25 | `docs/VR_CONTROLS-ru.md` | `docs` | Add user-facing VR controls documentation RU |
+| 2026-04-24 19:20:25 | `docs/VR_CONTROLS-uk.md` | `docs` | Add user-facing VR controls documentation UK |
 | 2026-04-24 19:21:23 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Sync catalog after VR immersive controls implementation |
 | 2026-04-24 19:21:23 | `dev/CATALOG/app_v2.md` | `catalog` | Sync catalog markdown after VR immersive controls |
 | 2026-04-24 19:24:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/KeyboardNavigationHandler.kt` | `KeyboardNavigationHandler` | Wired Main surface to shared keyboard help and focus primitives |
@@ -3611,8 +3611,8 @@ Format: | datetime | file | target | description |
 | 2026-04-24 20:46:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceKeyboardDelegate.kt` | `AddResourceKeyboardDelegate` | Wired open-current and focus movement callbacks for keyboard form navigation |
 | 2026-04-24 20:46:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `AddResourceActivity` | Forwarded add-resource keyboard activation and focus traversal through the delegate |
 | 2026-04-24 20:56:26 | `docs/FEATURES.md` | `FEATURES` | Add full keyboard/mouse coverage bullets: all-surface nav, NC shortcuts, TV color keys, F1 help, settings keyboard nav |
-| 2026-04-24 20:56:29 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add full keyboard/mouse coverage bullets (RU): all-surface nav, NC shortcuts, TV color keys, F1 help, settings keyboard nav |
-| 2026-04-24 20:56:30 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add full keyboard/mouse coverage bullets (UK): all-surface nav, NC shortcuts, TV color keys, F1 help, settings keyboard nav |
+| 2026-04-24 20:56:29 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add full keyboard/mouse coverage bullets (RU): all-surface nav, NC shortcuts, TV color keys, F1 help, settings keyboard nav |
+| 2026-04-24 20:56:30 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add full keyboard/mouse coverage bullets (UK): all-surface nav, NC shortcuts, TV color keys, F1 help, settings keyboard nav |
 | 2026-04-24 20:57:22 | `PLAN/spec_keyboard-mouse-coverage-impl.md` | `spec_keyboard-mouse-coverage-impl` | Status: Draft -> Implemented 2026-04-24 |
 | 2026-04-24 20:57:22 | `PLAN/tasks_keyboard_mouse_coverage/00_OVERVIEW.md` | `00_OVERVIEW` | Check off FEATURES.md docs item in Final Exit Checklist |
 | 2026-04-24 21:05:16 | `app_v2/src/main/java/com/sza/fastmediasorter/util/KeyboardShortcutHandler.kt` | `KeyboardShortcutHandler` | Moved main-screen function key parsing into shared semantics and aligned refresh mappings |
@@ -3715,8 +3715,8 @@ Format: | datetime | file | target | description |
 | 2026-04-25 03:06:57 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-vr-immersive-hud-gl` | P06: vr_hud_guard_* + first_run_cheat (RU) |
 | 2026-04-25 03:06:57 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-vr-immersive-hud-gl` | P06: vr_hud_guard_* + first_run_cheat (UK) |
 | 2026-04-25 03:06:57 | `docs/FEATURES.md` | `spec-vr-immersive-hud-gl` | P07: VR Immersive HUD bullet |
-| 2026-04-25 03:06:57 | `docs/FEATURES_RU.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Иммерсивный HUD» |
-| 2026-04-25 03:06:57 | `docs/FEATURES_UK.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Іммерсивний HUD» |
+| 2026-04-25 03:06:57 | `docs/FEATURES-ru.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Иммерсивный HUD» |
+| 2026-04-25 03:06:57 | `docs/FEATURES-uk.md` | `spec-vr-immersive-hud-gl` | P07: пункт «Іммерсивний HUD» |
 | 2026-04-25 03:06:57 | `dev/CATALOG/app_v2.jsonl` | `spec-vr-immersive-hud-gl` | P07: regen via scan.ps1 (VR src/vr/* not covered by scanner - main only) |
 | 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl__audit_2026-04-25.md` | `spec-check` | Audit vr-immersive-hud-gl: Partial (31 PASS / 9 WARN / 0 FAIL / 7 MANUAL) |
 | 2026-04-25 03:13:41 | `PLAN/spec_vr-immersive-hud-gl.md` | `spec-check` | Advance status to Partial; link audit report |
@@ -3790,8 +3790,8 @@ Format: | datetime | file | target | description |
 | 2026-04-25 12:28:39 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrToggleButtonManager.kt` | `vr-immersive-toggle` | Update KDoc: Watch in 3D VR -> Immersive view |
 | 2026-04-25 12:28:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `vr-immersive-toggle` | Update comments: 3DVR toggle button -> immersive toggle button |
 | 2026-04-25 12:29:39 | `docs/FEATURES.md` | `vr-immersive-toggle` | Update VR Edition: 3DVR toggle button -> Immersive mode toggle, note 2D support |
-| 2026-04-25 12:29:43 | `docs/FEATURES_RU.md` | `vr-immersive-toggle` | RU: Update VR Edition immersive toggle description |
-| 2026-04-25 12:29:43 | `docs/FEATURES_UK.md` | `vr-immersive-toggle` | UK: Update VR Edition immersive toggle description |
+| 2026-04-25 12:29:43 | `docs/FEATURES-ru.md` | `vr-immersive-toggle` | RU: Update VR Edition immersive toggle description |
+| 2026-04-25 12:29:43 | `docs/FEATURES-uk.md` | `vr-immersive-toggle` | UK: Update VR Edition immersive toggle description |
 | 2026-04-25 12:29:48 | `PLAN/spec_vr-immersive-toggle.md` | `vr-immersive-toggle` | Move strategic status to Tactical; link tactical plan |
 | 2026-04-25 12:30:48 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrToggleButtonManager.kt` | `vr-immersive-toggle` | Update KDoc first line: 3DVR toggle button -> immersive toggle button |
 | 2026-04-25 12:30:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `vr-immersive-toggle` | Update KDoc: 3DVR toggle button -> immersive toggle button |
@@ -3851,8 +3851,8 @@ Format: | datetime | file | target | description |
 | 2026-04-25 14:51:52 | `app_v2/src/main/res/values-ru/strings.xml` | `camera-capture-command` | Phase 06: add setting_disable_camera_capture + setting_skip_camera_filename_dialog RU strings |
 | 2026-04-25 14:51:52 | `app_v2/src/main/res/values-uk/strings.xml` | `camera-capture-command` | Phase 06: add setting_disable_camera_capture + setting_skip_camera_filename_dialog UK strings |
 | 2026-04-25 14:51:52 | `docs/FEATURES.md` | `camera-capture-command` | Phase 06: add Camera capture bullet to Section 3 File Operations |
-| 2026-04-25 14:51:52 | `docs/FEATURES_RU.md` | `camera-capture-command` | Phase 06: add Съёмка с камеры bullet to Section 3 |
-| 2026-04-25 14:51:52 | `docs/FEATURES_UK.md` | `camera-capture-command` | Phase 06: add Зйомка з камери bullet to Section 3 |
+| 2026-04-25 14:51:52 | `docs/FEATURES-ru.md` | `camera-capture-command` | Phase 06: add Съёмка с камеры bullet to Section 3 |
+| 2026-04-25 14:51:52 | `docs/FEATURES-uk.md` | `camera-capture-command` | Phase 06: add Зйомка з камери bullet to Section 3 |
 | 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command__audit_2026-04-25.md` | `spec-check` | Audit camera-capture-command: 38 PASS, 3 WARN (bookkeeping), 14 MANUAL - Verified after fix |
 | 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command.md` | `spec-check` | Advance status to Verified |
 | 2026-04-25 14:52:22 | `PLAN/spec_camera-capture-command/INDEX.md` | `spec-check` | Flip INDEX status to Done, all 6 phases confirmed |
@@ -3890,8 +3890,8 @@ Format: | datetime | file | target | description |
 | 2026-04-25 16:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingDao.kt` | `InputBindingDao` | Phase 07: add deleteByCommandPrefix for group-level reset |
 | 2026-04-25 16:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/data/input/InputBindingRepository.kt` | `InputBindingRepository` | Phase 07: add clearAllOverridesForGroup delegating to deleteByCommandPrefix |
 | 2026-04-25 16:28:57 | `docs/FEATURES.md` | `FEATURES` | Phase 08: add Remappable controls bullet to Section 7 |
-| 2026-04-25 16:28:57 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 08: add Переназначаемое управление bullet to Section 7 |
-| 2026-04-25 16:28:57 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 08: add Перепризначуване керування bullet to Section 7 |
+| 2026-04-25 16:28:57 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Phase 08: add Переназначаемое управление bullet to Section 7 |
+| 2026-04-25 16:28:57 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Phase 08: add Перепризначуване керування bullet to Section 7 |
 | 2026-04-25 16:28:57 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Phase 08: regenerated catalog + annotated 20 keybinding classes |
 | 2026-04-25 16:35:43 | `PLAN/spec_player-keybinding-remapping__audit_2026-04-25.md` | `spec-check` | Audit player-keybinding-remapping - Verified |
 | 2026-04-25 16:35:43 | `PLAN/spec_player-keybinding-remapping.md` | `spec-check` | Advance status to Verified |
@@ -3936,8 +3936,8 @@ Format: | datetime | file | target | description |
 | 2026-04-26 04:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/VirtualResourceDefaultNames.kt` | `VirtualResourceDefaultNames` | New: hardcoded default-names table for virtual resource auto-rename |
 | 2026-04-26 04:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RenameVirtualResourcesUseCase.kt` | `RenameVirtualResourcesUseCase` | New: auto-rename virtual resources on language change at startup |
 | 2026-04-26 04:51:00 | `docs/FEATURES.md` | `FEATURES` | Add virtual resource language sync bullet (EN) |
-| 2026-04-26 04:51:00 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add virtual resource language sync bullet (RU) |
-| 2026-04-26 04:51:00 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add virtual resource language sync bullet (UK) |
+| 2026-04-26 04:51:00 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add virtual resource language sync bullet (RU) |
+| 2026-04-26 04:51:00 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add virtual resource language sync bullet (UK) |
 | 2026-04-26 04:52:57 | `PLAN/spec-all_virtual-resource-lang-rename_2026-04-26.md` | `spec-all` | Full pipeline completed: virtual-resource-lang-rename -> Verified |
 | 2026-04-26 05:05:41 | `app_v2/build.gradle.kts` | `build` | Migrate applicationVariants.all to androidComponents.onVariants - eliminates 3 obsolete-API Gradle warnings (applicationVariants, testVariants, unitTestVariants) |
 | 2026-04-26 05:11:40 | `app_v2/src/main/res/layout/fragment_settings_playback.xml, app_v2/src/main/java/.../PlaybackSettingsFragment.kt, values*/strings.xml` | `Settings > Playback` | Merged camera-capture and skip-filename rows into one horizontal row; added help ImageButton with TooltipDialog (EN/RU/UK) describing the camera capture mechanism |
@@ -4047,8 +4047,8 @@ Format: | datetime | file | target | description |
 | 2026-04-26 22:01:21 | `PLAN/spec_vr-hand-tracking__fix_2026-04-26.md` | `spec-fix` | Fix-up run: vr-hand-tracking |
 | 2026-04-26 22:01:21 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26.md` | `spec-fix` | Annotate audit: vr-hand-tracking |
 | 2026-04-26 22:01:21 | `docs/FEATURES.md` | `spec-fix` | Add VR hand tracking bullet |
-| 2026-04-26 22:01:21 | `docs/FEATURES_RU.md` | `spec-fix` | Add VR hand tracking TODO translate |
-| 2026-04-26 22:01:21 | `docs/FEATURES_UK.md` | `spec-fix` | Add VR hand tracking TODO translate |
+| 2026-04-26 22:01:21 | `docs/FEATURES-ru.md` | `spec-fix` | Add VR hand tracking TODO translate |
+| 2026-04-26 22:01:21 | `docs/FEATURES-uk.md` | `spec-fix` | Add VR hand tracking TODO translate |
 | 2026-04-26 22:03:26 | `PLAN/spec_vr-hand-tracking__audit_2026-04-26_2.md` | `spec-check` | Audit vr-hand-tracking (iter 2) |
 | 2026-04-26 22:03:26 | `PLAN/spec_vr-hand-tracking.md` | `spec-check` | Status -> Broken (audit pointer updated) |
 | 2026-04-26 22:04:34 | `app_v2/src/main/res/values/strings.xml` | `VrCheatsheetOverlayManager` | Add hand tracking cheatsheet strings (EN) |
@@ -4110,8 +4110,8 @@ Format: | datetime | file | target | description |
 | 2026-04-26 23:42:16 | `PLAN/spec_vr-stereo-formats__fix_2026-04-26.md` | `spec-fix` | Fix-up run: FEATURES EN/RU/UK bullets + §6 research items resolved |
 | 2026-04-26 23:42:16 | `PLAN/spec_vr-stereo-formats__audit_2026-04-26.md` | `spec-fix` | Annotate audit |
 | 2026-04-26 23:42:16 | `docs/FEATURES.md` | `spec-fix` | Add VR180 Fisheye and OU/TAB stereo bullet to §8 VR Edition |
-| 2026-04-26 23:42:16 | `docs/FEATURES_RU.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
-| 2026-04-26 23:42:16 | `docs/FEATURES_UK.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
+| 2026-04-26 23:42:16 | `docs/FEATURES-ru.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
+| 2026-04-26 23:42:16 | `docs/FEATURES-uk.md` | `spec-fix` | Add TODO translate placeholder for VR180 Fisheye / OU TAB bullet |
 | 2026-04-26 23:46:24 | `PLAN/spec_vr-stereo-formats__audit_2026-04-26_2.md` | `spec-check` | Audit vr-stereo-formats (pass 2) |
 | 2026-04-26 23:46:24 | `PLAN/spec_vr-stereo-formats.md` | `spec-check` | Status -> Partial |
 | 2026-04-26 23:46:28 | `PLAN/spec_vr-stereo-formats.md` | `spec-all` | Pipeline Partial: vr-stereo-formats |
@@ -4134,8 +4134,8 @@ Format: | datetime | file | target | description |
 | 2026-04-27 00:09:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `PlayerStereoModeCoordinator` | Phase 02: stale-detection guard in setAutoDetectedStereoMode using forFilePath vs currentStereoOverridePath |
 | 2026-04-27 00:09:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer` | Phase 03: filter AUTO from video GL stereoMode collector to eliminate transient GL pipeline restart |
 | 2026-04-27 00:09:55 | `docs/FEATURES.md` | `FEATURES` | Phase 04: stereo isolation note and filename token list in 3D stereo detection bullet |
-| 2026-04-27 00:09:55 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Phase 04: stereo isolation note (RU) |
-| 2026-04-27 00:09:55 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Phase 04: stereo isolation note (UK) |
+| 2026-04-27 00:09:55 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Phase 04: stereo isolation note (RU) |
+| 2026-04-27 00:09:55 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Phase 04: stereo isolation note (UK) |
 | 2026-04-27 00:09:55 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | Phase 04: catalog regen after vr-stereo-state implementation |
 | 2026-04-27 00:10:56 | `PLAN/spec_vr-stereo-state.md` | `spec-all` | Status -> Implemented: vr-stereo-state all 4 phases done |
 | 2026-04-27 00:16:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StereoDetector.kt` | `StereoDetector` | Extend filename tokens (hOU, TAB, RL, FullSBS, Half-SBS) and Matroska values (2=OU, 13/14=SBS_HALF) |
@@ -4239,8 +4239,8 @@ Format: | datetime | file | target | description |
 | 2026-04-27 03:54:41 | `app_v2/src/main/res/values-uk/strings.xml` | `strings` | vr-auto-immersive-setting: UK strings |
 | 2026-04-27 03:54:41 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRouteDecisionHelper.kt` | `VrRouteDecisionHelper` | vr-auto-immersive-setting: auto-immersive-disabled gate |
 | 2026-04-27 03:54:41 | `docs/FEATURES.md` | `docs` | vr-auto-immersive-setting: feature entry |
-| 2026-04-27 03:54:41 | `docs/FEATURES_RU.md` | `docs` | vr-auto-immersive-setting: RU feature entry |
-| 2026-04-27 03:54:42 | `docs/FEATURES_UK.md` | `docs` | vr-auto-immersive-setting: UK feature entry |
+| 2026-04-27 03:54:41 | `docs/FEATURES-ru.md` | `docs` | vr-auto-immersive-setting: RU feature entry |
+| 2026-04-27 03:54:42 | `docs/FEATURES-uk.md` | `docs` | vr-auto-immersive-setting: UK feature entry |
 | 2026-04-27 03:54:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate after vr-auto-immersive-setting |
 | 2026-04-27 03:55:34 | `PLAN/spec_vr-auto-immersive-setting__audit_2026-04-27.md` | `spec-check` | Audit: Verified |
 | 2026-04-27 03:55:34 | `PLAN/spec_vr-auto-immersive-setting.md` | `spec-all` | Pipeline Verified: vr-auto-immersive-setting |
@@ -4297,8 +4297,8 @@ Format: | datetime | file | target | description |
 | 2026-04-27 22:54:12 | `app_v2/src/main/res/layout/fragment_settings_playback.xml` | `layout` | Add switchPanelStereoSingleEye toggle to Playback settings |
 | 2026-04-27 22:54:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `PlaybackSettingsFragment` | Wire switchPanelStereoSingleEye to viewModel.updateSettings |
 | 2026-04-27 22:54:12 | `docs/FEATURES.md` | `docs` | Document Panel single-eye 3D view feature |
-| 2026-04-27 22:54:12 | `docs/FEATURES_RU.md` | `docs` | Translate Panel single-eye 3D view feature (RU) |
-| 2026-04-27 22:54:12 | `docs/FEATURES_UK.md` | `docs` | Translate Panel single-eye 3D view feature (UK) |
+| 2026-04-27 22:54:12 | `docs/FEATURES-ru.md` | `docs` | Translate Panel single-eye 3D view feature (RU) |
+| 2026-04-27 22:54:12 | `docs/FEATURES-uk.md` | `docs` | Translate Panel single-eye 3D view feature (UK) |
 | 2026-04-27 22:54:12 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Regenerate after panel-stereo-single-eye implementation |
 | 2026-04-27 22:54:12 | `dev/CATALOG/app_v2.md` | `catalog` | Regenerate after panel-stereo-single-eye implementation |
 | 2026-04-27 22:57:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorFragment.kt` | `ResourceEditorFragment.toolbar` | Merge resource type into toolbar title (single line) instead of subtitle to avoid truncation |
@@ -4442,8 +4442,8 @@ Format: | datetime | file | target | description |
 | 2026-04-28 14:22:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev` | S0021 phase 04: wire PlayerFpsMeter + updatePlayerFpsOverlay |
 | 2026-04-28 14:22:32 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `spec-dev` | S0021 phase 04: suppress overlay while immersive |
 | 2026-04-28 14:22:32 | `docs/FEATURES.md` | `spec-dev` | S0021 phase 05: FEATURES diagnostic FPS overlay (EN) |
-| 2026-04-28 14:22:32 | `docs/FEATURES_RU.md` | `spec-dev` | S0021 phase 05: FEATURES diagnostic FPS overlay (RU) |
-| 2026-04-28 14:22:32 | `docs/FEATURES_UK.md` | `spec-dev` | S0021 phase 05: FEATURES diagnostic FPS overlay (UK) |
+| 2026-04-28 14:22:32 | `docs/FEATURES-ru.md` | `spec-dev` | S0021 phase 05: FEATURES diagnostic FPS overlay (RU) |
+| 2026-04-28 14:22:32 | `docs/FEATURES-uk.md` | `spec-dev` | S0021 phase 05: FEATURES diagnostic FPS overlay (UK) |
 | 2026-04-28 14:27:11 | `PLAN/S0021_spec_panel-fps-overlay-landscape__audit_2026-04-28.md` | `spec-check` | Audit S0021 -> Verified |
 | 2026-04-28 14:27:11 | `PLAN/S0021_spec_panel-fps-overlay-landscape.md` | `spec-all` | Pipeline Verified: S0021 |
 | 2026-04-28 15:08:31 | `PLAN/S0020_spec_bugfix-vr-panel-swapchain-session-race.md` | `spec-all` | Stage F1: S0020 strategic approved |
@@ -4480,8 +4480,8 @@ Format: | datetime | file | target | description |
 | 2026-04-28 16:56:44 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev` | S0019 phases 02+04: trilingual strings (RU) |
 | 2026-04-28 16:56:44 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0019 phases 02+04: trilingual strings (UK) |
 | 2026-04-28 16:56:44 | `docs/FEATURES.md` | `spec-dev` | S0019 phase 06: FEATURES (EN) |
-| 2026-04-28 16:56:44 | `docs/FEATURES_RU.md` | `spec-dev` | S0019 phase 06: FEATURES (RU) |
-| 2026-04-28 16:56:44 | `docs/FEATURES_UK.md` | `spec-dev` | S0019 phase 06: FEATURES (UK) |
+| 2026-04-28 16:56:44 | `docs/FEATURES-ru.md` | `spec-dev` | S0019 phase 06: FEATURES (RU) |
+| 2026-04-28 16:56:44 | `docs/FEATURES-uk.md` | `spec-dev` | S0019 phase 06: FEATURES (UK) |
 | 2026-04-28 16:58:50 | `PLAN/S0019_vr-controls-panel-flow-restoration__audit_2026-04-28.md` | `spec-check` | Audit S0019 -> Partial (Phase 05 deferred to S0024) |
 | 2026-04-28 16:58:50 | `PLAN/S0019_vr-controls-panel-flow-restoration.md` | `spec-all` | Pipeline Partial: S0019 (5/6 done; Phase 05 deferred to S0024) |
 | 2026-04-28 17:03:03 | `scripts/spec_catalog/_lib.ps1` | `spec-catalog` | Refactor: drop _spec_ segment, add priority field (0..100), add Block* statuses, add stale-window helpers |
@@ -4539,8 +4539,8 @@ Format: | datetime | file | target | description |
 | 2026-04-28 22:53:59 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0006 phase-04: settings_vr_show_fps_hint_disabled (UK) |
 | 2026-04-28 22:53:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt` | `spec-dev` | S0006 phase-04: gate VR FPS row by disable3dVr |
 | 2026-04-28 22:56:24 | `docs/FEATURES.md` | `spec-dev` | S0006 phase-05: VR HUD FPS counter bullet (EN) |
-| 2026-04-28 22:56:24 | `docs/FEATURES_RU.md` | `spec-dev` | S0006 phase-05: VR HUD FPS counter bullet (RU) |
-| 2026-04-28 22:56:24 | `docs/FEATURES_UK.md` | `spec-dev` | S0006 phase-05: VR HUD FPS counter bullet (UK) |
+| 2026-04-28 22:56:24 | `docs/FEATURES-ru.md` | `spec-dev` | S0006 phase-05: VR HUD FPS counter bullet (RU) |
+| 2026-04-28 22:56:24 | `docs/FEATURES-uk.md` | `spec-dev` | S0006 phase-05: VR HUD FPS counter bullet (UK) |
 | 2026-04-28 22:56:24 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0006 phase-05: catalog regen |
 | 2026-04-28 22:56:24 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0006 phase-05: catalog render |
 | 2026-04-28 23:02:44 | `PLAN/S0006_vr-fps-counter.md` | `spec-check` | Audit S0006 -> Partial; PASS/WARN/FAIL 13/2/0 |
@@ -4548,8 +4548,8 @@ Format: | datetime | file | target | description |
 | 2026-04-28 23:05:09 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/VrPlayerActivity.kt` | `spec-fix` | S0006 follow-up 1: gate FPS measurement by vrShowFps for true zero-overhead-when-off |
 | 2026-04-28 23:05:09 | `PLAN/S0006_vr-fps-counter.md` | `spec-fix` | S0006 follow-up 2: rewrite §6.5 to reflect hot-apply behaviour |
 | 2026-04-28 23:05:09 | `docs/FEATURES.md` | `spec-fix` | S0006 follow-up 2: VR HUD FPS counter - hot-apply text (EN) |
-| 2026-04-28 23:05:09 | `docs/FEATURES_RU.md` | `spec-fix` | S0006 follow-up 2: VR HUD FPS counter - hot-apply text (RU) |
-| 2026-04-28 23:05:09 | `docs/FEATURES_UK.md` | `spec-fix` | S0006 follow-up 2: VR HUD FPS counter - hot-apply text (UK) |
+| 2026-04-28 23:05:09 | `docs/FEATURES-ru.md` | `spec-fix` | S0006 follow-up 2: VR HUD FPS counter - hot-apply text (RU) |
+| 2026-04-28 23:05:09 | `docs/FEATURES-uk.md` | `spec-fix` | S0006 follow-up 2: VR HUD FPS counter - hot-apply text (UK) |
 | 2026-04-28 23:06:10 | `PLAN/S0006_vr-fps-counter.md` | `spec-check` | Audit S0006 -> Verified; PASS/WARN/FAIL 15/0/0; 5 manual on-device |
 | 2026-04-28 23:06:37 | `PLAN/S0006_vr-fps-counter.md` | `spec-all` | Pipeline Verified: S0006 (5 manual on-device items remain; journal -> BlockNeedUserTest) |
 | 2026-04-29 00:39:48 | `PLAN/S0025_smb-fast-fail.md` | `spec` | Add strategic spec S0025 for ad-hoc smb-fast-fail |
@@ -4596,8 +4596,8 @@ Format: | datetime | file | target | description |
 | 2026-04-29 01:20:11 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0003 P05: wire registry + writer + auto-open gating |
 | 2026-04-29 01:20:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `ReceiveShareActivity` | S0003 P05: launch StandalonePlayerActivity on auto-open |
 | 2026-04-29 01:23:36 | `docs/FEATURES.md` | `spec-all` | S0003: documented link auto-download channel |
-| 2026-04-29 01:23:36 | `docs/FEATURES_RU.md` | `spec-all` | S0003: documented link auto-download channel (RU) |
-| 2026-04-29 01:23:36 | `docs/FEATURES_UK.md` | `spec-all` | S0003: documented link auto-download channel (UK) |
+| 2026-04-29 01:23:36 | `docs/FEATURES-ru.md` | `spec-all` | S0003: documented link auto-download channel (RU) |
+| 2026-04-29 01:23:36 | `docs/FEATURES-uk.md` | `spec-all` | S0003: documented link auto-download channel (UK) |
 | 2026-04-29 01:23:36 | `dev/CATALOG/app_v2.jsonl` | `spec-all` | S0003: catalogue refresh |
 | 2026-04-29 01:23:36 | `dev/CATALOG/app_v2.md` | `spec-all` | S0003: catalogue refresh |
 | 2026-04-29 01:24:15 | `PLAN/S0003_link-receive-download.md` | `spec-all` | Pipeline Partial: feature delivered, BlockNeedUserTest |
@@ -4663,8 +4663,8 @@ Format: | datetime | file | target | description |
 | 2026-04-29 12:56:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt` | `spec-dev` | S0029 phase 04.1: near-end exit guard branches savePosition vs markPlaybackCompleted |
 | 2026-04-29 12:56:01 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManagerNearEndTest.kt` | `spec-dev` | S0029 phase 04.2: near-end branch decision contract test |
 | 2026-04-29 12:56:45 | `docs/FEATURES.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (EN) |
-| 2026-04-29 12:56:45 | `docs/FEATURES_RU.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (RU) |
-| 2026-04-29 12:56:45 | `docs/FEATURES_UK.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (UK) |
+| 2026-04-29 12:56:45 | `docs/FEATURES-ru.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (RU) |
+| 2026-04-29 12:56:45 | `docs/FEATURES-uk.md` | `spec-dev` | S0029 phase 05.1: add 'watched-to-end auto-clear' bullet (UK) |
 | 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/INDEX.md` | `spec-tech` | Create tactical plan for S0033 |
 | 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_01__cpp-logging-and-ctx-header.md` | `spec-tech` | Phase 01: cpp logging extraction + shared ctx header skeleton |
 | 2026-04-29 12:57:38 | `PLAN/S0033_vr-monoliths-decomposition/PHASE_02__cpp-lifecycle.md` | `spec-tech` | Phase 02: cpp lifecycle subsystem extraction |
@@ -4714,8 +4714,8 @@ Format: | datetime | file | target | description |
 | 2026-04-29 13:28:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/ImageLoadingManager.kt` | `S0032 step 02.5` | triggerVideoBackground takes isPlaceholder; contentDescription on ivDynamicBackground |
 | 2026-04-29 13:28:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0032 step 02.5` | Pass isPlaceholder flag from onFirstFrameReady |
 | 2026-04-29 13:30:51 | `docs/FEATURES.md` | `S0032 step 03.1` | Player - resilient poster-frame extraction bullet |
-| 2026-04-29 13:30:51 | `docs/FEATURES_RU.md` | `S0032 step 03.1` | Player - resilient poster-frame extraction bullet (RU) |
-| 2026-04-29 13:30:51 | `docs/FEATURES_UK.md` | `S0032 step 03.1` | Player - resilient poster-frame extraction bullet (UK) |
+| 2026-04-29 13:30:51 | `docs/FEATURES-ru.md` | `S0032 step 03.1` | Player - resilient poster-frame extraction bullet (RU) |
+| 2026-04-29 13:30:51 | `docs/FEATURES-uk.md` | `S0032 step 03.1` | Player - resilient poster-frame extraction bullet (UK) |
 | 2026-04-29 13:32:21 | `dev/CATALOG/app_v2.jsonl` | `S0032 step 03.2` | Catalog regen for VideoPosterExtractor |
 | 2026-04-29 13:32:21 | `dev/CATALOG/app_v2.md` | `S0032 step 03.2` | Catalog regen for VideoPosterExtractor |
 | 2026-04-29 15:14:15 | `PLAN/S0034_resource-icons-system.md` | `spec` | Add strategic spec S0034 for resource-icons-system |
@@ -4731,7 +4731,7 @@ Format: | datetime | file | target | description |
 | 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs-catalog-cleanup |
 | 2026-04-29 15:45:32 | `PLAN/S0034_resource-icons-system.md` | `spec-tech` | Status -> Tactical |
 | 2026-04-29 16:28:41 | `PLAN/S0034_resource-icons-system/DESIGNER_PROMPT.md` | `DESIGNER_PROMPT` | Phase 01 Step 01.1: authored English designer brief for 50-icon SVG set (5 themed groups) |
-| 2026-04-29 16:28:47 | `PLAN/S0034_resource-icons-system/DESIGNER_PROMPT_RU.md` | `DESIGNER_PROMPT_RU` | Phase 01 Step 01.2: authored Russian mirror of designer brief |
+| 2026-04-29 16:28:47 | `PLAN/S0034_resource-icons-system/DESIGNER_PROMPT-ru.md` | `DESIGNER_PROMPT_RU` | Phase 01 Step 01.2: authored Russian mirror of designer brief |
 | 2026-04-29 16:28:47 | `PLAN/S0034_resource-icons-system/ICON_INVENTORY.md` | `ICON_INVENTORY` | Phase 01 Step 01.3: authored icon inventory checklist (50 icons, 5 sets) |
 | 2026-04-29 16:37:24 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/ResourceEntity.kt` | `ResourceEntity` | S0034 Phase 02: add iconId column (ico-XX-NNN format) for resource icons system |
 | 2026-04-29 16:37:32 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase` | S0034 Phase 02: bump version 25->26 + MIGRATION_25_26 (add icon_id column) |
@@ -4817,7 +4817,7 @@ Format: | datetime | file | target | description |
 | 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt` | `AppDatabase / MIGRATION_25_26` | S0034 Phase 02: DB v25->v26 - added icon_id TEXT column to resources table |
 | 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ResourceIconComposer.kt` | `ResourceIconComposer` | S0034 Phase 04: composes resource icon + connection badge into a single Bitmap |
 | 2026-04-29 18:43:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/icon/ConnectionBadgeMapper.kt` | `ConnectionBadgeMapper` | S0034 Phase 04: maps ResourceType to corner badge drawable id |
-| 2026-04-29 18:43:09 | `docs/FEATURES.md` | `FEATURES.md / FEATURES_RU.md / FEATURES_UK.md` | S0034 Phase 08: added Themed resource icons bullet in all three language variants |
+| 2026-04-29 18:43:09 | `docs/FEATURES.md` | `FEATURES.md / FEATURES-ru.md / FEATURES-uk.md` | S0034 Phase 08: added Themed resource icons bullet in all three language variants |
 | 2026-04-29 18:43:09 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl / app_v2.md` | S0034 Phase 08: catalog regenerated - 827 records including new icon/picker classes |
 | 2026-04-29 18:47:21 | `PLAN/S0031_vr-immersive-hud-ux-gaps.md` | `spec-update` | Refinement (claude-opus-4-7); applied 8 ACCEPTs, 1 DISCUSS proposed |
 | 2026-04-29 18:52:53 | `PLAN/S0033_vr-monoliths-decomposition.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) |
@@ -4941,8 +4941,8 @@ Format: | datetime | file | target | description |
 | 2026-04-30 15:17:08 | `app_v2/src/vr/cpp/OpenXrLifecycle.h` | `xrnative` | Added lifecycle extraction header with explicit XrCtx-based function declarations for S0033 Phase 02 Step 02.2 |
 | 2026-04-30 15:18:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `BrowseCameraCaptureManager` | S0022: surface dedicated camera_capture_error_io message for save IOException |
 | 2026-04-30 15:18:06 | `docs/FEATURES.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (EN) |
-| 2026-04-30 15:18:06 | `docs/FEATURES_RU.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (RU) |
-| 2026-04-30 15:18:06 | `docs/FEATURES_UK.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (UK) |
+| 2026-04-30 15:18:06 | `docs/FEATURES-ru.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (RU) |
+| 2026-04-30 15:18:06 | `docs/FEATURES-uk.md` | `FEATURES` | S0022: document auto-hide camera command and localized in-app errors (UK) |
 | 2026-04-30 15:20:00 | `app_v2/src/vr/cpp/OpenXrLifecycle.cpp` | `xrnative` | Moved lifecycle function bodies out of OpenXrNative into OpenXrLifecycle with explicit XrCtx parameter for S0033 Phase 02 Step 02.3 |
 | 2026-04-30 15:20:36 | `PLAN/S0040_bugfix-vr-hud-button-affordance__audit_2026-04-30_2.md` | `spec-check` | Audit S0040 -> Partial |
 | 2026-04-30 15:20:36 | `PLAN/S0040_bugfix-vr-hud-button-affordance.md` | `spec-check` | Advance S0040 status to Partial; add audit pointer |
@@ -5043,8 +5043,8 @@ Format: | datetime | file | target | description |
 | 2026-05-01 02:42:43 | `app_v2/src/main/res/values-uk/strings.xml` | `strings.xml` | S0003: add link_autodownload_progress_bytes format string (UK) |
 | 2026-05-01 02:42:43 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0003 §05.3: scan + role/status for LinkAutoDownloadProgressDialog (role=ui, status=tested) |
 | 2026-05-01 02:42:43 | `dev/CATALOG/app_v2.md` | `catalog` | S0003: regenerate human-readable catalog |
-| 2026-05-01 02:48:52 | `docs/FEATURES_RU.md` | `VR Player section` | S0007: hand tracking feature bullet (RU translation) |
-| 2026-05-01 02:48:52 | `docs/FEATURES_UK.md` | `VR Player section` | S0007: hand tracking feature bullet (UK translation) |
+| 2026-05-01 02:48:52 | `docs/FEATURES-ru.md` | `VR Player section` | S0007: hand tracking feature bullet (RU translation) |
+| 2026-05-01 02:48:52 | `docs/FEATURES-uk.md` | `VR Player section` | S0007: hand tracking feature bullet (UK translation) |
 | 2026-05-01 02:48:52 | `dev/CATALOG/app_v2.jsonl` | `catalog regen` | S0007 Phase 04: catalog rescan after VrHandRayManager changes |
 | 2026-05-01 02:48:52 | `PLAN/S0007_vr-hand-tracking/PHASE_03__hover-click-audio.md` | `S0007 Phase 03` | S0007: build verification passed (assembleStandardDebug), phase Done |
 | 2026-05-01 02:48:52 | `PLAN/S0007_vr-hand-tracking/PHASE_04__docs-catalog-cleanup.md` | `S0007 Phase 04` | S0007: docs+catalog+status cleanup, spec closed Implemented |
@@ -5122,14 +5122,14 @@ Format: | datetime | file | target | description |
 | 2026-05-02 00:14:01 | `.github/prompts/log-reader.prompt.md` | `log-reader.prompt` | Sync /log-reader prompt with current .claude log analysis guide |
 | 2026-05-02 00:16:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0045` | Phase 01: pass resource.sortMode to GetMediaFilesUseCase slow path |
 | 2026-05-02 00:16:22 | `docs/FEATURES.md` | `S0045` | Add sort-memory bullet (EN) |
-| 2026-05-02 00:16:22 | `docs/FEATURES_RU.md` | `S0045` | Add sort-memory bullet (RU) |
-| 2026-05-02 00:16:23 | `docs/FEATURES_UK.md` | `S0045` | Add sort-memory bullet (UK) |
+| 2026-05-02 00:16:22 | `docs/FEATURES-ru.md` | `S0045` | Add sort-memory bullet (RU) |
+| 2026-05-02 00:16:23 | `docs/FEATURES-uk.md` | `S0045` | Add sort-memory bullet (UK) |
 | 2026-05-02 00:16:23 | `dev/CATALOG/app_v2.jsonl` | `S0045` | Catalog regen after Phase 01 changes |
 | 2026-05-02 00:17:21 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-check` | Audit S0045 → Verified; PASS/WARN/FAIL 9/0/0 |
 | 2026-05-02 00:31:39 | `PLAN/S0045_per-resource-sort-type-memory.md` | `spec-update` | Resolve §6 open questions per owner answers; revise ADR-2 (SortMode enum encodes type+direction+MANUAL) |
 | 2026-05-02 00:31:39 | `PLAN/S0045_per-resource-sort-type-memory/INDEX.md` | `spec-all` | Mark phases 01+02 done; align tactical state with completed implementation |
 | 2026-05-02 00:37:20 | `docs/FEATURES.md` | `FEATURES.md` | Trim self-evident UI sugar from feature list (resource edit/delete, list/grid toggles, basic navigation, pinch-zoom, full-screen, notification controls, etc.) - keep only distinctive functionality. |
-| 2026-05-02 00:44:27 | `docs/FEATURES_RU.md;docs/FEATURES_UK.md` | `FEATURES mirrors` | Sync RU/UK mirrors with EN sugar trim: drop pagination + detailed progress bullets, bump date stamp. |
+| 2026-05-02 00:44:27 | `docs/FEATURES-ru.md;docs/FEATURES-uk.md` | `FEATURES mirrors` | Sync RU/UK mirrors with EN sugar trim: drop pagination + detailed progress bullets, bump date stamp. |
 | 2026-05-02 01:11:08 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec` | Add strategic spec S0046 for ad-hoc SFTP key-auth hardening (XML schema + host fingerprint pinning) |
 | 2026-05-02 01:11:12 | `app_v2/src/main/res/xml/sza_resources.xml` | `config` | Rename 192.168.1.110 SFTP entries to local_*; add three Home_* SFTP resources for 46.54.0.135 |
 | 2026-05-02 01:25:20 | `PLAN/S0046_sftp-key-auth-hardening.md` | `spec` | S0046: resolve open questions 6.1-6.4 with Best Practice answers, status Draft -> Approved |
@@ -5247,8 +5247,8 @@ Format: | datetime | file | target | description |
 | 2026-05-02 05:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/FileInfoDialog.kt` | `FileInfoDialog` | Wire FileInfoFileSectionHelper; remove buildPathInfoText (S0048 phase 04 step 6) |
 | 2026-05-02 05:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `MediaFile/FileAttributes` | Add FileAttributes and attributes field to MediaFile (S0048 phase 04 step 6) |
 | 2026-05-02 05:17:10 | `docs/FEATURES.md` | `FEATURES` | Add extended file-info dialog bullet (S0048 phase 05 step 1) |
-| 2026-05-02 05:18:10 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Add extended file-info dialog bullet RU (S0048 phase 05 step 2) |
-| 2026-05-02 05:18:11 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Add extended file-info dialog bullet UK (S0048 phase 05 step 2) |
+| 2026-05-02 05:18:10 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Add extended file-info dialog bullet RU (S0048 phase 05 step 2) |
+| 2026-05-02 05:18:11 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Add extended file-info dialog bullet UK (S0048 phase 05 step 2) |
 | 2026-05-02 05:18:56 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Regenerate catalog; set role/status for MediaFilePathDescriptor, MimeTypeResolver, FileInfoFileSectionHelper, FileInfoAudioDisplayHelper (S0048 phase 05 step 3) |
 | 2026-05-02 05:18:57 | `dev/CATALOG/app_v2.md` | `app_v2 catalog (md)` | Regenerate catalog markdown (S0048 phase 05 step 3) |
 | 2026-05-02 05:20:09 | `PLAN/S0048_info-dialog-extended-metadata.md` | `S0048` | Status -> Implemented (S0048 all 5 phases done) |
@@ -5298,8 +5298,8 @@ Format: | datetime | file | target | description |
 | 2026-05-02 18:52:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `S0050 Phase 01 Step 1.5` | Add showBlackScreenButton to resetPlaybackSection() |
 | 2026-05-02 18:52:31 | `PLAN/S0051_bugfix-network-datasource-pause-cancel.md` | `spec-all` | Pipeline BlockNeedUserTest: S0051 - on-device SFTP/logcat check required |
 | 2026-05-02 18:56:40 | `docs/FEATURES.md` | `S0053` | Add .m2ts BD-TS playback entry (Network Sources section) |
-| 2026-05-02 18:56:40 | `docs/FEATURES_RU.md` | `S0053` | Add .m2ts BD-TS playback entry (RU) |
-| 2026-05-02 18:56:40 | `docs/FEATURES_UK.md` | `S0053` | Add .m2ts BD-TS playback entry (UK) |
+| 2026-05-02 18:56:40 | `docs/FEATURES-ru.md` | `S0053` | Add .m2ts BD-TS playback entry (RU) |
+| 2026-05-02 18:56:40 | `docs/FEATURES-uk.md` | `S0053` | Add .m2ts BD-TS playback entry (UK) |
 | 2026-05-02 18:56:40 | `dev/CATALOG/app_v2.jsonl` | `S0053` | Catalog regen: BdTsStripDataSource, BdTsStripDataSourceFactory, BdTsPlaybackHelper |
 | 2026-05-02 18:57:59 | `app_v2/src/main/res/drawable/ic_black_screen.xml` | `S0050 Phase 02 Step 2.1` | Create black screen button icon drawable (filled square, colorOnSurface) |
 | 2026-05-02 18:58:44 | `app_v2/src/main/res/menu/overflow_menu_player.xml` | `S0050 Phase 02 Step 2.2` | Add menu_black_screen overflow item |
@@ -5328,8 +5328,8 @@ Format: | datetime | file | target | description |
 | 2026-05-02 19:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerKeyboardHandler.kt` | `PlayerKeyboardHandler` | S0050 Phase 04: add onToggleBlackScreen to callback interface; dispatch BLACK_SCREEN in handleCommand |
 | 2026-05-02 19:21:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerKeyboardCallbackImpl.kt` | `PlayerKeyboardCallbackImpl` | S0050 Phase 04: implement onToggleBlackScreen → activity.toggleBlackScreenOverlay() |
 | 2026-05-02 19:27:06 | `docs/FEATURES.md` | `FEATURES` | S0050 Phase 05: add Black Screen mode bullet to §7 Video Player and §9 Audio Player |
-| 2026-05-02 19:27:06 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0050 Phase 05: add Black Screen mode bullet (RU) to §7 and §9 |
-| 2026-05-02 19:27:06 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0050 Phase 05: add Black Screen mode bullet (UK) to §7 and §9 |
+| 2026-05-02 19:27:06 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0050 Phase 05: add Black Screen mode bullet (RU) to §7 and §9 |
+| 2026-05-02 19:27:06 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0050 Phase 05: add Black Screen mode bullet (UK) to §7 and §9 |
 | 2026-05-02 19:27:06 | `dev/CATALOG/app_v2.jsonl` | `app_v2-catalog` | S0050 Phase 05: regen catalog + set BlackScreenOverlayManager role=overlay-manager |
 | 2026-05-02 19:33:15 | `PLAN/S0050_player-black-screen-mode.md` | `spec-check` | Audit S0050 → Verified; PASS/WARN/FAIL 21/0/0; 1 manual (on-device playback continuity) |
 | 2026-05-02 21:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRefreshManager.kt` | `BrowseRefreshManager` | Add syncMediaStore param to launchReload; skip MediaStore sync when triggered by ContentObserver to break infinite reload loop |
@@ -5383,15 +5383,15 @@ Format: | datetime | file | target | description |
 | 2026-05-03 02:29:44 | `PLAN/S0054_m2ts-playback-support.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: all) - removed 14 class/method names from strategic spec, replaced with architectural terms |
 | 2026-05-03 02:41:07 | `docs/WHATS_NEW.md` | `v2.60.5030.230 release notes` | Added What's New block for v2.60.5030.230 (May 2026): new features and fixes sections; previous release archived below |
 | 2026-05-03 02:41:12 | `README.md` | `v2.60.5030.230 release notes` | Added compact What's New block for v2.60.5030.230 with links to full notes |
-| 2026-05-03 02:42:52 | `docs/WHATS_NEW_RU.md` | `v2.60.5030.230 release notes (RU)` | Added Russian What's New block for v2.60.5030.230; previous release archived below |
-| 2026-05-03 02:42:53 | `docs/WHATS_NEW_UK.md` | `v2.60.5030.230 release notes (UK)` | Added Ukrainian What's New block for v2.60.5030.230; previous release archived below |
+| 2026-05-03 02:42:52 | `docs/WHATS_NEW-ru.md` | `v2.60.5030.230 release notes (RU)` | Added Russian What's New block for v2.60.5030.230; previous release archived below |
+| 2026-05-03 02:42:53 | `docs/WHATS_NEW-uk.md` | `v2.60.5030.230 release notes (UK)` | Added Ukrainian What's New block for v2.60.5030.230; previous release archived below |
 | 2026-05-03 03:03:28 | `docs/README.md` | `v2.60.5030.230 doc update` | Updated Keyboard bullet (all screens + gamepad); added Camera Capture, Link Auto-Download, Single-Eye 3D bullets to Key Features |
 | 2026-05-03 03:03:28 | `docs/QUICK_START.md` | `v2.60.5030.230 doc update` | Added Keybinding Remapper, Camera Capture, Link Auto-Download sections to Advanced Features |
 | 2026-05-03 03:03:28 | `docs/FAQ.md` | `v2.60.5030.230 doc update` | Added Input & Controls FAQ section (keyboard/gamepad, keybindings, link download) |
-| 2026-05-03 03:03:28 | `docs/QUICK_START_RU.md` | `v2.60.5030.230 doc update` | RU: same Advanced Features additions as EN |
-| 2026-05-03 03:03:28 | `docs/QUICK_START_UK.md` | `v2.60.5030.230 doc update` | UK: same Advanced Features additions as EN |
-| 2026-05-03 03:03:28 | `docs/FAQ_RU.md` | `v2.60.5030.230 doc update` | RU: Управление и ввод - new FAQ section |
-| 2026-05-03 03:03:28 | `docs/FAQ_UK.md` | `v2.60.5030.230 doc update` | UK: Керування та введення - new FAQ section |
+| 2026-05-03 03:03:28 | `docs/QUICK_START-ru.md` | `v2.60.5030.230 doc update` | RU: same Advanced Features additions as EN |
+| 2026-05-03 03:03:28 | `docs/QUICK_START-uk.md` | `v2.60.5030.230 doc update` | UK: same Advanced Features additions as EN |
+| 2026-05-03 03:03:28 | `docs/FAQ-ru.md` | `v2.60.5030.230 doc update` | RU: Управление и ввод - new FAQ section |
+| 2026-05-03 03:03:28 | `docs/FAQ-uk.md` | `v2.60.5030.230 doc update` | UK: Керування та введення - new FAQ section |
 | 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/INDEX.md` | `spec-tech` | Create tactical plan for S0054 (7 phases, 16 steps) |
 | 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/PHASE_01__ts-format-detector.md` | `spec-tech` | Phase 01: TsPacketFormat + TsPacketFormatDetector + unit tests |
 | 2026-05-03 03:25:09 | `PLAN/S0054_m2ts-playback-support/PHASE_02__unified-bd-ts-wiring.md` | `spec-tech` | Phase 02: detectTsFormatSuspend; SMB/SFTP/FTP byte-level detection |
@@ -5473,8 +5473,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 14:12:46 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/ui/VrHudInputDispatcher.kt` | `S0024 Phase 05 Step 05.2` | Add onClickAudioCue accessibility hook (system FX_KEY_CLICK) |
 | 2026-05-03 14:12:50 | `app_v2/src/vr/java/com/sza/fastmediasorter/vr/helpers/VrRenderPipelineManager.kt` | `S0024 Phase 05 Step 05.2` | Wire FX_KEY_CLICK audio cue into HUD dispatcher (no new asset) |
 | 2026-05-03 14:15:07 | `docs/FEATURES.md` | `S0024 Phase 06 Step 06.1` | Add EN HUD ray-input bullet |
-| 2026-05-03 14:15:12 | `docs/FEATURES_RU.md` | `S0024 Phase 06 Step 06.1` | Add RU HUD ray-input bullet |
-| 2026-05-03 14:15:17 | `docs/FEATURES_UK.md` | `S0024 Phase 06 Step 06.1` | Add UK HUD ray-input bullet |
+| 2026-05-03 14:15:12 | `docs/FEATURES-ru.md` | `S0024 Phase 06 Step 06.1` | Add RU HUD ray-input bullet |
+| 2026-05-03 14:15:17 | `docs/FEATURES-uk.md` | `S0024 Phase 06 Step 06.1` | Add UK HUD ray-input bullet |
 | 2026-05-03 14:16:53 | `dev/CATALOG/app_v2.jsonl` | `S0024 Phase 06 Step 06.2` | Catalog rescan + role/status fields for new HUD ray-input classes |
 | 2026-05-03 14:20:12 | `PLAN/S0024_vr-hud-ray-input.md` | `spec-all` | Pipeline Verified: S0024 vr-hud-ray-input |
 | 2026-05-03 14:26:23 | `PLAN/S0061_bugfix-smb-stale-connection-invalidation.md` | `spec` | Add strategic spec S0061 for SMB stale connection invalidation after idle |
@@ -5613,8 +5613,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 16:47:43 | `app_v2/src/vr/cpp/OpenXrRayDraw.cpp` | `spec-dev S0065 04.1` | Implement drawControllerRays: per-eye line + cursor draw |
 | 2026-05-03 16:48:17 | `app_v2/src/vr/cpp/OpenXrFrame.cpp` | `spec-dev S0065 04.2` | Hook drawControllerRays per-eye after invokeRenderCallback |
 | 2026-05-03 16:52:13 | `docs/FEATURES.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (EN) |
-| 2026-05-03 16:52:13 | `docs/FEATURES_RU.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (RU) |
-| 2026-05-03 16:52:13 | `docs/FEATURES_UK.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (UK) |
+| 2026-05-03 16:52:13 | `docs/FEATURES-ru.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (RU) |
+| 2026-05-03 16:52:13 | `docs/FEATURES-uk.md` | `spec-dev S0065 05.1` | Add visible controller/hand aim-ray bullet (UK) |
 | 2026-05-03 16:53:14 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0065 05.2` | Regenerate app_v2 catalog (896 files indexed) |
 | 2026-05-03 16:53:14 | `dev/CATALOG/app_v2.md` | `spec-dev S0065 05.2` | Regenerate app_v2 catalog markdown |
 | 2026-05-03 16:53:58 | `PLAN/S0065_vr-controller-ray-visual.md` | `spec-dev S0065` | Status Tactical -> Implemented; catalog flipped to BlockNeedUserTest |
@@ -5684,8 +5684,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 18:07:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `spec-dev` | S0066: clearTransientFailuresForResource + deprecate ForHost (Phase 04.1) |
 | 2026-05-03 18:07:30 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/ConnectionThrottleManager.kt` | `spec-dev` | S0066: hook clearTransientFailuresForResource into deactivateVideoPlayerMode (Phase 04.2) |
 | 2026-05-03 18:10:01 | `docs/FEATURES.md` | `spec-dev` | S0066: thumbnail auto-recovery feature bullet (EN) |
-| 2026-05-03 18:10:01 | `docs/FEATURES_RU.md` | `spec-dev` | S0066: автоматическое восстановление превью (RU) |
-| 2026-05-03 18:10:01 | `docs/FEATURES_UK.md` | `spec-dev` | S0066: автоматичне відновлення мініатюр (UK) |
+| 2026-05-03 18:10:01 | `docs/FEATURES-ru.md` | `spec-dev` | S0066: автоматическое восстановление превью (RU) |
+| 2026-05-03 18:10:01 | `docs/FEATURES-uk.md` | `spec-dev` | S0066: автоматичне відновлення мініатюр (UK) |
 | 2026-05-03 18:11:49 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0066: catalog scan + manual roles for new files |
 | 2026-05-03 18:11:49 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0066: catalog render after S0066 changes |
 | 2026-05-03 18:14:55 | `PLAN/S0066_enh-network-transient-failure-classification-multi-protocol.md` | `spec-check` | Audit S0066 -> Verified; PASS/WARN/FAIL 28/0/0; 3 manual on-device items |
@@ -5739,8 +5739,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 20:29:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | Refresh catalog after S0068 browse scan progress polish |
 | 2026-05-03 20:29:42 | `dev/CATALOG/app_v2.md` | `catalog` | Refresh catalog after S0068 browse scan progress polish |
 | 2026-05-03 20:29:42 | `docs/FEATURES.md` | `FEATURES` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
-| 2026-05-03 20:29:42 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
-| 2026-05-03 20:29:42 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
+| 2026-05-03 20:29:42 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
+| 2026-05-03 20:29:42 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0068: update scan-progress bullet for immediate network STOP and SMB file counter |
 | 2026-05-03 20:29:42 | `PLAN/S0068_scan-progress-indicator.md` | `S0068` | Mark strategic spec implemented after direct S0068 browse scan progress polish |
 | 2026-05-03 20:56:02 | `PLAN/S0035_android17-local-network-permission.md` | `S0035` | Promoted strategic spec status from Draft to Approved to unblock /spec-tech |
 | 2026-05-03 21:07:41 | `PLAN/S0035_android17-local-network-permission.md` | `S0035` | Advanced strategic spec to Tactical and linked tactical INDEX |
@@ -5772,8 +5772,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 23:01:34 | `app_v2/src/main/res/values/dimens.xml` | `feature` | S0070 step 03.1: Add device storage layout dimensions |
 | 2026-05-03 23:01:34 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `feature` | S0070 step 03.2: Add device storage info container and controls |
 | 2026-05-03 23:06:59 | `docs/FEATURES.md` | `feature` | S0070 step 05.1: Add device storage info to feature list (EN) |
-| 2026-05-03 23:06:59 | `docs/FEATURES_RU.md` | `feature` | S0070 step 05.2: Add device storage info to feature list (RU) |
-| 2026-05-03 23:06:59 | `docs/FEATURES_UK.md` | `feature` | S0070 step 05.3: Add device storage info to feature list (UK) |
+| 2026-05-03 23:06:59 | `docs/FEATURES-ru.md` | `feature` | S0070 step 05.2: Add device storage info to feature list (RU) |
+| 2026-05-03 23:06:59 | `docs/FEATURES-uk.md` | `feature` | S0070 step 05.3: Add device storage info to feature list (UK) |
 | 2026-05-03 23:06:59 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0070 step 05.4: Regenerate catalog after GetDeviceStorageUseCase, DeviceStorageState |
 | 2026-05-03 23:10:28 | `PLAN/S0070_device-storage-info-settings.md` | `spec-check` | Audit S0070 -> Verified; PASS/WARN/FAIL 14/0/0 |
 | 2026-05-03 23:14:52 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `containerDeviceStorageInfo` | S0070 fix: remove weight from textDeviceStorageValue so refresh button sits immediately after text |
@@ -5814,8 +5814,8 @@ Format: | datetime | file | target | description |
 | 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-dev S0071` | Inject CleanupTrashUseCase; add clearAllTrash() method |
 | 2026-05-03 23:56:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev S0071` | Wire btnClearTrash visibility and click handler |
 | 2026-05-03 23:59:18 | `docs/FEATURES.md` | `spec-dev S0071` | Add Move to trash toggle feature bullet |
-| 2026-05-03 23:59:18 | `docs/FEATURES_RU.md` | `spec-dev S0071` | Add Переключатель корзины feature bullet (RU) |
-| 2026-05-03 23:59:18 | `docs/FEATURES_UK.md` | `spec-dev S0071` | Add Перемикач кошика feature bullet (UK) |
+| 2026-05-03 23:59:18 | `docs/FEATURES-ru.md` | `spec-dev S0071` | Add Переключатель корзины feature bullet (RU) |
+| 2026-05-03 23:59:18 | `docs/FEATURES-uk.md` | `spec-dev S0071` | Add Перемикач кошика feature bullet (UK) |
 | 2026-05-03 23:59:18 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0071` | Regenerate catalog after S0071 changes |
 | 2026-05-03 23:59:18 | `dev/CATALOG/app_v2.md` | `spec-dev S0071` | Render catalog after S0071 changes |
 | 2026-05-04 00:00:19 | `PLAN/S0071_use-trash-setting.md` | `spec-dev S0071` | Status Implemented; update spec: default=false, Clear Trash button feature |
@@ -5865,8 +5865,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 00:49:02 | `app_v2/src/main/res/values-ru/strings.xml` | `S0073` | Add btn_select_folder_description (RU) |
 | 2026-05-04 00:49:02 | `app_v2/src/main/res/values-uk/strings.xml` | `S0073` | Add btn_select_folder_description (UK) |
 | 2026-05-04 00:49:02 | `docs/FEATURES.md` | `S0073` | Document .. folder-picker button in player panels |
-| 2026-05-04 00:49:03 | `docs/FEATURES_RU.md` | `S0073` | Document .. folder-picker button in player panels (RU) |
-| 2026-05-04 00:49:03 | `docs/FEATURES_UK.md` | `S0073` | Document .. folder-picker button in player panels (UK) |
+| 2026-05-04 00:49:03 | `docs/FEATURES-ru.md` | `S0073` | Document .. folder-picker button in player panels (RU) |
+| 2026-05-04 00:49:03 | `docs/FEATURES-uk.md` | `S0073` | Document .. folder-picker button in player panels (UK) |
 | 2026-05-04 00:51:54 | `PLAN/S0073_player-copy-move-custom-path-button.md` | `spec-check` | Audit S0073 -> Verified; PASS 18 / WARN 0 / FAIL 0 / MANUAL 8 |
 | 2026-05-04 00:52:45 | `app_v2/src/main/res/values/strings.xml` | `S0072` | Add resource_name_downloads string (EN) |
 | 2026-05-04 00:52:45 | `app_v2/src/main/res/values-ru/strings.xml` | `S0072` | Add resource_name_downloads string (RU) |
@@ -5874,8 +5874,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 00:52:51 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDownloadsDestinationUseCase.kt` | `S0072` | New use case: auto-provision Downloads as first destination |
 | 2026-05-04 00:52:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0072` | Wire ProvisionDownloadsDestinationUseCase into init block |
 | 2026-05-04 00:52:51 | `docs/FEATURES.md` | `S0072` | Add Downloads pre-configured destination bullet |
-| 2026-05-04 00:52:51 | `docs/FEATURES_RU.md` | `S0072` | Add Downloads pre-configured destination bullet (RU) |
-| 2026-05-04 00:52:51 | `docs/FEATURES_UK.md` | `S0072` | Add Downloads pre-configured destination bullet (UK) |
+| 2026-05-04 00:52:51 | `docs/FEATURES-ru.md` | `S0072` | Add Downloads pre-configured destination bullet (RU) |
+| 2026-05-04 00:52:51 | `docs/FEATURES-uk.md` | `S0072` | Add Downloads pre-configured destination bullet (UK) |
 | 2026-05-04 00:54:45 | `PLAN/S0072_downloads-auto-destination.md` | `spec-check` | Audit S0072 -> Verified; PASS/WARN/FAIL 19/0/0 |
 | 2026-05-04 01:03:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DestinationButtonsManager.kt` | `S0073-fix` | Render «..» as last button in last row, not a separate row; narrow button sizing |
 | 2026-05-04 01:07:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `BdTsPlaybackHelper` | Add buildBdTsMediaSourceFactory: sets FLAG_IGNORE_SPLICE_INFO_STREAM to suppress ExoPlayer SCTE-35 crash on Blu-ray TS |
@@ -5888,8 +5888,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 01:22:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `VideoPlayerManager` | Phase 06: add audioUnsupportedShownForPath guard + onTracksChanged audio diagnostics Toast for .m2ts files with all-unsupported audio tracks |
 | 2026-05-04 01:25:15 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec` | Add strategic spec S0074 for copy-move dialog progress (%, speed, ETA) |
 | 2026-05-04 01:27:49 | `docs/FEATURES.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet |
-| 2026-05-04 01:27:49 | `docs/FEATURES_RU.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet RU |
-| 2026-05-04 01:27:49 | `docs/FEATURES_UK.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet UK |
+| 2026-05-04 01:27:49 | `docs/FEATURES-ru.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet RU |
+| 2026-05-04 01:27:49 | `docs/FEATURES-uk.md` | `S0054` | BD-TS auto-detect + audio diagnostics bullet UK |
 | 2026-05-04 01:31:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/glide/NetworkFileModelLoader.kt` | `NetworkFileModelLoader` | Add vob/ts/m2ts/mts/m2t/ifo/bup to VIDEO_EXTENSIONS to prevent NetworkFileDataFetcher from downloading and failing to validate DVD/TS container files as images |
 | 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/INDEX.md` | `spec-tech` | Create tactical plan for S0074 |
 | 2026-05-04 01:31:07 | `PLAN/S0074_copy-move-dialog-progress/PHASE_01__domain-total-bytes.md` | `spec-tech` | Phase 01: domain-total-bytes |
@@ -5904,8 +5904,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 01:39:54 | `app_v2/src/main/res/values-uk/strings.xml` | `S0074` | Add transfer_overall_progress_desc, transfer_eta_desc (UK) |
 | 2026-05-04 01:40:01 | `PLAN/S0075_device-reach-google-play.md` | `spec` | Add strategic spec S0075 for device-reach-google-play |
 | 2026-05-04 01:42:20 | `docs/FEATURES.md` | `S0074` | Document copy/move progress % and ETA feature (EN) |
-| 2026-05-04 01:42:20 | `docs/FEATURES_RU.md` | `S0074` | RU feature doc: copy/move % and ETA |
-| 2026-05-04 01:42:20 | `docs/FEATURES_UK.md` | `S0074` | UK feature doc: copy/move % and ETA |
+| 2026-05-04 01:42:20 | `docs/FEATURES-ru.md` | `S0074` | RU feature doc: copy/move % and ETA |
+| 2026-05-04 01:42:20 | `docs/FEATURES-uk.md` | `S0074` | UK feature doc: copy/move % and ETA |
 | 2026-05-04 01:42:20 | `dev/CATALOG/app_v2.jsonl` | `S0074` | Catalog regen after Phase 02 changes |
 | 2026-05-04 01:42:20 | `dev/CATALOG/app_v2.md` | `S0074` | Catalog render after Phase 02 changes |
 | 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/INDEX.md` | `spec-tech` | Create tactical plan for S0075 |
@@ -5914,8 +5914,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup |
 | 2026-05-04 01:42:53 | `PLAN/S0075_device-reach-google-play.md` | `spec-tech` | Status -> Tactical |
 | 2026-05-04 01:47:28 | `docs/FEATURES.md` | `S0074` | Document copy/move progress % and ETA feature |
-| 2026-05-04 01:47:28 | `docs/FEATURES_RU.md` | `S0074` | RU feature doc: copy/move % and ETA |
-| 2026-05-04 01:47:28 | `docs/FEATURES_UK.md` | `S0074` | UK feature doc: copy/move % and ETA |
+| 2026-05-04 01:47:28 | `docs/FEATURES-ru.md` | `S0074` | RU feature doc: copy/move % and ETA |
+| 2026-05-04 01:47:28 | `docs/FEATURES-uk.md` | `S0074` | UK feature doc: copy/move % and ETA |
 | 2026-05-04 01:49:26 | `PLAN/S0074_copy-move-dialog-progress.md` | `spec-check` | Audit S0074 -> Verified; PASS/WARN/FAIL 18/0/0 |
 | 2026-05-04 01:57:08 | `PLAN/S0054_m2ts-playback-support.md` | `spec-update` | Refined S0054 with TS/non-TS boundary and linked S0076/S0077 |
 | 2026-05-04 01:57:08 | `PLAN/S0054_m2ts-playback-support/INDEX.md` | `spec-update` | Linked field-log follow-up tickets for S0054 tactical plan |
@@ -5982,8 +5982,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 10:17:07 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/VideoPlayerManagerRouteErrorTest.kt` | `S0076 Phase 04` | Regression tests for VOB route error path vs generic error path |
 | 2026-05-04 10:17:07 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImplTest.kt` | `S0076 Phase 04` | Narrow unit tests for VOB route callback contract |
 | 2026-05-04 10:21:50 | `docs/FEATURES.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet to Video Player section |
-| 2026-05-04 10:21:50 | `docs/FEATURES_RU.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (RU) |
-| 2026-05-04 10:21:50 | `docs/FEATURES_UK.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (UK) |
+| 2026-05-04 10:21:50 | `docs/FEATURES-ru.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (RU) |
+| 2026-05-04 10:21:50 | `docs/FEATURES-uk.md` | `S0076 Phase 05` | Add network DVD VOB routing fix bullet (UK) |
 | 2026-05-04 10:21:50 | `dev/CATALOG/app_v2.jsonl` | `S0076 Phase 05` | Catalog regenerated after S0076 Kotlin changes; role set for NetworkPlaybackContainerHint |
 | 2026-05-04 10:21:50 | `dev/CATALOG/app_v2.md` | `S0076 Phase 05` | Catalog markdown re-rendered after S0076 changes |
 | 2026-05-04 10:25:03 | `PLAN/S0076_bugfix-vob-network-playback-routing.md` | `spec-check` | Audit S0076 -> Verified; PASS/WARN/FAIL 42/0/0 |
@@ -5991,8 +5991,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 14:31:44 | `app_v2/src/main/java/com/sza/fastmediasorter/vr/render/DefaultVrLayerFactory.kt` | `S0078` | Remove renderMode==FULL_STEREO guard from SBS branch - SBS_FULL/SBS_HALF now always route to projectionDescriptor regardless of renderMode |
 | 2026-05-04 14:40:02 | `PLAN/S0079_bugfix-file-op-progress-dialog-landscape-npe.md` | `spec` | Add strategic spec S0079 for bugfix-file-op-progress-dialog-landscape-npe |
 | 2026-05-04 14:40:07 | `docs/FEATURES.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075) |
-| 2026-05-04 14:40:07 | `docs/FEATURES_RU.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, RU) |
-| 2026-05-04 14:40:07 | `docs/FEATURES_UK.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, UK) |
+| 2026-05-04 14:40:07 | `docs/FEATURES-ru.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, RU) |
+| 2026-05-04 14:40:07 | `docs/FEATURES-uk.md` | `doc-update` | Add Android TV box use-case section and summary table row (S0075, UK) |
 | 2026-05-04 14:40:07 | `index.html` | `doc-update` | Add Android TV box usage scenario card; update meta keywords |
 | 2026-05-04 14:40:07 | `index-ru.html` | `doc-update` | Add Android TV box usage scenario card (RU) |
 | 2026-05-04 14:40:07 | `index-uk.html` | `doc-update` | Add Android TV box usage scenario card (UK) |
@@ -6029,8 +6029,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 15:27:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/FocusManager.kt` | `FocusManager` | S0081 Phase 03+04: boundary escape + DPAD hold acceleration |
 | 2026-05-04 15:27:50 | `app_v2/src/main/res/layout/custom_player_controls.xml` | `custom_player_controls.xml` | S0081 Phase 03: close nextFocusLeft/Right loop in player controls |
 | 2026-05-04 15:27:54 | `docs/FEATURES.md` | `FEATURES` | S0081: TV remote remapping and DPAD acceleration |
-| 2026-05-04 15:27:54 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0081: TV remote remapping and DPAD acceleration (RU) |
-| 2026-05-04 15:27:54 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0081: TV remote remapping and DPAD acceleration (UK) |
+| 2026-05-04 15:27:54 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0081: TV remote remapping and DPAD acceleration (RU) |
+| 2026-05-04 15:27:54 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0081: TV remote remapping and DPAD acceleration (UK) |
 | 2026-05-04 15:29:18 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec` | S0081 Status -> Implemented |
 | 2026-05-04 15:30:41 | `PLAN/S0081_tv-remote-key-coverage.md` | `spec-check` | Audit S0081 -> Verified; PASS/WARN/FAIL 24/0/0 |
 | 2026-05-04 16:28:05 | `PLAN/S0080_enh-vr-hud-swapchain-resize.md` | `spec` | Advance S0080 strategic spec to Approved |
@@ -6077,8 +6077,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 18:19:29 | `app_v2/src/main/java/com/sza/fastmediasorter/data/glide/NetworkEpubCoverLoader.kt` | `S0035 Phase05 Step05.3` | Add hasLocalNetworkPermission gate in NetworkEpubDataFetcher.loadData() before download |
 | 2026-05-04 18:23:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/CastMediaManager.kt` | `S0035 Phase06 Steps06.1+06.2` | Gate init() + showCastDialog() with hasLocalNetworkPermission; lazy recovery in showCastDialog |
 | 2026-05-04 18:27:35 | `docs/FEATURES.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 Network Sources |
-| 2026-05-04 18:27:35 | `docs/FEATURES_RU.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (RU) |
-| 2026-05-04 18:27:35 | `docs/FEATURES_UK.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (UK) |
+| 2026-05-04 18:27:35 | `docs/FEATURES-ru.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (RU) |
+| 2026-05-04 18:27:35 | `docs/FEATURES-uk.md` | `S0035 Phase07 Step07.1` | Add Android 17+ local network permission bullet to section 15 (UK) |
 | 2026-05-04 18:27:35 | `PLAN/S0035_android17-local-network-permission.md` | `S0035 Phase07 Step07.3` | Strategic spec updated for Implemented status |
 | 2026-05-04 18:27:35 | `PLAN/S0035_android17-local-network-permission/INDEX.md` | `S0035 Phase07 Step07.3` | INDEX updated: 7/7 phases done |
 | 2026-05-04 18:27:35 | `dev/CATALOG/app_v2.jsonl` | `S0035 Phase07 Step07.2` | Catalog scan regenerated after S0035 implementation |
@@ -6145,8 +6145,8 @@ Format: | datetime | file | target | description |
 | 2026-05-04 20:50:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `CommandPanelController` | S0028 Phase 06: cache allowSeparateWindow from settings, pass to planner, dispatch onOpenInSeparateWindowClicked |
 | 2026-05-04 20:50:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `PlayerCommandPanelCallbackImpl` | S0028 Phase 06: implement onOpenInSeparateWindowClicked -> activity.tearOffPlayer() |
 | 2026-05-04 20:54:13 | `docs/FEATURES.md` | `FEATURES` | S0028 Phase 07: add Multi-Window Mode entry under VR section (EN) |
-| 2026-05-04 20:54:14 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0028 Phase 07: add Multi-Window Mode entry under VR section (RU) |
-| 2026-05-04 20:54:15 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0028 Phase 07: add Multi-Window Mode entry under VR section (UK) |
+| 2026-05-04 20:54:14 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0028 Phase 07: add Multi-Window Mode entry under VR section (RU) |
+| 2026-05-04 20:54:15 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0028 Phase 07: add Multi-Window Mode entry under VR section (UK) |
 | 2026-05-04 21:01:38 | `PLAN/S0028_vr-multi-window-playback.md` | `spec-check` | Audit S0028 → Verified; PASS/WARN/FAIL 14/0/0 |
 | 2026-05-04 21:01:38 | `PLAN/S0028_vr-multi-window-playback/PHASE_07__docs-catalog-cleanup.md` | `spec-check` | Tick final /spec-check criterion → all Done Criteria [x] |
 | 2026-05-04 23:38:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `WelcomeActivity.getRequiredMediaPermissions` | S0083: split API 23-28/29-32 permission branches; remove WRITE_EXTERNAL_STORAGE from API 29+ path |
@@ -6171,8 +6171,8 @@ Format: | datetime | file | target | description |
 | 2026-05-05 00:22:55 | `app_v2/src/main/res/values-ru/strings.xml` | `S0082` | Phase 05: add chromeos_banner string keys (RU) |
 | 2026-05-05 00:22:55 | `app_v2/src/main/res/values-uk/strings.xml` | `S0082` | Phase 05: add chromeos_banner string keys (UK) |
 | 2026-05-05 00:22:55 | `docs/FEATURES.md` | `S0082` | Phase 06: Chrome OS platform support note |
-| 2026-05-05 00:22:55 | `docs/FEATURES_RU.md` | `S0082` | Phase 06: Chrome OS platform support note (RU) |
-| 2026-05-05 00:22:55 | `docs/FEATURES_UK.md` | `S0082` | Phase 06: Chrome OS platform support note (UK) |
+| 2026-05-05 00:22:55 | `docs/FEATURES-ru.md` | `S0082` | Phase 06: Chrome OS platform support note (RU) |
+| 2026-05-05 00:22:55 | `docs/FEATURES-uk.md` | `S0082` | Phase 06: Chrome OS platform support note (UK) |
 | 2026-05-05 00:22:55 | `dev/CATALOG/app_v2.jsonl` | `S0082` | Phase 06: catalog regenerated after Chrome OS support |
 | 2026-05-05 00:27:55 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec` | Add strategic spec S0084 for bugfix-cache-subfolder-mismatch-restore |
 | 2026-05-05 00:28:00 | `PLAN/S0082_chromeos-support.md` | `spec-update` | Refinement (claude-sonnet-4-6, focus: completeness): ARC++ GL crop confirmed broken via logcat, added findings to §1/§4/§6/§7, 4 DISCUSS proposals |
@@ -6202,18 +6202,18 @@ Format: | datetime | file | target | description |
 | 2026-05-05 00:46:26 | `PLAN/S0087_bugfix-cover-art-glide-404-log-spam.md` | `spec-tech` | Status → Tactical |
 | 2026-05-05 00:56:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0084` | Fix cold-start cache miss log (subfolder mismatch false positive) |
 | 2026-05-05 00:56:18 | `docs/FEATURES.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour |
-| 2026-05-05 00:56:18 | `docs/FEATURES_RU.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (RU) |
-| 2026-05-05 00:56:18 | `docs/FEATURES_UK.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (UK) |
+| 2026-05-05 00:56:18 | `docs/FEATURES-ru.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (RU) |
+| 2026-05-05 00:56:18 | `docs/FEATURES-uk.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (UK) |
 | 2026-05-05 00:56:22 | `docs/FEATURES.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour |
-| 2026-05-05 00:56:27 | `docs/FEATURES_RU.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (RU) |
-| 2026-05-05 00:56:27 | `docs/FEATURES_UK.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (UK) |
+| 2026-05-05 00:56:27 | `docs/FEATURES-ru.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (RU) |
+| 2026-05-05 00:56:27 | `docs/FEATURES-uk.md` | `S0084` | Update last-position-restore bullet - subfolder open behaviour (UK) |
 | 2026-05-05 00:56:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `SftpClient` | S0085: Add SftpFileListing data class; change listFiles() return type to Result<List<SftpFileListing>>; populate attrs from LsEntry without extra stat() calls; add includeDirectories param |
 | 2026-05-05 00:56:52 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `SftpMediaScanner` | S0085: Eliminate per-file stat() calls in scanFolder/scanFolderPaged/listDirectoryContents; use SftpFileListing attrs; wire onProgress every 10 files in scanFolder; stat() fallback only for zero-size files with active min-size filter |
 | 2026-05-05 00:56:58 | `docs/FEATURES.md` | `FEATURES` | S0085: Append SFTP scan performance improvement note to Secure SFTP bullet (single round-trip, progress counter) |
-| 2026-05-05 00:56:58 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (RU) |
-| 2026-05-05 00:56:58 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (UK) |
-| 2026-05-05 00:57:01 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (RU) |
-| 2026-05-05 00:57:01 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (UK) |
+| 2026-05-05 00:56:58 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (RU) |
+| 2026-05-05 00:56:58 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0085: Append SFTP scan performance improvement note to SMB/FTP/SFTP bullet (UK) |
+| 2026-05-05 00:57:01 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (RU) |
+| 2026-05-05 00:57:01 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0085: Append SFTP scan performance note to SMB/FTP/SFTP bullet (UK) |
 | 2026-05-05 00:57:27 | `PLAN/S0084_bugfix-cache-subfolder-mismatch-restore.md` | `spec-check` | Audit S0084 -> Verified; PASS/WARN/FAIL 14/0/0 |
 | 2026-05-05 01:00:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SmbOperationsUseCase.kt` | `SmbOperationsUseCase` | S0085: Adapt listFiles() consumers to SftpFileListing - use listing.path, listing.size, listing.modifiedDate; trash folder filter updated |
 | 2026-05-05 01:00:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/transfer/strategy/SftpOperationStrategy.kt` | `SftpOperationStrategy` | S0085: Adapt listFiles() consumers to SftpFileListing - use listing.path and listing.isDirectory; eliminate stat() calls in collectSftpFiles/collectSftpFilesOnly |
@@ -6226,15 +6226,15 @@ Format: | datetime | file | target | description |
 | 2026-05-05 01:34:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpClient.kt` | `S0085` | Add SftpFileListing data class; listFiles() returns attrs from ls response - no extra stat() per file |
 | 2026-05-05 01:34:38 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `S0085` | Eliminate per-file stat() in scanFolder/scanFolderPaged; wire onProgress every 10 files |
 | 2026-05-05 01:34:38 | `docs/FEATURES.md` | `S0085` | Update Secure SFTP bullet - single round-trip listing + progress indicator |
-| 2026-05-05 01:34:38 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
-| 2026-05-05 01:34:38 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:34:38 | `docs/FEATURES-ru.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:38 | `docs/FEATURES-uk.md` | `S0085` | Update Secure SFTP bullet (UK) |
 | 2026-05-05 01:34:41 | `PLAN/S0086_bugfix-log-export-create-document-guard.md` | `spec-check` | Advance status to Partial (audit 2026-05-05) |
 | 2026-05-05 01:34:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpMediaScanner.kt` | `S0085` | Eliminate per-file stat() in scanFolder/scanFolderPaged; wire onProgress every 10 files |
 | 2026-05-05 01:34:45 | `docs/FEATURES.md` | `S0085` | Update Secure SFTP bullet - single round-trip listing + progress indicator |
-| 2026-05-05 01:34:45 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
-| 2026-05-05 01:34:45 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
-| 2026-05-05 01:34:48 | `docs/FEATURES_RU.md` | `S0085` | Update Secure SFTP bullet (RU) |
-| 2026-05-05 01:34:51 | `docs/FEATURES_UK.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:34:45 | `docs/FEATURES-ru.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:45 | `docs/FEATURES-uk.md` | `S0085` | Update Secure SFTP bullet (UK) |
+| 2026-05-05 01:34:48 | `docs/FEATURES-ru.md` | `S0085` | Update Secure SFTP bullet (RU) |
+| 2026-05-05 01:34:51 | `docs/FEATURES-uk.md` | `S0085` | Update Secure SFTP bullet (UK) |
 | 2026-05-05 01:42:46 | `PLAN/S0027_bugfix-vr-immersive-orientation-inverted.md` | `S0027` | Closed as Verified: V-axis fix confirmed in VrStereoRenderer.kt, ADR-1/2/3 implemented. Regression test spun off to S0088 (priority 15) |
 | 2026-05-05 01:56:33 | `app_v2/src/main/AndroidManifest.xml` | `AndroidManifest` | Added IMAGE_CAPTURE and VIDEO_CAPTURE to queries block - fixes hasCameraHandler() returning false on API 30+ due to package visibility |
 | 2026-05-05 02:06:43 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `SettingsRepositoryImpl` | Fix: showBlackScreenButton was not persisted to DataStore - added KEY_SHOW_BLACK_SCREEN_BUTTON, read in getSettings(), write in updateSettings() |
@@ -6396,8 +6396,8 @@ Format: | datetime | file | target | description |
 | 2026-05-05 18:06:47 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0058 step-05.1` | Add 7 passthrough_capture_* strings (UK) near vr_save_frame block |
 | 2026-05-05 18:06:47 | `app_v2/src/vr/res/values/strings.xml` | `spec-dev S0058 step-05.1` | Remove 7 passthrough_capture_* placeholder strings (moved to main res) |
 | 2026-05-05 18:09:14 | `docs/FEATURES.md` | `S0058` | Add passthrough snapshot bullet to VR Features |
-| 2026-05-05 18:09:14 | `docs/FEATURES_RU.md` | `S0058` | Add passthrough snapshot bullet to VR Features (RU) |
-| 2026-05-05 18:09:14 | `docs/FEATURES_UK.md` | `S0058` | Add passthrough snapshot bullet to VR Features (UK) |
+| 2026-05-05 18:09:14 | `docs/FEATURES-ru.md` | `S0058` | Add passthrough snapshot bullet to VR Features (RU) |
+| 2026-05-05 18:09:14 | `docs/FEATURES-uk.md` | `S0058` | Add passthrough snapshot bullet to VR Features (UK) |
 | 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.jsonl` | `S0058` | Catalog regen after passthrough capture classes added; roles set for 3 new files |
 | 2026-05-05 18:10:54 | `dev/CATALOG/app_v2.md` | `S0058` | Catalog render after passthrough capture classes added |
 | 2026-05-05 18:13:41 | `PLAN/S0058_vr-passthrough-camera-capture.md` | `spec-check` | Audit S0058 → Verified; PASS 37 / WARN 0 / FAIL 0 / MANUAL 5 |
@@ -6500,11 +6500,11 @@ Format: | datetime | file | target | description |
 | 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | Phase 06: docs-catalog-cleanup |
 | 2026-05-06 04:02:46 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-tech` | Status -> Tactical |
 | 2026-05-06 04:02:48 | `README.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box |
-| 2026-05-06 04:02:55 | `docs/README_RU.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (RU) |
-| 2026-05-06 04:02:55 | `docs/README_UK.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (UK) |
+| 2026-05-06 04:02:55 | `docs/README-ru.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (RU) |
+| 2026-05-06 04:02:55 | `docs/README-uk.md` | `Usage Scenarios` | Add scenario 11: Media Centre on Android TV Box (UK) |
 | 2026-05-06 04:02:55 | `docs/HOW_TO.md` | `How-To guides` | Add guide: How to use FMS on Android TV box |
-| 2026-05-06 04:02:55 | `docs/HOW_TO_RU.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (RU) |
-| 2026-05-06 04:02:55 | `docs/HOW_TO_UK.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (UK) |
+| 2026-05-06 04:02:55 | `docs/HOW_TO-ru.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (RU) |
+| 2026-05-06 04:02:55 | `docs/HOW_TO-uk.md` | `How-To guides` | Add guide: How to use FMS on Android TV box (UK) |
 | 2026-05-06 10:04:02 | `PLAN/S0098_bugfix-smb-precheck-false-fail.md` | `spec-all` | Pipeline Verified: S0098 - bugfix-smb-precheck-false-fail |
 | 2026-05-06 11:19:42 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `SftpConnectionPool` | S0099 Phase 01: add playbackConnectionPool for ExoPlayer session isolation, extend disconnectAll/cleanupIdleConnections to cover both pools, tag Timber calls with [PLAYBACK]/[FILE_OPS] |
 | 2026-05-06 11:24:55 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpDownloadExhaustedException.kt` | `SftpDownloadExhaustedException` | S0099 Phase 02: new typed exception for SFTP download retry exhaustion |
@@ -6571,8 +6571,8 @@ Format: | datetime | file | target | description |
 | 2026-05-06 14:42:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `BrowseActivity` | S0100: wire BrowseMicRecordingManager, permission launcher, button visibility |
 | 2026-05-06 14:42:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | S0100: delegate onMicRecord touch callbacks to BrowseActivity |
 | 2026-05-06 14:42:40 | `docs/FEATURES.md` | `FEATURES.md` | S0100: add microphone recording bullet |
-| 2026-05-06 14:42:40 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0100: add microphone recording bullet (Russian) |
-| 2026-05-06 14:42:40 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0100: add microphone recording bullet (Ukrainian) |
+| 2026-05-06 14:42:40 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | S0100: add microphone recording bullet (Russian) |
+| 2026-05-06 14:42:40 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | S0100: add microphone recording bullet (Ukrainian) |
 | 2026-05-06 14:42:40 | `PLAN/S0100_mic-recording-in-browse/PHASE_03__manifest-strings.md` | `PHASE_03` | S0100: phase file updated during implementation |
 | 2026-05-06 14:49:01 | `PLAN/S0103_player-top-bar-polish.md` | `spec` | Add strategic spec S0103 for player-top-bar-polish |
 | 2026-05-06 14:49:51 | `PLAN/S0100_mic-recording-in-browse.md` | `spec-check` | Audit S0100 → Verified; PASS/WARN/FAIL 54/0/0 |
@@ -6645,19 +6645,19 @@ Format: | datetime | file | target | description |
 | 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/CommandPanelController.kt` | `S0104` | Wire playback order button |
 | 2026-05-06 15:43:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0104` | Delegate onPlaybackOrderClicked |
 | 2026-05-06 15:43:47 | `docs/FEATURES.md` | `S0104` | Add playback order modes feature bullet |
-| 2026-05-06 15:43:47 | `docs/FEATURES_RU.md` | `S0104` | Mirror playback order modes bullet (RU) |
-| 2026-05-06 15:43:47 | `docs/FEATURES_UK.md` | `S0104` | Mirror playback order modes bullet (UK) |
+| 2026-05-06 15:43:47 | `docs/FEATURES-ru.md` | `S0104` | Mirror playback order modes bullet (RU) |
+| 2026-05-06 15:43:47 | `docs/FEATURES-uk.md` | `S0104` | Mirror playback order modes bullet (UK) |
 | 2026-05-06 15:43:47 | `dev/CATALOG/app_v2.jsonl` | `S0104` | Regenerate after PlaybackOrderMode addition |
 | 2026-05-06 15:46:58 | `PLAN/S0104_playback-order-mode.md` | `spec-check` | Audit S0104 -> Verified; PASS 25 / WARN 0 / FAIL 0 / MANUAL 9 |
 | 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/MediaFileAdapter.kt` | `S0105` | Phase 01: show inline play button for all audio files in any Browse resource |
 | 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0105` | Phase 02: stop inline playback on folder navigation in non-audio-only resources |
 | 2026-05-06 15:50:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S0105` | Phase 02: stop inline playback on back-press navigation in non-audio-only resources |
 | 2026-05-06 15:50:16 | `docs/FEATURES.md` | `S0105` | Phase 03: expand inline mini-player entry to all Browse resources |
-| 2026-05-06 15:50:16 | `docs/FEATURES_RU.md` | `S0105` | Phase 03: expand inline mini-player entry (RU) |
-| 2026-05-06 15:50:16 | `docs/FEATURES_UK.md` | `S0105` | Phase 03: expand inline mini-player entry (UK) |
+| 2026-05-06 15:50:16 | `docs/FEATURES-ru.md` | `S0105` | Phase 03: expand inline mini-player entry (RU) |
+| 2026-05-06 15:50:16 | `docs/FEATURES-uk.md` | `S0105` | Phase 03: expand inline mini-player entry (UK) |
 | 2026-05-06 15:52:55 | `CLAUDE.md` | `S0102` | Add complete.ps1 to operator facade list |
 | 2026-05-06 15:54:33 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-check` | Audit S0105 -> Broken; PASS/WARN/FAIL 18/0/1 |
-| 2026-05-06 15:55:06 | `docs/FEATURES_RU.md` | `spec-fix` | S0105: align inline mini-player heading to мини-плеер (was аудио-миниплеер) |
+| 2026-05-06 15:55:06 | `docs/FEATURES-ru.md` | `spec-fix` | S0105: align inline mini-player heading to мини-плеер (was аудио-миниплеер) |
 | 2026-05-06 15:55:06 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-fix` | Annotate Last Audit (S0105) |
 | 2026-05-06 15:56:06 | `PLAN/S0105_inline-audio-playback-in-browse.md` | `spec-check` | Audit S0105 -> Verified; PASS/WARN/FAIL 19/0/0 |
 | 2026-05-06 15:58:50 | `scripts/spec_catalog/archive.ps1` | `tooling` | Add archive.ps1 - move spec files to temp/done/ + set Archived status |
@@ -6717,8 +6717,8 @@ Format: | datetime | file | target | description |
 | 2026-05-06 20:10:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev S0101 step 6.2` | Inject RequestContextualPermissionUseCase and PermissionRegistryRepository, pass to permissionsHelper |
 | 2026-05-06 20:11:37 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsPermissionsHelper.kt` | `spec-dev S0101 step 6.3` | Add handlePermissionPermanentlyDenied() delegating to PermissionDenialHandler |
 | 2026-05-06 20:18:26 | `docs/FEATURES.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Permission Management bullet to section 19 |
-| 2026-05-06 20:18:26 | `docs/FEATURES_RU.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Управление разрешениями bullet to section 19 |
-| 2026-05-06 20:18:27 | `docs/FEATURES_UK.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Керування дозволами bullet to section 19 |
+| 2026-05-06 20:18:26 | `docs/FEATURES-ru.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Управление разрешениями bullet to section 19 |
+| 2026-05-06 20:18:27 | `docs/FEATURES-uk.md` | `spec-dev` | S0101 Phase 07 Step 7.1: add Керування дозволами bullet to section 19 |
 | 2026-05-06 20:22:45 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0101 Phase 07 Step 7.2: catalog regen + role/status set for new permission classes |
 | 2026-05-06 20:22:46 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0101 Phase 07 Step 7.2: re-render catalog markdown after permission class updates |
 | 2026-05-06 20:23:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `spec-dev` | S0101 Phase 07 Step 7.3: remove S0101 debug Timber tag from finishWelcome() |
@@ -6774,8 +6774,8 @@ Format: | datetime | file | target | description |
 | 2026-05-06 21:50:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0106` | Instantiate ImageCropManager alongside SaveVideoFrameManager |
 | 2026-05-06 21:50:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0106` | Add imageCropManager field, enterImageCropMode, startCompressedCopy, showCropOverlay, hideCropOverlay, imageCropCallback |
 | 2026-05-06 21:58:20 | `docs/FEATURES.md` | `FEATURES.md` | S0106: add Image Crop and Compress bullet to Media Player section |
-| 2026-05-06 21:58:21 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0106: add RU Image Crop and Compress bullet to player section |
-| 2026-05-06 21:58:21 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0106: add UK Image Crop and Compress bullet to player section |
+| 2026-05-06 21:58:21 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | S0106: add RU Image Crop and Compress bullet to player section |
+| 2026-05-06 21:58:21 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | S0106: add UK Image Crop and Compress bullet to player section |
 | 2026-05-06 22:03:20 | `PLAN/S0106_player-image-crop.md` | `spec-check` | Audit S0106 -> Partial; PASS/WARN/FAIL 49/1/0 |
 | 2026-05-06 22:03:43 | `PLAN/S0106_player-image-crop.md` | `spec-fix` | Annotate Last Audit (S0106) - 0 auto-fixed, 1 follow-up |
 | 2026-05-06 22:12:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageCropManager.kt` | `S0106` | Change default filename format to {baseName}_crop/shrink_yyMMdd_HHmm.{ext} |
@@ -6827,8 +6827,8 @@ Format: | datetime | file | target | description |
 | 2026-05-07 01:27:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomePagerAdapter.kt` | `S0108` | Phase 03: WelcomePage language picker fields + EnhancedViewHolder wiring |
 | 2026-05-07 01:29:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt` | `S0108` | Phase 04: page-0 language picker + onWelcomeLanguageSelected handler |
 | 2026-05-07 01:31:56 | `docs/FEATURES.md` | `S0108` | Phase 05: add Welcome language picker bullet (EN) |
-| 2026-05-07 01:31:57 | `docs/FEATURES_RU.md` | `S0108` | Phase 05: add Welcome language picker bullet (RU) |
-| 2026-05-07 01:31:57 | `docs/FEATURES_UK.md` | `S0108` | Phase 05: add Welcome language picker bullet (UK) |
+| 2026-05-07 01:31:57 | `docs/FEATURES-ru.md` | `S0108` | Phase 05: add Welcome language picker bullet (RU) |
+| 2026-05-07 01:31:57 | `docs/FEATURES-uk.md` | `S0108` | Phase 05: add Welcome language picker bullet (UK) |
 | 2026-05-07 01:31:57 | `dev/CATALOG/app_v2.jsonl` | `S0108` | Phase 05: catalog regen after WelcomePagerAdapter changes |
 | 2026-05-07 01:31:57 | `dev/CATALOG/app_v2.md` | `S0108` | Phase 05: catalog markdown regen |
 | 2026-05-07 01:35:22 | `PLAN/S0108_welcome-language-picker.md` | `spec-check` | Audit S0108 -> Verified; PASS 18 / WARN 0 / FAIL 0; removed 2 Timber debug tags |
@@ -6852,8 +6852,8 @@ Format: | datetime | file | target | description |
 | 2026-05-07 02:58:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `AudioSettingsFragment` | fix mic recording toggle self-disable: replace requestContextualPermission (record_audio not registered) with direct ActivityResultContracts.RequestPermission launcher |
 | 2026-05-07 02:59:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/resourceeditor/ResourceEditorActivity.kt` | `S0109` | Guard Escape key when text editor is focused |
 | 2026-05-07 03:03:52 | `docs/FEATURES.md` | `S0109` | Chrome OS text input fix noted in keyboard navigation feature |
-| 2026-05-07 03:03:52 | `docs/FEATURES_RU.md` | `S0109` | Chrome OS text input fix noted (RU) |
-| 2026-05-07 03:03:53 | `docs/FEATURES_UK.md` | `S0109` | Chrome OS text input fix noted (UK) |
+| 2026-05-07 03:03:52 | `docs/FEATURES-ru.md` | `S0109` | Chrome OS text input fix noted (RU) |
+| 2026-05-07 03:03:53 | `docs/FEATURES-uk.md` | `S0109` | Chrome OS text input fix noted (UK) |
 | 2026-05-07 03:07:59 | `app_v2/src/main/res/layout/fragment_permissions_management.xml` | `S0101` | Add ?android:attr/colorBackground to root ConstraintLayout - fixes transparent overlay over Settings tabs |
 | 2026-05-07 03:10:23 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-check` | Audit S0109 -> Partial; PASS/WARN/FAIL 20/2/0 |
 | 2026-05-07 03:11:17 | `PLAN/S0109_bugfix-chromeos-textinput.md` | `spec-fix` | Annotate Last Audit (S0109): 0 auto-fixed, 2 follow-ups |
@@ -6991,8 +6991,8 @@ Format: | datetime | file | target | description |
 | 2026-05-08 01:07:57 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ApplyWatchFavoritesDeltaUseCase.kt` | `spec-dev S0111 step 6.10` | Create ApplyWatchFavoritesDeltaUseCase - applies watch favorites delta to phone FavoritesRepository |
 | 2026-05-08 01:08:56 | `app_v2/src/main/java/com/sza/fastmediasorter/service/PhoneWearListenerService.kt` | `spec-dev S0111 step 6.11` | Wire handleFavoritesDelta to ApplyWatchFavoritesDeltaUseCase in PhoneWearListenerService |
 | 2026-05-08 01:13:56 | `docs/FEATURES.md` | `spec-dev S0111 step 7.1` | Add 5 new Wear OS bidirectional sync bullets to section 21 |
-| 2026-05-08 01:14:34 | `docs/FEATURES_RU.md` | `spec-dev S0111 step 7.2` | Add 5 new Wear OS bidirectional sync bullets to section 21 (RU) |
-| 2026-05-08 01:15:16 | `docs/FEATURES_UK.md` | `spec-dev S0111 step 7.3` | Add 5 new Wear OS bidirectional sync bullets to section 21 (UK) |
+| 2026-05-08 01:14:34 | `docs/FEATURES-ru.md` | `spec-dev S0111 step 7.2` | Add 5 new Wear OS bidirectional sync bullets to section 21 (RU) |
+| 2026-05-08 01:15:16 | `docs/FEATURES-uk.md` | `spec-dev S0111 step 7.3` | Add 5 new Wear OS bidirectional sync bullets to section 21 (UK) |
 | 2026-05-08 01:15:49 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0111 step 7.4` | Regenerate app_v2 catalog for S0111 Phase 07 |
 | 2026-05-08 01:15:49 | `dev/CATALOG/wear.jsonl` | `spec-dev S0111 step 7.5` | Regenerate wear catalog for S0111 Phase 07 |
 | 2026-05-08 01:20:17 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/PublishPlaybackStateUseCase.kt` | `spec-dev S0111` | S0111 step 7.6: remove Timber.d debug tag |
@@ -7083,8 +7083,8 @@ Format: | datetime | file | target | description |
 | 2026-05-08 10:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceConnectionManager.kt` | `AddResourceConnectionManager` | S0115: Replace error Toast calls (auth failures, validation errors, showError else-branch) with AppErrorNotifier.show CRITICAL |
 | 2026-05-08 10:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `MainActivity` | S0115: Replace Toast in showError else-branch with AppErrorNotifier.show CRITICAL |
 | 2026-05-08 10:35:50 | `docs/FEATURES.md` | `FEATURES.md` | S0115: Add unified error display bullet to section 19 Settings |
-| 2026-05-08 10:35:50 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0115: Add Russian unified error display bullet to section 19 |
-| 2026-05-08 10:35:50 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0115: Add Ukrainian unified error display bullet to section 19 |
+| 2026-05-08 10:35:50 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | S0115: Add Russian unified error display bullet to section 19 |
+| 2026-05-08 10:35:50 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | S0115: Add Ukrainian unified error display bullet to section 19 |
 | 2026-05-08 10:35:50 | `dev/CATALOG/app_v2.jsonl` | `app_v2.jsonl` | S0115: Catalog regen - ErrorSeverity (core-enum), AppErrorNotifier (ui-util) entries added/updated |
 | 2026-05-08 10:41:20 | `PLAN/S0115_unified-error-display.md` | `spec-check` | Audit S0115 -> Verified; PASS/WARN/FAIL 36/0/0 |
 | 2026-05-08 10:41:21 | `app_v2/src/main/java/com/sza/fastmediasorter/util/AppErrorNotifier.kt` | `AppErrorNotifier` | S0115 Verified: remove Timber.d debug tag |
@@ -7218,8 +7218,8 @@ Format: | datetime | file | target | description |
 | 2026-05-08 15:16:35 | `app_v2/src/test/java/com/sza/fastmediasorter/core/log/LinkDownloadTraceTest.kt` | `spec-dev` | S0116 Phase 07 step 4: 4 @Test cases for LinkDownloadTrace truncateUrl + truncateCookies |
 | 2026-05-08 15:16:58 | `PLAN/S0116_url-media-downloader/PHASE_07__degradation-and-logging.md` | `spec-tech` | S0116 Phase 07: degradation tests + verbose logging audit verified |
 | 2026-05-08 15:20:13 | `docs/FEATURES.md` | `spec-dev` | S0116 Phase 08 step 1: Extended URL download (S0116) bullet in 22 Background services |
-| 2026-05-08 15:21:46 | `docs/FEATURES_RU.md` | `spec-dev` | S0116 Phase 08 step 2: RU mirror for Extended URL download (S0116) bullet |
-| 2026-05-08 15:21:46 | `docs/FEATURES_UK.md` | `spec-dev` | S0116 Phase 08 step 2: UK mirror for Extended URL download (S0116) bullet |
+| 2026-05-08 15:21:46 | `docs/FEATURES-ru.md` | `spec-dev` | S0116 Phase 08 step 2: RU mirror for Extended URL download (S0116) bullet |
+| 2026-05-08 15:21:46 | `docs/FEATURES-uk.md` | `spec-dev` | S0116 Phase 08 step 2: UK mirror for Extended URL download (S0116) bullet |
 | 2026-05-08 15:23:16 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0116 Phase 08 step 3: regenerate catalog with new main/ classes (11 added; flavor source-sets unindexed by design) |
 | 2026-05-08 15:26:30 | `.github/copilot-instructions.md` | `copilot-instructions.md` | Register /caveman-commit and /caveman-review prompt routing |
 | 2026-05-08 15:26:31 | `.github/prompts/caveman-commit.prompt.md` | `caveman-commit.prompt.md` | Add /caveman-commit prompt for terse conventional commit messages |
@@ -7268,8 +7268,8 @@ Format: | datetime | file | target | description |
 | 2026-05-08 16:56:28 | `PLAN/S0119_settings-information-architecture-revision/docs/migration-map.md` | `spec-dev` | Phase 03: create migration map with canonical placements, confirmed misplacements, search index fixes, and wave strategy |
 | 2026-05-08 17:02:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `SettingsSearchIndex` | S0119 Phase 04: add localizedKeywords Map field, extend search() for EN/RU/UK alias matching, populate RU/UK aliases for all 45 registry entries |
 | 2026-05-08 17:05:30 | `docs/FEATURES.md` | `FEATURES` | S0119: add multilingual settings search bullet (EN) |
-| 2026-05-08 17:05:30 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0119: add multilingual settings search bullet (RU) |
-| 2026-05-08 17:05:31 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0119: add multilingual settings search bullet (UK) |
+| 2026-05-08 17:05:30 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0119: add multilingual settings search bullet (RU) |
+| 2026-05-08 17:05:31 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0119: add multilingual settings search bullet (UK) |
 | 2026-05-08 17:06:03 | `PLAN/S0119_settings-information-architecture-revision/` | `S0119` | Settings IA revision - all phases complete |
 | 2026-05-08 17:06:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchIndex.kt` | `SettingsSearchIndex` | S0119: remove Timber.d debug tag (spec transition to Verified) |
 | 2026-05-08 17:08:44 | `PLAN/S0119_settings-information-architecture-revision.md` | `spec-check` | Audit S0119 -> Verified; PASS/WARN/FAIL 28/0/0 |
@@ -7311,8 +7311,8 @@ Format: | datetime | file | target | description |
 | 2026-05-08 21:07:24 | `app_v2/src/test/java/com/sza/fastmediasorter/data/network/exceptions/NetworkErrorMessageMapperTest.kt` | `S0118` | Add unit tests for network error mapping |
 | 2026-05-08 21:07:24 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/common/copy/FriendlyCopyParityTest.kt` | `S0118` | Add friendly-copy parity invariants test |
 | 2026-05-08 21:12:43 | `docs/FEATURES.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (EN) |
-| 2026-05-08 21:12:44 | `docs/FEATURES_RU.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (RU) |
-| 2026-05-08 21:12:44 | `docs/FEATURES_UK.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (UK) |
+| 2026-05-08 21:12:44 | `docs/FEATURES-ru.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (RU) |
+| 2026-05-08 21:12:44 | `docs/FEATURES-uk.md` | `S0118` | Add 'Friendly UI copy and support routing' bullet to Settings section (UK) |
 | 2026-05-08 21:12:44 | `dev/CATALOG/app_v2.jsonl` | `S0118` | Regenerate app_v2 class catalog after S0118 phases |
 | 2026-05-08 21:12:44 | `dev/CATALOG/app_v2.md` | `S0118` | Regenerate human-readable catalog |
 | 2026-05-08 21:21:05 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-check` | Audit S0118 → Verified; PASS/WARN/FAIL 41/1/0; Timber.d S0118 tags removed |
@@ -7412,8 +7412,8 @@ Format: | datetime | file | target | description |
 | 2026-05-09 03:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewModel.kt` | `S0107 Phase 04 Step 4.5` | Add onFileCreatedInCurrentDirectory(newFile): inserts new MediaFile after currentIndex and navigates to it |
 | 2026-05-09 03:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0107 Phase 04 Step 4.5` | Call viewModel.onFileCreatedInCurrentDirectory() after save to same-dir for navigation to new file |
 | 2026-05-09 03:47:36 | `docs/FEATURES.md` | `S0107 Phase 05 Step 5.1` | Add Draw annotations bullet to section 5 Image Viewer |
-| 2026-05-09 03:47:36 | `docs/FEATURES_RU.md` | `S0107 Phase 05 Step 5.1` | Add Russian draw overlay feature bullet to section 5 |
-| 2026-05-09 03:47:37 | `docs/FEATURES_UK.md` | `S0107 Phase 05 Step 5.1` | Add Ukrainian draw overlay feature bullet to section 5 |
+| 2026-05-09 03:47:36 | `docs/FEATURES-ru.md` | `S0107 Phase 05 Step 5.1` | Add Russian draw overlay feature bullet to section 5 |
+| 2026-05-09 03:47:37 | `docs/FEATURES-uk.md` | `S0107 Phase 05 Step 5.1` | Add Ukrainian draw overlay feature bullet to section 5 |
 | 2026-05-09 03:47:46 | `PLAN/S0118_friendly-ui-copy-revision.md` | `spec-update` | Force-locked refinement: trimmed S0118 strategic prose for execution |
 | 2026-05-09 03:49:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107:') debug tags from enterDrawMode and exitDrawMode |
 | 2026-05-09 03:49:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `S0107 Phase 05 Step 5.2` | Remove Timber.d('S0107:') debug tag from onDrawOverlayClicked |
@@ -7443,8 +7443,8 @@ Format: | datetime | file | target | description |
 | 2026-05-09 04:47:41 | `gradle.properties` | `Gradle` | Cap workers.max=8 -- Android single-module build saturates at 4-6 workers; was spawning 20 idle threads (logical CPU count) |
 | 2026-05-09 04:53:48 | `app_v2/src/main/AndroidManifest.xml` | `TV device support` | Override implicit hardware.microphone requirement caused by RECORD_AUDIO permission to restore Android TV eligibility on Google Play (regression: 2879 -> 9) |
 | 2026-05-09 13:05:36 | `docs/FEATURES.md` | `S0126` | Phase 03: update output filename examples |
-| 2026-05-09 13:05:36 | `docs/FEATURES_RU.md` | `S0126` | Phase 03: update output filename examples (RU) |
-| 2026-05-09 13:05:36 | `docs/FEATURES_UK.md` | `S0126` | Phase 03: update output filename examples (UK) |
+| 2026-05-09 13:05:36 | `docs/FEATURES-ru.md` | `S0126` | Phase 03: update output filename examples (RU) |
+| 2026-05-09 13:05:36 | `docs/FEATURES-uk.md` | `S0126` | Phase 03: update output filename examples (UK) |
 | 2026-05-09 13:05:36 | `dev/CATALOG/app_v2.jsonl` | `S0126` | Phase 03: regen catalog after ImageEditorFileNamer |
 | 2026-05-09 13:05:36 | `dev/CATALOG/app_v2.md` | `S0126` | Phase 03: render catalog markdown |
 | 2026-05-09 13:06:20 | `PLAN/S0126_image-editor-output-autoname.md` | `S0126` | Status -> Implemented (BlockNeedUserTest pending on-device verification) |
@@ -7475,8 +7475,8 @@ Format: | datetime | file | target | description |
 | 2026-05-09 13:35:12 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/views/CropOverlayView.kt` | `S0127` | Add pinchPassthroughTarget for multi-pointer routing to underlying PhotoView |
 | 2026-05-09 13:35:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerCropDelegate.kt` | `S0127` | Wire CropOverlayView.pinchPassthroughTarget to photoView |
 | 2026-05-09 13:38:10 | `docs/FEATURES.md` | `S0127` | Add immersive Draw/Crop bullet |
-| 2026-05-09 13:38:11 | `docs/FEATURES_RU.md` | `S0127` | Add immersive Draw/Crop bullet (RU) |
-| 2026-05-09 13:38:11 | `docs/FEATURES_UK.md` | `S0127` | Add immersive Draw/Crop bullet (UK) |
+| 2026-05-09 13:38:11 | `docs/FEATURES-ru.md` | `S0127` | Add immersive Draw/Crop bullet (RU) |
+| 2026-05-09 13:38:11 | `docs/FEATURES-uk.md` | `S0127` | Add immersive Draw/Crop bullet (UK) |
 | 2026-05-09 13:39:17 | `dev/CATALOG/app_v2.jsonl` | `S0127` | Catalog scan + role/status for new classes |
 | 2026-05-09 13:39:18 | `dev/CATALOG/app_v2.md` | `S0127` | Catalog render after S0127 implementation |
 | 2026-05-09 13:41:05 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `S0127` | Status -> Implemented; awaiting on-device verification |
@@ -7494,8 +7494,8 @@ Format: | datetime | file | target | description |
 | 2026-05-09 14:18:01 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `PlayerActivity landscape` | Add photoDualSurfaceContainer+photoViewSurfaceB to landscape layout - missing caused NPE in PlayerManagerInitializer.initCoreCoordination:194 on landscape launch (S0107) |
 | 2026-05-09 14:20:00 | `PLAN/S0118_friendly-ui-copy-revision.md` | `S0118` | Mark all 3 FAIL action items as RESOLVED 2026-05-09 |
 | 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY.md` | `communication-policy` | Create canonical UI communication policy (EN) |
-| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY_RU.md` | `communication-policy` | Create UI communication policy mirror (RU) |
-| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY_UK.md` | `communication-policy` | Create UI communication policy mirror (UK) |
+| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY-ru.md` | `communication-policy` | Create UI communication policy mirror (RU) |
+| 2026-05-09 14:20:00 | `docs/COMMUNICATION_POLICY-uk.md` | `communication-policy` | Create UI communication policy mirror (UK) |
 | 2026-05-09 14:20:05 | `CLAUDE.md` | `UI Communication Policy` | Add UI Communication Policy section referencing docs/COMMUNICATION_POLICY.md |
 | 2026-05-09 14:20:05 | `.claude/commands/quick.md` | `quick` | Add communication policy check to Step 3 |
 | 2026-05-09 14:20:05 | `.claude/commands/doc-update.md` | `doc-update` | Add C0 communication policy tone check to string resources section |
@@ -7800,8 +7800,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 00:53:10 | `app_v2/src/main/res/values-ru/strings.xml` | `S0118 batch 20` | Rewrite add-resource share scan failure copy |
 | 2026-05-10 00:53:12 | `app_v2/src/main/res/values-uk/strings.xml` | `S0118 batch 20` | Rewrite add-resource share scan failure copy |
 | 2026-05-10 00:53:34 | `docs/FEATURES.md` | `docs` | S0134 step 05.2: add Material You + Favorites empty-state bullet to §18 |
-| 2026-05-10 00:53:34 | `docs/FEATURES_RU.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивная отделка виджетов) |
-| 2026-05-10 00:53:34 | `docs/FEATURES_UK.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивна обробка віджетів) |
+| 2026-05-10 00:53:34 | `docs/FEATURES-ru.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивная отделка виджетов) |
+| 2026-05-10 00:53:34 | `docs/FEATURES-uk.md` | `docs` | S0134 step 05.2: mirror EN bullet (Адаптивна обробка віджетів) |
 | 2026-05-10 00:54:36 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0134 step 05.3: regenerate scan after widget changes |
 | 2026-05-10 00:54:37 | `dev/CATALOG/app_v2.md` | `catalog` | S0134 step 05.3: regenerate render |
 | 2026-05-10 00:56:33 | `PLAN/S0134_widget-picker-and-home-polish.md` | `spec-dev` | Status -> Implemented + journal BlockNeedUserTest (awaiting Pixel/Nova/Niagara hands-on) |
@@ -7812,8 +7812,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 02:31:12 | `app_v2/src/main/java/com/sza/fastmediasorter/core/init/DefaultPlayerStateBootstrapper.kt` | `S0133` | New: idempotent system-component-state bootstrap on every process start |
 | 2026-05-10 02:31:16 | `app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt` | `S0133` | Wire DefaultPlayerStateBootstrapper into onCreate via applicationScope.launch |
 | 2026-05-10 02:31:22 | `docs/FEATURES.md` | `S0133` | Document default-ON behavior for accept shared files (EN) |
-| 2026-05-10 02:31:25 | `docs/FEATURES_RU.md` | `S0133` | Document default-ON behavior for accept shared files (RU) |
-| 2026-05-10 02:31:28 | `docs/FEATURES_UK.md` | `S0133` | Document default-ON behavior for accept shared files (UK) |
+| 2026-05-10 02:31:25 | `docs/FEATURES-ru.md` | `S0133` | Document default-ON behavior for accept shared files (RU) |
+| 2026-05-10 02:31:28 | `docs/FEATURES-uk.md` | `S0133` | Document default-ON behavior for accept shared files (UK) |
 | 2026-05-10 02:31:32 | `dev/CATALOG/app_v2.jsonl` | `S0133` | Regenerate catalog: add DefaultPlayerStateBootstrapper (role+status) |
 | 2026-05-10 02:33:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpKeyCoordinator.kt` | `AddResourceSftpKeyCoordinator` | Replace hardcoded SFTP key flow copy with localized addresource resources |
 | 2026-05-10 02:33:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceSftpFtpCoordinator.kt` | `AddResourceSftpFtpCoordinator` | Replace hardcoded SFTP and FTP flow copy with localized addresource resources |
@@ -8062,8 +8062,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 14:27:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/DeleteDialog.kt` | `DeleteDialog` | Rendered file-operation failures via errorRes and formatArgs for S0118 |
 | 2026-05-10 14:27:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0142` | Phase 03: wire iconHelpSavedAuthorizations help tooltip |
 | 2026-05-10 14:30:17 | `docs/FEATURES.md` | `S0142` | Phase 04: document Behaviour group sub-sections (EN) |
-| 2026-05-10 14:30:17 | `docs/FEATURES_RU.md` | `S0142` | Phase 04: document Behaviour group sub-sections (RU) |
-| 2026-05-10 14:30:17 | `docs/FEATURES_UK.md` | `S0142` | Phase 04: document Behaviour group sub-sections (UK) |
+| 2026-05-10 14:30:17 | `docs/FEATURES-ru.md` | `S0142` | Phase 04: document Behaviour group sub-sections (RU) |
+| 2026-05-10 14:30:17 | `docs/FEATURES-uk.md` | `S0142` | Phase 04: document Behaviour group sub-sections (UK) |
 | 2026-05-10 14:31:56 | `PLAN/S0142_ui-settings-behaviour-group-regroup.md` | `S0142` | Implemented; awaiting on-device test (BlockNeedUserTest) |
 | 2026-05-10 14:34:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseFileOperationsManager.kt` | `BrowseFileOperationsManager` | Rendered FileOperationResult failures via errorRes and removed raw exception details for S0118 |
 | 2026-05-10 14:36:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDeleteManager.kt` | `BrowseDeleteManager` | Rendered delete failures via errorRes and removed raw directory delete exception details for S0118 |
@@ -8133,8 +8133,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 16:23:16 | `app_v2/src/main/res/values-uk/strings.xml` | `app_v2` | S0144 Phase 05: add auth_offer_dialog_* (UK) |
 | 2026-05-10 16:23:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `app_v2` | S0144 Phase 05: offer to add authorization for shared social links before download |
 | 2026-05-10 16:25:56 | `docs/FEATURES.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (EN) |
-| 2026-05-10 16:25:56 | `docs/FEATURES_RU.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (RU) |
-| 2026-05-10 16:25:56 | `docs/FEATURES_UK.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (UK) |
+| 2026-05-10 16:25:56 | `docs/FEATURES-ru.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (RU) |
+| 2026-05-10 16:25:56 | `docs/FEATURES-uk.md` | `docs` | S0144 Phase 06: add social-link authorizations feature bullet (UK) |
 | 2026-05-10 16:28:15 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0144: regen catalog (new KnownAuthResources, AuthOfferDismissalStore) |
 | 2026-05-10 16:28:15 | `dev/CATALOG/app_v2.md` | `catalog` | S0144: regen rendered catalog |
 | 2026-05-10 16:28:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `MainViewModel` | Mapped default main-screen BaseViewModel errors to a friendly resource-backed message |
@@ -8186,8 +8186,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 17:48:02 | `app_v2/src/main/res/drawable/resource_types.xml` | `S0143` | New: vector resource_types illustration (replaces resource_types.png bitmap) |
 | 2026-05-10 17:48:02 | `app_v2/src/main/res/drawable/resource_types.png` | `S0143` | Removed: resource_types.png bitmap (replaced by vector) |
 | 2026-05-10 17:51:43 | `docs/FEATURES.md` | `S0143` | Add onboarding walkthrough bullet (revamped Welcome flow) |
-| 2026-05-10 17:51:44 | `docs/FEATURES_RU.md` | `S0143` | Onboarding walkthrough bullet (RU) |
-| 2026-05-10 17:51:44 | `docs/FEATURES_UK.md` | `S0143` | Onboarding walkthrough bullet (UK) |
+| 2026-05-10 17:51:44 | `docs/FEATURES-ru.md` | `S0143` | Onboarding walkthrough bullet (RU) |
+| 2026-05-10 17:51:44 | `docs/FEATURES-uk.md` | `S0143` | Onboarding walkthrough bullet (UK) |
 | 2026-05-10 17:53:56 | `PLAN/S0143_welcome-screens-overhaul.md` | `S0143` | All 5 phases implemented; status -> Implemented (awaiting on-device test) |
 | 2026-05-10 17:59:19 | `PLAN/S0145_bugfix-print-rejected-context-not-activity.md` | `spec` | Add strategic spec S0145 - print rejected on Samsung One UI / Android 13+ (context not recognised as Activity), follow-up to S0016 |
 | 2026-05-10 18:01:08 | `PLAN/S0146_bugfix-player-stale-initial-file-path-reload.md` | `spec` | Add strategic spec S0146 - player re-opens with stale initial file path after move/delete, redundant directory reload |
@@ -8299,10 +8299,10 @@ Format: | datetime | file | target | description |
 | 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_03__dynamic-extractor.md` | `spec-tech` | Describe blocked dynamic extractor S0140 phase |
 | 2026-05-10 19:18:30 | `PLAN/S0140_extend-market-url-coverage/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Track docs and verification state for S0140 |
 | 2026-05-10 19:18:30 | `docs/FEATURES.md` | `FEATURES` | Document landed S0140 URL-download improvements in EN |
-| 2026-05-10 19:18:30 | `docs/FEATURES_RU.md` | `FEATURES` | Document landed S0140 URL-download improvements in RU |
-| 2026-05-10 19:18:30 | `docs/FEATURES_UK.md` | `FEATURES` | Document landed S0140 URL-download improvements in UK |
-| 2026-05-10 19:18:52 | `docs/FEATURES_RU.md` | `FEATURES` | Localize S0140 feature bullet title in RU |
-| 2026-05-10 19:18:52 | `docs/FEATURES_UK.md` | `FEATURES` | Localize S0140 feature bullet title in UK |
+| 2026-05-10 19:18:30 | `docs/FEATURES-ru.md` | `FEATURES` | Document landed S0140 URL-download improvements in RU |
+| 2026-05-10 19:18:30 | `docs/FEATURES-uk.md` | `FEATURES` | Document landed S0140 URL-download improvements in UK |
+| 2026-05-10 19:18:52 | `docs/FEATURES-ru.md` | `FEATURES` | Localize S0140 feature bullet title in RU |
+| 2026-05-10 19:18:52 | `docs/FEATURES-uk.md` | `FEATURES` | Localize S0140 feature bullet title in UK |
 | 2026-05-10 19:32:32 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `LinkAutoDownloadCoordinator` | S0140: continue strategy chain after NotFound so dynamic fallback can run |
 | 2026-05-10 19:32:33 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinatorTest.kt` | `LinkAutoDownloadCoordinatorTest` | S0140: add fallback regression test for html-to-dynamic strategy order |
 | 2026-05-10 19:33:06 | `.claude/ .github/` | `agents+skills` | Sync Claude (.claude/commands,.claude/agents) and Copilot (.github/prompts,.github/agents) instruction sets: reconcile 15 command/prompt pairs (bodies now identical modulo frontmatter), add 4 missing Copilot prompts (catalog,quick,spec-arc,spec-test-device) and 4 missing Claude commands (ui-clarify,caveman,caveman-commit,caveman-review), mirror agents both ways (3 specialized agents into .claude/agents, android-rd-specialist into .github/agents), fix LOC limit 1000->1500 in Copilot agents, add /catalog //quick //spec-arc //spec-test-device routing rows to copilot-instructions.md |
@@ -8322,8 +8322,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 19:41:18 | `app_v2/src/main/res/values-uk/strings_s0140.xml` | `strings_s0140` | S0140: add UK analyzing-page progress copy |
 | 2026-05-10 19:41:28 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinatorTest.kt` | `LinkAutoDownloadCoordinatorTest` | S0140: cover html-to-dynamic fallback when first strategy returns NotFound |
 | 2026-05-10 19:42:21 | `docs/FEATURES.md` | `FEATURES` | S0140: document dynamic WebView extraction and soft login-wall behavior in EN features list |
-| 2026-05-10 19:42:22 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0140: document dynamic WebView extraction and soft login-wall behavior in RU features list |
-| 2026-05-10 19:42:25 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0140: document dynamic WebView extraction and soft login-wall behavior in UK features list |
+| 2026-05-10 19:42:22 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0140: document dynamic WebView extraction and soft login-wall behavior in RU features list |
+| 2026-05-10 19:42:25 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0140: document dynamic WebView extraction and soft login-wall behavior in UK features list |
 | 2026-05-10 19:43:26 | `PLAN/S0140_extend-market-url-coverage/INDEX.md` | `S0140 INDEX` | S0140: sync tactical index with landed Phase 03 runtime work and remaining blockers |
 | 2026-05-10 19:43:27 | `PLAN/S0140_extend-market-url-coverage/PHASE_03__dynamic-extractor.md` | `S0140 PHASE_03` | S0140: mark dynamic extractor runtime steps done while keeping research/build blockers open |
 | 2026-05-10 19:43:29 | `PLAN/S0140_extend-market-url-coverage/PHASE_04__docs-catalog-cleanup.md` | `S0140 PHASE_04` | S0140: note follow-up feature inventory update after runtime slice landed |
@@ -8352,8 +8352,8 @@ Format: | datetime | file | target | description |
 | 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerCommandPanelCallbackImpl.kt` | `spec-fix stale-tags` | Removed stale Timber.d('S0107:') tag |
 | 2026-05-10 22:55:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-fix stale-tags` | Removed 2 stale Timber.d('S0107:') tags |
 | 2026-05-10 22:58:23 | `docs/FEATURES.md` | `S0145 Phase05` | Extend Print bullet: Samsung One UI / Android 13+ fallback to share menu |
-| 2026-05-10 22:58:23 | `docs/FEATURES_RU.md` | `S0145 Phase05` | Extend Print bullet (RU): Samsung One UI fallback to share |
-| 2026-05-10 22:58:23 | `docs/FEATURES_UK.md` | `S0145 Phase05` | Extend Print bullet (UK): Samsung One UI fallback to share |
+| 2026-05-10 22:58:23 | `docs/FEATURES-ru.md` | `S0145 Phase05` | Extend Print bullet (RU): Samsung One UI fallback to share |
+| 2026-05-10 22:58:23 | `docs/FEATURES-uk.md` | `S0145 Phase05` | Extend Print bullet (UK): Samsung One UI fallback to share |
 | 2026-05-10 23:02:52 | `dev/CATALOG/app_v2.jsonl` | `S0145 Phase05` | Rescan app_v2 catalog (1000 files) after Phase 03/05 - PlayerPrintFallbackManager role verified |
 | 2026-05-10 23:02:52 | `dev/CATALOG/app_v2.md` | `S0145 Phase05` | Regenerate app_v2.md catalog markdown |
 | 2026-05-10 23:06:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ProvisionDefaultResourcesUseCase.kt` | `ProvisionDefaultResourcesUseCase` | Fix: idempotent path-based check instead of isNotEmpty() to repair partial provisioning after viewModelScope cancellation on first launch |
@@ -8405,8 +8405,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 01:56:18 | `PLAN/S0149_enh-sftp-permission-denied-message/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup |
 | 2026-05-11 01:56:19 | `PLAN/S0149_enh-sftp-permission-denied-message.md` | `spec-tech` | Status → Tactical |
 | 2026-05-11 02:00:26 | `docs/FEATURES.md` | `FEATURES` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
-| 2026-05-11 02:00:26 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
-| 2026-05-11 02:00:27 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
+| 2026-05-11 02:00:26 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
+| 2026-05-11 02:00:27 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Cleaned up and shortened document to remove marketing fluff, keeping practical applications |
 | 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-tech` | Create tactical plan for S0151 |
 | 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_01__threads-domain.md` | `spec-tech` | Phase 01: threads-domain |
 | 2026-05-11 02:12:08 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_02__preview-only-signal.md` | `spec-tech` | Phase 02: preview-only-signal |
@@ -8429,8 +8429,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 03:06:49 | `app_v2/src/main/res/values-uk/strings.xml` | `S0151` | Add s0151_* strings (UK) |
 | 2026-05-11 03:06:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0151` | Handle SocialPreviewOnly UX: auth/reauth dialog with retry |
 | 2026-05-11 03:08:11 | `docs/FEATURES.md` | `S0151` | Document Instagram/Threads real-media extraction (EN) |
-| 2026-05-11 03:08:11 | `docs/FEATURES_RU.md` | `S0151` | Document Instagram/Threads real-media extraction (RU) |
-| 2026-05-11 03:08:11 | `docs/FEATURES_UK.md` | `S0151` | Document Instagram/Threads real-media extraction (UK) |
+| 2026-05-11 03:08:11 | `docs/FEATURES-ru.md` | `S0151` | Document Instagram/Threads real-media extraction (RU) |
+| 2026-05-11 03:08:11 | `docs/FEATURES-uk.md` | `S0151` | Document Instagram/Threads real-media extraction (UK) |
 | 2026-05-11 03:44:33 | `PLAN/S0154_player-file-operation-queue.md` | `spec` | Add strategic spec S0154 for ad-hoc player file-operation queue |
 | 2026-05-11 03:46:46 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `spec-update` | Refinement (claude-opus-4-7, focus: completeness, consistency) - field log 20260511_032209: recent-session anti-nag nuance, research item 6.4, criteria 11.7-11.8 |
 | 2026-05-11 03:53:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/FileOperationsHandler.kt` | `FileOperationsHandler` | S0152: remove Timber debug tags, spec verified |
@@ -8510,15 +8510,15 @@ Format: | datetime | file | target | description |
 | 2026-05-11 10:05:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerLifecycleHelper.kt` | `VideoPlayerLifecycleHelper` | Restored releaseMediaPlayer and coroutine cancel imports after lifecycle helper extraction |
 | 2026-05-11 10:05:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/helpers/AccountSelectionManager.kt` | `AccountSelectionManager` | Fixed nullable lastUsedIndex fallback so debug-build validation can complete |
 | 2026-05-11 10:06:09 | `docs/FEATURES.md` | `S0155 Phase 07` | Add multi-account authorization feature description |
-| 2026-05-11 10:06:09 | `docs/FEATURES_RU.md` | `S0155 Phase 07` | RU: multi-account authorization feature |
-| 2026-05-11 10:06:09 | `docs/FEATURES_UK.md` | `S0155 Phase 07` | UK: multi-account authorization feature |
+| 2026-05-11 10:06:09 | `docs/FEATURES-ru.md` | `S0155 Phase 07` | RU: multi-account authorization feature |
+| 2026-05-11 10:06:09 | `docs/FEATURES-uk.md` | `S0155 Phase 07` | UK: multi-account authorization feature |
 | 2026-05-11 10:06:09 | `dev/CATALOG/app_v2.jsonl` | `S0155 Phase 07` | Catalog regen: new classes from S0155; AuthSessionAdapter removed |
 | 2026-05-11 10:06:10 | `PLAN/S0155_link-auth-multi-account/INDEX.md` | `S0155 Phase 07` | Tactical plan complete - all 7 phases done |
 | 2026-05-11 10:09:02 | `PLAN/S0155_link-auth-multi-account.md` | `spec-all S0155` | Pipeline BlockNeedUserTest: all 7 phases implemented, build PASS, awaiting on-device verification |
 | 2026-05-11 11:48:25 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/PHASE_02__preview-only-signal.md` | `spec-update` | Step 02.2 -> per-entry previewOnlyMeansLogin flag (6.3, owner choice): true for Instagram/Threads/TikTok/X, false for image-first registry hosts |
 | 2026-05-11 11:48:25 | `PLAN/S0151_instagram-threads-link-extraction-and-auth/INDEX.md` | `spec-update` | 6.3 inline resolution: per-entry previewOnlyMeansLogin flag |
-| 2026-05-11 11:56:47 | `docs/RECEIVING_LINKS_RU.md` | `docs` | Add RECEIVING_LINKS_RU.md: full architecture reference for the link-receiving and download pipeline (S0003/S0116/S0144/S0151/S0155) |
-| 2026-05-11 12:01:02 | `docs/RECEIVING_LINKS_RU.md` | `RECEIVING_LINKS_RU.md` | Added S0140 batch download logic and fixed UX result table discrepancies |
+| 2026-05-11 11:56:47 | `docs/RECEIVING_LINKS-ru.md` | `docs` | Add RECEIVING_LINKS-ru.md: full architecture reference for the link-receiving and download pipeline (S0003/S0116/S0144/S0151/S0155) |
+| 2026-05-11 12:01:02 | `docs/RECEIVING_LINKS-ru.md` | `RECEIVING_LINKS-ru.md` | Added S0140 batch download logic and fixed UX result table discrepancies |
 | 2026-05-11 12:13:55 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `spec` | Add strategic spec S0156 for full noLegal capability audit and open questions |
 | 2026-05-11 12:57:48 | `PLAN/S0157_link-auth-offer-and-dismissal-ux.md` | `spec` | Add strategic spec S0157 for link-auth-offer-and-dismissal-ux |
 | 2026-05-11 14:06:01 | `PLAN/S0157_link-auth-offer-and-dismissal-ux/INDEX.md` | `spec-tech` | Create tactical plan for S0157 |
@@ -8542,9 +8542,9 @@ Format: | datetime | file | target | description |
 | 2026-05-11 14:38:26 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156_Spec` | Добавлены дополнительные векторы для аудита noLegal-возможностей (P2P, AI, Headless, Root, Vaults, NAS). |
 | 2026-05-11 14:44:43 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156` | Extended noLegal research surface with 10 new seed search areas: Podcasts/RSS, IPTV/live-streams, Camera RAW/HDR, Comics/e-book formats, on-device DLNA media server, synchronized lyrics, acoustic fingerprinting/perceptual deduplication, spatial audio DSP, self-hosted media backend integration, deep automation/Tasker hooks |
 | 2026-05-11 14:45:32 | `docs/FEATURES.md` | `S0157-phase06` | Add 3-button auth offer and dismissed-record settings bullets |
-| 2026-05-11 14:45:32 | `docs/FEATURES_RU.md` | `S0157-phase06` | RU mirror - auth offer UX update |
-| 2026-05-11 14:45:32 | `docs/FEATURES_UK.md` | `S0157-phase06` | UK mirror - auth offer UX update |
-| 2026-05-11 14:45:50 | `docs/RECEIVING_LINKS_RU.md` | `S0157-phase06` | Update auth offer and dismissal model documentation |
+| 2026-05-11 14:45:32 | `docs/FEATURES-ru.md` | `S0157-phase06` | RU mirror - auth offer UX update |
+| 2026-05-11 14:45:32 | `docs/FEATURES-uk.md` | `S0157-phase06` | UK mirror - auth offer UX update |
+| 2026-05-11 14:45:50 | `docs/RECEIVING_LINKS-ru.md` | `S0157-phase06` | Update auth offer and dismissal model documentation |
 | 2026-05-11 14:46:00 | `PLAN/S0156_nolegal-capability-surface-audit.md` | `S0156_Spec` | Добавлен чеклист-план для аудита в документ. |
 | 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at offerAuthThenDownload entry |
 | 2026-05-11 14:48:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/LinkAutoDownloadResultPresenter.kt` | `S0157-BlockNeedUserTest` | Insert S0157 debug tag at presentSocialPreviewOnly entry |
@@ -8591,8 +8591,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 16:07:31 | `app_v2/src/main/res/values-ru/strings.xml` | `values-ru/strings.xml` | S0154 add queued player operation retry and exit-warning strings |
 | 2026-05-11 16:07:31 | `app_v2/src/main/res/values-uk/strings.xml` | `values-uk/strings.xml` | S0154 add queued player operation retry and exit-warning strings |
 | 2026-05-11 16:07:31 | `docs/FEATURES.md` | `FEATURES` | S0154 document queued player file actions |
-| 2026-05-11 16:07:31 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0154 document queued player file actions |
-| 2026-05-11 16:07:32 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0154 document queued player file actions |
+| 2026-05-11 16:07:31 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0154 document queued player file actions |
+| 2026-05-11 16:07:32 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0154 document queued player file actions |
 | 2026-05-11 16:07:32 | `dev/CATALOG/app_v2.jsonl` | `CATALOG` | S0154 regenerate app_v2 catalog after new player fileops classes |
 | 2026-05-11 16:07:32 | `dev/CATALOG/app_v2.md` | `CATALOG` | S0154 regenerate rendered app_v2 catalog after new player fileops classes |
 | 2026-05-11 16:19:15 | `FileOperationsHandler.kt (root)` | `temp/FileOperationsHandler_stale_*.kt` | S0154 audit: moved stale pre-queue FileOperationsHandler from root to temp (ROOT_CLEANLINESS violation) |
@@ -8612,8 +8612,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 17:03:02 | `PLAN/S0155_link-auth-multi-account.md` | `S0155` | Add Last Audit; status BlockNeedUserTest->Partial |
 | 2026-05-11 17:03:02 | `PLAN/S0151_instagram-threads-link-extraction-and-auth.md` | `S0151` | Update Last Audit: Instagram reel unplayable (HLS manifest); §6.1 architecture resolved |
 | 2026-05-11 17:04:08 | `docs/FEATURES.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 Network Sources |
-| 2026-05-11 17:04:08 | `docs/FEATURES_RU.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (RU) |
-| 2026-05-11 17:04:09 | `docs/FEATURES_UK.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (UK) |
+| 2026-05-11 17:04:08 | `docs/FEATURES-ru.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (RU) |
+| 2026-05-11 17:04:09 | `docs/FEATURES-uk.md` | `S0035 Phase07 Step07.1` | Restore missing Android 17 local network permission bullet in section 15 (UK) |
 | 2026-05-11 17:04:32 | `PLAN/S0035_android17-local-network-permission.md` | `spec-check` | Audit S0035 -> Verified; PASS 26 / WARN 0 / FAIL 0 / MANUAL 8 |
 | 2026-05-11 17:04:47 | `PLAN/S0035_android17-local-network-permission.md` | `spec-arc` | Archive S0035 (android17-local-network-permission) -> temp/done/ |
 | 2026-05-11 17:05:35 | `PLAN/S0022_bugfix-camera-capture-crash__audit_2026-04-30_2.md` | `spec-arc-sidecar` | Archive S0022 sidecar audit/fix file -> temp/done/ |
@@ -8676,8 +8676,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 17:32:34 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | S0151 Step03.4: update s0151_dialog_reauth_message RU |
 | 2026-05-11 17:32:34 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | S0151 Step03.4: update s0151_dialog_reauth_message UK |
 | 2026-05-11 17:32:34 | `docs/FEATURES.md` | `FEATURES.md` | S0151 Phase04: add Instagram/Threads download bullet |
-| 2026-05-11 17:32:34 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0151 Phase04: add Instagram/Threads download bullet RU |
-| 2026-05-11 17:32:34 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0151 Phase04: add Instagram/Threads download bullet UK |
+| 2026-05-11 17:32:34 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | S0151 Phase04: add Instagram/Threads download bullet RU |
+| 2026-05-11 17:32:34 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | S0151 Phase04: add Instagram/Threads download bullet UK |
 | 2026-05-11 17:32:38 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Reopen S0117 (url-media-downloader-nolegal-flavor) -> In Progress |
 | 2026-05-11 17:33:29 | `PLAN/S0127_image-player-draw-crop-immersive.md` | `spec-arc` | Archive S0127 (image-player-draw-crop-immersive) -> temp/done/ |
 | 2026-05-11 17:33:38 | `PLAN/S0128_activity-catalog.md` | `spec-arc` | Archive S0128 (activity-catalog) -> temp/done/ |
@@ -8694,8 +8694,8 @@ Format: | datetime | file | target | description |
 | 2026-05-11 17:47:42 | `app_v2/src/main/res/values-ru/strings.xml` | `strings-ru.xml` | S0161 Phase03: add link_download_notif_* strings RU (10 keys) |
 | 2026-05-11 17:47:42 | `app_v2/src/main/res/values-uk/strings.xml` | `strings-uk.xml` | S0161 Phase03: add link_download_notif_* strings UK (10 keys) |
 | 2026-05-11 17:47:42 | `docs/FEATURES.md` | `FEATURES.md` | S0161 Phase04: add background link download queue bullet EN |
-| 2026-05-11 17:47:42 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | S0161 Phase04: add background link download queue bullet RU |
-| 2026-05-11 17:47:42 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | S0161 Phase04: add background link download queue bullet UK |
+| 2026-05-11 17:47:42 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | S0161 Phase04: add background link download queue bullet RU |
+| 2026-05-11 17:47:42 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | S0161 Phase04: add background link download queue bullet UK |
 | 2026-05-11 17:47:43 | `PLAN/S0161_link-download-background-queue.md` | `spec-catalog` | S0161: create strategic spec, register in catalog |
 | 2026-05-11 17:48:42 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added to catalog (role=worker, status=new) |
 | 2026-05-11 17:48:51 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0161: LinkDownloadWorker added (role=worker, status=new) |
@@ -8796,15 +8796,15 @@ Format: | datetime | file | target | description |
 | 2026-05-11 21:09:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `PlayerManagerInitializer.initFileOps` | S0154: show specific message when batch-delete permission denied on Move (file already at destination); suppress retry button in that case |
 | 2026-05-11 21:09:19 | `app_v2/src/main/res/values/strings.xml` | `error_queued_move_permission_denied` | S0154: add EN/RU/UK string for move-permission-denied case (file copied, local not deleted) |
 | 2026-05-11 21:28:02 | `docs/FEATURES.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07) |
-| 2026-05-11 21:28:02 | `docs/FEATURES_RU.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
-| 2026-05-11 21:28:02 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:02 | `docs/FEATURES-ru.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
+| 2026-05-11 21:28:02 | `docs/FEATURES-uk.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
 | 2026-05-11 21:28:02 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: scan+render; set roles for LinkDownloadSessionContext/AccountNameHintExtractor/AccountSelectionManager/AuthAccountGroupAdapter |
 | 2026-05-11 21:28:02 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 scan |
-| 2026-05-11 21:28:07 | `docs/FEATURES_RU.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
-| 2026-05-11 21:28:07 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:07 | `docs/FEATURES-ru.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 RU) |
+| 2026-05-11 21:28:07 | `docs/FEATURES-uk.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
 | 2026-05-11 21:28:07 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: set roles for new S0155 classes |
 | 2026-05-11 21:28:07 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 |
-| 2026-05-11 21:28:11 | `docs/FEATURES_UK.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
+| 2026-05-11 21:28:11 | `docs/FEATURES-uk.md` | `S0155` | Add multiple-accounts-per-host bullet (S0155 Phase 07 UK) |
 | 2026-05-11 21:28:11 | `dev/CATALOG/app_v2.jsonl` | `S0155` | Catalog regen: set roles for new S0155 classes |
 | 2026-05-11 21:28:11 | `dev/CATALOG/app_v2.md` | `S0155` | Catalog render after S0155 Phase 07 |
 | 2026-05-11 21:31:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/share/auth/WebViewAuthDialogFragment.kt` | `S0155` | Add S0155 debug tag on emitResultAndDismiss(saved=true) |
@@ -9056,8 +9056,8 @@ Format: | datetime | file | target | description |
 | 2026-05-12 16:22:36 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkExtractionRegistry.kt` | `LinkExtractionRegistry` | S0174 Phase02: add ytdlp to CANONICAL_ORDER at position 0 |
 | 2026-05-12 16:22:36 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/CookieFileWriter.kt` | `CookieFileWriter` | S0174 Phase03: Netscape cookie file serialiser for yt-dlp |
 | 2026-05-12 16:22:36 | `docs/FEATURES.md` | `S0174` | Add noLegal yt-dlp flavor section |
-| 2026-05-12 16:22:36 | `docs/FEATURES_RU.md` | `S0174` | Add noLegal yt-dlp flavor section (RU) |
-| 2026-05-12 16:22:36 | `docs/FEATURES_UK.md` | `S0174` | Add noLegal yt-dlp flavor section (UK) |
+| 2026-05-12 16:22:36 | `docs/FEATURES-ru.md` | `S0174` | Add noLegal yt-dlp flavor section (RU) |
+| 2026-05-12 16:22:36 | `docs/FEATURES-uk.md` | `S0174` | Add noLegal yt-dlp flavor section (UK) |
 | 2026-05-12 16:22:36 | `dev/CATALOG/app_v2.jsonl` | `catalog` | S0174: add noLegal classes ChaquopyRuntimeHolder, YtDlpExtractionStrategy, CookieFileWriter |
 | 2026-05-12 16:22:36 | `dev/CATALOG/app_v2.md` | `catalog` | S0174: regenerate catalog MD with 1018 records |
 | 2026-05-12 16:23:19 | `PLAN/S0178_video-thumbnail-black-frame-detection/INDEX.md` | `spec-tech` | Create tactical plan for S0178 |
@@ -9069,11 +9069,11 @@ Format: | datetime | file | target | description |
 | 2026-05-12 16:26:43 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec-check` | Audit S0174 -> Verified; PASS 20/WARN 0/FAIL 0; 5 manual on-device items |
 | 2026-05-12 16:29:54 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal` | S0174: add §1 Universal Media Extractor (yt-dlp); noLegal-only feature inventory |
 | 2026-05-12 16:29:54 | `docs/FEATURES.md` | `FEATURES` | S0174: remove noLegal section (not for publication; moved to FEATURES_noLegal.md) |
-| 2026-05-12 16:29:54 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0174: remove noLegal section |
-| 2026-05-12 16:29:54 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0174: remove noLegal section |
+| 2026-05-12 16:29:54 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0174: remove noLegal section |
+| 2026-05-12 16:29:54 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0174: remove noLegal section |
 | 2026-05-12 16:30:42 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal` | Create private noLegal feature inventory (gitignored, S0156 §6.9) |
-| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal_RU.md` | `FEATURES_noLegal_RU` | Create Russian mirror of noLegal feature inventory |
-| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal_UK.md` | `FEATURES_noLegal_UK` | Create Ukrainian mirror of noLegal feature inventory |
+| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal-ru.md` | `FEATURES_noLegal_RU` | Create Russian mirror of noLegal feature inventory |
+| 2026-05-12 16:30:42 | `docs/FEATURES_noLegal-uk.md` | `FEATURES_noLegal_UK` | Create Ukrainian mirror of noLegal feature inventory |
 | 2026-05-12 16:30:43 | `.gitignore` | `.gitignore` | Gitignore docs/FEATURES_noLegal*.md - private sideload-only inventory |
 | 2026-05-12 16:30:43 | `CLAUDE.md` | `CLAUDE.md` | Document noLegal feature inventory exception in Feature Inventory, Post-Change Steps, and mandatory skills table |
 | 2026-05-12 16:30:43 | `.claude/commands/doc-update.md` | `doc-update skill` | Add B-noLegal section and decision matrix rows for noLegal-only features |
@@ -9153,8 +9153,8 @@ Format: | datetime | file | target | description |
 | 2026-05-12 22:43:35 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ThumbnailExtractorHelper.kt` | `S0178` | Add dark-frame retry loop to background video thumbnail extractor |
 | 2026-05-12 22:46:29 | `gradle.properties` | `gradle.properties` | Disable configuration cache globally: Chaquopy 17.x holds non-serializable Gradle types in task actions; problems=warn and --add-opens are insufficient, ConfigurationCacheError is fatal regardless |
 | 2026-05-12 22:47:13 | `docs/FEATURES.md` | `S0178` | Document black-frame detection for video thumbnails |
-| 2026-05-12 22:47:13 | `docs/FEATURES_RU.md` | `S0178` | Document black-frame detection (RU) |
-| 2026-05-12 22:47:14 | `docs/FEATURES_UK.md` | `S0178` | Document black-frame detection (UK) |
+| 2026-05-12 22:47:13 | `docs/FEATURES-ru.md` | `S0178` | Document black-frame detection (RU) |
+| 2026-05-12 22:47:14 | `docs/FEATURES-uk.md` | `S0178` | Document black-frame detection (UK) |
 | 2026-05-12 22:51:22 | `PLAN/S0178_video-thumbnail-black-frame-detection.md` | `spec-check` | Audit S0178 -> Verified; PASS/WARN/FAIL 32/0/0 |
 | 2026-05-12 23:22:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/NetworkDiscoveryDialog.kt` | `NetworkDiscoveryDialog` | Fix IllegalStateException: move view inflation to onCreateView/onViewCreated so viewLifecycleOwner is available when collectOnLifecycle is called |
 | 2026-05-12 23:55:00 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/DiscoverNetworkResourcesUseCase.kt` | `DiscoverNetworkResourcesUseCase` | Parallelize port probing per IP (445+139+21+22 concurrent async) - worst-case per-IP drops from 1000ms to 300ms; add onProgress callback for live scan status |
@@ -9229,8 +9229,8 @@ Format: | datetime | file | target | description |
 | 2026-05-13 14:41:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseStateUiUpdater.kt` | `S0165` | Add updateCreateFolderButtonVisibility [branch: DEBUG-v001] |
 | 2026-05-13 14:43:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `S0165` | Wire onCreateFolderClicked to ResourceOpsMenuManager [branch: DEBUG-v001] |
 | 2026-05-13 14:45:27 | `docs/FEATURES.md` | `S0165` | Document Create Folder toolbar button [branch: DEBUG-v001] |
-| 2026-05-13 14:45:27 | `docs/FEATURES_RU.md` | `S0165` | Document Create Folder toolbar button (RU) [branch: DEBUG-v001] |
-| 2026-05-13 14:45:27 | `docs/FEATURES_UK.md` | `S0165` | Document Create Folder toolbar button (UK) [branch: DEBUG-v001] |
+| 2026-05-13 14:45:27 | `docs/FEATURES-ru.md` | `S0165` | Document Create Folder toolbar button (RU) [branch: DEBUG-v001] |
+| 2026-05-13 14:45:27 | `docs/FEATURES-uk.md` | `S0165` | Document Create Folder toolbar button (UK) [branch: DEBUG-v001] |
 | 2026-05-13 14:46:47 | `dev/CATALOG/app_v2.jsonl` | `S0165` | Catalog regen after browse-create-folder implementation [branch: DEBUG-v001] |
 | 2026-05-13 14:46:47 | `dev/CATALOG/app_v2.md` | `S0165` | Catalog render after browse-create-folder implementation [branch: DEBUG-v001] |
 | 2026-05-13 14:47:51 | `PLAN/S0165_browse-create-folder.md` | `S0165` | Status -> BlockNeedUserTest, Implemented date: 2026-05-13 [branch: DEBUG-v001] |
@@ -9283,8 +9283,8 @@ Format: | datetime | file | target | description |
 | 2026-05-13 15:51:12 | `PLAN/S0180_standalone-player-file-info-button/INDEX.md` | `S0180` | Tactical plan complete - all phases done [branch: DEBUG-v001] |
 | 2026-05-13 15:52:17 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0180` | Insert S0180 debug verification tags (BlockNeedUserTest) [branch: DEBUG-v001] |
 | 2026-05-13 15:52:44 | `docs/FEATURES.md` | `S0162` | Add in-player rotation toggle (§7) and screen rotation control (§19) feature bullets [branch: DEBUG-v001] |
-| 2026-05-13 15:52:44 | `docs/FEATURES_RU.md` | `S0162` | Mirror in-player rotation toggle + screen rotation control bullets (RU) [branch: DEBUG-v001] |
-| 2026-05-13 15:52:45 | `docs/FEATURES_UK.md` | `S0162` | Mirror in-player rotation toggle + screen rotation control bullets (UK) [branch: DEBUG-v001] |
+| 2026-05-13 15:52:44 | `docs/FEATURES-ru.md` | `S0162` | Mirror in-player rotation toggle + screen rotation control bullets (RU) [branch: DEBUG-v001] |
+| 2026-05-13 15:52:45 | `docs/FEATURES-uk.md` | `S0162` | Mirror in-player rotation toggle + screen rotation control bullets (UK) [branch: DEBUG-v001] |
 | 2026-05-13 15:52:45 | `PLAN/S0162_screen-rotation-control.md` | `spec-fix` | Annotate Last Audit (S0162): FIXED FEATURES.md entries [branch: DEBUG-v001] |
 | 2026-05-13 15:53:18 | `.claude/commands/git.md` | `git.md` | Synced full branching model (worktree, fix-release, plateau merge, DEBUG numbering) from git.prompt.md [branch: DEBUG-v001] |
 | 2026-05-13 15:54:05 | `PLAN/S0162_screen-rotation-control.md` | `spec-check` | Audit S0162 -> Verified; PASS 19 / WARN 0 / FAIL 0. Debug tags removed: 0. [branch: DEBUG-v001] |
@@ -9292,9 +9292,9 @@ Format: | datetime | file | target | description |
 | 2026-05-13 16:00:10 | `scripts/release-worktree-sync.txt` | `release-worktree-sync.txt` | New manifest: gitignored files to sync from dev to release worktree before each release build [branch: DEBUG-v001] |
 | 2026-05-13 16:00:10 | `a.ps1` | `a.ps1` | Added release-worktree-sync step: copies gitignored required files to worktree before release build [branch: DEBUG-v001] |
 | 2026-05-13 16:00:10 | `.claude/commands/skill-release.md` | `skill-release` | Updated step 11 (branch transition): reuse existing future branch if present, create next if absent [branch: DEBUG-v001] |
-| 2026-05-13 16:04:26 | `docs/HOW_TO_DEVELOP_AND_RELEASE_RU.md` | `HOW_TO_DEVELOP_AND_RELEASE_RU` | New developer guide: three release scenarios (debug dev loop, fix-release, plateau release via skill-release) [branch: DEBUG-v001] |
+| 2026-05-13 16:04:26 | `docs/HOW_TO_DEVELOP_AND_RELEASE-ru.md` | `HOW_TO_DEVELOP_AND_RELEASE_RU` | New developer guide: three release scenarios (debug dev loop, fix-release, plateau release via skill-release) [branch: DEBUG-v001] |
 | 2026-05-13 16:09:42 | `.claude/commands/skill-fix-release.md` | `skill-fix-release` | New slash command: fix-release pipeline - cherry-picks spec-specific commits to main, tags, builds, rebases DEBUG [branch: DEBUG-v001] |
-| 2026-05-13 16:09:42 | `docs/HOW_TO_DEVELOP_AND_RELEASE_RU.md` | `HOW_TO_DEVELOP_AND_RELEASE_RU` | Updated scenario 2: fix-release now via /skill-fix-release with automated cherry-pick and rebase [branch: DEBUG-v001] |
+| 2026-05-13 16:09:42 | `docs/HOW_TO_DEVELOP_AND_RELEASE-ru.md` | `HOW_TO_DEVELOP_AND_RELEASE_RU` | Updated scenario 2: fix-release now via /skill-fix-release with automated cherry-pick and rebase [branch: DEBUG-v001] |
 | 2026-05-13 16:15:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S0159 step 1.1` | Add fileOpsInOverflowMenu and fileOpsOverflowMenuHintShown fields [branch: DEBUG-v001] |
 | 2026-05-13 16:16:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0159 step 1.2` | Add KEY_FILE_OPS_IN_OVERFLOW_MENU and KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN DataStore keys [branch: DEBUG-v001] |
 | 2026-05-13 16:17:33 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `S0159 step 1.3` | Wire fileOpsInOverflowMenu and fileOpsOverflowMenuHintShown into getSettings() read path [branch: DEBUG-v001] |
@@ -9327,8 +9327,8 @@ Format: | datetime | file | target | description |
 | 2026-05-13 16:49:40 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `S0159 Phase 04 Step 4.2` | Add switchFileOpsOverflowMenu toggle block (landscape) [branch: DEBUG-v001] |
 | 2026-05-13 16:51:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `S0159 Phase 04 Step 4.3` | Wire switchFileOpsOverflowMenu listener with one-time Toast hint and observeData sync block [branch: DEBUG-v001] |
 | 2026-05-13 16:56:37 | `docs/FEATURES.md` | `S0159 Phase 05 Step 5.3` | Add file-ops overflow menu feature bullet [branch: DEBUG-v001] |
-| 2026-05-13 16:56:38 | `docs/FEATURES_RU.md` | `S0159 Phase 05 Step 5.3` | Add file-ops overflow menu feature bullet (RU) [branch: DEBUG-v001] |
-| 2026-05-13 16:56:38 | `docs/FEATURES_UK.md` | `S0159 Phase 05 Step 5.3` | Add file-ops overflow menu feature bullet (UK) [branch: DEBUG-v001] |
+| 2026-05-13 16:56:38 | `docs/FEATURES-ru.md` | `S0159 Phase 05 Step 5.3` | Add file-ops overflow menu feature bullet (RU) [branch: DEBUG-v001] |
+| 2026-05-13 16:56:38 | `docs/FEATURES-uk.md` | `S0159 Phase 05 Step 5.3` | Add file-ops overflow menu feature bullet (UK) [branch: DEBUG-v001] |
 | 2026-05-13 16:56:38 | `dev/CATALOG/app_v2.jsonl` | `S0159 Phase 05 Step 5.3` | Catalog sync after S0159 implementation [branch: DEBUG-v001] |
 | 2026-05-13 17:01:05 | `PLAN/S0159_file-ops-overflow-menu.md` | `spec-check` | Audit S0159 -> Verified; PASS/WARN/FAIL 20/0/0 [branch: DEBUG-v001] |
 | 2026-05-13 17:01:06 | `PLAN/S0159_file-ops-overflow-menu/PHASE_05__docs-catalog-cleanup.md` | `spec-check` | Phase 05 -> Done (Step 5.4 complete) [branch: DEBUG-v001] |
@@ -9352,8 +9352,8 @@ Format: | datetime | file | target | description |
 | 2026-05-13 18:22:13 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `S0158 phase-04 step-04.3` | Add android:id=playbackButtonRow to bottom playback row LinearLayout [branch: DEBUG-v001] |
 | 2026-05-13 18:22:13 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S0158 phase-04 step-04.3` | Add android:id=playbackButtonRow to bottom playback row LinearLayout (landscape parity) [branch: DEBUG-v001] |
 | 2026-05-13 18:26:19 | `docs/FEATURES.md` | `S0158 phase-05 step-05.1` | Add Big Buttons Mode bullet to Video Player section [branch: DEBUG-v001] |
-| 2026-05-13 18:26:19 | `docs/FEATURES_RU.md` | `S0158 phase-05 step-05.1` | Add Режим большие кнопки bullet to section 7 [branch: DEBUG-v001] |
-| 2026-05-13 18:26:19 | `docs/FEATURES_UK.md` | `S0158 phase-05 step-05.1` | Add Режим великі кнопки bullet to section 7 [branch: DEBUG-v001] |
+| 2026-05-13 18:26:19 | `docs/FEATURES-ru.md` | `S0158 phase-05 step-05.1` | Add Режим большие кнопки bullet to section 7 [branch: DEBUG-v001] |
+| 2026-05-13 18:26:19 | `docs/FEATURES-uk.md` | `S0158 phase-05 step-05.1` | Add Режим великі кнопки bullet to section 7 [branch: DEBUG-v001] |
 | 2026-05-13 18:28:34 | `dev/CATALOG/app_v2.jsonl` | `S0158 phase-05 step-05.2` | Regen catalog; set PlayerBigButtonsModeManager role=ui-helper status=new [branch: DEBUG-v001] |
 | 2026-05-13 18:28:34 | `dev/CATALOG/app_v2.md` | `S0158 phase-05 step-05.2` | Regen catalog Markdown [branch: DEBUG-v001] |
 | 2026-05-13 18:30:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0158 BlockNeedUserTest` | Insert Timber.d debug tag for on-device verification [branch: DEBUG-v001] |
@@ -9386,8 +9386,8 @@ Format: | datetime | file | target | description |
 | 2026-05-13 18:52:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `S0160` | Observe and sync switchResourceOpsInOverflowMenu state [branch: DEBUG-v001] |
 | 2026-05-13 18:56:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `S0160` | Wire onScanClick callback and setOverflowModeEnabled in settings observer [branch: DEBUG-v001] |
 | 2026-05-13 18:58:26 | `docs/FEATURES.md` | `S0160` | Add compact resource actions bullet to section 1 [branch: DEBUG-v001] |
-| 2026-05-13 18:58:26 | `docs/FEATURES_RU.md` | `S0160` | Add compact resource actions bullet RU [branch: DEBUG-v001] |
-| 2026-05-13 18:58:27 | `docs/FEATURES_UK.md` | `S0160` | Add compact resource actions bullet UK [branch: DEBUG-v001] |
+| 2026-05-13 18:58:26 | `docs/FEATURES-ru.md` | `S0160` | Add compact resource actions bullet RU [branch: DEBUG-v001] |
+| 2026-05-13 18:58:27 | `docs/FEATURES-uk.md` | `S0160` | Add compact resource actions bullet UK [branch: DEBUG-v001] |
 | 2026-05-13 19:02:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `S0160` | Insert BlockNeedUserTest debug tag: overflow toggle entry point [branch: DEBUG-v001] |
 | 2026-05-13 19:02:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `S0160` | Insert BlockNeedUserTest debug tag: adapter overflow mode entry point [branch: DEBUG-v001] |
 | 2026-05-13 19:02:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt` | `S0160` | Insert BlockNeedUserTest debug tag: scanSingleResource entry point [branch: DEBUG-v001] |
@@ -9535,8 +9535,8 @@ Format: | datetime | file | target | description |
 | 2026-05-14 02:26:47 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResources.kt` | `S0187` | Add youtube.com to known auth resources [branch: DEBUG-v001] |
 | 2026-05-14 02:26:47 | `app_v2/src/test/java/com/sza/fastmediasorter/data/link/auth/KnownAuthResourcesTest.kt` | `S0187` | Add YouTube host matching tests [branch: DEBUG-v001] |
 | 2026-05-14 02:29:31 | `docs/FEATURES_noLegal.md` | `S0187` | Add YouTube recovery feature section [branch: DEBUG-v001] |
-| 2026-05-14 02:29:31 | `docs/FEATURES_noLegal_RU.md` | `S0187` | Add YouTube recovery feature section (RU) [branch: DEBUG-v001] |
-| 2026-05-14 02:29:31 | `docs/FEATURES_noLegal_UK.md` | `S0187` | Add YouTube recovery feature section (UK) [branch: DEBUG-v001] |
+| 2026-05-14 02:29:31 | `docs/FEATURES_noLegal-ru.md` | `S0187` | Add YouTube recovery feature section (RU) [branch: DEBUG-v001] |
+| 2026-05-14 02:29:31 | `docs/FEATURES_noLegal-uk.md` | `S0187` | Add YouTube recovery feature section (UK) [branch: DEBUG-v001] |
 | 2026-05-14 02:31:41 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0187` | Insert BlockNeedUserTest debug tag for format-fallback cascade [branch: DEBUG-v001] |
 | 2026-05-14 02:31:57 | `PLAN/S0187_nolegal-youtube-extraction-recovery.md` | `S0187` | Status -> BlockNeedUserTest; debug tag inserted [branch: DEBUG-v001] |
 | 2026-05-14 09:59:59 | `PLAN/S0188_slideshow-stop-on-resource-unavailable.md` | `spec` | Add strategic spec S0188: slideshow stop on resource unavailable [branch: DEBUG-v001] |
@@ -9740,8 +9740,8 @@ Format: | datetime | file | target | description |
 | 2026-05-14 17:34:49 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/link/LinkAutoDownloadCoordinator.kt` | `S0190 Phase 04 Step 04.1` | Insert S0190 debug verification tag after urlCanonicalizer.canonicalize() [branch: DEBUG-v001] |
 | 2026-05-14 17:34:50 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/data/link/nolegal/YtDlpExtractionStrategy.kt` | `S0190 Phase 04 Step 04.1` | Insert S0190 debug verification tag in googlevideo CDN branch [branch: DEBUG-v001] |
 | 2026-05-14 17:38:58 | `docs/FEATURES_noLegal.md` | `S0190` | Phase D: added yt-dlp end-to-end downloader bullet and changelog entry [branch: DEBUG-v001] |
-| 2026-05-14 17:39:03 | `docs/FEATURES_noLegal_RU.md` | `S0190` | Phase D: added yt-dlp end-to-end downloader bullet (RU) and changelog entry [branch: DEBUG-v001] |
-| 2026-05-14 17:39:03 | `docs/FEATURES_noLegal_UK.md` | `S0190` | Phase D: added yt-dlp end-to-end downloader bullet (UK) and changelog entry [branch: DEBUG-v001] |
+| 2026-05-14 17:39:03 | `docs/FEATURES_noLegal-ru.md` | `S0190` | Phase D: added yt-dlp end-to-end downloader bullet (RU) and changelog entry [branch: DEBUG-v001] |
+| 2026-05-14 17:39:03 | `docs/FEATURES_noLegal-uk.md` | `S0190` | Phase D: added yt-dlp end-to-end downloader bullet (UK) and changelog entry [branch: DEBUG-v001] |
 | 2026-05-14 17:40:53 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/CanonicalizedUrl.kt` | `S0190` | Phase 01: new data class carrying url + audioOnly hint [branch: DEBUG-v001] |
 | 2026-05-14 17:40:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/LinkUrlCanonicalizer.kt` | `S0190` | Phase 01+04: return CanonicalizedUrl; add Timber.d S0190 tag in rewrite branch [branch: DEBUG-v001] |
 | 2026-05-14 17:40:54 | `app_v2/src/main/java/com/sza/fastmediasorter/data/link/cookie/LinkDownloadSessionContext.kt` | `S0190` | Phase 01: add audioOnly flag; audioOnlyFor(host) helper [branch: DEBUG-v001] |
@@ -10014,8 +10014,8 @@ Format: | datetime | file | target | description |
 | 2026-05-15 16:15:29 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/RestoreDeletedUseCase.kt` | `S0209 restore path parsing` | Normalize snapshot folder name parsing for backslash-separated host paths so restore snapshot discovery works in host-side validation and Windows tooling. [branch: DEBUG-v002] |
 | 2026-05-15 16:15:29 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/RestoreDeletedUseCaseTest.kt` | `S0209 restore regression test` | Add host-side restore round-trip coverage for canonical trash snapshots and keep the test aligned with the current metadata contract. [branch: DEBUG-v002] |
 | 2026-05-15 16:18:21 | `docs/FEATURES.md` | `S0209 feature docs` | Document the 5-minute recoverable Trash window before background cleanup removes items permanently. [branch: DEBUG-v002] |
-| 2026-05-15 16:18:21 | `docs/FEATURES_RU.md` | `S0209 feature docs` | Документировать 5-минутное окно восстановления из Корзины перед окончательным фоновым удалением. [branch: DEBUG-v002] |
-| 2026-05-15 16:18:21 | `docs/FEATURES_UK.md` | `S0209 feature docs` | Документувати 5-хвилинне вікно відновлення з Кошика перед остаточним фоновим видаленням. [branch: DEBUG-v002] |
+| 2026-05-15 16:18:21 | `docs/FEATURES-ru.md` | `S0209 feature docs` | Документировать 5-минутное окно восстановления из Корзины перед окончательным фоновым удалением. [branch: DEBUG-v002] |
+| 2026-05-15 16:18:21 | `docs/FEATURES-uk.md` | `S0209 feature docs` | Документувати 5-хвилинне вікно відновлення з Кошика перед остаточним фоновим видаленням. [branch: DEBUG-v002] |
 | 2026-05-15 16:20:49 | `PLAN/S0209_deletion-trash-overhaul/INDEX.md` | `S0209 tactical sync` | Sync overall S0209 tactical progress, phase counts, and current blockers after implementation follow-up. [branch: DEBUG-v002] |
 | 2026-05-15 16:20:49 | `PLAN/S0209_deletion-trash-overhaul/PHASE_02__switch-all-callers-to-contract.md` | `S0209 tactical sync` | Mark Phase 02 complete and record the cleaner-test verification plus host-path restore follow-up. [branch: DEBUG-v002] |
 | 2026-05-15 16:20:50 | `PLAN/S0209_deletion-trash-overhaul/PHASE_03__remove-forced-reload-cleanup.md` | `S0209 tactical sync` | Mark Phase 03 complete with the local forced-cleanup removal and worker-only verification. [branch: DEBUG-v002] |
@@ -10121,8 +10121,8 @@ Format: | datetime | file | target | description |
 | 2026-05-15 21:25:20 | `PLAN/S0214_github-store-publication/DECISIONS.md` | `spec-dev` | S0214 Phase 01 Step 01.4: decide release notes source (Option A - WHATS_NEW.md) [branch: DEBUG-v002] |
 | 2026-05-15 21:25:29 | `LICENSE` | `spec-dev` | S0215 Phase 01 step 01.1: add Apache 2.0 LICENSE file [branch: DEBUG-v002] |
 | 2026-05-15 21:26:18 | `README.md` | `spec-dev` | S0215 Phase 01 step 01.2: add Apache 2.0 license badge [branch: DEBUG-v002] |
-| 2026-05-15 21:26:18 | `docs/README_RU.md` | `spec-dev` | S0215 Phase 01 step 01.2: add Apache 2.0 license badge (RU) [branch: DEBUG-v002] |
-| 2026-05-15 21:26:18 | `docs/README_UK.md` | `spec-dev` | S0215 Phase 01 step 01.2: add Apache 2.0 license badge (UK) [branch: DEBUG-v002] |
+| 2026-05-15 21:26:18 | `docs/README-ru.md` | `spec-dev` | S0215 Phase 01 step 01.2: add Apache 2.0 license badge (RU) [branch: DEBUG-v002] |
+| 2026-05-15 21:26:18 | `docs/README-uk.md` | `spec-dev` | S0215 Phase 01 step 01.2: add Apache 2.0 license badge (UK) [branch: DEBUG-v002] |
 | 2026-05-15 21:26:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev` | S0213 P02.1: inject RecentDecoderFailureTracker, markFailed on MediaCodec+audio-renderer errors, clearAll on STATE_READY [branch: DEBUG-v002] |
 | 2026-05-15 21:26:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `spec-dev` | S0213 P02.1: @Inject RecentDecoderFailureTracker for forwarding to player managers [branch: DEBUG-v002] |
 | 2026-05-15 21:26:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `spec-dev` | S0213 P02.1: forward decoderFailureTracker to VideoPlayerManager [branch: DEBUG-v002] |
@@ -10179,8 +10179,8 @@ Format: | datetime | file | target | description |
 | 2026-05-15 21:45:14 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0213 P06.1: rendered app_v2.md (1304 records) [branch: DEBUG-v002] |
 | 2026-05-15 21:46:38 | `docs/DEV_OPS.md` | `spec-dev` | S0214 Phase 04 Step 04.3: Release Signing Fingerprint section + rotation procedure [branch: DEBUG-v002] |
 | 2026-05-15 21:48:29 | `README.md` | `spec-dev` | S0214 Phase 05 Step 05.2: Get-it-on-GitHub-Store badge in EN README [branch: DEBUG-v002] |
-| 2026-05-15 21:49:16 | `docs/README_RU.md` | `spec-dev` | S0214 Phase 05 Step 05.3: Get-it-on-GitHub-Store badge in RU README [branch: DEBUG-v002] |
-| 2026-05-15 21:50:20 | `docs/README_UK.md` | `spec-dev` | S0214 Phase 05 Step 05.4: Get-it-on-GitHub-Store badge in UK README [branch: DEBUG-v002] |
+| 2026-05-15 21:49:16 | `docs/README-ru.md` | `spec-dev` | S0214 Phase 05 Step 05.3: Get-it-on-GitHub-Store badge in RU README [branch: DEBUG-v002] |
+| 2026-05-15 21:50:20 | `docs/README-uk.md` | `spec-dev` | S0214 Phase 05 Step 05.4: Get-it-on-GitHub-Store badge in UK README [branch: DEBUG-v002] |
 | 2026-05-15 21:54:58 | `scripts/release/gen_fastlane_changelog.ps1` | `spec-dev` | S0215 Phase 04 step 04.1: create gen_fastlane_changelog.ps1 (180 lines, 3-locale extractor) [branch: DEBUG-v002] |
 | 2026-05-15 21:55:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `S0213` | P06: relocate Pillar A Timber.d S0213 verification tag to start of handleCooldownReentry [branch: DEBUG-v002] |
 | 2026-05-15 21:55:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/Media3OomSafeLogger.kt` | `S0213` | P06: update Pillar B Timber.d S0213 verification tag to spec format [branch: DEBUG-v002] |
@@ -10344,8 +10344,8 @@ Format: | datetime | file | target | description |
 | 2026-05-16 02:33:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt` | `S0192` | Phase 06 Step 06.3: setupDrawOverlayInPlaceSaveCallback (in-place overwrite, silent fallback for read-only / non-local) [branch: DEBUG-v002] |
 | 2026-05-16 02:33:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `S0192` | Phase 06 Step 06.3: invoke setupDrawOverlayInPlaceSaveCallback [branch: DEBUG-v002] |
 | 2026-05-16 02:34:14 | `docs/FEATURES.md` | `S0192` | Phase 07 Step 07.2: Draw annotations bullet expanded (EN) [branch: DEBUG-v002] |
-| 2026-05-16 02:34:14 | `docs/FEATURES_RU.md` | `S0192` | Phase 07 Step 07.2: Draw annotations bullet expanded (RU) [branch: DEBUG-v002] |
-| 2026-05-16 02:34:14 | `docs/FEATURES_UK.md` | `S0192` | Phase 07 Step 07.2: Draw annotations bullet expanded (UK) [branch: DEBUG-v002] |
+| 2026-05-16 02:34:14 | `docs/FEATURES-ru.md` | `S0192` | Phase 07 Step 07.2: Draw annotations bullet expanded (RU) [branch: DEBUG-v002] |
+| 2026-05-16 02:34:14 | `docs/FEATURES-uk.md` | `S0192` | Phase 07 Step 07.2: Draw annotations bullet expanded (UK) [branch: DEBUG-v002] |
 | 2026-05-16 02:38:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `S0192` | Insert Timber.d S0192 tags (6) for BlockNeedUserTest device verification [branch: DEBUG-v002] |
 | 2026-05-16 02:38:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DrawSettingsDialog.kt` | `S0192` | Insert Timber.d S0192 tag for BlockNeedUserTest [branch: DEBUG-v002] |
 | 2026-05-16 02:38:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/DrawColorGridDialog.kt` | `S0192` | Insert Timber.d S0192 tag for BlockNeedUserTest [branch: DEBUG-v002] |
@@ -10531,8 +10531,8 @@ Format: | datetime | file | target | description |
 | 2026-05-16 19:24:32 | `app_v2/src/main/res/values-ru/strings.xml` | `strings_RU` | S0189: add text_editor_ and text_note_save_ keys [branch: DEBUG-v003] |
 | 2026-05-16 19:24:32 | `app_v2/src/main/res/values-uk/strings.xml` | `strings_UK` | S0189: add text_editor_ and text_note_save_ keys [branch: DEBUG-v003] |
 | 2026-05-16 19:24:41 | `docs/FEATURES.md` | `FEATURES` | S0189: add text note creation and editor actions bullets to section 13 [branch: DEBUG-v003] |
-| 2026-05-16 19:24:41 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0189: add Russian bullets for new text editor features in section 13 [branch: DEBUG-v003] |
-| 2026-05-16 19:24:41 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0189: add Ukrainian bullets for new text editor features in section 13 [branch: DEBUG-v003] |
+| 2026-05-16 19:24:41 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0189: add Russian bullets for new text editor features in section 13 [branch: DEBUG-v003] |
+| 2026-05-16 19:24:41 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0189: add Ukrainian bullets for new text editor features in section 13 [branch: DEBUG-v003] |
 | 2026-05-16 19:32:26 | `PLAN/S0216_playback-order-bottom-bar.md` | `S0216` | Audit complete: all §11 criteria verified; status set to Verified [branch: DEBUG-v003] |
 | 2026-05-16 19:53:18 | `scripts/release/gen_fastlane_changelog.ps1` | `gen_fastlane_changelog` | Fix locale-specific release markers for RU/UK WHATS_NEW files; add CurrentReleasePrefix per-locale support (S0215 Phase 04) [branch: DEBUG-v003] |
 | 2026-05-16 19:53:18 | `scripts/builders/build-aab-release.ps1` | `build-aab-release` | Hook fastlane changelog generator (gen_fastlane_changelog.ps1) into release flow after APK build (S0215 Phase 04) [branch: DEBUG-v003] |
@@ -10540,8 +10540,8 @@ Format: | datetime | file | target | description |
 | 2026-05-16 19:53:18 | `fastlane/metadata/android/ru-RU/changelogs/260516193.txt` | `fastlane-changelogs` | Seed changelog for versionCode 260516193 (RU) (S0215 Phase 04) [branch: DEBUG-v003] |
 | 2026-05-16 19:53:18 | `fastlane/metadata/android/uk-UA/changelogs/260516193.txt` | `fastlane-changelogs` | Seed changelog for versionCode 260516193 (UK) (S0215 Phase 04) [branch: DEBUG-v003] |
 | 2026-05-16 19:57:17 | `README.md` | `README` | Add IzzyOnDroid badge with canonical deep-link - EN caption 'Download' (S0215 Phase 06) [branch: DEBUG-v003] |
-| 2026-05-16 19:57:17 | `docs/README_RU.md` | `README_RU` | Add IzzyOnDroid badge - RU caption 'Скачать' (S0215 Phase 06) [branch: DEBUG-v003] |
-| 2026-05-16 19:57:17 | `docs/README_UK.md` | `README_UK` | Add IzzyOnDroid badge - UK caption 'Завантажити' (S0215 Phase 06) [branch: DEBUG-v003] |
+| 2026-05-16 19:57:17 | `docs/README-ru.md` | `README_RU` | Add IzzyOnDroid badge - RU caption 'Скачать' (S0215 Phase 06) [branch: DEBUG-v003] |
+| 2026-05-16 19:57:17 | `docs/README-uk.md` | `README_UK` | Add IzzyOnDroid badge - UK caption 'Завантажити' (S0215 Phase 06) [branch: DEBUG-v003] |
 | 2026-05-16 19:59:35 | `PLAN/S0215_fdroid-publish-research/INDEX.md` | `S0215` | Phase 04-07 complete: changelog pipeline, IzzyOnDroid submission draft, README badges; status BlockExternal pending owner submission [branch: DEBUG-v003] |
 | 2026-05-16 20:43:57 | `PLAN/S0200_google-account-central-binding.md` | `spec-tech` | Status Approved -> Tactical; clarified §3.2 flavor scope to all SUPPORT_CLOUD=true via cloudEnabled/cloudDisabled split [branch: DEBUG-v003] |
 | 2026-05-16 20:43:57 | `PLAN/S0200_google-account-central-binding/INDEX.md` | `spec-tech` | Create tactical plan for S0200 (7 phases, COMPLEX path) [branch: DEBUG-v003] |
@@ -10675,8 +10675,8 @@ Format: | datetime | file | target | description |
 | 2026-05-16 23:36:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `GeneralSettingsFragment` | S0200 Phase 06.6: wire GoogleAccountSettingsHelper to cardGoogleAccount in onViewCreated [branch: DEBUG-v003] |
 | 2026-05-16 23:36:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `ResourceAdapter` | S0200 Phase 06.7: needs-sign-in indicator for Drive resources via tvAvailabilityIndicator [branch: DEBUG-v003] |
 | 2026-05-16 23:36:54 | `docs/FEATURES.md` | `FEATURES` | S0200 Phase 07.1: Cloud Integration entry for Google account binding (EN) [branch: DEBUG-v003] |
-| 2026-05-16 23:36:54 | `docs/FEATURES_RU.md` | `FEATURES` | S0200 Phase 07.1: Cloud Integration entry for Google account binding (RU) [branch: DEBUG-v003] |
-| 2026-05-16 23:36:54 | `docs/FEATURES_UK.md` | `FEATURES` | S0200 Phase 07.1: Cloud Integration entry for Google account binding (UK) [branch: DEBUG-v003] |
+| 2026-05-16 23:36:54 | `docs/FEATURES-ru.md` | `FEATURES` | S0200 Phase 07.1: Cloud Integration entry for Google account binding (RU) [branch: DEBUG-v003] |
+| 2026-05-16 23:36:54 | `docs/FEATURES-uk.md` | `FEATURES` | S0200 Phase 07.1: Cloud Integration entry for Google account binding (UK) [branch: DEBUG-v003] |
 | 2026-05-17 00:42:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/ResourceOpsMenuManager.kt` | `ResourceOpsMenuManager` | Suppress system autofill prompts on file-name and folder-name inputs (importantForAutofill=NO) - fixes spurious 'Sign in with Google' prompt on devices without a Google account. [branch: DEBUG-v003] |
 | 2026-05-17 00:58:01 | `PLAN/S0200_google-account-central-binding.md` | `spec-check` | Audit S0200 -> Broken; PASS/WARN/FAIL 14/3/1 [branch: DEBUG-v003] |
 | 2026-05-17 00:58:53 | `PLAN/S0200_google-account-central-binding.md` | `spec-fix` | Annotate Last Audit (S0200): all 4 items marked FOLLOW-UP (no auto-fixable categories) [branch: DEBUG-v003] |
@@ -11214,8 +11214,8 @@ Format: | datetime | file | target | description |
 | 2026-05-18 22:53:23 | `PLAN/S0125_settings-activity-revision/PHASE_05__dual-run-browse-parity.md` | `S0125 Phase 05` | Marked the Browse dual-run phase done and corrected it to the actual Resource Ops command surface. [branch: DEBUG-v004] |
 | 2026-05-18 22:53:23 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 tactical index` | Advanced the tactical index after completing Browse dual-run parity work. [branch: DEBUG-v004] |
 | 2026-05-18 22:53:23 | `docs/FEATURES.md` | `FEATURES` | Documented the Browse dual-run settings access entry in the public feature inventory. [branch: DEBUG-v004] |
-| 2026-05-18 22:53:24 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Documented the Browse dual-run settings access entry in the RU feature inventory. [branch: DEBUG-v004] |
-| 2026-05-18 22:53:24 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Documented the Browse dual-run settings access entry in the UK feature inventory. [branch: DEBUG-v004] |
+| 2026-05-18 22:53:24 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Documented the Browse dual-run settings access entry in the RU feature inventory. [branch: DEBUG-v004] |
+| 2026-05-18 22:53:24 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Documented the Browse dual-run settings access entry in the UK feature inventory. [branch: DEBUG-v004] |
 | 2026-05-18 22:55:16 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Required a resource id for both current and revised Browse automation settings routes to keep the S0125 dual-run surface paired. [branch: DEBUG-v004] |
 | 2026-05-18 22:57:08 | `PLAN/S0125_settings-activity-revision.md` | `S0125 strategic spec` | Updated the tactical-state note and revision history after the implemented Browse dual-run phase. [branch: DEBUG-v004] |
 | 2026-05-18 22:57:08 | `PLAN/S0125_settings-activity-revision/PHASE_06__docs-catalog-cleanup.md` | `S0125 Phase 06` | Marked docs, catalog, and tactical reconciliation steps done and left /spec-check as the remaining audit step. [branch: DEBUG-v004] |
@@ -11261,8 +11261,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 00:14:17 | `app_v2/src/main/res/values-ru/strings.xml` | `Phase 07 scope restore` | Dropped the unused Russian global current-settings label after restoring Browse-only scope. [branch: DEBUG-v004] |
 | 2026-05-19 00:14:17 | `app_v2/src/main/res/values-uk/strings.xml` | `Phase 07 scope restore` | Dropped the unused Ukrainian global current-settings label after restoring Browse-only scope. [branch: DEBUG-v004] |
 | 2026-05-19 00:14:17 | `docs/FEATURES.md` | `Phase 07 scope restore` | Reworded the Browse dual-run feature note as a corrective preview rather than a completed revised surface. [branch: DEBUG-v004] |
-| 2026-05-19 00:14:17 | `docs/FEATURES_RU.md` | `Phase 07 scope restore` | Reworded the Russian Browse dual-run feature note as a corrective preview rather than a completed revised surface. [branch: DEBUG-v004] |
-| 2026-05-19 00:14:17 | `docs/FEATURES_UK.md` | `Phase 07 scope restore` | Reworded the Ukrainian Browse dual-run feature note as a corrective preview rather than a completed revised surface. [branch: DEBUG-v004] |
+| 2026-05-19 00:14:17 | `docs/FEATURES-ru.md` | `Phase 07 scope restore` | Reworded the Russian Browse dual-run feature note as a corrective preview rather than a completed revised surface. [branch: DEBUG-v004] |
+| 2026-05-19 00:14:17 | `docs/FEATURES-uk.md` | `Phase 07 scope restore` | Reworded the Ukrainian Browse dual-run feature note as a corrective preview rather than a completed revised surface. [branch: DEBUG-v004] |
 | 2026-05-19 00:14:17 | `PLAN/S0125_settings-activity-revision/PARITY_AUDIT_CHECKLIST.md` | `Phase 07 scope restore` | Reset the audit wording to Browse-only scope and froze the hosted-legacy shell as a corrective blocker. [branch: DEBUG-v004] |
 | 2026-05-19 00:14:17 | `PLAN/S0125_settings-activity-revision/PHASE_07__scope-restore-and-reset.md` | `Phase 07 scope restore` | Marked Phase 07 steps and done criteria complete after restoring Browse-only scope. [branch: DEBUG-v004] |
 | 2026-05-19 00:14:17 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `Phase 07 scope restore` | Marked Phase 07 complete and advanced the corrective tactical plan to 7/11 done. [branch: DEBUG-v004] |
@@ -11295,8 +11295,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 00:48:11 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125 Main re-entry` | Updated the tactical plan to allow a separate Main launch into revised settings while preserving the legacy button. [branch: DEBUG-v004] |
 | 2026-05-19 00:48:11 | `PLAN/S0125_settings-activity-revision/PARITY_AUDIT_CHECKLIST.md` | `S0125 Main re-entry` | Updated launch-path audit truth to include the restored Main revised-settings button. [branch: DEBUG-v004] |
 | 2026-05-19 00:48:11 | `docs/FEATURES.md` | `S0125 Main re-entry` | Updated the feature inventory to describe Main as the dual-run settings entry and Browse as a resource-scoped shortcut. [branch: DEBUG-v004] |
-| 2026-05-19 00:48:11 | `docs/FEATURES_RU.md` | `S0125 Main re-entry` | Updated the Russian feature inventory to describe Main as the dual-run settings entry and Browse as a resource-scoped shortcut. [branch: DEBUG-v004] |
-| 2026-05-19 00:48:11 | `docs/FEATURES_UK.md` | `S0125 Main re-entry` | Updated the Ukrainian feature inventory to describe Main as the dual-run settings entry and Browse as a resource-scoped shortcut. [branch: DEBUG-v004] |
+| 2026-05-19 00:48:11 | `docs/FEATURES-ru.md` | `S0125 Main re-entry` | Updated the Russian feature inventory to describe Main as the dual-run settings entry and Browse as a resource-scoped shortcut. [branch: DEBUG-v004] |
+| 2026-05-19 00:48:11 | `docs/FEATURES-uk.md` | `S0125 Main re-entry` | Updated the Ukrainian feature inventory to describe Main as the dual-run settings entry and Browse as a resource-scoped shortcut. [branch: DEBUG-v004] |
 | 2026-05-19 00:53:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubViewerManager.kt` | `S0002` | Reduced EpubViewerManager by delegating EPUB resource preprocessing. [branch: DEBUG-v004] |
 | 2026-05-19 00:53:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/EpubResourceContentHelper.kt` | `S0002` | Added helper for EPUB HTML preprocessing and embedded resource responses. [branch: DEBUG-v004] |
 | 2026-05-19 00:54:45 | `PLAN/S0249_vr-test-immersive-image-stage1a/INDEX.md` | `spec` | S0249: lock all best-practice decisions, retarget settings host to RevisedMediaSettingsFragment (NEW), confirm landscape layout coverage, lock Navier8 MIT asset [branch: DEBUG-v004] |
@@ -11318,8 +11318,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 01:13:38 | `app_v2/src/main/res/layout-land/activity_main.xml` | `main-toolbar` | Remove the public revised settings button in landscape Main [branch: DEBUG-v004] |
 | 2026-05-19 01:13:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseManagerInitializer.kt` | `BrowseManagerInitializer` | Retract revised Browse settings exposure and restore the legacy keyboard/help path [branch: DEBUG-v004] |
 | 2026-05-19 01:13:38 | `docs/FEATURES.md` | `features-doc` | Remove misleading dual-run settings exposure wording [branch: DEBUG-v004] |
-| 2026-05-19 01:13:38 | `docs/FEATURES_RU.md` | `features-doc` | Remove misleading dual-run settings exposure wording [branch: DEBUG-v004] |
-| 2026-05-19 01:13:39 | `docs/FEATURES_UK.md` | `features-doc` | Remove misleading dual-run settings exposure wording [branch: DEBUG-v004] |
+| 2026-05-19 01:13:38 | `docs/FEATURES-ru.md` | `features-doc` | Remove misleading dual-run settings exposure wording [branch: DEBUG-v004] |
+| 2026-05-19 01:13:39 | `docs/FEATURES-uk.md` | `features-doc` | Remove misleading dual-run settings exposure wording [branch: DEBUG-v004] |
 | 2026-05-19 01:13:39 | `PLAN/S0125_settings-activity-revision/INDEX.md` | `S0125-plan` | Mark Phase 08 blocked and point to the redesign reboot baseline [branch: DEBUG-v004] |
 | 2026-05-19 01:13:39 | `PLAN/S0125_settings-activity-revision/PHASE_08__rewritten-general-operations.md` | `S0125-plan` | Freeze Phase 08 until the redesign reboot baseline replaces direct legacy binding [branch: DEBUG-v004] |
 | 2026-05-19 01:13:40 | `PLAN/S0125_settings-activity-revision.md` | `S0125-spec` | Replace early public dual-run language with hidden incubation and gated re-exposure [branch: DEBUG-v004] |
@@ -11377,11 +11377,11 @@ Format: | datetime | file | target | description |
 | 2026-05-19 02:24:38 | `dev/CATALOG/scripts/set.ps1` | `spec-all` | S0250 Phase 5: drop vrUnlicensed from valid flavors enum [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `scripts/builders/build-ffmpeg-dts.sh` | `spec-all` | S0250 Phase 5: drop vrUnlicensedImplementation from AAR-declaration template [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `docs/VR_EDITION.md` | `spec-all` | S0250 Phase 6: rewrite Distribution Channels (vrUnlicensed -> noLegal) [branch: DEBUG-v004] |
-| 2026-05-19 02:24:38 | `docs/VR_EDITION_RU.md` | `spec-all` | S0250 Phase 6: mirror RU distribution rewrite [branch: DEBUG-v004] |
-| 2026-05-19 02:24:38 | `docs/VR_EDITION_UK.md` | `spec-all` | S0250 Phase 6: mirror UK distribution rewrite [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/VR_EDITION-ru.md` | `spec-all` | S0250 Phase 6: mirror RU distribution rewrite [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/VR_EDITION-uk.md` | `spec-all` | S0250 Phase 6: mirror UK distribution rewrite [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `docs/LIMITATIONS.md` | `spec-all` | S0250 Phase 6: rewrite VR Distribution channel description [branch: DEBUG-v004] |
-| 2026-05-19 02:24:38 | `docs/LIMITATIONS_RU.md` | `spec-all` | S0250 Phase 6: mirror RU limitations [branch: DEBUG-v004] |
-| 2026-05-19 02:24:38 | `docs/LIMITATIONS_UK.md` | `spec-all` | S0250 Phase 6: mirror UK limitations [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/LIMITATIONS-ru.md` | `spec-all` | S0250 Phase 6: mirror RU limitations [branch: DEBUG-v004] |
+| 2026-05-19 02:24:38 | `docs/LIMITATIONS-uk.md` | `spec-all` | S0250 Phase 6: mirror UK limitations [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `docs/DEV_OPS.md` | `spec-all` | S0250 Phase 6: update flavor matrix and ABI strategy [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `dev/FLAVOR_DEVELOPMENT_RULES.md` | `spec-all` | S0250 Phase 6: drop future vrUnlicensed mention from RULE 6 [branch: DEBUG-v004] |
 | 2026-05-19 02:24:38 | `dev/CATALOG/README.md` | `spec-all` | S0250 Phase 6: drop vrUnlicensed from valid noFlavors enum [branch: DEBUG-v004] |
@@ -11591,8 +11591,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 14:02:17 | `app_v2/src/main/res/values-uk/strings.xml` | `S0125 Step 06.3` | Rename the public revised settings title to Налаштування and add current-settings fallback labels in UK. [branch: DEBUG-v004] |
 | 2026-05-19 14:08:02 | `PLAN/S0125_settings-activity-revision.md` | `spec-check` | Audit S0125 -> Partial; PASS/WARN/FAIL 18/2/1 (full mode); flagged missing layout-land/fragment_settings_revised_general.xml and two predicate-format WARNs [branch: DEBUG-v004] |
 | 2026-05-19 14:08:29 | `docs/FEATURES.md` | `S0125 Step 07.1` | Document the revised public Settings window as a four-tab surface with global search and dedicated management entry points in EN. [branch: DEBUG-v004] |
-| 2026-05-19 14:08:29 | `docs/FEATURES_RU.md` | `S0125 Step 07.1` | Document the revised public Settings window as a four-tab surface with global search and dedicated management entry points in RU. [branch: DEBUG-v004] |
-| 2026-05-19 14:08:29 | `docs/FEATURES_UK.md` | `S0125 Step 07.1` | Document the revised public Settings window as a four-tab surface with global search and dedicated management entry points in UK. [branch: DEBUG-v004] |
+| 2026-05-19 14:08:29 | `docs/FEATURES-ru.md` | `S0125 Step 07.1` | Document the revised public Settings window as a four-tab surface with global search and dedicated management entry points in RU. [branch: DEBUG-v004] |
+| 2026-05-19 14:08:29 | `docs/FEATURES-uk.md` | `S0125 Step 07.1` | Document the revised public Settings window as a four-tab surface with global search and dedicated management entry points in UK. [branch: DEBUG-v004] |
 | 2026-05-19 14:08:29 | `dev/CATALOG/app_v2.jsonl` | `S0125 Step 07.2` | Regenerate the app_v2 catalog after the revised settings rollout. [branch: DEBUG-v004] |
 | 2026-05-19 14:08:29 | `dev/CATALOG/app_v2.md` | `S0125 Step 07.2` | Regenerate the app_v2 catalog markdown after the revised settings rollout. [branch: DEBUG-v004] |
 | 2026-05-19 14:09:09 | `PLAN/S0125_settings-activity-revision.md` | `spec-fix` | Annotate Last Audit (S0125): 3 action items marked FOLLOW-UP (no auto-fixable categories - landscape XML, predicate-text refinements need /spec-update or owner decision) [branch: DEBUG-v004] |
@@ -11647,8 +11647,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 16:19:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/input/InputHelpRegistry.kt` | `S0125-rollback` | S0125 cancelled: drop both kbm_help_browse_settings entries from Browse help section [branch: DEBUG-v004] |
 | 2026-05-19 16:19:51 | `PLAN/S0184_multi-window-capability.md` | `spec-update` | Polish wording after local AS-IS alignment for S0184 [branch: DEBUG-v004] |
 | 2026-05-19 16:20:02 | `docs/FEATURES.md` | `S0125-rollback` | S0125 cancelled: remove revised settings window bullet from Settings section [branch: DEBUG-v004] |
-| 2026-05-19 16:20:02 | `docs/FEATURES_RU.md` | `S0125-rollback` | S0125 cancelled: remove revised settings window bullet (RU) [branch: DEBUG-v004] |
-| 2026-05-19 16:20:02 | `docs/FEATURES_UK.md` | `S0125-rollback` | S0125 cancelled: remove revised settings window bullet (UK) [branch: DEBUG-v004] |
+| 2026-05-19 16:20:02 | `docs/FEATURES-ru.md` | `S0125-rollback` | S0125 cancelled: remove revised settings window bullet (RU) [branch: DEBUG-v004] |
+| 2026-05-19 16:20:02 | `docs/FEATURES-uk.md` | `S0125-rollback` | S0125 cancelled: remove revised settings window bullet (UK) [branch: DEBUG-v004] |
 | 2026-05-19 16:20:02 | `scripts/spec_catalog/archive.ps1` | `spec-catalog` | fix: ChangeExtension(p, null) leaves trailing dot on PS7+; build tactical-dir path via GetFileNameWithoutExtension [branch: DEBUG-v004] |
 | 2026-05-19 16:20:02 | `dev/CATALOG/app_v2.jsonl` | `S0125-rollback` | S0125 cancelled: regenerated catalog after revised package + 12 layouts removed [branch: DEBUG-v004] |
 | 2026-05-19 16:20:02 | `dev/CATALOG/app_v2.md` | `S0125-rollback` | S0125 cancelled: regenerated catalog rendering [branch: DEBUG-v004] |
@@ -11741,8 +11741,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 18:35:23 | `PLAN/S0184_multi-window-capability.md` | `spec-check` | Audit S0184 -> Partial; PASS/WARN/FAIL 15/1/0. WARN: docs/FEATURES bullet still VR-centric (Quest 3+ / DeX) under VR section; §8 requires desktop-like contract wording. [branch: DEBUG-v004] |
 | 2026-05-19 18:36:57 | `PLAN/S0184_multi-window-capability.md` | `spec-fix` | Annotate Last Audit (S0184): 1 FOLLOW-UP - docs/FEATURES rewording requires authored RU/UK translations. [branch: DEBUG-v004] |
 | 2026-05-19 18:40:32 | `docs/FEATURES.md` | `spec-all` | S0184 §8 FOLLOW-UP fix: move Multi-Window Mode bullet from VR Edition to Media Browsing; reframe as cross-platform desktop-like / panel multi-window contract (ChromeOS / Chromebook / DeX / Android XR / Quest 3+). [branch: DEBUG-v004] |
-| 2026-05-19 18:40:32 | `docs/FEATURES_RU.md` | `spec-all` | S0184 §8 FOLLOW-UP fix: move Multi-Window Mode bullet from VR section to Browse; cross-platform reframing (RU). [branch: DEBUG-v004] |
-| 2026-05-19 18:40:32 | `docs/FEATURES_UK.md` | `spec-all` | S0184 §8 FOLLOW-UP fix: move Multi-Window Mode bullet from VR section to Browse; cross-platform reframing (UK). [branch: DEBUG-v004] |
+| 2026-05-19 18:40:32 | `docs/FEATURES-ru.md` | `spec-all` | S0184 §8 FOLLOW-UP fix: move Multi-Window Mode bullet from VR section to Browse; cross-platform reframing (RU). [branch: DEBUG-v004] |
+| 2026-05-19 18:40:32 | `docs/FEATURES-uk.md` | `spec-all` | S0184 §8 FOLLOW-UP fix: move Multi-Window Mode bullet from VR section to Browse; cross-platform reframing (UK). [branch: DEBUG-v004] |
 | 2026-05-19 18:40:56 | `docs/ARCHITECTURE.md` | `spec-dev` | S0258 Step 01.1: Pattern A switch row restructured - title+helper inline, subtitle below, optional trailing action slot; SettingsToggleRow reusable component referenced [branch: DEBUG-v004] |
 | 2026-05-19 18:40:56 | `.github/copilot-instructions.md` | `spec-dev` | S0258 Step 01.1: UI_TRIGGER_ROW constraint updated - help-icon inline next to title, prefer SettingsToggleRow compound view [branch: DEBUG-v004] |
 | 2026-05-19 18:43:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsToggleRow.kt` | `spec-dev` | S0258 Step 01.2: new compound view SettingsToggleRow (switch+title+helper inline+subtitle+trailing slot) [branch: DEBUG-v004] |
@@ -11864,8 +11864,8 @@ Format: | datetime | file | target | description |
 | 2026-05-19 23:11:48 | `app_v2/src/main/res/values-uk/strings.xml` | `S0256` | S0256 Phase 07: remove unused player panel indicator strings after header migration [branch: DEBUG-v004] |
 | 2026-05-19 23:11:48 | `app_v2/src/main/res/drawable/ic_expand_more.xml` | `S0256` | S0256 Phase 07: delete unused ic_expand_more drawable after full header migration [branch: DEBUG-v004] |
 | 2026-05-19 23:11:48 | `docs/WHATS_NEW.md` | `S0256` | S0256 Phase 07: add release-note line for unified expandable headers [branch: DEBUG-v004] |
-| 2026-05-19 23:11:48 | `docs/WHATS_NEW_RU.md` | `S0256` | S0256 Phase 07: mirror release-note line for unified expandable headers [branch: DEBUG-v004] |
-| 2026-05-19 23:11:48 | `docs/WHATS_NEW_UK.md` | `S0256` | S0256 Phase 07: mirror release-note line for unified expandable headers [branch: DEBUG-v004] |
+| 2026-05-19 23:11:48 | `docs/WHATS_NEW-ru.md` | `S0256` | S0256 Phase 07: mirror release-note line for unified expandable headers [branch: DEBUG-v004] |
+| 2026-05-19 23:11:48 | `docs/WHATS_NEW-uk.md` | `S0256` | S0256 Phase 07: mirror release-note line for unified expandable headers [branch: DEBUG-v004] |
 | 2026-05-19 23:16:09 | `dev/CATALOG/app_v2.jsonl` | `S0256` | S0256 Phase 07: final app_v2 catalog sync after last migration site [branch: DEBUG-v004] |
 | 2026-05-19 23:16:09 | `dev/CATALOG/app_v2.md` | `S0256` | S0256 Phase 07: final app_v2 catalog render after last migration site [branch: DEBUG-v004] |
 | 2026-05-19 23:16:09 | `PLAN/S0256_collapsible-section-header.md` | `spec-check` | S0256 final audit block updated to Verified [branch: DEBUG-v004] |
@@ -11984,8 +11984,8 @@ Format: | datetime | file | target | description |
 | 2026-05-20 01:28:13 | `app_v2/src/main/res/values-ru/strings.xml` | `S0260` | Add the RU YTMusic audio-only error string for rejected non-audio share artifacts. [branch: DEBUG-v004] |
 | 2026-05-20 01:28:13 | `app_v2/src/main/res/values-uk/strings.xml` | `S0260` | Add the UK YTMusic audio-only error string for rejected non-audio share artifacts. [branch: DEBUG-v004] |
 | 2026-05-20 01:28:43 | `docs/HOW_TO.md` | `HOW_TO` | Sync settings navigation with renamed General/Media/Playback/Operations groups [branch: DEBUG-v004] |
-| 2026-05-20 01:28:43 | `docs/HOW_TO_RU.md` | `HOW_TO_RU` | Sync Russian how-to settings group names with current UI [branch: DEBUG-v004] |
-| 2026-05-20 01:28:43 | `docs/HOW_TO_UK.md` | `HOW_TO_UK` | Sync Ukrainian how-to settings group names with current UI [branch: DEBUG-v004] |
+| 2026-05-20 01:28:43 | `docs/HOW_TO-ru.md` | `HOW_TO_RU` | Sync Russian how-to settings group names with current UI [branch: DEBUG-v004] |
+| 2026-05-20 01:28:43 | `docs/HOW_TO-uk.md` | `HOW_TO_UK` | Sync Ukrainian how-to settings group names with current UI [branch: DEBUG-v004] |
 | 2026-05-20 01:29:33 | `PLAN/S0259_settings-toggle-row-general-destinations.md` | `spec-update` | Refine 11.1 to match Phase 02.1 portrait-only carve-out (force-locked: Partial spec WARN fix) [branch: DEBUG-v004] |
 | 2026-05-20 01:30:44 | `PLAN/S0259_settings-toggle-row-general-destinations.md` | `spec-check` | Audit S0259 -> Verified; PASS/WARN/FAIL 20/0/0 after 11.1 wording fix [branch: DEBUG-v004] |
 | 2026-05-20 01:32:43 | `PLAN/S0263_how-to-expansion-scenarios-and-style.md` | `spec` | Add strategic spec S0263 for HOW_TO expansion scenarios and editorial variety [branch: DEBUG-v004] |
@@ -11997,8 +11997,8 @@ Format: | datetime | file | target | description |
 | 2026-05-20 01:34:37 | `app_v2/src/main/res/values-ru/strings.xml` | `S0262` | Updated SMB empty-state copy and added a dedicated dialog title in RU. [branch: DEBUG-v004] |
 | 2026-05-20 01:34:37 | `app_v2/src/main/res/values-uk/strings.xml` | `S0262` | Updated SMB empty-state copy and added a dedicated dialog title in UK. [branch: DEBUG-v004] |
 | 2026-05-20 01:34:37 | `docs/FEATURES.md` | `S0262` | Documented the clickable SMB host-scan share picker and explicit empty-result exit path in EN features. [branch: DEBUG-v004] |
-| 2026-05-20 01:34:37 | `docs/FEATURES_RU.md` | `S0262` | Documented the clickable SMB host-scan share picker and explicit empty-result exit path in RU features. [branch: DEBUG-v004] |
-| 2026-05-20 01:34:37 | `docs/FEATURES_UK.md` | `S0262` | Documented the clickable SMB host-scan share picker and explicit empty-result exit path in UK features. [branch: DEBUG-v004] |
+| 2026-05-20 01:34:37 | `docs/FEATURES-ru.md` | `S0262` | Documented the clickable SMB host-scan share picker and explicit empty-result exit path in RU features. [branch: DEBUG-v004] |
+| 2026-05-20 01:34:37 | `docs/FEATURES-uk.md` | `S0262` | Documented the clickable SMB host-scan share picker and explicit empty-result exit path in UK features. [branch: DEBUG-v004] |
 | 2026-05-20 01:34:37 | `PLAN/S0262_smb-host-scan-share-picker.md` | `S0262` | Marked the strategic SMB host-scan share picker spec implemented and resolved both research items. [branch: DEBUG-v004] |
 | 2026-05-20 01:34:37 | `PLAN/S0262_smb-host-scan-share-picker/INDEX.md` | `S0262` | Updated the tactical SMB host-scan share picker index to done pending spec audit. [branch: DEBUG-v004] |
 | 2026-05-20 01:35:51 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/CollapsibleSectionHeader.kt` | `CollapsibleSectionHeader` | Restore compact player bottom-panel header styling hooks [branch: DEBUG-v004] |
@@ -12038,8 +12038,8 @@ Format: | datetime | file | target | description |
 | 2026-05-20 02:15:56 | `PLAN/S0245_vr-settings-scaffold-stage0.md` | `spec-check` | Audit S0245 -> Verified; PASS/WARN/FAIL 9/0/0; Quest 3 immersive branch pending device test [branch: DEBUG-v004] |
 | 2026-05-20 02:15:56 | `app_v2/src/vr/java/com/sza/fastmediasorter/core/xr/XrDetectionFacadeImpl.kt` | `S0245-tag-removal` | remove BlockNeedUserTest probe + unused Timber import [branch: DEBUG-v004] |
 | 2026-05-20 02:18:43 | `docs/HOW_TO.md` | `S0263` | Expand HOW_TO with grouped scenario workflows in English [branch: DEBUG-v004] |
-| 2026-05-20 02:18:43 | `docs/HOW_TO_RU.md` | `S0263` | Mirror grouped HOW_TO scenario workflows in Russian [branch: DEBUG-v004] |
-| 2026-05-20 02:18:43 | `docs/HOW_TO_UK.md` | `S0263` | Mirror grouped HOW_TO scenario workflows in Ukrainian [branch: DEBUG-v004] |
+| 2026-05-20 02:18:43 | `docs/HOW_TO-ru.md` | `S0263` | Mirror grouped HOW_TO scenario workflows in Russian [branch: DEBUG-v004] |
+| 2026-05-20 02:18:43 | `docs/HOW_TO-uk.md` | `S0263` | Mirror grouped HOW_TO scenario workflows in Ukrainian [branch: DEBUG-v004] |
 | 2026-05-20 02:18:43 | `PLAN/S0263_how-to-expansion-scenarios-and-style.md` | `S0263` | Status to Implemented after HOW_TO doc expansion [branch: DEBUG-v004] |
 | 2026-05-20 02:18:43 | `PLAN/S0263_how-to-expansion-scenarios-and-style/INDEX.md` | `S0263` | Mark tactical plan complete [branch: DEBUG-v004] |
 | 2026-05-20 02:18:43 | `PLAN/S0263_how-to-expansion-scenarios-and-style/PHASE_01__english-how-to-expansion.md` | `S0263` | Mark phase 01 complete [branch: DEBUG-v004] |
@@ -12112,8 +12112,8 @@ Format: | datetime | file | target | description |
 | 2026-05-20 12:30:59 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/ui/browse/managers/BrowseApkInstallHandlerImpl.kt` | `spec-dev` | S0266 Steps 04.2-04.4: cloud APK download branch + launchSystemInstaller refactor + Timber.d S0266 tag [branch: DEBUG-v004] |
 | 2026-05-20 12:30:59 | `app_v2/src/main/java/com/sza/fastmediasorter/data/cloud/CloudFileOperationHandler.kt` | `spec-dev` | S0266 Step 04.x: public downloadFromCloudToPublic() wrapper for noLegal cloud APK install [branch: DEBUG-v004] |
 | 2026-05-20 12:38:52 | `docs/FEATURES_noLegal.md` | `spec-dev` | S0266 Step 05.2: cloud APK launch entry in noLegal feature doc (EN) [branch: DEBUG-v004] |
-| 2026-05-20 12:38:52 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | S0266 Step 05.2: cloud APK launch entry (RU) [branch: DEBUG-v004] |
-| 2026-05-20 12:38:52 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | S0266 Step 05.2: cloud APK launch entry (UK) [branch: DEBUG-v004] |
+| 2026-05-20 12:38:52 | `docs/FEATURES_noLegal-ru.md` | `spec-dev` | S0266 Step 05.2: cloud APK launch entry (RU) [branch: DEBUG-v004] |
+| 2026-05-20 12:38:52 | `docs/FEATURES_noLegal-uk.md` | `spec-dev` | S0266 Step 05.2: cloud APK launch entry (UK) [branch: DEBUG-v004] |
 | 2026-05-20 12:38:52 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | S0266 Step 05.1: catalog regen + noFlavors + role/status for CloudFileHandle, CloudProgressAdapter, BrowseApkInstallHandlerImpl [branch: DEBUG-v004] |
 | 2026-05-20 12:38:52 | `dev/CATALOG/app_v2.md` | `spec-dev` | S0266 Step 05.1: catalog md regen [branch: DEBUG-v004] |
 | 2026-05-20 12:41:30 | `PLAN/S0266_cloud-download-filename-and-progress.md` | `spec-dev` | S0266 all phases done; Status -> Implemented -> BlockNeedUserTest; Timber.d S0266 tags inserted in executeCopy + noLegal cloud APK install [branch: DEBUG-v004] |
@@ -12727,8 +12727,8 @@ Format: | datetime | file | target | description |
 | 2026-05-21 15:42:50 | `app_v2/compliance/platform-name-baseline.txt` | `platform-name baseline` | Add reviewed legacy suppressions for the first compliance gate rollout [branch: DEBUG-v007] |
 | 2026-05-21 15:42:50 | `docs/COMPLIANCE_DENYLIST.md` | `compliance deny-list doc` | Document the compliance deny-list workflow and suppression rules [branch: DEBUG-v007] |
 | 2026-05-21 15:42:50 | `docs/FEATURES.md` | `public features inventory` | Sanitize named platform references in the English public feature inventory [branch: DEBUG-v007] |
-| 2026-05-21 15:42:51 | `docs/FEATURES_RU.md` | `public features inventory` | Sanitize named platform references in the Russian public feature inventory [branch: DEBUG-v007] |
-| 2026-05-21 15:42:51 | `docs/FEATURES_UK.md` | `public features inventory` | Sanitize named platform references in the Ukrainian public feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 15:42:51 | `docs/FEATURES-ru.md` | `public features inventory` | Sanitize named platform references in the Russian public feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 15:42:51 | `docs/FEATURES-uk.md` | `public features inventory` | Sanitize named platform references in the Ukrainian public feature inventory [branch: DEBUG-v007] |
 | 2026-05-21 15:50:21 | `app_v2/build.gradle.kts` | `verifyNoPlatformNames` | Fix configuration-cache compatibility for the compliance verification task [branch: DEBUG-v007] |
 | 2026-05-21 15:50:21 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization.md` | `S0286 strategic spec` | Advance S0286 to Implemented and align the strategic closure criteria with current audit reality [branch: DEBUG-v007] |
 | 2026-05-21 15:50:21 | `PLAN/S0286_compliance-lint-gate-and-features-sanitization/INDEX.md` | `S0286 tactical index` | Mark all S0286 implementation phases done and record validation completion [branch: DEBUG-v007] |
@@ -12770,11 +12770,11 @@ Format: | datetime | file | target | description |
 | 2026-05-21 16:31:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractModelManager.kt` | `TesseractModelManager` | Added TesseractModelManager helper to handle dynamic tessdata_best model downloading, verification and deletion [branch: DEBUG-v007] |
 | 2026-05-21 16:31:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractManager.kt` | `TesseractManager` | Updated Tesseract init to support fallback initialization and dynamic path redirection to tessdata_best [branch: DEBUG-v007] |
 | 2026-05-21 16:33:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `S0287` | Integrate high-quality Tesseract models downloading and management UI controls [branch: DEBUG-v007] |
-| 2026-05-21 16:35:38 | `docs/FEATURES_RU.md, docs/FEATURES_UK.md` | `documentation` | Update Russian and Ukrainian features documentation for high-quality Tesseract models integration (S0287) [branch: DEBUG-v007] |
+| 2026-05-21 16:35:38 | `docs/FEATURES-ru.md, docs/FEATURES-uk.md` | `documentation` | Update Russian and Ukrainian features documentation for high-quality Tesseract models integration (S0287) [branch: DEBUG-v007] |
 | 2026-05-21 16:47:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TesseractModelManager.kt` | `TesseractModelManager` | Add pinned tessdata_best SHA-256 integrity validation for S0287 downloads [branch: DEBUG-v007] |
 | 2026-05-21 16:47:23 | `docs/FEATURES.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in EN features [branch: DEBUG-v007] |
-| 2026-05-21 16:47:23 | `docs/FEATURES_RU.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in RU features [branch: DEBUG-v007] |
-| 2026-05-21 16:47:23 | `docs/FEATURES_UK.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in UK features [branch: DEBUG-v007] |
+| 2026-05-21 16:47:23 | `docs/FEATURES-ru.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in RU features [branch: DEBUG-v007] |
+| 2026-05-21 16:47:23 | `docs/FEATURES-uk.md` | `S0287 docs` | Document passive SHA-256 validated tessdata_best model downloads in UK features [branch: DEBUG-v007] |
 | 2026-05-21 16:48:05 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation.md` | `spec-check` | Audit S0287 -> Verified; PASS/WARN/FAIL 18/0/0 [branch: DEBUG-v007] |
 | 2026-05-21 16:48:05 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/INDEX.md` | `S0287` | Mark tactical plan complete after implementation audit [branch: DEBUG-v007] |
 | 2026-05-21 16:48:06 | `PLAN/S0287_tesseract-cyrillic-model-swap-evaluation/PHASE_03__ui-controls.md` | `S0287` | Mark UI controls phase complete after implementation audit [branch: DEBUG-v007] |
@@ -12858,8 +12858,8 @@ Format: | datetime | file | target | description |
 | 2026-05-21 21:12:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `TranslationManager` | Route offline OCR through selected engine provider [branch: DEBUG-v007] |
 | 2026-05-21 21:13:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerImageTranslationManager.kt` | `PlayerImageTranslationManager` | Show OCR translation progress while image translation runs [branch: DEBUG-v007] |
 | 2026-05-21 21:28:02 | `docs/FEATURES_noLegal.md` | `spec-dev` | S0288 phase 07.1: add Offline PaddleOCR (PP-OCRv5 + Paddle-Lite) section to noLegal feature inventory [branch: DEBUG-v007] |
-| 2026-05-21 21:28:02 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in RU noLegal feature inventory [branch: DEBUG-v007] |
-| 2026-05-21 21:28:03 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in UK noLegal feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 21:28:02 | `docs/FEATURES_noLegal-ru.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in RU noLegal feature inventory [branch: DEBUG-v007] |
+| 2026-05-21 21:28:03 | `docs/FEATURES_noLegal-uk.md` | `spec-dev` | S0288 phase 07.1: mirror Offline PaddleOCR section in UK noLegal feature inventory [branch: DEBUG-v007] |
 | 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle.md` | `spec-dev` | S0288 finalize: all 7 phases done; status In Progress -> BlockNeedUserTest pending on-device verification [branch: DEBUG-v007] |
 | 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/INDEX.md` | `spec-dev` | S0288 phase counter 7/7; Phase 06 and 07 rows flipped to Done; completion gate ticked [branch: DEBUG-v007] |
 | 2026-05-21 21:35:45 | `PLAN/S0288_nolegal-paddleocr-paddlelite-bundle/PHASE_06__translation-manager-integration.md` | `spec-dev` | S0288 phase 06 closed: standardDebug + noLegalDebug builds pass after TranslationManager OCR engine routing [branch: DEBUG-v007] |
@@ -13278,8 +13278,8 @@ Format: | datetime | file | target | description |
 | 2026-05-25 00:44:41 | `app_v2/src/main/res/layout/player_vr_launch_overlay_content.xml` | `player_vr_launch_overlay_content` | added player VR badge and inline prompt overlay [branch: DEBUG-v008] |
 | 2026-05-25 00:44:42 | `app_v2/src/main/res/layout/activity_player_unified.xml` | `activity_player_unified` | included the player VR launch overlay in portrait layout [branch: DEBUG-v008] |
 | 2026-05-25 00:44:42 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `activity_player_unified landscape` | included the player VR launch overlay in landscape layout [branch: DEBUG-v008] |
-| 2026-05-25 00:44:42 | `docs/FEATURES_RU.md` | `VR section` | documented the player VR launch entry in the RU feature mirror [branch: DEBUG-v008] |
-| 2026-05-25 00:44:42 | `docs/FEATURES_UK.md` | `VR section` | documented the player VR launch entry in the UK feature mirror [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `docs/FEATURES-ru.md` | `VR section` | documented the player VR launch entry in the RU feature mirror [branch: DEBUG-v008] |
+| 2026-05-25 00:44:42 | `docs/FEATURES-uk.md` | `VR section` | documented the player VR launch entry in the UK feature mirror [branch: DEBUG-v008] |
 | 2026-05-25 00:45:38 | `PLAN/S0292_vr-content-launch-ui.md` | `S0292 spec` | marked S0292 implemented and recorded non-device-test validation results [branch: DEBUG-v008] |
 | 2026-05-25 00:45:38 | `PLAN/S0292_vr-content-launch-ui/INDEX.md` | `S0292 tactical index` | marked all S0292 phases done and recorded closure notes [branch: DEBUG-v008] |
 | 2026-05-25 22:38:12 | `PLAN/S0295_vr-generic-immerse-playback-contract/INDEX.md` | `S0295 index` | Advance activity contract phase status [branch: DEBUG-v008] |
@@ -13380,8 +13380,8 @@ Format: | datetime | file | target | description |
 | 2026-05-27 00:44:50 | `PLAN/S0298_vr-companion-apk-badge/PHASE_03__nolegal-badge-ui.md` | `S0298 tactical tracking` | Mark Phase 03 noLegal badge UI complete [branch: DEBUG-v008] |
 | 2026-05-27 00:44:51 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Update Phase 03 status and counters [branch: DEBUG-v008] |
 | 2026-05-27 00:46:21 | `docs/FEATURES_noLegal.md` | `S0298 noLegal feature inventory` | Document VR companion APK badge in noLegal inventory [branch: DEBUG-v008] |
-| 2026-05-27 00:46:22 | `docs/FEATURES_noLegal_RU.md` | `S0298 noLegal feature inventory RU` | Document VR companion APK badge in Russian noLegal inventory [branch: DEBUG-v008] |
-| 2026-05-27 00:46:23 | `docs/FEATURES_noLegal_UK.md` | `S0298 noLegal feature inventory UK` | Document VR companion APK badge in Ukrainian noLegal inventory [branch: DEBUG-v008] |
+| 2026-05-27 00:46:22 | `docs/FEATURES_noLegal-ru.md` | `S0298 noLegal feature inventory RU` | Document VR companion APK badge in Russian noLegal inventory [branch: DEBUG-v008] |
+| 2026-05-27 00:46:23 | `docs/FEATURES_noLegal-uk.md` | `S0298 noLegal feature inventory UK` | Document VR companion APK badge in Ukrainian noLegal inventory [branch: DEBUG-v008] |
 | 2026-05-27 00:48:23 | `PLAN/S0298_vr-companion-apk-badge.md` | `S0298 strategic spec` | Mark S0298 implemented [branch: DEBUG-v008] |
 | 2026-05-27 00:48:24 | `PLAN/S0298_vr-companion-apk-badge/PHASE_04__docs-catalog-cleanup.md` | `S0298 tactical tracking` | Mark Phase 04 docs and cleanup complete [branch: DEBUG-v008] |
 | 2026-05-27 00:48:24 | `PLAN/S0298_vr-companion-apk-badge/INDEX.md` | `S0298 tactical index` | Mark S0298 tactical plan done [branch: DEBUG-v008] |
@@ -13466,8 +13466,8 @@ Format: | datetime | file | target | description |
 | 2026-05-29 00:20:15 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Complete Phase 02 for S0299 [branch: DEBUG-v008] |
 | 2026-05-29 00:20:15 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_02__external-handoff.md` | `spec-dev` | Phase 02 done for S0299 [branch: DEBUG-v008] |
 | 2026-05-29 00:21:10 | `docs/FEATURES.md` | `features` | Document Office handoff feature [branch: DEBUG-v008] |
-| 2026-05-29 00:21:10 | `docs/FEATURES_RU.md` | `features` | Document Office handoff feature RU [branch: DEBUG-v008] |
-| 2026-05-29 00:21:10 | `docs/FEATURES_UK.md` | `features` | Document Office handoff feature UK [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `docs/FEATURES-ru.md` | `features` | Document Office handoff feature RU [branch: DEBUG-v008] |
+| 2026-05-29 00:21:10 | `docs/FEATURES-uk.md` | `features` | Document Office handoff feature UK [branch: DEBUG-v008] |
 | 2026-05-29 00:21:10 | `PLAN/S0299_office-document-viewing-legal-routing/INDEX.md` | `spec-dev` | Start Phase 03 for S0299 [branch: DEBUG-v008] |
 | 2026-05-29 00:21:10 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Complete Step 03.1 for S0299 [branch: DEBUG-v008] |
 | 2026-05-29 00:22:31 | `PLAN/S0299_office-document-viewing-legal-routing/PHASE_03__docs-catalog-cleanup.md` | `spec-dev` | Complete Step 03.2 for S0299 [branch: DEBUG-v008] |
@@ -13570,8 +13570,8 @@ Format: | datetime | file | target | description |
 | 2026-05-30 01:54:08 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/PHASE_06__lifecycle-round10-exit-and-hud-rebind.md` | `spec-all` | S0291 Phase 06 tactical: HUD re-bind (done) + exit-handshake/passthrough (deferred) [branch: DEBUG-v008] |
 | 2026-05-30 01:54:08 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2/INDEX.md` | `spec-all` | S0291 tactical INDEX reopened to In Progress 5/6 for round 10 [branch: DEBUG-v008] |
 | 2026-05-30 01:57:58 | `docs/FEATURES.md` | `S0296 features` | Align VR cinema video feature bullet [branch: DEBUG-v008] |
-| 2026-05-30 01:57:59 | `docs/FEATURES_RU.md` | `S0296 features` | Align Russian VR cinema video feature bullet [branch: DEBUG-v008] |
-| 2026-05-30 01:58:01 | `docs/FEATURES_UK.md` | `S0296 features` | Align Ukrainian VR cinema video feature bullet [branch: DEBUG-v008] |
+| 2026-05-30 01:57:59 | `docs/FEATURES-ru.md` | `S0296 features` | Align Russian VR cinema video feature bullet [branch: DEBUG-v008] |
+| 2026-05-30 01:58:01 | `docs/FEATURES-uk.md` | `S0296 features` | Align Ukrainian VR cinema video feature bullet [branch: DEBUG-v008] |
 | 2026-05-30 01:59:51 | `PLAN/S0291_vr_diagnostic_stereo_and_lifecycle_round2.md` | `spec-all` | S0291: record owner diagnostic-first decision for DEFECT A (no successor ticket until Quest 3 confirms passthrough symptom) [branch: DEBUG-v008] |
 | 2026-05-30 02:04:45 | `PLAN/S0296_vr-immerse-video-playback/INDEX.md` | `S0296 phase 05` | Close S0296 tactical phase 05 and add device handoff [branch: DEBUG-v008] |
 | 2026-05-30 02:04:45 | `PLAN/S0296_vr-immerse-video-playback/PHASE_05__docs-catalog-cleanup.md` | `S0296 phase 05` | Mark docs catalog cleanup phase complete [branch: DEBUG-v008] |
@@ -13618,8 +13618,8 @@ Format: | datetime | file | target | description |
 | 2026-05-30 02:28:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerViewerFactory.kt` | `S0301 Phase 05` | Route render-failure callback to fallback dialog [branch: DEBUG-v008] |
 | 2026-05-30 02:28:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301 Phase 05` | Standalone Office fallback dialog with cancel-finish [branch: DEBUG-v008] |
 | 2026-05-30 02:32:52 | `docs/FEATURES_noLegal.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (EN) [branch: DEBUG-v008] |
-| 2026-05-30 02:32:57 | `docs/FEATURES_noLegal_RU.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (RU) [branch: DEBUG-v008] |
-| 2026-05-30 02:33:01 | `docs/FEATURES_noLegal_UK.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (UK) [branch: DEBUG-v008] |
+| 2026-05-30 02:32:57 | `docs/FEATURES_noLegal-ru.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (RU) [branch: DEBUG-v008] |
+| 2026-05-30 02:33:01 | `docs/FEATURES_noLegal-uk.md` | `S0301 Phase 06` | Add embedded Office viewer feature entry (UK) [branch: DEBUG-v008] |
 | 2026-05-30 02:42:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
 | 2026-05-30 02:43:36 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0301` | Keep standalone Office fallback cancel in viewer [branch: DEBUG-v008] |
 | 2026-05-30 02:44:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0301` | Fix Office fallback dialog routing in player [branch: DEBUG-v008] |
@@ -13662,15 +13662,15 @@ Format: | datetime | file | target | description |
 | 2026-05-30 13:50:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseBinaryFileHandler.kt` | `BrowseBinaryFileHandler.kt` | Verify BrowseBinaryFileHandler handles unsupported binary files menu [branch: DEBUG-v008] |
 | 2026-05-30 13:51:31 | `PLAN/S0304_office-document-settings-parity.md` | `spec` | Add strategic spec S0304 for Office document settings parity [branch: DEBUG-v008] |
 | 2026-05-30 13:56:28 | `docs/FAQ.md` | `FAQ.md` | Add File Manager Mode section [branch: DEBUG-v008] |
-| 2026-05-30 13:56:29 | `docs/FAQ_RU.md` | `FAQ_RU.md` | Add File Manager Mode section (RU) [branch: DEBUG-v008] |
-| 2026-05-30 13:56:31 | `docs/FAQ_UK.md` | `FAQ_UK.md` | Add File Manager Mode section (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:29 | `docs/FAQ-ru.md` | `FAQ-ru.md` | Add File Manager Mode section (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:31 | `docs/FAQ-uk.md` | `FAQ-uk.md` | Add File Manager Mode section (UK) [branch: DEBUG-v008] |
 | 2026-05-30 13:56:33 | `docs/FEATURES.md` | `FEATURES.md` | Rename All Files to File Manager Mode [branch: DEBUG-v008] |
-| 2026-05-30 13:56:34 | `docs/FEATURES_RU.md` | `docs/FEATURES_RU.md` | Rename All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
-| 2026-05-30 13:56:36 | `docs/FEATURES_UK.md` | `docs/FEATURES_UK.md` | Rename All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:34 | `docs/FEATURES-ru.md` | `docs/FEATURES-ru.md` | Rename All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:36 | `docs/FEATURES-uk.md` | `docs/FEATURES-uk.md` | Rename All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
 | 2026-05-30 13:56:38 | `docs/README.md` | `docs/README.md` | Update All Files to File Manager Mode [branch: DEBUG-v008] |
 | 2026-05-30 13:56:39 | `README.md` | `README.md` | Update All Files to File Manager Mode in root [branch: DEBUG-v008] |
-| 2026-05-30 13:56:41 | `docs/README_RU.md` | `docs/README_RU.md` | Update All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
-| 2026-05-30 13:56:43 | `docs/README_UK.md` | `docs/README_UK.md` | Update All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:41 | `docs/README-ru.md` | `docs/README-ru.md` | Update All Files to File Manager Mode (RU) [branch: DEBUG-v008] |
+| 2026-05-30 13:56:43 | `docs/README-uk.md` | `docs/README-uk.md` | Update All Files to File Manager Mode (UK) [branch: DEBUG-v008] |
 | 2026-05-30 14:04:32 | `PLAN/S0305_mid-audio-playback-support.md` | `spec` | Add strategic spec S0305 for MIDI audio playback support [branch: DEBUG-v008] |
 | 2026-05-30 14:35:51 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Resolve S0305 MIDI playback research questions [branch: DEBUG-v008] |
 | 2026-05-30 14:41:24 | `PLAN/S0305_mid-audio-playback-support.md` | `spec-update` | Record S0305 owner gate decisions for MIDI playback scope and autonomy [branch: DEBUG-v008] |
@@ -13780,11 +13780,11 @@ Format: | datetime | file | target | description |
 | 2026-05-30 15:46:14 | `app_v2/build.gradle.kts` | `S0305 Phase 04 build validation` | Record auto-version update from Phase 04 debug build [branch: DEBUG-v008] |
 | 2026-05-30 15:46:14 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04.4` | Record blocked validation results for S0305 Phase 04 [branch: DEBUG-v008] |
 | 2026-05-30 15:48:51 | `docs/FEATURES.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (EN) [branch: DEBUG-v008] |
-| 2026-05-30 15:48:51 | `docs/FEATURES_RU.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (RU) [branch: DEBUG-v008] |
-| 2026-05-30 15:48:51 | `docs/FEATURES_UK.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (UK) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES-ru.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (RU) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES-uk.md` | `spec-dev S0303` | Add Send to Telegram feature bullet (UK) [branch: DEBUG-v008] |
 | 2026-05-30 15:48:51 | `docs/FEATURES_noLegal.md` | `spec-dev S0303` | Add t.me public-post download entry (EN, noLegal) [branch: DEBUG-v008] |
-| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_RU.md` | `spec-dev S0303` | Add t.me public-post download entry (RU, noLegal) [branch: DEBUG-v008] |
-| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal_UK.md` | `spec-dev S0303` | Add t.me public-post download entry (UK, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal-ru.md` | `spec-dev S0303` | Add t.me public-post download entry (RU, noLegal) [branch: DEBUG-v008] |
+| 2026-05-30 15:48:51 | `docs/FEATURES_noLegal-uk.md` | `spec-dev S0303` | Add t.me public-post download entry (UK, noLegal) [branch: DEBUG-v008] |
 | 2026-05-30 15:52:15 | `PLAN/S0303_telegram-integration.md` | `spec-dev` | All phases done (03 skipped); status -> BlockNeedUserTest [branch: DEBUG-v008] |
 | 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (player send flow) [branch: DEBUG-v008] |
 | 2026-05-30 15:52:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseShareOperationsHelper.kt` | `spec-dev S0303` | Insert BlockNeedUserTest debug tag (browse send flow) [branch: DEBUG-v008] |
@@ -13792,8 +13792,8 @@ Format: | datetime | file | target | description |
 | 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/PHASE_04__tests-validation.md` | `S0305 Phase 04` | Close S0305 Phase 04 with focused validation [branch: DEBUG-v008] |
 | 2026-05-30 17:32:10 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Mark S0305 Phase 04 done [branch: DEBUG-v008] |
 | 2026-05-30 17:33:04 | `docs/FEATURES.md` | `FEATURES Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
-| 2026-05-30 17:33:05 | `docs/FEATURES_RU.md` | `FEATURES_RU Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
-| 2026-05-30 17:33:05 | `docs/FEATURES_UK.md` | `FEATURES_UK Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES-ru.md` | `FEATURES_RU Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
+| 2026-05-30 17:33:05 | `docs/FEATURES-uk.md` | `FEATURES_UK Audio Player` | Document MID MIDI audio playback support [branch: DEBUG-v008] |
 | 2026-05-30 17:33:05 | `PLAN/S0305_mid-audio-playback-support/PHASE_05__docs-catalog-cleanup.md` | `S0305 Phase 05` | Mark S0305 Phase 05.1 done [branch: DEBUG-v008] |
 | 2026-05-30 17:33:06 | `PLAN/S0305_mid-audio-playback-support/INDEX.md` | `S0305 tactical index` | Update S0305 Phase 05 step counter after 05.1 [branch: DEBUG-v008] |
 | 2026-05-30 17:34:21 | `dev/CATALOG/app_v2.jsonl` | `app_v2 catalog` | Refresh app_v2 catalog after S0305 Kotlin changes [branch: DEBUG-v008] |
@@ -13918,7 +13918,7 @@ Format: | datetime | file | target | description |
 | 2026-05-30 21:48:58 | `PLAN/S0308_password-protected-files.md` | `spec/S0308` | Add strategic spec S0308 for password-protected files [branch: DEBUG-v009] |
 | 2026-05-30 21:51:36 | `index.html` | `GitHub Pages site` | Update landing What's New cards (EN/RU/UK) and sitemap lastmod for v2.60.5302.057 release - standard features only [branch: DEBUG-v009] |
 | 2026-05-30 21:57:42 | `index.html` | `GitHub Pages site` | Fix image lib Coil->Glide, add Office/Telegram/MIDI/File Manager Mode to Key Features, bump section count and schema dateModified (EN/RU/UK) [branch: DEBUG-v009] |
-| 2026-05-30 22:08:54 | `docs/FEATURES_RU.md` | `docs/FEATURES*.md` | consolidate public features, classify standard vs VR, hide noLegal [branch: DEBUG-v009] |
+| 2026-05-30 22:08:54 | `docs/FEATURES-ru.md` | `docs/FEATURES*.md` | consolidate public features, classify standard vs VR, hide noLegal [branch: DEBUG-v009] |
 | 2026-05-30 22:08:55 | `index-ru.html` | `index*.html` | redesign landing pages with dark ambient, responsive grids, and interactive feature explorer [branch: DEBUG-v009] |
 | 2026-05-30 22:08:55 | `styles.css` | `styles.css` | add dark ambient theme colors, variables, animations, and glassmorphic card styles [branch: DEBUG-v009] |
 | 2026-05-30 22:13:36 | `PLAN/S0308_password-protected-files.md` | `spec-update/S0308` | Refine S0308 owner inputs for password-protected files [branch: DEBUG-v009] |
@@ -13979,8 +13979,8 @@ Format: | datetime | file | target | description |
 | 2026-05-30 23:57:35 | `PLAN/S0308_password-protected-files/INDEX.md` | `spec-dev/S0308/phase-03` | Mark S0308 phase 03 done [branch: DEBUG-v009] |
 | 2026-05-30 23:57:35 | `PLAN/S0308_password-protected-files/PHASE_03__document-fallbacks.md` | `spec-dev/S0308/phase-03` | Record S0308 phase 03 validation evidence [branch: DEBUG-v009] |
 | 2026-05-30 23:58:27 | `docs/FEATURES.md` | `doc-update/S0308` | Document protected archive and document fallback support [branch: DEBUG-v009] |
-| 2026-05-30 23:58:27 | `docs/FEATURES_RU.md` | `doc-update/S0308` | Document Russian protected archive and document fallback support [branch: DEBUG-v009] |
-| 2026-05-30 23:58:27 | `docs/FEATURES_UK.md` | `doc-update/S0308` | Document Ukrainian protected archive and document fallback support [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/FEATURES-ru.md` | `doc-update/S0308` | Document Russian protected archive and document fallback support [branch: DEBUG-v009] |
+| 2026-05-30 23:58:27 | `docs/FEATURES-uk.md` | `doc-update/S0308` | Document Ukrainian protected archive and document fallback support [branch: DEBUG-v009] |
 | 2026-05-30 23:58:27 | `docs/TECH_STACK.md` | `doc-update/S0308` | Document zip4j dependency [branch: DEBUG-v009] |
 | 2026-05-30 23:58:28 | `dev/TECH_REQUIREMENTS.md` | `doc-update/S0308` | Add zip4j to dependency inventory [branch: DEBUG-v009] |
 | 2026-05-31 00:01:07 | `PLAN/S0308_password-protected-files.md` | `spec-dev/S0308` | Mark S0308 implemented [branch: DEBUG-v009] |
@@ -14218,11 +14218,11 @@ Format: | datetime | file | target | description |
 | 2026-05-31 12:44:38 | `PLAN/S0316_embedded-mini-game/PHASE_06__launcher-widget.md` | `S0316 Phase 06` | Mark launcher widget phase complete [branch: DEBUG-v010] |
 | 2026-05-31 12:44:38 | `PLAN/S0316_embedded-mini-game/INDEX.md` | `S0316 Phase 06` | Mark Phase 06 complete [branch: DEBUG-v010] |
 | 2026-05-31 12:45:31 | `docs/FEATURES.md` | `S0316 Phase 07` | Document embedded mini-game feature [branch: DEBUG-v010] |
-| 2026-05-31 12:45:31 | `docs/FEATURES_RU.md` | `S0316 Phase 07` | Document embedded mini-game feature in Russian [branch: DEBUG-v010] |
-| 2026-05-31 12:45:31 | `docs/FEATURES_UK.md` | `S0316 Phase 07` | Document embedded mini-game feature in Ukrainian [branch: DEBUG-v010] |
+| 2026-05-31 12:45:31 | `docs/FEATURES-ru.md` | `S0316 Phase 07` | Document embedded mini-game feature in Russian [branch: DEBUG-v010] |
+| 2026-05-31 12:45:31 | `docs/FEATURES-uk.md` | `S0316 Phase 07` | Document embedded mini-game feature in Ukrainian [branch: DEBUG-v010] |
 | 2026-05-31 12:47:44 | `docs/FEATURES.md` | `S0317` | Document embedded calculator feature in English feature catalog. [branch: DEBUG-v010] |
-| 2026-05-31 12:47:45 | `docs/FEATURES_RU.md` | `S0317` | Document embedded calculator feature in Russian feature catalog. [branch: DEBUG-v010] |
-| 2026-05-31 12:47:45 | `docs/FEATURES_UK.md` | `S0317` | Document embedded calculator feature in Ukrainian feature catalog. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:45 | `docs/FEATURES-ru.md` | `S0317` | Document embedded calculator feature in Russian feature catalog. [branch: DEBUG-v010] |
+| 2026-05-31 12:47:45 | `docs/FEATURES-uk.md` | `S0317` | Document embedded calculator feature in Ukrainian feature catalog. [branch: DEBUG-v010] |
 | 2026-05-31 12:47:45 | `PLAN/S0317_embedded-calculator/INDEX.md` | `S0317` | Start S0317 docs and catalog cleanup phase. [branch: DEBUG-v010] |
 | 2026-05-31 12:47:46 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `S0317` | Start S0317 docs and catalog cleanup phase step. [branch: DEBUG-v010] |
 | 2026-05-31 12:48:22 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/game/GameBoardGeneratorTest.kt` | `S0316 Phase 07` | Fix unreachable-board test fixture [branch: DEBUG-v010] |
@@ -14240,8 +14240,8 @@ Format: | datetime | file | target | description |
 | 2026-05-31 12:54:11 | `PLAN/S0317_embedded-calculator/INDEX.md` | `S0317` | Close S0317 tactical index as BlockNeedUserTest. [branch: DEBUG-v010] |
 | 2026-05-31 12:54:11 | `PLAN/S0317_embedded-calculator/PHASE_02__docs-catalog-cleanup.md` | `S0317` | Close S0317 docs catalog cleanup phase with final validation results. [branch: DEBUG-v010] |
 | 2026-05-31 13:12:27 | `docs/FEATURES.md` | `S0316 check/fix` | Align embedded mini-game flavor label with implemented scope [branch: DEBUG-v010] |
-| 2026-05-31 13:12:27 | `docs/FEATURES_RU.md` | `S0316 check/fix` | Align embedded mini-game Russian flavor label with implemented scope [branch: DEBUG-v010] |
-| 2026-05-31 13:12:27 | `docs/FEATURES_UK.md` | `S0316 check/fix` | Align embedded mini-game Ukrainian flavor label with implemented scope [branch: DEBUG-v010] |
+| 2026-05-31 13:12:27 | `docs/FEATURES-ru.md` | `S0316 check/fix` | Align embedded mini-game Russian flavor label with implemented scope [branch: DEBUG-v010] |
+| 2026-05-31 13:12:27 | `docs/FEATURES-uk.md` | `S0316 check/fix` | Align embedded mini-game Ukrainian flavor label with implemented scope [branch: DEBUG-v010] |
 | 2026-05-31 13:14:13 | `PLAN/S0316_embedded-mini-game.md` | `spec-check` | Audit S0316 -> Verified; PASS/WARN/FAIL 18/0/0 [branch: DEBUG-v010] |
 | 2026-05-31 13:15:06 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-test-device` | Device run on emulator-5554 -> PASS/FAIL/SKIPPED 13/0/0; S0318 D-tag exercised [branch: DEBUG-v010] |
 | 2026-05-31 13:16:44 | `PLAN/S0318_playback-other-functionality-group.md` | `spec-check` | Audit S0318 -> Verified; PASS/WARN/FAIL 14/0/0 [branch: DEBUG-v010] |
@@ -14306,8 +14306,8 @@ Format: | datetime | file | target | description |
 | 2026-05-31 21:17:21 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/game/GameViewModelTest.kt` | `game-viewmodel-tests` | Make move persistence test accept random starts [branch: DEBUG-v010] |
 | 2026-05-31 21:18:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngine.kt` | `calculator-engine` | Add calculator history log and context-aware percent [branch: DEBUG-v010] |
 | 2026-05-31 21:18:08 | `docs/FEATURES.md` | `features-docs-en` | Document mini-game rules legend screen [branch: DEBUG-v010] |
-| 2026-05-31 21:18:08 | `docs/FEATURES_RU.md` | `features-docs-ru` | Document mini-game rules legend screen RU [branch: DEBUG-v010] |
-| 2026-05-31 21:18:08 | `docs/FEATURES_UK.md` | `features-docs-uk` | Document mini-game rules legend screen UK [branch: DEBUG-v010] |
+| 2026-05-31 21:18:08 | `docs/FEATURES-ru.md` | `features-docs-ru` | Document mini-game rules legend screen RU [branch: DEBUG-v010] |
+| 2026-05-31 21:18:08 | `docs/FEATURES-uk.md` | `features-docs-uk` | Document mini-game rules legend screen UK [branch: DEBUG-v010] |
 | 2026-05-31 21:18:53 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorHistoryFileWriter.kt` | `calculator-history-downloads` | Add calculator history Downloads writer [branch: DEBUG-v010] |
 | 2026-05-31 21:19:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `calculator-menu` | Add share result save history and clear history menu actions [branch: DEBUG-v010] |
 | 2026-05-31 21:20:30 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorEngineTest.kt` | `calculator-tests` | Cover calculator history and percent behavior [branch: DEBUG-v010] |
@@ -14326,8 +14326,8 @@ Format: | datetime | file | target | description |
 | 2026-05-31 21:22:41 | `PLAN/S0317_embedded-calculator.md` | `spec` | Document S0317 calculator history and share feedback [branch: DEBUG-v010] |
 | 2026-05-31 21:22:41 | `PLAN/S0317_embedded-calculator/INDEX.md` | `spec-index` | Record S0317 calculator second feedback patch [branch: DEBUG-v010] |
 | 2026-05-31 21:23:33 | `docs/FEATURES.md` | `features-docs` | Document calculator result sharing and history actions [branch: DEBUG-v010] |
-| 2026-05-31 21:23:33 | `docs/FEATURES_RU.md` | `features-docs-ru` | Document Russian calculator result sharing and history actions [branch: DEBUG-v010] |
-| 2026-05-31 21:23:34 | `docs/FEATURES_UK.md` | `features-docs-uk` | Document Ukrainian calculator result sharing and history actions [branch: DEBUG-v010] |
+| 2026-05-31 21:23:33 | `docs/FEATURES-ru.md` | `features-docs-ru` | Document Russian calculator result sharing and history actions [branch: DEBUG-v010] |
+| 2026-05-31 21:23:34 | `docs/FEATURES-uk.md` | `features-docs-uk` | Document Ukrainian calculator result sharing and history actions [branch: DEBUG-v010] |
 | 2026-05-31 21:23:34 | `PLAN/spec-catalog.jsonl` | `spec-catalog` | Refresh S0317 BlockNeedUserTest catalog record [branch: DEBUG-v010] |
 | 2026-05-31 21:25:37 | `app_v2/src/main/res/drawable/bg_game_ball_exit.xml` | `game-help-colors` | Make exit legend marker square [branch: DEBUG-v010] |
 | 2026-05-31 21:25:37 | `app_v2/src/main/res/drawable/bg_game_ball_wall.xml` | `game-help-colors` | Make wall legend marker square [branch: DEBUG-v010] |
@@ -14394,8 +14394,8 @@ Format: | datetime | file | target | description |
 | 2026-05-31 23:37:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0321 step 03.3` | No-op calculator launch for standalone text viewer [branch: DEBUG-v010] |
 | 2026-05-31 23:38:31 | `PLAN/S0321_text-editor-calculator-integration/PHASE_03__player-round-trip.md` | `S0321 phase 03` | Record player calculator round-trip implementation [branch: DEBUG-v010] |
 | 2026-05-31 23:48:33 | `docs/FEATURES.md` | `S0321 docs` | Document text editor calculator round-trip in English feature inventory [branch: DEBUG-v010] |
-| 2026-05-31 23:48:33 | `docs/FEATURES_RU.md` | `S0321 docs` | Document text editor calculator round-trip in Russian feature inventory [branch: DEBUG-v010] |
-| 2026-05-31 23:48:34 | `docs/FEATURES_UK.md` | `S0321 docs` | Document text editor calculator round-trip in Ukrainian feature inventory [branch: DEBUG-v010] |
+| 2026-05-31 23:48:33 | `docs/FEATURES-ru.md` | `S0321 docs` | Document text editor calculator round-trip in Russian feature inventory [branch: DEBUG-v010] |
+| 2026-05-31 23:48:34 | `docs/FEATURES-uk.md` | `S0321 docs` | Document text editor calculator round-trip in Ukrainian feature inventory [branch: DEBUG-v010] |
 | 2026-05-31 23:48:34 | `PLAN/S0321_text-editor-calculator-integration.md` | `S0321 closure` | Mark strategic spec implemented [branch: DEBUG-v010] |
 | 2026-05-31 23:48:35 | `PLAN/S0321_text-editor-calculator-integration/INDEX.md` | `S0321 closure` | Mark tactical plan done [branch: DEBUG-v010] |
 | 2026-05-31 23:48:36 | `PLAN/S0321_text-editor-calculator-integration/PHASE_01__calculator-result-contract.md` | `S0321 closure` | Mark calculator result contract phase done [branch: DEBUG-v010] |
@@ -14432,8 +14432,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 00:48:50 | `fastlane/metadata/android/uk-UA/title.txt` | `fastlane title uk-UA` | Align Ukrainian Play metadata title with listing source [branch: DEBUG-v010] |
 | 2026-06-01 00:49:25 | `store_assets/icon_512.png` | `Play icon 512` | Add canonical Play Console 512 icon asset [branch: DEBUG-v010] |
 | 2026-06-01 00:58:24 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6010.057 [branch: DEBUG-v010] |
-| 2026-06-01 00:58:25 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
-| 2026-06-01 00:58:25 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW-ru.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
+| 2026-06-01 00:58:25 | `docs/WHATS_NEW-uk.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:58:26 | `README.md` | `README` | README current release block for v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 00:59:04 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.057 [branch: DEBUG-v010] |
 | 2026-06-01 01:12:38 | `scripts/release/gen_fastlane_changelog.ps1` | `fastlane changelog generator` | Fix release changelog extraction loop [branch: main] |
@@ -14441,8 +14441,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 01:15:07 | `fastlane/metadata/android/ru-RU/changelogs/260601005.txt` | `fastlane changelog ru-RU` | Generate Russian fastlane changelog for versionCode 260601005 [branch: main] |
 | 2026-06-01 01:15:08 | `fastlane/metadata/android/uk-UA/changelogs/260601005.txt` | `fastlane changelog uk-UA` | Generate Ukrainian fastlane changelog for versionCode 260601005 [branch: main] |
 | 2026-06-01 01:51:40 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.6010.151 [branch: main] |
-| 2026-06-01 01:51:41 | `docs/WHATS_NEW_RU.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.151 [branch: main] |
-| 2026-06-01 01:51:41 | `docs/WHATS_NEW_UK.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:51:41 | `docs/WHATS_NEW-ru.md` | `WHATS_NEW_RU` | Russian release notes for v2.60.6010.151 [branch: main] |
+| 2026-06-01 01:51:41 | `docs/WHATS_NEW-uk.md` | `WHATS_NEW_UK` | Ukrainian release notes for v2.60.6010.151 [branch: main] |
 | 2026-06-01 01:51:42 | `README.md` | `README` | README current release block for v2.60.6010.151 [branch: main] |
 | 2026-06-01 01:55:31 | `app_v2/build.gradle.kts` | `release version` | Bump release version to v2.60.6010.151 [branch: main] |
 | 2026-06-01 01:55:31 | `fastlane/metadata/android/en-US/changelogs/260601015.txt` | `fastlane changelog en-US` | Generate fastlane changelog for versionCode 260601015 [branch: main] |
@@ -14451,8 +14451,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 01:06:56 | `PLAN/S0320_camera-ocr-translate.md` | `spec-check` | Audit S0320 -> Partial; PASS/WARN/FAIL 9/3/0 [branch: DEBUG-v011] |
 | 2026-06-01 01:06:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt` | `spec-check` | Remove stale S0320 debug tag [branch: DEBUG-v011] |
 | 2026-06-01 01:10:23 | `docs/FEATURES.md` | `doc-update` | Add Photo OCR translation feature bullet (S0320) [branch: DEBUG-v011] |
-| 2026-06-01 01:10:23 | `docs/FEATURES_RU.md` | `doc-update` | Add Photo OCR translation feature bullet RU (S0320) [branch: DEBUG-v011] |
-| 2026-06-01 01:10:23 | `docs/FEATURES_UK.md` | `doc-update` | Add Photo OCR translation feature bullet UK (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `docs/FEATURES-ru.md` | `doc-update` | Add Photo OCR translation feature bullet RU (S0320) [branch: DEBUG-v011] |
+| 2026-06-01 01:10:23 | `docs/FEATURES-uk.md` | `doc-update` | Add Photo OCR translation feature bullet UK (S0320) [branch: DEBUG-v011] |
 | 2026-06-01 01:10:23 | `PLAN/S0320_camera-ocr-translate.md` | `spec-fix` | Annotate Last Audit (S0320) [branch: DEBUG-v011] |
 | 2026-06-01 01:18:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrStorageManager.kt` | `CameraOcrStorageManager` | Extract Camera-OCR filesystem IO (temp/gallery/txt export) from Activity (S0320) [branch: DEBUG-v011] |
 | 2026-06-01 01:18:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `CameraOcrFlowManager` | Extract Camera-OCR-Translate orchestration + flow state from Activity (S0320) [branch: DEBUG-v011] |
@@ -14480,8 +14480,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt` | `LyricsManager` | Provided settings repository for calculator availability in lyrics selection [branch: DEBUG-v011] |
 | 2026-06-01 12:33:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `CameraOcrTranslateActivity` | Added calculator and Google selection menu actions to OCR and translation results [branch: DEBUG-v011] |
 | 2026-06-01 12:33:00 | `docs/FEATURES.md` | `FEATURES` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
-| 2026-06-01 12:33:00 | `docs/FEATURES_RU.md` | `FEATURES_RU` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
-| 2026-06-01 12:33:00 | `docs/FEATURES_UK.md` | `FEATURES_UK` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `docs/FEATURES-ru.md` | `FEATURES_RU` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
+| 2026-06-01 12:33:00 | `docs/FEATURES-uk.md` | `FEATURES_UK` | Documented calculator launch from read-only text selection menus [branch: DEBUG-v011] |
 | 2026-06-01 12:34:25 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-update` | Refinement: selection entry gesture = long-press (EPUB-native), double-tap stays zoom; resolve open Q1, add ADR-3 [branch: DEBUG-v011] |
 | 2026-06-01 12:37:15 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/xr/DiagnosticXrActivity.kt` | `vr-diagnostic-playback` | Add detailed video player error logging and active immersive HUD failure warnings [branch: DEBUG-v011] |
 | 2026-06-01 12:38:21 | `PLAN/S0322_bugfix-vr-diagnostic-video-playback.md` | `spec-update` | Update status to BlockNeedUserTest and record implementation notes [branch: DEBUG-v011] |
@@ -14522,8 +14522,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 13:12:45 | `PLAN/S0254_settings-grid-to-interface/PHASE_04__repair-current-settings-ui.md` | `spec-dev` | Complete S0254 Step 04.3 [branch: DEBUG-v011] |
 | 2026-06-01 13:14:11 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `spec-all` | Split from S0323: noLegal Office unified selection menu (deferred Phase 03) [branch: DEBUG-v011] |
 | 2026-06-01 13:15:59 | `docs/FEATURES.md` | `spec-dev` | S0323 Phase04: document long-press text selection (PDF/EPUB/TXT) [branch: DEBUG-v011] |
-| 2026-06-01 13:15:59 | `docs/FEATURES_RU.md` | `spec-dev` | S0323 Phase04: RU mirror of text selection feature [branch: DEBUG-v011] |
-| 2026-06-01 13:15:59 | `docs/FEATURES_UK.md` | `spec-dev` | S0323 Phase04: UK mirror of text selection feature [branch: DEBUG-v011] |
+| 2026-06-01 13:15:59 | `docs/FEATURES-ru.md` | `spec-dev` | S0323 Phase04: RU mirror of text selection feature [branch: DEBUG-v011] |
+| 2026-06-01 13:15:59 | `docs/FEATURES-uk.md` | `spec-dev` | S0323 Phase04: UK mirror of text selection feature [branch: DEBUG-v011] |
 | 2026-06-01 13:19:50 | `PLAN/S0323_document-double-tap-text-selection.md` | `spec-dev` | S0323 all implementable phases done; status -> BlockNeedUserTest; debug tags inserted (3) [branch: DEBUG-v011] |
 | 2026-06-01 13:21:31 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0254 Phase 04.4` | Restore grid icon-size control in General Interface portrait layout [branch: DEBUG-v011] |
 | 2026-06-01 13:21:32 | `app_v2/src/main/res/layout-land/fragment_settings_general.xml` | `S0254 Phase 04.4` | Restore grid icon-size control in General Interface landscape layout [branch: DEBUG-v011] |
@@ -14561,8 +14561,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 14:26:21 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Complete S0324 phase 02 in index [branch: DEBUG-v011] |
 | 2026-06-01 14:26:21 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_02__nolegal-office-bridge.md` | `spec-dev` | Mark S0324 phase 02 done [branch: DEBUG-v011] |
 | 2026-06-01 14:27:17 | `docs/FEATURES_noLegal.md` | `S0324 Phase 03` | Document noLegal Office selection menu [branch: DEBUG-v011] |
-| 2026-06-01 14:27:17 | `docs/FEATURES_noLegal_RU.md` | `S0324 Phase 03` | Document noLegal Office selection menu RU [branch: DEBUG-v011] |
-| 2026-06-01 14:27:18 | `docs/FEATURES_noLegal_UK.md` | `S0324 Phase 03` | Document noLegal Office selection menu UK [branch: DEBUG-v011] |
+| 2026-06-01 14:27:17 | `docs/FEATURES_noLegal-ru.md` | `S0324 Phase 03` | Document noLegal Office selection menu RU [branch: DEBUG-v011] |
+| 2026-06-01 14:27:18 | `docs/FEATURES_noLegal-uk.md` | `S0324 Phase 03` | Document noLegal Office selection menu UK [branch: DEBUG-v011] |
 | 2026-06-01 14:27:18 | `PLAN/S0324_nolegal-office-unified-selection-menu/INDEX.md` | `spec-dev` | Start S0324 phase 03 in index [branch: DEBUG-v011] |
 | 2026-06-01 14:27:18 | `PLAN/S0324_nolegal-office-unified-selection-menu/PHASE_03__docs-catalog-validation.md` | `spec-dev` | Complete S0324 step 03.1 [branch: DEBUG-v011] |
 | 2026-06-01 14:32:25 | `PLAN/S0324_nolegal-office-unified-selection-menu.md` | `S0324` | Mark noLegal Office selection menu implementation complete [branch: DEBUG-v011] |
@@ -14602,8 +14602,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 15:10:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaLoaderManager.kt` | `spec-arc` | Remove stale Timber.d(S0252) debug verification tags on archive [branch: DEBUG-v011] |
 | 2026-06-01 15:10:25 | `app_v2/src/main/java/com/sza/fastmediasorter/data/network/datasource/SftpDataSource.kt` | `spec-arc` | Remove stale Timber.d(S0252) debug verification tag on archive [branch: DEBUG-v011] |
 | 2026-06-01 15:10:29 | `docs/FEATURES.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action [branch: DEBUG-v011] |
-| 2026-06-01 15:10:29 | `docs/FEATURES_RU.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (RU) [branch: DEBUG-v011] |
-| 2026-06-01 15:10:29 | `docs/FEATURES_UK.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (UK) [branch: DEBUG-v011] |
+| 2026-06-01 15:10:29 | `docs/FEATURES-ru.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (RU) [branch: DEBUG-v011] |
+| 2026-06-01 15:10:29 | `docs/FEATURES-uk.md` | `spec-dev S0325 phase-03` | Browse filter: note Office type + check-all-types reset action (UK) [branch: DEBUG-v011] |
 | 2026-06-01 15:11:35 | `PLAN/S0253_overflow-menus-default-on-fresh-install.md` | `spec-arc` | Archive S0253 (overflow-menus-default-on-fresh-install) -> temp/done/ [branch: DEBUG-v011] |
 | 2026-06-01 15:11:35 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt` | `spec-arc` | Remove stale Timber.d(S0253) debug verification tag on archive [branch: DEBUG-v011] |
 | 2026-06-01 15:11:40 | `PLAN/S0325_browse-filter-doc-types-reset.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest (S0325 probe tag in BrowseDialogHelper) [branch: DEBUG-v011] |
@@ -14650,8 +14650,8 @@ Format: | datetime | file | target | description |
 | 2026-06-01 20:19:43 | `app_v2/src/vr/res/layout/fragment_vr_settings_block.xml` | `spec-dev S0326 phase-05.2` | Add 3D/VR settings rows to VR block layout [branch: DEBUG-v011] |
 | 2026-06-01 20:19:43 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `spec-dev S0326 phase-05.3` | Bind 3D/VR settings controls + unified switch in VR block [branch: DEBUG-v011] |
 | 2026-06-01 20:24:29 | `docs/FEATURES.md` | `spec-dev S0326` | Add 3D/VR default settings feature (EN) [branch: DEBUG-v011] |
-| 2026-06-01 20:24:29 | `docs/FEATURES_RU.md` | `spec-dev S0326` | Add 3D/VR default settings feature (RU) [branch: DEBUG-v011] |
-| 2026-06-01 20:24:29 | `docs/FEATURES_UK.md` | `spec-dev S0326` | Add 3D/VR default settings feature (UK) [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `docs/FEATURES-ru.md` | `spec-dev S0326` | Add 3D/VR default settings feature (RU) [branch: DEBUG-v011] |
+| 2026-06-01 20:24:29 | `docs/FEATURES-uk.md` | `spec-dev S0326` | Add 3D/VR default settings feature (UK) [branch: DEBUG-v011] |
 | 2026-06-01 20:24:29 | `app_v2/src/vr/java/com/sza/fastmediasorter/ui/settings/vr/VrSettingsBlockFragment.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
 | 2026-06-01 20:24:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/VideoPlayerManager.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
 | 2026-06-01 20:24:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerStereoModeCoordinator.kt` | `spec-dev S0326` | Insert BlockNeedUserTest debug tag [branch: DEBUG-v011] |
@@ -14689,8 +14689,8 @@ Format: | datetime | file | target | description |
 | 2026-06-02 00:21:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsColorThemeHelper.kt` | `spec-dev` | S0328 phase-03.3: color theme settings spinner helper [branch: DEBUG-v011] |
 | 2026-06-02 00:22:54 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev` | S0328 phase-03.4: wire color theme helper into General settings [branch: DEBUG-v011] |
 | 2026-06-02 00:29:42 | `docs/FEATURES.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (EN) [branch: DEBUG-v011] |
-| 2026-06-02 00:29:42 | `docs/FEATURES_RU.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (RU) [branch: DEBUG-v011] |
-| 2026-06-02 00:29:42 | `docs/FEATURES_UK.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (UK) [branch: DEBUG-v011] |
+| 2026-06-02 00:29:42 | `docs/FEATURES-ru.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (RU) [branch: DEBUG-v011] |
+| 2026-06-02 00:29:42 | `docs/FEATURES-uk.md` | `spec-dev` | S0328 phase-04.1: color theme feature bullet (UK) [branch: DEBUG-v011] |
 | 2026-06-02 00:34:27 | `PLAN/S0328_color-theme-setting.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
 | 2026-06-02 00:34:27 | `app_v2/src/main/java/com/sza/fastmediasorter/core/theme/ColorThemePrefs.kt` | `spec-dev` | S0328: insert BlockNeedUserTest debug tag (startup apply) [branch: DEBUG-v011] |
 | 2026-06-02 00:34:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsColorThemeHelper.kt` | `spec-dev` | S0328: insert BlockNeedUserTest debug tag (settings change) [branch: DEBUG-v011] |
@@ -14720,8 +14720,8 @@ Format: | datetime | file | target | description |
 | 2026-06-02 02:19:03 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/RealDeviceProfileRepository.kt` | `spec-fix` | Remove ticket id from persistent device profile migration log [branch: DEBUG-v011] |
 | 2026-06-02 02:21:52 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Audit S0327 implementation after mechanical fixes [branch: DEBUG-v011] |
 | 2026-06-02 02:25:14 | `docs/FEATURES.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate [branch: DEBUG-v011] |
-| 2026-06-02 02:25:24 | `docs/FEATURES_RU.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Russian) [branch: DEBUG-v011] |
-| 2026-06-02 02:25:31 | `docs/FEATURES_UK.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 02:25:24 | `docs/FEATURES-ru.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 02:25:31 | `docs/FEATURES-uk.md` | `spec-check` | Added device profile first-run feature entry (Section 0) per strategic §8 mandate (Ukrainian) [branch: DEBUG-v011] |
 | 2026-06-02 02:25:39 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `spec-check` | Marked Completion Gate items done: FEATURES updated, preset matrix deferred to future task [branch: DEBUG-v011] |
 | 2026-06-02 02:27:45 | `PLAN/S0327_device-profile-onboarding.md` | `spec-check` | Final audit: Verified. FAILs fixed (FEATURES updated, blocker deferred). Build verified, 6 core implementation files, catalog regenerated, manual device testing pending. [branch: DEBUG-v011] |
 | 2026-06-02 03:15:41 | `app_v2/proguard-nolegal.pro` | `noLegal R8 release` | Add noLegal-only proguard -dontwarn rules for NewPipeExtractor optional deps (Rhino java.beans.*, jsoup com.google.re2j.*); wire via noLegal proguardFiles. Fixes minifyNoLegalReleaseWithR8 missing-class failure. [branch: DEBUG-v011] |
@@ -14751,8 +14751,8 @@ Format: | datetime | file | target | description |
 | 2026-06-02 15:28:31 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | S0329 P03: Function submenu strings (uk) [branch: DEBUG-v011] |
 | 2026-06-02 15:28:31 | `app_v2/src/main/res/layout/activity_calculator.xml` | `spec-dev` | S0329 P04: portrait buttons pinned to bottom, history fills top [branch: DEBUG-v011] |
 | 2026-06-02 15:33:44 | `docs/FEATURES.md` | `spec-dev` | S0329 P07: calculator persistent history + scientific functions + expression eval (en) [branch: DEBUG-v011] |
-| 2026-06-02 15:33:44 | `docs/FEATURES_RU.md` | `spec-dev` | S0329 P07: calculator feature (ru) [branch: DEBUG-v011] |
-| 2026-06-02 15:33:44 | `docs/FEATURES_UK.md` | `spec-dev` | S0329 P07: calculator feature (uk) [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `docs/FEATURES-ru.md` | `spec-dev` | S0329 P07: calculator feature (ru) [branch: DEBUG-v011] |
+| 2026-06-02 15:33:44 | `docs/FEATURES-uk.md` | `spec-dev` | S0329 P07: calculator feature (uk) [branch: DEBUG-v011] |
 | 2026-06-02 15:33:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorInputManager.kt` | `spec-dev` | S0329: defer selection eval until history load; BlockNeedUserTest debug tags [branch: DEBUG-v011] |
 | 2026-06-02 15:35:29 | `PLAN/S0330_player-control-menu-redesign.md` | `spec` | Add strategic spec S0330 for player control menu redesign [branch: DEBUG-v011] |
 | 2026-06-02 15:39:34 | `PLAN/S0330_player-control-menu-redesign.md` | `spec-update` | Approve S0330 owner inputs for implementation [branch: DEBUG-v011] |
@@ -14838,11 +14838,11 @@ Format: | datetime | file | target | description |
 | 2026-06-02 17:23:10 | `PLAN/S0327_device-profile-onboarding.md` | `spec-readiness` | Move to BlockNeedUserTest; add device test plan and readiness summary [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `PLAN/S0327_device-profile-onboarding/INDEX.md` | `INDEX` | Update status to BlockNeedUserTest; refresh remaining-for-verified block [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `docs/QUICK_START.md` | `QUICK_START` | Add first-launch device profile picker section [branch: DEBUG-v011] |
-| 2026-06-02 17:23:11 | `docs/QUICK_START_RU.md` | `QUICK_START_RU` | Add first-launch device profile picker section (Russian) [branch: DEBUG-v011] |
-| 2026-06-02 17:23:11 | `docs/QUICK_START_UK.md` | `QUICK_START_UK` | Add first-launch device profile picker section (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/QUICK_START-ru.md` | `QUICK_START_RU` | Add first-launch device profile picker section (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/QUICK_START-uk.md` | `QUICK_START_UK` | Add first-launch device profile picker section (Ukrainian) [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `docs/README.md` | `README` | Mention first-launch device profile picker with link to quick start [branch: DEBUG-v011] |
-| 2026-06-02 17:23:11 | `docs/README_RU.md` | `README_RU` | Mention first-launch device profile picker (Russian) [branch: DEBUG-v011] |
-| 2026-06-02 17:23:11 | `docs/README_UK.md` | `README_UK` | Mention first-launch device profile picker (Ukrainian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/README-ru.md` | `README_RU` | Mention first-launch device profile picker (Russian) [branch: DEBUG-v011] |
+| 2026-06-02 17:23:11 | `docs/README-uk.md` | `README_UK` | Mention first-launch device profile picker (Ukrainian) [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `docs/howto/index.md` | `howto-index` | Note device profile picker pre-tunes scenarios [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `docs/howto/index-ru.md` | `howto-index-ru` | Note device profile picker pre-tunes scenarios (Russian) [branch: DEBUG-v011] |
 | 2026-06-02 17:23:11 | `docs/howto/index-uk.md` | `howto-index-uk` | Note device profile picker pre-tunes scenarios (Ukrainian) [branch: DEBUG-v011] |
@@ -14928,8 +14928,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 00:56:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationManager.kt` | `app_v2` | Expand ML Kit language mapping through shared catalog [branch: DEBUG-v011] |
 | 2026-06-03 00:57:48 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalogTest.kt` | `app_v2` | Add Czech ML Kit mapping regression test [branch: DEBUG-v011] |
 | 2026-06-03 01:03:05 | `docs/FEATURES.md` | `docs` | Document expanded searchable translation language picker [branch: DEBUG-v011] |
-| 2026-06-03 01:03:06 | `docs/FEATURES_RU.md` | `docs` | Document expanded searchable translation language picker in Russian [branch: DEBUG-v011] |
-| 2026-06-03 01:03:07 | `docs/FEATURES_UK.md` | `docs` | Document expanded searchable translation language picker in Ukrainian [branch: DEBUG-v011] |
+| 2026-06-03 01:03:06 | `docs/FEATURES-ru.md` | `docs` | Document expanded searchable translation language picker in Russian [branch: DEBUG-v011] |
+| 2026-06-03 01:03:07 | `docs/FEATURES-uk.md` | `docs` | Document expanded searchable translation language picker in Ukrainian [branch: DEBUG-v011] |
 | 2026-06-03 01:05:35 | `PLAN/S0333_bugfix-mouse-primary-click-dispatch.md` | `spec-test-device` | Device run on emulator-5554 (standardDebug) -> PASS/FAIL/SKIPPED 4/0/1; S0333 probe fired once, no crash; Welcome card refresh + S0327 picker confirmed [branch: DEBUG-v011] |
 | 2026-06-03 01:07:49 | `PLAN/S0332_max-translation-ocr-languages.md` | `S0332` | Mark S0332 implemented [branch: DEBUG-v011] |
 | 2026-06-03 01:07:50 | `PLAN/S0332_max-translation-ocr-languages/INDEX.md` | `S0332` | Update S0332 tactical index completion [branch: DEBUG-v011] |
@@ -14945,8 +14945,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 01:21:38 | `app_v2/src/main/res/values-ru/strings.xml` | `language_capability_*` | Add Russian language capability labels [branch: DEBUG-v011] |
 | 2026-06-03 01:21:38 | `app_v2/src/main/res/values-uk/strings.xml` | `language_capability_*` | Add Ukrainian language capability labels [branch: DEBUG-v011] |
 | 2026-06-03 01:21:38 | `docs/FEATURES.md` | `S0332 features` | Document language picker capability labels [branch: DEBUG-v011] |
-| 2026-06-03 01:21:38 | `docs/FEATURES_RU.md` | `S0332 features RU` | Document language picker capability labels in Russian [branch: DEBUG-v011] |
-| 2026-06-03 01:21:38 | `docs/FEATURES_UK.md` | `S0332 features UK` | Document language picker capability labels in Ukrainian [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `docs/FEATURES-ru.md` | `S0332 features RU` | Document language picker capability labels in Russian [branch: DEBUG-v011] |
+| 2026-06-03 01:21:38 | `docs/FEATURES-uk.md` | `S0332 features UK` | Document language picker capability labels in Ukrainian [branch: DEBUG-v011] |
 | 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_01__foundations.md` | `S0332 phase 01` | Record capability metadata completion [branch: DEBUG-v011] |
 | 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_02__ui-picker.md` | `S0332 phase 02` | Record picker capability label completion [branch: DEBUG-v011] |
 | 2026-06-03 01:21:38 | `PLAN/S0332_max-translation-ocr-languages/PHASE_04__docs-catalog-cleanup.md` | `S0332 phase 04` | Record capability label docs completion [branch: DEBUG-v011] |
@@ -15013,8 +15013,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 11:23:53 | `app_v2/src/main/java/com/sza/fastmediasorter/di/TranslationModelPrewarmModule.kt` | `TranslationModelPrewarmModule` | added empty multibinding for translation model prewarm availability [branch: DEBUG-v011] |
 | 2026-06-03 11:24:54 | `app_v2/src/translationEnabled/java/com/sza/fastmediasorter/di/TranslationModelPrewarmAvailabilityModule.kt` | `TranslationModelPrewarmAvailabilityModule` | enabled translation model prewarm only in translation-capable flavors [branch: DEBUG-v011] |
 | 2026-06-03 11:25:34 | `docs/FEATURES.md` | `spec-dev` | Document System info settings feature (EN) [branch: DEBUG-v011] |
-| 2026-06-03 11:25:34 | `docs/FEATURES_RU.md` | `spec-dev` | Document System info settings feature (RU) [branch: DEBUG-v011] |
-| 2026-06-03 11:25:35 | `docs/FEATURES_UK.md` | `spec-dev` | Document System info settings feature (UK) [branch: DEBUG-v011] |
+| 2026-06-03 11:25:34 | `docs/FEATURES-ru.md` | `spec-dev` | Document System info settings feature (RU) [branch: DEBUG-v011] |
+| 2026-06-03 11:25:35 | `docs/FEATURES-uk.md` | `spec-dev` | Document System info settings feature (UK) [branch: DEBUG-v011] |
 | 2026-06-03 11:26:22 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/PrewarmTranslationModelUseCase.kt` | `PrewarmTranslationModelUseCase` | removed UI dependency and added silent no-op for disabled translation flavors [branch: DEBUG-v011] |
 | 2026-06-03 11:26:23 | `PLAN/S0335_settings-system-info-dialog.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
 | 2026-06-03 11:27:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TranslationLanguageCatalog.kt` | `TranslationLanguageCatalog` | reused shared translation language mapper for supported code catalog [branch: DEBUG-v011] |
@@ -15033,8 +15033,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 12:30:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Remove S0335 probe tag (status leaving BlockNeedUserTest) [branch: DEBUG-v011] |
 | 2026-06-03 12:30:46 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCaseTest.kt` | `spec-dev` | Assert User and Time section labels [branch: DEBUG-v011] |
 | 2026-06-03 12:32:38 | `docs/FEATURES.md` | `spec-dev` | Refine System info feature copy (fields + placement) [branch: DEBUG-v011] |
-| 2026-06-03 12:32:38 | `docs/FEATURES_RU.md` | `spec-dev` | Refine System info feature copy RU [branch: DEBUG-v011] |
-| 2026-06-03 12:32:38 | `docs/FEATURES_UK.md` | `spec-dev` | Refine System info feature copy UK [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `docs/FEATURES-ru.md` | `spec-dev` | Refine System info feature copy RU [branch: DEBUG-v011] |
+| 2026-06-03 12:32:38 | `docs/FEATURES-uk.md` | `spec-dev` | Refine System info feature copy UK [branch: DEBUG-v011] |
 | 2026-06-03 12:32:38 | `PLAN/S0335_settings-system-info-dialog.md` | `spec-dev` | S0335 -> Implemented; button relocated, time/timezone/user added [branch: DEBUG-v011] |
 | 2026-06-03 12:35:57 | `PLAN/S0337_system-info-extended-fields.md` | `spec` | Add strategic spec S0337 for extended system info fields and benchmarks [branch: DEBUG-v011] |
 | 2026-06-03 12:38:21 | `PLAN/S0337_system-info-extended-fields.md` | `spec` | Resolve S0337 open questions (auto-run, localized labels, include personal fields) [branch: DEBUG-v011] |
@@ -15080,8 +15080,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt` | `spec-dev` | S0338 phase: Insert crop step between capture and OCR [branch: DEBUG-v011] |
 | 2026-06-03 13:18:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `spec-dev` | S0338 phase: Wire crop state UI and Retry/OK actions [branch: DEBUG-v011] |
 | 2026-06-03 13:18:18 | `docs/FEATURES.md` | `spec-dev` | S0338 phase: Document crop-before-OCR in Photo OCR translation [branch: DEBUG-v011] |
-| 2026-06-03 13:18:18 | `docs/FEATURES_RU.md` | `spec-dev` | S0338 phase: RU crop-before-OCR feature note [branch: DEBUG-v011] |
-| 2026-06-03 13:18:18 | `docs/FEATURES_UK.md` | `spec-dev` | S0338 phase: UK crop-before-OCR feature note [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `docs/FEATURES-ru.md` | `spec-dev` | S0338 phase: RU crop-before-OCR feature note [branch: DEBUG-v011] |
+| 2026-06-03 13:18:18 | `docs/FEATURES-uk.md` | `spec-dev` | S0338 phase: UK crop-before-OCR feature note [branch: DEBUG-v011] |
 | 2026-06-03 13:19:23 | `PLAN/S0338_camera-ocr-crop-region.md` | `spec-dev` | S0338 all phases done; status -> BlockNeedUserTest (3 debug tags) [branch: DEBUG-v011] |
 | 2026-06-03 13:30:16 | `scripts/strings_tool.ps1` | `scripts` | Add strings_tool.ps1: surgical add/get/remove/rename/list of Android string resources across EN/RU/UK locales (text-based, byte-preserving, locale-parity enforced) [branch: DEBUG-v011] |
 | 2026-06-03 13:41:04 | `PLAN/S0339_strings-thematic-split.md` | `spec` | Add strategic spec S0339 for thematic split of strings.xml by feature areas [branch: DEBUG-v011] |
@@ -15095,8 +15095,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 14:09:27 | `.claude/commands+agents` | `skills+roles` | Wire set-android-string.ps1 (set/add/get/remove/rename/list) into /spec-dev, /spec-tech, /doc-update, /quick, /spec-check and the 3 agent roles as the preferred byte-preserving string editor [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Insert S0337 BlockNeedUserTest probe tag [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `docs/FEATURES.md` | `spec-dev` | Refresh System info copy: extended sections + benchmarks (EN) [branch: DEBUG-v011] |
-| 2026-06-03 14:10:03 | `docs/FEATURES_RU.md` | `spec-dev` | Refresh System info copy (RU) [branch: DEBUG-v011] |
-| 2026-06-03 14:10:03 | `docs/FEATURES_UK.md` | `spec-dev` | Refresh System info copy (UK) [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `docs/FEATURES-ru.md` | `spec-dev` | Refresh System info copy (RU) [branch: DEBUG-v011] |
+| 2026-06-03 14:10:03 | `docs/FEATURES-uk.md` | `spec-dev` | Refresh System info copy (UK) [branch: DEBUG-v011] |
 | 2026-06-03 14:10:03 | `PLAN/S0337_system-info-extended-fields.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v011] |
 | 2026-06-03 14:33:45 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and README for v2.60.6031.424 - plateau merge from DEBUG-v011 [branch: DEBUG-v011] |
 | 2026-06-03 15:16:18 | `PLAN/S0339_strings-thematic-split/INDEX.md` | `spec-tech` | Create tactical plan for S0339 [branch: DEBUG-v012] |
@@ -15135,8 +15135,8 @@ Format: | datetime | file | target | description |
 | 2026-06-03 15:56:59 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev` | Phase 03: reveal-action strings UK [branch: DEBUG-v012] |
 | 2026-06-03 15:56:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt` | `spec-dev` | Phase 03: data-driven full-report reveal with S0336 probe [branch: DEBUG-v012] |
 | 2026-06-03 15:56:59 | `docs/FEATURES_noLegal.md` | `spec-dev` | Phase 04: section 7 extended diagnostics EN [branch: DEBUG-v012] |
-| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | Phase 04: section 7 extended diagnostics RU [branch: DEBUG-v012] |
-| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | Phase 04: section 7 extended diagnostics UK [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal-ru.md` | `spec-dev` | Phase 04: section 7 extended diagnostics RU [branch: DEBUG-v012] |
+| 2026-06-03 15:56:59 | `docs/FEATURES_noLegal-uk.md` | `spec-dev` | Phase 04: section 7 extended diagnostics UK [branch: DEBUG-v012] |
 | 2026-06-03 17:17:48 | `PLAN/S0174_nolegal-ytdlp-universal-extractor.md` | `spec-arc` | Archive S0174 (nolegal-ytdlp-universal-extractor) -> temp/done/ [branch: DEBUG-v012] |
 | 2026-06-03 17:23:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioCoverArtLoader.kt` | `AudioCoverArtLoader` | Remove stale S0265 debug tag before archiving ticket [branch: DEBUG-v012] |
 | 2026-06-03 17:24:27 | `PLAN/S0082_chromeos-support.md` | `spec-check` | Audit S0082 -> Partial; PASS/WARN/FAIL 30/1/0. Pillar C resolved (rescheduleAll on startup); residual WARN ADR-3 DetectionHelper; on-device gated on Chromebook [branch: DEBUG-v012] |
@@ -15303,8 +15303,8 @@ Format: | datetime | file | target | description |
 | 2026-06-04 12:50:32 | `app_v2/src/lite/AndroidManifest.xml` | `S0350` | Remove capture OCR panel widget from lite flavor [branch: DEBUG-v012] |
 | 2026-06-04 12:50:33 | `app_v2/src/photos/AndroidManifest.xml` | `S0350` | Remove capture OCR panel widget from photos flavor [branch: DEBUG-v012] |
 | 2026-06-04 12:57:12 | `docs/FEATURES.md` | `S0350` | Document Capture & OCR panel widget in English feature inventory [branch: DEBUG-v012] |
-| 2026-06-04 12:57:12 | `docs/FEATURES_RU.md` | `S0350` | Document Capture & OCR panel widget in Russian feature inventory [branch: DEBUG-v012] |
-| 2026-06-04 12:57:12 | `docs/FEATURES_UK.md` | `S0350` | Document Capture & OCR panel widget in Ukrainian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 12:57:12 | `docs/FEATURES-ru.md` | `S0350` | Document Capture & OCR panel widget in Russian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 12:57:12 | `docs/FEATURES-uk.md` | `S0350` | Document Capture & OCR panel widget in Ukrainian feature inventory [branch: DEBUG-v012] |
 | 2026-06-04 12:57:34 | `app_v2/src/main/res/xml/widget_camera_ocr_translate_info.xml` | `spec-dev` | S0348 Phase 02: Camera-OCR widget resized to 1x1 (provider info + previewLayout) [branch: DEBUG-v012] |
 | 2026-06-04 12:57:34 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetEntry.kt` | `spec-dev` | S0348 Phase 03: HomeWidgetEntry catalog model [branch: DEBUG-v012] |
 | 2026-06-04 12:57:34 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/registry/HomeWidgetCatalog.kt` | `spec-dev` | S0348 Phase 03: HomeWidgetCatalog availability registry (installedProviders + settings gate, no BuildConfig) [branch: DEBUG-v012] |
@@ -15343,8 +15343,8 @@ Format: | datetime | file | target | description |
 | 2026-06-04 13:10:50 | `PLAN/S0351_widget-audio-now-playing/PHASE_01__widget-surface.md` | `S0351` | Record S0351 widget surface verification [branch: DEBUG-v012] |
 | 2026-06-04 13:10:51 | `PLAN/S0351_widget-audio-now-playing/INDEX.md` | `S0351` | Mark S0351 phase 01 complete [branch: DEBUG-v012] |
 | 2026-06-04 13:13:08 | `docs/FEATURES.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (EN) [branch: DEBUG-v012] |
-| 2026-06-04 13:13:08 | `docs/FEATURES_RU.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (RU) [branch: DEBUG-v012] |
-| 2026-06-04 13:13:08 | `docs/FEATURES_UK.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (UK) [branch: DEBUG-v012] |
+| 2026-06-04 13:13:08 | `docs/FEATURES-ru.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (RU) [branch: DEBUG-v012] |
+| 2026-06-04 13:13:08 | `docs/FEATURES-uk.md` | `spec-dev` | S0348 Phase 05: icon-style home widgets feature bullet (UK) [branch: DEBUG-v012] |
 | 2026-06-04 13:13:10 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/AudioNowPlayingSnapshotStore.kt` | `S0351` | Add Audio Now Playing widget snapshot store [branch: DEBUG-v012] |
 | 2026-06-04 13:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `S0351` | Publish Audio Now Playing widget snapshot from playback service [branch: DEBUG-v012] |
 | 2026-06-04 13:14:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/model/MediaItemWithMeta.kt` | `S0351` | Carry Audio Now Playing widget identity metadata [branch: DEBUG-v012] |
@@ -15362,8 +15362,8 @@ Format: | datetime | file | target | description |
 | 2026-06-04 13:21:07 | `PLAN/S0351_widget-audio-now-playing/PHASE_03__provider-manifest.md` | `S0351` | Record S0351 provider manifest verification [branch: DEBUG-v012] |
 | 2026-06-04 13:21:08 | `PLAN/S0351_widget-audio-now-playing/PHASE_02__service-snapshot.md` | `S0351` | Record S0351 service snapshot verification [branch: DEBUG-v012] |
 | 2026-06-04 13:21:49 | `docs/FEATURES.md` | `S0351` | Document Audio Now Playing widget in English feature inventory [branch: DEBUG-v012] |
-| 2026-06-04 13:21:49 | `docs/FEATURES_RU.md` | `S0351` | Document Audio Now Playing widget in Russian feature inventory [branch: DEBUG-v012] |
-| 2026-06-04 13:21:49 | `docs/FEATURES_UK.md` | `S0351` | Document Audio Now Playing widget in Ukrainian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 13:21:49 | `docs/FEATURES-ru.md` | `S0351` | Document Audio Now Playing widget in Russian feature inventory [branch: DEBUG-v012] |
+| 2026-06-04 13:21:49 | `docs/FEATURES-uk.md` | `S0351` | Document Audio Now Playing widget in Ukrainian feature inventory [branch: DEBUG-v012] |
 | 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/INDEX.md` | `spec-tech` | Create tactical plan for S0353 (4 phases) [branch: DEBUG-v012] |
 | 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_01__scheduler-controls.md` | `spec-tech` | Phase 01: scheduler controls, durable pause, nextRunAt init [branch: DEBUG-v012] |
 | 2026-06-04 13:24:22 | `PLAN/S0353_widget-scheduled-tasks/PHASE_02__widget-surface.md` | `spec-tech` | Phase 02: widget provider, service, layouts, manifest [branch: DEBUG-v012] |
@@ -15411,8 +15411,8 @@ Format: | datetime | file | target | description |
 | 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetProvider.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
 | 2026-06-04 13:50:01 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetService.kt` | `spec-dev` | S0353 Phase 03: widget refresh hook, picker registry entry, settings deep-link [branch: DEBUG-v012] |
 | 2026-06-04 13:56:16 | `docs/FEATURES.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
-| 2026-06-04 13:56:16 | `docs/FEATURES_RU.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
-| 2026-06-04 13:56:16 | `docs/FEATURES_UK.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
+| 2026-06-04 13:56:16 | `docs/FEATURES-ru.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
+| 2026-06-04 13:56:16 | `docs/FEATURES-uk.md` | `spec-dev` | S0353 Phase 04: FEATURES trilingual - Scheduled Tasks widget [branch: DEBUG-v012] |
 | 2026-06-04 13:57:41 | `PLAN/S0353_widget-scheduled-tasks.md` | `spec-dev` | All 4 phases done; build OK; status -> BlockNeedUserTest with S0353 debug probes [branch: DEBUG-v012] |
 | 2026-06-04 13:57:41 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/ScheduledTasksWidgetProvider.kt` | `spec-dev` | S0353 BlockNeedUserTest debug probes (render/RunAll/Pause-Resume) [branch: DEBUG-v012] |
 | 2026-06-04 13:57:41 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/ScheduledOperationsWorker.kt` | `spec-dev` | S0353 BlockNeedUserTest debug probe (widget refresh after run) [branch: DEBUG-v012] |
@@ -15487,8 +15487,8 @@ Format: | datetime | file | target | description |
 | 2026-06-04 15:43:43 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `spec-dev` | Start Phase 04 and mark Step 04.1 done for S0352 [branch: DEBUG-v012] |
 | 2026-06-04 15:43:43 | `PLAN/S0352_widget-random-photo-frame/PHASE_04__docs-catalog-cleanup.md` | `spec-dev` | Record Step 04.1 completion for S0352 [branch: DEBUG-v012] |
 | 2026-06-04 15:43:44 | `docs/FEATURES.md` | `doc-update` | Document Random Photo Frame widget feature [branch: DEBUG-v012] |
-| 2026-06-04 15:43:44 | `docs/FEATURES_RU.md` | `doc-update` | Document Random Photo Frame widget feature in Russian [branch: DEBUG-v012] |
-| 2026-06-04 15:43:44 | `docs/FEATURES_UK.md` | `doc-update` | Document Random Photo Frame widget feature in Ukrainian [branch: DEBUG-v012] |
+| 2026-06-04 15:43:44 | `docs/FEATURES-ru.md` | `doc-update` | Document Random Photo Frame widget feature in Russian [branch: DEBUG-v012] |
+| 2026-06-04 15:43:44 | `docs/FEATURES-uk.md` | `doc-update` | Document Random Photo Frame widget feature in Ukrainian [branch: DEBUG-v012] |
 | 2026-06-04 15:48:37 | `PLAN/S0352_widget-random-photo-frame.md` | `spec` | Record final S0352 audit block and verified status [branch: DEBUG-v012] |
 | 2026-06-04 15:48:37 | `PLAN/S0352_widget-random-photo-frame/INDEX.md` | `tactical-plan` | Close S0352 tactical plan after final audit [branch: DEBUG-v012] |
 | 2026-06-04 15:48:38 | `PLAN/S0352_widget-random-photo-frame/PHASE_04__docs-catalog-cleanup.md` | `phase-04` | Close S0352 phase 04 after docs, catalog, and changelog verification [branch: DEBUG-v012] |
@@ -15563,8 +15563,8 @@ Format: | datetime | file | target | description |
 | 2026-06-05 11:13:57 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CameraOcrTranslateActivity.kt` | `spec-dev` | Return OCR source-language control to result-screen settings dialog [branch: DEBUG-v013] |
 | 2026-06-05 11:13:57 | `app_v2/src/main/res/layout/dialog_camera_ocr_settings.xml` | `spec-dev` | Add OCR source-language picker to camera OCR settings dialog [branch: DEBUG-v013] |
 | 2026-06-05 11:13:57 | `docs/FEATURES.md` | `spec-dev` | Document result-screen OCR-language re-recognition [branch: DEBUG-v013] |
-| 2026-06-05 11:13:57 | `docs/FEATURES_RU.md` | `spec-dev` | Document result-screen OCR-language re-recognition (RU) [branch: DEBUG-v013] |
-| 2026-06-05 11:13:57 | `docs/FEATURES_UK.md` | `spec-dev` | Document result-screen OCR-language re-recognition (UK) [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `docs/FEATURES-ru.md` | `spec-dev` | Document result-screen OCR-language re-recognition (RU) [branch: DEBUG-v013] |
+| 2026-06-05 11:13:57 | `docs/FEATURES-uk.md` | `spec-dev` | Document result-screen OCR-language re-recognition (UK) [branch: DEBUG-v013] |
 | 2026-06-05 11:31:04 | `app_v2/src/main/AndroidManifest.xml` | `manifest` | S0362: declare Google Keep package visibility in <queries> so editor Send-to-Keep resolves on Android 11+ [branch: DEBUG-v013] |
 | 2026-06-05 11:31:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `draw-editor` | S0362: hide draw overflow Send-to-Keep item when Keep is not installed (unified fallback) [branch: DEBUG-v013] |
 | 2026-06-05 11:31:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/editor/actions/EditorActionPanelBinder.kt` | `text-editor` | S0362: device-test probe for text editor Keep item visibility [branch: DEBUG-v013] |
@@ -15594,8 +15594,8 @@ Format: | datetime | file | target | description |
 | 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture/PHASE_08__docs-catalog-cleanup.md` | `spec-tech` | Phase 08: docs, functionality log, catalog cleanup [branch: DEBUG-v013] |
 | 2026-06-05 12:32:20 | `PLAN/S0359_camera-permission-inapp-capture.md` | `spec-tech` | S0359 status to Tactical [branch: DEBUG-v013] |
 | 2026-06-05 12:33:35 | `docs/FEATURES.md` | `S0363` | Extend drawing entry: command available on All Images / Camera / Downloads; All Images -> Downloads [branch: DEBUG-v013] |
-| 2026-06-05 12:33:36 | `docs/FEATURES_RU.md` | `S0363` | Extend drawing entry (RU): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
-| 2026-06-05 12:33:36 | `docs/FEATURES_UK.md` | `S0363` | Extend drawing entry (UK): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
+| 2026-06-05 12:33:36 | `docs/FEATURES-ru.md` | `S0363` | Extend drawing entry (RU): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
+| 2026-06-05 12:33:36 | `docs/FEATURES-uk.md` | `S0363` | Extend drawing entry (UK): command on All Images / Camera / Downloads [branch: DEBUG-v013] |
 | 2026-06-05 12:39:02 | `PLAN/S0363_drawing-command-image-resources.md` | `spec-dev` | All 4 phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-05 12:39:02 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/CreateDrawingUseCase.kt` | `spec-dev` | Insert S0363 BlockNeedUserTest debug probe at drawing target-path resolution [branch: DEBUG-v013] |
 | 2026-06-05 12:46:35 | `PLAN/S0363_drawing-command-image-resources.md` | `spec-check` | Static audit S0363 -> all checks PASS (27/0/0); status kept BlockNeedUserTest, device-test probe retained [branch: DEBUG-v013] |
@@ -15613,8 +15613,8 @@ Format: | datetime | file | target | description |
 | 2026-06-05 13:12:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDrawingSaveHelper.kt` | `spec-dev` | S0360 Phase 02.3: implement confirm+delete of current file in drawing editor [branch: DEBUG-v013] |
 | 2026-06-05 13:13:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageDrawOverlayManager.kt` | `spec-dev` | S0360 Phase 02.4: wire Delete file menu branch and visibility gate [branch: DEBUG-v013] |
 | 2026-06-05 13:23:23 | `docs/FEATURES.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
-| 2026-06-05 13:23:23 | `docs/FEATURES_RU.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
-| 2026-06-05 13:23:23 | `docs/FEATURES_UK.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:23:23 | `docs/FEATURES-ru.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
+| 2026-06-05 13:23:23 | `docs/FEATURES-uk.md` | `spec-dev` | S0360: document delete-file action in drawing editor [branch: DEBUG-v013] |
 | 2026-06-05 13:25:22 | `PLAN/S0360_drawing-editor-delete-file.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-05 13:25:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDrawingSaveHelper.kt` | `spec-dev` | S0360: insert BlockNeedUserTest debug tag at editor delete entry [branch: DEBUG-v013] |
 | 2026-06-05 13:25:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerDeleteUndoCoordinator.kt` | `spec-dev` | S0360: insert BlockNeedUserTest debug tag at editor-delete success path [branch: DEBUG-v013] |
@@ -15648,8 +15648,8 @@ Format: | datetime | file | target | description |
 | 2026-06-05 13:41:10 | `app_v2/src/main/res/values-ru/strings.xml` | `spec-dev S0359` | Add camera permission, Camera-to-Resource and optional-permission strings in RU [branch: DEBUG-v013] |
 | 2026-06-05 13:41:10 | `app_v2/src/main/res/values-uk/strings.xml` | `spec-dev S0359` | Add camera permission, Camera-to-Resource and optional-permission strings in UK [branch: DEBUG-v013] |
 | 2026-06-05 13:41:11 | `docs/FEATURES.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in EN features [branch: DEBUG-v013] |
-| 2026-06-05 13:41:11 | `docs/FEATURES_RU.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in RU features [branch: DEBUG-v013] |
-| 2026-06-05 13:41:11 | `docs/FEATURES_UK.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in UK features [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/FEATURES-ru.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in RU features [branch: DEBUG-v013] |
+| 2026-06-05 13:41:11 | `docs/FEATURES-uk.md` | `spec-dev S0359` | Document Camera-to-Resource settings and in-app camera capture flow in UK features [branch: DEBUG-v013] |
 | 2026-06-05 13:41:11 | `docs/TECH_STACK.md` | `spec-dev S0359` | Record CameraX 1.5.3 in the tech stack summary [branch: DEBUG-v013] |
 | 2026-06-05 13:41:12 | `dev/TECH_REQUIREMENTS.md` | `spec-dev S0359` | Record CameraX 1.5.3 in the detailed dependency inventory [branch: DEBUG-v013] |
 | 2026-06-05 13:41:12 | `dev/FUNCTIONALITY.log` | `spec-dev S0359` | Record the user-visible S0359 behavior change in the functionality log [branch: DEBUG-v013] |
@@ -15685,8 +15685,8 @@ Format: | datetime | file | target | description |
 | 2026-06-05 15:40:30 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev S0364 P03` | Retitle interface category + add settings_category_file_browser category [branch: DEBUG-v013] |
 | 2026-06-05 15:41:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsSectionsHelper.kt` | `spec-dev S0364 P02.1` | Add persisted expand/collapse state for new file-browser settings section [branch: DEBUG-v013] |
 | 2026-06-05 15:54:52 | `docs/COMMUNICATION_POLICY.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
-| 2026-06-05 15:54:52 | `docs/COMMUNICATION_POLICY_RU.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
-| 2026-06-05 15:54:53 | `docs/COMMUNICATION_POLICY_UK.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
+| 2026-06-05 15:54:52 | `docs/COMMUNICATION_POLICY-ru.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
+| 2026-06-05 15:54:53 | `docs/COMMUNICATION_POLICY-uk.md` | `spec-dev S0364 P04.1` | Add canonical file-browser glossary term to communication policy [branch: DEBUG-v013] |
 | 2026-06-05 16:01:38 | `app_v2/src/main/res/values/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
 | 2026-06-05 16:01:38 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
 | 2026-06-05 16:01:38 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
@@ -15697,11 +15697,11 @@ Format: | datetime | file | target | description |
 | 2026-06-05 16:01:40 | `app_v2/src/main/res/values-ru/strings_input.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
 | 2026-06-05 16:01:40 | `app_v2/src/main/res/values-uk/strings_input.xml` | `spec-dev S0364 P05` | Unify Browse-window terminology to file browser / браузер файлов [branch: DEBUG-v013] |
 | 2026-06-05 16:06:07 | `docs/FEATURES.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
-| 2026-06-05 16:06:07 | `docs/FEATURES_RU.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
-| 2026-06-05 16:06:08 | `docs/FEATURES_UK.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:07 | `docs/FEATURES-ru.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FEATURES-uk.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
 | 2026-06-05 16:06:08 | `docs/FAQ.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
-| 2026-06-05 16:06:08 | `docs/FAQ_RU.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
-| 2026-06-05 16:06:08 | `docs/FAQ_UK.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FAQ-ru.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
+| 2026-06-05 16:06:08 | `docs/FAQ-uk.md` | `spec-dev S0364 P06` | Align Browse-window wording to file browser term in user docs [branch: DEBUG-v013] |
 | 2026-06-05 16:09:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/GeneralSettingsFragment.kt` | `spec-dev S0364 P07.3` | Add S0364 device-test verification tag at settings view-setup entry [branch: DEBUG-v013] |
 | 2026-06-05 16:11:52 | `PLAN/S0364_settings-interface-group-split.md` | `spec-dev` | All phases implemented; status -> BlockNeedUserTest for on-device verification [branch: DEBUG-v013] |
 | 2026-06-05 16:56:16 | `PLAN/S0365_lazy-initialization-audit.md` | `spec` | Add strategic spec for lazy initialization audit [branch: DEBUG-v013] |
@@ -15749,8 +15749,8 @@ Format: | datetime | file | target | description |
 | 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_03__sync-language-and-links.md` | `docs` | Create S0366 phase 03 localization and links plan [branch: DEBUG-v013] |
 | 2026-06-06 00:22:16 | `PLAN/S0366_user-docs-refresh/PHASE_04__docs-catalog-cleanup.md` | `docs` | Create S0366 phase 04 docs cleanup plan [branch: DEBUG-v013] |
 | 2026-06-06 00:22:17 | `scripts/spec_catalog/_lib.ps1` | `scripts` | Fix header status sync for spec catalog updates [branch: DEBUG-v013] |
-| 2026-06-06 00:51:28 | `docs/VR_EDITION_RU.md` | `docs` | Fix stale VR historical link in Russian docs. [branch: DEBUG-v013] |
-| 2026-06-06 00:51:28 | `docs/VR_EDITION_UK.md` | `docs` | Fix stale VR historical link in Ukrainian docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:28 | `docs/VR_EDITION-ru.md` | `docs` | Fix stale VR historical link in Russian docs. [branch: DEBUG-v013] |
+| 2026-06-06 00:51:28 | `docs/VR_EDITION-uk.md` | `docs` | Fix stale VR historical link in Ukrainian docs. [branch: DEBUG-v013] |
 | 2026-06-06 00:51:29 | `temp/S0366_doc_audit.md` | `temp` | Record S0366 documentation audit findings. [branch: DEBUG-v013] |
 | 2026-06-06 00:51:29 | `index.html` | `site` | Point the main landing page to Markdown docs. [branch: DEBUG-v013] |
 | 2026-06-06 00:51:29 | `index-ru.html` | `site` | Point the Russian landing page to Markdown docs. [branch: DEBUG-v013] |
@@ -15765,19 +15765,19 @@ Format: | datetime | file | target | description |
 | 2026-06-06 01:55:27 | `docs/LIMITATIONS.md` | `S0366 docs` | Refresh EN limitations for current build matrix [branch: DEBUG-v013] |
 | 2026-06-06 01:55:27 | `docs/MODULE_SELECTION.md` | `S0366 docs` | Refresh module selection flavor list [branch: DEBUG-v013] |
 | 2026-06-06 01:55:27 | `docs/DOCS_MAP.md` | `S0366 docs` | Refresh docs map for current public doc set [branch: DEBUG-v013] |
-| 2026-06-06 01:55:28 | `docs/LIMITATIONS_RU.md` | `S0366 docs` | Refresh RU limitations build requirements [branch: DEBUG-v013] |
-| 2026-06-06 01:55:28 | `docs/LIMITATIONS_UK.md` | `S0366 docs` | Refresh UK limitations build requirements [branch: DEBUG-v013] |
-| 2026-06-06 01:55:28 | `docs/TROUBLESHOOTING_RU.md` | `S0366 docs` | Refresh RU troubleshooting SMB wording [branch: DEBUG-v013] |
-| 2026-06-06 01:55:29 | `docs/TROUBLESHOOTING_UK.md` | `S0366 docs` | Refresh UK troubleshooting SMB wording [branch: DEBUG-v013] |
-| 2026-06-06 01:55:29 | `docs/README_RU.md` | `S0366 docs` | Refresh RU public overview and flavor matrix [branch: DEBUG-v013] |
-| 2026-06-06 01:55:29 | `docs/README_UK.md` | `S0366 docs` | Refresh UK public overview and flavor matrix [branch: DEBUG-v013] |
-| 2026-06-06 01:55:30 | `docs/QUICK_START_RU.md` | `S0366 docs` | Refresh RU quick start links and flavor matrix [branch: DEBUG-v013] |
-| 2026-06-06 01:55:30 | `docs/QUICK_START_UK.md` | `S0366 docs` | Refresh UK quick start links and missing sections [branch: DEBUG-v013] |
-| 2026-06-06 01:55:30 | `docs/HOW_TO_RU.md` | `S0366 docs` | Refresh RU how-to availability matrix [branch: DEBUG-v013] |
-| 2026-06-06 01:55:31 | `docs/HOW_TO_UK.md` | `S0366 docs` | Refresh UK how-to availability matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/LIMITATIONS-ru.md` | `S0366 docs` | Refresh RU limitations build requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/LIMITATIONS-uk.md` | `S0366 docs` | Refresh UK limitations build requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:28 | `docs/TROUBLESHOOTING-ru.md` | `S0366 docs` | Refresh RU troubleshooting SMB wording [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/TROUBLESHOOTING-uk.md` | `S0366 docs` | Refresh UK troubleshooting SMB wording [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/README-ru.md` | `S0366 docs` | Refresh RU public overview and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:29 | `docs/README-uk.md` | `S0366 docs` | Refresh UK public overview and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/QUICK_START-ru.md` | `S0366 docs` | Refresh RU quick start links and flavor matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/QUICK_START-uk.md` | `S0366 docs` | Refresh UK quick start links and missing sections [branch: DEBUG-v013] |
+| 2026-06-06 01:55:30 | `docs/HOW_TO-ru.md` | `S0366 docs` | Refresh RU how-to availability matrix [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/HOW_TO-uk.md` | `S0366 docs` | Refresh UK how-to availability matrix [branch: DEBUG-v013] |
 | 2026-06-06 01:55:31 | `docs/FAQ.md` | `S0366 docs` | Refresh EN FAQ Android requirements [branch: DEBUG-v013] |
-| 2026-06-06 01:55:31 | `docs/FAQ_RU.md` | `S0366 docs` | Refresh RU FAQ Android requirements [branch: DEBUG-v013] |
-| 2026-06-06 01:55:31 | `docs/FAQ_UK.md` | `S0366 docs` | Refresh UK FAQ Android requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/FAQ-ru.md` | `S0366 docs` | Refresh RU FAQ Android requirements [branch: DEBUG-v013] |
+| 2026-06-06 01:55:31 | `docs/FAQ-uk.md` | `S0366 docs` | Refresh UK FAQ Android requirements [branch: DEBUG-v013] |
 | 2026-06-06 01:56:24 | `PLAN/S0366_user-docs-refresh/INDEX.md` | `S0366 plan` | Close tactical index after docs refresh [branch: DEBUG-v013] |
 | 2026-06-06 01:56:25 | `PLAN/S0366_user-docs-refresh/PHASE_01__inventory-audit.md` | `S0366 plan` | Mark phase 01 audit as done [branch: DEBUG-v013] |
 | 2026-06-06 01:56:25 | `PLAN/S0366_user-docs-refresh/PHASE_02__rewrite-core-docs.md` | `S0366 plan` | Mark phase 02 core docs rewrite as done [branch: DEBUG-v013] |
@@ -15822,8 +15822,8 @@ Format: | datetime | file | target | description |
 | 2026-06-06 17:32:57 | `app_v2/src/main/res/values-ru/strings_widget.xml` | `S0371` | Update quick-capture widget copy for photo/video capability (RU) [branch: DEBUG-v013] |
 | 2026-06-06 17:32:58 | `app_v2/src/main/res/values-uk/strings_widget.xml` | `S0371` | Update quick-capture widget copy for photo/video capability (UK) [branch: DEBUG-v013] |
 | 2026-06-06 17:32:59 | `docs/FEATURES.md` | `S0371` | Align quick-capture widget feature naming (EN) [branch: DEBUG-v013] |
-| 2026-06-06 17:33:00 | `docs/FEATURES_RU.md` | `S0371` | Align quick-capture widget feature naming (RU) [branch: DEBUG-v013] |
-| 2026-06-06 17:33:00 | `docs/FEATURES_UK.md` | `S0371` | Align quick-capture widget feature naming (UK) [branch: DEBUG-v013] |
+| 2026-06-06 17:33:00 | `docs/FEATURES-ru.md` | `S0371` | Align quick-capture widget feature naming (RU) [branch: DEBUG-v013] |
+| 2026-06-06 17:33:00 | `docs/FEATURES-uk.md` | `S0371` | Align quick-capture widget feature naming (UK) [branch: DEBUG-v013] |
 | 2026-06-06 17:33:23 | `app_v2/src/main/java/com/sza/fastmediasorter/data/local/LocalMediaScanner.kt` | `spec-all` | Remove S0373 debug verification tag [branch: DEBUG-v013] |
 | 2026-06-06 17:33:41 | `PLAN/S0372_bugfix-mic-recording-stop-failed.md` | `spec-check` | Audit S0372 -> Verified; PASS/WARN/FAIL 12/0/0 [branch: DEBUG-v013] |
 | 2026-06-06 17:36:00 | `scripts/spec_catalog/close.ps1` | `close.ps1` | Sync spec header when closing terminal-status tickets [branch: DEBUG-v013] |
@@ -15840,17 +15840,17 @@ Format: | datetime | file | target | description |
 | 2026-06-06 22:08:05 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `capture settings` | Clarify capture destination labels so resource pickers are not described as folders. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `README.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/README.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/README_RU.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/README_UK.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/README-ru.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/README-uk.md` | `resource terminology docs` | Clarify resource-vs-folder wording for resource-bound widgets and save targets. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/FAQ.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/FAQ_RU.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/FAQ_UK.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FAQ-ru.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FAQ-uk.md` | `resource terminology docs` | Clarify resource terminology for resource shortcut widgets and scheduled-operation source selection. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/FEATURES.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/FEATURES_RU.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/FEATURES_UK.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FEATURES-ru.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/FEATURES-uk.md` | `resource terminology docs` | Clarify resource-bound widget descriptions and quick capture target wording. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/QUICK_START.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/QUICK_START_RU.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:05 | `docs/QUICK_START_UK.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/QUICK_START-ru.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:05 | `docs/QUICK_START-uk.md` | `resource terminology docs` | Clarify Resource Shortcut setup wording so it refers to resources instead of folders. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame-ru.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/howto/scenario-photo-frame-uk.md` | `resource terminology docs` | Clarify slideshow music and Resource Shortcut steps to use resource terminology. [branch: DEBUG-v013] |
@@ -15858,8 +15858,8 @@ Format: | datetime | file | target | description |
 | 2026-06-06 22:08:05 | `docs/howto/scenario-car-music-ru.md` | `resource terminology docs` | Clarify Resource Shortcut music setup to use resource terminology. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/howto/scenario-car-music-uk.md` | `resource terminology docs` | Clarify Resource Shortcut music setup to use resource terminology. [branch: DEBUG-v013] |
 | 2026-06-06 22:08:05 | `docs/WHATS_NEW.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:06 | `docs/WHATS_NEW_RU.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
-| 2026-06-06 22:08:06 | `docs/WHATS_NEW_UK.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:06 | `docs/WHATS_NEW-ru.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
+| 2026-06-06 22:08:06 | `docs/WHATS_NEW-uk.md` | `resource terminology docs` | Clarify Save Frame documentation to reference the destination resource. [branch: DEBUG-v013] |
 | 2026-06-06 23:42:43 | `PLAN/S0375_video-recording-destination-resource.md` | `spec` | Add strategic spec S0375 for video recording destination resource in playback settings [branch: DEBUG-v013] |
 | 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource.md` | `spec-tech` | Update S0375 owner gate and status to Tactical [branch: DEBUG-v013] |
 | 2026-06-07 01:50:36 | `PLAN/S0375_video-recording-destination-resource/INDEX.md` | `spec-tech` | Create tactical plan for S0375 [branch: DEBUG-v013] |
@@ -15877,8 +15877,8 @@ Format: | datetime | file | target | description |
 | 2026-06-07 02:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/util/CaptureDestinationPolicy.kt` | `capture-routing` | Add video destination fallback helper [branch: DEBUG-v013] |
 | 2026-06-07 02:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseCameraCaptureManager.kt` | `capture-routing` | Split video save routing from camera destination setting [branch: DEBUG-v013] |
 | 2026-06-07 02:02:28 | `docs/FEATURES.md` | `features-docs` | Document video destination fallback contract in EN [branch: DEBUG-v013] |
-| 2026-06-07 02:02:28 | `docs/FEATURES_RU.md` | `features-docs` | Document video destination fallback contract in RU [branch: DEBUG-v013] |
-| 2026-06-07 02:02:28 | `docs/FEATURES_UK.md` | `features-docs` | Document video destination fallback contract in UK [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `docs/FEATURES-ru.md` | `features-docs` | Document video destination fallback contract in RU [branch: DEBUG-v013] |
+| 2026-06-07 02:02:28 | `docs/FEATURES-uk.md` | `features-docs` | Document video destination fallback contract in UK [branch: DEBUG-v013] |
 | 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource.md` | `spec-dev` | Mark S0375 implemented [branch: DEBUG-v013] |
 | 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/INDEX.md` | `spec-dev` | Mark S0375 tactical plan complete [branch: DEBUG-v013] |
 | 2026-06-07 02:02:28 | `PLAN/S0375_video-recording-destination-resource/PHASE_01__settings-surface.md` | `spec-dev` | Mark S0375 phase 01 complete [branch: DEBUG-v013] |
@@ -15920,8 +15920,8 @@ Format: | datetime | file | target | description |
 | 2026-06-07 03:57:24 | `app_v2/src/main/res/values-ru/strings_settings.xml` | `spec-dev` | Add RU settings strings for predefined All Files resource [branch: DEBUG-v013] |
 | 2026-06-07 03:57:24 | `app_v2/src/main/res/values-uk/strings_settings.xml` | `spec-dev` | Add UK settings strings for predefined All Files resource [branch: DEBUG-v013] |
 | 2026-06-07 03:57:24 | `docs/FEATURES.md` | `spec-dev` | Document predefined All Files resource flow in EN features [branch: DEBUG-v013] |
-| 2026-06-07 03:57:24 | `docs/FEATURES_RU.md` | `spec-dev` | Document predefined All Files resource flow in RU features [branch: DEBUG-v013] |
-| 2026-06-07 03:57:24 | `docs/FEATURES_UK.md` | `spec-dev` | Document predefined All Files resource flow in UK features [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `docs/FEATURES-ru.md` | `spec-dev` | Document predefined All Files resource flow in RU features [branch: DEBUG-v013] |
+| 2026-06-07 03:57:24 | `docs/FEATURES-uk.md` | `spec-dev` | Document predefined All Files resource flow in UK features [branch: DEBUG-v013] |
 | 2026-06-07 03:57:24 | `dev/CATALOG/app_v2.jsonl` | `spec-dev` | Regenerate app_v2 catalog JSONL after S0376 [branch: DEBUG-v013] |
 | 2026-06-07 03:57:24 | `dev/CATALOG/app_v2.md` | `spec-dev` | Regenerate app_v2 catalog markdown after S0376 [branch: DEBUG-v013] |
 | 2026-06-07 04:01:25 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0377 Phase 02.1: add resource_menu_open/launch/move_to_top/move_to_bottom (EN) [branch: DEBUG-v013] |
@@ -15935,8 +15935,8 @@ Format: | datetime | file | target | description |
 | 2026-06-07 04:07:31 | `app_v2/src/main/res/drawable/bg_icon_media_storage_frame.xml` | `spec-dev` | S0377 Phase 03.1: add bg_icon_media_storage_frame oval stroke drawable (icon affordance frame) [branch: DEBUG-v013] |
 | 2026-06-07 04:08:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/ResourceAdapter.kt` | `spec-dev` | S0377 Phase 03.2: apply/clear bg_icon_media_storage_frame on icon in both view holders (eligible=frame, else=null) [branch: DEBUG-v013] |
 | 2026-06-07 04:17:13 | `docs/FEATURES.md` | `doc-update` | S0377: add Resource menu actions bullet (Open/Launch/move-to-edge + icon frame) [branch: DEBUG-v013] |
-| 2026-06-07 04:17:13 | `docs/FEATURES_RU.md` | `doc-update` | S0377: mirror Resource menu actions bullet (RU) [branch: DEBUG-v013] |
-| 2026-06-07 04:17:13 | `docs/FEATURES_UK.md` | `doc-update` | S0377: mirror Resource menu actions bullet (UK) [branch: DEBUG-v013] |
+| 2026-06-07 04:17:13 | `docs/FEATURES-ru.md` | `doc-update` | S0377: mirror Resource menu actions bullet (RU) [branch: DEBUG-v013] |
+| 2026-06-07 04:17:13 | `docs/FEATURES-uk.md` | `doc-update` | S0377: mirror Resource menu actions bullet (UK) [branch: DEBUG-v013] |
 | 2026-06-07 04:22:23 | `.claude/commands/spec-dev.md` | `spec-dev` | Insert Timber BlockNeedUserTest tags as last code edits before final-phase build; single build validates code+tags [branch: DEBUG-v013] |
 | 2026-06-07 04:22:23 | `.claude/commands/spec-all.md` | `spec-all` | Tags before final build; skip redundant F4 build after post-tags build [branch: DEBUG-v013] |
 | 2026-06-07 04:22:24 | `CLAUDE.md` | `docs` | Debug Verification Tags: insert tags before last build to avoid double build [branch: DEBUG-v013] |
@@ -16033,11 +16033,11 @@ Format: | datetime | file | target | description |
 | 2026-06-07 14:32:33 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/core/storage/NoLegalRestrictedTreeTargetPolicy.kt` | `NoLegalRestrictedTreeTargetPolicy` | Enabled restricted SAF tree destinations only in the noLegal source set. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `app_v2/src/noLegal/java/com/sza/fastmediasorter/di/NoLegalRestrictedTreeTargetPolicyModule.kt` | `NoLegalRestrictedTreeTargetPolicyModule` | Bound the noLegal restricted-tree destination policy into the flavor Hilt graph. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `docs/FEATURES.md` | `FEATURES.md` | Documented public SAF-backed OTG or SD destination support and clarified hidden-file limits. [branch: DEBUG-v013] |
-| 2026-06-07 14:32:33 | `docs/FEATURES_RU.md` | `FEATURES_RU.md` | Documented public SAF-backed OTG or SD destination support and clarified hidden-file limits. [branch: DEBUG-v013] |
-| 2026-06-07 14:32:33 | `docs/FEATURES_UK.md` | `FEATURES_UK.md` | Documented public SAF-backed OTG or SD destination support and clarified hidden-file limits. [branch: DEBUG-v013] |
+| 2026-06-07 14:32:33 | `docs/FEATURES-ru.md` | `FEATURES-ru.md` | Documented public SAF-backed OTG or SD destination support and clarified hidden-file limits. [branch: DEBUG-v013] |
+| 2026-06-07 14:32:33 | `docs/FEATURES-uk.md` | `FEATURES-uk.md` | Documented public SAF-backed OTG or SD destination support and clarified hidden-file limits. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal.md` | Documented the noLegal-only restricted SAF tree destination overlay and renumbered later sections. [branch: DEBUG-v013] |
-| 2026-06-07 14:32:33 | `docs/FEATURES_noLegal_RU.md` | `FEATURES_noLegal_RU.md` | Documented the noLegal-only restricted SAF tree destination overlay and renumbered later sections. [branch: DEBUG-v013] |
-| 2026-06-07 14:32:33 | `docs/FEATURES_noLegal_UK.md` | `FEATURES_noLegal_UK.md` | Documented the noLegal-only restricted SAF tree destination overlay and renumbered later sections. [branch: DEBUG-v013] |
+| 2026-06-07 14:32:33 | `docs/FEATURES_noLegal-ru.md` | `FEATURES_noLegal-ru.md` | Documented the noLegal-only restricted SAF tree destination overlay and renumbered later sections. [branch: DEBUG-v013] |
+| 2026-06-07 14:32:33 | `docs/FEATURES_noLegal-uk.md` | `FEATURES_noLegal-uk.md` | Documented the noLegal-only restricted SAF tree destination overlay and renumbered later sections. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `app_v2/src/main/res/values/strings.xml` | `tooltip_show_hidden_files_message` | Rewrote hidden-files tooltip to describe accessible-storage visibility without promising unrestricted system access. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `app_v2/src/main/res/values-ru/strings.xml` | `tooltip_show_hidden_files_message` | Rewrote hidden-files tooltip to describe accessible-storage visibility without promising unrestricted system access. [branch: DEBUG-v013] |
 | 2026-06-07 14:32:33 | `app_v2/src/main/res/values-uk/strings.xml` | `tooltip_show_hidden_files_message` | Rewrote hidden-files tooltip to describe accessible-storage visibility without promising unrestricted system access. [branch: DEBUG-v013] |
@@ -16556,7 +16556,7 @@ Format: | datetime | file | target | description |
 | 2026-06-09 10:59:38 | `app_v2/src/main/java/com/sza/fastmediasorter/di/DeliveryModule.kt` | `spec-dev` | S0386 Phase 05.1: merge contributors into bundled-descriptor map [branch: DEBUG-v013] |
 | 2026-06-09 11:39:48 | `PLAN/S0386_ondemand-ocr-translation-delivery.md` | `spec-dev` | S0386: phases 04/06/05.1 implemented (build-green, inert); debundle core 05.2-07 paused -> BlockExternal pending /spec-tech refine + release/device/hosting [branch: DEBUG-v013] |
 | 2026-06-09 11:49:01 | `index.html,index-ru.html,index-uk.html` | `feature-explorer keyFeatures/hiddenFeatureTitles` | S0387: reconcile stale curation arrays with current FEATURES titles across EN/RU/UK so Variant 1 major cards and Variant 3 Highlights render (keyFeatures 14/14 matched, dead hiddenFeatureTitles emptied) [branch: DEBUG-v013] |
-| 2026-06-09 11:54:00 | `index-uk.html` | `feature-explorer categoryMapping` | S0387: fix 4 UK categoryMapping keys (cat 4/7/9/14) that diverged from FEATURES_UK.md headings and silently dropped audio/slideshow/video/destination features into the default Setup group in Variant 1 [branch: DEBUG-v013] |
+| 2026-06-09 11:54:00 | `index-uk.html` | `feature-explorer categoryMapping` | S0387: fix 4 UK categoryMapping keys (cat 4/7/9/14) that diverged from FEATURES-uk.md headings and silently dropped audio/slideshow/video/destination features into the default Setup group in Variant 1 [branch: DEBUG-v013] |
 | 2026-06-09 12:21:58 | `translate_feature/build.gradle.kts` | `standard build validation` | Removed duplicate dynamic-feature flavor wiring that was breaking Gradle variant resolution. [branch: DEBUG-v013] |
 | 2026-06-09 12:21:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/RecognitionBackend.kt` | `standard unit test build` | Removed stale override from recognizeAndTranslateBlocks after OCR facade split. [branch: DEBUG-v013] |
 | 2026-06-09 12:21:59 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OtherMediaSettingsFragment.kt` | `standard unit test build` | Guarded optional Extensions Manager binding with a nullable-safe click listener. [branch: DEBUG-v013] |
@@ -16691,8 +16691,8 @@ Format: | datetime | file | target | description |
 | 2026-06-09 22:25:46 | `app_v2/src/main/res/values/strings.xml` | `spec-dev` | S0389 Phase 05-06: add open_in_fms_external_file_notice (EN/RU/UK) [branch: DEBUG-v013] |
 | 2026-06-09 22:30:51 | `PLAN/S0390_standalone-command-panel-parity.md` | `spec` | Add follow-up spec S0390 (standalone command-panel parity) split from S0389 Phase 04 [branch: DEBUG-v013] |
 | 2026-06-09 22:33:26 | `docs/FEATURES.md` | `spec-dev` | S0389 Phase 07: add External file viewing feature (EN) [branch: DEBUG-v013] |
-| 2026-06-09 22:33:26 | `docs/FEATURES_RU.md` | `spec-dev` | S0389 Phase 07: add External file viewing feature (RU) [branch: DEBUG-v013] |
-| 2026-06-09 22:33:26 | `docs/FEATURES_UK.md` | `spec-dev` | S0389 Phase 07: add External file viewing feature (UK) [branch: DEBUG-v013] |
+| 2026-06-09 22:33:26 | `docs/FEATURES-ru.md` | `spec-dev` | S0389 Phase 07: add External file viewing feature (RU) [branch: DEBUG-v013] |
+| 2026-06-09 22:33:26 | `docs/FEATURES-uk.md` | `spec-dev` | S0389 Phase 07: add External file viewing feature (UK) [branch: DEBUG-v013] |
 | 2026-06-09 23:17:23 | `PLAN/S0370_browse-filter-large-icon-actions.md` | `spec-arc` | Archive S0370 (browse-filter-large-icon-actions) -> temp/done/ [branch: DEBUG-v013] |
 | 2026-06-09 23:17:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `spec-arc` | Remove S0370 BlockNeedUserTest probe tag on archive [branch: DEBUG-v013] |
 | 2026-06-09 23:19:27 | `PLAN/S0369_widget-camera-capture-target-resource.md` | `spec-arc` | Archive S0369 (widget-camera-capture-target-resource) -> temp/done/ [branch: DEBUG-v013] |
@@ -16723,8 +16723,8 @@ Format: | datetime | file | target | description |
 | 2026-06-09 23:54:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackRenderersFactory.kt` | `S0386` | Phase 07: attach delivered FFmpeg DTS (Set D) via Hilt EntryPoint before the renderers factory builds, gated on capability; graceful when absent [branch: DEBUG-v013] |
 | 2026-06-09 23:54:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/RecognitionBackend.kt` | `S0386` | Phase 07: device-test Timber tag at OCR delivered-engine attach entry [branch: DEBUG-v013] |
 | 2026-06-09 23:54:47 | `docs/FEATURES.md` | `S0386` | Phase 09: on-demand delivery behavior note + Downloadable Extensions manager entry (EN) [branch: DEBUG-v013] |
-| 2026-06-09 23:54:47 | `docs/FEATURES_RU.md` | `S0386` | Phase 09: on-demand delivery note + extensions manager entry (RU) [branch: DEBUG-v013] |
-| 2026-06-09 23:54:48 | `docs/FEATURES_UK.md` | `S0386` | Phase 09: on-demand delivery note + extensions manager entry (UK) [branch: DEBUG-v013] |
+| 2026-06-09 23:54:47 | `docs/FEATURES-ru.md` | `S0386` | Phase 09: on-demand delivery note + extensions manager entry (RU) [branch: DEBUG-v013] |
+| 2026-06-09 23:54:48 | `docs/FEATURES-uk.md` | `S0386` | Phase 09: on-demand delivery note + extensions manager entry (UK) [branch: DEBUG-v013] |
 | 2026-06-09 23:54:48 | `docs/FEATURES_noLegal.md` | `S0386` | Phase 09: self-download delivery of heavy native sets section (EN, gitignored) [branch: DEBUG-v013] |
 | 2026-06-09 23:55:41 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionPool.kt` | `SftpConnectionPool` | S0046 phase-03.2: pin host-key via expectedFingerprint in ConnectionKey + applyAuth (StrictHostKeyChecking yes when pinned) [branch: DEBUG-v013] |
 | 2026-06-09 23:57:44 | `app_v2/src/main/java/com/sza/fastmediasorter/data/remote/sftp/SftpConnectionTester.kt` | `SftpConnectionTester` | S0046 phase-03.3: pin host-key in test methods; map JSch host-key rejection to HostKeyMismatchException [branch: DEBUG-v013] |
@@ -16744,8 +16744,8 @@ Format: | datetime | file | target | description |
 | 2026-06-10 00:31:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceFormManager.kt` | `AddResourceFormManager` | S0046 phase-05.4: read fingerprint field for SFTP add + tap-focus bridge [branch: DEBUG-v013] |
 | 2026-06-10 00:31:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceHelper.kt` | `AddResourceHelper` | S0046 phase-05.4: prefill fingerprint on edit [branch: DEBUG-v013] |
 | 2026-06-10 00:37:32 | `docs/FEATURES.md` | `FEATURES` | S0046 phase-06.2: SFTP key auth + host-key pinning feature bullet (EN) [branch: DEBUG-v013] |
-| 2026-06-10 00:37:32 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0046 phase-06.2: SFTP key auth + host-key pinning feature bullet (RU) [branch: DEBUG-v013] |
-| 2026-06-10 00:37:32 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0046 phase-06.2: SFTP key auth + host-key pinning feature bullet (UK) [branch: DEBUG-v013] |
+| 2026-06-10 00:37:32 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0046 phase-06.2: SFTP key auth + host-key pinning feature bullet (RU) [branch: DEBUG-v013] |
+| 2026-06-10 00:37:32 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0046 phase-06.2: SFTP key auth + host-key pinning feature bullet (UK) [branch: DEBUG-v013] |
 | 2026-06-10 01:01:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerViewModel.kt` | `spec-dev S0390` | S0390 Phase 01: editableImageFile gate state + screen-rotation sensor toggle [branch: DEBUG-v013] |
 | 2026-06-10 01:01:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/StandaloneImageEditController.kt` | `spec-dev S0390` | S0390 Phase 02: new standalone crop/cropToFile/compress controller reusing ImageCropManager [branch: DEBUG-v013] |
 | 2026-06-10 01:01:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `spec-dev S0390` | S0390 Phase 04: reloadImage cache-busting re-decode after in-place crop [branch: DEBUG-v013] |
@@ -16835,9 +16835,9 @@ Format: | datetime | file | target | description |
 | 2026-06-10 11:43:11 | `nolegal-ru.html` | `spec-dev` | S0394 Phase 04: website APK download buttons from latest GitHub Release [branch: DEBUG-v013] |
 | 2026-06-10 11:43:12 | `nolegal-uk.html` | `spec-dev` | S0394 Phase 04: website APK download buttons from latest GitHub Release [branch: DEBUG-v013] |
 | 2026-06-10 11:43:12 | `styles.css` | `spec-dev` | S0394 Phase 04: website APK download buttons from latest GitHub Release [branch: DEBUG-v013] |
-| 2026-06-10 11:46:27 | `docs/DOWNLOADS_EN.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
-| 2026-06-10 11:46:27 | `docs/DOWNLOADS_RU.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
-| 2026-06-10 11:46:28 | `docs/DOWNLOADS_UK.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
+| 2026-06-10 11:46:27 | `docs/DOWNLOADS.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
+| 2026-06-10 11:46:27 | `docs/DOWNLOADS-ru.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
+| 2026-06-10 11:46:28 | `docs/DOWNLOADS-uk.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
 | 2026-06-10 11:46:28 | `.claude/commands/skill-release.md` | `spec-dev` | S0394 Phase 05: Downloads docs + release distribution matrix point at GitHub Release [branch: DEBUG-v013] |
 | 2026-06-10 11:48:47 | `PLAN/S0394_github-release-assets-downloads.md` | `spec-dev` | S0394 all 6 phases done; status -> Implemented (full-spectrum GitHub Release assets + website downloads) [branch: DEBUG-v013] |
 | 2026-06-10 11:50:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/DocumentStandaloneActivity.kt` | `spec-dev S0393` | S0393 wave-C: wire PDF OCR (scrollable text dialog) + PDF Google Lens share in Document host [branch: DEBUG-v013] |
@@ -17117,8 +17117,8 @@ Format: | datetime | file | target | description |
 | 2026-06-11 14:43:32 | `PLAN/S0403_fdroid-foss-flavor/INDEX.md` | `spec-tech` | Add Phase 07 ui-invisibility; 8 phases; UI-invisibility requirement [branch: DEBUG-v013] |
 | 2026-06-11 14:43:33 | `PLAN/S0403_fdroid-foss-flavor.md` | `spec-tech` | Strategic: explicit no-UI-visibility + SFTP/SMB retention + OCR cut [branch: DEBUG-v013] |
 | 2026-06-11 14:54:22 | `docs/FEATURES_noLegal.md` | `spec-dev S0405 phase-06.1` | Document screen-gesture screenshot overlay (noLegal-only capability) [branch: DEBUG-v013] |
-| 2026-06-11 14:54:22 | `docs/FEATURES_noLegal_RU.md` | `spec-dev S0405 phase-06.1` | Document screen-gesture screenshot overlay (noLegal-only capability) [branch: DEBUG-v013] |
-| 2026-06-11 14:54:23 | `docs/FEATURES_noLegal_UK.md` | `spec-dev S0405 phase-06.1` | Document screen-gesture screenshot overlay (noLegal-only capability) [branch: DEBUG-v013] |
+| 2026-06-11 14:54:22 | `docs/FEATURES_noLegal-ru.md` | `spec-dev S0405 phase-06.1` | Document screen-gesture screenshot overlay (noLegal-only capability) [branch: DEBUG-v013] |
+| 2026-06-11 14:54:23 | `docs/FEATURES_noLegal-uk.md` | `spec-dev S0405 phase-06.1` | Document screen-gesture screenshot overlay (noLegal-only capability) [branch: DEBUG-v013] |
 | 2026-06-11 14:56:09 | `dev/CATALOG/app_v2.jsonl` | `spec-dev S0405 phase-06.2` | Mark 6 noLegal-only screencapture classes with -NoFlavors standard,lite,photos,legacy,vr + role/status=new; catalog re-rendered [branch: DEBUG-v013] |
 | 2026-06-11 15:17:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/delivery/ExtensionsManagerFragment.kt` | `Extensions Manager` | Merge OCR+Translation groups; add Install all/Delete all footer buttons; apply system-bar/cutout insets to header+footer (edge-to-edge fix) [branch: DEBUG-v013] |
 | 2026-06-11 15:23:38 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `WelcomeActivity crash fix` | Guard deferred setupViews()/onLayoutConfigurationChanged() posts against destroyed-before-post race: bail out when _binding is null or Activity isDestroyed. Fixes ISE 'Binding is only valid..' when WelcomeActivity forces a night-mode recreate in onCreate. [branch: DEBUG-v013] |
@@ -17136,8 +17136,8 @@ Format: | datetime | file | target | description |
 | 2026-06-11 16:30:40 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/AuthSessionRepositoryImpl.kt` | `AuthSessionRepositoryImpl` | S0406: Session export/import impl [branch: DEBUG-v013] |
 | 2026-06-11 16:30:40 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/BackupMapperRoundTripTest.kt` | `BackupMapperRoundTripTest` | S0406: S0406 round-trip tests [branch: DEBUG-v013] |
 | 2026-06-11 16:30:58 | `docs/FEATURES.md` | `FEATURES` | S0406: Unified settings backup feature line (EN) [branch: DEBUG-v013] |
-| 2026-06-11 16:30:58 | `docs/FEATURES_RU.md` | `FEATURES_RU` | S0406: Unified settings backup feature line (RU) [branch: DEBUG-v013] |
-| 2026-06-11 16:30:58 | `docs/FEATURES_UK.md` | `FEATURES_UK` | S0406: Unified settings backup feature line (UK) [branch: DEBUG-v013] |
+| 2026-06-11 16:30:58 | `docs/FEATURES-ru.md` | `FEATURES_RU` | S0406: Unified settings backup feature line (RU) [branch: DEBUG-v013] |
+| 2026-06-11 16:30:58 | `docs/FEATURES-uk.md` | `FEATURES_UK` | S0406: Unified settings backup feature line (UK) [branch: DEBUG-v013] |
 | 2026-06-11 16:30:59 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCaseTest.kt` | `BackupToGoogleDriveUseCaseTest` | S0406: adapt to unified builder ctor [branch: DEBUG-v013] |
 | 2026-06-11 16:30:59 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/RestoreFromGoogleDriveUseCaseTest.kt` | `RestoreFromGoogleDriveUseCaseTest` | S0406: adapt to unified applier ctor [branch: DEBUG-v013] |
 | 2026-06-11 16:52:40 | `scripts/quality/` | `neuroslop gate` | Add Tier-1 neuroslop detectors: assert-globalscope (GlobalScope usage, baseline 0), assert-nontimber-log (android.util.Log.*/System.out, baseline 4), assert-stub-todo (TODO()/NotImplementedError, baseline 3). Wired into assert-neuroslop.ps1 orchestrator (now 7 dimensions). Extended CLAUDE.md Rule 19. Bare println/print intentionally excluded (PrintWriter + document-print domain FPs). [branch: DEBUG-v013] |
@@ -17185,8 +17185,8 @@ Format: | datetime | file | target | description |
 | 2026-06-12 22:13:23 | `wear/src/main/AndroidManifest.xml` | `wear launcher icon` | Replace Wear launcher icon set with a new watch-specific asset and bind it in the manifest [branch: DEBUG-v013] |
 | 2026-06-12 22:17:20 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeViewModel.kt` | `Welcome onboarding` | Fix first-run device-profile preset being cancelled on Finish: persist profile save+apply on applicationScope (survives Activity finish), capture reentry flag synchronously before navigation; rethrow CancellationException in ApplyProfilePresetUseCase so cancellation is not logged as error [branch: DEBUG-v013] |
 | 2026-06-12 22:29:09 | `docs/QUICK_START.md` | `QUICK_START` | Document onboarding functionality-setup step (capability toggles + inline optional-element download) in the first-launch flow [branch: DEBUG-v013] |
-| 2026-06-12 22:29:09 | `docs/QUICK_START_RU.md` | `QUICK_START_RU` | Document onboarding functionality-setup step (capability toggles + inline optional-element download) in the first-launch flow [branch: DEBUG-v013] |
-| 2026-06-12 22:29:09 | `docs/QUICK_START_UK.md` | `QUICK_START_UK` | Document onboarding functionality-setup step (capability toggles + inline optional-element download) in the first-launch flow [branch: DEBUG-v013] |
+| 2026-06-12 22:29:09 | `docs/QUICK_START-ru.md` | `QUICK_START_RU` | Document onboarding functionality-setup step (capability toggles + inline optional-element download) in the first-launch flow [branch: DEBUG-v013] |
+| 2026-06-12 22:29:09 | `docs/QUICK_START-uk.md` | `QUICK_START_UK` | Document onboarding functionality-setup step (capability toggles + inline optional-element download) in the first-launch flow [branch: DEBUG-v013] |
 | 2026-06-12 23:34:02 | `PLAN/S0409_welcome-enable-all.md` | `spec` | Add strategic spec S0409 for welcome enable-all button [branch: DEBUG-v013] |
 | 2026-06-12 23:46:45 | `PLAN/S0409_welcome-enable-all/INDEX.md` | `spec-tech` | Create tactical plan for S0409 (welcome enable-all) [branch: DEBUG-v013] |
 | 2026-06-12 23:46:46 | `PLAN/S0409_welcome-enable-all/PHASE_01__enable-all-settings-usecase.md` | `spec-tech` | S0409 phase: PHASE_01__enable-all-settings-usecase [branch: DEBUG-v013] |
@@ -17209,8 +17209,8 @@ Format: | datetime | file | target | description |
 | 2026-06-13 00:23:14 | `PLAN/S0409_welcome-enable-all.md` | `spec-dev` | All 5 phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-13 00:23:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeEnableAllManager.kt` | `spec-dev` | Insert S0409 BlockNeedUserTest debug probe at start() [branch: DEBUG-v013] |
 | 2026-06-13 00:23:14 | `docs/FEATURES.md` | `spec-dev` | Add One-tap Enable all onboarding entry (EN) [branch: DEBUG-v013] |
-| 2026-06-13 00:23:14 | `docs/FEATURES_RU.md` | `spec-dev` | Add One-tap Enable all onboarding entry (RU) [branch: DEBUG-v013] |
-| 2026-06-13 00:23:14 | `docs/FEATURES_UK.md` | `spec-dev` | Add One-tap Enable all onboarding entry (UK) [branch: DEBUG-v013] |
+| 2026-06-13 00:23:14 | `docs/FEATURES-ru.md` | `spec-dev` | Add One-tap Enable all onboarding entry (RU) [branch: DEBUG-v013] |
+| 2026-06-13 00:23:14 | `docs/FEATURES-uk.md` | `spec-dev` | Add One-tap Enable all onboarding entry (UK) [branch: DEBUG-v013] |
 | 2026-06-13 01:05:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManager.kt` | `SettingsKeyboardNavigationManager` | Return the actual activation result for OpenCurrent so Settings only consume Enter/Space when a focused control really activates. [branch: DEBUG-v013] |
 | 2026-06-13 01:05:10 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/SettingsKeyboardNavigationManagerTest.kt` | `SettingsKeyboardNavigationManagerTest` | Add unit coverage for consumed vs unconsumed Enter activation on the Settings keyboard delegate. [branch: DEBUG-v013] |
 | 2026-06-13 01:05:10 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `BaseActivity` | Add a shared keyboard activation helper that walks up from the focused child to the nearest clickable ancestor. [branch: DEBUG-v013] |
@@ -17281,8 +17281,8 @@ Format: | datetime | file | target | description |
 | 2026-06-13 15:24:30 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneViewManager.kt` | `S0412` | Expose setFullscreenCallbacks; connect PDF/EPUB/Office viewer onEnterFullscreenMode/onExitFullscreenMode [branch: DEBUG-v013] |
 | 2026-06-13 15:24:31 | `docs/FEATURES.md` | `S0412` | Document fullscreen button in standalone viewer (EN/RU/UK) [branch: DEBUG-v013] |
 | 2026-06-13 15:25:03 | `PLAN/S0412_standalone-viewer-fullscreen.md` | `spec-dev` | Phase 02 done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
-| 2026-06-13 15:25:03 | `docs/FEATURES_RU.md` | `spec-dev` | Document fullscreen button in standalone viewer (RU) [branch: DEBUG-v013] |
-| 2026-06-13 15:25:03 | `docs/FEATURES_UK.md` | `spec-dev` | Document fullscreen button in standalone viewer (UK) [branch: DEBUG-v013] |
+| 2026-06-13 15:25:03 | `docs/FEATURES-ru.md` | `spec-dev` | Document fullscreen button in standalone viewer (RU) [branch: DEBUG-v013] |
+| 2026-06-13 15:25:03 | `docs/FEATURES-uk.md` | `spec-dev` | Document fullscreen button in standalone viewer (UK) [branch: DEBUG-v013] |
 | 2026-06-13 15:43:52 | `PLAN/S0412_standalone-viewer-fullscreen.md` | `spec-test-device` | Device run on emulator-5554 (API 27) -> PASS 4/FAIL 1/SKIPPED 2; critical: no touch exit from fullscreen [branch: DEBUG-v013] |
 | 2026-06-13 15:51:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/StandaloneFullscreenManager.kt` | `S0412` | Add setupTransientBarsExitCallback for touch-accessible fullscreen exit [branch: DEBUG-v013] |
 | 2026-06-13 15:53:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/StandalonePlayerActivity.kt` | `S0412` | Wire setupTransientBarsExitCallback in setupFullscreenButton for immersive-exit [branch: DEBUG-v013] |
@@ -17423,8 +17423,8 @@ Format: | datetime | file | target | description |
 | 2026-06-14 01:15:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `spec-dev` | S0391 final phase: debug verification tag (settings toggle) [branch: DEBUG-v013] |
 | 2026-06-14 01:15:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeRemoteSourcesController.kt` | `spec-dev` | S0391 final phase: debug verification tag (welcome toggle) [branch: DEBUG-v013] |
 | 2026-06-14 01:15:15 | `docs/FEATURES.md` | `spec-dev` | S0391 Phase 07.1: add remote-source toggle feature (EN) [branch: DEBUG-v013] |
-| 2026-06-14 01:15:16 | `docs/FEATURES_RU.md` | `spec-dev` | S0391 Phase 07.1: add remote-source toggle feature (RU) [branch: DEBUG-v013] |
-| 2026-06-14 01:15:16 | `docs/FEATURES_UK.md` | `spec-dev` | S0391 Phase 07.1: add remote-source toggle feature (UK) [branch: DEBUG-v013] |
+| 2026-06-14 01:15:16 | `docs/FEATURES-ru.md` | `spec-dev` | S0391 Phase 07.1: add remote-source toggle feature (RU) [branch: DEBUG-v013] |
+| 2026-06-14 01:15:16 | `docs/FEATURES-uk.md` | `spec-dev` | S0391 Phase 07.1: add remote-source toggle feature (UK) [branch: DEBUG-v013] |
 | 2026-06-14 01:18:04 | `PLAN/S0391_remote-source-runtime-toggles/PHASE_07__docs-catalog-cleanup.md` | `spec-dev` | Phase 07 done (3/3); FEATURES + catalog roles + functionality log [branch: DEBUG-v013] |
 | 2026-06-14 01:18:04 | `PLAN/S0391_remote-source-runtime-toggles/INDEX.md` | `spec-dev` | All 7 phases done; status BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-14 01:26:02 | `app_v2/src/main/java/com/sza/fastmediasorter/data/delivery/DeliverableDescriptorCatalog.kt` | `spec-dev` | S0407 Phase 03: register 11 audio-viz clips (Baseline 576p), new SHA-256/size [branch: DEBUG-v013] |
@@ -17433,8 +17433,8 @@ Format: | datetime | file | target | description |
 | 2026-06-14 01:26:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioEmptyStateController.kt` | `spec-dev` | S0407: debug tag + stale KDoc fix [branch: DEBUG-v013] |
 | 2026-06-14 01:26:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/AudioSettingsFragment.kt` | `spec-dev` | S0407: debug tag on viz gate [branch: DEBUG-v013] |
 | 2026-06-14 01:26:03 | `docs/FEATURES.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (EN) [branch: DEBUG-v013] |
-| 2026-06-14 01:26:03 | `docs/FEATURES_RU.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (RU) [branch: DEBUG-v013] |
-| 2026-06-14 01:26:03 | `docs/FEATURES_UK.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (UK) [branch: DEBUG-v013] |
+| 2026-06-14 01:26:03 | `docs/FEATURES-ru.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (RU) [branch: DEBUG-v013] |
+| 2026-06-14 01:26:03 | `docs/FEATURES-uk.md` | `spec-dev` | S0407 Phase 04: cover-art visualizations (UK) [branch: DEBUG-v013] |
 | 2026-06-14 01:26:03 | `PLAN/S0407_audio-player-extra-visualizations.md` | `spec-dev` | S0407 all phases done; status -> BlockNeedUserTest [branch: DEBUG-v013] |
 | 2026-06-14 03:46:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `spec-dev` | S0391: skip the single-option Add Resource type picker (open Local directly when no remote source is available) [branch: DEBUG-v013] |
 | 2026-06-14 04:06:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/addresource/AddResourceActivity.kt` | `S0391` | Skip single-option Add Folder type picker on ALL/FAVORITES tab entry; gate-direct check [branch: DEBUG-v013] |
@@ -17462,8 +17462,8 @@ Format: | datetime | file | target | description |
 | 2026-06-14 13:29:39 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/Models.kt` | `spec-dev` | S0417 step 01.1: UndoOperation.oldNames RENAME semantics comment [branch: DEBUG-v013] |
 | 2026-06-14 13:30:34 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/BdTsPlaybackHelper.kt` | `S0054` | Remove dead wrapForBdTs(path String) overload, superseded by buildBdTsMediaSourceFactory [branch: DEBUG-v013] |
 | 2026-06-14 13:30:34 | `docs/FEATURES.md` | `S0054` | Add BD-TS m2ts auto-detect plus audio diagnostics bullet [branch: DEBUG-v013] |
-| 2026-06-14 13:30:34 | `docs/FEATURES_RU.md` | `S0054` | Add BD-TS m2ts bullet RU [branch: DEBUG-v013] |
-| 2026-06-14 13:30:34 | `docs/FEATURES_UK.md` | `S0054` | Add BD-TS m2ts bullet UK [branch: DEBUG-v013] |
+| 2026-06-14 13:30:34 | `docs/FEATURES-ru.md` | `S0054` | Add BD-TS m2ts bullet RU [branch: DEBUG-v013] |
+| 2026-06-14 13:30:34 | `docs/FEATURES-uk.md` | `S0054` | Add BD-TS m2ts bullet UK [branch: DEBUG-v013] |
 | 2026-06-14 13:30:34 | `PLAN/S0054_m2ts-playback-support.md` | `spec-check` | Audit S0054 conformant, status retained BlockNeedUserTest, FEATURES and dead-code fixed [branch: DEBUG-v013] |
 | 2026-06-14 13:33:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseViewModel.kt` | `spec-dev` | S0417 step 01.2: renameViaFileOperation undo callback via use case [branch: DEBUG-v013] |
 | 2026-06-14 13:38:43 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseDialogHelper.kt` | `spec-dev` | S0417 step 01.3: batch rename via FileOperationUseCase, pointwise update, undo pairs [branch: DEBUG-v013] |
@@ -17641,8 +17641,8 @@ Format: | datetime | file | target | description |
 | 2026-06-15 13:44:11 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerSettingsManager.kt` | `spec-dev` | S0435 phase-03: default-player settings subgroup manager + fragment wiring; gesture-subgroup gating [branch: DEBUG-v014] |
 | 2026-06-15 13:47:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev` | S0435 phase-03: inject MediaCapabilities, bind default-player subgroup, gate gesture subgroup [branch: DEBUG-v014] |
 | 2026-06-15 13:52:01 | `docs/FEATURES.md` | `spec-dev` | S0435 phase-04: document default-player registration from settings [branch: DEBUG-v014] |
-| 2026-06-15 13:52:02 | `docs/FEATURES_RU.md` | `spec-dev` | S0435 phase-04: document default-player registration from settings [branch: DEBUG-v014] |
-| 2026-06-15 13:52:03 | `docs/FEATURES_UK.md` | `spec-dev` | S0435 phase-04: document default-player registration from settings [branch: DEBUG-v014] |
+| 2026-06-15 13:52:02 | `docs/FEATURES-ru.md` | `spec-dev` | S0435 phase-04: document default-player registration from settings [branch: DEBUG-v014] |
+| 2026-06-15 13:52:03 | `docs/FEATURES-uk.md` | `spec-dev` | S0435 phase-04: document default-player registration from settings [branch: DEBUG-v014] |
 | 2026-06-15 13:54:50 | `PLAN/S0435_settings-os-interaction-default-player.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-15 13:54:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DefaultPlayerSettingsManager.kt` | `spec-dev` | S0435: default-player settings subgroup manager + BlockNeedUserTest probe [branch: DEBUG-v014] |
 | 2026-06-15 14:24:09 | `app_v2/src/main/res/values*/strings_settings.xml` | `settings` | Rename setting_prevent_sleep_desc: 'while viewing media' -> 'while using the app' (EN/RU/UK) [branch: DEBUG-v014] |
@@ -17837,8 +17837,8 @@ Format: | datetime | file | target | description |
 | 2026-06-16 00:03:44 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev` | S0449 P02.1: add accessibility-shortcut hint+button to screen-gestures group (portrait) [branch: DEBUG-v014] |
 | 2026-06-16 00:03:59 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | S0449 P02.2: add accessibility-shortcut hint+button to screen-gestures group (landscape) [branch: DEBUG-v014] |
 | 2026-06-16 00:06:53 | `docs/FEATURES_noLegal.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (EN) [branch: DEBUG-v014] |
-| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal_RU.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (RU) [branch: DEBUG-v014] |
-| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal_UK.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (UK) [branch: DEBUG-v014] |
+| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal-ru.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (RU) [branch: DEBUG-v014] |
+| 2026-06-16 00:06:53 | `docs/FEATURES_noLegal-uk.md` | `spec-dev` | S0449 P03.1: §10 accessibility-settings shortcut entry (UK) [branch: DEBUG-v014] |
 | 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/INDEX.md` | `spec-tech` | Create tactical plan for S0425 [branch: DEBUG-v014] |
 | 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_01__foundations-enums-settings.md` | `spec-tech` | Phase: PHASE_01__foundations-enums-settings [branch: DEBUG-v014] |
 | 2026-06-16 00:08:42 | `PLAN/S0425_screenshot-gesture-actions/PHASE_02__locatable-save-result.md` | `spec-tech` | Phase: PHASE_02__locatable-save-result [branch: DEBUG-v014] |
@@ -17956,8 +17956,8 @@ Format: | datetime | file | target | description |
 | 2026-06-16 01:42:19 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | S0438 Phase 03.2: add dependent keep-screen-on row [branch: DEBUG-v014] |
 | 2026-06-16 01:43:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0438 Phase 03.3: bind dependent keep-screen-on row + visibility gate [branch: DEBUG-v014] |
 | 2026-06-16 01:51:03 | `docs/FEATURES.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
-| 2026-06-16 01:51:04 | `docs/FEATURES_RU.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
-| 2026-06-16 01:51:04 | `docs/FEATURES_UK.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
+| 2026-06-16 01:51:04 | `docs/FEATURES-ru.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
+| 2026-06-16 01:51:04 | `docs/FEATURES-uk.md` | `spec-dev` | S0438 Phase 04.1: FEATURES entry for player-only keep screen on [branch: DEBUG-v014] |
 | 2026-06-16 01:52:28 | `PLAN/S0438_keep-screen-on-player.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-16 01:52:28 | `app_v2/src/main/java/com/sza/fastmediasorter/core/ui/BaseActivity.kt` | `spec-dev` | S0438: settings-driven keep-screen-on + debug tag [branch: DEBUG-v014] |
 | 2026-06-16 01:52:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt` | `spec-dev` | S0438: dependent row binding + debug tag [branch: DEBUG-v014] |
@@ -18015,11 +18015,11 @@ Format: | datetime | file | target | description |
 | 2026-06-16 09:47:33 | `app_v2/src/main/res/layout-land/fragment_settings_playback.xml` | `spec-dev S0439 P04` | Repurpose playback toggle to player rotation (landscape) [branch: DEBUG-v014] |
 | 2026-06-16 09:47:33 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0439 P04` | Bind player rotation toggle + visibility coupling (visible when program off) [branch: DEBUG-v014] |
 | 2026-06-16 09:51:57 | `docs/FEATURES.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
-| 2026-06-16 09:51:57 | `docs/FEATURES_RU.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
-| 2026-06-16 09:51:57 | `docs/FEATURES_UK.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
+| 2026-06-16 09:51:57 | `docs/FEATURES-ru.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
+| 2026-06-16 09:51:57 | `docs/FEATURES-uk.md` | `spec-dev S0439 P05` | Document program/player follow-OS rotation setting [branch: DEBUG-v014] |
 | 2026-06-16 09:54:09 | `docs/FEATURES.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
-| 2026-06-16 09:54:10 | `docs/FEATURES_RU.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
-| 2026-06-16 09:54:10 | `docs/FEATURES_UK.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
+| 2026-06-16 09:54:10 | `docs/FEATURES-ru.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
+| 2026-06-16 09:54:10 | `docs/FEATURES-uk.md` | `spec-dev` | S0448 P03.2: note Lite flavor is local-files-only (no SMB/SFTP/FTP) [branch: DEBUG-v014] |
 | 2026-06-16 09:55:20 | `PLAN/S0439_screen-rotation-follow-os.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-16 09:55:20 | `app_v2/src/main/java/com/sza/fastmediasorter/core/orientation/AppOrientationManager.kt` | `spec-dev S0439` | S0439 debug tag (device test probe) [branch: DEBUG-v014] |
 | 2026-06-16 09:55:21 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/PlaybackSettingsFragment.kt` | `spec-dev S0439` | S0439 debug tag (device test probe) [branch: DEBUG-v014] |
@@ -18284,8 +18284,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 00:18:13 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerShareManager.kt` | `S0459 Phase 08 audit` | Remove dead sendCurrentFileToTelegram cluster [branch: DEBUG-v014] |
 | 2026-06-17 00:18:14 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/TextViewerManager.kt` | `S0459 Phase 08 audit` | Remove dead sendCurrentTextToKeep isKeepTargetAvailable keepChecker [branch: DEBUG-v014] |
 | 2026-06-17 00:18:15 | `docs/FEATURES.md` | `S0459 Phase 08` | Replace Send-to-Telegram entry with unified Send-to menu [branch: DEBUG-v014] |
-| 2026-06-17 00:18:16 | `docs/FEATURES_RU.md` | `S0459 Phase 08` | Replace Send-to-Telegram entry with unified Send-to menu RU [branch: DEBUG-v014] |
-| 2026-06-17 00:18:17 | `docs/FEATURES_UK.md` | `S0459 Phase 08` | Replace Send-to-Telegram entry with unified Send-to menu UK [branch: DEBUG-v014] |
+| 2026-06-17 00:18:16 | `docs/FEATURES-ru.md` | `S0459 Phase 08` | Replace Send-to-Telegram entry with unified Send-to menu RU [branch: DEBUG-v014] |
+| 2026-06-17 00:18:17 | `docs/FEATURES-uk.md` | `S0459 Phase 08` | Replace Send-to-Telegram entry with unified Send-to menu UK [branch: DEBUG-v014] |
 | 2026-06-17 00:57:28 | `app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml` | `i18n` | Add missing RU/UK translations for background_audio_exit_always_stop and background_audio_exit_always_continue dialog buttons [branch: DEBUG-v014] |
 | 2026-06-17 01:38:21 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/ShareTargetHandler.kt` | `ShareTargetHandler.isSupportedBy` | S0459: add host-capability gate (ADR-10) so Print is hidden on hosts without SharePrintHost [branch: DEBUG-v014] |
 | 2026-06-17 01:38:21 | `app_v2/src/main/java/com/sza/fastmediasorter/core/share/handlers/PrintShareTargetHandler.kt` | `PrintShareTargetHandler` | S0459: override isSupportedBy = activity is SharePrintHost (menu-build gate, no silent no-op) [branch: DEBUG-v014] |
@@ -18331,8 +18331,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 03:05:46 | `app_v2/src/main/res/layout/fragment_settings_destinations.xml` | `spec-dev` | Phase 04: clipboard toggle row (portrait) [branch: DEBUG-v014] |
 | 2026-06-17 03:05:46 | `app_v2/src/main/res/layout-land/fragment_settings_destinations.xml` | `spec-dev` | Phase 04: clipboard toggle row (landscape) [branch: DEBUG-v014] |
 | 2026-06-17 03:05:47 | `docs/FEATURES.md` | `spec-dev` | Phase 05: document screenshot-to-clipboard option (EN) [branch: DEBUG-v014] |
-| 2026-06-17 03:05:47 | `docs/FEATURES_RU.md` | `spec-dev` | Phase 05: document screenshot-to-clipboard option (RU) [branch: DEBUG-v014] |
-| 2026-06-17 03:05:47 | `docs/FEATURES_UK.md` | `spec-dev` | Phase 05: document screenshot-to-clipboard option (UK) [branch: DEBUG-v014] |
+| 2026-06-17 03:05:47 | `docs/FEATURES-ru.md` | `spec-dev` | Phase 05: document screenshot-to-clipboard option (RU) [branch: DEBUG-v014] |
+| 2026-06-17 03:05:47 | `docs/FEATURES-uk.md` | `spec-dev` | Phase 05: document screenshot-to-clipboard option (UK) [branch: DEBUG-v014] |
 | 2026-06-17 03:11:48 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome` | `S0471` | Welcome: apply device-profile settings preset early (on leaving the profile page) instead of at Finish, so capability/permission toggles reflect the profile and later user deviations (All Files) survive; split ApplyProfilePresetUseCase into applySettingsOnly + markPresetApplied; All Files toggle in welcome now also creates the predefined All Files resource [branch: DEBUG-v014] |
 | 2026-06-17 04:01:38 | `PLAN/S0472_screenshot-gesture-send-to-recipients.md` | `spec` | Add strategic spec S0472 for screenshot-gesture send-to-recipients option [branch: DEBUG-v014] |
 | 2026-06-17 04:04:06 | `PLAN/S0467_deprecated-packagemanager-api-flags.md` | `spec-check` | Audit S0467 -> Verified; PASS/WARN/FAIL 9/0/0; deprecated PackageManager raw-int flag migration confirmed (src/main gate 0, all source-sets clean, wear inline guard) [branch: DEBUG-v014] |
@@ -18350,8 +18350,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 04:31:29 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/ScreenshotGestureActionPickerManager.kt` | `ScreenshotGestureActionPickerManager` | Map SEND_TO_RECIPIENTS to label (S0472) [branch: DEBUG-v014] |
 | 2026-06-17 04:31:29 | `app_v2/src/main/java/com/sza/fastmediasorter/core/screencapture/ScreenshotGestureActionDispatcher.kt` | `ScreenshotGestureActionDispatcher` | Route SEND_TO_RECIPIENTS to standalone viewer auto-action (S0472) [branch: DEBUG-v014] |
 | 2026-06-17 04:37:23 | `docs/FEATURES_noLegal.md` | `FEATURES_noLegal` | Document Send-to-recipients screenshot-gesture action (S0472) [branch: DEBUG-v014] |
-| 2026-06-17 04:37:24 | `docs/FEATURES_noLegal_RU.md` | `FEATURES_noLegal_RU` | Document Send-to-recipients screenshot-gesture action RU (S0472) [branch: DEBUG-v014] |
-| 2026-06-17 04:37:24 | `docs/FEATURES_noLegal_UK.md` | `FEATURES_noLegal_UK` | Document Send-to-recipients screenshot-gesture action UK (S0472) [branch: DEBUG-v014] |
+| 2026-06-17 04:37:24 | `docs/FEATURES_noLegal-ru.md` | `FEATURES_noLegal_RU` | Document Send-to-recipients screenshot-gesture action RU (S0472) [branch: DEBUG-v014] |
+| 2026-06-17 04:37:24 | `docs/FEATURES_noLegal-uk.md` | `FEATURES_noLegal_UK` | Document Send-to-recipients screenshot-gesture action UK (S0472) [branch: DEBUG-v014] |
 | 2026-06-17 04:40:24 | `PLAN/S0472_screenshot-gesture-send-to-recipients.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-17 04:40:24 | `app_v2/src/main/java/com/sza/fastmediasorter/core/screencapture/ScreenshotGestureActionDispatcher.kt` | `spec-dev` | Phase 02.2 S0472 device-test probe [branch: DEBUG-v014] |
 | 2026-06-17 04:40:24 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/PhotoVideoStandaloneActivity.kt` | `spec-dev` | Phase 02.2 S0472 device-test probe [branch: DEBUG-v014] |
@@ -18524,8 +18524,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 14:58:48 | `scripts/check_strings_localized.ps1` | `spec-dev` | S0473: honor translatable=false in locale audit (Rule 13 script fix) [branch: DEBUG-v014] |
 | 2026-06-17 15:06:52 | `PLAN/S0473_statistics-collection-option-default-off.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest; S0473 debug tags inserted [branch: DEBUG-v014] |
 | 2026-06-17 15:06:52 | `docs/FEATURES.md` | `spec-dev` | S0473: add Usage Statistics feature entry [branch: DEBUG-v014] |
-| 2026-06-17 15:06:52 | `docs/FEATURES_RU.md` | `spec-dev` | S0473: add Usage Statistics feature entry (RU) [branch: DEBUG-v014] |
-| 2026-06-17 15:06:52 | `docs/FEATURES_UK.md` | `spec-dev` | S0473: add Usage Statistics feature entry (UK) [branch: DEBUG-v014] |
+| 2026-06-17 15:06:52 | `docs/FEATURES-ru.md` | `spec-dev` | S0473: add Usage Statistics feature entry (RU) [branch: DEBUG-v014] |
+| 2026-06-17 15:06:52 | `docs/FEATURES-uk.md` | `spec-dev` | S0473: add Usage Statistics feature entry (UK) [branch: DEBUG-v014] |
 | 2026-06-17 15:06:52 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/SetStatisticsCollectionEnabledUseCase.kt` | `spec-dev` | S0473 Phase 06: debug tag (toggle flow) [branch: DEBUG-v014] |
 | 2026-06-17 15:06:52 | `app_v2/src/main/java/com/sza/fastmediasorter/data/stats/StatsSinkImpl.kt` | `spec-dev` | S0473 Phase 06: debug tag (flush flow) [branch: DEBUG-v014] |
 | 2026-06-17 15:06:52 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/statistics/StatisticsActivity.kt` | `spec-dev` | S0473 Phase 06: debug tag (window open) [branch: DEBUG-v014] |
@@ -18567,8 +18567,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 16:57:36 | `PLAN/S0487_search-log-exceptions-machine-output.md` | `spec-draft` | Park S0487: search-log.ps1 -Exceptions lacks machine output (from S0484 research) [branch: DEBUG-v014] |
 | 2026-06-17 16:58:40 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseErrorDisplayManager.kt` | `BrowseErrorDisplayManager` | S0483 P03: forward exception to dialog as reportableThrowable (crash-report gate) [branch: DEBUG-v014] |
 | 2026-06-17 17:02:59 | `docs/FEATURES.md` | `features` | S0483 P04: document crash-report email button (EN) [branch: DEBUG-v014] |
-| 2026-06-17 17:02:59 | `docs/FEATURES_RU.md` | `features` | S0483 P04: document crash-report email button (RU) [branch: DEBUG-v014] |
-| 2026-06-17 17:02:59 | `docs/FEATURES_UK.md` | `features` | S0483 P04: document crash-report email button (UK) [branch: DEBUG-v014] |
+| 2026-06-17 17:02:59 | `docs/FEATURES-ru.md` | `features` | S0483 P04: document crash-report email button (RU) [branch: DEBUG-v014] |
+| 2026-06-17 17:02:59 | `docs/FEATURES-uk.md` | `features` | S0483 P04: document crash-report email button (UK) [branch: DEBUG-v014] |
 | 2026-06-17 17:03:46 | `PLAN/S0483_crash-report-email-button.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-17 17:04:03 | `PLAN/S0488_pin-all-files-resource-first.md` | `spec` | Add strategic spec S0488 for always-first All-files resource ordering [branch: DEBUG-v014] |
 | 2026-06-17 17:11:49 | `PLAN/S0488_pin-all-files-resource-first/INDEX.md` | `spec-tech` | Create tactical plan for S0488 [branch: DEBUG-v014] |
@@ -18610,8 +18610,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 17:34:07 | `PLAN/S0489_features-allfeatures-split.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v014] |
 | 2026-06-17 17:35:25 | `scripts/devtest/prerelease.config.psd1` | `spec-dev` | S0484 Phase 01.5: run-config skeleton (Resources/Settings/Thresholds) [branch: DEBUG-v014] |
 | 2026-06-17 17:35:37 | `docs/FEATURES.md` | `features` | S0490 P05: document post-crash report prompt (EN) [branch: DEBUG-v014] |
-| 2026-06-17 17:35:37 | `docs/FEATURES_RU.md` | `features` | S0490 P05: document post-crash report prompt (RU) [branch: DEBUG-v014] |
-| 2026-06-17 17:35:37 | `docs/FEATURES_UK.md` | `features` | S0490 P05: document post-crash report prompt (UK) [branch: DEBUG-v014] |
+| 2026-06-17 17:35:37 | `docs/FEATURES-ru.md` | `features` | S0490 P05: document post-crash report prompt (RU) [branch: DEBUG-v014] |
+| 2026-06-17 17:35:37 | `docs/FEATURES-uk.md` | `features` | S0490 P05: document post-crash report prompt (UK) [branch: DEBUG-v014] |
 | 2026-06-17 17:36:01 | `PLAN/S0490_post-crash-report-prompt.md` | `spec-dev` | All phases done; status -> BlockNeedUserTest [branch: DEBUG-v014] |
 | 2026-06-17 17:37:58 | `docs/ALL_FEATURES.schema.json` | `all-features` | Add ALL_FEATURES JSONL record schema (draft-07) [branch: DEBUG-v014] |
 | 2026-06-17 17:38:52 | `.gitignore` | `all-features` | Gitignore ALL_FEATURES_noLegal.jsonl; seed empty ALL_FEATURES data files [branch: DEBUG-v014] |
@@ -18640,8 +18640,8 @@ Format: | datetime | file | target | description |
 | 2026-06-17 18:27:34 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.1: log signal via search-log.ps1 [branch: DEBUG-v014] |
 | 2026-06-17 18:28:17 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.2: fold perf + screenshot signals [branch: DEBUG-v014] |
 | 2026-06-17 18:29:31 | `docs/FEATURES.md` | `all-features` | Revise FEATURES to curated showcase; demote 3 minor entries; point to ALL_FEATURES inventory [branch: DEBUG-v014] |
-| 2026-06-17 18:29:32 | `docs/FEATURES_RU.md` | `all-features` | Revise FEATURES_RU to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
-| 2026-06-17 18:29:33 | `docs/FEATURES_UK.md` | `all-features` | Revise FEATURES_UK to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
+| 2026-06-17 18:29:32 | `docs/FEATURES-ru.md` | `all-features` | Revise FEATURES_RU to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
+| 2026-06-17 18:29:33 | `docs/FEATURES-uk.md` | `all-features` | Revise FEATURES_UK to showcase + inventory pointer (lockstep) [branch: DEBUG-v014] |
 | 2026-06-17 18:30:10 | `scripts/devtest/prerelease-verdict.ps1` | `spec-dev` | S0484 Phase 04.3: emit verdict JSON + stable exit code; fix Get-Count parsing [branch: DEBUG-v014] |
 | 2026-06-17 18:31:35 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.1: skill header/usage/device-gate [branch: DEBUG-v014] |
 | 2026-06-17 18:32:18 | `.claude/commands/spec-prerelease.md` | `spec-dev` | S0484 Phase 05.2: configure section (script + mobile-mcp) [branch: DEBUG-v014] |
@@ -19198,24 +19198,24 @@ Format: | datetime | file | target | description |
 | 2026-06-19 17:47:54 | `docs/FEATURES.md` | `spec-all` | S0543 P03: showcase reconciled (FEATURES.md+RU+UK) - removed 3 noLegal bullets, fixed 2 flavor labels, folder cap 10->30, removed-widget mention, date bump [branch: DEBUG-v015] |
 | 2026-06-19 17:49:50 | `PLAN/S0545_camera-capabilities-expansion.md` | `spec-quiz` | S0545: Draft -> Approved via quiz (4 questions: audio policy, phasing, UI placement, autonomy) [branch: DEBUG-v015] |
 | 2026-06-19 17:52:04 | `docs/HOW_TO.md` | `docs` | Fix feature availability table: Network Lite=N/Legacy=Y, Cloud Legacy=Y, DocViewer/EPUB/OCR Lite=N/Photos=N, ImageEditing XR=N; fix NAS and handoff scenario Available-in lines [branch: DEBUG-v015] |
-| 2026-06-19 17:52:08 | `docs/HOW_TO_RU.md` | `docs` | Fix feature availability table (mirror of EN corrections) and prose Available-in lines for NAS and handoff scenarios [branch: DEBUG-v015] |
-| 2026-06-19 17:52:12 | `docs/HOW_TO_UK.md` | `docs` | Fix feature availability table: added missing XR/noLegal column, applied same corrections as EN/RU; fix prose Available-in lines for NAS and handoff scenarios; update footer note to mention XR/noLegal [branch: DEBUG-v015] |
+| 2026-06-19 17:52:08 | `docs/HOW_TO-ru.md` | `docs` | Fix feature availability table (mirror of EN corrections) and prose Available-in lines for NAS and handoff scenarios [branch: DEBUG-v015] |
+| 2026-06-19 17:52:12 | `docs/HOW_TO-uk.md` | `docs` | Fix feature availability table: added missing XR/noLegal column, applied same corrections as EN/RU; fix prose Available-in lines for NAS and handoff scenarios; update footer note to mention XR/noLegal [branch: DEBUG-v015] |
 | 2026-06-19 17:52:20 | `docs/README.md` | `docs` | Fix: Kotlin badge 1.9.0->2.2.10, Glide 4.15.1->4.16.0, Room version->2.7.0, Legacy flavor description (add SMB/FTP/SFTP+cloud, not local-only), widget count claim (two->13+) [branch: DEBUG-v015] |
-| 2026-06-19 17:52:20 | `docs/README_RU.md` | `docs` | Fix: Kotlin badge 1.9.0->2.2.10, Glide 4.15.1->4.16.0, Room version->2.7.0, Legacy flavor description, widget count claim (RU) [branch: DEBUG-v015] |
-| 2026-06-19 17:52:21 | `docs/README_UK.md` | `docs` | Fix: Kotlin badge 1.9.0->2.2.10, Glide 4.15.1->4.16.0, Room version->2.7.0, Legacy flavor description, widget count claim (UK) [branch: DEBUG-v015] |
-| 2026-06-19 17:52:51 | `docs/QUICK_START.md, docs/QUICK_START_RU.md, docs/QUICK_START_UK.md, docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md` | `docs` | Fix 3 factual errors: Legacy flavor now correctly described as having SMB/FTP/SFTP+cloud (not local-only); widget count corrected from '2 types' to 'variety'; Photos flavor added to slideshow background music flavor list in FAQ [branch: DEBUG-v015] |
+| 2026-06-19 17:52:20 | `docs/README-ru.md` | `docs` | Fix: Kotlin badge 1.9.0->2.2.10, Glide 4.15.1->4.16.0, Room version->2.7.0, Legacy flavor description, widget count claim (RU) [branch: DEBUG-v015] |
+| 2026-06-19 17:52:21 | `docs/README-uk.md` | `docs` | Fix: Kotlin badge 1.9.0->2.2.10, Glide 4.15.1->4.16.0, Room version->2.7.0, Legacy flavor description, widget count claim (UK) [branch: DEBUG-v015] |
+| 2026-06-19 17:52:51 | `docs/QUICK_START.md, docs/QUICK_START-ru.md, docs/QUICK_START-uk.md, docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md` | `docs` | Fix 3 factual errors: Legacy flavor now correctly described as having SMB/FTP/SFTP+cloud (not local-only); widget count corrected from '2 types' to 'variety'; Photos flavor added to slideshow background music flavor list in FAQ [branch: DEBUG-v015] |
 | 2026-06-19 17:57:31 | `docs/HOW_TO.md` | `spec-all` | S0543 P06: fixed flavor matrix + README/QUICK_START/FAQ + index.html badge across EN/RU/UK to match shipped flavors (Legacy=cloud+network per owner) [branch: DEBUG-v015] |
 | 2026-06-19 17:57:32 | `scripts/all_features/validate.ps1` | `spec-all` | S0543 P07: strengthen validate gate - forbid spec-id as area prefix on active records [branch: DEBUG-v015] |
-| 2026-06-19 18:04:30 | `docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md, docs/QUICK_START.md, docs/QUICK_START_RU.md, docs/QUICK_START_UK.md` | `docs` | Fix touch-zone 3x3 grid diagrams in FAQ (EN/RU/UK) to match canonical code mapping (TouchZoneConfig.kt get9ZoneTapAction); add missing slideshow background music section to FAQ_UK.md [branch: DEBUG-v015] |
-| 2026-06-19 18:04:59 | `docs/FEATURES.md, docs/FEATURES_RU.md, docs/FEATURES_UK.md` | `showcase` | Add 5 missing showcase bullets (sleep timer, soft delete, download by link, Chromecast casting, video frame to clipboard) across EN/RU/UK [branch: DEBUG-v015] |
+| 2026-06-19 18:04:30 | `docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md, docs/QUICK_START.md, docs/QUICK_START-ru.md, docs/QUICK_START-uk.md` | `docs` | Fix touch-zone 3x3 grid diagrams in FAQ (EN/RU/UK) to match canonical code mapping (TouchZoneConfig.kt get9ZoneTapAction); add missing slideshow background music section to FAQ-uk.md [branch: DEBUG-v015] |
+| 2026-06-19 18:04:59 | `docs/FEATURES.md, docs/FEATURES-ru.md, docs/FEATURES-uk.md` | `showcase` | Add 5 missing showcase bullets (sleep timer, soft delete, download by link, Chromecast casting, video frame to clipboard) across EN/RU/UK [branch: DEBUG-v015] |
 | 2026-06-19 18:07:22 | `PLAN/S0548_hotfix-grid-filename-visibility.md` | `spec` | Add strategic spec S0548 for grid no-thumbnail filename visibility (release blocker) [branch: DEBUG-v015] |
-| 2026-06-19 18:08:34 | `docs/FEATURES_RU.md` | `spec-all` | S0543 P03/P06 follow-up: removed 3 noLegal screen-capture bullets from public RU/UK showcase, date+folder parity, 5 staleness-adds x3, touch-zone canon (FAQ x3), FAQ_UK slideshow section, index*.html Chromecast badge x3 - EN/RU/UK 53/53/53 parity [branch: DEBUG-v015] |
+| 2026-06-19 18:08:34 | `docs/FEATURES-ru.md` | `spec-all` | S0543 P03/P06 follow-up: removed 3 noLegal screen-capture bullets from public RU/UK showcase, date+folder parity, 5 staleness-adds x3, touch-zone canon (FAQ x3), FAQ_UK slideshow section, index*.html Chromecast badge x3 - EN/RU/UK 53/53/53 parity [branch: DEBUG-v015] |
 | 2026-06-19 18:12:44 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseRecyclerViewManager.kt` | `S0548` | Grid no-thumbnail planks span >=4 cube-widths so file name stays readable with/without overflow menu (supersedes S0419 halving) [branch: DEBUG-v015] |
 | 2026-06-19 18:31:03 | `PLAN/S0526_widget-dictaphone-resource-destination.md` | `spec-check` | Audit S0526 -> Verified; device PASS all 4 scenarios (widget placed on launcher): selected-resource, no-dest->public Download, unreachable-SMB->local fallback+notification, in-app mic regression [branch: DEBUG-v015] |
 | 2026-06-19 18:31:03 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/QuickAudioRecorderService.kt` | `spec-check` | Remove S0526 debug tag on Verified flip [branch: DEBUG-v015] |
 | 2026-06-19 18:31:03 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseMicRecordingManager.kt` | `spec-check` | Remove S0526 debug tag on Verified flip [branch: DEBUG-v015] |
 | 2026-06-19 18:32:56 | `PLAN/S0307_emulator-user-test-sweep.md` | `spec-sweep` | Batch device sweep on emulator-5556 (API33): closed 7 (S0534/S0532/S0533/S0483/S0525/S0470/S0526), inconclusive 4 stay BlockNeedUserTest (S0461/S0523/S0512/S0531 - need arm64+noLegal / real camera / real pointer / detachable HW kbd), parked 1 (S0544); final fk compile PASS [branch: DEBUG-v015] |
-| 2026-06-19 18:54:02 | `docs/FEATURES.md, docs/FEATURES_RU.md, docs/FEATURES_UK.md` | `showcase` | Add section 18 Bonus Mini-Game (Kryvavitsa and the Monster) to EN/RU/UK feature showcase docs [branch: DEBUG-v015] |
+| 2026-06-19 18:54:02 | `docs/FEATURES.md, docs/FEATURES-ru.md, docs/FEATURES-uk.md` | `showcase` | Add section 18 Bonus Mini-Game (Kryvavitsa and the Monster) to EN/RU/UK feature showcase docs [branch: DEBUG-v015] |
 | 2026-06-19 18:54:44 | `docs/FEATURES.md` | `spec-all` | S0543: add Bonus Mini-Game (Kryvavitsa) section to public showcase EN/RU/UK; DOCS_MAP WHATS_NEW version/date + LIMITATIONS date normalized [branch: DEBUG-v015] |
 | 2026-06-19 18:56:30 | `docs/settings/settings-manifest.json` | `spec-dev S0440` | Phase 01 done: regenerated settings manifest against current scan (165->171 entries) + verify-mode test PASS [branch: DEBUG-v015] |
 | 2026-06-19 19:03:15 | `docs/settings/settings-annotations.json` | `S0440` | Create settings annotations JSON: one-sentence EN/RU/UK descriptions for all 171 settings entries [branch: DEBUG-v015] |
@@ -19334,7 +19334,7 @@ Format: | datetime | file | target | description |
 | 2026-06-20 03:44:29 | `PLAN/S0556_publish-vr-android-xr-store.md` | `spec-update` | Refinement (gpt-5, focus: language, structure, verifiability, consistency, completeness, style) [branch: DEBUG-v016] |
 | 2026-06-20 04:00:22 | `docs/REPLACES.md` | `REPLACES` | New marketing doc: list of standalone apps FastMediaSorter replaces (player/camera/file manager/OCR/translator/etc), EN + RU with flavor + 'basic' honesty notes [branch: DEBUG-v016] |
 | 2026-06-20 04:03:12 | `docs/REPLACES.md` | `REPLACES` | Supplemented replacements list with TV media center, download manager, widget pack, and settings backup roles [branch: DEBUG-v016] |
-| 2026-06-20 04:03:13 | `docs/REPLACES_RU.md` | `REPLACES_RU` | Supplemented Russian replacements list with TV media center, download manager, widget pack, and settings backup roles [branch: DEBUG-v016] |
+| 2026-06-20 04:03:13 | `docs/REPLACES-ru.md` | `REPLACES_RU` | Supplemented Russian replacements list with TV media center, download manager, widget pack, and settings backup roles [branch: DEBUG-v016] |
 | 2026-06-20 04:04:18 | `PLAN/S0555_publish-vr-app-meta-store.md` | `spec-update` | Refinement (claude-opus-4.8, focus: structure/verifiability/consistency/completeness/style; em-dash fix) [branch: DEBUG-v016] |
 | 2026-06-20 04:07:46 | `PLAN/S0556_publish-vr-android-xr-store.md` | `spec-update` | Refinement (claude-opus-4.8; em-dash + list-marker hygiene; web-verified Android XR publish/manifest claims) [branch: DEBUG-v016] |
 | 2026-06-20 04:12:51 | `PLAN/S0535_unify-collapsible-groups.md` | `spec-arc` | Archive S0535 (unify-collapsible-groups) -> temp/done/; removed 4 S0535 debug tags (StatisticsAdapter, CollapsibleSectionStateMigration, CollapsibleSectionsManager, KeybindingRemapViewModel) + unused Timber imports [branch: DEBUG-v016] |
@@ -19342,10 +19342,10 @@ Format: | datetime | file | target | description |
 | 2026-06-20 04:12:52 | `PLAN/S0538_unify-dialog-action-buttons.md` | `spec-arc` | Archive S0538 (unify-dialog-action-buttons) -> temp/done/; removed S0538 debug tag (BrowseDeleteDialogManager) + unused Timber import [branch: DEBUG-v016] |
 | 2026-06-20 04:12:52 | `PLAN/S0539_decompose-browse-dialog-helper.md` | `spec-arc` | Archive S0539 (decompose-browse-dialog-helper) -> temp/done/ [branch: DEBUG-v016] |
 | 2026-06-20 04:12:53 | `PLAN/S0544_error-dialog-landscape-action-row-clipped.md` | `spec-arc` | Archive S0544 (error-dialog-landscape-action-row-clipped) -> temp/done/; removed S0544 debug tag (ScrollableTextDialog) [branch: DEBUG-v016] |
-| 2026-06-20 04:17:49 | `index.html, index-ru.html, index-uk.html, styles.css, README.md, docs/README_RU.md, docs/README_UK.md` | `Website + README` | Add 'What FastMediaSorter Replaces' section (4 categories: viewing/playback, capture/create, file management, text/utilities) near the top of the public site (EN/RU/UK) and README (EN/RU/UK), sourced from docs/REPLACES.md; noLegal-exclusive screenshot tool omitted per published-build showcase policy [branch: DEBUG-v016] |
-| 2026-06-20 04:33:14 | `docs/REPLACES_RU.md` | `docs` | REPLACES showcase (RU+EN): drop 'Settings backup tool' entry - not a device-replacement app; remove its honesty-note clause [branch: DEBUG-v016] |
-| 2026-06-20 04:36:56 | `docs/REPLACES_RU.md` | `docs` | REPLACES showcase (RU+EN): recast Calculator as scientific (drop 'basic'); expand noLegal exclusives with site media downloader, APK sideload, Office document viewer [branch: DEBUG-v016] |
-| 2026-06-20 04:37:14 | `docs/HOW_TO.md, docs/HOW_TO_RU.md, docs/HOW_TO_UK.md` | `Documentation` | Fix How-To settings paths/labels to match current UI: slideshow music (Media>Images, 'Play music during slideshow'), text/PDF/EPUB (Media>Documents, exact toggle labels), translation (Media>Other), and remote-key remap (Operations>Controls & Keybindings, was wrongly Playback); EN/RU/UK in lockstep [branch: DEBUG-v016] |
+| 2026-06-20 04:17:49 | `index.html, index-ru.html, index-uk.html, styles.css, README.md, docs/README-ru.md, docs/README-uk.md` | `Website + README` | Add 'What FastMediaSorter Replaces' section (4 categories: viewing/playback, capture/create, file management, text/utilities) near the top of the public site (EN/RU/UK) and README (EN/RU/UK), sourced from docs/REPLACES.md; noLegal-exclusive screenshot tool omitted per published-build showcase policy [branch: DEBUG-v016] |
+| 2026-06-20 04:33:14 | `docs/REPLACES-ru.md` | `docs` | REPLACES showcase (RU+EN): drop 'Settings backup tool' entry - not a device-replacement app; remove its honesty-note clause [branch: DEBUG-v016] |
+| 2026-06-20 04:36:56 | `docs/REPLACES-ru.md` | `docs` | REPLACES showcase (RU+EN): recast Calculator as scientific (drop 'basic'); expand noLegal exclusives with site media downloader, APK sideload, Office document viewer [branch: DEBUG-v016] |
+| 2026-06-20 04:37:14 | `docs/HOW_TO.md, docs/HOW_TO-ru.md, docs/HOW_TO-uk.md` | `Documentation` | Fix How-To settings paths/labels to match current UI: slideshow music (Media>Images, 'Play music during slideshow'), text/PDF/EPUB (Media>Documents, exact toggle labels), translation (Media>Other), and remote-key remap (Operations>Controls & Keybindings, was wrongly Playback); EN/RU/UK in lockstep [branch: DEBUG-v016] |
 | 2026-06-20 04:38:40 | `PLAN/S0558_howto-settings-path-drift-gate.md` | `spec` | Scaffold strategic spec skeleton S0558 [branch: DEBUG-v016] |
 | 2026-06-20 04:39:56 | `PLAN/S0559_split-screencapture-menu-standard.md` | `spec` | Scaffold strategic spec skeleton S0559 [branch: DEBUG-v016] |
 | 2026-06-20 04:55:02 | `docs/*.md, index*.html` | `User docs (EN/RU/UK) + landing pages` | S0557: fix doc drift from S0366 audit - corrected Legacy/Photos/Lite flavor capability claims (cloud/SMB/OCR/background-music) in FEATURES+HOW_TO, refreshed stale settings nav paths (Quick Sort->Operations, Documents/General->Media) in FAQ/QUICK_START/TROUBLESHOOTING, added missing UK HOW_TO sections + FAQ_UK lens Q&A (EN/RU/UK heading parity), removed stale OU-3D 'planned' line and added OU stereo mode, fixed Wear OS + SMB/SFTP dead anchors, added Jekyll permalinks to navigational docs and aligned landing-page link extensions to each target's canonical served path, added VR doc group + refreshed dates in DOCS_MAP, added License/IzzyOnDroid badges to EN README [branch: DEBUG-v016] |
@@ -19358,8 +19358,8 @@ Format: | datetime | file | target | description |
 | 2026-06-20 13:49:02 | `PLAN/S0561_settings-reference-landing-permalink.md` | `spec` | Scaffold strategic spec skeleton S0561 [branch: DEBUG-v016] |
 | 2026-06-20 13:51:13 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 2 processed (S0560 Verified, S0557 deferred-concurrent-WIP); 7 deferred (S0559/S0558/S0556/S0555/S0552 skip-cached owner/external/research-gated; S0551/S0561 round-deferred, stay eligible) [branch: DEBUG-v016] |
 | 2026-06-20 13:51:13 | `index-ru.html` | `spec-next` | S0557 5.2.3: drop residual Ukrainian search-categorizer token from the RU landing JS (RU page keeps perevod/translation matchers) [branch: DEBUG-v016] |
-| 2026-06-20 13:51:39 | `docs/FAQ_RU.md, docs/FAQ_UK.md, docs/HOW_TO.md, docs/HOW_TO_RU.md, docs/FEATURES*.md, index*.html` | `User docs (EN/RU/UK) + landing pages` | S0557 finish: completed Phase 2/4/5 gaps - added front matter+permalink to FEATURES.md/_RU/_UK and switched landing FEATURES links from .md to .html (Jekyll render parity); restored EN/RU/UK mirror parity (translated stale English section names in FAQ_RU, mirrored SMB/SFTP dead-anchor cleanup into HOW_TO+HOW_TO_RU, added missing Wear OS Q&A section to FAQ_UK); fixed FEATURES_UK section 9 heading RU/UK typo so landing audio anchor resolves; parked SETTINGS_REFERENCE landing permalink drift as S0561 (generated file, out of scope) [branch: DEBUG-v016] |
-| 2026-06-20 14:17:28 | `docs/HOW_TO_RU.md` | `scripts/quality + docs HOW_TO guides` | S0558 - add HOW_TO settings-path drift gate (assert-howto-settings-paths.ps1 + howto-path-vocab.json), wire into settings-doc composite as stage 5 and into post-change on HOW_TO edits, fix stale RU/UK touch-zones setting label [branch: DEBUG-v016] |
+| 2026-06-20 13:51:39 | `docs/FAQ-ru.md, docs/FAQ-uk.md, docs/HOW_TO.md, docs/HOW_TO-ru.md, docs/FEATURES*.md, index*.html` | `User docs (EN/RU/UK) + landing pages` | S0557 finish: completed Phase 2/4/5 gaps - added front matter+permalink to FEATURES.md/_RU/_UK and switched landing FEATURES links from .md to .html (Jekyll render parity); restored EN/RU/UK mirror parity (translated stale English section names in FAQ_RU, mirrored SMB/SFTP dead-anchor cleanup into HOW_TO+HOW_TO_RU, added missing Wear OS Q&A section to FAQ_UK); fixed FEATURES_UK section 9 heading RU/UK typo so landing audio anchor resolves; parked SETTINGS_REFERENCE landing permalink drift as S0561 (generated file, out of scope) [branch: DEBUG-v016] |
+| 2026-06-20 14:17:28 | `docs/HOW_TO-ru.md` | `scripts/quality + docs HOW_TO guides` | S0558 - add HOW_TO settings-path drift gate (assert-howto-settings-paths.ps1 + howto-path-vocab.json), wire into settings-doc composite as stage 5 and into post-change on HOW_TO edits, fix stale RU/UK touch-zones setting label [branch: DEBUG-v016] |
 | 2026-06-20 14:27:09 | `PLAN/S0555_publish-vr-app-meta-store.md` | `spec-update` | Refinement (claude-opus-4.8, focus: language structure verifiability consistency completeness style) - clean pass, 0 applied [branch: DEBUG-v016] |
 | 2026-06-20 14:30:59 | `scripts/docs/render-settings-reference.ps1` | `SETTINGS_REFERENCE landing permalink scheme` | S0561: render-settings-reference.ps1 now emits Jekyll front matter (layout/title/permalink to .html) as the first bytes of each locale; regenerated EN/RU/UK SETTINGS_REFERENCE docs and switched the three landing links from .md to .html so GitHub Pages serves the settings reference as rendered HTML [branch: DEBUG-v016] |
 | 2026-06-20 14:44:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt` | `Crash-report email` | Crash-report email now targets email apps via mailto: selector (was generic ACTION_SEND share sheet that only flickered); launch intent directly without createChooser; drop redundant crash text from body when log ZIP is attached [branch: DEBUG-v016] |
@@ -19544,8 +19544,8 @@ Format: | datetime | file | target | description |
 | 2026-06-21 19:27:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player` | `spec-all` | S0590: show stream channel name as player title/overlay (resolve via GetStreamSourceByUrlUseCase by URL, fall back to URL-derived filename) [branch: DEBUG-v016] |
 | 2026-06-21 19:27:07 | `PLAN/S0593_streams-verified-online-state.md` | `spec` | Scaffold strategic spec skeleton S0593 (verified-online state: CSV last_online + app green-on-play, yellow-resolution) [branch: DEBUG-v016] |
 | 2026-06-21 19:27:38 | `docs/FEATURES.md` | `docs` | Add Section 19: Internet Streams detailing stream player features, inline ICY metadata, category/language filters, background playback behavior, and local favorites pinning [branch: DEBUG-v016] |
-| 2026-06-21 19:27:41 | `docs/FEATURES_RU.md` | `docs` | Add Section 19: Internet Streams detailing stream player features, inline ICY metadata, category/language filters, background playback behavior, and local favorites pinning (RU) [branch: DEBUG-v016] |
-| 2026-06-21 19:27:44 | `docs/FEATURES_UK.md` | `docs` | Add Section 19: Internet Streams detailing stream player features, inline ICY metadata, category/language filters, background playback behavior, and local favorites pinning (UK) [branch: DEBUG-v016] |
+| 2026-06-21 19:27:41 | `docs/FEATURES-ru.md` | `docs` | Add Section 19: Internet Streams detailing stream player features, inline ICY metadata, category/language filters, background playback behavior, and local favorites pinning (RU) [branch: DEBUG-v016] |
+| 2026-06-21 19:27:44 | `docs/FEATURES-uk.md` | `docs` | Add Section 19: Internet Streams detailing stream player features, inline ICY metadata, category/language filters, background playback behavior, and local favorites pinning (UK) [branch: DEBUG-v016] |
 | 2026-06-21 19:35:42 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerMediaFilesLoader.kt` | `S0592` | S0592: map stream mediaKind to MediaType (audio streams no longer forced to VIDEO in fullscreen player) [branch: DEBUG-v016] |
 | 2026-06-21 19:36:55 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S0567 Phase 02 Step 02.4` | Replace 7 raw Spinner widgets with SettingsDropdownRow (language, color theme, sort, subtitle/audio language, font size/family) across 4 layouts + landscape counterparts; rewrite 6 controllers to setEntries/getSelectedIndex/setOnItemSelectedListener; fold paired labels into sdr_title, drop tvSubtitleLanguageLabel and route enable-dimming through row.isEnabled; remove now-unused Spinner/AdapterView/ArrayAdapter imports. [branch: DEBUG-v016] |
 | 2026-06-21 19:38:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/FilterResourceDialog.kt` | `spec-dev` | S0567 Phase 02 Step 02.4: migrate 7 raw Spinners to SettingsDropdownRow (Language/ColorTheme/Sort/Subtitle/Audio/FontSize/FontFamily) across 4 layouts (both orientations) + 6 controllers [branch: DEBUG-v016] |
@@ -20094,7 +20094,7 @@ Format: | datetime | file | target | description |
 | 2026-06-24 23:30:28 | `PLAN/S0670_compact-playback-control-dialog/PHASE_04__tab-visibility-logic.md` | `spec-tech` | Phase 04: tab-visibility-logic [branch: DEBUG-v018] |
 | 2026-06-24 23:30:28 | `PLAN/S0670_compact-playback-control-dialog/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v018] |
 | 2026-06-24 23:30:28 | `PLAN/S0670_compact-playback-control-dialog.md` | `spec-tech` | S0670 Status -> Tactical [branch: DEBUG-v018] |
-| 2026-06-24 23:32:55 | `docs/HOW_TO_DEVELOP_AND_RELEASE_RU.md` | `HOW_TO_DEVELOP_AND_RELEASE` | Refresh Scenario 3 + distribution channels to actual /skill-release pipeline (inventory-diff notes, version pinning, RU/UK mirrors, auto-publish GitHub/Play/Drive, FEATURES showcase, screen-capture gating caveat) [branch: DEBUG-v018] |
+| 2026-06-24 23:32:55 | `docs/HOW_TO_DEVELOP_AND_RELEASE-ru.md` | `HOW_TO_DEVELOP_AND_RELEASE` | Refresh Scenario 3 + distribution channels to actual /skill-release pipeline (inventory-diff notes, version pinning, RU/UK mirrors, auto-publish GitHub/Play/Drive, FEATURES showcase, screen-capture gating caveat) [branch: DEBUG-v018] |
 | 2026-06-24 23:32:55 | `docs/REPLACES.md` | `REPLACES` | Enrich EN+RU with new functionality: stream player/casting/shortcuts, Samsung in-app camera, video gestures/9-zone/auto-fullscreen, viewer printing, noLegal edge-gestures/app-panel; bump date [branch: DEBUG-v018] |
 | 2026-06-24 23:36:03 | `PLAN/S0671_standard-mediaprojection-capture-suite.md` | `spec` | Add strategic spec S0671 - ship MediaProjection capture + post-processing suite to Play standard flavor (noLegal->standard, part 1) [branch: DEBUG-v018] |
 | 2026-06-24 23:36:03 | `PLAN/S0672_standard-edge-gesture-play-compliance.md` | `spec` | Add strategic spec S0672 - Play-compliant edge-gesture trigger for standard (noLegal->standard, part 2; depends on S0671) [branch: DEBUG-v018] |
@@ -21085,8 +21085,8 @@ Format: | datetime | file | target | description |
 | 2026-07-02 21:18:02 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/RestoreFromGoogleDriveUseCaseTest.kt` | `spec-dev` | S0820 phase05: fix unrelated pre-existing any() type-inference ambiguity blocking manifest test [branch: DEBUG-v020] |
 | 2026-07-02 21:18:02 | `docs/settings/settings-annotations.json` | `spec-dev` | S0820 phase05: add rowOpenVideoInFullscreen annotation EN/RU/UK [branch: DEBUG-v020] |
 | 2026-07-02 21:18:02 | `docs/SETTINGS_REFERENCE.md` | `spec-dev` | S0820 phase05: re-render settings reference (EN) [branch: DEBUG-v020] |
-| 2026-07-02 21:18:02 | `docs/SETTINGS_REFERENCE_RU.md` | `spec-dev` | S0820 phase05: re-render settings reference (RU) [branch: DEBUG-v020] |
-| 2026-07-02 21:18:02 | `docs/SETTINGS_REFERENCE_UK.md` | `spec-dev` | S0820 phase05: re-render settings reference (UK) [branch: DEBUG-v020] |
+| 2026-07-02 21:18:02 | `docs/SETTINGS_REFERENCE-ru.md` | `spec-dev` | S0820 phase05: re-render settings reference (RU) [branch: DEBUG-v020] |
+| 2026-07-02 21:18:02 | `docs/SETTINGS_REFERENCE-uk.md` | `spec-dev` | S0820 phase05: re-render settings reference (UK) [branch: DEBUG-v020] |
 | 2026-07-02 21:18:02 | `docs/ALL_FEATURES.jsonl` | `spec-dev` | S0820 phase05: record video-player.open-in-fullscreen-from-browse capability [branch: DEBUG-v020] |
 | 2026-07-02 21:18:02 | `PLAN/S0820_video-fullscreen-open-option/PHASE_05__docs-catalog-cleanup.md` | `spec-dev` | S0820 phase05 done - docs-catalog-cleanup [branch: DEBUG-v020] |
 | 2026-07-02 21:31:29 | `app_v2/src/benchmark/java/com/sza/fastmediasorter/perf/BenchmarkSetupReceiver.kt` | `benchmark app preparation` | Skip welcome and provision default resources for benchmarks [branch: DEBUG-v020] |
@@ -21746,14 +21746,14 @@ Format: | datetime | file | target | description |
 | 2026-07-06 11:31:33 | `PLAN/S0968_howto-sbs-3d-vr-mode-flavor-drift.md` | `spec` | Scaffold strategic spec skeleton S0968 [branch: DEBUG-v023] |
 | 2026-07-06 11:32:33 | `PLAN/S0969_bugfix-vr-install-cta-shows-on-vr-flavor.md` | `spec` | Scaffold strategic spec skeleton S0969 [branch: DEBUG-v023] |
 | 2026-07-06 11:32:44 | `docs/VR_EDITION.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:44 | `docs/VR_EDITION_RU.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:45 | `docs/VR_EDITION_UK.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:44 | `docs/VR_EDITION-ru.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:45 | `docs/VR_EDITION-uk.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
 | 2026-07-06 11:32:45 | `docs/VR_CONTROLS.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:45 | `docs/VR_CONTROLS_RU.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:46 | `docs/VR_CONTROLS_UK.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:45 | `docs/VR_CONTROLS-ru.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:46 | `docs/VR_CONTROLS-uk.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
 | 2026-07-06 11:32:46 | `docs/HOW_TO.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:46 | `docs/HOW_TO_RU.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
-| 2026-07-06 11:32:46 | `docs/HOW_TO_UK.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:46 | `docs/HOW_TO-ru.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
+| 2026-07-06 11:32:46 | `docs/HOW_TO-uk.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
 | 2026-07-06 11:32:47 | `docs/howto/index.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
 | 2026-07-06 11:32:47 | `docs/howto/index-ru.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
 | 2026-07-06 11:32:47 | `docs/howto/index-uk.md` | `docs` | S0965: reconcile VR docs to reality + 3D quick-path [branch: DEBUG-v023] |
@@ -21794,13 +21794,13 @@ Format: | datetime | file | target | description |
 | 2026-07-07 07:58:43 | `PLAN/S0974_stale-vrstereorenderer-comments.md` | `spec` | Scaffold strategic spec skeleton S0974 [branch: DEBUG-v023] |
 | 2026-07-07 08:14:54 | `docs/DEV_OPS.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
 | 2026-07-07 08:14:54 | `docs/HOW_TO.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
-| 2026-07-07 08:14:54 | `docs/HOW_TO_RU.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
-| 2026-07-07 08:14:54 | `docs/HOW_TO_UK.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
+| 2026-07-07 08:14:54 | `docs/HOW_TO-ru.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
+| 2026-07-07 08:14:54 | `docs/HOW_TO-uk.md` | `docs` | S0967/S0968: reconcile VR docs to reality [branch: DEBUG-v023] |
 | 2026-07-07 08:24:54 | `docs/DEV_OPS.md` | `S0967` | Reconcile VR ADB-debug section to code: VrPlayerActivity -> DiagnosticXrActivity, drop fictional .vr taskAffinity split, verify logcat tags exist in src/vr, add S0251/S0282 historical note [branch: DEBUG-v023] |
 | 2026-07-07 08:24:54 | `PLAN/S0967_docs-dev-ops-vr-stale-class-names.md` | `spec-check` | Audit S0967 -> Verified (docs-only); PASS 4/0/0 [branch: DEBUG-v023] |
 | 2026-07-07 08:24:55 | `docs/HOW_TO.md` | `S0968` | Fix 3D-video sections flavor scope: single-eye crop universal, manual per-format picker vr/noLegal-only; correct backwards Standard-Legacy claim in both 3D sections [branch: DEBUG-v023] |
-| 2026-07-07 08:24:55 | `docs/HOW_TO_RU.md` | `S0968` | Mirror S0968 3D flavor-scope fix (How to Watch 3D Videos section) [branch: DEBUG-v023] |
-| 2026-07-07 08:24:55 | `docs/HOW_TO_UK.md` | `S0968` | Mirror S0968 3D flavor-scope fix (How to Watch 3D Videos section) [branch: DEBUG-v023] |
+| 2026-07-07 08:24:55 | `docs/HOW_TO-ru.md` | `S0968` | Mirror S0968 3D flavor-scope fix (How to Watch 3D Videos section) [branch: DEBUG-v023] |
+| 2026-07-07 08:24:55 | `docs/HOW_TO-uk.md` | `S0968` | Mirror S0968 3D flavor-scope fix (How to Watch 3D Videos section) [branch: DEBUG-v023] |
 | 2026-07-07 08:24:55 | `PLAN/S0968_howto-sbs-3d-vr-mode-flavor-drift.md` | `spec-check` | Audit S0968 -> Verified (docs-only); PASS 3 WARN 1 (three-section 3D overlap follow-up) [branch: DEBUG-v023] |
 | 2026-07-07 08:26:38 | `PLAN/S0975_howto-consolidate-3d-sections.md` | `spec-draft` | Scaffold Draft skeleton S0975 (consolidate three overlapping HOW_TO 3D sections; follow-up from S0968) [branch: DEBUG-v023] |
 | 2026-07-07 09:25:15 | `PLAN/S0976_prerelease-audit-benign-allowlist-tune.md` | `spec-draft` | Scaffold Draft skeleton S0976 (tune prerelease log-audit benign allowlist; 110 false actionables in sweep) [branch: DEBUG-v023] |
@@ -24913,8 +24913,8 @@ Format: | datetime | file | target | description |
 | 2026-08-08 01:51:13 | `app_v2/src/main/res/menu/menu_streams.xml` | `spec-dev S1473` | S1473 phases 01-02: streams command-row overflow, direct import entries, landscape command labels [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsCommandLabelManager.kt] [branch: DEBUG-v031] |
 | 2026-08-08 01:55:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/helpers/StreamFormatProbeManager.kt` | `S1474 phase 02` | Add the deadline-bounded stream format probe and expose the inline radio engine read-only [set of 4: app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamInlineAudioManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamHealthProbeManager.kt, app_v2/src/test/java/com/sza/fastmediasorter/ui/dialog/helpers/StreamFormatProbeManagerTest.kt] [branch: DEBUG-v031] |
 | 2026-08-08 02:06:35 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsViewModel.kt` | `spec-dev S1473` | S1473 phases 03-04: single-facet ViewModel entry point, inline audio/video filter trigger in the streams search row [set of 12: app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsMediaKindTriggerManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsControlsPlacementManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamsCommandLabelManager.kt, app_v2/src/main/res/layout/activity_streams.xml, app_v2/src/main/res/layout-land/activity_streams.xml, +5 more] [branch: DEBUG-v031] |
-| 2026-08-08 02:08:11 | `docs/HOW_TO.md` | `spec-dev S1473` | S1473 phase 05: streams import path and inline media filter documented in EN/RU/UK; capability recorded [set of 4: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v031] |
-| 2026-08-08 02:09:27 | `docs/QUICK_START.md` | `spec-dev S1473` | S1473 phase 05: streams import path corrected in the sibling guides (QUICK_START, FAQ) across EN/RU/UK [set of 6: docs/QUICK_START_RU.md, docs/QUICK_START_UK.md, docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md] [branch: DEBUG-v031] |
+| 2026-08-08 02:08:11 | `docs/HOW_TO.md` | `spec-dev S1473` | S1473 phase 05: streams import path and inline media filter documented in EN/RU/UK; capability recorded [set of 4: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v031] |
+| 2026-08-08 02:09:27 | `docs/QUICK_START.md` | `spec-dev S1473` | S1473 phase 05: streams import path corrected in the sibling guides (QUICK_START, FAQ) across EN/RU/UK [set of 6: docs/QUICK_START-ru.md, docs/QUICK_START-uk.md, docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md] [branch: DEBUG-v031] |
 | 2026-08-08 02:10:25 | `app_v2/src/main/res/layout/dialog_stream_info.xml` | `S1474 phase 03` | Add the about-channel dialog with its three groups, measurement states and copy action [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/StreamInfoDialog.kt] [branch: DEBUG-v031] |
 | 2026-08-08 02:20:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/helpers/StreamInfoDialogManager.kt` | `S1474 phase 04` | Add the about-channel item to the shared stream menu and open it from the streams screen [set of 6: app_v2/src/main/java/com/sza/fastmediasorter/core/menu/StreamActionCatalog.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamSourceAdapter.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamGridAdapter.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/menu/StreamActionCatalogTest.kt] [branch: DEBUG-v031] |
 | 2026-08-08 02:25:43 | `PLAN/S1502_stream-catalog-thumbnail-performance.md` | `spec-do` | S1502 strategic spec + AS-IS scaling research; S1503 parked from that research [set of 3: PLAN/S1502_stream-catalog-thumbnail-performance/research/01__as-is-scaling-bottlenecks.md, PLAN/S1503_grid-pinned-adapters-miss-artwork-repaint.md] [branch: DEBUG-v031] |
@@ -25298,7 +25298,7 @@ Format: | datetime | file | target | description |
 | 2026-08-10 15:52:14 | `app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionManifestExemptions.kt` | `spec-all` | Name the install-time BLUETOOTH exemption with its reason [branch: DEBUG-v031] |
 | 2026-08-10 15:54:11 | `app_v2/src/networkMonitor/AndroidManifest.xml` | `spec-all` | S1515 declare BLUETOOTH below API 31 so the Monitor can read the adapter [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/data/permissions/PermissionManifestExemptions.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/networkmonitor/BluetoothSnapshotDataSource.kt] [branch: DEBUG-v031] |
 | 2026-08-10 15:55:06 | `scripts/docs/oss-licenses.psd1` | `S1495 phase 02` | Populate OSS licence manifest: 99 entries covering every shipping coordinate, transitive and bundled artifact [branch: DEBUG-v031] |
-| 2026-08-10 15:59:56 | `scripts/docs/generate-oss-notices.ps1` | `S1495 phase 03` | Generate OSS notices from build files: snapshot plus EN/RU/UK pages, 99 entries [set of 7: scripts/docs/oss-notices.tests/Run-Tests.ps1, scripts/docs/oss-licenses.psd1, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE.ru.md, docs/OPEN_SOURCE.uk.md, docs/legal/oss-notices.json] [branch: DEBUG-v031] |
+| 2026-08-10 15:59:56 | `scripts/docs/generate-oss-notices.ps1` | `S1495 phase 03` | Generate OSS notices from build files: snapshot plus EN/RU/UK pages, 99 entries [set of 7: scripts/docs/oss-notices.tests/Run-Tests.ps1, scripts/docs/oss-licenses.psd1, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE-ru.md, docs/OPEN_SOURCE-uk.md, docs/legal/oss-notices.json] [branch: DEBUG-v031] |
 | 2026-08-10 16:01:52 | `scripts/quality/assert-oss-notices.ps1` | `S1495 phase 04` | OSS notice conformance gate wired into post-change; THIRD_PARTY_LICENSES points at the real generator [set of 3: scripts/post-change.ps1, THIRD_PARTY_LICENSES.md] [branch: DEBUG-v031] |
 | 2026-08-10 16:01:59 | `dev/AGENT_WORKFLOW.md` | `S1495 phase 04 skip probe` | probe [branch: DEBUG-v031] |
 | 2026-08-10 16:03:09 | `PLAN/S1517_settings-flow-keystore-on-main-thread.md` | `spec-all` | Root cause, fix and measurement written; Draft -> Approved -> BlockNeedUserTest [branch: DEBUG-v031] |
@@ -25318,13 +25318,13 @@ Format: | datetime | file | target | description |
 | 2026-08-10 16:20:51 | `docs/SCRIPT_CHEATSHEET.md` | `spec-all` | S1540 research answers, gate wiring and the regenerated script cheat sheet [set of 2: PLAN/S1540_launcher-reset-enumeration-ungated.md] [branch: DEBUG-v031] |
 | 2026-08-10 16:28:40 | `PLAN/S1560_launcher-profile-defaults.md` | `spec-all` | S1560 strategic spec written from research; open product questions isolated [branch: DEBUG-v031] |
 | 2026-08-10 16:30:14 | `PLAN/S1235_welcome-device-profile-auto-next.md` | `spec-all` | S1235 confirmed delivered by S1383; four claims re-verified against live code [branch: DEBUG-v031] |
-| 2026-08-10 16:31:58 | `docs/PRIVACY_POLICY.md` | `spec-all` | S1546 privacy policy describes the real use of notification access [set of 4: docs/PRIVACY_POLICY.ru.md, docs/PRIVACY_POLICY.uk.md, PLAN/S1546_privacy-policy-oversells-notification-listener.md] [branch: DEBUG-v031] |
-| 2026-08-10 16:32:16 | `docs/PRIVACY_POLICY.md` | `spec-all` | S1546 privacy policy describes the real use of notification access - registry acknowledged [set of 4: docs/PRIVACY_POLICY.ru.md, docs/PRIVACY_POLICY.uk.md, PLAN/S1546_privacy-policy-oversells-notification-listener.md] [branch: DEBUG-v031] |
+| 2026-08-10 16:31:58 | `docs/PRIVACY_POLICY.md` | `spec-all` | S1546 privacy policy describes the real use of notification access [set of 4: docs/PRIVACY_POLICY-ru.md, docs/PRIVACY_POLICY-uk.md, PLAN/S1546_privacy-policy-oversells-notification-listener.md] [branch: DEBUG-v031] |
+| 2026-08-10 16:32:16 | `docs/PRIVACY_POLICY.md` | `spec-all` | S1546 privacy policy describes the real use of notification access - registry acknowledged [set of 4: docs/PRIVACY_POLICY-ru.md, docs/PRIVACY_POLICY-uk.md, PLAN/S1546_privacy-policy-oversells-notification-listener.md] [branch: DEBUG-v031] |
 | 2026-08-10 16:35:00 | `PLAN/S1560_launcher-profile-defaults.md` | `spec-quiz` | S1560: BlockQuestions -> Approved via quiz (4 questions) [branch: DEBUG-v031] |
 | 2026-08-10 16:36:30 | `scripts/quality/assert-memory-budget.ps1` | `spec-all` | S1542 split the streams/VR pointers into a second-level index and fix the URL false positive in the budget gate [set of 5: .claude/agent-memory/android-rd-specialist/MEMORY.md, .claude/agent-memory/android-rd-specialist/INDEX_streams_vr.md, .claude/agent-memory/android-rd-specialist/reference_ticket_log_gate.md, PLAN/S1542_agent-memory-index-over-budget.md] [branch: DEBUG-v031] |
 | 2026-08-10 16:37:52 | `PLAN/spec-catalog.jsonl` | `spec-do` | Session: 10 processed, 0 verified, 6 blocked [branch: DEBUG-v031] |
 | 2026-08-10 16:38:29 | `.claude/agent-memory/android-rd-specialist/MEMORY.md` | `agent-memory` | Record the registry-ack closure lesson [set of 2: .claude/agent-memory/android-rd-specialist/feedback_registry_ack_up_front.md] [branch: DEBUG-v031] |
-| 2026-08-10 17:48:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `enableFavorites` | gate Favorites import and export controls by the master setting [set of 7: app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md] [branch: DEBUG-v031] |
+| 2026-08-10 17:48:56 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsObserversHelper.kt` | `enableFavorites` | gate Favorites import and export controls by the master setting [set of 7: app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md] [branch: DEBUG-v031] |
 | 2026-08-10 17:50:46 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `layoutFavoritesImportExport` | place the Favorites visibility container around the import and export controls [set of 2: app_v2/src/main/res/layout-land/fragment_settings_general.xml] [branch: DEBUG-v031] |
 | 2026-08-10 17:51:00 | `PLAN/S1565_settings-data-drive-transfer.md` | `spec` | Add strategic draft S1565 for settings data transfer through Google Drive [branch: DEBUG-v031] |
 | 2026-08-10 18:01:57 | `scripts/docs/generate-oss-notices.ps1` | `S1562 OSS notices` | render the complete flavor-specific OSS notice inventory inside the app [set of 16: docs/legal/oss-notices.json, app_v2/src/standard/res/raw/oss_notices.json, app_v2/src/noLegal/res/raw/oss_notices.json, app_v2/src/lite/res/raw/oss_notices.json, app_v2/src/photos/res/raw/oss_notices.json, app_v2/src/legacy/res/raw/oss_notices.json, +9 more] [branch: DEBUG-v031] |
@@ -25341,7 +25341,7 @@ Format: | datetime | file | target | description |
 | 2026-08-11 09:55:29 | `scripts/document_registry/generate.ps1` | `DocumentRegistry.Generate` | S1564: synthesize localized_urls from front matter when missing [branch: DEBUG-v031] |
 | 2026-08-11 09:58:16 | `scripts/document_registry/suggest_localized_urls.ps1` | `DocumentRegistry.Suggest` | Add helper to suggest localized_urls from front matter for S1564 [branch: DEBUG-v031] |
 | 2026-08-11 10:01:46 | `docs/DOCUMENT_REGISTRY.jsonl` | `DocumentRegistry` | Add localized_urls for legal-downloads (S1564) [branch: DEBUG-v031] |
-| 2026-08-11 10:12:30 | `scripts/docs/oss-licenses.psd1` | `S1563` | Published GPLv3 Corresponding Source locations for the sideload-only noLegal build [set of 10: nolegal.html, nolegal-ru.html, nolegal-uk.html, styles.css, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE.ru.md, +3 more] [branch: DEBUG-v031] |
+| 2026-08-11 10:12:30 | `scripts/docs/oss-licenses.psd1` | `S1563` | Published GPLv3 Corresponding Source locations for the sideload-only noLegal build [set of 10: nolegal.html, nolegal-ru.html, nolegal-uk.html, styles.css, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE-ru.md, +3 more] [branch: DEBUG-v031] |
 | 2026-08-11 10:25:20 | `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSets.kt` | `S1560 launcher profile defaults` | Complete profile-specific launcher starter sets and parity coverage [branch: DEBUG-v031] |
 | 2026-08-11 10:26:00 | `app_v2/src/main/java/com/sza/fastmediasorter/core/panel/LauncherActionCatalog.kt` | `spec-dev` | S1560: profile-aware launcher starter set - host actions, altitude/satellites gadgets, installed-package probe, per-profile table, docs and inventory [set of 21: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/AltitudeGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/SatellitesGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/LauncherGadgetRegistry.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/AudioNowPlayingGadget.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/di/SensorGadgetModule.kt, +14 more] [branch: DEBUG-v031] |
 | 2026-08-11 10:27:18 | `PLAN/S1566_launcher-google-search-widget.md` | `spec` | Scaffold strategic spec skeleton S1566 [branch: DEBUG-v031] |
@@ -25599,7 +25599,7 @@ Format: | datetime | file | target | description |
 | 2026-08-12 16:53:27 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/CropOverlayView.kt` | `S1602` | S1602: OCR crop frame bottom edge reaches content bottom; edge grab band clamped inside the view [branch: DEBUG-v031] |
 | 2026-08-12 16:56:59 | `app_v2/src/main/res/drawable/ic_network_monitor.xml` | `S1601` | added conventional monitor tile symbols and one-line network path nodes [set of 7: app_v2/src/main/res/drawable/ic_mobile_network.xml, app_v2/src/main/res/drawable/ic_location.xml, app_v2/src/main/res/drawable/ic_internet.xml, app_v2/src/main/res/layout/fragment_network_monitor_summary.xml, app_v2/src/main/res/layout-land/fragment_network_monitor_summary.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/networkmonitor/helpers/NetworkPathDiagramView.kt] [branch: DEBUG-v031] |
 | 2026-08-12 17:02:18 | `app_v2/src/launcherEnabled/res/layout/item_launcher_cell_shortcut.xml` | `spec-dev` | S1587 phase 02 audit fix: cell paddings sized so a two-line caption is not clipped [set of 2: app_v2/src/launcherEnabled/res/values/dimens.xml] [branch: DEBUG-v031] |
-| 2026-08-12 17:03:06 | `docs/icons/svg/ic_network_monitor.svg` | `S1601` | regenerated network monitor icon assets, legend pages, and Kotlin catalog [set of 6: docs/ICON_LEGEND.md, docs/ICON_LEGEND_RU.md, docs/ICON_LEGEND_UK.md, dev/CATALOG/app_v2.jsonl, dev/CATALOG/app_v2.md] [branch: DEBUG-v031] |
+| 2026-08-12 17:03:06 | `docs/icons/svg/ic_network_monitor.svg` | `S1601` | regenerated network monitor icon assets, legend pages, and Kotlin catalog [set of 6: docs/ICON_LEGEND.md, docs/ICON_LEGEND-ru.md, docs/ICON_LEGEND-uk.md, dev/CATALOG/app_v2.jsonl, dev/CATALOG/app_v2.md] [branch: DEBUG-v031] |
 | 2026-08-12 17:04:44 | `PLAN/S1601_network-monitor-ui-polish.md` | `spec-check` | Audit S1601 -> Verified; PASS/WARN/FAIL 18/0/0 [branch: DEBUG-v031] |
 | 2026-08-12 17:04:44 | `PLAN/S1601_network-monitor-ui-polish/INDEX.md` | `spec-check` | Close completed tactical plan [branch: DEBUG-v031] |
 | 2026-08-12 17:04:45 | `PLAN/S1601_network-monitor-ui-polish/PHASE_01__summary-session-state.md` | `spec-check` | Mark verified phase outcome [branch: DEBUG-v031] |
@@ -26063,7 +26063,7 @@ Format: | datetime | file | target | description |
 | 2026-08-14 14:19:15 | `PLAN/S1545_gate-wiring-orphan-and-duplicate-steps/PHASE_02__doc-icon-routing.md` | `S1545` | Plan conditional document icon gate routing and tests [branch: DEBUG-v032] |
 | 2026-08-14 14:19:20 | `PLAN/S1545_gate-wiring-orphan-and-duplicate-steps/PHASE_03__docs-catalog-cleanup.md` | `S1545` | Plan operational documentation and registry closure [branch: DEBUG-v032] |
 | 2026-08-14 14:21:50 | `PLAN/S1544_house-style-unenforced-where-it-applies/INDEX.md` | `spec-tech` | S1544 tactical plan: 6 phases, shared style library then ingest/authored write paths, fixer consolidation 5 to 1, accumulated debt pass [set of 8: PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_01__style-library.md, PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_02__translation-ingest.md, PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_03__authored-write-path.md, PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_04__fixer-consolidation.md, PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_05__accumulated-debt-pass.md, PLAN/S1544_house-style-unenforced-where-it-applies/PHASE_06__docs-catalog-cleanup.md, +1 more] [branch: DEBUG-v032] |
-| 2026-08-14 14:23:38 | `docs/COMMUNICATION_POLICY.md` | `S1544` | S1544 step 01.3: communication policy section 5 now records the plain-hyphen rule alongside the ellipsis rule, all three locales [set of 3: docs/COMMUNICATION_POLICY_RU.md, docs/COMMUNICATION_POLICY_UK.md] [branch: DEBUG-v032] |
+| 2026-08-14 14:23:38 | `docs/COMMUNICATION_POLICY.md` | `S1544` | S1544 step 01.3: communication policy section 5 now records the plain-hyphen rule alongside the ellipsis rule, all three locales [set of 3: docs/COMMUNICATION_POLICY-ru.md, docs/COMMUNICATION_POLICY-uk.md] [branch: DEBUG-v032] |
 | 2026-08-14 14:27:49 | `scripts/quality/lib/house-text-style.ps1` | `S1544` | S1544 steps 01.1-01.2: shared house text style normalizer - ellipsis, long dash and yo as data, Prose and ResourceValue areas, code and URL exclusions [branch: DEBUG-v032] |
 | 2026-08-14 14:30:24 | `scripts/utils/locale-bulk-import.ps1` | `S1544` | S1544 phase 02: locale-bulk-import normalizes house text style per returned line, reports each corrected key, exit contract unchanged [branch: DEBUG-v032] |
 | 2026-08-14 14:32:24 | `scripts/post-change.ps1` | `S1545` | Consolidate lexical closure dispatch and add regression tests [set of 3: scripts/quality/source-matchers.tests/Run-Tests.ps1, scripts/post-change.tests/Run-Tests.ps1] [branch: DEBUG-v032] |
@@ -26147,17 +26147,17 @@ Format: | datetime | file | target | description |
 | 2026-08-14 18:11:29 | `scripts/doc-drift/pins.psd1` | `S1516 phase 02 step 02.1` | Require DEV_OPS Room schema pin [branch: DEBUG-v032] |
 | 2026-08-14 18:13:47 | `scripts/doc-drift/tests/Run-Tests.ps1` | `S1516 phase 02 step 02.2` | Cover both Room schema documents in tests [branch: DEBUG-v032] |
 | 2026-08-14 18:14:31 | `scripts/doc-drift/README.md` | `S1516 phase 03 step 03.1` | Document current Room schema pin references [branch: DEBUG-v032] |
-| 2026-08-14 18:14:49 | `docs/HOW_TO_RU.md,docs/FAQ_RU.md,docs/README_RU.md` | `RU user guides` | S1395: mirrored EN home-screen launcher mode, save-destination and share-receive doc additions into RU guides (HOW_TO_RU, FAQ_RU, README_RU) [branch: DEBUG-v032] |
-| 2026-08-14 18:16:05 | `docs/HOW_TO_UK.md,docs/FAQ_UK.md,docs/README_UK.md` | `docs` | S1395: mirror EN HOW_TO/FAQ/README additions (launcher home-screen mode, background folder transfer, PDF text selection, capture/download destination, share-receive) into UK guides [branch: DEBUG-v032] |
+| 2026-08-14 18:14:49 | `docs/HOW_TO-ru.md,docs/FAQ-ru.md,docs/README-ru.md` | `RU user guides` | S1395: mirrored EN home-screen launcher mode, save-destination and share-receive doc additions into RU guides (HOW_TO_RU, FAQ_RU, README_RU) [branch: DEBUG-v032] |
+| 2026-08-14 18:16:05 | `docs/HOW_TO-uk.md,docs/FAQ-uk.md,docs/README-uk.md` | `docs` | S1395: mirror EN HOW_TO/FAQ/README additions (launcher home-screen mode, background folder transfer, PDF text selection, capture/download destination, share-receive) into UK guides [branch: DEBUG-v032] |
 | 2026-08-14 18:16:33 | `docs/DEV_OPS.md` | `S1516 phase 01 step 01.1` | Align Room schema version reference [branch: DEBUG-v032] |
 | 2026-08-14 18:16:34 | `PLAN/S1516_room-schema-version-doc-drift.md` | `spec-dev` | All phases done; status -> Implemented [branch: DEBUG-v032] |
 | 2026-08-14 18:17:22 | `PLAN/S1516_room-schema-version-doc-drift.md` | `spec-check` | Audit S1516 -> Verified; PASS/WARN/FAIL 16/0/0 [branch: DEBUG-v032] |
-| 2026-08-14 18:19:12 | `docs/HOW_TO.md` | `S1395` | Document home-screen launcher mode, background copy/move strip, PDF long-press selection, capture write destination and share-receive background copy across the five user guides in EN/RU/UK [set of 12: docs/FAQ.md, docs/README.md, docs/LIMITATIONS.md, docs/HOW_TO_RU.md, docs/FAQ_RU.md, docs/README_RU.md, +5 more] [branch: DEBUG-v032] |
+| 2026-08-14 18:19:12 | `docs/HOW_TO.md` | `S1395` | Document home-screen launcher mode, background copy/move strip, PDF long-press selection, capture write destination and share-receive background copy across the five user guides in EN/RU/UK [set of 12: docs/FAQ.md, docs/README.md, docs/LIMITATIONS.md, docs/HOW_TO-ru.md, docs/FAQ-ru.md, docs/README-ru.md, +5 more] [branch: DEBUG-v032] |
 | 2026-08-14 18:20:07 | `PLAN/S1395_narrative-guides-miss-shipped-capabilities.md` | `spec-check` | Audit S1395 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v032] |
 | 2026-08-14 18:21:34 | `scripts/quality/assert-rule-digest-sync.ps1` | `rule-digest-contract` | S1548: name the rule mirroring contract (authority/full digest/pointer/consumer), resync both full digests to all 30 CLAUDE.md rules, gate it with assert-rule-digest-sync [set of 9: scripts/quality/assert-fast-gates.ps1, scripts/quality/gate-recovery-hints.psd1, scripts/post-change.ps1, AGENTS.md, .github/copilot-instructions.md, dev/RULE_AND_SKILL_AUTHORING.md, +2 more] [branch: DEBUG-v032] |
-| 2026-08-14 18:26:04 | `docs/VR_EDITION.md` | `S1243` | Document the in-headset immersive browse grid in the VR guides: resource entry point, ray-and-trigger selection, previews, local-only sources, and correct the next/previous-only claim [set of 6: docs/VR_EDITION_RU.md, docs/VR_EDITION_UK.md, docs/VR_CONTROLS.md, docs/VR_CONTROLS_RU.md, docs/VR_CONTROLS_UK.md] [branch: DEBUG-v032] |
+| 2026-08-14 18:26:04 | `docs/VR_EDITION.md` | `S1243` | Document the in-headset immersive browse grid in the VR guides: resource entry point, ray-and-trigger selection, previews, local-only sources, and correct the next/previous-only claim [set of 6: docs/VR_EDITION-ru.md, docs/VR_EDITION-uk.md, docs/VR_CONTROLS.md, docs/VR_CONTROLS-ru.md, docs/VR_CONTROLS-uk.md] [branch: DEBUG-v032] |
 | 2026-08-14 18:26:37 | `PLAN/S1243_vr-docs-omit-in-headset-browser.md` | `spec-check` | Audit S1243 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v032] |
-| 2026-08-14 18:27:34 | `docs/HOW_TO.md` | `how-to-vr-immersion` | S1257: HOW_TO no longer claims the vr store build lacks immersion - the flavor ships the source set, manifest, DI and native target; headset validation carried to S1655 [set of 5: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, PLAN/S1257_docs-claim-vr-store-build-lacks-immersion.md, PLAN/S1655_vr-store-build-headset-validation.md] [branch: DEBUG-v032] |
+| 2026-08-14 18:27:34 | `docs/HOW_TO.md` | `how-to-vr-immersion` | S1257: HOW_TO no longer claims the vr store build lacks immersion - the flavor ships the source set, manifest, DI and native target; headset validation carried to S1655 [set of 5: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, PLAN/S1257_docs-claim-vr-store-build-lacks-immersion.md, PLAN/S1655_vr-store-build-headset-validation.md] [branch: DEBUG-v032] |
 | 2026-08-14 18:28:55 | `PLAN/spec-catalog.jsonl` | `spec-do` | Session: 3 processed, 3 verified, 0 blocked; parked S1652, S1653, S1654 [branch: DEBUG-v032] |
 | 2026-08-14 18:29:37 | `.claude/agent-memory/android-rd-specialist/feedback_research_subagent_may_lack_web_tools.md` | `agent-memory` | Record that a research subagent can lack web tools and answer from trained knowledge - S1202 measurement refuted its confident platform claim [set of 2: .claude/agent-memory/android-rd-specialist/MEMORY.md] [branch: DEBUG-v032] |
 | 2026-08-14 18:34:31 | `scripts/devtest/device-ready.ps1` | `session-bootstrap` | S1633: adb fork-server inherited the capture pipe and held it open forever - pre-start the server detached, and bound the device block with -DeviceTimeoutSec so a stuck probe degrades to failed/124 instead of hanging Stage 0 [set of 3: scripts/spec_catalog/session-bootstrap.ps1, PLAN/S1633_bugfix-session-bootstrap-device-probe-hangs-forever.md] [branch: DEBUG-v032] |
@@ -26310,7 +26310,7 @@ Format: | datetime | file | target | description |
 | 2026-08-15 03:15:05 | `PLAN/S1678_wear-ui-round-display-clipping.md` | `spec` | Scaffold strategic spec skeleton S1678 [branch: DEBUG-v032] |
 | 2026-08-15 03:15:05 | `PLAN/S1679_wear-apk-dex-bloat.md` | `spec` | Scaffold strategic spec skeleton S1679 [branch: DEBUG-v032] |
 | 2026-08-15 03:15:34 | `PLAN/S1680_bugfix-launcher-flows-seed-default.md` | `spec` | Scaffold strategic spec skeleton S1680 [branch: DEBUG-v032] |
-| 2026-08-15 03:19:33 | `docs/settings/settings-manifest.json` | `S1643 phase 05` | S1643 phase 05: settings manifest, reference and annotation regenerated for the taskbar placement row; capability recorded; stale dialog_player_settings exclusion removed [set of 8: docs/settings/settings-annotations.json, docs/settings/settings-scope-exclusions.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/SETTINGS_REFERENCE_noLegal.md, +1 more] [branch: DEBUG-v032] |
+| 2026-08-15 03:19:33 | `docs/settings/settings-manifest.json` | `S1643 phase 05` | S1643 phase 05: settings manifest, reference and annotation regenerated for the taskbar placement row; capability recorded; stale dialog_player_settings exclusion removed [set of 8: docs/settings/settings-annotations.json, docs/settings/settings-scope-exclusions.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md, +1 more] [branch: DEBUG-v032] |
 | 2026-08-15 03:20:59 | `PLAN/S1643_launcher-taskbar-placement-setting.md` | `spec-dev` | All 5 phases done; status -> BlockNeedUserTest [branch: DEBUG-v032] |
 | 2026-08-15 03:23:09 | `PLAN/S1681_bugfix-wear-sources-push-never-arrives.md` | `spec` | Scaffold compact bugfix spec skeleton S1681 [branch: DEBUG-v032] |
 | 2026-08-15 03:30:36 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `S1647` | S1647: landscape player layout declares btnTouchZonesHelp and tvVideoGestureIndicator again, restoring portrait parity and non-null ViewBinding fields [branch: DEBUG-v032] |
@@ -26349,7 +26349,7 @@ Format: | datetime | file | target | description |
 | 2026-08-15 15:26:37 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/network/ftp/FtpDataSource.kt` | `spec-all` | S1687: route wear network playback by protocol - FTP/SFTP byte fetch, one download use case, three players delegate [set of 9: wear/src/main/java/com/sza/fastmediasorter/wear/data/network/sftp/SftpDataSource.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/SelectedMediaManager.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/DownloadNetworkFileUseCase.kt, wear/src/main/java/com/sza/fastmediasorter/wear/util/MediaCacheEvictor.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt, +2 more] [branch: DEBUG-v032] |
 | 2026-08-15 15:36:01 | `app_v2/src/main/res/layout-land/activity_player_unified.xml` | `spec-do` | S1647: landscape player declares btnTouchZonesHelp and tvVideoGestureIndicator again - both lost in the ConstraintLayout rewrite; ViewBinding stops declaring them nullable [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/VideoTouchDelegate.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerUiStateCoordinatorCallbackImpl.kt] [branch: DEBUG-v032] |
 | 2026-08-15 15:46:02 | `PLAN/S1695_release-deobfuscation-artifact-retention.md` | `spec` | Scaffold strategic spec skeleton S1695 [branch: DEBUG-v032] |
-| 2026-08-15 15:46:29 | `docs/settings/settings-annotations.json` | `S1658` | S1658 phase 07: viewfinder aspect drives the stream and per-lens capture-set memory recorded - aspect row annotation rewritten for three values, settings manifest and reference regenerated, two capabilities added to the inventory [set of 6: docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v032] |
+| 2026-08-15 15:46:29 | `docs/settings/settings-annotations.json` | `S1658` | S1658 phase 07: viewfinder aspect drives the stream and per-lens capture-set memory recorded - aspect row annotation rewritten for three values, settings manifest and reference regenerated, two capabilities added to the inventory [set of 6: docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v032] |
 | 2026-08-15 15:50:59 | `PLAN/S1658_bugfix-camera-viewfinder-zoom-focus.md` | `spec-dev` | All 7 phases done; status -> BlockNeedUserTest [branch: DEBUG-v032] |
 | 2026-08-15 15:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameracapture/helpers/CameraUseCaseFactory.kt` | `spec-dev` | S1658 probe tag at the stream aspect entry [branch: DEBUG-v032] |
 | 2026-08-15 15:51:00 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameracapture/helpers/CameraCaptureSessionManager.kt` | `spec-dev` | S1658 probe tags at the lens switch and the shutter crop decision [branch: DEBUG-v032] |
@@ -26419,7 +26419,7 @@ Format: | datetime | file | target | description |
 | 2026-08-15 19:28:09 | `PLAN/S1701_wear-audio-player-controls.md` | `spec` | Scaffold strategic spec skeleton S1701 [branch: DEBUG-v032] |
 | 2026-08-15 19:41:21 | `scripts/devtest/prerelease-verdict.ps1` | `prerelease gates` | S1700: suppress the framework thumbnail-failure chain in the pre-release verdict and log audit, guarded by the app's own handled-timeout marker [set of 3: scripts/devtest/prerelease-log-audit.ps1, .claude/reference/spec-prerelease.md] [branch: DEBUG-v032] |
 | 2026-08-15 19:41:59 | `.claude/reference/spec-prerelease.md` | `prerelease gates docs` | S1700: document the conditional suppression of the framework thumbnail chain in the sweep reference and its prompt mirror [set of 2: .github/prompts/spec-prerelease.prompt.md] [branch: DEBUG-v032] |
-| 2026-08-15 19:47:54 | `docs/HOW_TO.md` | `user guides` | S1658: document the camera viewfinder aspect selection in the EN/RU/UK how-to (spec-prerelease step 0.9 advisory) [set of 3: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md] [branch: DEBUG-v032] |
+| 2026-08-15 19:47:54 | `docs/HOW_TO.md` | `user guides` | S1658: document the camera viewfinder aspect selection in the EN/RU/UK how-to (spec-prerelease step 0.9 advisory) [set of 3: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md] [branch: DEBUG-v032] |
 | 2026-08-15 19:50:57 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8151.948 - plateau merge from DEBUG-v032 [branch: DEBUG-v032] |
 | 2026-08-15 20:01:25 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8151.948 from ALL_FEATURES diff [branch: DEBUG-v033] |
 | 2026-08-15 20:25:44 | `docs/OCR_OVERLAY_ACCURACY.md` | `docs` | Add OCR overlay accuracy exchange document and register it [set of 3: docs/DOCUMENT_REGISTRY.jsonl, docs/DOCS_MAP.md] [branch: DEBUG-v033] |
@@ -26747,7 +26747,7 @@ Format: | datetime | file | target | description |
 | 2026-08-17 15:35:28 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 1 processed, 0 verified, 0 blocked [branch: DEBUG-v033] |
 | 2026-08-17 18:11:51 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `S1465` | Launcher: foreign-notification switch with three states, gated counting, settings docs [set of 17: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherSettingsDialogFragment.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/signal/ForeignNotificationCounts.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/nowplaying/MediaSessionAccessService.kt, app_v2/src/main/res/layout/dialog_launcher_settings.xml, +10 more] [branch: DEBUG-v033] |
 | 2026-08-17 18:13:54 | `app_v2/src/main/assets/device_profile_presets.csv` | `S1465` | Device profile matrix covers the launcher foreign-notification switch [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/data/preset/DeviceProfilePresetApplier.kt] [branch: DEBUG-v033] |
-| 2026-08-17 18:22:11 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/nowplaying/MediaSessionAccessService.kt` | `S1465` | Seed counts when the switch turns on; privacy policy states what the listener reads; S1465 probe [set of 5: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/signal/source/ForeignNotificationSignalSource.kt, docs/PRIVACY_POLICY.md, docs/PRIVACY_POLICY.ru.md, docs/PRIVACY_POLICY.uk.md] [branch: DEBUG-v033] |
+| 2026-08-17 18:22:11 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/nowplaying/MediaSessionAccessService.kt` | `S1465` | Seed counts when the switch turns on; privacy policy states what the listener reads; S1465 probe [set of 5: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/signal/source/ForeignNotificationSignalSource.kt, docs/PRIVACY_POLICY.md, docs/PRIVACY_POLICY-ru.md, docs/PRIVACY_POLICY-uk.md] [branch: DEBUG-v033] |
 | 2026-08-17 18:23:22 | `docs/ALL_FEATURES.jsonl` | `S1465` | Record launcher.foreign-notification-strip for standard and noLegal [branch: DEBUG-v033] |
 | 2026-08-17 18:26:41 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/NetworkSourceEntry.kt` | `S1707` | Wear WO-P6: the add-network-source entry leaves the store build, the screen stays [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/ui/network/NetworkSourcesScreen.kt, wear/src/test/java/com/sza/fastmediasorter/wear/ui/network/NetworkSourceEntryVisibilityTest.kt] [branch: DEBUG-v033] |
 | 2026-08-17 18:27:14 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 2 processed, 0 verified, 1 blocked [branch: DEBUG-v033] |
@@ -27003,9 +27003,9 @@ Format: | datetime | file | target | description |
 | 2026-08-18 16:55:30 | `PLAN/S1801_wear-documentation-site-pages.md` | `spec` | Scaffold strategic spec skeleton S1801 [branch: DEBUG-v033] |
 | 2026-08-18 17:10:20 | `PLAN/S1802_wear-about-send-logs-email.md` | `spec` | Scaffold strategic spec skeleton S1802 [branch: DEBUG-v033] |
 | 2026-08-18 17:13:36 | `wear/build.gradle.kts` | `wear/app_v2 version parity` | Align wear versionCode to the documented app_v2-derived rule (was byte-identical, would collide on Play under the shared applicationId), correct the false auto-version claims in both wear builders, and add assert-module-version-parity gate [set of 5: scripts/builders/build-wear-debug.PS1, scripts/builders/build-wear-release.PS1, scripts/quality/assert-module-version-parity.ps1, scripts/quality/assert-fast-gates.ps1] [branch: DEBUG-v033] |
-| 2026-08-18 17:14:01 | `docs/HOW_TO.md` | `spec-all` | S1102: launcher mode user docs - HOW_TO chapter rewrite + 3 FAQ entries (EN/RU/UK) [set of 8: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md, docs/DOCS_MAP.md, +1 more] [branch: DEBUG-v033] |
+| 2026-08-18 17:14:01 | `docs/HOW_TO.md` | `spec-all` | S1102: launcher mode user docs - HOW_TO chapter rewrite + 3 FAQ entries (EN/RU/UK) [set of 8: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md, docs/DOCS_MAP.md, +1 more] [branch: DEBUG-v033] |
 | 2026-08-18 17:14:46 | `docs/WEAR_OS_BUILD_CONFIG.md` | `wear build docs` | Correct the wear build-script docs: neither wear builder bumps a version, the spectrum script stamps both modules together [set of 2: docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v033] |
-| 2026-08-18 17:15:49 | `docs/HOW_TO.md` | `spec-all` | S1102: launcher mode user docs - HOW_TO chapter rewrite, 3 FAQ entries, reboot caveat in LIMITATIONS (EN/RU/UK) [set of 11: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md, docs/LIMITATIONS.md, +4 more] [branch: DEBUG-v033] |
+| 2026-08-18 17:15:49 | `docs/HOW_TO.md` | `spec-all` | S1102: launcher mode user docs - HOW_TO chapter rewrite, 3 FAQ entries, reboot caveat in LIMITATIONS (EN/RU/UK) [set of 11: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md, docs/LIMITATIONS.md, +4 more] [branch: DEBUG-v033] |
 | 2026-08-18 17:16:39 | `PLAN/S1102_launcher-mode-user-docs.md` | `spec-all` | S1102 -> Verified: blockers cleared, launcher mode user docs written EN/RU/UK [branch: DEBUG-v033] |
 | 2026-08-18 17:42:19 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/ScreenSettingsScreen.kt` | `S1781 phase 03 step 1` | Wear Screen settings section with the shared view-mode choice [set of 9: wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsRoutes.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsScreen.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsUiState.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt, wear/src/main/res/values/strings.xml, +2 more] [branch: DEBUG-v033] |
 | 2026-08-18 17:44:51 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeScreen.kt` | `S1781 phase 03 step 2` | Wear home screen renders sections as list or width-fitted grid [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeUiState.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeViewModel.kt] [branch: DEBUG-v033] |
@@ -27174,8 +27174,8 @@ Format: | datetime | file | target | description |
 | 2026-08-19 13:37:24 | `PLAN/S1718_wear-auto-rotation-setting.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v033] |
 | 2026-08-19 13:38:20 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearPreferencesRepository.kt` | `wear` | Add auto-rotation setting to WearPreferencesRepository [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearPreferencesRepositoryImpl.kt, wear/src/test/java/com/sza/fastmediasorter/wear/data/preferences/AutoRotationPreferenceTest.kt] [branch: DEBUG-v033] |
 | 2026-08-19 13:41:15 | `docs/FEATURES.md` | `spec-dev` | Add Wear OS auto-rotation feature entry [branch: DEBUG-v033] |
-| 2026-08-19 13:41:15 | `docs/FEATURES_RU.md` | `spec-dev` | Add Wear OS auto-rotation feature entry (RU) [branch: DEBUG-v033] |
-| 2026-08-19 13:41:16 | `docs/FEATURES_UK.md` | `spec-dev` | Add Wear OS auto-rotation feature entry (UK) [branch: DEBUG-v033] |
+| 2026-08-19 13:41:15 | `docs/FEATURES-ru.md` | `spec-dev` | Add Wear OS auto-rotation feature entry (RU) [branch: DEBUG-v033] |
+| 2026-08-19 13:41:16 | `docs/FEATURES-uk.md` | `spec-dev` | Add Wear OS auto-rotation feature entry (UK) [branch: DEBUG-v033] |
 | 2026-08-19 13:41:34 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsUiState.kt` | `wear` | Integrate auto-rotation preference into SettingsViewModel and MainActivity [set of 3: wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/SettingsViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt] [branch: DEBUG-v033] |
 | 2026-08-19 13:42:44 | `wear/src/main/res/values/strings.xml` | `wear` | Add wear_auto_rotation strings and render ToggleChip in OtherSettingsScreen [set of 4: wear/src/main/res/values-ru/strings.xml, wear/src/main/res/values-uk/strings.xml, wear/src/main/java/com/sza/fastmediasorter/wear/ui/settings/OtherSettingsScreen.kt] [branch: DEBUG-v033] |
 | 2026-08-19 13:44:38 | `PLAN/S1718_wear-auto-rotation-setting.md` | `spec-all` | Pipeline BlockNeedUserTest: S1718 [branch: DEBUG-v033] |
@@ -27228,7 +27228,7 @@ Format: | datetime | file | target | description |
 | 2026-08-19 23:45:30 | `docs/howto/scenario-watch-music.md,docs/howto/scenario-watch-music-ru.md,docs/howto/scenario-watch-music-uk.md,docs/howto/index.md,docs/howto/index-ru.md,docs/howto/index-uk.md,PLAN/S1801_wear-documentation-site-pages/PHASE_02__scenario-watch-music.md` | `spec-all` | S1801: Phase 02 done - Wear OS music playback guide on 3 locales [branch: DEBUG-v033] |
 | 2026-08-19 23:46:41 | `docs/howto/scenario-watch-network.md,docs/howto/scenario-watch-network-ru.md,docs/howto/scenario-watch-network-uk.md,docs/howto/index.md,docs/howto/index-ru.md,docs/howto/index-uk.md,PLAN/S1801_wear-documentation-site-pages/PHASE_03__scenario-watch-network.md` | `spec-all` | S1801: Phase 03 done - Wear OS network share connection guide on 3 locales [branch: DEBUG-v033] |
 | 2026-08-19 23:48:20 | `docs/howto/SCREENSHOTS.md,docs/howto/scenario-watch-music.md,docs/howto/scenario-watch-music-ru.md,docs/howto/scenario-watch-music-uk.md,docs/howto/scenario-watch-network.md,docs/howto/scenario-watch-network-ru.md,docs/howto/scenario-watch-network-uk.md,PLAN/S1801_wear-documentation-site-pages/PHASE_04__wear-screenshots.md` | `spec-all` | S1801: Phase 04 done - Wear OS screenshots specified and placed [branch: DEBUG-v033] |
-| 2026-08-19 23:49:51 | `index.html,index-ru.html,index-uk.html,docs/HOW_TO.md,docs/HOW_TO_RU.md,docs/HOW_TO_UK.md,docs/WEAR_OS_SMB_SETUP.md,docs/WEAR_OS_SMB_QUICK_REF.md,PLAN/S1801_wear-documentation-site-pages/PHASE_05__site-entrances-and-showcase.md` | `spec-all` | S1801: Phase 05 done - Wear OS entrances and cross-links added [branch: DEBUG-v033] |
+| 2026-08-19 23:49:51 | `index.html,index-ru.html,index-uk.html,docs/HOW_TO.md,docs/HOW_TO-ru.md,docs/HOW_TO-uk.md,docs/WEAR_OS_SMB_SETUP.md,docs/WEAR_OS_SMB_QUICK_REF.md,PLAN/S1801_wear-documentation-site-pages/PHASE_05__site-entrances-and-showcase.md` | `spec-all` | S1801: Phase 05 done - Wear OS entrances and cross-links added [branch: DEBUG-v033] |
 | 2026-08-19 23:50:58 | `docs/howto/scenario-watch-music.md` | `spec-all` | S1801: Wear OS user documentation as site pages [set of 21: docs/howto/scenario-watch-music-ru.md, docs/howto/scenario-watch-music-uk.md, docs/howto/scenario-watch-network.md, docs/howto/scenario-watch-network-ru.md, docs/howto/scenario-watch-network-uk.md, docs/howto/index.md, +14 more] [branch: DEBUG-v033] |
 | 2026-08-19 23:54:04 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/streams/StreamsActivity.kt` | `streams catalog affordances` | S1823: pin the catalog import to the toolbar, move the reachability probe to the overflow, replace the fading catalog Snackbar with a persistent banner [set of 7: app_v2/src/main/res/menu/menu_streams.xml, app_v2/src/main/res/layout/activity_streams.xml, app_v2/src/main/res/layout/view_streams_catalog_banner.xml, app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v033] |
 | 2026-08-19 23:58:27 | `PLAN/S1801_wear-documentation-site-pages/INDEX.md,PLAN/S1801_wear-documentation-site-pages.md,PLAN/S1801_wear-documentation-site-pages/PHASE_06__docs-catalog-cleanup.md` | `spec-all` | S1801: Ticket closed as Verified - Wear OS user documentation site pages complete [branch: DEBUG-v033] |
@@ -27413,7 +27413,7 @@ Format: | datetime | file | target | description |
 | 2026-08-20 21:54:32 | `scripts/quality/assert-source-gates.ps1` | `S1857` | assert-source-gates: audit mode reports ADVISORY instead of claiming every rule is at or below baseline while one is above it [branch: DEBUG-v033] |
 | 2026-08-20 23:11:10 | `PLAN/S1858_bugfix-locale-fingerprint-module-collision.md` | `spec` | Scaffold strategic spec skeleton S1858 [branch: DEBUG-v033] |
 | 2026-08-20 23:43:08 | `PLAN/S1859_bugfix-log-audit-counts-foreign-process-errors.md` | `spec` | Scaffold strategic spec skeleton S1859 [branch: DEBUG-v033] |
-| 2026-08-20 23:45:17 | `app_v2/build.gradle.kts` | `build` | Bump yt-dlp to stable 2026.8.19, regenerate OSS notices; fix collect-stream-candidates calling Normalize-PruneStatuses before its module dot-source [set of 12: scripts/streams/collect-stream-candidates.ps1, docs/legal/oss-notices.json, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE.ru.md, docs/OPEN_SOURCE.uk.md, app_v2/src/main/res/raw/oss_notices_standard.json, +5 more] [branch: DEBUG-v033] |
+| 2026-08-20 23:45:17 | `app_v2/build.gradle.kts` | `build` | Bump yt-dlp to stable 2026.8.19, regenerate OSS notices; fix collect-stream-candidates calling Normalize-PruneStatuses before its module dot-source [set of 12: scripts/streams/collect-stream-candidates.ps1, docs/legal/oss-notices.json, docs/OPEN_SOURCE.md, docs/OPEN_SOURCE-ru.md, docs/OPEN_SOURCE-uk.md, app_v2/src/main/res/raw/oss_notices_standard.json, +5 more] [branch: DEBUG-v033] |
 | 2026-08-20 23:45:27 | `app_v2/src/main/res/values-de/strings.xml` | `strings` | S1627/S1628: bulk-import 244 app_v2 + 197 wear units into all 10 machine locales (4410 lines, 0 rejected) [branch: DEBUG-v033] |
 | 2026-08-20 23:45:28 | `delivery/stream-catalog/streams.csv` | `streams` | Pre-release stream-catalog refresh: +51 alive rows, catalog now 18959 [branch: DEBUG-v033] |
 | 2026-08-21 00:29:12 | `PLAN/S1728_wear-streaming-via-phone-network.md` | `spec-quiz` | S1728: BlockQuestions -> Approved via quiz (2 questions) [branch: DEBUG-v033] |
@@ -27658,7 +27658,7 @@ Format: | datetime | file | target | description |
 | 2026-08-21 15:33:29 | `PLAN/S1903_screen-off-dims-button-backlight.md` | `spec` | Scaffold strategic spec skeleton S1903 [branch: DEBUG-v033] |
 | 2026-08-21 15:34:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/EstimateOcrResolutionUseCase.kt` | `S1876` | S1876: camera photo OCR resolution computed from EXIF subject distance and 35mm-equivalent focal length; floor retained where the tags are absent [set of 8: app_v2/src/main/java/com/sza/fastmediasorter/domain/ocr/OcrSourceKind.kt, app_v2/src/test/java/com/sza/fastmediasorter/domain/ocr/EstimateOcrResolutionUseCaseTest.kt, docs/OCR_OVERLAY_ACCURACY.md, PLAN/S1876_ocr-camera-photo-resolution-estimator.md, PLAN/S1876_ocr-camera-photo-resolution-estimator/INDEX.md, PLAN/S1876_ocr-camera-photo-resolution-estimator/PHASE_01__scene-arithmetic-from-exif.md, +1 more] [branch: DEBUG-v033] |
 | 2026-08-21 15:38:10 | `PLAN/S1876_ocr-camera-photo-resolution-estimator.md` | `spec-check` | Audit S1876 -> Verified; PASS/WARN/FAIL 14/0/0 [branch: DEBUG-v033] |
-| 2026-08-21 15:39:40 | `docs/HOW_TO.md` | `S1882` | Document the unified capture filename contract and record its inventory entry [set of 4: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v033] |
+| 2026-08-21 15:39:40 | `docs/HOW_TO.md` | `S1882` | Document the unified capture filename contract and record its inventory entry [set of 4: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v033] |
 | 2026-08-21 15:41:26 | `PLAN/S1905_launcher-weather-gadget-cities.md` | `spec` | Scaffold strategic spec skeleton S1905 [branch: DEBUG-v033] |
 | 2026-08-21 15:41:52 | `PLAN/S1906_launcher-world-clock-gadget.md` | `spec` | Scaffold strategic spec skeleton S1906 [branch: DEBUG-v033] |
 | 2026-08-21 15:44:09 | `PLAN/S1884_wear-share-open-on-watch.md` | `S1884` | S1884: strategic spec researched and written - phone-initiated open-on-watch reuses the existing pull channel; menu surface left as the one owner decision [branch: DEBUG-v033] |
@@ -27813,22 +27813,22 @@ Format: | datetime | file | target | description |
 | 2026-08-21 22:53:06 | `PLAN/S1919_launcher-naming-and-icon/PHASE_04__published-docs-wording.md` | `spec-tech` | Phase 04: published-docs-wording [branch: DEBUG-v033] |
 | 2026-08-21 22:53:07 | `PLAN/S1919_launcher-naming-and-icon/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v033] |
 | 2026-08-21 22:53:07 | `PLAN/S1919_launcher-naming-and-icon.md` | `spec-tech` | S1919 status -> Tactical; docs-icon scope carved out to S1931 [branch: DEBUG-v033] |
-| 2026-08-21 22:54:01 | `docs/V2_TERMS.md` | `S1919 phase 01` | S1919 phase 01: record the Launcher and Desktop terms in the published glossary in three languages [set of 3: docs/V2_TERMS_RU.md, docs/V2_TERMS_UK.md] [branch: DEBUG-v033] |
+| 2026-08-21 22:54:01 | `docs/V2_TERMS.md` | `S1919 phase 01` | S1919 phase 01: record the Launcher and Desktop terms in the published glossary in three languages [set of 3: docs/V2_TERMS-ru.md, docs/V2_TERMS-uk.md] [branch: DEBUG-v033] |
 | 2026-08-21 22:54:16 | `PLAN/S1915_blockneedusertest-without-a-packaging-build/PHASE_01__resource-link-gate.md` | `S1915` | S1915: phase 01 step records the Rule 5 backup without citing a disposable path, so the closed spec keeps a verifiable audit trail [branch: DEBUG-v033] |
 | 2026-08-21 22:56:50 | `PLAN/S1915_blockneedusertest-without-a-packaging-build.md` | `spec-check` | Audit S1915 -> Verified; PASS/WARN/FAIL 22/0/0; resource-link gate proven red on a broken layout and a broken manifest [branch: DEBUG-v033] |
 | 2026-08-21 22:56:51 | `PLAN/S1915_blockneedusertest-without-a-packaging-build/INDEX.md` | `spec-check` | S1915: completion gate and research blocker ticked; tactical plan Done [branch: DEBUG-v033] |
 | 2026-08-21 22:57:22 | `app_v2/src/main/res/values-ru/strings.xml` | `S1919 phase 02` | S1919 phase 02: name the launcher in the five RU and UK strings that introduce it [set of 2: app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v033] |
 | 2026-08-21 22:59:37 | `PLAN/S1918_personal-phone-profile-streams-default.md` | `S1918` | Research: streams-on-by-default already ships for the personal-phone profile; the real gap is that a preset-enabled toggle never imports a catalogue [branch: DEBUG-v033] |
-| 2026-08-21 23:03:32 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S1919 phase 03` | S1919 phase 03: launcher icon on the settings toggle and its entry row in both orientations; settings docs regenerated and two settings breadcrumbs realigned [set of 10: app_v2/src/main/res/layout-land/fragment_settings_general.xml, docs/settings/settings-annotations.json, docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, +3 more] [branch: DEBUG-v033] |
+| 2026-08-21 23:03:32 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S1919 phase 03` | S1919 phase 03: launcher icon on the settings toggle and its entry row in both orientations; settings docs regenerated and two settings breadcrumbs realigned [set of 10: app_v2/src/main/res/layout-land/fragment_settings_general.xml, docs/settings/settings-annotations.json, docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, +3 more] [branch: DEBUG-v033] |
 | 2026-08-21 23:05:22 | `PLAN/S1922_layout-hardcoded-dimension-literals.md` | `spec-tech` | S1922: strategic spec from research (both items resolved; 45% of the captured debt is structural 0dp) plus 2-phase tactical plan; parked S1932 [set of 5: PLAN/S1922_layout-hardcoded-dimension-literals/INDEX.md, PLAN/S1922_layout-hardcoded-dimension-literals/PHASE_01__dimen-ratchet-rule.md, PLAN/S1922_layout-hardcoded-dimension-literals/PHASE_02__docs-catalog-cleanup.md, PLAN/S1932_layout-colour-rule-misses-three-layout-roots.md] [branch: DEBUG-v033] |
 | 2026-08-21 23:07:52 | `scripts/quality/lib/source-matchers.ps1` | `S1922 phase 01` | S1922 phase 01: layout-hardcoded-dimens ratchet over all five layout roots, baseline 1893, structural 0dp excluded [set of 4: scripts/quality/layout-hardcoded-dimens-baseline.txt, PLAN/S1922_layout-hardcoded-dimension-literals/PHASE_01__dimen-ratchet-rule.md, PLAN/S1922_layout-hardcoded-dimension-literals/INDEX.md] [branch: DEBUG-v033] |
 | 2026-08-21 23:08:43 | `docs/DEV_OPS.md` | `S1922 phase 02` | S1922 phase 02: layout dimension-literal ratchet documented - scope, the 0dp carve-out and the convert-on-touch model [set of 3: PLAN/S1922_layout-hardcoded-dimension-literals/PHASE_02__docs-catalog-cleanup.md, PLAN/S1922_layout-hardcoded-dimension-literals/INDEX.md] [branch: DEBUG-v033] |
 | 2026-08-21 23:12:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CropRegionManager.kt` | `S1923` | Camera-OCR: cap the captured-photo decode at 4096px on the long side and catch OutOfMemoryError, so a sensor-resolution capture reaches the crop step instead of hanging on the loading screen [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/ui/cameraocr/CropRegionManagerTest.kt] [branch: DEBUG-v033] |
 | 2026-08-21 23:12:18 | `PLAN/S1922_layout-hardcoded-dimension-literals.md` | `spec-check` | Audit S1922 -> Verified; PASS/WARN/FAIL 14/0/0; layout-hardcoded-dimens ratchet at baseline 1893 [branch: DEBUG-v033] |
 | 2026-08-21 23:18:41 | `PLAN/S1926_device-lease-for-parallel-sessions.md` | `spec-tech` | S1926: strategic spec from research (3 items resolved) plus 3-phase tactical plan for the device lease; Approved -> Tactical [set of 5: PLAN/S1926_device-lease-for-parallel-sessions/INDEX.md, PLAN/S1926_device-lease-for-parallel-sessions/PHASE_01__device-lease-script.md, PLAN/S1926_device-lease-for-parallel-sessions/PHASE_02__readiness-probe-integration.md, PLAN/S1926_device-lease-for-parallel-sessions/PHASE_03__docs-catalog-cleanup.md] [branch: DEBUG-v033] |
-| 2026-08-21 23:19:58 | `docs/README_RU.md` | `S1919 phase 04` | S1919 phase 04: name the launcher in the RU and UK guides and sync the quoted toggle title to its rename [set of 6: docs/README_UK.md, docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/FAQ_RU.md, docs/FAQ_UK.md] [branch: DEBUG-v033] |
+| 2026-08-21 23:19:58 | `docs/README-ru.md` | `S1919 phase 04` | S1919 phase 04: name the launcher in the RU and UK guides and sync the quoted toggle title to its rename [set of 6: docs/README-uk.md, docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/FAQ-ru.md, docs/FAQ-uk.md] [branch: DEBUG-v033] |
 | 2026-08-21 23:22:43 | `scripts/devtest/device-lease.ps1` | `S1926 phase 01` | S1926 phase 01: device lease with the ticket-lease shape - claim/release/list/status/sweep, exit codes 0/1/3/4, liveness reused not restated [set of 5: scripts/devtest/device-lease.tests/Run-Tests.ps1, scripts/utils/agent-lock.ps1, PLAN/S1926_device-lease-for-parallel-sessions/PHASE_01__device-lease-script.md, PLAN/S1926_device-lease-for-parallel-sessions/INDEX.md] [branch: DEBUG-v033] |
-| 2026-08-21 23:22:46 | `docs/V2_TERMS.md` | `S1919` | S1919: name the launcher in RU and UK where the feature is introduced, and give it its icon in settings [set of 24: docs/V2_TERMS_RU.md, docs/V2_TERMS_UK.md, app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml, +17 more] [branch: DEBUG-v033] |
+| 2026-08-21 23:22:46 | `docs/V2_TERMS.md` | `S1919` | S1919: name the launcher in RU and UK where the feature is introduced, and give it its icon in settings [set of 24: docs/V2_TERMS-ru.md, docs/V2_TERMS-uk.md, app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml, +17 more] [branch: DEBUG-v033] |
 | 2026-08-21 23:24:44 | `PLAN/S1919_launcher-naming-and-icon/INDEX.md` | `spec-dev` | S1919: all 5 phases done; status -> Implemented [branch: DEBUG-v033] |
 | 2026-08-21 23:24:45 | `PLAN/S1919_launcher-naming-and-icon/evidence/02__verdict-and-how-to-reproduce.md` | `spec-dev` | S1919: durable on-device evidence for the settings row icon [branch: DEBUG-v033] |
 | 2026-08-21 23:26:05 | `scripts/devtest/device-ready.ps1` | `S1926 phase 02` | S1926 phase 02: device-ready -ClaimFree takes a free device instead of refusing on multiple-devices; all-devices-leased is a distinct state [set of 5: docs/SCRIPT_CHEATSHEET.md, PLAN/S1926_device-lease-for-parallel-sessions.md, PLAN/S1926_device-lease-for-parallel-sessions/PHASE_02__readiness-probe-integration.md, PLAN/S1926_device-lease-for-parallel-sessions/INDEX.md] [branch: DEBUG-v033] |
@@ -28069,7 +28069,7 @@ Format: | datetime | file | target | description |
 | 2026-08-22 22:09:58 | `app_v2/proguard-rules.pro` | `R8 enum keep rules` | Pin ResourceGridCellSize enum member names in R8: the value is persisted by name to DataStore, settings backup and import, so minification silently reset the grid cell size on update [branch: DEBUG-v033] |
 | 2026-08-22 22:17:14 | `wear/src/main/res/values-de/strings.xml` | `wear ten-locale catch-up` | Translate the 32 new wear netmon and game strings into the ten machine-translated locales, clearing the Rule 30 thirteen-locale gate for the watch module [set of 10: wear/src/main/res/values-es/strings.xml, wear/src/main/res/values-fr/strings.xml, wear/src/main/res/values-it/strings.xml, wear/src/main/res/values-pt/strings.xml, wear/src/main/res/values-b+zh+Hans/strings.xml, wear/src/main/res/values-hi/strings.xml, +3 more] [branch: DEBUG-v033] |
 | 2026-08-22 23:03:49 | `PLAN/S1969_bugfix-log-audit-emulator-gpu-noise.md` | `spec` | Scaffold strategic spec skeleton S1969 [branch: DEBUG-v033] |
-| 2026-08-22 23:44:05 | `docs/HOW_TO.md` | `user guides` | Document the built-in programs family, the launcher widget backdrop opacity and the welcome page roles across EN/RU/UK guides, clearing the guide-coverage gate [set of 9: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/howto/scenario-launcher-mode.md, docs/howto/scenario-launcher-mode-ru.md, docs/howto/scenario-launcher-mode-uk.md, docs/QUICK_START.md, +2 more] [branch: DEBUG-v033] |
+| 2026-08-22 23:44:05 | `docs/HOW_TO.md` | `user guides` | Document the built-in programs family, the launcher widget backdrop opacity and the welcome page roles across EN/RU/UK guides, clearing the guide-coverage gate [set of 9: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/howto/scenario-launcher-mode.md, docs/howto/scenario-launcher-mode-ru.md, docs/howto/scenario-launcher-mode-uk.md, docs/QUICK_START.md, +2 more] [branch: DEBUG-v033] |
 | 2026-08-22 23:53:17 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8222.348 - plateau merge from DEBUG-v033 [branch: DEBUG-v033] |
 | 2026-08-23 00:05:02 | `.gitignore` | `gitignore secret patterns` | Stop the blanket token/secret gitignore patterns from swallowing Kotlin sources: LauncherWidgetToken and its test never reached main, so the release build failed on an unresolved reference that compiled locally [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/widget/LauncherWidgetToken.kt, app_v2/src/test/java/com/sza/fastmediasorter/widget/LauncherWidgetTokenTest.kt] [branch: DEBUG-v034] |
 | 2026-08-23 00:31:42 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8222.348 from ALL_FEATURES diff [branch: DEBUG-v034] |
@@ -28111,7 +28111,7 @@ Format: | datetime | file | target | description |
 | 2026-08-23 18:50:12 | `PLAN/S1977_bugfix-nonwear-records-rode-the-wear-row.md` | `spec-check` | Audit S1977 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v034] |
 | 2026-08-23 18:51:03 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/LastUsedResource.kt` | `S1974` | S1974: wear home screen reserves its first row for the last used resources, one cell per column [set of 14: wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/HomeSection.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearPreferencesRepository.kt, wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ResolveLastUsedResourceUseCase.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/LastUsedResourceHistory.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearPreferencesRepositoryImpl.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/home/HomeUiState.kt, +7 more] [branch: DEBUG-v034] |
 | 2026-08-23 18:54:23 | `PLAN/S1974_wear-home-last-resources-fill-first-row.md` | `spec-all` | S1974: compact spec, ADRs and Last Audit; scored BlockNeedUserTest (PASS 27 / WARN 0 / FAIL 0 / MANUAL 7) [branch: DEBUG-v034] |
-| 2026-08-23 19:18:13 | `docs/DOCUMENT_REGISTRY.jsonl` | `S1980` | S1980: MODULE_SELECTION.md reclassified from user-guides to developer-operations - a module build guide left the public sitemap and the three README guide lists, root README keeps it under Build Instructions [set of 8: docs/README.md, docs/README_RU.md, docs/README_UK.md, README.md, docs/DOCS_MAP.md, sitemap.xml, +1 more] [branch: DEBUG-v034] |
+| 2026-08-23 19:18:13 | `docs/DOCUMENT_REGISTRY.jsonl` | `S1980` | S1980: MODULE_SELECTION.md reclassified from user-guides to developer-operations - a module build guide left the public sitemap and the three README guide lists, root README keeps it under Build Instructions [set of 8: docs/README.md, docs/README-ru.md, docs/README-uk.md, README.md, docs/DOCS_MAP.md, sitemap.xml, +1 more] [branch: DEBUG-v034] |
 | 2026-08-23 19:19:58 | `PLAN/S1980_module-selection-is-a-dev-doc-published-as-a-user-guide.md` | `spec-check` | Audit S1980 -> Verified; PASS/WARN/FAIL 14/0/0 [branch: DEBUG-v034] |
 | 2026-08-23 19:27:27 | `scripts/quality/assert-script-references.ps1` | `spec-all S1979` | S1979: gate a document that names a nonexistent script (assert-script-references -Docs) [set of 6: scripts/quality/doc-script-reference-baseline.txt, scripts/post-change.ps1, docs/DEV_OPS.md, docs/SCRIPT_CHEATSHEET.md, PLAN/S1979_gate-doc-references-to-nonexistent-scripts.md] [branch: DEBUG-v034] |
 | 2026-08-23 19:36:45 | `PLAN/S1979_gate-doc-references-to-nonexistent-scripts.md` | `spec-check` | Audit S1979 -> Verified; PASS/WARN/FAIL 13/0/0 [branch: DEBUG-v034] |
@@ -28119,7 +28119,7 @@ Format: | datetime | file | target | description |
 | 2026-08-23 19:37:04 | `PLAN/S1983_bugfix-vr-docs-name-nonexistent-builders.md` | `spec-draft` | Scaffold strategic spec skeleton S1983 [branch: DEBUG-v034] |
 | 2026-08-23 19:41:55 | `PLAN/S1982_all-features-record-needs-two-flags-at-once.md` | `spec-check` | Audit S1982 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v034] |
 | 2026-08-23 20:08:36 | `PLAN/S1984_wear-release-has-no-prerelease-gate.md` | `spec` | Scaffold strategic spec skeleton S1984 [branch: DEBUG-v034] |
-| 2026-08-23 21:18:14 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/UnusedCredentialPolicyTest.kt` | `release-34` | Repair the red unit suite before the release: align credential-audit tests with the orphanedSince clock, give the watch-thumbnail test a real JPEG fixture, regenerate the icon inventory and legend with a WEAR_WATCH label [set of 8: app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/CredentialAuditorTest.kt, app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/BuildWatchThumbnailUseCaseTest.kt, docs/icons/icon-annotations.json, docs/icons/icon-inventory.json, docs/ICON_LEGEND.md, docs/ICON_LEGEND_RU.md, +1 more] [branch: DEBUG-v034] |
+| 2026-08-23 21:18:14 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/UnusedCredentialPolicyTest.kt` | `release-34` | Repair the red unit suite before the release: align credential-audit tests with the orphanedSince clock, give the watch-thumbnail test a real JPEG fixture, regenerate the icon inventory and legend with a WEAR_WATCH label [set of 8: app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/CredentialAuditorTest.kt, app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/BuildWatchThumbnailUseCaseTest.kt, docs/icons/icon-annotations.json, docs/icons/icon-inventory.json, docs/ICON_LEGEND.md, docs/ICON_LEGEND-ru.md, +1 more] [branch: DEBUG-v034] |
 | 2026-08-23 21:23:51 | `app_v2/src/main/res/values-ar/strings.xml` | `release-34` | Translate the twelve new wear-watch transfer strings into the ten machine locales so the release ships no English caption to a non-English user [set of 10: app_v2/src/main/res/values-b+zh+Hans/strings.xml, app_v2/src/main/res/values-bn/strings.xml, app_v2/src/main/res/values-de/strings.xml, app_v2/src/main/res/values-es/strings.xml, app_v2/src/main/res/values-fr/strings.xml, app_v2/src/main/res/values-hi/strings.xml, +3 more] [branch: DEBUG-v034] |
 | 2026-08-23 22:57:23 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes for v2.60.8232.251 - plateau merge from DEBUG-v034 [branch: DEBUG-v034] |
 | 2026-08-23 23:19:55 | `docs/FEATURES.md` | `FEATURES` | Showcase update for v2.60.8232.251 from ALL_FEATURES diff [branch: DEBUG-v035] |
@@ -28293,7 +28293,7 @@ Format: | datetime | file | target | description |
 | 2026-08-25 12:50:54 | `PLAN/S2001_wear-web-portal.md` | `spec-all` | Pipeline Verified: S2001 Wear OS web portal [branch: DEBUG-v035] |
 | 2026-08-25 12:54:16 | `PLAN/S2009_wear-stream-search-voice-input.md` | `spec-all` | Strategic spec S2009: reliable Wear stream search input [branch: DEBUG-v035] |
 | 2026-08-25 13:02:42 | `docs/wear/index.md` | `doc-update` | Remove RuStore mentions from Wear OS web portal documentation [set of 5: docs/wear/index-ru.md, docs/wear/index-uk.md, PLAN/S2001_wear-web-portal.md, PLAN/S2001_wear-web-portal/PHASE_01__wear-web-portal-pages.md] [branch: DEBUG-v035] |
-| 2026-08-25 13:04:42 | `docs/wear/index.md` | `doc-update` | Improve cross-linking between Wear OS web portal and main application website across EN, RU, UK [set of 12: docs/wear/index-ru.md, docs/wear/index-uk.md, docs/README.md, docs/README_RU.md, docs/README_UK.md, docs/howto/index.md, +5 more] [branch: DEBUG-v035] |
+| 2026-08-25 13:04:42 | `docs/wear/index.md` | `doc-update` | Improve cross-linking between Wear OS web portal and main application website across EN, RU, UK [set of 12: docs/wear/index-ru.md, docs/wear/index-uk.md, docs/README.md, docs/README-ru.md, docs/README-uk.md, docs/howto/index.md, +5 more] [branch: DEBUG-v035] |
 | 2026-08-25 13:05:12 | `PLAN/S2002_launcher-web-portal.md` | `spec-all` | Strategic spec S2002: Launcher web portal [branch: DEBUG-v035] |
 | 2026-08-25 13:05:33 | `PLAN/S2002_launcher-web-portal/INDEX.md` | `spec-tech` | Tactical plan S2002: Launcher web portal [branch: DEBUG-v035] |
 | 2026-08-25 13:08:07 | `docs/launcher/index.md` | `S2002` | Complete S2002 Launcher Web Portal creation and integration across EN, RU, UK [set of 7: docs/launcher/index-ru.md, docs/launcher/index-uk.md, app_v2/src/main/java/com/sza/fastmediasorter/ui/common/support/SupportIntentFactory.kt, docs/DOCUMENT_REGISTRY.jsonl, docs/ALL_FEATURES.jsonl, PLAN/S2002_launcher-web-portal.md] [branch: DEBUG-v035] |
@@ -28693,7 +28693,7 @@ Format: | datetime | file | target | description |
 | 2026-08-26 23:13:46 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 5 processed, 0 verified, 2 blocked [branch: DEBUG-v035] |
 | 2026-08-26 23:19:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ReceiveWatchFileUseCase.kt` | `S2044 Phase 02` | Resolve WatchFileDestination in ReceiveWatchFileUseCase and cover with unit tests [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ReceiveWatchFileUseCaseTest.kt] [branch: DEBUG-v035] |
 | 2026-08-26 23:20:57 | `PLAN/S2060_launcher-add-flow-pending-slot-process-death.md` | `spec-all` | Compact spec: S2060 [branch: DEBUG-v035] |
-| 2026-08-26 23:23:31 | `wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt` | `S2095` | S2095: watch keep-screen-on setting holds on every screen via counted window claims [set of 11: wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/KeepScreenOnEffect.kt, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/SETTINGS_REFERENCE_noLegal.md, +4 more] [branch: DEBUG-v035] |
+| 2026-08-26 23:23:31 | `wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt` | `S2095` | S2095: watch keep-screen-on setting holds on every screen via counted window claims [set of 11: wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/KeepScreenOnEffect.kt, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md, +4 more] [branch: DEBUG-v035] |
 | 2026-08-26 23:31:08 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeViewModel.kt,app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherAddFlowManager.kt,app_v2/src/testLauncherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeViewModelSeedTest.kt` | `spec-all` | S2060: pending add-flow slot survives process death via SavedStateHandle [branch: DEBUG-v035] |
 | 2026-08-26 23:39:21 | `app_v2/src/main/java/com/sza/fastmediasorter/worker/WearReceivedFileUploadWorker.kt` | `S2044 Phase 03` | Stage remote watch file and enqueue WearReceivedFileUploadWorker with notification reporting [set of 4: app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ReceiveWatchFileUseCase.kt, app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/ReceiveWatchFileUseCaseTest.kt, app_v2/src/main/java/com/sza/fastmediasorter/di/WorkManagerModule.kt] [branch: DEBUG-v035] |
 | 2026-08-26 23:46:52 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearNowPlaying.kt` | `S2047 Phase 01` | Add WearNowPlaying domain model, WearNowPlayingRepository DataStore, Hilt bindings, ViewModels playback state wiring, app startup clearing, and WearNowPlayingTest [set of 8: wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/WearNowPlayingRepository.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearNowPlayingRepositoryImpl.kt, wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/FastMediaSorterWearApp.kt, +1 more] [branch: DEBUG-v035] |
@@ -28854,10 +28854,10 @@ Format: | datetime | file | target | description |
 | 2026-08-27 07:31:35 | `PLAN/S2117_bugfix-module-version-parity-drift.md` | `spec-all` | Compact spec: S2117 root cause + fix for module version parity drift [branch: DEBUG-v035] |
 | 2026-08-27 07:32:33 | `wear/build.gradle.kts` | `S2117 module version parity` | S2117: fix module version parity drift, warn at stamp time [set of 3: scripts/builders/build-aab-release.ps1, scripts/release/build-release-spectrum.ps1] [branch: DEBUG-v035] |
 | 2026-08-27 07:33:53 | `PLAN/S2117_bugfix-module-version-parity-drift.md` | `spec-check` | Audit S2117 -> Verified; PASS/WARN/FAIL 5/0/0 [branch: DEBUG-v035] |
-| 2026-08-27 07:38:04 | `docs/DEV_OPS.md` | `VR build docs` | S1983: repoint VR build/install instructions at existing commands; drop 5 phantom builders and 3 phantom a.ps1 aliases [set of 10: docs/VR_EDITION.md, docs/VR_EDITION_RU.md, docs/VR_EDITION_UK.md, docs/VR_SIDELOAD.md, docs/VR_SIDELOAD_RU.md, docs/VR_SIDELOAD_UK.md, +3 more] [branch: DEBUG-v035] |
-| 2026-08-27 07:38:52 | `docs/VR_EDITION.md` | `spec-all` | S2118: fix VR docs package-id claims to match shared applicationId (no .vr suffix) [set of 4: docs/VR_EDITION_RU.md, docs/VR_EDITION_UK.md, PLAN/S2118_bugfix-vr-docs-package-name-contradicts-gradle.md] [branch: DEBUG-v035] |
+| 2026-08-27 07:38:04 | `docs/DEV_OPS.md` | `VR build docs` | S1983: repoint VR build/install instructions at existing commands; drop 5 phantom builders and 3 phantom a.ps1 aliases [set of 10: docs/VR_EDITION.md, docs/VR_EDITION-ru.md, docs/VR_EDITION-uk.md, docs/VR_SIDELOAD.md, docs/VR_SIDELOAD-ru.md, docs/VR_SIDELOAD-uk.md, +3 more] [branch: DEBUG-v035] |
+| 2026-08-27 07:38:52 | `docs/VR_EDITION.md` | `spec-all` | S2118: fix VR docs package-id claims to match shared applicationId (no .vr suffix) [set of 4: docs/VR_EDITION-ru.md, docs/VR_EDITION-uk.md, PLAN/S2118_bugfix-vr-docs-package-name-contradicts-gradle.md] [branch: DEBUG-v035] |
 | 2026-08-27 07:46:31 | `PLAN/S2119_bugfix-sideload-guide-builds-wrong-flavor.md` | `spec-all` | Compact spec: S2119 - resolve VR sideload guide flavor mismatch (rewrite VR_SIDELOAD*.md to noLegal, resolved from existing VR_EDITION.md commitments, no owner decision needed) [branch: DEBUG-v035] |
-| 2026-08-27 07:47:54 | `docs/VR_SIDELOAD.md` | `sideload-guide-flavor-fix` | S2119: rewrite VR sideload guide to build/install noLegal (matches VR_EDITION.md's existing promise) instead of the non-immersive vr flavor [set of 3: docs/VR_SIDELOAD_RU.md, docs/VR_SIDELOAD_UK.md] [branch: DEBUG-v035] |
+| 2026-08-27 07:47:54 | `docs/VR_SIDELOAD.md` | `sideload-guide-flavor-fix` | S2119: rewrite VR sideload guide to build/install noLegal (matches VR_EDITION.md's existing promise) instead of the non-immersive vr flavor [set of 3: docs/VR_SIDELOAD-ru.md, docs/VR_SIDELOAD-uk.md] [branch: DEBUG-v035] |
 | 2026-08-27 07:48:50 | `PLAN/S2119_bugfix-sideload-guide-builds-wrong-flavor.md` | `spec-check` | Audit S2119 -> Verified; PASS/WARN/FAIL 6/0/0 [branch: DEBUG-v035] |
 | 2026-08-27 08:00:12 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherWallpaper.kt` | `spec-all` | S2076: launcher live camera background - LiveCamera wallpaper mode, CameraX preview layer with scrim, lens picker in launcher settings [set of 32: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStore.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/capture/CameraHardwareDataSource.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/IsCameraWallpaperAvailableUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt, +25 more] [branch: DEBUG-v035] |
 | 2026-08-27 08:03:20 | `PLAN/S2076_launcher-live-camera-background.md` | `spec-check` | Audit S2076 -> BlockNeedUserTest; PASS/WARN/FAIL 24/0/0, MANUAL 3 (on-device criteria 1-4) [branch: DEBUG-v035] |
@@ -29232,7 +29232,7 @@ Format: | datetime | file | target | description |
 | 2026-08-28 14:49:29 | `PLAN/S2210_launcher-instant-photo-wallpaper.md` | `spec-check` | Audit S2210 -> BlockNeedUserTest; PASS/WARN/FAIL 18/0/0, MANUAL 4 [branch: DEBUG-v035] |
 | 2026-08-28 14:49:29 | `PLAN/S2210_launcher-instant-photo-wallpaper/INDEX.md` | `spec-check` | Sync tactical INDEX status and completion gate for S2210 [branch: DEBUG-v035] |
 | 2026-08-28 14:53:43 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-all` | S2213: weather gadget location survives a launcher reset [set of 13: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStore.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ResetLauncherToDefaultsUseCase.kt, app_v2/src/test/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStoreTest.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/LauncherWeatherParamFallback.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherGadgetRenderManager.kt, +6 more] [branch: DEBUG-v035] |
-| 2026-08-28 14:54:18 | `docs/settings/settings-annotations.json` | `S2210` | Describe the instant photo wallpaper option in the launcher wallpaper row annotation [set of 5: docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/SETTINGS_REFERENCE_noLegal.md] [branch: DEBUG-v035] |
+| 2026-08-28 14:54:18 | `docs/settings/settings-annotations.json` | `S2210` | Describe the instant photo wallpaper option in the launcher wallpaper row annotation [set of 5: docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md] [branch: DEBUG-v035] |
 | 2026-08-28 14:54:46 | `PLAN/S2220_launcher-all-programs-alphabetical-groups.md` | `spec` | Scaffold strategic spec skeleton S2220 [branch: DEBUG-v035] |
 | 2026-08-28 14:57:17 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec` | Scaffold strategic spec skeleton S2221 [branch: DEBUG-v035] |
 | 2026-08-28 15:00:07 | `PLAN/S2221_launcher-swipe-up-all-programs.md` | `spec-update` | Refinement (GPT-5, focus: completeness) [branch: DEBUG-v035] |
@@ -29249,7 +29249,7 @@ Format: | datetime | file | target | description |
 | 2026-08-28 19:54:46 | `PLAN/S2215_launcher-back-navigation-return.md` | `spec-all` | Pipeline BlockNeedUserTest: S2215 [branch: DEBUG-v035] |
 | 2026-08-28 19:54:47 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/ExecuteLauncherCommandUseCase.kt` | `spec-all` | Set FLAG_ACTIVITY_MULTIPLE_TASK for internal launcher targets [branch: DEBUG-v035] |
 | 2026-08-28 19:54:48 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/ExecuteLauncherCommandTaskFlagsTest.kt` | `spec-all` | Unit test for internal vs external target task flags [branch: DEBUG-v035] |
-| 2026-08-28 19:57:57 | `docs/icons/icon-inventory.json` | `spec-all` | S2224: regenerate stale icon inventory after S2211 black_screen route, export missing ic_location svg, re-render legend [set of 6: docs/ICON_LEGEND.md, docs/ICON_LEGEND_RU.md, docs/ICON_LEGEND_UK.md, docs/icons/svg/ic_location.svg, PLAN/S2224_bugfix-icon-inventory-stale.md] [branch: DEBUG-v035] |
+| 2026-08-28 19:57:57 | `docs/icons/icon-inventory.json` | `spec-all` | S2224: regenerate stale icon inventory after S2211 black_screen route, export missing ic_location svg, re-render legend [set of 6: docs/ICON_LEGEND.md, docs/ICON_LEGEND-ru.md, docs/ICON_LEGEND-uk.md, docs/icons/svg/ic_location.svg, PLAN/S2224_bugfix-icon-inventory-stale.md] [branch: DEBUG-v035] |
 | 2026-08-28 20:00:24 | `scripts/catalog_sync.ps1` | `catalog_sync` | Speed up catalog_sync, scan.ps1 and render.ps1 via bulk git log, memoized link resolution and fast I/O [set of 3: dev/CATALOG/scripts/scan.ps1, dev/CATALOG/scripts/render.ps1] [branch: DEBUG-v035] |
 | 2026-08-28 20:01:08 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/PopupMenuWidthMeasurer.kt` | `S2185` | Share bounded popup width measurement [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBigButtonsModeManager.kt] [branch: DEBUG-v035] |
 | 2026-08-28 20:03:27 | `PLAN/S2226_bugfix-test-suite-mount-map-parser.md` | `spec` | Scaffold strategic spec skeleton S2226 [branch: DEBUG-v035] |
@@ -29311,7 +29311,7 @@ Format: | datetime | file | target | description |
 | 2026-08-29 00:55:51 | `PLAN/S2217_launcher-reset-orphans-widget-instances.md` | `spec-all` | Pipeline BlockNeedUserTest: S2217 [branch: DEBUG-v035] |
 | 2026-08-29 01:01:11 | `scripts/quality/assert-doc-house-style.ps1` | `spec-dev` | S2216 phase 02: documentation house-style gate - long-dash findings in docs prose, changed-set scoping [branch: DEBUG-v035] |
 | 2026-08-29 01:03:43 | `PLAN/S2222_launcher-section-delete-resort.md` | `spec-all` | Strategic spec S2222: launcher section delete + resort (Filled and approved via /spec-all) [branch: DEBUG-v035] |
-| 2026-08-29 01:04:23 | `docs/README.md` | `docs/README.md` | S2216 phase 01: long dashes replaced with house-style hyphen on nine mirrored pages [set of 9: docs/README_RU.md, docs/README_UK.md, docs/launcher/index.md, docs/launcher/index-ru.md, docs/launcher/index-uk.md, docs/wear/index.md, +2 more] [branch: DEBUG-v035] |
+| 2026-08-29 01:04:23 | `docs/README.md` | `docs/README.md` | S2216 phase 01: long dashes replaced with house-style hyphen on nine mirrored pages [set of 9: docs/README-ru.md, docs/README-uk.md, docs/launcher/index.md, docs/launcher/index-ru.md, docs/launcher/index-uk.md, docs/wear/index.md, +2 more] [branch: DEBUG-v035] |
 | 2026-08-29 01:05:04 | `scripts/quality/assert-doc-house-style.ps1` | `scripts/quality/assert-doc-house-style.ps1` | S2216 phase 02: documentation house-style gate script [branch: DEBUG-v035] |
 | 2026-08-29 01:07:49 | `scripts/post-change.ps1` | `scripts/post-change.ps1` | S2216 phase 02: doc-house-style gate wired into post-change; recovery hint added; cheatsheet regenerated [set of 4: scripts/quality/gate-recovery-hints.psd1, scripts/quality/assert-doc-house-style.ps1, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v035] |
 | 2026-08-29 01:09:05 | `PLAN/S2232_bugfix-generated-showcase-dashes.md` | `spec` | Scaffold strategic spec skeleton S2232 [branch: DEBUG-v035] |
@@ -29329,7 +29329,7 @@ Format: | datetime | file | target | description |
 | 2026-08-29 01:46:10 | `PLAN/S2232_bugfix-generated-showcase-dashes/INDEX.md` | `spec-all` | Tactical plan S2232 [branch: DEBUG-v035] |
 | 2026-08-29 01:46:11 | `PLAN/S2232_bugfix-generated-showcase-dashes/PHASE_01__showcase-style-normalization.md` | `spec-all` | Tactical phase S2232 [branch: DEBUG-v035] |
 | 2026-08-29 01:47:04 | `.claude/commands/skill-release.md` | `spec-dev` | Normalize noLegal showcase dashes in release workflow [set of 2: .claude/reference/skill-release.md] [branch: DEBUG-v035] |
-| 2026-08-29 01:48:32 | `scripts/utils/fix-house-style.ps1` | `spec-dev` | Normalize generated noLegal showcase dashes [set of 6: .claude/commands/skill-release.md, .claude/reference/skill-release.md, docs/FEATURES_noLegal.md, docs/FEATURES_noLegal_RU.md, docs/FEATURES_noLegal_UK.md] [branch: DEBUG-v035] |
+| 2026-08-29 01:48:32 | `scripts/utils/fix-house-style.ps1` | `spec-dev` | Normalize generated noLegal showcase dashes [set of 6: .claude/commands/skill-release.md, .claude/reference/skill-release.md, docs/FEATURES_noLegal.md, docs/FEATURES_noLegal-ru.md, docs/FEATURES_noLegal-uk.md] [branch: DEBUG-v035] |
 | 2026-08-29 01:50:20 | `PLAN/S2232_bugfix-generated-showcase-dashes.md` | `spec-check` | Audit S2232 -> Verified; PASS/WARN/FAIL 10/0/0 [branch: DEBUG-v035] |
 | 2026-08-29 01:50:20 | `PLAN/S2232_bugfix-generated-showcase-dashes/INDEX.md` | `spec-check` | Mark completed tactical plan S2232 [branch: DEBUG-v035] |
 | 2026-08-29 01:55:30 | `PLAN/S2231_bugfix-wear-fgs-cast-icon-tint.md` | `spec-code` | Strategic specification: S2231 [branch: DEBUG-v035] |
@@ -29428,7 +29428,7 @@ Format: | datetime | file | target | description |
 | 2026-08-29 14:06:57 | `PLAN/S2229_launcher-idle-dim-blackout/INDEX.md` | `spec-tech` | Create tactical plan for S2229 [branch: DEBUG-v035] |
 | 2026-08-29 14:08:30 | `app_v2/src/launcherEnabled/res/layout/activity_launcher_home.xml` | `S2229` | Add launcherIdleDimOverlay View to launcher home layout [branch: DEBUG-v035] |
 | 2026-08-29 14:08:32 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherIdleManager.kt` | `S2229` | Create LauncherIdleManager state machine for idle dimming and blackout [branch: DEBUG-v035] |
-| 2026-08-29 14:09:33 | `docs/FEATURES.md` | `S2229` | Add launcher idle dimming and blackout feature to docs/FEATURES [set of 3: docs/FEATURES_RU.md, docs/FEATURES_UK.md] [branch: DEBUG-v035] |
+| 2026-08-29 14:09:33 | `docs/FEATURES.md` | `S2229` | Add launcher idle dimming and blackout feature to docs/FEATURES [set of 3: docs/FEATURES-ru.md, docs/FEATURES-uk.md] [branch: DEBUG-v035] |
 | 2026-08-29 14:10:34 | `PLAN/S2229_launcher-idle-dim-blackout.md` | `spec-check` | Audit S2229 -> Verified; PASS/WARN/FAIL 4/0/0 [branch: DEBUG-v035] |
 | 2026-08-29 14:10:49 | `app_v2/src/launcherEnabled/res/layout/activity_launcher_home.xml` | `S2229` | Wire LauncherHomeActivity to LauncherIdleManager and collect idle state transitions [set of 2: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt] [branch: DEBUG-v035] |
 | 2026-08-29 14:11:31 | `scripts/builders/gradle-run-verdict.ps1` | `S2219` | Add KSP worker ClassCastException signature to stale incremental compilation retry patterns [branch: DEBUG-v035] |
@@ -29529,8 +29529,8 @@ Format: | datetime | file | target | description |
 | 2026-08-30 02:59:53 | `docs/settings/settings-annotations.json` | `spec-dev` | Annotation for rowLauncherDesktopDoubleTapLock [branch: DEBUG-v035] |
 | 2026-08-30 02:59:53 | `docs/settings/settings-manifest.json` | `spec-dev` | Regenerated manifest with the new row [branch: DEBUG-v035] |
 | 2026-08-30 02:59:54 | `docs/SETTINGS_REFERENCE.md` | `spec-dev` | Rendered reference row [branch: DEBUG-v035] |
-| 2026-08-30 02:59:54 | `docs/SETTINGS_REFERENCE_RU.md` | `spec-dev` | Rendered RU reference row [branch: DEBUG-v035] |
-| 2026-08-30 02:59:54 | `docs/SETTINGS_REFERENCE_UK.md` | `spec-dev` | Rendered UK reference row [branch: DEBUG-v035] |
+| 2026-08-30 02:59:54 | `docs/SETTINGS_REFERENCE-ru.md` | `spec-dev` | Rendered RU reference row [branch: DEBUG-v035] |
+| 2026-08-30 02:59:54 | `docs/SETTINGS_REFERENCE-uk.md` | `spec-dev` | Rendered UK reference row [branch: DEBUG-v035] |
 | 2026-08-30 03:14:32 | `scripts/quality/assert-focus-highlight.ps1` | `spec-dev` | S2230: whitelist the stream window overlay scrim id in the focus gate [branch: DEBUG-v035] |
 | 2026-08-30 03:14:33 | `app_v2/src/launcherEnabled/res/layout/gadget_launcher_stream_window_controls.xml` | `spec-dev` | S2230: selectableItemBackground focus ripple on overlay buttons [branch: DEBUG-v035] |
 | 2026-08-30 03:16:47 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/StreamWindowOverlayManager.kt` | `app_v2` | S2230+S2247 stream window overlay controls, PiP entry, persistent audio default, add-window-to-desktop menu action [set of 18: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/StreamWindowGadget.kt, app_v2/src/launcherEnabled/res/layout/gadget_launcher_stream_window_controls.xml, app_v2/src/launcherEnabled/res/drawable/gadget_stream_window_overlay_plate.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/callbacks/PlayerPlaybackCallbackImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/menu/StreamActionCatalog.kt, +11 more] [branch: DEBUG-v035] |
@@ -29632,7 +29632,7 @@ Format: | datetime | file | target | description |
 | 2026-08-31 14:16:37 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/StreamWindowGadget.kt` | `S2267` | S2267: diagnostic probes on stream window taps, overlay visibility and playback ownership [set of 3: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/gadget/StreamWindowOverlayManager.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt] [branch: DEBUG-v035] |
 | 2026-08-31 14:21:01 | `app_v2/src/main/java/com/sza/fastmediasorter/core/util/AnimationPolicy.kt` | `S2250` | S2250 phase 01: process-wide AnimationPolicy fed by one settings subscription [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/FastMediaSorterApp.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/AudioWaveParticleView.kt] [branch: DEBUG-v035] |
 | 2026-08-31 14:38:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/BrowseActivity.kt` | `S2250` | S2250 phase 02: every activity transition asks AnimationPolicy before sliding [set of 5: app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseEventHandler.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainEventHandler.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainResumePlaybackHelper.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerLifecycleManager.kt] [branch: DEBUG-v035] |
-| 2026-08-31 14:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherSettingsDialogFragment.kt` | `S2264` | S2264: align launcher widget backdrop default followers with the canonical transparent default [set of 8: app_v2/src/test/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStoreTest.kt, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/SETTINGS_REFERENCE_noLegal.md, +1 more] [branch: DEBUG-v035] |
+| 2026-08-31 14:49:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherSettingsDialogFragment.kt` | `S2264` | S2264: align launcher widget backdrop default followers with the canonical transparent default [set of 8: app_v2/src/test/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStoreTest.kt, docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md, +1 more] [branch: DEBUG-v035] |
 | 2026-08-31 14:52:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt` | `app_v2` | Settings General: color theme and resource grid cell size rows show the value inline after the title (SettingsDropdownRow value-text mode) [set of 5: app_v2/src/main/res/layout/view_settings_dropdown_row.xml, app_v2/src/main/res/values/attrs.xml, app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml] [branch: DEBUG-v035] |
 | 2026-08-31 15:02:17 | `app_v2/src/main/res/values/dimens.xml` | `app_v2` | Settings rows: inline value is bold, one step larger than the title and painted with the theme primary [set of 3: app_v2/src/main/res/layout/view_settings_selection_row.xml, app_v2/src/main/res/layout/view_settings_dropdown_row.xml] [branch: DEBUG-v035] |
 | 2026-08-31 15:11:14 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherTaskbarManager.kt` | `Launcher taskbar` | Apply launcher backdrop opacity to the taskbar surface [set of 2: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt] [branch: DEBUG-v035] |
@@ -29660,7 +29660,7 @@ Format: | datetime | file | target | description |
 | 2026-08-31 20:27:21 | `PLAN/S2250_disable-all-app-animations/PHASE_06__coverage-gate.md` | `S2250 phase 06` | covered Wear AnimatedVisibility in animation ratchet scope [set of 2: PLAN/S2250_disable-all-app-animations/research/01__animation-coverage-gate.md] [branch: DEBUG-v035] |
 | 2026-08-31 20:29:36 | `scripts/quality/lib/source-matchers.ps1` | `S2250 phase 06` | added phone and Wear animation coverage ratchets [set of 3: scripts/quality/unpoliced-animation-baseline.txt, scripts/quality/unpoliced-animation-wear-baseline.txt] [branch: DEBUG-v035] |
 | 2026-08-31 20:30:10 | `PLAN/S2276_picker-dialog-lifecycle-binding.md` | `spec` | Scaffold strategic spec skeleton S2276 [branch: DEBUG-v035] |
-| 2026-08-31 20:39:21 | `docs/settings/settings-annotations.json` | `S2250 phase 07` | documented complete disable-animations behavior [set of 5: docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md] [branch: DEBUG-v035] |
+| 2026-08-31 20:39:21 | `docs/settings/settings-annotations.json` | `S2250 phase 07` | documented complete disable-animations behavior [set of 5: docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md] [branch: DEBUG-v035] |
 | 2026-08-31 20:48:06 | `PLAN/S2250_disable-all-app-animations.md` | `spec-code` | All implementation phases complete; status -> BlockNeedUserTest [branch: DEBUG-v035] |
 | 2026-08-31 20:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/CollapsibleSectionsManager.kt` | `spec-code` | Added S2250 device verification tag for skipped section transitions [branch: DEBUG-v035] |
 | 2026-08-31 20:48:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsActivity.kt` | `spec-code` | Added S2250 device verification tag for disabled settings tab transformer [branch: DEBUG-v035] |
@@ -29789,7 +29789,7 @@ Format: | datetime | file | target | description |
 | 2026-09-01 15:06:17 | `scripts/spec_catalog/release-queue.ps1` | `spec catalog tooling` | release-queue -List marks each leased ticket inline with age, reason and holder [set of 3: scripts/spec_catalog/release-queue.tests/Run-Tests.ps1, docs/DEV_OPS.md] [branch: DEBUG-v035] |
 | 2026-09-01 15:07:05 | `PLAN/S2290_upgrade-detekt-gradle10-compatibility.md` | `spec-all` | S2290: measure detekt Gradle 10 upgrade price; no compatible release exists (1.23.x closed upstream, fix only in 2.0 alpha) -> BlockExternal [branch: DEBUG-v035] |
 | 2026-09-01 15:13:28 | `app_v2/src/main/java/com/sza/fastmediasorter/util/WebMercatorTile.kt` | `S2292` | S2292: live map frame publishes a tile-precision coordinate, denies the page its own geolocation, and asks for its own location grant [set of 6: app_v2/src/test/java/com/sza/fastmediasorter/util/WebMercatorTileTest.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/map/OsmMapTileProvider.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/launcher/widget/GoogleMapsLiveFrameView.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherSensorPermissionManager.kt, PLAN/S2292_maps-live-frame-shares-location-with-google.md] [branch: DEBUG-v035] |
-| 2026-09-01 15:16:09 | `app_v2/src/main/res/values/strings.xml` | `S2291` | S2291: location permission rationale and privacy policy state what leaves the device [set of 8: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, docs/PRIVACY_POLICY.md, docs/PRIVACY_POLICY.ru.md, docs/PRIVACY_POLICY.uk.md, PLAN/S2291_location-rationale-claims-nothing-sent.md, +1 more] [branch: DEBUG-v035] |
+| 2026-09-01 15:16:09 | `app_v2/src/main/res/values/strings.xml` | `S2291` | S2291: location permission rationale and privacy policy state what leaves the device [set of 8: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, docs/PRIVACY_POLICY.md, docs/PRIVACY_POLICY-ru.md, docs/PRIVACY_POLICY-uk.md, PLAN/S2291_location-rationale-claims-nothing-sent.md, +1 more] [branch: DEBUG-v035] |
 | 2026-09-01 15:19:41 | `PLAN/S2290_upgrade-detekt-gradle10-compatibility.md` | `spec-all` | S2290: re-verify the external blocker and record the detekt 2.x coordinate rename in the price measurement [branch: DEBUG-v035] |
 | 2026-09-01 15:21:58 | `PLAN/RELEASE_QUEUE.md` | `release-plan` | Move S2290 out of package 35 to the end of package 36 on the owner's instruction - it waits on an upstream release and no repository session can advance it [branch: DEBUG-v035] |
 | 2026-09-01 15:25:03 | `store_assets/PLAY_DATA_SAFETY_LOCATION.md` | `spec-all` | S2083: collapse the Data safety location fork into one answer - not collected on phone, watch and background, evidenced by the landed S2292 fix [branch: DEBUG-v035] |
@@ -29797,7 +29797,7 @@ Format: | datetime | file | target | description |
 | 2026-09-01 15:25:05 | `PLAN/S2083_play-location-disclosure-listing.md` | `spec-all` | S2083: record the tree-side closure of the fork and audit Approved -> Verified [branch: DEBUG-v035] |
 | 2026-09-01 15:31:36 | `PLAN/S2294_play-console-recovery-execution.md` | `spec-all` | S2294: measure Play recovery state from repo, narrow targetSdk-36 candidate to the only pre-bump artifact [set of 2: docs/PLAY_PUBLISHING_STATE.md] [branch: DEBUG-v035] |
 | 2026-09-01 15:34:17 | `.claude/agent-memory/android-rd-specialist/project_play_update_rejected_all_files_access.md` | `agent-memory` | S2294: repoint Play rejection memory at the state record and name S2294 as the console-half carrier [set of 2: .claude/agent-memory/android-rd-specialist/INDEX_release.md] [branch: DEBUG-v035] |
-| 2026-09-01 15:36:19 | `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugToolsBootstrap.kt` | `S2296` | S2296: stop the debug uncaught-exception handler from killing the Gradle test worker under Robolectric [set of 7: docs/settings/settings-annotations.json, docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, PLAN/S2296_settings-manifest-export-test-worker-aborts.md] [branch: DEBUG-v035] |
+| 2026-09-01 15:36:19 | `app_v2/src/debug/java/com/sza/fastmediasorter/core/debug/DebugToolsBootstrap.kt` | `S2296` | S2296: stop the debug uncaught-exception handler from killing the Gradle test worker under Robolectric [set of 7: docs/settings/settings-annotations.json, docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, PLAN/S2296_settings-manifest-export-test-worker-aborts.md] [branch: DEBUG-v035] |
 | 2026-09-01 15:41:17 | `.claude/agent-memory/android-rd-specialist/MEMORY.md` | `S2296` | S2296: retire the stale Robolectric-layer-down memory, record why the worker died [set of 2: .claude/agent-memory/android-rd-specialist/project_robolectric_boots_the_real_application.md] [branch: DEBUG-v035] |
 | 2026-09-01 15:44:04 | `scripts/spec_catalog/_lib.ps1` | `spec catalog tooling` | release files carry a live [taken ..] marker on every leased ticket row [set of 5: scripts/spec_catalog/run-spec-all-queue.ps1, scripts/spec_catalog/release-queue.tests/Run-Tests.ps1, docs/DEV_OPS.md, PLAN/RELEASE_QUEUE.md] [branch: DEBUG-v035] |
 | 2026-09-01 15:48:01 | `app_v2/src/main/res/values/strings.xml` | `S2295` | S2295: close release-scope gate findings - drop orphaned launcher gadget desc strings, classify launcherScreenCount as non-presettable, scope probe removal to authored sources [set of 6: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, docs/settings/device-profile-nonpresettable.json, docs/icons/icon-inventory.json, scripts/quality/remove-ticket-probes.ps1] [branch: DEBUG-v035] |
@@ -29835,7 +29835,7 @@ Format: | datetime | file | target | description |
 | 2026-09-01 20:11:11 | `PLAN/S2309_launcher-desktop-defaults-profile-geometry/PHASE_04__seed-wiring.md` | `spec-tech` | Phase 04: seed-wiring [branch: DEBUG-v035] |
 | 2026-09-01 20:11:12 | `PLAN/S2309_launcher-desktop-defaults-profile-geometry/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v035] |
 | 2026-09-01 20:11:12 | `PLAN/S2309_launcher-desktop-defaults-profile-geometry.md` | `spec-tech` | S2309 status -> Tactical [branch: DEBUG-v035] |
-| 2026-09-01 20:17:35 | `PLAN/S2310_welcome-first-page-positioning.md` | `spec-code` | S2310: spec + quick-start describe the welcome first page as a device shell; S2312 parked for the WelcomeActivity detekt threshold [set of 5: PLAN/S2312_welcomeactivity-toomanyfunctions-extraction.md, docs/QUICK_START.md, docs/QUICK_START_RU.md, docs/QUICK_START_UK.md] [branch: DEBUG-v035] |
+| 2026-09-01 20:17:35 | `PLAN/S2310_welcome-first-page-positioning.md` | `spec-code` | S2310: spec + quick-start describe the welcome first page as a device shell; S2312 parked for the WelcomeActivity detekt threshold [set of 5: PLAN/S2312_welcomeactivity-toomanyfunctions-extraction.md, docs/QUICK_START.md, docs/QUICK_START-ru.md, docs/QUICK_START-uk.md] [branch: DEBUG-v035] |
 | 2026-09-01 20:23:43 | `PLAN/S2313_bugfix-launcher-gadget-tests-inflate-failure.md` | `spec-draft` | Park S2313: launcher gadget unit tests fail on layout inflation [branch: DEBUG-v035] |
 | 2026-09-01 20:23:43 | `PLAN/S2314_bugfix-stream-facet-label-flag-prefix-test.md` | `spec-draft` | Park S2314: stream facet label flag prefix vs test expectation [branch: DEBUG-v035] |
 | 2026-09-01 20:27:50 | `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClass.kt` | `spec-dev` | S2309 phase 01: launcher screen class model, classifier and unit tests [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClassifier.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClassifierTest.kt] [branch: DEBUG-v035] |
@@ -29862,7 +29862,7 @@ Format: | datetime | file | target | description |
 | 2026-09-01 22:22:55 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherEditModeManager.kt` | `launcher quick menu` | S2318 maps long-press slots through the active screen only [set of 2: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt] [branch: DEBUG-v035] |
 | 2026-09-01 22:44:12 | `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterLayoutRules.kt` | `S2309 launcher starter desktop composed per screen class` | S2309: the seeded launcher desktop picks section order, per-section item budget and screen count from the device screen class, with the profile deciding only which groups have content [set of 10: app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSets.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/SeedLauncherDesktopUseCase.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherStarterLayoutRulesTest.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSetsTest.kt, app_v2/src/testLauncherEnabled/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSetsParityTest.kt, dev/DEVICE_PROFILE_PRESET_MATRIX.md, +3 more] [branch: DEBUG-v035] |
 | 2026-09-01 22:47:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/helpers/WelcomeFeatureCards.kt` | `S2310` | S2310: welcome first page adds streams and watch role tiles, green Enable all button [set of 12: app_v2/src/main/java/com/sza/fastmediasorter/ui/welcome/WelcomeActivity.kt, app_v2/src/main/res/values/strings_setup.xml, app_v2/src/main/res/values-ru/strings_setup.xml, app_v2/src/main/res/values-uk/strings_setup.xml, app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, +5 more] [branch: DEBUG-v035] |
-| 2026-09-01 22:48:20 | `docs/QUICK_START.md` | `S2310` | S2310: quick-start role list names streams and the watch app [set of 3: docs/QUICK_START_RU.md, docs/QUICK_START_UK.md] [branch: DEBUG-v035] |
+| 2026-09-01 22:48:20 | `docs/QUICK_START.md` | `S2310` | S2310: quick-start role list names streams and the watch app [set of 3: docs/QUICK_START-ru.md, docs/QUICK_START-uk.md] [branch: DEBUG-v035] |
 | 2026-09-01 22:49:09 | `PLAN/S2309_launcher-desktop-defaults-profile-geometry.md` | `spec-check` | Audit S2309 -> BlockNeedUserTest; PASS/WARN/FAIL 22/0/0, MANUAL 6 [branch: DEBUG-v035] |
 | 2026-09-01 22:49:09 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/SeedLauncherDesktopUseCase.kt` | `spec-check` | S2309: add the BlockNeedUserTest device probe at the seed composition entry [branch: DEBUG-v035] |
 | 2026-09-01 23:00:02 | `PLAN/S2310_welcome-first-page-positioning.md` | `S2310` | S2310: audit block records the on-device pass on Galaxy S21 [branch: DEBUG-v035] |
@@ -30006,7 +30006,7 @@ Format: | datetime | file | target | description |
 | 2026-09-02 11:14:36 | `PLAN/S2362_bugfix-new-lexemes-remedy-files-truncated-by-wear-pass.md` | `spec-all` | Compact spec: S2362 [branch: DEBUG-v035] |
 | 2026-09-02 11:14:37 | `app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt` | `spec-code` | S2343: crash handler no longer self-recurses - install tracked by its own flag, previous handler captured locally [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/core/logging/LoggingHelperCrashHandlerTest.kt] [branch: DEBUG-v035] |
 | 2026-09-02 11:16:23 | `scripts/quality/assert-new-lexemes-translated.ps1` | `scripts` | Namespace new lexeme gate artifacts by module [branch: DEBUG-v035] |
-| 2026-09-02 11:18:39 | `docs/HOW_TO.md` | `user guides` | Document hop-by-hop traceroute in the Network Monitor entry and launcher idle dimming plus blackout in the launcher-mode guide, EN with RU and UK mirrors [set of 6: docs/HOW_TO_RU.md, docs/HOW_TO_UK.md, docs/howto/scenario-launcher-mode.md, docs/howto/scenario-launcher-mode-ru.md, docs/howto/scenario-launcher-mode-uk.md] [branch: DEBUG-v035] |
+| 2026-09-02 11:18:39 | `docs/HOW_TO.md` | `user guides` | Document hop-by-hop traceroute in the Network Monitor entry and launcher idle dimming plus blackout in the launcher-mode guide, EN with RU and UK mirrors [set of 6: docs/HOW_TO-ru.md, docs/HOW_TO-uk.md, docs/howto/scenario-launcher-mode.md, docs/howto/scenario-launcher-mode-ru.md, docs/howto/scenario-launcher-mode-uk.md] [branch: DEBUG-v035] |
 | 2026-09-02 11:20:25 | `scripts/quality/assert-new-lexemes-translated.ps1` | `scripts` | Keep new lexeme remedies isolated by module [set of 3: scripts/utils/list-new-lexemes.ps1, scripts/quality/assert-new-lexemes-translated.tests/Run-Tests.ps1] [branch: DEBUG-v035] |
 | 2026-09-02 11:22:12 | `scripts/quality/assert-new-lexemes-translated.ps1` | `S2362` | Isolate new lexeme remedy files by module [set of 7: scripts/utils/list-new-lexemes.ps1, scripts/quality/assert-new-lexemes-translated.tests/Run-Tests.ps1, CLAUDE.md, .claude/commands/spec-prerelease.md, docs/DEV_OPS.md, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v035] |
 | 2026-09-02 11:24:39 | `PLAN/S2362_bugfix-new-lexemes-remedy-files-truncated-by-wear-pass.md` | `spec-dev` | All compact phase steps done; status -> Implemented [branch: DEBUG-v035] |
@@ -30069,7 +30069,7 @@ Format: | datetime | file | target | description |
 | 2026-09-02 15:51:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainResourceReconnectManager.kt` | `spec-all` | S2376: persist and restore reconnect mismatch dialog across recreation [branch: DEBUG-v035] |
 | 2026-09-02 15:51:29 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/main/helpers/MainResourceReconnectManagerTest.kt` | `spec-all` | S2376: unit tests for reconnect manager recreation persistence [branch: DEBUG-v035] |
 | 2026-09-02 16:01:18 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainReconnectOutcomeMapper.kt` | `S2374` | S2374: reconnect pending target survives Activity recreation; outcome reported via MainEvent with honest favorites counts [set of 8: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainResourceReconnectManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainViewModel.kt, app_v2/src/test/java/com/sza/fastmediasorter/ui/main/helpers/MainReconnectOutcomeMapperTest.kt, app_v2/src/main/res/values/strings_resource_operations.xml, app_v2/src/main/res/values-ru/strings_resource_operations.xml, +1 more] [branch: DEBUG-v035] |
-| 2026-09-02 16:45:36 | `README.md` | `docs` | Narrative guides drift review (S0814) for release package 35: Wear OS FAQ/README sections updated to reflect the companion's growth (file transfer, tiles/complications, live streams, built-in tools), camera how-to/quick-start gain the Document shooting mode and tap-to-focus tip, Limitations notes the new in-app disclosure for permission-limited folders [set of 15: docs/README_RU.md, docs/README_UK.md, docs/FAQ.md, docs/FAQ_RU.md, docs/FAQ_UK.md, docs/HOW_TO.md, +8 more] [branch: DEBUG-v035] |
+| 2026-09-02 16:45:36 | `README.md` | `docs` | Narrative guides drift review (S0814) for release package 35: Wear OS FAQ/README sections updated to reflect the companion's growth (file transfer, tiles/complications, live streams, built-in tools), camera how-to/quick-start gain the Document shooting mode and tap-to-focus tip, Limitations notes the new in-app disclosure for permission-limited folders [set of 15: docs/README-ru.md, docs/README-uk.md, docs/FAQ.md, docs/FAQ-ru.md, docs/FAQ-uk.md, docs/HOW_TO.md, +8 more] [branch: DEBUG-v035] |
 | 2026-09-02 16:48:43 | `README.md` | `release-35 locales` | Release 35 pre-release: 62 app_v2 and 47 wear new lexemes translated into the ten machine locales, watch rubric wording mirrored to the phone; Play track state record refreshed [set of 47: app_v2/src/main/res/values-ar/strings.xml, app_v2/src/main/res/values-ar/strings_resource_operations.xml, app_v2/src/main/res/values-b+zh+Hans/strings.xml, app_v2/src/main/res/values-b+zh+Hans/strings_resource_operations.xml, app_v2/src/main/res/values-bn/strings.xml, app_v2/src/main/res/values-bn/strings_resource_operations.xml, +40 more] [branch: DEBUG-v035] |
 | 2026-09-02 16:57:36 | `PLAN/S2377_bugfix-fam-install-downgrade-reads-as-migration-failure.md` | `spec` | Scaffold strategic spec skeleton S2377 [branch: DEBUG-v035] |
 | 2026-09-02 17:13:27 | `PLAN/S2378_bugfix-reach-limited-wording.md` | `spec` | Scaffold strategic spec skeleton S2378 [branch: DEBUG-v035] |
@@ -30318,7 +30318,7 @@ Format: | datetime | file | target | description |
 | 2026-09-03 07:27:14 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseFileOperationsManager.kt` | `S2444` | S2444: extract BrowseFileOperationsManager from wear BrowseViewModel - 10 ctor params to 8, 40 class functions to 26, detekt LongParameterList/TooManyFunctions cleared [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseScreen.kt, wear/src/test/java/com/sza/fastmediasorter/wear/ui/browse/BrowseViewModelRefineTest.kt, PLAN/S2444_wear-browseviewmodel-size-cleanup.md] [branch: DEBUG-v036] |
 | 2026-09-03 07:29:31 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/browse/BrowseFileOperationsManager.kt` | `S2444` | S2444: add three BlockNeedUserTest probes to BrowseFileOperationsManager and record the pre-handoff audit block [set of 2: PLAN/S2444_wear-browseviewmodel-size-cleanup.md] [branch: DEBUG-v036] |
 | 2026-09-03 07:44:47 | `app_v2/src/main/res/values/strings.xml` | `S2397` | S2397: lock the launcher desktop from its own quick menu, and answer a long press on a locked desktop with a toast [set of 7: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeViewModel.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherDesktopQuickMenu.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherEditModeManager.kt, PLAN/S2397_launcher-lock-changes.md] [branch: DEBUG-v036] |
-| 2026-09-03 07:45:15 | `README.md` | `S2445` | S2445: correct every quantified flavor-count claim to seven after foss (S0403) - README/QUICK_START/COMMUNICATION_POLICY in three locales each, four developer documents and a.ps1 help, which also hid a working -Flavor Foss; add assert-flavor-count-prose.ps1 gate to a.ps1 fg [set of 20: docs/README.md, docs/README_RU.md, docs/README_UK.md, docs/QUICK_START.md, docs/QUICK_START_RU.md, docs/QUICK_START_UK.md, +13 more] [branch: DEBUG-v036] |
+| 2026-09-03 07:45:15 | `README.md` | `S2445` | S2445: correct every quantified flavor-count claim to seven after foss (S0403) - README/QUICK_START/COMMUNICATION_POLICY in three locales each, four developer documents and a.ps1 help, which also hid a working -Flavor Foss; add assert-flavor-count-prose.ps1 gate to a.ps1 fg [set of 20: docs/README.md, docs/README-ru.md, docs/README-uk.md, docs/QUICK_START.md, docs/QUICK_START-ru.md, docs/QUICK_START-uk.md, +13 more] [branch: DEBUG-v036] |
 | 2026-09-03 07:56:38 | `scripts/utils/install-sza-forwarders.tests/Run-Tests.ps1` | `S2441` | S2441: fix the forwarder-template contract suite's enum comparison and verify the caller-scope leak is closed [set of 2: PLAN/S2441_dev-log-target-column-holds-harness-path.md] [branch: DEBUG-v036] |
 | 2026-09-03 07:57:58 | `PLAN/S2441_dev-log-target-column-holds-harness-path.md` | `spec-check` | Audit S2441 -> Verified; PASS/WARN/FAIL 13/0/0 [branch: DEBUG-v036] |
 | 2026-09-03 08:23:39 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ChannelBalanceAudioProcessor.kt` | `S1267` | S1267 Phase 01: channel-balance audio processor, its process-wide gain owner, renderers-factory attachment, prefs keys, host contract defaults and seven trilingual strings [set of 8: app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ChannelBalanceController.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlaybackRenderersFactory.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlaybackControlPreferences.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/contracts/PlayerHostCapabilities.kt, app_v2/src/main/res/values/strings_video_player.xml, app_v2/src/main/res/values-ru/strings_video_player.xml, +1 more] [branch: DEBUG-v036] |
@@ -31352,7 +31352,7 @@ Format: | datetime | file | target | description |
 | 2026-09-07 18:23:48 | `PLAN/S2701_agents-md-has-no-headroom-for-a-rule-change/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs catalog cleanup [branch: DEBUG-v037] |
 | 2026-09-07 18:28:20 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearNetworkFileOpenRequest.kt` | `S2694 phase 05` | Wear: open a network file found by the folder walk through the shared selected-media holder [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/PrepareWearNetworkFilePlaybackUseCase.kt, wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/folder/WearFolderWalkScreen.kt, wear/src/test/java/com/sza/fastmediasorter/wear/domain/usecase/PrepareWearNetworkFilePlaybackUseCaseTest.kt] [branch: DEBUG-v037] |
 | 2026-09-07 18:52:32 | `docs/wear/index.md` | `S2694` | S2694 phase 06: wear portal pages state the network folder walk (EN/RU/UK) [set of 3: docs/wear/index-ru.md, docs/wear/index-uk.md] [branch: DEBUG-v037] |
-| 2026-09-07 18:53:20 | `docs/wear/index.md` | `S2694` | S2694 phase 06: wear docs state the network folder walk and drop the stale local-media-only limitation (EN/RU/UK) [set of 6: docs/wear/index-ru.md, docs/wear/index-uk.md, docs/LIMITATIONS.md, docs/LIMITATIONS_RU.md, docs/LIMITATIONS_UK.md] [branch: DEBUG-v037] |
+| 2026-09-07 18:53:20 | `docs/wear/index.md` | `S2694` | S2694 phase 06: wear docs state the network folder walk and drop the stale local-media-only limitation (EN/RU/UK) [set of 6: docs/wear/index-ru.md, docs/wear/index-uk.md, docs/LIMITATIONS.md, docs/LIMITATIONS-ru.md, docs/LIMITATIONS-uk.md] [branch: DEBUG-v037] |
 | 2026-09-07 18:58:39 | `PLAN/S2694_feature-wear-network-folder-walk.md` | `spec-check` | Audit S2694 -> BlockNeedUserTest; PASS/WARN/FAIL 25/0/0, MANUAL 5 (device pass on a live share) [branch: DEBUG-v037] |
 | 2026-09-07 19:08:44 | `.sza-profile.json` | `spec-all S2698` | S2698: runner child command, args template and headless match resolve per instance; profile declares runner.instances and absorbs instanceModelPolicy [set of 6: scripts/utils/agent-watchdog.ps1, scripts/utils/run-spec-queue.tests/Run-Tests.ps1, CLAUDE.md, AGENTS.md, .claude/rules/command-authoring.md] [branch: DEBUG-v037] |
 | 2026-09-07 19:12:23 | `PLAN/S2698_runner-launch-command-per-instance.md` | `spec-all S2698` | S2698 Verified: per-instance runner child invocation proven by 7 new suite cases and two evidence probes; audit block written [branch: DEBUG-v037] |
@@ -31466,7 +31466,7 @@ Format: | datetime | file | target | description |
 | 2026-09-08 16:58:50 | `docs/launcher/index.md` | `spec-all S2730` | S2730: launcher guide documents the wallpaper control screen (EN/RU/UK) [set of 3: docs/launcher/index-ru.md, docs/launcher/index-uk.md] [branch: DEBUG-v037] |
 | 2026-09-08 17:28:42 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherAllAppsPreviewGeometry.kt` | `spec-all` | S2736: all-apps preview block fills the free height, launch-frequency becomes the default order [set of 12: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherSettings.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/InstalledApp.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/apps/ApplyAllAppsSortDefaultUseCase.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/menu/LauncherAllAppsFragment.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/menu/LauncherAllAppsViewModel.kt, +5 more] [branch: DEBUG-v037] |
 | 2026-09-08 17:29:33 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherTrayManager.kt` | `S2738` | Launcher tray battery indicator shows charging state and plug type [set of 9: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/tray/LauncherTrayChargingSource.kt, app_v2/src/testLauncherEnabled/java/com/sza/fastmediasorter/ui/launcher/tray/LauncherTrayChargingSourceTest.kt, app_v2/src/main/res/values/colors.xml, app_v2/src/main/res/values-night/colors.xml, app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, +2 more] [branch: DEBUG-v037] |
-| 2026-09-08 17:34:35 | `docs/settings/settings-annotations.json` | `S2738` | Settings reference records the launcher tray charging colours [set of 6: docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE_RU.md, docs/SETTINGS_REFERENCE_UK.md, docs/SETTINGS_REFERENCE_noLegal.md, PLAN/S2744_allfeatures-ungated-flavors-ratchet-drift.md] [branch: DEBUG-v037] |
+| 2026-09-08 17:34:35 | `docs/settings/settings-annotations.json` | `S2738` | Settings reference records the launcher tray charging colours [set of 6: docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md, PLAN/S2744_allfeatures-ungated-flavors-ratchet-drift.md] [branch: DEBUG-v037] |
 | 2026-09-08 17:43:01 | `app_v2/src/main/AndroidManifest.xml` | `S2739` | S2739: deliver package removal via PACKAGE_FULLY_REMOVED, the only exempt package broadcast on minSdk 26 [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/core/apps/InstalledAppsChangeReceiver.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/apps/InstalledAppsChangeReceiverTest.kt] [branch: DEBUG-v037] |
 | 2026-09-08 17:56:07 | `scripts/builders/filtered-test-report.ps1` | `S2743` | S2743: harvest failing unit-test reports before the red exit, so a red run keeps the evidence that explains it [set of 3: scripts/builders/check-standard-fast.ps1, scripts/builders/filtered-test-report.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
 | 2026-09-08 18:00:41 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt` | `S2737` | Launcher desktop: re-assert the system status bar hide when the window regains focus [branch: DEBUG-v037] |
@@ -31584,3 +31584,379 @@ Format: | datetime | file | target | description |
 | 2026-09-09 15:02:38 | `PLAN/S2785_bugfix-s2761-acceptance-precondition.md` | `spec` | Scaffold strategic spec skeleton S2785 [branch: DEBUG-v037] |
 | 2026-09-09 15:04:45 | `wear/src/main/res/values-es/strings.xml` | `S2758` | Package 36 resubmission: fill wear_tile_shortcut_more into 10 remaining wear locales; prerelease content gates now clean [branch: DEBUG-v037] |
 | 2026-09-09 15:05:28 | `PLAN/S2786_player-auto-hide-duration-editable.md` | `spec` | Scaffold strategic spec skeleton S2786 [branch: DEBUG-v037] |
+| 2026-09-09 15:11:10 | `PLAN/S2787_enable-pip-copy-streams-settings.md` | `spec` | Scaffold strategic spec skeleton S2787 [branch: DEBUG-v037] |
+| 2026-09-09 15:17:33 | `PLAN/S2789_settings-buttons-width-fit-text.md` | `spec` | Scaffold strategic spec skeleton S2789 [branch: DEBUG-v037] |
+| 2026-09-09 15:31:09 | `.claude/commands/skill-release-wear.md` | `spec-all S2788` | S2788: wear release campaign stamps versionName from the run instant instead of the phone's published name [set of 3: docs/BUILD_VS_RELEASE.md, docs/RELEASE_READINESS_WEAR.md] [branch: DEBUG-v037] |
+| 2026-09-09 15:32:05 | `.claude/commands/skill-release-wear.md` | `spec-all S2788` | S2788: wear release campaign stamps versionName from the run instant; sibling docs corrected [set of 5: docs/BUILD_VS_RELEASE.md, docs/RELEASE_READINESS_WEAR.md, .claude/reference/skill-release.md, docs/DEV_OPS.md] [branch: DEBUG-v037] |
+| 2026-09-09 15:33:58 | `PLAN/S2775_wear-system-info-screen-ux.md` | `spec-code` | Compact spec: S2775 wear system info UX improvements [branch: DEBUG-v037] |
+| 2026-09-09 15:34:53 | `PLAN/S2790_launcher-notification-cap-status-bar.md` | `spec` | Scaffold strategic spec skeleton S2790 [branch: DEBUG-v037] |
+| 2026-09-09 15:42:28 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S2789` | S2789: settings buttons size to their label instead of the container width (portrait + landscape) [set of 4: app_v2/src/main/res/layout-land/fragment_settings_general.xml, app_v2/src/main/res/layout/fragment_settings_destinations.xml, app_v2/src/main/res/layout-land/fragment_settings_destinations.xml] [branch: DEBUG-v037] |
+| 2026-09-09 15:42:31 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps.md` | `spec` | Scaffold strategic spec skeleton S2791 [branch: DEBUG-v037] |
+| 2026-09-09 15:47:19 | `PLAN/S2792_stopwatch-filter-startall-send-volume.md` | `spec` | Scaffold strategic spec skeleton S2792 [branch: DEBUG-v037] |
+| 2026-09-09 15:49:02 | `PLAN/S2793_live-broadcast-button-not-working.md` | `spec` | Scaffold strategic spec skeleton S2793 [branch: DEBUG-v037] |
+| 2026-09-09 15:53:14 | `PLAN/S2794_bugfix-wear-walk-blames-app-for-system-overlay.md` | `spec` | Scaffold strategic spec skeleton S2794 [branch: DEBUG-v037] |
+| 2026-09-09 15:54:34 | `PLAN/S2761_exit-code-lock-without-files-releases-every-domain.md` | `spec-all` | S2785: name the pre-existing pid-* lock in the S2761 acceptance criterion so assert-acceptance-preconditions stops failing fg [branch: DEBUG-v037] |
+| 2026-09-09 15:59:44 | `app_v2/src/main/java/com/sza/fastmediasorter/core/debug/StrictModeViolationFilter.kt` | `release package 36` | Close release package 36 (wear resubmission): ship 46 ready tickets to RELEASE_QUEUE_DONE, advance marker to 37, archive the shipped specs and sweep their debug probes [set of 40: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/WearResourceSelectionRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/wear/WearResourceStampStore.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/panel/ResolveAppLaunchPanelTilesUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainProgramsMenuCoordinator.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/WearSyncViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/documents/WearDocumentRepositoryImpl.kt, +33 more] [branch: DEBUG-v037] |
+| 2026-09-09 16:09:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsGroupsGridLayout.kt` | `S2789` | S2789: settings group grid honours a child's layout_width and layout_gravity, so a wrap_content button is no longer stretched to the column [branch: DEBUG-v037] |
+| 2026-09-09 16:47:44 | `scripts/devtest/lib/clip-shape-outcome.ps1` | `S2782` | S2782: gate the wear sweep verdict on the clip-check shape outcome, and split an OFF-GLASS finding from a shape clip-check could not run [set of 6: scripts/devtest/wear-prerelease-walk.ps1, scripts/devtest/prerelease-verdict.ps1, scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1, .claude/commands/spec-prerelease-wear.md, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v037] |
+| 2026-09-09 16:51:02 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsInputRow.kt` | `S2786` | S2786: player panel auto-hide duration - one-line caption+value row with a preset picker beside the still-editable field [set of 7: app_v2/src/main/res/layout/view_settings_input_row.xml, app_v2/src/main/res/values/attrs.xml, app_v2/src/main/res/values/arrays.xml, app_v2/src/main/res/layout/fragment_settings_playback.xml, app_v2/src/main/res/layout-land/fragment_settings_playback.xml, docs/settings/settings-annotations.json] [branch: DEBUG-v037] |
+| 2026-09-09 16:51:49 | `app_v2/src/main/res/layout/fragment_settings_streams.xml` | `spec-all` | S2787: mirror Enable PiP toggle into the Streams settings group [set of 8: app_v2/src/main/res/layout-land/fragment_settings_streams.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/StreamsSettingsFragment.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchDeviceFeatureGate.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsSearchAdapter.kt, app_v2/src/test/java/com/sza/fastmediasorter/ui/settings/search/SettingsSearchDeviceFeatureGateTest.kt, docs/settings/settings-annotations.json, +1 more] [branch: DEBUG-v037] |
+| 2026-09-09 16:59:27 | `app_v2/src/main/res/layout/fragment_settings_streams.xml` | `spec-all` | S2783: Streams selector rows follow the General value-row canon in both orientations [set of 2: app_v2/src/main/res/layout-land/fragment_settings_streams.xml] [branch: DEBUG-v037] |
+| 2026-09-09 17:05:54 | `app_v2/src/main/res/layout/fragment_settings_streams.xml` | `spec-all` | S2783: Streams selectors follow the General value-row canon in both orientations [set of 2: app_v2/src/main/res/layout-land/fragment_settings_streams.xml] [branch: DEBUG-v037] |
+| 2026-09-09 17:06:08 | `app_v2/src/main/res/layout/fragment_settings_general.xml` | `S2784` | S2784: move the resource grid cell size row into the main-window interface section in both orientations [set of 2: app_v2/src/main/res/layout-land/fragment_settings_general.xml] [branch: DEBUG-v037] |
+| 2026-09-09 17:12:25 | `scripts/devtest/lib/wear-walk-position.ps1` | `spec-all S2779` | S2779: watch walk tracks its standing position and re-homes after consecutive unreachable entries [set of 4: scripts/devtest/wear-prerelease-walk.ps1, scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1, docs/DEV_OPS.md] [branch: DEBUG-v037] |
+| 2026-09-09 17:27:06 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/StreamsSettingsFragment.kt` | `spec-all` | S2783: remove debug probe - ticket moves to Partial, not BlockNeedUserTest [branch: DEBUG-v037] |
+| 2026-09-09 17:34:02 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/signal/LauncherSignalRowView.kt` | `S2790` | S2790: launcher signal strip cap and cutout split follow the top status bar - five chips and 6+ with it on, eleven and 12+ with it off [set of 4: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherStatusStripManager.kt, app_v2/src/testLauncherEnabled/java/com/sza/fastmediasorter/ui/launcher/signal/LauncherSignalRowViewTest.kt, PLAN/S2790_launcher-notification-cap-status-bar.md] [branch: DEBUG-v037] |
+| 2026-09-09 17:40:46 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/WaterFlashlightActivity.kt` | `S2778` | S2778: water flashlight exits on a volume key again - the screen pin is released before finish(); clock and hint sizes doubled [set of 5: app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/helpers/WaterFlashlightLockdownManager.kt, app_v2/src/main/res/values/dimens.xml, app_v2/src/main/res/layout/activity_water_flashlight.xml, PLAN/S2778_water-flashlight-unlock-keys-size.md] [branch: DEBUG-v037] |
+| 2026-09-09 17:43:32 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt` | `spec-all S2783` | S2783: reserve the trailing chevron its width in SettingsDropdownRow value-text mode [set of 2: PLAN/S2783_streams-settings-block-design.md] [branch: DEBUG-v037] |
+| 2026-09-09 17:53:25 | `PLAN/S2795_unit-system-drives-every-format.md` | `spec` | Scaffold strategic spec skeleton S2795 [branch: DEBUG-v037] |
+| 2026-09-09 17:54:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/WaterFlashlightActivity.kt` | `S2778` | S2778: device run on the S21+ proved the volume-key exit and the pin release; probe removed and the ticket moved to Partial over the system pin dialog [set of 2: PLAN/S2778_water-flashlight-unlock-keys-size.md] [branch: DEBUG-v037] |
+| 2026-09-09 17:56:15 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt` | `spec-all S2783` | S2783: cap the value text in value-as-text rows so the trailing chevron always keeps its slot [branch: DEBUG-v037] |
+| 2026-09-09 18:00:16 | `PLAN/S2796_status-note-survives-non-block-transition.md` | `spec-draft` | S2796: park the stale status note that survives a non-Block* transition (found closing S2783) [branch: DEBUG-v037] |
+| 2026-09-09 18:02:12 | `PLAN/S2780_settings-caption-value-one-line.md` | `spec-all` | Compact spec: S2780 caption and value on one line for power saving and browse swipe rows [branch: DEBUG-v037] |
+| 2026-09-09 18:05:56 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherWallpaperManager.kt` | `S2730` | S2730 reopened for wave 2: strategic spec and tactical phase 05 added (screen-number switch, screen-count move, screen rename); wave-1 probes removed on leaving BlockNeedUserTest [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherWallpaperSettingsDialogFragment.kt] [branch: DEBUG-v037] |
+| 2026-09-09 18:06:33 | `PLAN/S2795_unit-system-drives-every-format.md` | `spec-update` | Refinement (claude-opus-5, focus: structure/completeness/verifiability/consistency) [branch: DEBUG-v037] |
+| 2026-09-09 18:09:46 | `app_v2/src/main/java/com/sza/fastmediasorter/core/systeminfo/SystemInfoReport.kt` | `spec-code` | Implement standalone system information report window [set of 6: app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/systeminfo/SystemInfoActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/systeminfo/helpers/SystemInfoWindowManager.kt, app_v2/src/main/res/layout/activity_system_info.xml, app_v2/src/main/res/layout-land/activity_system_info.xml] [branch: DEBUG-v037] |
+| 2026-09-09 18:15:42 | `PLAN/S2795_unit-system-drives-every-format.md` | `spec-all` | S2795: strategic spec completed - all 6 research items Resolved, owner decisions recorded, blocker on S2731 justified by flavor reachability measurement [branch: DEBUG-v037] |
+| 2026-09-09 18:20:25 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/common/widget/SettingsDropdownRow.kt` | `spec-all` | S2780: caption and value on one line for Power saving mode and the two Browse swipe-action rows; value text mode keeps a weighted text group when the row carries a subtitle [set of 3: app_v2/src/main/res/layout/fragment_settings_general.xml, app_v2/src/main/res/layout-land/fragment_settings_general.xml] [branch: DEBUG-v037] |
+| 2026-09-09 18:20:39 | `app_v2/src/main/res/layout/fragment_settings_video.xml` | `S2781` | S2781: frame-save destination row follows the capture-destination design (icon-then-value order, title style, clear moves into the picker dialog) [set of 6: app_v2/src/main/res/layout-land/fragment_settings_video.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt, docs/settings/settings-annotations.json, docs/settings/settings-manifest.json, docs/SETTINGS_REFERENCE.md] [branch: DEBUG-v037] |
+| 2026-09-09 18:35:40 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherSettings.kt` | `S2730` | S2730 step 05.1: launcher showScreenNumber setting - model, DataStore key, backup coverage [set of 5: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/LauncherSettingsStore.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupSettingsGroupMapper.kt] [branch: DEBUG-v037] |
+| 2026-09-09 18:38:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherSettingsDialogFragment.kt` | `S2716` | Add unit-system device-test probe [branch: DEBUG-v037] |
+| 2026-09-09 18:39:23 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherScreenTransitionManager.kt` | `S2730` | S2730 step 05.2: screen number badge follows its own setting, not the animation policy [set of 2: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 18:44:05 | `app_v2/src/main/res/values/strings.xml` | `S2730` | S2730 step 05.3: launcher screens strings added, wallpaper-titled keys retired [set of 7: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml, app_v2/src/main/res/layout/dialog_launcher_settings.xml, app_v2/src/main/res/layout-land/dialog_launcher_settings.xml, app_v2/src/main/res/layout/dialog_launcher_wallpaper_settings.xml, app_v2/src/main/res/layout-land/dialog_launcher_wallpaper_settings.xml] [branch: DEBUG-v037] |
+| 2026-09-09 18:51:57 | `app_v2/src/main/res/layout/dialog_launcher_wallpaper_settings.xml` | `S2730` | S2730 step 05.4: Screens block on the launcher screens screen - screen count row and screen-number switch [set of 4: app_v2/src/main/res/layout-land/dialog_launcher_wallpaper_settings.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/LauncherWallpaperScreenManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherWallpaperSettingsDialogFragment.kt] [branch: DEBUG-v037] |
+| 2026-09-09 19:04:25 | `app_v2/src/main/res/layout/dialog_launcher_settings.xml` | `S2730` | S2730 step 05.5: screen count leaves the launcher settings dialog; the row now leads to the screens screen [set of 3: app_v2/src/main/res/layout-land/dialog_launcher_settings.xml, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/LauncherSettingsDialogFragment.kt] [branch: DEBUG-v037] |
+| 2026-09-09 19:14:37 | `docs/settings/settings-manifest.json` | `S2730` | S2730 step 05.6: settings docs regenerated for the screens block; capability record restated as the launcher screens screen [set of 7: docs/settings/settings-annotations.json, docs/SETTINGS_REFERENCE.md, docs/SETTINGS_REFERENCE-ru.md, docs/SETTINGS_REFERENCE-uk.md, docs/SETTINGS_REFERENCE_noLegal.md, docs/ALL_FEATURES.jsonl] [branch: DEBUG-v037] |
+| 2026-09-09 19:14:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/FrontFlashlightActivity.kt` | `S2777` | Front flashlight: clock centred a quarter down, colour button doubled and moved off the top edge, five-step brightness strip beside it [set of 9: app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/helpers/FrontFlashlightBrightnessManager.kt, app_v2/src/main/res/layout/activity_front_flashlight.xml, app_v2/src/main/res/drawable/bg_flashlight_brightness_level.xml, app_v2/src/main/res/values/dimens.xml, app_v2/src/main/res/values/strings.xml, app_v2/src/main/res/values-ru/strings.xml, +2 more] [branch: DEBUG-v037] |
+| 2026-09-09 19:38:05 | `app_v2/src/main/res/layout/dialog_launcher_settings.xml` | `spec-all` | S2730 phase 05 close: audit P2 stale comment fixed in both orientations, device probes inserted [set of 4: app_v2/src/main/res/layout-land/dialog_launcher_settings.xml, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/helpers/LauncherScreenTransitionManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/LauncherWallpaperScreenManager.kt] [branch: DEBUG-v037] |
+| 2026-09-09 19:43:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/helpers/WaterFlashlightLockdownManager.kt` | `spec-code` | S2778 removes water-flashlight lock-task mode after owner decision [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/WaterFlashlightActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 19:47:24 | `PLAN/S2792_stopwatch-filter-startall-send-volume.md` | `spec` | Add strategic spec S2792 for stopwatch-filter-startall-send-volume [branch: DEBUG-v037] |
+| 2026-09-09 19:50:54 | `PLAN/S2799_bugfix-wear-settings-merge-gap.md` | `spec` | Scaffold strategic spec skeleton S2799 [branch: DEBUG-v037] |
+| 2026-09-09 19:52:52 | `a.ps1` | `run-spec-queue instances (r1/r2/r3)` | Auto-clean stale ticket leases before starting a queue-runner instance, so a killed session's ticket is immediately eligible again instead of reading as held for up to 45 min [branch: DEBUG-v037] |
+| 2026-09-09 19:54:41 | `PLAN/S2731_unit-system-app-wide-and-wear-sync.md` | `spec-all` | Finish strategic spec S2731, unblock past S2716 (BlockNeedUserTest), resolve open research items, flip Approved [branch: DEBUG-v037] |
+| 2026-09-09 19:54:54 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps.md` | `spec-all` | Strategic spec: S2791 [branch: DEBUG-v037] |
+| 2026-09-09 19:54:57 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps/research/01__shortcut-sync-gap.md` | `spec-all` | Research: S2791 shortcut sync gap [branch: DEBUG-v037] |
+| 2026-09-09 19:55:59 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps/INDEX.md` | `spec-tech` | Create tactical plan for S2791 [branch: DEBUG-v037] |
+| 2026-09-09 19:56:00 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps/PHASE_01__shortcut-compatibility.md` | `spec-tech` | Phase 01: shortcut compatibility [branch: DEBUG-v037] |
+| 2026-09-09 19:56:01 | `PLAN/S2791_launcher-desktop-shortcut-catalog-gaps/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs catalog cleanup [branch: DEBUG-v037] |
+| 2026-09-09 19:56:24 | `PLAN/S2792_stopwatch-filter-startall-send-volume/INDEX.md` | `spec-tech` | Create tactical plan for S2792 [branch: DEBUG-v037] |
+| 2026-09-09 19:56:25 | `PLAN/S2792_stopwatch-filter-startall-send-volume/PHASE_01__engine-wallclock-global-ops.md` | `spec-tech` | Phase 01: engine-wallclock-global-ops [branch: DEBUG-v037] |
+| 2026-09-09 19:56:27 | `PLAN/S2792_stopwatch-filter-startall-send-volume/PHASE_02__start-all-button-volume-keys.md` | `spec-tech` | Phase 02: start-all-button-volume-keys [branch: DEBUG-v037] |
+| 2026-09-09 19:56:28 | `PLAN/S2792_stopwatch-filter-startall-send-volume/PHASE_03__result-timestamp-send-icon.md` | `spec-tech` | Phase 03: result-timestamp-send-icon [branch: DEBUG-v037] |
+| 2026-09-09 19:56:30 | `PLAN/S2792_stopwatch-filter-startall-send-volume/PHASE_04__inapp-music-picker.md` | `spec-tech` | Phase 04: inapp-music-picker [branch: DEBUG-v037] |
+| 2026-09-09 19:56:31 | `PLAN/S2792_stopwatch-filter-startall-send-volume/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-09 19:56:32 | `app_v2/src/main/java/com/sza/fastmediasorter/core/notification/NotificationIds.kt` | `S2776` | S2776: flashlight shortcut in the notification shade - setting, notifier, tap and boot receivers, settings row [set of 19: app_v2/src/main/java/com/sza/fastmediasorter/core/notification/FlashlightShortcutNotifier.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/notification/FlashlightShortcutReceiver.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/notification/FlashlightShortcutCoordinator.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/notification/FlashlightShortcutBootReceiver.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/ProgramsSettingsStore.kt, +12 more] [branch: DEBUG-v037] |
+| 2026-09-09 19:56:32 | `PLAN/S2792_stopwatch-filter-startall-send-volume.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v037] |
+| 2026-09-09 20:01:17 | `PLAN/S2731_unit-system-app-wide-and-wear-sync.md` | `spec-tech` | Correct S2731 goal 3/Wear OS scope to PHONE_ONLY per WearSettingsRegistry init{} invariants (no BOTH without a watch menu row) [branch: DEBUG-v037] |
+| 2026-09-09 20:02:28 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/stopwatch/StopwatchModels.kt` | `app_v2` | S2792 01.1: wall-clock stamp on stopwatch participant start [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchEngine.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:02:37 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/LauncherShortcutSyncRepository.kt` | `S2791` | Backfill Stopwatch shortcut once and seed Edit desktop in Settings [set of 6: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/LauncherShortcutSyncRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/launcher/SyncEnabledToolShortcutsUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSets.kt, app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/SyncEnabledToolShortcutsUseCaseTest.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSetsTest.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:05:49 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchEngine.kt` | `app_v2` | S2792 01.2: engine startAll/stopAll transitions [branch: DEBUG-v037] |
+| 2026-09-09 20:07:53 | `PLAN/S2731_unit-system-app-wide-and-wear-sync/INDEX.md` | `spec-tech` | Create tactical plan for S2731 [branch: DEBUG-v037] |
+| 2026-09-09 20:07:54 | `PLAN/S2731_unit-system-app-wide-and-wear-sync/PHASE_01__ui-relocation.md` | `spec-tech` | Phase 01: ui-relocation [branch: DEBUG-v037] |
+| 2026-09-09 20:07:55 | `PLAN/S2731_unit-system-app-wide-and-wear-sync/PHASE_02__wear-envelope.md` | `spec-tech` | Phase 02: wear-envelope [branch: DEBUG-v037] |
+| 2026-09-09 20:07:56 | `PLAN/S2731_unit-system-app-wide-and-wear-sync/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-09 20:07:58 | `PLAN/S2731_unit-system-app-wide-and-wear-sync.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v037] |
+| 2026-09-09 20:08:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchViewModel.kt` | `app_v2` | S2792 01.3: ViewModel startAll/stopAll and wall-clock stamp [branch: DEBUG-v037] |
+| 2026-09-09 20:11:05 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchEngineTest.kt` | `app_v2` | S2792 01.4: engine/viewmodel unit tests for stamp and global ops [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchViewModelTest.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:15:09 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/DestinationLabelResolver.kt` | `spec-code` | S2797: cancel in-flight destination-label lookups per settings render pass [set of 4: app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/VideoSettingsFragment.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/fragments/OperationsSettingsFragment.kt, PLAN/S2797_video-snapshot-label-stale-after-clear.md] [branch: DEBUG-v037] |
+| 2026-09-09 20:16:16 | `PLAN/S2800_settings-override-republishes-stale-value.md` | `spec-code` | S2800: park the optimistic-override stale republish found while diagnosing S2797 [branch: DEBUG-v037] |
+| 2026-09-09 20:16:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/WaterFlashlightActivity.kt` | `spec-all` | S2516: re-probe the water flashlight, verify the phone half on the S21+, correct the pinning claim in the three manuals [set of 6: wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/waterflashlight/WaterFlashlightScreen.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearInformationRow.kt, docs/HOW_TO.md, docs/HOW_TO-ru.md, docs/HOW_TO-uk.md] [branch: DEBUG-v037] |
+| 2026-09-09 20:17:10 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S2792 02.1: start-all/stop-all strings en/ru/uk [set of 3: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-09 20:18:10 | `app_v2/src/main/res/layout/activity_stopwatch.xml` | `app_v2` | S2792 02.2: start-all button in both action bars [set of 2: app_v2/src/main/res/layout-land/activity_stopwatch.xml] [branch: DEBUG-v037] |
+| 2026-09-09 20:21:02 | `scripts/utils/set-android-string.ps1` | `spec-all` | S2798: Fix apostrophe escaping in set-android-string.ps1 [set of 3: scripts/utils/seed-locale-tranche.ps1, PLAN/S2798_set-android-string-cannot-author-escaped-apostrophe.md] [branch: DEBUG-v037] |
+| 2026-09-09 20:22:28 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchRegionBinder.kt` | `app_v2` | S2792 02.3: start-all button wiring and focus chain [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:25:23 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchRegionBinder.kt` | `app_v2` | S2792 02.4: volume-key region resolution without focus [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:28:25 | `PLAN/S2794_bugfix-wear-walk-blames-app-for-system-overlay.md` | `spec-code` | Compact spec: S2794 [branch: DEBUG-v037] |
+| 2026-09-09 20:30:04 | `scripts/devtest/adb.ps1` | `adb.ps1 device enumeration` | Get-OnlineDevices: split adb devices rows on TAB so an mDNS id containing a space is not dropped [set of 2: scripts/devtest/adb.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
+| 2026-09-09 20:32:11 | `scripts/devtest/wear-prerelease-walk.ps1` | `spec-code` | S2794: foreign-window check + battery precondition for wear-prerelease-walk [set of 4: scripts/devtest/lib/wear-foreign-window.ps1, scripts/devtest/lib/wear-battery.ps1, scripts/devtest/wear-prerelease-walk.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
+| 2026-09-09 20:33:01 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchResultRenderer.kt` | `app_v2` | S2792 03.2: measured-at line in result renderer [set of 2: app_v2/src/test/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchResultRendererTest.kt] [branch: DEBUG-v037] |
+| 2026-09-09 20:33:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchResultDialogFragment.kt` | `app_v2` | S2792 03.4: locale stamp formatter in result dialog [branch: DEBUG-v037] |
+| 2026-09-09 20:34:15 | `PLAN/S2794_bugfix-wear-walk-blames-app-for-system-overlay.md` | `spec-code` | S2794 Verified: foreign-window check + battery precondition for wear-prerelease-walk [branch: DEBUG-v037] |
+| 2026-09-09 20:35:49 | `app_v2/src/main/res/layout/dialog_stopwatch_result.xml` | `app_v2` | S2792 03.3: send icon-only button in result dialog (app namespace fix) [branch: DEBUG-v037] |
+| 2026-09-09 20:37:14 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S2792 03.1: measured-at string en/ru/uk [set of 3: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-09 20:45:35 | `PLAN/S2800_settings-override-republishes-stale-value.md` | `spec-code` | Strategic spec S2800: research resolved, compact phase added, Approved [branch: DEBUG-v037] |
+| 2026-09-09 20:47:15 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/stopwatch/MusicTrackOption.kt` | `app_v2` | S2792 04.2-04.5: in-app music-only track picker [set of 8: app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/MusicTrackRepository.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/stopwatch/LoadMusicTracksUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreMusicTrackRepository.kt, app_v2/src/main/java/com/sza/fastmediasorter/di/MusicTrackModule.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/MusicPickerDialogFragment.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/MusicTrackAdapter.kt, +1 more] [branch: DEBUG-v037] |
+| 2026-09-09 20:55:54 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/stopwatch/MusicTrackOption.kt` | `app_v2` | S2792 phase 04: in-app music-only track picker [set of 10: app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/MusicTrackRepository.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/stopwatch/LoadMusicTracksUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/MediaStoreMusicTrackRepository.kt, app_v2/src/main/java/com/sza/fastmediasorter/di/MusicTrackModule.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/MusicPickerDialogFragment.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/MusicTrackAdapter.kt, +3 more] [branch: DEBUG-v037] |
+| 2026-09-09 20:59:26 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/SettingsViewModel.kt` | `spec-code` | S2800: release optimistic override from persisted flow emission, not write return [branch: DEBUG-v037] |
+| 2026-09-09 21:00:31 | `scripts/quality/assert-wear-settings-parity.ps1` | `assert-wear-settings-parity` | S2731: fix Read-AppliedEnumFields chunk-boundary bug (bespoke gate.carries() functions mislabelled), register UnitSystem in mirroredEnums [branch: DEBUG-v037] |
+| 2026-09-09 21:08:46 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCase.kt` | `S2799` | S2799: merge the three BOTH fields the phone dropped from the watch report, and add parity check 14 that resolver coverage exists on both sides [set of 3: app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCaseTest.kt, scripts/quality/assert-wear-settings-parity.ps1] [branch: DEBUG-v037] |
+| 2026-09-09 21:10:18 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/systeminfo/WearSystemInfoBuilders.kt,wear/src/main/java/com/sza/fastmediasorter/wear/domain/systeminfo/HealthInfoContributor.kt,wear/src/main/res/values/strings.xml,wear/src/main/res/values-ru/strings.xml,wear/src/main/res/values-uk/strings.xml` | `spec-all` | S2775: accent wiring for thermal Severe+ and crash/ANR exit; add system_info_copied string [branch: DEBUG-v037] |
+| 2026-09-09 21:14:34 | `PLAN/S2775_wear-system-info-screen-ux.md` | `spec-all` | Pipeline BlockNeedUserTest: S2775 [branch: DEBUG-v037] |
+| 2026-09-09 21:15:03 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `player panel auto-hide default` | Lower player panel auto-hide default from 15 s to 10 s [set of 4: app_v2/src/main/java/com/sza/fastmediasorter/data/repository/SettingsRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupData.kt, docs/settings/device-profile-nonpresettable.json] [branch: DEBUG-v037] |
+| 2026-09-09 21:15:08 | `PLAN/S2801_wear-file-browser-audio-thumbnails.md` | `spec` | Scaffold strategic spec skeleton S2801 [branch: DEBUG-v037] |
+| 2026-09-09 21:17:19 | `PLAN/S2802_wear-audio-player-volume-actions.md` | `spec` | Scaffold strategic spec skeleton S2802 [branch: DEBUG-v037] |
+| 2026-09-09 21:23:24 | `PLAN/S2803_revert-player-buttons-calculator-design.md` | `spec` | Scaffold strategic spec skeleton S2803 [branch: DEBUG-v037] |
+| 2026-09-09 21:28:17 | `PLAN/S2804_wear-minigame-exit-cube-indicator.md` | `spec` | Scaffold strategic spec skeleton S2804 [branch: DEBUG-v037] |
+| 2026-09-09 21:28:52 | `PLAN/S2805_wear-network-monitor-redesign.md` | `spec` | Scaffold strategic spec skeleton S2805 [branch: DEBUG-v037] |
+| 2026-09-09 21:29:29 | `PLAN/S2806_wear-system-info-collapsible-groups.md` | `spec` | Scaffold strategic spec skeleton S2806 [branch: DEBUG-v037] |
+| 2026-09-09 21:30:10 | `PLAN/S2807_wear-motion-monitor-update-throttle.md` | `spec` | Scaffold strategic spec skeleton S2807 [branch: DEBUG-v037] |
+| 2026-09-09 21:31:31 | `PLAN/S2808_wear-heart-rate-big-number-history.md` | `spec` | Scaffold strategic spec skeleton S2808 [branch: DEBUG-v037] |
+| 2026-09-09 21:32:06 | `PLAN/S2809_wear-blood-pressure-measurement.md` | `spec` | Scaffold strategic spec skeleton S2809 [branch: DEBUG-v037] |
+| 2026-09-09 21:35:03 | `PLAN/S2810_wear-suppress-phone-player-takeover.md` | `spec` | Scaffold strategic spec skeleton S2810 [branch: DEBUG-v037] |
+| 2026-09-09 21:40:53 | `PLAN/S2811_start-window-desktop-mode-setting.md` | `spec` | Scaffold strategic spec skeleton S2811 [branch: DEBUG-v037] |
+| 2026-09-09 21:42:51 | `PLAN/S2812_wear-flashlight-rotary-bezel-gesture.md` | `spec` | Scaffold strategic spec skeleton S2812 [branch: DEBUG-v037] |
+| 2026-09-09 21:47:19 | `PLAN/S2813_wear-stream-stable-connection-params.md` | `spec` | Scaffold strategic spec skeleton S2813 [branch: DEBUG-v037] |
+| 2026-09-09 21:48:50 | `PLAN/S2814_phone-stream-stable-connection-params.md` | `spec` | Scaffold strategic spec skeleton S2814 [branch: DEBUG-v037] |
+| 2026-09-09 21:50:10 | `PLAN/S2815_wear-stream-screen-off-button.md` | `spec` | Scaffold strategic spec skeleton S2815 [branch: DEBUG-v037] |
+| 2026-09-09 21:51:03 | `PLAN/S2811_start-window-desktop-mode-setting.md` | `spec-all` | S2811 strategic spec: desktop as app start window setting [branch: DEBUG-v037] |
+| 2026-09-09 21:51:27 | `PLAN/S2816_wear-apps-screen-scroll-memory.md` | `spec` | Scaffold strategic spec skeleton S2816 [branch: DEBUG-v037] |
+| 2026-09-09 21:56:38 | `PLAN/S2811_start-window-desktop-mode-setting/INDEX.md` | `spec-tech` | S2811 tactical plan: 5 phases, desktop as app start window [branch: DEBUG-v037] |
+| 2026-09-09 22:02:02 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearSectionExpansionStore.kt` | `spec-all S2806` | Wear system information: collapsible sections with remembered expansion and scroll position [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt, wear/src/test/java/com/sza/fastmediasorter/wear/ui/common/WearSectionExpansionStoreTest.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/systeminfo/SystemInfoScreen.kt, PLAN/S2806_wear-system-info-collapsible-groups.md] [branch: DEBUG-v037] |
+| 2026-09-09 22:03:05 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/StopwatchActivity.kt` | `S2792` | StopWatch: music-only in-app track picker, Start all/Stop all button, result measured-at line and send icon, volume-key delivery without focus [branch: DEBUG-v037] |
+| 2026-09-09 22:03:14 | `PLAN/S2801_wear-file-browser-audio-thumbnails.md` | `spec-all` | Compact spec: S2801 [branch: DEBUG-v037] |
+| 2026-09-09 22:04:22 | `docs/WEAR_OS_STATUS.md` | `spec-all S2806` | Wear status doc: system information opens collapsed, expansion and scroll position remembered [branch: DEBUG-v037] |
+| 2026-09-09 22:07:38 | `docs/settings/settings-manifest.json` | `spec-code` | S2731: regenerate settings manifest - rowUnitSystem in sectionId=general [branch: DEBUG-v037] |
+| 2026-09-09 22:07:40 | `docs/SETTINGS_REFERENCE.md` | `spec-code` | S2731: regenerate settings reference (EN/RU/UK/noLegal) for relocated unit system row [branch: DEBUG-v037] |
+| 2026-09-09 22:07:41 | `docs/settings/settings-annotations.json` | `spec-code` | S2731: rename annotation rowLauncherUnitSystem -> rowUnitSystem [branch: DEBUG-v037] |
+| 2026-09-09 22:07:43 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/launcher/SyncEnabledResourceTilesUseCaseTest.kt` | `spec-code` | S2731: fix pre-existing broken FakeLauncherShortcutSyncRepository (missing isStopwatchShortcutBackfilled stubs) blocking reindex build [branch: DEBUG-v037] |
+| 2026-09-09 22:07:45 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsViewSetupHelper.kt` | `spec-code` | S2731: insert debug probe Timber.d S2731 unit system selected [branch: DEBUG-v037] |
+| 2026-09-09 22:07:48 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ApplyWearSettingsUseCase.kt` | `spec-code` | S2731: insert debug probe Timber.d S2731 unit system applied [branch: DEBUG-v037] |
+| 2026-09-09 22:07:50 | `PLAN/S2731_unit-system-app-wide-and-wear-sync.md` | `spec-code` | S2731: pre-handoff audit block, status -> BlockNeedUserTest [branch: DEBUG-v037] |
+| 2026-09-09 22:08:07 | `PLAN/S2731_unit-system-app-wide-and-wear-sync.md` | `spec-code` | Pipeline BlockNeedUserTest: S2731 [branch: DEBUG-v037] |
+| 2026-09-09 22:09:23 | `PLAN/S2819_wear-streams-filter-sort-ui.md` | `spec` | Scaffold strategic spec skeleton S2819 [branch: DEBUG-v037] |
+| 2026-09-09 22:11:04 | `PLAN/S2820_wear-streams-empty-filter-message.md` | `spec` | Scaffold strategic spec skeleton S2820 [branch: DEBUG-v037] |
+| 2026-09-09 22:14:28 | `PLAN/S2817_broadcast-settings-section.md` | `spec-all` | S2817 strategic spec from measured broadcast research; parked S2821 (session title/bitrate drift) [set of 2: PLAN/S2821_broadcast-session-title-drift.md] [branch: DEBUG-v037] |
+| 2026-09-09 22:14:35 | `app_v2/src/main/java/com/sza/fastmediasorter/broadcast/BroadcastSourceController.kt` | `S2793` | S2793: surface every Live Broadcast failure and permission denial to the user [set of 10: app_v2/src/main/java/com/sza/fastmediasorter/broadcast/NoOpBroadcastSourceController.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainBroadcastManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt, app_v2/src/broadcastSource/java/com/sza/fastmediasorter/broadcast/BroadcastCaptureService.kt, app_v2/src/broadcastSource/java/com/sza/fastmediasorter/broadcast/BroadcastSourceControllerImpl.kt, app_v2/src/testNoLegal/java/com/sza/fastmediasorter/broadcast/StandbyCameraSessionConsentPolicyTest.kt, +3 more] [branch: DEBUG-v037] |
+| 2026-09-09 22:17:21 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/PlayerVolumeController.kt` | `spec-all S2802` | S2802: wear audio player shows volume permanently on the left; Actions menu stays open while cycling playback mode [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/VolumeIndicatorBar.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/PlayerOverflowMenu.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerScreen.kt] [branch: DEBUG-v037] |
+| 2026-09-09 22:18:31 | `PLAN/S2804_wear-minigame-exit-cube-indicator.md` | `spec-code` | Compact spec: S2804 [branch: DEBUG-v037] |
+| 2026-09-09 22:25:31 | `PLAN/S2803_revert-player-buttons-calculator-design.md` | `spec-all` | S2803: strategic spec for restoring the original two-row four-button player command panels on the watch; scoped to the player rows, calculator delegated to S2773, blocked on S2773. S2773 unblocked - its blocker S2770 is Archived. [set of 2: PLAN/S2773_wear-original-ui-flavor-flag.md] [branch: DEBUG-v037] |
+| 2026-09-09 22:26:35 | `PLAN/S2817_broadcast-settings-section.md` | `spec-quiz` | S2817: BlockQuestions -> Approved via quiz (4 questions) [branch: DEBUG-v037] |
+| 2026-09-09 22:29:06 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameBoardCanvas.kt` | `spec-code` | S2804: exit cube indicator and killer hint [set of 7: wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameUiState.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/game/GameScreen.kt, wear/src/main/res/values/strings.xml, wear/src/main/res/values-ru/strings.xml, wear/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-09 22:29:27 | `PLAN/S2804_wear-minigame-exit-cube-indicator.md` | `spec-code` | Pipeline BlockNeedUserTest: S2804 [branch: DEBUG-v037] |
+| 2026-09-09 22:33:21 | `PLAN/S2808_wear-heart-rate-big-number-history.md` | `spec-all` | Strategic spec: S2808 - Wear heart rate big number and history [branch: DEBUG-v037] |
+| 2026-09-09 22:35:28 | `PLAN/S2808_wear-heart-rate-big-number-history/INDEX.md` | `spec-tech` | Create tactical plan for S2808 [branch: DEBUG-v037] |
+| 2026-09-09 22:35:29 | `PLAN/S2808_wear-heart-rate-big-number-history/PHASE_01__heart-rate-history-storage.md` | `spec-tech` | Phase 01: heart-rate-history-storage [branch: DEBUG-v037] |
+| 2026-09-09 22:35:30 | `PLAN/S2808_wear-heart-rate-big-number-history/PHASE_02__heart-rate-history-screen.md` | `spec-tech` | Phase 02: heart-rate-history-screen [branch: DEBUG-v037] |
+| 2026-09-09 22:35:30 | `PLAN/S2808_wear-heart-rate-big-number-history/PHASE_03__body-sensor-big-number-and-save.md` | `spec-tech` | Phase 03: body-sensor-big-number-and-save [branch: DEBUG-v037] |
+| 2026-09-09 22:35:32 | `PLAN/S2808_wear-heart-rate-big-number-history/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-09 22:35:35 | `PLAN/S2808_wear-heart-rate-big-number-history.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v037] |
+| 2026-09-09 22:42:11 | `app_v2/build.gradle.kts` | `S2793` | S2793: merge the broadcastSource manifest so BroadcastCaptureService is declared - Live Broadcast actually starts [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainBroadcastManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 22:43:04 | `docs/ALL_FEATURES.jsonl` | `S2793` | S2793: record the phone live-audio broadcast capability [branch: DEBUG-v037] |
+| 2026-09-09 22:43:21 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/db/HeartRateHistoryEntity.kt,wear/src/main/java/com/sza/fastmediasorter/wear/data/db/HeartRateHistoryDao.kt,wear/src/main/java/com/sza/fastmediasorter/wear/data/db/WearHeartRateDatabase.kt,wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/HeartRateHistoryEntry.kt,wear/src/main/java/com/sza/fastmediasorter/wear/domain/repository/HeartRateHistoryRepository.kt,wear/src/main/java/com/sza/fastmediasorter/wear/data/repository/HeartRateHistoryRepositoryImpl.kt,wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bodysensor/history/HeartRateHistoryUiState.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bodysensor/history/HeartRateHistoryViewModel.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bodysensor/history/HeartRateHistoryScreen.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bodysensor/BodySensorScreen.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bodysensor/BodySensorViewModel.kt,wear/src/main/java/com/sza/fastmediasorter/wear/ui/navigation/WearRoutes.kt,wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt` | `spec-all` | S2808 - Wear heart rate big number display and measurement history (Room storage, history screen, body sensor screen update) [branch: DEBUG-v037] |
+| 2026-09-09 22:49:45 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearSegmentedToggleRow.kt` | `spec-all S2819` | S2819: wear streams filter kind as a compact segmented toggle row; sort dialog pinned to one column [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/ui/streams/StreamsScreen.kt, wear/src/main/res/values/strings.xml, wear/src/main/res/values-ru/strings.xml, wear/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-09 22:54:35 | `PLAN/S2809_wear-blood-pressure-measurement.md` | `spec-all` | Strategic spec: S2809 wear blood pressure measurement [branch: DEBUG-v037] |
+| 2026-09-09 22:56:55 | `PLAN/S2809_wear-blood-pressure-measurement/INDEX.md` | `spec-tech` | Create tactical plan for S2809 [branch: DEBUG-v037] |
+| 2026-09-09 22:56:57 | `PLAN/S2809_wear-blood-pressure-measurement/PHASE_01__domain-and-data.md` | `spec-tech` | Phase 01: domain-and-data [branch: DEBUG-v037] |
+| 2026-09-09 22:56:58 | `PLAN/S2809_wear-blood-pressure-measurement/PHASE_02__ui-screens-and-resources.md` | `spec-tech` | Phase 02: ui-screens-and-resources [branch: DEBUG-v037] |
+| 2026-09-09 22:56:59 | `PLAN/S2809_wear-blood-pressure-measurement/PHASE_03__catalog-and-navigation.md` | `spec-tech` | Phase 03: catalog-and-navigation [branch: DEBUG-v037] |
+| 2026-09-09 22:57:00 | `PLAN/S2809_wear-blood-pressure-measurement/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-09 22:57:01 | `PLAN/S2809_wear-blood-pressure-measurement.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v037] |
+| 2026-09-09 22:59:04 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorSummaryScreen.kt` | `S2805` | S2805: Wear Network Monitor redrawn as a one-column report - section chips instead of a truncating tile grid, chip actions instead of circular buttons, divider shared with the system-information screen [set of 6: wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorSectionPages.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorUiState.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorViewModel.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/systeminfo/SystemInfoScreen.kt, wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearReportDivider.kt] [branch: DEBUG-v037] |
+| 2026-09-09 23:03:15 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/BloodPressureHistoryEntry.kt` | `S2809` | Blood pressure data layer [branch: DEBUG-v037] |
+| 2026-09-09 23:03:31 | `wear/src/main/res/values/strings.xml` | `S2809` | Blood pressure UI strings (EN/RU/UK) [branch: DEBUG-v037] |
+| 2026-09-09 23:03:32 | `wear/src/main/res/drawable/ic_blood_pressure.xml` | `S2809` | Blood pressure icon drawable [branch: DEBUG-v037] |
+| 2026-09-09 23:03:34 | `wear/src/main/res/values/colors.xml` | `S2809` | Blood pressure accent color [branch: DEBUG-v037] |
+| 2026-09-09 23:03:36 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/bloodpressure/BloodPressureScreen.kt` | `S2809` | Blood pressure input + history screens [branch: DEBUG-v037] |
+| 2026-09-09 23:03:37 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearApp.kt` | `S2809` | Blood pressure catalog and navigation wiring [branch: DEBUG-v037] |
+| 2026-09-09 23:03:39 | `wear/src/main/java/com/sza/fastmediasorter/wear/MainActivity.kt` | `S2809` | Blood pressure navigation graph entries [branch: DEBUG-v037] |
+| 2026-09-09 23:03:41 | `docs/FEATURES.md` | `S2809` | Blood pressure FEATURES trilingual [branch: DEBUG-v037] |
+| 2026-09-09 23:04:57 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt` | `S2811 step 01.1` | S2811: open a home-versus-start-window seam in the launcher desktop activity [branch: DEBUG-v037] |
+| 2026-09-09 23:07:51 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/AudioCoverArtReader.kt` | `S2801` | S2801: wear file browser shows embedded audio cover art via MediaMetadataRetriever [set of 4: wear/src/main/java/com/sza/fastmediasorter/wear/data/thumbnail/WearThumbnailRepositoryImpl.kt, wear/src/main/java/com/sza/fastmediasorter/wear/di/ThumbnailModule.kt, scripts/quality/wear-canonical-key-watch-only-baseline.txt] [branch: DEBUG-v037] |
+| 2026-09-09 23:08:17 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherStartWindowActivity.kt` | `S2811 phase 01` | S2811: launcher desktop gains a start-window entry point - a non-HOME activity subclassing the desktop with ordinary task behaviour [set of 2: app_v2/src/launcherEnabled/AndroidManifest.xml] [branch: DEBUG-v037] |
+| 2026-09-09 23:14:23 | `PLAN/S2773_wear-original-ui-flavor-flag/INDEX.md` | `spec-all` | S2773 tactical plan: wear geometry mode, 4 phases [branch: DEBUG-v037] |
+| 2026-09-09 23:14:35 | `PLAN/S2807_wear-motion-monitor-update-throttle.md` | `spec-code` | Compact spec: S2807 wear motion monitor update throttle [branch: DEBUG-v037] |
+| 2026-09-09 23:25:41 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/launcher/LauncherModeContract.kt` | `S2811 phase 02` | S2811: start-window capability seam and its durable default-on flag [set of 6: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/launcher/LauncherModeContractImpl.kt, app_v2/src/launcherDisabled/java/com/sza/fastmediasorter/launcher/LauncherModeContractImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStartWindowManager.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherStartWindowManagerTest.kt, app_v2/src/test/java/com/sza/fastmediasorter/data/permissions/PermissionRegistryTestDoubles.kt] [branch: DEBUG-v037] |
+| 2026-09-09 23:31:08 | `wear/src/main/java/com/sza/fastmediasorter/wear/data/motion/AndroidWearMotionDiagnosticsRepository.kt` | `spec-code` | S2807: cap Motion Monitor flow emission to 500ms via Flow.sample (+FlowPreview opt-in, S2807 probe) [branch: DEBUG-v037] |
+| 2026-09-09 23:36:22 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainStartWindowRedirectManager.kt` | `S2811 phase 03` | S2811: a plain cold launch opens the desktop when the start-window flag is on [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/MainActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-09 23:40:39 | `PLAN/S2820_wear-streams-empty-filter-message.md` | `spec-all` | S2820: watch Streams distinguishes a filtered-empty list from an empty catalogue and offers one reset chip; uk blood_pressure_title apostrophe fixed inline (aapt refusal) [branch: DEBUG-v037] |
+| 2026-09-10 00:08:37 | `PLAN/S2810_wear-suppress-phone-player-takeover.md` | `spec-code` | Compact spec: S2810 [branch: DEBUG-v037] |
+| 2026-09-10 00:27:03 | `PLAN/S2156_wear-network-monitor-revision-and-navigation.md` | `spec-all` | Audit S2156 -> BlockNeedUserTest; PASS/WARN/FAIL 15/0/0, MANUAL 6; criterion 11.4 corrected to the owner decision, second-pass tile demand closed against S2805 [branch: DEBUG-v037] |
+| 2026-09-10 00:27:06 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/netmonitor/NetworkMonitorDetailScreen.kt` | `spec-all` | Add S2156 device-test probe at the section destination entry [branch: DEBUG-v037] |
+| 2026-09-10 00:35:26 | `app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherStartWindowActivity.kt` | `S2811` | desktop as start window: entry point, contract, flag, startup redirect, settings row, docs [set of 25: app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/ui/launcher/LauncherHomeActivity.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/launcher/LauncherModeContract.kt, app_v2/src/launcherEnabled/java/com/sza/fastmediasorter/launcher/LauncherModeContractImpl.kt, app_v2/src/launcherDisabled/java/com/sza/fastmediasorter/launcher/LauncherModeContractImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStartWindowManager.kt, app_v2/src/test/java/com/sza/fastmediasorter/core/launcher/LauncherStartWindowManagerTest.kt, +18 more] [branch: DEBUG-v037] |
+| 2026-09-10 00:41:52 | `PLAN/S2811_start-window-desktop-mode-setting.md` | `spec-check` | Audit S2811 -> BlockNeedUserTest; PASS/WARN/FAIL 28/0/0, MANUAL 5 [branch: DEBUG-v037] |
+| 2026-09-10 00:42:52 | `PLAN/S2813_wear-stream-stable-connection-params.md` | `spec-all` | Strategic spec S2813: stable connection params for wear broadcast [branch: DEBUG-v037] |
+| 2026-09-10 00:44:00 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearGeometryMode.kt` | `spec-all` | S2773: wear geometry mode - the original pre-Play layout beside the reviewed one, resolved from a stored choice over a per-flavor default, published on the composition tree and read inside the shape helpers; settings toggle offered in noLegal only (ADR-3), with strings, doc-scope entry and regenerated settings reference [set of 29: wear/src/main/java/com/sza/fastmediasorter/wear/domain/capability/WearGeometryDefaults.kt, wear/src/standard/java/com/sza/fastmediasorter/wear/capability/StandardWearGeometryDefaults.kt, wear/src/noLegal/java/com/sza/fastmediasorter/wear/capability/NoLegalWearGeometryDefaults.kt, wear/src/standard/java/com/sza/fastmediasorter/wear/di/StandardWearGeometryModule.kt, wear/src/noLegal/java/com/sza/fastmediasorter/wear/di/NoLegalWearGeometryModule.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/preferences/WearPreferenceKeys.kt, +22 more] [branch: DEBUG-v037] |
+| 2026-09-10 00:45:55 | `PLAN/S2823_wear-unit-suite-two-stale-expectation-tests.md` | `spec-code` | Compact spec: S2823 - stale wear test fixtures [branch: DEBUG-v037] |
+| 2026-09-10 00:46:29 | `PLAN/S2813_wear-stream-stable-connection-params/` | `spec-all` | Tactical plan S2813: 5 phases, Room 57->58 named [branch: DEBUG-v037] |
+| 2026-09-10 00:46:54 | `PLAN/S2810_wear-suppress-phone-player-takeover.md` | `spec-code` | Pre-handoff audit and device-free handoff for S2810 [branch: DEBUG-v037] |
+| 2026-09-10 00:46:55 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-code` | Wear media takeover suppression preference [branch: DEBUG-v037] |
+| 2026-09-10 00:46:56 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/ProgramsSettingsStore.kt` | `spec-code` | Persist Wear media takeover suppression preference [branch: DEBUG-v037] |
+| 2026-09-10 00:46:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `spec-code` | Deny Wear companion media-session connection when enabled [branch: DEBUG-v037] |
+| 2026-09-10 00:46:58 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/OperationsWearGroupManager.kt` | `spec-code` | Wire Wear media takeover suppression setting [branch: DEBUG-v037] |
+| 2026-09-10 00:52:24 | `PLAN/S2816_wear-apps-screen-scroll-memory.md` | `spec-code` | Compact spec: S2816 - wear Apps screen scroll memory restore race [branch: DEBUG-v037] |
+| 2026-09-10 00:55:19 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/AudioPlaybackService.kt` | `spec-code` | S2810: phone-side setting suppressWearMediaTakeover refuses the Wear OS companion MediaSession connection in onConnect; toggle wired beside the Wear companion setting (AppSettings, ProgramsSettingsStore, OperationsWearGroupManager, layouts, strings, settings docs) [branch: DEBUG-v037] |
+| 2026-09-10 00:55:59 | `PLAN/S2817_broadcast-settings-section/INDEX.md` | `spec-tech` | Create tactical plan for S2817 [branch: DEBUG-v037] |
+| 2026-09-10 00:56:01 | `PLAN/S2817_broadcast-settings-section/PHASE_01__broadcast-settings-storage.md` | `spec-tech` | Phase 01: broadcast settings storage [branch: DEBUG-v037] |
+| 2026-09-10 00:56:04 | `PLAN/S2817_broadcast-settings-section/PHASE_02__broadcast-session-config.md` | `spec-tech` | Phase 02: broadcast session configuration [branch: DEBUG-v037] |
+| 2026-09-10 00:56:06 | `PLAN/S2817_broadcast-settings-section/PHASE_03__broadcast-settings-ui.md` | `spec-tech` | Phase 03: broadcast settings UI [branch: DEBUG-v037] |
+| 2026-09-10 00:56:09 | `PLAN/S2817_broadcast-settings-section/PHASE_04__broadcast-settings-tests.md` | `spec-tech` | Phase 04: broadcast settings tests [branch: DEBUG-v037] |
+| 2026-09-10 00:56:14 | `PLAN/S2817_broadcast-settings-section/PHASE_05__docs-catalog-cleanup.md` | `spec-tech` | Phase 05: docs catalog cleanup [branch: DEBUG-v037] |
+| 2026-09-10 00:56:17 | `PLAN/S2817_broadcast-settings-section.md` | `spec-tech` | Status to Tactical [branch: DEBUG-v037] |
+| 2026-09-10 01:02:01 | `PLAN/S2825_wear-stopwatch-same-functions.md` | `spec` | Scaffold strategic spec skeleton S2825 [branch: DEBUG-v037] |
+| 2026-09-10 01:12:50 | `PLAN/S2823_wear-unit-suite-two-stale-expectation-tests.md` | `spec-code` | Pipeline BlockNeedUserTest: S2823 - stale wear test fixtures fixed [branch: DEBUG-v037] |
+| 2026-09-10 01:12:50 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/catalog/WearAppCatalogTest.kt` | `spec-code` | S2823: added BLOOD_PRESSURE to expected catalog list [branch: DEBUG-v037] |
+| 2026-09-10 01:12:51 | `wear/src/test/java/com/sza/fastmediasorter/wear/domain/model/WearSettingsPayloadDecoderTest.kt` | `spec-code` | S2823: added unitSystem to wear test fixture [branch: DEBUG-v037] |
+| 2026-09-10 01:12:51 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/model/WearSettingsPayloadDecoderTest.kt` | `spec-code` | S2823: added unitSystem to phone test fixture [branch: DEBUG-v037] |
+| 2026-09-10 01:12:52 | `scripts/quality/blockneedusertest-probe-baseline.txt` | `spec-code` | S2823: baseline entry for test-only change [branch: DEBUG-v037] |
+| 2026-09-10 01:39:42 | `PLAN/S2816_wear-apps-screen-scroll-memory.md` | `spec-check` | Audit S2816 -> BlockNeedUserTest; PASS 10/WARN 0/FAIL 0/MANUAL 3 [branch: DEBUG-v037] |
+| 2026-09-10 01:41:19 | `PLAN/S2815_wear-stream-screen-off-button.md,PLAN/S2818_broadcast-entry-points-shortcuts.md` | `spec-next` | Session: 2 processed, 0 verified, 1 blocked; S2815 audit fingerprint refreshed, S2818 owner decisions parked. [branch: DEBUG-v037] |
+| 2026-09-10 01:41:47 | `PLAN/S2821_broadcast-session-title-drift.md` | `spec-check` | Audit S2821 -> Verified; defect already fixed by S2817; PASS 8/WARN 0/FAIL 0/MANUAL 0 [branch: DEBUG-v037] |
+| 2026-09-10 01:44:25 | `scripts/quality/lib/fixed-input-scope.ps1` | `spec-all` | S2824: add Test-FixedInputsChargeable shared chargeability helper for fixed-input gates [branch: DEBUG-v037] |
+| 2026-09-10 01:44:27 | `scripts/quality/assert-wear-settings-parity.ps1` | `spec-all` | S2824: accept -ChangedFiles and report a divergence without charging it (exit 3) when no declared input is in the set [branch: DEBUG-v037] |
+| 2026-09-10 01:44:29 | `scripts/quality/assert-wear-canonical-key-parity.ps1` | `spec-all` | S2824: same fixed-input scoping against its two declared inputs [branch: DEBUG-v037] |
+| 2026-09-10 01:44:31 | `scripts/post-change.ps1` | `spec-all` | S2824: Invoke-FixedInputGate passes the changed set under -ScopeToFile and turns exit 3 into an advisory [branch: DEBUG-v037] |
+| 2026-09-10 01:44:32 | `CLAUDE.md` | `spec-all` | S2824: record the fixed-input advisory class beside the dirty-tree closure advisory list [branch: DEBUG-v037] |
+| 2026-09-10 01:44:33 | `AGENTS.md` | `spec-all` | S2824: mirror the fixed-input advisory class statement [branch: DEBUG-v037] |
+| 2026-09-10 01:44:34 | `PLAN/S2824_wear-settings-parity-gate-ignores-scope.md` | `spec-check` | Audit S2824 -> Verified; PASS/WARN/FAIL 16/0/0 [branch: DEBUG-v037] |
+| 2026-09-10 01:45:02 | `scripts/quality/assert-launcher-reset-coverage.ps1` | `spec-all` | S2824: launcher reset coverage gate declines to charge a violation when neither declared input is in the changed set [branch: DEBUG-v037] |
+| 2026-09-10 01:45:06 | `PLAN/S2814_phone-stream-stable-connection-params.md` | `spec-all` | Compact spec: S2814 - phone broadcast device identity [branch: DEBUG-v037] |
+| 2026-09-10 01:47:44 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerScreen.kt` | `spec-all` | S2815: watch video player gains the audio player screen-off mode - shared PlayerDimOverlay, isDimmed state, menu entry, screen-on hold [branch: DEBUG-v037] |
+| 2026-09-10 01:50:41 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/broadcast/BroadcastShareActivity.kt` | `spec-all` | S2822: bind broadcast share launch tracking to the session, not to main-screen visibility [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainBroadcastManager.kt] [branch: DEBUG-v037] |
+| 2026-09-10 01:50:56 | `PLAN/S2822_broadcast-share-screen-traps-user.md` | `spec-all` | S2822: compact spec + pre-handoff audit; parked S2826 (broadcast indicator elapsed timer restarts on every main-screen stop) [branch: DEBUG-v037] |
+| 2026-09-10 01:52:03 | `PLAN/S2814_phone-stream-stable-connection-params.md` | `spec-all` | S2814: compact spec + impl -> BlockNeedUserTest; PASS 8/WARN 0/FAIL 0/MANUAL 3 [branch: DEBUG-v037] |
+| 2026-09-10 01:52:04 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/AppSettings.kt` | `spec-all` | S2814: add broadcastSourceDeviceId [branch: DEBUG-v037] |
+| 2026-09-10 01:52:05 | `app_v2/src/main/java/com/sza/fastmediasorter/data/repository/settings/BroadcastSettingsStore.kt` | `spec-all` | S2814: add sourceDeviceId DataStore plumbing [branch: DEBUG-v037] |
+| 2026-09-10 01:52:05 | `app_v2/src/main/java/com/sza/fastmediasorter/broadcast/BroadcastSessionConfig.kt` | `spec-all` | S2814: add sourceDeviceId field [branch: DEBUG-v037] |
+| 2026-09-10 01:52:06 | `app_v2/src/broadcastSource/java/com/sza/fastmediasorter/broadcast/BroadcastCaptureService.kt` | `spec-all` | S2814: generate UUID, include sourceId in descriptor [branch: DEBUG-v037] |
+| 2026-09-10 01:52:49 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 3 processed, 1 verified, 2 blocked [branch: DEBUG-v037] |
+| 2026-09-10 02:00:43 | `PLAN/S2795_unit-system-drives-every-format/INDEX.md` | `spec-all` | S2795: tactical plan - 6 phases (format seam, reactive source, phone sites, gadgets/widgets, wear, gate+docs) plus research inventory [branch: DEBUG-v037] |
+| 2026-09-10 02:04:23 | `PLAN/S2803_revert-player-buttons-calculator-design/INDEX.md` | `spec-tech` | Create tactical plan for S2803 [branch: DEBUG-v037] |
+| 2026-09-10 02:04:24 | `PLAN/S2803_revert-player-buttons-calculator-design/PHASE_01__command-row-mode-answers.md` | `spec-tech` | Phase 01: command-row-mode-answers [branch: DEBUG-v037] |
+| 2026-09-10 02:04:25 | `PLAN/S2803_revert-player-buttons-calculator-design/PHASE_02__audio-player-original-rows.md` | `spec-tech` | Phase 02: audio-player-original-rows [branch: DEBUG-v037] |
+| 2026-09-10 02:04:26 | `PLAN/S2803_revert-player-buttons-calculator-design/PHASE_03__video-image-original-rows.md` | `spec-tech` | Phase 03: video-image-original-rows [branch: DEBUG-v037] |
+| 2026-09-10 02:04:27 | `PLAN/S2803_revert-player-buttons-calculator-design/PHASE_04__docs-catalog-cleanup.md` | `spec-tech` | Phase 04: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-10 02:04:28 | `PLAN/S2803_revert-player-buttons-calculator-design.md` | `spec-tech` | Status -> Tactical; strategic section 6 items 1-2 resolved from git state 9a858808e [branch: DEBUG-v037] |
+| 2026-09-10 02:16:12 | `scripts/doc-drift/GradleParser.ps1` | `spec-all S2827` | S2827: doc-pin-drift declines to charge drift when none of its declared inputs is in the changed set; room-schema doc pin 57->58 [set of 5: scripts/quality/assert-doc-pin-drift.ps1, scripts/post-change.ps1, dev/TECH_REQUIREMENTS.md, docs/DEV_OPS.md] [branch: DEBUG-v037] |
+| 2026-09-10 02:21:35 | `scripts/quality/lib/room-databases.ps1` | `spec-all` | S2829: the Room registry row names its @Database class, so a module with several databases no longer blocks every closure [set of 2: scripts/quality/assert-migration-schema-conformance.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 02:23:33 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/PlayerCommandButton.kt` | `spec-dev` | S2803 step 01.1+01.2: mode-aware column answers, glyph floor under ORIGINAL, square box, @Composable band width [branch: DEBUG-v037] |
+| 2026-09-10 02:23:35 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearGeometryModeLocal.kt` | `spec-dev` | S2803 step 01.2: KDoc names the player command-row layer as the second mode reader [branch: DEBUG-v037] |
+| 2026-09-10 02:24:34 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/PlayerCommandButton.kt` | `spec-dev` | S2803 phase 01: mode-aware command-row layer answers [set of 2: wear/src/main/java/com/sza/fastmediasorter/wear/ui/common/WearGeometryModeLocal.kt] [branch: DEBUG-v037] |
+| 2026-09-10 02:31:07 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerScreen.kt` | `spec-dev` | S2803 steps 02.1+02.2: audio player draws the restored 4+4 command rows under the ORIGINAL geometry mode; store rows untouched [branch: DEBUG-v037] |
+| 2026-09-10 02:34:31 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerScreen.kt` | `spec-dev` | S2803 phase 02: audio player restored 4+4 command rows under ORIGINAL geometry mode [branch: DEBUG-v037] |
+| 2026-09-10 02:40:40 | `scripts/quality/assert-flavor-matrix-docs.ps1` | `spec-all` | S2828: give the four remaining fixed-input gates the S2824 fork, widen the rule-digest trigger to spec-catalog.md, move gate-class membership to DEV_OPS [set of 8: scripts/quality/assert-oss-notices.ps1, scripts/quality/assert-rule-digest-sync.ps1, scripts/quality/assert-wear-wire-vocabulary-parity.ps1, scripts/post-change.ps1, CLAUDE.md, AGENTS.md, +1 more] [branch: DEBUG-v037] |
+| 2026-09-10 02:41:18 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerScreen.kt` | `spec-dev` | S2803 step 03.1: video player draws the restored 4+4 command rows under the ORIGINAL geometry mode [branch: DEBUG-v037] |
+| 2026-09-10 02:41:19 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerScreen.kt` | `spec-dev` | S2803 step 03.2: image viewer draws the restored 4+4 command rows under the ORIGINAL geometry mode [branch: DEBUG-v037] |
+| 2026-09-10 02:42:24 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerScreen.kt` | `spec-dev` | S2803 phase 03: video player and image viewer restored 4+4 command rows under ORIGINAL geometry mode [set of 2: wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerScreen.kt] [branch: DEBUG-v037] |
+| 2026-09-10 02:45:27 | `docs/WEAR_OS_STATUS.md` | `spec-dev` | S2803 step 04.1: command-composition and touch-target rows describe the ORIGINAL restored 4+4 view beside the STORE rows [branch: DEBUG-v037] |
+| 2026-09-10 02:45:28 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/audio/AudioPlayerScreen.kt` | `spec-dev` | S2803 step 04.2: debug probes on the audio command rows for the device pass [branch: DEBUG-v037] |
+| 2026-09-10 02:45:29 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/video/VideoPlayerScreen.kt` | `spec-dev` | S2803 step 04.2: debug probes on the video command rows for the device pass [branch: DEBUG-v037] |
+| 2026-09-10 02:45:30 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/image/ImageViewerScreen.kt` | `spec-dev` | S2803 step 04.2: debug probes on the image command rows for the device pass [branch: DEBUG-v037] |
+| 2026-09-10 02:48:05 | `PLAN/S2803_revert-player-buttons-calculator-design.md` | `spec-dev` | All 4 phases done; pre-handoff audit written; status -> BlockNeedUserTest (6 watch criteria MANUAL) [branch: DEBUG-v037] |
+| 2026-09-10 02:49:54 | `PLAN/S2803_revert-player-buttons-calculator-design.md` | `spec-dev` | S2803: device-test deferred (form-factor mismatch - watch required, phone online) [branch: DEBUG-v037] |
+| 2026-09-10 02:52:12 | `app_v2/src/main/java/com/sza/fastmediasorter/data/broadcast/BroadcastDescriptorDto.kt` | `spec-all` | S2813: stable watch broadcast params - persisted port + source id, catalog sourceDeviceId (Room 57->58), import refreshes in place [set of 28: app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/Migration57To58.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/StreamSourceDao.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/StreamSourceEntity.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/StreamSourceRepository.kt, +21 more] [branch: DEBUG-v037] |
+| 2026-09-10 03:08:50 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainBroadcastManager.kt` | `spec-dev` | S2826: broadcast indicator elapsed time driven from the session start moment instead of the main screen lifetime [branch: DEBUG-v037] |
+| 2026-09-10 03:08:51 | `app_v2/src/main/java/com/sza/fastmediasorter/broadcast/BroadcastSourceController.kt` | `spec-dev` | S2826: BroadcastState.Live carries the session start moment (startedAtElapsedRealtimeMs) [branch: DEBUG-v037] |
+| 2026-09-10 03:10:07 | `PLAN/S2826_broadcast-indicator-timer-resets.md` | `spec-dev` | S2826 -> BlockNeedUserTest; implementation verified in tree (1 MANUAL check: consent-gated screen read) [branch: DEBUG-v037] |
+| 2026-09-10 03:15:18 | `PLAN/S2757_wear-full-retest-before-resubmission.md` | `spec-next` | S2757 -> BlockNeedUserTest: Phase 02 re-walk parked on watch hardware; audit refreshed, probe baseline row added [branch: DEBUG-v037] |
+| 2026-09-10 03:18:36 | `PLAN/S2757_wear-full-retest-before-resubmission.md` | `spec-next` | S2757 -> BlockNeedUserTest: audit refreshed with current fingerprint, probe baseline row added, sections 5-7 preserved [branch: DEBUG-v037] |
+| 2026-09-10 03:19:11 | `app_v2/src/main/java/com/sza/fastmediasorter/core/format/QuantityFormatter.kt` | `S2795` | S2795: unit system decides every user-facing quantity format - QuantityFormatter/UnitScale/Quantity seam, UnitSystemProvider + Hilt entry point, ~35 migrated call sites across phone and watch, WearUnitDateTimeFormatter, assert-quantity-format-seam gate with a 36-entry baseline [branch: DEBUG-v037] |
+| 2026-09-10 03:19:41 | `PLAN/S2830_wear-migration-sql-never-compared-to-schema.md` | `spec-all` | Compact spec: S2830 - migration discovery by content, not by file name [branch: DEBUG-v037] |
+| 2026-09-10 03:29:41 | `PLAN/S2551_wear-view-phone-stream/INDEX.md` | `spec-all` | S2551: blocker S2662 re-verified against tree, no unblocked phases left [branch: DEBUG-v037] |
+| 2026-09-10 03:31:43 | `PLAN/S2828_fixed-input-gates-still-fatal.md` | `spec-check` | S2828 Verified: evidence-durable references reduced to verdict extracts, fingerprint recomputed; four gates scoped per the existing full audit [branch: DEBUG-v037] |
+| 2026-09-10 03:40:37 | `PLAN/S2718_water-flashlight-block-system-ui.md` | `spec-all` | S2718: goals 2-3 narrowed to accidental touch per owner ruling, lock-task removal recorded, pre-handoff audit written, Broken -> BlockNeedUserTest [branch: DEBUG-v037] |
+| 2026-09-10 03:52:47 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/flashlight/WaterFlashlightActivity.kt` | `spec-check` | S2718: lockdown probe re-inserted for the BlockNeedUserTest entry (S2778 carries the exit-key fix) [branch: DEBUG-v037] |
+| 2026-09-10 03:59:47 | `scripts/quality/lib/room-databases.ps1` | `spec-all` | S2829: the migration registry describes every database of a module, so all four are verified separately [set of 3: scripts/quality/assert-migration-schema-conformance.ps1, scripts/quality/assert-migration-test-pairing.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 04:02:42 | `PLAN/S2718_water-flashlight-block-system-ui.md` | `spec-check` | S2718 -> BlockNeedUserTest: S2778 fix verified in code, joint device pass with S2778 pending [branch: DEBUG-v037] |
+| 2026-09-10 04:04:11 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/stopwatch/` | `S2825` | Wear stopwatch: own domain engine, 1/2/4 participant regions, laps, all-participant actions, result page, catalog+nav wiring, EN/RU/UK strings, watch docs [branch: DEBUG-v037] |
+| 2026-09-10 04:06:31 | `docs/WEAR_OS_STATUS.md` | `S2825` | Apps section: eleven programs listed, stopwatch route registered alongside the two the doc had missed [branch: DEBUG-v037] |
+| 2026-09-10 04:08:25 | `scripts/quality/assert-detekt.ps1` | `spec-dev` | S2833: a gradle failure before detekt writes any report is CANNOT VERIFY (exit 2), not a findings FAIL [branch: DEBUG-v037] |
+| 2026-09-10 04:08:53 | `PLAN/S2833_detekt-gate-reports-findings-when-gradle-failed-to-configure.md` | `spec-check` | S2833 Verified: pre-detekt gradle failure now CANNOT VERIFY exit 2, live-verified on the broken tree [branch: DEBUG-v037] |
+| 2026-09-10 04:09:38 | `PLAN/S2834_blocker-release-ready-heuristic-misfires.md` | `spec-all` | S2551 blocked - blocker S2662 unshipped in tree; parked S2834 for the release-ready heuristic [branch: DEBUG-v037] |
+| 2026-09-10 04:18:06 | `scripts/quality/assert-settings-doc-sync.ps1` | `spec-all` | S2831: the catalog-complete and annotations stages of the settings-doc gate now fork on chargeability - a scoped closure whose set feeds neither stage defers the finding to exit 3 instead of failing on a sibling's uncommitted row; new Test-SettingsAnnotationsInput / Test-SettingsCatalogInput predicates in the shared input map, stage-neutral facade hint, 20 new regression assertions. [branch: DEBUG-v037] |
+| 2026-09-10 04:20:59 | `docs/DEV_OPS.md` | `spec-all` | S2831: the gate-class list now names all three forked stages of settings-doc-sync, not the reference stage alone. [branch: DEBUG-v037] |
+| 2026-09-10 04:25:29 | `scripts/quality/assert-migration-test-pairing.ps1` | `spec-dev` | S2832: pairing gate reads the shared migration source, pairs by text, freezes aggregate debt [set of 3: scripts/quality/migration-test-pairing-baseline.txt, scripts/quality/assert-migration-test-pairing.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 04:25:49 | `scripts/post-change.tests/Run-Tests.ps1` | `spec-all S2835` | S2835: post-change.tests Room row cases identify rows by Key, not Module - three wear databases share one directory [set of 2: PLAN/S2835_room-row-suite-expects-one-wear-database.md] [branch: DEBUG-v037] |
+| 2026-09-10 04:26:13 | `scripts/quality/assert-migration-test-pairing.ps1` | `spec-dev` | S2832: pairing gate counts migrations through Get-RoomMigrationSource and pairs a hop by test name or text, chain test excluded [branch: DEBUG-v037] |
+| 2026-09-10 04:26:14 | `scripts/quality/migration-test-pairing-baseline.txt` | `spec-dev` | S2832: 30 aggregate-declared app_v2 hops frozen as a dated debt block [branch: DEBUG-v037] |
+| 2026-09-10 04:26:15 | `scripts/quality/assert-migration-test-pairing.tests/Run-Tests.ps1` | `spec-dev` | S2832: suite learns aggregate files, test bodies and the chain-test exclusion; 13 cases green [branch: DEBUG-v037] |
+| 2026-09-10 04:30:49 | `PLAN/S2832_migration-test-pairing-blind-to-aggregate-files.md` | `spec-check` | S2832 Verified: pairing gate on the shared migration source, 30 aggregate hops frozen, suite 13/13 [branch: DEBUG-v037] |
+| 2026-09-10 04:37:35 | `scripts/spec_catalog/preview.tests/Run-Tests.ps1` | `spec-all` | S2834: a release-ready blocker parked mid-plan no longer releases its dependents - Test-BlockerReleased folds the blocker's own Phases N/M counter into the release test, plus the preview contract suite and four prose surfaces [set of 7: .claude/commands/spec-all.md, .claude/commands/spec-quiz.md, .claude/reference/spec-next.md, PLAN/RELEASE_QUEUE.md, PLAN/S2834_blocker-release-ready-heuristic-misfires.md, PLAN/S2551_wear-view-phone-stream/PHASE_06__phone-video-broadcast-start.md] [branch: DEBUG-v037] |
+| 2026-09-10 04:38:33 | `PLAN/spec-catalog.jsonl` | `spec-next` | Session: 10 processed, 4 verified (S2824 S2828 S2832 S2833), 4 blocked (S2803 S2826 S2757 S2718 -> BlockNeedUserTest), 2 skipped (S2831 yielded to sibling, S1782 suite blocked on shared tree) [branch: DEBUG-v037] |
+| 2026-09-10 05:23:08 | `dev/CATALOG/scripts/_source-roots.ps1` | `S2837` | S2837: derive class-catalog source roots from disk via shared _source-roots.ps1 (scan.ps1 + render.ps1 stop keeping two drifted literal lists; app_v2 3506 -> 3539 records, six product source sets recovered); fix assert-dotsource-tracked.ps1 lower-casing a changed path into a case-sensitive git pathspec, plus its regression case [set of 5: dev/CATALOG/scripts/scan.ps1, dev/CATALOG/scripts/render.ps1, scripts/quality/assert-dotsource-tracked.ps1, scripts/quality/assert-dotsource-tracked.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 05:38:58 | `PLAN/S1565_settings-data-drive-transfer/INDEX.md` | `spec-tech` | S1565 tactical plan: INDEX [branch: DEBUG-v037] |
+| 2026-09-10 05:38:59 | `PLAN/S1565_settings-data-drive-transfer/PHASE_01__transfer-model-foundations.md` | `spec-tech` | S1565 tactical plan: PHASE_01__transfer-model-foundations [branch: DEBUG-v037] |
+| 2026-09-10 05:39:00 | `PLAN/S1565_settings-data-drive-transfer/PHASE_02__pinned-streams-transfer.md` | `spec-tech` | S1565 tactical plan: PHASE_02__pinned-streams-transfer [branch: DEBUG-v037] |
+| 2026-09-10 05:39:01 | `PLAN/S1565_settings-data-drive-transfer/PHASE_03__drive-persistent-files.md` | `spec-tech` | S1565 tactical plan: PHASE_03__drive-persistent-files [branch: DEBUG-v037] |
+| 2026-09-10 05:39:02 | `PLAN/S1565_settings-data-drive-transfer/PHASE_04__transfer-orchestration.md` | `spec-tech` | S1565 tactical plan: PHASE_04__transfer-orchestration [branch: DEBUG-v037] |
+| 2026-09-10 05:39:03 | `PLAN/S1565_settings-data-drive-transfer/PHASE_05__transfer-menu-ui.md` | `spec-tech` | S1565 tactical plan: PHASE_05__transfer-menu-ui [branch: DEBUG-v037] |
+| 2026-09-10 05:39:04 | `PLAN/S1565_settings-data-drive-transfer/PHASE_06__docs-catalog-cleanup.md` | `spec-tech` | S1565 tactical plan: PHASE_06__docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-10 05:39:04 | `PLAN/S1565_settings-data-drive-transfer.md` | `spec-tech` | S1565 strategic spec: foss flavor grid corrected, status -> Tactical [branch: DEBUG-v037] |
+| 2026-09-10 05:44:50 | `PLAN/S2068_device-camera-mic-streaming.md` | `spec-all` | S2068 research ticket audited and verified: 4 artifacts, 7 criteria, 9 research items, flavor claims re-checked against build.gradle.kts [branch: DEBUG-v037] |
+| 2026-09-10 05:47:18 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/youtube/YouTubeChannel.kt` | `S2032` | Launcher YouTube channel window cell: keyless channel source, install-time channel question, 3x2 cell with embedded playback and channel-shortcut degradation [set of 24: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/youtube/YouTubeVideo.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/repository/YouTubeChannelRepository.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/youtube/YouTubeFeedChannelProvider.kt, app_v2/src/main/java/com/sza/fastmediasorter/data/repository/youtube/YouTubeChannelRepositoryImpl.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/youtube/ResolveYouTubeChannelUseCase.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/youtube/GetLatestChannelVideoUseCase.kt, +17 more] [branch: DEBUG-v037] |
+| 2026-09-10 06:02:07 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/PlayerBindingSafeViews.kt` | `S1143 phase 02` | S1143 phase 02: make LyricsManager host-agnostic - root View instead of ActivityPlayerUnifiedBinding, topCommandPanel accessor on PlayerBindingSafeViews [set of 3: app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/LyricsManager.kt, app_v2/src/main/java/com/sza/fastmediasorter/ui/player/PlayerManagerInitializer.kt] [branch: DEBUG-v037] |
+| 2026-09-10 06:04:45 | `PLAN/S2531_wear-google-cast-from-watch.md` | `spec-all` | S2531: strategic spec for Google Cast from the watch - watch-as-remote over the Data Layer, Draft to Approved [branch: DEBUG-v037] |
+| 2026-09-10 06:12:21 | `PLAN/S2531_wear-google-cast-from-watch/INDEX.md` | `spec-tech` | S2531: tactical plan - 5 phases from the mirrored cast wire contract to the watch player menu [set of 7: PLAN/S2531_wear-google-cast-from-watch/PHASE_01__wire-contract.md, PLAN/S2531_wear-google-cast-from-watch/PHASE_02__phone-cast-entry.md, PLAN/S2531_wear-google-cast-from-watch/PHASE_03__watch-request-path.md, PLAN/S2531_wear-google-cast-from-watch/PHASE_04__watch-player-menu.md, PLAN/S2531_wear-google-cast-from-watch/PHASE_05__docs-catalog-cleanup.md, PLAN/S2531_wear-google-cast-from-watch.md] [branch: DEBUG-v037] |
+| 2026-09-10 06:12:24 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/transfer/TransferDataKind.kt` | `spec-all` | S1565 phases 01-03 and the domain half of 04: transfer data kinds, pinned-streams transfer, Drive persistent files, transfer orchestration [set of 22: app_v2/src/main/java/com/sza/fastmediasorter/domain/model/transfer/TransferMedium.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/transfer/TransferReport.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/transfer/TransferFailures.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/model/transfer/PinnedStreamsTransferPayload.kt, app_v2/src/main/java/com/sza/fastmediasorter/domain/port/StagedFileTransferPort.kt, app_v2/src/main/java/com/sza/fastmediasorter/core/capability/CapabilityAvailability.kt, +15 more] [branch: DEBUG-v037] |
+| 2026-09-10 06:17:33 | `PLAN/S1126_stream-software-video-decoder-extension/INDEX.md` | `spec-all` | S1126 tactical plan: 4 phases for the VP9 software-decode backstop, plus environment research [branch: DEBUG-v037] |
+| 2026-09-10 06:17:38 | `PLAN/S1565_settings-data-drive-transfer/INDEX.md` | `spec-all` | S1565 tactical plan authored; phases 01-03 complete, phase 04 partial [branch: DEBUG-v037] |
+| 2026-09-10 06:21:24 | `app_v2/src/main/res/layout/activity_standalone_audio.xml` | `S1143 phase 03 step 1` | S1143: add wave/particle visualizer and lyrics ViewStub to the standalone audio layout [branch: DEBUG-v037] |
+| 2026-09-10 06:24:10 | `app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearCastPayload.kt` | `spec-dev S2531 phase 01` | S2531 phase 01: mirrored cast wire contract, three Data Layer paths, parity-gate rows and fixtures [set of 6: wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearCastPayload.kt, app_v2/src/main/java/com/sza/fastmediasorter/service/WearDataLayerPaths.kt, wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WearDataLayerPaths.kt, scripts/quality/assert-wear-wire-vocabulary-parity.ps1, scripts/quality/assert-wear-wire-vocabulary-parity.tests/Run-Tests.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 06:31:10 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/player/standalone/AudioStandaloneActivity.kt` | `S1143 phase 03 step 2` | S1143: stream-mode intent contract for the standalone audio host [branch: DEBUG-v037] |
+| 2026-09-10 06:42:21 | `scripts/streams/collect-stream-candidates.ps1` | `spec-all S1476` | S1476: Webcam category assigned by rubric so shipped rows convert; radio-browser language axis [set of 7: scripts/streams/modules/StreamPublisher.Common.ps1, scripts/streams/modules/StreamPublisher.Discovery.ps1, scripts/streams/modules/StreamPublisher.Delivery.ps1, scripts/streams.tests/StreamPublisher.Common.Tests.ps1, scripts/streams.tests/StreamPublisher.Delivery.Tests.ps1, docs/SCRIPT_CHEATSHEET.md] [branch: DEBUG-v037] |
+| 2026-09-10 06:49:58 | `PLAN/S2065_ocr-corpus-real-scenes-multi-resolution.md` | `spec-all` | S2065 parked BlockExternal: OCR bench manifest carries zero real scenes and FMS_OCRBENCH_SCENES is unset, so the multi-resolution corpus run cannot start [branch: DEBUG-v037] |
+| 2026-09-10 06:52:20 | `app_v2/build.gradle.kts` | `spec-all` | S1126: software VP9 decode backstop - fms-vpx.aar built from media3 1.2.1 + libvpx v1.8.0 (NDK r25c, four ABIs, 16KB aligned), wired into standard/noLegal/legacy/vr; new builders build-libvpx-vp9.sh + compile-vp9-classes.ps1 [branch: DEBUG-v037] |
+| 2026-09-10 06:58:34 | `PLAN/S2380_automated-full-ui-audit.md` | `spec-all` | S2380: strategic spec for automated matrix UI sweep + screenshot review [branch: DEBUG-v037] |
+| 2026-09-10 07:07:57 | `PLAN/S2548_wear-maestro-flow-tree.md` | `spec-all` | S2548: strategic spec completed (sections 4-5, ADR-2..4), 3 research items Resolved on a live Wear AVD, Draft -> Tactical [branch: DEBUG-v037] |
+| 2026-09-10 07:07:58 | `PLAN/S2548_wear-maestro-flow-tree/INDEX.md` | `spec-tech` | S2548: tactical plan - 5 phases for the watch Maestro flow tree [branch: DEBUG-v037] |
+| 2026-09-10 07:55:07 | `scripts/devtest/adb.ps1` | `spec-dev` | S2548 phases 02/03/05.1: adb rotary verb, run-tests.ps1 learns the wear suite (exit 5 on a non-watch, any requires token, ambiguous-name refusal), maestro/wear flow tree and README, watch readiness doc corrected [set of 11: scripts/devtest/adb.tests/Run-Tests.ps1, docs/DEV_OPS.md, maestro/run-tests.ps1, maestro/wear/README.md, maestro/wear/config.yaml, maestro/wear/wear_home_navigation.yaml, +4 more] [branch: DEBUG-v037] |
+| 2026-09-10 07:55:53 | `docs/SCRIPT_CHEATSHEET.md` | `spec-dev` | S2548: regenerate the cheatsheet for the new adb rotary verb [branch: DEBUG-v037] |
+| 2026-09-10 08:23:07 | `scripts/all_features/unexplained-flavors-baseline.txt` | `S2839` | ALL_FEATURES ungated-flavors ratchet: baseline 200 -> 201 for the truthful [foss] record, plus the flavor-identity shape and the canon-side fix written into the README [set of 2: scripts/all_features/README.md] [branch: DEBUG-v037] |
+| 2026-09-10 08:40:27 | `maestro/run-tests.ps1` | `spec-all S2548` | S2548: watch Maestro flow suite proved on both reviewed Wear shapes; suite resolver no longer counts a root config.yaml as a flow [set of 9: docs/DEVICE_FLEET.md, docs/ALL_FEATURES.jsonl, maestro/wear/config.yaml, maestro/wear/wear_home_navigation.yaml, maestro/wear/wear_settings_persistence.yaml, maestro/wear/wear_rotary_reach.yaml, +2 more] [branch: DEBUG-v037] |
+| 2026-09-10 08:45:58 | `PLAN/S1211_docs-site-thirteen-language-localization/INDEX.md` | `spec-all` | S1211: tactical plan - 7 phases for thirteen-language docs and site [branch: DEBUG-v037] |
+| 2026-09-10 08:49:40 | `PLAN/S2548_wear-maestro-flow-tree.md` | `spec-check` | Audit S2548 -> Partial; PASS/WARN/FAIL 18/1/0; suite proved on both reviewed Wear shapes, caption-addressed nodes remain [branch: DEBUG-v037] |
+| 2026-09-10 08:59:54 | `docs/POSITIONING.md` | `S2271` | S2271 phase 01: canonical product positioning source (EN/RU/UK) + document registry record [set of 4: docs/POSITIONING-ru.md, docs/POSITIONING-uk.md, docs/DOCUMENT_REGISTRY.jsonl] [branch: DEBUG-v037] |
+| 2026-09-10 09:10:57 | `scripts/utils/rename-doc-locale-suffix.ps1` | `S1211` | S1211 phase 01: one lowercase-hyphen locale suffix across docs, 52 files renamed, 88 references repointed, permalinks frozen [set of 8: scripts/utils/repoint-doc-locale-references.ps1, docs/DOCUMENT_REGISTRY.jsonl, scripts/quality/lib/doc-icon-gate-routing.ps1, scripts/quality/lib/settings-doc-inputs.ps1, scripts/quality/assert-guide-coverage.ps1, scripts/utils/fix-house-style.ps1, +1 more] [branch: DEBUG-v037] |
+| 2026-09-10 09:34:47 | `PLAN/S2843_backup-coverage-test-drifted.md` | `spec-draft` | Scaffold strategic spec skeleton S2843 [branch: DEBUG-v037] |
+| 2026-09-10 09:48:31 | `PLAN/S2844_compile-vp9-and-source-roots-exit-contract.md` | `spec` | Scaffold strategic spec skeleton S2844 [branch: DEBUG-v037] |
+| 2026-09-10 09:50:22 | `PLAN/S2845_code-domain-writers-registry-drifted.md` | `spec` | Scaffold strategic spec skeleton S2845 [branch: DEBUG-v037] |
+| 2026-09-10 09:52:29 | `PLAN/S2635_ratchet-baselines-and-editors-write-without-code-lock.md` | `spec-check` | Audit S2635 -> Partial; PASS/WARN/FAIL 8/1/0; fixed leaked tool-tag corruption in spec body; parked S2844/S2845 for unrelated fg drift [branch: DEBUG-v037] |
+| 2026-09-10 09:53:44 | `PLAN/S2635_ratchet-baselines-and-editors-write-without-code-lock.md` | `spec-fix` | Annotate Last Audit (S2635) - WARN marked FOLLOW-UP, canon-owned resolver, no mechanical fix available [branch: DEBUG-v037] |
+| 2026-09-10 09:57:01 | `scripts/quality/assert-gate-hints-sync.ps1` | `S2841` | S2841: teach the gate-hints label collector the Invoke-FixedInputGate argument form [branch: DEBUG-v037] |
+| 2026-09-10 09:58:50 | `PLAN/S2841_gate-hints-name-no-gate-label.md` | `spec-check` | Audit S2841 -> Verified; PASS/WARN/FAIL 9/0/0 [branch: DEBUG-v037] |
+| 2026-09-10 09:59:21 | `scripts/devtest/ui-sweep-screens.json` | `spec-dev S2380 phase 03` | S2380 phase 03: declare the phone UI-sweep screen catalog and gate it against the module [set of 4: scripts/quality/assert-ui-sweep-catalog.ps1, scripts/quality/assert-fast-gates.ps1, dev/ACTIVITY_CATALOG/app_v2.jsonl] [branch: DEBUG-v037] |
+| 2026-09-10 10:03:33 | `CLAUDE.md` | `spec-all` | S2842: drop the area-vocabulary clause from the always-loaded pages (schema comment, README, -ListAreas and the gate refusal carry it) [set of 2: AGENTS.md] [branch: DEBUG-v037] |
+| 2026-09-10 10:06:50 | `PLAN/S2842_all-features-area-taxonomy-normalization.md` | `spec-check` | Audit S2842 -> Verified; PASS/WARN/FAIL 13/0/0 [branch: DEBUG-v037] |
+| 2026-09-10 10:11:38 | `PLAN/S2847_mirror-buttons-frame-toggle.md` | `spec` | Add strategic spec S2847 for mirror-buttons-frame-toggle [branch: DEBUG-v037] |
+| 2026-09-10 10:13:19 | `PLAN/S2847_mirror-buttons-frame-toggle/INDEX.md` | `spec-tech` | Create tactical plan for S2847 [branch: DEBUG-v037] |
+| 2026-09-10 10:13:20 | `PLAN/S2847_mirror-buttons-frame-toggle/PHASE_01__mirror-button-size-and-borders.md` | `spec-tech` | Phase 01: mirror-button-size-and-borders [branch: DEBUG-v037] |
+| 2026-09-10 10:13:20 | `PLAN/S2847_mirror-buttons-frame-toggle/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-10 10:13:27 | `PLAN/S2847_mirror-buttons-frame-toggle.md` | `spec-tech` | Status -> Tactical [branch: DEBUG-v037] |
+| 2026-09-10 10:14:48 | `app_v2/src/main/res/values/dimens.xml` | `app_v2` | S2847: add mirror_control_button_size dimen [set of 2: app_v2/src/main/res/values-sw320dp/dimens.xml] [branch: DEBUG-v037] |
+| 2026-09-10 10:15:41 | `app_v2/src/main/res/values/colors.xml` | `app_v2` | S2847: add mirror border color + border/background drawables [set of 3: app_v2/src/main/res/drawable/mirror_control_button_border.xml, app_v2/src/main/res/drawable/mirror_control_button_background.xml] [branch: DEBUG-v037] |
+| 2026-09-10 10:16:23 | `app_v2/src/main/res/layout/activity_mirror.xml` | `app_v2` | S2847: update mirror buttons to new size + colored border background [branch: DEBUG-v037] |
+| 2026-09-10 10:16:32 | `scripts/quality/assert-gson-persistence-contract.ps1` | `S2840` | S2840 phase 04: Gson contract gate resolves tree types, import-bound names and conditionally assigned identifiers; WearCastOutcome pinned [set of 3: scripts/quality/assert-gson-persistence-contract.tests/Run-Tests.ps1, app_v2/proguard-rules.pro] [branch: DEBUG-v037] |
+| 2026-09-10 10:17:06 | `app_v2/src/main/res/layout/item_mirror_zoom_preset.xml` | `app_v2` | S2847: update zoom preset size to mirror_control_button_size [branch: DEBUG-v037] |
+| 2026-09-10 10:18:54 | `PLAN/S2818_broadcast-entry-points-shortcuts.md` | `spec-quiz` | S2818: BlockQuestions -> Draft via quiz (2 questions) [branch: DEBUG-v037] |
+| 2026-09-10 10:19:39 | `app_v2/src/main/java/com/sza/fastmediasorter/core/format/QuantityFormatter.kt` | `S2840` | S2840 phases 01-03: keep rules for TransferDataKind, HomeSectionId, UnitSystem, WearGeometryMode and the two WearCast wire enums; QuantityFormatter caches by a value key instead of Field.name [branch: DEBUG-v037] |
+| 2026-09-10 10:20:20 | `PLAN/S2840_r8-keep-rules-for-persisted-enums.md` | `spec-check` | Audit S2840 -> Verified; PASS/WARN/FAIL 11/0/0 [branch: DEBUG-v037] |
+| 2026-09-10 10:26:58 | `PLAN/S2818_broadcast-entry-points-shortcuts.md` | `spec-all` | F1 strategic spec completed and approved for S2818 [branch: DEBUG-v037] |
+| 2026-09-10 10:29:22 | `app_v2/src/main/res/values/dimens.xml` | `app_v2` | S2847: fix - separate zoom preset size, remove sw320dp override on corner buttons [set of 3: app_v2/src/main/res/values-sw320dp/dimens.xml, app_v2/src/main/res/layout/item_mirror_zoom_preset.xml] [branch: DEBUG-v037] |
+| 2026-09-10 10:33:50 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/RotarySeek.kt` | `spec-code` | Remove stale S2838 rotary probes outside user-test status [branch: DEBUG-v037] |
+| 2026-09-10 10:37:39 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/player/common/RotarySeek.kt` | `spec-code` | Prepare S2838 rotary behavior for device verification [set of 2: PLAN/S2838_wear-lists-ignore-the-bezel.md] [branch: DEBUG-v037] |
+| 2026-09-10 10:38:10 | `PLAN/S2818_broadcast-entry-points-shortcuts/INDEX.md` | `spec-tech` | Create tactical plan for S2818 [branch: DEBUG-v037] |
+| 2026-09-10 10:38:11 | `PLAN/S2818_broadcast-entry-points-shortcuts/PHASE_01__entry-screen.md` | `spec-tech` | Phase 01: entry-screen [branch: DEBUG-v037] |
+| 2026-09-10 10:38:12 | `PLAN/S2818_broadcast-entry-points-shortcuts/PHASE_02__entry-surfaces.md` | `spec-tech` | Phase 02: entry-surfaces [branch: DEBUG-v037] |
+| 2026-09-10 10:38:13 | `PLAN/S2818_broadcast-entry-points-shortcuts/PHASE_03__docs-catalog-cleanup.md` | `spec-tech` | Phase 03: docs-catalog-cleanup [branch: DEBUG-v037] |
+| 2026-09-10 10:48:30 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S2818 step 01.1: add broadcast entry screen strings (en/ru/uk) [set of 3: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-10 10:54:16 | `app_v2/src/main/res/layout/activity_broadcast_entry.xml` | `app_v2` | S2818 step 01.2: broadcast entry confirmation layouts (portrait+land) [set of 2: app_v2/src/main/res/layout-land/activity_broadcast_entry.xml] [branch: DEBUG-v037] |
+| 2026-09-10 10:57:38 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/broadcast/helpers/BroadcastEntryManager.kt` | `app_v2` | S2818 step 01.3: BroadcastEntryManager for the confirmation screen [branch: DEBUG-v037] |
+| 2026-09-10 10:59:45 | `PLAN/S2848_bugfix-wear-overnight-battery-drain.md` | `spec` | Scaffold compact bugfix spec skeleton S2848 - wear overnight battery drain [branch: DEBUG-v037] |
+| 2026-09-10 11:02:55 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/broadcast/helpers/BroadcastEntryManager.kt` | `app_v2` | S2818 steps 01.3+01.4: BroadcastEntryManager and BroadcastEntryActivity (factory pattern) [set of 2: app_v2/src/main/java/com/sza/fastmediasorter/ui/broadcast/BroadcastEntryActivity.kt] [branch: DEBUG-v037] |
+| 2026-09-10 11:03:48 | `app_v2/src/main/AndroidManifest.xml` | `app_v2` | S2818 step 01.5: register BroadcastEntryActivity in main manifest [branch: DEBUG-v037] |
+| 2026-09-10 11:09:29 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/waterflashlight/WaterFlashlightScreen.kt` | `spec-code` | Prepare S2812 water flashlight shade lock for device verification [branch: DEBUG-v037] |
+| 2026-09-10 11:18:44 | `wear/src/main/java/com/sza/fastmediasorter/wear/service/WearPlaybackService.kt` | `wear` | S2848: stall watchdog ends a background playback session that wants to play and makes no sound [set of 5: wear/src/main/java/com/sza/fastmediasorter/wear/domain/playback/WearPlaybackStallPolicy.kt, wear/src/main/java/com/sza/fastmediasorter/wear/service/helpers/WearPlaybackStallWatchdog.kt, wear/src/test/java/com/sza/fastmediasorter/wear/domain/playback/WearPlaybackStallPolicyTest.kt, wear/src/test/java/com/sza/fastmediasorter/wear/service/helpers/WearPlaybackStallWatchdogTest.kt] [branch: DEBUG-v037] |
+| 2026-09-10 11:23:28 | `scripts/builders/compile-vp9-classes.ps1` | `spec-code` | S2844: repair documented PowerShell exit contracts [set of 2: dev/CATALOG/scripts/_source-roots.ps1] [branch: DEBUG-v037] |
+| 2026-09-10 11:23:36 | `PLAN/S2844_compile-vp9-and-source-roots-exit-contract.md` | `spec-code` | S2844 compact specification and phase evidence [branch: DEBUG-v037] |
+| 2026-09-10 11:24:54 | `PLAN/S2844_compile-vp9-and-source-roots-exit-contract.md` | `spec-code` | S2844 device-free audit: exit-contract verification passed [branch: DEBUG-v037] |
+| 2026-09-10 11:44:09 | `app_v2/src/test/java/com/sza/fastmediasorter/ui/broadcast/helpers/BroadcastEntryManagerUiStateTest.kt` | `app_v2` | S2818 step 01.6: mapState unit test [branch: DEBUG-v037] |
+| 2026-09-10 11:44:33 | `scripts/utils/normalize-all-features-areas.ps1` | `spec-code S2845` | Adopt Code.Scripts writer locks [set of 3: scripts/utils/repoint-doc-locale-references.ps1, scripts/quality/code-domain-writers.manifest.txt] [branch: DEBUG-v037] |
+| 2026-09-10 11:47:36 | `PLAN/S2845_code-domain-writers-registry-drifted.md` | `spec-check` | Audit S2845 -> Verified; PASS/WARN/FAIL 8/0/0 [branch: DEBUG-v037] |
+| 2026-09-10 11:47:37 | `PLAN/S2845_code-domain-writers-registry-drifted/INDEX.md` | `spec-tech` | Create tactical plan for S2845 [branch: DEBUG-v037] |
+| 2026-09-10 11:47:38 | `PLAN/S2845_code-domain-writers-registry-drifted/PHASE_01__writer-lock-adoption.md` | `spec-tech` | Phase 01 writer-lock adoption [branch: DEBUG-v037] |
+| 2026-09-10 11:47:38 | `PLAN/S2845_code-domain-writers-registry-drifted/PHASE_02__docs-catalog-cleanup.md` | `spec-tech` | Phase 02 documentation and catalog cleanup [branch: DEBUG-v037] |
+| 2026-09-10 11:47:39 | `PLAN/S2845_code-domain-writers-registry-drifted/research/01__writer-drift-analysis.md` | `spec-code` | Research S2845 writer drift [branch: DEBUG-v037] |
+| 2026-09-10 11:50:34 | `app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/BackupMapperRoundTripTest.kt` | `app_v2` | S2843 Step 01.5: pin compatibility contract in BackupMapperRoundTripTest [branch: DEBUG-v037] |
+| 2026-09-10 12:05:24 | `app_v2/src/main/res/values/strings.xml` | `app_v2` | S2818 step 02.1: surface label strings [set of 3: app_v2/src/main/res/values-ru/strings.xml, app_v2/src/main/res/values-uk/strings.xml] [branch: DEBUG-v037] |
+| 2026-09-10 12:06:55 | `temp/S2843/mobile_test_scenario_20260910_1206.md` | `spec-test-device` | Device run on RFCR110NBQJ -> PASS/FAIL/SKIPPED/UNOBSERVED 1/0/0/1; UI automation unavailable [branch: DEBUG-v037] |
+| 2026-09-10 12:11:02 | `app_v2/src/main/res/xml/shortcuts.xml` | `app_v2` | S2818 step 02.2: static broadcast launcher shortcut [branch: DEBUG-v037] |
+| 2026-09-10 12:11:08 | `app_v2/src/broadcastSource/AndroidManifest.xml` | `app_v2` | S2818 step 02.5: register QS tile and widget in broadcast flavor manifest [branch: DEBUG-v037] |
+| 2026-09-10 12:17:31 | `app_v2/src/main/java/com/sza/fastmediasorter/ui/broadcast/BroadcastEntryActivity.kt` | `app_v2` | S2818: BroadcastEntryActivity entry probe + Hilt import fix [branch: DEBUG-v037] |
+| 2026-09-10 12:17:44 | `PLAN/RELEASE_QUEUE.md` | `S2852` | S2852: release queue package sections replace the rel column, changed column gains HH:mm, contract prose moves to the rules file [set of 11: PLAN/RELEASE_READY.md, PLAN/RELEASE_QUEUE_DONE.md, PLAN/S2852_release-queue-format-sections-and-timestamps.md, .claude/rules/spec-catalog.md, CLAUDE.md, AGENTS.md, +4 more] [branch: DEBUG-v037] |
+| 2026-09-10 12:18:23 | `app_v2/src/main/java/com/sza/fastmediasorter/broadcast/BroadcastTileService.kt` | `app_v2` | S2818 step 02.3: BroadcastTileService conductor to confirmation screen [branch: DEBUG-v037] |
+| 2026-09-10 12:19:10 | `app_v2/src/main/java/com/sza/fastmediasorter/widget/BroadcastEntryWidgetProvider.kt` | `app_v2` | S2818 step 02.4: broadcast entry widget trio [set of 3: app_v2/src/main/res/xml/widget_broadcast_entry_info.xml, app_v2/src/main/res/layout/widget_broadcast_entry.xml] [branch: DEBUG-v037] |
+| 2026-09-10 12:26:47 | `PLAN/S2855_test-device-lock-version-tracking.md` | `spec` | Scaffold strategic spec skeleton S2855 [branch: DEBUG-v037] |
+| 2026-09-10 12:42:50 | `PLAN/S2818_broadcast-entry-points-shortcuts.md` | `spec-test-device` | Device run on RFCR110NBQJ -> PASS/FAIL/SKIPPED/UNOBSERVED 5/0/1/2 [branch: DEBUG-v037] |
+| 2026-09-10 12:43:25 | `scripts/utils/dev-monitor-html.ps1` | `S2406 dev monitor page` | One agent roster on the monitor page: running and agents merged into a single session-id-keyed table carrying ticket, phase, held domains and queued domains; lock rows carry the same short session id; agents quiet over 30 minutes that hold and wait for nothing collapse into one line [set of 4: scripts/utils/dev-monitor-writer.tests/Run-Tests.ps1, docs/DEV_OPS.md, PLAN/S2406_dev-monitor-web-page.md] [branch: DEBUG-v037] |
+| 2026-09-10 12:45:37 | `PLAN/S2818_broadcast-entry-points-shortcuts.md` | `spec-all` | Pipeline BlockNeedUserTest: S2818 [branch: DEBUG-v037] |
+| 2026-09-10 12:52:57 | `scripts/utils/dev-monitor-html.ps1` | `S2406 dev monitor page` | Monitor roster: the last note moves to a spanning row under its agent, an agent quiet past the activity window that still holds a lock, a queue place or a ticket renders red as NO LIFE through one shared ownership predicate, and gate health moves to the bottom of the page [set of 4: scripts/utils/dev-monitor-writer.tests/Run-Tests.ps1, docs/DEV_OPS.md, PLAN/S2406_dev-monitor-web-page.md] [branch: DEBUG-v037] |
+| 2026-09-10 12:56:12 | `wear/src/main/java/com/sza/fastmediasorter/wear/domain/playback/WearPlayerDisplayHoldPolicy.kt` | `wear` | S2849/S2850: bound every watch display hold to work in progress - the screen-off sheet holds only while the session wants to play, both screen players got the S2848 stall guard, and the image viewer holds only while a slideshow runs [branch: DEBUG-v037] |

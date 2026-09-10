@@ -323,7 +323,6 @@ class BrowseViewModel @Inject constructor(
                     // and "browse" have no MediaType of their own, so filtering by one showed the
                     // audio files of the share under every one of them.
                 }.filter { NetworkListingFilter.accepts(_categoryToken, it.mimeType, mediaType) }
-                Timber.d("S2691: network listing filtered by token=${_categoryToken}")
                 Timber.d("Loaded ${mediaFiles.size} media files from ${source.type}")
                 withContext(Dispatchers.Main) {
                     publishLoaded(mediaFiles)

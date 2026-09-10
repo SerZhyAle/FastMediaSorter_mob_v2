@@ -188,6 +188,26 @@ try {
     $f2 = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $sandbox, '-ChangedFiles', 'second-loose-consumer.ps1')
     Assert-That 'F3. a changed set naming the dirty consumer refuses' ($f2.Code -eq 1) "exit $($f2.Code): $($f2.Text)"
 
+    # F4. the SPELLING of a -ChangedFiles entry must not decide the verdict, and the component that
+    # matters is a DIRECTORY. The gate used to lower-case the changed set for de-duplication and then
+    # walk those lower-cased strings; Get-Item echoes the casing it was handed rather than the casing
+    # on disk, so the lower-cased directory travelled into the `git ls-files` pathspec, which git
+    # matches case-sensitively. git printed nothing, and this gate reads silence as "untracked" - so a
+    # file staged seconds earlier was refused, with the printed fix being the `git add` already run
+    # (S2837, against the real `dev/CATALOG/scripts/`). The consumer lives under a mixed-case
+    # directory because a bare file name cannot reproduce it: the directory half of the path comes
+    # from -Root and keeps its casing whatever the caller typed.
+    Write-Script (Join-Path $sandbox 'MixedCase/mixed-helper.ps1') @('function Test-Zeta { }')
+    Write-Script (Join-Path $sandbox 'MixedCase/mixed-consumer.ps1') @(
+        '. "$PSScriptRoot\mixed-helper.ps1"',
+        'exit 0'
+    )
+    & git -C $sandbox add -- (Join-Path $sandbox 'MixedCase') 2>&1 | Out-Null
+    $f4 = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $sandbox, '-ChangedFiles', 'MixedCase/mixed-consumer.ps1')
+    Assert-That 'F4. a mixed-case changed path does not fake an untracked target' (
+        $f4.Code -eq 0 -and $f4.Text -match 'actual: 0 untracked'
+    ) "exit $($f4.Code): $($f4.Text)"
+
     # G. not a git work tree -> could not verify, not a defect.
     $g = Invoke-Gate @('-Gate', '-Root', $sandbox, '-GitRoot', $noGitDir)
     Assert-That 'G. a non-git directory exits 2, not 1' ($g.Code -eq 2) "exit $($g.Code): $($g.Text)"

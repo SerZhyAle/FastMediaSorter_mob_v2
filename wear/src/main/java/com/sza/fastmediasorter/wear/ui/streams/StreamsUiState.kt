@@ -87,4 +87,23 @@ data class StreamsUiState(
      * only when the top group is built.
      */
     val phonePinnedIdentities: Set<String> = emptySet()
-)
+) {
+    /**
+     * S2820: whether the wearer narrowed the list themselves. Every narrowing the projection applies is
+     * listed here and only here, so a facet added later (strategic §5.3) is declared once.
+     */
+    val hasActiveNarrowing: Boolean
+        get() = searchQuery.isNotBlank() ||
+            filterKind != StreamFilterKind.ALL ||
+            !selectedTopic.isNullOrBlank() ||
+            !selectedLanguage.isNullOrBlank() ||
+            selectedCollectionId != null
+
+    /**
+     * S2820: the list is empty because of the narrowing, not because the catalogue is. Derived rather
+     * than stored (strategic ADR-1): a stored flag would have to be refreshed in every selection setter
+     * and in every projection pass, and the branch that reads it already reads both lists.
+     */
+    val isNarrowedEmpty: Boolean
+        get() = channels.isNotEmpty() && displayChannels.isEmpty() && hasActiveNarrowing
+}

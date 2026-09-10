@@ -2318,7 +2318,6 @@
     <string name="launcher_weather_location_searching">खोज रहा है..</string>
     <string name="launcher_app_shortcut_start_failed">यह कार्रवाई अब उपलब्ध नहीं है.</string>
     <string name="launcher_settings_lock_desktop_title">डेस्कटॉप लॉक करें</string>
-    <string name="launcher_settings_wallpaper_title">डेस्कटॉप वॉलपेपर</string>
     <string name="launcher_settings_wallpaper_branded">लहरें और कण</string>
     <string name="launcher_settings_wallpaper_none">खाली</string>
     <string name="launcher_settings_wallpaper_image">मेरी छवि</string>
@@ -2474,7 +2473,6 @@
     <string name="launcher_gadget_compass_heading">%1$d° %2$s</string>
     <string name="launcher_gadget_compass_altitude">%1$d मी</string>
     <string name="launcher_gadget_compass_calibrate">फ़ोन को आठ के आकार में घुमाएं</string>
-    <string name="launcher_gadget_speed_value">%1$d किमी/घंटा</string>
     <string name="launcher_gadget_sensor_no_fix">स्थान की प्रतीक्षा है..</string>
     <string name="launcher_gadget_sensor_no_permission">स्थान बंद है. ऐप अनुमतियों में इसे चालू करें.</string>
     <string name="launcher_gadget_compass_description">कंपास. दिशा %1$s, ऊंचाई %2$s</string>
@@ -2484,8 +2482,6 @@
     <string name="launcher_gadget_chart_reset">रीसेट करें</string>
     <string name="launcher_gadget_chart_reset_description">चार्ट साफ़ करता है और इसे अभी से फिर शुरू करता है</string>
     <string name="launcher_gadget_chart_empty">अभी तक कोई रीडिंग नहीं है - चलने पर चार्ट भरता जाएगा.</string>
-    <string name="launcher_gadget_chart_distance">%1$s किमी</string>
-    <string name="launcher_gadget_chart_altitude_current">अभी %1$d मी</string>
     <string name="launcher_gadget_speed_chart_description">गति चार्ट. अभी %1$s, रीसेट के बाद से %2$s</string>
     <string name="launcher_gadget_altitude_chart_description">ऊंचाई चार्ट. अभी %1$s, रीसेट के बाद से %2$s, %3$s की दूरी तय हुई</string>
     <string name="launcher_gadget_steps">कदम</string>
@@ -2808,7 +2804,6 @@
     <string name="launcher_action_all_apps">सभी ऐप</string>
     <string name="launcher_action_black_screen">काली स्क्रीन</string>
     <string name="launcher_gadget_altitude">ऊँचाई</string>
-    <string name="launcher_gadget_altitude_value">%1$d मी</string>
     <string name="launcher_gadget_altitude_description">समुद्र तल से ऊँचाई: %1$s</string>
     <string name="launcher_gadget_altitude_unknown">अभी ऊँचाई नहीं है</string>
     <string name="launcher_gadget_satellites">उपग्रह</string>
@@ -3396,7 +3391,6 @@
     <string name="stream_vr_unsupported_transport">यह चैनल ऐसे ट्रांसपोर्ट का उपयोग करता है जिसे VR प्लेयर अभी नहीं खोल सकता. यह सामान्य प्लेयर में चलता रहता है.</string>
     <string name="launcher_translator_translate">अनुवाद करें</string>
     <string name="launcher_translator_in_progress">अनुवाद हो रहा है..</string>
-    <string name="launcher_wallpaper_screen_title">वॉलपेपर</string>
     <string name="launcher_wallpaper_section_mode">क्या बनाया जाता है</string>
     <string name="launcher_wallpaper_section_source">स्रोत</string>
     <string name="launcher_wallpaper_section_tuning">दिखावट</string>

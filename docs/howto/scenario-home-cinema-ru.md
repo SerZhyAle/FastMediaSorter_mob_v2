@@ -103,7 +103,7 @@ permalink: /docs/howto/scenario-home-cinema-ru.html
 > **Этот шаг для владельцев VR-шлемов (Meta Quest 2/3, Pico 4).** Если VR-шлема нет - пропустите.
 
 Android-VR-шлемы могут запускать FastMediaSorter. Установка через sideloading:
-1. Скачайте APK со [страницы загрузок](../DOWNLOADS_EN.md)
+1. Скачайте APK со [страницы загрузок](../DOWNLOADS.md)
 2. На шлеме включите **"Установка из неизвестных источников"** в настройках разработчика
 3. Установите APK через SideQuest или напрямую через ADB
 

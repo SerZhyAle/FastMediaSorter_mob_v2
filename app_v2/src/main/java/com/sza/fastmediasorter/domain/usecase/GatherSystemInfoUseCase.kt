@@ -70,10 +70,15 @@ class GatherSystemInfoUseCase @Inject constructor(
             Timber.w(e, "System info: failed to collect extended diagnostics")
             emptyList()
         }
+        val sections = base + extended.toSystemInfoSections(reveal = true)
         val maskedText = (base + extended.toSystemInfoSections(reveal = false)).renderSystemInfo()
-        val fullText = (base + extended.toSystemInfoSections(reveal = true)).renderSystemInfo()
         val hasSensitive = extended.any { section -> section.fields.any { it.sensitive } }
-        return SystemInfoReport(maskedText = maskedText, fullText = fullText, hasSensitive = hasSensitive)
+        return SystemInfoReport(
+            sections = sections,
+            maskedText = maskedText,
+            fullText = sections.renderSystemInfo(),
+            hasSensitive = hasSensitive,
+        )
     }
 
     private fun buildSections(appCameraView: List<String>): List<SystemInfoSection> = listOf(

@@ -63,8 +63,8 @@ $ErrorActionPreference = 'Stop'
 $tracked = @(
     'docs/settings/settings-manifest.json',
     'docs/SETTINGS_REFERENCE.md',
-    'docs/SETTINGS_REFERENCE_RU.md',
-    'docs/SETTINGS_REFERENCE_UK.md',
+    'docs/SETTINGS_REFERENCE-ru.md',
+    'docs/SETTINGS_REFERENCE-uk.md',
     'docs/SETTINGS_REFERENCE_noLegal.md'
 ) | ForEach-Object { Join-Path $RepoRoot $_ }
 

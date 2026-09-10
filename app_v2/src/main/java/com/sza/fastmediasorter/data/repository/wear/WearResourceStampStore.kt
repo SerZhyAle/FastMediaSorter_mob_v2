@@ -61,7 +61,6 @@ class SharedPreferencesWearResourceStampStore @Inject constructor(
 
     override suspend fun writeStamp(resourceId: String, atEpochMillis: Long) {
         withContext(Dispatchers.IO) {
-            Timber.d("S2515: stamp write for $resourceId on ${Thread.currentThread().name}")
             val updated = readStampsFromPrefs() + (resourceId to atEpochMillis)
             prefs.edit().putString(KEY_STAMPS, gson.toJson(updated)).apply()
         }

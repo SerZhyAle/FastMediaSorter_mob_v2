@@ -28,6 +28,43 @@ class ExportFavoritesUseCase @Inject constructor(
     private val fileDateFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HHmmss").withZone(ZoneOffset.UTC)
     private val isoFormatter = DateTimeFormatter.ISO_INSTANT
 
+    /**
+     * S1565: the export content without a destination, so a transfer can hand the same bytes to a
+     * device file or to Google Drive. [invoke] keeps writing to Downloads exactly as before.
+     */
+    suspend fun buildExportFile(): FavoritesExportFile {
+        val favorites = favoritesDao.getFileFavoritesSync()
+        val resourceIds = favorites.map { it.resourceId }.toSet()
+        val resourceMap = resourceIds.mapNotNull { id ->
+            resourceDao.getResourceByIdSync(id)?.let { id to it }
+        }.toMap()
+        val exported = favorites.map { entity ->
+            val resource = resourceMap[entity.resourceId]
+            ExportedFavorite(
+                uri = entity.uri,
+                resourceId = entity.resourceId,
+                resourceName = resource?.name ?: "",
+                resourcePath = resource?.path ?: "",
+                displayName = entity.displayName,
+                mediaType = entity.mediaType,
+                size = entity.size,
+                dateModified = entity.dateModified,
+                addedTimestamp = entity.addedTimestamp
+            )
+        }
+        return FavoritesExportFile(
+            exportDate = isoFormatter.format(Instant.now()),
+            appVersion = BuildConfig.VERSION_NAME,
+            deviceName = Build.MODEL,
+            totalCount = exported.size,
+            favorites = exported
+        )
+    }
+
+    /** S1565: the same content serialized, for a transfer that carries bytes rather than a path. */
+    suspend fun exportToJson(): String =
+        gson.toJson(buildExportFile(), FavoritesExportFile::class.java)
+
     suspend operator fun invoke(): FavoritesExportResult {
         return try {
             // S0783: export file favorites only; live-channel favorites are not part of the favorites

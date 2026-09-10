@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.common
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormatPolicy
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import timber.log.Timber
 
 private val documentFormatPolicy = WearDocumentFormatPolicy()
 
@@ -52,7 +51,6 @@ internal fun playerRouteFor(
  */
 private fun documentRoute(fileId: Long, mimeType: String?, fileName: String?): String {
     val format = documentFormatPolicy.formatFor(mimeType, fileName)
-    Timber.d("S2532: document tapped mime=%s name=%s format=%s", mimeType, fileName, format)
     return if (format.readableOnWatch) {
         WearRoutes.documentViewer(fileId)
     } else {

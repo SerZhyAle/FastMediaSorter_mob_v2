@@ -264,6 +264,84 @@ class CaptureStore(private val gson: Gson, private val context: Context) {
 }
 '@
 
+$gsonTreeType = @'
+package com.fixture.s2840
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.JsonObject
+
+class StampReader(private val gson: Gson, private val context: Context) {
+    fun read(): String {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        val tree = gson.fromJson(prefs.getString("payload", "") ?: "", JsonObject::class.java)
+        return tree.get("kind").asString
+    }
+}
+'@
+
+# The project declares its own Instant, unannotated, so a walk that resolves the imported simple name into
+# it fails the run - which is exactly what the case has to be able to observe. It sits in its own file
+# because that is the real shape: a declaration inside the serializing file is what the reference means
+# whatever the imports say, and that preference (S2653) is deliberately left ahead of this one.
+$importedCollision = @'
+package com.fixture.s2840
+
+data class Instant(
+    val ticks: Long
+)
+'@
+
+$importedSimpleName = @'
+package com.fixture.s2840
+
+import android.content.Context
+import com.google.gson.Gson
+import com.google.gson.annotations.SerializedName
+import java.time.Instant
+
+data class Account(
+    @SerializedName("identity") val identity: String,
+    @SerializedName("boundAt") val boundAt: Instant
+)
+
+class AccountStore(private val gson: Gson, private val context: Context) {
+    fun store(account: Account) {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        prefs.edit().putString("account", gson.toJson(account)).apply()
+    }
+}
+'@
+
+# The identifier is first mentioned by a conditional assignment and only typed by the parameter of the
+# function that serializes it, which is the shape the walk used to read as a constructor call.
+$conditionalAssignment = @'
+package com.fixture.s2840
+
+import android.content.Context
+import com.google.gson.Gson
+
+data class FixtureAck(
+    val requestId: String
+)
+
+class AckStore(private val gson: Gson, private val context: Context) {
+    fun handle(incoming: String?) {
+        val ack = if (incoming == null) {
+            FixtureAck(requestId = "")
+        } else {
+            FixtureAck(requestId = incoming)
+        }
+        answer(ack)
+    }
+
+    private fun answer(ack: FixtureAck) {
+        val prefs = context.getSharedPreferences("fixture", Context.MODE_PRIVATE)
+        prefs.edit().putString("ack", gson.toJson(ack)).apply()
+    }
+}
+'@
+
 try {
     Write-Host 'assert-gson-persistence-contract.tests' -ForegroundColor Cyan
 
@@ -322,6 +400,34 @@ try {
     ($result.code -eq 1) "expected exit 1, got $($result.code): $($result.text)"
     Assert-That 'the unpinned model in the serializing file is the one named' `
     ($result.text -match 'annotated-none\s+com\.fixture\.s2653\.Capture\b') "expected an annotated-none line for the serialized Capture: $($result.text)"
+
+    # S2840: Gson's own tree types carry no project field and no project name, so a point reading one has
+    # nothing to pin. Reporting it as unresolvable asked the registry for an entry excusing a pin that could
+    # not exist.
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'gson-tree-type' -Source $gsonTreeType)
+    Assert-That 'a point reading JsonObject is not reported as an unresolvable type' `
+    ($result.text -notmatch 'unresolved-type') "gate reported an unresolvable type: $($result.text)"
+    Assert-That 'a point reading a Gson tree type keeps the run green' `
+    ($result.code -eq 0) "expected exit 0, got $($result.code): $($result.text)"
+
+    # S2840: the property names java.time.Instant, which the file imports. Resolving the simple name into
+    # the project's own Instant judged a model that reaches no sink and failed the run on its fields.
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'imported-simple-name' -Sources @{
+            'Account.kt' = $importedSimpleName
+            'Instant.kt' = $importedCollision
+        })
+    Assert-That 'a property typed by an imported class is not resolved into a same-named project model' `
+    ($result.text -notmatch 'com\.fixture\.s2840\.Instant') "the imported name was judged as a project model: $($result.text)"
+    Assert-That 'the run stays green when every serialized model is pinned' `
+    ($result.code -eq 0) "expected exit 0, got $($result.code): $($result.text)"
+
+    # S2840: `val ack = if (..)` was read as the construction of a type called `if`, and since the walk
+    # returns at the first line mentioning the name, the parameter that really types it was never reached.
+    $result = Invoke-Gate -Root (New-Fixture -Suffix 'conditional-assignment' -Source $conditionalAssignment)
+    Assert-That 'a conditionally assigned identifier resolves to the parameter type that serializes it' `
+    ($result.text -notmatch 'unresolved-type') "gate reported an unresolvable type: $($result.text)"
+    Assert-That 'the model behind that identifier is judged, and its missing annotations reported' `
+    ($result.text -match 'annotated-none\s+com\.fixture\.s2840\.FixtureAck') "expected an annotated-none line for FixtureAck: $($result.text)"
 
     Write-Host ''
     Write-Host "  $script:pass passed, $script:fail failed."

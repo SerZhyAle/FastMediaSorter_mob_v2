@@ -120,6 +120,17 @@
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.game.GameStatus {
     <fields>;
 }
+# S2840: three more, on two different grounds. UnitSystem and WearGeometryMode are written with `.name`
+# into DataStore by WearAppearancePreferencesImpl and read back by matching that name against the
+# entries, each degrading to a default instead of throwing - so a rename silently resets the owner's
+# choice. HomeSectionId names a Compose test tag (WearTestTags.homeSection), and the wear pre-release
+# sweep selects by that tag on a MINIFIED build, so a rename turns the sweep into a false refusal. All
+# three also fall inside the wear.domain.model package keep above; the addressed rules are here for the
+# reason the 22 rules around them are, that coverage must not depend on a broad rule surviving the next
+# edit of this file.
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.HomeSectionId {
+    <fields>;
+}
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.LastUsedKind {
     <fields>;
 }
@@ -148,6 +159,12 @@
     <fields>;
 }
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearContentType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.UnitSystem {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearGeometryMode {
     <fields>;
 }
 -keepclassmembernames enum com.sza.fastmediasorter.wear.domain.model.WearDestinationId {

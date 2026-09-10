@@ -1045,6 +1045,15 @@
                             app:str_title="@string/settings_enable_wear_companion"
                             app:str_subtitle="@string/settings_enable_wear_companion_summary" />
 
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowSuppressWearMediaTakeover"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="@dimen/margin_small"
+                            app:str_icon="@drawable/ic_watch"
+                            app:str_title="@string/settings_suppress_wear_media_takeover"
+                            app:str_subtitle="@string/settings_suppress_wear_media_takeover_summary" />
+
                         <TextView
                             android:id="@+id/textWearGroupDescription"
                             android:layout_width="match_parent"
@@ -1214,6 +1223,19 @@
                             app:str_showHelp="true"
                             app:str_helpTitle="@string/water_flashlight_help_title"
                             app:str_helpMessage="@string/water_flashlight_help_message" />
+
+                        <!-- S2776: with the lights, because it switches one of them on - the camera
+                             flash - from the notification shade instead of from a screen in this app. -->
+                        <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                            android:id="@+id/rowFlashlightShortcut"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            app:str_icon="@drawable/ic_camera_flash_on"
+                            app:str_title="@string/flashlight_shortcut_settings_toggle_title"
+                            app:str_subtitle="@string/flashlight_shortcut_settings_toggle_subtitle"
+                            app:str_showHelp="true"
+                            app:str_helpTitle="@string/flashlight_shortcut_help_title"
+                            app:str_helpMessage="@string/flashlight_shortcut_help_message" />
 
                         <!-- S1924: the mirror sits beside the flashlight because the two are the same
                              kind of sub-program and the owner reads them as a pair (strategic 3.3). -->
@@ -1502,7 +1524,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnOpenEdgeGestureConfig"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         android:clickable="true"

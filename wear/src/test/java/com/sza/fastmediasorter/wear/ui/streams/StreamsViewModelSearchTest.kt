@@ -10,10 +10,10 @@ import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -160,6 +160,10 @@ class StreamsViewModelSearchTest {
         val pinnedIdentities = pinnedUrls.map { foldWearStreamIdentity(it) }.toSet()
         every { streamPinsRepository.observeWatchPins() } returns MutableStateFlow(pinnedIdentities)
         every { streamPinsRepository.getWatchPins() } returns pinnedIdentities
+        // S2669: stubbed rather than left relaxed - the view model collects this flow, and a relaxed
+        // mock answers a Flow-returning call with null.
+        val collections = mockk<WearStreamCollectionRepository>(relaxed = true)
+        every { collections.observeCollections() } returns flowOf(emptyList())
         return StreamsViewModel(
             repository = repository,
             importCatalogUseCase = mockk<ImportWearStreamCatalogUseCase>(relaxed = true),
@@ -177,6 +181,7 @@ class StreamsViewModelSearchTest {
                 every { it.observe() } returns MutableStateFlow(emptySet())
             },
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+            collectionRepository = collections,
         )
     }
 

@@ -76,6 +76,7 @@ _Generated from the app. Do not edit by hand._
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
+| Open the desktop when the app starts | Opens the app on the launcher desktop instead of the file list when it is started from its icon; the device home screen is not affected. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |
@@ -89,6 +90,7 @@ _Generated from the app. Do not edit by hand._
 | Computer on the internet (S)FTP | Enables adding internet-accessible FTP/SFTP servers as remote resources. |
 | Local network (Ethernet) SMB | Enables adding local-network SMB shares (NAS, PC) as remote resources. |
 | Wi-Fi only preload | Restricts thumbnail preloading to Wi-Fi connections only, saving mobile data. |
+| Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
 | Saved authorizations | Opens the list of saved sign-ins to remote sources so you can review or remove them. |
 | Color theme | Selects the color theme applied across the app interface. |
 
@@ -113,7 +115,6 @@ _Available in: Standard, Lite, Legacy, VR_
 
 | Setting | What it does |
 |---|---|
-| Clear Selection | Clears the currently selected snapshot destination resource. |
 | Select Destination Resource | Selects the destination resource where video frame snapshots are saved. |
 | Set as default video player | Registers this app as the default handler for video files on the device. |
 | Open video files in fullscreen mode | Launches video playback straight into fullscreen mode when a video is opened from Browse. |
@@ -164,6 +165,7 @@ _Available in: Standard, Legacy, VR_
 | Subtitle language for streams | Picks the subtitle language the app prefers when a stream offers several. A channel that you set a language for yourself keeps its own choice. |
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 | Ultra-smart stream buffering | Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback. |
+| Enable Picture-in-Picture | Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section. |
 
 ## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
@@ -203,7 +205,7 @@ _Available in: Standard, Legacy, VR_
 | Hide OS UI in fullscreen | Hides the status bar and navigation bar when the player is in fullscreen mode. |
 | Show 3D content from one eye | Renders 3D side-by-side content using only one eye's perspective for regular (non-VR) viewing. |
 | Play video/audio in slideshow to end | Waits for video or audio to finish playing before advancing to the next slide in a slideshow. |
-| Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during playback. |
+| Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during playback. Type any value or pick one from the list beside the field. |
 | Show "Black Screen" button | Shows a button in the player that blanks the screen while audio continues playing. |
 | Show command panel by default | Keeps the player command panel visible by default instead of hiding it after a timeout. |
 | Show now-playing panel | Shows a persistent now-playing panel at the bottom of the file browser. |
@@ -268,6 +270,7 @@ _Available in: Standard, Legacy, VR_
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
 | Wear companion | Adds the Wear companion to the app's program menus and panel, so the watch screen is reachable without opening Settings. It is off by default, and it appears at all only in builds that carry the watch bridge. |
+| Flashlight in the notification shade | Keeps a permanent entry in the notification shade that lights the camera flash on a tap and puts it out on the next one; needs permission to show notifications, and is hidden on a device with no flash. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
 | Front flashlight | Adds the front flashlight to the programs list: the screen itself becomes a lamp. |
 | Gesture overlay | Enables the left-edge gesture overlay, allowing swipe shortcuts to trigger file operations. |
@@ -284,6 +287,7 @@ _Available in: Standard, Legacy, VR_
 | Prevent sleep | Keeps the device awake while the app is in the foreground, preventing automatic sleep. |
 | Resume playback on next launch | Resumes playback from where it was stopped the next time you open the app. |
 | Screen video recording | Enables the built-in screen video recording feature. |
+| Suppress media control on watch | Stops the Wear OS system from surfacing the phone's player as a media-control screen on the watch. The phone's own media notification, lockscreen and Bluetooth buttons keep working; only the bridge to the watch is refused. Off by default so an update never changes current behavior. |
 | Use trash folder (.trash) | Moves deleted files to a .trash folder instead of removing them immediately. |
 | Enable video recording | Enables the built-in video recording feature. |
 | Open recorded video in player | Opens the recorded video in the player immediately after recording stops. |
@@ -328,7 +332,6 @@ _Settings -> General -> System launcher settings_
 | Lock desktop | Blocks long-press entry into desktop edit mode; the Start-menu entry stays reachable. |
 | Change home screen | Opens Android's default-launcher chooser to switch the system home screen. |
 | Hide system status bar | Replaces the system status bar with the launcher's own clock/status area; off keeps the Android status bar. |
-| Number of screens | Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one. |
 | Screen timeout | Turns the screen off after a chosen period of inactivity on the launcher desktop - locking the device where a system lock is reachable, or showing a black screen where it is not. On by default after 30 seconds; presets of 5 to 300 seconds, a custom number of seconds, or never (off). |
 | Show pinned apps | Shows pinned apps on the launcher desktop. |
 | Show recent apps | Shows recently used apps on the launcher desktop. |
@@ -343,10 +346,11 @@ _Settings -> General -> System launcher settings_
 | SIM 2 signal | Shows the signal level of the second SIM in the launcher tray. Needs permission to read the phone state; the indicator is absent without it or on a single-SIM device. |
 | Transfer speed | Shows device-wide download and upload transfer speeds in the launcher status area as two separate cells; updates once per second when enabled. |
 | Wi-Fi Hotspot | Shows or hides the Wi-Fi hotspot status indicator in the launcher taskbar tray. |
-| Unit system | Chooses the measurement system the desktop weather and dew-point gadgets read: metric shows degrees Celsius, US shows degrees Fahrenheit. Metric by default; changing it refreshes the reading rather than converting the one already shown. |
-| Desktop wallpaper | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
+| Launcher screens | Chooses the launcher desktop's wallpaper: branded animation, a static striped frame refreshed when you return to the launcher, an empty surface, your own image, a live frame from a device camera, or an instant photo the camera takes anew every time you return to the launcher. Both camera entries appear only on devices that have a camera, and choosing either asks for the camera permission and then for a lens. The live frame stops whenever the desktop leaves the screen; the instant photo releases the camera as soon as its picture is taken, and keeps only the newest one. |
 | Widget backdrop opacity | Controls the opacity of widget background cards on the launcher desktop (0% transparent to 100% opaque; 25% default). |
 | Grid density | Chooses the icon density the launcher reset lays the starter set out at; it opens on the density your device profile suggests. |
+| Number of screens | Sets how many desktop screens the launcher has, so pinned icons and widgets can be spread across several pages instead of one. |
+| Show screen number | Draws the desktop screen's number over the wallpaper while paging between screens. Off by default, and independent of whether animation is allowed - the number appears with the sliding transition as well as without it. |
 | Animation color palette | Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish. |
 
 ## Edge gestures
@@ -457,6 +461,7 @@ _Reached from Wear OS watch app -> Settings._
 | Video | Enables playback and browsing of video files on Wear OS. |
 | Files view | Chooses how file lists on the watch are laid out: a list, or a grid of two or three columns with real thumbnails. |
 | Keep screen on | Keeps the watch screen on across every screen outside the players, the startup splash and the permission screen included; the audio, video and image players hold it on regardless. |
+| Original layout | Lays the watch screens out the way they were before the geometry was tightened for the Google Play store review: content takes the full width of the display, and the round glass cuts the outer edges of the calculator's outermost keys and of the game board. That clipping is what the setting is for, not a fault in it - the owner asked for the layout he had built over several rounds rather than the one the review bought. It applies to every watch screen at once, not to the calculator alone: the lists, the players and Streams follow the same geometry, because one shared layer answers how much room the glass leaves and every screen asks it. Turning it off returns the reviewed layout, which stands clear of the arc everywhere. Offered only in the sideloaded build, which is never submitted to the store; the published build always uses the reviewed layout. The change takes effect at once, with no restart. |
 | Player panel auto-hide duration (s) | Sets the delay in seconds before the player controls panel automatically hides during video and image playback on Wear OS. |
 | Power saving | Sets the watch battery percentage threshold for activating power saving mode on Wear OS. |
 | Slideshow interval | Sets the delay in seconds between slides during slideshow playback on Wear OS. |

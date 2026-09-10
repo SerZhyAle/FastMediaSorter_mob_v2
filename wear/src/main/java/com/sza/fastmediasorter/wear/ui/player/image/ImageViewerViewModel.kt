@@ -5,6 +5,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -43,6 +45,7 @@ class ImageViewerViewModel @Inject constructor(
     private val favoritesRepository: WearFavoritesRepository,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
+    val castManager: PlayerCastManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -68,6 +71,7 @@ class ImageViewerViewModel @Inject constructor(
     init {
         Timber.d("ImageViewerViewModel initialized with fileId: $fileId")
 
+        castManager.bind(viewModelScope)
         val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
         fileOperations.bind(
             scope = viewModelScope,
@@ -382,6 +386,20 @@ class ImageViewerViewModel @Inject constructor(
                 totalCount = set?.files?.size ?: it.totalCount
             )
         }
+    }
+
+    /**
+     * S2531: hands the picture on screen to the phone, which owns the Cast session, or ends the one
+     * already running - the screen shows one entry and the phone's reported state decides which of
+     * the two it is, so the choice is made here rather than in the composable.
+     */
+    fun toggleCast() {
+        if (castManager.castState.value.isCasting) {
+            castManager.stopCasting()
+            return
+        }
+        val file = _uiState.value.mediaFile ?: return
+        castManager.castCurrentFile(file, networkSelection, WearCastMediaType.IMAGE)
     }
 
     fun toggleFavorite() {

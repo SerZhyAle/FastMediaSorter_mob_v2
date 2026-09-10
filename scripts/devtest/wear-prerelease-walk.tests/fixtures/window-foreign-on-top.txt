@@ -1,0 +1,5 @@
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window)
+  Display 0 "default" ...
+
+  mCurrentFocus=Window{8c2e9f1 com.android.systemui/com.android.systemui.power.PowerUI}
+  mFocusedWindow=Window{8c2e9f1 com.android.systemui/com.android.systemui.power.PowerUI}

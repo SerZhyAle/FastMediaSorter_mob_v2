@@ -27,6 +27,13 @@ class DeviceActionHandler @Inject constructor() {
     @Volatile
     private var torchEnabled = false
 
+    /**
+     * S2776: the shade shortcut renders "lit" or "dark" and this is the only place that knows which.
+     * Read-only on purpose - the state is still written by [setTorch] alone, and a subscriber that
+     * needs it to be authoritative registers its own torch callback for as long as it is showing.
+     */
+    val isTorchOn: Boolean get() = torchEnabled
+
     /** Returns true when [action] is a device-control action this handler owns (performed or degraded). */
     fun handle(context: Context, action: ScreenshotGestureAction): Boolean {
         return when (action) {

@@ -2,13 +2,12 @@ package com.sza.fastmediasorter.ui.browse.managers
 
 import android.content.Context
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.domain.model.FileFilter
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.ui.browse.BrowseState
-import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import dagger.hilt.android.EntryPointAccessors
 
 /**
  * Utility functions for BrowseActivity UI string formatting.
@@ -18,8 +17,13 @@ class BrowseUtilityManager(
     private val context: Context
 ) {
     
-    private val dateFormatter = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
-    
+    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
+    // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
+    // the next time the title strip is rebuilt.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
+
     /**
      * Builds resource info string for title display.
      * Format: "{name} ({count} files) • {path} • {sortMode} • {selected}"
@@ -147,11 +151,11 @@ class BrowseUtilityManager(
         
         // Date filters
         if (filter.minDate != null && filter.maxDate != null) {
-            parts.add("created ${formatDate(Date(filter.minDate))} - ${formatDate(Date(filter.maxDate))}")
+            parts.add("created ${formatDate(filter.minDate)} - ${formatDate(filter.maxDate)}")
         } else if (filter.minDate != null) {
-            parts.add("created after ${formatDate(Date(filter.minDate))}")
+            parts.add("created after ${formatDate(filter.minDate)}")
         } else if (filter.maxDate != null) {
-            parts.add("created before ${formatDate(Date(filter.maxDate))}")
+            parts.add("created before ${formatDate(filter.maxDate)}")
         }
         
         // Size filters
@@ -169,7 +173,6 @@ class BrowseUtilityManager(
     /**
      * Formats date for filter descriptions.
      */
-    private fun formatDate(date: Date): String {
-        return dateFormatter.format(date)
-    }
+    private fun formatDate(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.Date(timestamp), unitSeam.unitSystemProvider().value)
 }

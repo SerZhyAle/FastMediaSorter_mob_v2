@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.brand
 
-import android.text.format.DateFormat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -15,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -23,10 +21,10 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import coil.compose.AsyncImage
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import kotlinx.coroutines.delay
 import timber.log.Timber
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 
 /**
  * S1981: how long the frame holds itself, in ms.
@@ -39,9 +37,6 @@ private const val BRAND_FRAME_DURATION_MS = 700L
 private val LOGO_SIZE = 72.dp
 private val LOGO_WORDMARK_GAP = 16.dp
 
-/** S2556: hour-minute-second skeletons handed to `getBestDateTimePattern`, 24-hour and 12-hour. */
-private const val TIME_SKELETON_24H = "Hms"
-private const val TIME_SKELETON_12H = "hms"
 private const val MILLIS_PER_SECOND = 1000L
 
 /**
@@ -49,24 +44,24 @@ private const val MILLIS_PER_SECOND = 1000L
  * composed - the frame's beat is short, so what the time has to be right about is the instant it
  * appears, not the tick after it.
  *
- * The pattern is derived, never literal: [DateFormat.getBestDateTimePattern] follows the device's
- * own 12/24-hour setting and the locale's field order, which is what the strategic spec asks for
- * instead of the frame imposing a format of its own.
+ * S2795: the clock length comes from the stored measurement system, not from the watch's own
+ * 12/24-hour switch - metric means a 24-hour clock everywhere in the app, and this frame is the
+ * first thing the owner sees, so it is the first place that has to agree. Keyed on the system, so a
+ * value pushed from the phone while the frame is up restarts the tick with the new format.
  */
 @Composable
 private fun currentTimeText(): String {
-    val context = LocalContext.current
-    val formatter = remember(context) {
-        val locale = context.resources.configuration.locales[0]
-        val skeleton = if (DateFormat.is24HourFormat(context)) TIME_SKELETON_24H else TIME_SKELETON_12H
-        DateTimeFormatter.ofPattern(DateFormat.getBestDateTimePattern(locale, skeleton), locale)
-    }
+    val system = LocalWearUnitSystem.current
+    val formatter = LocalWearDateTimeFormatter.current
     // Sleeping to the next boundary rather than a flat second: a flat delay lands wherever the first
     // composition happened to fall, so the shown seconds would trail the device's own by a constant
     // fraction for the whole life of the frame.
-    val time = produceState(LocalTime.now().format(formatter), formatter) {
+    // Remembered rather than formatted inline: produceState re-evaluates its initial value on every
+    // recomposition, and this one recomposes once a second for the whole life of the frame.
+    val initial = remember(system) { formatter.formatTime(System.currentTimeMillis(), system, withSeconds = true) }
+    val time = produceState(initial, system) {
         while (true) {
-            value = LocalTime.now().format(formatter)
+            value = formatter.formatTime(System.currentTimeMillis(), system, withSeconds = true)
             delay(MILLIS_PER_SECOND - System.currentTimeMillis() % MILLIS_PER_SECOND)
         }
     }

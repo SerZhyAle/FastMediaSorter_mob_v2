@@ -6,8 +6,8 @@ import android.widget.Toast
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.models.TranslationFontFamily
 import com.sza.fastmediasorter.domain.models.TranslationFontSize
@@ -39,8 +39,8 @@ object TranslationSettingsDialog {
         settingsRepository: SettingsRepository,
         onApplied: ((TranslationSessionSettings) -> Unit)? = null,
     ) {
-        if (!BuildConfig.ENABLE_TRANSLATION) {
-            Timber.d("TranslationSettingsDialog: not available (ENABLE_TRANSLATION=false)")
+        if (!CapabilityAvailabilityAccessor.isTranslationAvailable(context)) {
+            Timber.d("TranslationSettingsDialog: not available - translation capability is off")
             return
         }
 

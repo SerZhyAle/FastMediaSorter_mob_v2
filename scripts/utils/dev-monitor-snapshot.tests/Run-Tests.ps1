@@ -82,13 +82,17 @@ try {
     [IO.File]::WriteAllText((Join-Path $fixture 'temp/STOP-SPEC-QUEUE'), 'stop', $utf8)
     [IO.File]::WriteAllText((Join-Path $fixture 'PLAN/RELEASE_QUEUE.md'), (@(
         '# Release Queue',
-        'rel  ticket                                   changed     status',
+        'ticket                                   changed         status',
+        # S2852: the 35 row deliberately stays in the pre-section shape - it is out of the current
+        # package either way, so it proves the reader still tolerates a stale file while the rows
+        # that carry the assertions exercise the shape that ships.
         '35   S0035_old-thing                          2026-09-01  Approved',
         '# release 36 - fixture',
+        '36',
         '# 36.0 Organizational work',
-        '36   S0001_first-thing                        2026-09-02  Approved          [taken 23:01, //spec-all, agent-fx]',
-        '36   S0002_blocked-thing                      2026-09-02  BlockExternal',
-        '36   S0003_plain-thing                        2026-09-02  Draft',
+        'S0001_first-thing                        26-09-02 08:00  Approved          [taken 23:01, //spec-all, agent-fx]',
+        'S0002_blocked-thing                      26-09-02 08:00  BlockExternal',
+        'S0003_plain-thing                        26-09-02 08:00  Draft',
         '',
         'current-next-release: 36'
     ) -join "`n") + "`n", $utf8)
@@ -170,6 +174,10 @@ try {
     $a = $s.agents[0]
     Assert-That 'newest message gives lastKind, newest phase message gives the phase' ($a.lastKind -eq 'lock' -and $a.phase -eq '02' -and $a.phaseTicket -eq 'S0001') (($a | ConvertTo-Json -Compress))
     Assert-That 'agent joined to its lease by session id' ($a.lease -eq 'S0001' -and $a.name -eq 'fixture-fox-0902-0000' -and -not $a.silent) (($a | ConvertTo-Json -Compress))
+    Assert-That 'live sessions is an additive array with stable row fields' (
+        ($s.PSObject.Properties.Name -contains 'sessions') -and $null -ne $s.sessions -and
+        @($s.sessions | Where-Object { -not $_.id -or -not $_.name -or -not $_.source }).Count -eq 0
+    ) (($s.sessions | ConvertTo-Json -Compress))
     Assert-That 'chat tail newest first' (@($s.chat).Count -eq 2 -and $s.chat[0].kind -eq 'lock' -and $s.chat[1].kind -eq 'phase') (($s.chat | ConvertTo-Json -Compress))
     Assert-That 'the scoped finding is alive' (@($s.findings).Count -eq 1 -and $s.findings[0].topic -eq 'check:fixture' -and $s.findingsDead -eq 0) "alive=$(@($s.findings).Count) dead=$($s.findingsDead)"
     Assert-That 'windows come from the lock timings' ($s.windows.silentMinutes -gt 0 -and $s.windows.retentionMinutes -gt 0) (($s.windows | ConvertTo-Json -Compress))

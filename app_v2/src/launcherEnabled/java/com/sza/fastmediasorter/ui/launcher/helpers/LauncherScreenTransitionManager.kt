@@ -7,6 +7,7 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.AnimationPolicy
+import timber.log.Timber
 import java.util.Locale
 
 /**
@@ -22,14 +23,19 @@ import java.util.Locale
  * triggers - cells changing, edit mode, backdrop alpha, section collapse, rotation - cannot acquire an
  * animation by calling the render path directly, and so none of them has to know the flag exists.
  *
- * The badge itself never animates. It exists only when the user turned animations off, and fading it in
- * would hand back the motion that setting removed (strategic ADR-3).
+ * S2730 ADR-3: the badge belongs to [showScreenNumber] and to nothing else. S2323 showed it exactly when
+ * animation was banned, which made a live branded backdrop and the screen number mutually exclusive; the
+ * two decisions are now separate, so the policy below picks slide or instant redraw and never the badge.
+ *
+ * The badge itself never animates: fading it in would hand motion back to a user who turned animation off,
+ * and on the slide branch it names the screen being moved to, so it has to be legible from the first frame.
  */
 class LauncherScreenTransitionManager(
     private val lifecycleOwner: LifecycleOwner,
     private val content: View,
     private val badge: TextView,
     private val screenIndex: () -> Int,
+    private val showScreenNumber: () -> Boolean,
 ) : DefaultLifecycleObserver {
 
     private val hideBadge = Runnable { badge.visibility = View.GONE }
@@ -52,6 +58,12 @@ class LauncherScreenTransitionManager(
      * [render] runs exactly once either way: mid-slide when animating, immediately when not.
      */
     fun transition(direction: Int, render: () -> Unit) {
+        // Shown before the motion starts, not after it ends: the number names the screen being moved to,
+        // and the badge is a sibling of the sliding container, so its constraints are not dragged along.
+        Timber.d("S2730: transition badge=${showScreenNumber()} anim=${AnimationPolicy.isAnimationAllowed}")
+        if (showScreenNumber()) {
+            showBadge()
+        }
         val distance = content.width.toFloat()
         // Before the first layout pass the container has no width, so there is no distance to travel and
         // the slide would be a flicker at zero offset. Rebinding alone is the honest answer there.
@@ -59,9 +71,6 @@ class LauncherScreenTransitionManager(
             slide(direction, distance, render)
         } else {
             render()
-            if (!AnimationPolicy.isAnimationAllowed) {
-                showBadge()
-            }
         }
     }
 

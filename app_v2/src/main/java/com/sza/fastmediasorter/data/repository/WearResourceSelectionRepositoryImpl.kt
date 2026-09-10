@@ -4,7 +4,6 @@ import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -44,7 +43,6 @@ class WearResourceSelectionRepositoryImpl @Inject constructor(
 
     suspend fun setSelectedIds(ids: Set<Long>) {
         withContext(Dispatchers.IO) {
-            Timber.d("S2515: selection write of ${ids.size} id(s) on ${Thread.currentThread().name}")
             prefs.edit()
                 .putStringSet(KEY_SELECTED_IDS, ids.map { it.toString() }.toSet())
                 .apply()

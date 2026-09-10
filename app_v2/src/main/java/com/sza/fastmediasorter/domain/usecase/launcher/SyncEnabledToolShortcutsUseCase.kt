@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
@@ -67,22 +68,33 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
             // frozen here - the seed is deliberately unchanged, because the App-functions budget holds
             // twelve of the registry's twenty-two and which twelve is an owner decision.
             syncBaseline.setSyncedRoutes(launchable)
-            return
+        } else {
+            val newlyLaunchable = launchable - baseline
+            val noLongerLaunchable = baseline - launchable
+            Timber.d("S2664: shortcut sync - %d gained, %d lost", newlyLaunchable.size, noLongerLaunchable.size)
+            if (newlyLaunchable.isNotEmpty()) placeCellsFor(newlyLaunchable)
+            if (noLongerLaunchable.isNotEmpty()) removeCellsFor(noLongerLaunchable)
+            // S2664, ADR-1: the launchable set replaces the baseline instead of joining it. The union was
+            // there so a route that stopped being launchable stayed accounted for and its return could not
+            // restore a cell the user had deleted on purpose; the owner ruling of 2026-09-06 reverses that -
+            // a shortcut's presence follows its toggle whatever the reason the cell was gone. Restoring the
+            // union would restore that refusal, so read ADR-1 before treating this line as a defect.
+            syncBaseline.setSyncedRoutes(launchable)
         }
 
-        val newlyLaunchable = launchable - baseline
-        val noLongerLaunchable = baseline - launchable
-        Timber.d("S2664: shortcut sync - %d gained, %d lost", newlyLaunchable.size, noLongerLaunchable.size)
-        if (newlyLaunchable.isEmpty() && noLongerLaunchable.isEmpty()) return
+        backfillStopwatchShortcut(launchable)
+    }
 
-        if (newlyLaunchable.isNotEmpty()) placeCellsFor(newlyLaunchable)
-        if (noLongerLaunchable.isNotEmpty()) removeCellsFor(noLongerLaunchable)
-        // S2664, ADR-1: the launchable set replaces the baseline instead of joining it. The union was
-        // there so a route that stopped being launchable stayed accounted for and its return could not
-        // restore a cell the user had deleted on purpose; the owner ruling of 2026-09-06 reverses that -
-        // a shortcut's presence follows its toggle whatever the reason the cell was gone. Restoring the
-        // union would restore that refusal, so read ADR-1 before treating this line as a defect.
-        syncBaseline.setSyncedRoutes(launchable)
+    private suspend fun backfillStopwatchShortcut(launchable: Set<String>) {
+        if (
+            syncBaseline.isStopwatchShortcutBackfilled() ||
+            InternalRouteCatalog.KEY_STOPWATCH !in launchable
+        ) {
+            return
+        }
+        Timber.d("S2791: backfilling Stopwatch desktop shortcut")
+        placeCellsFor(setOf(InternalRouteCatalog.KEY_STOPWATCH))
+        syncBaseline.setStopwatchShortcutBackfilled()
     }
 
     /**

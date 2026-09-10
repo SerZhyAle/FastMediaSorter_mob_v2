@@ -32,8 +32,10 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherYouTubeChannelDialogFragment
 import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
+import timber.log.Timber
 
 /**
  * S1541: the whole "put something on the desktop" chain - result-key registration, the category
@@ -141,6 +143,7 @@ class LauncherAddFlowManager(
         registerWeatherLocationListener()
         registerSunDewpointLocationListener()
         registerWorldClockZoneListener()
+        registerYouTubeChannelListener()
         registerNetworkIndicatorListeners()
         registerSectionNameListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
@@ -371,6 +374,13 @@ class LauncherAddFlowManager(
             gadgetKey == LauncherGadgetRegistry.KEY_STREAM_WINDOW -> openPicker(
                 LauncherStreamPickerDialogFragment.newInstance(REQ_STREAM_WINDOW),
                 LauncherStreamPickerDialogFragment.TAG,
+            )
+
+            // S2032: same shape as the stream window above - the param is a channel, so it asks the
+            // channel dialog on its own key and is placed only once that channel resolved.
+            gadgetKey == LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW -> openPicker(
+                LauncherYouTubeChannelDialogFragment.newInstance(REQ_YOUTUBE_CHANNEL),
+                LauncherYouTubeChannelDialogFragment.TAG,
             )
 
             // S1906: same shape once more - the world clock's param is a time zone, so it asks the zone
@@ -678,6 +688,45 @@ class LauncherAddFlowManager(
         }
     }
 
+    /**
+     * S2032: the weather listener's shape without its two weather-specific writes. The channel lives in
+     * the cell's own `target` and nowhere else (strategic §3.2 forbids a schema change), so there is no
+     * config row to keep and no global last-picked value to move.
+     */
+    private fun registerYouTubeChannelListener() {
+        fragmentManager.setFragmentResultListener(REQ_YOUTUBE_CHANNEL, lifecycleOwner) { _, bundle ->
+            val encoded = bundle.getString(LauncherYouTubeChannelDialogFragment.RESULT_CHANNEL)
+                ?: return@setFragmentResultListener
+            val cellId = bundle.getLong(
+                LauncherYouTubeChannelDialogFragment.RESULT_CELL_ID,
+                LauncherYouTubeChannelDialogFragment.NO_CELL_ID,
+            )
+            if (cellId == LauncherYouTubeChannelDialogFragment.NO_CELL_ID) {
+                placeYouTubeChannelWindowGadget(encoded)
+            } else {
+                viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW, encoded),
+                )
+            }
+        }
+    }
+
+    /** S2032: same reason as [placeWeatherGadget] - the channel rides the target, not a resource id. */
+    private fun placeYouTubeChannelWindowGadget(encodedChannel: String) {
+        val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW) ?: return
+        Timber.d("S2032: placing channel window ${gadget.defaultSpanW}x${gadget.defaultSpanH}")
+        placeAtPendingSlot(
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(
+                LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW,
+                encodedChannel,
+            ),
+            spanW = gadget.defaultSpanW,
+            spanH = gadget.defaultSpanH,
+        )
+    }
+
     /** The weather gadget carries its place in the target, so it bypasses [placeGadget]'s resource id. */
     private fun placeWeatherGadget(encodedLocation: String) {
         val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_WEATHER) ?: return
@@ -729,6 +778,10 @@ class LauncherAddFlowManager(
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
         const val REQ_SECTION_NAME = "launcher_section_name"
+
+        // S2032: the YouTube channel window's own key - a channel confirmed for this cell must never
+        // complete a different pending gadget.
+        const val REQ_YOUTUBE_CHANNEL = "launcher_youtube_channel"
 
         // S1907: the weather place picker serves two gadgets now, so each owns a request key - one
         // shared key would let a place picked for either cell complete whichever asked last.

@@ -72,6 +72,15 @@ dev/ACTIVITY_CATALOG/scripts/set.ps1
 
 ## dev\CATALOG\scripts
 
+### _source-roots.ps1
+Shared source-root derivation for the class catalogue (S2837). Dot-source it; it defines one function
+
+```
+dev/CATALOG/scripts/_source-roots.ps1
+  Shared source-root derivation for the class catalogue (S2837). Dot-source it; it defines one function
+  (no param block)
+```
+
 ### apply-role-drafts.ps1
 Applies owner-reviewed role drafts (from generate-role-drafts.ps1) back into the catalogue.
 
@@ -819,6 +828,19 @@ scripts/builders/clean-gradle-caches.ps1
   (no param block)
 ```
 
+### compile-vp9-classes.ps1
+S1126 - compiles the media3 VP9 decoder module's Java half into a classes.jar and writes the AAR manifest beside it, ready for build-libvpx-vp9.sh to package.
+
+```
+scripts/builders/compile-vp9-classes.ps1
+  S1126 - compiles the media3 VP9 decoder module's Java half into a classes.jar and writes the AAR manifest beside it, ready for build-libvpx-vp9.sh to package.
+  Params:
+    -Media3Dir             [String] = '$HOME/ffmpeg-android-build/media'
+    -CompileSdk            [String] = 'android-36'
+    -Media3Version         [String] = '1.2.1'
+  Exit: 0 classes.jar and AndroidManifest.xml were written to the staging directory.; 1 the JDK, the android.jar or a required media3 artifact could not be located.; 2 the media3 VP9 sources could not be copied out of the WSL checkout.; 3 javac failed.; 4 the jar could not be written, or the staging copy back into WSL failed.
+```
+
 ### filtered-test-report.ps1
 Gives a filtered unit run its OWN copy of the reports it produced, so the path printed under a green line cannot be read after a sibling session has overwritten it.
 
@@ -1029,6 +1051,8 @@ scripts/devtest/adb.ps1
     -Json               [SwitchParameter]
     -Strict             [SwitchParameter]
     -Scale              [Double]
+    -Axis               [Double]
+    -Repeat             [Int32] = 1
     -Yes                [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
@@ -1244,6 +1268,37 @@ scripts/devtest/streams-perf-seed.ps1
   Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
 ```
 
+### ui-sweep-bench.ps1
+S2380 - provision and assert the phone screen geometries the automated UI sweep runs on.
+
+```
+scripts/devtest/ui-sweep-bench.ps1
+  S2380 - provision and assert the phone screen geometries the automated UI sweep runs on.
+  Params:
+    -Profile             [String]
+    -Ensure              [SwitchParameter]
+    -Assert              [SwitchParameter]
+    -List                [SwitchParameter]
+    -DeviceId            [String]
+    -SystemImage         [String] = 'system-images;android-36;google_apis_playstore;x86_64'
+    -Json                [SwitchParameter]
+  Exit: 0 - the verb succeeded: -List printed, -Ensure left a usable AVD, or -Assert matched.; 1 - -Assert ran and the attached device does NOT match the declared profile. A real answer, and
+```
+
+### ui-sweep-seed.ps1
+S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+
+```
+scripts/devtest/ui-sweep-seed.ps1
+  S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+  Params:
+    -DeviceId             [String]
+    -Root                 [String] = '/sdcard/Download/FastMediaSorter_UiSweep'
+    -Package              [String] = 'com.sza.fastmediasorter.debug'
+    -SkipGenerate         [SwitchParameter]
+  Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
+```
+
 ### wear-ink-clip.ps1
 S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
 
@@ -1287,14 +1342,16 @@ S1984 - walk the declared watch screens, capture evidence for each, then audit t
 scripts/devtest/wear-prerelease-walk.ps1
   S1984 - walk the declared watch screens, capture evidence for each, then audit the process log.
   Params:
-    -DeviceId               [String]
-    -OutDir                 [String] = 'temp/scratch/wear-prerelease'
-    -ScreenList             [String]
-    -SettleMs               [Int32] = 1200
-    -MaxScrolls             [Int32] = 12
-    -SkipLogAudit           [SwitchParameter]
-    -SkipShapeCheck         [SwitchParameter]
-    -Json                   [SwitchParameter]
+    -DeviceId                       [String]
+    -OutDir                         [String] = 'temp/scratch/wear-prerelease'
+    -ScreenList                     [String]
+    -SettleMs                       [Int32] = 1200
+    -MaxScrolls                     [Int32] = 12
+    -RehomeAfterUnreachable         [Int32] = 2
+    -MinBatteryPct                  [Int32] = 20
+    -SkipLogAudit                   [SwitchParameter]
+    -SkipShapeCheck                 [SwitchParameter]
+    -Json                           [SwitchParameter]
   Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
 ```
 
@@ -1435,6 +1492,15 @@ scripts/devtest/lib/adb-log-filter.ps1
   (no param block)
 ```
 
+### clip-shape-outcome.ps1
+S2782 - classifies one `adb.ps1 clip-check` exit code for the watch pre-release sweep.
+
+```
+scripts/devtest/lib/clip-shape-outcome.ps1
+  S2782 - classifies one `adb.ps1 clip-check` exit code for the watch pre-release sweep.
+  (no param block)
+```
+
 ### device-form-factor.ps1
 Shared phone-vs-watch signal for the device scripts (S2600), extracted the way lib/find-adb.ps1 was (S1341) so a caller reads the form factor instead of guessing it.
 
@@ -1471,12 +1537,39 @@ scripts/devtest/lib/ui-tree.ps1
   (no param block)
 ```
 
+### wear-battery.ps1
+S2794 - reads the battery level out of `dumpsys battery`, for the pre-release walk.
+
+```
+scripts/devtest/lib/wear-battery.ps1
+  S2794 - reads the battery level out of `dumpsys battery`, for the pre-release walk.
+  (no param block)
+```
+
+### wear-foreign-window.ps1
+S2794 - reads the top visible window's package out of `dumpsys window`, for the pre-release walk.
+
+```
+scripts/devtest/lib/wear-foreign-window.ps1
+  S2794 - reads the top visible window's package out of `dumpsys window`, for the pre-release walk.
+  (no param block)
+```
+
 ### wear-wakefulness.ps1
 S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
 
 ```
 scripts/devtest/lib/wear-wakefulness.ps1
   S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
+  (no param block)
+```
+
+### wear-walk-position.ps1
+S2779 - the watch walk's standing position, and the decision to recover it.
+
+```
+scripts/devtest/lib/wear-walk-position.ps1
+  S2779 - the watch walk's standing position, and the decision to recover it.
   (no param block)
 ```
 
@@ -2102,7 +2195,7 @@ scripts/quality/assert-allfeatures-sync.ps1
     -Gate                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct; 4 - Code.Scripts is held by another session, so no baseline was written. The queue
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error, record-count regression, or a
 ```
 
 ### assert-always-loaded-budget.ps1
@@ -2338,8 +2431,9 @@ Gate wrapper (S1075): documentation-vs-Gradle pin drift.
 scripts/quality/assert-doc-pin-drift.ps1
   Gate wrapper (S1075): documentation-vs-Gradle pin drift.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 - no drift (doc pins match Gradle).; 1 - drift found (FAIL / INCONSISTENT / MISSING), or the underlying checker could
 ```
 
@@ -2487,11 +2581,12 @@ S1392 - documentation-vs-gradle flavor capability matrix gate.
 scripts/quality/assert-flavor-matrix-docs.ps1
   S1392 - documentation-vs-gradle flavor capability matrix gate.
   Params:
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-    -Table            [String]
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -Table                [String]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale; 3 S2828: a finding stands - a stale snapshot, or a table that disagrees with it - but no file
 ```
 
 ### assert-focus-highlight.ps1
@@ -2664,8 +2759,9 @@ S1540: every launcher setting is restored by the launcher reset, or excused by n
 scripts/quality/assert-launcher-reset-coverage.ps1
   S1540: every launcher setting is restored by the launcher reset, or excused by name.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 PASS - the reset assigns the whole group and its exceptions match the registry below.; 1 FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
 ```
 
@@ -2736,7 +2832,7 @@ scripts/quality/assert-migration-schema-conformance.ps1
     -Quiet                  [SwitchParameter]
     -Module                 [String]
     -Help                   [SwitchParameter]
-  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory or registration
+  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory, registration file
 ```
 
 ### assert-migration-test-pairing.ps1
@@ -2897,10 +2993,11 @@ S1495 - OSS notice conformance gate.
 scripts/quality/assert-oss-notices.ps1
   S1495 - OSS notice conformance gate.
   Params:
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable; 3 S2828: findings stand, but no file this gate declares as an input is in -ChangedFiles, so
 ```
 
 ### assert-packaging-excludes-parity.ps1
@@ -2992,6 +3089,19 @@ scripts/quality/assert-qualifier-shadowing.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-quantity-format-seam.ps1
+Ratchet gate: a user-facing quantity is formatted by the seam, never by a call site of its own.
+
+```
+scripts/quality/assert-quantity-format-seam.ps1
+  Ratchet gate: a user-facing quantity is formatted by the seam, never by a call site of its own.
+  Params:
+    -Gate                 [SwitchParameter]
+    -List                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 - pass: no offender outside the baseline, or a report/list run.; 1 - fail: an offender outside the baseline.; 2 - could not verify: a source root named below is missing from the checkout.
+```
+
 ### assert-release-scope-gates.ps1
 S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
 
@@ -3050,8 +3160,9 @@ Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548)
 scripts/quality/assert-rule-digest-sync.ps1
   Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548).
   Params:
-    -Gate             [SwitchParameter]
-    -RepoRoot         [String]
+    -Gate                 [SwitchParameter]
+    -RepoRoot             [String]
+    -ChangedFiles         [String[]]
   Exit: 0 - every full digest cites every rule and every labelled closing gate, and every
 ```
 
@@ -3312,6 +3423,23 @@ scripts/quality/assert-ticket-acceptance-probes.ps1
   Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
 ```
 
+### assert-ui-sweep-catalog.ps1
+S2380 - binds the declared phone UI sweep to the app_v2 module it claims to walk.
+
+```
+scripts/quality/assert-ui-sweep-catalog.ps1
+  S2380 - binds the declared phone UI sweep to the app_v2 module it claims to walk.
+  Params:
+    -Gate                     [SwitchParameter]
+    -ChangedFiles             [String]
+    -ScreenList               [String]
+    -ActivityCatalog          [String]
+    -SettingsManifest         [String]
+    -ResRoot                  [String]
+    -SourceRoot               [String]
+  Exit: 0 - no divergence, or reporting mode, or advisory downgrade under -ChangedFiles.; 1 - divergence found and -Gate was passed.; 2 - cannot verify: a declared input file is missing or does not parse.; 3 - advisory: -ChangedFiles was given and named none of this gate's inputs.
+```
+
 ### assert-unreferenced-strings.ps1
 S1568 ratchet gate: no NEW unreferenced name may appear in a module's strings file.
 
@@ -3361,8 +3489,9 @@ S2579: fails when a watch mini-program's canonicalKey is neither a phone route k
 scripts/quality/assert-wear-canonical-key-parity.ps1
   S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 - the rule holds; or a divergence was reported without -Gate, matching the advisory shape; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: a source file is missing, or one of the two literal sets parsed to
 ```
 
@@ -3408,8 +3537,9 @@ S2093: fails when a watch setting exists on one side of the phone/watch pair and
 scripts/quality/assert-wear-settings-parity.ps1
   S2093: fails when a watch setting exists on one side of the phone/watch pair and not the other.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
 ```
 
@@ -3438,10 +3568,11 @@ S2642: a phone/watch wire vocabulary outside the settings channel diverged, or a
 scripts/quality/assert-wear-wire-vocabulary-parity.ps1
   S2642: a phone/watch wire vocabulary outside the settings channel diverged, or a new mirrored one was added without being declared here.
   Params:
-    -Gate              [SwitchParameter]
-    -Quiet             [SwitchParameter]
-    -PhoneRoot         [String]
-    -WatchRoot         [String]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -PhoneRoot            [String]
+    -WatchRoot            [String]
+    -ChangedFiles         [String[]]
   Exit: 0 - parity holds; or a divergence was reported without -Gate.; 1 - a divergence was found and -Gate was passed; or a mirrored enum is declared in both modules
 ```
 
@@ -4175,6 +4306,15 @@ scripts/quality/lib/detekt-report.ps1
 
 ```
 scripts/quality/lib/doc-icon-gate-routing.ps1
+  (no param block)
+```
+
+### fixed-input-scope.ps1
+S2824: shared chargeability test for a gate whose inputs are a fixed, enumerated file list.
+
+```
+scripts/quality/lib/fixed-input-scope.ps1
+  S2824: shared chargeability test for a gate whose inputs are a fixed, enumerated file list.
   (no param block)
 ```
 
@@ -5438,7 +5578,7 @@ Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalo
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalog/preview.ps1's
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify: the resolved SZA harness predates S2834 and does not define
 ```
 
 ## scripts\spec_catalog\release-queue.tests
@@ -5520,7 +5660,7 @@ Collect, validate, and maintain delivery/stream-catalog/streams.csv.
 scripts/streams/collect-stream-candidates.ps1
   Collect, validate, and maintain delivery/stream-catalog/streams.csv.
   Params:
-    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph}
+    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph|language}
     -LautFmImageBudget                [Int32] = 0
     -PerQuery                         [Int32] = 20
     -LivenessTimeoutSec               [Int32] = 12
@@ -5597,6 +5737,10 @@ scripts/streams/collect-stream-candidates.ps1
     -GeoCountries                     [String[]] = @(
         'JP', 'KR', 'BR', 'MX', 'IN', 'AR', 'TR', 'ZA', 'NG', 'PL', 'SE', 'ID', 'TH', 'EG', 'SA'
     )
+    -GeoLanguages                     [String[]] = @(
+        'hindi', 'bengali', 'urdu', 'tamil', 'telugu', 'vietnamese', 'thai', 'indonesian',
+        'swahili', 'amharic', 'persian', 'greek', 'hebrew', 'czech', 'hungarian', 'romanian'
+    )
     -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
@@ -5618,6 +5762,13 @@ scripts/streams.tests/Run-Tests.ps1
 
 ```
 scripts/streams.tests/StreamPublisher.Artwork.Tests.ps1
+  (no param block)
+```
+
+### StreamPublisher.Collections.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Collections.Tests.ps1
   (no param block)
 ```
 
@@ -5684,18 +5835,6 @@ scripts/streams/modules/StreamPublisher.Discovery.ps1
 ```
 scripts/streams/modules/StreamPublisher.Probes.ps1
   (no param block)
-```
-
-## scripts\streams\tests
-
-### StreamPublisher.Collections.Tests.ps1
-Contract suite for the curated-collections builder and its publish gate (S2669).
-
-```
-scripts/streams/tests/StreamPublisher.Collections.Tests.ps1
-  Contract suite for the curated-collections builder and its publish gate (S2669).
-  (no param block)
-  Exit: 0 - every case passed; 1 - at least one case failed
 ```
 
 ## scripts\utils
@@ -6352,6 +6491,18 @@ scripts/utils/monitor-spec-queue.ps1
   Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
 ```
 
+### normalize-all-features-areas.ps1
+One-shot migration: fold the free-string ALL_FEATURES 'area' values onto the closed vocabulary declared in docs/ALL_FEATURES.schema.json (S2842).
+
+```
+scripts/utils/normalize-all-features-areas.ps1
+  One-shot migration: fold the free-string ALL_FEATURES 'area' values onto the closed vocabulary declared in docs/ALL_FEATURES.schema.json (S2842).
+  Params:
+    -Apply           [SwitchParameter]
+    -NoLegal         [SwitchParameter]
+  Exit: 0 - clean: dry run reported its plan, or -Apply wrote the ledger.; 1 - the ledger carries a value this map does not cover, or a record is not JSON.; 2 - cannot run: the schema, its area enum, or the ledger is missing.
+```
+
 ### post-release-cleanup.ps1
 Post-release housekeeping facade - prunes, archives and compresses every temp surface at once.
 
@@ -6450,6 +6601,27 @@ scripts/utils/recover-kapt-stall.ps1
   Params:
     -Task              [String]
     -SkipRetry         [SwitchParameter]
+```
+
+### rename-doc-locale-suffix.ps1
+Rename localized documentation files to the single lowercase hyphen locale suffix (S1211).
+
+```
+scripts/utils/rename-doc-locale-suffix.ps1
+  Rename localized documentation files to the single lowercase hyphen locale suffix (S1211).
+  Params:
+    -RepoRoot         [String]
+```
+
+### repoint-doc-locale-references.ps1
+Rewrite in-repo references to localized documentation filenames onto the hyphen suffix (S1211).
+
+```
+scripts/utils/repoint-doc-locale-references.ps1
+  Rewrite in-repo references to localized documentation filenames onto the hyphen suffix (S1211).
+  Params:
+    -RepoRoot         [String]
+    -Scope            [String] = 'Scripts'  {Scripts|Phone}
 ```
 
 ### run-maestro-smoke.ps1

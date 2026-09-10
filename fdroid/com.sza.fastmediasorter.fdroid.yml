@@ -1,0 +1,46 @@
+# F-Droid build recipe TEMPLATE for the foss variant (S0403).
+#
+# Not consumed by the Gradle build. It is the file that goes to fdroiddata as
+# metadata/com.sza.fastmediasorter.fdroid.yml in a merge request; it lives here so the recipe and
+# the flavor it builds change in one repository, and so a reviewer can see what F-Droid is told.
+#
+# versionName / versionCode / commit are placeholders: fill them from the release tag being
+# submitted. UpdateCheckMode Tags keeps later versions automatic once the first one is accepted.
+
+Categories:
+  - Multimedia
+License: GPL-3.0-only
+AuthorName: Serhii Zhyhunenko
+SourceCode: https://github.com/SerZhyAle/FastMediaSorter_mob_v2
+IssueTracker: https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues
+AutoName: Fast Media Sorter
+
+# The network-share sources (SMB/FTP/SFTP) talk to servers whose software F-Droid cannot audit.
+# NonFreeNet is a label, not a rejection - and it is the honest one for this variant.
+AntiFeatures:
+  - NonFreeNet
+
+RepoType: git
+Repo: https://github.com/SerZhyAle/FastMediaSorter_mob_v2.git
+
+Builds:
+  - versionName: 0.0.0
+    versionCode: 1
+    commit: v0.0.0
+    subdir: app_v2
+
+    # The one prebuilt binary in the repository. The foss variant does not link it, but the F-Droid
+    # scanner flags every .aar by extension and fails the build before Gradle runs - so it is
+    # removed, not ignored (scanignore would leave the file in place).
+    rm:
+      - app_v2/libs/fms-ffmpeg-dts.aar
+
+    # Pin the installed id instead of deriving it from a suffix, so checkupdates and the signature
+    # both see one deterministic value.
+    prebuild: sed -i -e 's/applicationIdSuffix = "\.fdroid"/applicationId = "com.sza.fastmediasorter.fdroid"/' build.gradle.kts
+
+    gradle:
+      - foss
+
+UpdateCheckMode: Tags
+AutoUpdateMode: Version

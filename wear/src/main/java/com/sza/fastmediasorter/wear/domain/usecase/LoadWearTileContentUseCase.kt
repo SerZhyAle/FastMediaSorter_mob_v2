@@ -84,7 +84,6 @@ class LoadWearTileContentUseCase @Inject constructor(
     private suspend fun loadSectionsContent(): WearTileContent {
         val streamsEnabled = preferencesRepository.streamsSectionEnabled.first()
         val visibility = HomeSectionVisibility(streamsEnabled = streamsEnabled)
-        Timber.d("S2511: sections tile content, streamsEnabled=%s", streamsEnabled)
         return WearTileContent.Shortcuts(
             HomeSectionCatalog.tileSectionsFor(visibility).mapNotNull { section ->
                 destinationFor(section.id)?.let { destination ->

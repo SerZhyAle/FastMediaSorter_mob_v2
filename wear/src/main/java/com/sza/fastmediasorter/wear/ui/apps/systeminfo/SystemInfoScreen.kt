@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -12,10 +13,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -23,6 +27,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.CompactChip
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -32,18 +37,32 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoField
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoValue
+import com.sza.fastmediasorter.wear.ui.common.LocalWearSectionExpansion
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
+import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsItem
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
+/**
+ * The key this screen's list position and its open sections are remembered under (S2543, S2806).
+ *
+ * The enumerated fields inside a section take a key of their own: both halves are addressed by a string
+ * resource id, and one shared namespace would let a field label that happens to equal a section title
+ * open the wrong half.
+ */
+private const val SYSTEM_INFO_SCREEN_KEY = "apps/systeminfo"
+private const val SYSTEM_INFO_FIELDS_KEY = "apps/systeminfo/fields"
+
 private val TITLE_BOTTOM_PADDING = 8.dp
-private val SECTION_TOP_PADDING = 10.dp
-private val ROW_VERTICAL_PADDING = 2.dp
+private val SECTION_TOP_PADDING = 14.dp
+private val SECTION_TITLE_BOTTOM_PADDING = 10.dp
+private val ROW_VERTICAL_PADDING = 4.dp
 
 /**
  * What the watch can say about itself, in the same shape the phone's report uses: a section title, then
@@ -56,14 +75,20 @@ private val ROW_VERTICAL_PADDING = 2.dp
 @Composable
 fun SystemInfoScreen(
     viewModel: SystemInfoViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(positionKey = SYSTEM_INFO_SCREEN_KEY)
 ) {
     Timber.d("S2470: system information compact pairs shown")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    // Hoisted out of the row rather than remembered inside it: a ScalingLazyColumn recycles the
-    // composition of a row scrolled off the screen, so state kept in the row would silently collapse a
-    // list the user had opened as soon as they scrolled past it.
-    val expanded = remember { mutableStateMapOf<Int, Boolean>() }
+    // Kept outside the composition rather than in it: a ScalingLazyColumn recycles the composition of a
+    // row scrolled off the screen and navigation destroys the screen outright, so state held in either
+    // place would collapse a group the user had opened. A local store stands in where no memory is
+    // provided - previews and unit tests - so the screen still works, it just forgets on exit.
+    val expansion = LocalWearSectionExpansion.current ?: remember { WearSectionExpansionStore() }
+    // Built here, in the screen's own recompose scope, rather than inside the list content lambda: the
+    // expansion reads must invalidate something that rebuilds the whole item list, and a lazy list's
+    // content lambda is not that scope.
+    val rows = packSettingsRows(reportItems(uiState.sections, expansion), 1)
+    Timber.d("S2806: system information built %d rows from %d sections", rows.size, uiState.sections.size)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -73,7 +98,7 @@ fun SystemInfoScreen(
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             item {
                 Text(
@@ -87,19 +112,28 @@ fun SystemInfoScreen(
             }
             if (uiState.loading) {
                 item {
-                    Text(
-                        text = stringResource(R.string.system_info_loading),
-                        style = MaterialTheme.typography.caption1,
+                    Column(
                         modifier = Modifier.fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Text(
+                            text = stringResource(R.string.system_info_loading),
+                            style = MaterialTheme.typography.caption1,
+                            modifier = Modifier.padding(top = ROW_VERTICAL_PADDING),
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             } else {
                 item {
                     RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
                 }
             }
-            items(packSettingsRows(reportItems(uiState.sections, expanded), 1)) { row ->
+            items(rows) { row ->
                 WearSettingsRow(row)
             }
         }
@@ -133,13 +167,36 @@ private fun RefreshChip(enabled: Boolean, onClick: () -> Unit) {
  *
  * `packSettingsRows` flushes its current run at every full-width item, so marking each title
  * full-width groups the fields under it without the packer learning what a section is (S2008).
+ *
+ * A collapsed section contributes its title and nothing else (S2806). The fields are left OUT of the
+ * list rather than hidden by a modifier: a ScalingLazyColumn counts items, so a hidden row would still
+ * be one crown notch to scroll past, which is the very cost this screen was reported for.
  */
 private fun reportItems(
     sections: List<WearSystemInfoSection>,
-    expanded: MutableMap<Int, Boolean>
+    expansion: WearSectionExpansionStore
 ): List<WearSettingsItem> = buildList {
-    sections.forEach { section ->
-        add(WearSettingsItem(fullWidth = true) { SectionTitle(section.titleRes) })
+    sections.forEachIndexed { index, section ->
+        if (index > 0) {
+            add(WearSettingsItem(fullWidth = true) { WearReportDivider() })
+        }
+        val open = expansion.isExpanded(SYSTEM_INFO_SCREEN_KEY, section.titleRes)
+        add(
+            WearSettingsItem(fullWidth = true) {
+                SectionTitle(
+                    titleRes = section.titleRes,
+                    hiddenCount = if (open) null else section.fields.size,
+                    open = open,
+                    onToggle = {
+                        Timber.d("S2806: section %d toggled, was open=%b", section.titleRes, open)
+                        expansion.toggle(SYSTEM_INFO_SCREEN_KEY, section.titleRes)
+                    }
+                )
+            }
+        )
+        if (!open) {
+            return@forEachIndexed
+        }
         val emptyReasonRes = section.emptyReasonRes
         if (section.fields.isEmpty() && emptyReasonRes != null) {
             add(WearSettingsItem(fullWidth = true) { SectionEmptyReason(emptyReasonRes) })
@@ -152,10 +209,10 @@ private fun reportItems(
                 add(
                     WearSettingsItem(fullWidth = true) {
                         EnumeratedRow(
-                            labelRes = field.labelRes,
+                            field = field,
                             entries = enumerated.entries,
-                            open = expanded[field.labelRes] == true,
-                            onToggle = { expanded[field.labelRes] = expanded[field.labelRes] != true }
+                            open = expansion.isExpanded(SYSTEM_INFO_FIELDS_KEY, field.labelRes),
+                            onToggle = { expansion.toggle(SYSTEM_INFO_FIELDS_KEY, field.labelRes) }
                         )
                     }
                 )
@@ -172,7 +229,7 @@ private fun reportItems(
  */
 @Composable
 private fun EnumeratedRow(
-    @StringRes labelRes: Int,
+    field: WearSystemInfoField,
     entries: List<String>,
     open: Boolean,
     onToggle: () -> Unit
@@ -182,10 +239,11 @@ private fun EnumeratedRow(
     )
     Column(modifier = Modifier.fillMaxWidth()) {
         WearInformationRow(
-            labelRes = labelRes,
+            labelRes = field.labelRes,
             value = entries.size.toString(),
             onClick = onToggle,
-            accessibilitySuffix = hint
+            accessibilitySuffix = hint,
+            accentColor = accentColor(field)
         )
         if (open) {
             entries.forEach { entry ->
@@ -219,15 +277,31 @@ private fun SectionEmptyReason(@StringRes reasonRes: Int) {
     )
 }
 
+/**
+ * The section heading, which is also the control that opens and closes the section (S2806).
+ *
+ * A closed section carries the number of lines it is holding back: without it the report reads as a
+ * list of empty headings and gives no reason to open any particular one. The count is written as a
+ * bare number in brackets, so the thirteen declared locales need no new string for it.
+ *
+ * The clickable is applied before the padding so the padding is part of the touch target - a heading
+ * is one line of caption text, which on its own is well under a comfortable target on a watch.
+ */
 @Composable
-private fun SectionTitle(titleRes: Int) {
+private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onToggle: () -> Unit) {
+    val title = stringResource(titleRes)
+    val hint = stringResource(
+        if (open) R.string.system_info_collapse_hint else R.string.system_info_expand_hint
+    )
     Text(
-        text = stringResource(titleRes),
+        text = if (hiddenCount == null) title else "$title ($hiddenCount)",
         style = MaterialTheme.typography.caption1,
         color = MaterialTheme.colors.primary,
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = SECTION_TOP_PADDING),
+            .clickable(onClick = onToggle)
+            .padding(top = SECTION_TOP_PADDING, bottom = SECTION_TITLE_BOTTOM_PADDING)
+            .semantics { contentDescription = "$title. $hint" },
         textAlign = TextAlign.Center
     )
 }
@@ -242,5 +316,13 @@ private fun valueOf(field: WearSystemInfoField): String = when (val fieldValue =
 }
 
 @Composable
+private fun accentColor(field: WearSystemInfoField): Color? =
+    if (field.accentHint) MaterialTheme.colors.error else null
+
+@Composable
 private fun SystemInfoRow(field: WearSystemInfoField) =
-    WearInformationRow(labelRes = field.labelRes, value = valueOf(field))
+    WearInformationRow(
+        labelRes = field.labelRes,
+        value = valueOf(field),
+        accentColor = accentColor(field)
+    )

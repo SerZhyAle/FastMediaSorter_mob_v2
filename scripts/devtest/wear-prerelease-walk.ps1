@@ -20,6 +20,10 @@
                     `failed` does - a screen nobody reached satisfies no Play requirement - but it
                     is reported apart from it, because "the walk could not get there" and "the app
                     is broken" call for opposite reactions and both used to print `failed (tap)`.
+                    S2779 splits the detail line one level further: reached for from a position this
+                    run restored in full, the control is genuinely not where the screen list places
+                    it; reached for from a position that could not be restored, the walk may still
+                    be standing somewhere else.
       manual   - nothing could be decided: the dump itself failed, or the screen is state-dependent
                  and its absence on a clean install proves nothing. A human still has to look.
       skipped  - an entry declared `optional` whose control is not on screen in this run. The first
@@ -40,6 +44,11 @@
 .PARAMETER ScreenList
     The declared walk. Default: the list shipped beside this script.
 
+.PARAMETER RehomeAfterUnreachable
+    How many consecutive `unreachable` entries mean the walk has lost its position rather than met
+    that many absent controls. On reaching the count it relaunches the app and taps back down to the
+    position it was tracking, then carries on. 0 disables the recovery.
+
 .PARAMETER SkipLogAudit
     Walk the screens but do not harvest or audit the log. Recorded in the output.
 
@@ -58,9 +67,14 @@
       1  at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
          log audit reported a finding
       2  could not verify: the watch display could not be woken (S2547 - every reading under a
-         sleeping display describes the watch face, not this app), the screen list is missing or
-         unreadable, no device, or a called script is absent. A screen recorded `manual` does not by
-         itself set this code - it is reported and carried into the verdict, which refuses the PASS.
+         sleeping display describes the watch face, not this app), the battery is below -MinBatteryPct
+         (S2794 - a dying battery triggers a system panel that takes the display, and every screen
+         reading under it describes the panel, not this app), the screen list is missing or
+         unreadable, no device, a called script is absent, or clip-check could not run on at least
+         one screen (S2782 - `shapeUnchecked`, a wrapper failure rather than a shape verdict; the
+         glass was never judged there, which is not the same answer as judging it clean). A screen
+         recorded `manual` does not by itself set this code - it is reported and carried into the
+         verdict, which refuses the PASS.
 #>
 [CmdletBinding()]
 param(
@@ -83,6 +97,19 @@ param(
     # length is a property of the user's history, not of the app. A per-entry `maxScrolls` overrides it.
     [int]$MaxScrolls = 12,
 
+    # S2779 - how many entries in a row may be recorded `unreachable` before the walk stops believing
+    # the controls are absent and starts believing it is standing somewhere it should not be. On that
+    # count it relaunches the app and taps its way back to the position it was tracking. 0 disables
+    # the recovery, which reproduces a pre-S2779 run.
+    [int]$RehomeAfterUnreachable = 2,
+
+    # S2794 - refuse to walk a watch whose battery is too low to survive the run. A dying watch
+    # triggers Samsung's low-battery panel, which takes the display and turns every screen reading
+    # into a reading of the panel - fifteen false verdicts in one 2026-09-09 run. Below this
+    # threshold the walk exits 2 (could-not-verify), the same code S2547 uses for a sleeping display.
+    # 0 disables the check, reproducing a pre-S2794 run.
+    [int]$MinBatteryPct = 20,
+
     [switch]$SkipLogAudit,
 
     [switch]$SkipShapeCheck,
@@ -100,6 +127,10 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $adbWrapper = Join-Path $repoRoot 'scripts/devtest/adb.ps1'
 $logAudit = Join-Path $repoRoot 'scripts/devtest/prerelease-log-audit.ps1'
 . (Join-Path $PSScriptRoot 'lib/wear-wakefulness.ps1')
+. (Join-Path $PSScriptRoot 'lib/clip-shape-outcome.ps1')
+. (Join-Path $PSScriptRoot 'lib/wear-walk-position.ps1')
+. (Join-Path $PSScriptRoot 'lib/wear-foreign-window.ps1')
+. (Join-Path $PSScriptRoot 'lib/wear-battery.ps1')
 if (-not $ScreenList) { $ScreenList = Join-Path $PSScriptRoot 'wear-prerelease-screens.json' }
 
 $result = [ordered]@{
@@ -108,6 +139,7 @@ $result = [ordered]@{
     device        = $null
     outDir        = $null
     screenSize    = $null
+    batteryPct    = $null
     screens       = @()
     counts        = $null
     coverage      = $null
@@ -200,6 +232,23 @@ function Restore-AmbientSetting {
 if (-not (Assert-WalkDisplayAwake -SettleFor $SettleMs)) {
     Restore-AmbientSetting
     Stop-Run 2 'the watch display is not awake (mWakefulness is not Awake, or dumpsys power could not be read). Every screen reading under a sleeping display describes the watch face, not this app.'
+}
+
+# S2794 - battery precondition. A dying watch triggers Samsung's low-battery panel, which takes the
+# display and turns every screen reading into a reading of the panel. The walk never reported the
+# charge, so a run on a dying watch looked like a defect report. Read it once at start; below the
+# threshold, exit 2 (could-not-verify) the same way S2547 exits 2 for a sleeping display. An
+# unreadable level is not a refusal - it is a question, and answering it with "probably fine" is the
+# same error that made the 2026-09-04 run report sixteen confident readings of the wrong app.
+if ($MinBatteryPct -gt 0) {
+    $batteryProbe = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys battery')
+    $batteryPct = $null
+    if ($batteryProbe.Exit -eq 0) { $batteryPct = Get-BatteryLevel $batteryProbe.Output }
+    $result.batteryPct = $batteryPct
+    if ($null -ne $batteryPct -and $batteryPct -lt $MinBatteryPct) {
+        Restore-AmbientSetting
+        Stop-Run 2 "the watch battery is at $batteryPct% (below the $MinBatteryPct% minimum). A dying battery triggers a system panel that takes the display, and every screen reading under it describes the panel, not this app."
+    }
 }
 
 # Scroll geometry, read from the device rather than assumed: a round watch, a square one and an
@@ -301,6 +350,121 @@ function Reset-ListToTop {
 
 $rows = @()
 
+# S2779 - the walk's standing position, as a stack of the labels tapped to get there. It is grown and
+# shrunk by the entry loop through `lib/wear-walk-position.ps1` and read only by the recovery below.
+$position = @()
+$consecutiveUnreachable = 0
+$rehomeCount = 0
+
+function Invoke-ReachControl {
+    # Tap one control, scrolling to it when it is not on screen yet. A watch list shows three or four
+    # entries at a time, so most of a section's chips start below the fold and a tap verb only sees
+    # what is currently rendered. Without the hunt the walk reports a working screen as unreachable,
+    # which is what the second live run did to every entry after the fourth.
+    #
+    # S2779 made this a function so the position replay below reaches a control the same way an entry
+    # does. It was a bare tap first, and measured on emulator-5554 2026-09-09 that restored 0 of 2
+    # levels from a fresh launch: `Apps` is the fourth row of Home on a 384x384 round face, below the
+    # fold, so the replay missed a chip the entry loop reaches every run.
+    param([string]$ResourceId, [string]$Label, [int]$Cap, [int]$SettleFor)
+
+    $reach = {
+        if ($ResourceId) { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $ResourceId) }
+        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $Label) }
+    }
+
+    # Reach for the control where the walk is standing BEFORE moving the list (S2767). Most entries
+    # return to their parent list exactly where their control still shows, so the common case costs
+    # one tap and no scrolling at all - and since the settling reset below reads the tree after every
+    # swipe, skipping it when it is not needed is most of this walk's running time. It is also the
+    # safer order: the fewer swipes a run spends, the fewer chances a swipe has to land on something.
+    $tap = & $reach
+    if ($tap.Exit -ne 0) {
+        # Start from the top of whatever list this is. The hunt below travels one way only, so without
+        # this a control sitting above the previous entry's stopping point is unreachable no matter how
+        # many times it scrolls - and which ones those are depends on where the last one stopped, which
+        # is precisely the run-to-run divergence the declared list exists to remove.
+        Reset-ListToTop -Cap $Cap -SettleFor $SettleFor
+    }
+    # Then hunt downwards from the top, one swipe and one reach at a time. An `optional` entry passes
+    # 0 here and so is reached for exactly once, where it stands, and never hunted.
+    $lastSeen = $null
+    for ($try = 0; $try -lt $Cap -and $tap.Exit -ne 0; $try++) {
+        Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
+        Start-Sleep -Milliseconds $SettleFor
+        $tap = & $reach
+        if ($tap.Exit -eq 0) { break }
+        # S2767: stop at the end of the list rather than at the end of the budget. Past the last row
+        # every further swipe is an overscroll, and a run of those is what opens the row under the
+        # finger - so spending a leftover budget here is not merely wasted, it moves the walk to a
+        # screen the next entry will be judged on.
+        $current = Read-UiNodes
+        if ($null -ne $current -and $current -eq $lastSeen) { break }
+        if ($null -ne $current) { $lastSeen = $current }
+    }
+    return $tap
+}
+
+function Restore-WalkPosition {
+    # S2779 - relaunch the app and tap back down to $Path. Returns how many of its labels were
+    # re-entered, so the caller can tell "restored, and the control is still not there" from
+    # "the replay itself came up short" - the first is a screen-list defect, the second is a walk that
+    # is still lost, and reporting them alike is what left the 2026-09-09 run with eleven identical
+    # `unreachable (control not found)` lines and no diagnosis.
+    #
+    # The relaunch is the recovery's whole point: Home is the one position this script can reach
+    # without knowing where it currently is. A BACK chain cannot do it - the depth is exactly the
+    # unknown - and a gesture would be device-specific.
+    param([object[]]$Path, [int]$SettleFor, [int]$Cap)
+
+    # Force-stop BEFORE the launch, or the recovery recovers nothing. `adb.ps1 launch` is
+    # `am start -n <pkg>/<activity>`, which RESUMES a live task at whatever screen it was left on -
+    # so relaunching an app that is stuck inside the Calculator returns to the Calculator. Measured on
+    # emulator-5554 2026-09-09: the replay restored 0 of 2 levels twice in a row for this reason, and
+    # the first level it tried to re-enter was already on screen behind it. The app-in-front guard has
+    # carried the same flaw since S1984 - it relaunches an app that LEFT the foreground, and a task
+    # left alive resumes where it was rather than at the start destination.
+    Invoke-AdbVerb -Arguments @('stop', '-Module', 'wear', '-Release') | Out-Null
+    Start-Sleep -Milliseconds $SettleFor
+    Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Release') | Out-Null
+    Start-Sleep -Milliseconds $SettleFor
+
+    $restored = 0
+    # Filtered, not merely wrapped: an empty [object[]] parameter binds as $null, and `@($null)` is a
+    # one-element array holding nothing - which sent a `tap-label -Label ''` at the device the first
+    # time a cascade fired from Home, on a fixture whose first three entries pushed no level at all.
+    foreach ($level in @($Path | Where-Object { $null -ne $_ })) {
+        # Through the shared reach, so a level is re-entered exactly as its entry entered it: hunted
+        # down the list when it is below the fold, and by id rather than by a translated label where
+        # the level has one (CLAUDE.md section 9).
+        $step = Invoke-ReachControl -ResourceId $level.resourceId -Label $level.label -Cap $Cap -SettleFor $SettleFor
+        if ($step.Exit -ne 0) { break }
+        Start-Sleep -Milliseconds $SettleFor
+        $restored++
+    }
+    return $restored
+}
+
+# --- Foreign-window check (S2794) ----------------------------------------------------------------
+
+function Get-ForeignWindowPackage {
+    # Read the top visible window and return its package when it does NOT belong to the app. Returns
+    # $null when the app's window is on top, when `dumpsys window` is unreadable, or when no focused
+    # window can be parsed - $null means "not foreign", so the caller proceeds normally.
+    #
+    # The app-in-front guard reads `ResumedActivity` from `dumpsys activity activities`, but a system
+    # window (Samsung's low-battery panel, a permission dialog) is a window, not an activity, so the
+    # app remains the resumed activity and the guard sees the app as "in front". `mCurrentFocus` from
+    # `dumpsys window` names the window actually drawn on top, which is the signal the guard cannot
+    # read. Measured 2026-09-09 on SM-L310: fifteen false verdicts in one run because the panel took
+    # the display and the tree returned its content, not the app's.
+    $dump = Invoke-AdbVerb -Arguments @('shell', '-Cmd', 'dumpsys window')
+    if ($dump.Exit -ne 0) { return $null }
+    $pkg = Get-TopWindowPackage $dump.Output
+    if ($null -eq $pkg -or $pkg -eq $APP_PACKAGE) { return $null }
+    return $pkg
+}
+
 foreach ($screen in $screens) {
     $row = [ordered]@{
         id       = $screen.id
@@ -309,6 +473,9 @@ foreach ($screen in $screens) {
         detail   = $null
         shot     = $null
         rehomed  = $false
+        # The names rather than the level objects: walk.json is read by an operator diagnosing a run,
+        # and `Apps > Calculator` is the whole answer to "where was this reached from".
+        position = @($position | ForEach-Object { $_.name })
     }
 
     # Settle before reaching for the control too: the previous entry's BACK is still animating when
@@ -325,16 +492,41 @@ foreach ($screen in $screens) {
         Stop-Run 2 "the watch display fell asleep before '$($screen.id)' and could not be woken; the screens after it were never observed."
     }
 
+    # Two reasons to go back to a known position, and one recovery for both.
+    #
     # Is the app still in front? One BACK too many leaves it, and everything after that is measured
     # against the watch launcher while still being reported as this app's screens - nine failures in a
     # row on 2026-08-26, of which one was real. Re-entering costs a launch; not re-entering costs the
     # rest of the run, so the walk re-homes and says it did rather than carrying on blind.
+    #
+    # S2779 - or the walk is still inside its own package and lost anyway. A screen that swallowed a
+    # BACK, or a `backAfter` that no longer matches its section, leaves the app in front and the walk
+    # standing somewhere no later entry's control can be: on 2026-09-09 that made eleven consecutive
+    # entries `unreachable` and spent 23 of the run's 35 minutes hunting for controls that were never
+    # on screen. A run of unreachable outcomes is the symptom the guard above cannot see, so the
+    # recovery is keyed on it as well.
+    #
+    # Both branches now REPLAY the tracked position rather than merely relaunching. The relaunch alone
+    # lands on Home, and an entry declared inside a section - every settings page, every Apps page - is
+    # unreachable from Home by construction, so a recovery that stopped at the launch would turn one
+    # lost position into a cascade of its own.
     $current = Invoke-AdbVerb -Arguments @('current')
-    if ($current.Exit -eq 0 -and $current.Output -notmatch [regex]::Escape($APP_PACKAGE)) {
-        $relaunch = Invoke-AdbVerb -Arguments @('launch', '-Module', 'wear', '-Release')
-        Start-Sleep -Milliseconds $entrySettleMs
+    $appLeft = ($current.Exit -eq 0 -and $current.Output -notmatch [regex]::Escape($APP_PACKAGE))
+    $cascade = Test-WearWalkCascade -ConsecutiveUnreachable $consecutiveUnreachable -Threshold $RehomeAfterUnreachable
+    $positionRestored = $false
+    if ($appLeft -or $cascade) {
+        $wanted = @($position).Count
+        $restored = Restore-WalkPosition -Path $position -SettleFor $entrySettleMs -Cap $MaxScrolls
+        $positionRestored = ($restored -eq $wanted)
+        $rehomeCount++
+        $consecutiveUnreachable = 0
         $row.rehomed = $true
-        if (-not $Json) { Write-Host "walk: $($screen.id) - app was not in front, relaunched (exit $($relaunch.Exit))" -ForegroundColor Yellow }
+        $row['rehomeReason'] = if ($appLeft) { 'the app was not in front' }
+                               else { "$RehomeAfterUnreachable consecutive unreachable entries" }
+        $row['rehomeRestored'] = "$restored/$wanted"
+        if (-not $Json) {
+            Write-Host "walk: $($screen.id) - re-homed ($($row.rehomeReason)), position restored $restored/$wanted" -ForegroundColor Yellow
+        }
     }
 
     # Reach the control, scrolling when it is not on screen yet. A watch list shows three or four
@@ -348,41 +540,8 @@ foreach ($screen in $screens) {
     $scrolls = if ($null -ne $screen.maxScrolls) { [int]$screen.maxScrolls }
                elseif ($screen.optional) { 0 }
                else { $MaxScrolls }
-    $reachControl = {
-        if ($screen.resourceId) { Invoke-AdbVerb -Arguments @('tap-id', '-ResourceId', $screen.resourceId) }
-        else { Invoke-AdbVerb -Arguments @('tap-label', '-Label', $screen.label) }
-    }
     if ($screen.resourceId -or $screen.label) {
-        # Reach for the control where the walk is standing BEFORE moving the list (S2767). Most entries
-        # return to their parent list exactly where their control still shows, so the common case costs
-        # one tap and no scrolling at all - and since the settling reset below reads the tree after
-        # every swipe, skipping it when it is not needed is most of this walk's running time. It is
-        # also the safer order: the fewer swipes a run spends, the fewer chances a swipe has to land
-        # on something.
-        $tap = & $reachControl
-        if ($tap.Exit -ne 0) {
-            # Start from the top of whatever list this is. The hunt below travels one way only, so
-            # without this an entry sitting above the previous entry's stopping point is unreachable
-            # no matter how many times it scrolls - and which entries those are depends on where the
-            # last one stopped, which is precisely the run-to-run divergence this list exists to remove.
-            Reset-ListToTop -Cap $scrolls -SettleFor $entrySettleMs
-        }
-        # Then hunt downwards from the top, one swipe and one reach at a time. An `optional` entry
-        # passes 0 here and so is reached for exactly once, where it stands, and never hunted.
-        $lastSeen = $null
-        for ($try = 0; $try -lt $scrolls -and $tap.Exit -ne 0; $try++) {
-            Invoke-AdbVerb -Arguments @('swipe', '-X', $swipe.X1, '-Y', $swipe.Y1, '-X2', $swipe.X2, '-Y2', $swipe.Y2, '-Duration', '400') | Out-Null
-            Start-Sleep -Milliseconds $entrySettleMs
-            $tap = & $reachControl
-            if ($tap.Exit -eq 0) { break }
-            # S2767: stop at the end of the list rather than at the end of the budget. Past the last
-            # row every further swipe is an overscroll, and a run of those is what opens the row under
-            # the finger - so spending a leftover budget here is not merely wasted, it moves the walk
-            # to a screen the next entry will be judged on.
-            $current = Read-UiNodes
-            if ($null -ne $current -and $current -eq $lastSeen) { break }
-            if ($null -ne $current) { $lastSeen = $current }
-        }
+        $tap = Invoke-ReachControl -ResourceId $screen.resourceId -Label $screen.label -Cap $scrolls -SettleFor $entrySettleMs
     }
 
     if ($tap -and $tap.Exit -ne 0) {
@@ -396,6 +555,19 @@ foreach ($screen in $screens) {
             if (-not $Json) { Write-Host "walk: $($screen.id) -> skipped (optional)" -ForegroundColor Gray }
             continue
         }
+        # S2794 - before declaring the screen unreachable, check whether a foreign system window took
+        # the display. The control was not found because the tree returned the intruding window, not
+        # the app - which is not a walk that lost its position and not an app that is broken. A
+        # foreign-window `manual` does not increment `consecutiveUnreachable` (the position is not
+        # lost) and does not fire the cascade recovery (which would relaunch into the same panel).
+        $foreignPkg = Get-ForeignWindowPackage
+        if ($null -ne $foreignPkg) {
+            $row.outcome = 'manual'
+            $row.detail = "a foreign system window is on top ($foreignPkg); the control was not found because the app is behind it, not broken"
+            $rows += [pscustomobject]$row
+            if (-not $Json) { Write-Host "walk: $($screen.id) -> manual (foreign window: $foreignPkg)" -ForegroundColor Yellow }
+            continue
+        }
         # S2767: never opened, so nothing about this screen was judged - which is a different report
         # from "opened and wrong", not a milder one. Both block the PASS; only this one means the walk
         # itself came up short, and printing both as `failed (tap)` is what made an unreached screen
@@ -405,12 +577,35 @@ foreach ($screen in $screens) {
         # OPENED; the tap never fired, so the walk is still standing on the parent list, and climbing
         # out of that would leave the section its neighbouring entries are still walking. The cascade
         # this branch used to start is removed where it began - the reset above no longer navigates.
+        #
+        # S2779 - and say which of the two questions this answer settles. An entry reached for from a
+        # position this iteration restored in full was judged from a known place, so its control is
+        # genuinely not where the screen list says it is; one reached for from a position the replay
+        # could not restore, or from no recovery at all, may be either that or a walk still standing
+        # somewhere else. The two call for opposite reactions - edit the screen list, or fix the
+        # walk's navigation - and printing both as `control not found` is what left the 2026-09-09 run
+        # with eleven identical lines and no way to tell which kind it had.
         $row.outcome = 'unreachable'
-        $row.detail = "could not reach the screen, so it was never opened or judged: $($tap.Output)"
+        $row.detail = if ($positionRestored) {
+            "the control is not on the screen the list places it on: reached for from a position restored in full ($($row.rehomeRestored)) - $($tap.Output)"
+        }
+        else {
+            "could not reach the screen, so it was never opened or judged: $($tap.Output)"
+        }
         $rows += [pscustomobject]$row
-        if (-not $Json) { Write-Host "walk: $($screen.id) -> unreachable (control not found)" -ForegroundColor Red }
+        $consecutiveUnreachable++
+        if (-not $Json) {
+            $why = if ($positionRestored) { 'control absent from a restored position' } else { 'control not found' }
+            Write-Host "walk: $($screen.id) -> unreachable ($why)" -ForegroundColor Red
+        }
         continue
     }
+
+    # The control answered, so this entry OPENED and the walk is one level deeper than it was. Pushed
+    # here rather than at the end of the iteration because every `continue` above leaves without
+    # opening anything, and an entry that never opened moves nothing (S2779).
+    $position = Push-WearWalkPosition -Position $position -Entry $screen
+    $consecutiveUnreachable = 0
 
     # Settle, then look, then look once more. A watch screen is still animating when the tap returns,
     # and a tree read mid-transition shows the screen being left rather than the one being entered -
@@ -468,26 +663,38 @@ foreach ($screen in $screens) {
         continue
     }
 
-    $shapeFailed = $false
+    # S2782: 'clean' | 'finding' | 'unchecked'. The last one is clip-check's own wrapper failing, not
+    # a statement about the glass, and it must not be printed as a WO-V16 violation.
+    $shapeClass = 'clean'
     if ($present) {
         $row.outcome = 'observed'
         if (-not $SkipShapeCheck) {
             $clip = Invoke-AdbVerb -Arguments @('clip-check')
             $row['shapeExit'] = $clip.Exit
-            if ($clip.Exit -ne 0) {
-                $row['shapeDetail'] = $clip.Output
-                $shapeFailed = $true
-            }
+            $shapeClass = Get-ClipShapeClass $clip.Exit
+            if ($shapeClass -ne 'clean') { $row['shapeDetail'] = $clip.Output }
         }
     }
-    elseif ($screen.stateDependent) {
-        # Absence proves nothing here: the screen only exists once the user has created the state it
-        # lists, so a clean install is expected to lack it and a human decides whether that is right.
-        $row.detail = "expected '$($screen.expect)' absent, and this screen is state-dependent - a human must judge it"
-    }
     else {
-        $row.outcome = 'failed'
-        $row.detail = "expected '$($screen.expect)' is not on the screen"
+        # S2794 - the expected token was not found. Before declaring a product defect or a
+        # state-dependent absence, check whether a foreign system window took the display: the tree
+        # read may have returned the intruding window's content, not the app's. The control was tapped
+        # (the screen opened), so the walk still owes its `backAfter` BACK presses below - this is why
+        # the foreign-window case does not `continue` like the unreachable one does.
+        $foreignPkg = Get-ForeignWindowPackage
+        if ($null -ne $foreignPkg) {
+            $row.outcome = 'manual'
+            $row.detail = "a foreign system window is on top ($foreignPkg); expected '$($screen.expect)' was not read because the app is behind it, not broken"
+        }
+        elseif ($screen.stateDependent) {
+            # Absence proves nothing here: the screen only exists once the user has created the state it
+            # lists, so a clean install is expected to lack it and a human decides whether that is right.
+            $row.detail = "expected '$($screen.expect)' absent, and this screen is state-dependent - a human must judge it"
+        }
+        else {
+            $row.outcome = 'failed'
+            $row.detail = "expected '$($screen.expect)' is not on the screen"
+        }
     }
 
     $shot = Invoke-AdbVerb -Arguments @('shot', '-OutDir', $outPath)
@@ -498,8 +705,9 @@ foreach ($screen in $screens) {
 
     $rows += [pscustomobject]$row
     if (-not $Json) {
-        $colour = switch ($row.outcome) { 'observed' { if ($shapeFailed) { 'Red' } else { 'Green' } } 'failed' { 'Red' } default { 'Yellow' } }
-        $shapeNote = if ($shapeFailed) { " (OFF-GLASS)" } else { "" }
+        $shapeColour = switch ($shapeClass) { 'finding' { 'Red' } 'unchecked' { 'Yellow' } default { 'Green' } }
+        $colour = switch ($row.outcome) { 'observed' { $shapeColour } 'failed' { 'Red' } default { 'Yellow' } }
+        $shapeNote = switch ($shapeClass) { 'finding' { ' (OFF-GLASS)' } 'unchecked' { ' (shape unchecked)' } default { '' } }
         Write-Host "walk: $($screen.id) -> $($row.outcome)$shapeNote" -ForegroundColor $colour
     }
 
@@ -508,6 +716,7 @@ foreach ($screen in $screens) {
     # comes back out by the same number of steps it went in by.
     $backAfter = if ($null -ne $screen.backAfter) { [int]$screen.backAfter } else { 1 }
     for ($b = 0; $b -lt $backAfter; $b++) { Invoke-AdbVerb -Arguments @('key', '-Key', 'BACK') | Out-Null }
+    $position = Pop-WearWalkPosition -Position $position -BackAfter $backAfter
 }
 
 $result.screens = $rows
@@ -523,13 +732,22 @@ $result['coverage'] = [ordered]@{
     entries  = $screens.Count
 }
 
-$shapeFailuresCount = @($rows | Where-Object { $_.shapeExit -and $_.shapeExit -ne 0 }).Count
+# S2782: both counts come from Get-ClipShapeClass, the same classifier the verdict reads the rows
+# with, so the two halves of the sweep cannot disagree about what a given exit code meant.
+$shapeFailuresCount  = @($rows | Where-Object { (Get-ClipShapeClass $_.shapeExit) -eq 'finding' }).Count
+$shapeUncheckedCount = @($rows | Where-Object { (Get-ClipShapeClass $_.shapeExit) -eq 'unchecked' }).Count
 $result.counts = [ordered]@{
-    observed      = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
-    failed        = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
-    unreachable   = @($rows | Where-Object { $_.outcome -eq 'unreachable' }).Count
-    manual        = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
-    shapeFailures = $shapeFailuresCount
+    observed       = @($rows | Where-Object { $_.outcome -eq 'observed' }).Count
+    failed         = @($rows | Where-Object { $_.outcome -eq 'failed' }).Count
+    unreachable    = @($rows | Where-Object { $_.outcome -eq 'unreachable' }).Count
+    manual         = @($rows | Where-Object { $_.outcome -eq 'manual' }).Count
+    shapeFailures  = $shapeFailuresCount
+    shapeUnchecked = $shapeUncheckedCount
+    # S2779: reported, never scored. A re-home says the walk recovered a position it had lost, which
+    # is the sweep working rather than the app failing - the screens it recovered are judged by their
+    # own outcomes above, and adding a count of recoveries to the arithmetic would fail a run for
+    # having handled its own navigation.
+    rehomes        = $rehomeCount
 }
 
 # --- Log harvest and audit ----------------------------------------------------------------------
@@ -565,8 +783,12 @@ $walkPath = Join-Path $outPath 'walk.json'
 # S2767: an unreachable screen counts against the run exactly as a failed one does. It satisfied no
 # Play requirement, and letting it pass would be the green verdict about the unseen that this walk
 # exists to prevent.
+#
+# S2782: a shape nobody could check is the OTHER answer, and it takes the could-not-verify code. The
+# walk used to spend exit 1 on it, which reads as "the app breaks WO-V16" and routes the operator to
+# rebuild - so an adb hiccup cost the same as a real violation and looked identical in the report.
 $verdict = if ($result.counts.failed -gt 0 -or $result.counts.unreachable -gt 0 -or $shapeFailuresCount -gt 0 -or $result.logAuditExit -eq 1) { 1 }
-           elseif ($result.logAuditExit -eq 2) { 2 }
+           elseif ($shapeUncheckedCount -gt 0 -or $result.logAuditExit -eq 2) { 2 }
            else { 0 }
 
 $result.exitCode = $verdict
@@ -574,6 +796,7 @@ $result.ok = ($verdict -eq 0)
 
 if ($Json) { [pscustomobject]$result | ConvertTo-Json -Depth 8 -Compress }
 else {
-    Write-Host ("wear-prerelease-walk: observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
+    $batteryNote = if ($null -ne $result.batteryPct) { "battery $($result.batteryPct)%; " } else { '' }
+    Write-Host ("wear-prerelease-walk: ${batteryNote}observed $($result.counts.observed), failed $($result.counts.failed), unreachable $($result.counts.unreachable), manual $($result.counts.manual), shapeFailures $shapeFailuresCount, shapeUnchecked $shapeUncheckedCount, rehomes $rehomeCount; coverage $($result.coverage.walked) walked + $($result.coverage.excluded) excluded; log audit $($result.logAuditExit); walk $walkPath") -ForegroundColor Cyan
 }
 exit $verdict

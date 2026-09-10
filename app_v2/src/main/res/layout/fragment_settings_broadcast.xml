@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2817: Media-tab Broadcast section body - five configurable broadcast preferences. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingHorizontal="@dimen/margin_small"
+    android:paddingVertical="@dimen/margin_small">
+
+    <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+        android:id="@+id/rowStreamTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        app:sir_title="@string/settings_broadcast_stream_title"
+        app:sir_hint="@string/settings_broadcast_stream_title_hint" />
+
+    <com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup
+        android:id="@+id/broadcastConfigGroup"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowBitRate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:focusable="true"
+            android:clickable="true"
+            app:sdr_valueAsText="true"
+            app:sdr_title="@string/settings_broadcast_bit_rate" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
+            android:id="@+id/rowPort"
+            android:layout_width="@dimen/settings_input_numeric_max_width"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:focusable="true"
+            android:clickable="true"
+            app:sir_title="@string/settings_broadcast_port"
+            app:sir_inputType="2"
+            app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowAudioFormat"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:focusable="true"
+            android:clickable="true"
+            app:sdr_valueAsText="true"
+            app:sdr_title="@string/settings_broadcast_audio_format" />
+
+    </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
+
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowAutoOpenShare"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        app:str_title="@string/settings_broadcast_auto_share"
+        app:str_subtitle="@string/settings_broadcast_auto_share_summary" />
+
+</LinearLayout>

@@ -28,6 +28,9 @@ object StreamsSettingsStore {
     // S1148: opt-in resilient radio buffering profile (start-up cushion + silent loader reconnects).
     private val KEY_SMART_BUFFERING = booleanPreferencesKey("streams_smart_buffering")
 
+    // S1143: opt-in full-screen visualizer player for audio channels, replacing the inline mini-control.
+    private val KEY_VISUALIZE_AS_MUSIC = booleanPreferencesKey("streams_visualize_as_music")
+
     // S1144: global default track languages for stream playback; a per-channel preference overrides them.
     private val KEY_DEFAULT_AUDIO_LANGUAGE = stringPreferencesKey("streams_default_audio_language")
     private val KEY_DEFAULT_SUBTITLE_LANGUAGE = stringPreferencesKey("streams_default_subtitle_language")
@@ -40,6 +43,7 @@ object StreamsSettingsStore {
         val streamsCatalogRefreshPolicy: StreamsCatalogRefreshPolicy,
         val showStreamsPanelInMainWindow: Boolean,
         val streamsSmartBuffering: Boolean,
+        val streamsVisualizeAsMusic: Boolean,
         val streamsDefaultAudioLanguage: StreamTrackLanguage,
         val streamsDefaultSubtitleLanguage: StreamTrackLanguage,
     )
@@ -51,6 +55,7 @@ object StreamsSettingsStore {
         streamsCatalogRefreshPolicy = StreamsCatalogRefreshPolicy.fromName(preferences[KEY_CATALOG_REFRESH_POLICY]),
         showStreamsPanelInMainWindow = preferences[KEY_SHOW_STREAMS_PANEL] ?: false,
         streamsSmartBuffering = preferences[KEY_SMART_BUFFERING] ?: false,
+        streamsVisualizeAsMusic = preferences[KEY_VISUALIZE_AS_MUSIC] ?: false,
         streamsDefaultAudioLanguage = StreamTrackLanguage.fromName(preferences[KEY_DEFAULT_AUDIO_LANGUAGE]),
         streamsDefaultSubtitleLanguage = StreamTrackLanguage.fromName(preferences[KEY_DEFAULT_SUBTITLE_LANGUAGE]),
     )
@@ -62,6 +67,7 @@ object StreamsSettingsStore {
         preferences[KEY_CATALOG_REFRESH_POLICY] = settings.streamsCatalogRefreshPolicy.name
         preferences[KEY_SHOW_STREAMS_PANEL] = settings.showStreamsPanelInMainWindow
         preferences[KEY_SMART_BUFFERING] = settings.streamsSmartBuffering
+        preferences[KEY_VISUALIZE_AS_MUSIC] = settings.streamsVisualizeAsMusic
         preferences[KEY_DEFAULT_AUDIO_LANGUAGE] = settings.streamsDefaultAudioLanguage.name
         preferences[KEY_DEFAULT_SUBTITLE_LANGUAGE] = settings.streamsDefaultSubtitleLanguage.name
     }

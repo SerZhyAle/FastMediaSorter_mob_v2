@@ -3,18 +3,20 @@ package com.sza.fastmediasorter.ui.dialog
 import android.app.Dialog
 import android.content.Context
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.View
 import android.widget.TextView
 import androidx.exifinterface.media.ExifInterface
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.util.formatBitrate
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoAudioDisplayHelper
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoFileSectionHelper
 import com.sza.fastmediasorter.ui.dialog.helpers.FileInfoLaunchManager
+import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -48,6 +50,13 @@ class FileInfoDialog(
         context, smbClient, sftpClient, ftpClient, credentialsRepository, unifiedCache
     )
     private lateinit var launchManager: FileInfoLaunchManager
+
+    // S2795: a Dialog is built by hand, not by Hilt, so it reaches the format seam the way the
+    // project's other out-of-graph surfaces do. The system itself is read per call, so a switched
+    // setting shows the next time the dialog is opened.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -653,13 +662,9 @@ class FileInfoDialog(
         }
     }
 
-    /** Formats a Unix timestamp to localised date + time string. */
-    private fun formatDate(timestamp: Long): String {
-        val date = Date(timestamp)
-        val dateFormat = DateFormat.getDateFormat(context)
-        val timeFormat = DateFormat.getTimeFormat(context)
-        return "${dateFormat.format(date)} ${timeFormat.format(date)}"
-    }
+    /** Date and time in the user's measurement system, so the dialog agrees with the list behind it. */
+    private fun formatDate(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.DateTime(timestamp), unitSeam.unitSystemProvider().value)
 
     /** Formats duration in ms to HH:MM:SS (or MM:SS if < 1 hour). */
     private fun formatDuration(durationMs: Long): String {

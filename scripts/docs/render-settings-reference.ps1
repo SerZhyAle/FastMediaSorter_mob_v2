@@ -8,7 +8,7 @@
     SupportedMediaSection contributions parsed from the
     *SettingsSearchAvailabilityModule.kt source sets, then emits one Markdown
     reference per locale:
-      - published: docs/SETTINGS_REFERENCE.md / _RU.md / _UK.md (standard family)
+      - published: docs/SETTINGS_REFERENCE.md / -ru.md / -uk.md (standard family)
       - noLegal:   docs/SETTINGS_REFERENCE_noLegal.md (all-inclusive, gitignored)
     Output is deterministic (fixed section order, manifest order within a
     section, LF newlines, UTF-8 no BOM) so the Phase 04 gate can re-render and
@@ -180,7 +180,7 @@ function Write-Doc([string] $path, [string] $content) {
     Write-Host "rendered -> $path"
 }
 
-$referencePages = @('SETTINGS_REFERENCE.md', 'SETTINGS_REFERENCE_RU.md', 'SETTINGS_REFERENCE_UK.md',
+$referencePages = @('SETTINGS_REFERENCE.md', 'SETTINGS_REFERENCE-ru.md', 'SETTINGS_REFERENCE-uk.md',
     'SETTINGS_REFERENCE_noLegal.md')
 $codeScope = $null
 try {
@@ -194,8 +194,8 @@ try {
     }
     # Published (standard family) EN/RU/UK
     Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE.md')    (Render-Doc 'en' $publishedFlavors $false 'SETTINGS_REFERENCE')
-    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_RU.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE_RU')
-    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_UK.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE_UK')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-ru.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE_RU')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-uk.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE_UK')
     # noLegal all-inclusive (gitignored)
     Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_noLegal.md') (Render-Doc 'en' @('noLegal') $true 'SETTINGS_REFERENCE_noLegal')
 }

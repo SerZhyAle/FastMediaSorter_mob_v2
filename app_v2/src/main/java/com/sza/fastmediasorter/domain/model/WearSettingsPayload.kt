@@ -24,6 +24,10 @@ data class WearSettingsPayload(
     @SerializedName("fileListViewMode") val fileListViewMode: String? = null,
     // S1814: active interface language of the phone, nullable so older phones do not clear watch locale.
     @SerializedName("appLanguage") val appLanguage: String? = null,
+    // S2731: name of the phone's UnitSystem. Nullable for the S1781 reason - a phone that predates it
+    // omits the key, and only a nullable field lets the watch keep its own stored value instead of
+    // reading the absence as a system choice the owner never made.
+    @SerializedName("unitSystem") val unitSystem: String? = null,
     // S2000: name of the watch's WearBackgroundMode. Only the choice rides here - the picture itself
     // goes over the file-transfer channel, because this payload is Gson-encoded and a ByteArray would
     // serialize as an array of numbers, pushing the data item past the size where it is dropped in

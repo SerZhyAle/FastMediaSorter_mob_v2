@@ -220,7 +220,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_TAKE_PHOTO_OCR_TRANSLATE ->
                 Availability(
-                    availableInBuild = mediaCapabilities.supportsImages && capability.isTranslationAvailable(),
+                    availableInBuild = mediaCapabilities.supportsImages && capability.isTranslationAvailable(context),
                     enabledAtRuntime = !settings.disableCameraCapture,
                 )
             InternalRouteCatalog.KEY_START_VIDEO_RECORDING ->

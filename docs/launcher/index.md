@@ -68,7 +68,7 @@ FastMediaSorter with Launcher Mode is available across major channels:
 ### Application Packages
 - [<img src="../icons/doc/ic_info.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Google Play Store**](https://play.google.com/store/apps) - Official Google Play Store download.
 - [<img src="../icons/doc/ic_resource_smb.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **F-Droid Open Source**](https://f-droid.org) - Open-source builds for Android phones, tablets, and head units.
-- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS_EN.md) - Direct APK downloads for phone, tablet, and car head unit sideloading.
+- [<img src="../icons/doc/ic_download.png" alt="" width="18" height="18" style="vertical-align:text-bottom"> **Direct APK Release**](../DOWNLOADS.md) - Direct APK downloads for phone, tablet, and car head unit sideloading.
 
 ---
 

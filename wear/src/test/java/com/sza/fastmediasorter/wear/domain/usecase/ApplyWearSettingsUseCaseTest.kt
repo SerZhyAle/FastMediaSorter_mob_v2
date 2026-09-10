@@ -8,11 +8,13 @@ import com.sza.fastmediasorter.wear.domain.documents.DocumentReadingAnchor
 import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -228,6 +230,29 @@ class ApplyWearSettingsUseCaseTest {
         useCase(payloadWithoutNewFields().copy(appLanguage = null))
 
         assertEquals("uk", repository.appLanguageValue)
+    }
+
+    @Test
+    fun `a payload carrying unitSystem applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(unitSystem = "IMPERIAL"))
+
+        assertEquals(UnitSystem.IMPERIAL, repository.unitSystemValue)
+    }
+
+    @Test
+    fun `null unitSystem in payload leaves watch value untouched`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            unitSystemValue = UnitSystem.IMPERIAL
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        // S1781: absence must not change the stored value - the S2093 gate reads it as "not sent".
+        useCase(payloadWithoutNewFields().copy(unitSystem = null))
+
+        assertEquals(UnitSystem.IMPERIAL, repository.unitSystemValue)
     }
 
     @Test
@@ -494,6 +519,8 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
     var calculatorMemoryValue: String? = null
+    var stopwatchParticipantCountValue: Int = 1
+    var stopwatchLastResultValue: String? = null
     var autoRotationEnabledValue = false
     var appLanguageValue: String? = null
     var gameStateValue: String? = null
@@ -506,6 +533,7 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var animationsDisabledValue = false
     var powerSavingTriggerValue = PowerSavingTrigger.DEFAULT
     var panelAutoHideSecondsValue = 15
+    var unitSystemValue = UnitSystem.DEFAULT
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -530,13 +558,23 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val calculatorMemory: Flow<String?> = MutableStateFlow(calculatorMemoryValue)
     override val isAutoRotationEnabled: Flow<Boolean> = MutableStateFlow(autoRotationEnabledValue)
     override val appLanguage: Flow<String?> = MutableStateFlow(appLanguageValue)
+    override val unitSystem: Flow<UnitSystem> = MutableStateFlow(unitSystemValue)
     override val gameState: Flow<String?> = MutableStateFlow(gameStateValue)
+    override val stopwatchParticipantCount: Flow<Int> = MutableStateFlow(stopwatchParticipantCountValue)
+    override val stopwatchLastResult: Flow<String?> = MutableStateFlow(stopwatchLastResultValue)
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
 
     // Like the refine state below: part of the contract, never read by ApplyWearSettingsUseCase.
     override val isAnimationsDisabled: Flow<Boolean> = MutableStateFlow(animationsDisabledValue)
+
+    // S2773: the watch decides its own geometry, so this never travels over the settings channel the
+    // subject of this file carries - the member exists because the interface declares it. Null is the
+    // honest value: it means the user has made no choice, which is the state a fresh fake is in.
+    override val storedGeometryMode: Flow<WearGeometryMode?> = MutableStateFlow(null)
+
+    override suspend fun setGeometryMode(mode: WearGeometryMode) = Unit
 
     // S2536: read back by the assertions below, which is why the setter records it rather than
     // discarding it like the contract-only members further down.
@@ -595,6 +633,14 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setGameState(value: String?) {
         gameStateValue = value
+    }
+
+    override suspend fun setStopwatchParticipantCount(count: Int) {
+        stopwatchParticipantCountValue = count
+    }
+
+    override suspend fun setStopwatchLastResult(value: String?) {
+        stopwatchLastResultValue = value
     }
 
     override suspend fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {
@@ -702,6 +748,10 @@ internal class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setAppLanguage(languageCode: String?) {
         appLanguageValue = languageCode
+    }
+
+    override suspend fun setUnitSystem(system: UnitSystem) {
+        unitSystemValue = system
     }
 
     // S2093: read through a getter, unlike the flows above - the merge reads the stamps back, so a test

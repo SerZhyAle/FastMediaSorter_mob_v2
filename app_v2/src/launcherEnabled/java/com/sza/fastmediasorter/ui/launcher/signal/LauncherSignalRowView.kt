@@ -50,6 +50,15 @@ class LauncherSignalRowView @JvmOverloads constructor(
     private var pinnedStart: View? = null
     private var pinnedEnd: View? = null
 
+    /**
+     * S2790: whether the launcher's own top status bar - clock, battery, network - shares this row.
+     *
+     * ADR-1: an explicit value rather than an inference from the pinned slots being filled. The tray renderer
+     * can hide the clock by its own switch while the view stays pinned, and the row would then pick its
+     * ceiling from something no longer on screen.
+     */
+    private var topStatusBarMode = false
+
     init {
         // The chips own the focus, not this container - otherwise D-pad would stop on the row itself first.
         descendantFocusability = FOCUS_AFTER_DESCENDANTS
@@ -74,6 +83,19 @@ class LauncherSignalRowView @JvmOverloads constructor(
     /** What the "+N" chip does. Set once by the strip's owner; the row itself opens nothing. */
     fun setOnOverflowTap(listener: () -> Unit) {
         onOverflowTap = listener
+    }
+
+    /**
+     * S2790: tells the row whether the launcher's own top status bar occupies the same band. Set by the
+     * strip's owning manager alongside the pinned clock and indicators - S1421 ADR-2 keeps this row under a
+     * single content author, and the mode is part of that content.
+     */
+    fun setTopStatusBarMode(enabled: Boolean) {
+        if (topStatusBarMode == enabled) {
+            return
+        }
+        topStatusBarMode = enabled
+        rebuild()
     }
 
     fun setCutoutBounds(bounds: Rect) {
@@ -230,12 +252,11 @@ class LauncherSignalRowView @JvmOverloads constructor(
         if (width == 0) {
             return
         }
-        val gap = localCutoutGap()
-        val startCapacity = capacityIn(paddingStart + pinnedExtent(pinnedStart), gap.first)
-        val endCapacity = capacityIn(gap.second, width - paddingEnd - pinnedExtent(pinnedEnd))
-        // S2734 ADR-1: the owner's limit of five caps what the width allows, it does not replace it - the
-        // side capacities stay as measured, since they only split what the bounded total already permits.
-        capacity = signalSlots(startCapacity + endCapacity)
+        val (startCapacity, endCapacity) = sideCapacities()
+        // S2734 ADR-1: the owner's limit caps what the width allows, it does not replace it - the side
+        // capacities stay as measured, since they only split what the bounded total already permits.
+        capacity = signalSlots(startCapacity + endCapacity, topStatusBarMode)
+        Timber.d("S2790: strip statusBar=$topStatusBarMode start=$startCapacity end=$endCapacity slots=$capacity")
         // The counter takes a slot of its own, so one fewer signal is drawn when it appears. Nothing is
         // dropped silently: what the row cannot show, the counter stands for and the sheet lists.
         val chipCount = when {
@@ -299,6 +320,31 @@ class LauncherSignalRowView @JvmOverloads constructor(
         val originX = windowLocation[0]
         return (cutoutBounds.left - originX).coerceIn(0, width) to
             (cutoutBounds.right - originX).coerceIn(0, width)
+    }
+
+    /**
+     * S2790: how many chips each side of the cutout may hold, as the current mode allows.
+     *
+     * ADR-2: with the top status bar sharing the row the ban on splitting is expressed as a zero capacity on
+     * the losing side, not as a second layout branch - [allocateStartGroupCount] already bounds each group by
+     * its own side, so a zero there collects every chip on the surviving side without touching `onLayout`,
+     * where a mistake would put chips under the camera.
+     *
+     * With no cutout at all there is nothing to split around, so the single group takes the whole free span
+     * rather than the half [localCutoutGap] collapses to.
+     */
+    private fun sideCapacities(): Pair<Int, Int> {
+        val gap = localCutoutGap()
+        val flowStart = paddingStart + pinnedExtent(pinnedStart)
+        val flowEnd = width - paddingEnd - pinnedExtent(pinnedEnd)
+        val startSide = capacityIn(flowStart, gap.first)
+        val endSide = capacityIn(gap.second, flowEnd)
+        return when {
+            !topStatusBarMode -> startSide to endSide
+            cutoutBounds.isEmpty -> capacityIn(flowStart, flowEnd) to 0
+            keepsStartSide(gap.first - flowStart, flowEnd - gap.second) -> startSide to 0
+            else -> 0 to endSide
+        }
     }
 
     private fun capacityIn(from: Int, to: Int): Int {
@@ -366,17 +412,41 @@ class LauncherSignalRowView @JvmOverloads constructor(
 }
 
 /**
- * S2734: the owner's ceiling of five signal chips, with a sixth slot left for the overflow counter.
+ * S2734 / S2790: the owner's ceiling of five signal chips while the launcher's own top status bar shares
+ * the row, with a sixth slot left for the overflow counter - the "6+" case.
  */
-private const val MAX_STRIP_SIGNALS = 5
+private const val MAX_STRIP_SIGNALS_WITH_STATUS_BAR = 5
 
 /**
- * S2734 ADR-1: how many slots the row may fill, given the [capacity] its width and cutout allow.
+ * S2790: the ceiling with the top status bar off, when the whole top edge is the row's - eleven chips and a
+ * twelfth slot for the counter, which is what makes the counter read "12+".
+ *
+ * S2790 ADR-3: a second constant rather than a multiple of the first. The owner named the two cases as "6+"
+ * and "12+" with no arithmetic between them, so deriving one from the other would turn a future change to
+ * either into a change to both.
+ */
+private const val MAX_STRIP_SIGNALS_ALONE = 11
+
+/**
+ * S2734 ADR-1: how many slots the row may fill, given the [capacity] its width and cutout allow and whether
+ * the launcher's own top status bar shares the row ([topStatusBarMode]).
  *
  * A ceiling rather than a fixed number: a narrow screen that fits three chips keeps fitting three, because
  * five chips forced onto it would overlap - the risk the limit was asked for in the first place.
  */
-internal fun signalSlots(capacity: Int): Int = minOf(capacity, MAX_STRIP_SIGNALS + 1)
+internal fun signalSlots(capacity: Int, topStatusBarMode: Boolean): Int {
+    val ceiling = if (topStatusBarMode) MAX_STRIP_SIGNALS_WITH_STATUS_BAR else MAX_STRIP_SIGNALS_ALONE
+    return minOf(capacity, ceiling + 1)
+}
+
+/**
+ * S2790: which side of the cutout keeps every chip when the row must not split, given the two measured spans.
+ *
+ * A tie keeps the start side, so on a symmetric layout the newest chip stays at the left edge - the position
+ * S2734 criterion 4 gave it. The wider side otherwise, because the whole point of refusing to split is that a
+ * short run reads as one, and the wider side is where the most of it fits before the counter takes over.
+ */
+internal fun keepsStartSide(startSpan: Int, endSpan: Int): Boolean = startSpan >= endSpan
 
 /**
  * S2244: how many of [chipCount] chips the start group holds when each edge group is bounded by its own

@@ -12,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.stopwatch.StopwatchScreenState
 class StopwatchResultLabels(
     val participant: (Int) -> String,
     val laps: String,
+    val measuredAt: ((Long) -> String)? = null,
 )
 
 /**
@@ -37,6 +38,13 @@ object StopwatchResultRenderer {
         val lines = mutableListOf<String>()
         description.trim().takeIf { it.isNotEmpty() }?.let { lines.add(it) }
         note.trim().takeIf { it.isNotEmpty() }?.let { lines.add(it) }
+        // The earliest visible start is the session's stamp: with Start all every participant began
+        // together, and with staggered starts the first beginning is when the measurement was taken
+        // (S2792).
+        val stamp = state.visibleParticipants.mapNotNull { it.startedAtEpochMillis }.minOrNull()
+        if (stamp != null) {
+            labels.measuredAt?.invoke(stamp)?.let { lines.add(it) }
+        }
         state.visibleParticipants.forEachIndexed { index, participant ->
             lines.add(participantLine(participant, index, nowMillis, labels))
         }

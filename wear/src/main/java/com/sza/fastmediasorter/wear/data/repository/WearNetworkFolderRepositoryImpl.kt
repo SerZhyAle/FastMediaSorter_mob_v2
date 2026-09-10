@@ -39,7 +39,6 @@ class WearNetworkFolderRepositoryImpl @Inject constructor(
         offset: Int
     ): Result<WearFolderPage> = withContext(Dispatchers.IO) {
         try {
-            Timber.d("S2694: listing network level '%s' of source %s", address.path, address.sourceId)
             val source = sourceRepository.getSourceById(address.sourceId)
                 ?: return@withContext Result.failure(
                     IllegalStateException("Network source ${address.sourceId} is gone")

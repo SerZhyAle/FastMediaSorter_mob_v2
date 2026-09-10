@@ -52,6 +52,10 @@
     clip-check           report content that leaves the physical display shape. The shape is READ
                          FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
                          phone use one rule and neither is hardcoded. -Strict also fails on CLIPPED
+    rotary               turn the watch bezel: -Axis <double> [-Repeat N]. The flow language has no
+                         rotary expression, so a scenario that must reach its target by rotation
+                         calls this around the flow rather than inside it (S2548). Watch only -
+                         refuses on any other form factor rather than sending the event nowhere
     font-scale           read the device's system font scale, or set it with -Scale <n>. A large
                          font is a Play review criterion, so this is a measurement tool, not a
                          convenience: 1.0 restores the platform default
@@ -134,6 +138,9 @@
         when it rejected 26090503 on `Watch shapes` a second time
    11 - `font-scale`: refused to change a physical device's system setting without -Yes. WHICH
         devices may be changed at all is docs/DEVICE_FLEET.md, never this script
+   12 - `rotary`: the selected device is not a watch, so it has no rotary encoder and NOTHING was
+        sent. Distinct from 3 because "you did not say which device" and "you named one that cannot
+        answer this verb" call for different next moves
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -261,6 +268,12 @@ param(
     [switch]$Strict,
     # font-scale: the multiplier to write. Omit it to read the current one; 1.0 is the default.
     [double]$Scale,
+    # rotary: how far the bezel turns per step. Negative scrolls the other way; the platform reads it
+    # as the encoder's axis value, so there is no "one notch" constant to default to.
+    [double]$Axis,
+    # rotary: how many times to repeat the turn. A list is scrolled by repeating a small turn, not by
+    # sending one large axis value - the platform flings on the latter.
+    [int]$Repeat = 1,
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
     # actually fire. It waives the confirmation only: device selection and package resolution still run.
@@ -351,9 +364,16 @@ function Get-OnlineDevices {
     $raw = & $adb devices 2>$null
     if ($LASTEXITCODE -ne 0) { Fail 1 "adb devices returned exit $LASTEXITCODE" }
     $lines = $raw -split "`r?`n" | Where-Object { $_ -and $_ -notmatch '^\s*List of devices' }
+    # Split on the TAB adb actually prints between id and state, never on whitespace: an mDNS
+    # service name can contain a space. When two adb servers advertise the same watch, Android
+    # publishes the second as "adb-<serial>-xxxx (2)._adb-tls-connect._tcp" - splitting that on
+    # the first space put "(2)._adb-tls-connect._tcp<TAB>device" in $parts[1], the state test
+    # failed, and the watch vanished from every verb with no message at all. Measured 2026-09-09:
+    # `. iw` built the wear APK, then refused to install because the only device it could see was
+    # the phone.
     $devs = foreach ($line in $lines) {
-        $parts = ($line -split "\s+", 2) | Where-Object { $_ }
-        if ($parts.Count -ge 2 -and $parts[1] -eq 'device') { $parts[0] }
+        $parts = ($line -split "`t", 2) | Where-Object { $_ }
+        if ($parts.Count -ge 2 -and $parts[1].Trim() -eq 'device') { $parts[0].Trim() }
     }
     return @($devs)
 }
@@ -929,6 +949,26 @@ switch ($Verb.ToLowerInvariant()) {
         Invoke-Adb $id @('shell', 'input', 'swipe', "$X", "$Y", "$X2", "$Y2", "$Duration") | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; from = @($X, $Y); to = @($X2, $Y2); durationMs = $Duration } }
         Write-Host "SWIPE ($X,$Y) -> ($X2,$Y2) in ${Duration}ms on $id" -ForegroundColor Green
+        exit 0
+    }
+
+    'rotary' {
+        $id = Select-Device
+        $script:result.device = $id
+        if (-not $PSBoundParameters.ContainsKey('Axis')) { Fail 1 "rotary needs -Axis <double> (negative turns the other way; optional -Repeat N)" }
+        if ($Repeat -lt 1) { Fail 1 "rotary needs -Repeat >= 1" }
+        # S2548: a rotary encoder is a watch input, and the two modules publish under one applicationId,
+        # so nothing but the form factor can tell this call was aimed at the wrong device.
+        if (-not (Test-WatchDevice -Id $id)) {
+            Fail 12 ("refusing to turn a bezel on $id - ro.build.characteristics does not report a watch. " +
+                "A rotary encoder exists only on a watch; aim the call with -DeviceId <watch serial>")
+        }
+        $written = $Axis.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+        for ($turn = 0; $turn -lt $Repeat; $turn++) {
+            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', $written) | Out-Null
+        }
+        if ($Json) { Emit-Ok @{ id = $id; axis = $Axis; repeat = $Repeat } }
+        Write-Host "ROTARY axis $written x$Repeat on $id" -ForegroundColor Green
         exit 0
     }
 

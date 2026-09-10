@@ -75,18 +75,6 @@
                             app:ssr_inline="true"
                             app:ssr_title="@string/settings_profile_title"
                             app:ssr_value="@string/welcome_profile_other_title" />
-
-                        <!-- S1285/S2288: cell size of the main-window resource grid. Follows the device
-                             profile because both settle the geometry of the same main window - the profile
-                             picks the preset, this row overrides the cell inside it. -->
-                        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
-                            android:id="@+id/rowResourceGridCellSize"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="@dimen/margin_tiny"
-                            android:layout_marginBottom="@dimen/margin_tiny"
-                            app:sdr_valueAsText="true"
-                            app:sdr_title="@string/pref_resource_grid_cell_size_title" />
                     </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 
 
@@ -94,8 +82,7 @@
                          GeneralSettingsLauncherHelper hides both on builds without the launcher surface
                          (launcherModeContract.isAvailableInBuild) and keeps the entry button disabled until
                          the launcher is enabled.
-                         S2288: the pair follows the grid-cell row because both decide what the home surface
-                         looks like; the entry is a content-width button, not a full-width row, so it reads
+                         S2288: the entry is a content-width button, not a full-width row, so it reads
                          as subordinate to the toggle rather than as an independent setting. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowLauncherModeEnabled"
@@ -108,6 +95,20 @@
                         app:str_showHelp="true"
                         app:str_helpTitle="@string/launcher_settings_enable_help_title"
                         app:str_helpMessage="@string/launcher_settings_enable_help_message" />
+
+                    <!-- S2811: the desktop as the app's own start window - independent of the home role
+                         above, so it stays switchable whether or not that role is held. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowLauncherStartWindow"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:str_icon="@drawable/ic_launcher_mode"
+                        app:str_title="@string/launcher_start_window_title"
+                        app:str_subtitle="@string/launcher_start_window_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/launcher_start_window_help_title"
+                        app:str_helpMessage="@string/launcher_start_window_help_message" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/rowLauncherSettings"
@@ -149,8 +150,21 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/pref_power_saving_title"
                         app:sdr_entries="@array/power_saving_trigger_options" />
+
+                    <!-- S2731: moved here from the launcher settings dialog - applies app-wide
+                         (weather/dew-point gadgets, watch sync), not just to the launcher. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowUnitSystem"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_inline="true"
+                        app:sdr_fieldMaxWidth="@dimen/settings_dropdown_compact_width"
+                        app:sdr_title="@string/launcher_settings_unit_system_title"
+                        app:sdr_entries="@array/unit_system_options" />
 
                     <!-- Enable Favorites (Moved from Sleep/Favorites container) -->
                     <LinearLayout android:id="@+id/layoutEnableFavorites" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_tiny" android:orientation="vertical">
@@ -199,6 +213,17 @@
                     app:csh_title="@string/settings_category_main_window_interface" />
 
                 <LinearLayout android:id="@+id/containerMainWindowInterface" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small">
+
+                    <!-- S1285/S2288/S2784: cell size of the main-window resource grid. It sits in this
+                         section because it settles the geometry of that one surface; leading the section
+                         keeps the screen's convention of value rows before toggles. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+                        android:id="@+id/rowResourceGridCellSize"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="@dimen/margin_tiny"
+                        app:sdr_valueAsText="true"
+                        app:sdr_title="@string/pref_resource_grid_cell_size_title" />
 
                     <!-- S0755: surface the programs menu as a horizontal panel on the main window. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
@@ -333,12 +358,15 @@
                         app:str_subtitle="@string/setting_file_ops_in_overflow_menu_desc" />
 
                     <!-- S2533: swipe actions over a file row. Entries are supplied in code from
-                         BrowseSwipeActionCatalog, so no sdr_entries array here. -->
+                         BrowseSwipeActionCatalog, so no sdr_entries array here.
+                         S2780: value text mode, so the chosen action reads on the caption's line as it
+                         does for Language and Color theme; the subtitle keeps the full row width. -->
                     <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
                         android:id="@+id/rowBrowseSwipeLeftAction"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/setting_browse_swipe_left_action_title"
                         app:sdr_subtitle="@string/setting_browse_swipe_left_action_desc" />
 
@@ -347,6 +375,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
+                        app:sdr_valueAsText="true"
                         app:sdr_title="@string/setting_browse_swipe_right_action_title"
                         app:sdr_subtitle="@string/setting_browse_swipe_right_action_desc" />
 
@@ -828,7 +857,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnReleasedTickets"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:clickable="true"
@@ -851,7 +880,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnTakeScreenshotNow"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="@dimen/margin_tiny"
                         android:clickable="true"

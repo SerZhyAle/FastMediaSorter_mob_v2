@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -28,6 +29,9 @@ private val VOLUME_BAR_HEIGHT = 4.dp
 private val VOLUME_BAR_VERTICAL_PADDING = 6.dp
 private const val VOLUME_BAR_CORNER_PERCENT = 50
 private const val SIDE_BAR_HEIGHT_FRACTION = 0.4f
+private val SIDE_BAR_EDGE_PADDING = 4.dp
+private const val RESTING_ALPHA = 0.45f
+private val SIDE_BAR_WIDTH = 4.dp
 
 /**
  * S2140: the current media volume, drawn and never changed here.
@@ -83,30 +87,42 @@ internal fun VolumeIndicatorBar(
 }
 
 /**
- * S2477: vertical side bar for volume on Wear OS screens, pinned to the right edge of the screen.
+ * S2477: vertical side bar for volume on Wear OS screens, pinned to one edge of the screen.
  * Replaces the list-item volume header to keep file lists uncluttered on round watch displays.
+ *
+ * S2802: [atStartEdge] and [isChanging] both default to what this drew before it had them, so a
+ * screen that keeps the transient right-hand bar needs no change. On a screen where the bar is
+ * permanent, [isChanging] is what still tells a bezel step apart from rest - the bar is dimmed
+ * while nothing is being adjusted rather than removed.
  */
 @Composable
 internal fun VolumeIndicatorSideBar(
     level: Int,
     max: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    atStartEdge: Boolean = false,
+    isChanging: Boolean = true
 ) {
     Timber.d("S2477: VolumeIndicatorSideBar level=%d, max=%d", level, max)
     val readout = stringResource(R.string.wear_audio_volume_level, level, max)
     val filled = if (max > 0) (level.toFloat() / max).coerceIn(0f, 1f) else 0f
     val shape = RoundedCornerShape(percent = VOLUME_BAR_CORNER_PERCENT)
+    val emphasis = if (isChanging) 1f else RESTING_ALPHA
 
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .padding(end = 4.dp)
+            .padding(
+                start = if (atStartEdge) SIDE_BAR_EDGE_PADDING else 0.dp,
+                end = if (atStartEdge) 0.dp else SIDE_BAR_EDGE_PADDING
+            )
+            .alpha(emphasis)
             .semantics(mergeDescendants = true) { contentDescription = readout },
-        contentAlignment = Alignment.CenterEnd
+        contentAlignment = if (atStartEdge) Alignment.CenterStart else Alignment.CenterEnd
     ) {
         Box(
             modifier = Modifier
-                .width(4.dp)
+                .width(SIDE_BAR_WIDTH)
                 .fillMaxHeight(SIDE_BAR_HEIGHT_FRACTION)
                 .clip(shape)
                 .background(Color.DarkGray.copy(alpha = 0.6f))

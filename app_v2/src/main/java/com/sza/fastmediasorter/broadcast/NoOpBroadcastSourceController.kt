@@ -23,4 +23,8 @@ class NoOpBroadcastSourceController @Inject constructor() : BroadcastSourceContr
     override fun stop() {
         // No-op
     }
+
+    override fun acknowledgeFailure() {
+        // No-op
+    }
 }

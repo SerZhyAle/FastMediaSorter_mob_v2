@@ -68,6 +68,9 @@
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
+           Each start cleans stale ticket leases first (same as `ul`), so a ticket a killed
+           instance was on - still Draft/Tactical/Partial/whatever it was, never "done" - is
+           immediately eligible again instead of reading as held for up to 45 minutes.
     rs   - Stop the runners: each finishes the ticket it is on, then exits.
            `.\a.ps1 rs -Instance b` stops one; `.\a.ps1 rs -Kill` also kills the children.
     rm   - Monitor: running children, claimed tickets, locks, and what each instance finished
@@ -320,6 +323,8 @@ $scripts = @{
     # Ticket leases are the third thing a killed flow leaves behind, and the one the built-in sweep
     # will not touch for 45 minutes: its window is sized for a working session that writes nothing,
     # not for a dead one. Clean judges on live evidence instead - see the verb's own docs.
+    # r1/r2/r3 now run this same cleanup automatically at start; reach for `ul` by hand right after
+    # a `rs -Kill`, or to free a ticket for something other than a queue runner (e.g. /spec-next).
     'ul'        = @{ Path = 'scripts\spec_catalog\ticket-lease.ps1'; Args = @{ Verb = 'Clean' } }
     # adb swiss-army (scripts/devtest/adb.ps1). `adb` is the full passthrough - the verb
     # and any options ride in via $Rest, e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035`.
@@ -536,6 +541,32 @@ if ($releaseCommands -contains $Command) {
         Write-Host "Set it up once with:" -ForegroundColor Gray
         Write-Host "  git worktree add ../FastMediaSorter_release main" -ForegroundColor Gray
         Write-Host "Falling back to current directory ($(git branch --show-current 2>$null))." -ForegroundColor Yellow
+        Write-Host ""
+    }
+}
+
+# A queue-runner instance starting up cleans stale ticket leases first (same effect as `ul`).
+#
+# The lease a killed r1/r2/r3 child leaves behind is not swept by ordinary liveness: that check
+# reads a QUIET session, not a dead one, so a lease from a process that no longer exists still
+# looks live for SessionStaleMinutes (45 min - see the 'ul' entry above). Without this, restarting
+# the instance that was just killed - or starting a sibling - ranks the ticket as still held and
+# skips it, which is indistinguishable from "marked done" to whoever is waiting on it. Clean tells
+# the two apart (a running child, a held lock still vouch for a lease; nothing else does), so
+# running it here is free when every lease is genuinely live and frees a real one immediately when
+# it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
+# would still be swept by its own staleness window eventually.
+$queueRunnerStartCommands = @('r1', 'r2', 'r3')
+if ($queueRunnerStartCommands -contains $Command) {
+    $leaseCleanScript = Join-Path $ProjectRoot 'scripts\spec_catalog\ticket-lease.ps1'
+    if (Test-Path $leaseCleanScript) {
+        Write-Host "Cleaning stale ticket leases before starting instance.." -ForegroundColor DarkGray
+        try {
+            & $leaseCleanScript -Verb Clean
+        }
+        catch {
+            Write-Host "  lease cleanup failed, continuing anyway - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
         Write-Host ""
     }
 }

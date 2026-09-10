@@ -7,8 +7,8 @@
 
       docs/legal/oss-notices.json  machine-readable snapshot (gate input)
       docs/OPEN_SOURCE.md          published page, English
-      docs/OPEN_SOURCE.ru.md       published page, Russian
-      docs/OPEN_SOURCE.uk.md       published page, Ukrainian
+      docs/OPEN_SOURCE-ru.md       published page, Russian
+      docs/OPEN_SOURCE-uk.md       published page, Ukrainian
 
     The build files stay the only source of truth for WHICH artifacts ship
     (S1495 ADR-1); scripts/docs/oss-licenses.psd1 is the only source for WHICH
@@ -77,8 +77,8 @@ if (-not (Test-Path -LiteralPath $Manifest)) {
 $jsonPath = Join-Path $RepoRoot 'docs/legal/oss-notices.json'
 $pages = @{
     en = Join-Path $RepoRoot 'docs/OPEN_SOURCE.md'
-    ru = Join-Path $RepoRoot 'docs/OPEN_SOURCE.ru.md'
-    uk = Join-Path $RepoRoot 'docs/OPEN_SOURCE.uk.md'
+    ru = Join-Path $RepoRoot 'docs/OPEN_SOURCE-ru.md'
+    uk = Join-Path $RepoRoot 'docs/OPEN_SOURCE-uk.md'
 }
 $appRawPaths = @{}
 foreach ($flavor in @('standard', 'noLegal', 'lite', 'photos', 'legacy', 'vr', 'foss')) {

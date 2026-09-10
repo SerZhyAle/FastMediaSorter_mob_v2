@@ -171,7 +171,6 @@ private fun AppCell(
         // distinction S2177 exists to preserve.
         captionLayout = CellCaption(maxLines = APP_LABEL_MAX_LINES)
     ) { glyphModifier ->
-        timber.log.Timber.d("S2510: AppsScreen accent id=%s", app.id)
         Icon(
             painter = painterResource(iconFor(app.id)),
             contentDescription = null,

@@ -9,3 +9,4 @@
 motion_monitor  # S2458: live motion and activity readings from the watch's own body-worn sensors - the phone has no program of this kind.
 body_sensor     # S2457: one foreground heart-rate reading; the phone carries no heart-rate program at all, and Play gates the permission against use cases a media sorter does not match.
 broadcast       # S2509: the watch broadcasts its own microphone as a launcher program. The phone broadcasts too (S2508), but from the player rather than as a program, so InternalRouteCatalog has no key to match.
+blood_pressure  # S2801: a watch-only log of blood-pressure readings, stored in the watch's own wear_blood_pressure_history.db. Every occurrence of the program is under wear/; the phone carries no health program and so no InternalRouteCatalog key to spell it against.

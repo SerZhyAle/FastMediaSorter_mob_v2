@@ -43,6 +43,10 @@
          member names and the phone mirror's vocabulary are the same SET, and every field the watch
          resolves through fromNameOrDefault is declared in that table with the type its call site
          actually uses.
+     14. S2799 resolver coverage: a BOTH entry is named by MergeWearSettingsReportUseCase (the phone
+         merges the watch's report back into its mirror) and by ApplyWearSettingsUseCase (the watch
+         applies the phone's push). Checks 2, 3 and 7 prove only that the value can travel and be
+         ranked - not that either side reads it on arrival.
 
     Check 13 is check 11 one level down. S2464 compares the field NAMES of the contract; a field
     whose value is an enum's constant name carries a second vocabulary INSIDE that value, and the two
@@ -70,6 +74,24 @@
     the author is the one who knows whether a new setting was meant to be one-sided - and the settings
     reference it guards is read by agents between releases, where staleness poisons decisions.
 
+    S2824 kept that class and narrowed what it charges. Per-ticket placement says the AUTHOR pays;
+    without -ChangedFiles this gate billed whichever session happened to close while someone else's
+    half-written pair sat in the tree - 40 refused closures in seventeen days, nineteen of them
+    consecutive. Passing the changed set makes the gate report such a divergence and decline to
+    charge it (exit 3) when no file in $paths is in that set. A project-wide run passes nothing and
+    is unchanged.
+
+.PARAMETER Gate
+    Fail-closed: exit 1 when a divergence is found and chargeable.
+
+.PARAMETER Quiet
+    Suppress the PASS line. Findings and the failure verdict are still printed.
+
+.PARAMETER ChangedFiles
+    Repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the gate
+    decline to charge a divergence when none of the files it declares in $paths is among them.
+    Omit it - as assert-fast-gates.ps1 and the release path do - and every divergence stays fatal.
+
 .NOTES
     Exit codes:
       0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of
@@ -82,11 +104,17 @@
           at all - so nothing was actually checked. A caller must tell this from 1: "found a defect"
           and "did not look" are different answers, and every one of these cases would otherwise
           report the silent PASS that is exactly the failure this script exists to prevent.
+      3 - S2824: a divergence was found, but no file this gate declares as an input is in
+          -ChangedFiles, so it is not attributable to this run. The findings are printed. Distinct
+          from 1 because the caller cannot fix it and from 0 because something IS wrong in the tree.
 #>
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
@@ -95,6 +123,8 @@ $ErrorActionPreference = 'Stop'
 # S2642: the Kotlin declaration parsers are shared with assert-wear-wire-vocabulary-parity.ps1 - see
 # that file's header for why one copy rather than two.
 . (Join-Path $PSScriptRoot 'lib/wear-vocabulary-parsers.ps1')
+# S2824: the chargeability test, shared with the other two fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
@@ -120,6 +150,8 @@ $paths = [ordered]@{
     WatchViewMode    = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearViewMode.kt'
     WatchBackgroundMode = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearBackgroundMode.kt'
     WatchColorScheme = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearColorScheme.kt'
+    PhoneUnitSystem  = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/UnitSystem.kt'
+    WatchUnitSystem  = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/UnitSystem.kt'
 }
 
 # S2169: which files a menu group's watch rows live in (keys into $paths)...
@@ -182,6 +214,15 @@ $mirroredEnums = @(
         Fields     = @('colorScheme')
         WatchKey   = 'WatchColorScheme'; WatchKind = 'enum';  WatchType = 'WearColorScheme'
         PhoneKey   = 'PhonePayload';     PhoneKind = 'const'; PhonePrefix = 'COLOR_SCHEME_'
+    },
+    @{
+        # S2731: PHONE_ONLY, resolved by the bespoke applyUnitSystem() the same way applyLanguage()
+        # resolves appLanguage - no apply(resolver, ...) call site, so Read-AppliedEnumFields' second
+        # anchor (gate.carries(...)) is what finds it.
+        Name       = 'UnitSystem'
+        Fields     = @('unitSystem')
+        WatchKey   = 'WatchUnitSystem'; WatchKind = 'enum'; WatchType = 'UnitSystem'
+        PhoneKey   = 'PhoneUnitSystem'; PhoneKind = 'enum'; PhoneType = 'UnitSystem'
     }
 )
 
@@ -351,12 +392,25 @@ function Read-ConstValues {
 function Read-AppliedEnumFields {
     param([string]$Source)
 
+    # S2731: a field enters resolution through one of two shapes - the shared apply(resolver, "field",
+    # ...) helper (BOTH-owned fields, merged), or the bespoke gate.carries("field") check a one-way
+    # PHONE_ONLY function like applyLanguage()/applyUnitSystem() reads directly, bypassing the resolver
+    # on purpose because there is nothing on the watch side to merge against. Splitting on the first
+    # anchor alone let a bespoke function's fromNameOrDefault() call bleed into the PRECEDING
+    # apply(resolver, ...) field's chunk, since nothing closed that chunk until the next apply(resolver,
+    # or end of file - mislabelling unitSystem's resolution as panelAutoHideSeconds' the moment
+    # applyUnitSystem was added after it with no intervening apply(resolver, ...) call.
     $found = [ordered]@{}
-    foreach ($chunk in (($Source -split 'apply\(\s*resolver\s*,') | Select-Object -Skip 1)) {
-        $field = [regex]::Match($chunk, '^\s*"(?<v>[^"]+)"')
-        if (-not $field.Success) { continue }
+    $anchorPattern = 'apply\(\s*resolver\s*,\s*"(?<v1>[^"]+)"|gate\.carries\(\s*"(?<v2>[^"]+)"\s*\)'
+    $anchors = [regex]::Matches($Source, $anchorPattern)
+    for ($i = 0; $i -lt $anchors.Count; $i++) {
+        $anchor = $anchors[$i]
+        $field = if ($anchor.Groups['v1'].Success) { $anchor.Groups['v1'].Value } else { $anchor.Groups['v2'].Value }
+        $chunkStart = $anchor.Index + $anchor.Length
+        $chunkEnd = if ($i + 1 -lt $anchors.Count) { $anchors[$i + 1].Index } else { $Source.Length }
+        $chunk = $Source.Substring($chunkStart, $chunkEnd - $chunkStart)
         $resolver = [regex]::Match($chunk, '(?<type>\w+)\.fromNameOrDefault\s*\(')
-        if ($resolver.Success) { $found[$field.Groups['v'].Value] = $resolver.Groups['type'].Value }
+        if ($resolver.Success) { $found[$field] = $resolver.Groups['type'].Value }
     }
     return $found
 }
@@ -414,6 +468,19 @@ foreach ($entry in $phoneEntries) {
         # 7. A shared setting must record when it changed, or the merge cannot rank it.
         if ($field -notin $stampedFields) {
             $findings += "S2093: '$field' is BOTH but no watch preferences setter stamps it - add stampedEdit(""$field"")."
+        }
+        # 14. S2799: a shared setting must also be RESOLVED on both sides. Checks 2, 3 and 7 prove the
+        #     value can travel and can be ranked; neither says anyone reads it on arrival. Both
+        #     resolvers name their fields in a hand-written list, so a setting added to the contract
+        #     after a list was written passes every check above and is dropped in silence by whichever
+        #     side omits it - which is how disableAnimations, powerSavingTrigger and panelAutoHideSeconds
+        #     reached the phone over the wire and never reached its mirror.
+        $escaped = [regex]::Escape($field)
+        if ($text.PhoneMerge -notmatch "merge\.(?:required|optional)\(\s*""$escaped""") {
+            $findings += "S2093: '$field' is BOTH but MergeWearSettingsReportUseCase does not merge it - a watch edit to it never reaches the phone mirror."
+        }
+        if ($text.WatchApply -notmatch "apply\(\s*resolver\s*,\s*""$escaped""") {
+            $findings += "S2093: '$field' is BOTH but ApplyWearSettingsUseCase does not apply it - a phone edit to it never reaches the watch."
         }
     } else {
         # 4. A one-sided setting without a recorded reason is indistinguishable from a forgotten one.
@@ -713,6 +780,14 @@ if ($findings.Count -eq 0) {
         Write-Host "assert-wear-settings-parity: PASS - $($phoneEntries.Count) watch setting(s), $($mirroredEnums.Count) mirrored enum vocabular(ies), every consumer and both row orders in step."
     }
     exit 0
+}
+
+# S2824: a divergence between files this change never opened belongs to the session that is writing
+# it, not to the one closing here. $paths is the whole input set, so "no declared input in the
+# changed set" is decidable without attributing each finding to a file.
+if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths @($paths.Values))) {
+    Write-NotChargedVerdict -GateName 'assert-wear-settings-parity' -Findings $findings
+    exit 3
 }
 
 Write-Error ("assert-wear-settings-parity: FAIL - " + $findings.Count + " divergence(s):`n" +

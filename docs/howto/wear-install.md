@@ -35,7 +35,7 @@ Use this route when your watch has no Play Store access. You need a computer wit
 SDK Platform-Tools (`adb`) and a local Wi-Fi network shared by the computer and watch. It does not
 work through the internet alone.
 
-1. Download one APK from the [Direct APK Release](../DOWNLOADS_EN.md) page:
+1. Download one APK from the [Direct APK Release](../DOWNLOADS.md) page:
    - `FastMediaSorter_wear_debug.apk` is the debug build for testing. It installs as
      `com.sza.fastmediasorter.debug`.
    - `FastMediaSorter_wear_release.apk` is the signed non-debug build. It installs as

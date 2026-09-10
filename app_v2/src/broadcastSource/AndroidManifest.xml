@@ -10,5 +10,27 @@
         <activity
             android:name="com.sza.fastmediasorter.broadcast.spike.VideoBroadcastSpikeActivity"
             android:exported="false" />
+
+        <!-- S2818: broadcast entry surfaces - Quick Settings tile + home-screen widget. Declared in
+             this static manifest (injected by app_v2/build.gradle.kts for standard/noLegal/legacy
+             only), so flavors without broadcast never see them. -->
+        <service
+            android:name="com.sza.fastmediasorter.broadcast.BroadcastTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_display"
+            android:label="@string/tile_broadcast_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE" />
+        <receiver
+            android:name="com.sza.fastmediasorter.widget.BroadcastEntryWidgetProvider"
+            android:exported="true"
+            android:icon="@drawable/ic_display"
+            android:label="@string/widget_broadcast_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_broadcast_entry_info" />
+        </receiver>
     </application>
 </manifest>

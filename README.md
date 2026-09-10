@@ -4,7 +4,7 @@
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📖 Other Languages:** [🇷🇺 Русский](docs/README_RU.md) | [🇺🇦 Українська](docs/README_UK.md)
+**📖 Other Languages:** [🇷🇺 Русский](docs/README-ru.md) | [🇺🇦 Українська](docs/README-uk.md)
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
@@ -293,7 +293,7 @@ The following files should be treated as the authoritative sources for user-faci
 - [Complete Feature List](docs/FEATURES.md)
 - [Documentation Map](docs/DOCS_MAP.md)
 - [Product History](docs/PRODUCT_HISTORY.md)
-- [Downloads (EN)](docs/DOWNLOADS_EN.md)
+- [Downloads (EN)](docs/DOWNLOADS.md)
 - [How-To Guides](docs/HOW_TO.md)
 - [Program Limitations](docs/LIMITATIONS.md)
 - [Quick Start Guide](docs/QUICK_START.md)
@@ -309,28 +309,28 @@ Detailed guides are available in multiple languages:
 - [FAQ](docs/FAQ.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Program Limitations](docs/LIMITATIONS.md)
-- [Downloads Guide](docs/DOWNLOADS_EN.md)
+- [Downloads Guide](docs/DOWNLOADS.md)
 - [Complete Feature List](docs/FEATURES.md)
 
 **🇷🇺 Русский:**
 
-- [История продукта](docs/PRODUCT_HISTORY_RU.md)
-- [Руководства](docs/HOW_TO_RU.md)
-- [Быстрый Старт](docs/QUICK_START_RU.md)
-- [FAQ](docs/FAQ_RU.md)
-- [Устранение неполадок](docs/TROUBLESHOOTING_RU.md)
-- [Ограничения программы](docs/LIMITATIONS_RU.md)
-- [Скачивание сборок](docs/DOWNLOADS_RU.md)
+- [История продукта](docs/PRODUCT_HISTORY-ru.md)
+- [Руководства](docs/HOW_TO-ru.md)
+- [Быстрый Старт](docs/QUICK_START-ru.md)
+- [FAQ](docs/FAQ-ru.md)
+- [Устранение неполадок](docs/TROUBLESHOOTING-ru.md)
+- [Ограничения программы](docs/LIMITATIONS-ru.md)
+- [Скачивание сборок](docs/DOWNLOADS-ru.md)
 
 **🇺🇦 Українська:**
 
-- [Історія продукту](docs/PRODUCT_HISTORY_UK.md)
-- [Посібники](docs/HOW_TO_UK.md)
-- [Швидкий Старт](docs/QUICK_START_UK.md)
-- [FAQ](docs/FAQ_UK.md)
-- [Вирішення проблем](docs/TROUBLESHOOTING_UK.md)
-- [Обмеження програми](docs/LIMITATIONS_UK.md)
-- [Завантаження збірок](docs/DOWNLOADS_UK.md)
+- [Історія продукту](docs/PRODUCT_HISTORY-uk.md)
+- [Посібники](docs/HOW_TO-uk.md)
+- [Швидкий Старт](docs/QUICK_START-uk.md)
+- [FAQ](docs/FAQ-uk.md)
+- [Вирішення проблем](docs/TROUBLESHOOTING-uk.md)
+- [Обмеження програми](docs/LIMITATIONS-uk.md)
+- [Завантаження збірок](docs/DOWNLOADS-uk.md)
 
 **Technical / Developer Docs:**
 

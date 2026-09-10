@@ -8,16 +8,19 @@ import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportClient
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
+import com.sza.fastmediasorter.wear.domain.capability.WearGeometryDefaults
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearOpenUrlOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.WearOpenUrlOnPhoneRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearGeometryModeUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.SetStreamsSectionEnabledUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -57,6 +60,9 @@ private const val INDEX_POWER_SAVING_TRIGGER = 18
 // casts below are unchecked, so renumbering would silently re-map settings onto each other's flows.
 private const val INDEX_COLOR_SCHEME = 19
 
+/** S2773: appended for the reason stated directly above, which holds for every index added later. */
+private const val INDEX_GEOMETRY_MODE = 20
+
 /**
  * ViewModel for Settings screen.
  * Manages loading and updating of app settings.
@@ -68,7 +74,9 @@ class SettingsViewModel @Inject constructor(
     private val logReportClient: WearLogReportClient,
     private val reportWearSettingsUseCase: ReportWearSettingsUseCase,
     private val openUrlOnPhoneRepository: WearOpenUrlOnPhoneRepository,
-    private val setStreamsSectionEnabled: SetStreamsSectionEnabledUseCase
+    private val setStreamsSectionEnabled: SetStreamsSectionEnabledUseCase,
+    private val observeGeometryMode: ObserveWearGeometryModeUseCase,
+    private val geometryDefaults: WearGeometryDefaults
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(
@@ -107,36 +115,45 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Every flow the settings screen reads, in the order the `INDEX_*` constants name.
+     *
+     * Its own function so a source added later does not push [loadSettings] past detekt's length
+     * ceiling and force an unrelated rewrite of the state assembly (S2773). The list is typed: the
+     * sources are Boolean, Int and enums, and letting the compiler infer a reified intersection of
+     * those raises a warning that becomes an error in a future Kotlin release. APPEND here - the reads
+     * below are positional and unchecked, so inserting would silently re-map settings onto each other.
+     */
+    private fun settingsSources(): List<Flow<Any>> = listOf(
+        preferencesRepository.isAudioEnabled,
+        preferencesRepository.isVideoEnabled,
+        preferencesRepository.isImagesEnabled,
+        preferencesRepository.isSlideshowEnabled,
+        preferencesRepository.slideshowIntervalSeconds,
+        preferencesRepository.downloadAlbumArt,
+        preferencesRepository.viewMode,
+        preferencesRepository.streamsSectionEnabled,
+        preferencesRepository.keepScreenAwakeOutsidePlayers,
+        preferencesRepository.fileListViewMode,
+        preferencesRepository.isAutoRotationEnabled,
+        preferencesRepository.voiceNoteSendPolicy,
+        preferencesRepository.backgroundMode,
+        preferencesRepository.lastSettingsSyncAt,
+        preferencesRepository.isDocumentsEnabled,
+        preferencesRepository.isAnimationsDisabled,
+        preferencesRepository.backgroundPlaybackEnabled,
+        preferencesRepository.panelAutoHideSeconds,
+        preferencesRepository.powerSavingTrigger,
+        preferencesRepository.colorScheme,
+        // S2773: the RESOLVED view, not the stored choice - the row has to show what the watch is laid
+        // out with from the moment it is installed, and the stored choice is null until first touched.
+        observeGeometryMode()
+    )
+
     private fun loadSettings() {
         viewModelScope.launch {
             val hasAccelerometer = context.packageManager.hasSystemFeature(PackageManager.FEATURE_SENSOR_ACCELEROMETER)
-            // listOf is typed: the sources are Boolean, Int and WearViewMode, and letting the
-            // compiler infer a reified intersection of those raises a warning that becomes an error
-            // in a future Kotlin release.
-            combine(
-                listOf<Flow<Any>>(
-                    preferencesRepository.isAudioEnabled,
-                    preferencesRepository.isVideoEnabled,
-                    preferencesRepository.isImagesEnabled,
-                    preferencesRepository.isSlideshowEnabled,
-                    preferencesRepository.slideshowIntervalSeconds,
-                    preferencesRepository.downloadAlbumArt,
-                    preferencesRepository.viewMode,
-                    preferencesRepository.streamsSectionEnabled,
-                    preferencesRepository.keepScreenAwakeOutsidePlayers,
-                    preferencesRepository.fileListViewMode,
-                    preferencesRepository.isAutoRotationEnabled,
-                    preferencesRepository.voiceNoteSendPolicy,
-                    preferencesRepository.backgroundMode,
-                    preferencesRepository.lastSettingsSyncAt,
-                    preferencesRepository.isDocumentsEnabled,
-                    preferencesRepository.isAnimationsDisabled,
-                    preferencesRepository.backgroundPlaybackEnabled,
-                    preferencesRepository.panelAutoHideSeconds,
-                    preferencesRepository.powerSavingTrigger,
-                    preferencesRepository.colorScheme
-                )
-            ) { values ->
+            combine(settingsSources()) { values ->
                 val audio = values[INDEX_AUDIO] as Boolean
                 val video = values[INDEX_VIDEO] as Boolean
                 val images = values[INDEX_IMAGES] as Boolean
@@ -157,6 +174,7 @@ class SettingsViewModel @Inject constructor(
                 val panelAutoHide = values[INDEX_PANEL_AUTO_HIDE] as Int
                 val powerSaving = values[INDEX_POWER_SAVING_TRIGGER] as PowerSavingTrigger
                 val colorScheme = values[INDEX_COLOR_SCHEME] as WearColorScheme
+                val geometryMode = values[INDEX_GEOMETRY_MODE] as WearGeometryMode
                 _uiState.value.copy(
                     backgroundMode = background,
                     colorScheme = colorScheme,
@@ -179,6 +197,8 @@ class SettingsViewModel @Inject constructor(
                     isAnimationsDisabled = disableAnimations,
                     powerSavingTrigger = powerSaving,
                     backgroundPlaybackEnabled = backgroundPlayback,
+                    geometryMode = geometryMode,
+                    offersGeometryModeSwitch = geometryDefaults.offersModeSwitch,
                     isLoading = false
                 )
             }.collect { combinedState ->
@@ -294,6 +314,23 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2773: writes the OPPOSITE of the view in force, which on a watch that has never been switched
+     * is the opposite of the build variant's own starting view. That is what makes the first tap do
+     * something visible rather than store the value already in effect.
+     */
+    fun toggleGeometryMode() {
+        viewModelScope.launch {
+            val next = if (_uiState.value.geometryMode == WearGeometryMode.ORIGINAL) {
+                WearGeometryMode.STORE
+            } else {
+                WearGeometryMode.ORIGINAL
+            }
+            Timber.d("S2773: settings toggle writes geometry mode %s", next)
+            preferencesRepository.setGeometryMode(next)
+        }
+    }
+
     fun toggleBackgroundPlayback() {
         viewModelScope.launch {
             preferencesRepository.setBackgroundPlaybackEnabled(
@@ -392,7 +429,6 @@ class SettingsViewModel @Inject constructor(
 
     /** S2522: the colour scheme every screen is drawn in. */
     fun setColorScheme(scheme: WearColorScheme) {
-        Timber.d("S2522: setColorScheme scheme=%s", scheme)
         viewModelScope.launch {
             preferencesRepository.setColorScheme(scheme)
         }

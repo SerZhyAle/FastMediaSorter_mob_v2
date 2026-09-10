@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
@@ -41,6 +42,13 @@ class LauncherShortcutSyncRepositoryImpl @Inject constructor(
         dataStore.edit { preferences -> preferences.remove(KEY_SYNCED_SHORTCUT_ROUTES) }
     }
 
+    override suspend fun isStopwatchShortcutBackfilled(): Boolean =
+        dataStore.data.first()[KEY_STOPWATCH_SHORTCUT_BACKFILLED] ?: false
+
+    override suspend fun setStopwatchShortcutBackfilled() {
+        dataStore.edit { preferences -> preferences[KEY_STOPWATCH_SHORTCUT_BACKFILLED] = true }
+    }
+
     override suspend fun syncedResourcePaths(): Set<String>? =
         dataStore.data.first()[KEY_SYNCED_RESOURCE_PATHS]
 
@@ -55,6 +63,7 @@ class LauncherShortcutSyncRepositoryImpl @Inject constructor(
 
     private companion object {
         val KEY_SYNCED_SHORTCUT_ROUTES = stringSetPreferencesKey("launcher_synced_shortcut_routes")
+        val KEY_STOPWATCH_SHORTCUT_BACKFILLED = booleanPreferencesKey("launcher_stopwatch_shortcut_backfilled")
 
         // S2564: a key of its own, so the launcher reset and the two sync passes can clear one
         // baseline without disturbing the other.

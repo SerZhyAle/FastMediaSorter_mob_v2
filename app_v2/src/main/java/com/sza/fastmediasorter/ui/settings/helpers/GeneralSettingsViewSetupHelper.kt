@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.core.util.LanguageSplitInstaller
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
@@ -127,6 +128,16 @@ class GeneralSettingsViewSetupHelper(
             val current = viewModel.settings.value
             if (current.powerSavingTrigger == trigger) return@setOnItemSelectedListener
             viewModel.updateSettings(current.copy(powerSavingTrigger = trigger))
+        }
+        // S2731: entries come from app:sdr_entries in the layout, in UnitSystem declaration order,
+        // so the position IS the ordinal and no parallel lookup table can drift out of step.
+        binding.rowUnitSystem?.setOnItemSelectedListener { position ->
+            if (isUpdatingSpinner.get()) return@setOnItemSelectedListener
+            val system = UnitSystem.entries.getOrNull(position) ?: return@setOnItemSelectedListener
+            val current = viewModel.settings.value
+            if (current.unitSystem == system) return@setOnItemSelectedListener
+            viewModel.updateSettings(current.copy(unitSystem = system))
+            Timber.d("S2731: unit system selected=%s", system)
         }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->

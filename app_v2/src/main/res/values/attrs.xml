@@ -105,6 +105,10 @@
         </attr>
         <!-- Caps the input field max width while it still shrinks with the row (weighted columns). Default unset = uncapped. -->
         <attr name="sir_fieldMaxWidth" format="dimension|reference" />
+        <!-- Puts the title and the field on one line; opt-in so the stacked default of the other call sites is untouched (S2786). -->
+        <attr name="sir_inline" format="boolean" />
+        <!-- Preset values offered next to the still-editable field. Unset = no picker, plain input row (S2786). -->
+        <attr name="sir_entries" format="reference" />
     </declare-styleable>
 
     <!-- Consumed by FormFieldPairLayout.kt. All public attrs use the ffp_ prefix. -->

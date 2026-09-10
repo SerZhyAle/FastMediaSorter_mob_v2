@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.wear.domain.usecase
 
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -24,7 +23,6 @@ class SetStreamsSectionEnabledUseCase @Inject constructor(
 
     suspend operator fun invoke(enabled: Boolean) {
         preferencesRepository.setStreamsSectionEnabled(enabled)
-        Timber.d("S2511: streams section switched to %s, asking the sections tile to redraw", enabled)
         requestWearTileRefresh(WearTileKind.SECTIONS)
     }
 }

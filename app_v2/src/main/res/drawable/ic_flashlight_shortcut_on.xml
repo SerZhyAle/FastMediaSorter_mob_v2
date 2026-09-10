@@ -1,0 +1,12 @@
+<!-- S2776: the shade shortcut's large icon. A copy of ic_camera_flash_on without the
+     ?attr/colorControlNormal tint: it is rasterised against the application context, which carries no
+     app theme, so a theme attribute here would resolve to nothing or throw (S0405, S0416). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+  <path
+      android:fillColor="@color/color_program_accent_amber"
+      android:pathData="M7,2v11h3v9l7,-12h-4l4,-8z"/>
+</vector>

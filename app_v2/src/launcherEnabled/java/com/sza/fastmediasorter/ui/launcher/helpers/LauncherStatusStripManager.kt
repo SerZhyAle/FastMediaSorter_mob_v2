@@ -186,6 +186,9 @@ class LauncherStatusStripManager @Inject constructor(
      */
     private fun applyStripMode(enabled: Boolean) {
         val row = binding?.launcherSignalRow ?: return
+        // S2790 ADR-1: the row's chip ceiling and its cutout split follow this mode, and it is told the mode
+        // before the pins move so the rebuild the pinning triggers already computes against the new one.
+        row.setTopStatusBarMode(enabled)
         row.setPinnedStart(if (enabled) stripClock?.root else null)
         row.setPinnedEnd(if (enabled) stripIndicators?.root else null)
     }

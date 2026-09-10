@@ -406,6 +406,8 @@ class PlayerActivity :
 
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
 
+    @Inject lateinit var activeCastControllerHolder: com.sza.fastmediasorter.core.cast.ActiveCastControllerHolder
+
     @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>

@@ -208,9 +208,6 @@
     <string name="wear_streams_search">搜索流</string>
     <string name="wear_streams_filter">筛选流</string>
     <string name="wear_streams_sort">排序流</string>
-    <string name="wear_streams_filter_all">全部频道</string>
-    <string name="wear_streams_filter_audio">仅音频</string>
-    <string name="wear_streams_filter_video">仅视频</string>
     <string name="wear_streams_sort_name_asc">名称（A-Z）</string>
     <string name="wear_streams_sort_name_desc">名称（Z-A）</string>
     <string name="wear_streams_sort_kind">按媒体类型</string>

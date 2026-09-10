@@ -271,8 +271,8 @@ Everything below was measured or watched on the owner's Galaxy Watch 7, not infe
 | Screen-off mode | audio | A button blanks the screen and any touch restores it. With Background playback enabled, audio files and streams also continue after the app is minimized or the display times out; notification controls remain available. Video and slideshows still pause when their host stops. |
 | Clock | all three players | HH:MM at top centre, from the Wear scaffold, in every state except the blanked screen. |
 | Localization | browse, all three players | Titles and player literals come from resources in EN/RU/UK. The list title used to stay English under a Russian interface. |
-| Command composition | all three players | The players carry two compositions, chosen at 225 dp - Google's own break between a small and a large round watch. Below it: three primary commands, two secondary, and no time row, the playing position riding a ring around the play button instead. At or above it: three primary, three secondary, and the time row as before. Everything the rows no longer show - the playback mode, the pin, the scale mode, the screen-off command, the favourite below the breakpoint, and the file operations - opens from a player menu behind the "more" button (S2766). |
-| Touch targets | all three players | Every command box is at least 48 dp on both sides in both compositions. Four commands never could be: 48 dp each needs 204 dp of row against a 192 dp diameter, which is why S2273 first made the cell divide the width it actually has and why S2766 then cut the row to three. Measured on emulator-5556, audio player, boxes read off the `Button` nodes: at 192 dp the primary row is 48.5 x 48.5 dp and the secondary 56.0 x 56.0; at 227 dp the primary row is 58.1 x 58.1 dp and the secondary 49.8-51.0 x 48.0. `clip-check` CLEAN at both. The video player and the image viewer draw the same rows from the same shared grid and are not separately measured yet. |
+| Command composition | all three players | The players carry two command-row views on top of the 225 dp compositions. Under the STORE geometry mode (the default of the `standard` build, and the only view there - S2773's ADR-3 keeps the toggle out of the shipped build) the rows are the reviewed ones: three primary commands and two or three secondary at 225 dp, everything displaced opening from a player menu behind the "more" button (S2766). Under the ORIGINAL geometry mode (the default of `noLegal`, switchable in Settings > Screen) both rows restore four commands each - the composition the tree drew before the Play edits: audio primary previous/play-pause/playback-mode/next, secondary back/favourite/pin-or-file-operations/screen-off; video and image per their pre-S2766 rows - with cells computed from the 148 dp band at the glyph floor, so the glass may cut the outer edges, which is the owner's recorded decision (S2803). |
+| Touch targets | all three players | Every command box is at least 48 dp on both sides in the STORE compositions. Four commands never could be: 48 dp each needs 204 dp of row against a 192 dp diameter, which is why S2273 first made the cell divide the width it actually has and why S2766 then cut the row to three. Measured on emulator-5556, audio player, boxes read off the `Button` nodes: at 192 dp the primary row is 48.5 x 48.5 dp and the secondary 56.0 x 56.0; at 227 dp the primary row is 58.1 x 58.1 dp and the secondary 49.8-51.0 x 48.0. `clip-check` CLEAN at both. The video player and the image viewer draw the same rows from the same shared grid and are not separately measured yet. The ORIGINAL view intentionally drops below that floor: four cells at the 32 dp glyph floor fit the band the glass actually holds, and the sub-48 dp target is the owner's accepted price for the restored view (S2803, strategic 3.2). |
 
 Known cost, tracked separately as S1709: the audio player burns about 70% of a core while playing
 with a static screen, more than the animation costs. Stopping the position updates was tried and
@@ -491,10 +491,11 @@ storage class, meaning "the phone still holds the original of this".
 
 ## 🎮 Apps: the mini-programs section (S1710)
 
-The watch home screen carries an **Apps** section holding eight self-contained programs, each usable
+The watch home screen carries an **Apps** section holding eleven self-contained programs, each usable
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
-recorder**, **system information**, a **water flashlight**, a **motion monitor** and a **heart-rate
-check**. Seven of them appear in every edition; the heart-rate check appears in `noLegal` alone.
+recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
+check**, **blood pressure** (S2809), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
+them appear in every edition; the heart-rate check appears in `noLegal` alone.
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
   program registers a catalog record and its own route; the Apps screen itself does not change. **Four**
@@ -506,7 +507,8 @@ check**. Seven of them appear in every edition; the heart-rate check appears in 
   misses. S2457 found it the way it is meant to be found: the build failed.
 - Routes registered: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`,
   `WearRoutes.VOICE_RECORDER`, `WearRoutes.SYSTEM_INFO`, `WearRoutes.WATER_FLASHLIGHT`,
-  `WearRoutes.MOTION_MONITOR`, `WearRoutes.BODY_SENSOR`.
+  `WearRoutes.MOTION_MONITOR`, `WearRoutes.BODY_SENSOR`, `WearRoutes.BLOOD_PRESSURE`,
+  `WearRoutes.BROADCAST`, `WearRoutes.STOPWATCH`.
 - **Heart-rate check** (S2457) is the only program whose ROW the build can withhold. `WearAppCatalog
   .apps(offersBodySensorDiagnostics)` reads the answer from `WearRestrictedCapabilities`, so `standard`
   never lists it: Play reviews both heart-rate permissions against six admitted use cases and a media
@@ -591,8 +593,14 @@ check**. Seven of them appear in every edition; the heart-rate check appears in 
   Since S2165 the content is selected by one criterion - a fact the watch's own settings screens do not
   show - and the screen is assembled from contributors rather than from one interface with a property
   per fact: `domain/systeminfo/WearSystemInfoContributor.kt` declares the seam, `WearSystemInfoOrder`
-  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`. Three
-  consequences worth knowing before editing it:
+  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`.
+  Since S2806 the screen opens with every section CLOSED, each heading carrying the number of lines it
+  holds back, and a closed section contributes no list items at all - the rows are left out of the list
+  rather than hidden, because a ScalingLazyColumn counts items and a hidden row would still be a crown
+  notch to scroll past. What is open, and where the list stood, survives leaving the screen:
+  `ui/common/WearSectionExpansionStore.kt` holds the first for the life of the process, exactly as
+  `WearListPositionStore` (S2543) holds the second, and both are handed to composition by `MainActivity`.
+  Three consequences worth knowing before editing it:
   - **A section that cannot be filled says why instead of disappearing**, on the S2130/S1584 pattern and
     matching the form S2156 settled for the network monitor. A single missing *field* still just
     vanishes.

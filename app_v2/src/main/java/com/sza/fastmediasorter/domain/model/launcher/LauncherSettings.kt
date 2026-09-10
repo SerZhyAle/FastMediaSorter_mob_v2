@@ -26,6 +26,11 @@ data class LauncherSettings(
     val densityFactor: Float = AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR,
     // S2251: number of desktop screens in launcher mode (1..5, default 2).
     val screenCount: Int = 2,
+    // S2730: draws the screen number over the desktop while paging, independently of whether animation
+    // is allowed. S2323 tied the badge to the animation ban, which made a live branded backdrop and the
+    // number mutually exclusive; ADR-3 hands the badge to this switch alone. Off by default - the owner
+    // asked for an opt-in, and the page dots below the desktop already point at the current screen.
+    val showScreenNumber: Boolean = AppSettings.DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER,
     // S1643: which screen edge the whole taskbar composition is anchored to, one of
     // [AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [wallpaperMode]) so an
     // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge

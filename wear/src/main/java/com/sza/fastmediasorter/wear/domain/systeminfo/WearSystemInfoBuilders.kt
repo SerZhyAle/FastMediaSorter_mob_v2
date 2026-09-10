@@ -27,8 +27,12 @@ internal fun text(@StringRes labelRes: Int, value: String?): WearSystemInfoField
     value?.let { resolved -> WearSystemInfoField(labelRes, WearSystemInfoValue.Text(resolved)) }
 
 /** One line whose value is a fixed word rather than a measurement. */
-internal fun label(@StringRes labelRes: Int, @StringRes valueRes: Int): WearSystemInfoField =
-    WearSystemInfoField(labelRes, WearSystemInfoValue.Label(valueRes))
+internal fun label(
+    @StringRes labelRes: Int,
+    @StringRes valueRes: Int,
+    accentHint: Boolean = false
+): WearSystemInfoField =
+    WearSystemInfoField(labelRes, WearSystemInfoValue.Label(valueRes), accentHint)
 
 /**
  * A section that fell empty says why instead of vanishing (S2165 §5.2). Only a contributor knows which

@@ -69,6 +69,14 @@ param(
     # directly, which Rule 23 forbids because it bypasses temp/BUILD.LOCK. The gap made the sanctioned
     # path and the documented path contradict each other.
     [string[]]$SystemProperty,
+    # S2851: gradle PROJECT properties forwarded as -P, "name=value" each - the sibling of
+    # -SystemProperty, which forwards -D. The two are not interchangeable: a build script reading
+    # providers.gradleProperty() never sees a -D, so every fms.* knob this build declares
+    # (fms.unitTestMaxParallelForks, fms.unitTestTimeoutMinutes, fms.screenCapture..) was reachable
+    # only by editing gradle.properties - a file every concurrent session shares and whose edit
+    # invalidates their configuration cache mid-run. That made measuring one of those knobs cost a
+    # change to everyone else's build, which is why the parallel-fork value had never been measured.
+    [string[]]$ProjectProperty,
     # S2363: which device the connected instrumented run goes to. AGP's connected task takes no such
     # argument - left unpinned it installs on EVERY device `adb devices` reports, which on 2026-09-02
     # reached the owner's phone and tried to install the app and uninstall the test APK there. The one
@@ -398,6 +406,15 @@ foreach ($property in $SystemProperty) {
         throw "-SystemProperty expects 'name=value', got '$property'"
     }
     $null = $gradleArgs.Add("-D$trimmed")
+}
+
+foreach ($property in $ProjectProperty) {
+    $trimmed = $property.Trim()
+    if (-not $trimmed) { continue }
+    if ($trimmed -notmatch '^[^=\s]+=.*$') {
+        throw "-ProjectProperty expects 'name=value', got '$property'"
+    }
+    $null = $gradleArgs.Add("-P$trimmed")
 }
 
 if ($Mode -eq "Assemble") {

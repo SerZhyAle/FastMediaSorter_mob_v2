@@ -9,7 +9,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamily
 import com.sza.fastmediasorter.data.common.OfficeDocumentFamilyCatalog
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -207,7 +207,7 @@ class OfficeDocumentViewerManager(
     override fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback? {
         if (!isActive) return null
         return DocumentSelectionActionModeCallback(
-            showTranslate = BuildConfig.ENABLE_TRANSLATION,
+            showTranslate = CapabilityAvailabilityAccessor.isTranslationAvailable(root.context),
             getSelectedText = { selectionBridge.lastSelectedText },
             onTranslate = callback::onTranslateSelection,
             onSearchGoogle = { openGoogleSearch(root.context, it) },

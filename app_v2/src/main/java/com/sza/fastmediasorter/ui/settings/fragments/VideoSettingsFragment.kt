@@ -15,9 +15,9 @@ import com.sza.fastmediasorter.databinding.FragmentSettingsVideoBinding
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.exitAllFilesForManualSupportToggle
 import com.sza.fastmediasorter.ui.settings.helpers.DefaultPlayerHelper
+import com.sza.fastmediasorter.ui.settings.helpers.DestinationLabelResolver
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
-import kotlinx.coroutines.launch
 
 @android.annotation.SuppressLint("SetTextI18n")
 class VideoSettingsFragment : BaseSettingsFragment() {
@@ -29,6 +29,12 @@ class VideoSettingsFragment : BaseSettingsFragment() {
 
     private val localFolderDestinationPickerManager by lazy {
         LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
+    }
+
+    // S2797: the scope is read per call - viewLifecycleOwner is a different object after the view
+    // is recreated, and capturing the first one would launch lookups into a dead scope.
+    private val destinationLabelResolver by lazy {
+        DestinationLabelResolver({ viewLifecycleOwner.lifecycleScope }, viewModel.resourceRepository)
     }
 
     // S1010: SAF picker for the "Local Folder" snapshot-destination option. Must be created at
@@ -161,11 +167,6 @@ class VideoSettingsFragment : BaseSettingsFragment() {
             ).show()
         }
 
-        binding.btnClearSnapshotResource.setOnClickListener {
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(videoSnapshotResourceId = null))
-        }
-
         // Free-standing help icon next to "Video snapshot" section header - not part of a switch row,
         // kept as standalone ImageButton with TooltipDialog wiring.
         binding.iconHelpVideoSnapshot.setOnClickListener {
@@ -229,18 +230,14 @@ class VideoSettingsFragment : BaseSettingsFragment() {
                     binding.etVideoSizeMax.setText(getString(com.sza.fastmediasorter.R.string.string_format, maxKb.toString()))
                 }
 
-                // Video snapshot resource: show name or "not selected" hint
-                if (settings.videoSnapshotResourceId != null) {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        val resource = viewModel.resourceRepository.getResourceById(settings.videoSnapshotResourceId)
-                        binding.tvSelectedSnapshotResource.text = resource?.name
-                            ?: getString(com.sza.fastmediasorter.R.string.resource_not_found)
-                    }
-                    binding.btnClearSnapshotResource.visibility = android.view.View.VISIBLE
-                } else {
-                    binding.tvSelectedSnapshotResource.setText(com.sza.fastmediasorter.R.string.video_snapshot_resource_not_set)
-                    binding.btnClearSnapshotResource.visibility = android.view.View.GONE
-                }
+                // Video snapshot resource: show name or "not selected" hint. S2781: clearing lives in the
+                // picker dialog's own Clear action, matching the four capture-destination selectors.
+                destinationLabelResolver.cancelPending()
+                destinationLabelResolver.render(
+                    resourceId = settings.videoSnapshotResourceId,
+                    unsetLabel = getString(R.string.video_snapshot_resource_not_set),
+                    missingLabel = getString(R.string.resource_not_found),
+                ) { binding.tvSelectedSnapshotResource.text = it }
 
                 // Snapshot format radio button: reflects videoSnapshotFormat setting
                 binding.rgSnapshotFormat.check(

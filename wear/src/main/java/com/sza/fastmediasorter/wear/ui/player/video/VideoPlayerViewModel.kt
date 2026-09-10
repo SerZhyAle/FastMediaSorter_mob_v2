@@ -8,13 +8,18 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -26,6 +31,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
@@ -73,6 +79,7 @@ class VideoPlayerViewModel @Inject constructor(
     private val toggleStreamPinUseCase: com.sza.fastmediasorter.wear.domain.usecase.ToggleStreamPinUseCase,
     private val nowPlayingRepository: WearNowPlayingRepository,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
+    val castManager: PlayerCastManager,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -130,6 +137,17 @@ class VideoPlayerViewModel @Inject constructor(
                 showControls()
             }
             publishPlaybackState()
+            updateStallWatch()
+        }
+
+        /**
+         * S2849: the edge a stalled session is left on. A player that is paused while already silent
+         * changes neither `isPlaying` nor the playback state, so without this callback the watchdog
+         * armed by the stall would still be counting down over a session that is already settled.
+         */
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _uiState.update { it.copy(isPlaybackRequested = playWhenReady) }
+            updateStallWatch()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -179,6 +197,7 @@ class VideoPlayerViewModel @Inject constructor(
                     Timber.d("Player STATE_IDLE")
                 }
             }
+            updateStallWatch()
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -198,10 +217,23 @@ class VideoPlayerViewModel @Inject constructor(
         onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
     )
 
+    /**
+     * S2849: the screen's own copy of the guard S2848 gave the background service. The screen was
+     * spared the overnight drain by the pause on ON_STOP (S0902), which the screen-off mode suppresses
+     * by holding the display awake - so behind that sheet a stream that stops answering has exactly
+     * the service's problem, with a lit screen on top of it.
+     */
+    private val stallWatchdog = WearPlaybackStallWatchdog(
+        scope = viewModelScope,
+        stallTimeoutMs = WEAR_PLAYBACK_STALL_TIMEOUT_MS,
+        onStalled = { onPlaybackStalled() }
+    )
+
     init {
         Timber.d("VideoPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
 
+        castManager.bind(viewModelScope)
         val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
         fileOperations.bind(
             scope = viewModelScope,
@@ -477,6 +509,20 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2815: blanks the screen without touching playback, and any touch on the black screen calls this
+     * again. The flag lives here rather than in the composition so it survives a recomposition, and it
+     * dies with this view model when the player is left - a screen reopened is never already dark.
+     *
+     * The control panel's own visibility is left alone: the wearer had it open to reach this command,
+     * so the touch that leaves the mode puts the screen back exactly as it was found.
+     */
+    fun toggleDimmed() {
+        Timber.d("S2815: video player screen-off toggled, dimmed=${!_uiState.value.isDimmed}")
+        _uiState.update { it.copy(isDimmed = !it.isDimmed) }
+        Timber.d("S2849: video display hold=%b", _uiState.value.holdsDisplay)
+    }
+
     private fun showControls() {
         controlsHideJob?.cancel()
         _uiState.update { it.copy(showControls = true) }
@@ -581,6 +627,19 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2531: hands what this screen is playing to the phone, which owns the Cast session, or ends the
+     * one already running - one entry, and the phone's reported state decides which of the two it is.
+     */
+    fun toggleCast() {
+        if (castManager.castState.value.isCasting) {
+            castManager.stopCasting()
+            return
+        }
+        val file = _uiState.value.mediaFile ?: return
+        castManager.castCurrentFile(file, networkSelection, WearCastMediaType.VIDEO)
+    }
+
     fun toggleFavorite() {
         val identity = currentFavoriteIdentity() ?: return
         viewModelScope.launch {
@@ -620,9 +679,46 @@ class VideoPlayerViewModel @Inject constructor(
         fallbackUri = _uiState.value.mediaFile?.uri?.toString()
     )
 
+    /** S2849: asked after anything that could have started or ended a stall. */
+    private fun updateStallWatch() {
+        val playbackState = exoPlayer.playbackState
+        stallWatchdog.onActivityChanged(
+            WearPlaybackStallPolicy.activityOf(
+                playWhenReady = exoPlayer.playWhenReady,
+                isPlaying = exoPlayer.isPlaying,
+                isEndedOrIdle = playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE
+            )
+        )
+    }
+
+    /**
+     * S2849: pausing is what ends the retry loop, and it is also what releases the display - the
+     * screen-off hold follows `playWhenReady`, so the same call that stops the refetching lets the
+     * watch sleep. The mode is left as well, because a black sheet over a stopped stream hides the
+     * one thing the wearer now needs to see.
+     */
+    private fun onPlaybackStalled() {
+        Timber.d("S2849: video stall guard stops the session")
+        Timber.w(
+            "VideoPlayerViewModel: no picture for %d ms, stopping the stalled stream",
+            WEAR_PLAYBACK_STALL_TIMEOUT_MS
+        )
+        exoPlayer.pause()
+        streamPlaybackSession.stop()
+        _uiState.update {
+            it.copy(
+                isDimmed = false,
+                isLoading = false,
+                isPlaying = false,
+                error = context.getString(R.string.wear_stream_stalled)
+            )
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")
+        stallWatchdog.cancel()
         progressTicker.stop()
         controlsHideJob?.cancel()
         volumeController.cancel()

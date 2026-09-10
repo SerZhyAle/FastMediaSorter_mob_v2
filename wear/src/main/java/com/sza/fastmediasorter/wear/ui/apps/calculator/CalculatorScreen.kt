@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,8 +63,8 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearChordInset
 import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
+import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -202,7 +201,10 @@ private data class CalculatorShape(
  */
 @Composable
 private fun calculatorShape(): CalculatorShape {
-    val viewportBottom = wearRingInset()
+    // S2773: the mode-aware form of the bound S2770 introduced. In the store view it is still
+    // `wearRingInset()`; in the original view it is zero, which returns the full-height viewport whose
+    // outer keys the glass cuts.
+    val viewportBottom = wearScrollViewportInset()
     val sideInset = wearChordInset(viewportBottom)
     val shape = CalculatorShape(
         valueRowWidth = wearMaxSquareSide(),
@@ -215,9 +217,6 @@ private fun calculatorShape(): CalculatorShape {
         ),
         keypadViewportBottom = viewportBottom
     )
-    LaunchedEffect(shape) {
-        Timber.d("S2770: keypad viewport bottom %s, chord side inset %s", viewportBottom, sideInset)
-    }
     return shape
 }
 

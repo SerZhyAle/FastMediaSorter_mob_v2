@@ -208,9 +208,6 @@
     <string name="wear_streams_search">اسٹریمز تلاش کریں</string>
     <string name="wear_streams_filter">اسٹریمز فلٹر کریں</string>
     <string name="wear_streams_sort">اسٹریمز ترتیب دیں</string>
-    <string name="wear_streams_filter_all">تمام چینلز</string>
-    <string name="wear_streams_filter_audio">صرف آڈیو</string>
-    <string name="wear_streams_filter_video">صرف ویڈیو</string>
     <string name="wear_streams_sort_name_asc">نام (A-Z)</string>
     <string name="wear_streams_sort_name_desc">نام (Z-A)</string>
     <string name="wear_streams_sort_kind">میڈیا کی قسم کے مطابق</string>

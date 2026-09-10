@@ -129,17 +129,36 @@ function script:Get-SharedModulePin {
 
 # --- Public entry ------------------------------------------------------------
 
+function Get-GradleSourcePaths {
+    <# S2827: the canonical side of the drift comparison, named once. assert-doc-pin-drift.ps1 needs
+       the same five paths to decide whether a changed set can be charged for a drift finding, and a
+       second copy of them there would drift from this one in silence (S1621). #>
+    [CmdletBinding()]
+    param(
+        [string] $RepoRoot = (Get-Location).Path
+    )
+
+    return [ordered]@{
+        wrapper  = Join-Path $RepoRoot 'gradle/wrapper/gradle-wrapper.properties'
+        rootBuild = Join-Path $RepoRoot 'build.gradle.kts'
+        appBuild = Join-Path $RepoRoot 'app_v2/build.gradle.kts'
+        wearBuild = Join-Path $RepoRoot 'wear/build.gradle.kts'
+        database = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt'
+    }
+}
+
 function Get-GradlePins {
     [CmdletBinding()]
     param(
         [string] $RepoRoot = (Get-Location).Path
     )
 
-    $wrapperPath = Join-Path $RepoRoot 'gradle/wrapper/gradle-wrapper.properties'
-    $rootBuildPath = Join-Path $RepoRoot 'build.gradle.kts'
-    $appBuildPath = Join-Path $RepoRoot 'app_v2/build.gradle.kts'
-    $wearBuildPath = Join-Path $RepoRoot 'wear/build.gradle.kts'
-    $databasePath = Join-Path $RepoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db/AppDatabase.kt'
+    $sourcePaths = Get-GradleSourcePaths -RepoRoot $RepoRoot
+    $wrapperPath = $sourcePaths['wrapper']
+    $rootBuildPath = $sourcePaths['rootBuild']
+    $appBuildPath = $sourcePaths['appBuild']
+    $wearBuildPath = $sourcePaths['wearBuild']
+    $databasePath = $sourcePaths['database']
 
     $wrapperText = Read-RequiredText -Path $wrapperPath -PinHint 'gradle.wrapper'
     $rootText    = Read-RequiredText -Path $rootBuildPath -PinHint 'agp'

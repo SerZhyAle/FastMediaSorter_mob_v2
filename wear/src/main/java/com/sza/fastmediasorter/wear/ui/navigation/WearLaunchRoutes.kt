@@ -36,9 +36,11 @@ internal object WearLaunchRoutes {
         // answer than a dead tap, and the only one available here, since a route is a static address and
         // this table has no way to ask whether the Apps catalog offered the row.
         WearDestinationId.BODY_SENSOR -> WearRoutes.BODY_SENSOR
+        WearDestinationId.BLOOD_PRESSURE -> WearRoutes.BLOOD_PRESSURE
         // S2509: one route for both entrances, so a shortcut pinned from the Home section and one
         // pinned from the Programs grid land on the same control screen.
         WearDestinationId.BROADCAST -> WearRoutes.BROADCAST
+        WearDestinationId.STOPWATCH -> WearRoutes.STOPWATCH
         // S2551: the mirror entrance of the row above, and a separate address for the same reason -
         // one of them opens this watch's microphone, the other the phone's camera.
         WearDestinationId.PHONE_CAMERA -> WearRoutes.PHONE_CAMERA

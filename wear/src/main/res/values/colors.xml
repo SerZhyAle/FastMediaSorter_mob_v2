@@ -64,4 +64,12 @@
          from the teal the Network Monitor holds - the accent test forbids a repeat because the whole
          list fits one watch screen at once. -->
     <color name="color_program_accent_cyan">#FF4A7E8C</color>
+    <!-- S2809: the tenth name, for blood pressure. Watch-only like the cyan above, and
+         distinct from every other tone so no two adjacent rows on the Apps list look alike. -->
+    <color name="color_program_accent_pink">#FF9A5A7A</color>
+    <!-- S2825: the eleventh name, for the stopwatch. The phone gives that program orange because it
+         sits beside the calculator there, but on the watch the calculator already holds orange and the
+         accent test forbids a repeat - so this is the one tone whose value the two devices disagree on
+         by necessity rather than by choice. Brown, desaturated like its neighbours. -->
+    <color name="color_program_accent_brown">#FF8C6F5A</color>
 </resources>

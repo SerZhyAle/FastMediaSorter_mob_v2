@@ -142,7 +142,7 @@ foreach ($glob in $registryRecord.paths) {
     $full = Join-Path $repoRoot ($glob -replace '/', [IO.Path]::DirectorySeparatorChar)
     foreach ($file in (Get-ChildItem -Path $full -File -ErrorAction SilentlyContinue)) {
         # The inventory is EN-only; a translated guide would be matched against the wrong vocabulary.
-        if ($file.Name -match '_(RU|UK)\.md$') { continue }
+        if ($file.Name -match '-(ru|uk)\.md$') { continue }
         $guideFiles.Add($file.FullName)
     }
 }

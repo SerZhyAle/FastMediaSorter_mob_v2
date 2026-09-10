@@ -198,7 +198,10 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         app:sir_title="@string/player_panel_auto_hide_seconds"
-                        app:sir_inputType="2" />
+                        app:sir_inputType="2"
+                        app:sir_inline="true"
+                        app:sir_entries="@array/player_panel_auto_hide_seconds_entries"
+                        app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width" />
 
                     <!-- S0609: Black Screen button + PiP paired into a weighted 2-column row (landscape). -->
                     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="@dimen/margin_small" android:baselineAligned="false" android:gravity="center_vertical" android:orientation="horizontal">

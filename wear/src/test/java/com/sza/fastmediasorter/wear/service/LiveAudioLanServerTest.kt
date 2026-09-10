@@ -16,6 +16,7 @@ import org.junit.Test
 import java.io.IOException
 import java.io.OutputStream
 import java.net.InetSocketAddress
+import java.net.ServerSocket
 import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -182,6 +183,42 @@ class LiveAudioLanServerTest {
             "A departed listener left the server unable to serve the next one: '$head'",
             head.startsWith("HTTP/1.0 200 OK")
         )
+    }
+
+    /**
+     * S2813: the port is what makes the repeated broadcast reproduce its QR image, so the value the
+     * caller asked for has to be the value the endpoint reports - not merely accepted and ignored.
+     */
+    @Test
+    fun aFreePreferredPortIsTheOneTheEndpointReports() {
+        val free = ServerSocket(0).use { it.localPort }
+
+        val endpoint = server.start(scope, source, null, free)
+
+        assertEquals("The preferred port was not honoured", free, endpoint.port)
+    }
+
+    /**
+     * The fallback branch, which a device walk is least likely to reach: the port can be held by
+     * anything on the watch, and refusing the broadcast to protect the barcode would trade the feature
+     * for a convenience.
+     */
+    @Test
+    fun aTakenPreferredPortStillStartsTheServerElsewhere() {
+        ServerSocket(0).use { squatter ->
+            val endpoint = server.start(scope, source, null, squatter.localPort)
+
+            assertNotEquals(
+                "The server claimed a port another socket is holding",
+                squatter.localPort,
+                endpoint.port
+            )
+            assertTrue("The fallback produced no usable port", endpoint.port in 1..MAX_PORT)
+            assertTrue(
+                "The fallback left the server down, so a busy port silently kills the broadcast",
+                readHead(connect(endpoint.port)).startsWith("HTTP/1.0 200 OK")
+            )
+        }
     }
 
     private fun connect(port: Int): Socket {

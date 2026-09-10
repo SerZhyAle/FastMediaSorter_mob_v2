@@ -69,10 +69,10 @@
 #>
 [CmdletBinding()]
 param(
-    # The S1476 axes (iptvcam..xiph) are opt-in only: they are not in the default set, so a routine
-    # collection run keeps its current cost and shape.
+    # The S1476 axes (iptvcam..xiph, language) are opt-in only: they are not in the default set, so a
+    # routine collection run keeps its current cost and shape.
     [ValidateSet('official', 'livetv', 'genres', 'geo', 'webcam',
-        'iptvcam', 'tfl', 'webradiodb', 'radioparadise', 'akc', 'lautfm', 'xiph')]
+        'iptvcam', 'tfl', 'webradiodb', 'radioparadise', 'akc', 'lautfm', 'xiph', 'language')]
     [string[]]$Axis = @('official', 'livetv', 'genres', 'geo', 'webcam'),
 
     # How many laut.fm station images to pull into the artwork cache during an ingest. 0 = none.
@@ -280,6 +280,13 @@ param(
         'JP', 'KR', 'BR', 'MX', 'IN', 'AR', 'TR', 'ZA', 'NG', 'PL', 'SE', 'ID', 'TH', 'EG', 'SA'
     ),
 
+    # radio-browser languages (exact match) for the opt-in 'language' axis. radio-browser knows 646
+    # languages; this is the set the catalog is thinnest in, not an attempt to sweep all of them.
+    [string[]]$GeoLanguages = @(
+        'hindi', 'bengali', 'urdu', 'tamil', 'telugu', 'vietnamese', 'thai', 'indonesian',
+        'swahili', 'amharic', 'persian', 'greek', 'hebrew', 'czech', 'hungarian', 'romanian'
+    ),
+
     # iptv-org categories to harvest for the Live TV axis.
     [string[]]$LiveTvCategories = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
@@ -364,6 +371,15 @@ if ($Axis -contains 'geo') {
     $r = Get-IptvCandidates -axis 'geo' -categories @() -countries $GeoCountries
     Write-Host ("    iptv-org geo: {0} channels" -f $r.Count)
     $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'language') {
+    Write-Host '* radio-browser by language ..' -ForegroundColor Yellow
+    foreach ($lang in $GeoLanguages) {
+        $r = Get-RadioBrowserStations -axis 'language' -kind 'language' -key $lang -topicHint 'General'
+        Write-Host ("    {0,-12} {1,3} stations" -f $lang, $r.Count)
+        $r | ForEach-Object { $all.Add($_) }
+    }
 }
 
 if ($Axis -contains 'livetv') {

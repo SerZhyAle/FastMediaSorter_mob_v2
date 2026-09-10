@@ -4,6 +4,7 @@ import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
 import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
@@ -14,6 +15,12 @@ data class AudioPlayerUiState(
     val mediaFile: WearMediaFile? = null,
     val isStream: Boolean = false,
     val isPlaying: Boolean = false,
+    /**
+     * S2849: `playWhenReady` - whether the session still wants to play, which is not the same as
+     * making a sound. It is what the screen-off hold follows, so a rebuffer does not release the
+     * display while a pause does.
+     */
+    val isPlaybackRequested: Boolean = false,
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val error: String? = null,
@@ -52,6 +59,13 @@ data class AudioPlayerUiState(
     val channelReason: StreamChannelReason? = null,
     val closeScreen: Boolean = false
 ) {
+    /**
+     * S2849: playing holds the display on its own; the screen-off sheet adds a hold only while the
+     * session under it still wants to play. Derived here rather than in the composable.
+     */
+    val holdsDisplay: Boolean
+        get() = isPlaying || WearPlayerDisplayHoldPolicy.holdsDisplay(isDimmed, isPlaybackRequested)
+
     val positionText: String
         get() = if (setSize > 0) {
             val totalStr = if (setSize > MAX_COUNTER_DISPLAY_COUNT) "###" else setSize.toString()

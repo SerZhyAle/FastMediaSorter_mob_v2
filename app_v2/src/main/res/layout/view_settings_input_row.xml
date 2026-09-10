@@ -9,6 +9,7 @@
 
     <!-- Title line: title + helper inline. -->
     <LinearLayout
+        android:id="@+id/sir_titleLine"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
@@ -34,6 +35,7 @@
             android:visibility="gone" />
 
         <View
+            android:id="@+id/sir_titleLineSpacer"
             android:layout_width="0dp"
             android:layout_height="1dp"
             android:layout_weight="1" />
@@ -54,5 +56,12 @@
             android:textSize="@dimen/toggler_title_text_size" />
 
     </com.google.android.material.textfield.TextInputLayout>
+
+    <!-- S2786: takes the slack at the END of an inline row, so the value never drifts away from its caption. -->
+    <View
+        android:id="@+id/sir_inlineTailSpacer"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 
 </merge>

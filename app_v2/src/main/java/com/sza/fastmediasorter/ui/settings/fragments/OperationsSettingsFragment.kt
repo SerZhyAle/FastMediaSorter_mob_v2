@@ -45,6 +45,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
+import com.sza.fastmediasorter.ui.settings.helpers.DestinationLabelResolver
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
@@ -143,6 +144,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
     private val localFolderDestinationPickerManager by lazy {
         LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
+    }
+
+    // S2797: the scope is read per call - viewLifecycleOwner is a different object after recreation.
+    private val destinationLabelResolver by lazy {
+        DestinationLabelResolver({ viewLifecycleOwner.lifecycleScope }, viewModel.resourceRepository)
     }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
@@ -595,6 +601,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 launch {
                     viewModel.settings.collect { settings ->
                         withSettingsUpdate {
+                            // S2797: every label below is re-rendered here, so a lookup left over
+                            // from the previous pass can only write a stale name.
+                            destinationLabelResolver.cancelPending()
                             scheduledManager.render(settings)
                             binding.rowEnableCopying.setCheckedSilently(settings.enableCopying)
                             binding.rowGoToNextAfterCopy.setCheckedSilently(settings.goToNextAfterCopy)
@@ -640,7 +649,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
 
                             // OtherFeatures group (moved from Player tab).
-                            val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
+                            val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable(requireContext()) &&
                                 DeviceCapabilities.isOcrSupported(requireContext())
                             if (hasOcrAndTranslation) {
                                 if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {
@@ -720,7 +729,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     }
 
     private fun applyFlavorRestrictions() {
-        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
+        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable(requireContext()) &&
             DeviceCapabilities.isOcrSupported(requireContext())
         binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
         binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
@@ -813,15 +822,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
      * when unset/missing. S0567: takes a setter lambda so both plain TextViews (capture selectors) and
      * SettingsSelectionRow targets (link-autodownload, screenshot destination) share one resolver.
      */
-    private fun refreshDestinationLabel(resourceId: String?, fallbackRes: Int, setLabel: (CharSequence) -> Unit) {
-        val id = resourceId?.toLongOrNull()
-        if (id == null) {
-            setLabel(getString(fallbackRes))
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resource = viewModel.resourceRepository.getResourceById(id)
-            setLabel(resource?.name ?: getString(fallbackRes))
-        }
-    }
+    private fun refreshDestinationLabel(resourceId: String?, fallbackRes: Int, setLabel: (CharSequence) -> Unit) =
+        destinationLabelResolver.render(resourceId?.toLongOrNull(), getString(fallbackRes), setLabel = setLabel)
 }

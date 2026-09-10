@@ -1,7 +1,5 @@
 package com.sza.fastmediasorter.core.debug
 
-import timber.log.Timber
-
 /**
  * Classifies a StrictMode violation as platform-owned noise or as this app's own defect.
  *
@@ -36,7 +34,6 @@ object StrictModeViolationFilter {
      * Binder call carries the caller's frames one level down rather than in the top-level stack.
      */
     fun isPlatformNoise(violation: Throwable): Boolean {
-        Timber.d("S2771: evaluating StrictMode violation source")
         var current: Throwable? = violation
         var depth = 0
         while (current != null && depth < MAX_CAUSE_DEPTH) {

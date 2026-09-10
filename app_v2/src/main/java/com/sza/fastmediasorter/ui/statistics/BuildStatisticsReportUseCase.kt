@@ -148,7 +148,10 @@ class BuildStatisticsReportUseCase @Inject constructor(
         appendLine(string(R.string.statistics_category_usage))
         appendValueLine(R.string.statistics_metric_launch_count, formatCount(baseline.launchCount))
         if (baseline.firstLaunchEpochMs > 0L) {
-            appendValueLine(R.string.statistics_metric_first_launch, StatisticsRowFormatter.formatDate(baseline.firstLaunchEpochMs))
+            appendValueLine(
+                R.string.statistics_metric_first_launch,
+                StatisticsRowFormatter.formatDate(context, baseline.firstLaunchEpochMs),
+            )
         }
         if (baseline.firstInstallVersion.isNotBlank()) {
             appendValueLine(R.string.statistics_metric_install_version, baseline.firstInstallVersion)

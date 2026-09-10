@@ -48,7 +48,7 @@ class DeliverableInventoryFilterTest {
         streams: Boolean = false
     ): DeliverableInventoryImpl {
         every { capabilityAvailability.isOcrAvailable(any()) } returns ocr
-        every { capabilityAvailability.isTranslationAvailable() } returns translation
+        every { capabilityAvailability.isTranslationAvailable(any()) } returns translation
         every { capabilityAvailability.isStreamsAvailable() } returns streams
         every { bundled.contains(any()) } answers { firstArg<DeliverableSet>() in bundledSets }
         return DeliverableInventoryImpl(

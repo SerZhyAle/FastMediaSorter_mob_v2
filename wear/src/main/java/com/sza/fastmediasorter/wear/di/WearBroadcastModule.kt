@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.di
 
+import com.sza.fastmediasorter.wear.data.broadcast.WearBroadcastIdentityStore
+import com.sza.fastmediasorter.wear.data.preferences.WearSettingsDataStore
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionStateHolder
 import dagger.Module
 import dagger.Provides
@@ -27,4 +29,15 @@ object WearBroadcastModule {
     @Singleton
     fun provideWearBroadcastSessionStateHolder(): WearBroadcastSessionStateHolder =
         WearBroadcastSessionStateHolder()
+
+    /**
+     * S2813: unwraps the settings store here rather than binding `DataStore<Preferences>` into the
+     * graph, which `WearSettingsDataStore` rules out - a bare binding of that type collides with the
+     * next store the app gains.
+     */
+    @Provides
+    @Singleton
+    fun provideWearBroadcastIdentityStore(
+        settings: WearSettingsDataStore
+    ): WearBroadcastIdentityStore = WearBroadcastIdentityStore(settings.store)
 }

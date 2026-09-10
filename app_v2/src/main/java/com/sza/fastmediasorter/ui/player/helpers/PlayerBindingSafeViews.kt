@@ -66,6 +66,7 @@ class PlayerBindingSafeViews private constructor(
         root.findViewById<View>(id)?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
+    val topCommandPanel: LinearLayout get() = required(binding?.topCommandPanel, R.id.topCommandPanel)
     val btnRenameCmd: ImageButton get() = required(binding?.btnRenameCmd, R.id.btnRenameCmd)
     val btnOverflowMenu: ImageButton get() = required(binding?.btnOverflowMenu, R.id.btnOverflowMenu)
     val btnEditCmd: ImageButton get() = required(binding?.btnEditCmd, R.id.btnEditCmd)
@@ -272,6 +273,7 @@ class PlayerBindingSafeViews private constructor(
     val btnCloseTranslation: ImageButton get() = required(R.id.btnCloseTranslation)
     val translationScrollView: ScrollView get() = required(R.id.translationScrollView)
     val tvTranslatedText: TextView get() = required(R.id.tvTranslatedText)
+    val translationAttribution: TextView get() = required(R.id.translationAttribution)
     val touchZonesOverlay: LinearLayout get() = required(R.id.touchZonesOverlay)
     val touchZones3Overlay: LinearLayout get() = required(R.id.touchZones3Overlay)
     val touchZonePrevious: View get() = required(R.id.touchZonePrevious)

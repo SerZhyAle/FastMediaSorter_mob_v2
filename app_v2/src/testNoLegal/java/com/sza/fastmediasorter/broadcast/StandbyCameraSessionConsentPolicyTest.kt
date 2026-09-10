@@ -21,6 +21,7 @@ class StandbyCameraSessionConsentPolicyTest {
         override val state: StateFlow<BroadcastState> = mutableState
         override fun start(mode: BroadcastMode) = Unit
         override fun stop() = Unit
+        override fun acknowledgeFailure() = Unit
     }
 
     @Test
@@ -35,7 +36,9 @@ class StandbyCameraSessionConsentPolicyTest {
 
     @Test
     fun `a failed session is not a grant either`() = runTest {
-        val policy = StandbyCameraSessionConsentPolicy(FakeController(BroadcastState.Failed("boom")))
+        val policy = StandbyCameraSessionConsentPolicy(
+            FakeController(BroadcastState.Failed(BroadcastFailure.CAPTURE_ERROR, "boom"))
+        )
 
         assertEquals(
             CameraConsentOutcome.Refused(WearCameraRefusal.NOT_ASKED),
@@ -45,7 +48,7 @@ class StandbyCameraSessionConsentPolicyTest {
 
     @Test
     fun `a live session grants without starting anything`() = runTest {
-        val policy = StandbyCameraSessionConsentPolicy(FakeController(BroadcastState.Live(descriptor())))
+        val policy = StandbyCameraSessionConsentPolicy(FakeController(BroadcastState.Live(descriptor(), startedAtElapsedRealtimeMs = 0L)))
 
         assertEquals(CameraConsentOutcome.Granted, policy.requestConsent("req-1"))
     }

@@ -7,8 +7,8 @@
   preset, so neither value may be read as the row's final colour.
 -->
 <TextView xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="@dimen/control_button_size"
-    android:layout_height="@dimen/control_button_size"
+    android:layout_width="@dimen/mirror_zoom_preset_size"
+    android:layout_height="@dimen/mirror_zoom_preset_size"
     android:layout_marginEnd="@dimen/margin_small"
     android:background="@drawable/mirror_zoom_preset_focus_selector"
     android:clickable="true"

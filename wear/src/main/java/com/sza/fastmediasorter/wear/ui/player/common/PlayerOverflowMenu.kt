@@ -39,7 +39,6 @@ fun PlayerOverflowMenu(
     actions: List<WearAction>,
     onDismiss: () -> Unit
 ) {
-    Timber.d("S2766: player overflow menu opened, entries=%d", actions.size)
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
@@ -78,6 +77,27 @@ internal fun playerMenuAction(
     icon = { Icon(imageVector = icon, contentDescription = null) },
     onClick = {
         onDismiss()
+        onRun()
+    }
+)
+
+/**
+ * S2802: an entry that runs its command and leaves the menu up.
+ *
+ * Only for a command that cycles a value in place: the playback mode has three settings behind one
+ * button, so a menu that closes on the first tap makes the third setting cost three openings. A
+ * command that opens a dialog of its own must keep using [playerMenuAction] - this one would draw
+ * that dialog under the menu.
+ */
+internal fun playerMenuCycleAction(
+    label: String,
+    icon: ImageVector,
+    onRun: () -> Unit
+): WearAction = WearAction(
+    label = label,
+    icon = { Icon(imageVector = icon, contentDescription = null) },
+    onClick = {
+        Timber.d("S2802: menu cycle entry tapped, menu stays open")
         onRun()
     }
 )

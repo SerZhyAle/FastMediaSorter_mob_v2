@@ -27,7 +27,8 @@ internal class PlayerVolumeController(
     private val scope: CoroutineScope,
     private val context: Context,
     private val onReadout: (level: Int, max: Int) -> Unit,
-    private val onHidden: () -> Unit
+    private val onHidden: () -> Unit,
+    private val onQuietReadout: (level: Int, max: Int) -> Unit = onReadout
 ) {
 
     /** Cancelled and restarted on every bezel step; dies with the owning view model. */
@@ -46,6 +47,23 @@ internal class PlayerVolumeController(
             audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
         )
         hideAfterDelay()
+    }
+
+    /**
+     * S2802: the level as the system holds it right now, with nothing changed and no countdown
+     * started - a screen that shows the volume before the user has touched the bezel has no other
+     * way to learn it.
+     *
+     * It reports through [onQuietReadout] rather than [onReadout] because the two answer different
+     * questions: a step means "the user is changing the volume", a refresh means only "this is the
+     * level", and a screen that marks the second as a change would flash its indicator on arrival.
+     */
+    fun refresh() {
+        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
+        onQuietReadout(
+            audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
+            audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+        )
     }
 
     fun cancel() {

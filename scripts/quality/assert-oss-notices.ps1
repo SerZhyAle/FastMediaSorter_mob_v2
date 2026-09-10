@@ -23,6 +23,11 @@
     Exit non-zero on any finding. Without it the script reports and exits 0,
     which is the read-only mode used while correcting the manifest.
 
+.PARAMETER ChangedFiles
+    S2828: repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the
+    gate decline to charge a finding when none of the files it declares as an input is among them.
+    Omit it - as the release path does - and every finding stays fatal.
+
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-oss-notices.ps1
     pwsh -NoProfile -File scripts/quality/assert-oss-notices.ps1 -Gate -Quiet
@@ -32,15 +37,24 @@
       0  no findings (or findings reported without -Gate)
       1  -Gate and at least one finding
       2  could not verify: generator, parser or manifest missing or unreadable
+      3  S2828: findings stand, but no file this gate declares as an input is in -ChangedFiles, so
+         they are not attributable to this run. The findings are printed. Distinct from 1 because
+         the caller cannot fix them and from 0 because something IS wrong in the tree.
 #>
 [CmdletBinding()]
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
     [switch] $Gate,
-    [switch] $Quiet
+    [switch] $Quiet,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]] $ChangedFiles
 )
 
 $ErrorActionPreference = 'Stop'
+
+# S2828: the chargeability test, shared with the other fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $generator = Join-Path $RepoRoot 'scripts/docs/generate-oss-notices.ps1'
 $parser = Join-Path $RepoRoot 'scripts/docs/OssDependencyParser.ps1'
@@ -103,6 +117,29 @@ if ($findings.Count -eq 0) {
 
 foreach ($finding in $findings) { Write-Host "assert-oss-notices: $finding" }
 Write-Host 'assert-oss-notices: fix by adding the missing licence entries, then run scripts/docs/generate-oss-notices.ps1'
+
+# S2828: the declared input set - the two build files the coordinates come from, the licence
+# manifest, the pipeline that renders, and every artifact it renders. A dependency added by another
+# session, or a page that session hand-edited, is that session's finding: this gate fires on any
+# build-file edit, and one in four of its runs was red on debt the closing set never opened.
+$declaredInputs = @(
+    (Join-Path $RepoRoot 'app_v2/build.gradle.kts')
+    (Join-Path $RepoRoot 'wear/build.gradle.kts')
+    $manifestPath
+    $parser
+    $generator
+    (Join-Path $RepoRoot 'docs/legal/oss-notices.json')
+    (Join-Path $RepoRoot 'docs/OPEN_SOURCE.md')
+    (Join-Path $RepoRoot 'docs/OPEN_SOURCE-ru.md')
+    (Join-Path $RepoRoot 'docs/OPEN_SOURCE-uk.md')
+) + @($flavors | ForEach-Object {
+        Join-Path $RepoRoot "app_v2/src/main/res/raw/oss_notices_$($_.ToLowerInvariant()).json"
+    })
+
+if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths $declaredInputs)) {
+    Write-NotChargedVerdict -GateName 'assert-oss-notices' -Findings @($findings)
+    exit 3
+}
 
 if ($Gate) {
     Write-Error "assert-oss-notices: FAIL ($($findings.Count) finding(s))." -ErrorAction Continue

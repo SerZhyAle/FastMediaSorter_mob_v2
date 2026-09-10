@@ -15,13 +15,17 @@ import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_VOICE_NOTE
+import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
 import com.sza.fastmediasorter.wear.domain.playback.HostStopAction
+import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSession
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundSessionState
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -35,6 +39,7 @@ import com.sza.fastmediasorter.wear.domain.usecase.ResolveAlbumArtUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import com.sza.fastmediasorter.wear.service.WearPlaybackService
 import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
 import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
@@ -76,6 +81,7 @@ class AudioPlayerViewModel @Inject constructor(
     private val nowPlayingRepository: WearNowPlayingRepository,
     private val backgroundSessionState: WearBackgroundSessionState,
     val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
+    val castManager: PlayerCastManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -100,7 +106,10 @@ class AudioPlayerViewModel @Inject constructor(
         onReadout = { level, max ->
             _uiState.update { it.copy(volumeLevel = level, volumeMax = max, isVolumeVisible = true) }
         },
-        onHidden = { _uiState.update { it.copy(isVolumeVisible = false) } }
+        onHidden = { _uiState.update { it.copy(isVolumeVisible = false) } },
+        onQuietReadout = { level, max ->
+            _uiState.update { it.copy(volumeLevel = level, volumeMax = max) }
+        }
     )
 
     /**
@@ -125,6 +134,18 @@ class AudioPlayerViewModel @Inject constructor(
                 progressTicker.stop()
             }
             publishPlaybackState()
+            updateStallWatch()
+        }
+
+        /**
+         * S2849: the edge a stalled session is left on. A player that is paused while already silent
+         * changes neither `isPlaying` nor the playback state, so without this callback the watchdog
+         * armed by the stall would still be counting down over a session that is already settled -
+         * including the pause that hands the sound to the background service.
+         */
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _uiState.update { it.copy(isPlaybackRequested = playWhenReady) }
+            updateStallWatch()
         }
 
         override fun onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
@@ -180,6 +201,7 @@ class AudioPlayerViewModel @Inject constructor(
                 Player.STATE_IDLE -> streamPlaybackSession.stop()
                 else -> {}
             }
+            updateStallWatch()
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -200,10 +222,23 @@ class AudioPlayerViewModel @Inject constructor(
         onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
     )
 
+    /**
+     * S2849: the screen's own copy of the guard S2848 gave the background service. This screen is
+     * spared the overnight drain by the pause on ON_STOP (S0902), which the screen-off mode suppresses
+     * by holding the display awake - so behind that sheet a stream that stops answering has exactly
+     * the service's problem, with a lit screen on top of it.
+     */
+    private val stallWatchdog = WearPlaybackStallWatchdog(
+        scope = viewModelScope,
+        stallTimeoutMs = WEAR_PLAYBACK_STALL_TIMEOUT_MS,
+        onStalled = { onPlaybackStalled() }
+    )
+
     init {
         Timber.d("AudioPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
 
+        castManager.bind(viewModelScope)
         val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
         fileOperations.bind(
             scope = viewModelScope,
@@ -587,6 +622,7 @@ class AudioPlayerViewModel @Inject constructor(
         // it running, so the recomposition it drives is not what the dark screen costs, and the extra
         // stop/restart/refresh path bought nothing. What the screen does cost is tracked in S1709.
         _uiState.update { it.copy(isDimmed = !it.isDimmed) }
+        Timber.d("S2849: audio display hold=%b", _uiState.value.holdsDisplay)
     }
 
     /**
@@ -652,6 +688,12 @@ class AudioPlayerViewModel @Inject constructor(
     /** The progress bar added in S1701 phase 02 is how this screen seeks; the bezel carries volume. */
     fun onVolumeStep(up: Boolean) = volumeController.onStep(up)
 
+    /**
+     * S2802: the screen shows the volume from the moment it opens, so the level has to be read
+     * before the first bezel step rather than as its by-product.
+     */
+    fun onVolumeRefresh() = volumeController.refresh()
+
     fun seekTo(positionMs: Long) {
         exoPlayer.seekTo(positionMs)
         _uiState.update { it.copy(currentPositionMs = positionMs) }
@@ -687,6 +729,19 @@ class AudioPlayerViewModel @Inject constructor(
         val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
         _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
         viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
+    /**
+     * S2531: hands what this screen is playing to the phone, which owns the Cast session, or ends the
+     * one already running - one entry, and the phone's reported state decides which of the two it is.
+     */
+    fun toggleCast() {
+        if (castManager.castState.value.isCasting) {
+            castManager.stopCasting()
+            return
+        }
+        val file = _uiState.value.mediaFile ?: return
+        castManager.castCurrentFile(file, networkSelection, WearCastMediaType.AUDIO)
     }
 
     fun toggleFavorite() {
@@ -736,8 +791,45 @@ class AudioPlayerViewModel @Inject constructor(
         fallbackUri = _uiState.value.mediaFile?.uri?.toString()
     )
 
+    /** S2849: asked after anything that could have started or ended a stall. */
+    private fun updateStallWatch() {
+        val playbackState = exoPlayer.playbackState
+        stallWatchdog.onActivityChanged(
+            WearPlaybackStallPolicy.activityOf(
+                playWhenReady = exoPlayer.playWhenReady,
+                isPlaying = exoPlayer.isPlaying,
+                isEndedOrIdle = playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE
+            )
+        )
+    }
+
+    /**
+     * S2849: pausing is what ends the retry loop, and it is also what releases the display - the
+     * screen-off hold follows `playWhenReady`, so the same call that stops the refetching lets the
+     * watch sleep. The mode is left as well, because a black sheet over a stopped stream hides the
+     * one thing the wearer now needs to see.
+     */
+    private fun onPlaybackStalled() {
+        Timber.d("S2849: audio stall guard stops the session")
+        Timber.w(
+            "AudioPlayerViewModel: no sound for %d ms, stopping the stalled stream",
+            WEAR_PLAYBACK_STALL_TIMEOUT_MS
+        )
+        exoPlayer.pause()
+        streamPlaybackSession.stop()
+        _uiState.update {
+            it.copy(
+                isDimmed = false,
+                isLoading = false,
+                isPlaying = false,
+                error = context.getString(R.string.wear_stream_stalled)
+            )
+        }
+    }
+
     override fun onCleared() {
         super.onCleared()
+        stallWatchdog.cancel()
         Timber.d("AudioPlayerViewModel cleared")
         progressTicker.stop()
         volumeController.cancel()

@@ -113,8 +113,11 @@ class BroadcastShareActivity : AppCompatActivity() {
 
         private var lastLaunchedUrl: String? = null
 
-        fun launchIfNew(context: Context, url: String, title: String? = null, mode: String = "AUDIO_ONLY") {
-            if (lastLaunchedUrl == url) return
+        /**
+         * Opens the descriptor screen unconditionally. The indicator tap needs this: the address is
+         * the same one already shown, so the deduplicated entry point below would silently do nothing.
+         */
+        fun launch(context: Context, url: String, title: String? = null, mode: String = "AUDIO_ONLY") {
             lastLaunchedUrl = url
 
             val intent = Intent(context, BroadcastShareActivity::class.java).apply {
@@ -124,6 +127,11 @@ class BroadcastShareActivity : AppCompatActivity() {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             }
             context.startActivity(intent)
+        }
+
+        fun launchIfNew(context: Context, url: String, title: String? = null, mode: String = "AUDIO_ONLY") {
+            if (lastLaunchedUrl == url) return
+            launch(context, url, title, mode)
         }
 
         fun resetLaunchTracking() {

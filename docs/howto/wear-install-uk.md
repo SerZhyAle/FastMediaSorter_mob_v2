@@ -35,7 +35,7 @@ FastMedia Wear - це годинникова половина FastMediaSorter. �
 SDK Platform-Tools (`adb`) і локальна Wi-Fi мережа, спільна для комп'ютера та годинника. Самого
 інтернету недостатньо.
 
-1. Завантажте один APK зі сторінки [Пряме завантаження APK](../DOWNLOADS_UK.md):
+1. Завантажте один APK зі сторінки [Пряме завантаження APK](../DOWNLOADS-uk.md):
    - `FastMediaSorter_wear_debug.apk` - debug-збірка для перевірки. Вона встановлюється як
      `com.sza.fastmediasorter.debug`.
    - `FastMediaSorter_wear_release.apk` - підписана не-debug збірка. Вона встановлюється як

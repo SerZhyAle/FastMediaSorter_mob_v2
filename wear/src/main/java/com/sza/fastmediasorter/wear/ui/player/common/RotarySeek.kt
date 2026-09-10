@@ -33,6 +33,7 @@ fun Modifier.rotaryAction(
     onScroll: (Float) -> Unit
 ): Modifier = this
     .onRotaryScrollEvent { event ->
+        Timber.d("S2838: rotary event reached the app, verticalScrollPixels=${event.verticalScrollPixels}")
         onScroll(event.verticalScrollPixels)
         true
     }
@@ -61,8 +62,8 @@ fun rememberRotaryFocus(): FocusRequester {
 
     val owned = stack == null || stack.isTop(token)
     LaunchedEffect(owned) {
+        Timber.d("S2838: rotary focus effect, owned=$owned stack=${stack != null}")
         if (owned) {
-            Timber.d("S2763: rotary focus granted, stacked=%s", stack != null)
             focusRequester.requestFocus()
         }
     }
@@ -93,7 +94,6 @@ fun Modifier.rotaryActionScroll(listState: ScalingLazyListState): Modifier {
     val focusRequester = rememberRotaryFocus()
     val coroutineScope = rememberCoroutineScope()
     return this.rotaryAction(focusRequester) { delta ->
-        Timber.d("S2763: rotary scrolled list by %s", delta)
         coroutineScope.launch { listState.scrollBy(delta) }
     }
 }

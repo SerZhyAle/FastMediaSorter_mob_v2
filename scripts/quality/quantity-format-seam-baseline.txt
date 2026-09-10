@@ -1,0 +1,55 @@
+# S2795 - files allowed to format a date or a time without the unit-system seam.
+#
+# Every row is one of exactly three things, and the reason column says which:
+#   INTERNAL  - the output is a file name, a log stamp, an export field or a parsed input. It is read
+#               back by the app or by a tool, so making it follow a user setting breaks sorting,
+#               uniqueness or parsing. These are the strategic spec's own Non-goals, section 2.
+#   SEAM      - the implementation of the seam itself. It has to call the platform formatter; that is
+#               the point of routing everything else through it.
+#   DEVICE    - it deliberately REPORTS the device's own setting rather than formatting a value for
+#               the user, so the app's setting is the wrong input there.
+#
+# Format: <repo-relative path> | <class> | <reason>
+# A row is removed when its file stops formatting, never to silence a real finding.
+
+app_v2/src/main/java/com/sza/fastmediasorter/core/format/QuantityFormatter.kt | SEAM | the phone's seam
+wear/src/main/java/com/sza/fastmediasorter/wear/core/util/WearUnitDateTimeFormatter.kt | SEAM | the watch's seam
+
+app_v2/src/main/java/com/sza/fastmediasorter/core/files/FileNameDefaultProvider.kt | INTERNAL | default saved-file name
+app_v2/src/main/java/com/sza/fastmediasorter/domain/files/FileNameConflictResolver.kt | INTERNAL | suffix that keeps a name unique
+app_v2/src/main/java/com/sza/fastmediasorter/ui/player/helpers/ImageEditorFileNamer.kt | INTERNAL | edited-image file name
+app_v2/src/main/java/com/sza/fastmediasorter/util/CaptureFileNamer.kt | INTERNAL | capture file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/main/helpers/MainCameraCaptureManager.kt | INTERNAL | capture file name
+app_v2/src/main/java/com/sza/fastmediasorter/widget/CameraLaunchWidgetManager.kt | INTERNAL | capture file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/browse/managers/BrowseArchiveDialogManager.kt | INTERNAL | archive file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/dialog/ScrollableTextDialog.kt | INTERNAL | exported text file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/systeminfo/helpers/SystemInfoWindowManager.kt | INTERNAL | exported report file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/share/ReceiveShareActivity.kt | INTERNAL | received-file name
+app_v2/src/main/java/com/sza/fastmediasorter/ui/cameraocr/helpers/CameraOcrFlowManager.kt | INTERNAL | OCR output file name
+
+app_v2/src/main/java/com/sza/fastmediasorter/core/logging/LoggingHelper.kt | INTERNAL | log file names and log line stamps
+app_v2/src/main/java/com/sza/fastmediasorter/ui/settings/helpers/GeneralSettingsLogHelper.kt | INTERNAL | log artefact naming
+wear/src/main/java/com/sza/fastmediasorter/wear/core/logging/WearLogTree.kt | INTERNAL | log line stamps
+app_v2/src/main/java/com/sza/fastmediasorter/core/util/CacheStatusHelper.kt | INTERNAL | startup diagnostic dump into Timber, no surface reads it
+app_v2/src/main/java/com/sza/fastmediasorter/core/util/MediaMetadataHelper.kt | INTERNAL | parses the EXIF input format
+app_v2/src/main/java/com/sza/fastmediasorter/core/util/CachedMediaMetadataExtractor.kt | INTERNAL | parses the EXIF input format
+
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupMapper.kt | INTERNAL | backup field read back on restore
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/BackupToGoogleDriveUseCase.kt | INTERNAL | backup file name
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExportFavoritesUseCase.kt | INTERNAL | export field read back on import
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/companion/ExportCompanionConfigUseCase.kt | INTERNAL | export field
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/networkmonitor/ExportNetworkHistoryUseCase.kt | INTERNAL | export field
+app_v2/src/main/java/com/sza/fastmediasorter/ui/calculator/helpers/CalculatorHistoryFileWriter.kt | INTERNAL | export field
+app_v2/src/main/java/com/sza/fastmediasorter/ui/stopwatch/helpers/StopwatchResultFileWriter.kt | INTERNAL | export field
+app_v2/src/main/java/com/sza/fastmediasorter/data/networkmonitor/GnssTrackRecorder.kt | INTERNAL | track file field
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExecuteScheduledOperationUseCase.kt | INTERNAL | scheduling bookkeeping
+
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/ExtractExifMetadataUseCase.kt | INTERNAL | parses the EXIF input format
+app_v2/src/main/java/com/sza/fastmediasorter/data/network/SmbMediaScanner.kt | INTERNAL | parses a server listing
+app_v2/src/main/java/com/sza/fastmediasorter/data/link/InvisibleWebViewExtractionStrategy.kt | INTERNAL | parses a page value
+wear/src/main/java/com/sza/fastmediasorter/wear/data/db/VoiceNoteIndexRebuilder.kt | INTERNAL | parses a note file name
+wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNoteFileFactory.kt | INTERNAL | note file name
+wear/src/main/java/com/sza/fastmediasorter/wear/data/recorder/VoiceNotePublisher.kt | INTERNAL | note file name
+wear/src/main/java/com/sza/fastmediasorter/wear/domain/files/WearFileNameConflictResolver.kt | INTERNAL | suffix that keeps a name unique
+
+app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/GatherSystemInfoUseCase.kt | DEVICE | a fixed-width diagnostic report pasted into bug reports: one field reports the DEVICE's own clock setting and must keep doing so, and the two stamps beside it are pinned to Locale.US so two reports stay comparable

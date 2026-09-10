@@ -11,11 +11,13 @@ import com.sza.fastmediasorter.wear.domain.motion.WearSensorStreamState
 import com.sza.fastmediasorter.wear.domain.motion.accumulate
 import com.sza.fastmediasorter.wear.domain.repository.WearMotionDiagnosticsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
-import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.flow.sample
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
@@ -35,6 +37,11 @@ import javax.inject.Singleton
  * holds so the last-event age keeps advancing on screen, which is the only way a stream that accepted
  * registration and then went silent is distinguishable from one delivering normally.
  *
+ * The flow is sampled at [UPDATE_THROTTLE_MS] rather than conflated: a diagnostic glance needs the
+ * readings no faster than twice a second, and capping the emission rate there spares the battery and
+ * the recomposer the per-event churn that `SENSOR_DELAY_UI` would otherwise drive straight to the screen.
+ * Accumulation still runs on every sensor event in the listener, so the event count and hertz stay exact.
+ *
  * A step stream's availability is asked BEFORE its sensor is touched: registering against a permission
  * that was refused throws instead of producing the explanation S2458 §5.4 requires.
  */
@@ -44,6 +51,7 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
     private val activityRecognitionState: WearActivityRecognitionState
 ) : WearMotionDiagnosticsRepository {
 
+    @OptIn(FlowPreview::class)
     override fun streams(): Flow<List<WearSensorStreamState>> = callbackFlow {
         val manager = context.getSystemService(Context.SENSOR_SERVICE) as? SensorManager
         val sessionStartMillis = System.currentTimeMillis()
@@ -79,7 +87,6 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
             }
         }
 
-        Timber.d("S2458: motion session started, %s", states.values.joinToString { "${it.id}=${it.availability}" })
         trySend(snapshot(states))
 
         val ticker = launch {
@@ -92,9 +99,10 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
         awaitClose {
             ticker.cancel()
             manager?.unregisterListener(listener)
-            Timber.d("S2458: motion session torn down, listeners unregistered")
         }
-    }.conflate()
+    }.sample(UPDATE_THROTTLE_MS).onEach {
+        Timber.d("S2807: throttled motion snapshot emitted")
+    }
 
     private fun availabilityOf(
         id: WearSensorStreamId,
@@ -125,6 +133,8 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
 
     private companion object {
         const val AGE_TICK_INTERVAL_MS = 1000L
+
+        const val UPDATE_THROTTLE_MS = 500L
 
         val ACTIVITY_STREAMS = setOf(WearSensorStreamId.STEP_COUNTER, WearSensorStreamId.STEP_DETECTOR)
 

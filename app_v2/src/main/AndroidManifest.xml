@@ -328,6 +328,11 @@
         <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
         <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S2818: broadcast entry confirmation - the screen the shortcut, QS tile and widget open.
+             No intent filter: surfaces launch it by explicit component. No orientation|screenSize in
+             configChanges - the screen has a layout-land variant (see S1433 note above). -->
+        <activity android:name=".ui.broadcast.BroadcastEntryActivity" android:exported="false" android:label="@string/broadcast_entry_title" android:configChanges="keyboardHidden" />
+
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
         <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
@@ -729,6 +734,15 @@
 
         <!-- Scheduled file operations: reschedule on device boot -->
         <receiver android:name=".worker.ScheduledOperationsBootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- S2776: the shade shortcut for the camera flashlight - the tap target, and the boot
+             re-post, because a notification does not survive a reboot. -->
+        <receiver android:name=".core.notification.FlashlightShortcutReceiver" android:exported="false" />
+        <receiver android:name=".core.notification.FlashlightShortcutBootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>

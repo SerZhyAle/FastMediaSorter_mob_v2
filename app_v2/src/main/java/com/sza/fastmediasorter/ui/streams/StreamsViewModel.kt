@@ -461,6 +461,7 @@ class StreamsViewModel @Inject constructor(
         Timber.d("S2508: importing a broadcast descriptor from the streams toolbar")
         val messageRes = when (importStreamBroadcast(payload)) {
             ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
+            ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
             ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
             ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
@@ -561,6 +562,7 @@ class StreamsViewModel @Inject constructor(
 
     private suspend fun applyCollectionSelection(collectionId: String?) {
         if (_filter.value.collectionId == collectionId) return
+        Timber.d("S2669: collection selected id=$collectionId")
         val memberOrder = collectionId
             ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()

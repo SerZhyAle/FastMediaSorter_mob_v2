@@ -13,11 +13,16 @@ data class StopwatchLap(
  * [startMark], so a rotation, a process pause or a missed repaint cannot lose or double-count it
  * (S1411 §6.6). [startMark] is an [com.sza.fastmediasorter.core.util.ElapsedClock] reading and carries
  * no meaning while [running] is false.
+ *
+ * [startedAtEpochMillis] is the wall-clock reading taken when this participant last started, and it
+ * deliberately survives a stop: the result text reports when the measurement was performed, not when
+ * it was halted (S2792). It is null while the participant has never started, and `reset` clears it.
  */
 data class StopwatchParticipant(
     val id: Int,
     val running: Boolean = false,
     val startMark: Long = 0L,
+    val startedAtEpochMillis: Long? = null,
     val accumulatedMillis: Long = 0L,
     val laps: List<StopwatchLap> = emptyList(),
 ) {

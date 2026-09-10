@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
 import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsMergeResolver
@@ -66,6 +67,7 @@ class ApplyWearSettingsUseCase @Inject constructor(
         applySlideshow(payload, gate)
         applyScreen(payload, gate)
         applyLanguage(payload, gate)
+        applyUnitSystem(payload, gate)
     }
 
     private suspend fun applyMediaTypes(payload: WearSettingsPayload, resolver: FieldGate) {
@@ -105,7 +107,6 @@ class ApplyWearSettingsUseCase @Inject constructor(
         apply(resolver, "backgroundMode", payload.backgroundMode) {
             preferencesRepository.setBackgroundMode(WearBackgroundMode.fromNameOrDefault(it))
         }
-        Timber.d("S2522: incoming colour scheme=%s", payload.colorScheme)
         apply(resolver, "colorScheme", payload.colorScheme) {
             preferencesRepository.setColorScheme(WearColorScheme.fromNameOrDefault(it))
         }
@@ -134,6 +135,14 @@ class ApplyWearSettingsUseCase @Inject constructor(
         // stored voice-note titles stop matching it. The pass exits on its own when they still do.
         Timber.d("S2626: language push applied $resolvedTag, refreshing note titles")
         refreshVoiceNoteTitles.get().invoke(resolvedTag)
+    }
+
+    // S2731: PHONE_ONLY registry entry like appLanguage above - inherited rather than merged, since no
+    // watch surface edits it.
+    private suspend fun applyUnitSystem(payload: WearSettingsPayload, gate: FieldGate) {
+        val raw = payload.unitSystem?.takeIf { gate.carries("unitSystem") } ?: return
+        preferencesRepository.setUnitSystem(UnitSystem.fromNameOrDefault(raw))
+        Timber.d("S2731: unit system applied=%s", raw)
     }
 
     /**
