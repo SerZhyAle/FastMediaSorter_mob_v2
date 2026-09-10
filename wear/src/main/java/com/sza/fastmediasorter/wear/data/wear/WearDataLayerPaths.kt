@@ -17,7 +17,16 @@ object WearDataLayerPaths {
     /** Message, watch → phone. Requests the compatible network-sources sync. */
     const val NETWORK_SOURCES_REQUEST = "/fms/network_sources/request"
 
-    /** Data Item, phone → watch. Carries the compatible network-sources payload. */
+    /**
+     * Data Item, phone → watch. Carries the compatible network-sources payload.
+     *
+     * The batch states both halves of the owner's choice (S2882): the sources that belong on this watch
+     * AND the ids the phone declares as not belonging here, which is what lets unticking a box there
+     * withdraw a source here. [STREAM_PINS] and [SEND_TO_RECEIVERS] reach the same end by replacing
+     * their set whole, and that reasoning does NOT transfer to this route - this catalogue is edited on
+     * the watch too, and sources created here carry ids the phone never issued, so reading an absence
+     * from the batch as a withdrawal would delete them.
+     */
     const val NETWORK_SOURCES_PUSH = "/fms/network_sources/push"
 
     /** Message, watch → phone. Acknowledges the compatible network-sources payload. */

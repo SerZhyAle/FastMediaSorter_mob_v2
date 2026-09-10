@@ -27,8 +27,8 @@ class LauncherSettingsStoreTest {
     fun `absent keys resolve to the documented defaults`() {
         val values = LauncherSettingsStore.read(mutablePreferencesOf())
 
-        // S2320: dense is the shipped grid density; literal for the same reason as the alpha below.
-        assertEquals(1.25f, values.densityFactor, 0.0f)
+        // S2903: sparse is the shipped grid density; read off the constant so the next default move stays one-file.
+        assertEquals(AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR, values.densityFactor, 0.0f)
         assertTrue(values.taskbarShowRecents)
         assertTrue(values.trayShowBattery)
         // S2017: the tray clock is the one taskbar exception - off by default, duplicates the top bar clock.

@@ -45,6 +45,21 @@ class OpenSourceLicensesFragment : Fragment() {
         binding.noticesList.layoutManager = LinearLayoutManager(requireContext())
         binding.noticesList.adapter = OpenSourceLicenseAdapter(notices, ::openUrl)
         binding.emptyState.visibility = if (notices.isEmpty()) View.VISIBLE else View.GONE
+
+        // S2899: Ensure initial focus on TV / D-pad
+        view.post {
+            if (isAdded && _binding != null) {
+                Timber.d("S2899: OpenSourceLicenses initial focus requested")
+                binding.toolbar.requestFocus()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (activity?.currentFocus == null) {
+            _binding?.toolbar?.requestFocus()
+        }
     }
 
     private fun loadNotices(): List<OpenSourceLicenseAdapter.Notice> = try {

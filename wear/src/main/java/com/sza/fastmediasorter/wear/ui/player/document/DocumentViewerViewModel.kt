@@ -167,21 +167,51 @@ internal fun paragraphsOf(text: String): List<String> =
         .flatMap { wrapLine(it) }
         .toList()
 
-/** Splits at the last space before the limit, so a long line is never cut through a word. */
+/**
+ * Splits at the last space before the limit, so a long line is never cut through a word.
+ *
+ * S2886: the walk carries an index into [line] and never a rebuilt remainder. Dropping the consumed
+ * head produced a fresh copy of everything still unread at every cut, which made the split cost the
+ * square of the line's length - unnoticed by prose, which never reaches this loop, and paid in full
+ * by a file written as one line, a minified JSON or a single-row CSV.
+ */
 private fun wrapLine(line: String): List<String> {
     if (line.length <= MAX_PARAGRAPH_CHARS) {
         return listOf(line)
     }
     val pieces = mutableListOf<String>()
-    var rest = line
-    while (rest.length > MAX_PARAGRAPH_CHARS) {
-        val window = rest.take(MAX_PARAGRAPH_CHARS)
-        val cut = window.lastIndexOf(' ').takeIf { it > 0 } ?: MAX_PARAGRAPH_CHARS
-        pieces += rest.take(cut).trim()
-        rest = rest.drop(cut).trim()
+    var start = 0
+    while (line.length - start > MAX_PARAGRAPH_CHARS) {
+        val windowEnd = start + MAX_PARAGRAPH_CHARS
+        val space = lastSpaceIn(line, start, windowEnd)
+        val cut = if (space > start) space else windowEnd
+        pieces += line.substring(start, cut).trim()
+        // Past the cut and past the seam it sat in, so a run of spaces cannot open the next piece.
+        start = cut
+        while (start < line.length && line[start].isWhitespace()) {
+            start++
+        }
     }
-    if (rest.isNotEmpty()) {
-        pieces += rest
+    if (start < line.length) {
+        pieces += line.substring(start).trim()
     }
     return pieces
+}
+
+/**
+ * The last space in `[from, until)`, or -1 when the window holds none.
+ *
+ * Bounded at both ends deliberately: a search bounded only from above walks back to the start of the
+ * line on a space-free window, which re-enters through the cut search exactly the quadratic cost the
+ * indexed walk above was written to remove.
+ */
+private fun lastSpaceIn(line: String, from: Int, until: Int): Int {
+    var probe = until - 1
+    while (probe > from) {
+        if (line[probe] == ' ') {
+            return probe
+        }
+        probe--
+    }
+    return -1
 }

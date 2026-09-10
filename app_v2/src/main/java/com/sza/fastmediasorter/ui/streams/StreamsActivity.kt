@@ -53,8 +53,8 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
-import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsMediaKindTriggerManager
@@ -586,6 +586,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // must stay on the toolbar - a per-item listener would survive the first rotation as a
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
+            Timber.d("S2898: toolbar menu item clicked: %s", item.title)
             when (item.itemId) {
                 R.id.action_stream_add -> {
                     showSourceDialog(isImport = false)
@@ -936,6 +937,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     ).show()
                 }
                 is StreamsViewModel.StreamsEvent.CatalogUpdated -> {
+                    // S2896: dismiss the refresh suggestion banner if it was showing.
+                    hideCatalogBanner()
                     // S0668: the catalog import just rewrote the favicon atlas + coords - refresh them.
                     onCatalogRefreshed()
                     Toast.makeText(
@@ -975,17 +978,37 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * imported one, and a scripted device run missed the Snackbar twice before catching it. The banner
      * stays until it is taken or closed, so the timeout can no longer decide whether a user ever gets a
      * channel list. Inflated on first use only (Rule 18) - the policy may never raise it.
+     *
+     * S2896: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls below.
      */
     private fun showCatalogRefreshSuggestion() {
+        Timber.d("S2896: showCatalogRefreshSuggestion")
         val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
         banner.isVisible = true
+        updateCatalogBannerFocus(bannerVisible = true)
         banner.findViewById<View>(R.id.btnCatalogBannerAction)?.setOnClickListener {
-            banner.isVisible = false
+            hideCatalogBanner()
             viewModel.onImportCatalog()
         }
         banner.findViewById<View>(R.id.btnCatalogBannerDismiss)?.setOnClickListener {
-            banner.isVisible = false
+            hideCatalogBanner()
         }
+    }
+
+    private fun hideCatalogBanner() {
+        Timber.d("S2896: hideCatalogBanner")
+        catalogBanner?.isVisible = false
+        updateCatalogBannerFocus(bannerVisible = false)
+    }
+
+    private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
+        val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
+        val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
+        binding.etSearch.nextFocusUpId = upTargetId
+        binding.btnMediaKindVideo.nextFocusUpId = upTargetId
+        binding.btnMediaKindAudio.nextFocusUpId = upTargetId
+        binding.btnFilter.nextFocusUpId = upTargetId
+        binding.btnSort.nextFocusUpId = sortUpTargetId
     }
 
     /**

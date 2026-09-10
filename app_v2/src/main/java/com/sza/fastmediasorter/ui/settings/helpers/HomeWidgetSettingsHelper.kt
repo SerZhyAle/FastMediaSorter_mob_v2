@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncher
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
@@ -128,8 +130,21 @@ class HomeWidgetSettingsHelper(
 
                     // S1165: show the same glyph the widget carries on the home screen, so the row
                     // is recognised by its picture rather than read.
-                    override fun getIcon(item: HomeWidgetEntry): Drawable? =
-                        ContextCompat.getDrawable(context, item.iconRes)
+                    // S2889: and in the same tone, from the one accent catalog. mutate() first - this
+                    // formatter hands back a Drawable rather than a view, and getDrawable shares its
+                    // constantState with every other user of the vector, so tinting the shared instance
+                    // would recolour that glyph app-wide.
+                    override fun getIcon(item: HomeWidgetEntry): Drawable? {
+                        val drawable = ContextCompat.getDrawable(context, item.iconRes)
+                        val accentRes = HomeWidgetAccent.accentResFor(item.gadgetKey)
+                        return if (drawable == null || accentRes == null) {
+                            drawable
+                        } else {
+                            drawable.mutate().apply {
+                                DrawableCompat.setTint(this, ContextCompat.getColor(context, accentRes))
+                            }
+                        }
+                    }
                 },
                 hasSelection = false,
                 isSelected = { false },

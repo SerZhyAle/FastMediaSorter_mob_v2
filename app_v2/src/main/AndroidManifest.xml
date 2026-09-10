@@ -375,6 +375,12 @@
              reach a flavor without them. -->
         <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" />
 
+        <!-- S2881: listen-to-the-watch trampoline, the same transparent no-UI shape as the quick
+             recorder and the stream player - the programs menu, the quick-access panel, the launcher
+             shortcuts and the widget all target it, and it draws nothing itself. The surfaces gate it
+             by availability, so on flavors without the watch bridge it is simply never launched. -->
+        <activity android:name=".ui.wear.WatchListenLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
+
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
         <activity android:name=".ui.resourceeditor.ResourceEditorActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />

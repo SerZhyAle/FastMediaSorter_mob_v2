@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -65,6 +66,7 @@ class DeviceProfilePickerDialogFragment : DialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Timber.d("S2894: DeviceProfilePickerDialogFragment onViewCreated, native D-pad navigation active")
 
         val adapter = DeviceProfileTileAdapter(
             profiles = deviceProfileAvailability.selectableProfiles,

@@ -698,6 +698,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 }
                 override fun isVrEntryAvailable(): Boolean =
                     activity.playerVrLaunchManager?.isOverflowEntryVisible() == true
+                override fun onControllerVisibilityChanged(visibility: Int) {
+                    activity.controlsSetupManager.updateDocumentFullscreenExitButtonVisibility()
+                }
             }
         )
 

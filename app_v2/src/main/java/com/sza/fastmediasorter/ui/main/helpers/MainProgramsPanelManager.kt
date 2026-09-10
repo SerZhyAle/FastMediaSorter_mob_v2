@@ -6,20 +6,24 @@ import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.util.TypedValue
 import android.view.LayoutInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import androidx.annotation.ColorRes
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.databinding.ViewMainProgramsPanelBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import timber.log.Timber
 /**
  * S0755: renders the main-window programs panel as a visual mirror of the three-dots programs menu.
  * Rather than re-declare the item set, it populates a throwaway [PopupMenu] through the same
@@ -60,7 +64,18 @@ class MainProgramsPanelManager(
     private val onChipVisibilityChanged: () -> Unit = {},
 ) {
 
-    private data class PanelItem(val id: Int, val title: CharSequence, val icon: Drawable?)
+    /**
+     * S2889: the item carries BOTH tones because it is drawn on two different backgrounds - the strip, which
+     * is opaque and dark in either theme, and the overflow popup, which sits on the theme's own menu surface.
+     * Null on both means the menu item is not a registry sub-program (new window, remove, VR Cinema).
+     */
+    private data class PanelItem(
+        val id: Int,
+        val title: CharSequence,
+        val icon: Drawable?,
+        @ColorRes val accentRes: Int? = null,
+        @ColorRes val accentOnDarkRes: Int? = null,
+    )
 
     private var available = false
     private var excludeStreams = false
@@ -135,6 +150,23 @@ class MainProgramsPanelManager(
         PanelItemContextMenu.show(anchor, actions)
     }
 
+    /**
+     * S2889: reads the menu item's registry entry once, so the two render sites do not repeat the join.
+     *
+     * The order-to-registry match belongs to [MainProgramsMenuOrder] - see its KDoc for why doing the
+     * arithmetic here instead would be a second chance to make the S2673 mistake.
+     */
+    private fun panelItemFor(item: MenuItem): PanelItem {
+        val entry = MainProgramsMenuOrder.entryForMenuOrder(item.order)
+        return PanelItem(
+            id = item.itemId,
+            title = item.title ?: "",
+            icon = item.icon,
+            accentRes = entry?.let { SubProgramAccentCatalog.accentFor(it.routeKey) },
+            accentOnDarkRes = entry?.let { SubProgramAccentCatalog.accentOnDarkFor(it.routeKey) },
+        )
+    }
+
     private fun rebuild() {
         // A rotation / width change rebuilds the row; drop any open overflow popup anchored to the old view.
         overflowPopup?.dismiss()
@@ -155,14 +187,18 @@ class MainProgramsPanelManager(
         val menu = scratch.menu
         models = (0 until menu.size()).mapNotNull { i ->
             val item = menu.getItem(i)
-            if (!item.isVisible) null else PanelItem(item.itemId, item.title ?: "", item.icon)
+            if (item.isVisible) panelItemFor(item) else null
         }
         val container = panel.programsPanelItems
         container.removeAllViews()
         val inflater = LayoutInflater.from(context)
-        // S0914: the panel body now sits on its accent colour, so item icon + text switch to the shared
-        // light foreground here - not in item_main_program.xml, which the overflow popup reuses on the
-        // neutral theme surface where white would be illegible.
+        // S0914: the panel body sits on its own accent colour, so item text and the per-item three-dots
+        // switch to the shared light foreground here - not in item_main_program.xml, which the overflow
+        // popup reuses on the neutral theme surface where white would be illegible.
+        // S2889: the ICON no longer joins them. The strip's background is opaque and dark in BOTH themes,
+        // so the glyph takes the program's own on-dark tone and the row becomes scannable by colour like
+        // every other list of sub-programs. The caption stays neutral - the accent is carried by the glyph
+        // alone, exactly as the dropdown menu this panel mirrors already does.
         val accentForeground = ContextCompat.getColor(context, R.color.main_panel_accent_foreground)
         for (model in models) {
             val itemView = inflater.inflate(R.layout.item_main_program, container, false)
@@ -171,8 +207,11 @@ class MainProgramsPanelManager(
             button.icon = model.icon
             button.text = if (showLabels) model.title else ""
             button.contentDescription = model.title
+            Timber.d("S2889: panel strip item '${model.title}' accentOnDark=${model.accentOnDarkRes}")
             button.setTextColor(accentForeground)
-            button.iconTint = ColorStateList.valueOf(accentForeground)
+            button.iconTint = ColorStateList.valueOf(
+                model.accentOnDarkRes?.let { ContextCompat.getColor(context, it) } ?: accentForeground
+            )
             menuButton.iconTint = ColorStateList.valueOf(accentForeground)
             button.setOnClickListener { onItemSelected(model.id) }
             // S0770: visible three-dots in label mode; long-press on the body covers compact mode.
@@ -284,6 +323,12 @@ class MainProgramsPanelManager(
             button.icon = model.icon
             button.text = model.title
             button.contentDescription = model.title
+            // S2889: the THEME-following tone here, not the on-dark one - resolvePopupBackground puts this
+            // window on the theme's menu surface, not on the panel strip. Left unset the row would fall back
+            // to item_main_program.xml's ?attr/colorControlNormal, which is how it was the one place a panel
+            // item was drawn with no tone at all.
+            Timber.d("S2889: overflow row '${model.title}' accent=${model.accentRes}")
+            model.accentRes?.let { button.iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, it)) }
             button.setOnClickListener {
                 popup.dismiss()
                 onItemSelected(model.id)

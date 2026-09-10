@@ -115,6 +115,10 @@ param(
     # lease exists to remove. Without this switch the probe behaves exactly as it always has,
     # `multiple-devices` included.
     [switch]$ClaimFree,
+    # S2855. Opt-in for the same reason as -ClaimFree: attach the selected device's last install
+    # mark from the device registry, so "free, and it already carries the build I need" is answerable
+    # by the probe the caller already runs. Without it the answer object carries no registry field.
+    [switch]$WithRegistry,
     # S2409. Opt-in reuse mode.
     [switch]$ReuseFinding,
     # S2600. Explicit only - see .PARAMETER Module for why there is no default.
@@ -226,6 +230,32 @@ function Stop-NotReady {
     }
     if ($StrictExit) { exit $Code }
     exit 0
+}
+
+function Add-RegistryMark {
+    # S2855, opt-in under -WithRegistry only: attach the device's last install mark from the
+    # device registry. Strictly read-only - a missing or unreadable record answers 'absent' and
+    # the store directory is never created here, because the probe must not leave artifacts
+    # behind any more than the monitor writer does.
+    param([Parameter(Mandatory)][string]$Serial)
+    $recordPath = Join-Path $PSScriptRoot ("..\..\temp\DEVICE.REGISTRY\" + ($Serial -replace ':', '_') + ".json")
+    $script:result.registry = 'absent'
+    if (-not (Test-Path -LiteralPath $recordPath)) { return }
+    try {
+        $record = Get-Content -LiteralPath $recordPath -Raw -ErrorAction Stop | ConvertFrom-Json
+        $mark = $record.lastInstall
+        if ($null -ne $mark) {
+            $script:result.registry = [pscustomobject]@{
+                package     = [string]$mark.package
+                versionName = [string]$mark.versionName
+                flavor      = [string]$mark.flavor
+                buildType   = [string]$mark.buildType
+                installedAt = $mark.installedAt
+                recordedBy  = [string]$mark.recordedBy
+            }
+        }
+    }
+    catch { $script:result.registry = 'absent' }
 }
 
 function Find-Adb {
@@ -372,6 +402,7 @@ if ($null -ne $reuse) {
         Write-Line "ignoring finding from $($reuse.author) ($($reuse.age) ago): $($reuse.serial) is leased by another session - probing fresh" 'DarkYellow'
     }
     else {
+        if ($WithRegistry) { Add-RegistryMark -Serial $reuseDevice.id }
         $script:result.ready          = $true
         $script:result.state          = 'ready'
         $script:result.selectedDevice = $reuseDevice.id
@@ -507,6 +538,7 @@ if ($CheckMcp) {
 
 # ---------- verdict ----------
 
+if ($WithRegistry) { Add-RegistryMark -Serial $selected.id }
 $script:result.ready = $true
 $script:result.state = 'ready'
 if ($Json) {

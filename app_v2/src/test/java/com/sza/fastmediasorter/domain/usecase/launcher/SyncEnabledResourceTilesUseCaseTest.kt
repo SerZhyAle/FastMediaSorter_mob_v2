@@ -123,6 +123,10 @@ class SyncEnabledResourceTilesUseCaseTest {
         override suspend fun clearSyncedResourcePaths() {
             paths = null
         }
+
+        override suspend fun isResourcesAddTileBackfilled(): Boolean = false
+        override suspend fun setResourcesAddTileBackfilled() = Unit
+        override suspend fun clearResourcesAddTileBackfilled() = Unit
     }
 
     @Test
@@ -228,14 +232,16 @@ class SyncEnabledResourceTilesUseCaseTest {
         baseline: FakeLauncherShortcutSyncRepository,
         provision: ProvisionDefaultResourcesUseCase = provisionMock(),
     ): SyncEnabledResourceTilesUseCase = SyncEnabledResourceTilesUseCase(
-        desktop = desktop,
         resources = mockk<ResourceRepository> {
             coEvery { getAllResourcesSync() } returns present
         },
         settings = mockk<SettingsRepository>(relaxed = true),
         provisionDefaultResources = provision,
         syncBaseline = baseline,
-        resolveColumns = ResolveLauncherColumnsUseCase(desktop),
+        placeShortcutTiles = PlaceLauncherShortcutTilesUseCase(
+            desktop,
+            ResolveLauncherColumnsUseCase(desktop),
+        ),
     )
 
     private fun targetOf(resource: MediaResource): String =

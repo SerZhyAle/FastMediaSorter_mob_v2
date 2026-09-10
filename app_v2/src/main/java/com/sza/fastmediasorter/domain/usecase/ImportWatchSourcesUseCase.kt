@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.data.repository.wear.WearResourceIdAliasStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
@@ -35,7 +36,10 @@ class ImportWatchSourcesUseCase @Inject constructor(
     private val wearResourceTombstoneStore: WearResourceTombstoneStore,
     // S2507 phase 04: which phone resource a watch-created source became, so a tombstone naming the
     // watch's own id still finds the row to delete.
-    private val wearResourceIdAliasStore: WearResourceIdAliasStore
+    private val wearResourceIdAliasStore: WearResourceIdAliasStore,
+    // S2882: a resource created from a watch export has to enter the watch mark set, or the next push
+    // would declare it withdrawn and delete the watch's own source.
+    private val wearResourceSelectionRepository: WearResourceSelectionRepositoryImpl
 ) {
 
     /**
@@ -108,10 +112,13 @@ class ImportWatchSourcesUseCase @Inject constructor(
      * keeping the losing event would only give it a second chance it already lost.
      */
     private suspend fun applyIncomingTombstones(
-        incoming: List<WearSourceTombstonePayload>,
+        incoming: List<WearSourceTombstonePayload>?,
         deletionResolver: WearRecordMergeResolver
     ) {
-        if (incoming.isEmpty()) {
+        // S2885: the guard sits here rather than at the call site so a second caller inherits it. Null
+        // is a watch that ships no deletions at all, which for this list means the same as declaring
+        // none.
+        if (incoming.isNullOrEmpty()) {
             return
         }
         Timber.d("S2507: phone import leg received ${incoming.size} tombstone(s) from the watch")
@@ -212,7 +219,8 @@ class ImportWatchSourcesUseCase @Inject constructor(
         credentialsRepository.insert(credentialsFrom(source, credentialId))
         val resource = MediaResource(
             name = source.name,
-            path = source.basePath,
+            // S2887: the payload's default lives here now - Gson never ran the one on the declaration.
+            path = source.basePath ?: DEFAULT_BASE_PATH,
             type = resourceTypeOf(source),
             credentialsId = credentialId
         )
@@ -228,6 +236,12 @@ class ImportWatchSourcesUseCase @Inject constructor(
         if (stampEpochMillis != null) {
             wearResourceStampStore.writeStamp(newId.toString(), stampEpochMillis)
         }
+        // S2882: the watch is holding this source right now, so the mark follows the creation. On the
+        // create path only - a resource the owner has just unticked still exists in the registry, so
+        // the watch exporting it reaches applyToExisting, and marking there would tick the box back.
+        wearResourceSelectionRepository.setSelectedIds(
+            wearResourceSelectionRepository.getSelectedIds() + newId
+        )
     }
 
     private suspend fun applyToExisting(
@@ -243,7 +257,7 @@ class ImportWatchSourcesUseCase @Inject constructor(
             }
         }
         resourceRepository.updateResource(
-            matched.copy(name = source.name, path = source.basePath)
+            matched.copy(name = source.name, path = source.basePath ?: DEFAULT_BASE_PATH)
         )
         if (stampEpochMillis != null) {
             wearResourceStampStore.writeStamp(matched.id.toString(), stampEpochMillis)
@@ -261,7 +275,7 @@ class ImportWatchSourcesUseCase @Inject constructor(
         port = source.port,
         username = source.username,
         plaintextPassword = source.password,
-        domain = source.domain,
+        domain = source.domain.orEmpty(),
         shareName = source.shareName,
         sshPrivateKey = source.sshPrivateKey,
         id = rowId
@@ -269,4 +283,9 @@ class ImportWatchSourcesUseCase @Inject constructor(
 
     private fun resourceTypeOf(source: WearNetworkSourcePayload): ResourceType =
         runCatching { ResourceType.valueOf(source.type) }.getOrDefault(ResourceType.SMB)
+
+    private companion object {
+        /** S2887: what `WearNetworkSourcePayload.basePath` claimed as its Kotlin default. */
+        const val DEFAULT_BASE_PATH = "/"
+    }
 }

@@ -23,14 +23,27 @@ A top-level .ps1 in .claude/hooks/ that is registered nowhere is reported as an
 advisory, not a failure: it is dead weight rather than a documentation gap, and
 the inventory deliberately lists live hooks only.
 
+Third comparison - the rule sheet (S2872):
+  docs/NON_CLAUDE_RUNTIME_RULES.md is where a runtime with no hooks meets these
+  rules, and for that runtime the sheet IS the enforcement - a hook it does not
+  mention is a rule nobody outside Claude Code will ever be told. So every name
+  in the inventory must also appear, backticked, in the sheet's "## The rules"
+  block (it guards a decision the model makes) or in its "## Not portable" block
+  (it does not, and the sheet says why). A name in neither fails the gate; the
+  author picks a side rather than leaving the sheet silently behind the hooks.
+  The comparison reuses the inventory names already parsed above - a second
+  parser could disagree with the first about the same table (the S1621 rule).
+  An absent sheet is exit 2, matching how a missing inventory is answered: "the
+  sheet is gone" and "the sheet forgot a hook" call for opposite reactions.
+
 Usage:
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1 -Gate
 
 Exit codes (CLAUDE.md Rule 7):
   0  in sync, or a divergence was reported without -Gate (advisories may print in both)
-  1  a real divergence between the registered set and the inventory, with -Gate
-  2  could not verify - the inventory or .claude/settings.json is missing or unparsable
+  1  a real divergence between the registered set, the inventory and the rule sheet, with -Gate
+  2  could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable
 #>
 
 [CmdletBinding()]
@@ -43,7 +56,12 @@ param(
 
     # Overridable so the contract tests can exercise the "global half absent"
     # branch against a fixture instead of the real per-machine settings file.
-    [string]$GlobalSettingsPath = (Join-Path $HOME '.claude/settings.json')
+    [string]$GlobalSettingsPath = (Join-Path $HOME '.claude/settings.json'),
+
+    # S2872. Overridable for the same reason as the line above - a fixture can
+    # exercise the "sheet names no hook" and "sheet absent" branches without
+    # damaging the real sheet.
+    [string]$RuleSheetPath = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -93,6 +111,33 @@ function Get-HookNamesFromInventory([string]$Path) {
         if ($m.Success) { [void]$names.Add($m.Groups[1].Value) }
     }
     return $names
+}
+
+function Get-HookNamesFromRuleSheet([string]$Path) {
+    # S2872. Reads the backticked tokens inside the two sections that constitute the sheet's
+    # coverage - "## The rules" and "## Not portable" - and nowhere else, so a hook named only
+    # in the intro or in the closure section does not count as covered. Both the bare base name
+    # and the `<name>.ps1` spelling are accepted: the sheet writes an imperative's hook without
+    # the extension and cites a script path with it, and demanding one spelling would be a
+    # formatting rule wearing a gate's clothes.
+    $names = New-Object System.Collections.Generic.HashSet[string]
+    $inSection = $false
+    foreach ($line in (Get-Content -LiteralPath $Path)) {
+        if ($line -match '^##\s') {
+            $inSection = ($line -match '^##\s+(The rules|Not portable)\s*$')
+            continue
+        }
+        if (-not $inSection) { continue }
+        foreach ($m in [regex]::Matches($line, '`([A-Za-z0-9._/-]+)`')) {
+            $token = $m.Groups[1].Value
+            [void]$names.Add($token)
+            if ($token -match '^(.+)\.ps1$') { [void]$names.Add($Matches[1]) }
+        }
+    }
+    # The comma is load-bearing: PowerShell unrolls an enumerable on output, so a sheet naming no
+    # hook would return NOTHING and the caller's $sheetNames.Contains() would throw on $null -
+    # which is exactly the "sheet forgot everything" case this comparison exists to report.
+    return , $names
 }
 
 function Compare-Half([string]$Label, $Registered, $Inventory) {
@@ -177,6 +222,29 @@ if ($globalJudged) {
     }
 }
 
+# --- third comparison: the rule sheet (S2872) ---------------------------------
+# Judged against the INVENTORY, not against the registered set: the inventory is the
+# version-controlled list, so this half of the verdict reproduces on any machine exactly as the
+# project half above does, while the global half may simply be absent here.
+
+if (-not (Test-Path -LiteralPath $RuleSheetPath)) {
+    Write-Error "hook-inventory: $RuleSheetPath not found - cannot verify the rule sheet" -ErrorAction Continue
+    exit 2
+}
+
+try {
+    $sheetNames = Get-HookNamesFromRuleSheet $RuleSheetPath
+} catch {
+    Write-Error "hook-inventory: could not parse $RuleSheetPath - $($_.Exception.Message)" -ErrorAction Continue
+    exit 2
+}
+
+foreach ($n in ($inventory | Sort-Object)) {
+    if (-not $sheetNames.Contains($n)) {
+        $failures.Add("hook '$n.ps1' is in docs/AGENT_HOOKS.md but named in neither section of docs/NON_CLAUDE_RUNTIME_RULES.md - add an imperative under '## The rules' if it guards a decision the model makes, or a line under '## Not portable' saying why it gives no rule")
+    }
+}
+
 # --- advisory: a hook file that nothing registers ------------------------------
 
 if (Test-Path -LiteralPath $ProjectHookDir) {
@@ -202,6 +270,12 @@ if ($failures.Count -gt 0) {
   with the repository, so it is judged strictly. The global half is per-machine and simply absent
   on a fresh checkout, so it is judged only where it is readable - failing on a file that cannot
   exist here would make the gate unpassable for everyone but this workstation.
+
+  The same change also edits docs/NON_CLAUDE_RUNTIME_RULES.md (S2872). For a runtime with no hooks
+  that sheet is the whole enforcement, so a hook it does not mention is a rule nobody outside
+  Claude Code will ever be told. Either the hook guards a decision the model can make, and the
+  sheet states it as an imperative, or it does not, and the sheet says so under "Not portable".
+  Both answers are cheap; leaving the sheet silent is the only expensive one.
 '@
     # The reason must sit immediately before the exit: assert-exit-contract.ps1 walks back a bounded
     # number of lines looking for a printed reason, and the block above is longer than that window.
@@ -211,5 +285,5 @@ if ($failures.Count -gt 0) {
 }
 
 $scope = if ($globalJudged) { 'project + global' } else { 'project only' }
-Write-Host "hook-inventory: PASS ($($registered.Count) registered hook(s), $scope)"
+Write-Host "hook-inventory: PASS ($($registered.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s))"
 exit 0

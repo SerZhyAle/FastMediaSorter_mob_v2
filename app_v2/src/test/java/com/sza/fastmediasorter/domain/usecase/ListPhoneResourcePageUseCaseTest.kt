@@ -76,8 +76,8 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
         assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
-        assertEquals(listOf("Photos"), page.items.map { it.name })
-        assertTrue("root entries are browsable", page.items.all { it.isDirectory })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
+        assertTrue("root entries are browsable", page.items.orEmpty().all { it.isDirectory })
     }
 
     @Test
@@ -89,7 +89,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
         assertEquals(WearPhoneResourceResponseStatus.EMPTY, page.status)
-        assertTrue(page.items.isEmpty())
+        assertTrue(page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -101,14 +101,14 @@ class ListPhoneResourcePageUseCaseTest {
 
         val first = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, first.items.size)
+        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, first.items.orEmpty().size)
         assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE.toString(), first.nextPageToken)
 
         val second = useCase(
             request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:", pageToken = first.nextPageToken)
         )
 
-        assertEquals(10, second.items.size)
+        assertEquals(10, second.items.orEmpty().size)
         assertNull("last page ends the walk", second.nextPageToken)
     }
 
@@ -123,7 +123,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(listOf("visible.jpg"), page.items.map { it.name })
+        assertEquals(listOf("visible.jpg"), page.items.orEmpty().map { it.name })
     }
 
     /**
@@ -150,7 +150,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
-        assertTrue("a failure carries no metadata", page.items.isEmpty())
+        assertTrue("a failure carries no metadata", page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -190,7 +190,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
-        assertEquals(listOf("Photos", "Podcasts"), page.items.map { it.name })
+        assertEquals(listOf("Photos", "Podcasts"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -202,7 +202,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "photos"))
 
-        assertEquals(listOf("Photos"), page.items.map { it.name })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -214,7 +214,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "documents"))
 
-        assertEquals(listOf("Papers"), page.items.map { it.name })
+        assertEquals(listOf("Papers"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -225,7 +225,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "sculptures"))
 
-        assertEquals(listOf("Photos"), page.items.map { it.name })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
     }
 
     /**
@@ -244,8 +244,8 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.size)
-        assertEquals(0, page.items.count { it.thumbnailBase64 != null })
+        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.orEmpty().size)
+        assertEquals(0, page.items.orEmpty().count { it.thumbnailBase64 != null })
         coVerify(exactly = 0) { buildWatchThumbnail(any()) }
     }
 
@@ -265,7 +265,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
-        assertTrue("a timed-out scan carries no metadata", page.items.isEmpty())
+        assertTrue("a timed-out scan carries no metadata", page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -301,12 +301,73 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(listOf("IMG_0001.jpg", "IMG_0001.jpg"), page.items.map { it.name })
+        assertEquals(listOf("IMG_0001.jpg", "IMG_0001.jpg"), page.items.orEmpty().map { it.name })
         assertEquals(
             "a shared name must not collapse two files onto one token",
             2,
-            page.items.map { it.token }.distinct().size
+            page.items.orEmpty().map { it.token }.distinct().size
         )
+    }
+
+    // S2860: the default virtual resources (virtual://recent, virtual://all_images,
+    // virtual://camera_photos) overlap - they all return the same MediaStore row for one
+    // physical file. Without deduplication the watch renders each file once per resource.
+    @Test
+    fun `flat list deduplicates files shared across overlapping resources`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent"),
+            resource(id = 2, name = "All Images")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"),
+            file(name = "IMG_0002.jpg", contentUri = "content://media/external/images/media/101")
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
+        assertEquals(
+            "each file appears once despite two resources covering it",
+            listOf("IMG_0001.jpg", "IMG_0002.jpg"),
+            page.items.orEmpty().map { it.name }
+        )
+    }
+
+    @Test
+    fun `flat list deduplicates by path when files carry no content URI`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Folder A"),
+            resource(id = 2, name = "Folder B")
+        )
+        val sharedPath = "/storage/emulated/0/DCIM/IMG_0001.jpg"
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = null).copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(listOf("IMG_0001.jpg"), page.items.orEmpty().map { it.name })
+    }
+
+    @Test
+    fun `flat list keeps same-named files with different MediaStore ids separate`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent"),
+            resource(id = 2, name = "All Images")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "two distinct MediaStore entries survive deduplication",
+            2,
+            page.items.orEmpty().size
+        )
+        assertEquals(2, page.items.orEmpty().map { it.token }.distinct().size)
     }
 
     private fun request(

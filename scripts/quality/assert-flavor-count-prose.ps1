@@ -115,9 +115,15 @@ $skippedWorktreeFiles = [System.Collections.Generic.HashSet[string]]::new(
 
 # Scope is the set of surfaces the ticket cleaned, declared here rather than in a side manifest:
 # the gate has no baseline, so a file listed here is a file that is clean right now.
-$scanRoots = @('docs', 'dev')
+# S2856 added the agent-facing rule files. They were never a deliberate exclusion - the three named
+# below in $excludedPaths are - they simply sat outside docs/ and dev/, and they are the one place a
+# stale count does the most harm: an agent answers a flavor question from its rules without opening
+# a document. Measured 2026-09-10, GEMINI.md said "six flavors" inside the sentence forbidding a
+# from-memory answer, and .claude/agents/android-rd-specialist.md said the same; foss has existed
+# since S2440.
+$scanRoots = @('docs', 'dev', '.claude/rules', '.claude/agents')
 $scanExtensions = @('.md')
-$scanRootFiles = @('README.md', 'a.ps1')
+$scanRootFiles = @('README.md', 'a.ps1', 'CLAUDE.md', 'AGENTS.md', 'GEMINI.md', '.github/copilot-instructions.md')
 $excludedPaths = @('dev/CHANGELOG.md', 'dev/archive')
 
 function Test-Excluded {

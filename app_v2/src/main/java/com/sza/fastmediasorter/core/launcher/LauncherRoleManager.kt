@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
@@ -191,7 +192,12 @@ class LauncherRoleManager @Inject constructor(
 
     private fun createRoleRequestIntent(): Intent? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-        return context.getSystemService(RoleManager::class.java)
+        val tvDevice = isTvDevice()
+        if (tvDevice) {
+            Timber.d("S2901: TV form-factor detected, skipping ROLE_HOME dialog")
+        }
+        val roleManager = if (tvDevice) null else context.getSystemService(RoleManager::class.java)
+        return roleManager
             ?.takeIf { it.isRoleAvailable(RoleManager.ROLE_HOME) }
             ?.createRequestRoleIntent(RoleManager.ROLE_HOME)
     }
@@ -217,6 +223,18 @@ class LauncherRoleManager @Inject constructor(
 
     private fun resolves(intent: Intent): Boolean =
         context.packageManager.resolveActivityCompat(intent, 0) != null
+
+    /**
+     * True on Android TV / Google TV / Fire TV. The ROLE_HOME role dialog silently fails on these
+     * devices: the system bakes its launcher into the image and does not honor the role swap, so the
+     * enable flow must route to the system home-settings screen instead (S2901).
+     */
+    private fun isTvDevice(): Boolean {
+        val hasLeanback = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        val isTvUiMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
+            Configuration.UI_MODE_TYPE_TELEVISION
+        return hasLeanback || isTvUiMode
+    }
 
     private fun homeIntent(): Intent =
         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)

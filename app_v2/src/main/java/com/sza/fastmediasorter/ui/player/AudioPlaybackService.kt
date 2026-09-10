@@ -999,6 +999,7 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
+            Timber.d("S2876: phone session onConnect from ${controller.packageName} on media3 1.11.0")
             // S2810: refuse the Wear OS companion bridge so the watch stops surfacing this service's
             // player as a system "now playing" screen. Only the bridge package is refused - the app's
             // own UI (same package), the system `android` (lockscreen/Bluetooth) and every other

@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
 import com.sza.fastmediasorter.widget.StopwatchWidgetProvider
 import com.sza.fastmediasorter.widget.StreamLaunchWidgetProvider
+import com.sza.fastmediasorter.widget.WatchListenWidgetProvider
 import com.sza.fastmediasorter.widget.WaterFlashlightWidgetProvider
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -200,6 +201,18 @@ class HomeWidgetCatalog @Inject constructor(
             labelRes = R.string.widget_quick_audio_recorder_label,
             iconRes = R.drawable.ic_widget_quick_audio_recorder,
             descriptionRes = R.string.widget_quick_audio_recorder_description,
+        ),
+        // S2881: the in-app picker gate mirrors the merged-manifest one - the receiver lives in the
+        // wearGms overlay, and the setting gate hides it where the owner switched the companion off.
+        HomeWidgetEntry(
+            providerClass = WatchListenWidgetProvider::class.java,
+            gadgetKey = "watch_listen",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
+            labelRes = R.string.watch_listen_widget_label,
+            iconRes = R.drawable.ic_watch,
+            descriptionRes = R.string.watch_listen_widget_description,
+            settingGate = { it.enableWearCompanion },
         ),
         HomeWidgetEntry(
             providerClass = FavoritesWidgetProvider::class.java,

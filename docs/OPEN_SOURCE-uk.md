@@ -57,6 +57,7 @@ FastMediaSorter побудований на перелічених нижче к
 | AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer MIDI | `androidx.media3:media3-exoplayer-midi` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, standard, vr | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
+| AndroidX Media3 Inspector | `androidx.media3:media3-inspector` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Session | `androidx.media3:media3-session` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Transformer | `androidx.media3:media3-transformer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |
 | AndroidX Media3 UI | `androidx.media3:media3-ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | усі збірки | [link](https://github.com/androidx/media) |

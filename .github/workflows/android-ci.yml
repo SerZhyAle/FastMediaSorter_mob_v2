@@ -2,14 +2,15 @@ name: Android CI Quality Gate
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, 'DEBUG-v*' ]
     paths:
       - 'app_v2/**'
       - 'wear/**'
       - 'gradle/**'
       - '*.kts'
       - 'gradlew*'
-      - 'scripts/ci/**'
+      - 'scripts/**'
+      - 'dev/**'
       - '.github/workflows/android-ci.yml'
   pull_request:
     branches: [ main ]
@@ -19,9 +20,18 @@ on:
       - 'gradle/**'
       - '*.kts'
       - 'gradlew*'
-      - 'scripts/ci/**'
+      - 'scripts/**'
+      - 'dev/**'
       - '.github/workflows/android-ci.yml'
   workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform (default runs the full pipeline; regenerate-lint-baseline regenerates the lint baseline file)'
+        type: choice
+        options:
+          - default
+          - regenerate-lint-baseline
+        default: default
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -58,7 +68,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Fetch prebuilt FFmpeg DTS AAR
+      - name: Fetch prebuilt native AARs
         run: bash ./scripts/ci/fetch-prebuilt-libs.sh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -78,7 +88,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: lint-report
-          path: app_v2/build/reports/lint-results-*.html
+          path: |
+            app_v2/build/reports/lint-results-*.html
+            app_v2/build/reports/lint-results.xml
           retention-days: 14
 
       - name: Upload unit test results
@@ -109,6 +121,33 @@ jobs:
           name: apk-standard-debug
           path: app_v2/build/outputs/apk/standard/debug/*.apk
           retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # static-gates = pure-PowerShell quality gates (S2874). ~45 read-only text
+  # scans from assert-fast-gates.ps1: neuroslop, source-gates, wear-parity,
+  # exit-contract, script-parses, flavor-binding-coverage and more. No gradle,
+  # no device - runs on ubuntu-latest with pwsh pre-installed. Triggers on
+  # main, PR, DEBUG-v* and dispatch; the DEBUG-v* trigger catches regressions
+  # before merge. dev/CATALOG/*.jsonl is gitignored, so catalog_sync.ps1
+  # regenerates it before the gates run.
+  # ─────────────────────────────────────────────
+  static-gates:
+    name: Static Gates (PowerShell quality checks)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Regenerate gitignored Kotlin catalog (app_v2)
+        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module app_v2
+
+      - name: Regenerate gitignored Kotlin catalog (wear)
+        run: pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module wear
+
+      - name: Run fast static gates
+        run: pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
 
   # ─────────────────────────────────────────────
   # Extra flavors only (lite, photos, legacy). standard is already built in
@@ -143,7 +182,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Fetch prebuilt FFmpeg DTS AAR
+      - name: Fetch prebuilt native AARs
         run: bash ./scripts/ci/fetch-prebuilt-libs.sh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -189,7 +228,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Fetch prebuilt FFmpeg DTS AAR
+      - name: Fetch prebuilt native AARs
         run: bash ./scripts/ci/fetch-prebuilt-libs.sh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -208,13 +247,70 @@ jobs:
           retention-days: 14
 
   # ─────────────────────────────────────────────
+  # regenerate-lint-baseline = delete the old lint-baseline.xml, run lintStandardDebug
+  # (which creates a fresh baseline with all current issues), and commit the result.
+  # Triggered manually via workflow_dispatch with action=regenerate-lint-baseline.
+  # The regular verify job runs lintStandardDebug with abortOnError=true, which passes
+  # only when all issues are in the baseline. When the baseline drifts (new code, new
+  # lint checks, or a broken regeneration), this job brings it back in sync from the
+  # CI environment where lint runs to completion. S2883.
+  # ─────────────────────────────────────────────
+  regenerate-lint-baseline:
+    name: Regenerate Lint Baseline
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && github.event.inputs.action == 'regenerate-lint-baseline'
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Set up Gradle (deps + build cache)
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Fetch prebuilt native AARs
+        run: bash ./scripts/ci/fetch-prebuilt-libs.sh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Delete old baseline
+        run: rm -f app_v2/lint-baseline.xml
+
+      - name: Run lint to regenerate baseline
+        run: ./gradlew :app_v2:lintStandardDebug --continue --stacktrace
+        env:
+          DROPBOX_APP_KEY: ${{ secrets.DROPBOX_APP_KEY || 'dpy64e70kqobr6x' }}
+
+      - name: Verify baseline was created
+        run: test -f app_v2/lint-baseline.xml
+
+      - name: Commit and push new baseline
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add app_v2/lint-baseline.xml
+          git commit -m "chore: regenerate lint baseline (S2883)" || echo "Nothing to commit"
+          git push
+
+  # ─────────────────────────────────────────────
   # Pipeline status notification. Job references updated to the new structure.
   # ─────────────────────────────────────────────
   notify:
     name: Pipeline Status Notification
     runs-on: ubuntu-latest
     if: always()
-    needs: [ verify, build-flavors, release-check ]
+    needs: [ verify, static-gates, build-flavors, release-check ]
     timeout-minutes: 5
 
     steps:
@@ -222,9 +318,10 @@ jobs:
         id: overall
         run: |
           VERIFY="${{ needs.verify.result }}"
+          GATES="${{ needs.static-gates.result }}"
           FLAVORS="${{ needs.build-flavors.result }}"
           RELEASE="${{ needs.release-check.result }}"
-          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
+          if [[ ("$VERIFY" == "success" || "$VERIFY" == "skipped") && ("$GATES" == "success" || "$GATES" == "skipped") && ("$FLAVORS" == "success" || "$FLAVORS" == "skipped") && ("$RELEASE" == "success" || "$RELEASE" == "skipped") ]]; then
             echo "status=✅ ALL PASSED" >> "$GITHUB_OUTPUT"
             echo "emoji=✅" >> "$GITHUB_OUTPUT"
           else
@@ -240,6 +337,7 @@ jobs:
             echo "| Job | Result |"
             echo "| --- | ------ |"
             echo "| Verify (lint+test+std) | ${{ needs.verify.result }} |"
+            echo "| Static gates           | ${{ needs.static-gates.result }} |"
             echo "| Build (extra flavors)  | ${{ needs.build-flavors.result }} |"
             echo "| Release check          | ${{ needs.release-check.result }} |"
             echo ""
@@ -248,11 +346,12 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment on PR (on failure)
-        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
+        if: github.event_name == 'pull_request' && (needs.verify.result == 'failure' || needs.static-gates.result == 'failure' || needs.build-flavors.result == 'failure' || needs.release-check.result == 'failure')
         uses: actions/github-script@v7
         with:
           script: |
             const verify  = '${{ needs.verify.result }}';
+            const gates   = '${{ needs.static-gates.result }}';
             const flavors = '${{ needs.build-flavors.result }}';
             const release = '${{ needs.release-check.result }}';
             const body = [
@@ -261,6 +360,7 @@ jobs:
               '| Job | Result |',
               '| --- | ------ |',
               `| Verify (lint+test+std) | ${verify}  |`,
+              `| Static gates           | ${gates}   |`,
               `| Build (extra flavors)  | ${flavors} |`,
               `| Release check          | ${release} |`,
               '',

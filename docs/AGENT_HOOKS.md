@@ -62,7 +62,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 
 ## Keeping this file honest
 
-`scripts/quality/assert-hook-inventory.ps1` compares the registered set against the names above and fails on any divergence in either direction. It is wired into `scripts/quality/assert-fast-gates.ps1`, so `.\a.ps1 fg` runs it.
+`scripts/quality/assert-hook-inventory.ps1` compares three things and fails on any divergence: the registered set against the names above, in either direction, and since S2872 the names above against `docs/NON_CLAUDE_RUNTIME_RULES.md`, which must name every one of them in its `## The rules` or `## Not portable` section. It is wired into `scripts/quality/assert-fast-gates.ps1`, so `.\a.ps1 fg` runs it. A missing rule sheet is exit 2, "could not verify", not a pass.
 
 It judges asymmetrically, by design. The **project** half is judged strictly and always: it is version-controlled, so the verdict reproduces on any machine. The **global** half is judged only when `~/.claude/settings.json` is readable; where it is absent the gate prints one advisory line and does not fail, because a red that cannot be fixed from the repository is a red that teaches people to bypass the gate.
 
@@ -73,3 +73,4 @@ It judges asymmetrically, by design. The **project** half is judged strictly and
 - **Prefer making a name work over refusing it.** A missing interpreter is cheaper to shim onto the PATH than to guard, because no hook can fix and retry a failed command.
 - **Fail open.** A hook that changes what the model reads corrupts content when it errs, rather than merely gating a call.
 - Add the hook to the inventory above in the same change - the gate requires it.
+- **Name it in `docs/NON_CLAUDE_RUNTIME_RULES.md` in the same change too** (S2872), and the gate requires that as well. Pick a side: if the hook guards a decision a model can make on its own, write the imperative under `## The rules`; if it does not - it advises the owner, or it sweeps other sessions' state - write one line under `## Not portable` saying so. For every runtime without hooks that sheet is the entire enforcement, so a hook missing from it is a rule nobody outside Claude Code is ever told.

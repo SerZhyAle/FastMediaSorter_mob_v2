@@ -54,9 +54,9 @@ class GeneralSettingsLauncherHelper(
             binding.rowLauncherSettings.isVisible = false
             return
         }
-        // S2811: deliberately not tied to homeRoleHeld, unlike the launcher-settings button below - the
-        // start window is the entry for the user who declined the home role, so coupling the two would
-        // put back the dependency this setting exists to remove.
+        // S2811: the start window is the entry for the user who declined the home role. S2858: the row's
+        // visibility is tied to homeRoleHeld in refreshState - when the app is the device launcher the
+        // desktop is already the Home button destination, so the setting is redundant and hidden.
         binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
         binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
             coroutineScope.launch {
@@ -107,6 +107,8 @@ class GeneralSettingsLauncherHelper(
             }
             binding.rowLauncherModeEnabled.setCheckedSilently(state.homeRoleHeld)
             updateOpenRowEnabled(state.homeRoleHeld)
+            binding.rowLauncherStartWindow.isVisible = !state.homeRoleHeld
+            Timber.d("S2858: startWindowRow visible=${!state.homeRoleHeld}")
         }
     }
 

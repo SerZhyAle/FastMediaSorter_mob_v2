@@ -47,16 +47,14 @@
       - assert-dotsource-tracked       (S2616 every dot-sourced script target is in the git index)
       - assert-document-registry-coverage (S2618 every directory holding documents is registered or excused)
 
-    Deliberately NOT moved here: assert-oss-notices. It ships inside the package, so criteria 1
-    and 2 hold - but its own wiring comment records that both of its findings ARE attributable to
-    the change that fired them (a coordinate this change declared, a page this change edited), and
-    it executes 8 times a month. Criterion 3 fails, so it stays per-ticket. Applying the test
-    honestly matters more than the size of the moved set.
-
-    Deliberately NOT absorbed: assert-new-lexemes-translated, assert-guide-coverage,
-    assert-no-orphan-merged-resources and assert-deobfuscation-retained already run from
-    /spec-prerelease with their own surrounding flow (a bulk locale import loop, an advisory
-    report, a previous-release artifact comparison). Folding them in would hide those flows.
+    Where every gate belongs, and who decided it: scripts/quality/gate-placement.jsonl (S2870).
+    That registry replaced the two paragraphs that used to stand here naming the gate deliberately
+    NOT moved into this runner and the four deliberately NOT absorbed into it. Those decisions were
+    right and are preserved verbatim in the registry, each with its ticket, date and the criterion
+    that decided it - but as prose they could not be queried and could not be checked, so nothing
+    noticed if a gate drifted back. Applying the test honestly still matters more than the size of
+    the moved set; the registry is what makes the answer readable and enforceable.
+    assert-gate-placement.ps1 fails the closure when the registry and the runners disagree.
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator, and each
     outcome is appended to the gate journal under runner 'assert-release-scope-gates'.

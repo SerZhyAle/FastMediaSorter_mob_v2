@@ -101,7 +101,7 @@ class WearThumbnailRepositoryImpl @Inject constructor(
         val itemToken = file.uri.toString()
         val outcome = phoneResourceClient.requestThumbnail(itemToken)
         if (outcome is PhoneResourceOutcome.Page) {
-            val base64 = outcome.page.items.firstOrNull()?.thumbnailBase64
+            val base64 = outcome.page.items.orEmpty().firstOrNull()?.thumbnailBase64
             if (!base64.isNullOrEmpty()) {
                 return runCatching {
                     val bytes = Base64.decode(base64, Base64.NO_WRAP)

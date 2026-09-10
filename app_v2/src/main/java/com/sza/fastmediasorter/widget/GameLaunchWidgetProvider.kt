@@ -10,6 +10,7 @@ import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.game.GameLaunchIntents
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -80,6 +81,9 @@ class GameLaunchWidgetProvider : AppWidgetProvider() {
                 R.id.widget_game_container,
                 createPendingIntent(context, appWidgetId, enabled)
             )
+            // S2889: the identity glyph takes the sub-program's own tone, resolved in this process
+            // because a theme attr inside a RemoteViews drawable resolves against the launcher's theme.
+            HomeWidgetAccent.applyIconTint(views, R.id.widget_game_icon, context, "game_launch")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
 

@@ -279,7 +279,8 @@ class PhoneResourceViewModel @Inject constructor(
             try {
                 val outcome = phoneResourceClient.requestThumbnail(itemToken)
                 val thumbnail = if (outcome is PhoneResourceOutcome.Page) {
-                    outcome.page.items.firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable
+                    outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail()
+                        ?: WearThumbnail.Unavailable
                 } else {
                     WearThumbnail.Unavailable
                 }
@@ -519,8 +520,9 @@ class PhoneResourceViewModel @Inject constructor(
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {
-                    decodeThumbnails(outcome.page.items)
-                    outcome.page.items.toState(parentToken)
+                    val items = outcome.page.items.orEmpty()
+                    decodeThumbnails(items)
+                    items.toState(parentToken)
                 }
                 // S2130: one refusal is not a failure. The phone answered, correctly, that no
                 // configured resource carries this category - so it gets its own state rather than

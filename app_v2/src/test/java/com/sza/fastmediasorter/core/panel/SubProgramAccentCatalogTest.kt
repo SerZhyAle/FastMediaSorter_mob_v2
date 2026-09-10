@@ -38,4 +38,37 @@ class SubProgramAccentCatalogTest {
     fun `an unknown key has no accent`() {
         assertNull(SubProgramAccentCatalog.accentFor("not_a_route"))
     }
+
+    @Test
+    fun `every route with an accent also has an on-dark tone`() {
+        val missing = InternalRouteCatalog.all()
+            .map { it.key }
+            .filter { SubProgramAccentCatalog.accentFor(it) != null }
+            .filter { SubProgramAccentCatalog.accentOnDarkFor(it) == null }
+
+        assertEquals("routes with no on-dark tone: $missing", emptyList<String>(), missing)
+    }
+
+    @Test
+    fun `the on-dark set is as wide as the palette`() {
+        val distinct = InternalRouteCatalog.all()
+            .mapNotNull { SubProgramAccentCatalog.accentOnDarkFor(it.key) }
+            .distinct()
+
+        assertEquals(SubProgramAccentCatalog.PALETTE_SIZE, distinct.size)
+    }
+
+    @Test
+    fun `an on-dark tone is never the theme-following one`() {
+        val shared = InternalRouteCatalog.all()
+            .map { it.key }
+            .filter { SubProgramAccentCatalog.accentFor(it) == SubProgramAccentCatalog.accentOnDarkFor(it) }
+
+        assertEquals("routes whose two tones are the same resource: $shared", emptyList<String>(), shared)
+    }
+
+    @Test
+    fun `an unknown key has no on-dark tone`() {
+        assertNull(SubProgramAccentCatalog.accentOnDarkFor("not_a_route"))
+    }
 }

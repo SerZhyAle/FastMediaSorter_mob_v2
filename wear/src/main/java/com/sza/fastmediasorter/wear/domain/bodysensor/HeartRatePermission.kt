@@ -8,8 +8,8 @@ import android.os.Build
  *
  * API 36 replaced the sensor-shaped permission with a health-record one, and the `noLegal` manifest
  * declares both - the legacy entry capped at `maxSdkVersion="35"` (S2457 §6 item 2). The modern name is
- * spelled out because `android.Manifest.permission` carries no constant for it at compileSdk 36, while
- * `BODY_SENSORS` does; the pair is asymmetric in the platform, not in this file.
+ * spelled out because `android.Manifest.permission` gained no constant for it at the API level that
+ * introduced it, while `BODY_SENSORS` does; the pair is asymmetric in the platform, not in this file.
  *
  * Answered here rather than once per caller because two callers must agree: the screen REQUESTS a
  * permission and the measurement CHECKS one, so a split decision would grant a name the check never

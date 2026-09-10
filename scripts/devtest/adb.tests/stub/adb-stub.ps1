@@ -98,6 +98,17 @@ switch -Regex ($sig) {
     }
     '^shell dumpsys SurfaceFlinger --display-id$' { Write-Output 'Display 4619827259835644672 (HWC display 0)'; exit 0 }
 
+    # ---- package metadata (S2855) ----
+    # The install verb's recording hook reads the version back through dumpsys. The body comes from
+    # FMS_STUB_DUMPSYS_PACKAGE verbatim so the case controls versionName and lastUpdateTime; without
+    # the variable the call falls through to the passthrough below, exactly as before this hook.
+    '^shell dumpsys package \S+$' {
+        $body = $env:FMS_STUB_DUMPSYS_PACKAGE
+        if ([string]::IsNullOrWhiteSpace($body)) { Write-Output "stub shell: $($call[1..($call.Count - 1)] -join ' ')"; exit 0 }
+        Write-Output $body
+        exit 0
+    }
+
     # ---- package resolution ----
     '^shell pm list packages (?<p>\S+)$' {
         $wanted = $Matches['p']

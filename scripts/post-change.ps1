@@ -743,8 +743,6 @@ $runsAllFeaturesGate = Test-AnyChangedFile 'docs/ALL_FEATURES.*\.(jsonl|json)$'
 $runsSettingsDocGate = (
     (Test-AnyChangedFile 'app_v2/src/main/res/layout/fragment_settings_.*\.xml$') -or
     (Test-AnyChangedFile 'app_v2/.*/ui/settings/search/') -or
-    (Test-AnyChangedFile 'wear/.*/ui/settings/') -or
-    (Test-AnyChangedFile 'wear/src/main/res/values[^/]*/strings') -or
     (Test-AnyChangedFile 'SettingsSearchAvailabilityModule\.kt$') -or
     (Test-SettingsDocArtifactInput -ChangedFiles $normChangedFiles)
 )
@@ -754,6 +752,9 @@ $runsSettingsDocGate = (
 # neither of which is Wear*-named, so without them the row would be enforced only by the project-wide
 # .\a.ps1 fg run - a check nobody's own ticket executes, which is the shape this gate exists to end.
 $runsWearWireVocabularyParityGate = Test-AnyChangedFile '(WearDataLayerPaths|WearStreamTransferPayload|WearFileTransfer|WearFileTransferMetadata|WearPlaybackCommand|WearOpenOnPhonePayload|WearPhoneResourcePayload|WearSyncOutcome|WearSettingsRegistry|WearSettingsDecodeResult|Models|ImportNetworkSourcesUseCase)\.kt$'
+# S2885: any bridge envelope DTO file. Wide on purpose - the gate owns the authoritative path list
+# (S1621), so this trigger only has to be a superset of it.
+$runsWearWireNullabilityGate = Test-AnyChangedFile '(WearSyncPayload|WearSourcesExportPayload|WearSendToReceiversPayload|WearPhoneResourcePayload|WearStreamPinsPayload|WearFavoritesPayload|WearSettingsPayload|WearPlaybackStatePayload|WearStreamTransferPayload|WearCameraSessionPayload|CameraSessionPayload|WearListenSessionPayload|ListenSessionPayload|WearLogReportPayload|WearEventEnvelope)\.kt$'
 
 # S0558/S0945 settings-path drift gate. Fires when a HOW_TO or narrative guide
 # (README/QUICK_START/FAQ/TROUBLESHOOTING, all locales) is edited - validates the
@@ -1417,6 +1418,7 @@ $argvLauncherReset = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/
 # argument vector, so a call site that consumed a different one would miss the pool and run inline.
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvLauncherReset += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvWearWireVocabularyParity = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-vocabulary-parity.ps1"), '-Gate', '-Quiet')
+$argvWearWireNullability = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-wear-wire-nullability.ps1"), '-Gate', '-Quiet')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvWearWireVocabularyParity += @('-ChangedFiles', ($changedFiles -join ',')) }
 
 if ($runsNeuroslopGate) { Start-PooledGate @argvNeuroslop }
@@ -1578,6 +1580,15 @@ else {
     Skip-Step "wear-wire-vocabulary-parity-gate" "not applicable - no changed file declares a side of a phone/watch wire vocabulary"
 }
 
+if ($runsWearWireNullabilityGate) {
+    # S2885: same fixed-input form as the vocabulary gate above - fatal when an envelope it reads is
+    # in the changed set, child exit 3 when none is.
+    Invoke-FixedInputGate "wear-wire-nullability-gate" $argvWearWireNullability 'assert-wear-wire-nullability.ps1'
+}
+else {
+    Skip-Step "wear-wire-nullability-gate" "not applicable - no changed file is a phone/watch bridge envelope"
+}
+
 # S1939: icon-inventory-sync and doc-icons-sync moved to the release-scope runner
 # (scripts/quality/assert-release-scope-gates.ps1, run by /spec-prerelease). Both judge a
 # repository-wide inventory rather than the changed file - icon-inventory was already advisory
@@ -1593,6 +1604,29 @@ if ($runsScriptCheatsheetGate) {
 }
 else {
     Skip-Step "script-cheatsheet-sync-gate" "not applicable - no changed file is a repo script or the script cheatsheet"
+}
+
+# S2870: the gate-placement registry against where the gates are actually wired. It runs HERE, in
+# the closure, and not at release scope, because the defect it catches does its damage BETWEEN
+# releases - every closure that a gate should have judged and did not. That is not hypothetical:
+# assert-ctor-arg-slots.ps1 lived in the fast batch alone and the app died in Application.onCreate
+# on the owner's phone (S2300); assert-migration-test-pairing lived in the fast batch alone and a
+# migration with no instrumented test deleted the owner's database (S2306). Both gates existed,
+# both were correct, and both passed every time a human ran them by hand.
+#
+# Fixed-input form (S2824), so the wide trigger below does not charge a session for the registry's
+# whole state: the gate declares the registry, the runners and every gate script as its inputs and
+# returns 3 when the changed set carries none of them. The path list stays in the gate (S1621).
+if (Test-AnyChangedFile '^scripts/quality/|^scripts/post-change\.ps1$|standard-release-gate\.ps1$|gate-placement\.jsonl$') {
+    $argvGatePlacement = @('-NoProfile', '-File',
+        (Join-Path $root "scripts/quality/assert-gate-placement.ps1"), '-Gate', '-Quiet')
+    if ($ScopeToFile -and $changedFiles.Count -gt 0) {
+        $argvGatePlacement += @('-ChangedFiles', ($changedFiles -join ','))
+    }
+    Invoke-FixedInputGate "gate-placement-gate" $argvGatePlacement 'assert-gate-placement.ps1'
+}
+else {
+    Skip-Step "gate-placement-gate" "not applicable - no changed file is a quality gate, a gate runner or the placement registry"
 }
 
 if ($runsFlavorMatrixDocGate) {
@@ -1786,6 +1820,24 @@ if (Test-AnyChangedFile '(^|/)wear/.*Screen\.kt$|(^|/)scripts/devtest/wear-prere
 }
 else {
     Skip-Step "wear-walk-contract-gate" "not applicable - no changed file is a wear screen or the declared walk list"
+}
+
+# S2880: a route declared in either WearDataLayerPaths.kt with no scenario naming it and no recorded
+# exclusion is the gap class S2861 measured - two of thirty-eight routes were named nowhere, and both
+# were exactly where the campaign's only confirmed defect lives. PER-TICKET by Rule 33: the subject is
+# the route catalog any bridge ticket may extend, so the author of the extension classifies it in the
+# same change. Scoped rather than unconditional for the walk-contract reason: the gate reads both
+# catalogs whole, and an unscoped FATAL here would refuse this closure over a neighbour's
+# unclassified new route (S2621).
+if (Test-AnyChangedFile '(^|/)WearDataLayerPaths\.kt$|(^|/)scripts/devtest/bridge-scenarios\.json$') {
+    Invoke-Gate "bridge-scenario-coverage-gate" {
+        $a = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-bridge-scenario-coverage.ps1"), '-Gate')
+        if ($ScopeToFile -and $changedFiles.Count -gt 0) { $a += @('-ChangedFiles', ($changedFiles -join ',')) }
+        & $pwsh @a
+    }
+}
+else {
+    Skip-Step "bridge-scenario-coverage-gate" "not applicable - no changed file is a route catalog or the bridge scenario registry"
 }
 
 # S2125: the sibling of the gate above, judging the TEXT the parity gate never reads. The two modules

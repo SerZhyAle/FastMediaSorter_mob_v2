@@ -43,6 +43,9 @@ object SettingsSearchTabMapping {
         R.layout.fragment_settings_streams to TabAssignment(
             SettingsSearchDestination.MEDIA, "streams"
         ),
+        R.layout.fragment_settings_broadcast to TabAssignment(
+            SettingsSearchDestination.MEDIA, "broadcast"
+        ),
         R.layout.fragment_settings_destinations to TabAssignment(
             SettingsSearchDestination.OPERATIONS, "destinations"
         )

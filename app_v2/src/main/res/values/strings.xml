@@ -1772,7 +1772,7 @@
     <string name="wear_settings_video">Video</string>
     <string name="wear_settings_images">Images</string>
     <string name="wear_settings_slideshow">Slideshow</string>
-    <string name="wear_settings_album_art">Album Art</string>
+    <string name="wear_settings_album_art">Album art</string>
     <string name="wear_settings_slideshow_interval">Slideshow interval (seconds)</string>
     <string name="wear_push_settings_failed">Couldn\'t send the watch settings. Try again.</string>
 
@@ -3409,7 +3409,7 @@
     <string name="network_monitor_bluetooth_paired_only_heading">Paired, not connected</string>
     <string name="network_monitor_chart_reset_action">Restart this chart</string>
     <string name="network_monitor_chart_reset_done">Chart restarted. Collecting from now.</string>
-    <string name="settings_enable_wear_companion">Wear companion</string>
+    <string name="settings_enable_wear_companion">Wear Companion</string>
     <string name="settings_enable_wear_companion_summary">Show the watch companion in the programs panel and menu</string>
     <string name="stream_action_send_to_watch">Send to watch</string>
     <string name="stream_send_to_watch_done">Stream sent to the watch</string>
@@ -3486,7 +3486,7 @@
     <string name="network_monitor_speed_result_heading">Speed Results</string>
     <string name="network_monitor_read_only_resource">(Read-only resource)</string>
     <string name="camera_profile_document">Document</string>
-    <string name="wear_companion_add_open_resource">Add/Open WEAR Resource (watch data)</string>
+    <string name="wear_companion_add_open_resource">Add or open the watch</string>
     <string name="share_target_title_watch">Watch</string>
     <string name="share_target_desc_watch">Show the file on your paired watch</string>
     <string name="share_target_help_watch">Sends the file to your paired watch and opens it there. Works with photos, GIFs, video and audio up to 32 MB. The app on the watch must be open.</string>
@@ -3553,7 +3553,7 @@
     <string name="wear_settings_sync_button">Sync settings</string>
     <string name="wear_settings_last_synced">Last synced: %1$s</string>
     <string name="wear_settings_sync_never">Never synced</string>
-    <string name="wear_setting_streams_section">Show Streams</string>
+    <string name="wear_setting_streams_section">Show streams</string>
     <string name="wear_setting_streams_section_desc">Show the Streams section on watch</string>
     <string name="stream_folder_description">Add HTTP, HTTPS or RTSP internet stream</string>
     <string name="pip_enter_failed">Picture-in-picture is not available here</string>
@@ -3703,12 +3703,12 @@
     <string name="reach_limited_nothing_readable">Documents cannot be read</string>
     <string name="storage_reach_limited_virtual">Documents and other files on this device are not visible to the app. To open them, add the folder you need through the system folder window.</string>
     <string name="storage_reach_limited_browse_reconnect">Only photos, video and audio are available in this folder. To view documents, open the three-dots menu on the folder row on the main screen and select Reconnect resource.</string>
-    <string name="wear_settings_group_media_types">Media Types</string>
+    <string name="wear_settings_group_media_types">Media types</string>
     <string name="wear_settings_group_slideshow">Slideshow</string>
     <string name="wear_settings_group_screen">Screen</string>
     <string name="wear_settings_group_other">Other</string>
     <string name="wear_settings_disable_animations">Disable animations</string>
-    <string name="wear_settings_background_mode">Watch Background</string>
+    <string name="wear_settings_background_mode">Watch background</string>
     <string name="wear_send_to_notification_title">File from your watch</string>
     <string name="wear_send_to_notification_text">Tap to send %1$s to %2$s</string>
     <string name="wear_send_to_channel_name">Send to.. from the watch</string>
@@ -4000,4 +4000,24 @@
     <string name="shortcut_broadcast_long">Live Broadcast</string>
     <string name="tile_broadcast_label">Live Broadcast</string>
     <string name="widget_broadcast_label">Live Broadcast</string>
+    <string name="broadcast_share_send_link">Send to</string>
+    <string name="broadcast_share_send_chooser_title">Send broadcast link</string>
+    <string name="wear_settings_disable_animations_desc">Turn off interface animations on watch</string>
+    <string name="wear_companion_summary_none">Nothing enabled</string>
+    <string name="wear_companion_summary_on">On</string>
+    <string name="wear_companion_summary_off">Off</string>
+    <string name="wear_companion_summary_slideshow_on">On, every %1$d s</string>
+    <string name="wear_listen_record_saved">Recording saved</string>
+    <string name="wear_listen_record_saved_fallback">Recording saved to the local folder</string>
+    <string name="wear_listen_record_failed">Could not save the recording</string>
+    <string name="watch_listen_label">Listen to the watch</string>
+    <string name="watch_listen_record_label">Listen to the watch and record</string>
+    <string name="watch_listen_content_description">Listen to the paired watch\'s microphone</string>
+    <string name="watch_listen_record_content_description">Listen to the paired watch\'s microphone and record to a file</string>
+    <string name="watch_listen_widget_label">Listen to the watch</string>
+    <string name="watch_listen_widget_description">Listen to the paired watch and record what you hear. Needs a paired watch on the same Wi-Fi.</string>
+    <string name="watch_listen_state_idle">Not running</string>
+    <string name="watch_listen_state_waiting">Waiting for the watch</string>
+    <string name="watch_listen_state_listening">Listening</string>
+    <string name="watch_listen_state_recording">Recording</string>
 </resources>

@@ -1,7 +1,9 @@
-# Third-party dependency assessment - measured 2026-09-08
+# Third-party dependency assessment - measured 2026-09-10
 
 What each third-party library in this project costs, how deeply it is used, and whether it could go.
-Ticket: S2680.
+Tickets: S2680 measured it; S2891 re-measured it after the S2884 bumps. Reproduce the numbers with
+`PLAN/S2891_dependency-assessment-rows-invalidated/dump-dependency-graphs.ps1` followed by
+`measure-sizes.ps1` beside it; `build-table.ps1` renders the summary rows below from the resulting CSV.
 
 This document does not list licences. That is `docs/OPEN_SOURCE.md`, generated from
 `scripts/docs/oss-licenses.psd1`, and it stays the only place a licence claim is made. The coordinate
@@ -9,8 +11,13 @@ list here is read from that same manifest cross-checked against both build files
 cannot name different sets of libraries.
 
 **Validity condition.** These numbers describe the `dependencies` blocks of
-`app_v2/build.gradle.kts` and `wear/build.gradle.kts` as they stood on 2026-09-08. Any added,
+`app_v2/build.gradle.kts` and `wear/build.gradle.kts` as they stood on 2026-09-10. Any added,
 removed or bumped coordinate invalidates the row it touches and every closure that contains it.
+
+**Every version below is the RESOLVED one, read off the graph, never the declared one.** The rule is
+stated rather than implied because the previous edition broke it: its Glide rows read 5.0.7 while the
+graphs they were measured from resolved 4.16.0, so the version cell and the bytes beside it described
+different artifacts. A declaration the resolver overrules is recorded in section 5, not in the table.
 
 ---
 
@@ -57,42 +64,42 @@ comparison between libraries the `own` column is the honest one.
 
 | Coordinate | Version | Flavors | own (B) | closure (B) | n | Files | Verdict |
 |---|---|---|---:|---:|---:|---:|---|
-| org.videolan.android:libvlc-all | 3.7.5 | noLegal | 93158778 | 100538358 | 49 | 1 | keep |
-| com.google.mlkit:translate | 17.0.3 | standard, noLegal, legacy, vr | 27684160 | 38666870 | 65 | 2 | keep |
-| cz.adaptech:tesseract4android | 4.8.0 | standard, noLegal, legacy, vr | 284 | 14727738 | 6 | 1 | keep |
+| org.videolan.android:libvlc-all | 3.7.5 | noLegal | 93158778 | 100738779 | 52 | 1 | keep |
+| com.google.mlkit:translate | 17.0.3 | standard, noLegal, legacy, vr | 27684160 | 38860727 | 68 | 2 | keep |
+| cz.adaptech:tesseract4android | 4.8.0 | standard, noLegal, legacy, vr | 284 | 14729333 | 6 | 1 | keep |
 | local:fms-ffmpeg-dts | bundled AAR | standard, noLegal, legacy, vr | 11495586 | 11495586 | 1 | 0 | keep |
 | org.bouncycastle:bcprov-jdk18on | 1.75 | all 7 + wear (transitive) | 8321289 | 8321289 | 1 | 0 | candidate |
 | com.dropbox.core:dropbox-core-sdk | 5.4.5 | all except foss | 8027912 | 8694022 | 4 | 3 | replace |
 | com.android.tools:desugar_jdk_libs | 2.0.4 | all 7 (desugaring) | 5999671 | 5999671 | 1 | 0 | keep |
 | org.khronos.openxr:openxr_loader_for_android | 1.1.48 | vr, noLegal | 3879002 | 3879002 | 1 | 0 | keep |
-| com.google.mlkit:language-id | 17.0.6 | standard, noLegal, legacy, vr | 2335810 | 12417022 | 60 | 2 | keep |
-| com.google.accompanist:accompanist-permissions | 0.34.0 | wear, all | 1041000 | 27238186 | 67 | 7 | candidate |
-| com.squareup.okhttp3:okhttp | 4.12.0 | all 7 + wear | 789531 | 2985126 | 8 | 52 | keep |
+| com.google.mlkit:language-id | 17.0.6 | standard, noLegal, legacy, vr | 2335810 | 12610879 | 63 | 2 | keep |
+| com.google.accompanist:accompanist-permissions | 0.34.0 | wear, all | 1041000 | 27270644 | 71 | 7 | candidate |
+| com.squareup.okhttp3:okhttp | 4.12.0 | all 7 + wear | 789531 | 2985127 | 8 | 52 | keep |
 | com.github.TeamNewPipe:NewPipeExtractor | v0.26.1 | noLegal | 788306 | 3700916 | 7 | 4 | keep |
-| com.github.bumptech.glide:glide | 4.16.0 | all 7 | 703481 | 7720344 | 42 | 62 | keep |
+| com.github.bumptech.glide:glide | 5.0.9 | all 7 | 718099 | 7929229 | 45 | 62 | keep |
 | com.google.zxing:core | 3.5.3 | all 7 + wear | 607650 | 607650 | 1 | 5 | keep |
-| com.hierynomus:smbj | 0.12.1 | all 7 + wear | 603711 | 9159041 | 5 | 21 | keep |
-| com.microsoft.identity.client:msal | 6.0.1 | all except foss | 566810 | 19786261 | 93 | 2 | replace |
+| com.hierynomus:smbj | 0.12.1 | all 7 + wear | 603711 | 9159115 | 5 | 21 | keep |
+| com.microsoft.identity.client:msal | 6.0.1 | all except foss | 566810 | 19920981 | 97 | 2 | replace |
 | com.github.mwiede:jsch | 0.2.26 | all 7 + wear | 559927 | 559927 | 1 | 17 | keep |
-| com.github.chuckerteam.chucker:library | 4.0.0 | debug build type only | 457076 | 16044169 | 94 | 1 | keep |
+| com.github.chuckerteam.chucker:library | 4.0.0 | debug build type only | 457076 | 16157713 | 98 | 1 | keep |
 | org.jsoup:jsoup | 1.17.2 (1.22.1 in noLegal) | all 7 | 445706 | 445706 | 1 | 9 | keep |
-| com.github.pedroSG94.RootEncoder:library | 2.7.2 | standard, noLegal, legacy | 332477 | 7340610 | 33 | 1 | keep |
+| com.github.pedroSG94.RootEncoder:library | 2.8.1 | standard, noLegal, legacy | 341936 | 7230060 | 33 | 1 | keep |
 | commons-net:commons-net | 3.10.0 | all 7 + wear | 322780 | 322780 | 1 | 22 | keep |
 | io.documentnode:epub4j-core | 4.2 | all 7 | 284595 | 289478 | 2 | 6 | keep |
 | com.google.code.gson:gson | 2.10.1 | wear direct, app transitive | 283367 | 283367 | 1 | 125 | keep |
 | net.lingala.zip4j:zip4j | 2.11.5 | all 7 | 210027 | 210027 | 1 | 2 | keep |
-| net.openid:appauth | 0.11.1 | all except foss | 156668 | 8727065 | 47 | 1 | keep |
-| io.noties.markwon:core | 4.6.2 | all 7 | 133475 | 2169705 | 6 | 1 | candidate |
-| com.squareup.retrofit2:retrofit | 2.9.0 | all 7 + wear | 125435 | 3110561 | 9 | 5 | candidate |
-| com.github.pedroSG94.RootEncoder:common | 2.7.2 | standard, noLegal, legacy | 98256 | 5597901 | 27 | 0 | keep |
-| com.github.pedroSG94:RTSP-Server | 1.4.1 | standard, noLegal, legacy | 64802 | 7405412 | 34 | 1 | keep |
+| net.openid:appauth | 0.11.1 | all except foss | 156668 | 8920922 | 50 | 1 | keep |
+| io.noties.markwon:core | 4.6.2 | all 7 | 133475 | 2171300 | 6 | 1 | candidate |
+| com.github.pedroSG94.RootEncoder:common | 2.8.1 | standard, noLegal, legacy | 145928 | 5811980 | 27 | 0 | keep |
+| com.squareup.retrofit2:retrofit | 2.9.0 | all 7 + wear | 125435 | 3110562 | 9 | 5 | candidate |
+| com.github.pedroSG94:RTSP-Server | 1.4.3 | standard, noLegal, legacy | 67270 | 7297330 | 34 | 1 | keep |
 | org.nanohttpd:nanohttpd | 2.3.1 | standard, noLegal, lite, photos, legacy | 51211 | 51211 | 1 | 2 | keep |
-| com.github.chrisbanes:PhotoView | 2.3.0 | all 7 | 40342 | 8381163 | 46 | 9 | keep |
-| com.jakewharton.timber:timber | 5.0.1 | all 7 + wear | 32329 | 1866420 | 3 | 1229 | keep |
-| io.coil-kt:coil-compose | 2.5.0 | wear, all | 20609 | 27065926 | 79 | 3 | keep |
-| com.github.bumptech.glide:okhttp3-integration | 4.16.0 | all 7 | 18665 | 8890044 | 49 | 0 | keep |
+| com.github.chrisbanes:PhotoView | 2.3.0 | all 7 | 40342 | 8575020 | 49 | 9 | keep |
+| com.jakewharton.timber:timber | 5.0.1 | all 7 + wear | 32329 | 1866421 | 3 | 1229 | keep |
+| io.coil-kt:coil-compose | 2.5.0 | wear, all | 20609 | 27098384 | 83 | 3 | keep |
 | com.github.chuckerteam.chucker:library-no-op | 4.0.0 | release + benchmark | 9363 | 9363 | 1 | 0 | keep |
-| com.squareup.retrofit2:converter-gson | 2.9.0 | all 7 + wear | 4618 | 3398546 | 11 | 0 | candidate |
+| com.github.bumptech.glide:okhttp3-integration | 5.0.9 | all 7 | 7051 | 9087315 | 52 | 0 | keep |
+| com.squareup.retrofit2:converter-gson | 2.9.0 | all 7 + wear | 4618 | 3398547 | 11 | 0 | candidate |
 | com.squareup.leakcanary:leakcanary-android | 2.12 | debug build type only | 4240 | - | - | 2 | keep |
 
 37 coordinates. Verdicts: 30 `keep`, 2 `replace`, 5 `candidate`.
@@ -105,6 +112,15 @@ Three rows read wrong without a note:
   which slices are packaged, so the shipped fraction is far under 93 MB.
 - `com.github.chrisbanes:PhotoView` and `net.openid:appauth` have closures dominated by the AndroidX
   tail the app already carries for other reasons.
+
+**What moved between 2026-09-08 and 2026-09-10.** Five coordinates were bumped by S2884 - Glide and
+its OkHttp integration to 5.0.9, RTSP-Server to 1.4.3, both RootEncoder artifacts to 2.8.1 - and the
+`own` column moved only for those five. Nearly every other closure moved as well, by small amounts and
+by three or four nodes, and none of it belongs to a library in this table: Media3 1.11.0 added
+`androidx.media3:media3-inspector` to the phone graph, and the `foss` graph lost
+`org.jetbrains.kotlinx:kotlinx-coroutines-play-services`. Both groups are out of scope as coordinates
+yet inside almost every closure, which is exactly the ripple the validity condition above predicts -
+the `own` column is the one that stays still.
 
 ---
 
@@ -154,7 +170,7 @@ already in the graph; the replacement needs no API level above the `legacy` floo
 largest weight in the project that a rewrite could actually remove. **replace.**
 
 **com.microsoft.identity.client:msal** - 2 files, obtaining a OneDrive token and nothing else.
-567 KB own but a 19.8 MB closure, the largest in the phone graph. AppAuth against the Microsoft
+567 KB own but a 19.9 MB closure, the largest in the phone graph. AppAuth against the Microsoft
 identity platform v2 endpoints covers the same flow, in the same six flavors, with no new API-level
 requirement. The one thing lost is broker-account support, which nothing here uses. **replace.**
 
@@ -183,7 +199,7 @@ decoder implementations for EPUB covers and PDF pages, plus a KSP processor. Coi
 the watch, but unifying would mean rewriting the phone's decoder set, not deleting a dependency.
 **keep.**
 
-**io.coil-kt:coil-compose** - 3 files on the watch. 21 KB own and Compose-native, which Glide 4.16.0
+**io.coil-kt:coil-compose** - 3 files on the watch. 21 KB own and Compose-native, which Glide 5.0.9
 is not. The project carries two image loaders, one per module; unifying would mean moving the watch to
 Glide, which is the worse direction. **keep.**
 
@@ -217,7 +233,7 @@ in the ledger rests on it. 12.8 MB of native code in four flavors. ML Kit text r
 obvious alternative and was already tried and removed outright by S0386 over Cyrillic quality, so it
 is not proposed again. **keep.**
 
-**com.google.mlkit:translate** - 2 files, with `language-id`. 27.7 MB own and 38.7 MB closure: the
+**com.google.mlkit:translate** - 2 files, with `language-id`. 27.7 MB own and 38.9 MB closure: the
 largest weight in the standard flavor. It buys on-device translation with downloadable models, and
 the EPUB, image and camera translation features are all sold as working offline; a cloud API would
 break that premise rather than trade against it. **keep.**
@@ -275,7 +291,7 @@ needs credentials this repository does not hold.
 
 **2. Replace MSAL with AppAuth for the OneDrive sign-in.**
 Removes `com.microsoft.identity.client:msal` 6.0.1 - 567 KB own but the largest closure in the phone
-graph at 19.8 MB - and touches two files that do nothing but obtain a token. AppAuth is already
+graph at 19.9 MB - and touches two files that do nothing but obtain a token. AppAuth is already
 declared in the same six flavors, so this deletes a dependency without adding one, at no new API
 level. What breaks: broker-based accounts (Microsoft Authenticator / Company Portal single sign-on)
 stop working; nothing in this project uses them, but a corporate OneDrive account might expect them.

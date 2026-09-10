@@ -342,7 +342,83 @@ class ImportNetworkSourcesUseCaseTest {
         assertEquals(listOf("only-on-phone"), fakeRepository.existing.map { it.id })
     }
 
+    // S2882: the phone declares what must NOT be here, and these five cases are the whole decision.
+    // The null case is the one that matters most - it is an older phone, and reading it as an empty
+    // declaration rather than as silence would let that phone wipe this watch.
+
+    @Test
+    fun `a source the phone withdrew is deleted and counted`() = runTest {
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+        fakeRepository.existing.add(makeSource("res-2", NetworkSourceType.SMB))
+
+        val result = useCase(withdrawalPayload(listOf("res-1")))
+
+        assertEquals(1, result.removed)
+        assertEquals(listOf("res-2"), fakeRepository.existing.map { it.id })
+    }
+
+    @Test
+    fun `a payload with no withdrawal field deletes nothing`() = runTest {
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+
+        val result = useCase(withdrawalPayload(null))
+
+        assertEquals(0, result.removed)
+        assertEquals(listOf("res-1"), fakeRepository.existing.map { it.id })
+    }
+
+    @Test
+    fun `a withdrawn id this watch never held removes nothing`() = runTest {
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+
+        val result = useCase(withdrawalPayload(listOf("res-9")))
+
+        assertEquals(0, result.removed)
+        assertEquals(listOf("res-1"), fakeRepository.existing.map { it.id })
+    }
+
+    @Test
+    fun `a source created on this watch survives a withdrawal aimed at another id`() = runTest {
+        fakeRepository.existing.add(makeSource("watch-made-uuid", NetworkSourceType.SMB))
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+
+        val result = useCase(withdrawalPayload(listOf("res-1")))
+
+        assertEquals(1, result.removed)
+        assertEquals(listOf("watch-made-uuid"), fakeRepository.existing.map { it.id })
+    }
+
+    @Test
+    fun `a withdrawal records no tombstone`() = runTest {
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+
+        useCase(withdrawalPayload(listOf("res-1")))
+
+        assertEquals(emptyList<String>(), fakeRepository.tombstones.map { it.id })
+    }
+
+    @Test
+    fun `a withdrawn id the same batch also sends as a record comes back`() = runTest {
+        fakeRepository.existing.add(makeSource("res-1", NetworkSourceType.SMB))
+
+        val result = useCase(
+            withdrawalPayload(listOf("res-1")).copy(sources = listOf(makePayloadItem("res-1", "SMB")))
+        )
+
+        // The records are applied after the withdrawals, so a contradictory batch ends with the
+        // record rather than with the deletion - the phone's own latest statement about the source.
+        assertEquals(1, result.removed)
+        assertEquals(listOf("res-1"), fakeRepository.existing.map { it.id })
+    }
+
     // ----- helpers -----
+
+    private fun withdrawalPayload(deselectedIds: List<String>?) = WearSyncPayload(
+        sentAt = System.currentTimeMillis() - 1000,
+        phoneName = "TestPhone",
+        sources = emptyList(),
+        deselectedIds = deselectedIds
+    )
 
     private fun deletionPayload(deletedAt: Long) = WearSyncPayload(
         sentAt = SENT_AT,

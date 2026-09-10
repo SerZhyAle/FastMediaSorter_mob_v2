@@ -388,6 +388,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             contactPickManager = contactPickManager,
             sensorPermissionManager = sensorPermissionManager,
             currentColumns = { geometryManager.currentColumns() },
+            currentScreenIndex = { pagingManager.activeScreenIndex },
             hostActions = LauncherAddFlowHostActions(
                 createResource = { resourceCreateManager.startCreateResource(this) },
                 startWidgetConfiguration = { intent -> widgetConfiguration.launch(intent) },
@@ -527,6 +528,7 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             // S2323: the only render call that changes which screen is drawn, so the only one that shows
             // a transition. The five others below rebind the screen already showing.
             onScreenChanged = { direction ->
+                viewModel.setActiveScreenIndex(pagingManager.activeScreenIndex)
                 screenTransitionManager.transition(direction) {
                     geometryManager.renderDesktop(pagingManager.activeScreenIndex)
                 }
@@ -815,6 +817,10 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
             LauncherActionCatalog.KEY_LAUNCHER_SETTINGS -> showLauncherSettings()
 
             LauncherActionCatalog.KEY_ALL_APPS -> modalSurfaces.showAllApps()
+
+            // S2859: the Resources section's Add-resource tile - the same launch path the Start
+            // menu row and the content picker use, so every entry point stays one call deep.
+            LauncherActionCatalog.KEY_CREATE_RESOURCE -> resourceCreateManager.startCreateResource(this)
 
             LauncherActionCatalog.KEY_BLACK_SCREEN -> showBlackScreen()
 

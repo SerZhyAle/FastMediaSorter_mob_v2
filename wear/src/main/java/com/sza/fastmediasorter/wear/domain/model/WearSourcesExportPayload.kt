@@ -9,5 +9,7 @@ data class WearSourcesExportPayload(
     // delivery time to measure the clock offset before it compares any edit stamp. Wire name must match
     // the phone's `sentAt`.
     val sentAt: Long? = null,
-    val tombstones: List<WearSourceTombstonePayload> = emptyList()
+    // S2885: nullable because Gson leaves an absent field null whatever the Kotlin default says.
+    // Mirrors the phone declaration; the two files are kept identical on purpose.
+    val tombstones: List<WearSourceTombstonePayload>? = null
 )

@@ -103,24 +103,33 @@ only because a revision is never deleted - an install from before the withdrawal
   S1703; `DeliverableDescriptorCatalog.kt` no longer holds a `PADDLE` map, and Tesseract is now the
   only OCR engine any flavor delivers.
 
-## Build-time asset (not an on-demand payload)
+## Build-time assets (not on-demand payloads)
 
-`fms-ffmpeg-dts.aar` (11,495,586 bytes, sha256 `decba6f7f40fb823bb108246e53a1740ad4a6ebe95fbdfaba1ea2f782b5f961a`)
-shares this release but plays a different role: **no shipped app version fetches it.** It is a
-build-time dependency, declared in `app_v2/build.gradle.kts` for the standard, noLegal, legacy and vr
-flavors, and hosted here only so GitHub Actions can build the app - `app_v2/libs/` is gitignored, so
-a CI checkout has no copy and every run died resolving it (S1539).
+Two AARs share this release but play a different role: **no shipped app version fetches either.**
+Both are build-time dependencies, declared in `app_v2/build.gradle.kts` for the standard, noLegal,
+legacy and vr flavors, and hosted here only so GitHub Actions can build the app - `app_v2/libs/` is
+gitignored, so a CI checkout has no copy of them.
 
-Two consequences follow from it being build-time only, and they invert the rules above:
+- `fms-ffmpeg-dts.aar` (11,495,586 bytes, sha256 `decba6f7f40fb823bb108246e53a1740ad4a6ebe95fbdfaba1ea2f782b5f961a`) -
+  DTS and extended audio codecs. Its absence killed CI loudly: every run died resolving it (S1539).
+- `fms-vpx.aar` (818,391 bytes, sha256 `ceb603bbde41cf3324ad6d62cd9fbc3dd59943e6012429fe7222b4f1c6a725a6`) -
+  the software VP9 decode backstop. Its absence killed nothing, which is worse: Gradle answers an
+  absent `files("libs/..")` with an empty collection, so CI stayed green and built an artifact with
+  no libvpx renderer in it, published here only by S2879.
 
-- The name carries **no rev** and the asset is **clobbered** on every rebuild. No released app pins
-  it, so there is no old revision to keep alive - CI always wants the current binary.
-- Its hash is **not** in `DeliverableDescriptorCatalog.kt`. The hash above is recorded here for human
-  comparison only; nothing verifies it at runtime because nothing downloads it at runtime.
+Two consequences follow from them being build-time only, and they invert the rules above:
 
-Republish after rebuilding the AAR: `pwsh -NoProfile -File scripts/builders/publish-ffmpeg-dts-aar.ps1`.
+- The names carry **no rev** and each asset is **clobbered** on every rebuild. No released app pins
+  them, so there is no old revision to keep alive - CI always wants the current binary.
+- Their hashes are **not** in `DeliverableDescriptorCatalog.kt`. The hashes above are recorded here
+  for human comparison only; nothing verifies them at runtime because nothing downloads them then.
+
+Which AARs belong to this class is `scripts/ci/prebuilt-native-aars.txt`, read by all three of their
+consumers so none can drift. Republish after rebuilding one:
+`pwsh -NoProfile -File scripts/builders/publish-prebuilt-native-aar.ps1 -Name <file.aar>`.
 Consumed by `scripts/ci/fetch-prebuilt-libs.sh`, which every build job in `android-ci.yml` and
-`maestro-tests.yml` runs before Gradle.
+`maestro-tests.yml` runs before Gradle, and by the build's own `verifyPrebuiltNativeAars` task, which
+since S2879 fails `pre<Variant>Build` rather than letting a flavor ship without a declared AAR.
 
 ## Optional URL-override manifest
 

@@ -104,7 +104,11 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
-            InternalRouteCatalog.KEY_WEAR_COMPANION ->
+            // S2881: the two listen calls are that bridge in action, so they answer with the same pair -
+            // absent where the bridge is not compiled in, off where the owner switched it off.
+            InternalRouteCatalog.KEY_WEAR_COMPANION,
+            InternalRouteCatalog.KEY_WATCH_LISTEN,
+            InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD ->
                 Availability(
                     availableInBuild = mediaCapabilities.supportsWearCompanion,
                     enabledAtRuntime = settings.enableWearCompanion,

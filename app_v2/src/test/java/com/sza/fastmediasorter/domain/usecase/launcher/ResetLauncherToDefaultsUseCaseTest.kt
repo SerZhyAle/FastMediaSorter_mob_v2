@@ -117,6 +117,15 @@ class ResetLauncherToDefaultsUseCaseTest {
         coVerify(exactly = 1) { shortcutSyncBaseline.clearSyncedResourcePaths() }
     }
 
+    // S2859: the Add-resource tile flag is cleared by name, so the re-seeded desktop gets the tile -
+    // a surviving flag would make the backfill skip a desktop that no longer carries the cell.
+    @Test
+    fun `reset clears the Add-resource tile backfill flag`() = runBlocking {
+        useCase(CHOSEN_DENSITY)
+
+        coVerify(exactly = 1) { shortcutSyncBaseline.clearResourcesAddTileBackfilled() }
+    }
+
     private companion object {
         const val CHOSEN_DENSITY = 1.25f
         const val STALE_DENSITY = 0.75f

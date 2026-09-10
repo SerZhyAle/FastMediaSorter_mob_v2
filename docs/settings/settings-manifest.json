@@ -81,6 +81,56 @@
       "titleUk": "Підтримка аудіо"
     },
     {
+      "key": "rowAudioFormat",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Audio format",
+      "titleRu": "Формат аудио",
+      "titleUk": "Формат аудіо"
+    },
+    {
+      "key": "rowAutoOpenShare",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Auto-open share screen",
+      "titleRu": "Автооткрытие экрана отправки",
+      "titleUk": "Автовідкриття екрана надсилання"
+    },
+    {
+      "key": "rowBitRate",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Bit rate",
+      "titleRu": "Битрейт",
+      "titleUk": "Бітрейт"
+    },
+    {
+      "key": "rowPort",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "INPUT_ROW",
+      "titleEn": "Port",
+      "titleRu": "Порт",
+      "titleUk": "Порт"
+    },
+    {
+      "key": "rowStreamTitle",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "INPUT_ROW",
+      "titleEn": "Stream title",
+      "titleRu": "Заголовок потока",
+      "titleUk": "Заголовок потоку"
+    },
+    {
       "key": "cbOcrOnly",
       "sectionId": "camera",
       "destination": "OPERATIONS",
@@ -3349,6 +3399,16 @@
       "titleEn": "Enable Picture-in-Picture",
       "titleRu": "Включить картинку в картинке",
       "titleUk": "Увімкнути картинку в картинці"
+    },
+    {
+      "key": "rowVisualizeAsMusic",
+      "sectionId": "streams",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_streams",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Visualize audio streams as music",
+      "titleRu": "Визуализировать аудиотрансляции как музыку",
+      "titleUk": "Візуалізувати аудіотрансляції як музику"
     },
     {
       "key": "spinnerFontFamily",

@@ -8,8 +8,10 @@ permalink: /docs/VR_SIDELOAD.html
 
 How to install the working immersive VR build (`noLegal`) on Meta Quest without using a store.
 
-The `vr` flavor is the intended Meta Horizon Store / Google Play channel, but its immersive
-headset rendering isn't wired up yet (epic S0773) - see [VR Edition Overview](VR_EDITION.md).
+The `vr` flavor is the intended Meta Horizon Store channel. Its immersive rendering is wired up
+now - the S0773 epic that built it is finished - but it still launches into the flat panel from the
+headset library rather than straight into VR, so it is not submittable yet (S0555) - see
+[VR Edition Overview](VR_EDITION.md).
 Today the only channel with a working immersive experience is `noLegal`, which this guide
 installs.
 

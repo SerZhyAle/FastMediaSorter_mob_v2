@@ -66,7 +66,7 @@ $ErrorActionPreference = 'Stop'
 $env:SZA_PROJECT_ROOT = $Sandbox
 . $HarnessLib
 $out = [ordered]@{ threshold = (Get-IdleRunPolicy).Threshold }
-foreach ($id in @('S9001', 'S9002', 'S9003', 'S9004', 'S9005')) {
+foreach ($id in @('S9001', 'S9002', 'S9003', 'S9004', 'S9005', 'S9006')) {
     $s = Get-IdleRunSeries -Id $id
     $out[$id] = [ordered]@{ count = $s.Count; last = [string]$s.LastOutcome; held = [bool](Test-IdleRunHeld -Id $id) }
 }
@@ -84,7 +84,8 @@ function New-Sandbox {
     $profile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $sandbox '.sza-profile.json') -Encoding UTF8
 
     # runs-a: S9001 spans instances with runs-b; S9002's series is broken by a moving run;
-    # S9003 ends on an outcome the profile does not call idle; S9004 has one idle run only.
+    # S9003 ends on an outcome the profile does not call idle; S9004 has one idle run only;
+    # S9006 is a genuine idle run followed by a runner-side failure (S2871).
     $runsA = @(
         '{"id":"S9001","moved":false,"outcome":"timeout","finishedAt":"2026-09-01T10:00:00"}'
         '{"id":"S9002","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
@@ -92,13 +93,15 @@ function New-Sandbox {
         '{"id":"S9003","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
         '{"id":"S9003","moved":false,"outcome":"blocked-by-owner","finishedAt":"2026-09-01T12:00:00"}'
         '{"id":"S9004","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
+        '{"id":"S9006","moved":false,"outcome":"ok","finishedAt":"2026-09-01T10:00:00"}'
         'this line is not json at all'
     )
     $runsB = @(
-        '{"id":"S9001","moved":false,"outcome":"no-progress-or-claim-lost","finishedAt":"2026-09-01T11:00:00"}'
+        '{"id":"S9001","moved":false,"outcome":"ok","finishedAt":"2026-09-01T11:00:00"}'
         '{"id":"S9002","moved":false,"outcome":"ok","finishedAt":"2026-09-01T13:00:00"}'
         '{"id":"S9002","moved":false,"outcome":"timeout","finishedAt":"2026-09-01T14:00:00"}'
         '{"id":"S9003","moved":false,"outcome":"ok","finishedAt":"2026-09-01T13:00:00"}'
+        '{"id":"S9006","moved":false,"outcome":"no-progress-or-claim-lost","finishedAt":"2026-09-01T11:00:00"}'
     )
     Set-Content -LiteralPath (Join-Path $sandbox 'temp/spec-queue/runs-a.jsonl') -Value $runsA -Encoding UTF8
     Set-Content -LiteralPath (Join-Path $sandbox 'temp/spec-queue/runs-b.jsonl') -Value $runsB -Encoding UTF8
@@ -127,9 +130,9 @@ try {
     $harnessLib = $null
 }
 if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
-    Write-Host '  SKIP S2695 idle-run series (7 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '  SKIP S2695 idle-run series (8 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
     Write-Host "        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them." -ForegroundColor DarkGray
-    $skipped = 7
+    $skipped = 8
 } else {
     $sandboxes = @()
     try {
@@ -141,8 +144,17 @@ if (-not $harnessLib -or -not (Test-Path -LiteralPath $harnessLib)) {
             -Ok ($r.threshold -eq 2) -Detail "expected: 2 | actual: $($r.threshold)"
 
         Assert-Case -Name 'a series spans instances - two journals, one count' `
-            -Ok ($r.S9001.count -eq 2 -and $r.S9001.last -eq 'no-progress-or-claim-lost') `
-            -Detail "expected: 2 / no-progress-or-claim-lost | actual: $($r.S9001.count) / $($r.S9001.last)"
+            -Ok ($r.S9001.count -eq 2 -and $r.S9001.last -eq 'ok') `
+            -Detail "expected: 2 / ok | actual: $($r.S9001.count) / $($r.S9001.last)"
+
+        # S2871: the outcomes naming a runner-side failure were dropped from runner.idleOutcomes,
+        # so such a run now ENDS the series rather than extending it - the ticket returns to
+        # automatic ranking instead of being held on evidence about the runner, not about itself.
+        # Measured 2026-09-08: nine tickets were held by one six-minute window of children that
+        # exited 1 in zero minutes.
+        Assert-Case -Name 'a runner-side failure releases the ticket rather than holding it' `
+            -Ok ($r.S9006.count -eq 0 -and -not $r.S9006.held) `
+            -Detail "expected: 0 / not held - the 11:00 no-progress-or-claim-lost row ends the walk | actual: $($r.S9006.count) / held=$($r.S9006.held)"
 
         Assert-Case -Name 'a moving run breaks the series - only the runs after it count' `
             -Ok ($r.S9002.count -eq 2 -and $r.S9002.last -eq 'timeout') `
@@ -305,6 +317,91 @@ if (-not $hasInstanceMechanism) {
     } finally {
         if ($instanceSandbox) { Remove-Item -LiteralPath $instanceSandbox -Recurse -Force -ErrorAction SilentlyContinue }
     }
+}
+
+Write-Host ''
+Write-Host 'run-spec-queue tests - what a finished child was (S2873)' -ForegroundColor Cyan
+
+# Resolve-RunOutcome is pure - it reads no profile, no journal and no catalog - so unlike the two
+# blocks above it needs neither a sandbox nor a nested process, and the function is lifted straight
+# into this one. The runner itself still must not be dot-sourced: it ranks and launches tickets from
+# its top level.
+$outcomeRunner = $null
+try {
+    . (Join-Path $repoRoot 'scripts/utils/agent-lock-domains.ps1')
+    $outcomeRunner = Get-SzaHarnessScript 'batch/run-spec-queue.ps1'
+} catch {
+    $outcomeRunner = $null
+}
+$hasOutcomeResolver = $outcomeRunner -and (Test-Path -LiteralPath $outcomeRunner) -and
+    (Select-String -LiteralPath $outcomeRunner -Pattern 'function Resolve-RunOutcome' -Quiet)
+if (-not $hasOutcomeResolver) {
+    Write-Host '  SKIP S2873 outcome classification (8 cases) - the resolved harness predates the fix.' -ForegroundColor DarkGray
+    Write-Host '        Run with SZA_HARNESS_ROOT pointed at the canon checkout to execute them.' -ForegroundColor DarkGray
+    $skipped += 8
+} else {
+    $outcomeAst = [System.Management.Automation.Language.Parser]::ParseFile($outcomeRunner, [ref]$null, [ref]$null)
+    $outcomeFn = $outcomeAst.FindAll({
+            param($n)
+            $n -is [System.Management.Automation.Language.FunctionDefinitionAst] -and $n.Name -eq 'Resolve-RunOutcome'
+        }, $true)
+    if ($outcomeFn.Count -eq 0) { throw "function Resolve-RunOutcome not found in $outcomeRunner" }
+    . ([scriptblock]::Create($outcomeFn[0].Extent.Text))
+
+    # The row this ticket was written for: a child that started and exited 1 in zero minutes. Before
+    # S2873 it was journalled as an idle ticket, which is a claim about the TICKET made from evidence
+    # about the RUNNER.
+    $failedFast = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1 -StatusBefore 'Partial' -StatusAfter 'Partial' -ElapsedSeconds 3
+    Assert-Case -Name 'a child that exited non-zero is named a failure, not an idle run' `
+        -Ok ($failedFast.Outcome -eq 'child-failed' -and -not $failedFast.Moved) `
+        -Detail "expected: child-failed / moved false | actual: $($failedFast.Outcome) / moved=$($failedFast.Moved)"
+
+    # The same shape with exit 0 keeps the pre-existing guess. Its wording is deliberate - the two
+    # lease checks in the runner cover what they can observe, and this covers what is left.
+    $quietOk = Resolve-RunOutcome -Outcome 'ok' -ExitCode 0 -StatusBefore 'Partial' -StatusAfter 'Partial' -ElapsedSeconds 3
+    Assert-Case -Name 'a clean quick exit that changed nothing keeps the elapsed-time guess' `
+        -Ok ($quietOk.Outcome -eq 'no-progress-or-claim-lost') `
+        -Detail "expected: no-progress-or-claim-lost | actual: $($quietOk.Outcome)"
+
+    # 'ok' is an idle outcome in this repository's profile, so a long failing run used to extend the
+    # series exactly as a successful one did - which is how S1565 came to be held as [idle 2, ok] on
+    # 2026-09-10 with its last run having exited 1.
+    $failedSlow = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1 -StatusBefore 'In Progress' -StatusAfter 'In Progress' -ElapsedSeconds 240
+    Assert-Case -Name 'a long run that failed is a failure too, not a run that reached the ticket' `
+        -Ok ($failedSlow.Outcome -eq 'child-failed') `
+        -Detail "expected: child-failed | actual: $($failedSlow.Outcome)"
+
+    # Work done before the failure is still work done: the status moved, so the series must reset.
+    $failedAfterMove = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1 -StatusBefore 'Draft' -StatusAfter 'Approved' -ElapsedSeconds 700
+    Assert-Case -Name 'a failure after a real status move still reports the move' `
+        -Ok ($failedAfterMove.Outcome -eq 'child-failed' -and $failedAfterMove.Moved) `
+        -Detail "expected: child-failed / moved true | actual: $($failedAfterMove.Outcome) / moved=$($failedAfterMove.Moved)"
+
+    # 1073807364 is 0x40010004 - the process was killed. Two such rows in the live journal recorded
+    # 'Draft -> "", moved: true': Get-TicketStatus could not read the catalog under a dying child,
+    # and '' differs from every real status. moved outranks the outcome in every consumer, so this
+    # case is what stops the rename being cosmetic on exactly those rows.
+    $killed = Resolve-RunOutcome -Outcome 'ok' -ExitCode 1073807364 -StatusBefore 'Draft' -StatusAfter '' -ElapsedSeconds 1200
+    Assert-Case -Name 'an unreadable status after the run is a missing reading, never a move' `
+        -Ok ($killed.Outcome -eq 'child-failed' -and -not $killed.Moved) `
+        -Detail "expected: child-failed / moved false | actual: $($killed.Outcome) / moved=$($killed.Moved)"
+
+    # The three verdicts that observed the child itself outrank the exit code. A killed process's
+    # exit code is a consequence of the kill, so reading it as a diagnosis would relabel every
+    # timeout and every lost claim as a failed child.
+    $timedOut = Resolve-RunOutcome -Outcome 'timeout' -ExitCode $null -StatusBefore 'Tactical' -StatusAfter 'Tactical' -ElapsedSeconds 3600
+    Assert-Case -Name 'a timeout keeps its name' `
+        -Ok ($timedOut.Outcome -eq 'timeout') -Detail "expected: timeout | actual: $($timedOut.Outcome)"
+
+    $claimLost = Resolve-RunOutcome -Outcome 'claim-lost' -ExitCode $null -StatusBefore 'Draft' -StatusAfter 'Approved' -ElapsedSeconds 40
+    Assert-Case -Name 'a lost claim keeps its name and never reports the sibling move as its own' `
+        -Ok ($claimLost.Outcome -eq 'claim-lost' -and -not $claimLost.Moved) `
+        -Detail "expected: claim-lost / moved false | actual: $($claimLost.Outcome) / moved=$($claimLost.Moved)"
+
+    $launchFailed = Resolve-RunOutcome -Outcome 'launch-failed' -ExitCode $null -StatusBefore 'Draft' -StatusAfter 'Draft' -ElapsedSeconds 1
+    Assert-Case -Name 'a child that never launched keeps its name' `
+        -Ok ($launchFailed.Outcome -eq 'launch-failed') `
+        -Detail "expected: launch-failed | actual: $($launchFailed.Outcome)"
 }
 
 Write-Host ''

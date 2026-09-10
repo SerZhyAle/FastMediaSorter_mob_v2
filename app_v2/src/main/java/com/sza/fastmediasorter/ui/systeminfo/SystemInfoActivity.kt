@@ -31,6 +31,8 @@ class SystemInfoActivity : AppCompatActivity() {
             val report = systemInfoWindowManager.gather(this@SystemInfoActivity)
             if (isFinishing || isDestroyed) return@launch
             systemInfoWindowManager.render(binding.systemInfoContent, report)
+            binding.systemInfoCopy.requestFocus()
+            Timber.d("S2900: SystemInfoActivity rendered with D-pad focus")
             Timber.d("S2774: rendered standalone system information report")
         }
     }

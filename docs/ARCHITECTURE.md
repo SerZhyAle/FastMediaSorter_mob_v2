@@ -5,7 +5,7 @@
 
 ## Module Structure
 - `root/`
-  - `app_v2/`: Kotlin, View System + Material3, `compileSdk 36`.
+  - `app_v2/`: Kotlin, View System + Material3, `compileSdk 37` (S2884).
   - `wear/`: Wear OS, Compose.
   - `dev/`: Scripts, specs.
   - `dev/archive/`: READ-ONLY archive.

@@ -399,6 +399,7 @@ class ImageLoadingManager(
         // treated as intentional user zoom gestures on the new image.
         isPhotoViewImageLoaded = false
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
+        Timber.d("S2877: player image load entry - dispatching static image/GIF to Glide")
         LoggingHelper.updateDebugMirrorTargetFromPath(path)
 
         // Log memory state BEFORE loading new image

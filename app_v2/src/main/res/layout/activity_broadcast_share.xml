@@ -64,6 +64,18 @@
         app:icon="@drawable/ic_import" />
 
     <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnSendLink"
+        style="@style/Widget.Material3.Button.TonalButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_normal"
+        android:focusable="true"
+        android:nextFocusDown="@id/btnClose"
+        android:nextFocusUp="@id/btnExportFile"
+        android:text="@string/broadcast_share_send_link"
+        app:icon="@drawable/ic_share" />
+
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/btnClose"
         style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"

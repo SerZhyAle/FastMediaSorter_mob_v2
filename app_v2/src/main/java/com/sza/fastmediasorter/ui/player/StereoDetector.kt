@@ -1,10 +1,12 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.os.Bundle
+import androidx.media3.common.C
 import androidx.media3.common.Format
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.StereoMode
 import timber.log.Timber
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 
 /**
  * S0326: user-configurable 3D/VR detection behavior, read from [AppSettings] at detection time.
@@ -55,8 +57,9 @@ data class StereoDetectionConfig(
  *  2. Filename tokens (see [detectFromFilename]) - explicit creator markers for both flat
  *     (SBS/OU/MONO) and spherical (360°/VR180/Cylinder) formats.
  *  3. GPano / Photo Sphere XMP metadata for local still images.
- *  4. Matroska StereoMode tag embedded in format extras (100% accurate when present;
- *     ~60% of real-world 3D MKV files carry this tag).
+ *  4. Container stereo tag parsed by Media3 into [Format.stereoMode] - the Matroska StereoMode
+ *     EBML element, and the MP4 `st3d` box for streams with no readable local path (100% accurate
+ *     when present; ~60% of real-world 3D MKV files carry this tag).
  *  5. Aspect ratio heuristic - reliable for SBS 3D content and for 360°/VR180 at
  *     characteristic AR values (2:1, 4:1, 1:1) with a resolution floor to reject
  *     low-res anamorphic false positives.
@@ -129,21 +132,13 @@ class StereoDetector @javax.inject.Inject constructor() {
         // pair at 0.5, both of which a floor derived from landscape sources would reject.
         private const val GUESS_OU_AR_MIN_TAP = 0f
 
-        // Matroska StereoMode values (EBML element 0x53B8)
-        // https://www.matroska.org/technical/elements.html#StereoMode
-        private const val MATROSKA_STEREO_MONO       = "0"
-        private const val MATROSKA_STEREO_SBS_LEFT   = "1"   // left-eye first
-        private const val MATROSKA_STEREO_OU_RIGHT   = "2"   // top-bottom, right-eye on top
-        private const val MATROSKA_STEREO_OU_TOP     = "3"   // top-bottom, left-eye on top
-        private const val MATROSKA_STEREO_SBS_RIGHT  = "11"  // right-eye first
-        private const val MATROSKA_STEREO_MVC_LEFT   = "13"  // both eyes laced, left-first (MVC)
-        private const val MATROSKA_STEREO_MVC_RIGHT  = "14"  // both eyes laced, right-first (MVC)
-
-        // Shared-data key written by MatroskaExtractor in Media3 for the StereoMode EBML tag.
-        // Access is best-effort because Media3 API exposure differs across versions/builds.
-        private const val FORMAT_CUSTOM_DATA_KEY = "stereo_mode"
-
         private const val TAG = "StereoDetector"
+
+        // S2893: ISO-BMFF box header sizes for parsing Format.projectionData (the proj box media3
+        // already extracted from sv3d). 4 bytes size + 4 bytes ASCII type = 8-byte header.
+        private const val MP4_BOX_HEADER_SIZE = 8
+        private const val MP4_BOX_TYPE_SIZE = 4
+        private const val MP4_SIZE_MASK = 0xFFFFFFFFL
     }
 
     /**
@@ -265,6 +260,36 @@ class StereoDetector @javax.inject.Inject constructor() {
     }
 
     /**
+     * S2893: Read MP4 spatial metadata from the [Format] that media3 already parsed.
+     *
+     * Media3's [BoxParser] reads `st3d` into [Format.stereoMode] and `sv3d` into
+     * [Format.projectionData] (the raw `proj` box with `equi`/`cbmp`/`mshp` children).
+     * This method combines layout + projection to produce the same spherical modes the
+     * path-based [detectFromMp4Path] does, but without re-opening the file - so it works
+     * for both local and network MP4. Returns [StereoMode.UNKNOWN] when [Format] carries
+     * no spatial metadata, letting the cascade fall through to filename and AR sources.
+     */
+    fun detectFromMp4Format(format: Format): StereoMode {
+        val projectionData = format.projectionData
+        if (projectionData == null || format.stereoMode == Format.NO_VALUE) {
+            return StereoMode.UNKNOWN
+        }
+        val result = if (parseMp4Projection(projectionData) == Mp4Projection.EQUIRECT) {
+            when (format.stereoMode) {
+                C.STEREO_MODE_MONO -> StereoMode.EQUIRECT_360_MONO
+                C.STEREO_MODE_LEFT_RIGHT -> StereoMode.EQUIRECT_360_SBS
+                C.STEREO_MODE_TOP_BOTTOM -> StereoMode.EQUIRECT_360_OU
+                C.STEREO_MODE_STEREO_MESH -> StereoMode.VR180_FISHEYE_SBS
+                else -> StereoMode.UNKNOWN
+            }
+        } else {
+            StereoMode.UNKNOWN
+        }
+        Timber.d("S2893: mp4-format stereoMode=%d projection=equirect -> %s", format.stereoMode, result)
+        return result
+    }
+
+    /**
      * Full video detection path.
      * MP4 spatial metadata is authoritative, so it must run before filename or AR heuristics.
      */
@@ -276,9 +301,9 @@ class StereoDetector @javax.inject.Inject constructor() {
         if (!config.autoDetectEnabled) return StereoMode.MONO
 
         if (config.trustMetadata) {
-            val mp4Result = path?.let { detectFromMp4Path(it) } ?: StereoMode.UNKNOWN
+            val mp4Result = detectFromMp4Format(format)
             if (mp4Result != StereoMode.UNKNOWN) {
-                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=mp4-spatial filename=%s", mp4Result, path)
+                Timber.d("VR_AUDIT/12: detectForVideo result=%s source=mp4-format filename=%s", mp4Result, path)
                 return mp4Result
             }
         }
@@ -479,41 +504,69 @@ class StereoDetector @javax.inject.Inject constructor() {
     // ── Private helpers ────────────────────────────────────────────────────
 
     /**
-     * Attempt to read the Matroska StereoMode EBML tag from format extras.
+     * Translate the container stereo tag that Media3 parsed into [Format.stereoMode].
      *
-     * Media3 API exposure differs across versions: some builds surface a Bundle-like
-     * object via a custom-data getter, others do not expose it at compile time.
-     * We therefore use reflection and fall back to UNKNOWN when the data is absent.
+     * S2892: the tag is NOT carried as raw EBML. `MatroskaExtractor` maps EBML element 0x53B8 onto
+     * the [C.StereoMode] constants and drops everything it cannot express, so this reads Media3's
+     * vocabulary, never Matroska's. The two disagree on the numbers themselves - raw EBML 1 (SBS)
+     * arrives as [C.STEREO_MODE_LEFT_RIGHT] = 2 and raw EBML 3 (OU) arrives as
+     * [C.STEREO_MODE_TOP_BOTTOM] = 1 - so comparing against raw tag values here would swap the two
+     * layouts and hand each eye half of the wrong frame.
+     *
+     * Mesh and interleaved layouts resolve to UNKNOWN rather than a guess: the renderer has no mode
+     * for either, so the cascade should fall through to the filename and aspect-ratio sources.
      */
     private fun detectFromMatroskaTag(format: Format): StereoMode {
-        val customData = extractCustomDataBundle(format) ?: return StereoMode.UNKNOWN
-        val stereoTag = customData.getString(FORMAT_CUSTOM_DATA_KEY) ?: return StereoMode.UNKNOWN
-
-        return when (stereoTag) {
-            MATROSKA_STEREO_MONO                      -> StereoMode.MONO
-            MATROSKA_STEREO_SBS_LEFT,
-            MATROSKA_STEREO_SBS_RIGHT                 -> StereoMode.SBS_FULL
-            MATROSKA_STEREO_OU_RIGHT,
-            MATROSKA_STEREO_OU_TOP                    -> StereoMode.OU
-            MATROSKA_STEREO_MVC_LEFT,
-            MATROSKA_STEREO_MVC_RIGHT                 -> StereoMode.SBS_HALF
-            else -> {
-                Timber.w("$TAG: Unknown Matroska StereoMode tag value: '$stereoTag'")
-                StereoMode.UNKNOWN
-            }
+        val result = when (format.stereoMode) {
+            C.STEREO_MODE_MONO -> StereoMode.MONO
+            C.STEREO_MODE_LEFT_RIGHT -> StereoMode.SBS_FULL
+            C.STEREO_MODE_TOP_BOTTOM -> StereoMode.OU
+            else -> StereoMode.UNKNOWN
         }
+        Timber.d("S2892: matroska stereoMode=${format.stereoMode} -> $result")
+        return result
     }
 
-    private fun extractCustomDataBundle(format: Format): Bundle? {
-        return try {
-            val getter = format.javaClass.methods.firstOrNull { method ->
-                method.parameterCount == 0 && (method.name == "getCustomData" || method.name == "customData")
-            } ?: return null
-            getter.invoke(format) as? Bundle
-        } catch (e: Exception) {
-            Timber.v(e, "$TAG: customData not exposed on this Media3 build")
-            null
+    /**
+     * S2893: projection type extracted from [Format.projectionData].
+     *
+     * Media3 copies the complete `proj` box (header included) into [Format.projectionData].
+     * The `proj` box contains a `prhd` child and one projection-data child whose 4-byte
+     * ASCII type identifies the projection: `equi` (equirectangular), `cbmp` (cubemap),
+     * `mshp` (mesh, used by VR180). Only equirectangular is renderable today; cubemap and
+     * mesh return [UNKNOWN] so the cascade falls through to filename and AR sources.
+     */
+    private enum class Mp4Projection {
+        EQUIRECT,
+        CUBEMAP,
+        MESH,
+        UNKNOWN,
+    }
+
+    /**
+     * S2893: parse the projection type from [Format.projectionData] (the raw `proj` box
+     * that media3 extracted from `sv3d`). Iterates child boxes after the 8-byte `proj`
+     * header and returns on the first recognised projection-data child (`equi`/`cbmp`/`mshp`).
+     */
+    private fun parseMp4Projection(projectionData: ByteArray): Mp4Projection {
+        val buffer = ByteBuffer.wrap(projectionData).order(ByteOrder.BIG_ENDIAN)
+        var offset = MP4_BOX_HEADER_SIZE
+        while (offset + MP4_BOX_HEADER_SIZE <= projectionData.size) {
+            buffer.position(offset)
+            val childSize = buffer.int.toLong() and MP4_SIZE_MASK
+            val typeBytes = ByteArray(MP4_BOX_TYPE_SIZE)
+            buffer.get(typeBytes)
+            val projection = when (typeBytes.toString(Charsets.US_ASCII)) {
+                "equi" -> Mp4Projection.EQUIRECT
+                "cbmp" -> Mp4Projection.CUBEMAP
+                "mshp" -> Mp4Projection.MESH
+                else -> null
+            }
+            if (projection != null) return projection
+            if (childSize <= 0L) break
+            offset += childSize.toInt()
         }
+        return Mp4Projection.UNKNOWN
     }
 
     /**

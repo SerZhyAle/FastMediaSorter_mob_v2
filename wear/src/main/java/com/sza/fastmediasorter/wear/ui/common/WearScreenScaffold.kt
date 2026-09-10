@@ -396,6 +396,34 @@ fun wearCenteredSquareSide(): Dp {
 }
 
 /**
+ * Side of the largest square that stays whole when a block of [extraHeight] stands beneath it in
+ * the same centered column.
+ *
+ * The module's seventh statement about screen shape. [wearMaxSquareSide] answers for a square
+ * alone; a square-then-caption column is taller than it is wide, and its worst corners are the
+ * block's bottom ones, so the pair fits the visible circle only while `s^2 + (s + extra)^2` stays
+ * under the squared diameter - solved rather than guessed: `s = (sqrt(2*edge^2 - extra^2) -
+ * extra) / 2`. A non-positive [extraHeight] collapses the question back to [wearMaxSquareSide],
+ * and a square screen has no circle to overflow, so there the answer is the plain stack: the
+ * shorter edge minus the bezel clearance and the extra block.
+ */
+@Composable
+fun wearStackedSquareSide(extraHeight: Dp): Dp {
+    val configuration = LocalConfiguration.current
+    val shorterEdge = minOf(configuration.screenWidthDp, configuration.screenHeightDp).dp
+    val unbounded = if (!configuration.isScreenRound) {
+        shorterEdge - SQUARE_INSET * 2 - extraHeight
+    } else if (extraHeight <= 0.dp) {
+        wearMaxSquareSide()
+    } else {
+        val extra = extraHeight.value
+        val inner = (2 * shorterEdge.value * shorterEdge.value - extra * extra).coerceAtLeast(0f)
+        ((sqrt(inner) - extra) / 2).dp
+    }
+    return unbounded.coerceAtLeast(0.dp)
+}
+
+/**
  * Whether this screen is small enough to need a different set of children rather than smaller ones.
  *
  * The module's fifth statement about screen shape, and the only one that does not return a

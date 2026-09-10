@@ -55,12 +55,15 @@ function Expand-SettingsDocPaths {
 # values*/strings*.xml, so only those inputs can move it (S1338 step 04.7).
 $script:SettingsRowTagPattern = '<[\w.]*\b(?:SettingsToggleRow|SettingsDropdownRow|SettingsInputRow|SettingsSelectionRow)\b'
 $script:SettingsLayoutPathPattern = '(^|/)app_v2/src/[^/]+/res/layout[^/]*/'
+# S2853: wear strings and wear settings code do not feed the manifest. LayoutSettingsSearchSource
+# scans app_v2 layouts only, and SettingsDocScopeCatalog.wearEntries are hardcoded literal strings
+# in app_v2 Kotlin — no wear resource is resolved. The two wear patterns that were here made any
+# wear-strings change trigger stage 2 (manifest-fresh), which has no advisory path, charging a
+# wear-only closure for a divergence in app_v2 layout it could not have caused.
 $script:SettingsManifestInputPatterns = @(
     '(^|/)app_v2/src/[^/]+/res/values[^/]*/strings',
     '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/ui/settings/',
-    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearch',
-    '(^|/)wear/src/[^/]+/res/values[^/]*/strings',
-    '(^|/)wear/src/[^/]+/java/com/sza/fastmediasorter/(wear/)?ui/settings/'
+    '(^|/)app_v2/src/[^/]+/java/com/sza/fastmediasorter/di/[^/]*SettingsSearch'
 )
 
 # scripts/docs/render-settings-reference.ps1 merges the manifest with the annotations and

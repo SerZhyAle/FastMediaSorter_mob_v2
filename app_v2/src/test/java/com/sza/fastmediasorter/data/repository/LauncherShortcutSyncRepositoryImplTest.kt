@@ -134,4 +134,27 @@ class LauncherShortcutSyncRepositoryImplTest {
         assertNull(repository.syncedRoutes())
         assertEquals(setOf("virtual://all_audio"), repository.syncedResourcePaths())
     }
+
+    // S2859: the Add-resource tile flag follows the S2791 once-per-install contract - unset reads
+    // false, set reads true, and the launcher reset returns it to unset.
+    @Test
+    fun `an Add-resource tile flag that was never written reads false`() = runTest {
+        assertEquals(false, repository.isResourcesAddTileBackfilled())
+    }
+
+    @Test
+    fun `a set Add-resource tile flag reads back true`() = runTest {
+        repository.setResourcesAddTileBackfilled()
+
+        assertEquals(true, repository.isResourcesAddTileBackfilled())
+    }
+
+    @Test
+    fun `clearing the Add-resource tile flag returns it to unset`() = runTest {
+        repository.setResourcesAddTileBackfilled()
+
+        repository.clearResourcesAddTileBackfilled()
+
+        assertEquals(false, repository.isResourcesAddTileBackfilled())
+    }
 }

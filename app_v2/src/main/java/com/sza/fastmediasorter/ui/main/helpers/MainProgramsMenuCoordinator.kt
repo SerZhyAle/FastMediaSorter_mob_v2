@@ -20,6 +20,7 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
+import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 import timber.log.Timber
 
@@ -116,7 +117,7 @@ class MainProgramsMenuCoordinator(
         Timber.d("S2673: programs menu drew ${visible.size} sub-program entries from the registry")
         for (entry in visible) {
             val presentation = PRESENTATION.getValue(entry.routeKey)
-            popup.menu.add(0, presentation.itemId, MENU_ORDER_REGISTRY_BASE + entry.order, presentation.labelRes)
+            popup.menu.add(0, presentation.itemId, MainProgramsMenuOrder.menuOrderFor(entry), presentation.labelRes)
                 .setIcon(presentation.iconRes)
         }
         broadcastMenuManager.populate(popup, gate.broadcast, MENU_ORDER_BROADCAST)
@@ -138,10 +139,9 @@ class MainProgramsMenuCoordinator(
      * S2510: colours each program's glyph with the accent that identifies it in every other list.
      *
      * Runs as one pass over the finished menu rather than at each `setIcon` call because the four
-     * non-registry items are added around the loop. Items are matched by `order`, which since S2673 is
-     * the number `SubProgramEntry` stores offset by MENU_ORDER_REGISTRY_BASE - before it, menu orders
-     * ran 1..16 against the registry's 0..106 and exactly one item matched, wearing another program's
-     * colour. The offset must be applied on both sides or the match silently finds nothing again.
+     * non-registry items are added around the loop. Items are matched by `order` through
+     * [MainProgramsMenuOrder], which owns the offset both sides of the join must apply - see its KDoc for
+     * the S2673 incident, and S2889 for why the arithmetic no longer lives here.
      *
      * Tints the MenuItem, never the drawable: `setIcon` hands out a drawable whose constant state is
      * shared with every other user of that vector, so tinting it here would recolour it app-wide.
@@ -152,8 +152,7 @@ class MainProgramsMenuCoordinator(
     private fun applyProgramAccents(popup: PopupMenu) {
         for (index in 0 until popup.menu.size()) {
             val item = popup.menu.getItem(index)
-            val accentRes = SubProgramCatalog.all()
-                .firstOrNull { MENU_ORDER_REGISTRY_BASE + it.order == item.order }
+            val accentRes = MainProgramsMenuOrder.entryForMenuOrder(item.order)
                 ?.let { SubProgramAccentCatalog.accentFor(it.routeKey) }
                 ?: continue
             MenuItemCompat.setIconTintList(
@@ -209,6 +208,12 @@ class MainProgramsMenuCoordinator(
         MENU_ITEM_PHYSICAL_FLASHLIGHT -> AppLaunchPanelRouteIntents.physicalFlashlight(activity)
         MENU_ITEM_MIRROR -> AppLaunchPanelRouteIntents.mirror(activity)
         MENU_ITEM_BLACK_SCREEN -> AppLaunchPanelRouteIntents.blackScreen(activity)
+        // S2881: the two watch-listen programs are manager-less, so their launch lives here beside
+        // the other registry rows - found on device, where a row without a branch here tapped dead.
+        MENU_ITEM_WATCH_LISTEN ->
+            WatchListenLaunchActivity.createIntent(activity, record = false)
+        MENU_ITEM_WATCH_LISTEN_RECORD ->
+            WatchListenLaunchActivity.createIntent(activity, record = true)
         else -> null
     }
 
@@ -286,6 +291,11 @@ class MainProgramsMenuCoordinator(
         const val MENU_ITEM_MIRROR = 26
         const val MENU_ITEM_BLACK_SCREEN = 27
 
+        // S2881: the two watch-listen programs, coordinator-dispatched like the stopwatch - they have
+        // no manager of their own, so the id lives here and the generic route dispatch handles it.
+        const val MENU_ITEM_WATCH_LISTEN = 28
+        const val MENU_ITEM_WATCH_LISTEN_RECORD = 29
+
         /**
          * S2673: label, icon and menu item id per sub-program - the three things ADR-1 keeps out of the
          * registry.
@@ -347,6 +357,18 @@ class MainProgramsMenuCoordinator(
                 R.string.wear_companion,
                 R.drawable.ic_watch,
             ),
+            // S2881: the two listen calls stand beside the companion they extend; the record variant
+            // takes the microphone, because recording is what separates the two icons at a glance.
+            InternalRouteCatalog.KEY_WATCH_LISTEN to MenuPresentation(
+                MENU_ITEM_WATCH_LISTEN,
+                R.string.watch_listen_label,
+                R.drawable.ic_watch,
+            ),
+            InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to MenuPresentation(
+                MENU_ITEM_WATCH_LISTEN_RECORD,
+                R.string.watch_listen_record_label,
+                R.drawable.ic_microphone,
+            ),
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to MenuPresentation(
                 MENU_ITEM_FRONT_FLASHLIGHT,
                 R.string.front_flashlight_title,
@@ -386,11 +408,10 @@ class MainProgramsMenuCoordinator(
         // the owner sees is unchanged while every sub-program carries its own registry order.
         // A menu order carries an Android category in its high 16 bits, so a negative value makes
         // MenuBuilder.add throw. The fixed items therefore sit below the registry's own orders, which
-        // are shifted by MENU_ORDER_REGISTRY_BASE, and broadcast stays last (S2673).
+        // MainProgramsMenuOrder shifts, and broadcast stays last (S2673).
         private const val MENU_ORDER_STREAMS = 10
         private const val MENU_ORDER_VR_CINEMA = 20
         private const val MENU_ORDER_APP_LAUNCH_PANEL = 30
-        private const val MENU_ORDER_REGISTRY_BASE = 100
         private const val MENU_ORDER_BROADCAST = 1000
     }
 }

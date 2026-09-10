@@ -19,6 +19,9 @@ private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L
 private const val MIN_PORT = 1
 private const val MAX_PORT = 65535
 
+/** S2887: what `WearNetworkSourcePayload.basePath` claimed as its Kotlin default. */
+private const val DEFAULT_BASE_PATH = "/"
+
 /** S2502: what the import did with one incoming record. */
 private enum class ImportOutcome { ADDED, UPDATED, SKIPPED }
 
@@ -49,6 +52,9 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         // Applied before any ordinary record of the same batch, so a record is ranked against the
         // tombstone this batch just accepted rather than against the source it is about to replace.
         applyIncomingTombstones(payload.tombstones, deletionResolver)
+        // S2882: after the deletions and before the records, so the set this batch's own records are
+        // ranked against is the one the phone's withdrawals already left behind.
+        val removed = applyDeselections(payload.deselectedIds)
 
         val stored = repository.getAllSources().toMutableList()
         val localTombstones = repository.getTombstones().associateBy { it.id }
@@ -70,9 +76,35 @@ class ImportNetworkSourcesUseCase @Inject constructor(
             }
         }
 
-        Timber.i("Import complete: added=$added updated=$updated skipped=$skipped")
+        Timber.i("Import complete: added=$added updated=$updated skipped=$skipped removed=$removed")
         requestWearTileRefreshUseCase(WearTileKind.RESOURCE)
-        return ImportResult(added, updated, skipped)
+        return ImportResult(added, updated, skipped, removed)
+    }
+
+    /**
+     * S2882: deletes the sources the phone declared unwanted here, and returns how many went.
+     *
+     * A null list is a phone that predates the field, and it means "the sender said nothing about
+     * exclusions" rather than "exclude nothing" - Gson leaves an absent field null whatever the Kotlin
+     * default says, so reading null as an empty declaration is the one mistake that would make an
+     * older phone wipe this watch.
+     *
+     * No tombstone is written. A withdrawn source is not a deleted resource: the phone still has it,
+     * and a tombstone would travel back on this watch's own export and delete it there - the very loss
+     * the unticked box exists to avoid.
+     */
+    private suspend fun applyDeselections(ids: List<String>?): Int {
+        if (ids.isNullOrEmpty()) {
+            return 0
+        }
+        Timber.d("S2882: watch import leg received ${ids.size} withdrawn id(s) from the phone")
+        val present = repository.getAllSources().map { it.id }.toSet()
+        var removed = 0
+        for (id in ids.filter { it in present }) {
+            repository.deleteSource(id)
+            removed++
+        }
+        return removed
     }
 
     /**
@@ -89,10 +121,13 @@ class ImportNetworkSourcesUseCase @Inject constructor(
      * second chance it already lost.
      */
     private suspend fun applyIncomingTombstones(
-        incoming: List<WearSourceTombstonePayload>,
+        incoming: List<WearSourceTombstonePayload>?,
         deletionResolver: WearRecordMergeResolver
     ) {
-        if (incoming.isEmpty()) {
+        // S2885: the guard sits here rather than at the call site so a second caller inherits it. Null
+        // is a phone that ships no deletions at all, which for this list means the same as declaring
+        // none - unlike `deselectedIds`, where null and empty must stay distinguishable.
+        if (incoming.isNullOrEmpty()) {
             return
         }
         Timber.d("S2507: watch import leg received ${incoming.size} tombstone(s) from the phone")
@@ -193,8 +228,9 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         shareName = item.shareName,
         // S1556: the phone ships a full URL; every watch client wants the path below the
         // connection it opens, so the conversion happens once, here.
-        basePath = NetworkBasePath.normalize(item.basePath, type, item.shareName),
-        domain = item.domain,
+        // S2887: the payload's defaults live here now - Gson never ran the ones on the declarations.
+        basePath = NetworkBasePath.normalize(item.basePath ?: DEFAULT_BASE_PATH, type, item.shareName),
+        domain = item.domain.orEmpty(),
         sshPrivateKey = item.sshPrivateKey,
         hostKeyFingerprint = item.hostKeyFingerprint,
         // S2129: stored opaque. Resolution happens at draw time, so an id this build does

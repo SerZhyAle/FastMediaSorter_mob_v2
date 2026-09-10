@@ -119,7 +119,7 @@
       "c": {}
     },
     "idleRunThreshold": 2,
-    "idleOutcomes": ["ok", "timeout", "claim-lost", "claim-lost-before-launch", "no-progress-or-claim-lost", "launch-failed"]
+    "idleOutcomes": ["ok", "timeout"]
   },
   "commands": {
     "statusCommands": {

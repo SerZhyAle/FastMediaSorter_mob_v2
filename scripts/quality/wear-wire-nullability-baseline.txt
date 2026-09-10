@@ -1,0 +1,25 @@
+# S2885/S2887: exemptions for assert-wear-wire-nullability.ps1.
+#
+# Shape: <repo-relative file>::<field name> | <justification>
+# A line with no justification after the pipe refuses the whole run (exit 2), the same rule
+# gson-persistence-exemptions-baseline.txt uses: an exemption nobody had to explain is one nobody
+# read.
+#
+# Every entry here is a VERSION MARKER, which is the one shape that trips the rule while behaving
+# correctly: an absent key reads as 0, and 0 means "the sender predates every version this build
+# knows", which is what a receiver branching on the marker should conclude. Nothing else belongs
+# here - a value field carrying the shape is a defect, and the fix is the nullable declaration the
+# gate's refusal names. Adding a row means arguing, in the row, why THIS field's absent-key value is
+# the answer its readers want. "Is this a version marker" is a judgement about intent, which is why
+# it lives in a file a person writes rather than in the rule (S2887).
+#
+# The two schemaVersion declarations inside each WearPhoneResourcePayload.kt (Request and Page) share
+# one key, so one row covers both - they are the same field of the same contract.
+
+app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearSyncPayload.kt::version | S2887: neither side branches on it - its own KDoc records that it marks the contract generation, and the merge rule reads the presence of the stamps themselves. An absent key reading as 0 changes no behaviour.
+wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSyncPayload.kt::version | S2887: mirror of the phone declaration above, and unread for the same reason. The two copies must stay identical, so they are exempted together or not at all.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearPhoneResourcePayload.kt::schemaVersion | S2887: covers WearPhoneResourceRequest and WearPhoneResourcePage. No reader exists on either side - the field is stamped by the sender and never branched on, so its absent-key 0 reaches nothing.
+wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearPhoneResourcePayload.kt::schemaVersion | S2887: mirror of the phone declaration above, with the same absence of readers. Exempted together with it so the two copies cannot diverge.
+app_v2/src/main/java/com/sza/fastmediasorter/domain/model/WearEventEnvelope.kt::schemaVersion | S2887: this envelope is not Gson-filled at all. WearEventEnvelopeCodec reads every key explicitly through json.required(SCHEMA_VERSION).asInt and throws on an absent one, so the reflection defect the gate judges cannot occur here.
+wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearEventEnvelope.kt::schemaVersion | S2887: mirror of the phone declaration above; the watch copy of WearEventEnvelopeCodec reads the same keys explicitly.
+wear/src/main/java/com/sza/fastmediasorter/wear/data/wear/WearLogReportPayload.kt::formatVersion | S2887: this one IS read, and the reading is the safe one - 0 fails `payload.formatVersion != FORMAT_VERSION` and the parse returns UnsupportedVersion, a loud refusal rather than a wrong value. The phone copy of the same field carries no default at all.

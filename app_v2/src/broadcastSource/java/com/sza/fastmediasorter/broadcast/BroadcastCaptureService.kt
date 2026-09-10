@@ -132,6 +132,14 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
+        Timber.d(
+            "S2817: broadcast session config from settings: title=%s, bitrate=%d, port=%d, rate=%d, ch=%d",
+            settings.broadcastStreamTitle,
+            settings.broadcastBitRateBps,
+            settings.broadcastPort,
+            settings.broadcastSampleRateHz,
+            settings.broadcastChannelCount,
+        )
         val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
             settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))

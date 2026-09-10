@@ -48,6 +48,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
@@ -658,14 +659,21 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // Mirror PlayerActivity: opt out of auto-fit, handle insets manually
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) + nav bar (left/right in landscape).
-        // statusBars() returns 0 in Chrome OS windowed mode; captionBar() carries the actual title-bar height.
+        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) + display cutout + nav bar (left/right in landscape).
+        // Uses getStatusBarHeightSafe fallback for OEM Android 8 car screens where statusBars() inset reports 0.
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val topInsets = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(navBar.left, topInsets.top, navBar.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(navBar.left, cutout.left)
+            val rightPadding = maxOf(navBar.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
+            timber.log.Timber.d("S2908: Standalone topCommandPanel insets applied top=$topPadding")
             insets
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
@@ -1118,6 +1126,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     override val isAudioServiceActive: Boolean = false
+
+    // S2907: standalone always uses the ExoPlayer from StandaloneViewManager directly.
+    override fun getPlayerVolume(): Float =
+        if (::viewManager.isInitialized) viewManager.getExoPlayer()?.volume ?: 1f else 1f
+
+    override fun setPlayerVolume(volume: Float) {
+        if (::viewManager.isInitialized) viewManager.getExoPlayer()?.volume = volume
+    }
 
     override fun showMessage(message: String) = viewModel.showMessage(message)
 

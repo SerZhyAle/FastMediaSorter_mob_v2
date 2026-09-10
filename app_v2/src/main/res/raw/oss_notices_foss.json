@@ -913,6 +913,31 @@
     "note": null
   },
   {
+    "coordinate": "androidx.media3:media3-inspector",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX Media3 Inspector",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
     "coordinate": "androidx.media3:media3-session",
     "modules": [
       "app_v2",

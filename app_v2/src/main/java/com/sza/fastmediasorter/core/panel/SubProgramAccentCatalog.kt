@@ -34,6 +34,34 @@ object SubProgramAccentCatalog {
     @ColorRes
     fun accentFor(routeKey: String): Int? = accents[routeKey]
 
+    /**
+     * The same accent for a surface whose background does not follow the theme, or null when the key has none.
+     *
+     * S2889: a caller picks between this and [accentFor] by the background it draws on, never by the theme
+     * (strategic ADR-2). The one surface that needs it today is the main-window programs panel, an opaque
+     * dark strip in both themes - the theme-following tone there is a dark glyph on dark olive by day, which
+     * measured 2.14 against a 3.0 threshold at its worst. The `_on_dark` resources have no values-night twin,
+     * so they stay on the light half of the palette whatever the theme is doing.
+     *
+     * Derived from [accents] rather than authored a second time: a route that carried two different tones
+     * would be a divergence of exactly the kind this catalog exists to prevent, and reassigning a program's
+     * tone must stay one edit.
+     */
+    @ColorRes
+    fun accentOnDarkFor(routeKey: String): Int? = accents[routeKey]?.let(onDarkTones::get)
+
+    /** The light-half twin of each frozen tone. Pinned to [PALETTE_SIZE] by the completeness test. */
+    private val onDarkTones: Map<Int, Int> = mapOf(
+        R.color.color_program_accent_red to R.color.color_program_accent_red_on_dark,
+        R.color.color_program_accent_orange to R.color.color_program_accent_orange_on_dark,
+        R.color.color_program_accent_amber to R.color.color_program_accent_amber_on_dark,
+        R.color.color_program_accent_green to R.color.color_program_accent_green_on_dark,
+        R.color.color_program_accent_teal to R.color.color_program_accent_teal_on_dark,
+        R.color.color_program_accent_blue to R.color.color_program_accent_blue_on_dark,
+        R.color.color_program_accent_indigo to R.color.color_program_accent_indigo_on_dark,
+        R.color.color_program_accent_purple to R.color.color_program_accent_purple_on_dark,
+    )
+
     private val accents: Map<String, Int> = mapOf(
         // Recognition and voice: what the program reads or hears.
         InternalRouteCatalog.KEY_OCR to R.color.color_program_accent_red,

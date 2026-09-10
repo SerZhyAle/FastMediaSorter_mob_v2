@@ -26,9 +26,12 @@ private const val BYTES_PER_KB = 1024L
  * watch; decoded to UTF-16 the text costs roughly twice this again, still an order of magnitude
  * under the module's decoded-thumbnail cache.
  *
- * S2532 step 02.3 replaces it with the largest size that still leaves headroom under
- * `adb shell dumpsys meminfo` on the development watch, run against text files of increasing size.
- * Until that run happens the number is deliberately low rather than plausible.
+ * S2753 owns the number and holds the derivation. What it settled without a watch: the heap is NOT
+ * what binds here - the whole read peaks at roughly five times the cap, so even a pessimistic
+ * per-app heap leaves the current figure at about one percent of it, and a heap ceiling only starts
+ * to matter at tens of megabytes of file. What binds first is the cost of splitting a file that
+ * carries no line breaks, then the number of list items a wearer can travel in one sitting. So the
+ * figure to replace this one comes from readability and split cost, not from a headroom measurement.
  */
 private const val MAX_DOCUMENT_BYTES = 128L * BYTES_PER_KB
 

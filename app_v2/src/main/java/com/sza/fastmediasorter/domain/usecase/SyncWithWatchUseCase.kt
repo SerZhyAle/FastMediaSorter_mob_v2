@@ -50,7 +50,9 @@ class SyncWithWatchUseCase @Inject constructor(
 
     private suspend fun sendResourcesLeg(): WearSyncLegResult = sendResourcesToWatch().fold(
         onSuccess = { result ->
-            if (result.sent == 0) {
+            // S2882: a batch that withdrew resources and sent none did something, and reporting it as
+            // an empty selection was the same silence the unticked box itself used to produce.
+            if (result.sent == 0 && result.deselected == 0) {
                 WearSyncLegResult.NothingToSend
             } else {
                 WearSyncLegResult.Succeeded(result.sent)

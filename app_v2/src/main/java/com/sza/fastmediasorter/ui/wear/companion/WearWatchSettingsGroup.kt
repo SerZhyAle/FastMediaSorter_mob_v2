@@ -5,6 +5,7 @@ import android.widget.ImageView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
@@ -62,7 +64,33 @@ private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
 private const val SLIDESHOW_INTERVAL_MAX_SECONDS = 3600f
 private const val DEFAULT_PANEL_AUTO_HIDE_SECONDS = 15
-private const val PANEL_AUTO_HIDE_MAX_SECONDS = 600f
+
+// S2866: the discrete intervals the watch side already offers (wear OtherSettingsScreen.kt
+// PANEL_AUTO_HIDE_INTERVALS). The phone companion previously used a 1-600 slider, which put
+// useful values in the left tenth of the track; chips match both the watch and the neighboring
+// power-saving threshold row in this same group.
+private const val THREE_SECONDS = 3
+private const val FIVE_SECONDS = 5
+private const val TEN_SECONDS = 10
+private const val FIFTEEN_SECONDS = 15
+private const val TWENTY_SECONDS = 20
+private const val THIRTY_SECONDS = 30
+private const val SIXTY_SECONDS = 60
+private val PANEL_AUTO_HIDE_INTERVALS = listOf(
+    THREE_SECONDS,
+    FIVE_SECONDS,
+    TEN_SECONDS,
+    FIFTEEN_SECONDS,
+    TWENTY_SECONDS,
+    THIRTY_SECONDS,
+    SIXTY_SECONDS
+)
+
+// S2866: snap a previously saved value to the nearest valid interval so a value above the old
+// 600-second ceiling or between intervals opens without error (strategic §3.2 data compatibility).
+private fun coercePanelAutoHide(seconds: Int): Int =
+    PANEL_AUTO_HIDE_INTERVALS.minByOrNull { kotlin.math.abs(it - seconds) }
+        ?: PANEL_AUTO_HIDE_INTERVALS.first()
 
 // S2094: matches the View-side canonical row's ic_help_outline_24 - a touch target close to
 // the default IconButton size with a slightly smaller glyph, per docs/ARCHITECTURE.md Pattern A.
@@ -131,38 +159,32 @@ internal fun WearWatchSettingsGroup(
     var screenExpanded by remember { mutableStateOf(false) }
     var otherExpanded by remember { mutableStateOf(false) }
 
+    // S2865: one value summary per group, drawn under the title in the collapsed as well as the
+    // expanded state - a collapsed group used to name its topic and say nothing about what the
+    // watch holds. Recomputed from the same state the rows inside edit, so a watch answer updates
+    // the collapsed line too.
+    val summaries = groupSummaries(viewModel, state)
+
     Column(verticalArrangement = Arrangement.spacedBy(SPACING_SECTION)) {
         WearCompanionGroup(
             title = stringResource(R.string.wear_settings_group_media_types),
+            summary = summaries.mediaTypes,
             expanded = mediaTypesExpanded,
+            tag = "wearGroupMediaTypes",
             onExpandedChange = { mediaTypesExpanded = it }
         ) {
             MediaTypesSwitches(state = state, onChanged = onChanged)
-            SwitchRow(
-                tag = "wearSwitchStreams",
-                label = stringResource(R.string.wear_setting_streams_section),
-                description = stringResource(R.string.wear_setting_streams_section_desc),
-                checked = state.streamsSectionEnabled
-            ) {
-                state.streamsSectionEnabled = it
-                onChanged()
-            }
+            StreamsSectionSwitch(state = state, onChanged = onChanged)
         }
 
         WearCompanionGroup(
             title = stringResource(R.string.wear_settings_group_slideshow),
+            summary = summaries.slideshow,
             expanded = slideshowExpanded,
+            tag = "wearGroupSlideshow",
             onExpandedChange = { slideshowExpanded = it }
         ) {
-            SwitchRow(
-                tag = "wearSwitchSlideshow",
-                label = stringResource(R.string.wear_settings_slideshow),
-                description = stringResource(R.string.wear_settings_slideshow_desc),
-                checked = state.slideshowEnabled
-            ) {
-                state.slideshowEnabled = it
-                onChanged()
-            }
+            SlideshowSwitch(state = state, onChanged = onChanged)
             SlideshowIntervalSlider(
                 seconds = state.slideshowInterval,
                 onSecondsChange = { state.slideshowInterval = it },
@@ -172,28 +194,22 @@ internal fun WearWatchSettingsGroup(
 
         WearCompanionGroup(
             title = stringResource(R.string.wear_settings_group_screen),
+            summary = summaries.screen,
             expanded = screenExpanded,
+            tag = "wearGroupScreen",
             onExpandedChange = { screenExpanded = it }
         ) {
             ViewModeRows(state = state, onChanged = onChanged)
             BackgroundModeControls(viewModel = viewModel)
             ColorSchemeControls(viewModel = viewModel)
-            SwitchRow(
-                tag = "wearSwitchKeepAwake",
-                label = stringResource(R.string.wear_settings_keep_awake),
-                description = stringResource(R.string.wear_settings_keep_awake_desc),
-                checked = state.keepScreenAwake,
-                helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
-                helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
-            ) {
-                state.keepScreenAwake = it
-                onChanged()
-            }
+            KeepAwakeSwitch(state = state, onChanged = onChanged)
         }
 
         WearCompanionGroup(
             title = stringResource(R.string.wear_settings_group_other),
+            summary = summaries.other,
             expanded = otherExpanded,
+            tag = "wearGroupOther",
             onExpandedChange = { otherExpanded = it }
         ) {
             OtherSubgroup(state = state, onChanged = onChanged)
@@ -247,7 +263,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         (watchSettings?.slideshowIntervalSeconds ?: DEFAULT_SLIDESHOW_INTERVAL_SECONDS).toFloat()
     )
     var panelAutoHideSeconds by mutableStateOf(
-        (watchSettings?.panelAutoHideSeconds ?: DEFAULT_PANEL_AUTO_HIDE_SECONDS).toFloat()
+        coercePanelAutoHide(watchSettings?.panelAutoHideSeconds ?: DEFAULT_PANEL_AUTO_HIDE_SECONDS)
     )
 
     fun payload(context: Context? = null, unitSystem: UnitSystem? = null) = WearSettingsPayload(
@@ -266,7 +282,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
         disableAnimations = disableAnimations,
         powerSavingTrigger = powerSavingTrigger,
         backgroundPlaybackEnabled = backgroundPlaybackEnabled,
-        panelAutoHideSeconds = panelAutoHideSeconds.toInt(),
+        panelAutoHideSeconds = panelAutoHideSeconds,
         // S2731: no companion-window row exists for this field (PHONE_ONLY, no companionRowTag) - it
         // rides the phone's current AppSettings the same way appLanguage rides the current locale.
         unitSystem = unitSystem?.name
@@ -274,7 +290,6 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     SwitchRow(
@@ -290,9 +305,12 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     }
     // S2169: BOTH in the registry with no phone row before this change - the mirror was incomplete
     // without it, and the parity gate's phone side now names it.
+    // S2865: the description closes the subtitle gap - its neighbours above and below both carry
+    // one, and the one bare row read as the odd one out.
     SwitchRow(
         tag = "wearSwitchDisableAnimations",
         label = stringResource(R.string.wear_settings_disable_animations),
+        description = stringResource(R.string.wear_settings_disable_animations_desc),
         checked = state.disableAnimations
     ) {
         state.disableAnimations = it
@@ -312,10 +330,14 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         text = stringResource(R.string.wear_settings_power_saving),
         style = MaterialTheme.typography.bodySmall
     )
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
-        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+    // S2865: one horizontal line instead of a wrapping FlowRow - the six thresholds are one ranked
+    // scale, and the wrapped second row outweighed the rest of the group. A narrow screen or a long
+    // locale scrolls rather than wraps.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
     ) {
         POWER_SAVING_TRIGGERS.forEach { (value, labelRes) ->
             val chipLabel = stringResource(labelRes)
@@ -353,13 +375,93 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         state.backgroundPlaybackEnabled = it
         onChanged()
     }
-    // S2505: player panel auto-hide duration on watch.
-    PanelAutoHideSlider(
+    // S2505: player panel auto-hide duration on watch. S2866: chips replace the 1-600 slider,
+    // matching the watch's discrete intervals and the neighboring power-saving chips above.
+    PanelAutoHideChips(
         seconds = state.panelAutoHideSeconds,
         onSecondsChange = { state.panelAutoHideSeconds = it },
         onSecondsSettled = onChanged
     )
 }
+
+/** S2865: the four per-group value summaries, held together so the block composes them once. */
+private class WearGroupSummaries(
+    val mediaTypes: String,
+    val slideshow: String,
+    val screen: String,
+    val other: String
+)
+
+@Composable
+private fun groupSummaries(viewModel: WearSyncViewModel, state: WatchSettingsState): WearGroupSummaries {
+    val backgroundMode by viewModel.backgroundMode.collectAsState()
+    val colorScheme by viewModel.colorScheme.collectAsState()
+    return WearGroupSummaries(
+        mediaTypes = mediaTypesSummaryLine(state),
+        slideshow = slideshowSummaryLine(state),
+        screen = screenSummaryLine(backgroundMode, colorScheme, state),
+        other = otherSummaryLine(state)
+    )
+}
+
+/**
+ * S2865: the one-line value summary each group shows under its title, so the collapsed window
+ * answers "what is on the watch now" without a single expansion. Each stays short on purpose -
+ * the header ellipsizes to one line, and the rows inside carry the detail. Rows with two states
+ * announce themselves as "label: On/Off"; enum values speak through their own chip labels.
+ */
+@Composable
+private fun mediaTypesSummaryLine(state: WatchSettingsState): String {
+    val enabled = buildList {
+        if (state.audioEnabled) add(stringResource(R.string.wear_settings_audio))
+        if (state.videoEnabled) add(stringResource(R.string.wear_settings_video))
+        if (state.imagesEnabled) add(stringResource(R.string.wear_settings_images))
+        if (state.documentsEnabled) add(stringResource(R.string.wear_settings_documents))
+        if (state.streamsSectionEnabled) add(stringResource(R.string.wear_setting_streams_section))
+    }
+    return if (enabled.isEmpty()) {
+        stringResource(R.string.wear_companion_summary_none)
+    } else {
+        enabled.joinToString(", ")
+    }
+}
+
+@Composable
+private fun slideshowSummaryLine(state: WatchSettingsState): String =
+    if (state.slideshowEnabled) {
+        stringResource(R.string.wear_companion_summary_slideshow_on, state.slideshowInterval.toInt())
+    } else {
+        stringResource(R.string.wear_companion_summary_off)
+    }
+
+@Composable
+private fun screenSummaryLine(
+    backgroundMode: String,
+    colorScheme: String,
+    state: WatchSettingsState
+): String = listOfNotNull(
+    labelFor(WEAR_VIEW_MODES, state.viewMode),
+    labelFor(BACKGROUND_MODES, backgroundMode),
+    labelFor(COLOR_SCHEMES, colorScheme)
+).joinToString(", ")
+
+@Composable
+private fun otherSummaryLine(state: WatchSettingsState): String = listOf(
+    stringResource(R.string.wear_settings_album_art) + ": " + onOffWord(state.albumArtEnabled),
+    labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger)
+        ?: stringResource(R.string.pref_power_saving_off),
+    stringResource(R.string.wear_settings_background_playback) + ": " +
+        onOffWord(state.backgroundPlaybackEnabled)
+).joinToString(", ")
+
+@Composable
+private fun labelFor(table: List<Pair<String, Int>>, value: String): String? =
+    table.firstOrNull { it.first == value }?.let { stringResource(it.second) }
+
+@Composable
+private fun onOffWord(enabled: Boolean): String = stringResource(
+    if (enabled) R.string.wear_companion_summary_on else R.string.wear_companion_summary_off
+)
 
 /**
  * The Screen subgroup's two view-mode rows.
@@ -431,6 +533,50 @@ private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit)
     }
 }
 
+/** Whether the watch shows its Streams section - part of Media types, but not an allowed-type toggle. */
+@Composable
+private fun StreamsSectionSwitch(state: WatchSettingsState, onChanged: () -> Unit) {
+    SwitchRow(
+        tag = "wearSwitchStreams",
+        label = stringResource(R.string.wear_setting_streams_section),
+        description = stringResource(R.string.wear_setting_streams_section_desc),
+        checked = state.streamsSectionEnabled
+    ) {
+        state.streamsSectionEnabled = it
+        onChanged()
+    }
+}
+
+/** The Slideshow subgroup's own toggle, held apart to keep the group's body flat. */
+@Composable
+private fun SlideshowSwitch(state: WatchSettingsState, onChanged: () -> Unit) {
+    SwitchRow(
+        tag = "wearSwitchSlideshow",
+        label = stringResource(R.string.wear_settings_slideshow),
+        description = stringResource(R.string.wear_settings_slideshow_desc),
+        checked = state.slideshowEnabled
+    ) {
+        state.slideshowEnabled = it
+        onChanged()
+    }
+}
+
+/** The Screen subgroup's keep-awake toggle, held apart to keep the group's body flat. */
+@Composable
+private fun KeepAwakeSwitch(state: WatchSettingsState, onChanged: () -> Unit) {
+    SwitchRow(
+        tag = "wearSwitchKeepAwake",
+        label = stringResource(R.string.wear_settings_keep_awake),
+        description = stringResource(R.string.wear_settings_keep_awake_desc),
+        checked = state.keepScreenAwake,
+        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
+        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
+    ) {
+        state.keepScreenAwake = it
+        onChanged()
+    }
+}
+
 /**
  * [onSecondsSettled] fires once the drag ends, not on every frame: every other control here reports
  * its edit immediately, but doing that per pixel would rebuild the edited copy of the settings under
@@ -461,27 +607,41 @@ private fun SlideshowIntervalSlider(
     Spacer(Modifier.height(SPACING_SMALL))
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun PanelAutoHideSlider(
-    seconds: Float,
-    onSecondsChange: (Float) -> Unit,
+private fun PanelAutoHideChips(
+    seconds: Int,
+    onSecondsChange: (Int) -> Unit,
     onSecondsSettled: () -> Unit
 ) {
     val label = stringResource(R.string.wear_settings_panel_auto_hide)
     Text(
-        text = label + ": " + seconds.toInt(),
+        text = label,
         style = MaterialTheme.typography.bodySmall
     )
-    Slider(
-        value = seconds,
-        onValueChange = onSecondsChange,
-        onValueChangeFinished = onSecondsSettled,
-        valueRange = 1f..PANEL_AUTO_HIDE_MAX_SECONDS,
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("wearPanelAutoHide")
-            .semantics { contentDescription = label }
-    )
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
+        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
+    ) {
+        PANEL_AUTO_HIDE_INTERVALS.forEach { value ->
+            val chipLabel = value.toString()
+            FilterChip(
+                selected = value == seconds,
+                onClick = {
+                    Timber.d("S2866: panel auto-hide chip selected value=$value")
+                    onSecondsChange(value)
+                    onSecondsSettled()
+                },
+                label = { Text(chipLabel) },
+                // S2091: a chip's own label does not reach the accessibility node, so without this the
+                // options dump as anonymous checkboxes and the screen reader announces none of them.
+                modifier = Modifier
+                    .testTag("wearPanelAutoHide_" + value)
+                    .semantics { contentDescription = label + ": " + chipLabel }
+            )
+        }
+    }
     Spacer(Modifier.height(SPACING_SMALL))
 }
 

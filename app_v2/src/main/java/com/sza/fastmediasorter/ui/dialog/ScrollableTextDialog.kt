@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.util.applicationScope
 import com.sza.fastmediasorter.util.launchBoundToHost
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -177,7 +178,13 @@ object ScrollableTextDialog {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, fullText)
                 }
-                context.startActivity(Intent.createChooser(shareIntent, title))
+                if (context.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
+                    Timber.d("S2902: ScrollableTextDialog: no share targets available, copying to clipboard")
+                    copyToClipboard(context, fullText)
+                    Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
+                } else {
+                    context.startActivity(Intent.createChooser(shareIntent, title))
+                }
             }
         } else {
             btnPrimaryCta.visibility = View.GONE
@@ -260,6 +267,12 @@ object ScrollableTextDialog {
             val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
             dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
             DialogAccessibilityHelper.applyInitialFocus(dialog)
+            val initialTarget = listOf(btnPrimaryCta, btnInlineAction, btnPrimary, btnCopy, btnClose)
+                .firstOrNull { it.visibility == View.VISIBLE } ?: btnClose
+            initialTarget.post {
+                initialTarget.requestFocus()
+            }
+            Timber.d("S2900: ScrollableTextDialog displayed with initial action focus")
             dialog
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "ScrollableTextDialog: show failed - bad window token")

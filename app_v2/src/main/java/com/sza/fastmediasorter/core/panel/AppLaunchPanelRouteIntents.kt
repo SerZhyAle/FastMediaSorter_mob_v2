@@ -98,6 +98,10 @@ object AppLaunchPanelRouteIntents {
             .putExtra(SettingsActivity.EXTRA_EXPAND_SECTION, SettingsActivity.SECTION_WEAR)
             .withPanelFlags()
 
+    // S2881: the two watch-listen routes are absent from this object on purpose. The object sits at
+    // detekt's TooManyFunctions ceiling, and the trampoline's own createIntent already carries the
+    // NEW_TASK flag - so the catalog's route rows build their intent straight from the activity.
+
     fun game(context: Context): Intent =
         GameLaunchIntents.game(context).withPanelFlags()
 

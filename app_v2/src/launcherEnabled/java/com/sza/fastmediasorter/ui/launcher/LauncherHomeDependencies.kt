@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.BuildAppSystemActionIntentUseCase
 import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
+import com.sza.fastmediasorter.domain.usecase.launcher.PlaceAddResourceTileUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryAppShortcutsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.QueryRecentLauncherCommandsUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.RemoveRecentLauncherCommandUseCase
@@ -44,6 +45,9 @@ class LauncherDesktopDependencies @Inject constructor(
     // S2564: the same keeping-current for the other half of the desktop - an aggregate resource whose
     // media type was switched on after the starter set was laid out.
     val syncEnabledResourceTiles: SyncEnabledResourceTilesUseCase,
+    // S2859: the once-only backfill that gives the Resources section its persistent Add-resource
+    // tile - it joins the surface it places into, for the same reason the syncs above do.
+    val placeAddResourceTile: PlaceAddResourceTileUseCase,
     val resourceRepository: ResourceRepository,
     // S1930: removing a configured widget cell has to throw its stored instance away, and the cell is
     // the only thing that still knows which one - so the cleanup joins the surface that owns removal.

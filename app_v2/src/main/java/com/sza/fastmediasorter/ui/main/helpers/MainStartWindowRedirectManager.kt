@@ -13,11 +13,16 @@ import timber.log.Timber
  * Only a plain launcher-icon start is eligible. A deep link, a share, the return to settings, the return
  * after a locale change and an audio resume each carry a destination of their own, so handing any of them
  * to the desktop would lose what the user actually asked for.
+ *
+ * S2858: when the app already holds the HOME role the redirect is suppressed. The desktop is then the Home
+ * button destination, so the app icon should open the main file list instead of bouncing the user back to
+ * the desktop they can already reach.
  */
 class MainStartWindowRedirectManager(
     private val contract: LauncherModeContract,
     private val startWindowManager: LauncherStartWindowManager,
     private val isResumingAudio: () -> Boolean,
+    private val isHomeRoleHeld: () -> Boolean,
 ) {
 
     /**
@@ -34,8 +39,10 @@ class MainStartWindowRedirectManager(
             isPlainColdLaunch(intent, savedInstanceState) &&
             !isResumingAudio() &&
             contract.isAvailableInBuild &&
-            startWindowManager.isEnabled()
+            startWindowManager.isEnabled() &&
+            !isHomeRoleHeld()
         Timber.d("S2811: redirect eligible=$eligible")
+        Timber.d("S2858: homeRoleHeld=${isHomeRoleHeld()}")
         val startWindow = if (eligible) contract.startWindowIntent(activity) else null
         startWindow?.let {
             activity.startActivity(it)

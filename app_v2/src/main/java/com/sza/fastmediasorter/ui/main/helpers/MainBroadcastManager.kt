@@ -50,6 +50,7 @@ class MainBroadcastManager(
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             autoOpenShare = settings.broadcastAutoOpenShare
+            Timber.d("S2817: broadcast auto-open-share=%b", autoOpenShare)
         }
         lifecycleOwner.collectOnLifecycle(controller.state) { state ->
             when (state) {

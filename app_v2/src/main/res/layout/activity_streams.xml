@@ -17,11 +17,13 @@
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
             android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.FastMediaSorter.Toolbar.Primary"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="?attr/colorOnPrimary"
             app:menu="@menu/menu_streams"
             app:title="@string/streams_title"
             app:titleTextColor="?attr/colorOnPrimary">
+
 
             <!-- S0940: in-landscape host for the relocated search/filter/sort control group.
                  Empty and gone in portrait; StreamsControlsPlacementManager reparents the

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.service
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -118,6 +119,10 @@ class WearLogReportReceiver @Inject constructor(
      * background process has not been allowed to start an activity since Android 10 - strategic
      * ADR-4. The user is looking at the watch at that moment anyway.
      */
+    // The caller checks areNotificationsEnabled() before invoking this method, and notify() is
+    // wrapped in runCatching below to catch SecurityException if POST_NOTIFICATIONS is revoked
+    // between the check and the post. Lint does not recognize runCatching as a permission guard.
+    @SuppressLint("MissingPermission")
     private fun postNotification(payload: WearLogReportPayload, written: File) {
         ensureChannel()
         val zipUri = LogExportHelper.buildLogsZipUri(context, listOf(written))

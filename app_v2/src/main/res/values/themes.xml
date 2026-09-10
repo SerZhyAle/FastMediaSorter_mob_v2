@@ -378,6 +378,8 @@
          S0573: minHeight is bound directly to @dimen, not through ?attr/dialogActionButtonMinHeight, because
          MaterialButton inflation under transparent/dynamic dialog hosts proved that attr chain can fail at runtime. -->
     <style name="Widget.FastMediaSorter.Button.DialogConfirm" parent="Widget.FastMediaSorter.Button.Filled">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <!-- S0611: confirm_button_* (day/night) keeps the OK button >= 4.5:1; success_color stays for status indicators. -->
         <item name="backgroundTint">@color/confirm_button_bg</item>
         <item name="android:textColor">@color/confirm_button_on</item>
@@ -387,6 +389,8 @@
     </style>
 
     <style name="Widget.FastMediaSorter.Button.DialogDestructive" parent="Widget.FastMediaSorter.Button.Filled">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <item name="backgroundTint">@color/delete_button</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
@@ -395,6 +399,8 @@
 
     <!-- S0684: cancel is a soft-pink tonal fill, deliberately shorter than confirm; saturated red stays reserved for DialogDestructive. -->
     <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Tonal">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <item name="backgroundTint">@color/cancel_button_bg</item>
         <item name="android:textColor">@color/cancel_button_on</item>
         <item name="android:minHeight">@dimen/dialog_cancel_button_min_height</item>
@@ -426,6 +432,16 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
+
+    <!-- S2898: primary toolbar theme overlay providing high-contrast text color and D-pad focus outlines. -->
+    <style name="ThemeOverlay.FastMediaSorter.Toolbar.Primary" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
+        <item name="actionBarItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="selectableItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
+    </style>
+
 
     <style name="Widget.FastMediaSorter.Calculator.Button" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textSize">@dimen/calculator_button_text_size</item>

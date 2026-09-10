@@ -620,14 +620,14 @@
     "uk": "Вибирає, що показувати замість відсутньої обкладинки альбому під час відтворення аудіо."
   },
   "rowAudioFormat": {
-    "en": "Chooses the sample rate and channel layout used when the phone broadcasts its audio, so a listening device receives a format it can play.",
-    "ru": "Выбирает частоту дискретизации и число каналов при вещании звука с телефона, чтобы принимающее устройство получило воспроизводимый формат.",
-    "uk": "Вибирає частоту дискретизації та кількість каналів під час трансляції звуку з телефона, щоб пристрій-приймач отримав формат, який він може відтворити."
+    "en": "Sets the sample rate and channel count (mono or stereo) of the encoded broadcast audio, which determines receiver compatibility.",
+    "ru": "Задаёт частоту дискретизации и число каналов (моно или стерео) кодируемого аудиопотока, что определяет совместимость с приёмником.",
+    "uk": "Задає частоту дискретизації та кількість каналів (моно або стерео) кодованого аудіопотоку, що визначає сумісність із приймачем."
   },
   "rowAutoOpenShare": {
-    "en": "Opens the sharing screen with the QR code automatically as soon as a broadcast goes live.",
-    "ru": "Автоматически открывает экран с QR-кодом, как только вещание вышло в эфир.",
-    "uk": "Автоматично відкриває екран із QR-кодом, щойно трансляція вийшла в ефір."
+    "en": "When enabled, opens the share screen with the broadcast address and QR code automatically when a broadcast starts.",
+    "ru": "Если включено, экран поделиться с адресом вещания и QR-кодом открывается автоматически при старте вещания.",
+    "uk": "Якщо ввімкнено, екран поширення з адресою вещання та QR-кодом відкривається автоматично при старті вещання."
   },
   "rowBigButtonsMode": {
     "en": "Enlarges the player control buttons for easier tapping on large or touch-only screens.",
@@ -635,9 +635,9 @@
     "uk": "Збільшує кнопки керування плеєром для зручного натискання на великих або сенсорних екранах."
   },
   "rowBitRate": {
-    "en": "Sets the audio quality of the broadcast; the same value is reported to the listening device, so what it is told matches what it receives.",
-    "ru": "Задаёт качество звука вещания; это же значение сообщается принимающему устройству, поэтому заявленное совпадает с получаемым.",
-    "uk": "Задає якість звуку трансляції; це саме значення повідомляється пристрою-приймачу, тому заявлене збігається з отриманим."
+    "en": "Sets the audio encoder bit rate for the broadcast. The ICY metadata header reports the same value to receivers.",
+    "ru": "Задаёт битрейт аудиокодера для вещания. Заголовок метаданных ICY сообщает приёмнику то же значение.",
+    "uk": "Задає бітрейт аудіокодера для вещання. Заголовок метаданих ICY повідомляє приймачу те саме значення."
   },
   "rowBrowseSwipeLeftAction": {
     "en": "Sets the action executed when swiping left on a file in the file browser.",
@@ -1130,9 +1130,9 @@
     "uk": "Застосунок, який запускає цей напрямок. Показується лише поки напрямку призначено запуск застосунку; кнопка скидання поруч очищає вибір, не змінюючи дію."
   },
   "rowLauncherDensity": {
-    "en": "Sets how many icons the launcher desktop grid fits per row and column; dense by default.",
-    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера; по умолчанию плотная.",
-    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера; типово щільна."
+    "en": "Sets how many icons the launcher desktop grid fits per row and column; large cells (sparse grid) by default.",
+    "ru": "Задаёт, сколько значков помещается по строкам и столбцам сетки рабочего стола лаунчера; по умолчанию крупные ячейки (разреженная сетка).",
+    "uk": "Задає, скільки піктограм вміщується в рядках і стовпцях сітки робочого столу лаунчера; типово великі комірки (розріджена сітка)."
   },
   "rowLauncherDesktopDoubleTapLock": {
     "en": "Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default.",
@@ -1380,9 +1380,9 @@
     "uk": "Показує лічильник кадрів на секунду поверх відео під час відтворення."
   },
   "rowPort": {
-    "en": "Sets the network port the broadcast is served on; if it is already in use, the broadcast reports the conflict instead of moving to another port.",
-    "ru": "Задаёт сетевой порт, на котором раздаётся вещание; если порт занят, вещание сообщает о конфликте, а не переходит на другой порт.",
-    "uk": "Задає мережевий порт, на якому роздається трансляція; якщо порт зайнятий, трансляція повідомляє про конфлікт, а не переходить на інший порт."
+    "en": "Sets the network port the broadcast server binds to. If the port is already in use, the broadcast does not start.",
+    "ru": "Задаёт сетевой порт, на который привязывается сервер вещания. Если порт занят, вещание не стартует.",
+    "uk": "Задає мережевий порт, до якого прив\'язується сервер вещання. Якщо порт зайнято, вещання не стартує."
   },
   "rowPowerSaving": {
     "en": "Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%.",
@@ -1545,9 +1545,9 @@
     "uk": "Вмикає можливість додавати SMB-ресурси локальної мережі (NAS, ПК) як віддалені ресурси."
   },
   "rowStreamTitle": {
-    "en": "Sets the name a listening device shows for this broadcast; the same name is used everywhere the stream identifies itself.",
-    "ru": "Задаёт имя, под которым вещание видно на принимающем устройстве; это же имя используется везде, где поток себя называет.",
-    "uk": "Задає ім'я, під яким трансляція видна на пристрої-приймачі; це саме ім'я використовується всюди, де потік себе називає."
+    "en": "Sets the stream title broadcast in both the ICY metadata and the descriptor, so receivers display a consistent name.",
+    "ru": "Задаёт заголовок потока, который вещается в метаданных ICY и в дескрипторе одновременно, чтобы приёмник показывал одно имя.",
+    "uk": "Задає заголовок потоку, який вещається в метаданих ICY та в дескрипторі одночасно, щоб приймач показував одне ім\'я."
   },
   "rowStreamsEnablePip": {
     "en": "Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section.",
@@ -1653,6 +1653,11 @@
     "en": "Automatically copies the captured video frame snapshot to the clipboard.",
     "ru": "Автоматически копирует снятый кадр видео в буфер обмена.",
     "uk": "Автоматично копіює знятий кадр відео до буфера обміну."
+  },
+  "rowVisualizeAsMusic": {
+    "en": "Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped.",
+    "ru": "Открывает аудиотрансляцию в полноэкранном проигрывателе с визуализацией вместо нижней мини-панели при нажатии.",
+    "uk": "Відкриває аудіотрансляцію у повноекранному програвачі з візуалізацією замість нижньої міні-панелі при натисканні."
   },
   "rowWallpaperPalette": {
     "en": "Selects the color palette for procedural wave and particle animations on the launcher desktop and audio player empty state: Dynamic (multicolor), Greenish, Pinkish, or Blueish.",

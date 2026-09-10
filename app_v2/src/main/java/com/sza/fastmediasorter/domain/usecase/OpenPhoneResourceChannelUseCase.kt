@@ -39,9 +39,10 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
         return when {
             lookup.isFailure -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             resource == null -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
-            !resource.isDeliverable() -> PhoneResourceChannel.Rejected(
-                WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA
-            )
+            !resource.isDeliverable() -> {
+                Timber.d("S2911: rejected UNSUPPORTED_MEDIA path=%s type=%s", resource.path, resource.type)
+                PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
+            }
             else -> approveOrReject(resource, item, forWatchTransfer)
         }
     }
@@ -109,9 +110,13 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
      * Only phone-owned storage is delivered. A network resource is deliberately excluded: the watch
      * already reaches SMB, SFTP and FTP on its own, so relaying one through the phone would add a
      * second, slower path to content that is not the gap this ticket closes.
+     *
+     * S2911: a `virtual://` resource is an on-device MediaStore aggregate the phone reads from disk, so
+     * it is deliverable by the same reasoning as a LOCAL folder. Admitting it by path keeps delivery
+     * independent of the `type` field, which a device database may hold either way.
      */
     private fun MediaResource.isDeliverable(): Boolean =
-        isAvailable && accessPin == null && type == ResourceType.LOCAL
+        isAvailable && accessPin == null && (type == ResourceType.LOCAL || VirtualPathUtils.isVirtualPath(path))
 
     companion object {
         /** Families the Wear app can actually render once the bytes arrive. */

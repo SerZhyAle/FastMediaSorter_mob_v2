@@ -26,6 +26,9 @@
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             android:visibility="gone" />
 
         <!-- Primary slot: default Share (icon-only) -->
@@ -34,6 +37,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             app:icon="@drawable/ic_share" />
 
         <!-- Inline slot: Save to file (default) or Copy full report (sensitive system info) -->
@@ -42,6 +48,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             app:icon="@drawable/ic_create_text_file" />
 
         <!-- Optional extra action (e.g. clear log), wired in ScrollableTextDialog -->
@@ -50,6 +59,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             android:visibility="gone" />
 
         <!-- Crash report to author (S0483): shown only for real errors (exception-backed) -->
@@ -58,6 +70,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             android:visibility="gone"
             app:icon="@drawable/ic_send_email" />
 
@@ -67,6 +82,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             app:icon="@drawable/ic_copy" />
 
         <!-- Close -->
@@ -75,6 +93,9 @@
             style="@style/Widget.Material3.Button.IconButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="@drawable/focus_button_background"
             app:icon="@drawable/ic_clear" />
 
     </LinearLayout>

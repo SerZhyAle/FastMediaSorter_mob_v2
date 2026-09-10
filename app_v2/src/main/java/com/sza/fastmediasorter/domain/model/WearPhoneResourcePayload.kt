@@ -104,8 +104,10 @@ data class WearPhoneResourceItem(
     /**
      * Base64 of a small image, or null when this item carries none.
      *
-     * Nullable rather than an empty default: Gson turns a missing key into the default, so an
-     * empty string could not be told apart from "the phone sent nothing".
+     * Nullable rather than an empty default: an empty string could not be told apart from "the phone
+     * sent nothing". S2885 corrected the reason once given here - Gson does NOT turn a missing key
+     * into the Kotlin default, it leaves a reference field null, which is why the nullability has to
+     * be declared rather than assumed.
      */
     @SerializedName("thumbnailBase64") val thumbnailBase64: String? = null
 )
@@ -114,6 +116,8 @@ data class WearPhoneResourcePage(
     @SerializedName("schemaVersion") val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
     @SerializedName("requestId") val requestId: String,
     @SerializedName("status") val status: WearPhoneResourceResponseStatus,
-    @SerializedName("items") val items: List<WearPhoneResourceItem> = emptyList(),
+    // S2885: nullable because Gson leaves an absent field null whatever the Kotlin default says. A
+    // page that carries no `items` key is an empty page, so every reader goes through `.orEmpty()`.
+    @SerializedName("items") val items: List<WearPhoneResourceItem>? = null,
     @SerializedName("nextPageToken") val nextPageToken: String? = null
 )

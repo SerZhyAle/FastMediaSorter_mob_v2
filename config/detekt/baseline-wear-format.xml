@@ -104,9 +104,6 @@
     <ID>NoTrailingSpaces:WearAppModule.kt$WearAppModule$ </ID>
     <ID>NoTrailingSpaces:WearMediaRepository.kt$WearMediaRepository$ </ID>
     <ID>NoTrailingSpaces:WearMediaRepositoryImpl.kt$WearMediaRepositoryImpl$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepository.kt$WearPreferencesRepository$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl.PreferencesKeys$ </ID>
-    <ID>NoTrailingSpaces:WearPreferencesRepositoryImpl.kt$WearPreferencesRepositoryImpl$ </ID>
     <ID>NoTrailingSpaces:WearTextInput.kt$ </ID>
     <ID>NoUnusedImports:AudioPlayerViewModel.kt$com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerViewModel.kt</ID>
     <ID>NoUnusedImports:BrowseScreen.kt$com.sza.fastmediasorter.wear.ui.browse.BrowseScreen.kt</ID>

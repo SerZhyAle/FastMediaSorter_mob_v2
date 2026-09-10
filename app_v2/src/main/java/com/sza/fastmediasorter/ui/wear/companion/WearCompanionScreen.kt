@@ -49,7 +49,7 @@ import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
-import com.sza.fastmediasorter.ui.settings.WearListenState
+import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.ui.settings.WearSyncUiState
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import dagger.hilt.android.EntryPointAccessors
@@ -536,7 +536,7 @@ private fun ListenAction(state: WearListenState, onStart: () -> Unit, onStop: ()
                 .size(LISTEN_PROGRESS_SIZE)
                 .testTag("wearListenWaiting")
         )
-        WearListenState.Listening -> OutlinedButton(
+        is WearListenState.Listening -> OutlinedButton(
             onClick = onStop,
             modifier = Modifier.testTag("wearListenStop")
         ) {
@@ -549,5 +549,5 @@ private fun ListenAction(state: WearListenState, onStart: () -> Unit, onStop: ()
 private fun listenCaptionOf(state: WearListenState): Int = when (state) {
     is WearListenState.Idle -> R.string.wear_listen_caption_idle
     WearListenState.Awaiting -> R.string.wear_listen_caption_waiting
-    WearListenState.Listening -> R.string.wear_listen_caption_listening
+    is WearListenState.Listening -> R.string.wear_listen_caption_listening
 }

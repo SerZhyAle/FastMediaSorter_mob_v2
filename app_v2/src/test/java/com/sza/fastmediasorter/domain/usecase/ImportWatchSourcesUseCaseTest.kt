@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
+import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
 import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
@@ -32,7 +33,12 @@ class ImportWatchSourcesUseCaseTest {
     private lateinit var stampStore: FakeStampStore
     private lateinit var tombstoneStore: FakeWearResourceTombstoneStore
     private lateinit var aliasStore: FakeWearResourceIdAliasStore
+    private lateinit var selectionRepository: WearResourceSelectionRepositoryImpl
     private lateinit var useCase: ImportWatchSourcesUseCase
+
+    // S2882: the watch mark set, held here rather than in SharedPreferences - the repository is a
+    // final class over a Context, and this test class has no Robolectric environment to give it one.
+    private val markedForWatch = mutableSetOf<Long>()
 
     private fun source(
         type: String = "SMB",
@@ -61,13 +67,21 @@ class ImportWatchSourcesUseCaseTest {
         stampStore = FakeStampStore()
         tombstoneStore = FakeWearResourceTombstoneStore()
         aliasStore = FakeWearResourceIdAliasStore()
+        markedForWatch.clear()
+        selectionRepository = mockk(relaxed = true)
+        coEvery { selectionRepository.getSelectedIds() } answers { markedForWatch.toSet() }
+        coEvery { selectionRepository.setSelectedIds(any()) } answers {
+            markedForWatch.clear()
+            markedForWatch.addAll(firstArg<Set<Long>>())
+        }
         useCase = ImportWatchSourcesUseCase(
             resourceRepository,
             credentialsRepository,
             Gson(),
             stampStore,
             tombstoneStore,
-            aliasStore
+            aliasStore,
+            selectionRepository
         )
     }
 
@@ -122,6 +136,33 @@ class ImportWatchSourcesUseCaseTest {
     fun `empty payload yields zero counts`() = runTest {
         val result = useCase(WearSourcesExportPayload(emptyList(), "Watch"))
         assertEquals(ImportWatchResult(added = 0, skipped = 0), result.getOrThrow())
+    }
+
+    // S2882: the mark follows a creation and never an update. Without the first half, the next push
+    // would declare the watch's own source withdrawn and delete it there; with the second half wrong,
+    // the watch exporting an unticked resource would tick the box back behind the owner.
+
+    @Test
+    fun `a source the phone has no resource for enters the watch mark set`() = runTest {
+        coEvery { credentialsRepository.getByTypeServerAndPort(any(), any(), any()) } returns null
+        coEvery { resourceRepository.addResource(any()) } returns 42L
+
+        useCase(WearSourcesExportPayload(listOf(source()), "Watch")).getOrThrow()
+
+        assertEquals(setOf(42L), markedForWatch)
+    }
+
+    @Test
+    fun `a source matching an existing resource leaves the watch mark set untouched`() = runTest {
+        givenPhoneResource(id = 7L, name = "phone name", stamp = SENT_AT - 9_000L)
+
+        useCase(
+            exportPayload(source(id = "7", name = "watch name", lastEditedAt = SENT_AT - 1_000L)),
+            receivedAtEpochMillis = RECEIVED_AT
+        ).getOrThrow()
+
+        assertEquals(emptySet<Long>(), markedForWatch)
+        coVerify(exactly = 0) { selectionRepository.setSelectedIds(any()) }
     }
 
     // S2502: this leg used to skip on any match. It now ranks the two edits and can replace.

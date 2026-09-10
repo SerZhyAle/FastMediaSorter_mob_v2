@@ -451,7 +451,7 @@ CI workflow:
 - **База данных**: Room 2.7.0
 - **Навигация**: AndroidX Navigation Component
 - **Медиа**: ExoPlayer (Media3 1.2.1)
-- **Изображения**: Glide 4.16.0 с кастомным NetworkFileModelLoader
+- **Изображения**: Glide 5.0.9 с кастомным NetworkFileModelLoader
 - **Сетевые протоколы**:
   - SMB: SMBJ 0.12.1 с BouncyCastle (транзитивно)
   - SFTP: JSch 0.2.26 (форк com.github.mwiede, Ed25519 встроен)

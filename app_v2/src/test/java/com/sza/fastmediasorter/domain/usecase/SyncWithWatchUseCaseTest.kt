@@ -80,6 +80,22 @@ class SyncWithWatchUseCaseTest {
         assertTrue(outcome.failedLegs.isEmpty())
     }
 
+    // S2882: withdrawing resources is work the watch acts on, so a batch that sent none and withdrew
+    // some is a success. Reported as NothingToSend it would repeat the silence of the unticked box.
+
+    @Test
+    fun `a batch that only withdrew resources is a success, not an empty selection`() = runTest {
+        coEvery { sendResources() } returns Result.success(
+            SendResult(sent = 0, skipped = 0, deselected = 2)
+        )
+        coEvery { pushSettings(settings) } returns Result.success(Unit)
+
+        val outcome = useCase(settings)
+
+        assertEquals(WearSyncLegResult.Succeeded(0), outcome.legs[WearSyncLeg.RESOURCES_OUT])
+        assertTrue(outcome.failedLegs.isEmpty())
+    }
+
     @Test
     fun `a failing settings leg leaves the resource leg's success intact`() = runTest {
         coEvery { sendResources() } returns Result.success(SendResult(sent = 2, skipped = 0))

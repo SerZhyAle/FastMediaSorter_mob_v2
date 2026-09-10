@@ -549,7 +549,9 @@ class WatchWearListenerService : WearableListenerService() {
     private suspend fun sendAck(nodeId: String, result: ImportResult) {
         if (nodeId.isBlank()) return
         Timber.d("S2278: catalog sync ack serialized via Gson to $nodeId")
-        val ackJson = gson.toJson(SyncAck(added = result.added, updated = result.updated))
+        val ackJson = gson.toJson(
+            SyncAck(added = result.added, updated = result.updated, removed = result.removed)
+        )
         try {
             Wearable.getMessageClient(this)
                 .sendMessage(nodeId, WearDataLayerPaths.NETWORK_SOURCES_ACK, ackJson.toByteArray())
@@ -570,7 +572,12 @@ class WatchWearListenerService : WearableListenerService() {
  * already used the injected [com.google.gson.Gson]. Nothing escaped the values, and a third
  * serialization idiom in one file is one the next reader has to notice.
  */
-private data class SyncAck(val added: Int, val updated: Int)
+/**
+ * @param removed S2882: sources this watch deleted because the phone withdrew them. The phone reads
+ *   these fields out of the JSON by name, so a phone that does not know this one simply scores it
+ *   zero - the field is additive in both directions and needs no version handshake.
+ */
+private data class SyncAck(val added: Int, val updated: Int, val removed: Int)
 
 /** Process-wide event bus for sync results on the watch. */
 object WatchSyncEvents {

@@ -49,6 +49,7 @@ class ExoPlayerControlsManager(
         fun onVrLaunchClicked()
         // S1114: true when VR entry is available now (XR device + 3D/VR master toggle + video).
         fun isVrEntryAvailable(): Boolean
+        fun onControllerVisibilityChanged(visibility: Int) {}
     }
     
     /**
@@ -58,44 +59,39 @@ class ExoPlayerControlsManager(
     fun setupExoPlayerNavigationButtons() {
         // Set PlayerView for VideoPlayerManager (required for video rendering)
         videoPlayerManager.setPlayerView(binding.playerView)
-        
-        // Find custom navigation buttons in PlayerView's controller
+
+        // Setup file navigation buttons (previous/next)
         binding.playerView.findViewById<ImageButton>(R.id.exo_prev_file)?.setOnClickListener {
             UserActionLogger.logButtonClick("ExoPrevFile", "ExoPlayerControlsManager")
-            // S0120: track manual video navigation; always VID-playback per spec matrix
-            MemoryEnduranceTracker.checkpoint("TRANSITION", "VID-playback")
             callback.onPreviousFile()
         }
+
         binding.playerView.findViewById<ImageButton>(R.id.exo_next_file)?.setOnClickListener {
             UserActionLogger.logButtonClick("ExoNextFile", "ExoPlayerControlsManager")
-            // S0120: track manual video navigation; always VID-playback per spec matrix
-            MemoryEnduranceTracker.checkpoint("TRANSITION", "VID-playback")
             callback.onNextFile()
         }
-        
-        // Reuse the existing repeat slot as the single playback-order entry point.
-        val repeatButton = binding.playerView.findViewById<ImageButton>(R.id.exo_repeat)
-        repeatButton?.setOnClickListener {
+
+        // Setup playback-order button
+        binding.playerView.findViewById<ImageButton>(R.id.exo_repeat)?.setOnClickListener {
             UserActionLogger.logButtonClick("PlaybackOrder", "ExoPlayerControlsManager")
             callback.onPlaybackOrderClicked()
         }
-        
-        // Consolidate speed/audio/subtitle actions behind a single bottom-bar entry point.
+
+        // Setup unified playback control button
         binding.playerView.findViewById<ImageButton>(R.id.btnPlaybackControl)?.setOnClickListener {
             UserActionLogger.logButtonClick("PlaybackControl", "ExoPlayerControlsManager")
             callback.showPlaybackControlDialog()
         }
 
-        // S1114: VR entry from the transport row - reachable in fullscreen (unlike the top badge).
+        // S1114: VR entry from the transport row - launch immersive mode for current video
         binding.playerView.findViewById<ImageButton>(R.id.btnVrLaunch)?.setOnClickListener {
             UserActionLogger.logButtonClick("VrLaunch", "ExoPlayerControlsManager")
             callback.onVrLaunchClicked()
         }
-        
-        // Setup rewind/forward buttons for audiobook mode
+
+        // Setup audiobook rewind/forward buttons
         val btnRewind = binding.playerView.findViewById<ImageButton>(R.id.btnRewind10)
         val btnForward = binding.playerView.findViewById<ImageButton>(R.id.btnForward30)
-        
         Timber.d("ExoPlayerControlsManager: btnRewind10 = ${btnRewind}, btnForward30 = ${btnForward}")
         
         btnRewind?.setOnClickListener {
@@ -114,12 +110,14 @@ class ExoPlayerControlsManager(
         // S0641: the PlayerView controller re-runs its own visibility pass each time it appears, which
         // would re-show the playback-order toggle and seek bar. Re-apply the stream control profile on
         // every controller-show so the trimmed live-stream set stays trimmed.
+        // S2895: notify callback so close/exit button visibility syncs with controller visibility.
         binding.playerView.setControllerVisibilityListener(
             PlayerView.ControllerVisibilityListener { visibility ->
                 if (visibility == View.VISIBLE) {
                     applyStreamControlProfile()
                     updateVrEntryButtonVisibility()
                 }
+                callback.onControllerVisibilityChanged(visibility)
             }
         )
         applyStreamControlProfile()

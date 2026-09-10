@@ -71,6 +71,7 @@
                 android:id="@+id/csh_summary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:importantForAccessibility="no"
                 android:maxLines="1"
                 android:ellipsize="end"
                 android:textColor="?attr/colorOnSurfaceVariant"

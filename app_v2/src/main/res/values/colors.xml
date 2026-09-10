@@ -263,7 +263,11 @@
          S0914-R1 (2026-07-03): the resource-type filter panel dropped its accent (owner decision after the
          S0809/S0914 device-test screenshot) - it now sits on the form's own ?attr/colorSurface with
          ?attr/colorControlNormal content, so main_filter_panel_accent was removed as unused. -->
-    <color name="main_programs_panel_accent">#CC4D4D00</color>
+    <!-- S2889: opaque, not #CC4D4D00. The alpha made this strip composite with ?attr/colorSurface, so it
+         read #414104 in the dark theme but #717133 in the light one - and on that lighter olive five of the
+         eight color_program_accent_*_on_dark tones fell below the 3:1 non-text contrast threshold (worst:
+         purple at 2.14). Opaque, all eight pass in both themes at 3.70 or better. The hue is unchanged. -->
+    <color name="main_programs_panel_accent">#FF4D4D00</color>
     <color name="main_streams_panel_accent">#CC4D004D</color>
     <color name="main_panel_accent_foreground">@color/white</color>
 
@@ -441,6 +445,21 @@
     <color name="color_program_accent_blue">#FF1976D2</color>    <!-- Blue 700 -->
     <color name="color_program_accent_indigo">#FF303F9F</color>  <!-- Indigo 700 -->
     <color name="color_program_accent_purple">#FF7B1FA2</color>  <!-- Purple 700 -->
+
+    <!-- S2889: the same eight tones for a surface whose background does NOT follow the theme - today the
+         main-window programs panel, which sits on an opaque dark strip in both themes. Declared here and
+         deliberately given NO values-night twin: that absence is the mechanism, not an omission, and it is
+         what makes these resolve to the light half of the palette whatever the theme is doing. A caller
+         picks between these and the theme-following names by the background it draws on (strategic ADR-2);
+         the names above stay frozen because the wear module declares the same set (S2510 ADR-4). -->
+    <color name="color_program_accent_red_on_dark">#FFEF9A9A</color>     <!-- Red 200 -->
+    <color name="color_program_accent_orange_on_dark">#FFFFCC80</color>  <!-- Orange 200 -->
+    <color name="color_program_accent_amber_on_dark">#FFFFE082</color>   <!-- Amber 200 -->
+    <color name="color_program_accent_green_on_dark">#FFA5D6A7</color>   <!-- Green 200 -->
+    <color name="color_program_accent_teal_on_dark">#FF80CBC4</color>    <!-- Teal 200 -->
+    <color name="color_program_accent_blue_on_dark">#FF90CAF9</color>    <!-- Blue 200 -->
+    <color name="color_program_accent_indigo_on_dark">#FF9FA8DA</color>  <!-- Indigo 200 -->
+    <color name="color_program_accent_purple_on_dark">#FFCE93D8</color>  <!-- Purple 200 -->
 
     <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone). -->
     <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->

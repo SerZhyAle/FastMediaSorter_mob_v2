@@ -114,6 +114,10 @@ $stubDefaults = @{
     FMS_STUB_SECURE   = '0'
     FMS_STUB_WATCH    = '0'
     FMS_STUB_FONT_SCALE = ''
+    # S2855: the install verb's recording hook reads the version back through dumpsys. A case that
+    # names a body here makes the stub answer it verbatim; the empty default keeps the passthrough.
+    # Lives in this table so Invoke-Verb resets it for every case like the rest of the stub input.
+    FMS_STUB_DUMPSYS_PACKAGE = ''
 }
 
 # Run one verb through the real adb.ps1 and bring back the process exit code plus the parsed object.
@@ -461,6 +465,62 @@ if ($null -ne $r.json) {
 }
 Assert-Failure (Invoke-Verb @('tap-id', '-ResourceId', 'nothingMatchesThis', '-Exact')) 'tap-id' 8 'tap-id with no matching node'
 Assert-Failure (Invoke-Verb @('tap-label', '-Label', 'nothingMatchesThis', '-Exact')) 'tap-label' 8 'tap-label with no matching node'
+
+Write-Host ""
+Write-Host "== install records the registry mark (S2855) ==" -ForegroundColor Cyan
+# The install verb's recording hook must turn one successful install into a registry record whose
+# values come from the device's own dumpsys answer, stamped with the entry point. The stub answers
+# dumpsys from FMS_STUB_DUMPSYS_PACKAGE with a lastUpdateTime of NOW, because the hook's freshness
+# guard must read a package THIS install touched. The device serial is a test serial so the record
+# lands beside the real park under a name the finally block removes.
+$registryStore = Join-Path $repoRoot 'temp/DEVICE.REGISTRY'
+$testSerial = 'test-registry-emulator'
+$testRecord = Join-Path $registryStore "$testSerial.json"
+$recordApk = Join-Path $runDir 'record-case.apk'
+Set-Content -LiteralPath $recordApk -Value 'not a real apk - the stub accepts any install -r -d' -Encoding UTF8
+# One stamp, captured once: the stale variant is derived from the fresh body by a literal replace,
+# so the only difference between the two cases is the lastUpdateTime the hook judges.
+$recordStamp = [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss')
+$dumpsysBody = @"
+Package [com.sza.fastmediasorter.debug] (abcd):
+  versionCode=4242 minSdk=26 targetSdk=36
+  versionName=2.60.9100.999
+  lastUpdateTime=$recordStamp
+"@
+try {
+    $r = Invoke-Verb @('install', '-Apk', $recordApk) -Stub @{
+        FMS_STUB_DEVICES            = $testSerial
+        FMS_STUB_DUMPSYS_PACKAGE    = $dumpsysBody
+    }
+    if (Assert-Envelope $r 'install' $true 0) {
+        if (Test-Path -LiteralPath $testRecord) {
+            $record = Get-Content -LiteralPath $testRecord -Raw | ConvertFrom-Json
+            Assert-Equal 'com.sza.fastmediasorter.debug' $record.lastInstall.package 'recorded package'
+            Assert-Equal '2.60.9100.999'                 $record.lastInstall.versionName 'recorded versionName'
+            Assert-Equal 'debug'                         $record.lastInstall.buildType 'recorded buildType'
+            Assert-Equal 'adb.ps1 install'               $record.lastInstall.recordedBy 'recorded entry point'
+            Assert-Equal 'record-case.apk'               $record.lastInstall.artifact 'recorded artifact name'
+        }
+        else {
+            Assert-Equal 'a record on disk' 'absent' 'the install wrote no registry record'
+        }
+    }
+
+    # A dumpsys answer about a package this install did NOT touch (an old lastUpdateTime) must not
+    # produce a record - a pre-existing install is not a fact about this verb's work.
+    Remove-Item -LiteralPath $testRecord -Force -ErrorAction SilentlyContinue
+    $staleBody = $dumpsysBody.Replace($recordStamp, '2020-01-01 00:00:00')
+    $r = Invoke-Verb @('install', '-Apk', $recordApk) -Stub @{
+        FMS_STUB_DEVICES         = $testSerial
+        FMS_STUB_DUMPSYS_PACKAGE = $staleBody
+    }
+    if (Assert-Envelope $r 'install' $true 0) {
+        Assert-True (-not (Test-Path -LiteralPath $testRecord)) 'a stale lastUpdateTime produced a record - the freshness guard failed'
+    }
+}
+finally {
+    Remove-Item -LiteralPath $testRecord -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host ""
 Write-Host "== coverage ratchet ==" -ForegroundColor Cyan

@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -50,6 +51,7 @@ import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
+import java.util.concurrent.TimeUnit
 
 private const val SINGLE_COLUMN = 1
 private const val MENU_LABEL_MAX_LINES = 2
@@ -57,6 +59,8 @@ private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val CELL_BUTTON_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
 private val CELL_ICON_SIZE = 24.dp
 private val SYNC_CELL_TOP_PADDING = 8.dp
+private const val STALE_THRESHOLD_DAYS = 1L
+private val STALE_THRESHOLD_MS = TimeUnit.DAYS.toMillis(STALE_THRESHOLD_DAYS)
 
 @Composable
 fun SettingsScreen(
@@ -183,6 +187,10 @@ private fun ScalingLazyListScope.settingsItems(
  *
  * The caption reads from the stored sync time rather than from the press, so a press that reached
  * nothing leaves the old time standing instead of claiming a sync that did not happen.
+ *
+ * S2867: when the last sync is older than a day (or never happened), the caption itself becomes the
+ * sync trigger - drawn in the theme's error colour so the stale state is visible, and tappable so the
+ * user does not have to reach for the button above to act on what the line tells them.
  */
 @Composable
 private fun SyncSettingsCell(
@@ -190,6 +198,8 @@ private fun SyncSettingsCell(
     syncing: Boolean,
     onSync: () -> Unit
 ) {
+    val isStale = lastSyncedAtEpochMillis <= 0L ||
+        System.currentTimeMillis() - lastSyncedAtEpochMillis > STALE_THRESHOLD_MS
     val caption = if (lastSyncedAtEpochMillis <= 0L) {
         stringResource(R.string.wear_settings_sync_never)
     } else {
@@ -210,7 +220,15 @@ private fun SyncSettingsCell(
             text = caption,
             style = MaterialTheme.typography.caption3,
             textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth()
+            color = if (isStale) MaterialTheme.colors.error else Color.Unspecified,
+            modifier = if (isStale) {
+                Modifier.fillMaxWidth().clickable(enabled = !syncing) {
+                    Timber.d("S2867: stale sync caption tapped, triggering sync")
+                    onSync()
+                }
+            } else {
+                Modifier.fillMaxWidth()
+            }
         )
     }
 }

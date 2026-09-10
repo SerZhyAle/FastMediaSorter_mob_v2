@@ -27,7 +27,14 @@ function New-Fixture {
         [string[]]$InventoryHooks = @(),
         [switch]$OmitInventory,
         [switch]$OmitProjectSettings,
-        [switch]$EmptyInventoryTable
+        [switch]$EmptyInventoryTable,
+
+        # S2872 - the rule sheet the gate's third comparison reads. $null means "name exactly the
+        # inventory hooks under '## The rules'", which is the shape every pre-S2872 case assumed
+        # without knowing it, so those cases needed no edit beyond this default.
+        [string[]]$SheetRuleHooks = $null,
+        [string[]]$SheetNotPortableHooks = @(),
+        [switch]$OmitRuleSheet
     )
 
     $root = Join-Path ([System.IO.Path]::GetTempPath()) ("s1604-" + [guid]::NewGuid().ToString('N'))
@@ -70,6 +77,27 @@ function New-Fixture {
         # Prose naming a .ps1 that is NOT a hook - the gate must ignore it.
         $lines.Add('Enforced by ``scripts/quality/assert-hook-inventory.ps1`` inside ``a.ps1 fg``.')
         $lines | Set-Content -LiteralPath (Join-Path $root 'docs/AGENT_HOOKS.md') -Encoding utf8
+    }
+
+    if (-not $OmitRuleSheet) {
+        $sheetRules = if ($null -ne $SheetRuleHooks) { $SheetRuleHooks } else { $InventoryHooks }
+        $sheet = New-Object System.Collections.Generic.List[string]
+        $sheet.Add('# Rules you enforce yourself')
+        $sheet.Add('')
+        $sheet.Add('## The rules')
+        $sheet.Add('')
+        $i = 0
+        foreach ($h in $sheetRules) { $i++; $sheet.Add("$i. Do the thing (``$h``).") }
+        $sheet.Add('')
+        $sheet.Add('## Before you say done')
+        $sheet.Add('')
+        # Names a hook OUTSIDE the two covering sections: the gate must not count it as covered.
+        $sheet.Add('Run ``scripts/utils/preflight-checks.ps1``, which is not ``guard-uncovered-elsewhere``.')
+        $sheet.Add('')
+        $sheet.Add('## Not portable')
+        $sheet.Add('')
+        foreach ($h in $SheetNotPortableHooks) { $sheet.Add("- ``$h`` gives you no rule to follow.") }
+        $sheet | Set-Content -LiteralPath (Join-Path $root 'docs/NON_CLAUDE_RUNTIME_RULES.md') -Encoding utf8
     }
 
     return [pscustomobject]@{ Root = $root; GlobalPath = $globalPath }
@@ -155,6 +183,32 @@ Invoke-Case -Name 'empty inventory table cannot verify' -ExpectedExit 2 -Expecte
 Invoke-Case -Name 'missing project settings cannot verify' -ExpectedExit 2 -ExpectedText 'settings.json not found' -Fixture @{
     InventoryHooks      = @('guard-alpha')
     OmitProjectSettings = $true
+}
+
+# --- S2872: the third comparison, the rule sheet ------------------------------
+# The three cases below are the sheet's own failure modes. The first is the one the gate exists
+# for; the second proves "Not portable" is a real answer and not a formality, so an author is
+# never forced to invent an imperative for a hook that guards nothing they decide; the third
+# keeps an absent sheet distinguishable from an incomplete one, because "the sheet is gone" and
+# "the sheet forgot a hook" call for opposite reactions.
+
+Invoke-Case -Name 'a hook missing from the rule sheet fails 1' -ExpectedExit 1 -ExpectedText 'named in neither section of docs/NON_CLAUDE_RUNTIME_RULES.md' -Fixture @{
+    ProjectHooks   = @('guard-alpha', 'guard-beta')
+    InventoryHooks = @('guard-alpha', 'guard-beta')
+    SheetRuleHooks = @('guard-alpha')
+}
+
+Invoke-Case -Name 'a hook named only under Not portable is covered' -ExpectedExit 0 -ExpectedText 'PASS' -Fixture @{
+    ProjectHooks          = @('guard-alpha', 'guard-beta')
+    InventoryHooks        = @('guard-alpha', 'guard-beta')
+    SheetRuleHooks        = @('guard-alpha')
+    SheetNotPortableHooks = @('guard-beta')
+}
+
+Invoke-Case -Name 'a missing rule sheet cannot verify' -ExpectedExit 2 -ExpectedText 'NON_CLAUDE_RUNTIME_RULES.md not found' -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
+    OmitRuleSheet  = $true
 }
 
 Write-Host ""

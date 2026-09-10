@@ -141,6 +141,32 @@ object SubProgramCatalog {
             ),
             disable = { it.copy(enableWearCompanion = false) },
         ),
+        // S2881: the two listen calls stand beside the companion they extend, both keyed to the same
+        // switch - removing the companion removes its listening with it. Two entries, not one (ADR-6):
+        // a registry entry resolves to exactly one intent. The widget pairs with the plain listen
+        // entry only; the record variant is the widget's second button, not a second widget.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_WATCH_LISTEN,
+            order = 91,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+                SubProgramSurface.WIDGET,
+            ),
+            widgetKey = "watch_listen",
+            disable = { it.copy(enableWearCompanion = false) },
+        ),
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD,
+            order = 92,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+            disable = { it.copy(enableWearCompanion = false) },
+        ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_FRONT_FLASHLIGHT,
             order = 100,

@@ -350,7 +350,7 @@ Symptom, if the setting is ever removed: `:app_v2:kspStandardDebugKotlin` fails 
 
 ```text
 e: [ksp] java.lang.IllegalArgumentException: this and base files have different roots:
-   C:\Users\<user>\.gradle\caches\<ver>\transforms\..\okhttp3-integration-4.16.0-api.jar!\..\GlideIndexer_..class
+   C:\Users\<user>\.gradle\caches\<ver>\transforms\..\okhttp3-integration-5.0.7-api.jar!\..\GlideIndexer_..class
    and P:\ANDROID\FastMediaSorter_mob_v2\app_v2
 ```
 
@@ -363,6 +363,16 @@ Cause: KSP2's incremental bookkeeping relativizes every classpath entry against 
 - The line is inert wherever the cache and project share a root (Linux CI, or a same-drive Windows layout).
 
 A same-root layout (`GRADLE_USER_HOME` on the project's drive) also avoids the crash, but that is a machine-specific absolute path - the same reason `org.gradle.java.home` is not committed, see the header of `gradle.properties`.
+
+### The closure preflight - S2872
+
+`pwsh -NoProfile -File scripts/utils/preflight-checks.ps1` asks once, at the end of a session, what coordination state you are about to leave behind: `FMS_AGENT_ID` set, a `kind=session` start line posted, no lock domain still held by you, no lock queue still carrying your ticket, no ticket lease still claimed by you. Each finding prints the remedy command. Exit 0 clean, 1 something is leaked, 2 the harness could not be loaded; `-Json` for a machine-readable summary, `-Quiet` for failures only. It mutates nothing - a preflight that silently repairs what it found hides the leak from the next run.
+
+It is written for a runtime with no hooks (`docs/NON_CLAUDE_RUNTIME_RULES.md`), but four of its five checks read the lock and lease stores described below, so a Claude Code session that leaked the same lock is caught by the same call.
+
+Two things it deliberately does not do. It judges **no working-tree state** - that is `scripts/post-change.ps1 -Files "a,b" -ScopeToFile` for a change and `.\a.ps1 fg` for the fast static gates, and a third copy of the gate set here would drift from both. And it parses **no command history**: nothing outside Claude Code writes one where this repository could read it, which is why the rule sheet's "query the catalogue before grepping `.kt`" has no backstop here - the marker-versus-dirty-`.kt` advisory that was planned fired on 38 standing modified files, this tree's normal state, and a check that always fires teaches the reader to skip the verdict.
+
+Contract suite: `scripts/utils/preflight-checks.tests/Run-Tests.ps1`.
 
 ### Concurrent-agent locks, split by domain - S1338, S2109
 
@@ -534,6 +544,23 @@ pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -
 
 **Resuming across a context reset.** A reset gives the resuming agent a *new* session id, so the round it is resuming is always filed under the old one - and to a liveness test that old session looks alive, because its transcript was written seconds ago. Liveness alone therefore cannot tell "just stopped, waiting to be picked up" from "a sibling working right now". `-Verb Handoff` (which the threshold stop already runs) stamps `handoffAt` on the state, and `-Verb Resume` adopts only a round that is either stamped or whose owner has genuinely gone stale. Without that marker resume would either lose the round or steal a sibling's - there is no third answer available.
 
+#### Device registry - S2855
+
+Where the device lease answers "who is driving this device right now" and is swept when that session goes quiet, the device registry answers what no layer could before: **what was last installed on each test device, when, and by whom** - durable, machine-local, never swept. One file per device under `temp/DEVICE.REGISTRY/<serial>.json`: the lease store's serial discipline with the opposite lifecycle. Releasing or sweeping a lease never touches a mark, and a mark never creates or extends a lease.
+
+```powershell
+# The park: role, who is driving what, and the last install mark
+pwsh -NoProfile -File scripts/devtest/device-registry.ps1 -Verb Status
+
+# The verb the install hooks call; Refresh reconciles from a live device; Forget -Yes erases
+pwsh -NoProfile -File scripts/devtest/device-registry.ps1 -Verb Record -Id emulator-5554 -Package com.sza.fastmediasorter.debug -VersionName 2.60.9100.101 -RecordedBy 'adb.ps1 install'
+pwsh -NoProfile -File scripts/devtest/device-registry.ps1 -Verb Refresh -Id RFCR110NBQJ
+```
+
+The record carries the mark (package, module, flavor, build type, version pair, artifact, when, session and ticket, `recordedBy`) plus the last five installs. **Recording is a by-product of the sanctioned install entry points**: the `adb.ps1 install` verb and the noLegal debug installer write the mark themselves, each stamped with its own `recordedBy`, and a recording failure never fails the install. A freshness guard on `lastUpdateTime` keeps a pre-existing package from being recorded as if this install had touched it. Raw `adb install` stays unrecorded - the advisory principle covers accounting exactly as it covers locking - and `-Verb Refresh` is how out-of-band installs are learned from a live device.
+
+**Marks are facts, never permissions.** `docs/DEVICE_FLEET.md` stays the only authority for what a device permits; the registry records what happened. Read-only verbs never create the store directory, so a probe or the monitor can look without leaving artifacts. The monitor page renders the park in a devices section fed by the page writer, which reads both device stores itself - the snapshot collector and the terminal renderer are canon-harness forwarders (S2402), so the section is page-only by design. `device-ready.ps1 -WithRegistry` attaches the mark to a ready answer behind the same opt-in discipline as `-ClaimFree`.
+
 #### Agent chat - S2372
 
 The fourth coordination layer, and the only one with no rights: it grants nothing, forbids nothing and owns nothing - it tells. The locks, queues and leases answer "busy or free"; the chat answers "busy with what, since when, and is the holder still talking".
@@ -599,7 +626,9 @@ One collector, two renders (S1621): `scripts/utils/dev-monitor-snapshot.ps1` is 
 
 **One roster, not four identity spaces** (owner finding 2026-09-10). The page opened with a `running` table that admitted only two kinds of agent: the owner of a live lease, and one whose *newest* chat message was `kind=session`. An agent that was actually working - posting `phase`, `progress` or `lock` - matched neither and was absent from it, while the lock table below named holders and queue waiters that appeared in no other section; a fourth spelling came from the harness name fallback, which slices the first eight characters of an id that never posted a message, so several distinct `codex-takeover-<epoch>` sessions all printed as `codex-ta`. Measured on the 12:20 snapshot of that day: `Code.Scripts` was held by `jade-gecko-0910-1120`, listed nowhere else on the page. The reader was left to guess that four spellings were one agent, which is the one thing the page exists to answer.
 
-`running` and `agents` are now one section, and it opens the page while `gate health` - reference rather than a live signal - closes it. The roster is keyed by session id: one row per agent carrying its ticket, its phase, the domains it **holds**, the domains it is **waiting for** with its queue position, and the freshest of its three clocks (lease heartbeat, chat message, session record - the oldest of them reads a working agent as quiet). Rows are ordered blockers first, then the blocked, then by freshness. The roster shows what is happening **now**: an agent quiet longer than thirty minutes collapses into one line that still names six of them, rather than the chat window's three hours of history.
+`running` and `agents` are now one section, and it opens the page while `gate health` - reference rather than a live signal - closes it. The roster is keyed by session id: one row per agent carrying its ticket, its phase, the domains it **holds**, the domains it is **waiting for** with its queue position, and the freshest of its three clocks (lease heartbeat, chat message, session record - the oldest of them reads a working agent as quiet). Rows are ordered blockers first, then the blocked, then by freshness. The roster shows what is happening **now**: an agent quiet longer than ten minutes collapses into one line that still names six of them, rather than the chat window's three hours of history. Ten rather than the harness `SilentMinutes` of 45, and the cut can be that hard only because ownership overrides it - see the alarm below.
+
+**The roster spends width and height only on what says something** (owner finding 2026-09-10, third pass - "ugly and uninformative"). Three rules, one cause. `min-width` on a table cell applies to its whole **column**, so `td.wrap`'s 18em floor was claimed by `holds` and `waiting for` even though both printed `-` on 17 of 18 rows - some 650 px held hostage, which is what squeezed the text columns into a strip; an empty cell now drops the class, and a column of short structured content (a domain and a duration) uses a 9em floor rather than the prose one. Half the note rows repeated their own phase cell word for word - `lastNote` and `phaseNote` are the same string whenever the newest message is the phase - so a note row is dropped when it echoes the phase or is `session started/ended` bookkeeping, which the state and `seen` columns already carry, and it is capped at 200 characters with the rest on the row's tooltip because one chat line can be a 600-character gate report. And a row now needs a **ticket** of any provenance to be listed at all, beside the existing hold-or-queue rule: half of what the page called active were sessions whose whole trace was a lock released minutes earlier, at two lines each, so the half that was working did not fit on one screen. Those collapse into the one line, whose first three entries name what they last did so it still separates "finished and went quiet" from "just released a lock". Measured on the 16:21 snapshot: 18 rows over 37 table lines became 7 rows over 15. `?/?` is gone from `runtime/model` - the runtime, the model and the instance print when known and the cell says nothing when they are not - and the first column's header now says `state`, which is what it has always shown.
 
 **The last note is a row, not a column,** spanning the table directly under its agent, whose own row drops its bottom border so the pair reads as one entry. It is the only wrapping cell on the page, so as a column it set the height of every row it appeared on and squeezed the eight narrow columns into a strip.
 
@@ -607,10 +636,18 @@ One collector, two renders (S1621): `scripts/utils/dev-monitor-snapshot.ps1` is 
 
 S2700 adds the parallel-work signals without adding a journal: gate health comes from a bounded tail of `temp/metrics/gate-executions.jsonl`; runner health is summarized from the existing run journals; agent context is the last context-signal marker for its session; and watchdog actions are a bounded tail of `temp/scratch/watchdog/watchdog.log`. A missing or empty source reads as `source silent`, not as a red failure. The page puts gate health and watchdog actions in their own tables, annotates a `set-named` gate as `named your file`, and colors an agent context marker only when it says `over threshold`. The terminal exposes the same fields. A source reader must stay in the snapshot function - neither renderer reads any of these files directly.
 
+**`problems` opens the page** (owner ruling 2026-09-10, second pass the same day): a terse red/yellow at-a-glance panel above the roster, so a clean run needs no further reading and a red run is told which section below has the detail. Four categories, each read from a primitive array rather than from the roster join so a roster bug can never hide them: a **lock queue** (`locks[].queue` non-empty; red when the head-of-queue waiter is unseen for over 5 minutes, the same "cold" rule the locks table already uses, otherwise yellow); a **dead lease or stalled ticket** (a lease the harness judges `foreign-stale` or `unknown`, plus a `stalls` entry whose rule is `quiet-owner` - an agent gone silent mid-ticket on a `Code.*` domain); a **build crash** (a `stalls` entry whose rule is `no-cpu` - S2582's build-domain rule, `Build.*` only, meaning the holder process itself is gone while the lock is still held); and an **abandoned ticket** - a lease whose `lastSeenMinutes` exceeds the roster's ten-minute window even though the harness still calls it live. That fourth one is what the panel opened without, and the gap was visible on the live page the same day: lease S2859 had been quiet 37 minutes, the roster below painted its owner red as `NO LIFE`, and the panel printed `ALL CLEAR` directly above it - because a lease is judged against the harness `SessionStaleMinutes` of 45 while the roster cuts at ten, and the panel had no rule of its own. The stricter of the two is the one the reader sees, so the panel now applies it, from `leases[]` alone rather than from the roster join, and the constant is declared once for both. A quiet **lock** holder is deliberately still not a category: with nobody queued behind it, `stalls` excludes it by the same S2413 reasoning, and the ticket case is the one the panel must cover because a ticket nobody is waiting for produces no `stalls` entry at all. All read red except an uncold lock queue and an `unknown`-liveness lease, which read yellow. Nothing found renders one green `ALL CLEAR` line naming the five things it checked.
+
+`s.gates` is deliberately excluded as a source, even though "a failed gate" reads as the obvious definition of "build crash". Measured live 2026-09-10: the canon collector (`Get-DevMonitorGates`) marks a whole run `FAIL` the moment any one gate inside it is `SKIP` - not applicable to that change set - and never carries a per-gate `PASS`/`SKIP`/`FAIL` split into `failures[]` (`gate`/`scope`/`count` only); that split exists only in the raw `temp/metrics/gate-executions.jsonl` lines, which no renderer may read directly (S2413). On the live tree this makes nearly every `post-change` run read `FAIL`: one sampled run carried 44 `SKIP` gates and zero real failures, reported as a single `FAIL` with all 44 names attached. Reusing that field here would put the single noisiest possible line on the page on every ordinary run - the exact cry-wolf this panel exists to prevent. The `gate health` table below is unaffected and still shows the raw verdict to whoever opens it; the collector-side SKIP/FAIL conflation is a canon defect, not a page defect, and stays open for a canon session to fix.
+
 Two files under `temp/monitor/`, both written by `scripts/utils/dev-monitor-writer.ps1`:
 
 - `index.html` - the shell: inline CSS, inline renderer, no external reference. Written once per writer start.
 - `snapshot.js` - the data: `window.__devMonitor({..})`, replaced every 3 s through a temp name and `Move-Item`, so the browser never reads a half file.
+
+**One element is not an object, and a silent renderer is worse than a red one** (2026-09-10). `ConvertTo-Json` writes a one-element collection as a bare object, and a PowerShell function's output is enumerated into the pipeline, so the `@()` inside `Get-DeviceParkRows` was undone at its call site: a park holding exactly one device serialised as `"devices":{..}`. The page reads that field with `.forEach`, which threw, and because `render()` paints the sections in order, everything from `devices` down - locks, watchdog actions, next up, chat, findings, finished, stop, gate health - stayed blank while the header went on reporting a fresh age from its own clock. Nothing on the page said so, which is why it survived: the failure looks exactly like a quiet machine. Three fixes, at three layers. The writer wraps the call, so the field is an array at the source. Every collection in the renderer is read through `arr()`, which accepts both shapes, because the collector is a canon forwarder this repository cannot gate and the same unwrap can reach the page from any of its arrays. And `render()` runs inside a try/catch that puts a red `PAGE ERROR` line in the `problems` panel with the exception's own message - the next one is read rather than guessed. The suite asserts the JSON shape off the raw text (`"devices":[`), since `ConvertFrom-Json` hides the difference, and the existing devices case had passed while the page was broken because the live park it seeds into usually holds a second serial.
+
+**Every stamp is parsed by hand** (same pass). The snapshot carries two shapes and each defeats the engine's date parser in its own way: a .NET round-trip string with seven fractional digits, where the ECMAScript format allows three, so the raw 27-character stamp appeared in the header's `since` and the locks table's `since`; and `MM/DD/YYYY HH:MM:SS`, which is what `[string]` makes of a `DateTime` that `ConvertFrom-Json` built from a `*Utc` field - no marker survives the cast, so `new Date()` reads it as local and would have drawn the gate-health clock exactly one local offset behind every other section. `local()` matches both, builds the date through `Date.UTC`, and takes epoch milliseconds as well.
 
 Why two files and no server: `fetch` and XHR from a `file://` page are refused by CORS in Chrome, Edge and Firefox, but a classic `<script src>` from the same directory is not. The shell appends `<script src="snapshot.js?t=<now>">` every interval and repaints the tables in place - no reload, no flicker, no lost scroll position, and no process whose death would blank the page; a dead writer leaves the last snapshot and an honest age. Two consecutive load failures fall back to `location.reload()`. The header recomputes the snapshot age from the page's own clock every second and says `fresh`, `writer silent` (three intervals without a new snapshot) or `writer stopped` (the writer's last snapshot said so) - a word beside the colour, so it reads without colour.
 
@@ -1017,6 +1054,39 @@ Every ratchet baseline in this repository is enforced by the same runner in two 
 **Read it by the median.** Ranked by the mean, `detekt-gate` was the largest cost in the repository: 86 398 s over 751 runs, 54% of all closure gate time. Its median is 11 ms - the clean-verdict cache answers almost every call - and 88.9% of that sum came from ten runs, one journalled at 34 711 s (9.6 hours), which is a stall and not analysis (parked as S2538). The cost floor is therefore applied to median x executions and never to the observed sum, so one stall can neither nominate a gate nor hide one. The observed sum is still printed beside it, because the gap between the two IS the stall signal.
 
 Measured over 2026-08-24..2026-09-04 (69 647 records), the honest per-closure ranking is `settings-doc-sync-gate` 42.5 s, `script-suite-regression` 13.7 s, `catalog-sync` 10.6 s, `fgs-notification-gate` 5.7 s over 1022 closures, `resource-link-gate` 5.8 s, `ctor-arg-slots-gate` 5.1 s. `settings-doc-sync-gate` takes the `Build.Phone` domain lock for its manifest-regeneration stage, which is why its p90 is 154 s and its maximum 564 s against that 42.5 s median: a rank-and-file closure queues behind a sibling session's build.
+
+### The gate-placement registry (S2870)
+
+`scripts/quality/gate-placement.jsonl` is the decision record for **where every gate runs and who decided that**. One JSON object per line, fields `gate`, `kind`, `scope`, `decided`, `ticket`, `basis`, `reason`, plus an optional `label` when the closure invokes the gate under a name that is not its file name (`assert-detekt.ps1` runs as `detekt-gate`). It is hand-maintained: no generator rewrites it, because a decision is not derivable from the tree it describes.
+
+**Why it exists.** Placement decisions were being made and then written as prose in the `.DESCRIPTION` of whichever runner the gate left. S1939 moved three gates to release scope and recorded the reasoning that way; four more decisions to *not* move a gate lived in the same place. None could be queried and none could be checked, so nothing could tell that a retired gate had been quietly wired back into the closure - and the reverse was invisible too, because a gate missing from `post-change.ps1` looked exactly like a gate deliberately kept out of it.
+
+**Scope classes, and the runner that satisfies each:**
+
+- `per-ticket` - `scripts/post-change.ps1`. The closure.
+- `release-scope` - `scripts/quality/assert-release-scope-gates.ps1`, run by `/spec-prerelease` step 0.4.
+- `prerelease-content` - `assert-prerelease-content-gates.ps1`, or a direct step of the `/spec-prerelease` driver.
+- `build` - `scripts/release/standard-release-gate.ps1` or a script under `scripts/builders/`.
+- `fast-batch` - `assert-fast-gates.ps1` and nothing else: it runs when an operator types `.\a.ps1 fg`.
+- `hand-run` - no runner references it.
+- `stage` - another gate invokes it directly and it inherits that gate's placement.
+- `runner` - an aggregator that runs other gates and has no placement of its own.
+
+**Membership in `assert-fast-gates.ps1` does NOT satisfy `per-ticket`, and this is the registry's one substantive claim.** `fg` is a target a human types; `post-change.ps1` runs at every closure. A gate wired only into the fast batch runs when someone happens to think of it. That distinction is four recorded incidents, two of which reached the owner's phone: `assert-ctor-arg-slots.ps1` lived in the fast batch alone and the 236th `AppSettings` field crossed the JVM's 255-slot ceiling, killing the app in `Application.onCreate` (S2300); `assert-migration-test-pairing` lived in the fast batch alone and a Room migration with no instrumented test deleted the database on first launch (S2306). Both gates existed, both were correct, and both passed every by-hand run.
+
+**A new gate names its scope class at birth.** CLAUDE.md Rule 33 has said so in words since it was written; `assert-gate-placement.ps1` is what makes it binding. A gate script with no registry row fails the closure, and the refusal names the class its wiring implies. Unnamed still means per-ticket.
+
+**`basis` separates a judgement from an observation.** `judged` means a human applied the Rule 33 four-part test and this row records the verdict; `seeded` means the row only states where the gate was found when the registry was created. The distinction is load-bearing rather than decorative: `measure-gate-frequency.ps1 -Placement` suppresses a `judged` row so the advisory stops re-proposing a decision already made, and if the initial 100-row seed had been written as `judged` the report would have gone permanently quiet over decisions nobody made.
+
+**`kind: closure-step`** covers the labelled steps of `post-change.ps1` that are not gates at all - `dev-log`, `catalog-sync`, `detekt-format`, `doc-pins-sync`, `strings-audit`. They write, render or sync, so they can never report a finding, and the placement report used to rank them forever as expensive gates with a zero catch rate. They carry no file on disk and the verifier exempts them from the one-record-per-script rule.
+
+**Measured on adoption, 2026-09-10:** 109 gate scripts, 114 records, 8 of them `judged`. `per-ticket` 45, `fast-batch` 33, `release-scope` 14, `hand-run` 11, `prerelease-content` 4, `build` 3, `runner` 3, `stage` 1. The 33 in `fast-batch` are the population worth re-judging - each is either legitimately hand-run or an S2300 waiting to happen - and naming the class is what makes that list exist. Suppressing the five closure steps removed roughly 19 500 s of typical gate time from the candidate list.
+
+**The candidate COUNT is a snapshot and will move; the suppressed set is what is stable.** The placement report reads `temp/metrics/gate-executions.jsonl`, which is gitignored, machine-local and grows with every closure, so a gate drifts across the 600 s threshold on its own: the count read 16 before this change and 11 immediately after, then 12 an hour later on 1082 more records, with the same five rows suppressed throughout. Quote the suppressed set and the reason, never the survivor count, when citing this report.
+
+**What the gate does NOT guard.** It judges `scope` against real wiring in both directions, but nothing pins `basis` or `reason`: flipping a `judged` row back to `seeded`, or rewriting the reason it carries, passes. The registry is a hand-maintained, version-controlled file, so that edit is visible in review and in `git diff` - but it is not mechanically refused, and no gate can supply the verdict a human removed.
+
+Gate: `scripts/quality/assert-gate-placement.ps1`, per-ticket under the fixed-input contract (S2824) - fatal when the changed set carries a gate script, a runner or the registry, advisory otherwise. Suite: `scripts/quality/assert-gate-placement.tests/Run-Tests.ps1`.
 
 ### The fast battery prints two verdicts (S2693)
 
@@ -1504,7 +1574,9 @@ update, and it never reaches the other projects.
 
 **The counter is derived, never stored.** `tools/harness/batch/_idle-runs.ps1` (External: it ships with the canon plugin under `tools/harness/`, it is not a script of this repository) reads every `runs-*.jsonl` under `temp/spec-queue/`, orders a ticket's rows by `finishedAt` and walks back from the newest until the first row that moved the status. That is the idle series. Two properties come free from the shape rather than from code: it spans instances, because all journals are read, and it resets on the first status move, because a moving row ends the walk. Nothing has to be cleared, and no mutator has to learn about it.
 
-**What the threshold does.** At `runner.idleRunThreshold` (2 here) the ticket is passed over by `spec-next-preflight.ps1` with `auto_skip: idle-hold`, so the runner takes the next line of its package, and `[idle N, <outcome>]` appears on the ticket's row in `PLAN/RELEASE_QUEUE.md` next to the `[taken ..]` marker - the same render-on-every-write contract, so it can never disagree with the journals. `runner.idleOutcomes` names which journal outcomes count; an outcome outside that list ends the series rather than being stepped over, since the count claims consecutive idle runs. Both keys live in `.sza-profile.json`, so retuning the policy - dropping `claim-lost` if instance races start punishing healthy tickets - needs no canon session.
+**What the threshold does.** At `runner.idleRunThreshold` (2 here) the ticket is passed over by `spec-next-preflight.ps1` with `auto_skip: idle-hold`, so the runner takes the next line of its package, and `[idle N, <outcome>]` appears on the ticket's row in `PLAN/RELEASE_QUEUE.md` next to the `[taken ..]` marker - the same render-on-every-write contract, so it can never disagree with the journals. `runner.idleOutcomes` names which journal outcomes count; an outcome outside that list ends the series rather than being stepped over, since the count claims consecutive idle runs. Both keys live in `.sza-profile.json`, so retuning the policy needs no canon session - and S2871 did retune it. The list is now `ok` and `timeout` alone: those two mean a run reached the ticket and handed it back where it was, while `claim-lost`, `claim-lost-before-launch`, `no-progress-or-claim-lost`, `launch-failed` and `child-failed` all describe a failure of the runner. A foreign lease says the ticket is being worked right now, and a child that never launched says nothing about it at all, so neither is evidence of idleness; holding on them also saved nothing, since both branches are the cheap ones that spend no child. Measured 2026-09-08 before the change: 39 tickets were held, and one six-minute window of children exiting 1 in zero minutes accounted for nine of them, S2757 among them held purely because a sibling owned its lease. Held tickets are reviewed by `/spec-sweep` Phase C.
+
+**`child-failed` is the last of those names, and it exists because the exit code used to be journalled and never read (S2873).** `$outcome` started at `'ok'` and only three branches rewrote it - `timeout`, `claim-lost`, `launch-failed` - so an ordinary child that started and failed matched none of them and fell through to the elapsed-time guess, arriving in the journal as an idle ticket. Measured over 985 rows on 2026-09-10, 68 of them (6.9%) named a failed child something else, and 10 of those kept `'ok'` outright - which IS an idle outcome here, so S2871's narrowing did not reach them and a run the runner had failed still pushed its ticket towards being passed over. S1565 was held as `[idle 2, ok]` that morning on the strength of one such row. `tools/harness/batch/run-spec-queue.ps1` now decides both the outcome and `moved` in one function, `Resolve-RunOutcome`: an established verdict is never overwritten, a non-zero exit is `child-failed`, and an empty `statusAfter` reports no move at all - two rows recorded `Draft -> "", moved: true` for children killed mid-run, and `moved` outranks the outcome in every consumer. It needs no profile change, because the new name is outside `idleOutcomes` by construction. Covered by `scripts/utils/run-spec-queue.tests/Run-Tests.ps1`. **A canon deploy is owed before it reaches the journals** - the fix lives in the checkout, and the plugin cache the forwarder resolves still carries the old classification, so the suite SKIPs those cases until then.
 
 **A held ticket is never unreachable.** The hold applies to automatic ranking only. `/spec-all Sxxxx`, `run-spec-queue.ps1 -Ids Sxxxx` and the owner picking a row by hand all bypass the ranker and run it.
 
@@ -1878,20 +1950,34 @@ An unsliced debug APK carries architectures the target device never executes: st
 - **Finding the artifact afterwards:** `scripts/utils/find-build-artifact.ps1`. Every builder, installer and release consumer resolves through it - it selects by ABI from `output-metadata.json` and throws when the request is ambiguous, rather than taking `elements[0]` or the newest file, both of which pick an architecture at random once a build emits more than one output.
 - **Choosing the slice:** the debug builders take `-Abi <name>`; omitted, they read `ro.product.cpu.abi` off the connected device.
 
-### Prebuilt FFmpeg DTS AAR - the one dependency a clean checkout lacks (S1539)
+### Prebuilt native AARs - the dependencies a clean checkout lacks (S1539, S2879)
 
-`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")` for the standard, noLegal,
-legacy and vr flavors, but `.gitignore` excludes `libs/`, so the 11.5 MB binary exists only on a
-machine that built it. A local build works; a fresh clone and every GitHub Actions runner do not.
+`app_v2/build.gradle.kts` declares `files("libs/fms-ffmpeg-dts.aar")` and `files("libs/fms-vpx.aar")`
+for the standard, noLegal, legacy and vr flavors, but `.gitignore` excludes `libs/`, so both binaries
+exist only on a machine that built them. A local build works; a fresh clone and every GitHub Actions
+runner do not.
 
-- Build it: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c).
-- Publish it after any rebuild: `pwsh -NoProfile -File scripts/builders/publish-ffmpeg-dts-aar.ps1`
-  (uploads to the permanent `delivery-so-v1` release with `--clobber`).
-- CI fetches it: `scripts/ci/fetch-prebuilt-libs.sh`, run by every build job in `android-ci.yml` and
-  `maestro-tests.yml` before Gradle starts.
+**The list of them is one file, `scripts/ci/prebuilt-native-aars.txt`**, and all three consumers read
+it rather than keeping a copy - that is what S2879 changed, because the mechanism S1539 built was
+written around one hardcoded file name and the second AAR was never added to it.
+
+- Build them: `scripts/builders/build-ffmpeg-dts-wsl.ps1` (WSL2, NDK r27c) and
+  `scripts/builders/build-libvpx-vp9.sh` + `compile-vp9-classes.ps1`.
+- Publish after any rebuild:
+  `pwsh -NoProfile -File scripts/builders/publish-prebuilt-native-aar.ps1 -Name <file.aar>` (or
+  `-All`), which uploads to the permanent `delivery-so-v1` release with `--clobber`.
+- CI fetches them: `scripts/ci/fetch-prebuilt-libs.sh`, run by every build job in `android-ci.yml`
+  and `maestro-tests.yml` before Gradle starts.
+- The build refuses to go without them: `verifyPrebuiltNativeAars<Variant>` hangs off
+  `pre<Variant>Build` for those four flavors and fails with the missing path and the fetch command.
+
+That last one exists because the failure mode is asymmetric. An absent FFmpeg AAR killed the build
+loudly (69 red runs before S1539); an absent VP9 AAR killed nothing - Gradle resolves an absent
+`files(..)` path to an EMPTY collection, so CI stayed green for months and shipped an artifact with
+no software VP9 renderer, which also meant no CI run could prove anything about the libvpx path.
 
 Skipping the publish step after a rebuild does not break CI - it silently builds against the previous
-binary, which is acceptable because CI is a compile/lint/test gate and this artifact is a prebuilt
+binary, which is acceptable because CI is a compile/lint/test gate and these artifacts are prebuilt
 `.so` + `classes.jar` that nothing in the suite exercises. Roles and rationale: `delivery/INVENTORY.md`.
 
 ## DEOBFUSCATION RETENTION (S1695)

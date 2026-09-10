@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
 import androidx.compose.material.icons.filled.HourglassEmpty
@@ -22,6 +23,9 @@ import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -49,7 +53,9 @@ import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerDimOverlay
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -67,6 +73,12 @@ private val TEXT_HORIZONTAL_PADDING = 8.dp
  *
  * Leaving this screen does not stop anything, which is the point: the session belongs to a foreground
  * service, and the notification carries the same stop action for the owner who walked away.
+ *
+ * S2878: a live session offers the moon as its last action - it covers the screen with the shared
+ * black sheet so an open microphone stops lighting up the room. The sheet carries no display hold,
+ * unlike the player's: the broadcast is a service a sleeping display does not disturb, and the
+ * display going to sleep is the point, not a side effect. The dimmed state belongs to this screen -
+ * leaving the screen leaves it, while the session itself stays.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -77,6 +89,7 @@ fun WearBroadcastScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
     val permissionsState = rememberMultiplePermissionsState(broadcastPermissions())
+    var dimmed by rememberSaveable { mutableStateOf(false) }
     // Only the microphone gates the broadcast. A denied POST_NOTIFICATIONS costs the ongoing
     // notification and its stop action, which the screen still offers - it must not block the feature.
     val microphoneGranted = permissionsState.permissions
@@ -87,7 +100,12 @@ fun WearBroadcastScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        positionIndicator = if (dimmed) {
+            null
+        } else {
+            { PositionIndicator(listState) }
+        },
+        showTimeText = !dimmed
     ) {
         WearListColumn(
             modifier = Modifier.fillMaxSize(),
@@ -106,9 +124,21 @@ fun WearBroadcastScreen(
                     onStart = viewModel::start,
                     onStop = viewModel::stop,
                     onGrant = permissionsState::launchMultiplePermissionRequest,
-                    onShowQr = onShowQr
+                    onShowQr = onShowQr,
+                    onDimScreen = {
+                        Timber.d("S2878: broadcast screen-off requested")
+                        dimmed = true
+                    }
                 )
             }
+        }
+        if (dimmed) {
+            PlayerDimOverlay(
+                onExit = {
+                    Timber.d("S2878: broadcast screen-off dismissed")
+                    dimmed = false
+                }
+            )
         }
     }
 }
@@ -153,8 +183,9 @@ private fun BroadcastStatus(state: WearBroadcastSessionState) {
 }
 
 /**
- * A live broadcast offers the stop first and the QR second. The order is the ranking: ending an open
- * microphone is the action that must never be hunted for, and sharing is the one that can wait a row.
+ * A live broadcast offers the stop first, the QR second and the moon last. The order is the ranking:
+ * ending an open microphone is the action that must never be hunted for, sharing can wait a row, and
+ * blanking the screen can wait behind sharing because the owner has usually already looked away.
  */
 @Composable
 private fun BroadcastActions(
@@ -163,7 +194,8 @@ private fun BroadcastActions(
     onStart: () -> Unit,
     onStop: () -> Unit,
     onGrant: () -> Unit,
-    onShowQr: () -> Unit
+    onShowQr: () -> Unit,
+    onDimScreen: () -> Unit
 ) {
     Column(
         modifier = Modifier.width(IntrinsicSize.Min),
@@ -183,6 +215,12 @@ private fun BroadcastActions(
                     icon = Icons.Default.QrCode,
                     primary = false,
                     onClick = onShowQr
+                )
+                ActionChip(
+                    labelRes = R.string.wear_screen_off,
+                    icon = Icons.Default.DarkMode,
+                    primary = false,
+                    onClick = onDimScreen
                 )
             }
             is WearBroadcastSessionState.Starting -> Unit

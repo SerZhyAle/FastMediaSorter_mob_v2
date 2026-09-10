@@ -22,6 +22,7 @@ class StandaloneVideoControlsManager(
         fun onVrLaunchClicked()
         // S1114: true when VR entry is available now (XR device + 3D/VR master toggle).
         fun isVrEntryAvailable(): Boolean
+        fun onControllerVisibilityChanged(visibility: Int) {}
     }
 
     fun setupVideoControls() {
@@ -40,6 +41,7 @@ class StandaloneVideoControlsManager(
         playerView.setControllerVisibilityListener(
             PlayerView.ControllerVisibilityListener { visibility ->
                 if (visibility == View.VISIBLE) updateVrEntryButtonVisibility()
+                callback.onControllerVisibilityChanged(visibility)
             }
         )
         updateVrEntryButtonVisibility()

@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
@@ -268,6 +269,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var launcherStartWindowManager: LauncherStartWindowManager
 
+    @Inject
+    lateinit var launcherRoleManager: LauncherRoleManager
+
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
     lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
@@ -420,6 +424,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             isResumingAudio = {
                 AudioPlaybackService.isRunning && AudioPlaybackService.currentResourceId > 0L
             },
+            isHomeRoleHeld = { launcherRoleManager.isHomeRoleHeld() },
         )
         val redirected = returningToSettings ||
             startWindowRedirect.redirectIfRequested(this, intent, savedInstanceState, returnToSettingsRequested)

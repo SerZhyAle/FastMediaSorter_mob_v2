@@ -11,11 +11,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.systeminfo.SystemInfoReport
 import com.sza.fastmediasorter.databinding.ActivitySystemInfoBinding
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,6 +49,7 @@ class SystemInfoWindowManager @Inject constructor(
                 text = section.title
                 isFocusable = true
                 isClickable = true
+                foreground = ContextCompat.getDrawable(container.context, R.drawable.focus_button_background)
                 setPadding(PADDING, PADDING, PADDING, PADDING)
             }
             val fields = LinearLayout(container.context).apply { orientation = LinearLayout.VERTICAL }
@@ -55,6 +59,7 @@ class SystemInfoWindowManager @Inject constructor(
                         text = "$label: $value"
                         isFocusable = true
                         isClickable = true
+                        foreground = ContextCompat.getDrawable(container.context, R.drawable.focus_button_background)
                         setPadding(PADDING * 2, PADDING / 2, PADDING, PADDING / 2)
                         setOnLongClickListener {
                             container.context.copyTextToClipboard(label, value)
@@ -75,15 +80,22 @@ class SystemInfoWindowManager @Inject constructor(
     private fun copyReport(report: SystemInfoReport) = appContext.copyTextToClipboard("System info", report.fullText)
 
     private fun share(activity: AppCompatActivity, text: String) {
-        activity.startActivity(
-            Intent.createChooser(
-                Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_TEXT, text)
-                },
-                activity.getString(R.string.share)
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, text)
+        }
+        if (activity.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
+            Timber.d("S2902: SystemInfoWindowManager: no share targets available, copying to clipboard")
+            currentReport?.let(::copyReport)
+            Toast.makeText(activity, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
+        } else {
+            activity.startActivity(
+                Intent.createChooser(
+                    shareIntent,
+                    activity.getString(R.string.share)
+                )
             )
-        )
+        }
     }
 
     private fun saveReport(report: SystemInfoReport) {

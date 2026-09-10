@@ -146,7 +146,15 @@ class WearPhoneResourcePayloadTest {
                 .asJsonObject
 
             assertEquals(status.name, json["status"].asString)
-            assertTrue("failure page must carry no items", json["items"].asJsonArray.isEmpty)
+            // S2885: `items` is nullable now, and Gson omits a null field, so a failure page carries
+            // no `items` key at all rather than an empty array. Both readings mean the same thing to
+            // the watch - it reads the field through `.orEmpty()` - so the assertion accepts either
+            // and refuses only a page that actually names some content.
+            val items = json["items"]
+            assertTrue(
+                "failure page must carry no items",
+                items == null || items.isJsonNull || items.asJsonArray.isEmpty
+            )
         }
     }
 

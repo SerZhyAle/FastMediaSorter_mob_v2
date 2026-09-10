@@ -786,6 +786,37 @@ switch ($Verb.ToLowerInvariant()) {
             Fail 1 "APK not found (pass -Apk <path>, or $buildHint)"
         }
         Invoke-Adb $id @('install', '-r', '-d', $apkPath) | Out-Null
+        # S2855: record the install mark best-effort. The device that just accepted the artifact is
+        # the exact source of what it now runs, so the version is read back through dumpsys instead
+        # of parsing the APK locally. A candidate only counts when its lastUpdateTime is fresh -
+        # an untouched package that merely answers dumpsys is a pre-existing install, not what this
+        # verb put here, and marking it would write a wrong fact. A recording failure prints one
+        # line and never fails the install: accounting must not break the work it accounts for.
+        try {
+            foreach ($cand in @($DEBUG_PACKAGE, $BASE_PACKAGE)) {
+                $dump = (Invoke-Adb $id @('shell', 'dumpsys', 'package', $cand) -AllowFail) -join "`n"
+                if ($dump -match 'versionName=([^\s]+)') {
+                    $recVersion = $Matches[1]
+                    $recFresh = $true
+                    if ($dump -match 'lastUpdateTime=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})') {
+                        $recFresh = (((Get-Date) - [datetime]$Matches[1]).TotalMinutes -lt 10)
+                    }
+                    if ($recFresh) {
+                        $regArgs = @('-Verb', 'Record', '-Id', $id, '-Package', $cand,
+                            '-Module', $Module, '-Flavor', $Flavor,
+                            '-BuildType', $(if ($cand -eq $DEBUG_PACKAGE) { 'debug' } else { 'release' }),
+                            '-VersionName', $recVersion, '-Artifact', (Split-Path -Path $apkPath -Leaf),
+                            '-RecordedBy', 'adb.ps1 install')
+                        if ($dump -match 'versionCode=(\d+)') { $regArgs += @('-VersionCode', $Matches[1]) }
+                        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'device-registry.ps1') @regArgs *> $null
+                    }
+                    break
+                }
+            }
+        }
+        catch {
+            Write-Host "note: install recording failed ($_)" -ForegroundColor DarkYellow
+        }
         if ($Json) { Emit-Ok @{ id = $id; apk = $apkPath } }
         Write-Host "INSTALLED $apkPath on $id" -ForegroundColor Green
         exit 0

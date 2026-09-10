@@ -2,12 +2,8 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaType
-import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
-import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
-import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -42,12 +38,11 @@ import javax.inject.Inject
  * baseline is written as a union so a tile the user deleted by hand never comes back.
  */
 class SyncEnabledResourceTilesUseCase @Inject constructor(
-    private val desktop: LauncherDesktopRepository,
     private val resources: ResourceRepository,
     private val settings: SettingsRepository,
     private val provisionDefaultResources: ProvisionDefaultResourcesUseCase,
     private val syncBaseline: LauncherShortcutSyncRepository,
-    private val resolveColumns: ResolveLauncherColumnsUseCase,
+    private val placeShortcutTiles: PlaceLauncherShortcutTilesUseCase,
 ) {
     /**
      * S2564: the media types enabled right now, as the caller's change detector.
@@ -88,7 +83,12 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
             val newlyPresent = present.filterKeys { it !in baseline }
             if (newlyPresent.isEmpty()) return@runCatching
 
-            placeTilesFor(newlyPresent.values.toSet())
+            val targets = newlyPresent.values.map {
+                LauncherCellCommand.Resource(it, LauncherResourceMode.BROWSE).encode()
+            }
+            // A failed placement leaves the baseline untouched, so the next pass retries the
+            // placement instead of silently accounting for tiles that never landed.
+            if (!placeShortcutTiles(targets)) return@runCatching
             // Union, never a replacement: an aggregate deleted from the table stays accounted for, or
             // provisioning it again later would restore a tile the user removed on purpose.
             syncBaseline.setSyncedResourcePaths(baseline + present.keys)
@@ -100,61 +100,6 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
     private suspend fun presentAggregates(): Map<String, Long> = resources.getAllResourcesSync()
         .filter { it.path in CORE_VIRTUAL_PATHS }
         .associate { it.path to it.id }
-
-    private suspend fun placeTilesFor(resourceIds: Set<Long>) {
-        val state = desktop.state()
-        val orientations = listOf(
-            LauncherOrientation.PORTRAIT to state.columnsPortrait,
-            LauncherOrientation.LANDSCAPE to state.columnsLandscape,
-        )
-        val targets = resourceIds.map {
-            LauncherCellCommand.Resource(it, LauncherResourceMode.BROWSE).encode()
-        }
-        val now = System.currentTimeMillis()
-
-        for ((orientation, storedColumns) in orientations) {
-            val columns = resolveColumns(orientation, storedColumns)
-            val existingCells = desktop.observeCells(orientation).first()
-            val existingTargets = existingCells.mapTo(mutableSetOf()) { it.target }
-
-            for (target in targets) {
-                if (target !in existingTargets) {
-                    placeTile(orientation, target, columns, now)
-                }
-            }
-        }
-    }
-
-    /**
-     * The resources section first, the whole grid only as a fallback (strategic ADR-5).
-     *
-     * [LauncherDesktopRepository.addCellInSection] grows the band when the section is full (S2018),
-     * which is what keeps the tile under its own header instead of in whichever neighbouring section
-     * still had a gap. Null means this desktop carries no resources header at all - the user deleted
-     * it - and the free-slot scan is then the honest answer; it prefers the same section by itself
-     * whenever one does exist (S1760).
-     */
-    private suspend fun placeTile(
-        orientation: LauncherOrientation,
-        target: String,
-        columns: Int,
-        now: Long,
-    ) {
-        val cell = LauncherCell(
-            id = 0,
-            orientation = orientation,
-            rowIndex = 0,
-            colIndex = 0,
-            spanW = 1,
-            spanH = 1,
-            kind = LauncherCellKind.SHORTCUT,
-            target = target,
-            labelOverride = null,
-            addedAt = now,
-        )
-        desktop.addCellInSection(cell, columns, LauncherCellCommand.SECTION_RESOURCES)
-            ?: desktop.addCellInFirstFreeSlot(cell, columns)
-    }
 
     private companion object {
         /**

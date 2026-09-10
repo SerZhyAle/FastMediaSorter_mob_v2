@@ -2,20 +2,14 @@ package com.sza.fastmediasorter.ui.settings
 
 import android.content.Context
 import android.net.Uri
-import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.PlaybackException
-import androidx.media3.common.Player
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.di.ApplicationScope
-import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.WearFileTransferOutcome
-import com.sza.fastmediasorter.domain.model.WearListenAckPayload
-import com.sza.fastmediasorter.domain.model.WearListenRefusal
 import com.sza.fastmediasorter.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.domain.model.WearPlaybackStatePayload
 import com.sza.fastmediasorter.domain.model.WearSettingsFieldDiff
@@ -24,16 +18,16 @@ import com.sza.fastmediasorter.domain.model.WearSourcesExportPayload
 import com.sza.fastmediasorter.domain.model.WearSyncLeg
 import com.sza.fastmediasorter.domain.model.WearSyncLegResult
 import com.sza.fastmediasorter.domain.model.WearSyncOutcome
-import com.sza.fastmediasorter.domain.model.streamUrl
 import com.sza.fastmediasorter.domain.repository.WearFileTransferRepository
 import com.sza.fastmediasorter.domain.usecase.EnsureWatchResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.GetPairedWatchStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.ImportWatchSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.ObserveUnitSystemUseCase
 import com.sza.fastmediasorter.domain.usecase.SendWearBackgroundImageUseCase
+import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearDataLayerPaths
+import com.sza.fastmediasorter.service.WearListenState
 import com.sza.fastmediasorter.service.WearSyncEvents
-import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -55,7 +49,6 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
 import java.io.File
-import java.util.UUID
 import javax.inject.Inject
 
 sealed class WearSyncUiState {
@@ -120,25 +113,6 @@ sealed class WearWatchResourceEvent {
     data object Failed : WearWatchResourceEvent()
 }
 
-/**
- * S2550: the listening control's three appearances, and no fourth.
- *
- * What ended the last attempt rides on [Idle] rather than living in a state of its own, because a
- * refusal is not a fourth thing the control can be doing - it is idle with something to say, and the
- * start action must stay reachable in exactly that moment.
- */
-sealed class WearListenState {
-
-    /** @param messageRes why the last attempt ended, or null when nothing has been tried yet. */
-    data class Idle(@param:StringRes val messageRes: Int? = null) : WearListenState()
-
-    /** The command is with the watch and the owner has not yet tapped the request it raised. */
-    data object Awaiting : WearListenState()
-
-    /** The watch's microphone is being played on this phone. */
-    data object Listening : WearListenState()
-}
-
 // Every parameter is a distinct collaborator this screen needs (sync legs, watch resource ops,
 // listening, settings mirror) - S2731 added settingsRepository for the one read-only unitSystem value.
 @Suppress("LongParameterList")
@@ -153,6 +127,8 @@ class WearSyncViewModel @Inject constructor(
     private val wearFileTransferRepository: WearFileTransferRepository,
     private val wearSettingsMirrorStore: SharedPreferencesWearSettingsMirrorStore,
     private val observeUnitSystemUseCase: ObserveUnitSystemUseCase,
+    // S2881: the session itself lives in the process, not here - this screen is one of its readers.
+    private val watchListenSessionManager: WatchListenSessionManager,
     // S2515 (ADR-4): mirror writes outlive this ViewModel on purpose - see rememberSettings.
     @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : ViewModel() {
@@ -239,6 +215,12 @@ class WearSyncViewModel @Inject constructor(
     private val _watchAppVersion = MutableStateFlow<String?>(null)
     val watchAppVersion: StateFlow<String?> = _watchAppVersion.asStateFlow()
 
+    // S2862: in-memory mirror of WearSettingsMirrorStore's field timestamps. readFieldTimestamps() is
+    // suspend (IO) and rememberSettings captures editedAt synchronously (S2515/ADR-4: the stamp is the
+    // moment of the edit, not the moment the coroutine runs), so the outgoing payload reads this cache
+    // rather than re-reading the store and racing the async write in applicationScope.
+    private var fieldTimestampsCache: Map<String, Long> = emptyMap()
+
     init {
         // Observe ack events emitted by PhoneWearListenerService
         viewModelScope.launch {
@@ -274,15 +256,6 @@ class WearSyncViewModel @Inject constructor(
                 adoptMergedSettings(merged)
             }
         }
-        // S2550: one collector for the whole session rather than a one-shot await, because the watch
-        // also answers after the session is running - a stop given on the wrist arrives here.
-        viewModelScope.launch {
-            WearSyncEvents.listenAckFlow.collect { ack ->
-                if (ack.requestId == listenRequestId) {
-                    onListenAck(ack)
-                }
-            }
-        }
         loadPersistedState()
     }
 
@@ -294,6 +267,7 @@ class WearSyncViewModel @Inject constructor(
                     preview = readPreparedFrame(),
                     lastSyncTimestamp = wearSettingsMirrorStore.readLastSyncTimestamp(),
                     watchAppVersion = wearSettingsMirrorStore.readWatchAppVersion(),
+                    fieldTimestamps = wearSettingsMirrorStore.readFieldTimestamps()
                 )
             }
             _watchSettingsState.value = persisted.settings
@@ -303,6 +277,7 @@ class WearSyncViewModel @Inject constructor(
             _backgroundPreview.value = persisted.preview
             _lastSyncTimestamp.value = persisted.lastSyncTimestamp
             _watchAppVersion.value = persisted.watchAppVersion
+            fieldTimestampsCache = persisted.fieldTimestamps
         }
     }
 
@@ -313,19 +288,28 @@ class WearSyncViewModel @Inject constructor(
     /**
      * S2034: the companion window's add-or-open button - strategic 2 goals 1-3.
      *
-     * @param defaultName used only when the row has to be created; the host supplies it because the
-     *   name is a resource string and this view model must not reach for one on the domain's behalf.
+     * S2868: a created row is named after the watch on the link (the same human name the settings
+     * row shows), so the main-screen tile reads like the settings row does.
+     *
+     * @param defaultName used only when the bridge cannot name the watch; the host supplies it
+     *   because the name is a resource string and this view model must not reach for one on the
+     *   domain's behalf.
      */
     fun addOrOpenWatchResource(defaultName: String) {
         viewModelScope.launch {
-            val outcome = ensureWatchResourceUseCase(defaultName).getOrElse { e ->
+            val name = (getPairedWatchStatusUseCase() as? PairedWatchStatus.Connected)
+                ?.name
+                ?.takeIf { it.isNotBlank() }
+                ?: defaultName
+            Timber.d("S2868: add-or-open watch name=%s", name)
+            val outcome = ensureWatchResourceUseCase(name).getOrElse { e ->
                 Timber.e(e, "Could not ensure the watch resource")
                 _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
                 return@launch
             }
             _watchResourceEvents.emit(
                 if (outcome.created) {
-                    WearWatchResourceEvent.Created(defaultName)
+                    WearWatchResourceEvent.Created(name)
                 } else {
                     WearWatchResourceEvent.Open(outcome.resourceId)
                 }
@@ -339,9 +323,11 @@ class WearSyncViewModel @Inject constructor(
         viewModelScope.launch {
             outbound.sendResources()
                 .onSuccess { result ->
-                    if (result.sent == 0) {
+                    if (result.sent == 0 && result.deselected == 0) {
                         // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
                         // timeout would report a watch failure for an empty selection instead.
+                        // S2882: a batch that withdrew resources DID leave the phone and will be
+                        // acknowledged, so only a batch that did neither takes this branch.
                         _uiState.value = WearSyncUiState.NothingSelected
                     } else {
                         // S1682: the use case returns as soon as Play Services accepts the bytes, which is
@@ -377,7 +363,7 @@ class WearSyncViewModel @Inject constructor(
         inboundResourcesLeg = null
         _unifiedSyncState.value = UnifiedSyncState.Running
         viewModelScope.launch {
-            val acked = awaitResourcesAck(outbound.syncEverything(merged))
+            val acked = awaitResourcesAck(outbound.syncEverything(stampedForWire(merged)))
             val inbound = inboundResourcesLeg
             val complete = if (inbound == null) {
                 acked
@@ -460,7 +446,7 @@ class WearSyncViewModel @Inject constructor(
         rememberSettings(merged)
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
-            outbound.pushSettings(merged)
+            outbound.pushSettings(stampedForWire(merged))
                 .onSuccess {
                     _uiState.value = WearSyncUiState.SettingsPushed
                 }
@@ -490,15 +476,19 @@ class WearSyncViewModel @Inject constructor(
         // owner edited, not the moment the coroutine happened to run - the merge ranks this value
         // against the watch's clock, so a later time would let a phone edit beat a newer watch edit.
         val editedAt = System.currentTimeMillis()
+        // S2862: the cache is updated synchronously so the outgoing payload built in the same edit
+        // carries the fresh stamp without racing the async write below. The same map is then persisted,
+        // keeping the in-memory and on-disk copies in step.
+        if (changed.isNotEmpty()) {
+            fieldTimestampsCache = fieldTimestampsCache + changed.associateWith { editedAt }
+        }
         // S2515 (ADR-4): the application scope, not viewModelScope - this sheet is a
         // BottomSheetDialogFragment and is routinely closed in the same gesture that edits a setting,
         // which would cancel a viewModelScope write and lose exactly what the mirror exists to keep.
         applicationScope.launch {
             wearSettingsMirrorStore.writeSettings(settings)
             if (changed.isNotEmpty()) {
-                wearSettingsMirrorStore.writeFieldTimestamps(
-                    wearSettingsMirrorStore.readFieldTimestamps() + changed.associateWith { editedAt }
-                )
+                wearSettingsMirrorStore.writeFieldTimestamps(fieldTimestampsCache)
             }
         }
     }
@@ -517,6 +507,10 @@ class WearSyncViewModel @Inject constructor(
         settings.colorScheme?.let { _colorScheme.value = it }
         _lastSyncTimestamp.value = wearSettingsMirrorStore.readLastSyncTimestamp()
         _watchAppVersion.value = wearSettingsMirrorStore.readWatchAppVersion()
+        // S2862: the merge wrote new stamps to the store, so the in-memory cache must follow them -
+        // otherwise the next push would carry the pre-merge stamps and the watch's just-accepted edit
+        // could lose to its own prior value. readFieldTimestamps() is suspend, so the refresh is async.
+        viewModelScope.launch { fieldTimestampsCache = wearSettingsMirrorStore.readFieldTimestamps() }
     }
 
     /**
@@ -528,6 +522,23 @@ class WearSyncViewModel @Inject constructor(
      */
     private fun withScreenChoices(settings: WearSettingsPayload): WearSettingsPayload =
         settings.copy(backgroundMode = _backgroundMode.value, colorScheme = _colorScheme.value)
+
+    /**
+     * S2862: attaches the phone's field-edit timestamps and an empty capability map to a payload
+     * about to leave for the watch.
+     *
+     * Before this the builder in [WearWatchSettingsGroup.payload] left both fields null, so the watch's
+     * [com.sza.fastmediasorter.wear.domain.model.WearSettingsMergeResolver] read `incomingStamps == null`
+     * and applied every phone value unconditionally - the Last-Write-Wins policy (S2485) was dead in the
+     * phone-to-watch direction. The watch never reads phone-side `capabilities`, but an empty map (rather
+     * than null) satisfies the decoder contract so the exchange no longer reports a spurious `MISSING`
+     * divergence for it.
+     */
+    private fun stampedForWire(settings: WearSettingsPayload): WearSettingsPayload {
+        val stamped = settings.copy(fieldTimestamps = fieldTimestampsCache, capabilities = emptyMap())
+        Timber.d("S2862: outbound settings payload carries ${fieldTimestampsCache.size} field stamp(s)")
+        return stamped
+    }
 
     fun updateBackgroundMode(mode: String) {
         _backgroundMode.value = mode
@@ -605,6 +616,7 @@ class WearSyncViewModel @Inject constructor(
         val preview: WearBackgroundPreview?,
         val lastSyncTimestamp: Long,
         val watchAppVersion: String?,
+        val fieldTimestamps: Map<String, Long> = emptyMap(),
     )
 
     fun acceptWatchImport() {
@@ -636,194 +648,33 @@ class WearSyncViewModel @Inject constructor(
         }
     }
 
-    private val _listenState = MutableStateFlow<WearListenState>(WearListenState.Idle())
-    val listenState: StateFlow<WearListenState> = _listenState.asStateFlow()
-
     /**
-     * S2550: null except while this screen is waiting for, or holding, an answer of its own.
+     * S2881: the session lives in [WatchListenSessionManager] for the life of the process, so this
+     * screen renders it rather than owns it.
      *
-     * `listenAckFlow` replays its last value, so a collector recreated by a rotation is handed the
-     * previous session's answer at once. Matching this id is what tells that answer apart from the
-     * one the owner is waiting on - without it a stale refusal would close a live session, and a
-     * stale address would be opened in the player.
+     * Closing this window no longer ends a running session, which is a deliberate reversal of the
+     * S2550 behaviour: a session started from the widget or a launcher shortcut must not die because
+     * the owner happened to open and close the companion card, and something outside this screen can
+     * now stop it. The watch's own indicator and stop path are unchanged.
      */
-    private var listenRequestId: String? = null
+    val listenState: StateFlow<WearListenState> = watchListenSessionManager.listenState
 
-    private var listenTimeoutJob: Job? = null
-
-    /**
-     * ADR-5: the shipped playback path, reached through the same controller every audio screen uses.
-     * Built lazily because most instances of this view model never listen to anything.
-     */
-    private val audioController by lazy { AudioServiceController(context) }
-
-    private val listenErrorListener = object : Player.Listener {
-        override fun onPlayerError(error: PlaybackException) {
-            onListenStreamDropped(error)
-        }
-    }
-
-    /**
-     * S2550 §3.1: the phone initiates, and this is where it does.
-     *
-     * The command opens no microphone. ADR-6 puts the owner's tap on the watch between this and any
-     * capture, so what leaves here is a request the watch raises as a notification and nothing else.
-     */
+    /** The start action on the card. The record variant has its own route and does not pass here. */
     fun startListening() {
-        if (_listenState.value !is WearListenState.Idle) {
-            return
-        }
-        val requestId = UUID.randomUUID().toString()
-        listenRequestId = requestId
-        _listenState.value = WearListenState.Awaiting
-        // Written before the command leaves, and with commit rather than apply: the address can come
-        // back fast enough that the audio service is created - and its load control built - before a
-        // flag written afterwards would have reached disk.
-        RadioStreamBufferConfig.syncLiveSessionMirror(context, true)
-        startListenTimeout(requestId)
-        viewModelScope.launch {
-            outbound.startListening(requestId).onFailure { e ->
-                Timber.i(e, "Could not ask the watch to listen")
-                endListenSession(R.string.wear_listen_send_failed)
-            }
-        }
+        watchListenSessionManager.start(record = false)
     }
 
-    /** The stop action on the control. */
+    /** The stop action on the card. */
     fun stopListening() {
-        endListenSession(messageRes = null)
-    }
-
-    /**
-     * The watch answers every outcome of its own accord, its own two-minute expiry included, so this
-     * bound is only for the case where nothing on the other side is alive to answer at all. It sits
-     * above that expiry rather than competing with it: firing first would report "no answer" for a
-     * request the owner is still looking at.
-     */
-    private fun startListenTimeout(requestId: String) {
-        listenTimeoutJob?.cancel()
-        listenTimeoutJob = viewModelScope.launch {
-            delay(LISTEN_ANSWER_TIMEOUT_MS)
-            if (listenRequestId == requestId && _listenState.value is WearListenState.Awaiting) {
-                Timber.w("The watch did not answer a listen command within $LISTEN_ANSWER_TIMEOUT_MS ms")
-                endListenSession(R.string.wear_listen_no_answer)
-            }
-        }
-    }
-
-    private fun onListenAck(ack: WearListenAckPayload) {
-        listenTimeoutJob?.cancel()
-        val refusal = ack.refusal
-        if (refusal == null) {
-            Timber.i("The watch is serving a listening session")
-            playListenStream(ack.streamUrl())
-        } else {
-            Timber.i("The watch is not serving a listening session: %s", refusal)
-            endListenSession(messageFor(refusal))
-        }
-    }
-
-    /**
-     * ADR-4 and ADR-5 together: an ordinary HTTP address, opened exactly as internet radio is.
-     *
-     * No player, no media-source factory and no custom source are built here. The watch serves
-     * self-delimiting ADTS AAC frames, which is what makes the shipped path enough - a source of this
-     * project's own exists only where the transport is not HTTP, as with SMB, SFTP and FTP.
-     */
-    private fun playListenStream(url: String) {
-        audioController.playAudio(Uri.parse(url), mimeType = LISTEN_MIME_TYPE) { player ->
-            player.addListener(listenErrorListener)
-            _listenState.value = WearListenState.Listening
-        }
-    }
-
-    /**
-     * S2550 §6.6, the explicit form: the media connection dropped mid-session.
-     *
-     * It delegates to [endListenSession], which stops playback, sends the stop over the control
-     * channel that outlived the media one, and only then returns the control to idle - carrying the
-     * one instruction that helps, that the watch left Wi-Fi.
-     *
-     * **§6.6 is an owner decision still open.** The owner may instead prefer a silent pause with
-     * automatic recovery, on the grounds that a watch stepping out of coverage for a moment is not
-     * the same event as a session ending. If that is the answer, this handler is the single place
-     * that changes: nothing above it distinguishes a drop from a stop, and the watch's teardown is
-     * Phase 04's idempotent stop path either way.
-     */
-    private fun onListenStreamDropped(error: PlaybackException) {
-        if (_listenState.value !is WearListenState.Listening) {
-            return
-        }
-        Timber.i(error, "The watch's audio stream dropped; ending the listening session")
-        endListenSession(R.string.wear_listen_wifi_lost)
-    }
-
-    /**
-     * The one exit from a listening session, in the order acceptance criterion 2 needs: playback
-     * stops first so nothing is still pulling on the watch's server, the stop command goes out so the
-     * watch extinguishes its microphone indicator, and only then does the control return to idle.
-     *
-     * The stop rides the application scope because it must also survive [onCleared], where
-     * `viewModelScope` is already cancelled - and that is the one path where dropping it would leave
-     * the watch's microphone open with nothing left able to close it.
-     *
-     * @param messageRes what to say about why it ended, or null when the owner ended it themselves.
-     */
-    private fun endListenSession(@StringRes messageRes: Int?) {
-        val requestId = listenRequestId
-        listenRequestId = null
-        listenTimeoutJob?.cancel()
-        stopListenPlayback()
-        if (requestId != null) {
-            applicationScope.launch {
-                outbound.stopListening(requestId).onFailure { e ->
-                    Timber.i(e, "Could not tell the watch its listening session ended")
-                }
-            }
-        }
-        _listenState.value = WearListenState.Idle(messageRes)
-    }
-
-    private fun stopListenPlayback() {
-        audioController.player?.let { player ->
-            player.removeListener(listenErrorListener)
-            player.stop()
-            player.clearMediaItems()
-        }
-        audioController.release()
-        RadioStreamBufferConfig.syncLiveSessionMirror(context, false)
-    }
-
-    /** Each value exists because it needs different words; a shared one would be a silent screen. */
-    @StringRes
-    private fun messageFor(refusal: WearListenRefusal): Int = when (refusal) {
-        WearListenRefusal.NOT_ASKED -> R.string.wear_listen_refusal_not_asked
-        WearListenRefusal.DECLINED -> R.string.wear_listen_refusal_declined
-        WearListenRefusal.EXPIRED -> R.string.wear_listen_refusal_expired
-        WearListenRefusal.CAPTURE_FAILED -> R.string.wear_listen_refusal_capture_failed
-        WearListenRefusal.NO_NETWORK -> R.string.wear_listen_refusal_no_network
-        WearListenRefusal.NOT_ON_WIFI -> R.string.wear_listen_refusal_no_network
-        WearListenRefusal.STOPPED -> R.string.wear_listen_refusal_stopped
-        WearListenRefusal.BUSY -> R.string.wear_listen_refusal_busy
-        WearListenRefusal.UNKNOWN -> R.string.wear_listen_refusal_unknown
-    }
-
-    /**
-     * The control on this screen is the only way to end a session, so a window that goes away for
-     * good takes the session with it - a microphone left open on the watch with nothing able to close
-     * it is the covert recording the Non-goals put outside the product.
-     */
-    override fun onCleared() {
-        if (_listenState.value !is WearListenState.Idle) {
-            endListenSession(messageRes = null)
-        }
-        super.onCleared()
+        watchListenSessionManager.stop()
     }
 
     // S1682: the watch reports two numbers, `added` and `updated`. Reading only `added` showed
     // "0 resources" after a sync that in fact refreshed every existing one, which reads as a failure.
+    // S2882 adds the third: a watch that only deleted withdrawn sources changed as much as one that
+    // added them, and a phone older than that field simply scores it zero.
     private fun parseAppliedCount(json: String): Int =
-        parseIntField(json, "added") + parseIntField(json, "updated")
+        parseIntField(json, "added") + parseIntField(json, "updated") + parseIntField(json, "removed")
 
     private fun parseIntField(json: String, field: String): Int = try {
         json.substringAfter("\"$field\":", "").substringBefore(",").substringBefore("}")
@@ -835,13 +686,5 @@ class WearSyncViewModel @Inject constructor(
         // a user staring at the dialog is not left guessing. The verified round trip of 2026-08-15
         // acked well inside this window.
         private const val ACK_TIMEOUT_MS = 15_000L
-
-        // S2550: above the watch's own two-minute request expiry, which answers on its own - this
-        // covers only a watch that cannot answer at all.
-        private const val LISTEN_ANSWER_TIMEOUT_MS = 150_000L
-
-        // ADR-4: the watch serves ADTS AAC, and naming it spares the extractor a sniff on a live
-        // stream that has no container to read the type from.
-        private const val LISTEN_MIME_TYPE = "audio/aac"
     }
 }

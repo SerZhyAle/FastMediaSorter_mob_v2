@@ -28,6 +28,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -605,11 +606,17 @@ class PhotoVideoStandaloneActivity :
         // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
         // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val top = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(nav.left, cutout.left)
+            val rightPadding = maxOf(nav.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
             insets
         }
         // S0610: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
@@ -640,7 +647,15 @@ class PhotoVideoStandaloneActivity :
     private fun updateFullscreenExitButtonVisibility() {
         val isVideoFullscreen = !binding.topCommandPanel.isVisible &&
             viewModel.state.value.mediaType == MediaType.VIDEO
-        btnFullscreenExit.isVisible = isVideoFullscreen && pipManager?.isInPipMode != true
+        val isVideoControllerVisible = binding.playerView.isControllerFullyVisible
+        val shouldBeVisible = isVideoFullscreen && isVideoControllerVisible && pipManager?.isInPipMode != true
+        btnFullscreenExit.isVisible = shouldBeVisible
+        Timber.d(
+            "S2895: PhotoVideoStandaloneActivity exit button - isVideoFullscreen=%b, controllerVisible=%b, exitButtonVisible=%b",
+            isVideoFullscreen,
+            isVideoControllerVisible,
+            shouldBeVisible,
+        )
     }
 
     private fun setupBackPressHandler() {
@@ -1172,6 +1187,9 @@ class PhotoVideoStandaloneActivity :
                 override fun isVrEntryAvailable(): Boolean =
                     vrCinemaLaunchManager.isAvailable &&
                         viewModel.state.value.mediaType == MediaType.VIDEO
+                override fun onControllerVisibilityChanged(visibility: Int) {
+                    updateFullscreenExitButtonVisibility()
+                }
             }
         )
         controlsManager.setupVideoControls()
@@ -1390,6 +1408,13 @@ class PhotoVideoStandaloneActivity :
     }
 
     override val isAudioServiceActive: Boolean = false
+
+    // S2907: player volume for the playback-control dialog.
+    override fun getPlayerVolume(): Float = viewManager.getExoPlayer()?.volume ?: 1f
+
+    override fun setPlayerVolume(volume: Float) {
+        viewManager.getExoPlayer()?.volume = volume
+    }
 
     override fun showMessage(message: String) = viewModel.showMessage(message)
 

@@ -1,0 +1,26 @@
+# prebuilt-native-aars.txt
+# =============================================================================
+# The build-time native AARs a clean checkout does not carry, one repository-
+# relative path per line. app_v2/libs/ is gitignored, so every path below is
+# absent until something fetches it - and Gradle answers an absent
+# files("libs/*.aar") with an EMPTY collection, not with an error (S2879).
+#
+# Asset name = the file's base name. There is deliberately no second column:
+# a stored asset name is a second place the name can drift from reality, which
+# is the class of bug this list closes.
+#
+# Release tag: delivery-so-v1 (permanent home, not a version). These assets are
+# BUILD-TIME only - no shipped app version fetches them, nothing pins their
+# hash in DeliverableDescriptorCatalog.kt - so they carry no rev and are
+# clobbered on every rebuild. Inventory: delivery/INVENTORY.md.
+#
+# Three consumers read this file and none keeps its own copy:
+#   - scripts/builders/publish-prebuilt-native-aar.ps1  (uploads to the tag)
+#   - scripts/ci/fetch-prebuilt-libs.sh                 (downloads in CI)
+#   - app_v2/build.gradle.kts, verifyPrebuiltNativeAars (fails the build)
+#
+# Blank lines and lines starting with '#' are ignored by every consumer.
+# =============================================================================
+
+app_v2/libs/fms-vpx.aar
+app_v2/libs/fms-ffmpeg-dts.aar

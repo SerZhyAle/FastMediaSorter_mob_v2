@@ -18,6 +18,7 @@ class AcceptLauncherPlaceUseCase @Inject constructor(
         command: LauncherCellCommand.Geographic,
         orientation: LauncherOrientation,
         addedAt: Long,
+        screenIndex: Int = 0,
     ): Boolean = withContext(Dispatchers.IO) {
         val state = desktopRepository.state()
         val columns = when (orientation) {
@@ -28,6 +29,7 @@ class AcceptLauncherPlaceUseCase @Inject constructor(
         val cell = LauncherCell(
             id = NEW_CELL_ID,
             orientation = orientation,
+            screenIndex = screenIndex,
             rowIndex = FIRST_ROW,
             colIndex = FIRST_COLUMN,
             spanW = SHORTCUT_SPAN,

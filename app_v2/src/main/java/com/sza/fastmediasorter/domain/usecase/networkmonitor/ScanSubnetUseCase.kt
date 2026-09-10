@@ -193,8 +193,8 @@ class ScanSubnetUseCase @Inject constructor(
     }
 
     private fun hasLocalNetworkAccess(): Boolean {
-        // The constant does not exist in compileSdk 36, so the permission is named as a literal and the
-        // level as a number; the grant only becomes relevant on the API level that introduces it.
+        // The platform had no constant for this permission at the API level that introduced it, so the
+        // permission is named as a literal and the level as a number; the grant only becomes relevant at that level.
         if (Build.VERSION.SDK_INT < LOCAL_NETWORK_PERMISSION_SDK) return true
         val granted = ContextCompat.checkSelfPermission(context, ACCESS_LOCAL_NETWORK)
         return granted == PackageManager.PERMISSION_GRANTED

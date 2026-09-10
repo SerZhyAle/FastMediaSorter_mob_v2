@@ -38,6 +38,34 @@
 # memory file enters context, so the gate strips them too (S2521). AGENTS.md is measured the
 # same way for consistency, although non-Claude runtimes read it raw.
 
-CLAUDE.md|41518|41531|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
-AGENTS.md|37807|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
+# S2851, owner ruling 2026-09-10: the two ceilings below were RAISED by hand, by one slack unit
+# (1024 B) each - CLAUDE.md 41518 -> 42542, AGENTS.md 37807 -> 38831. The script cannot do this and
+# should not: a raise is a decision, and this is the record of one.
+#
+# What forced it. S2851 measured the unit suite at 429 s and needed one rule line saying so, and
+# both files were on their ceiling to the byte - 8 B free in CLAUDE.md, 16 B in AGENTS.md. The rule
+# was compressed to 276 B and still overflowed by 276 B, because nothing at all fitted. That is the
+# ratchet doing something it was not built for: S2517 ADR-4 protects rules from being deleted to fit
+# a ceiling, but a ceiling with zero headroom also refuses rules that were never written, and a rule
+# that cannot be written is not a cheaper page - it is an unenforced rule. Here it would have been
+# the second unenforced attempt at the same thing: the priced anti-pattern this rule states already
+# lived in docs/BUILD_TEST_FAST_PATH.md unpriced, and several sessions ran the whole suite anyway.
+#
+# The raise is one slack unit rather than the 276 B needed, for the reason S2708 gives: a ceiling
+# set to the exact current size leaves the next rule with the same zero headroom, which is the
+# condition that produced this entry. The ratchet is otherwise unchanged - -UpdateBaseline still
+# refuses to raise, and the next compaction still lowers these numbers past the raise.
+#
+# S2856, 2026-09-10: both ceilings LOWERED by the ratchet, not by hand - CLAUDE.md 42542 -> 39963
+# (41793 -> 38939 B measured), AGENTS.md 38831 -> 38359 (38070 -> 37335 B measured). Nothing was
+# deleted to fit a ceiling (S2517 ADR-4): every removal named a destination that was read first and
+# found to already hold the text. Most of it was owed rather than decided - S2521 section 4 had
+# already ruled Rule 23's measurements into docs/DEV_OPS.md "Rule 23 history" and section 13 into
+# .claude/rules/android-source.md, and the canon's contrib record had deferred the consumer-side
+# removal of rationale now printed by the deployed guard refusals until that deploy landed, which
+# it has. Rule 35 lost its device roster and GAINED coverage: the fleet file carries a Meta Quest 3
+# that neither always-loaded file named at all, which is the drift Rule 35's own last sentence
+# predicts. The raise this reverses is the S2851 entry above.
+CLAUDE.md|39963|42542|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
+AGENTS.md|38359|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
 .claude/agents/android-rd-specialist.md|9762|9762|CLAUDE.md when the line is a project rule, or the skill that needs it

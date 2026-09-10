@@ -78,8 +78,10 @@ android {
     }
 
     namespace = "com.sza.fastmediasorter.wear"
-    // CRITICAL: Do not change - required for latest Wear OS features
-    compileSdk = 36
+    // S2884: compileSdk 37 - moved together with app_v2 (strategic 3.2 forbids a split between
+    // the two modules), and kept current so Wear OS 7 features stay compilable. AGP resolves the
+    // highest installed 37.x platform (android-37.0 / android-37.1 on the workstation).
+    compileSdk = 37
 
     defaultConfig {
         // S1681: MUST stay identical to app_v2's applicationId. Play Services routes Data Layer
@@ -265,54 +267,54 @@ dependencies {
     lintChecks(project(":lint-rules"))
     // Wear OS Compose - Using compatible BOM version for wear-compose 1.2.1
     // compose-bom 2024.02.00 includes compose-animation-core 1.6.x compatible with wear-compose 1.2.x
-    val wearComposeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    val wearComposeBom = platform(libs.androidx.compose.bom)
     implementation(wearComposeBom)
     
     // Wear OS Compose libraries - pinned to compatible versions
-    implementation("androidx.wear.compose:compose-material:1.2.1")
-    implementation("androidx.wear.compose:compose-foundation:1.2.1")
-    implementation("androidx.wear.compose:compose-navigation:1.2.1")
+    implementation(libs.androidx.wear.compose.material)
+    implementation(libs.androidx.wear.compose.foundation)
+    implementation(libs.androidx.wear.compose.navigation)
     
     // Hilt Navigation Compose (for hiltViewModel)
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation(libs.androidx.hilt.navigation.compose)
     
     // Compose UI basics
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation(libs.androidx.activity.compose)
     
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     
     // Wear OS essentials
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    implementation("androidx.wear:wear:1.3.0")
-    implementation("androidx.wear:wear-input:1.1.0")
+    implementation(libs.google.gms.play.services.wearable)
+    implementation(libs.androidx.wear.wear)
+    implementation(libs.androidx.wear.input)
 
     // S2496: RemoteActivityHelper - hands an ACTION_VIEW to the Wear OS companion so a link opens on
     // the paired phone. It ships in this artifact alone; androidx.wear:wear above does not carry it.
     // The -ktx artifact is what awaits its ListenableFuture: hand-rolling that bridge over
     // addListener leaves the future uncancelled when the calling scope dies.
-    implementation("androidx.wear:wear-remote-interactions:1.1.0")
-    implementation("androidx.concurrent:concurrent-futures-ktx:1.2.0")
+    implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.androidx.concurrent.futures.ktx)
 
     // S1955: tiles for the system carousel. The tile service and its layout library split at 1.2 and are
     // both maintained; both declare minSdk 23, so neither moves this module's floor of 28.
-    implementation("androidx.wear.tiles:tiles:1.6.2")
-    implementation("androidx.wear.protolayout:protolayout:1.4.2")
-    implementation("androidx.wear.protolayout:protolayout-material:1.4.2")
-    implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
+    implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.protolayout.protolayout)
+    implementation(libs.androidx.protolayout.material)
+    implementation(libs.androidx.protolayout.expression)
 
     // S2047: watch face complication data sources. watch-face APIs are deprecated at 1.3.0 while complication APIs are not.
-    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.3.0")
+    implementation(libs.androidx.watchface.complications.data.source.ktx)
 
     // S2457: Health Services, for a single foreground heart-rate reading. Three things about this line
     // are deliberate and none of them is style.
@@ -330,90 +332,90 @@ dependencies {
     // unresolved reference that fails SCRIPT COMPILATION - which breaks configuration for every
     // module, so detekt and every post-change closure in the repository died before running a
     // single check. app_v2 has used the quoted form for its six flavors since it gained them.
-    "noLegalImplementation"("androidx.health:health-services-client:1.1.0-rc02")
+    "noLegalImplementation"(libs.androidx.health.services.client)
     
     // Accompanist Permissions (for runtime permission handling)
-    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    implementation(libs.accompanist.permissions)
     
     // Media3 for audio playback and streaming (S1708)
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
-    implementation("androidx.media3:media3-common:1.2.1")
-    implementation("androidx.media3:media3-session:1.2.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.exoplayer.rtsp)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.session)
     
     // Coil for image loading (Compose-friendly)
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.coil.compose)
     
     // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.59")
-    ksp("com.google.dagger:hilt-android-compiler:2.59")
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.android.compiler)
 
     // Room - voice-note store (S1862). Version is deliberately kept equal to app_v2 and pinned in
     // docs/TECH_STACK.md; check-doc-vs-gradle.ps1 reads that pin. KSP is already applied above, so
     // this adds a processor, not a plugin.
-    implementation("androidx.room:room-runtime:2.7.0")
-    implementation("androidx.room:room-ktx:2.7.0")
-    ksp("androidx.room:room-compiler:2.7.0")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
     
     // DataStore for settings - kept in lockstep with app_v2 (S1449); 1.0.0 cannot rewrite its
     // own file on Windows, and two versions of one library across modules is a future trap.
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
     
     // Retrofit for album art API
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.retrofit.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.okhttp)
 
     // S2509: declared outright rather than taken from converter-gson above. The broadcast descriptor
     // is a cross-module wire contract, and a transitive version that a Retrofit bump could change or
     // drop is not something a contract may rest on.
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // S2509: QR presentation of the broadcast descriptor. Core decoder only, exactly as app_v2 takes
     // it - the android-embedded artifact drags in a legacy camera1 stack the watch has no use for.
-    implementation("com.google.zxing:core:3.5.3")
+    implementation(libs.zxing.core)
     
     // SMB client for network storage
-    implementation("com.hierynomus:smbj:0.12.1")
+    implementation(libs.smbj)
 
     // FTP client (S0111 Phase 04)
-    implementation("commons-net:commons-net:3.10.0")
+    implementation(libs.commons.net)
 
     // SFTP client - JSch (lighter than SSHJ, no BouncyCastle conflict with SMBJ) (S0111 Phase 04).
     // Version is deliberately kept equal to app_v2 and enforced by check-doc-vs-gradle.ps1 (S1496).
-    implementation("com.github.mwiede:jsch:0.2.26")
+    implementation(libs.jsch)
     
     // Encrypted storage for credentials
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.androidx.security.crypto)
     
     // Logging
-    implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation(libs.timber)
     
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     // S1697: the watch ViewModels sit on Data Layer clients that need an Android Context to build,
     // so a state test can only exist here with a mocking library. Same version as app_v2.
-    testImplementation("io.mockk:mockk:1.13.9")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
+    testImplementation(libs.mockk)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
     // S2355: the BOM has to be on the androidTest classpath too, or the versionless coordinate
     // below has no version source and the configuration fails to resolve. It went unnoticed
     // because until this ticket no target ever resolved the watch's instrumented classpath -
     // which is the exact shape of miss the ticket exists to remove.
     androidTestImplementation(wearComposeBom)
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     // S2355: MigrationTestHelper - the class that performs on a device the same schema comparison
     // Room performs on update - ships in room-testing and nowhere else. Version kept equal to the
     // room-runtime pin above and to app_v2, so both modules test against the same Room runtime.
-    androidTestImplementation("androidx.room:room-testing:2.7.0")
+    androidTestImplementation(libs.androidx.room.testing)
 }
 
 ksp {

@@ -674,7 +674,7 @@ class PhoneWearListenerService : WearableListenerService() {
         val withPictures = encodePage(page)
         if (withPictures.size <= MAX_DATA_ITEM_BYTES) return withPictures
 
-        return encodePage(page.copy(items = page.items.map { it.withoutThumbnail() }))
+        return encodePage(page.copy(items = page.items?.map { it.withoutThumbnail() }))
     }
 
     private fun WearPhoneResourceItem.withoutThumbnail(): WearPhoneResourceItem =

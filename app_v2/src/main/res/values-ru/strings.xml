@@ -3350,7 +3350,7 @@
     <string name="network_monitor_bluetooth_paired_only_heading">Сопряжены, но не подключены</string>
     <string name="network_monitor_chart_reset_action">Перезапустить график</string>
     <string name="network_monitor_chart_reset_done">График перезапущен. Замер идёт заново.</string>
-    <string name="settings_enable_wear_companion">Компаньон часов</string>
+    <string name="settings_enable_wear_companion">Wear-компаньон</string>
     <string name="settings_enable_wear_companion_summary">Показывать компаньон часов в панели и меню программ</string>
     <string name="stream_action_send_to_watch">Передать на часы</string>
     <string name="stream_send_to_watch_done">Трансляция передана на часы</string>
@@ -3427,7 +3427,7 @@
     <string name="network_monitor_speed_result_heading">Результаты замера</string>
     <string name="network_monitor_read_only_resource">(Ресурс только для чтения)</string>
     <string name="camera_profile_document">Документы</string>
-    <string name="wear_companion_add_open_resource">Добавить/Открыть ресурс WEAR (данные на часах)</string>
+    <string name="wear_companion_add_open_resource">Добавить или открыть часы</string>
     <string name="share_target_title_watch">Часы</string>
     <string name="share_target_desc_watch">Показать файл на сопряжённых часах</string>
     <string name="share_target_help_watch">Отправляет файл на сопряжённые часы и открывает его там. Работают фото, GIF, видео и аудио до 32 МБ. Приложение на часах должно быть открыто.</string>
@@ -3942,4 +3942,24 @@
     <string name="shortcut_broadcast_long">Прямой эфир</string>
     <string name="tile_broadcast_label">Прямой эфир</string>
     <string name="widget_broadcast_label">Прямой эфир</string>
+    <string name="broadcast_share_send_link">Отправить</string>
+    <string name="broadcast_share_send_chooser_title">Отправить ссылку на трансляцию</string>
+    <string name="wear_settings_disable_animations_desc">Отключает анимации интерфейса на часах</string>
+    <string name="wear_companion_summary_none">Ничего не включено</string>
+    <string name="wear_companion_summary_on">Вкл</string>
+    <string name="wear_companion_summary_off">Выкл</string>
+    <string name="wear_companion_summary_slideshow_on">Вкл, каждые %1$d с</string>
+    <string name="wear_listen_record_saved">Запись сохранена</string>
+    <string name="wear_listen_record_saved_fallback">Запись сохранена в локальную папку</string>
+    <string name="wear_listen_record_failed">Не удалось сохранить запись</string>
+    <string name="watch_listen_label">Слушать часы</string>
+    <string name="watch_listen_record_label">Слушать часы с записью</string>
+    <string name="watch_listen_content_description">Слушать микрофон спаренных часов</string>
+    <string name="watch_listen_record_content_description">Слушать микрофон спаренных часов и записывать в файл</string>
+    <string name="watch_listen_widget_label">Слушать часы</string>
+    <string name="watch_listen_widget_description">Слушать спаренные часы и записывать услышанное. Нужны спаренные часы в той же сети Wi-Fi.</string>
+    <string name="watch_listen_state_idle">Не запущено</string>
+    <string name="watch_listen_state_waiting">Ждём часы</string>
+    <string name="watch_listen_state_listening">Слушаем</string>
+    <string name="watch_listen_state_recording">Пишем</string>
 </resources>

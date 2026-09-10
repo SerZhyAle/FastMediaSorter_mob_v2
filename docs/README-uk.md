@@ -450,7 +450,7 @@ CI workflow:
 - **OCR та Переклад**: Google ML Kit (Розпізнавання тексту, Переклад), Tesseract4Android (OCR для кирилиці)
 - **Навігація**: AndroidX Navigation Component
 - **Медіа**: ExoPlayer (Media3 1.2.1)
-- **Зображення**: Glide 4.16.0 з кастомним NetworkFileModelLoader
+- **Зображення**: Glide 5.0.9 з кастомним NetworkFileModelLoader
 - **Мережеві протоколи**:
   - SMB: SMBJ 0.12.1 з BouncyCastle (транзитивно)
   - SFTP: JSch 0.2.26 (форк com.github.mwiede, Ed25519 вбудований)

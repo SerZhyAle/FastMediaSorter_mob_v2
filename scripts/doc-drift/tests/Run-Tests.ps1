@@ -80,8 +80,8 @@ try {
     $techPath = Join-Path $tempRoot 'docs\TECH_STACK.md'
     $techText = Get-Content -LiteralPath $techPath -Raw
     Set-MutatedContent -Path $techPath -Text $techText -What 'compile-sdk in TECH_STACK.md' `
-        -Pattern ('compileSdk` / `targetSdk`: `' + $compileSdkNow + '`') `
-        -Replacement ('compileSdk` / `targetSdk`: `' + ($compileSdkNow - 1) + '`')
+        -Pattern ('compileSdk`: `' + $compileSdkNow + '`') `
+        -Replacement ('compileSdk`: `' + ($compileSdkNow - 1) + '`')
     Assert-Scenario 'compile-sdk-mismatch' {
         @(Get-ScenarioRecords | Where-Object { $_.Pin -eq 'compile-sdk' -and $_.Status -eq 'FAIL' }).Count -eq 1
     }

@@ -23,9 +23,16 @@ import javax.inject.Inject
 private const val DATA_LAYER_PATH = "/fms/network_sources/push"
 private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L
 
+/**
+ * @param deselected S2882: how many registered resources this batch declared as unwanted on the
+ *   watch. Declared last with a default so the older two-value call sites still build. A caller reads
+ *   it to tell a batch that withdrew something from one that did nothing at all - the two used to be
+ *   the same value, and the companion reported both as an empty selection.
+ */
 data class SendResult(
     val sent: Int,
-    val skipped: Int
+    val skipped: Int,
+    val deselected: Int = 0
 )
 
 class SendResourcesToWatchUseCase @Inject constructor(
@@ -44,12 +51,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
         val nodes = wearableRepository.getConnectedNodes()
         if (nodes.isEmpty()) error("No watch connected")
 
-        // S1781: an empty selection means "nothing to send", never "send the whole registry".
         val selectedIds = selectionRepository.getSelectedIds()
-        if (selectedIds.isEmpty()) {
-            Timber.i("No resources are marked for the watch - nothing sent")
-            return@runCatching SendResult(0, 0)
-        }
         // S2502: read once for the whole batch - the map is small and every record consults it.
         val editStamps = wearResourceStampStore.readStamps()
         Timber.d("S2502: phone push leg entered, ${editStamps.size} edit stamp(s) known")
@@ -59,11 +61,64 @@ class SendResourcesToWatchUseCase @Inject constructor(
             it.id in selectedIds && !it.isHidden &&
                 it.type in ResourceType.WATCH_TRANSFERABLE
         }
+        val collected = collectPayloads(networkResources, editStamps)
+        // S2882: the registered resources this phone declares unwanted on the watch when a selection exists.
+        // S2909: when selectedIds is empty, there is no active selection to compute deselections against.
+        val deselectedIds = if (selectedIds.isEmpty()) {
+            emptyList()
+        } else {
+            allResources
+                .filterNot { it.id in selectedIds }
+                .map { it.id.toString() }
+        }
+        // S2507: every tombstone travels, whatever the selection holds. Selection says which
+        // resources the watch should carry; it never says which deletions it may hear about, and
+        // dropping a deselected resource's tombstone is what would let the watch resurrect it.
+        val tombstones = wearResourceTombstoneStore.read()
 
-        var sent = 0
+        // S1781/S2909: an empty selection with no tombstones and no active deselections sends nothing.
+        if (collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
+            Timber.d("S2909: empty selection push skipped, no DataItem sent to watch")
+            return@runCatching SendResult(sent = 0, skipped = collected.skipped, deselected = 0)
+        }
+
+        val syncPayload = WearSyncPayload(
+            sentAt = System.currentTimeMillis(),
+            phoneName = Build.MODEL.orEmpty(),
+            sources = collected.payloads,
+            tombstones = tombstones,
+            // Null rather than an empty list, so a batch that withdraws nothing stays byte-identical
+            // to one a build without this field would have produced.
+            deselectedIds = deselectedIds.ifEmpty { null }
+        )
+        Timber.d("S2507: phone push leg carries ${syncPayload.tombstones.orEmpty().size} tombstone(s)")
+        Timber.d("S2882: phone push leg declares ${deselectedIds.size} withdrawn resource(s)")
+        val syncJson = gson.toJson(syncPayload)
+        val bytes = syncJson.toByteArray(Charsets.UTF_8)
+        wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
+        Timber.i(
+            "Sent ${collected.payloads.size} resources to watch " +
+                "(${collected.skipped} skipped, ${deselectedIds.size} withdrawn)"
+        )
+        SendResult(collected.payloads.size, collected.skipped, deselectedIds.size)
+    }
+
+    /** What the per-resource loop produced: the records that travel, and how many could not. */
+    private class CollectedPayloads(
+        val payloads: List<WearNetworkSourcePayload>,
+        val skipped: Int
+    )
+
+    /**
+     * Extracted from `invoke`, which reached detekt's length ceiling when S2882 added the withdrawn
+     * set beside the records - the loop is the one part of the batch that is per-resource.
+     */
+    private suspend fun collectPayloads(
+        networkResources: List<MediaResource>,
+        editStamps: Map<String, Long>
+    ): CollectedPayloads {
         var skipped = 0
         val payloads = mutableListOf<WearNetworkSourcePayload>()
-
         for (resource in networkResources) {
             val credId = resource.credentialsId
             if (credId == null) {
@@ -83,38 +138,28 @@ class SendResourcesToWatchUseCase @Inject constructor(
                 skipped++
                 continue
             }
-            // S2488: for SFTP, send the address that answers right now instead of the one recorded at
-            // import - the companion's listening endpoint moves, and the watch has no way to notice.
-            val endpoints = if (resource.type == ResourceType.SFTP) {
-                runCatching { reachableEndpointProvider.orderedEndpoints(creds.server, creds.port) }
-                    .onFailure {
-                        Timber.w(it, "Endpoint resolution failed for ${resource.name} - sending stored address")
-                    }
-                    .getOrNull()
-            } else {
-                null
-            }
             payloads.add(
-                toPayload(resource, creds, password, endpoints, editStamps[resource.id.toString()])
+                toPayload(resource, creds, password, endpointsFor(resource, creds), editStamps[resource.id.toString()])
             )
-            sent++
         }
+        return CollectedPayloads(payloads, skipped)
+    }
 
-        val syncPayload = WearSyncPayload(
-            sentAt = System.currentTimeMillis(),
-            phoneName = Build.MODEL.orEmpty(),
-            sources = payloads,
-            // S2507: every tombstone travels, whatever the selection holds. Selection says which
-            // resources the watch should carry; it never says which deletions it may hear about, and
-            // dropping a deselected resource's tombstone is what would let the watch resurrect it.
-            tombstones = wearResourceTombstoneStore.read()
-        )
-        Timber.d("S2507: phone push leg carries ${syncPayload.tombstones.size} tombstone(s)")
-        val syncJson = gson.toJson(syncPayload)
-        val bytes = syncJson.toByteArray(Charsets.UTF_8)
-        wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
-        Timber.i("Sent $sent resources to watch ($skipped skipped)")
-        SendResult(sent, skipped)
+    /**
+     * S2488: for SFTP, send the address that answers right now instead of the one recorded at import -
+     * the companion's listening endpoint moves, and the watch has no way to notice.
+     */
+    private suspend fun endpointsFor(
+        resource: MediaResource,
+        creds: NetworkCredentialsEntity
+    ): List<HostPort>? = if (resource.type == ResourceType.SFTP) {
+        runCatching { reachableEndpointProvider.orderedEndpoints(creds.server, creds.port) }
+            .onFailure {
+                Timber.w(it, "Endpoint resolution failed for ${resource.name} - sending stored address")
+            }
+            .getOrNull()
+    } else {
+        null
     }
 
     // Extracted from invoke, which reached detekt's length ceiling when S2502 added the edit stamp.

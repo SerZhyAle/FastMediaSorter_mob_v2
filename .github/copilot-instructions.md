@@ -1,5 +1,7 @@
 # FastMediaSorter v2 - GitHub Copilot Instructions
 
+**Read `docs/NON_CLAUDE_RUNTIME_RULES.md` first.** It is the eleven rules Claude Code refuses at the tool call and nothing refuses for you, plus the closure check that catches what you missed. Everything below assumes you have.
+
 ## 1. Browser / Web Access
 - Browse via MCP playwright (`navigate` → `snapshot` / `take_screenshot`). Never `fetch_webpage`.
 
@@ -99,7 +101,7 @@
 ## 8. Scripts Reference
 - Logs: `scripts/utils/search-log.ps1` (`-Summary`, `-Spam`, `-Errors`, `-Warnings`, `-Pattern`, `-Tag`).
 - Builds: `scripts/builders/build-debug.PS1` (`-SkipZip`, `-AutoVersion`), `build-debug-clean.PS1`, `build-lite-debug.ps1`, `build-photos-debug.ps1`, `build-legacy-debug.ps1`, `clean-gradle-caches.ps1`, `build-standard-release.ps1`, `build-wear-release.PS1`.
-- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor Standard|NoLegal|Lite|Photos|Legacy]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
+- Fast checks: `scripts/builders/check-standard-fast.ps1 -Mode Code|Resources|CodeAndResources|Unit|Assemble [-Flavor <any flavor the module declares>]`. Prefer `Code` / `CodeAndResources` over full debug APK builds when only a few symbols changed.
 - Gate batch: `scripts/quality/assert-fast-gates.ps1` runs the fast static gates (no-ticket-logs, flavor-flags, neuroslop, deprecated-pm, listener-symmetry) in one process (`-IncludeDetekt` opt-in).
 - Closure facade: `scripts/post-change.ps1 -ChangeType <type>` chains dev-log + catalog-sync + gates; use `Tooling` for build/config-plus-script sets, and add `-ScopeToFile` for per-change closure on the always-dirty tree (source gates require matching files; detekt stays diff-scoped).
 - Device: `scripts/utils/extract-device-logs.ps1`, `Install_release_on_adb_connected_device.ps1`, `build-standard-device.ps1`.

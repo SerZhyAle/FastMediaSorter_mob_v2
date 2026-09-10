@@ -1420,6 +1420,28 @@ class PlayerActivity :
     override val isAudioServiceActive: Boolean
         get() = isMediaLoaderManagerInitialized && mediaLoaderManager.isServiceAudioActive
 
+    // S2907: route to the player that actually owns the audio path. When the background
+    // AudioPlaybackService is active its MediaController is the live player; otherwise the
+    // ExoPlayer inside VideoPlayerManager. Matches the split PlayerActivityVideoHandle uses
+    // for playback speed.
+    override fun getPlayerVolume(): Float {
+        val player = if (isAudioServiceActive) {
+            audioServiceController?.player
+        } else {
+            _videoPlayerManager?.getPlayer()
+        }
+        return player?.volume ?: 1f
+    }
+
+    override fun setPlayerVolume(volume: Float) {
+        val player = if (isAudioServiceActive) {
+            audioServiceController?.player
+        } else {
+            _videoPlayerManager?.getPlayer()
+        }
+        player?.volume = volume
+    }
+
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
     // Handled internally: PlayerDeleteUndoCoordinator advances the file list or emits FinishActivity.

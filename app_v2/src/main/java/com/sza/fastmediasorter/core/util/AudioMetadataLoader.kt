@@ -5,7 +5,7 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Metadata
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.MetadataRetriever
+import androidx.media3.inspector.MetadataRetriever
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheEntity
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
@@ -464,11 +464,20 @@ class AudioMetadataLoader @Inject constructor(
         return try {
             tempFile.writeBytes(bytes)
             val mediaItem = MediaItem.fromUri(tempFile.toUri())
-            val trackGroupsFuture = MetadataRetriever.retrieveMetadata(context, mediaItem)
+            Timber.d("S2876: metadata read through media3-inspector MetadataRetriever on ${bytes.size} bytes")
+            val retriever = MetadataRetriever.Builder(context, mediaItem).build()
             // S0229: runInterruptible ensures coroutine cancellation interrupts the blocking
             // future.get() call. Without this, a cancelled scope leaves MetadataRetriever's
             // internal handler running on a dead thread, producing "Handler on a dead thread".
-            val trackGroups = runInterruptible { trackGroupsFuture.get(5, TimeUnit.SECONDS) }
+            // S2876: the retriever became AutoCloseable when it moved to media3-inspector, and it
+            // is closed only after the future has been awaited - closing it earlier abandons the
+            // retrieval that is still in flight.
+            val trackGroups = try {
+                val trackGroupsFuture = retriever.retrieveTrackGroups()
+                runInterruptible { trackGroupsFuture.get(5, TimeUnit.SECONDS) }
+            } finally {
+                retriever.close()
+            }
 
             var artist: String? = null
             var album: String? = null

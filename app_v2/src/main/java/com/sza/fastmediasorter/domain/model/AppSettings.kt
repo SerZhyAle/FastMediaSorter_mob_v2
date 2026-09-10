@@ -632,11 +632,13 @@ data class AppSettings(
         val LAUNCHER_DENSITY_OPTIONS = listOf(0.75f, 1.0f, 1.25f, 1.5f)
 
         /**
-         * S2320: the dense grid is what the launcher ships with - smaller cells, more of them across.
-         * Named rather than written at the field, so the settings row and the reset dialog can derive
-         * their selected index from it instead of carrying a position that outlives the value.
+         * S2320 shipped the dense grid; S2903 reversed it - the sparse step ships now, because the
+         * desktop a fresh install seeds is read from a driver's seat and the dense one opens with
+         * small cells and clipped labels there. Named rather than written at the field, so the
+         * settings row and the reset dialog can derive their selected index from it instead of
+         * carrying a position that outlives the value.
          */
-        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 1.25f
+        const val DEFAULT_LAUNCHER_DENSITY_FACTOR: Float = 0.75f
 
         /** S1643: taskbar anchored to the bottom screen edge - the pre-S1643 layout and the default. */
         const val LAUNCHER_TASKBAR_PLACEMENT_BOTTOM = "BOTTOM"

@@ -113,6 +113,7 @@ private class WeatherGadgetView(
             .distinctUntilChanged()
             .collectLatest { system ->
                 unitSystem = system
+                Timber.d("S2716: unit system selected=$system")
                 while (currentCoroutineContext().isActive) {
                     when (val result = getWeather(place)) {
                         is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)

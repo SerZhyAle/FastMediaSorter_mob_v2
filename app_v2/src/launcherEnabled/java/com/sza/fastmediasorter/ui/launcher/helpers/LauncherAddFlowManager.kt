@@ -48,6 +48,7 @@ import timber.log.Timber
  * (which gadget, which indicator, which world-clock cell) still lives here on purpose - see §1
  * Non-goal in S2060 for why that risk is not this ticket's scope.
  */
+@Suppress("LongParameterList")
 class LauncherAddFlowManager(
     // S1906: the shared searchable picker takes its title as a String, so whoever opens it supplies the
     // resolved text - every other picker here is a fragment that reads its own strings.
@@ -59,6 +60,7 @@ class LauncherAddFlowManager(
     private val contactPickManager: LauncherContactPickManager,
     private val sensorPermissionManager: LauncherSensorPermissionManager,
     private val currentColumns: () -> Int,
+    private val currentScreenIndex: () -> Int = { 0 },
     private val hostActions: LauncherAddFlowHostActions,
 ) {
 
@@ -464,6 +466,7 @@ class LauncherAddFlowManager(
             target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_STREAM_WINDOW, identityKey),
             spanW = spanW,
             spanH = spanH,
+            screenIndex = currentScreenIndex(),
             onPlaced = onResult,
         )
     }
@@ -522,6 +525,7 @@ class LauncherAddFlowManager(
         labelOverride: String? = null,
     ) {
         val (row, col) = viewModel.pendingSlot
+        val screenIndex = currentScreenIndex()
         if (row == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),
@@ -531,6 +535,7 @@ class LauncherAddFlowManager(
                 spanH = spanH,
                 rememberFileListResourceId = rememberFileListResourceId,
                 labelOverride = labelOverride,
+                screenIndex = screenIndex,
             )
         } else {
             viewModel.addCell(
@@ -547,6 +552,7 @@ class LauncherAddFlowManager(
                 // S1772: the pointed-at path needs the grid width too - it is what decides whether a
                 // footprint can ever be seated, and the width belongs to the screen, not to the desktop.
                 columns = currentColumns(),
+                screenIndex = screenIndex,
             )
         }
     }

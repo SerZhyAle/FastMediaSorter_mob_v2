@@ -4,9 +4,17 @@
     also mounts via manifest.srcFile - noLegal mounts src/launcherEnabled and legitimately holds both
     permissions below, so a removal placed there would strip them from a build that uses them.
     Injected by addStaticManifestFile in build.gradle.kts, the same way src/launcherEnabled is.
+
+    S0555 Phase 01: the same one-flavor reach is what makes this file the place for Meta Horizon Store
+    release-manifest values. Every one of them is wrong for the sideload build that shares
+    src/vr/AndroidManifest.xml, so none of them may be written there. Requirement source:
+    PLAN/S0555_publish-vr-app-meta-store/research/02__meta-requirements-refresh-2026-09.md.
+
+    installLocation=auto is a Meta release-manifest requirement (the docs accept "auto" or "0").
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools"
+    android:installLocation="auto">
 
     <!-- S1454's closure, finished for vr: the only seam onto ContactsContract is
          ContactSnapshotDataSource, reached solely from src/launcherEnabled, which vr does not mount
@@ -25,5 +33,24 @@
     <uses-permission
         android:name="android.permission.READ_PHONE_STATE"
         tools:node="remove" />
+
+    <!-- S0555 Phase 01 step 01.1: Meta requires required="true" for an immersive store build. The
+         sideload twin of this line is in src/noLegal/AndroidManifest.xml at required="false", and
+         neither is in the shared src/vr/AndroidManifest.xml - see the comment there for why a
+         tools:replace override between two flavor-level manifests cannot work. -->
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="true"
+        android:version="1" />
+
+    <application>
+        <!-- S0555 Phase 01 step 01.2: owner ruling 2026-07-07 chose maximum device reach. The four
+             tokens are Meta's own spelling (quest2, questpro, quest3, quest3s); an unrecognised token
+             is rejected at upload rather than ignored. Consequence recorded in the strategic spec:
+             Quest 2 is then the device VRC Performance.1 is judged on. -->
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest2|questpro|quest3|quest3s" />
+    </application>
 
 </manifest>

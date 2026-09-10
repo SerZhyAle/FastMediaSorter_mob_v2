@@ -5,11 +5,14 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.databinding.GadgetHomeWidgetBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 
 /**
  * S1170: a home-screen widget whose whole behaviour is "show an icon and a label, open one screen on
@@ -40,7 +43,17 @@ class HomeWidgetGadget(
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
-        HomeWidgetGadgetView(container.context, labelRes, iconRes, iconTintable, command, host)
+        // S2889: the tile shows the same widget the picker and the home screen show, so it takes the same
+        // tone. Resolved from [key], which IS the widgetKey the sub-program registry pairs against.
+        HomeWidgetGadgetView(
+            container.context,
+            labelRes,
+            iconRes,
+            iconTintable,
+            HomeWidgetAccent.accentResFor(key),
+            command,
+            host,
+        )
 }
 
 /**
@@ -53,6 +66,7 @@ private class HomeWidgetGadgetView(
     @StringRes labelRes: Int,
     @DrawableRes iconRes: Int,
     iconTintable: Boolean,
+    @ColorRes accentRes: Int?,
     command: LauncherCellCommand,
     host: LauncherGadgetHost,
 ) : LauncherGadgetView(context) {
@@ -60,15 +74,18 @@ private class HomeWidgetGadgetView(
     init {
         val binding = GadgetHomeWidgetBinding.inflate(LayoutInflater.from(context), this)
         binding.gadgetHomeWidgetIcon.setImageResource(iconRes)
-        binding.gadgetHomeWidgetIcon.imageTintList = if (iconTintable) {
-            ColorStateList.valueOf(
+        // S2889: the sub-program's own tone wins where it has one. The theme role stays the fallback so a
+        // gadget that is not a sub-program - and a sub-program whose glyph carries state instead of
+        // identity - keeps the appearance it has today.
+        binding.gadgetHomeWidgetIcon.imageTintList = when {
+            accentRes != null -> ColorStateList.valueOf(ContextCompat.getColor(context, accentRes))
+            iconTintable -> ColorStateList.valueOf(
                 MaterialColors.getColor(
                     binding.gadgetHomeWidgetIcon,
                     com.google.android.material.R.attr.colorOnSurface,
                 )
             )
-        } else {
-            null
+            else -> null
         }
         binding.gadgetHomeWidgetLabel.setText(labelRes)
         // The label is the only thing naming this cell, so the whole cell announces it rather than

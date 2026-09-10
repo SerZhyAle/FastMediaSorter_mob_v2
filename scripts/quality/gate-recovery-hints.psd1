@@ -183,6 +183,11 @@
         Fix   = 'A watch setting exists on one side of the phone/watch pair and not the other. The message names the missing side: add the field to that WearSettingsPayload copy, the key to the watch DataStore, the entry to the other WearSettingsRegistry copy, or the row to SettingsDocScopeCatalog.wearEntries. A setting that is deliberately one-sided is legal, but only with a written exceptionReason on its registry entry - without one it is indistinguishable from a forgotten side.'
     }
 
+    'gate-placement-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-gate-placement.ps1 -Gate'
+        Fix   = 'The gate-placement registry (scripts/quality/gate-placement.jsonl) disagrees with where the gates are actually wired. Four shapes. (1) "has no registry record" - you added a gate: add its row, naming its scope class, who decided it and why. CLAUDE.md Rule 33 requires a new gate to name its class at birth, and unnamed means per-ticket. (2) "declared per-ticket but scripts/post-change.ps1 does not reference it" - the gate runs only when someone types .\a.ps1 fg. Membership in assert-fast-gates.ps1 does NOT satisfy per-ticket: that is the shape that crashed the app (S2300) and deleted the owner''s database (S2306). Wire it into post-change.ps1, or change the row to the class it really has. (3) "declared X but its wiring says Y" - a gate moved between runners without the registry being updated; update whichever is wrong, and if the placement genuinely moved, record the deciding ticket and the reason so the next reader is not left guessing. (4) "which is not on disk" - a row survived its gate; delete it. Scope classes and the runner that satisfies each are in the gate''s own header and in docs/DEV_OPS.md.'
+    }
+
     'wear-canonical-key-parity-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-canonical-key-parity.ps1 -Gate'
         Fix   = 'A WearAppId canonicalKey is neither an InternalRouteCatalog KEY_* value nor a declared watch-only program. The key is the phone''s address for the same program, which is what will let the watch list be absorbed into the phone''s registry without renaming a key already saved on a device - so if the phone has this program, spell the key exactly as the phone spells it, and rename on the watch rather than on the phone (the phone key is saved in launcher cells and app-launch panel layouts; the watch key is saved nowhere). If the program exists on the watch alone, that is legal: add its key to scripts/quality/wear-canonical-key-watch-only-baseline.txt with the reason there is no counterpart. The other two shapes are a spent baseline row - one naming a key the enum no longer has, or one whose program the phone has since gained - and both are fixed by deleting the row.'
@@ -191,6 +196,11 @@
     'wear-walk-contract-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-walk-contract.ps1 -Gate'
         Fix   = 'A wear screen in your changed set is classified in neither list of scripts/devtest/wear-prerelease-screens.json, so the watch pre-release walk neither opens it nor declares it skipped - it would ship unwalked in silence. Add it to screens[] with the label that opens it and a marker the destination renders and its parent does not (expect + expectRes, and mind that most watch screens repeat their parent chip label as their title, which makes the title useless as a marker), or to excluded[] with a reason from the closed set: not-a-destination, arg-external, gesture-only, timed, needs-seeded-content, pre-graph-gate, no-static-marker, absent-from-this-flavor. The other shapes are drift in an existing entry - a renamed string, a resource no composable renders, or a screen name that no longer exists. Note the scope (S2621): this per-ticket run judges only screens declared in your changed files, plus everything if the list itself is in the set, so a neighbour''s unclassified screen is not yours to fix; the whole-tree run is .\a.ps1 fg.'
+    }
+
+    'bridge-scenario-coverage-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-bridge-scenario-coverage.ps1 -Gate'
+        Fix   = 'A Data Layer route declared in either WearDataLayerPaths.kt is named by no scenario in scripts/devtest/bridge-scenarios.json and explained by no excluded[] record, so the joint-device campaign will never measure it - the S2861 gap class that hid two of thirty-eight routes, both of them exactly where the campaign''s only confirmed defect lived. Add the route to the new scenario''s channels[] (the string is the verdict marker logcat filters on), or add an excluded[] record with the reason no scenario will ever cover it. The other shapes: a route declared in one catalog only (the mirror is broken - declare it on both sides or drop it), an excluded record with no reason, an excluded path no catalog declares, or a path both scenario-named and excluded. Scope (S2723): the per-ticket run judges only routes your changed set owns - a catalogue or registry file in the set, or a registry record your edit touched; a neighbour''s unclassified route is not yours to fix. The whole-tree run is .\a.ps1 fg.'
     }
 
     'wear-mirrored-strings-gate' = @{
@@ -264,5 +274,9 @@
     'wear-wire-vocabulary-parity-gate' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-wire-vocabulary-parity.ps1 -Gate'
         Fix   = 'A phone/watch wire vocabulary outside settings diverged between app_v2 and wear, a LocalOnly safety rule failed, or a new mirrored enum was added without being declared in the gate table. Align the declarations or declare the new enum in $vocabularies.'
+    }
+    'wear-wire-nullability-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-wear-wire-nullability.ps1 -Gate'
+        Fix   = 'A bridge envelope field is declared non-null WITH a Kotlin default that Gson will never apply - it fills by reflection and runs no constructor, so an absent key leaves null in a reference field and the JVM zero in a primitive. Declare the field nullable and move the old default to every receive site: `.orEmpty()` for a collection, `?: <the old default>` for anything else, and mirror the edit in the other module. A version marker, whose absent-key 0 correctly means "the sender predates every known version", goes in scripts/quality/wear-wire-nullability-baseline.txt with a per-field justification instead. Exit 2 means a declared envelope file is missing from the tree or a baseline row carries no justification.'
     }
 }

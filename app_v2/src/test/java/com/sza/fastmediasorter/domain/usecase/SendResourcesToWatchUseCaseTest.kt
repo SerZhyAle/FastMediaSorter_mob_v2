@@ -221,8 +221,12 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals(null, payload.sources.single().lastEditedAt)
     }
 
+    // S2882: an empty selection used to take an early return, and unticking the last marked resource
+    // could therefore never reach the watch. The batch travels now, and S1781's invariant moves to
+    // where it always belonged: `sources` is empty, never the whole registry.
+
     @Test
-    fun `empty selection sends nothing and never writes to the data layer`() = runTest {
+    fun `empty selection sends no payload to watch and returns zero counts`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
         credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
@@ -232,7 +236,58 @@ class SendResourcesToWatchUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrThrow().sent)
         assertEquals(0, result.getOrThrow().skipped)
-        assertTrue(wearableRepository.putCalls.isEmpty())
+        assertEquals(0, result.getOrThrow().deselected)
+        assertEquals(0, wearableRepository.putCalls.size)
+    }
+
+    @Test
+    fun `a deselected registry resource is declared withdrawn and a selected one is not`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = (1L..3L).map { id ->
+            makeResource(id = id, type = ResourceType.SMB, credId = "cred-$id")
+        }
+        (1L..3L).forEach { id ->
+            credentialsRepository.byCredentialId["cred-$id"] = makeCredentials("cred-$id", "pass$id")
+        }
+        select(2L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(listOf("1", "3"), sentPayload().deselectedIds)
+        assertEquals(2, result.getOrThrow().deselected)
+    }
+
+    @Test
+    fun `a registry with everything selected declares no withdrawals at all`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        select(1L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        // Null rather than an empty list - a batch that withdraws nothing stays byte-identical to one
+        // a build without the field would have produced.
+        assertEquals(null, sentPayload().deselectedIds)
+        assertEquals(0, result.getOrThrow().deselected)
+    }
+
+    @Test
+    fun `a resource kept out of the watch by its type is still declared withdrawn when unticked`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(
+            makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"),
+            makeResource(id = 2, type = ResourceType.LOCAL, credId = null)
+        )
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        select(1L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(listOf("2"), sentPayload().deselectedIds)
     }
 
     // S2488: the four cases below cover the endpoint substitution and both of its exclusions.
@@ -307,10 +362,12 @@ class SendResourcesToWatchUseCaseTest {
         assertEquals(445, sftp.port)
     }
 
-    private fun sentSources() = Gson().fromJson(
+    private fun sentPayload(): WearSyncPayload = Gson().fromJson(
         wearableRepository.putCalls.single().payload.decodeToString(),
         WearSyncPayload::class.java
-    ).sources
+    )
+
+    private fun sentSources() = sentPayload().sources
 
     private fun makeResource(id: Long, type: ResourceType, credId: String?) = MediaResource(
         id = id,

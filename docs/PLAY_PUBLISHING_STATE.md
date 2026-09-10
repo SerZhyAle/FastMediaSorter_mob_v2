@@ -26,7 +26,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-09 |
+| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-10 |
 
 Reader exit code: 0.
 
@@ -47,28 +47,33 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-09 |
-| `beta` | - | - | no release | 2026-09-09 |
-| `alpha` | - | - | no release | 2026-09-09 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-09 |
-| `wear:beta` | - | - | no release | 2026-09-09 |
-| `wear:internal` | - | - | no release | 2026-09-09 |
-| `wear:production` | `2.60.9021.951` | `260909148` | completed | 2026-09-09 |
+| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-10 |
+| `beta` | - | - | no release | 2026-09-10 |
+| `alpha` | - | - | no release | 2026-09-10 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-10 |
+| `wear:beta` | - | - | no release | 2026-09-10 |
+| `wear:internal` | - | - | no release | 2026-09-10 |
+| `wear:production` | `2.60.9021.951` | `260909148` | completed | 2026-09-10 |
 
 Reader exit code: 0.
 
 <!-- s2272:measured:tracks:end -->
 
-**Drift since the previous measurement, 2026-08-31** - kept here, outside the marked region, because
-the refresher overwrites what is inside it. Two rows moved in one day, which is the whole argument for
-recording state instead of deriving it:
+**Drift since the previous measurement, 2026-09-09** - kept here, outside the marked region, because
+the refresher overwrites what is inside it. Measured 2026-09-10 (S2294): **no row moved.** Every
+versionCode, versionName and status is identical to the 2026-09-09 measurement; only the measurement
+dates advanced. Two consequences worth stating rather than re-deriving:
 
-- `production` went from `2.60.8250.134` / `260825013` to `2.60.8241.708` / `260824170`. The rejected
-  release is no longer on the track and the previous one is back.
-- `wear:internal` held a draft on 2026-08-31 and holds no release now.
+- Blocks 1 and 2 now **agree** for the first time in this record: `production` holds `260902195` /
+  `2.60.9021.951` and the store serves that same `2.60.9021.951`. The two-week disagreement recorded
+  through 2026-08-31 (track ahead of store) is closed.
+- `internal` still holds the stale `2.60.6222.324` / `260622232` from 2026-06-22, `completed`. Step 2
+  of the recovery plan has not been executed.
 
-Both rows still disagree with block 1: the track reports `2.60.8241.708` while the store serves
-`2.60.8151.948` from 2026-08-15.
+**Drift 2026-08-31 -> 2026-09-09**, kept for the chain: `production` went from `2.60.8250.134` /
+`260825013` to `2.60.8241.708` / `260824170` (the rejected release off the track, the previous one
+back), then to today's `260902195`; `wear:internal` held a draft on 2026-08-31 and has held nothing
+since.
 
 ---
 
@@ -158,6 +163,14 @@ the unsent changes at the moment the batch is sent. Read that list before sendin
 rejected. "Release cancelled" and "track clean" are different states, so criterion 2 cannot be checked
 by the fact that a cancellation happened.
 
+**Executed - the outcome is measured, the sequence is not (2026-09-10, S2294).** The phone artifact
+`260902195` reached `production` and passed review on 2026-09-02; the watch artifact `260909148`
+reached `wear:production` on 2026-09-09 as its own submission seven days later. Two artifacts on two
+dates with two verdicts is what a split batch looks like from the outside, and it is the whole purpose
+of this step, so the step is done. What is **not** recorded is the sequence in `Publishing overview`
+that produced the split - that is S2294's open question 1, and only an owner transcription answers it.
+Absent that, a future split is repeated from the outcome, not from a written procedure.
+
 ### Step 2 - Clear `App must target Android 16`
 
 **Executor:** owner (Play Console).
@@ -183,6 +196,11 @@ The owner's working invocation, confirmed by a dry run on 2026-09-01 that wrote 
 read the track, reported the release as `completed` and refused with exit 1, naming the missing flag.
 Clearing it therefore needs `-Track internal -AllowNonDraft -Confirm`.
 
+**Not executed as of 2026-09-10 (S2294).** `internal` still holds `2.60.6222.324` / `260622232`,
+`completed` (block 2, measured 2026-09-10). Nothing about the row has changed since 2026-09-01, and
+`Policy status` has not been re-read since 2026-08-31, so whether the Android 16 row is still listed
+is unmeasured in both directions.
+
 Tool: `scripts/release/clear-play-track-release.ps1`, which refuses anything that is not a `draft`
 unless told otherwise. **A successful commit does not finish this step.** Measured 2026-09-01: the
 `wear:internal` **draft** vanished from `tracks().list()` immediately, while the `completed` record on
@@ -198,6 +216,11 @@ publication, not at the API call.
 `read-play-public-serve.ps1 -RequireVersionAbove <previous>` rather than by reading the Console.
 
 An ordinary `standard` campaign, with no watch artifact in the batch.
+
+**Executed and proven, 2026-09-10 (S2294).**
+`read-play-public-serve.ps1 -RequireVersionAbove 2.60.8151.948` exits 0: the store serves
+`2.60.9021.951`, updated Sep 2, 2026, above the `2.60.8151.948` this record carried on 2026-09-01. The
+proof is the reader's exit code, not a Console reading, exactly as the step demands.
 
 ### Step 4 - Return the watch on its own submission
 

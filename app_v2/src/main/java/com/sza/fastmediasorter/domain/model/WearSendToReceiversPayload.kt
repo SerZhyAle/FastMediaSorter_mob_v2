@@ -26,8 +26,11 @@ data class WearSendToReceiversPayload(
  * unobfuscated, so an unpinned phone would write `{"a":..}` and the watch would read every field as
  * null - in silence, with no error anywhere (S1631). A debug build never reproduces it.
  *
- * Everything but [id] and [title] carries a default, so a phone predating a later field still
- * decodes here.
+ * S2885: a Kotlin default does NOT make a field survive an older phone - Gson fills by reflection and
+ * runs no constructor, so an absent key leaves a reference field null whatever the default says, and
+ * gives a primitive the JVM zero rather than the declared default. Only the declared nullability
+ * protects a later reference field, which is why the collection here is nullable and read through
+ * `.orEmpty()`.
  */
 data class WearSendToReceiverEntry(
     /** The same string persisted in the phone's settings, so a stored toggle needs no translation. */
@@ -44,8 +47,14 @@ data class WearSendToReceiverEntry(
      * type filter depends on the file open on the watch, so it has to be applied there - the
      * alternative is the phone publishing one list per media type.
      */
-    @SerializedName("applicableTypes") val applicableTypes: List<String> = emptyList(),
+    @SerializedName("applicableTypes") val applicableTypes: List<String>? = null,
     @SerializedName("batchCapable") val batchCapable: Boolean = false,
     @SerializedName("textCapable") val textCapable: Boolean = false,
-    @SerializedName("requiresLocalFile") val requiresLocalFile: Boolean = true
+    /**
+     * S2887: nullable rather than `Boolean = true`, because a non-null primitive takes the JVM zero
+     * from an absent key - `false`, the opposite of the intended default, and it arrives as a valid
+     * value that nothing can tell apart from a deliberate one. Null means the sender said nothing;
+     * every reader resolves it through `?: true`.
+     */
+    @SerializedName("requiresLocalFile") val requiresLocalFile: Boolean? = null
 )

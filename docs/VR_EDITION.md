@@ -86,7 +86,8 @@ To install a build on a headset, see the [VR Sideloading Guide](VR_SIDELOAD.md).
 ## Technical Constraints
 
 - **Supported ABI:** `arm64-v8a` only. Meta Quest 2/3/Pro and Android XR headsets are exclusively 64-bit ARM - no `armeabi-v7a` or `x86_64` slices are produced for VR flavors.
-- **Minimum Android:** API 26 (Android 8.0). Quest 2 ≈ Android 10, Quest 3 ≥ Android 12.
+- **Minimum Android:** API 29 (Android 10) for the `vr` store flavor - the Meta Horizon Store accepts a minimum between API 29 and 34, and the range bottom keeps every Quest model in reach. The sideload-VR `noLegal` build stays at API 26 (Android 8.0). Quest 2 ≈ Android 10, Quest 3 ≥ Android 12.
+- **Target Android:** API 34 for the `vr` store flavor, which Meta requires exactly for an immersive app rather than as a ceiling. Every other flavor targets API 36.
 - **XR runtime:** OpenXR 1.1.48+ is required to enter immersive mode. Without an XR runtime detected, the app plays normally in the flat player - there is no separate fallback screen.
 - **Native code:** ships the OpenXR loader AAR plus `openxr_native.so` (C++ bridge built by CMake). Adds ~8 MB of native payload over the standard build.
 - **No Wear OS companion:** headsets have no paired watch, so `SUPPORT_WEAR_COMPANION = false`.

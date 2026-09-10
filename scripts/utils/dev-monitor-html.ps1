@@ -29,6 +29,11 @@
     DEVIATION: a free lock, a live lease and a live agent are the norm and are drawn grey, so five
     bright green `free` cells no longer pull the eye away from the one row that is held or queued.
 
+    Every collection is read through arr(), and render() runs inside a try/catch that reports the
+    failure in the problems panel: ConvertTo-Json writes a one-element collection as a bare object,
+    and `.forEach` on that object stopped the paint at the offending section while the header went
+    on ticking a fresh age - eight tables blank with nothing on the page to say why (2026-09-10).
+
     A repaint is held, never dropped, while the reader has a selection, a button down, or has
     pressed `p` - innerHTML is replaced wholesale, so an unheld 3 s cadence made copying a path or
     an id impossible. The header says which of the two is holding, and the age keeps ticking.
@@ -84,6 +89,7 @@ tr.stop td{font-weight:700}
 table{border-collapse:collapse;width:100%;table-layout:auto}
 th,td{text-align:left;vertical-align:top;padding:0 8px 0 0;border-bottom:1px solid #15191e;white-space:nowrap}
 td.wrap{white-space:pre-wrap;word-break:break-word;min-width:18em}
+td.wrapn{white-space:pre-wrap;word-break:break-word;min-width:9em}
 th{color:#8b949e;font-weight:600}
 tr.group td{color:#8b949e;padding-top:3px;border-bottom:none}
 tr.none td{color:#6e7681}
@@ -92,6 +98,10 @@ tr.note td{padding:0 8px 2px 14px;white-space:pre-wrap;word-break:break-word}
 tr.alarm td{background:#2d0f10}
 tr.alarm:hover td{background:#3d1416}
 tr:hover td{background:#0d1117}
+#problems .line{padding:1px 4px;margin-bottom:1px}
+#problems .line.bad{background:#2d0f10}
+#problems .line.warn{background:#3a2d00}
+#problems .clear{padding:1px 4px}
 .dim{color:#6e7681}
 .num{text-align:right;white-space:nowrap}
 .ok{color:#3fb950}
@@ -111,6 +121,10 @@ tr:hover td{background:#0d1117}
   var snap = null;
   var errors = 0;
   var lastTaken = null;
+  // How long an agent may be quiet before the page stops calling it live. Read in two places -
+  // the roster's activity cut and the problems panel's abandoned-ticket rule - and shared so the
+  // panel can never print ALL CLEAR above a red NO LIFE row. Reasoning at the roster's own comment.
+  var ROSTER_ACTIVE_MINUTES = 10;
 
   function esc(v) {
     if (v === null || v === undefined) { return ''; }
@@ -119,6 +133,19 @@ tr:hover td{background:#0d1117}
     });
   }
   function el(id) { return document.getElementById(id); }
+  // Every collection on the snapshot is read through this. ConvertTo-Json emits a ONE-element
+  // collection as a bare object, so `"devices":{..}` reached the page instead of `"devices":[{..}]`
+  // and `.forEach` threw on it - which stopped render() dead at that section and left the eight
+  // tables below it blank (measured 2026-09-10, one serial in the device park). The writer's own
+  // unwrap is fixed at the source, but the collector is a canon forwarder this page cannot gate,
+  // and the same shape can arrive from any of its fifteen arrays, so the renderer accepts both.
+  // Array.isArray is deliberately not used: the same code is exercised under cscript //E:JScript,
+  // which is ES3.
+  function arr(v) {
+    if (v === null || v === undefined) { return []; }
+    if (Object.prototype.toString.call(v) === '[object Array]') { return v; }
+    return [v];
+  }
   function num(v, d) { if (v === null || v === undefined || v === '') { return '?'; } var n = Number(v); if (isNaN(n)) { return esc(v); } return n.toFixed(d === undefined ? 0 : d); }
   function mins(v) {
     if (v === null || v === undefined) { return '?'; }
@@ -127,9 +154,37 @@ tr:hover td{background:#0d1117}
     if (m < 90) { return Math.round(m) + 'm'; }
     return (m / 60).toFixed(1) + 'h';
   }
-  function local(iso) {
-    if (!iso) { return ''; }
-    var d = new Date(iso); if (isNaN(d.getTime())) { return esc(iso); }
+  // Every stamp is UTC and is shown as this machine's local clock. Both shapes the snapshot
+  // carries are parsed by hand instead of being handed to the engine's date parser, because each
+  // one breaks it in its own way:
+  //   `2026-09-10T13:21:02.6633133Z` - a .NET round-trip string. The ECMAScript date format allows
+  //      three fractional digits; with seven, the string falls through to whatever legacy parser
+  //      the engine keeps, and the header's `since` and the locks table's `since` printed the raw
+  //      27-character stamp where a clock belongs.
+  //   `09/10/2026 13:58:35` - what [string] makes of a DateTime that ConvertFrom-Json built from a
+  //      UTC field (culture en-US, Kind=Utc, and no marker survives the cast). new Date() reads
+  //      that as LOCAL time, so gate health would have been drawn two hours behind every other
+  //      section on this machine, silently and by exactly the local offset.
+  // Epoch milliseconds are accepted too, so a caller holding a number need not round-trip through
+  // toISOString(). Anything else falls back to the engine, and an unparsable value is printed as
+  // it came rather than as `NaN`.
+  function local(when) {
+    if (when === null || when === undefined || when === '') { return ''; }
+    var d = null;
+    if (typeof when === 'number') { d = new Date(when); }
+    else {
+      var t = String(when);
+      var m = t.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?/);
+      if (m && !/[+\-]\d{2}:?\d{2}$/.test(t)) {
+        d = new Date(Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +m[6], m[7] ? +String(m[7]).substr(0, 3) : 0));
+      }
+      else {
+        m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})[ ,]+(\d{1,2}):(\d{2}):(\d{2})$/);
+        if (m) { d = new Date(Date.UTC(+m[3], +m[1] - 1, +m[2], +m[4], +m[5], +m[6])); }
+        else { d = new Date(t); }
+      }
+    }
+    if (!d || isNaN(d.getTime())) { return esc(when); }
     function two(x) { return (x < 10 ? '0' : '') + x; }
     return two(d.getHours()) + ':' + two(d.getMinutes()) + ':' + two(d.getSeconds());
   }
@@ -139,6 +194,10 @@ tr:hover td{background:#0d1117}
   function bold(v) { return v ? '<b>' + esc(v) + '</b>' : ''; }
   function statusCls(st) {
     if (!st) { return ''; }
+    // S2869: the canon snapshot collector truncates multi-word statuses at the first space (regex
+    // \S+), so "In Progress" arrives as "In". Normalize it back until the canon regex is fixed.
+    // "In" is not a status in the 13-status vocabulary, so the mapping is unambiguous.
+    if (st === 'In') { st = 'In Progress'; }
     if (/^Block/.test(st)) { return cls('warn', st + ' (skipped)'); }
     if (st === 'In Progress' || st === 'Implemented' || st === 'Verified') { return '<span class="st-ok">' + esc(st) + '</span>'; }
     if (st === 'Draft') { return '<span class="st-dim">' + esc(st) + '</span>'; }
@@ -163,7 +222,14 @@ tr:hover td{background:#0d1117}
         // what pushed the `ticket` column of `next up` a thousand pixels to the right.
         if (c.span) { span = c.span; }
         if (c.n !== undefined) { k = 'num'; v = c.n; }
-        else if (c.w !== undefined) { k = 'wrap'; v = c.w; }
+        // `wrap` carries an 18em floor, and min-width on a cell applies to its whole COLUMN, so an
+        // empty wrap cell still reserved 18em of the table for a column that had nothing to show -
+        // measured on the live roster 2026-09-10: `holds` and `waiting for` were `-` on 17 of 18
+        // rows and between them held some 650 px hostage, which is why every text column was
+        // squeezed into a strip. An empty value drops the class, and `s` is the floor for a column
+        // whose content is short and structured (a domain and a duration) rather than prose.
+        else if (c.w !== undefined) { v = c.w; k = String(v).length ? 'wrap' : ''; }
+        else if (c.s !== undefined) { v = c.s; k = String(v).length ? 'wrapn' : ''; }
       }
       h += '<td' + (k ? ' class="' + k + '"' : '') + (span ? ' colspan="' + span + '"' : '') + '>' + v + '</td>';
     }
@@ -186,7 +252,23 @@ tr:hover td{background:#0d1117}
     if (shouldHold()) { holding = true; return; }
     holding = false;
     lastTaken = snap.takenAtUtc;
-    render(snap);
+    // A renderer exception used to be INVISIBLE, which is how a one-element `devices` object went
+    // unnoticed: the tables painted before the throw kept their last content, every table after it
+    // stayed empty, the header went on ticking a fresh age, and nothing on the page said that half
+    // of it was missing. The banner takes the place of the problems panel, which is the one section
+    // read first, and names the message so the next failure is read rather than guessed.
+    try { render(snap); }
+    catch (e) {
+      var msg = (e && e.message) ? e.message : String(e);
+      var box = el('problems');
+      if (box) {
+        box.innerHTML = '<div class="line bad">' + cls('bad', 'PAGE ERROR') +
+          ' <b>the renderer threw</b> ' + esc(msg) +
+          ' <span class="dim">- sections below this one may be stale or empty; the snapshot itself is fine</span></div>';
+      }
+      var note = el('problems-note');
+      if (note) { note.textContent = 'renderer error - this page is not showing the whole snapshot'; }
+    }
   }
   document.addEventListener('mousedown', function () { mouseDown = true; });
   document.addEventListener('mouseup', function () { mouseDown = false; });
@@ -211,8 +293,85 @@ tr:hover td{background:#0d1117}
     document.documentElement.style.setProperty('--headh', head.offsetHeight + 'px');
   }
 
+  // Problems (owner ruling 2026-09-10): the one section read before any other - lock queues, dead
+  // leases and stuck tickets, and a build that crashed rather than just failed, collapsed to one
+  // line each. A run with nothing here needs no further reading; a row names which section below
+  // carries the detail. Deliberately independent of the roster further down: it reads only the
+  // primitive arrays the snapshot already carries (locks, stalls, leases), so a bug in the roster
+  // join can never hide it.
+  //
+  // `s.gates` is deliberately NOT a source here, even though "a failed gate" sounds like the
+  // obvious read on "build crash". Measured live 2026-09-10: the canon collector marks a whole run
+  // FAIL the moment ANY gate in it is SKIP (not applicable to that change set) - it never carried a
+  // per-gate PASS/SKIP/FAIL split into `failures[]` (gate/scope/count only), only into the raw
+  // temp/metrics/gate-executions.jsonl lines this page cannot read (S2413: "a source reader must
+  // stay in the snapshot function"). On the live tree that turns nearly every post-change run red:
+  // one sampled run carried 44 SKIP gates and zero real failures, reported as one giant FAIL. Redoing
+  // that here would print the single noisiest line on the page on every ordinary run - exactly the
+  // cry-wolf this panel exists to prevent. `gate health` below still shows it for whoever opens it.
+  function renderProblems(s) {
+    var items = [];
+    function flag(sev, what, detail) { items.push({ sev: sev, what: what, detail: detail }); }
+
+    arr(s.locks).forEach(function (k) {
+      var q = arr(k.queue);
+      if (!q.length) { return; }
+      // "cold" matches the same rule the locks table below uses for a queue row: nobody has seen
+      // the waiter in over 5 minutes, so it is not merely a busy domain but a waiter that may itself
+      // be gone.
+      var cold = q.some(function (t) { return t.lastSeenMinutes === null || t.lastSeenMinutes === undefined || t.lastSeenMinutes > 5; });
+      var longest = 0;
+      q.forEach(function (t) { if ((t.waitedMinutes || 0) > longest) { longest = t.waitedMinutes; } });
+      flag(cold ? 'bad' : 'warn', 'lock queue', esc(k.domain) + ': ' + q.length + ' waiting, longest ' + mins(longest) + (cold ? ', waiter unseen' : ''));
+    });
+
+    arr(s.stalls).forEach(function (k) {
+      // S2582: `no-cpu` is the build-domain rule alone (Build.* only) - the holder PROCESS is gone
+      // while the lock is still held, which is a crashed or killed build, not merely a slow one.
+      // Every other rule (`quiet-owner`, Code.* domains) is an agent gone silent mid-ticket, which
+      // reads as a stuck ticket rather than a build problem.
+      if (k.rule === 'no-cpu') {
+        flag('bad', 'build crash', esc(k.domain) + ': holder process gone, held ' + mins(k.heldMinutes) + ', blocking ' + (k.queueDepth || 0));
+      } else {
+        flag('bad', 'stalled ticket', esc(k.domain) + ' held by ' + esc(k.name || 'unnamed') + ', blocking ' + (k.queueDepth || 0) + ', held ' + mins(k.heldMinutes));
+      }
+    });
+
+    arr(s.leases).forEach(function (l) {
+      if (l.liveness === 'foreign-stale' || l.liveness === 'unknown') {
+        flag(l.liveness === 'foreign-stale' ? 'bad' : 'warn', 'dead lease', 'ticket ' + esc(l.id) + ' (' + esc(l.name || 'unnamed') + '), quiet ' + mins(l.lastSeenMinutes) + ', ' + esc(l.liveness));
+        return;
+      }
+      // The fourth category, and the one the panel opened without (measured live 2026-09-10):
+      // lease S2859 had been quiet 37 min, the roster painted its agent red as NO LIFE, and this
+      // panel printed ALL CLEAR directly above it - because the harness judges a lease against a
+      // 45-minute window and still called it `foreign-live`. The roster's ten-minute rule is the
+      // stricter of the two and the one the reader sees, so the panel now applies it here too,
+      // still from a primitive array (`leases`) rather than from the roster join. A ticket nobody
+      // is waiting for produces no `stalls` entry, so this is the only place it can surface.
+      if (l.lastSeenMinutes === null || l.lastSeenMinutes === undefined || l.lastSeenMinutes > ROSTER_ACTIVE_MINUTES) {
+        flag('bad', 'abandoned ticket', 'ticket ' + esc(l.id) + ' held by ' + esc(l.name || 'unnamed') +
+          ', quiet ' + mins(l.lastSeenMinutes) + ' - see agents');
+      }
+    });
+
+    if (!items.length) {
+      el('problems-note').textContent = 'all clear - the sections below are detail, not alarm';
+      el('problems').innerHTML = '<div class="clear">' + cls('ok', 'ALL CLEAR') +
+        '<span class="dim"> - no lock queue, no dead lease, no abandoned ticket, no stalled ticket, no build crash</span></div>';
+      return;
+    }
+    items.sort(function (a, b) { return (a.sev === 'bad' ? 0 : 1) - (b.sev === 'bad' ? 0 : 1); });
+    var bad = items.filter(function (p) { return p.sev === 'bad'; }).length;
+    el('problems-note').textContent = bad + ' red, ' + (items.length - bad) + ' yellow - open the matching section below';
+    el('problems').innerHTML = items.map(function (p) {
+      return '<div class="line ' + p.sev + '">' + cls(p.sev, p.sev === 'bad' ? 'PROBLEM' : 'WARN') + ' <b>' + esc(p.what) + '</b> ' + p.detail + '</div>';
+    }).join('');
+  }
+
   function render(s) {
     var i, r, rows;
+    renderProblems(s);
 
     // A running child is a process, and a nickname belongs to a SESSION, so the two are joined by
     // the ticket and never by the pid: measured 2026-09-03, one `-p` run showed children 27264 and
@@ -226,9 +385,9 @@ tr:hover td{background:#0d1117}
     // were labelled with an agent whose last message was `released S2466 (forced)`.
     var nameByTicket = {};
     function claim(ticket, nm, src) { if (ticket && nm && !nameByTicket[ticket]) { nameByTicket[ticket] = { name: nm, src: src }; } }
-    (s.leases || []).forEach(function (l) { claim(l.id, l.name, 'holds the lease'); });
-    (s.agents || []).forEach(function (a) { claim(a.lease, a.name, 'agent row carries this lease'); });
-    (s.agents || []).forEach(function (a) { claim(a.lastTicket, a.name, 'last agent to write about the ticket - the lease is held by nobody'); });
+    arr(s.leases).forEach(function (l) { claim(l.id, l.name, 'holds the lease'); });
+    arr(s.agents).forEach(function (a) { claim(a.lease, a.name, 'agent row carries this lease'); });
+    arr(s.agents).forEach(function (a) { claim(a.lastTicket, a.name, 'last agent to write about the ticket - the lease is held by nobody'); });
     function ticketFromReason(reason) {
       var found = String(reason || '').match(/\bS\d{4}\b/);
       return found ? found[0] : '';
@@ -250,7 +409,7 @@ tr:hover td{background:#0d1117}
     // Two headless children on one ticket is either a launch race or an orphan left behind; the
     // pair looks perfectly ordinary row by row, so the duplication itself is what gets said.
     var perTicket = {};
-    (s.children || []).forEach(function (c) { perTicket[c.ticket] = (perTicket[c.ticket] || 0) + 1; });
+    arr(s.children).forEach(function (c) { perTicket[c.ticket] = (perTicket[c.ticket] || 0) + 1; });
 
     // One roster keyed by session id (owner finding 2026-09-10). The page used to carry four
     // disjoint identity spaces: `running` admitted only live-lease owners and agents whose NEWEST
@@ -305,9 +464,9 @@ tr:hover td{background:#0d1117}
         ' <span class="dim">' + esc(shortId(row.id)) + '</span>';
     }
     var stalledDomains = {};
-    (s.stalls || []).forEach(function (k) { stalledDomains[k.domain] = k.rule || 'stalled'; });
+    arr(s.stalls).forEach(function (k) { stalledDomains[k.domain] = k.rule || 'stalled'; });
 
-    (s.agents || []).forEach(function (a) {
+    arr(s.agents).forEach(function (a) {
       var row = slot(a.id); if (!row) { return; }
       if (!row.name) { row.name = a.name; }
       row.runtime = a.runtime; row.model = a.model; row.instance = a.instance;
@@ -318,27 +477,27 @@ tr:hover td{background:#0d1117}
       else { ticketGuess(row, a.phaseTicket, 'phase message'); ticketGuess(row, a.lastTicket, 'last message'); }
       freshest(row, a.ageMinutes);
     });
-    (s.sessions || []).forEach(function (x) {
+    arr(s.sessions).forEach(function (x) {
       var row = slot(x.id); if (!row) { return; }
       if (!row.name) { row.name = x.name; }
       if (!row.runtime || row.runtime === 'unknown') { row.runtime = x.runtime; }
       if (x.ticket) { row.ticket = x.ticket; row.ticketSrc = 'lease'; }
       freshest(row, x.ageMinutes);
     });
-    (s.leases || []).forEach(function (l) {
+    arr(s.leases).forEach(function (l) {
       var row = slot(l.sessionId); if (!row) { return; }
       if (!row.name) { row.name = l.name; }
       row.ticket = l.id; row.ticketSrc = 'lease'; row.liveness = l.liveness;
       freshest(row, l.lastSeenMinutes);
     });
-    (s.locks || []).forEach(function (k) {
+    arr(s.locks).forEach(function (k) {
       if (k.held && k.sessionId) {
         var row = slot(k.sessionId);
         if (!row.name) { row.name = k.name; }
         row.holds.push({ domain: k.domain, minutes: k.heldMinutes, reason: k.reason, stalled: stalledDomains[k.domain] });
         ticketGuess(row, ticketFromReason(k.reason), 'lock reason');
       }
-      (k.queue || []).forEach(function (t, qi) {
+      arr(k.queue).forEach(function (t, qi) {
         if (!t || !t.sessionId) { return; }
         var qr = slot(t.sessionId);
         if (!qr.name) { qr.name = t.name; }
@@ -350,11 +509,14 @@ tr:hover td{background:#0d1117}
 
     // Whoever is blocking someone reads first, then whoever is blocked, then by freshness: the two
     // questions the page is opened with are "who is holding this" and "who is stuck behind it".
+    // A ticket outranks a bare `live` row: an agent that has claimed work is part of what is
+    // happening, and one whose whole trace is a lock it released four minutes ago is not.
     function rank(row) {
       if (row.holds.length) { return 0; }
       if (row.waits.length) { return 1; }
-      if (row.silent === true) { return 3; }
-      return 2;
+      if (row.silent === true) { return 4; }
+      if (row.ticket) { return 2; }
+      return 3;
     }
     order.sort(function (a, b) {
       var ra = rank(roster[a]), rb = rank(roster[b]);
@@ -367,12 +529,14 @@ tr:hover td{background:#0d1117}
 
     // The chat window is three hours wide, so the roster's raw length is a history, not a picture:
     // measured 2026-09-10, 38 of 60 agents had said nothing for 45 minutes and held nothing. Those
-    // collapse into one line. The cut is thirty minutes rather than the harness `SilentMinutes` of
-    // 45 (owner ruling 2026-09-10): an agent that finished its ticket half an hour ago is history,
-    // and the page answers what is happening now. An agent that holds or waits for a domain is NEVER
-    // collapsed however quiet it is - that combination is precisely the stalled holder the page
-    // exists to expose, and hiding it would turn the one row that matters into the one row missing.
-    var ROSTER_ACTIVE_MINUTES = 30;
+    // collapse into one line. The cut is ten minutes, not the harness `SilentMinutes` of 45 (owner
+    // ruling 2026-09-10, narrowed from the thirty it opened at): an agent that finished its ticket
+    // ten minutes ago is sitting quietly somewhere and is no longer part of what is happening now.
+    // It is safe to cut this hard only because ownership overrides it - an agent holding a domain, a
+    // queue place or a ticket is NEVER collapsed however quiet it is, which is precisely the stalled
+    // holder the page exists to expose; without that override the tighter window would hide it.
+    // Declared at the top of the page, not here: the problems panel judges an abandoned ticket by
+    // the same number, and two copies of it would let the panel print ALL CLEAR over a red row.
     // What is OWNED - a lock domain, a queue position or a ticket lease - decides both that a row
     // survives the cut and that a quiet row is an alarm, so the two rules read one predicate. They
     // were written separately at first and disagreed on exactly one case: a quiet agent holding only
@@ -387,10 +551,17 @@ tr:hover td{background:#0d1117}
       var row = roster[sid];
       if (ownsSomething(row)) { shown.push(sid); return; }
       if (row.seen === null || row.seen > ROSTER_ACTIVE_MINUTES) { hidden.push(row); return; }
+      // A ticket of ANY provenance keeps a fresh row (owner ruling 2026-09-10, third pass): the
+      // roster answers "who is working on what", and an agent with no ticket, no hold and no queue
+      // place has nothing to put in that sentence. Measured on the 16:15 snapshot: of 18 rows called
+      // active, half were sessions whose entire trace was `lock released Build.Phone` a few minutes
+      // earlier - each costing two lines - so the half that WAS working did not fit on one screen.
+      // Those go to the collapsed line, which names them with what they last did, so nothing is lost.
+      if (!row.ticket) { hidden.push(row); return; }
       shown.push(sid);
     });
 
-    var ROSTER_HEAD = ['kind', 'agent', 'runtime/model', 'ticket', 'phase', 'holds', 'waiting for', '#seen'];
+    var ROSTER_HEAD = ['state', 'agent', 'runtime/model', 'ticket', 'phase', 'holds', 'waiting for', '#seen'];
     // The note is the widest thing on the page and the only cell that wraps, so as a column it set
     // the height of every row it sat on and pushed the eight narrow columns into a strip on the left
     // (owner ruling 2026-09-10). It moves to a row of its own directly under its agent, spanning the
@@ -417,33 +588,64 @@ tr:hover td{background:#0d1117}
       else if (row.waits.length) { state = 'waiting'; klass = 'warn'; }
       else if (row.silent === true) { state = 'SILENT'; klass = 'warn'; }
       else { state = 'live'; klass = 'norm'; }
-      var unk = function (v) { return (!v || v === 'unknown') ? '<span class="dim">?</span>' : esc(v); };
+      // A cell with nothing in it is a plain `-`, never a wrap cell: see the floor rule in tr().
+      var DASH = '<span class="dim">-</span>';
+      // `?/?` on fifteen rows out of eighteen is a column of punctuation. The runtime and the model
+      // are printed when they are known and the cell says nothing when they are not.
+      var known = [];
+      if (row.runtime && row.runtime !== 'unknown') { known.push(esc(row.runtime)); }
+      if (row.model && row.model !== 'unknown') { known.push(esc(row.model)); }
+      if (row.instance && row.instance !== '-') { known.push(esc(row.instance)); }
       var ticket = row.ticket
         ? id(row.ticket) + (row.ticketSrc === 'lease' ? '' : '<span class="dim" title="' + esc(row.ticketSrc) + '"> ?</span>')
-        : '<span class="dim">-</span>';
-      var phase = row.phase
-        ? esc(row.phase) + (row.phaseNote ? ' <span class="dim">' + esc(row.phaseNote) + '</span>' : '') +
+        : DASH;
+      // The note carries the phase, not the `phase` field: a `/spec-all` stage boundary posts
+      // `stage S1 done -> S2 (implementation)` as the NOTE and leaves `phase` empty, and gating the
+      // whole cell on `phase` threw that sentence away - measured 2026-09-10, the one agent then
+      // working printed `-` in the column the roster exists for while its stage sat in the snapshot.
+      var phase = (row.phase || row.phaseNote)
+        ? (row.phase ? esc(row.phase) : '') + (row.phaseNote ? (row.phase ? ' ' : '') + '<span class="dim">' + esc(row.phaseNote) + '</span>' : '') +
           (row.phaseAge !== null && row.phaseAge !== undefined ? ' <span class="dim">(' + mins(row.phaseAge) + ' ago)</span>' : '')
-        : '<span class="dim">-</span>';
+        : '';
       var holds = row.holds.length
         ? row.holds.map(function (h) {
             return '<span title="' + esc(h.reason) + '">' + cls(h.stalled ? 'bad' : 'warn', h.domain) + ' ' + mins(h.minutes) +
               (h.stalled ? ' ' + cls('bad', h.stalled) : '') + '</span>';
           }).join('<br>')
-        : '<span class="dim">-</span>';
+        : '';
       var waits = row.waits.length
         ? row.waits.map(function (q) {
             return '<span title="' + esc(q.reason) + '">' + cls(q.cold ? 'warn' : 'dim', q.domain + ' #' + q.position) +
               ' ' + mins(q.minutes) + (q.cold ? ' ' + cls('warn', 'cold') : '') + '</span>';
           }).join('<br>')
-        : '<span class="dim">-</span>';
+        : '';
       var context = row.contextOver ? ' ' + cls('bad', row.context) : '';
       var alarm = stalled || dead;
       // The alarm names what is still held and how long the silence has run, because the row above
       // says only that something is wrong - the reader's next question is always "on what".
       var held = row.holds.map(function (h) { return h.domain; })
         .concat(row.ticketSrc === 'lease' && row.ticket ? ['ticket ' + row.ticket] : []).join(' + ');
-      var note = (row.lastKind ? bold(row.lastKind) + ' ' : '') + esc(row.note);
+      // The note row is kept only where it SAYS something (owner ruling 2026-09-10, third pass:
+      // "the row stays, but only when it is meaningful"). Two kinds of line earn no second row:
+      //   - a `phase` message, whose text the phase cell one column to the left already prints
+      //     verbatim - `lastNote` and `phaseNote` are the same string whenever the newest message is
+      //     the phase, which was half the note rows on the live page, the same sentence twice;
+      //   - `session started/ended`, which the state and the `seen` columns already carry.
+      // An alarm always keeps its row: that red sentence is the reason the alarm exists.
+      var noteIsPhaseEcho = row.lastKind === 'phase' && row.phaseNote && row.note === row.phaseNote;
+      var noteIsSessionBookkeeping = row.lastKind === 'session';
+      var note = '';
+      if (row.note && !noteIsPhaseEcho && !noteIsSessionBookkeeping) {
+        // A note is one chat line, and a chat line can be a paragraph: measured 2026-09-10, one gate
+        // report ran some 600 characters and its row alone was five lines of the roster - the single
+        // widest thing on the page after the fix that gave the text columns their width back. The
+        // cut keeps the part that identifies the message and hangs the rest on the row's tooltip;
+        // the chat section below still carries every line in full, which is where a note is read.
+        var plain = String(row.note).replace(/\s+/g, ' ');
+        var short = plain.length > 200 ? plain.substr(0, 198) + '..' : plain;
+        note = (row.lastKind ? bold(row.lastKind) + ' ' : '') +
+          (short === plain ? esc(plain) : '<span title="' + esc(plain) + '">' + esc(short) + '</span>');
+      }
       if (dead) {
         note = cls('bad', 'quiet ' + mins(row.seen) + ' and still holding ' + (held || 'something') +
           (row.liveness === 'foreign-stale' ? '; the lease itself reads stale' : '')) +
@@ -452,15 +654,15 @@ tr:hover td{background:#0d1117}
       rows.push(tr([
         cls(klass, state),
         rosterName(row),
-        unk(row.runtime) + '/' + unk(row.model) + (row.instance && row.instance !== '-' ? ' ' + esc(row.instance) : '') + context,
-        ticket, { w: phase }, { w: holds }, { w: waits }, { n: mins(row.seen) }
+        (known.length ? known.join('/') : DASH) + context,
+        ticket, { w: phase }, { s: holds }, { s: waits }, { n: mins(row.seen) }
       ], (alarm ? 'alarm ' : '') + (note ? 'hasnote' : '')));
       if (note) { rows.push(noteRow(note, alarm)); }
     });
     // A headless child is a PROCESS and a nickname belongs to a SESSION, so it keeps its own rows
     // below the sessions rather than being folded into one: measured 2026-09-03, one `-p` run showed
     // children 27264 and 20056 against a lease whose pid was 26808.
-    (s.children || []).forEach(function (c) {
+    arr(s.children).forEach(function (c) {
       var q = c.quietMinutes;
       var sameAsAge = q !== null && q !== undefined && c.ageMinutes !== null && c.ageMinutes !== undefined && Math.abs(q - c.ageMinutes) < 0.05;
       var qc = q === null || q === undefined ? 'dim' : (q >= 15 ? 'bad' : (q >= 5 ? 'warn' : (sameAsAge ? 'dim' : 'norm')));
@@ -481,36 +683,77 @@ tr:hover td{background:#0d1117}
     if (hidden.length) {
       // Named, not merely counted: the reader is usually looking for one agent he remembers, and a
       // bare count would send him to the chat section to find out whether it is even on the machine.
-      var some = hidden.slice(0, 6).map(function (r) { return r.name || shortId(r.id); }).join(', ');
+      // The first three carry what they last did, because a collapsed row is now also where a FRESH
+      // agent goes if it holds nothing and carries no ticket - the line has to be enough to tell
+      // "finished and went quiet" from "just released a lock", without opening the chat.
+      var some = hidden.slice(0, 6).map(function (r, ix) {
+        var who = esc(r.name || shortId(r.id));
+        if (ix > 2 || !r.note) { return who; }
+        var what = String(r.note).replace(/\s+/g, ' ');
+        if (what.length > 44) { what = what.substr(0, 42) + '..'; }
+        return who + ' (' + esc((r.lastKind ? r.lastKind + ' ' : '') + what) + ', ' + mins(r.seen) + ')';
+      }).join(', ');
       rows.push(tr([{
-        w: '<span class="dim">' + hidden.length + ' agent(s) hidden - quiet over ' + ROSTER_ACTIVE_MINUTES +
-          ' min, nothing held, nothing queued: ' + esc(some) +
+        w: '<span class="dim">' + hidden.length + ' agent(s) collapsed - no ticket, nothing held, ' +
+          'nothing queued, or quiet over ' + ROSTER_ACTIVE_MINUTES + ' min: ' + some +
           (hidden.length > 6 ? ' and ' + (hidden.length - 6) + ' more' : '') + '</span>',
         span: ROSTER_HEAD.length
       }], 'group'));
     }
-    var rw = s.windows || {};
-    el('agents-note').textContent = shown.length + ' active of ' + order.length + ' agent(s), ' +
-      (s.children || []).length + ' headless child(ren); active = seen in the last ' +
-      ROSTER_ACTIVE_MINUTES + ' min, or holding or queued for a domain at any age';
+    el('agents-note').textContent = shown.length + ' working of ' + order.length + ' agent(s), ' +
+      arr(s.children).length + ' headless child(ren); a row is here when it holds or is queued for a ' +
+      'domain at any age, or carries a ticket and was seen in the last ' + ROSTER_ACTIVE_MINUTES + ' min';
     table('agents', ROSTER_HEAD, rows, 'no agent, lease, lock or headless child observable');
 
     rows = [];
-    (s.leases || []).forEach(function (l) {
+    arr(s.leases).forEach(function (l) {
       var lv = l.liveness === 'foreign-stale' ? cls('bad', 'stale') : (l.liveness === 'unknown' ? cls('warn', 'unknown') : cls('norm', 'live'));
       // The lease pid and the `-p` child pid are different processes on the same ticket (measured
       // 2026-09-03: lease 26808, children 27264 and 20056), so the page says so instead of leaving
       // two unexplained numbers on one screen.
-      var kids = (s.children || []).filter(function (c) { return c.ticket === l.id; }).map(function (c) { return c.pid; });
+      var kids = arr(s.children).filter(function (c) { return c.ticket === l.id; }).map(function (c) { return c.pid; });
       var where = esc(l.host) + ' pid ' + esc(l.pid) + (kids.length ? ' <span class="dim">child ' + esc(kids.join(',')) + '</span>' : '');
       rows.push(tr([id(l.id), name(l.name), lv, { n: mins(l.ageMinutes) }, { n: mins(l.lastSeenMinutes) }, { w: esc(l.reason) }, where, '<span class="dim">' + esc(l.sessionId) + '</span>']));
     });
     table('leases', ['ticket', 'holder', 'liveness', '#claimed', '#last seen', 'reason', 'where', 'session'], rows, 'nothing leased');
 
+    // S2855: the device park - what each test device is, who is driving it, and what was last
+    // installed on it. Hidden entirely while the park is unknown: an always-present empty section
+    // stops being read, the same rule the stalled-holders section above already follows.
+    rows = [];
+    arr(s.devices).forEach(function (d) {
+      var leaseCell;
+      if (d.lease) {
+        var lv = d.lease.liveness === 'foreign-stale' ? cls('bad', 'stale')
+          : (d.lease.liveness === 'unknown' ? cls('warn', 'unknown') : cls('norm', d.lease.liveness || 'live'));
+        leaseCell = lv + ' <span class="dim">' + esc(shortId(d.lease.sessionId)) + ', ' + mins(d.lease.ageMinutes) + '</span>';
+      } else {
+        leaseCell = cls('norm', 'free');
+      }
+      var markCell;
+      if (d.mark) {
+        var variant = [d.mark.flavor, d.mark.buildType].filter(Boolean).join('/');
+        var when = d.mark.installedAt ? local(Number(d.mark.installedAt)) : '';
+        markCell = esc(d.mark.package) + ' <b>' + esc(d.mark.versionName) + '</b>' +
+          (variant ? ' <span class="dim">[' + esc(variant) + ']</span>' : '') +
+          ' <span class="dim">' + esc(d.mark.recordedBy || '') + (when ? ', ' + when : '') + '</span>';
+      } else {
+        markCell = '<span class="dim">no record</span>';
+      }
+      rows.push(tr([
+        id(d.id),
+        esc([d.model, d.role].filter(Boolean).join(' / ')) || '<span class="dim">-</span>',
+        leaseCell,
+        { w: markCell }
+      ]));
+    });
+    el('devices-box').style.display = rows.length ? '' : 'none';
+    if (rows.length) { table('devices', ['device', 'model / role', 'lease', 'last install'], rows, ''); }
+
     // S2413: the same array the terminal monitor draws, and hidden by the same rule - a section
     // that is present on every refresh stops being read long before the one run that needed it.
     rows = [];
-    (s.stalls || []).forEach(function (k) {
+    arr(s.stalls).forEach(function (k) {
       var pn = k.holderProcessAlive ? cls('warn', 'process alive - hung') : cls('bad', 'no process observable');
       // S2582: the rule is a column of its own, and the evidence cell follows it - a build row is
       // judged on CPU and a code row on owner silence, so one shared "quiet" column would print a
@@ -528,22 +771,22 @@ tr:hover td{background:#0d1117}
     // Five domains printed as five `free` rows is seven lines that never say anything; the one-line
     // form still NAMES every domain, so nothing is hidden, and the table expands the moment a single
     // domain is held or has a queue.
-    var busy = (s.locks || []).filter(function (k) { return k.held || (k.queue && k.queue.length) || k.unreadable; });
-    if ((s.locks || []).length && !busy.length) {
-      rows.push(tr([{ w: cls('norm', 'all free') + '<span class="dim">: ' + esc((s.locks).map(function (k) { return k.domain; }).join(', ')) + '</span>', span: 6 }], 'group'));
+    var busy = arr(s.locks).filter(function (k) { return k.held || (k.queue && k.queue.length) || k.unreadable; });
+    if (arr(s.locks).length && !busy.length) {
+      rows.push(tr([{ w: cls('norm', 'all free') + '<span class="dim">: ' + esc(arr(s.locks).map(function (k) { return k.domain; }).join(', ')) + '</span>', span: 6 }], 'group'));
       // A free table says nothing about whether the machine is idle or simply between two holds:
       // measured 2026-09-03 over the chat's own lock events, a hold runs 1.5-147 s (median 20.8 s),
       // so minutes of genuine free time look exactly like a broken page. The trail is the answer -
       // the same acquire/release lines the chat already carries, hoisted next to the empty table.
-      var trail = (s.chat || []).filter(function (m) { return m.kind === 'lock'; }).slice(0, 6);
+      var trail = arr(s.chat).filter(function (m) { return m.kind === 'lock'; }).slice(0, 6);
       trail.forEach(function (m) {
         var verb = /^released/.test(m.note || '') ? '<span class="dim">' + esc(m.note) + '</span>' : cls('norm', m.note || '');
         rows.push(tr([{ w: '<span class="dim">' + esc(local(m.atUtc)) + '  ' + mins(m.ageMinutes) + ' ago</span>', span: 2 }, name(m.name), { w: verb, span: 3 }]));
       });
       if (!trail.length) { rows.push(tr([{ w: '<span class="dim">no lock taken inside the chat window</span>', span: 6 }])); }
     }
-    (busy.length ? (s.locks || []) : []).forEach(function (k) {
-      var q = k.queue || [];
+    (busy.length ? arr(s.locks) : []).forEach(function (k) {
+      var q = arr(k.queue);
       var state, klass;
       if (k.held) { state = 'HELD'; klass = 'warn'; }
       else if (q.length) { state = 'free, ' + q.length + ' queued'; klass = 'warn'; }
@@ -563,16 +806,24 @@ tr:hover td{background:#0d1117}
     table('locks', ['domain', 'state', 'lock executor', '#held', 'since', 'reason'], rows, 'no lock domain known');
 
     rows = [];
-    (s.gates || []).forEach(function (g) {
-      var failed = (g.failures || []).map(function (f) {
-        return esc(f.gate) + ' [' + esc(f.scope === 'set-named' ? 'named your file' : (f.scope || 'unknown')) + ']';
-      }).join(', ') || 'clean';
-      rows.push(tr([cls(g.status === 'PASS' ? 'norm' : 'bad', g.status || '?'), esc(g.runner), { w: failed }]));
+    arr(s.gates).forEach(function (g) {
+      var names = arr(g.failures).map(function (f) {
+        return String(f.gate) + ' [' + String(f.scope === 'set-named' ? 'named your file' : (f.scope || 'unknown')) + ']';
+      });
+      // Capped, with the rest in the cell's own tooltip: the canon collector marks a whole run FAIL
+      // the moment one gate inside it is SKIP, so an ordinary closure lands here with forty-odd
+      // names attached and twelve of those rows were the largest block of text on the page - the
+      // one table nobody could read. Nothing is dropped, the count leads, and the full list is one
+      // hover away. Why the panel above refuses this array outright: the comment at renderProblems.
+      var failed = names.length === 0 ? '<span class="dim">clean</span>'
+        : '<span title="' + esc(names.join(', ')) + '">' + names.length + ': ' +
+          esc(names.slice(0, 4).join(', ')) + (names.length > 4 ? ' <span class="dim">and ' + (names.length - 4) + ' more (hover)</span>' : '') + '</span>';
+      rows.push(tr([local(g.atUtc), cls(g.status === 'PASS' ? 'norm' : 'bad', g.status || '?'), esc(g.runner), { w: failed }]));
     });
-    table('gates', ['status', 'runner', 'failed gates'], rows, 'source silent');
+    table('gates', ['time', 'status', 'runner', 'failed gates'], rows, 'source silent');
 
     rows = [];
-    (s.watchdog || []).forEach(function (w) {
+    arr(s.watchdog).forEach(function (w) {
       rows.push(tr([esc(w.at), bold(w.action), { w: esc(w.detail) }]));
     });
     table('watchdog', ['time', 'action', 'detail'], rows, 'source silent');
@@ -580,33 +831,33 @@ tr:hover td{background:#0d1117}
     rows = [];
     var nu = s.nextUp || {};
     var NEXTUP_HEAD = ['rel', 'ticket', 'status', 'changed', 'lease'];
-    (nu.rows || []).forEach(function (q) {
+    arr(nu.rows).forEach(function (q) {
       if (q.kind === 'group') { rows.push(tr([{ w: '<span class="dim">' + esc(q.text) + '</span>', span: NEXTUP_HEAD.length }], 'group')); return; }
       var st = statusCls(q.status);
       var tk = q.leased ? cls('warn', 'taken ' + q.taken) : cls('norm', 'free');
       rows.push(tr([esc(q.rel), id(q.id) + ' <span class="dim">' + esc(q.slug) + '</span>', st, esc(q.changed), tk]));
     });
-    el('nextup-note').textContent = nu.package ? 'package ' + nu.package + ', ' + (nu.rows || []).filter(function (x) { return x.kind === 'row'; }).length + ' of ' + (nu.totalInPackage || 0) + ' rows in file order (PLAN/RELEASE_QUEUE.md)' : 'no current package';
+    el('nextup-note').textContent = nu.package ? 'package ' + nu.package + ', ' + arr(nu.rows).filter(function (x) { return x.kind === 'row'; }).length + ' of ' + (nu.totalInPackage || 0) + ' rows in file order (PLAN/RELEASE_QUEUE.md)' : 'no current package';
     table('nextup', NEXTUP_HEAD, rows, 'queue file not found');
 
     rows = [];
-    (s.chat || []).forEach(function (m) {
+    arr(s.chat).forEach(function (m) {
       rows.push(tr([local(m.atUtc), { n: mins(m.ageMinutes) }, bold(m.kind), name(m.name), id(m.ticket ? m.ticket + (m.phase ? '/' + m.phase : '') : ''), { w: esc(m.note) }]));
     });
     table('chat', ['time', '#age', 'kind', 'agent', 'ticket', 'note'], rows, 'no messages');
 
     rows = [];
-    (s.findings || []).forEach(function (f) {
+    arr(s.findings).forEach(function (f) {
       rows.push(tr([bold(f.topic), name(f.name), { n: mins(f.ageMinutes) }, local(f.expiresAt), esc(f.scopeCount) + (f.device ? ', device ' + esc(f.device) : ''), { w: esc(f.note) }]));
     });
-    el('findings-note').textContent = (s.findings || []).length + ' alive, ' + (s.findingsDead || 0) + ' dead';
+    el('findings-note').textContent = arr(s.findings).length + ' alive, ' + (s.findingsDead || 0) + ' dead';
     table('findings', ['topic', 'by', '#age', 'expires', 'scope paths', 'note'], rows, 'no alive finding');
 
     rows = [];
     var FINISHED_HEAD = ['ticket', 'status', 'moved', 'outcome', '#took', 'model', 'finished'];
-    (s.instances || []).forEach(function (inst) {
+    arr(s.instances).forEach(function (inst) {
       rows.push(tr([{ w: '<span class="dim">instance ' + esc(inst.instance) + ': ' + esc(inst.recorded) + ' run, ' + esc(inst.moved) + ' moved, ' + esc(inst.stayed) + ' stayed put; idle ' + esc(inst.idleToday) + ', timeouts ' + esc(inst.timeoutsToday) + ', cheap model ' + esc(inst.cheapModelShare) + '%</span>', span: FINISHED_HEAD.length }], 'group'));
-      (inst.rows || []).forEach(function (r) {
+      arr(inst.rows).forEach(function (r) {
         var k = r.moved ? 'norm' : (r.outcome !== 'ok' ? 'bad' : 'warn');
         rows.push(tr([id(r.id), esc(r.statusBefore) + ' -> ' + statusCls(r.statusAfter), cls(k, r.moved ? 'moved' : 'stayed'), cls(r.outcome === 'ok' ? 'norm' : 'bad', r.outcome), { n: num(r.minutes) + ' min' }, esc(r.model), local(r.finishedAt)]));
       });
@@ -614,7 +865,7 @@ tr:hover td{background:#0d1117}
     table('finished', FINISHED_HEAD, rows, 'no run journal yet');
 
     rows = [];
-    (s.stop || []).forEach(function (f) { rows.push(tr([cls('warn', f.name), 'requested ' + mins(f.requestedMinutes) + ' ago', { w: (s.children || []).length ? 'waiting for the running ticket(s) to end' : 'nothing is running - the next start clears the flag' }], 'stop')); });
+    arr(s.stop).forEach(function (f) { rows.push(tr([cls('warn', f.name), 'requested ' + mins(f.requestedMinutes) + ' ago', { w: arr(s.children).length ? 'waiting for the running ticket(s) to end' : 'nothing is running - the next start clears the flag' }], 'stop')); });
     table('stop', ['flag', 'age', 'meaning'], rows, 'no stop requested');
   }
 
@@ -629,7 +880,9 @@ tr:hover td{background:#0d1117}
     else if (ageSec >= INTERVAL * 3) { state = 'writer silent'; klass = 'bad'; }
     else if (errors > 0) { state = 'fresh, last load failed'; klass = 'warn'; }
     renderHead(snap, state, klass, ageSec);
-    document.title = (klass === 'ok' ? '' : '[' + state + '] ') + 'dev monitor ' + esc(snap.host);
+    // The title is a text node, not markup: esc() here put `&amp;` in the tab label of any host
+    // whose name carries an ampersand.
+    document.title = (klass === 'ok' ? '' : '[' + state + '] ') + 'dev monitor ' + (snap.host || '');
   }
 
   window.__devMonitor = function (s) {
@@ -667,10 +920,16 @@ tr:hover td{background:#0d1117}
     $body = @'
 <h1>dev monitor</h1>
 <div id="head" class="warn">loading snapshot.js ..</div>
+<h2>problems <small id="problems-note">read this first</small></h2>
+<div id="problems"></div>
 <h2>agents <small id="agents-note"></small></h2>
 <div id="agents"></div>
 <h2>ticket leases <small>what is claimed now</small></h2>
 <div id="leases"></div>
+<div id="devices-box" style="display:none">
+<h2>devices <small>the test park: who is driving what, and what was last installed (S2855)</small></h2>
+<div id="devices"></div>
+</div>
 <div id="stalls-box" style="display:none">
 <h2>stalled holders <small>quiet, holding, and blocking someone</small></h2>
 <div id="stalls"></div>

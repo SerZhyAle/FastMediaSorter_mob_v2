@@ -14,11 +14,15 @@
         android:name="oculus.software.handtracking"
         android:required="false" />
 
-    <!-- Quest -->
-    <uses-feature
-        android:name="android.hardware.vr.headtracking"
-        android:required="false"
-        android:version="1" />
+    <!-- Quest: android.hardware.vr.headtracking is NOT declared here.
+         S0555 Phase 01: the two flavors that mount this file need opposite values - the Meta Horizon
+         Store requires required="true" for an immersive build, while the sideload APK keeps
+         required="false" so it stays installable on a phone. A tools:replace override between two
+         flavor-level manifests is not available: src/vr and src/vrOnly sit at the SAME merger
+         priority for the vr variant, so neither can override the other and the merge fails outright
+         (measured 2026-09-10, processVrDebugMainManifest). The declaration therefore lives once per
+         flavor - src/vrOnly/AndroidManifest.xml for vr, src/noLegal/AndroidManifest.xml for noLegal.
+         Do not re-add it here: doing so resurrects that conflict for both flavors at once. -->
 
     <!-- Android XR -->
     <uses-feature
@@ -39,9 +43,10 @@
     -->
 
     <application>
-        <meta-data
-            android:name="com.oculus.supportedDevices"
-            android:value="quest3|quest3s" />
+        <!-- com.oculus.supportedDevices is NOT declared here, for the same reason as the headtracking
+             feature above: vr carries the owner's four-device store list and noLegal keeps the pair it
+             has always shipped, and two flavor-level manifests cannot override one another. The
+             declaration lives in src/vrOnly and src/noLegal, once each. -->
 
         <!--
             S0249 Phase 02 step 02.6: dedicated OpenXR session host. Launched by

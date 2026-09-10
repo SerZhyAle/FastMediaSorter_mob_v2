@@ -207,7 +207,18 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
         }
 
-        val sorted = allFiles.sortedByDescending { pair ->
+        // S2860: the default virtual resources overlap - virtual://recent, virtual://all_images
+        // and virtual://camera_photos all return the same MediaStore row for one physical file.
+        // Without deduplication each file appears once per resource that covers it, so the watch
+        // renders it once per overlapping resource. The MediaStore id is the stable identity when
+        // the scanner carried a content URI; the physical path is the fallback for File-API entries.
+        val seen = mutableSetOf<String>()
+        val unique = allFiles.filter { (_, file) ->
+            seen.add(file.mediaStoreIdOrNull()?.toString() ?: file.path)
+        }
+        Timber.d("S2860: flat list dedup %d -> %d items", allFiles.size, unique.size)
+
+        val sorted = unique.sortedByDescending { pair ->
             pair.second.lastModified.coerceAtLeast(pair.second.createdDate)
         }
         return page(request, sorted) { (resource, file) ->

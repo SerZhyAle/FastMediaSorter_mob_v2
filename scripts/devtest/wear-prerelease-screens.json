@@ -212,6 +212,27 @@
       "note": "S2008 moved this screen out of Settings and into the Apps list, so it is reached from there. The marker is the refresh chip, which replaces the loading line as soon as the first read completes and is absent from the Apps list itself. Two levels back: out of the report and out of the Apps section, so the next entry starts from Home."
     },
     {
+      "id": "apps-blood-pressure",
+      "name": "Apps - Blood Pressure",
+      "label": "Blood Pressure",
+      "expect": "Systolic",
+      "screen": "BloodPressureScreen",
+      "expectRes": "blood_pressure_systolic",
+      "backAfter": 1,
+      "note": "S2809: the marker is the systolic field label, unconditional on the input form and absent from the Apps list. The screen needs no permission, no Health Services and no seeded content - it is a data entry form that renders its fields the moment it opens. Available in both flavors: WearAppCatalog lists it without an isAvailable guard."
+    },
+    {
+      "id": "apps-stopwatch",
+      "name": "Apps - Stopwatch",
+      "label": "Stopwatch",
+      "expect": "Menu",
+      "screen": "WearStopwatchScreen",
+      "expectRes": "wear_stopwatch_menu",
+      "backAfter": 1,
+      "note": "S2825: the marker is the menu control label at the bottom of the measurement surface, the only static text on a screen whose regions show dynamic time. The Start/Stop/Lap/Reset labels are state-dependent and drawn inside WearStopwatchRegions; Menu is always present and absent from the Apps list label Stopwatch. Available in both flavors without a capability guard.",
+      "note2": "S2846: MainActivity hides the visual back arrow on the stopwatch route (line 668), but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent in the scaffold accepts any KeyUp and calls onLeave(), so the walk's own exit works. Same mechanism as WaterFlashlightScreen."
+    },
+    {
       "id": "settings",
       "name": "Settings",
       "label": "Settings",

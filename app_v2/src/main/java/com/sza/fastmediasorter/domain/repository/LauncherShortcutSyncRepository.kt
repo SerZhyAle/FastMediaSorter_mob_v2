@@ -48,4 +48,17 @@ interface LauncherShortcutSyncRepository {
 
     /** Returns the resource baseline to its never-written state, for the same reason [clearSyncedRoutes] does. */
     suspend fun clearSyncedResourcePaths()
+
+    /**
+     * S2859: whether the one-time Add-resource tile backfill has already run on this install.
+     * The same once-per-install contract as [isStopwatchShortcutBackfilled]; the launcher reset
+     * clears it so a re-seeded desktop gets the tile again.
+     */
+    suspend fun isResourcesAddTileBackfilled(): Boolean
+
+    /** Records completion of S2859's one-time Add-resource tile backfill. */
+    suspend fun setResourcesAddTileBackfilled()
+
+    /** Returns the Add-resource tile flag to its never-written state, for the launcher reset. */
+    suspend fun clearResourcesAddTileBackfilled()
 }

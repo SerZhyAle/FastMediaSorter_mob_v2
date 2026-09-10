@@ -160,10 +160,11 @@ class SubProgramCatalogCompletenessTest {
      * for the whole interval until S2664 derived the section from the registry and the cell silently
      * disappeared.
      *
-     * Favourites is the one seeded feature cell outside the registry. It and streams are both parts
-     * of the main application rather than sub-programs (S1736 §2 Non-goals), but streams reaches the
-     * desk through its own STREAMS section while favourites is still placed by hand, in
-     * `LauncherStarterSets.commonTail()` - so only favourites needs naming here.
+     * Streams and favourites are the seeded feature cells outside the registry. Both are parts
+     * of the main application rather than sub-programs (S1736 §2 Non-goals). Streams is seeded by
+     * `LauncherStarterSets.commonFeatures` (it opens the streams screen), while favourites is
+     * placed by hand in `LauncherStarterSets.commonTail()` - neither has a registry entry, so
+     * both are named in `NON_REGISTRY_FEATURE_CELLS`.
      */
     @Test
     fun `every seeded feature cell belongs to a registry entry or a named exception`() {
@@ -213,8 +214,17 @@ class SubProgramCatalogCompletenessTest {
         private val MEDIUM_WIDE =
             LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
 
-        /** S2675: the feature cells seeded by hand, each a part of the main app rather than a program. */
-        private val NON_REGISTRY_FEATURE_CELLS = setOf(InternalRouteCatalog.KEY_FAVORITES)
+        /**
+         * S2675: the feature cells seeded by hand, each a part of the main app rather than a program.
+         *
+         * Streams joins favourites for the same reason: the desk seeds it through its own curated
+         * section (`LauncherStarterSets.commonFeatures`), not through a registry entry - the streams
+         * ROUTE opens the screen while a registry entry would have to mean one configured stream.
+         */
+        private val NON_REGISTRY_FEATURE_CELLS = setOf(
+            InternalRouteCatalog.KEY_FAVORITES,
+            InternalRouteCatalog.KEY_STREAMS,
+        )
     }
 
     private fun assertEveryRouteIsOpenable(surface: SubProgramSurface) {

@@ -10,6 +10,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.share.SharePayload
+import com.sza.fastmediasorter.core.share.SystemShareInvoker
 import com.sza.fastmediasorter.databinding.ActivityBroadcastShareBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastShareManager
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
@@ -63,6 +65,19 @@ class BroadcastShareActivity : AppCompatActivity() {
         binding.btnExportFile.setOnClickListener {
             val fileName = "broadcast_${url.hashCode()}.fmsbcast"
             createDocumentLauncher.launch(fileName)
+        }
+
+        binding.btnSendLink.setOnClickListener {
+            Timber.d("S2857: send-link button tapped, launching share chooser")
+            val payload = shareManager.generateQrPayload(url, activeTitle, activeMode)
+            val launched = SystemShareInvoker.invoke(
+                this,
+                SharePayload.Text(payload),
+                chooserTitle = getString(R.string.broadcast_share_send_chooser_title),
+            )
+            if (!launched) {
+                Toast.makeText(this, R.string.broadcast_share_save_failed, Toast.LENGTH_SHORT).show()
+            }
         }
 
         renderBarcode(url, activeTitle, activeMode)

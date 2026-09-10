@@ -8,6 +8,7 @@ import android.content.Intent
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.AppLaunchPanelRouteIntents
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 
 /** S2516: one cell, no configuration - a tap opens the locked light, and nothing else is on offer. */
 class WaterFlashlightWidgetProvider : AppWidgetProvider() {
@@ -39,6 +40,9 @@ class WaterFlashlightWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
             views.setOnClickPendingIntent(R.id.widget_water_flashlight_container, pendingIntent)
+            // S2889: the identity glyph takes the sub-program's own tone, resolved in this process
+            // because a theme attr inside a RemoteViews drawable resolves against the launcher's theme.
+            HomeWidgetAccent.applyIconTint(views, R.id.widget_water_flashlight_icon, context, "water_flashlight")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

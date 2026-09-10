@@ -73,12 +73,13 @@ dev/ACTIVITY_CATALOG/scripts/set.ps1
 ## dev\CATALOG\scripts
 
 ### _source-roots.ps1
-Shared source-root derivation for the class catalogue (S2837). Dot-source it; it defines one function
+Shared source-root derivation for the class catalogue (S2837).
 
 ```
 dev/CATALOG/scripts/_source-roots.ps1
-  Shared source-root derivation for the class catalogue (S2837). Dot-source it; it defines one function
+  Shared source-root derivation for the class catalogue (S2837).
   (no param block)
+  Exit: 0 dot-sourced successfully; this library defines Get-CatalogSourceRoots.; 2 invoked as a script instead of being dot-sourced.
 ```
 
 ### apply-role-drafts.ps1
@@ -807,15 +808,16 @@ Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instr
 scripts/builders/check-standard-fast.ps1
   Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
   Params:
-    -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|ConnectedAndroidTest|Assemble}
-    -Flavor                 [String]
-    -Module                 [String] = "app_v2"
-    -BuildType              [String]
-    -Tests                  [String]
-    -SystemProperty         [String[]]
-    -DeviceId               [String] = $env:ANDROID_SERIAL
-    -BlockThrough           [SwitchParameter]
-    -Quiet                  [SwitchParameter]
+    -Mode                    [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|ConnectedAndroidTest|Assemble}
+    -Flavor                  [String]
+    -Module                  [String] = "app_v2"
+    -BuildType               [String]
+    -Tests                   [String]
+    -SystemProperty          [String[]]
+    -ProjectProperty         [String[]]
+    -DeviceId                [String] = $env:ANDROID_SERIAL
+    -BlockThrough            [SwitchParameter]
+    -Quiet                   [SwitchParameter]
   Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
 
@@ -908,17 +910,6 @@ scripts/builders/install-standard-debug-to-device.ps1
     -DeviceId         [String] = $env:ANDROID_SERIAL
 ```
 
-### publish-ffmpeg-dts-aar.ps1
-publish-ffmpeg-dts-aar.ps1
-
-```
-scripts/builders/publish-ffmpeg-dts-aar.ps1
-  publish-ffmpeg-dts-aar.ps1
-  Params:
-    -AarPath         [String] = 'app_v2/libs/fms-ffmpeg-dts.aar'
-    -Tag             [String] = 'delivery-so-v1'
-```
-
 ### publish-libvlc-so.ps1
 publish-libvlc-so.ps1
 
@@ -931,6 +922,19 @@ scripts/builders/publish-libvlc-so.ps1
     -Tag             [String] = 'delivery-so-v1'
     -Rev             [String] = 'v1'
     -WhatIf          [SwitchParameter]
+```
+
+### publish-prebuilt-native-aar.ps1
+publish-prebuilt-native-aar.ps1
+
+```
+scripts/builders/publish-prebuilt-native-aar.ps1
+  publish-prebuilt-native-aar.ps1
+  Params:
+    -Name                 [String]
+    -All                  [SwitchParameter]
+    -ManifestPath         [String] = 'scripts/ci/prebuilt-native-aars.txt'
+    -Tag                  [String] = 'delivery-so-v1'
 ```
 
 ### run-standard-macrobenchmark.ps1
@@ -1122,9 +1126,35 @@ scripts/devtest/device-ready.ps1
     -Json                    [SwitchParameter]
     -StrictExit              [SwitchParameter]
     -ClaimFree               [SwitchParameter]
+    -WithRegistry            [SwitchParameter]
     -ReuseFinding            [SwitchParameter]
     -Module                  [String]  {app_v2|wear}
   Exit: 0 - state determined and reported: ready, or not-ready with a `state`/`reason`; 2 - the probe itself could not run
+```
+
+### device-registry.ps1
+Durable per-device registry for test devices - the last install mark and its history (S2855).
+
+```
+scripts/devtest/device-registry.ps1
+  Durable per-device registry for test devices - the last install mark and its history (S2855).
+  Params:
+    -Verb         (req)  [String]  {Record|Get|List|Status|Refresh|Forget}
+    -Id                  [String]
+    -Package             [String]
+    -Module              [String]
+    -Flavor              [String]
+    -BuildType           [String]
+    -VersionName         [String]
+    -VersionCode         [String]
+    -Artifact            [String]
+    -Ticket              [String] = ''
+    -RecordedBy          [String] = 'device-registry Record'
+    -Model               [String] = ''
+    -Role                [String] = ''
+    -Yes                 [SwitchParameter]
+    -Json                [SwitchParameter]
+  Exit: 0 - done: recorded, reported, refreshed, or nothing to report.; 1 - error: bad argument shape, unreadable store, adb missing for Refresh, Forget without -Yes.
 ```
 
 ### find-recent-screenshots.ps1
@@ -1467,6 +1497,18 @@ scripts/devtest/device-ready.tests/stub/adb-stub.ps1
   Stub `adb` for scripts/devtest/device-ready.tests/Run-Tests.ps1 (S2600).
   (no param block)
   Exit: 0 - the call matched the table; 99 - the call matched nothing. Silence would turn any change in the probe's adb usage into a
+```
+
+## scripts\devtest\device-registry.tests
+
+### Run-Tests.ps1
+Contract tests for the device registry (S2855).
+
+```
+scripts/devtest/device-registry.tests/Run-Tests.ps1
+  Contract tests for the device registry (S2855).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
 ## scripts\devtest\devtest-encoding.tests
@@ -2094,6 +2136,18 @@ scripts/metrics/agent-cost-report.ps1
     -Json                   [SwitchParameter]
 ```
 
+### measure-unit-fork-parallelism.ps1
+S2851: measure the app_v2 unit suite's wall clock against fms.unitTestMaxParallelForks, recording for every run what else was building at the same time.
+
+```
+scripts/metrics/measure-unit-fork-parallelism.ps1
+  S2851: measure the app_v2 unit suite's wall clock against fms.unitTestMaxParallelForks, recording for every run what else was building at the same time.
+  Params:
+    -Forks           [String] = "1,2,4"
+    -Repeats         [Int32] = 1
+    -CsvPath         [String]
+```
+
 ## scripts\ocrbench
 
 ### fetch-real-scenes.ps1
@@ -2261,6 +2315,23 @@ scripts/quality/assert-backup-rules-consistent.ps1
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
   Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
+```
+
+### assert-bridge-scenario-coverage.ps1
+S2880 - binds the bridge scenario registry to the Data Layer route catalogs it must cover.
+
+```
+scripts/quality/assert-bridge-scenario-coverage.ps1
+  S2880 - binds the bridge scenario registry to the Data Layer route catalogs it must cover.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -ChangedFiles           [String]
+    -CatalogA               [String]
+    -CatalogB               [String]
+    -Registry               [String]
+    -BaselineFile           [String]
+  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: a catalog or the registry is missing or unreadable. Never conflated
 ```
 
 ### assert-code-domain-writers.ps1
@@ -2614,6 +2685,23 @@ scripts/quality/assert-gate-hints-sync.ps1
   Exit: 0 - registry and facade agree (or audit mode).; 1 - substantive failure: at least one label or key is unpaired (-Gate only).; 2 - the gate itself cannot run: the facade or the registry is missing or
 ```
 
+### assert-gate-placement.ps1
+S2870: the gate-placement registry must agree with where the gates are actually wired.
+
+```
+scripts/quality/assert-gate-placement.ps1
+  S2870: the gate-placement registry must agree with where the gates are actually wired.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String]
+    -Registry             [String]
+    -SourceMap            [String]
+    -Help                 [SwitchParameter]
+  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON.; 3 advisory: findings exist but no declared input was in the changed set (S2824).
+```
+
 ### assert-gate-timing-claims.ps1
 S2453: a run time claimed in prose is judged against the telemetry journal that measures it.
 
@@ -2694,7 +2782,8 @@ scripts/quality/assert-hook-inventory.ps1
     -Gate                       [SwitchParameter]
     -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
-  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set and the inventory, with -Gate; 2 could not verify - the inventory or .claude/settings.json is missing or unparsable
+    -RuleSheetPath              [String] = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory and the rule sheet, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -3561,6 +3650,20 @@ scripts/quality/assert-wear-walk-contract.ps1
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
 ```
 
+### assert-wear-wire-nullability.ps1
+S2885/S2887: refuse a phone/watch bridge envelope field whose Kotlin default is not what Gson will actually leave in it when the key is absent, because the declaration then states a protection the receiver does not have.
+
+```
+scripts/quality/assert-wear-wire-nullability.ps1
+  S2885/S2887: refuse a phone/watch bridge envelope field whose Kotlin default is not what Gson will actually leave in it when the key is absent, because the declaration then states a protection the receiver does not have.
+  Params:
+    -RepoRoot             [String]
+    -BaselinePath         [String]
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+```
+
 ### assert-wear-wire-vocabulary-parity.ps1
 S2642: a phone/watch wire vocabulary outside the settings channel diverged, or a new mirrored one was added without being declared here.
 
@@ -3983,6 +4086,16 @@ scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
 ```
 
+## scripts\quality\assert-gate-placement.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-gate-placement.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
+```
+
 ## scripts\quality\assert-gate-timing-claims.tests
 
 ### Run-Tests.ps1
@@ -4194,6 +4307,17 @@ scripts/quality/assert-wear-walk-contract.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\quality\assert-wear-wire-nullability.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-wear-wire-nullability.ps1
+
+```
+scripts/quality/assert-wear-wire-nullability.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-wear-wire-nullability.ps1
+  (no param block)
+```
+
 ## scripts\quality\assert-wear-wire-vocabulary-parity.tests
 
 ### Run-Tests.ps1
@@ -4324,6 +4448,15 @@ S1453: the one reader of the flavor / source-set mount map declared in app_v2/bu
 ```
 scripts/quality/lib/flavor-source-map.ps1
   S1453: the one reader of the flavor / source-set mount map declared in app_v2/build.gradle.kts.
+  (no param block)
+```
+
+### gate-placement-registry.ps1
+S2870: shared reader for the gate-placement registry and for runner membership.
+
+```
+scripts/quality/lib/gate-placement-registry.ps1
+  S2870: shared reader for the gate-placement registry and for runner membership.
   (no param block)
 ```
 
@@ -6517,6 +6650,18 @@ scripts/utils/post-release-cleanup.ps1
   Exit: 0 - every stage that ran completed.; 1 - at least one stage failed; the failing stage is named.; 2 - could not run: the repository root does not carry the stage scripts.
 ```
 
+### preflight-checks.ps1
+S2872 - the closure check a runtime runs before it says "done".
+
+```
+scripts/utils/preflight-checks.ps1
+  S2872 - the closure check a runtime runs before it says "done".
+  Params:
+    -Json          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every state check passed. Advisories may still have printed.; 1 - at least one state check failed. Each failure names its own remedy.; 2 - could not verify: the coordination harness could not be loaded.
+```
+
 ### process-timeout.ps1
 Run an external process under a wall-clock ceiling (S1338).
 
@@ -7034,6 +7179,18 @@ scripts/utils/invoke-isolated-stdout.tests/Run-Tests.ps1
   S2412 - contract suite for the stdout-isolation runner and the a.ps1 routing that reaches it.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - could not verify - the runner script is missing.
+```
+
+## scripts\utils\preflight-checks.tests
+
+### Run-Tests.ps1
+S2872 - contract tests for scripts/utils/preflight-checks.ps1.
+
+```
+scripts/utils/preflight-checks.tests/Run-Tests.ps1
+  S2872 - contract tests for scripts/utils/preflight-checks.ps1.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.; 2 - could not verify: the script under test is missing.
 ```
 
 ## scripts\utils\project-paths.tests

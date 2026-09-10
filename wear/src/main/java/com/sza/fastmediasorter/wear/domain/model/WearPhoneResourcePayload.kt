@@ -89,7 +89,9 @@ data class WearPhoneResourcePage(
     val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
     val requestId: String,
     val status: WearPhoneResourceResponseStatus,
-    val items: List<WearPhoneResourceItem> = emptyList(),
+    // S2885: nullable because Gson leaves an absent field null whatever the Kotlin default says. A
+    // page that carries no `items` key is an empty page, so every reader goes through `.orEmpty()`.
+    val items: List<WearPhoneResourceItem>? = null,
     val nextPageToken: String? = null
 )
 

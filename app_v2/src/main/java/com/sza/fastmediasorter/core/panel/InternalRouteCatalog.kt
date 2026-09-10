@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 
 /**
  * Static descriptor table of our own launchable features offered in the app-launch panel
@@ -59,6 +60,11 @@ object InternalRouteCatalog {
     // S1733: system information as a program of its own, reachable without going into settings.
     const val KEY_SYSTEM_INFO = "system_info"
     const val KEY_WEAR_COMPANION = "wear_companion"
+
+    // S2881: two routes, not one - a registry entry resolves to exactly one intent, so the plain and
+    // the record variant cannot share an entry and still appear as two items on the non-widget surfaces.
+    const val KEY_WATCH_LISTEN = "watch_listen"
+    const val KEY_WATCH_LISTEN_RECORD = "watch_listen_record"
 
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
@@ -130,6 +136,23 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_watch,
             intent = AppLaunchPanelRouteIntents::wearCompanion,
             settingsIntent = AppLaunchPanelRouteIntents::wearCompanionSettings,
+        ),
+        // S2881: the listen calls stand beside the companion they extend, and read the watch icon
+        // like it; the record variant takes the microphone, because recording is what separates it.
+        // Their rows are the one place this catalog names an activity directly: the trampoline's own
+        // createIntent already carries the NEW_TASK flag, and the intents builder object sat at its
+        // TooManyFunctions ceiling.
+        Route(
+            key = KEY_WATCH_LISTEN,
+            labelRes = R.string.watch_listen_label,
+            iconRes = R.drawable.ic_watch,
+            intent = { WatchListenLaunchActivity.createIntent(it, record = false) },
+        ),
+        Route(
+            key = KEY_WATCH_LISTEN_RECORD,
+            labelRes = R.string.watch_listen_record_label,
+            iconRes = R.drawable.ic_microphone,
+            intent = { WatchListenLaunchActivity.createIntent(it, record = true) },
         ),
         Route(
             key = KEY_OCR,

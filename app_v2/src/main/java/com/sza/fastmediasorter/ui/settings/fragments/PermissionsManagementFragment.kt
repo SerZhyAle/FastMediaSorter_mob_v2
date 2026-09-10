@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -154,6 +155,13 @@ class PermissionsManagementFragment : Fragment() {
 
         refreshAdapter()
         updateGrantAllVisibility()
+
+        // S2899: Ensure initial focus is assigned on TV / D-pad when entering the fragment.
+        view.post {
+            if (isAdded && this.view != null) {
+                requestInitialFocus()
+            }
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -166,6 +174,23 @@ class PermissionsManagementFragment : Fragment() {
         super.onResume()
         refreshAdapter()
         updateGrantAllVisibility()
+        if (activity?.currentFocus == null) {
+            requestInitialFocus()
+        }
+    }
+
+    private fun requestInitialFocus() {
+        val root = view ?: return
+        val grantAllBtn = root.findViewById<Button>(R.id.btn_grant_all)
+        val openSettingsBtn = root.findViewById<Button>(R.id.btn_open_system_settings)
+        val toolbar = root.findViewById<MaterialToolbar>(R.id.toolbar)
+        val target = when {
+            grantAllBtn?.isVisible == true -> grantAllBtn
+            openSettingsBtn?.isVisible == true -> openSettingsBtn
+            else -> toolbar
+        }
+        Timber.d("S2899: PermissionsManagement initial focus requested on ${target?.javaClass?.simpleName}")
+        target?.requestFocus()
     }
 
     private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))

@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -82,6 +83,27 @@ class ExtensionsManagerFragment : Fragment() {
         binding.recyclerExtensions.adapter = adapter
 
         adapter.submitList(buildRows(viewModel.extensions))
+
+        // S2899: Ensure initial focus on TV / D-pad
+        view.post {
+            if (isAdded && _binding != null) {
+                requestInitialFocus()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (activity?.currentFocus == null) {
+            requestInitialFocus()
+        }
+    }
+
+    private fun requestInitialFocus() {
+        val binding = _binding ?: return
+        val target = if (binding.btnInstallAll.isVisible) binding.btnInstallAll else binding.btnBack
+        timber.log.Timber.d("S2899: ExtensionsManager initial focus requested on ${target.javaClass.simpleName}")
+        target.requestFocus()
     }
 
     // Edge-to-edge safety (CLAUDE.md Rule 17): the header keeps its colored background under the status

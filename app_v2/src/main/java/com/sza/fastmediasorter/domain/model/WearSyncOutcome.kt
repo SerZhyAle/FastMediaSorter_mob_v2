@@ -24,6 +24,10 @@ enum class WearSyncLeg {
  * [NothingToSend] is deliberately not a failure. S1781 established that an empty watch-resource
  * selection means the owner marked nothing for the watch, which is a valid state; reporting it as an
  * error would warn about a choice the owner made on purpose.
+ *
+ * S2882 narrowed what counts as nothing: an empty selection also withdraws every marked resource the
+ * watch still holds, and that exchange changes the watch. [NothingToSend] now means "nothing to send
+ * AND nothing to withdraw"; a batch that only removed things reports [Succeeded].
  */
 sealed class WearSyncLegResult {
     data class Succeeded(val itemCount: Int) : WearSyncLegResult()

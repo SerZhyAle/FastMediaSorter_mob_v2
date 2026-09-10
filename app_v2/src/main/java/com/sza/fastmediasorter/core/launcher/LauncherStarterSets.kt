@@ -613,12 +613,16 @@ object LauncherStarterSets {
     // S2749: a route [utilityWidgetRoutes] curates is dropped here, the way systemSettingsGroup drops the
     // key settingsEntryGroup holds - the curated section is where the ticket that placed it declared it,
     // and both groups reach the same seed, so keeping it in this one seeded the cell twice.
-    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> =
-        SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
+    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
+        if (routeLaunchable[InternalRouteCatalog.KEY_STREAMS] == true) {
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_STREAMS)))
+        }
+        addAll(SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
             entry.routeKey
                 .takeIf { routeLaunchable[it] == true && it !in utilityWidgetRoutes }
                 ?.let { shortcut(LauncherCellCommand.Feature(it)) }
-        }
+        })
+    }
 
     /**
      * The original per-profile gadget/resource items that were already in the table before S1560.

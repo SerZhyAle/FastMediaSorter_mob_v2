@@ -55,6 +55,7 @@ scripts/quality/assert-tactical-step-form.ps1 | B | Code.Scripts | scripts/quali
 scripts/quality/assert-string-format.ps1 | B | Code.Scripts | scripts/quality/assert-string-format-baseline.txt
 scripts/quality/assert-allfeatures-sync.ps1 | B | Code.Scripts | scripts/quality/allfeatures-sync-baseline.txt
 scripts/quality/assert-wear-walk-contract.ps1 | B | Code.Scripts | scripts/quality/wear-walk-contract-baseline.txt
+scripts/quality/assert-bridge-scenario-coverage.ps1 | B | Code.Scripts | scripts/quality/bridge-scenario-coverage-baseline.txt
 scripts/quality/assert-acceptance-preconditions.ps1 | B | Code.Scripts | scripts/quality/acceptance-precondition-baseline.txt
 
 # --- Class B: detekt baselines and editors (S2635 phase 03) -------------------------------

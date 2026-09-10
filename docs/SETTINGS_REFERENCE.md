@@ -166,6 +166,7 @@ _Available in: Standard, Legacy, VR_
 | Enable Streams | Master switch for the Streams feature. When off, the Streams item is hidden from the main menu and the welcome screen. |
 | Ultra-smart stream buffering | Makes radio playback more resilient on a weak connection: waits a few seconds longer before starting so there is a bigger cushion, and quietly reconnects after short signal drops instead of stopping. Off means plain standard playback. |
 | Enable Picture-in-Picture | Enables Picture-in-Picture mode so playback continues in a floating window when you leave the player. Same setting as in the playback section. |
+| Visualize audio streams as music | Opens an audio stream in the full-screen visualizer player instead of the inline mini-control when tapped. |
 
 ## <img src="icons/doc/ic_camera_capture.png" alt="" width="22" height="22" style="vertical-align:text-bottom"> Other
 
@@ -318,7 +319,7 @@ _Settings -> General -> System launcher settings_
 | App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
 | All apps: swipe up | Chooses what this swipe does on the All apps panel. The list is deliberately short: back to the desktop, expand all apps, launch a chosen app, lock the screen, or unused. Screen lock is offered only in builds that can perform it. This direction runs only after the list is scrolled to its end; by default it expands the full app list instead of the alphabetical sections. |
 | App to launch | The app this direction launches. Shown only while the direction is set to launch an app; the reset control beside it clears the choice without changing the action. |
-| Grid density | Sets how many icons the launcher desktop grid fits per row and column; dense by default. |
+| Grid density | Sets how many icons the launcher desktop grid fits per row and column; large cells (sparse grid) by default. |
 | Double tap to lock the screen | Lets a double tap on empty desktop space lock the screen; where the device lock is out of reach the launcher blacks the screen out instead. On by default. |
 | Swipe down | Chooses a launcher swipe action from the same available actions as edge gestures. Selecting Open app or Open URL then asks for its target. By default, it opens the notification shade when the system action is available. The list also carries the launcher's own routes - All apps, and the next and previous desktop screen. |
 | App to launch | Sets the target of the downward swipe's action - the app it launches or the web address it opens. Shown only while the assigned action takes a target; tap to change it, and clear it from the address dialog. An empty target keeps the action's own fallback. |

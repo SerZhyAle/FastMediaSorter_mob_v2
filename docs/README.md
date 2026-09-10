@@ -430,7 +430,7 @@ Tests run automatically on every push via GitHub Actions. See [`.github/workflow
 - **Database**: Room 2.7.0
 - **Navigation**: AndroidX Navigation Component
 - **Media**: ExoPlayer (Media3 1.2.1)
-- **Image Loading**: Glide 4.16.0 with custom NetworkFileModelLoader
+- **Image Loading**: Glide 5.0.9 with custom NetworkFileModelLoader
 - **Network Protocols**:
   - SMB: SMBJ 0.12.1 with BouncyCastle (transitive)
   - SFTP: JSch 0.2.26 (com.github.mwiede fork, Ed25519 built in)

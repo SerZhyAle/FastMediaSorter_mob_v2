@@ -32,9 +32,15 @@ object WearSendToReceiverFilter {
     /**
      * An empty [WearSendToReceiverEntry.applicableTypes] means "any type", which is how a receiver
      * that takes whatever it is given - the system share sheet, the clipboard - is declared.
+     *
+     * S2885: a phone older than that field sends no key at all and Gson leaves the list null, which
+     * means the same thing here - the sender declared no restriction - so it is read through
+     * `.orEmpty()` rather than dereferenced.
      */
-    private fun WearSendToReceiverEntry.acceptsAll(selected: List<WearMediaFile>): Boolean =
-        applicableTypes.isEmpty() || selected.all { file -> applicableTypes.any { file.matchesType(it) } }
+    private fun WearSendToReceiverEntry.acceptsAll(selected: List<WearMediaFile>): Boolean {
+        val types = applicableTypes.orEmpty()
+        return types.isEmpty() || selected.all { file -> types.any { file.matchesType(it) } }
+    }
 
     /**
      * The published type name against one file's MIME type, compared by family.

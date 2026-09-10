@@ -3335,7 +3335,7 @@
     <string name="network_monitor_bluetooth_paired_only_heading">Спарені, але не підключені</string>
     <string name="network_monitor_chart_reset_action">Перезапустити графік</string>
     <string name="network_monitor_chart_reset_done">Графік перезапущено. Замір іде наново.</string>
-    <string name="settings_enable_wear_companion">Компаньйон годинника</string>
+    <string name="settings_enable_wear_companion">Wear-супутник</string>
     <string name="settings_enable_wear_companion_summary">Показувати компаньйон годинника в панелі та меню програм</string>
     <string name="stream_action_send_to_watch">Надіслати на годинник</string>
     <string name="stream_send_to_watch_done">Трансляцію надіслано на годинник</string>
@@ -3412,7 +3412,7 @@
     <string name="network_monitor_speed_result_heading">Результати вимірювання</string>
     <string name="network_monitor_read_only_resource">(Ресурс тільки для читання)</string>
     <string name="camera_profile_document">Документи</string>
-    <string name="wear_companion_add_open_resource">Додати/Відкрити ресурс WEAR (дані на годиннику)</string>
+    <string name="wear_companion_add_open_resource">Додати або відкрити годинник</string>
     <string name="share_target_title_watch">Годинник</string>
     <string name="share_target_desc_watch">Показати файл на спареному годиннику</string>
     <string name="share_target_help_watch">Надсилає файл на спарений годинник і відкриває його там. Працюють фото, GIF, відео та аудіо до 32 МБ. Застосунок на годиннику має бути відкритий.</string>
@@ -3927,4 +3927,24 @@
     <string name="shortcut_broadcast_long">Прямий ефір</string>
     <string name="tile_broadcast_label">Прямий ефір</string>
     <string name="widget_broadcast_label">Прямий ефір</string>
+    <string name="broadcast_share_send_link">Надіслати</string>
+    <string name="broadcast_share_send_chooser_title">Надіслати посилання на трансляцію</string>
+    <string name="wear_settings_disable_animations_desc">Вимикає анімації інтерфейсу на годиннику</string>
+    <string name="wear_companion_summary_none">Нічого не ввімкнено</string>
+    <string name="wear_companion_summary_on">Увімк</string>
+    <string name="wear_companion_summary_off">Вимк</string>
+    <string name="wear_companion_summary_slideshow_on">Увімк, кожні %1$d с</string>
+    <string name="wear_listen_record_saved">Запис збережено</string>
+    <string name="wear_listen_record_saved_fallback">Запис збережено в локальну теку</string>
+    <string name="wear_listen_record_failed">Не вдалося зберегти запис</string>
+    <string name="watch_listen_label">Слухати годинник</string>
+    <string name="watch_listen_record_label">Слухати годинник із записом</string>
+    <string name="watch_listen_content_description">Слухати мікрофон спарованого годинника</string>
+    <string name="watch_listen_record_content_description">Слухати мікрофон спарованого годинника й записувати у файл</string>
+    <string name="watch_listen_widget_label">Слухати годинник</string>
+    <string name="watch_listen_widget_description">Слухати спарований годинник і записувати почуте. Потрібен спарований годинник у тій самій мережі Wi-Fi.</string>
+    <string name="watch_listen_state_idle">Не запущено</string>
+    <string name="watch_listen_state_waiting">Чекаємо на годинник</string>
+    <string name="watch_listen_state_listening">Слухаємо</string>
+    <string name="watch_listen_state_recording">Записуємо</string>
 </resources>

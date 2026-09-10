@@ -123,6 +123,13 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun setSyncedResourcePaths(paths: Set<String>) = Unit
 
         override suspend fun clearSyncedResourcePaths() = Unit
+
+        // S2859: the Add-resource tile flag shares the same store; no route test reads it either.
+        override suspend fun isResourcesAddTileBackfilled(): Boolean = false
+
+        override suspend fun setResourcesAddTileBackfilled() = Unit
+
+        override suspend fun clearResourcesAddTileBackfilled() = Unit
     }
 
     /**

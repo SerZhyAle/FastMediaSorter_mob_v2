@@ -97,6 +97,32 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/gate-telemetry.ps1')
 
+# S2870: the gate-placement registry, keyed by BOTH the script file name and the closure label,
+# because the telemetry journal writes whichever the runner used - assert-fast-gates.ps1 records
+# 'assert-detekt.ps1' and post-change.ps1 records 'detekt-gate' for the same gate. Always defined,
+# even when the registry is absent: this script runs under Set-StrictMode, where reading an
+# undefined variable is a terminating error, and an absent registry must degrade to today's
+# behaviour rather than kill the report.
+$script:GatePlacementByName = @{}
+try {
+    $placementLib = Join-Path $PSScriptRoot 'lib/gate-placement-registry.ps1'
+    if (Test-Path -LiteralPath $placementLib) {
+        . $placementLib
+        $placementRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+        foreach ($rec in (Get-GatePlacementRecords -Path (Get-GatePlacementRegistryPath -RepoRoot $placementRoot))) {
+            $script:GatePlacementByName[$rec.gate] = $rec
+            if (($rec.PSObject.Properties.Name -contains 'label') -and $rec.label) {
+                $script:GatePlacementByName[$rec.label] = $rec
+            }
+        }
+    }
+}
+catch {
+    # A malformed registry is assert-gate-placement.ps1's finding to report, not this report's to
+    # die on: the frequency view must keep working while that gate is red.
+    $script:GatePlacementByName = @{}
+}
+
 if ($Help) {
     Get-Help $PSCommandPath
     exit 0
@@ -173,8 +199,36 @@ $report = @(
         $candidate = ($executed -ge $MinExecutions) -and
                      ($typicalSec -ge $MinTotalSeconds) -and
                      (($failures -eq 0) -or ($secPerCatch -gt $MaxSecondsPerCatch))
+
+        # S2870: the arithmetic above cannot tell a gate that has found nothing from a step that
+        # CANNOT find anything, nor from a placement a human already judged and settled. Both were
+        # nominated on every run - dev-log, the changelog writer, ranked as an expensive gate with a
+        # zero catch rate - so the view proposed the same rows forever and taught its reader to skim.
+        # The registry answers both questions, and it is the only thing that can: a decision is not
+        # derivable from a journal of run times.
+        # NOT $placement: PowerShell variable names are case-insensitive, so that spelling assigns
+        # over the -Placement SWITCH PARAMETER, and the report then binds a PSCustomObject to it.
+        $placementRec = $null
+        if ($script:GatePlacementByName.ContainsKey($_.Name)) {
+            $placementRec = $script:GatePlacementByName[$_.Name]
+        }
+        $suppressed = ''
+        if ($candidate -and $placementRec) {
+            if ($placementRec.kind -eq 'closure-step') {
+                $candidate = $false
+                $suppressed = 'closure step - it writes or renders, so it has no finding to report'
+            }
+            elseif ($placementRec.basis -eq 'judged') {
+                $candidate = $false
+                $suppressed = "judged $($placementRec.decided) by $($placementRec.ticket) - placement '$($placementRec.scope)'"
+            }
+        }
+
         [pscustomobject]@{
             Gate           = $_.Name
+            Placement      = if ($placementRec) { $placementRec.scope } else { '' }
+            Basis          = if ($placementRec) { $placementRec.basis } else { '' }
+            Suppressed     = $suppressed
             Executed       = $executed
             Skipped        = $skips
             Failures       = $failures
@@ -232,8 +286,20 @@ if ($Placement) {
     $report |
         Select-Object Gate,
             @{ Name = 'Runner'; Expression = { ($_.Runners -replace 'assert-', '' -replace '-gates', '' -replace '\.ps1', '') } },
-            Executed, Failures, MedianSec, TypicalSec, TotalSec, SecPerCatch, Candidate |
+            Executed, Failures, MedianSec, TypicalSec, TotalSec, SecPerCatch, Placement, Candidate |
         Format-Table -AutoSize
+
+    # S2870: never let a suppression be silent. A row that would have been a candidate and is not
+    # one any more has to say why, or this view becomes a shorter list nobody can audit - which is
+    # the same failure as the prose it replaced.
+    $suppressedRows = @($report | Where-Object { $_.Suppressed })
+    if ($suppressedRows.Count -gt 0) {
+        Write-Host ''
+        Write-Host ("Not nominated ({0}) - the registry already answers for these:" -f $suppressedRows.Count) -ForegroundColor DarkGray
+        foreach ($row in ($suppressedRows | Sort-Object -Property TypicalSec -Descending)) {
+            Write-Host ("  {0,-40} {1,9}s  {2}" -f $row.Gate, $row.TypicalSec, $row.Suppressed) -ForegroundColor DarkGray
+        }
+    }
     # S2538: a gate that reports twice for one run is double-counted in every total above, so the
     # view has to be able to say when its own input is malformed. Silent when the journal predates
     # the runId field - an absent id is not a duplicate, and treating it as one would flag the

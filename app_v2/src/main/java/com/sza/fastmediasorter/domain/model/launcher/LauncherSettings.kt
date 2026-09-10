@@ -21,8 +21,8 @@ data class LauncherSettings(
     // the user's manual nudge on top of it (higher factor = smaller cells = more columns), needed
     // because head units and TV boxes report unreliable densities. Desktop content itself lives in
     // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
-    // S2320: dense is the shipped default; the profile preset may still loosen it for a device that
-    // asks for it, and the value is named in AppSettings so the settings rows derive their index.
+    // S2320 named the value in AppSettings so the settings rows derive their index; S2903 ships the
+    // sparse default - the profile preset may still override it for a device that asks.
     val densityFactor: Float = AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR,
     // S2251: number of desktop screens in launcher mode (1..5, default 2).
     val screenCount: Int = 2,

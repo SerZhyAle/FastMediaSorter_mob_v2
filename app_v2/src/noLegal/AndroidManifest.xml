@@ -41,12 +41,33 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
 
     <!--
+      S0555 Phase 01: the sideload half of two VR declarations that used to sit in the shared
+      src/vr/AndroidManifest.xml. They moved out because vr now needs the Meta Horizon Store values
+      (headtracking required="true", the owner's four-device list) while noLegal needs the values it
+      has always shipped, and two flavor-level manifests cannot override one another - src/vr and the
+      per-flavor overlay sit at the same merger priority, so tools:replace fails the merge instead of
+      winning it. Both values below are byte-identical to what noLegalDebug merged before the move
+      (measured 2026-09-10): required="false" keeps the sideload APK installable on a phone, and
+      quest3|quest3s is the pair this flavor has always declared. The vr twin is in src/vrOnly.
+    -->
+    <uses-feature
+        android:name="android.hardware.vr.headtracking"
+        android:required="false"
+        android:version="1" />
+
+    <!--
       S0559: the MediaProjection consent activity, the mediaProjection capture service, and the
       FOREGROUND_SERVICE_MEDIA_PROJECTION permission moved to src/screenCapture/AndroidManifest.xml
       (shared with the standard store flavor). This overlay file keeps only the noLegal-only
       overlay-strip host and the accessibility silent-capture service.
     -->
     <application>
+        <!-- S0555 Phase 01: see the uses-feature comment above. quest3|quest3s is noLegal's
+             pre-existing value, carried over unchanged from src/vr/AndroidManifest.xml. -->
+        <meta-data
+            android:name="com.oculus.supportedDevices"
+            android:value="quest3|quest3s" />
+
         <service
             android:name="com.sza.fastmediasorter.screencapture.OverlayHostService"
             android:exported="false"

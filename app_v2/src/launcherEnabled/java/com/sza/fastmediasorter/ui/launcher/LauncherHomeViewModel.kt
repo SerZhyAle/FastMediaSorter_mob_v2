@@ -48,6 +48,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -408,6 +409,13 @@ class LauncherHomeViewModel @Inject constructor(
     // while the target is still opening, which is precisely the window it guards.
     private var launchInFlight = false
 
+    private val _activeScreenIndex = MutableStateFlow(0)
+    val activeScreenIndex: StateFlow<Int> = _activeScreenIndex.asStateFlow()
+
+    fun setActiveScreenIndex(index: Int) {
+        _activeScreenIndex.value = index
+    }
+
     fun setOrientation(orientation: LauncherOrientation) {
         _orientation.value = orientation
     }
@@ -423,13 +431,21 @@ class LauncherHomeViewModel @Inject constructor(
      * to make room, and the only outcome the user still has to be told about is a footprint wider than
      * the grid, which nothing can seat.
      */
-    fun addCell(rowIndex: Int, colIndex: Int, draft: LauncherCellDraft, columns: Int) {
+    fun addCell(
+        rowIndex: Int,
+        colIndex: Int,
+        draft: LauncherCellDraft,
+        columns: Int,
+        screenIndex: Int = _activeScreenIndex.value,
+    ) {
         viewModelScope.launch {
+            Timber.d("S2905: addCell screenIndex=%d (%d,%d)", screenIndex, rowIndex, colIndex)
             rememberResourceFileList(draft.rememberFileListResourceId)
             val placement = desktopDependencies.desktopRepository.addCell(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     rowIndex = rowIndex,
                     colIndex = colIndex,
                     spanW = draft.spanW,
@@ -470,15 +486,18 @@ class LauncherHomeViewModel @Inject constructor(
         // S1742: a user-created section carries its name from the moment it is placed - it has no preset
         // label to fall back on, so a header written without one would draw as unavailable.
         labelOverride: String? = null,
+        screenIndex: Int = _activeScreenIndex.value,
         // S2247: answers whether a slot was found, so a programmatic placement can speak its refusal.
         onPlaced: (Boolean) -> Unit = {},
     ) {
         viewModelScope.launch {
+            Timber.d("S2905: addCellInFirstFreeSlot screenIndex=%d", screenIndex)
             rememberResourceFileList(rememberFileListResourceId)
             val id = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     // Ignored: the repository scans for the anchor and overwrites both.
                     rowIndex = 0,
                     colIndex = 0,
@@ -842,11 +861,18 @@ class LauncherHomeViewModel @Inject constructor(
     fun seedDesktopIfNeeded(widthDp: Float, heightDp: Float, startedPortrait: Boolean) {
         viewModelScope.launch {
             val density = settingsRepository.getSettings().first().launcherDensityFactor
+            Timber.d("Seeding starter desktop at density $density")
             val widthColumns = LauncherGridGeometry.columns(widthDp, density)
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
+            // S2859: the once-only Add-resource tile backfill, after the seed for the same reason
+            // the syncs below wait - the flag's first pass must find the desktop the seed made.
+            viewModelScope.launch {
+                desktopDependencies.placeAddResourceTile()
+                Timber.d("S2859: add-resource tile backfill pass")
+            }
             // S2564: its own coroutine, because each observation collects for the lifetime of this
             // ViewModel and the first one would otherwise never let the second start.
             viewModelScope.launch { startResourceTileSyncObservation() }
@@ -917,12 +943,18 @@ class LauncherHomeViewModel @Inject constructor(
      * lives here rather than in the menu for the same reason the add flow does - a data mutation stays
      * visible to every reader of the desktop stream instead of hiding inside a popup.
      */
-    fun placeAppOnDesktop(packageName: String, columns: Int) {
+    fun placeAppOnDesktop(
+        packageName: String,
+        columns: Int,
+        screenIndex: Int = _activeScreenIndex.value,
+    ) {
         viewModelScope.launch {
+            Timber.d("S2905: placeAppOnDesktop screenIndex=%d pkg=%s", screenIndex, packageName)
             val placed = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     // Ignored: the repository scans for the anchor and overwrites both.
                     rowIndex = 0,
                     colIndex = 0,

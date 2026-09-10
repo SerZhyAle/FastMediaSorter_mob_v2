@@ -8,10 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -479,6 +481,15 @@ class LauncherCellViewBinder(
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
+        // S2889: written on EVERY path, not only where an accent exists. The binder pools and rebinds cell
+        // roots, so a pooled root that carried a sub-program's tone last render would keep it under whatever
+        // app icon, contact photo or stream favicon lands in it next - a colour on something that is not a
+        // sub-program at all. Clearing is the half that makes the tint safe, not an optimisation.
+        Timber.d("S2889: launcher cell '${visual?.label}' accent=${visual?.accentRes}")
+        ImageViewCompat.setImageTintList(
+            binding.cellIcon,
+            visual?.accentRes?.let { ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, it)) },
+        )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item)
         applyBackdropAlpha(binding.cellLabel, backdropAlpha)

@@ -13,5 +13,9 @@ data class WearSourcesExportPayload(
     // bus hands the consumer this payload alone, and the envelope's `sentAt` never reaches it. Null
     // from a watch that predates this field, and the phone then measures no skew rather than guessing.
     @SerializedName("sentAt") val sentAt: Long? = null,
-    @SerializedName("tombstones") val tombstones: List<WearSourceTombstonePayload> = emptyList()
+    // S2885: nullable because Gson leaves an absent field null whatever the Kotlin default says. A
+    // watch older than this field sends no `tombstones` key, and the phone's import then failed
+    // wholesale inside its `runCatching` - reported as zero added, zero updated, zero skipped rather
+    // than as an error. Null means the sender ships no deletions, read as empty by the receiver.
+    @SerializedName("tombstones") val tombstones: List<WearSourceTombstonePayload>? = null
 )

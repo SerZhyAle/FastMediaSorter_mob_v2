@@ -118,6 +118,25 @@ interface PlayerHostCapabilities {
      */
     val isAudioServiceActive: Boolean
 
+    // ── Player volume ─────────────────────────────────────────────────────────
+
+    /**
+     * Current player volume in the 0.0-1.0 range. The playback-control dialog reads this instead of
+     * [android.media.AudioManager] because on car stereos and TV boxes the system STREAM_MUSIC volume
+     * is often fixed and `setStreamVolume` is a no-op, while [androidx.media3.common.Player.volume]
+     * always controls the actual decoder output. Hardware volume keys already use the player volume;
+     * this gives the dialog the same path. (S2907)
+     *
+     * Default 1.0 so hosts that do not override keep full volume.
+     */
+    fun getPlayerVolume(): Float = 1f
+
+    /**
+     * Set the player volume in the 0.0-1.0 range. See [getPlayerVolume] for why this exists separately
+     * from [android.media.AudioManager]. (S2907)
+     */
+    fun setPlayerVolume(volume: Float) = Unit
+
     // ── Host callbacks ────────────────────────────────────────────────────────
 
     /** Show a short feedback message (Toast / Snackbar) to the user. */

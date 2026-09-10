@@ -105,6 +105,33 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+# S2855: record the install mark best-effort, straight from the device that just accepted the
+# artifact. Same freshness guard as the central install verb: a dumpsys answer about a package
+# this install did not touch is a pre-existing install, not a fact worth recording. A recording
+# failure prints one line and never changes this script's exit code or its own output.
+try {
+    $recSerial = if ($DeviceId) { $DeviceId } else { (@($connected)[0] -split '\s+')[0] }
+    $dump = (& $adb -s $recSerial shell dumpsys package $packageName 2>$null) -join "`n"
+    if ($dump -match 'versionName=([^\s]+)') {
+        $recVersion = $Matches[1]
+        $recFresh = $true
+        if ($dump -match 'lastUpdateTime=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})') {
+            $recFresh = (((Get-Date) - [datetime]$Matches[1]).TotalMinutes -lt 10)
+        }
+        if ($recFresh) {
+            $regArgs = @('-Verb', 'Record', '-Id', $recSerial, '-Package', $packageName,
+                '-Module', 'app_v2', '-Flavor', 'noLegal', '-BuildType', 'debug',
+                '-VersionName', $recVersion, '-Artifact', (Split-Path -Path $ApkPath -Leaf),
+                '-RecordedBy', 'install-nolegal-debug-to-device')
+            if ($dump -match 'versionCode=(\d+)') { $regArgs += @('-VersionCode', $Matches[1]) }
+            & pwsh -NoProfile -File (Join-Path $PSScriptRoot '..\devtest\device-registry.ps1') @regArgs *> $null
+        }
+    }
+}
+catch {
+    Write-Host "note: install recording failed ($_)" -ForegroundColor DarkYellow
+}
+
 Write-Host "`nInstalled OK: $packageName" -ForegroundColor Green
 Write-Host "App NOT launched by design." -ForegroundColor Green
 Write-Host "`nLaunch from the device:" -ForegroundColor Cyan

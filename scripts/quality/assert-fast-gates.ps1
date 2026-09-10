@@ -20,6 +20,8 @@
       - assert-wear-canonical-key-parity (S2579 a watch program key that is neither a phone route
                                       key nor a declared watch-only program)
       - assert-wear-record-merge-parity (S2502 the two resource merge-rule copies diverging)
+      - assert-wear-wire-nullability (S2885 a bridge collection field Gson leaves null despite its
+        Kotlin default)
       - assert-qualifier-shadowing   (values-land key a smallestWidth bucket always outranks)
       - assert-qualified-gradle-tasks (S2172 a Gradle task name missing its :module: segment)
 - assert-device-ready-module   (S2611 a device-ready.ps1 call site that names no -Module)
@@ -27,6 +29,7 @@
       - assert-no-line-budget        (S2037 a self-cost estimate column in planning output)
       - assert-flavor-matrix-docs    (S1392 doc flavor tables vs the generated capability snapshot)
       - assert-code-domain-writers   (S2635 a script writing a Code.* path without taking the domain)
+      - assert-gate-placement        (S2870 the gate-placement registry vs where the gates are wired)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
 - assert-flavor-count-prose    (S2445 flavor counts and complete-set lists in prose vs the matrix)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
@@ -46,16 +49,19 @@
       - assert-launcher-contrast     (S1895 a launcher colour measured under 7:1 on its own surface)
       - assert-detekt                (only with -IncludeDetekt; honours -ChangedFiles)
 
-    S1939: assert-unreferenced-strings, assert-splash-brand-sync and assert-device-profile-matrix
-    left this batch for scripts/quality/assert-release-scope-gates.ps1. None of the three judges
-    the changed file: a string key is unreferenced this minute and referenced by the next ticket,
-    the splash drawables are a generated shipped artifact, and the device-profile matrix is an
-    agreement among three data files that no single edit can be blamed for. Between them they
-    produced 68 of the 191 red lines this runner emitted over 53 runs, none of them about the work
-    in front of the operator - which is how a runner teaches its reader to skim past red, and
-    assert-device-profile-matrix alone spent 33 minutes of closure time in a month to report one
-    finding. Rule 20 already said the dead-weight sweep belongs on a release build; the placement
-    test is CLAUDE.md Rule 33.
+    S1939 moved three tree-scope gates out of this batch to
+    scripts/quality/assert-release-scope-gates.ps1. Between them they produced 68 of the 191 red
+    lines this runner emitted over 53 runs, none of them about the work in front of the operator -
+    which is how a runner teaches its reader to skim past red - and one of them alone spent 33
+    minutes of closure time in a month to report a single finding. Rule 20 already said the
+    dead-weight sweep belongs on a release build; the placement test is CLAUDE.md Rule 33.
+
+    S2870: WHICH gates those were, and every other placement decision, is no longer recorded here.
+    It lives in scripts/quality/gate-placement.jsonl - one row per gate carrying its scope class,
+    the deciding ticket, the date and the reason - because a decision written as a paragraph can
+    be neither queried nor checked, so nothing could tell that a retired gate had been quietly
+    added back. assert-gate-placement.ps1 now fails the closure when the registry and the runners
+    disagree. Read the registry, not a comment, for where a gate belongs.
 
     Each child runs as its own process so a child `exit` cannot kill this aggregator.
 
@@ -163,6 +169,11 @@ $gates = [ordered]@{
     # Rule 33 - the subject is a wear string, so a rename must fail in the ticket that made it rather
     # than months later on the pre-release run, where the failure reads as a broken screen instead.
     'assert-wear-walk-contract.ps1'             = @()
+    # S2880: the bridge scenario registry against the Data Layer route catalogs it claims to cover.
+    # Same placement as the walk gate above: the subject is a route constant, so adding a route must
+    # fail in the ticket that made it rather than at the next joint-device campaign, where the
+    # unclassified route reads as a broken bridge instead of an unclassified route.
+    'assert-bridge-scenario-coverage.ps1'       = @()
     # S2380: the declared phone UI sweep against the module it claims to walk. Same four failure modes
     # as the watch gate above, plus a coverage half the watch one does not need - the phone catalog is
     # built from two sources (the activity catalog and the settings manifest), so a screen can go
@@ -187,6 +198,14 @@ $gates = [ordered]@{
     # Refuses a divergence between the two copies, and refuses a new mirrored enum added without being
     # declared in the gate's table. Dot-sources lib/wear-vocabulary-parsers.ps1; no gradle daemon.
     'assert-wear-wire-vocabulary-parity.ps1'      = @('-Quiet')
+    # S2885: a bridge envelope field declared as a non-null collection WITH a Kotlin default. Gson
+    # runs no constructor, so an absent key leaves it null under a non-null type and the receiver's
+    # first dereference kills the whole exchange - both listener services swallow it into one generic
+    # message. Stood in four fields; two were live compatibility defects against an older sender.
+    # Reads an explicit envelope list, no gradle daemon. Per-ticket by Rule 33: the subject is a field
+    # declaration a ticket writes, so it must fail in that ticket rather than on the next joint-device
+    # campaign, where it reads as a dead bridge instead of a missing question mark.
+    'assert-wear-wire-nullability.ps1'          = @('-Quiet')
     # S2502: the resource merge rule is written once per module because the two share no artifact.
     # If the copies disagree the exchange never converges - each side keeps its own version and
     # believes it won - which is invisible until the owner notices an edit that will not stick.
@@ -393,6 +412,9 @@ $gates = [ordered]@{
     # obeyed by no caller. Checks the registry's adoption exactly, plus a deliberately narrow
     # ratcheted heuristic for a writer nobody registered. Reads the .ps1 tree, no gradle daemon.
     'assert-code-domain-writers.ps1'            = @('-Quiet')
+    # S2870: the gate-placement registry against where the gates are actually wired. Reads the
+    # registry, the five runners and the gate tree - text only, no gradle daemon.
+    'assert-gate-placement.ps1'                 = @('-Quiet')
     # S1489: a dependency the project retired, still named in prose. The pin gate above watches jsch
     # but compares the VERSION in one gated row, which was correct the whole time - a version
     # comparator cannot express "this name must not appear at all". So SSHJ survived the S0207/S0046
@@ -462,7 +484,8 @@ $changedFilesAware = @(
     'assert-source-gates.ps1',
     'assert-listener-symmetry.ps1',
     'assert-gson-persistence-contract.ps1',
-    'assert-device-ready-module.ps1'
+    'assert-device-ready-module.ps1',
+    'assert-gate-placement.ps1'
 )
 
 # Build the work list first so a MISSING gate is settled without spawning anything, and so

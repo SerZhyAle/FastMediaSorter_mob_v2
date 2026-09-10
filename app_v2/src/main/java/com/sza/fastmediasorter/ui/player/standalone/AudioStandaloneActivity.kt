@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityStandaloneAudioBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -350,11 +351,17 @@ class AudioStandaloneActivity :
         // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
         // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val top = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(nav.left, cutout.left)
+            val rightPadding = maxOf(nav.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
             insets
         }
         // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
@@ -649,6 +656,14 @@ class AudioStandaloneActivity :
 
     // The shared playback-control dialog (which reads this flag) is not wired in this trimmed lane.
     override val isAudioServiceActive: Boolean = false
+
+    // S2907: player volume for the playback-control dialog.
+    override fun getPlayerVolume(): Float =
+        viewManager.getPlayer(viewModel.state.value.mediaType)?.volume ?: 1f
+
+    override fun setPlayerVolume(volume: Float) {
+        viewManager.getPlayer(viewModel.state.value.mediaType)?.volume = volume
+    }
 
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
