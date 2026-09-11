@@ -2131,7 +2131,6 @@ dependencies {
     
     // AppFunctions - Android 16+ Assistant Actions (S2920)
     implementation(libs.androidx.appfunctions)
-    implementation(libs.androidx.appfunctions.service)
     ksp(libs.androidx.appfunctions.compiler)
     
     // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot

@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">کاپی کا عمل منسوخ کر دیا گیا</string>
     <string name="toast_delete_cancelled">حذف کرنے کا عمل منسوخ کر دیا گیا</string>
     <string name="toast_unexpected_result">غیر متوقع نتیجہ</string>
-    <string name="toast_delete_error">فائلیں حذف کرنے کا عمل مکمل نہیں ہو سکا۔ دوبارہ کوشش کریں۔</string>
     <string name="error_deletion_failed">حذف کرنا ناکام ہوا</string>
     <string name="toast_filter_applied">فلٹر کامیابی سے لاگو ہو گیا</string>
     <string name="toast_filter_failed">وہ فلٹر لاگو نہیں ہو سکا۔ دوبارہ کوشش کریں۔</string>

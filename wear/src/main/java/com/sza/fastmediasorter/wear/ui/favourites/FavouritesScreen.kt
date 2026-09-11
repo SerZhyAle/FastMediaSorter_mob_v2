@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.favourites
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,6 +55,7 @@ import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -337,30 +340,36 @@ private fun FavouriteChip(
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
-    SingleColumnTileCell(
-        thumbnail = thumbnail,
-        caption = record.displayName,
-        onClick = { onOpen(record) },
-        onLongClick = { onLongPress(record) },
-        secondaryText = if (record.mimeType == null) {
-            stringResource(R.string.wear_favourites_unopenable)
-        } else {
-            null
-        },
-        fallback = { glyphModifier ->
-            Icon(
-                imageVector = record.icon(),
-                contentDescription = null,
-                modifier = glyphModifier,
-                tint = MaterialTheme.colors.onSurfaceVariant
-            )
-        }
-    )
-    Chip(
-        onClick = { onUnmark(record) },
-        label = { Text(text = stringResource(R.string.wear_favourites_unmark)) },
-        modifier = Modifier.fillMaxWidth()
-    )
+    Timber.d("S2526: FavouriteChip composed for %s", record.displayName)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        SingleColumnTileCell(
+            thumbnail = thumbnail,
+            caption = record.displayName,
+            onClick = { onOpen(record) },
+            onLongClick = { onLongPress(record) },
+            secondaryText = if (record.mimeType == null) {
+                stringResource(R.string.wear_favourites_unopenable)
+            } else {
+                null
+            },
+            fallback = { glyphModifier ->
+                Icon(
+                    imageVector = record.icon(),
+                    contentDescription = null,
+                    modifier = glyphModifier,
+                    tint = MaterialTheme.colors.onSurfaceVariant
+                )
+            }
+        )
+        Chip(
+            onClick = { onUnmark(record) },
+            label = { Text(text = stringResource(R.string.wear_favourites_unmark)) },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
     // The chip stays where it was: the single-column layout already reached unmarking in one tap,
     // and moving it into the menu would have cost that layout a tap to fix the grid's problem.
 }

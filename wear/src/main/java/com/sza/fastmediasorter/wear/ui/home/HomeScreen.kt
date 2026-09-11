@@ -151,7 +151,6 @@ fun HomeScreen(
                 WearBackAffordanceRole.Close
             },
             onClick = {
-                Timber.d("S2472: home affordance tapped, backgroundActive=$isBackgroundPlaybackActive")
                 if (isBackgroundPlaybackActive) minimizeApp() else closeApp()
             },
             modifier = Modifier

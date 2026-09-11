@@ -77,7 +77,6 @@ fun SystemInfoScreen(
     viewModel: SystemInfoViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(positionKey = SYSTEM_INFO_SCREEN_KEY)
 ) {
-    Timber.d("S2470: system information compact pairs shown")
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     // Kept outside the composition rather than in it: a ScalingLazyColumn recycles the composition of a
     // row scrolled off the screen and navigation destroys the screen outright, so state held in either

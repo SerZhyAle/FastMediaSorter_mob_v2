@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -154,6 +155,20 @@ class PhoneResourceViewModelTest {
 
         assertEquals(
             PhoneResourceUiState.Unavailable(WearPhoneResourceResponseStatus.ACCESS_DENIED),
+            viewModel.uiState.value
+        )
+    }
+
+    @Test
+    fun `a companion-off refusal keeps its status instead of reading as a silent phone`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns
+            PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.COMPANION_DISABLED)
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        assertEquals(
+            PhoneResourceUiState.Unavailable(WearPhoneResourceResponseStatus.COMPANION_DISABLED),
             viewModel.uiState.value
         )
     }
@@ -498,6 +513,32 @@ class PhoneResourceViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 3) { client.requestThumbnail(any()) }
+    }
+
+    @Test
+    fun `items on a loaded page without embedded thumbnails can request on-demand thumbnails`() = runTest {
+        val page = WearPhoneResourcePage(
+            requestId = "r1",
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(fileItem("photo.jpg"))
+        )
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page)
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.Page(page)
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        // Page load should not have marked photo.jpg as Unavailable
+        assertNull(
+            "Page load must not pre-populate Unavailable for items without embedded thumbnails",
+            viewModel.thumbnails.value["1:photo.jpg"]
+        )
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { client.requestThumbnail("1:photo.jpg") }
+        assertEquals(WearThumbnail.Unavailable, viewModel.thumbnails.value["1:photo.jpg"])
     }
 
     /** A file outside the three renderable families: the phone sends it with no type at all. */

@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">কপি কাজ বাতিল করা হয়েছে</string>
     <string name="toast_delete_cancelled">মোছার কাজ বাতিল করা হয়েছে</string>
     <string name="toast_unexpected_result">অপ্রত্যাশিত ফলাফল</string>
-    <string name="toast_delete_error">ফাইলগুলি মোছার কাজ সম্পন্ন করা যায়নি। আবার চেষ্টা করুন।</string>
     <string name="error_deletion_failed">মুছে ফেলা ব্যর্থ হয়েছে</string>
     <string name="toast_filter_applied">ফিল্টার সফলভাবে প্রয়োগ করা হয়েছে</string>
     <string name="toast_filter_failed">সেই ফিল্টারটি প্রয়োগ করা যায়নি। আবার চেষ্টা করুন।</string>

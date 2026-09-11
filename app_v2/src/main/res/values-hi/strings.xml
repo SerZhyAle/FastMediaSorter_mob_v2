@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">कॉपी कार्रवाई रद्द की गई</string>
     <string name="toast_delete_cancelled">हटाने की कार्रवाई रद्द की गई</string>
     <string name="toast_unexpected_result">अनपेक्षित परिणाम</string>
-    <string name="toast_delete_error">फ़ाइलें हटाना पूरा नहीं हो सका. फिर से कोशिश करें.</string>
     <string name="error_deletion_failed">हटाना विफल रहा</string>
     <string name="toast_filter_applied">फ़िल्टर सफलतापूर्वक लागू हुआ</string>
     <string name="toast_filter_failed">वह फ़िल्टर लागू नहीं किया जा सका. फिर से कोशिश करें.</string>

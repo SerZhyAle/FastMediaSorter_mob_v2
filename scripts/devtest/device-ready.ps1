@@ -10,7 +10,8 @@
     2b. If -Module is given, only devices of that module's form factor are candidates.
     3. If -Package is given, the package is installed on the selected device.
     4. If -ExpectedVersion is given, the installed package's versionName matches.
-    5. If -CheckMcp is set, the mobile-mcp launcher (npx + @mobilenext/mobile-mcp) is resolvable.
+    5. If -CheckMcp is set, the Maestro CLI is resolvable and carries the `mcp` subcommand that
+       .mcp.json launches (S2918 replaced mobile-mcp with it).
 
   This is a STATUS QUERY (S1338 phase 09). "No device attached" is a normal answer to it,
   not a failure of the query, so the readiness verdict travels in the payload and the
@@ -28,7 +29,7 @@
     3 - multiple online devices, no -DeviceId (state: multiple-devices)
     4 - target package not installed      (state: package-not-installed)
     5 - installed versionName mismatch    (state: version-mismatch)
-    6 - mobile-mcp launcher not resolvable (state: mcp-unavailable)
+    6 - Maestro MCP not resolvable        (state: mcp-unavailable)
     7 - every online device is leased by another session (state: all-devices-leased)
         or the named -DeviceId is                        (state: device-leased)
         Reachable only under -ClaimFree. Deliberately distinct from no-device and from
@@ -66,8 +67,9 @@
   Expected versionName the installed Package must report. Comparison is exact string match.
 
 .PARAMETER CheckMcp
-  Best-effort check that the mobile-mcp launcher is resolvable (npx + the @mobilenext/mobile-mcp package).
-  Does not start the server - only confirms the entry point would be runnable.
+  Best-effort check that the Maestro MCP server is launchable: the Maestro CLI resolves (PATH,
+  MAESTRO_HOME\bin, %USERPROFILE%\.maestro\bin - the order scripts/devtest/maestro-run.ps1 uses)
+  and prints the `maestro mcp` usage line. Does not start the server.
 
 .PARAMETER Json
   Emit a single JSON object instead of human-readable lines.
@@ -100,7 +102,7 @@
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/device-ready.ps1 -CheckMcp -Json
-  Machine-readable readiness probe including mobile-mcp resolvability.
+  Machine-readable readiness probe including Maestro MCP resolvability.
 #>
 [CmdletBinding()]
 param(
@@ -149,6 +151,7 @@ $script:result = [ordered]@{
     versionName     = $null
     expectedVersion = $ExpectedVersion
     versionMatch    = $null
+    # $true when -CheckMcp found the Maestro CLI with its `mcp` subcommand; $null when not asked.
     mcpResolvable   = $null
     reused          = $false
     reusedFrom      = $null
@@ -165,7 +168,8 @@ function Get-CanonicalReadyRequest {
     $dev = if ($DeviceId) { $DeviceId } else { '<any>' }
     $pkg = if ($Package) { $Package } else { '<none>' }
     $ver = if ($ExpectedVersion) { $ExpectedVersion } else { '<none>' }
-    $mcp = if ($CheckMcp) { 'mcp:true' } else { 'mcp:false' }
+    # 'maestro' and not 'true': a finding written while the check meant mobile-mcp must not be reused.
+    $mcp = if ($CheckMcp) { 'mcp:maestro' } else { 'mcp:false' }
     return "device-ready.ps1 -DeviceId $dev -Package $pkg -ExpectedVersion $ver -CheckMcp $mcp"
 }
 
@@ -179,7 +183,7 @@ function Get-ReuseCandidate {
         ticket whose subject was the phone. Rule 34 lets another agent's finding spare us cheap
         idempotent WORK, never carry a verdict, and choosing the device IS the verdict here. So the
         caller below enumerates devices and reads the form factor itself, and consults this only to
-        skip the expensive checks (pm list packages, dumpsys package, npm view).
+        skip the expensive checks (pm list packages, dumpsys package, maestro mcp).
     #>
     if (-not $ReuseFinding) { return $null }
     try {
@@ -495,45 +499,39 @@ if ($Package) {
     }
 }
 
-# ---------- step 5: mobile-mcp resolvability ----------
+# ---------- step 5: Maestro MCP resolvability ----------
 
-function Find-Npx {
-    # PATH first, then known Node.js install locations on Windows.
-    foreach ($name in 'npx', 'npx.cmd', 'npx.ps1') {
+function Find-Maestro {
+    # Same order as scripts/devtest/maestro-run.ps1: PATH, MAESTRO_HOME\bin, the default install.
+    foreach ($name in 'maestro', 'maestro.bat', 'maestro.cmd') {
         $cmd = Get-Command $name -ErrorAction SilentlyContinue
         if ($cmd) { return $cmd.Source }
     }
-    $candidates = @(
-        "$env:ProgramFiles\nodejs\npx.cmd",
-        "$env:ProgramFiles\nodejs\npx",
-        "${env:ProgramFiles(x86)}\nodejs\npx.cmd",
-        "$env:APPDATA\npm\npx.cmd"
-    ) | Where-Object { $_ }
-    foreach ($c in $candidates) {
-        if (Test-Path -Path $c -PathType Leaf) { return $c }
+    $roots = @()
+    if ($env:MAESTRO_HOME) { $roots += $env:MAESTRO_HOME }
+    if ($env:USERPROFILE) { $roots += (Join-Path $env:USERPROFILE '.maestro') }
+    foreach ($root in $roots) {
+        foreach ($leaf in 'bin\maestro.bat', 'bin\maestro.cmd', 'bin\maestro') {
+            $candidate = Join-Path $root $leaf
+            if (Test-Path -Path $candidate -PathType Leaf) { return $candidate }
+        }
     }
     return $null
 }
 
 if ($CheckMcp) {
-    $npxPath = Find-Npx
-    if (-not $npxPath) {
-        Stop-NotReady 6 'mcp-unavailable' "npx not found (PATH, %ProgramFiles%\nodejs, %APPDATA%\npm) - install Node.js to enable mobile-mcp"
+    $maestroPath = Find-Maestro
+    if (-not $maestroPath) {
+        Stop-NotReady 6 'mcp-unavailable' "Maestro CLI not found (PATH, MAESTRO_HOME, %USERPROFILE%\.maestro\bin) - see scripts/devtest/maestro/README.md"
     }
-    # `npm view` exits 0 if the package can be resolved from registry / cache.
-    # Use the npm next to the discovered npx so we don't depend on PATH.
-    $npmPath = [System.IO.Path]::ChangeExtension($npxPath, $null) -replace 'npx$', 'npm'
-    if (-not (Test-Path -Path $npmPath -PathType Leaf)) {
-        # fall back to .cmd sibling
-        $npmCmd = (Split-Path -Parent $npxPath) + '\npm.cmd'
-        if (Test-Path -Path $npmCmd -PathType Leaf) { $npmPath = $npmCmd }
-    }
-    $null = & $npmPath view '@mobilenext/mobile-mcp' name 2>$null
-    if ($LASTEXITCODE -ne 0) {
-        Stop-NotReady 6 'mcp-unavailable' "@mobilenext/mobile-mcp not resolvable via npm (offline or unknown package)"
+    # `maestro mcp` has no --help flag: it rejects the option with exit 2 but still prints its usage,
+    # so the usage line is the evidence and the exit code is not.
+    $usage = & cmd /c "`"$maestroPath`" mcp --help" 2>&1 | Out-String
+    if ($usage -notmatch 'Usage:\s+maestro mcp') {
+        Stop-NotReady 6 'mcp-unavailable' "Maestro at $maestroPath has no 'mcp' subcommand - upgrade the Maestro CLI"
     }
     $script:result.mcpResolvable = $true
-    Write-Line "OK mobile-mcp launcher: $npxPath" 'Green'
+    Write-Line "OK Maestro MCP: $maestroPath" 'Green'
 }
 
 # ---------- verdict ----------

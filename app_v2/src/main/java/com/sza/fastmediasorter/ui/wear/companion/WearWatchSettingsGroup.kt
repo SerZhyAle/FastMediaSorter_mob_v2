@@ -4,13 +4,10 @@ import android.content.Context
 import android.widget.ImageView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.StringRes
+import androidx.annotation.DrawableRes
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,22 +15,16 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.relocation.BringIntoViewRequester
-import androidx.compose.foundation.relocation.bringIntoViewRequester
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -44,6 +35,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -66,7 +58,24 @@ import java.io.File
 
 private const val DEFAULT_SLIDESHOW_INTERVAL_SECONDS = 5
 private const val DEFAULT_ANIMATIONS_DISABLED = false
-private const val SLIDESHOW_INTERVAL_MAX_SECONDS = 3600f
+private const val SLIDESHOW_MIN_SECONDS = 1
+private const val SLIDESHOW_MAX_SECONDS = 3600
+private const val SLIDESHOW_PRESET_3 = 3
+private const val SLIDESHOW_PRESET_5 = 5
+private const val SLIDESHOW_PRESET_10 = 10
+private const val SLIDESHOW_PRESET_15 = 15
+private const val SLIDESHOW_PRESET_30 = 30
+private const val SLIDESHOW_PRESET_60 = 60
+private const val SLIDESHOW_PRESET_120 = 120
+private val SLIDESHOW_INTERVAL_PRESETS = listOf(
+    SLIDESHOW_PRESET_3,
+    SLIDESHOW_PRESET_5,
+    SLIDESHOW_PRESET_10,
+    SLIDESHOW_PRESET_15,
+    SLIDESHOW_PRESET_30,
+    SLIDESHOW_PRESET_60,
+    SLIDESHOW_PRESET_120
+)
 private const val DEFAULT_PANEL_AUTO_HIDE_SECONDS = 15
 
 // S2866: the discrete intervals the watch side already offers (wear OtherSettingsScreen.kt
@@ -175,10 +184,13 @@ internal fun WearWatchSettingsGroup(
             summary = summaries.mediaTypes,
             expanded = mediaTypesExpanded,
             tag = "wearGroupMediaTypes",
-            onExpandedChange = { mediaTypesExpanded = it }
+            onExpandedChange = { mediaTypesExpanded = it },
+            headerConfig = MEDIA_TYPES_HEADER
         ) {
-            MediaTypesSwitches(state = state, onChanged = onChanged)
-            StreamsSectionSwitch(state = state, onChanged = onChanged)
+            WearCompanionTwoColumnArranger {
+                MediaTypesSwitches(state = state, onChanged = onChanged)
+                StreamsSectionSwitch(state = state, onChanged = onChanged)
+            }
         }
 
         WearCompanionGroup(
@@ -186,14 +198,17 @@ internal fun WearWatchSettingsGroup(
             summary = summaries.slideshow,
             expanded = slideshowExpanded,
             tag = "wearGroupSlideshow",
-            onExpandedChange = { slideshowExpanded = it }
+            onExpandedChange = { slideshowExpanded = it },
+            headerConfig = SLIDESHOW_HEADER
         ) {
-            SlideshowSwitch(state = state, onChanged = onChanged)
-            SlideshowIntervalSlider(
-                seconds = state.slideshowInterval,
-                onSecondsChange = { state.slideshowInterval = it },
-                onSecondsSettled = onChanged
-            )
+            WearCompanionTwoColumnArranger {
+                SlideshowSwitch(state = state, onChanged = onChanged)
+                SlideshowIntervalSlider(
+                    seconds = state.slideshowInterval,
+                    onSecondsChange = { state.slideshowInterval = it },
+                    onSecondsSettled = onChanged
+                )
+            }
         }
 
         WearCompanionGroup(
@@ -201,12 +216,15 @@ internal fun WearWatchSettingsGroup(
             summary = summaries.screen,
             expanded = screenExpanded,
             tag = "wearGroupScreen",
-            onExpandedChange = { screenExpanded = it }
+            onExpandedChange = { screenExpanded = it },
+            headerConfig = SCREEN_HEADER
         ) {
-            ViewModeRows(state = state, onChanged = onChanged)
-            BackgroundModeControls(viewModel = viewModel)
-            ColorSchemeControls(viewModel = viewModel)
-            KeepAwakeSwitch(state = state, onChanged = onChanged)
+            WearCompanionTwoColumnArranger {
+                ViewModeRows(state = state, onChanged = onChanged)
+                BackgroundModeControls(viewModel = viewModel)
+                ColorSchemeControls(viewModel = viewModel)
+                KeepAwakeSwitch(state = state, onChanged = onChanged)
+            }
         }
 
         WearCompanionGroup(
@@ -214,9 +232,12 @@ internal fun WearWatchSettingsGroup(
             summary = summaries.other,
             expanded = otherExpanded,
             tag = "wearGroupOther",
-            onExpandedChange = { otherExpanded = it }
+            onExpandedChange = { otherExpanded = it },
+            headerConfig = OTHER_HEADER
         ) {
-            OtherSubgroup(state = state, onChanged = onChanged)
+            WearCompanionTwoColumnArranger {
+                OtherSubgroup(state = state, onChanged = onChanged)
+            }
         }
     }
 }
@@ -302,21 +323,21 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         label = stringResource(R.string.wear_settings_album_art),
         description = stringResource(R.string.wear_settings_album_art_desc),
         checked = state.albumArtEnabled,
-        helpTitleRes = R.string.wear_settings_album_art_tooltip_title,
-        helpMessageRes = R.string.wear_settings_album_art_tooltip_message
+        iconRes = R.drawable.ic_image,
+        help = ALBUM_ART_HELP
     ) {
         state.albumArtEnabled = it
         onChanged()
     }
     // S2169: BOTH in the registry with no phone row before this change - the mirror was incomplete
     // without it, and the parity gate's phone side now names it.
-    // S2865: the description closes the subtitle gap - its neighbours above and below both carry
-    // one, and the one bare row read as the odd one out.
+    // S2865: the description closes the subtitle gap - its neighbours above and below both carry one.
     SwitchRow(
         tag = "wearSwitchDisableAnimations",
         label = stringResource(R.string.wear_settings_disable_animations),
         description = stringResource(R.string.wear_settings_disable_animations_desc),
-        checked = state.disableAnimations
+        checked = state.disableAnimations,
+        iconRes = R.drawable.ic_tune
     ) {
         state.disableAnimations = it
         onChanged()
@@ -331,48 +352,16 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     // one level only. A helper nested inside this one would resolve to its call site here while its
     // sibling rows resolve to where THIS subgroup is invoked, which sorts the row after every row it
     // is drawn before.
-    Text(
-        text = stringResource(R.string.wear_settings_power_saving),
-        style = MaterialTheme.typography.bodySmall
+    WearCompanionSelectorRow(
+        title = stringResource(R.string.wear_settings_power_saving),
+        value = labelFor(POWER_SAVING_TRIGGERS, state.powerSavingTrigger) ?: "",
+        entries = POWER_SAVING_TRIGGERS.map { (v, res) -> v to stringResource(res) },
+        onSelected = { picked ->
+            state.powerSavingTrigger = picked
+            onChanged()
+        },
+        tag = "wearPowerSavingTrigger_"
     )
-    // S2865: one horizontal line instead of a wrapping FlowRow - the six thresholds are one ranked
-    // scale, and the wrapped second row outweighed the rest of the group. A narrow screen or a long
-    // locale scrolls rather than wraps.
-    // S2924: bring selected chip into view on initial open or when selection changes, so the active
-    // threshold is not hidden beyond the right scroll edge.
-    val powerSavingScrollState = rememberScrollState()
-    val powerSavingBringIntoViewRequester = remember { BringIntoViewRequester() }
-    LaunchedEffect(state.powerSavingTrigger) {
-        Timber.d("S2924: power saving row scrolled to selected trigger %s", state.powerSavingTrigger)
-        powerSavingBringIntoViewRequester.bringIntoView()
-    }
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(powerSavingScrollState),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
-    ) {
-        POWER_SAVING_TRIGGERS.forEach { (value, labelRes) ->
-            val chipLabel = stringResource(labelRes)
-            val isSelected = value == state.powerSavingTrigger
-            FilterChip(
-                selected = isSelected,
-                onClick = {
-                    state.powerSavingTrigger = value
-                    onChanged()
-                },
-                label = { Text(chipLabel) },
-                // S2091: a chip's own label does not reach the accessibility node, so without this the
-                // options dump as anonymous checkboxes and the screen reader announces none of them.
-                modifier = Modifier
-                    .testTag("wearPowerSavingTrigger_" + value)
-                    .then(
-                        if (isSelected) Modifier.bringIntoViewRequester(powerSavingBringIntoViewRequester) else Modifier
-                    )
-                    .semantics { contentDescription = chipLabel }
-            )
-        }
-    }
     // The watch judges its own charge, because the two devices have separate batteries and a phone at
     // eighty percent says nothing about a watch at twelve (ADR-4). Said here so the row does not read
     // as a phone-side switch.
@@ -387,7 +376,8 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
         tag = "wearSwitchBackgroundPlayback",
         label = stringResource(R.string.wear_settings_background_playback),
         description = stringResource(R.string.wear_settings_background_playback_desc),
-        checked = state.backgroundPlaybackEnabled
+        checked = state.backgroundPlaybackEnabled,
+        iconRes = R.drawable.ic_audio
     ) {
         state.backgroundPlaybackEnabled = it
         onChanged()
@@ -516,7 +506,8 @@ private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit)
         tag = "wearSwitchAudio",
         label = stringResource(R.string.wear_settings_audio),
         description = stringResource(R.string.wear_settings_audio_desc),
-        checked = state.audioEnabled
+        checked = state.audioEnabled,
+        iconRes = R.drawable.ic_audio
     ) {
         state.audioEnabled = it
         onChanged()
@@ -525,7 +516,8 @@ private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit)
         tag = "wearSwitchVideo",
         label = stringResource(R.string.wear_settings_video),
         description = stringResource(R.string.wear_settings_video_desc),
-        checked = state.videoEnabled
+        checked = state.videoEnabled,
+        iconRes = R.drawable.ic_video
     ) {
         state.videoEnabled = it
         onChanged()
@@ -534,7 +526,8 @@ private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit)
         tag = "wearSwitchImages",
         label = stringResource(R.string.wear_settings_images),
         description = stringResource(R.string.wear_settings_images_desc),
-        checked = state.imagesEnabled
+        checked = state.imagesEnabled,
+        iconRes = R.drawable.ic_image
     ) {
         state.imagesEnabled = it
         onChanged()
@@ -543,7 +536,8 @@ private fun MediaTypesSwitches(state: WatchSettingsState, onChanged: () -> Unit)
         tag = "wearSwitchDocuments",
         label = stringResource(R.string.wear_settings_documents),
         description = stringResource(R.string.wear_settings_documents_desc),
-        checked = state.documentsEnabled
+        checked = state.documentsEnabled,
+        iconRes = R.drawable.ic_document
     ) {
         state.documentsEnabled = it
         onChanged()
@@ -557,7 +551,8 @@ private fun StreamsSectionSwitch(state: WatchSettingsState, onChanged: () -> Uni
         tag = "wearSwitchStreams",
         label = stringResource(R.string.wear_setting_streams_section),
         description = stringResource(R.string.wear_setting_streams_section_desc),
-        checked = state.streamsSectionEnabled
+        checked = state.streamsSectionEnabled,
+        iconRes = R.drawable.ic_cast
     ) {
         state.streamsSectionEnabled = it
         onChanged()
@@ -571,7 +566,8 @@ private fun SlideshowSwitch(state: WatchSettingsState, onChanged: () -> Unit) {
         tag = "wearSwitchSlideshow",
         label = stringResource(R.string.wear_settings_slideshow),
         description = stringResource(R.string.wear_settings_slideshow_desc),
-        checked = state.slideshowEnabled
+        checked = state.slideshowEnabled,
+        iconRes = R.drawable.ic_slideshow
     ) {
         state.slideshowEnabled = it
         onChanged()
@@ -586,8 +582,8 @@ private fun KeepAwakeSwitch(state: WatchSettingsState, onChanged: () -> Unit) {
         label = stringResource(R.string.wear_settings_keep_awake),
         description = stringResource(R.string.wear_settings_keep_awake_desc),
         checked = state.keepScreenAwake,
-        helpTitleRes = R.string.wear_settings_keep_awake_tooltip_title,
-        helpMessageRes = R.string.wear_settings_keep_awake_tooltip_message
+        iconRes = R.drawable.ic_display,
+        help = KEEP_AWAKE_HELP
     ) {
         state.keepScreenAwake = it
         onChanged()
@@ -605,26 +601,29 @@ private fun SlideshowIntervalSlider(
     onSecondsChange: (Float) -> Unit,
     onSecondsSettled: () -> Unit
 ) {
-    val label = stringResource(R.string.wear_settings_slideshow_interval)
-    Text(
-        text = label + ": " + seconds.toInt(),
-        style = MaterialTheme.typography.bodySmall
+    val presets = SLIDESHOW_INTERVAL_PRESETS
+    WearCompanionSelectorRow(
+        title = stringResource(R.string.wear_settings_slideshow_interval),
+        value = seconds.toInt().toString(),
+        entries = presets.map { it.toString() to it.toString() },
+        onSelected = { picked ->
+            onSecondsChange(picked.toFloat())
+            onSecondsSettled()
+        },
+        tag = "wearSlideshowInterval",
+        customValueEntry = CustomValueEntry(
+            entryLabel = stringResource(R.string.wear_slideshow_custom_value),
+            onConfirm = { text ->
+                val parsed = text.toIntOrNull()
+                if (parsed != null && parsed in SLIDESHOW_MIN_SECONDS..SLIDESHOW_MAX_SECONDS) {
+                    onSecondsChange(parsed.toFloat())
+                    onSecondsSettled()
+                }
+            }
+        )
     )
-    Slider(
-        value = seconds,
-        onValueChange = onSecondsChange,
-        onValueChangeFinished = onSecondsSettled,
-        valueRange = 1f..SLIDESHOW_INTERVAL_MAX_SECONDS,
-        // The caption above is a sibling Text, so without this the slider announces a value and no name.
-        modifier = Modifier
-            .fillMaxWidth()
-            .testTag("wearSlideshowInterval")
-            .semantics { contentDescription = label }
-    )
-    Spacer(Modifier.height(SPACING_SMALL))
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun PanelAutoHideChips(
     seconds: Int,
@@ -632,34 +631,16 @@ private fun PanelAutoHideChips(
     onSecondsSettled: () -> Unit
 ) {
     val label = stringResource(R.string.wear_settings_panel_auto_hide)
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodySmall
+    WearCompanionSelectorRow(
+        title = label,
+        value = seconds.toString(),
+        entries = PANEL_AUTO_HIDE_INTERVALS.map { it.toString() to it.toString() },
+        onSelected = { picked ->
+            onSecondsChange(picked.toInt())
+            onSecondsSettled()
+        },
+        tag = "wearPanelAutoHide_"
     )
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
-        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
-    ) {
-        PANEL_AUTO_HIDE_INTERVALS.forEach { value ->
-            val chipLabel = value.toString()
-            FilterChip(
-                selected = value == seconds,
-                onClick = {
-                    Timber.d("S2866: panel auto-hide chip selected value=$value")
-                    onSecondsChange(value)
-                    onSecondsSettled()
-                },
-                label = { Text(chipLabel) },
-                // S2091: a chip's own label does not reach the accessibility node, so without this the
-                // options dump as anonymous checkboxes and the screen reader announces none of them.
-                modifier = Modifier
-                    .testTag("wearPanelAutoHide_" + value)
-                    .semantics { contentDescription = label + ": " + chipLabel }
-            )
-        }
-    }
-    Spacer(Modifier.height(SPACING_SMALL))
 }
 
 /**
@@ -677,27 +658,13 @@ private fun ViewModeRow(
     selected: String,
     onSelect: (String) -> Unit
 ) {
-    Text(
-        text = label,
-        style = MaterialTheme.typography.bodySmall
+    WearCompanionSelectorRow(
+        title = label,
+        value = WEAR_VIEW_MODES.firstOrNull { it.first == selected }?.let { stringResource(it.second) } ?: "",
+        entries = WEAR_VIEW_MODES.map { (v, res) -> v to stringResource(res) },
+        onSelected = onSelect,
+        tag = tagPrefix + "_"
     )
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
-    ) {
-        WEAR_VIEW_MODES.forEach { (value, labelRes) ->
-            val chipLabel = stringResource(labelRes)
-            FilterChip(
-                selected = value == selected,
-                onClick = { onSelect(value) },
-                label = { Text(chipLabel) },
-                modifier = Modifier
-                    .testTag(tagPrefix + "_" + value)
-                    .semantics { contentDescription = label + ": " + chipLabel }
-            )
-        }
-    }
-    Spacer(Modifier.height(SPACING_SMALL))
 }
 
 /**
@@ -713,36 +680,19 @@ private fun ViewModeRow(
  * (S2091): a chip's label does not reach the accessibility node, so without it the eight options dump
  * as anonymous checkboxes and the screen reader announces none of them.
  */
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun ColorSchemeControls(viewModel: WearSyncViewModel) {
     val scheme by viewModel.colorScheme.collectAsState()
 
-    Text(
-        text = stringResource(R.string.wear_settings_color_scheme),
-        style = MaterialTheme.typography.bodySmall
+    WearCompanionSelectorRow(
+        title = stringResource(R.string.wear_settings_color_scheme),
+        value = COLOR_SCHEMES.firstOrNull { it.first == scheme }?.let { stringResource(it.second) } ?: "",
+        entries = COLOR_SCHEMES.map { (v, res) -> v to stringResource(res) },
+        onSelected = { picked -> viewModel.updateColorScheme(picked) },
+        tag = "wearColorScheme_"
     )
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
-        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
-    ) {
-        COLOR_SCHEMES.forEach { (value, labelRes) ->
-            val chipLabel = stringResource(labelRes)
-            FilterChip(
-                selected = value == scheme,
-                onClick = { viewModel.updateColorScheme(value) },
-                label = { Text(chipLabel) },
-                modifier = Modifier
-                    .testTag("wearColorScheme_" + value)
-                    .semantics { contentDescription = chipLabel }
-            )
-        }
-    }
-    Spacer(Modifier.height(SPACING_SMALL))
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
     val mode by viewModel.backgroundMode.collectAsState()
@@ -753,30 +703,13 @@ private fun BackgroundModeControls(viewModel: WearSyncViewModel) {
         uri?.let(viewModel::sendBackgroundImage)
     }
 
-    Text(
-        text = stringResource(R.string.wear_settings_background_mode),
-        style = MaterialTheme.typography.bodySmall
+    WearCompanionSelectorRow(
+        title = stringResource(R.string.wear_settings_background_mode),
+        value = BACKGROUND_MODES.firstOrNull { it.first == mode }?.let { stringResource(it.second) } ?: "",
+        entries = BACKGROUND_MODES.map { (v, res) -> v to stringResource(res) },
+        onSelected = { picked -> viewModel.updateBackgroundMode(picked) },
+        tag = "wearBackgroundMode_"
     )
-    FlowRow(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL),
-        verticalArrangement = Arrangement.spacedBy(SPACING_SMALL)
-    ) {
-        BACKGROUND_MODES.forEach { (value, labelRes) ->
-            val chipLabel = stringResource(labelRes)
-            FilterChip(
-                selected = value == mode,
-                onClick = { viewModel.updateBackgroundMode(value) },
-                label = { Text(chipLabel) },
-                // S2091: a chip's own label does not reach the accessibility node, so the two options
-                // dump as anonymous checkboxes and the screen reader announces neither.
-                modifier = Modifier
-                    .testTag("wearBackgroundMode_" + value)
-                    .semantics { contentDescription = chipLabel }
-            )
-        }
-    }
-    Spacer(Modifier.height(SPACING_SMALL))
 
     if (mode == WearSettingsPayload.BACKGROUND_MODE_IMAGE) {
         OutlinedButton(
@@ -856,8 +789,8 @@ private fun SwitchRow(
     label: String,
     checked: Boolean,
     description: String? = null,
-    @StringRes helpTitleRes: Int? = null,
-    @StringRes helpMessageRes: Int? = null,
+    @DrawableRes iconRes: Int? = null,
+    help: CompanionToggleHelp? = null,
     onCheckedChange: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
@@ -869,15 +802,24 @@ private fun SwitchRow(
             .padding(vertical = SPACING_SMALL),
         verticalAlignment = Alignment.CenterVertically
     ) {
+        if (iconRes != null) {
+            Icon(
+                painter = painterResource(iconRes),
+                contentDescription = label,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(SETTINGS_HELP_ICON_SIZE)
+            )
+            Spacer(Modifier.width(SPACING_SMALL))
+        }
         Switch(checked = checked, onCheckedChange = null)
         Spacer(Modifier.width(SPACING_SMALL))
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                if (helpTitleRes != null && helpMessageRes != null) {
-                    val helpTitle = stringResource(helpTitleRes)
+                if (help != null) {
+                    val helpTitle = stringResource(help.titleRes)
                     IconButton(
-                        onClick = { TooltipDialog.show(context, helpTitleRes, helpMessageRes) },
+                        onClick = { TooltipDialog.show(context, help.titleRes, help.messageRes) },
                         modifier = Modifier
                             .size(SETTINGS_HELP_ICON_SIZE)
                             .testTag(tag + "_help")
@@ -902,7 +844,6 @@ private fun SwitchRow(
     }
 }
 
-/** S2536: in PowerSavingTrigger declaration order, reusing the phone row's own option labels. */
 private val POWER_SAVING_TRIGGERS = listOf(
     PowerSavingTrigger.OFF.name to R.string.pref_power_saving_off,
     PowerSavingTrigger.ALWAYS.name to R.string.pref_power_saving_always,
@@ -910,4 +851,34 @@ private val POWER_SAVING_TRIGGERS = listOf(
     PowerSavingTrigger.BELOW_15.name to R.string.pref_power_saving_below_15,
     PowerSavingTrigger.BELOW_20.name to R.string.pref_power_saving_below_20,
     PowerSavingTrigger.BELOW_30.name to R.string.pref_power_saving_below_30,
+)
+
+private val ALBUM_ART_HELP = CompanionToggleHelp(
+    R.string.wear_settings_album_art_tooltip_title,
+    R.string.wear_settings_album_art_tooltip_message
+)
+
+private val KEEP_AWAKE_HELP = CompanionToggleHelp(
+    R.string.wear_settings_keep_awake_tooltip_title,
+    R.string.wear_settings_keep_awake_tooltip_message
+)
+
+private val MEDIA_TYPES_HEADER = CompanionGroupHeader(
+    iconRes = R.drawable.ic_apps,
+    help = CompanionGroupHelp(R.string.wear_settings_group_media_types, R.string.wear_help_media_types)
+)
+
+private val SLIDESHOW_HEADER = CompanionGroupHeader(
+    iconRes = R.drawable.ic_slideshow,
+    help = CompanionGroupHelp(R.string.wear_settings_group_slideshow, R.string.wear_help_slideshow)
+)
+
+private val SCREEN_HEADER = CompanionGroupHeader(
+    iconRes = R.drawable.ic_display,
+    help = CompanionGroupHelp(R.string.wear_settings_group_screen, R.string.wear_help_screen)
+)
+
+private val OTHER_HEADER = CompanionGroupHeader(
+    iconRes = R.drawable.ic_tune,
+    help = CompanionGroupHelp(R.string.wear_settings_group_other, R.string.wear_help_other)
 )

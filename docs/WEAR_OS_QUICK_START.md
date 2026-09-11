@@ -182,7 +182,8 @@ Already fixed! This project uses **KSP** instead of deprecated KAPT for annotati
 .\gradlew.bat :wear:clean
 
 # Test
-.\gradlew.bat :wear:testDebugUnitTest
+.\a.ps1 fwu                                 # Fast unit test suite
+# .\gradlew.bat :wear:testStandardDebugUnitTest (direct under Build.Wear lock)
 
 # Lint
 .\gradlew.bat :wear:lintDebug

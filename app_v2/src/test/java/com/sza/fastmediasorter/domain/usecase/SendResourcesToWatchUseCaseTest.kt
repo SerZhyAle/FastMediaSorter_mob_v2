@@ -416,6 +416,8 @@ class SendResourcesToWatchUseCaseTest {
 
         assertTrue(result.isSuccess)
         assertEquals(setOf("2"), deliveredStore.delivered)
+        // S2909: the tombstone that travelled is retired with the batch that carried it.
+        assertTrue(tombstoneStore.tombstones.isEmpty())
     }
 
     // S2926: a batch of pure deletions - the phone deleted a resource, nothing is marked and the
@@ -438,6 +440,34 @@ class SendResourcesToWatchUseCaseTest {
         assertTrue(result.getOrThrow().dispatched)
         assertEquals(1, wearableRepository.putCalls.size)
         assertEquals(listOf("1"), sentPayload().tombstones?.map { it.id })
+        // S2909: the tombstone that travelled is retired once the Data Layer accepted the bytes, so it
+        // does not travel again on the next push.
+        assertTrue(tombstoneStore.tombstones.isEmpty())
+    }
+
+    // S2909: the pair test (S2925 run 1) found that an empty selection over an empty delivered set still
+    // sent a batch, because a tombstone recorded earlier travelled on every push and the skip branch
+    // was unreachable. Once the tombstone is retired with the batch that carried it, the next empty push
+    // has nothing to send and stays off the wire - the idle round trip the ticket was opened for.
+
+    @Test
+    fun `a retired tombstone lets the next empty push stay off the wire`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = emptyList()
+        tombstoneStore.tombstones.add(WearSourceTombstonePayload(id = "1", deletedAt = 1_000L))
+        deliveredStore.delivered = emptySet()
+
+        val first = useCase()
+        val second = useCase()
+
+        assertTrue(first.isSuccess)
+        assertTrue(first.getOrThrow().dispatched)
+        assertEquals(1, wearableRepository.putCalls.size)
+        assertTrue(second.isSuccess)
+        assertFalse(second.getOrThrow().dispatched)
+        // One call total: the first push carried the tombstone and retired it; the second push has
+        // nothing to send.
+        assertEquals(1, wearableRepository.putCalls.size)
     }
 
     @Test

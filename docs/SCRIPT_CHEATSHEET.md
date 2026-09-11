@@ -2640,8 +2640,9 @@ Fail when prose or a script's help text claims a flavor count, or a complete fla
 scripts/quality/assert-flavor-count-prose.ps1
   Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+    -RepoRoot         [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
   Exit: 0 - every quantified flavor claim matches the matrix (or findings exist without -Gate).; 1 - at least one claim contradicts the matrix, and -Gate was passed.; 2 - could not verify: docs/flavors/flavor-matrix.json is absent or declares no flavors, so
 ```
 
@@ -4112,6 +4113,18 @@ scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
   Params:
     -Help         [SwitchParameter]
   Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
+```
+
+## scripts\quality\assert-flavor-count-prose.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
+
+```
+scripts/quality/assert-flavor-count-prose.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\quality\assert-gate-placement.tests

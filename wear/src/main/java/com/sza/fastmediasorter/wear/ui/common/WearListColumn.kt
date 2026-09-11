@@ -21,6 +21,7 @@ import androidx.wear.compose.foundation.lazy.ScalingParams
 import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import com.sza.fastmediasorter.wear.ui.player.common.rotaryActionScroll
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import timber.log.Timber
 
@@ -39,6 +40,13 @@ const val WEAR_LIST_UNTITLED_ANCHOR = 1
 
 /** Opt-out for fixed control panels and single-message screens: open exactly where the layout puts it. */
 const val WEAR_LIST_NO_ANCHOR = 0
+
+/**
+ * Milliseconds to wait after the list first holds the anchor before scrolling. The first non-empty
+ * layout can carry a single-column item count before the grid mode recomposition chunks items into
+ * rows, and large tiles may not be measured on the frame they are added. Measured 2026-09-11.
+ */
+private const val ANCHOR_SETTLE_DELAY_MS = 100L
 
 /**
  * Creates and remembers a [ScalingLazyListState] for use with [WearListColumn].
@@ -96,8 +104,15 @@ private fun WearListOpeningAnchor(state: ScalingLazyListState, index: Int, resto
         // the watch 2026-09-04: home's first non-empty layout is a single loading row, so a `> 0` wait
         // anchored item 0 of 1 and then never fired again once the sections arrived. A list that never
         // grows past the anchor is a list with nothing to scroll to, and leaving it where it is is right.
-        val itemCount = snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > index }
-        Timber.d("S2466: list anchored at item %d of %d", index, itemCount)
+        snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > index }
+        // Wait for the layout to settle before scrolling. The first non-empty layout can carry a
+        // single-column item count before the grid mode recomposition chunks items into rows, and
+        // large tiles may not be measured on the frame they are added. Measured 2026-09-11: Local
+        // reported 9 items in 1, 2 and 3 columns because the anchor fired before the grid chunking
+        // recomposed, and Images in single column landed on data row one because the tiles were not
+        // yet measured. A short delay lets both the recomposition and the re-measurement land.
+        delay(ANCHOR_SETTLE_DELAY_MS)
+        Timber.d("S2466: list anchored at item %d of %d", index, state.layoutInfo.totalItemsCount)
         state.scrollToItem(index)
     }
 }

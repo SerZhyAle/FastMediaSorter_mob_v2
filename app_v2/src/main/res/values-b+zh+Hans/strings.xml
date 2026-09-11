@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">复制操作已取消</string>
     <string name="toast_delete_cancelled">删除操作已取消</string>
     <string name="toast_unexpected_result">意外结果</string>
-    <string name="toast_delete_error">无法完成文件删除，再试一次。</string>
     <string name="error_deletion_failed">删除失败</string>
     <string name="toast_filter_applied">筛选已成功应用</string>
     <string name="toast_filter_failed">无法应用该筛选，再试一次。</string>

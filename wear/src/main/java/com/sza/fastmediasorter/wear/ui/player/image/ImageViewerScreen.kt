@@ -301,6 +301,7 @@ private fun ImageViewerContent(
         }
 
         if (showMenu) {
+            Timber.d("S2531: image viewer overflow menu opened")
             PlayerOverflowMenu(
                 actions = imageMenuActions(
                     uiState = uiState,
@@ -456,18 +457,15 @@ private fun ImageBottomPanel(
         )
 
         ImageSecondaryRow(
-            uiState = uiState,
             isFavorite = isFavorite,
             onBack = actions.onBack,
             onToggleFavorite = actions.onToggleFavorite,
-            onToggleScaleMode = actions.onToggleScaleMode,
             onFileOperations = actions.onFileOperations,
             onOpenMenu = onOpenMenu
         )
 
         // S2476: Position counter rendered on its own line under control buttons, matching audio player
         if (uiState.positionText.isNotEmpty()) {
-            Timber.d("S2476: ImageViewerScreen rendering positionText %s", uiState.positionText)
             Text(
                 text = uiState.positionText,
                 style = MaterialTheme.typography.caption3,
@@ -559,16 +557,15 @@ private fun ImageCommandRow(
  * S2766: the same two-or-three composition the other players draw. The scale mode left the row for
  * the menu. This screen shows no playing position, so it takes no progress ring.
  *
- * S2803: the ORIGINAL view restores back, favourite, file operations and scale mode - the four the
- * pre-S2766 tree drew; this screen has no stream pin. The menu button then has nothing to open.
+ * S2803: the ORIGINAL view restores back, favourite and file operations. S2531: the cast entry lives
+ * in the overflow menu, so the restored row keeps a menu button where it held scale mode - scale mode
+ * moved to the menu.
  */
 @Composable
 private fun ImageSecondaryRow(
-    uiState: ImageViewerUiState,
     isFavorite: Boolean,
     onBack: () -> Unit,
     onToggleFavorite: () -> Unit,
-    onToggleScaleMode: () -> Unit,
     onFileOperations: () -> Unit,
     onOpenMenu: () -> Unit
 ) {
@@ -576,11 +573,6 @@ private fun ImageSecondaryRow(
     val menuDesc = stringResource(R.string.wear_file_op_actions)
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
     Timber.d("S2803: image secondary restored=%b columns=%s", restored, secondaryRowColumns())
-    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
-        Icons.Filled.AspectRatio
-    } else {
-        Icons.Filled.CropFree
-    }
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(
@@ -607,22 +599,14 @@ private fun ImageSecondaryRow(
                 contentDescription = menuDesc,
                 size = targetSize
             )
-
-            PlayerCommandButton(
-                onClick = onToggleScaleMode,
-                icon = scaleIcon,
-                contentDescription = stringResource(R.string.wear_scale_mode),
-                size = targetSize,
-                checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
-            )
-        } else {
-            PlayerCommandButton(
-                onClick = onOpenMenu,
-                icon = Icons.Default.MoreVert,
-                contentDescription = menuDesc,
-                size = targetSize
-            )
         }
+
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = menuDesc,
+            size = targetSize
+        )
     }
 }
 

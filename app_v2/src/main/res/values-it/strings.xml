@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">Copia annullata</string>
     <string name="toast_delete_cancelled">Eliminazione annullata</string>
     <string name="toast_unexpected_result">Risultato imprevisto</string>
-    <string name="toast_delete_error">Impossibile completare l\'eliminazione dei file. Riprova.</string>
     <string name="error_deletion_failed">Eliminazione non riuscita</string>
     <string name="toast_filter_applied">Filtro applicato</string>
     <string name="toast_filter_failed">Impossibile applicare quel filtro. Riprova.</string>

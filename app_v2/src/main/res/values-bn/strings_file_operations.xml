@@ -76,8 +76,6 @@
     <string name="delete_by_size_warning_no_trash">সতর্কীকরণ: এই রিসোর্সের জন্য ট্র্যাশ সমর্থিত নয়। মুছে ফেলা হলে তা স্থায়ী হবে!</string>
     <string name="delete_confirmation">ফাইলগুলো মুছে ফেলবেন?</string>
     <string name="delete_failed">ফাইলগুলো মুছে ফেলা যায়নি।</string>
-    <string name="delete_file_confirmation">%2$s থেকে %1$s মুছে ফেলবেন?</string>
-    <string name="delete_files_confirmation">%2$s থেকে %1$d ফাইলগুলো মুছে ফেলবেন?</string>
     <string name="delete_folder_confirm">\"%1$s\" ফোল্ডার এবং এর ভেতরের সবকিছু মুছে ফেলতে চান? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>
     <string name="delete_n_files_from_network_title">নেটওয়ার্ক থেকে %d টি ফাইল মুছে ফেলবেন?</string>
     <string name="delete_n_folders_confirm">%1$d ফোল্ডারগুলো এবং এর ভেতরের সবকিছু মুছে ফেলবেন? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>

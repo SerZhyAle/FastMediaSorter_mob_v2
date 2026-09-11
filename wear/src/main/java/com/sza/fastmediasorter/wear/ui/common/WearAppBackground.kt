@@ -76,7 +76,6 @@ fun WearAppBackground(
                 val measured = DeliveredFrame(image = background)
                 val scrimAlpha =
                     WearWallpaperScrimPolicy.alphaFor(measured, isLightScrim = WearAppTheme.colors.isLight)
-                Timber.d("S2864: photo scrim measured=%s alpha=%s", measured, scrimAlpha)
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

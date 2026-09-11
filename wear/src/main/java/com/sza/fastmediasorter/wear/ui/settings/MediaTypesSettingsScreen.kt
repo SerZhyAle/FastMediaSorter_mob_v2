@@ -115,7 +115,7 @@ private fun mediaTypeItem(
     label: String,
     tag: String?,
     onToggle: () -> Unit
-): WearSettingsItem = WearSettingsItem { _ ->
+): WearSettingsItem = WearSettingsItem { narrow ->
     // The tag rides an outer Box rather than the toggle row itself: the row rewrites its own
     // semantics with clearAndSetSemantics, so a tag declared on the same node is not guaranteed
     // to survive into the UiAutomator tree a flow reads.
@@ -125,7 +125,8 @@ private fun mediaTypeItem(
         WearSettingsToggleCell(
             label = label,
             checked = checked,
-            onToggle = onToggle
+            onToggle = onToggle,
+            narrow = narrow
         )
     }
 }

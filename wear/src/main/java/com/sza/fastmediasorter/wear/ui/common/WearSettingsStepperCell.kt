@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
-import timber.log.Timber
 
 /**
  * Reusable stepper cell for Wear OS settings screens (e.g. slideshow interval, player panel auto-hide).
@@ -33,7 +32,6 @@ fun WearSettingsStepperCell(
     onValueChanged: (Int) -> Unit
 ) {
     val currentIndex = values.indexOfFirst { it == currentValue }.coerceAtLeast(0)
-    Timber.d("S2867: stepper cell rendered with label below buttons")
 
     Column(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 4.dp),

@@ -334,6 +334,49 @@ class ImportNetworkSourcesUseCaseTest {
         assertEquals(emptyList<String>(), fakeRepository.tombstones.map { it.id })
     }
 
+    // S2932: the ack counts deletions the watch applied, never tombstones it merely received.
+
+    @Test
+    fun `an applied deletion is counted as removed`() = runTest {
+        fakeRepository.existing.add(storedSource(name = "watch name", lastEditedAt = SENT_AT - 9_000L))
+
+        val result = useCase(deletionPayload(SENT_AT), receivedAtEpochMillis = RECEIVED_AT)
+
+        assertEquals(1, result.removed)
+    }
+
+    @Test
+    fun `a deletion the local edit beats is not counted`() = runTest {
+        fakeRepository.existing.add(storedSource(name = "watch name", lastEditedAt = SENT_AT + 5_000L))
+
+        val result = useCase(deletionPayload(SENT_AT), receivedAtEpochMillis = RECEIVED_AT)
+
+        assertEquals(0, result.removed)
+    }
+
+    @Test
+    fun `a deletion of a source this watch never held is stored but not counted`() = runTest {
+        val result = useCase(deletionPayload(SENT_AT), receivedAtEpochMillis = RECEIVED_AT)
+
+        assertEquals(0, result.removed)
+        assertEquals(listOf(MERGE_ID), fakeRepository.tombstones.map { it.id })
+    }
+
+    @Test
+    fun `a deletion and a withdrawal in one batch are both counted`() = runTest {
+        fakeRepository.existing.add(storedSource(name = "watch name", lastEditedAt = SENT_AT - 9_000L))
+        fakeRepository.existing.add(makeSource("res-2", NetworkSourceType.SMB))
+        fakeRepository.existing.add(makeSource("res-3", NetworkSourceType.SMB))
+
+        val result = useCase(
+            deletionPayload(SENT_AT).copy(deselectedIds = listOf("res-2")),
+            receivedAtEpochMillis = RECEIVED_AT
+        )
+
+        assertEquals(2, result.removed)
+        assertEquals(listOf("res-3"), fakeRepository.existing.map { it.id })
+    }
+
     @Test
     fun `a one-sided source with no tombstone is still added`() = runTest {
         val result = useCase(freshPayload(listOf(makePayloadItem("only-on-phone", "SMB"))))

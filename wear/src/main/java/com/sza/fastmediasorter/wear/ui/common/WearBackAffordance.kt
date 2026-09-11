@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -11,14 +13,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerEventPass
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
+import timber.log.Timber
 
 // Declared as consts because detekt's MagicNumber is active on this module's main sources and
 // exempts a constant declaration but not a property one.
@@ -83,7 +91,10 @@ fun WearBackAffordance(
         contentAlignment = Alignment.CenterStart,
         modifier = modifier
             .size(WearBackAffordanceSize)
-            .clickable(role = Role.Button, onClick = onClick)
+            .nonSwallowingClickable(onClick = {
+                Timber.d("S2472: back affordance tapped, role=%s", role)
+                onClick()
+            })
     ) {
         when (role) {
             WearBackAffordanceRole.Back -> VectorGlyph(
@@ -103,6 +114,32 @@ fun WearBackAffordance(
         }
     }
 }
+
+/**
+ * Detects clicks without consuming pointer down or horizontal drag events, allowing system back
+ * swipe gestures (swipe-to-dismiss) starting over this control to pass through to parent containers (S2472).
+ */
+internal fun Modifier.nonSwallowingClickable(
+    onClick: () -> Unit,
+    role: Role = Role.Button
+): Modifier = this
+    .pointerInput(onClick) {
+        awaitEachGesture {
+            val down = awaitFirstDown(pass = PointerEventPass.Main, requireUnconsumed = false)
+            val up = waitForUpOrCancellation(pass = PointerEventPass.Main)
+            if (up != null && !up.isConsumed) {
+                up.consume()
+                onClick()
+            }
+        }
+    }
+    .semantics(mergeDescendants = true) {
+        this.role = role
+        onClick {
+            onClick()
+            true
+        }
+    }
 
 @Composable
 private fun VectorGlyph(icon: ImageVector, @StringRes labelRes: Int) {

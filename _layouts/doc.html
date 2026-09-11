@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="{{ page.lang | default: 'en' }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page.title | default: 'Documentation' }} - Fast Media Sorter</title>
+    <meta name="description" content="{{ page.description | default: 'Fast Media Sorter documentation and user guides.' }}">
+    
+    <link rel="icon" type="image/x-icon" href="{{ '/favicon.ico' | relative_url }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ '/favicon-32x32.png' | relative_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ '/favicon-16x16.png' | relative_url }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ '/apple-touch-icon.png' | relative_url }}">
+
+    <!-- SZA Web Kit: pre-paint theme resolver (before CSS to avoid flash) -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography: Outfit (headings) and Plus Jakarta Sans (body) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets: Core SZA Web Kit + Documentation Design System -->
+    <link rel="stylesheet" href="{{ '/styles.css' | relative_url }}">
+    <link rel="stylesheet" href="{{ '/documentation/assets/docs.css' | relative_url }}">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header / Brand Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="{{ '/' | relative_url }}">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="{{ '/documentation/' | relative_url }}" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="{{ '/documentation/' | relative_url }}" class="doc-header-link active">Documentation</a>
+                <a href="{{ '/documentation/design-system/' | relative_url }}" class="doc-header-link">Design System</a>
+                <a href="{{ '/nolegal.html' | relative_url }}" class="doc-header-link">NoLegal Edition</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- Theme Toggle Button -->
+                                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="{{ "/" | relative_url }}" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="{{ "/apple-touch-icon.png" | relative_url }}" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Documentation Shell Layout -->
+    <div class="doc-container">
+
+        <!-- Breadcrumb Navigation -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="{{ '/' | relative_url }}">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="{{ '/documentation/' | relative_url }}">Documentation</a>
+            {% if page.category %}
+                <span class="doc-breadcrumb-separator">/</span>
+                <span>{{ page.category }}</span>
+            {% endif %}
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">{{ page.title }}</span>
+        </nav>
+
+        <!-- Main Content Area with Sidebar Grid -->
+        <div class="doc-grid">
+
+            <!-- Left Navigation Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                {% if page.sidebar %}
+                    {{ page.sidebar }}
+                {% else %}
+                    <div class="doc-sidebar-section">
+                        <div class="doc-sidebar-title">Getting Started</div>
+                        <ul class="doc-sidebar-list">
+                            <li><a href="{{ '/documentation/' | relative_url }}" class="doc-sidebar-link">Overview & Architecture</a></li>
+                            <li><a href="{{ '/documentation/sample-recipe.html' | relative_url }}" class="doc-sidebar-link">Sample Recipe</a></li>
+                            <li><a href="{{ '/documentation/design-system/' | relative_url }}" class="doc-sidebar-link">Design System Catalog</a></li>
+                        </ul>
+                    </div>
+                    <div class="doc-sidebar-section">
+                        <div class="doc-sidebar-title">Media Categories</div>
+                        <ul class="doc-sidebar-list">
+                            <li><a href="#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                            <li><a href="#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Playback & PiP</a></li>
+                            <li><a href="#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Slideshow & EXIF</a></li>
+                            <li><a href="#docs" class="doc-sidebar-link"><span class="doc-badge doc-badge-docs doc-badge-sm">Docs</span> EPUB & PDF Reader</a></li>
+                        </ul>
+                    </div>
+                {% endif %}
+            </aside>
+
+            <!-- Main Article Column -->
+            <main class="doc-content" id="main-content">
+                {{ content }}
+            </main>
+
+            <!-- In-Page Table of Contents (Right Sticky Bar) -->
+            {% if page.toc != false %}
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc" id="doc-toc-nav">
+                    <div class="doc-toc-title">On this page</div>
+                    <div id="doc-toc-content">
+                        <!-- Populated dynamically by in-page script if headings exist -->
+                    </div>
+                </nav>
+            </aside>
+            {% endif %}
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <!-- Footer -->
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>
+                Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.
+            </div>
+            <div class="doc-footer-links">
+                <a href="{{ '/privacy.html' | relative_url }}">Privacy Policy</a>
+                <a href="{{ '/terms.html' | relative_url }}">Terms of Service</a>
+                <a href="{{ '/documentation/design-system/' | relative_url }}">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2/issues" target="_blank" rel="noopener">Report an Issue</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Scripts: Theme switcher & automatic TOC builder -->
+    <script>
+        (function () {
+            // Theme toggle
+                        // Language picker dropdown
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            // Language state resolver: URL ?lang= -> localStorage -> navigator -> default 'en'
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            // Client-side TOC generation if doc-toc-content exists
+            var tocContainer = document.getElementById('doc-toc-content');
+            var mainContent = document.getElementById('main-content');
+            if (tocContainer && mainContent) {
+                var headings = mainContent.querySelectorAll('h2, h3');
+                if (headings.length > 0) {
+                    var list = document.createElement('ul');
+                    list.className = 'doc-toc-list';
+                    headings.forEach(function (h, idx) {
+                        if (!h.id) {
+                            h.id = 'section-' + idx;
+                        }
+                        var li = document.createElement('li');
+                        if (h.tagName.toLowerCase() === 'h3') {
+                            li.style.paddingLeft = '0.75rem';
+                        }
+                        var a = document.createElement('a');
+                        a.href = '#' + h.id;
+                        a.className = 'doc-toc-link';
+                        a.textContent = h.textContent.replace(/^#+\s*/, '');
+                        li.appendChild(a);
+                        list.appendChild(li);
+                    });
+                    tocContainer.appendChild(list);
+                } else {
+                    var wrapper = document.querySelector('.doc-toc-wrapper');
+                    if (wrapper) wrapper.style.display = 'none';
+                }
+            }
+        }());
+    </script>
+
+    <!-- Background Animated Waves & Particles Canvas -->
+    <canvas id="docCanvas"></canvas>
+    <script>
+        (function () {
+            var canvas = document.getElementById('docCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+
+            var particles = [];
+            var PARTICLE_COUNT = 45;
+
+            function initParticles() {
+                particles = [];
+                for (var i = 0; i < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.6 + 0.5,
+                        vx: (Math.random() - 0.5) * 0.25,
+                        vy: (Math.random() - 0.5) * 0.25,
+                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
+                    });
+                }
+            }
+
+            var time = 0;
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                time += 0.002;
+                ctx.lineWidth = 1.4;
+                for (var j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 20;
+                    for (var i = 0; i <= width; i += 24) {
+                        var y = height * 0.35 +
+                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
+                            Math.sin(time * 0.25 + j * 0.25);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
+                    ctx.stroke();
+                }
+                particles.forEach(function (p) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
+                    ctx.fill();
+                });
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', function () { resize(); initParticles(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            initParticles();
+            draw();
+        }());
+    </script>
+</body>
+</html>
+
+
+

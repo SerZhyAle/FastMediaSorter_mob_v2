@@ -193,6 +193,9 @@ class StreamSourceRepository @Inject constructor(
     suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity? =
         dao.getBySourceDeviceId(deviceId)
 
+    /** S2868: replace the display title of one row, nothing else. */
+    suspend fun renameSource(id: String, title: String) = dao.updateTitle(id, title)
+
     /**
      * S2813: move a broadcast row onto the address its device is using now, keeping everything the user
      * authored about it.

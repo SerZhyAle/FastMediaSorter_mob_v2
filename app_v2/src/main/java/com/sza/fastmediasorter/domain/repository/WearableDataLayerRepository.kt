@@ -27,4 +27,21 @@ interface WearableDataLayerRepository {
 
     /** S2550: ends the listening session on [nodeId]. Safe to send without knowing what is running. */
     suspend fun sendListenStop(nodeId: String, requestId: String)
+
+    /**
+     * S2981: whether the owner left the Wear Companion switch on.
+     *
+     * Defaults to true so a bridge with no switch of its own - the stub and the test fakes - never
+     * refuses a request on the switch's behalf.
+     */
+    suspend fun isCompanionEnabled(): Boolean = true
+
+    /**
+     * S2981: publishes a refusal at [path] even while the companion switch is off.
+     *
+     * The one exception to the switch silencing every send. It exists so the phone can tell a watch
+     * that asked "the companion is off" instead of leaving it to time out and blame a missing phone,
+     * and it must only ever carry that refusal - never a listing or any other content.
+     */
+    suspend fun putCompanionRefusal(path: String, payload: ByteArray) = putDataItem(path, payload)
 }

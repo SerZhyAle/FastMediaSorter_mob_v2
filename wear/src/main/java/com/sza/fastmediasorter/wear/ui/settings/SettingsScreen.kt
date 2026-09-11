@@ -223,7 +223,6 @@ private fun SyncSettingsCell(
             color = if (isStale) MaterialTheme.colors.error else Color.Unspecified,
             modifier = if (isStale) {
                 Modifier.fillMaxWidth().clickable(enabled = !syncing) {
-                    Timber.d("S2867: stale sync caption tapped, triggering sync")
                     onSync()
                 }
             } else {

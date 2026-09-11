@@ -14,7 +14,7 @@ Each weekly-usage axis mapped to the place it is actually controlled. Only repo-
 | Usage at >150k context | Context hygiene (`/compact`, `/clear`, `temp/` offload) | this doc; `/compact` action is harness | Advise, not gate |
 | 4+ parallel sessions | Queue instead of fan-out | operator habit | Advise, not gate (external) |
 | `/spec-dev` weight | Skill cost tier (`model:` frontmatter, narrower scope) | command frontmatter | Yes (mechanical) |
-| `mobile-mcp` weight | MCP hygiene (`adb.ps1`/Maestro first, `/compact` to flush) | this doc; server disable is harness | Advise, not gate |
+| Maestro MCP weight | MCP hygiene (`adb.ps1`/Maestro flows first, taps by selector, `/compact` to flush) | this doc; server disable is harness | Advise, not gate |
 
 Three of five axes have a real in-repo lever (spawn policy, skill model tier, MCP routing). Two (parallel sessions, the >150k context floor) are operator/harness-side - advise only.
 
@@ -154,12 +154,12 @@ expiry rule and the no-restatement rule are correctness measures.
 
 ## MCP hygiene
 
-`mobile-mcp` results stay sticky in context for the rest of the session, so every walk has a lasting cost. Route by cheapest sufficient proof:
+Maestro MCP results stay sticky in context for the rest of the session, so every walk has a lasting cost. Route by cheapest sufficient proof:
 
 - **`adb.ps1`** (`scripts/devtest/adb.ps1`, `.\a.ps1 adb <verb>`) for deterministic chores: launch, screenshot, prefs read/write, log tail/grep, tapping by resource-id (`tap-id`) or by label (`tap-label`), text, install. This is the default for one-off device work. Aim a tap by id first: a label is translated, so a label-aimed call passes only on the locale it was written on (S1879), and a remembered coordinate goes stale the moment the list scrolls (S1847).
 - **Maestro** (`scripts/devtest/maestro/`) for repeatable multi-step flows that will be re-run.
-- **`mobile-mcp` ONLY** for exploratory, agent-driven UI walks where element discovery or dynamic coordinates cannot be scripted up front.
-- Because MCP results are sticky, bound the mobile-mcp window and `/compact` immediately after the walk to flush the accumulated tool results.
+- **The Maestro MCP server ONLY** for exploratory, agent-driven UI walks where element discovery cannot be scripted up front. Its taps are aimed by selector (`id:` / `text:`), never by coordinate; it replaced the previous coordinate-only driver on S2918's measurement - 3 of 3 trial walks against 1 of 3, 28% fewer tokens.
+- Because MCP results are sticky, bound the Maestro MCP window and `/compact` immediately after the walk to flush the accumulated tool results. Its `inspect_screen` returns the whole hierarchy as text, so re-inspect only after a step changed the screen.
 - **claude.ai connectors are off for this project** through `disableClaudeAiConnectors` in `.claude/settings.json` (S2918): none of them loads its tool names into a session here, while the owner's claude.ai chat keeps every one. The setting has any-source-true semantics, so neither `/mcp` nor a `false` elsewhere brings one connector back while it stands. If this project ever needs one, replace the switch with `deniedMcpServers` entries naming every other connector - the documented per-connector form, whose effect in a project settings file is unverified here, so confirm it with `claude mcp list` in the same change.
 
 ---

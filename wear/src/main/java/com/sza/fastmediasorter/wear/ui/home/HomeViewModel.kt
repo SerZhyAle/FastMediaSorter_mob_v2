@@ -146,7 +146,6 @@ class HomeViewModel @Inject constructor(
      * strategic §7 names as the defect to design against.
      */
     fun stopBackgroundPlayback() {
-        Timber.d("S2524: now-playing row stop requested")
         context.startService(WearPlaybackService.stopIntent(context))
     }
 

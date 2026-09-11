@@ -77,8 +77,6 @@
     <string name="delete_by_size_warning_no_trash">Attenzione: il cestino non è supportato per questa risorsa. L\'eliminazione sarà permanente!</string>
     <string name="delete_confirmation">Eliminare i file?</string>
     <string name="delete_failed">Impossibile eliminare i file.</string>
-    <string name="delete_file_confirmation">Eliminare %1$s da %2$s?</string>
-    <string name="delete_files_confirmation">Eliminare i file %1$d da %2$s?</string>
     <string name="delete_folder_confirm">Eliminare la cartella \"%1$s\" e tutto il suo contenuto? Questa operazione è irreversibile.</string>
     <string name="delete_n_files_from_network_title">Eliminare %d file dalla rete?</string>
     <string name="delete_n_folders_confirm">Eliminare le cartelle %1$d e tutto il loro contenuto? Questa operazione non può essere annullata.</string>

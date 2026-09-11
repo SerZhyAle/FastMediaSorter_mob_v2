@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">Opération de copie annulée</string>
     <string name="toast_delete_cancelled">Opération de suppression annulée</string>
     <string name="toast_unexpected_result">Résultat inattendu</string>
-    <string name="toast_delete_error">Impossible de terminer la suppression des fichiers. Réessayez.</string>
     <string name="error_deletion_failed">Échec de la suppression</string>
     <string name="toast_filter_applied">Filtre appliqué avec succès</string>
     <string name="toast_filter_failed">Impossible d\'appliquer ce filtre. Réessayez.</string>

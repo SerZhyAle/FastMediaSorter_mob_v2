@@ -92,6 +92,11 @@ enum class TranslatorState {
  *
  * Extracted because the states are the promise this cell makes to the user (strategic §2 goal 4), and a
  * promise that can only be checked by hand on a device is one that quietly stops holding.
+ *
+ * S2988: a delivered translation outranks every flag except an empty input. [modelMissing] is a latch set
+ * by the download prompt and cleared only by the next call, so the very call that downloads the pack and
+ * then succeeds still carries it - and ranking it first captioned a visible translation with "the pack is
+ * still downloading". The translation is a fact on screen; the flags predict that there is none yet.
  */
 fun decideTranslatorState(
     input: String,
@@ -100,10 +105,10 @@ fun decideTranslatorState(
     failed: Boolean,
 ): TranslatorState = when {
     input.isBlank() -> TranslatorState.EMPTY_INPUT
+    translated != null -> TranslatorState.TRANSLATED
     modelMissing -> TranslatorState.MODEL_MISSING
     failed -> TranslatorState.FAILED
-    translated == null -> TranslatorState.PAIR_UNAVAILABLE
-    else -> TranslatorState.TRANSLATED
+    else -> TranslatorState.PAIR_UNAVAILABLE
 }
 
 /**
@@ -248,28 +253,30 @@ private class TranslatorGadgetView(
             renderState(TranslatorState.EMPTY_INPUT)
             return
         }
-        val activeScope = scope ?: return
-        modelMissing = false
-        failed = false
-        // The engine checks the language pack before it translates, which is seconds on a cold cell.
-        // Without this line that wait is indistinguishable from a cell that ignored the tap.
-        renderState(TranslatorState.IN_PROGRESS)
-        activeScope.launch {
-            val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
-            val (source, target) = effectivePair()
-            showPair(source, target)
-            val translated = runCatching { engine.translate(text, source, target) }
-                .onFailure {
-                    failed = true
-                    Timber.w("Translator cell: engine refused (%s)", it.javaClass.simpleName)
+        scope?.let { activeScope ->
+            modelMissing = false
+            failed = false
+            // The engine checks the language pack before it translates, which is seconds on a cold cell.
+            // Without this line that wait is indistinguishable from a cell that ignored the tap.
+            renderState(TranslatorState.IN_PROGRESS)
+            activeScope.launch {
+                val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
+                val (source, target) = effectivePair()
+                showPair(source, target)
+                val translated = runCatching { engine.translate(text, source, target) }
+                    .onFailure {
+                        failed = true
+                        Timber.w("Translator cell: engine refused (%s)", it.javaClass.simpleName)
+                    }
+                    .getOrNull()
+                if (translated != null) {
+                    binding.gadgetTranslatorResult.text = translated
                 }
-                .getOrNull()
-            if (translated != null) {
-                binding.gadgetTranslatorResult.text = translated
+                Timber.d("S2988: state translated=%s modelMissing=%s", translated != null, modelMissing)
+                val state = decideTranslatorState(text, translated, modelMissing, failed)
+                Timber.d("S2732: translator cell state after engine call: %s", state)
+                renderState(state)
             }
-            val state = decideTranslatorState(text, translated, modelMissing, failed)
-            Timber.d("S2732: translator cell state after engine call: %s", state)
-            renderState(state)
         }
     }
 

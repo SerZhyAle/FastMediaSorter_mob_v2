@@ -464,7 +464,6 @@ class AudioMetadataLoader @Inject constructor(
         return try {
             tempFile.writeBytes(bytes)
             val mediaItem = MediaItem.fromUri(tempFile.toUri())
-            Timber.d("S2876: metadata read through media3-inspector MetadataRetriever on ${bytes.size} bytes")
             val retriever = MetadataRetriever.Builder(context, mediaItem).build()
             // S0229: runInterruptible ensures coroutine cancellation interrupts the blocking
             // future.get() call. Without this, a cancelled scope leaves MetadataRetriever's

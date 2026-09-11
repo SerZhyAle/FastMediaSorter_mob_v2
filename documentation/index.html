@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>How to Play and Organize Music Files - Fast Media Sorter</title>
+    <meta name="description" content="A practical cookbook recipe for playing, queuing, and organizing music tracks across local and network storage.">
+    
+    <link rel="icon" type="image/x-icon" href="../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="assets/docs.css">
+</head>
+
+<body class="doc-body">
+
+    <!-- Header Chrome -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <a href="index.html" class="doc-badge doc-badge-sm" style="text-decoration: none; color: var(--doc-text-secondary);">Docs</a>
+            </div>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="sample-recipe.html" class="doc-header-link active">Sample Recipe</a>
+                <a href="design-system/index.html" class="doc-header-link">Design System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- Live Theme Toggle Button -->
+                                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span>Audio & Music</span>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Playing & Organizing Music</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sidebar -->
+            <aside class="doc-sidebar" aria-label="Documentation Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Getting Started</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="index.html" class="doc-sidebar-link">Docs Home</a></li>
+                        <li><a href="sample-recipe.html" class="doc-sidebar-link active">Playing & Organizing Music</a></li>
+                        <li><a href="design-system/index.html" class="doc-sidebar-link">Component Catalog</a></li>
+                    </ul>
+                </div>
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Media Categories</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="#music" class="doc-sidebar-link"><span class="doc-badge doc-badge-music doc-badge-sm">Music</span> Audio Player</a></li>
+                        <li><a href="#video" class="doc-sidebar-link"><span class="doc-badge doc-badge-video doc-badge-sm">Video</span> Video Player</a></li>
+                        <li><a href="#image" class="doc-sidebar-link"><span class="doc-badge doc-badge-image doc-badge-sm">Photos</span> Photo Sorter</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Recipe Content -->
+            <main class="doc-content" id="main-content">
+
+                <div style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; align-items: center;">
+                    <span class="doc-badge doc-badge-music">Music</span>
+                    <span class="doc-badge doc-badge-standard">Standard &amp; NoLegal</span>
+                    <span class="doc-badge doc-badge-sm">Recipe #01</span>
+                </div>
+
+                <h1>How to Play and Organize Music Files</h1>
+
+                <p class="doc-lead">
+                    Whether you have thousands of lossless FLAC tracks on an SD card or albums shared across a home <span class="doc-link-term" data-term="NAS">NAS</span> server, FastMediaSorter lets you browse, queue, and sort your audio library without altering your physical folder hierarchy.
+                </p>
+
+                <!-- Prerequisite Card -->
+                <div class="doc-card-prereq">
+                    <div class="doc-card-prereq-title">
+                        <span class="doc-card-prereq-icon">✓</span>
+                        <span>Before You Begin: Ingredients &amp; Prerequisites</span>
+                    </div>
+                    <ul class="doc-prereq-list">
+                        <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter v2 installed on your Android device (version 2.6 or later).</li>
+                        <li><span class="doc-prereq-bullet">✓</span> <strong>Read Media Audio</strong> permission granted upon first launch.</li>
+                        <li><span class="doc-prereq-bullet">✓</span> Local music files (MP3, FLAC, AAC, OGG, or WAV format).</li>
+                        <li><span class="doc-prereq-bullet">✓</span> (Optional) Local Wi-Fi network for streaming directly from <a href="#s2950" class="doc-link-bookmark" data-target="S2950">SMB / SFTP servers</a>.</li>
+                    </ul>
+                </div>
+
+                <!-- Step 1 -->
+                <div class="doc-step" id="step-1">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">1</span>
+                        <h2 class="doc-step-title">Locate and Open Your Music Directory</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Launch FastMediaSorter. From the home drawer or bottom navigation bar, tap <strong>Local Storage</strong> or choose a configured network bookmark. Navigate to your music directory.</p>
+                        
+                        <div class="doc-step-img-container">
+                            <span class="doc-step-img-placeholder">Screenshot: Folder Browser showing Music albums with metadata badges</span>
+                        </div>
+                        <div class="doc-step-img-caption">Figure 1: Navigating music folders with live duration badges and track counts.</div>
+                    </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="doc-step" id="step-2">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">2</span>
+                        <h2 class="doc-step-title">Start Playback and Control the Queue</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>Tap any audio track to begin immediate playback using the integrated Media3 engine. The persistent bottom mini-player will appear:</p>
+                        <ul>
+                            <li><strong>Tap the mini-player:</strong> Expands the full-screen playback deck with album art, waveform scrubber, and equalizer controls.</li>
+                            <li><strong>Swipe left/right on the mini-player:</strong> Skips to the previous or next track in the queue.</li>
+                            <li><strong>Queue management:</strong> Tap the playlist icon to drag and reorder songs or remove duplicates.</li>
+                        </ul>
+
+                        <!-- Callout Tip -->
+                        <div class="doc-callout doc-callout-tip">
+                            <div class="doc-callout-title">
+                                <span class="doc-callout-icon">💡</span> Background Playback &amp; Headset Controls
+                            </div>
+                            <p>FastMediaSorter continues playback in the background with lock screen controls and supports Bluetooth headset buttons (single tap pause, double tap next track).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="doc-step" id="step-3">
+                    <div class="doc-step-header">
+                        <span class="doc-step-badge">3</span>
+                        <h2 class="doc-step-title">Quick Sorting &amp; File Operations</h2>
+                    </div>
+                    <div class="doc-step-body">
+                        <p>To organize messy tracks into proper artist folders, enter multi-selection mode by long-pressing any item:</p>
+                        <ol>
+                            <li>Select the target tracks or whole albums.</li>
+                            <li>Tap the <strong>Copy/Move Panel</strong> button in the top action bar.</li>
+                            <li>Pick your destination folder from your predefined destination bookmarks.</li>
+                        </ol>
+
+                        <!-- Callout Warning -->
+                        <div class="doc-callout doc-callout-warning">
+                            <div class="doc-callout-title">
+                                <span class="doc-callout-icon">⚠️</span> Keep Your Android Screen On During Large Network Transfers
+                            </div>
+                            <p>When moving files across network shares (<span class="doc-link-term" data-term="SMB">SMB</span> or <span class="doc-link-term" data-term="SFTP">SFTP</span>), keep the transfer window in the foreground or ensure FastMediaSorter is excluded from aggressive vendor battery-killer rules.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- What to Try Next Section -->
+                <div class="doc-next-section">
+                    <div class="doc-next-title">What to Try Next: Related Recipes</div>
+                    <div class="doc-next-grid">
+                        <a href="design-system/index.html" class="doc-next-card">
+                            <span class="doc-badge doc-badge-sm doc-badge-music">Audio</span>
+                            <h4>Fine-Tuning the 10-Band Equalizer</h4>
+                            <p>Learn how to save custom EQ presets for headphones, car audio, and Bluetooth speakers.</p>
+                        </a>
+                        <a href="#s2950" class="doc-next-card doc-link-bookmark" data-target="S2950">
+                            <span class="doc-badge doc-badge-sm doc-badge-docs">Network</span>
+                            <h4>Setting Up SMB Streaming on Home NAS</h4>
+                            <p>Stream your high-resolution FLAC library directly without filling your device storage.</p>
+                        </a>
+                    </div>
+                </div>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">On this page</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#step-1" class="doc-toc-link">1. Locate Music Directory</a></li>
+                        <li><a href="#step-2" class="doc-toc-link">2. Playback and Queue</a></li>
+                        <li><a href="#step-3" class="doc-toc-link">3. Quick Sorting Operations</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Free and open-source Android organizer.</div>
+            <div class="doc-footer-links">
+                <a href="../privacy.html">Privacy Policy</a>
+                <a href="design-system/index.html">Component System</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive scripts: Theme switcher & 13-Language selector -->
+    <script>
+        (function () {
+            // Theme toggle
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            // Language picker dropdown
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            // Language state resolver: URL ?lang= -> localStorage -> navigator -> default 'en'
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            // Mark active language in dropdown and update button label
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- Background Animated Waves & Particles Canvas -->
+    <canvas id="docCanvas"></canvas>
+    <script>
+        (function () {
+            var canvas = document.getElementById('docCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+
+            var particles = [];
+            var PARTICLE_COUNT = 45;
+
+            function initParticles() {
+                particles = [];
+                for (var i = 0; i < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.6 + 0.5,
+                        vx: (Math.random() - 0.5) * 0.25,
+                        vy: (Math.random() - 0.5) * 0.25,
+                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
+                    });
+                }
+            }
+
+            var time = 0;
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                time += 0.002;
+                ctx.lineWidth = 1.4;
+                for (var j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 20;
+                    for (var i = 0; i <= width; i += 24) {
+                        var y = height * 0.35 +
+                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
+                            Math.sin(time * 0.25 + j * 0.25);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
+                    ctx.stroke();
+                }
+                particles.forEach(function (p) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
+                    ctx.fill();
+                });
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', function () { resize(); initParticles(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            initParticles();
+            draw();
+        }());
+    </script>
+</body>
+</html>
+
+
+

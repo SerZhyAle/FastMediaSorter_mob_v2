@@ -19,9 +19,10 @@
       count        a numeral standing next to a flavor noun under an ALL-quantifier ("all six
                    flavors", "во всех шести флейворах", "Seven in total") whose value is not the
                    declared count.
-      enumeration  a list that claims to be the complete set - a `-Flavor A|B|C` value list, or a
-                   parenthesised name list right after an all-quantifier - that omits or invents a
-                   flavor name.
+      enumeration  a list that claims to be the complete set - a `-Flavor A|B|C` value list, a
+                   parenthesised name list right after an all-quantifier, or a list LABELLED by the
+                   plural flavor noun ("Flavors (main app): a, b, c", "Flavor(s): a / b / c") - that
+                   omits or invents a flavor name.
 
     Only quantified statements are judged. "standard/legacy/noLegal/vr - HLS, DASH VOD" names a
     SUBSET on purpose, and a gate that reported it would be switched off within a week; the whole
@@ -41,6 +42,11 @@
     Suppress the per-run progress lines; the verdict line and any finding rows still print. This is
     what assert-fast-gates.ps1 passes when it runs the gate as part of the batch.
 
+.PARAMETER RepoRoot
+    The tree to scan, defaulting to this repository. The suite under
+    assert-flavor-count-prose.tests/ points it at a synthetic tree, because the negative cases - a
+    subset label that must NOT be judged - cannot be shown on a live tree that is clean.
+
 .EXIT CODES
     0 - every quantified flavor claim matches the matrix (or findings exist without -Gate).
     1 - at least one claim contradicts the matrix, and -Gate was passed.
@@ -51,10 +57,14 @@
     pwsh -NoProfile -File scripts/quality/assert-flavor-count-prose.ps1
     pwsh -NoProfile -File scripts/quality/assert-flavor-count-prose.ps1 -Gate -Quiet
 #>
-param([switch]$Gate, [switch]$Quiet)
+param(
+    [switch]$Gate,
+    [switch]$Quiet,
+    [string]$RepoRoot = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
+)
 
 $ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+$repoRoot = (Resolve-Path -LiteralPath $RepoRoot).Path
 
 $matrixPath = Join-Path $repoRoot 'docs/flavors/flavor-matrix.json'
 if (-not (Test-Path -LiteralPath $matrixPath)) {
@@ -107,6 +117,17 @@ $countAfterTotal = "(?i)\b(?:$totalMarker)\b\s+($numeralAlternatives)\b"
 $flavorValueList = "(?i)-Flavor\s+([A-Za-z]+(?:\s*\|\s*[A-Za-z]+){2,})"
 # A parenthesised name list introduced by an all-quantifier plus a flavor noun on the same line.
 $enumeratedUnderQuantifier = "(?i)\b(?:$allQuantifier)\b[^.;:(]{0,40}?(?:$flavorNoun)[^(]{0,20}\(([^)]{0,300})\)"
+# S2919: a list whose LABEL is the plural flavor noun - "- Flavors (main app): a, b, c",
+# "Flavor(s): a / b / c", "**Флейворы**: ..". A label names the set, so the list under it claims to
+# be complete exactly as one under "all" does; dev/PROJECT_OPERATIONS_INDEX.md said "Flavors (main
+# app): standard, lite, photos, legacy" for months under this gate's scan root, because neither
+# shape above carries it. The noun must be the WHOLE label: "Flavor scope:" and "Flavor gate:"
+# name a subset on purpose and stay unjudged. Group 1 is the optional parenthesised qualifier,
+# group 2 the list, cut at the first sentence end - "vr, foss. Gated via .." otherwise loses its
+# last name to the prose behind it and reads as a list that omits foss.
+$labelledList = "(?i)^\s*(?:[-*]\s+)?(?:\*\*)?(?:flavou?rs|flavou?r\(s\)|флейвор[иы])(?:\*\*)?\s*(?:\(([^)]{0,40})\))?\s*(?:\*\*)?\s*:\s*(?:\*\*)?\s*([^.;]+)"
+# The watch declares its own two flavors, so a label qualified by it is judged against nothing here.
+$watchQualifier = "(?i)wear|watch|часы|часов|годинник"
 
 . (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
 $nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $repoRoot
@@ -121,7 +142,10 @@ $skippedWorktreeFiles = [System.Collections.Generic.HashSet[string]]::new(
 # a document. Measured 2026-09-10, GEMINI.md said "six flavors" inside the sentence forbidding a
 # from-memory answer, and .claude/agents/android-rd-specialist.md said the same; foss has existed
 # since S2440.
-$scanRoots = @('docs', 'dev', '.claude/rules', '.claude/agents')
+# S2919 added .github/agents, the non-Claude mirror of .claude/agents: S2856 extended the scan to the
+# Claude copy only, so both copies of android-solution-researcher carried the same four-name list
+# and a fix to one would have left the other unread.
+$scanRoots = @('docs', 'dev', '.claude/rules', '.claude/agents', '.github/agents')
 $scanExtensions = @('.md')
 $scanRootFiles = @('README.md', 'a.ps1', 'CLAUDE.md', 'AGENTS.md', 'GEMINI.md', '.github/copilot-instructions.md')
 $excludedPaths = @('dev/CHANGELOG.md', 'dev/archive')
@@ -173,7 +197,10 @@ function Test-NameList {
         which is the point below which a list is a pair or a phrase, not a claim about the set.
     #>
     param([Parameter(Mandatory)][string]$Text)
-    $tokens = @($Text -split '[|,/]+' | ForEach-Object { $_.Trim().Trim('`', '*', ' ', '.') } |
+    # A trailing conjunction ("lite, photos and foss") is a separator too: left in, it glued the
+    # last two names into one token that matched nothing, and the list read as omitting both.
+    $tokens = @($Text -split '[|,/]+|\s+(?:and|or|и|или|та|і|або)\s+' |
+        ForEach-Object { $_.Trim().Trim('`', '*', ' ', '.') } |
         Where-Object { $_ -match '^[A-Za-z]+$' })
     $known = @($tokens | Where-Object { $declaredLookup.Contains($_) })
     if ($known.Count -lt 3) { return $null }
@@ -203,6 +230,17 @@ foreach ($file in Get-ScanFile) {
                 if ($missing.Count -eq 0) { continue }
                 Add-Finding -File $rel -Line $lineNumber -Class 'enumeration' `
                     -Claimed ("omits " + ($missing -join ', ')) -Text $line.Trim()
+            }
+        }
+        $labelled = [regex]::Match($line, $labelledList)
+        if ($labelled.Success -and $labelled.Groups[1].Value -notmatch $watchQualifier) {
+            $named = Test-NameList -Text $labelled.Groups[2].Value
+            if ($null -ne $named) {
+                $missing = @($declaredFlavors | Where-Object { $named -notcontains $_ })
+                if ($missing.Count -gt 0) {
+                    Add-Finding -File $rel -Line $lineNumber -Class 'enumeration' `
+                        -Claimed ("omits " + ($missing -join ', ')) -Text $line.Trim()
+                }
             }
         }
     }

@@ -87,17 +87,16 @@ class ListenRequestNotifier @Inject constructor(
         if (!canPostNotification()) {
             return false
         }
-        Timber.d("S2941: posting listen request with full-screen intent")
         val manager = notificationManager()
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
                 context.getString(R.string.wear_listen_request_channel_name),
-                // DEFAULT, not LOW: someone is waiting on the other end of this, and a silent entry
-                // in the shade would read as the feature not working.
-                NotificationManager.IMPORTANCE_DEFAULT
+                // HIGH: incoming call/listen request requires high importance for heads-up / full-screen intent.
+                NotificationManager.IMPORTANCE_HIGH
             )
         )
+        Timber.d("S2941: posting listen request with full-screen intent")
         manager.notify(WearNotificationIds.LISTEN_REQUEST, build())
         hasPendingRequest = true
         scheduleExpiry(onExpired)
@@ -142,6 +141,7 @@ class ListenRequestNotifier @Inject constructor(
         .setContentText(context.getString(R.string.wear_listen_request_notification_text))
         .setSmallIcon(NotificationIcons.STATUS_BAR)
         .setCategory(NotificationCompat.CATEGORY_CALL)
+        .setPriority(NotificationCompat.PRIORITY_MAX)
         .setAutoCancel(true)
         .setContentIntent(pendingIntent())
         .setFullScreenIntent(pendingIntent(), true)

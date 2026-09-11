@@ -42,6 +42,7 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
+import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
@@ -586,7 +587,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // must stay on the toolbar - a per-item listener would survive the first rotation as a
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
-            Timber.d("S2898: toolbar menu item clicked: %s", item.title)
+            Timber.d("S2898: toolbar menu item clicked: ${item.title}")
             when (item.itemId) {
                 R.id.action_stream_add -> {
                     showSourceDialog(isImport = false)
@@ -675,6 +676,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             searchField = binding.tilSearch,
             onOrientationApplied = { landscape ->
                 mediaKindTrigger.render(latestState.filter.mediaKind, landscape)
+                updateCatalogBannerFocus(catalogBanner?.isVisible == true)
             },
         )
         // S1473: the two pinned commands take text labels in landscape, which forces a menu rebuild
@@ -982,7 +984,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * S2896: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls below.
      */
     private fun showCatalogRefreshSuggestion() {
-        Timber.d("S2896: showCatalogRefreshSuggestion")
         val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
         banner.isVisible = true
         updateCatalogBannerFocus(bannerVisible = true)
@@ -996,12 +997,16 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     }
 
     private fun hideCatalogBanner() {
-        Timber.d("S2896: hideCatalogBanner")
         catalogBanner?.isVisible = false
         updateCatalogBannerFocus(bannerVisible = false)
     }
 
+    /**
+     * S2896/S2991: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls
+     * and content (empty list / section headers) below, and that down from banner targets content in landscape.
+     */
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
+        Timber.d("S2991: updateCatalogBannerFocus bannerVisible=$bannerVisible")
         val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
         val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
         binding.etSearch.nextFocusUpId = upTargetId
@@ -1009,6 +1014,36 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         binding.btnMediaKindAudio.nextFocusUpId = upTargetId
         binding.btnFilter.nextFocusUpId = upTargetId
         binding.btnSort.nextFocusUpId = sortUpTargetId
+
+        binding.btnEmptyAddUrl.nextFocusUpId = if (bannerVisible) upTargetId else R.id.etSearch
+        binding.streamsPinnedHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.btnFilter
+        binding.streamsMainHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.streamsPinnedHeader
+
+        val banner = catalogBanner
+        if (bannerVisible && banner != null) {
+            val isLandscape =
+                resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            val downTargetId = if (binding.emptyStateView.isVisible) {
+                R.id.btnEmptyAddUrl
+            } else if (binding.streamsPinnedSection.isVisible) {
+                R.id.streamsPinnedHeader
+            } else {
+                R.id.rvStreams
+            }
+            val actionBtn = banner.findViewById<View>(R.id.btnCatalogBannerAction)
+            val dismissBtn = banner.findViewById<View>(R.id.btnCatalogBannerDismiss)
+            if (isLandscape) {
+                actionBtn?.nextFocusUpId = R.id.etSearch
+                dismissBtn?.nextFocusUpId = R.id.btnSort
+                actionBtn?.nextFocusDownId = downTargetId
+                dismissBtn?.nextFocusDownId = downTargetId
+            } else {
+                actionBtn?.nextFocusUpId = R.id.toolbar
+                dismissBtn?.nextFocusUpId = R.id.toolbar
+                actionBtn?.nextFocusDownId = R.id.btnFilter
+                dismissBtn?.nextFocusDownId = R.id.btnSort
+            }
+        }
     }
 
     /**
@@ -1108,10 +1143,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            source.mediaKind == "AUDIO" ->
-                inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+            source.mediaKind == "AUDIO" -> {
+                if (viewModel.settings.value.streamsVisualizeAsMusic) {
+                    launchVisualizerStream(source)
+                } else {
+                    inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+                }
+            }
             else -> launchFullscreenStream(source)
         }
+    }
+
+    private fun launchVisualizerStream(source: StreamSourceEntity) {
+        // S1143: opening the full-screen visualizer player stops the inline audio engine
+        // and clears the now playing row indicator so ownership is passed completely.
+        inlineAudio.stop()
+        clearStreamResume()
+        Timber.i("StreamsActivity: launching visualizer audio stream - %s", source.url)
+        streamPlayerLauncher.launch(
+            AudioStandaloneActivity.createStreamIntent(
+                context = this,
+                channelId = source.id,
+                url = source.url,
+                displayName = source.title,
+            )
+        )
     }
 
     private fun launchFullscreenStream(source: StreamSourceEntity) {

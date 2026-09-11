@@ -333,7 +333,6 @@ class WearSyncViewModel @Inject constructor(
                 ?.name
                 ?.takeIf { it.isNotBlank() }
                 ?: defaultName
-            Timber.d("S2868: add-or-open names the watch resource '%s'", name)
             val outcome = ensureWatchResourceUseCase(name).getOrElse { e ->
                 Timber.e(e, "Could not ensure the watch resource")
                 _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
@@ -483,7 +482,6 @@ class WearSyncViewModel @Inject constructor(
             if (settingsPushInFlight) {
                 settingsPushInFlight = false
                 Timber.w("Watch did not report the settings merge within $ACK_TIMEOUT_MS ms")
-                Timber.d("S2916: settings push timed out - no merge report")
                 _uiState.value = WearSyncUiState.Idle
                 _settingsPushEvent.tryEmit(
                     SettingsPushEvent.Timeout(context.getString(R.string.wear_sync_settings_no_ack))
@@ -513,7 +511,6 @@ class WearSyncViewModel @Inject constructor(
                     // watchSettingsMergedFlow and completes the push in adoptMergedSettings.
                     settingsPushInFlight = true
                     startSettingsAckTimeout()
-                    Timber.d("S2916: settings push waiting for merge report")
                 }
                 .onFailure { e ->
                     Timber.e(e, "Failed to push watch settings")
@@ -585,7 +582,6 @@ class WearSyncViewModel @Inject constructor(
             settingsPushInFlight = false
             settingsAckTimeoutJob?.cancel()
             _uiState.value = WearSyncUiState.SettingsPushed
-            Timber.d("S2916: settings push completed by merge report")
         }
     }
 
@@ -612,7 +608,6 @@ class WearSyncViewModel @Inject constructor(
      */
     private fun stampedForWire(settings: WearSettingsPayload): WearSettingsPayload {
         val stamped = settings.copy(fieldTimestamps = fieldTimestampsCache, capabilities = emptyMap())
-        Timber.d("S2862: outbound settings payload carries ${fieldTimestampsCache.size} field stamp(s)")
         return stamped
     }
 

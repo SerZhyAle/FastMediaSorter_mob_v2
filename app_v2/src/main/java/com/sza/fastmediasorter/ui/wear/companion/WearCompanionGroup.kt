@@ -45,6 +45,7 @@ fun WearCompanionGroup(
     expanded: Boolean,
     tag: String,
     onExpandedChange: (Boolean) -> Unit,
+    headerConfig: CompanionGroupHeader? = null,
     content: @Composable () -> Unit
 ) {
     val stateRes = if (expanded) {
@@ -77,6 +78,14 @@ fun WearCompanionGroup(
             header.setSummary(summary)
             header.setExpanded(expanded, notify = false)
             header.setOnExpandedChangeListener(onExpandedChange)
+            if (headerConfig != null) {
+                if (headerConfig.iconRes != null) {
+                    header.setIcon(headerConfig.iconRes)
+                }
+                if (headerConfig.help != null) {
+                    header.setHelp(headerConfig.help.titleRes, headerConfig.help.messageRes)
+                }
+            }
         }
     )
 

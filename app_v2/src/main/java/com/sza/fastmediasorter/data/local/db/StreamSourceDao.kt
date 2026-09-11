@@ -104,6 +104,10 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET url = :url, identityKey = :identityKey WHERE id = :id")
     suspend fun updateSourceAddress(id: String, url: String, identityKey: String)
 
+    /** S2868: title-only write; the caller decides whether the stored title may be replaced at all. */
+    @Query("UPDATE stream_sources SET title = :title WHERE id = :id")
+    suspend fun updateTitle(id: String, title: String)
+
     /**
      * S1832: repaint the pin projection on the catalog rows from the durable user state, in one
      * statement. Called at the end of a merge, so a channel that just returned to the bank as a brand new

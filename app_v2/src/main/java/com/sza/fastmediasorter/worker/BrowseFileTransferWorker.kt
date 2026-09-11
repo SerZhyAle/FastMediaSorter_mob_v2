@@ -298,7 +298,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                 // succeeding - a partial write proves the destination reachable, and the branches where
                 // it truly is not (Failure, AuthenticationRequired, PermissionRequired) are separate.
                 val dirOutcome = runDirectoryOperations(request)
-                Timber.d("S2586: partial half, dirs ok=${dirOutcome.succeededCount} fail=${dirOutcome.failedCount}")
+                Timber.d("S2586: partial half, dirs ok=%d fail=%d", dirOutcome.succeededCount, dirOutcome.failedCount)
                 BrowseFileTransferTerminalEvent.PartialSuccess(
                     workId = id.toString(),
                     operationType = request.operationType,
@@ -588,17 +588,25 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     /**
      * S1325: a mixed selection reports both halves. The file count alone read as if the folders had
      * been skipped, which is the state the user could not distinguish from a silent failure.
+     *
+     * S2586: the PartialSuccess notification also carries the merged error details (file names and
+     * reasons) so the user learns which entry failed without reopening the app - matching the Failure
+     * branch, which already puts its reason in BigTextStyle.
      */
-    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String) {
+    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String, errorDetails: String? = null) {
         val folders = directoryOutcome.succeededCount
-        if (folders <= 0) {
-            builder.setContentText(fileText)
-            return
+        val parts = mutableListOf(fileText)
+        if (folders > 0) {
+            parts += context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
         }
-        val combined = fileText + "\n" +
-            context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
+        if (!errorDetails.isNullOrBlank()) {
+            parts += errorDetails
+        }
+        val combined = parts.joinToString("\n")
         builder.setContentText(combined)
-        builder.setStyle(NotificationCompat.BigTextStyle().bigText(combined))
+        if (parts.size > 1) {
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(combined))
+        }
     }
 
     private fun postResultNotification(
@@ -629,6 +637,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         event.failedCount,
                         event.processedCount + event.failedCount,
                     ),
+                    event.details,
                 )
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {

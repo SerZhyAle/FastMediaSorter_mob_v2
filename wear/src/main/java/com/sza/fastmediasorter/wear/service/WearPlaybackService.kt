@@ -201,7 +201,6 @@ class WearPlaybackService : MediaSessionService() {
         // can answer NEXT and PREVIOUS on a one-item player, and only the raw one can be released.
         mediaSession = MediaSession.Builder(this, WearPlaybackSetPlayer(exoPlayer, playbackSetManager))
             .build()
-        Timber.d("S2876: watch session built with no callback - media3 1.11.0 default connect policy applies")
         // Before any item loads: a foreground service that has not posted its notification within the
         // platform's window is killed, and loading the first item is exactly what can outlast it.
         startInForeground()

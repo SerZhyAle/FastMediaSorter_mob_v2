@@ -8,7 +8,7 @@
 # network resources and their credentials are intentionally not part of this checkout.
 #
 # Apply channel:      'adb' = scriptable (theme SharedPrefs / cmd locale);
-#                     'ui'  = DataStore-backed, applied via mobile-mcp in the skill scenario.
+#                     'ui'  = DataStore-backed, applied via the Maestro MCP server in the skill scenario.
 @{
     Settings = @{
         Theme        = @{ Key = 'color_theme';       Value = 'DARK';     Channel = 'ui' }

@@ -266,7 +266,6 @@ class MainActivity : ComponentActivity() {
         logAppInfo()
 
         Timber.d("MainActivity created")
-        Timber.d("S2545: wear release 36 strings translated")
         Timber.d("S2913: wear compose stack initialized")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
@@ -640,7 +639,6 @@ fun MainNavigation(
                 WearBackAffordance(
                     role = WearBackAffordanceRole.Back,
                     onClick = {
-                        Timber.d("S2472: nav back affordance tapped on $currentRoute")
                         navController.popBackStack()
                     },
                     modifier = Modifier

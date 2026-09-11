@@ -1,13 +1,14 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 /**
- * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE].
+ * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE], S2981 to 6 for
+ * [WearPhoneResourceResponseStatus.COMPANION_DISABLED].
  *
  * Both sides move together, in one change: an unknown enum name deserialises to null through Gson,
  * so a watch built before the value would read the new status as a malformed page rather than as an
  * unknown one. There is no installed base to negotiate with - the pair ships as one artifact set.
  */
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 5
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 6
 
 enum class WearPhoneResourceRequestKind {
     ROOT,
@@ -49,7 +50,14 @@ enum class WearPhoneResourceResponseStatus {
     ACCESS_DENIED,
     UNSUPPORTED_MEDIA,
     TRANSFER_REJECTED,
-    NOT_FOUND
+    NOT_FOUND,
+
+    /**
+     * S2981: the phone answered, and its Wear Companion switch is off. Kept apart from
+     * [PHONE_UNAVAILABLE] so the screen sends the wearer to that switch rather than telling them to
+     * open an app that is already open.
+     */
+    COMPANION_DISABLED
 }
 
 data class WearPhoneResourceRequest(

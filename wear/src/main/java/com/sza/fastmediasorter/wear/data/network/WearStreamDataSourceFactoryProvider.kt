@@ -16,7 +16,6 @@ import androidx.media3.exoplayer.rtsp.RtspMediaSource
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
-import timber.log.Timber
 
 /**
  * Builds the HTTP [DataSource.Factory] and [DefaultMediaSourceFactory] for Wear OS stream playback (S2498).
@@ -45,7 +44,6 @@ object WearStreamDataSourceFactoryProvider {
     }
 
     fun createMediaSourceFactory(context: Context): MediaSource.Factory {
-        Timber.d("S2498: wear stream media source factory built")
         val httpFactory = createHttpDataSourceFactory()
         val dataSourceFactory = DefaultDataSource.Factory(context, httpFactory)
         val default = DefaultMediaSourceFactory(context).setDataSourceFactory(dataSourceFactory)

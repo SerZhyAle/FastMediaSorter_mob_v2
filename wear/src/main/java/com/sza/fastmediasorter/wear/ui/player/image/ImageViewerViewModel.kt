@@ -9,6 +9,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
@@ -304,6 +305,7 @@ class ImageViewerViewModel @Inject constructor(
      * applies to keeping the display awake. Tying it to the slideshow left a hand-paged viewer
      * showing its panel forever, which is what the owner reported.
      */
+    @Suppress("MagicNumber")
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
         Timber.d("S2480: panel hide countdown started")
@@ -412,22 +414,18 @@ class ImageViewerViewModel @Inject constructor(
         } else {
             _uiState.value.mediaFile?.uri?.toString() ?: return
         }
-        val displayName = _uiState.value.mediaFile?.name ?: filePath.substringAfterLast('/')
+        val mediaFile = _uiState.value.mediaFile
+        val displayName = mediaFile?.displayName ?: filePath.substringAfterLast('/')
         viewModelScope.launch {
             // S1846: marking goes through the use case that also pushes the delta, which is what the audio
             // player already did; this screen used to bypass it and repeat both halves by hand.
-            _isFavorite.value = if (_isFavorite.value) {
-                toggleFavoriteUseCase.toggle(sourceId, filePath, wasFavorite = true)
-            } else {
-                toggleFavoriteUseCase.add(
-                    WearFavoriteRecord(
-                        sourceId = sourceId,
-                        filePath = filePath,
-                        displayName = displayName,
-                        mimeType = _uiState.value.mediaFile?.mimeType
-                    )
-                )
-            }
+            val record = WearFavoriteRecord(
+                sourceId = sourceId,
+                filePath = filePath,
+                displayName = displayName,
+                mimeType = mediaFile?.mimeType
+            )
+            _isFavorite.value = toggleFavoriteUseCase.toggle(record, _isFavorite.value)
         }
     }
 

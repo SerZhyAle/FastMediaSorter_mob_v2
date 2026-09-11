@@ -36,9 +36,9 @@ permalink: /docs/WEAR_OS_BUILD_CONFIG.html
 Available in `scripts/builders/`:
 
 - `scripts/builders/build-wear-debug.PS1` - Quick debug build
-- `scripts/builders/build-wear-release.PS1` - Release build of this module alone. `-Artifact Apk|Aab|Both` selects `:wear:assembleRelease`, `:wear:bundleRelease` or both in one gradle call. It carries the version already checked into `wear/build.gradle.kts` unless `-VersionName`/`-VersionCode` pin one.
+- `scripts/builders/build-wear-release.PS1` - Release build of this module alone. `-Artifact Apk|Aab|Both` selects `:wear:assemble<Flavor>Release`, `:wear:bundle<Flavor>Release` (default `standardRelease`) or both in one gradle call. It carries the version already checked into `wear/build.gradle.kts` unless `-VersionName`/`-VersionCode` pin one.
 
-For a release that ships the watch, the artifacts come from `scripts/release/build-release-spectrum.ps1` instead, with `wear` in `-Flavors`. That script stamps one version into both `app_v2` and `wear` first, then builds `:wear:assembleRelease` and `:wear:bundleRelease` in the same invocation, so the sideload APK and the Play bundle cannot disagree about what they are (S2040). It refuses to finish if either artifact is missing.
+For a release that ships the watch, the artifacts come from `scripts/release/build-release-spectrum.ps1` instead, with `wear` in `-Flavors`. That script stamps one version into both `app_v2` and `wear` first, then builds `:wear:assembleStandardRelease` and `:wear:bundleStandardRelease` (or the selected `-WearFlavor`) in the same invocation, so the sideload APK and the Play bundle cannot disagree about what they are (S2040). It refuses to finish if either artifact is missing.
 
 Fast checks live on the `a.ps1` launcher. The phone targets do not cover this module: `fk`, `fkn`,
 `fr`, `fc` and `fu` all check `app_v2` and exit 0 without compiling a single watch file.
@@ -89,10 +89,10 @@ Size, measured 2026-08-15 (S1679). Compare a new build against the **release** n
 
 ```powershell
 # Build and deploy
-.\scripts\builders\build-wear-debug.PS1
+.\scripts\builders\build-wear-debug.PS1    # alias: .\a.ps1 wd
 
-# Or use Gradle directly
-.\gradlew.bat :wear:assembleDebug
+# Or use Gradle directly (under Build.Wear lock)
+.\gradlew.bat :wear:assembleStandardDebug
 ```
 
 ## Technical Details
@@ -177,7 +177,7 @@ File → Sync Now  # or Ctrl+Shift+Y
 ### "KSP compilation failed"
 
 ```powershell
-.\gradlew.bat :wear:clean :wear:assembleDebug
+.\gradlew.bat :wear:clean :wear:assembleStandardDebug
 ```
 
 ### Wrong module selected

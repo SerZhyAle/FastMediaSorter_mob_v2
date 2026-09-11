@@ -189,7 +189,6 @@ class PermissionsManagementFragment : Fragment() {
             openSettingsBtn?.isVisible == true -> openSettingsBtn
             else -> toolbar
         }
-        Timber.d("S2899: PermissionsManagement initial focus requested on ${target?.javaClass?.simpleName}")
         target?.requestFocus()
     }
 

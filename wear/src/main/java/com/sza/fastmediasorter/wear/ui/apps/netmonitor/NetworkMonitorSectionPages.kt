@@ -191,8 +191,8 @@ private fun PermissionNotice(canRequest: Boolean, onRequest: () -> Unit) {
  * Every action of a section page, in one shape (S2805).
  *
  * A chip and never `androidx.wear.compose.material.Button`, which is circular by definition and
- * clipped labels such as "Reset counters" into an unreadable arc; the label needs the full width of
- * the screen, which is what the system-information report gives its own action.
+ * clips labels such as "Reset counters" into an unreadable arc. The chip sizes to its label so the
+ * action reads as a button, not a full-row target (S2470).
  */
 @Composable
 private fun ActionChip(
@@ -200,6 +200,7 @@ private fun ActionChip(
     onClick: () -> Unit,
     primary: Boolean = false
 ) {
+    Timber.d("S2470: action chip content-width")
     Chip(
         onClick = onClick,
         colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors(),
@@ -207,11 +208,9 @@ private fun ActionChip(
             Text(
                 text = text,
                 style = MaterialTheme.typography.caption2,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
+                textAlign = TextAlign.Center
             )
-        },
-        modifier = Modifier.fillMaxWidth()
+        }
     )
 }
 

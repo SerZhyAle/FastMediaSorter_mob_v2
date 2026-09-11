@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.ui.player.helpers.PlayerKeyboardHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneFileOperationsHandler
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
+import com.sza.fastmediasorter.ui.player.standalone.helpers.StreamAudioModeManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
@@ -43,6 +44,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -129,9 +131,27 @@ class AudioStandaloneActivity :
 
     // S1143: stream mode - the host renders the reduced live-channel surface instead of a file.
     private var streamMode = false
-    private var streamChannelId = -1L
-    private var streamUrl: String? = null
-    private var streamName: String? = null
+
+    private val streamModeManager: StreamAudioModeManager by lazy {
+        StreamAudioModeManager(
+            activity = this,
+            root = binding.root,
+            lifecycleScope = lifecycleScope,
+            lyricsManager = lyricsManager,
+            standaloneHostFactory = standaloneHostFactory,
+            getPlayer = { binding.playerView.player ?: viewManager.getPlayer(viewModel.state.value.mediaType) },
+            onShowPlaybackSpeedDialog = ::showPlaybackSpeedDialog,
+            onShowSleepTimerDialog = ::showSleepTimerDialog,
+        )
+    }
+
+    private val lyricsManager: com.sza.fastmediasorter.ui.player.helpers.LyricsManager by lazy {
+        standaloneHostFactory.createLyricsManager(
+            activity = this,
+            root = binding.root,
+            lifecycleScope = lifecycleScope
+        )
+    }
 
     /** Backs the runtime [supportsFolderPaging] capability; updated from VM state. */
     private var folderPagingEnabled = false
@@ -196,11 +216,16 @@ class AudioStandaloneActivity :
         setupWindowAndInsets()
         setupCloseButton()
         setupBackPressHandler()
-        setupFileOperationButtons()
         setupPlaybackControls()
-        pagingControls.setupClicks()
         setupKeyboardHandler()
         parseIncomingIntent()
+        if (streamMode) {
+            streamModeManager.apply()
+            streamModeManager.setupControls()
+        } else {
+            setupFileOperationButtons()
+            pagingControls.setupClicks()
+        }
     }
 
     // S0393: playback-speed picker for the audio lane (replaces the legacy speed control).
@@ -296,17 +321,17 @@ class AudioStandaloneActivity :
             keyBindingManager = keyBindingManager,
             getActivePlayer = { viewManager.getPlayer(viewModel.state.value.mediaType) },
             getCurrentMediaType = { viewModel.state.value.mediaType },
-            onDelete = { fileOperations.deleteCurrentFile() },
+            onDelete = { if (!streamMode) fileOperations.deleteCurrentFile() },
             onExit = { finish() },
-            onShowRename = { fileOperations.showStandaloneRenameDialog() },
-            onShowInfo = { showFileInfo() },
+            onShowRename = { if (!streamMode) fileOperations.showStandaloneRenameDialog() },
+            onShowInfo = { if (!streamMode) showFileInfo() },
             onToggleCommandPanel = {
                 binding.topCommandPanel.isVisible = !binding.topCommandPanel.isVisible
             },
-            onToggleFavourite = { viewModel.toggleFavorite() },
-            onNextFile = { viewModel.pageNext() },
-            onPreviousFile = { viewModel.pagePrevious() },
-            onToggleSlideshow = { viewModel.toggleSlideshow() },
+            onToggleFavourite = { if (!streamMode) viewModel.toggleFavorite() },
+            onNextFile = { if (!streamMode) viewModel.pageNext() },
+            onPreviousFile = { if (!streamMode) viewModel.pagePrevious() },
+            onToggleSlideshow = { if (!streamMode) viewModel.toggleSlideshow() },
             onShowHelp = {
                 com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment.show(
                     supportFragmentManager,
@@ -432,7 +457,8 @@ class AudioStandaloneActivity :
                 R.id.menu_edit_section_standalone,
                 R.id.menu_rename_standalone, R.id.menu_autorotate_standalone,
                 R.id.menu_black_screen, R.id.menu_google_lens, R.id.menu_ocr_image,
-                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame
+                R.id.menu_translate_image, R.id.menu_print, R.id.menu_save_frame,
+                R.id.menu_stream_about, R.id.menu_stream_share
             )
                 .forEach { popup.menu.findItem(it)?.isVisible = false }
             popup.setOnMenuItemClickListener { item ->
@@ -522,11 +548,34 @@ class AudioStandaloneActivity :
             finish()
         } else {
             streamMode = true
-            streamChannelId = incoming.getLongExtra(EXTRA_STREAM_ID, -1L)
-            streamUrl = url
-            streamName = incoming.getStringExtra(EXTRA_STREAM_NAME)
+            val name = incoming.getStringExtra(EXTRA_STREAM_NAME)
+            streamModeManager.streamChannelId = incoming.getStringExtra(EXTRA_STREAM_ID)
+            streamModeManager.streamUrl = url
+            streamModeManager.streamName = name
+            playStreamAudio(url, name ?: url)
         }
         return true
+    }
+
+    private fun playStreamAudio(url: String, displayName: String) {
+        val streamFile = MediaFile(
+            name = displayName,
+            path = url,
+            type = MediaType.AUDIO,
+            size = 0L,
+            createdDate = 0L,
+        )
+        lastShownPath = url
+        viewManager.show(streamFile, MediaType.AUDIO)
+        streamModeManager.startVisualizer()
+        lifecycleScope.launch {
+            while (isActive && binding.playerView.player == null) {
+                kotlinx.coroutines.delay(STREAM_PLAYER_ATTACH_POLL_MS)
+            }
+            binding.playerView.player?.let { player ->
+                streamModeManager.attachPlayer(player)
+            }
+        }
     }
 
     override fun observeData() {
@@ -550,29 +599,46 @@ class AudioStandaloneActivity :
                 finish()
                 return@collectOnLifecycle
             }
-            if (file.path != lastShownPath) {
-                viewManager.show(file, MediaType.AUDIO)
-                lastShownPath = file.path
-                destinationButtonsManager.populateDestinationButtons()
+            if (!streamMode) {
+                if (file.path != lastShownPath) {
+                    viewManager.show(file, MediaType.AUDIO)
+                    lastShownPath = file.path
+                    destinationButtonsManager.populateDestinationButtons()
+                }
+                folderPagingEnabled = state.supportsFolderPaging
+                pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
+                updateRenameButtonVisibility()
             }
-            folderPagingEnabled = state.supportsFolderPaging
-            pagingControls.applyState(state.supportsFolderPaging, state.isSlideshowActive)
-            updateRenameButtonVisibility()
         }
         collectOnLifecycle(viewModel.isFavorite) { isFav ->
-            binding.btnFavorite.setImageResource(
-                if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
-            )
-            binding.btnFavorite.contentDescription = getString(
-                if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
-            )
+            if (!streamMode) {
+                binding.btnFavorite.setImageResource(
+                    if (isFav) R.drawable.ic_star_filled else R.drawable.ic_star_outline
+                )
+                binding.btnFavorite.contentDescription = getString(
+                    if (isFav) R.string.cd_remove_from_favorites else R.string.cd_add_to_favorites
+                )
+            }
         }
         collectOnLifecycle(viewModel.messageFlow) { message ->
             Toast.makeText(this@AudioStandaloneActivity, message, Toast.LENGTH_SHORT).show()
         }
+        if (streamMode) {
+            collectOnLifecycle(streamModeManager.metadata) { meta ->
+                streamModeManager.renderTrackInfo(
+                    meta,
+                    streamModeManager.streamName ?: streamModeManager.streamUrl ?: ""
+                )
+                streamModeManager.checkLyricsAutoRefresh(meta)
+            }
+        }
     }
 
-    private fun updateRenameButtonVisibility() = fileOperations.updateRenameButtonVisibility()
+    private fun updateRenameButtonVisibility() {
+        if (!streamMode) {
+            fileOperations.updateRenameButtonVisibility()
+        }
+    }
 
     private fun handleRenameComplete(newUri: Uri, newName: String) {
         lastShownPath = newUri.toString()
@@ -591,6 +657,11 @@ class AudioStandaloneActivity :
     }
 
     override fun onDestroy() {
+        if (streamMode) {
+            streamModeManager.detachPlayer()
+            streamModeManager.stopVisualizer()
+            lyricsManager.release()
+        }
         // release() stops + releases the background AudioServiceController, so no direct service wiring.
         viewManager.release()
         super.onDestroy()
@@ -670,6 +741,7 @@ class AudioStandaloneActivity :
     override fun requestFinishAfterDelete() = finish()
 
     companion object {
+        private const val STREAM_PLAYER_ATTACH_POLL_MS = 50L
         private const val EXTRA_STREAM_MODE = "com.sza.fastmediasorter.extra.STREAM_MODE"
         private const val EXTRA_STREAM_ID = "com.sza.fastmediasorter.extra.STREAM_ID"
         private const val EXTRA_STREAM_URL = "com.sza.fastmediasorter.extra.STREAM_URL"
@@ -681,7 +753,7 @@ class AudioStandaloneActivity :
          */
         fun createStreamIntent(
             context: Context,
-            channelId: Long,
+            channelId: String,
             url: String,
             displayName: String,
         ): Intent = Intent(context, AudioStandaloneActivity::class.java)

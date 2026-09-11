@@ -11,6 +11,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.text.style.Hyphens
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -18,7 +20,6 @@ import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.ToggleChipDefaults
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-
 import timber.log.Timber
 
 // Read from the column rule, not written down again: the same threshold that decides how many
@@ -36,8 +37,15 @@ fun WearSettingsToggleCell(
     onToggle: () -> Unit,
     modifier: Modifier = Modifier,
     radio: Boolean = false,
-    accessibilityLabel: String = label
+    accessibilityLabel: String = label,
+    narrow: Boolean = false
 ) {
+    val labelStyle = if (narrow) {
+        MaterialTheme.typography.caption2.copy(hyphens = Hyphens.None)
+    } else {
+        MaterialTheme.typography.caption2
+    }
+    Timber.d("S2986: toggle cell %s, narrow=%b", label, narrow)
     val icon = if (radio) {
         ToggleChipDefaults.radioIcon(checked)
     } else {
@@ -73,8 +81,9 @@ fun WearSettingsToggleCell(
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.caption2
+            style = labelStyle,
+            maxLines = if (narrow) 1 else Int.MAX_VALUE,
+            overflow = if (narrow) TextOverflow.Ellipsis else TextOverflow.Clip
         )
     }
 }
-

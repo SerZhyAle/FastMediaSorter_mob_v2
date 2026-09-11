@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">Operación de copiar cancelada</string>
     <string name="toast_delete_cancelled">Operación de eliminar cancelada</string>
     <string name="toast_unexpected_result">Resultado inesperado</string>
-    <string name="toast_delete_error">No se pudo completar la eliminación de los archivos. Inténtalo de nuevo.</string>
     <string name="error_deletion_failed">Error al eliminar</string>
     <string name="toast_filter_applied">Filtro aplicado correctamente</string>
     <string name="toast_filter_failed">No se pudo aplicar ese filtro. Inténtalo de nuevo.</string>

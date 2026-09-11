@@ -102,7 +102,6 @@ class ExtensionsManagerFragment : Fragment() {
     private fun requestInitialFocus() {
         val binding = _binding ?: return
         val target = if (binding.btnInstallAll.isVisible) binding.btnInstallAll else binding.btnBack
-        timber.log.Timber.d("S2899: ExtensionsManager initial focus requested on ${target.javaClass.simpleName}")
         target.requestFocus()
     }
 

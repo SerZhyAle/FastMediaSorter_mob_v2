@@ -42,6 +42,8 @@ import androidx.navigation.NavController
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.material.Chip
+import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -249,6 +251,8 @@ private fun PhoneResourceStateBranch(
                 items = current.items,
                 listState = scrolls.list,
                 presentation = presentation,
+                canLoadMore = current.canLoadMore,
+                onLoadMore = viewModel::loadMore,
                 onEntryClick = { entry ->
                     when {
                         entry.isDirectory -> viewModel.openFolder(entry.token, entry.name)
@@ -311,6 +315,7 @@ private fun PhoneResourceStateBranch(
 
         is PhoneResourceUiState.Unavailable -> {
             Timber.d("S2471: PhoneResourceScreen rendering Unavailable state block")
+            Timber.d("S2981: PhoneResourceScreen Unavailable reason=%s", current.reason)
             WearStateBlock(
                 kind = WearStateKind.UNAVAILABLE,
                 message = stringResource(current.reason.toMessageRes()),
@@ -591,6 +596,8 @@ private fun PhoneResourceList(
     items: List<WearPhoneResourceItem>,
     listState: ScalingLazyListState,
     presentation: PhoneListPresentation,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit,
     onEntryClick: (WearPhoneResourceItem) -> Unit,
     onEntryLongClick: (WearPhoneResourceItem) -> Unit
 ) {
@@ -628,6 +635,19 @@ private fun PhoneResourceList(
                 onEntryClick = onEntryClick,
                 onEntryLongClick = onEntryLongClick
             )
+
+            // S2984: the phone paginates at 50 items; this chip requests the next page and is
+            // removed once it arrives, matching the WearFolderWalkScreen pattern (S2201).
+            if (canLoadMore) {
+                item {
+                    Chip(
+                        onClick = onLoadMore,
+                        label = { Text(text = stringResource(R.string.wear_folder_load_more)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ChipDefaults.secondaryChipColors()
+                    )
+                }
+            }
         }
     }
 }
@@ -720,7 +740,6 @@ private fun EntryRow(
     val longPressLabel = stringResource(R.string.wear_file_op_actions)
     CenteredGridRow(columns = columns, itemCount = entries.size, gap = GRID_GAP) {
         entries.forEach { entry ->
-            Timber.d("S2476: PhoneResourceScreen rendering item caption %s", entry.displayName)
             if (!entry.isDirectory) {
                 onRequestThumbnail(entry.token)
             }
@@ -871,5 +890,8 @@ private fun WearPhoneResourceResponseStatus?.toMessageRes(): Int = when (this) {
     // this fell to the fallback below and told the user the phone was out of reach, which a device run
     // showed being read as "nothing happened" while the phone had in fact replied in 41 ms.
     WearPhoneResourceResponseStatus.NOT_FOUND -> R.string.phone_resource_not_found
+    // S2981: the phone answered that its companion switch is off. The fallback below would tell the
+    // wearer to open an app that is already open and bring a phone that is already near.
+    WearPhoneResourceResponseStatus.COMPANION_DISABLED -> R.string.phone_resource_companion_disabled
     else -> R.string.phone_resource_unavailable
 }

@@ -31,7 +31,8 @@
 .\scripts\builders\build-aab-release.ps1                # alias: .\a.ps1 r
 
 # WEAR OS
-.\gradlew.bat :wear:assembleDebug
+.\scripts\builders\build-wear-debug.PS1                 # alias: .\a.ps1 wd
+.\scripts\builders\build-wear-release.PS1
 
 # DIRECT GRADLE (any flavor×buildType combination)
 .\gradlew.bat :app_v2:assembleStandardDebug
@@ -196,7 +197,7 @@ is the fallback. A plain `OK 0 line(s)` therefore now means what it says.
 
 Run `.\a.ps1 adb` (no verb) for the full verb list. Direct form:
 `pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]`. This is the manual-work
-layer; `mobile-mcp` drives agent UI walks, Maestro runs repeatable flows
+layer; the Maestro MCP server drives agent UI walks, Maestro flows run repeatable ones
 (`scripts/devtest/maestro/`), `device-ready.ps1` is the test-skill pre-flight.
 
 ### Camera WYSIWYG sweep, and the lens-pin switch (S1988)

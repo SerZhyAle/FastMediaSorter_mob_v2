@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.wear
 
 import android.content.Context
+import android.net.Uri
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEvent
@@ -146,20 +147,26 @@ class PhoneResourceClient @Inject constructor(
      * Waits for the one page carrying [requestId]. The listener is removed on every exit - normal,
      * timed out or cancelled - because a leaked Data Layer listener keeps delivering into a screen
      * the user has already left.
+     *
+     * S2985: the matching DataItem is deleted after the page is read, because per-request paths
+     * would otherwise accumulate on both devices.
      */
     private suspend fun awaitPage(requestId: String): WearPhoneResourcePage {
         val dataClient = Wearable.getDataClient(context)
         var registered: DataClient.OnDataChangedListener? = null
+        var dataItemUri: Uri? = null
 
         // One removal site, reached by every exit - answered, timed out or cancelled. Removing in
         // both the callback and a cancellation handler would double-count as an unpaired remove.
         return try {
             suspendCancellableCoroutine { continuation ->
                 val listener = DataClient.OnDataChangedListener { events ->
-                    val page = events.firstMatchingPage(requestId)
+                    val match = events.firstMatchingPageWithUri(requestId)
                     events.release()
-                    if (page != null && continuation.isActive) {
-                        continuation.resume(page)
+                    if (match != null && continuation.isActive) {
+                        Timber.d("S2985: received page requestId=%s", requestId)
+                        dataItemUri = match.first
+                        continuation.resume(match.second)
                     }
                 }
                 registered = listener
@@ -167,16 +174,31 @@ class PhoneResourceClient @Inject constructor(
             }
         } finally {
             registered?.let { dataClient.removeListener(it) }
+            // S2985: delete the per-request DataItem so unique paths do not accumulate.
+            dataItemUri?.let { uri ->
+                runCatching { dataClient.deleteDataItems(uri).await() }
+                    .onFailure { Timber.w(it, "Could not delete phone resource page DataItem") }
+            }
         }
     }
 
-    private fun DataEventBuffer.firstMatchingPage(requestId: String): WearPhoneResourcePage? = this
+    // S2985: matches both the legacy fixed path (backward compat with an older phone) and the
+    // per-request paths the current phone writes, so the watch never loses a response to path
+    // coalescing.
+    private fun DataEventBuffer.firstMatchingPageWithUri(requestId: String): Pair<Uri, WearPhoneResourcePage>? = this
         .asSequence()
         .filter { it.type == DataEvent.TYPE_CHANGED }
-        .filter { it.dataItem.uri.path == WearDataLayerPaths.PHONE_RESOURCE_PAGE }
-        .mapNotNull { event -> DataMapItem.fromDataItem(event.dataItem).dataMap.getByteArray("payload") }
-        .mapNotNull { payload -> decodePage(payload) }
-        .firstOrNull { it.requestId == requestId }
+        .filter { event ->
+            val path = event.dataItem.uri.path ?: return@filter false
+            path == WearDataLayerPaths.PHONE_RESOURCE_PAGE ||
+                path.startsWith(WearDataLayerPaths.PHONE_RESOURCE_PAGE + "/")
+        }
+        .mapNotNull { event ->
+            val payload = DataMapItem.fromDataItem(event.dataItem).dataMap.getByteArray("payload")
+            val page = payload?.let { decodePage(it) }
+            if (page?.requestId == requestId) event.dataItem.uri to page else null
+        }
+        .firstOrNull()
 
     private fun decodePage(payload: ByteArray): WearPhoneResourcePage? = runCatching {
         val envelope = envelopeCodec.decode(payload)

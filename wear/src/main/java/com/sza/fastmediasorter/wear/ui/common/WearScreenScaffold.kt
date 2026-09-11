@@ -26,6 +26,7 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
+import timber.log.Timber
 import kotlin.math.sqrt
 
 /**
@@ -144,17 +145,15 @@ fun WearScreenScaffold(
                 val textStyle = TimeTextDefaults.timeTextStyle().copy(
                     color = contentColor,
                     shadow = Shadow(
-                        // The shadow opposes the text for the same reason the wallpaper scrim does:
-                        // the clock is drawn over an uncontrolled picture.
-                        color = if (contentColor.luminance() < PINNED_LUMINANCE_MIDPOINT) {
-                            Color.White
-                        } else {
-                            Color.Black
-                        },
-                        offset = Offset(1f, 1f),
-                        blurRadius = 4f
+                        // A centred dark halo remains legible over uncontrolled light media. A
+                        // directional shadow disappears on its light-facing edge, exactly where
+                        // the clock needs contrast most.
+                        color = Color.Black,
+                        offset = Offset.Zero,
+                        blurRadius = 6f
                     )
                 )
+                Timber.d("S2479: TimeText contrast halo composed")
                 TimeText(
                     timeTextStyle = textStyle,
                     modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)

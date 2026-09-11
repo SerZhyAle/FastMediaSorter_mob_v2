@@ -357,7 +357,6 @@ private fun LastSyncedCaption(
 private fun WatchVersionCaption(watchAppVersionName: String?) {
     val phoneVersion = BuildConfig.VERSION_NAME
     val mismatched = isWatchVersionMismatched(watch = watchAppVersionName, phone = phoneVersion)
-    Timber.d("S2461: version line drawn - watch=$watchAppVersionName phone=$phoneVersion mismatched=$mismatched")
     val caption = when {
         watchAppVersionName.isNullOrBlank() -> stringResource(R.string.wear_settings_watch_version_unknown)
         mismatched -> stringResource(

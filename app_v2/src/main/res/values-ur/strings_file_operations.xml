@@ -77,8 +77,6 @@
     <string name="delete_by_size_warning_no_trash">انتباہ: ردی کی ٹوکری اس وسائل کے لیے تعاون یافتہ نہیں ہے۔ حذف کرنا مستقل ہو جائے گا!</string>
     <string name="delete_confirmation">فائلیں حذف کریں؟</string>
     <string name="delete_failed">فائلوں کو حذف نہیں کیا جا سکا۔</string>
-    <string name="delete_file_confirmation">%1$s کو %2$s سے حذف کریں؟</string>
-    <string name="delete_files_confirmation">%2$s سے %1$d فائلیں حذف کریں؟</string>
     <string name="delete_folder_confirm">فولڈر \"%1$s\" اور اس کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>
     <string name="delete_n_files_from_network_title">نیٹ ورک سے %d فائلیں حذف کریں؟</string>
     <string name="delete_n_folders_confirm">%1$d فولڈرز اور ان کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>

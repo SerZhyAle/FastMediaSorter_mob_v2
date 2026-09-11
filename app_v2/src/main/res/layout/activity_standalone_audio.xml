@@ -74,6 +74,47 @@
 
         </FrameLayout>
 
+        <!-- S1143: stream-mode track info block (centred over visualization) -->
+        <LinearLayout
+            android:id="@+id/streamTrackInfoContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:paddingHorizontal="@dimen/player_cmd_padding_horizontal"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/tvStreamTrackTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textColor="@color/player_overlay_on_primary"
+                android:textSize="@dimen/activity_player_unified_audioMetadata_textSize"
+                android:textStyle="bold"
+                android:shadowColor="@color/black"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:contentDescription="@string/audio_track" />
+
+            <TextView
+                android:id="@+id/tvStreamTrackArtist"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_small"
+                android:gravity="center"
+                android:textColor="@color/activity_player_unified_audioFileName_textColor"
+                android:textSize="@dimen/activity_player_unified_audioFileName_textSize"
+                android:shadowColor="@color/black"
+                android:shadowDx="2"
+                android:shadowDy="2"
+                android:shadowRadius="4"
+                android:contentDescription="@string/audio" />
+
+        </LinearLayout>
+
         <ProgressBar android:id="@+id/progressBar" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_gravity="center" android:contentDescription="@string/loading_indicator" android:visibility="gone" />
 
         <!-- S1143: shared lyrics overlay, inflated only when the user opens lyrics. -->

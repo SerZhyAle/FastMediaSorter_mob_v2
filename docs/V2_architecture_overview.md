@@ -30,6 +30,6 @@ FastMediaSorter v2 follows **Clean Architecture + MVVM + Hilt**.
 - Inline audio playback via `StreamInlineAudioManager`; sticky mini-control surfaces ICY now-playing metadata without leaving the list.
 - Video/RTSP opens the fullscreen player; back returns to list with scroll position preserved.
 - Catalog import: `ImportStreamCatalogUseCase` fetches a remote curated catalog with fast-fail timeout; imported rows carry topic/language metadata and are filterable.
-- Flavor scope: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575).
+- Flavor scope: standard/legacy/noLegal/vr - HLS, DASH VOD, RTSP, progressive HTTP/ICY (`SUPPORT_STREAMS=true`); lite/photos/foss - feature absent, no entry point (`SUPPORT_STREAMS=false`, lite hidden by S0575; foss ships no proprietary SDKs).
 
 For full architecture details see [ARCHITECTURE.md](ARCHITECTURE.md).

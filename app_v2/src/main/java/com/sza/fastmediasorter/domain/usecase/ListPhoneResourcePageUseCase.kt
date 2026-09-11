@@ -213,9 +213,17 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         // Without deduplication each file appears once per resource that covers it, so the watch
         // renders it once per overlapping resource. The MediaStore id is the stable identity when
         // the scanner carried a content URI; the physical path is the fallback for File-API entries.
+        // S2982: a file covered by a virtual resource (MediaStore id key) AND a local folder resource
+        // (path key) survived twice - two different keys for one file. Both keys are now entered into
+        // the seen set, and a file is kept only when every key it carries is new. The path is the
+        // stronger identity of the two: it names at most one physical file, so two MediaStore rows
+        // pointing at one path are one file (a stale row beside the fresh one) and collapse here.
         val seen = mutableSetOf<String>()
         val unique = allFiles.filter { (_, file) ->
-            seen.add(file.mediaStoreIdOrNull()?.toString() ?: file.path)
+            val mediaStoreId = file.mediaStoreIdOrNull()?.toString()
+            val pathIsNew = seen.add(file.path)
+            val idIsNew = mediaStoreId == null || seen.add(mediaStoreId)
+            pathIsNew && idIsNew
         }
 
         val sorted = unique.sortedByDescending { pair ->

@@ -79,8 +79,6 @@
     <string name="delete_by_size_warning_no_trash">Warning: trash is not supported for this resource. Deletion will be permanent!</string>
     <string name="delete_confirmation">Delete files?</string>
     <string name="delete_failed">Could not delete the files.</string>
-    <string name="delete_file_confirmation">Delete %1$s from %2$s?</string>
-    <string name="delete_files_confirmation">Delete %1$d files from %2$s?</string>
     <string name="delete_folder_confirm">Delete folder \"%1$s\" and all its contents? This cannot be undone.</string>
     <string name="delete_n_files_from_network_title">Delete %d files from network?</string>
     <string name="delete_n_folders_confirm">Delete %1$d folders and all their contents? This cannot be undone.</string>

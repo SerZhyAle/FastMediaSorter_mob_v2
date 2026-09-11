@@ -3,7 +3,7 @@
 Canonical readiness contract for the **standard** Google Play production build (signed `standardRelease` AAB). This document is the single source of truth for what must be proven before publishing to Production. It is an engineer/operator gate, not a marketing surface.
 
 - **Strategic spec:** `PLAN/S0553_standard-production-release-readiness.md`
-- **Flavor scope:** `standard` only (not vr / noLegal / lite / photos / legacy / wear-only).
+- **Flavor scope:** `standard` only (not vr / noLegal / lite / photos / legacy / foss / wear-only).
 - **Wear-only releases:** covered by `docs/RELEASE_READINESS_WEAR.md`, which is the watch module's own contract (S1984). This document is unchanged by it and continues to describe the phone build alone.
 - **Distribution target:** Google Play production.
 - **Platform baseline:** minSdk 26, targetSdk 36. Play enforces `App must target Android 16 (API level 36) or higher` since 2026-08-31, and `app_v2/build.gradle.kts` has met it since S1149 - this line said 35 until S2272 and told an operator the build targets exactly the level Play now rejects.

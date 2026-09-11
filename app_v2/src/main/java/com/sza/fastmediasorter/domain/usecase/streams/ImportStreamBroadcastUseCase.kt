@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase.streams
 
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorDto
 import com.sza.fastmediasorter.data.broadcast.BroadcastDescriptorParser
+import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.data.repository.StreamSourceRepository
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase.AddResult
 import timber.log.Timber
@@ -14,27 +15,20 @@ class ImportStreamBroadcastUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(rawPayload: String): ImportResult =
         when (val outcome = parser.parseDetailed(rawPayload)) {
-            is BroadcastDescriptorParser.ParseOutcome.Valid -> addAsStreamSource(outcome.dto)
+            is BroadcastDescriptorParser.ParseOutcome.Valid -> resolveImport(outcome.dto)
             BroadcastDescriptorParser.ParseOutcome.UnsupportedVersion ->
                 ImportResult.UnsupportedVersion
             BroadcastDescriptorParser.ParseOutcome.Malformed -> ImportResult.InvalidDescriptor
         }
 
-    private suspend fun addAsStreamSource(dto: BroadcastDescriptorDto): ImportResult {
-        val result = resolveImport(dto)
-        Timber.d("S2813: import named a source=${dto.sourceId != null}, outcome=$result")
-        return result
-    }
-
     private suspend fun resolveImport(dto: BroadcastDescriptorDto): ImportResult {
-        val title = dto.title?.takeIf { it.isNotBlank() } ?: "Audio Broadcast"
-        Timber.d("S2868: imported broadcast row will be named '%s'", title)
+        val offered = dto.title?.trim()?.takeIf { it.isNotEmpty() }
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
         return if (known == null) {
-            addNew(dto.url, title, sourceDeviceId = deviceId)
+            addNew(dto.url, offered ?: FALLBACK_TITLE, sourceDeviceId = deviceId)
         } else {
-            refresh(known.id, known.url, dto.url)
+            refresh(known, dto.url, offered)
         }
     }
 
@@ -42,12 +36,24 @@ class ImportStreamBroadcastUseCase @Inject constructor(
      * S2813: one broadcasting device owns one row, so a device whose address moved refreshes that row
      * instead of adding a second one. Without it the entry the user had already pinned and launched
      * from keeps pointing at the previous session's dead address, which is the reported defect.
+     *
+     * S2868: the same visit may also carry a better name. A row created before the watch named itself
+     * through the node still reads its model code, so it is renamed - but only while its title is one
+     * this code generated; a title the user typed is never overwritten.
      */
-    private suspend fun refresh(id: String, storedUrl: String, scannedUrl: String): ImportResult {
+    private suspend fun refresh(known: StreamSourceEntity, scannedUrl: String, offered: String?): ImportResult {
         val trimmed = scannedUrl.trim()
-        if (trimmed == storedUrl) return ImportResult.Duplicate
-        repository.refreshSourceAddress(id = id, url = trimmed)
-        return ImportResult.Updated
+        val moved = trimmed != known.url
+        val renamed = offered != null && offered != known.title && isGeneratedTitle(known.title)
+        Timber.d("S2868: refresh stored='${known.title}' offered='$offered' moved=$moved renamed=$renamed")
+        if (moved) repository.refreshSourceAddress(id = known.id, url = trimmed)
+        if (renamed) repository.renameSource(id = known.id, title = requireNotNull(offered))
+        return if (moved || renamed) ImportResult.Updated else ImportResult.Duplicate
+    }
+
+    private fun isGeneratedTitle(title: String): Boolean {
+        val stored = title.trim()
+        return stored.isEmpty() || stored == FALLBACK_TITLE || MODEL_CODE.matches(stored)
     }
 
     private suspend fun addNew(url: String, title: String, sourceDeviceId: String?): ImportResult =
@@ -66,5 +72,13 @@ class ImportStreamBroadcastUseCase @Inject constructor(
         data object InvalidUrl : ImportResult
         data object InvalidDescriptor : ImportResult
         data object UnsupportedVersion : ImportResult
+    }
+
+    private companion object {
+        const val FALLBACK_TITLE = "Audio Broadcast"
+
+        // A manufacturer model code as Build.MODEL reports it (SM-L310, SMR870): one token of capitals
+        // and digits with at least one digit. A human name has a space or lowercase letters.
+        val MODEL_CODE = Regex("^(?=.*\\d)[A-Z][A-Z0-9]*(-[A-Z0-9]+)*$")
     }
 }

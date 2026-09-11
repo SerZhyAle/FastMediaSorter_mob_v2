@@ -47,9 +47,6 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
-import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
-import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
-import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -73,7 +70,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -414,13 +410,7 @@ class PlayerActivity :
 
     @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
 
-    @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
-
     @Inject internal lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
-
-    @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
-
-    @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
     // S0459: unified «Send to..» menu manager; accessed by PlayerCommandPanelCallbackImpl.
     @Inject internal lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
@@ -831,18 +821,6 @@ class PlayerActivity :
             topCommandPanel = binding.topCommandPanel
         )
     }
-
-    /** Let flavor-specific code replace the fullscreen button behavior (e.g., in XR sessions). */
-    internal fun tryHandleFullscreenCommandOverride(): Boolean =
-        fullscreenCommandOverride.orElse(null)?.execute(this, viewModel) == true
-
-    /** VR binds a dedicated Save Frame override for OpenXR rendering. */
-    internal fun tryHandleSaveFrameCommandOverride(): Boolean =
-        saveFrameCommandOverride.orElse(null)?.execute(this) == true
-
-    /** VR maps controller input to this override to show/hide the headset overlay. */
-    internal fun tryHandleSystemUiCommandOverride(): Boolean =
-        systemUiCommandOverride.orElse(null)?.execute(this) == true
 
     internal fun updateCommandAvailability(state: PlayerViewModel.PlayerState) =
         commandPanelController.updateCommandAvailability(state)

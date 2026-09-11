@@ -20,12 +20,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
+import com.sza.fastmediasorter.wear.ui.common.nonSwallowingClickable
 import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import timber.log.Timber
 
@@ -206,6 +209,7 @@ internal fun PlayerCommandButton(
     onLongClick: (() -> Unit)? = null,
     onLongClickLabel: String? = null
 ) {
+    val accessibleDescription = contentDescription
     val isBackIcon = icon.name == Icons.AutoMirrored.Filled.ArrowBack.name
     val tint = if (isBackIcon) {
         MaterialTheme.colors.secondary
@@ -229,21 +233,28 @@ internal fun PlayerCommandButton(
         maxOf(size, COMMAND_TOUCH_TARGET_DP.dp)
     }
 
+    val clickModifier = if (isBackIcon) {
+        Modifier.nonSwallowingClickable(onClick = onClick)
+    } else {
+        Modifier.combinedClickable(
+            role = Role.Button,
+            onLongClickLabel = onLongClickLabel,
+            onLongClick = onLongClick,
+            onClick = onClick
+        )
+    }
+
     Box(
         contentAlignment = if (isBackIcon) Alignment.CenterStart else Alignment.Center,
         modifier = Modifier
             .width(size)
             .height(boxHeight)
-            .combinedClickable(
-                role = Role.Button,
-                onLongClickLabel = onLongClickLabel,
-                onLongClick = onLongClick,
-                onClick = onClick
-            )
+            .then(clickModifier)
+            .semantics { this.contentDescription = accessibleDescription }
     ) {
         Icon(
             imageVector = icon,
-            contentDescription = contentDescription,
+            contentDescription = null,
             tint = tint,
             modifier = Modifier.size(glyphSize)
         )

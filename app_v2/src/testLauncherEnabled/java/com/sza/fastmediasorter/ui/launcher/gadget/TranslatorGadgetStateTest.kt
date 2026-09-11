@@ -75,6 +75,18 @@ class TranslatorGadgetStateTest {
     }
 
     /**
+     * S2988: the call that downloads the pack and then translates still carries the download latch, so
+     * ranking the latch first captioned a visible translation with "the pack is still downloading".
+     */
+    @Test
+    fun `a translation outranks the pending language pack`() {
+        assertEquals(
+            TranslatorState.TRANSLATED,
+            decideTranslatorState(input = "hello", translated = "привет", modelMissing = true, failed = false),
+        )
+    }
+
+    /**
      * S2732: the in-flight state says the engine has not answered yet, so only the view - which knows it
      * just started a call - may set it. Deciding it from an outcome would leave the cell claiming to be
      * working after the work finished.

@@ -125,6 +125,14 @@ Main body (`:1123-1271`):
 | `geo` | radio-browser `bycountrycodeexact` + iptv-org, over 15 under-represented ISO codes | topic `General` (radio) / mapped (iptv) |
 | `livetv` | iptv-org `channels.json` + `streams.json`, 8 categories | `category='Live TV'` |
 | `webcam` | 12 hard-coded 24/7 public HLS feeds (`Get-WebcamSeeds`) | refreshed under S0843; CDN paths rotate, re-verify with `-Axis webcam -PreviewOnly` |
+| `lautfm` | laut.fm `api.laut.fm/stations` | `category='Radio'`, topic from `genres[]` (S1476) |
+| `xiph` | Xiph Icecast YP `dir.xiph.org/yp.xml` | `category='Radio'`, topic from `<genre>` (S1476) |
+| `webradiodb` | WebRadioDB directory | `category='Radio'` (S1476) |
+| `radioparadise` | Radio Paradise `api.radioparadise.com/api/list_streams` | `category='Radio'` (S1476) |
+| `iptvcam` | iptv-org categories (weather/outdoor/travel/relax) | `category='Webcam'`, topic mapped (S1476) |
+| `tfl` | TfL JamCams `api.tfl.gov.uk/Place/Type/JamCam` | `category='Webcam'`, topic `Traffic cams`, `is_live=false` (S1476) |
+| `akc` | AKC broadcast id probe | `category='Webcam'`, topic `Webcam` (S1476) |
+| `language` | radio-browser `bylanguageexact` over `-GeoLanguages` | `category='Radio'` (S1476) |
 
 - **radio-browser** mirrors (de1/de2/nl1/at1), first success wins; `hidebroken=true&order=clickcount`.
 - **iptv-org** downloaded once per run (memoised). Inclusion filter drops blank URL, any stream requiring a

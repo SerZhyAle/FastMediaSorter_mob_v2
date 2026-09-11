@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -24,6 +25,19 @@ class ToggleFavoriteUseCase @Inject constructor(
             favoritesRepository.removeFavorite(sourceId, filePath)
         } else {
             favoritesRepository.addFavorite(sourceId, filePath)
+        }
+        sendFavoritesDelta()
+        requestWearTileRefreshUseCase(WearTileKind.FAVOURITES)
+        return !wasFavorite
+    }
+
+    /** S2987: Flips the mark using a full record so display name and mime type are preserved in storage. */
+    suspend fun toggle(record: WearFavoriteRecord, wasFavorite: Boolean): Boolean {
+        Timber.d("S2987: ToggleFavoriteUseCase.toggle record=${record.displayName}, wasFav=$wasFavorite")
+        if (wasFavorite) {
+            favoritesRepository.removeFavorite(record.sourceId, record.filePath)
+        } else {
+            favoritesRepository.addFavorite(record)
         }
         sendFavoritesDelta()
         requestWearTileRefreshUseCase(WearTileKind.FAVOURITES)

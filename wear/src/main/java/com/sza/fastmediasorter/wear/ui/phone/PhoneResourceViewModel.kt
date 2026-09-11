@@ -133,7 +133,8 @@ sealed interface PhoneResourceUiState {
     data class Content(
         val items: List<WearPhoneResourceItem>,
         val parentToken: String?,
-        val title: ScreenTitle
+        val title: ScreenTitle,
+        val canLoadMore: Boolean = false
     ) : PhoneResourceUiState
 
     /** The phone answered, and there is nothing here it is willing to show. */
@@ -230,6 +231,17 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private var loadedItems: List<WearPhoneResourceItem> = emptyList()
     private var loadedParentToken: String? = null
+
+    /**
+     * S2984: the phone's cursor for the next page, or null once the level is exhausted.
+     *
+     * The phone sends `nextPageToken` as a string offset (see `ListPhoneResourcePageUseCase.page`),
+     * and the watch replays it verbatim - it carries no meaning the ViewModel needs to interpret.
+     */
+    private var nextPageToken: String? = null
+
+    /** S2984: the in-flight next-page request, cancelled on every new folder load. */
+    private var loadMoreJob: Job? = null
 
     private val _refineState = MutableStateFlow(BrowseRefineState())
     val refineState: StateFlow<BrowseRefineState> = _refineState.asStateFlow()
@@ -331,6 +343,38 @@ class PhoneResourceViewModel @Inject constructor(
 
     fun retry() {
         load(trail.lastOrNull()?.token)
+    }
+
+    /**
+     * S2984: appends the next page of the current level, or does nothing once the level is exhausted.
+     *
+     * Mirrors the `WearFolderWalkViewModel.loadMore` pattern (S2201): the phone's `nextPageToken`
+     * is replayed verbatim, the returned items are appended to [loadedItems], and the UI is
+     * re-projected through [refinedState]. A request in flight is not started twice, and a new
+     * folder load cancels this job before it can append rows to the wrong list.
+     */
+    fun loadMore() {
+        val token = nextPageToken ?: return
+        if (loadMoreJob?.isActive == true) return
+        val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
+        loadMoreJob = viewModelScope.launch {
+            val outcome = phoneResourceClient.browse(
+                loadedParentToken,
+                pageToken = token,
+                mediaType = mediaType,
+                isFlat = isFlat
+            )
+            if (outcome is PhoneResourceOutcome.Page) {
+                nextPageToken = outcome.page.nextPageToken
+                val moreItems = outcome.page.items.orEmpty()
+                if (moreItems.isNotEmpty()) {
+                    loadedItems = loadedItems + moreItems
+                    if (_uiState.value.isProjected()) {
+                        _uiState.value = refinedState()
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -515,12 +559,17 @@ class PhoneResourceViewModel @Inject constructor(
         // no cell can ask for again.
         inFlightThumbnails.clear()
         _thumbnails.value = emptyMap()
+        // S2984: a new folder or retry starts from the first page; a late next-page response would
+        // otherwise append rows of the folder just left to the folder now shown.
+        nextPageToken = null
+        loadMoreJob?.cancel()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
         viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {
                     val items = outcome.page.items.orEmpty()
+                    nextPageToken = outcome.page.nextPageToken
                     decodeThumbnails(items)
                     items.toState(parentToken)
                 }
@@ -550,7 +599,13 @@ class PhoneResourceViewModel @Inject constructor(
         // pictures keyed to tokens no cell here asks for.
         decodeJob?.cancel()
         decodeJob = viewModelScope.launch(Dispatchers.Default) {
-            _thumbnails.value = items.associate { it.token to it.toWearThumbnail() }
+            val embedded = items.mapNotNull { item ->
+                val thumb = item.toWearThumbnail()
+                if (thumb is WearThumbnail.Ready) item.token to thumb else null
+            }.toMap()
+            if (embedded.isNotEmpty()) {
+                _thumbnails.update { current -> current + embedded }
+            }
         }
     }
 
@@ -643,7 +698,8 @@ class PhoneResourceViewModel @Inject constructor(
             PhoneResourceUiState.Content(
                 items = shown,
                 parentToken = loadedParentToken,
-                title = currentTitle()
+                title = currentTitle(),
+                canLoadMore = nextPageToken != null
             )
         }
     }

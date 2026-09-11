@@ -19,7 +19,6 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
-import timber.log.Timber
 
 private val ROW_GAP = 4.dp
 private val STOP_BUTTON_SIZE = 40.dp
@@ -43,7 +42,6 @@ fun HomeNowPlayingRow(
     onStop: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Timber.d("S2524: now-playing row visible")
     val stopLabel = stringResource(R.string.wear_now_playing_stop)
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -51,7 +49,6 @@ fun HomeNowPlayingRow(
     ) {
         Chip(
             onClick = {
-                Timber.d("S2524: now-playing row open requested")
                 nowPlaying.fileId?.let(onOpen)
             },
             enabled = nowPlaying.fileId != null,
@@ -82,7 +79,6 @@ fun HomeNowPlayingRow(
 
         RectangularButton(
             onClick = {
-                Timber.d("S2524: now-playing row stop tapped")
                 onStop()
             },
             modifier = Modifier

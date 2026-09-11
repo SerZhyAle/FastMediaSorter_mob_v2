@@ -272,7 +272,6 @@ object ScrollableTextDialog {
             initialTarget.post {
                 initialTarget.requestFocus()
             }
-            Timber.d("S2900: ScrollableTextDialog displayed with initial action focus")
             dialog
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "ScrollableTextDialog: show failed - bad window token")

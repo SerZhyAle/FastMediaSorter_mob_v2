@@ -12,13 +12,16 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
+import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_VOICE_NOTE
 import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
+import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.playback.HostStopAction
 import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
 import com.sza.fastmediasorter.wear.domain.playback.WearBackgroundPlaybackPolicy
@@ -746,9 +749,18 @@ class AudioPlayerViewModel @Inject constructor(
 
     fun toggleFavorite() {
         val identity = currentFavoriteIdentity() ?: return
+        val file = _uiState.value.mediaFile
+        val isStream = _uiState.value.isStream
         viewModelScope.launch {
-            _isFavorite.value =
-                toggleFavoriteUseCase.toggle(identity.sourceId, identity.filePath, _isFavorite.value)
+            val fallbackName = identity.filePath.substringAfterLast('/').ifBlank { identity.filePath }
+            val record = WearFavoriteRecord(
+                sourceId = identity.sourceId,
+                filePath = identity.filePath,
+                displayName = file?.displayName ?: fallbackName,
+                mimeType = file?.mimeType,
+                itemKind = if (isStream) FAVORITE_ITEM_KIND_STREAM else null
+            )
+            _isFavorite.value = toggleFavoriteUseCase.toggle(record, _isFavorite.value)
         }
     }
 

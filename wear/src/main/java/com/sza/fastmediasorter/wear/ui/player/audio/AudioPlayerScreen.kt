@@ -322,7 +322,6 @@ private fun AudioPlayerContent(
 ) {
     // S2477: The audio player elements are fitted onto a single screen without vertical list scrolling.
     // Vertical drag gesture / rotary wheel controls volume level.
-    Timber.d("S2477: AudioPlayerContent single-screen layout composed")
     var showMenu by rememberSaveable { mutableStateOf(false) }
     Box(
         modifier = Modifier
@@ -332,8 +331,10 @@ private fun AudioPlayerContent(
                 detectVerticalDragGestures { change, dragAmount ->
                     change.consume()
                     if (dragAmount < DRAG_THRESHOLD_UP_PX) {
+                        Timber.d("S2477: audio player vertical drag volume step up")
                         onRotaryStep(1)
                     } else if (dragAmount > DRAG_THRESHOLD_DOWN_PX) {
+                        Timber.d("S2477: audio player vertical drag volume step down")
                         onRotaryStep(-1)
                     }
                 }
@@ -393,6 +394,7 @@ private fun AudioPlayerContent(
     }
 
     if (showMenu) {
+        Timber.d("S2531: audio player overflow menu opened")
         PlayerOverflowMenu(
             actions = playerMenuActions(
                 uiState = uiState,
@@ -913,10 +915,9 @@ private fun SecondaryControls(
     val pinDesc = stringResource(
         if (isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
-    val screenOffDesc = stringResource(R.string.wear_screen_off)
     // S2803: the primary row's answer names the view in force - four means the restored composition,
-    // three the reviewed one. The restored secondary row is back, favorite, pin-or-file-operations and
-    // screen off, the four of the pre-S2766 tree, so the menu has nothing left to hold.
+    // three the reviewed one. S2531: the cast entry lives in the overflow menu, so the restored row
+    // keeps a menu button where the pre-S2766 tree held screen off - screen off moved to the menu.
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
     Timber.d("S2803: audio secondary restored=%b columns=%s", restored, secondaryRowColumns())
 
@@ -958,21 +959,14 @@ private fun SecondaryControls(
                     size = targetSize
                 )
             }
-
-            PlayerCommandButton(
-                onClick = actions.onToggleDimmed,
-                icon = Icons.Filled.DarkMode,
-                contentDescription = screenOffDesc,
-                size = targetSize
-            )
-        } else {
-            PlayerCommandButton(
-                onClick = onOpenMenu,
-                icon = Icons.Default.MoreVert,
-                contentDescription = menuDesc,
-                size = targetSize
-            )
         }
+
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = menuDesc,
+            size = targetSize
+        )
     }
 }
 

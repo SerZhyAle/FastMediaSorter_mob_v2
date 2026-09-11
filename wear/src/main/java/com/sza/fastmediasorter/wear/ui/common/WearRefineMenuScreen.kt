@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -34,6 +35,17 @@ private val MENU_ICON_SIZE = 20.dp
 
 /** Below this there is nothing to choose between, so the filter group is a sentence instead. */
 private const val MENU_MIN_FILTERABLE_TYPES = 2
+
+/**
+ * Opening anchor for the refine menu: its second row centred, per the watch list start rule (S2466).
+ *
+ * Not [WEAR_LIST_NO_ANCHOR] like the other dialog lists (S2762): this menu is the whole point of the
+ * screen the wearer opened, so its title belongs above the fold and the sort options in the middle.
+ * The S2762 default would leave the title alone in the frame and hide every choice one scroll down,
+ * which is what the 2026-09-11 device test caught after that helper silenced the anchor phase 03.3
+ * had pinned. The tactical plan fixed this index before the helper existed; restoring it here.
+ */
+private const val REFINE_MENU_OPEN_ANCHOR = 1
 
 /** S2473: what the refine menu currently shows as chosen, and what it may offer. */
 data class WearRefineMenuState(
@@ -77,7 +89,10 @@ fun WearRefineMenuScreen(
         showDialog = true,
         onDismissRequest = actions.onDismiss
     ) {
-        val listState = rememberWearDialogListState()
+        val listState = rememberWearListState(initialCenterItemIndex = REFINE_MENU_OPEN_ANCHOR)
+        LaunchedEffect(Unit) {
+            Timber.d("S2473: refine menu opened over the browse list")
+        }
         val filterColors = ChipDefaults.childChipColors()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val widthDp = maxWidth.value.toInt()

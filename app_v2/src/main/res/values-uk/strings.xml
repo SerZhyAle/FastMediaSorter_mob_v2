@@ -1046,7 +1046,6 @@
     <string name="toast_copy_cancelled">Копіювання скасовано</string>
     <string name="toast_delete_cancelled">Видалення скасовано</string>
     <string name="toast_unexpected_result">Неочікуваний результат</string>
-    <string name="toast_delete_error">Не вдалося завершити видалення файлів. Спробуйте ще раз.</string>
     <string name="error_deletion_failed">Видалення не виконано</string>
     <string name="toast_filter_applied">Фільтр застосовано</string>
     <string name="toast_filter_failed">Не вдалося застосувати цей фільтр. Спробуйте ще раз.</string>
@@ -3974,4 +3973,9 @@
     <string name="tourist_daylight_active">День</string>
     <string name="tourist_daylight_night">Ніч</string>
     <string name="tourist_share_template">Координати: %1$s, %2$s</string>
+    <string name="wear_help_media_types">Оберіть типи медіа, які годинник може переглядати та відтворювати.</string>
+    <string name="wear_help_slideshow">Керування слайд-шоу на годиннику: увімкніть його та задайте тривалість показу кожного фото.</string>
+    <string name="wear_help_screen">Налаштуйте екран годинника: режим перегляду, фон, кольорову схему та блокування вимкнення.</string>
+    <string name="wear_help_other">Інші налаштування годинника: енергозбереження та тривалість авто-приховування панелі плеєра.</string>
+    <string name="wear_slideshow_custom_value">Ввести своє значення</string>
 </resources>

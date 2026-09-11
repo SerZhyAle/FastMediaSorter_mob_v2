@@ -30,6 +30,6 @@ FastMediaSorter v2 використовує **Clean Architecture + MVVM + Hilt**
 - Вбудоване аудіовідтворення через `StreamInlineAudioManager`; міні-панель керування відображає ICY-метадані (станція/трек), не приховуючи список.
 - Відео/RTSP відкриваються у повноекранному плеєрі; кнопка «Назад» повертає до списку зі збереженням позиції прокрутки.
 - Імпорт каталогу: `ImportStreamCatalogUseCase` завантажує кураторський каталог із швидким тайм-аутом при недоступному хості.
-- Матриця варіантів: standard/legacy/noLegal/vr - повний набір (HLS, DASH VOD, RTSP, progressive HTTP/ICY, `SUPPORT_STREAMS=true`); lite/photos - функція відсутня, точки входу немає (`SUPPORT_STREAMS=false`, у lite схована в S0575).
+- Матриця варіантів: standard/legacy/noLegal/vr - повний набір (HLS, DASH VOD, RTSP, progressive HTTP/ICY, `SUPPORT_STREAMS=true`); lite/photos/foss - функція відсутня, точки входу немає (`SUPPORT_STREAMS=false`, у lite схована в S0575; foss не містить пропрієтарних SDK).
 
 Повна архітектурна документація: [ARCHITECTURE.md](ARCHITECTURE.md).

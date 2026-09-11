@@ -434,12 +434,22 @@
     </style>
 
     <!-- S2898: primary toolbar theme overlay providing high-contrast text color and D-pad focus outlines. -->
+    <style name="Widget.FastMediaSorter.Toolbar.ActionButton" parent="Widget.AppCompat.ActionButton">
+        <item name="android:background">@drawable/toolbar_action_item_focus_selector</item>
+    </style>
+
     <style name="ThemeOverlay.FastMediaSorter.Toolbar.Primary" parent="ThemeOverlay.Material3.ActionBar">
         <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
         <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
         <item name="actionBarItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:actionBarItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="actionButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
+        <item name="android:actionButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
         <item name="selectableItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:selectableItemBackground">@drawable/toolbar_action_item_focus_selector</item>
         <item name="selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="toolbarNavigationButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
     </style>
 
 

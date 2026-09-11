@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">Kopiervorgang abgebrochen</string>
     <string name="toast_delete_cancelled">Löschvorgang abgebrochen</string>
     <string name="toast_unexpected_result">Unerwartetes Ergebnis</string>
-    <string name="toast_delete_error">Löschen der Dateien konnte nicht abgeschlossen werden. Erneut versuchen.</string>
     <string name="error_deletion_failed">Löschen fehlgeschlagen</string>
     <string name="toast_filter_applied">Filter erfolgreich angewendet</string>
     <string name="toast_filter_failed">Filter konnte nicht angewendet werden. Erneut versuchen.</string>

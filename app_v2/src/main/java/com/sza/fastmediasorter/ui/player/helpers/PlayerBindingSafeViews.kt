@@ -51,10 +51,14 @@ class PlayerBindingSafeViews private constructor(
         ?: error("Required view not found: id=$id")
     }
 
+    internal fun <T : View> findNullable(@IdRes id: Int): T? {
+        return root.findViewById(id)
+    }
+
     private fun ensureLyricsInflated() {
-        val exists = root.findViewById<View>(R.id.lyricsViewerContainer)
+        val exists = findNullable<View>(R.id.lyricsViewerContainer)
         if (exists != null) return
-        root.findViewById<ViewStub>(R.id.lyricsViewerStub)?.inflate()
+        findNullable<ViewStub>(R.id.lyricsViewerStub)?.inflate()
     }
 
     /**
@@ -63,7 +67,7 @@ class PlayerBindingSafeViews private constructor(
      * without crashing the way a `required(...)` accessor would.
      */
     fun setVisibleIfPresent(@IdRes id: Int, visible: Boolean) {
-        root.findViewById<View>(id)?.visibility = if (visible) View.VISIBLE else View.GONE
+        findNullable<View>(id)?.visibility = if (visible) View.VISIBLE else View.GONE
     }
 
     val topCommandPanel: LinearLayout get() = required(binding?.topCommandPanel, R.id.topCommandPanel)
@@ -119,11 +123,11 @@ class PlayerBindingSafeViews private constructor(
     val btnGoogleLensImage: ImageButton get() = required(R.id.btnGoogleLensImage)
     val btnOcrImage: TextView get() = required(R.id.btnOcrImage)
     val pdfFullscreenOverlay: FrameLayout?
-        get() = root.findViewById(R.id.pdfFullscreenOverlay)
+        get() = findNullable(R.id.pdfFullscreenOverlay)
     val pdfFullscreenPhotoView: PhotoView?
-        get() = root.findViewById(R.id.pdfFullscreenPhotoView)
+        get() = findNullable(R.id.pdfFullscreenPhotoView)
     val btnExitPdfFullscreen: ImageButton?
-        get() = root.findViewById(R.id.btnExitPdfFullscreen)
+        get() = findNullable(R.id.btnExitPdfFullscreen)
 
     val audioMetadata: TextView get() = required(R.id.audioMetadata)
     val audioFileName: TextView get() = required(R.id.audioFileName)
@@ -148,6 +152,16 @@ class PlayerBindingSafeViews private constructor(
             ensureLyricsInflated()
             return required(R.id.tvLyricsContent)
         }
+
+    val audioWaveParticleView: AudioWaveParticleView?
+        get() = findNullable(R.id.audioWaveParticleView)
+    val tvStreamTrackTitle: TextView?
+        get() = findNullable(R.id.tvStreamTrackTitle)
+    val tvStreamTrackArtist: TextView?
+        get() = findNullable(R.id.tvStreamTrackArtist)
+
+    val lyricsViewerContainerOrNull: View?
+        get() = findNullable(R.id.lyricsViewerContainer)
 
     val lyricsViewerContainer: FrameLayout
         get() {

@@ -43,6 +43,18 @@ class WearableDataLayerRepositoryImpl @Inject constructor(
         settingsRepository.get().getSettings().first().enableWearCompanion
     }.getOrDefault(false)
 
+    override suspend fun isCompanionEnabled(): Boolean = isWearCompanionEnabled()
+
+    override suspend fun putCompanionRefusal(path: String, payload: ByteArray) {
+        val request = PutDataMapRequest.create(path).apply {
+            dataMap.putByteArray("payload", payload)
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+        }.asPutDataRequest().setUrgent()
+
+        Wearable.getDataClient(context).putDataItem(request).await()
+        Timber.i("Wear companion disabled: refusal published at %s", path)
+    }
+
     override suspend fun getConnectedNodes(): List<WearNode> {
         if (!isWearCompanionEnabled()) {
             return emptyList()

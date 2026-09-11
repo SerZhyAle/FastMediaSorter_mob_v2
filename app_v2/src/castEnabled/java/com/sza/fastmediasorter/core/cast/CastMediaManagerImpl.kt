@@ -90,6 +90,7 @@ class CastMediaManagerImpl(
     private val sessionListener = object : SessionManagerListener<CastSession> {
         override fun onSessionStarted(session: CastSession, sessionId: String) {
             Timber.d("CastMediaManager: session started id=$sessionId")
+            Timber.d("S2876: Cast session started")
             currentSession = session
             _isCasting = true
             if (!proxyServer.isAlive) proxyServer.start()
@@ -99,6 +100,7 @@ class CastMediaManagerImpl(
 
         override fun onSessionEnded(session: CastSession, error: Int) {
             Timber.d("CastMediaManager: session ended error=$error")
+            Timber.d("S2876: Cast session ended")
             handleSessionEnd()
         }
 

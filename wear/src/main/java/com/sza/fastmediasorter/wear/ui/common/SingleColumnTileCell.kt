@@ -33,7 +33,6 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 /** The icon keeps the grid cell's square, so a thumbnail crops identically in both view modes. */
 private const val SQUARE_RATIO = 1f
@@ -108,7 +107,6 @@ fun SingleColumnTileCell(
     fallback: @Composable (Modifier) -> Unit
 ) {
     val containerShape = WearCellShape
-    Timber.d("S2526: SingleColumnTileCell composed for %s", caption)
     val borderModifier = if (selected) {
         Modifier.border(SELECTION_BORDER_WIDTH, MaterialTheme.colors.primary, containerShape)
     } else {

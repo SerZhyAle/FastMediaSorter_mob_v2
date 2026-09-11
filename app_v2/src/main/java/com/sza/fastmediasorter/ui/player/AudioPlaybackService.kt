@@ -41,6 +41,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.notification.NotificationIcons
 import com.sza.fastmediasorter.core.playback.NowPlayingMetadata
 import com.sza.fastmediasorter.core.playback.RadioStreamBufferConfig
+import com.sza.fastmediasorter.core.playback.WearCompanionPackages
 import com.sza.fastmediasorter.core.playback.resilience.StreamAudioFailure
 import com.sza.fastmediasorter.core.playback.resilience.StreamFailureClass
 import com.sza.fastmediasorter.core.playback.resilience.StreamServiceRetryDecision
@@ -309,20 +310,15 @@ class AudioPlaybackService : MediaSessionService() {
         var isRunning: Boolean = false
 
         /**
-         * S2810 / S2941: the packages of the Wear OS companion apps on the phone, which bridge the
-         * phone's active MediaSession to the watch's system "now playing" surface. Refused in
+         * S2810 / S2941: the Wear OS companion packages that bridge the phone's active MediaSession
+         * to the watch's system "now playing" surface. Refused in
          * [AudioSessionCallback.onConnect] when `suppressWearMediaTakeover` is on or when a listen
-         * session is live ([RadioStreamBufferConfig.isLiveSession]), so the watch stops surfacing this
-         * service's player. Constants rather than a runtime lookup because the bridge packages are
-         * fixed by the Wear OS platform: the Google companion and the Samsung companion.
+         * session is live ([RadioStreamBufferConfig.isLiveSession]), so the watch stops surfacing
+         * this service's player. The package set - exact companion apps plus the Samsung per-model
+         * plugin family - lives in [WearCompanionPackages], which is unit-tested in isolation.
          */
-        const val WEAR_COMPANION_PACKAGE = "com.google.android.wearable.app"
-        const val SAMSUNG_WEAR_COMPANION_PACKAGE = "com.samsung.android.wearable.app"
-
-        private val WEAR_COMPANION_PACKAGES = setOf(
-            WEAR_COMPANION_PACKAGE,
-            SAMSUNG_WEAR_COMPANION_PACKAGE
-        )
+        const val WEAR_COMPANION_PACKAGE = WearCompanionPackages.GOOGLE_WEAR_COMPANION_PACKAGE
+        const val SAMSUNG_WEAR_COMPANION_PACKAGE = WearCompanionPackages.SAMSUNG_WEAR_COMPANION_PACKAGE
 
         /** Direction for the next navigation event triggered via hardware media buttons.
          *  Set by ForwardingPlayer when the user presses NEXT or PREVIOUS.
@@ -1006,18 +1002,20 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
-            Timber.d("S2876: phone session onConnect from ${controller.packageName} on media3 1.11.0")
             Timber.d("S2914: onConnect building AcceptedResultBuilder with ControllerInfo")
             // S2810 / S2941: refuse the Wear OS companion bridge so the watch stops surfacing this
             // service's player. Refused when the owner's setting is on, or when a listen session is
             // live (isLiveSession), so the watch never shows the phone's media controls during
             // listening. Only the bridge packages are refused - the app's own UI (same package), the
             // system `android` (lockscreen/Bluetooth) and every other controller keep the accept path.
-            val isWearBridge = controller.packageName in WEAR_COMPANION_PACKAGES
-            val shouldSuppress = suppressWearMediaTakeover ||
-                RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
+            val isWearBridge = WearCompanionPackages.isWearCompanion(controller.packageName)
+            val isLive = RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
+            val shouldSuppress = suppressWearMediaTakeover || isLive
             if (isWearBridge && shouldSuppress) {
-                Timber.d("S2941: refused Wear companion bridge during live listen")
+                Timber.d("S2810: refused Wear OS companion media-session connection")
+                if (isLive) {
+                    Timber.d("S2941: refused Wear companion bridge during live listen")
+                }
                 return ConnectionResult.reject()
             }
             // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons

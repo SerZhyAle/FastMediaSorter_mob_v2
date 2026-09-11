@@ -55,7 +55,6 @@ fun NetworkMonitorSummaryScreen(
     listState: ScalingLazyListState = rememberWearListState()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S2470: Network Monitor compact overview shown")
     val snapshot = state.snapshot
     val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
     Timber.d("S2805: Network Monitor summary as one-column report, sections=%d", nonSummarySections.size)

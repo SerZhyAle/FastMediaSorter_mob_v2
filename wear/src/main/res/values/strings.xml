@@ -757,4 +757,5 @@
     <string name="wear_cast_phone_busy">Your phone did not answer - check that it is nearby</string>
     <string name="wear_cast_not_castable">Only streams and files from a phone source can be shown on a TV</string>
     <string name="wear_stream_stalled">The stream stopped sending. Playback was stopped to save the battery.</string>
+    <string name="phone_resource_companion_disabled">The Wear Companion switch is off on your phone. Turn it on in FastMediaSorter settings, then retry.</string>
 </resources>

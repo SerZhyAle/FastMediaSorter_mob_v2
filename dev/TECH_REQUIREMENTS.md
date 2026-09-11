@@ -359,30 +359,42 @@
 
 ### Quick Reference
 
+All Gradle-backed builds and checks should be run via `.\a.ps1` to acquire Rule 23 agent locks (`Build.Phone` / `Build.Wear`).
+
 ```powershell
-# Debug APK (standard)
-.\gradlew.bat assembleStandardDebug
+# Debug APK (standard) - via launcher
+.\a.ps1 d
 
-# Release APK (standard)
-.\gradlew.bat assembleStandardRelease
+# Release AAB (for Google Play)
+.\a.ps1 r
 
-# AAB (for Google Play)
-.\gradlew.bat bundleStandardRelease
+# Fast Kotlin compile check
+.\a.ps1 fk
 
-# All flavors debug
-.\gradlew.bat assembleDebug
+# Unit tests (app_v2)
+.\a.ps1 fu
 
-# Unit tests
-.\gradlew.bat testStandardDebugUnitTest
+# Lint + typo check
+.\a.ps1 ch
 
-# Lint check
-.\gradlew.bat lintStandardDebug
+# Wear OS debug APK (standard)
+.\a.ps1 wd
 
-# Wear OS debug
-.\gradlew.bat :wear:assembleDebug
+# Wear OS compile / unit checks
+.\a.ps1 fw
+.\a.ps1 fwu
 
-# Build with auto-version
-.\dev\build-with-version.ps1
+# Build with timestamped version override
+.\a.ps1 dav
+
+# Direct Gradle commands (for reference, under agent lock)
+# .\gradlew.bat :app_v2:assembleStandardDebug
+# .\gradlew.bat :app_v2:assembleStandardRelease
+# .\gradlew.bat :app_v2:bundleStandardRelease
+# .\gradlew.bat :app_v2:testStandardDebugUnitTest
+# .\gradlew.bat :wear:assembleStandardDebug
+# .\gradlew.bat :wear:assembleStandardRelease
+# .\gradlew.bat :wear:testStandardDebugUnitTest
 ```
 
 ### Output Paths

@@ -83,6 +83,10 @@ class SendResourcesToWatchUseCase @Inject constructor(
         val tombstones = wearResourceTombstoneStore.read()
 
         // S1781: an empty selection with no tombstones and no active deselections sends nothing.
+        // S2909: tombstones that travelled in a prior batch are retired after the Data Layer accepted
+        // the bytes, so a phone that once deleted a resource does not re-send its tombstone on every
+        // subsequent push - without that, this branch is unreachable whenever the tombstone store is
+        // non-empty, which is always once a deletion has been recorded.
         if (collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
             Timber.d("S2909: empty selection push skipped, no DataItem sent to watch")
             return@runCatching SendResult(
@@ -92,8 +96,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
                 dispatched = false
             )
         }
-
-        Timber.d("S2909: push leg declared ${deselectedIds.size} withdrawn resource(s) from the delivered set")
 
         val syncPayload = WearSyncPayload(
             sentAt = System.currentTimeMillis(),
@@ -105,10 +107,12 @@ class SendResourcesToWatchUseCase @Inject constructor(
             deselectedIds = deselectedIds.ifEmpty { null }
         )
         Timber.d("S2507: phone push leg carries ${syncPayload.tombstones.orEmpty().size} tombstone(s)")
+        Timber.d("S2909: push leg declared ${deselectedIds.size} withdrawn resource(s) from the delivered set")
         val syncJson = gson.toJson(syncPayload)
         val bytes = syncJson.toByteArray(Charsets.UTF_8)
         wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
         rememberDelivered(delivered, collected.payloads, deselectedIds, tombstones)
+        retireTombstones(tombstones)
         Timber.i(
             "Sent ${collected.payloads.size} resources to watch " +
                 "(${collected.skipped} skipped, ${deselectedIds.size} withdrawn)"
@@ -164,6 +168,25 @@ class SendResourcesToWatchUseCase @Inject constructor(
     ) {
         val gone = withdrawn.toSet() + tombstones.map { it.id }
         wearDeliveredResourceStore.write(deliveredBefore.orEmpty() + payloads.map { it.id } - gone)
+    }
+
+    /**
+     * S2909: retires the tombstones that travelled in this batch once the Data Layer accepted the bytes.
+     *
+     * A tombstone exists to tell the watch "delete this id if you hold it" and to prevent a later push
+     * from resurrecting it. Once the batch landed, the watch has either applied the deletion and recorded
+     * its own tombstone, rejected it because a local edit is newer, or recorded it for an id it never
+     * held - in every branch the phone's copy is redundant. The GMS Data Layer guarantees delivery after
+     * `putDataItem` returns, so forgetting at this point does not risk a tombstone that never reaches the
+     * watch.
+     *
+     * Only the tombstones that were read for this batch are forgotten, so a deletion recorded by another
+     * coroutine between [read][WearResourceTombstoneStore.read] and the `putDataItem` call survives and
+     * travels on the next push.
+     */
+    private suspend fun retireTombstones(tombstones: List<WearSourceTombstonePayload>?) {
+        tombstones.orEmpty().forEach { wearResourceTombstoneStore.forget(it.id) }
+        Timber.d("S2909: retired ${tombstones.orEmpty().size} tombstone(s) after dispatch")
     }
 
     /** What the per-resource loop produced: the records that travel, and how many could not. */

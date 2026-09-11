@@ -110,7 +110,20 @@ function Find-ProbeSpans {
             }
         }
         if ($end -lt 0) { throw "Unterminated Timber probe in $($match.Groups['id'].Value)." }
-        $spans.Add([pscustomobject]@{ Start = $match.Index; Length = $end - $match.Index + 1 })
+        $start = $match.Index
+        $length = $end - $match.Index + 1
+        # S2925: a probe owns its line (Rule 2), so the line leaves with it. Cutting only the call
+        # left an empty line in its place - measured on 2026-09-11 as 14 stray blank lines across
+        # 16 files, two of them directly before a closing brace.
+        if ($linePrefix.Trim() -eq '') {
+            $lineEnd = $Content.IndexOf("`n", $end)
+            $tailEnd = if ($lineEnd -lt 0) { $Content.Length } else { $lineEnd }
+            if ($Content.Substring($end + 1, $tailEnd - $end - 1).Trim() -eq '') {
+                $start = $lineStart
+                $length = $(if ($lineEnd -lt 0) { $Content.Length } else { $lineEnd + 1 }) - $lineStart
+            }
+        }
+        $spans.Add([pscustomobject]@{ Start = $start; Length = $length })
     }
     return $spans
 }
@@ -133,7 +146,10 @@ foreach ($sourceRoot in @('app_v2/src', 'wear/src')) {
         # surrounding expression valid and avoid introducing whitespace-only or duplicate blank lines.
         $after = [regex]::Replace($after, '\.also\s*\{\s*\}', '')
         $after = [regex]::Replace($after, '(?m)[\t ]+(?=\r?$)', '')
-        $after = [regex]::Replace($after, '(\r?\n){3,}', "`r`n`r`n")
+        # S2925: collapse in the file's own newline style. A fixed CRLF here wrote two carriage
+        # returns into an LF file on 2026-09-11 (WearSettingsStepperCell.kt).
+        $eol = if ($before.Contains("`r`n")) { "`r`n" } else { "`n" }
+        $after = [regex]::Replace($after, '(\r?\n){3,}', "$eol$eol")
         if (-not $timberCallPattern.IsMatch($after)) {
             $after = $timberImportPattern.Replace($after, '')
         }

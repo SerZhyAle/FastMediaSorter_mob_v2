@@ -12,7 +12,7 @@
 
     Flavors built (release only):
       standard, lite, photos, legacy, vr   (pass 1, Chaquopy disabled)
-      wear (:wear:assembleRelease + :wear:bundleRelease)  (pass 1)
+      wear (:wear:assembleStandardRelease + :wear:bundleStandardRelease)  (pass 1)
       noLegal                               (pass 2, Chaquopy enabled)
 
     Out of scope (kept in the existing per-flavor builders / build-and-push-all):

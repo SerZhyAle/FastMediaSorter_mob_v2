@@ -79,8 +79,6 @@
     <string name="delete_by_size_warning_no_trash">Внимание: корзина не поддерживается для этого ресурса. Удаление будет безвозвратным!</string>
     <string name="delete_confirmation">Удалить файлы?</string>
     <string name="delete_failed">Не получилось удалить файлы.</string>
-    <string name="delete_file_confirmation">Удалить файл %1$s из %2$s?</string>
-    <string name="delete_files_confirmation">Удалить %1$d файлов из %2$s?</string>
     <string name="delete_folder_confirm">Удалить папку «%1$s» и всё её содержимое? Это нельзя отменить.</string>
     <string name="delete_n_files_from_network_title">Удалить %d файлов из сети?</string>
     <string name="delete_n_folders_confirm">Удалить %1$d папок и весь их контент? Это нельзя отменить.</string>

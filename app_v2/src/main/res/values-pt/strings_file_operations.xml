@@ -76,8 +76,6 @@
     <string name="delete_by_size_warning_no_trash">Aviso: a lixeira não é suportada para este recurso. A exclusão será permanente!</string>
     <string name="delete_confirmation">Apagar arquivos?</string>
     <string name="delete_failed">Não foi possível excluir os arquivos.</string>
-    <string name="delete_file_confirmation">Excluir %1$s de %2$s?</string>
-    <string name="delete_files_confirmation">Excluir arquivos %1$d de %2$s?</string>
     <string name="delete_folder_confirm">Apagar a pasta \"%1$s\" e todo o seu conteúdo? Esta ação é irreversível.</string>
     <string name="delete_n_files_from_network_title">Excluir %d arquivos da rede?</string>
     <string name="delete_n_folders_confirm">Excluir as pastas %1$d e todo o seu conteúdo? Esta ação é irreversível.</string>

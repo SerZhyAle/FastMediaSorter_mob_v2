@@ -84,6 +84,8 @@ data class WearSourceTombstonePayload(
  * @param removed S2882: sources deleted because the phone declared them unwanted here. Declared last
  *   with a default so the older three-value call sites still build. Counted apart from the others
  *   because the phone cannot derive it - it knows what it declared, never what was here to delete.
+ *   S2932: also the sources a phone tombstone deleted, counted only where the deletion was applied to
+ *   a source this watch held - the watch may refuse one for a record edited here later.
  */
 data class ImportResult(
     val added: Int,

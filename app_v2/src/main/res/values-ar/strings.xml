@@ -975,7 +975,6 @@
     <string name="toast_copy_cancelled">تم إلغاء عملية النسخ</string>
     <string name="toast_delete_cancelled">تم إلغاء عملية الحذف</string>
     <string name="toast_unexpected_result">نتيجة غير متوقعة</string>
-    <string name="toast_delete_error">تعذّر إكمال حذف الملفات. حاول مرة أخرى.</string>
     <string name="error_deletion_failed">فشل الحذف</string>
     <string name="toast_filter_applied">تم تطبيق عامل التصفية بنجاح</string>
     <string name="toast_filter_failed">تعذّر تطبيق عامل التصفية. حاول مرة أخرى.</string>

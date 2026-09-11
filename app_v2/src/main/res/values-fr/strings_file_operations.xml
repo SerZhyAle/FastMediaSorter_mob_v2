@@ -77,8 +77,6 @@
     <string name="delete_by_size_warning_no_trash">Attention : la corbeille n’est pas prise en charge pour cette ressource. La suppression sera définitive !</string>
     <string name="delete_confirmation">Supprimer des fichiers ?</string>
     <string name="delete_failed">Impossible de supprimer les fichiers.</string>
-    <string name="delete_file_confirmation">Supprimer %1$s de %2$s ?</string>
-    <string name="delete_files_confirmation">Supprimer %1$d fichiers de %2$s ?</string>
     <string name="delete_folder_confirm">Supprimer le dossier « %1$s » et tout son contenu ? Cette opération est irréversible.</string>
     <string name="delete_n_files_from_network_title">Supprimer %d fichiers du réseau ?</string>
     <string name="delete_n_folders_confirm">Supprimer les dossiers %1$d et tout leur contenu ? Cette opération est irréversible.</string>

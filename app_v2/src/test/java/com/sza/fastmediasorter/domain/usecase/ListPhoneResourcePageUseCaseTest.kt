@@ -349,6 +349,10 @@ class ListPhoneResourcePageUseCaseTest {
         assertEquals(listOf("IMG_0001.jpg"), page.items.orEmpty().map { it.name })
     }
 
+    // S2982: two distinct files sharing a display name live at two paths - a path names at most one
+    // physical file. The original S2860 form of this test left both copies on the helper's
+    // name-derived path, which models a state no filesystem can hold, and the dual-key dedup then
+    // correctly collapsed them.
     @Test
     fun `flat list keeps same-named files with different MediaStore ids separate`() = runTest {
         coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
@@ -356,8 +360,10 @@ class ListPhoneResourcePageUseCaseTest {
             resource(id = 2, name = "All Images")
         )
         coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
-            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100")
+                .copy(path = "/storage/emulated/0/DCIM/IMG_0001.jpg"),
             file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+                .copy(path = "/storage/emulated/0/Download/IMG_0001.jpg")
         )
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
@@ -368,6 +374,66 @@ class ListPhoneResourcePageUseCaseTest {
             page.items.orEmpty().size
         )
         assertEquals(2, page.items.orEmpty().map { it.token }.distinct().size)
+    }
+
+    // S2982: MediaStore can hold a stale row beside the fresh one for a file that was rewritten in
+    // place - two ids, one `_data`. The path is what says they are one file, so the dual-key dedup
+    // collapses them rather than rendering the same tile twice on the watch.
+    @Test
+    fun `flat list collapses two MediaStore ids that share one path`() = runTest {
+        val sharedPath = "/storage/emulated/0/DCIM/IMG_0001.jpg"
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100")
+                .copy(path = sharedPath),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+                .copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "one path is one physical file however many MediaStore rows point at it",
+            listOf("IMG_0001.jpg"),
+            page.items.orEmpty().map { it.name }
+        )
+    }
+
+    // S2982: a file covered by a virtual resource (MediaStore id key) and a local folder resource
+    // (path key, no contentUri) is one physical file. The dual-key dedup must recognise it as one.
+    @Test
+    fun `flat list deduplicates a file shared between a virtual and a folder resource`() = runTest {
+        val sharedPath = "/storage/emulated/0/Download/S2925_bg_light.png"
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent").copy(path = "virtual://recent"),
+            resource(id = 2, name = "Download")
+        )
+        coEvery {
+            scanner.listDirectoryContents(
+                match { it == "virtual://recent" }, any(), any(), any(), any()
+            )
+        } returns listOf(
+            file(name = "S2925_bg_light.png", contentUri = "content://media/external/images/media/32090")
+                .copy(path = sharedPath)
+        )
+        coEvery {
+            scanner.listDirectoryContents(
+                match { it == "/storage/emulated/0/Download" }, any(), any(), any(), any()
+            )
+        } returns listOf(
+            file(name = "S2925_bg_light.png", contentUri = null).copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
+        assertEquals(
+            "a file covered by both a virtual and a folder resource appears once",
+            listOf("S2925_bg_light.png"),
+            page.items.orEmpty().map { it.name }
+        )
     }
 
     /**

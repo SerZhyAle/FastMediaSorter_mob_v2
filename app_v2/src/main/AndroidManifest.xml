@@ -1064,6 +1064,16 @@
              AlarmManagerSchedulerBroadcastReceiver which does not block the main thread. -->
         <service android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService" tools:node="remove" />
 
+        <!-- Android 16+ Assistant Actions (S2920) -->
+        <service
+            android:name=".core.assistant.MediaAssistantAppFunctionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_APP_FUNCTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.app.appfunctions.AppFunctionService" />
+            </intent-filter>
+        </service>
+
     </application>
 
 </manifest>

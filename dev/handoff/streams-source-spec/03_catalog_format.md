@@ -48,7 +48,7 @@ license_note, notes, confidence, favicon_index, access
 
 | # | Column | Meaning | Example values | Blank default | Required | Persisted to `stream_sources`? |
 |---|--------|---------|----------------|---------------|----------|--------------------------------|
-| 1 | `category` | high-level rubric | `Radio`, `Radio (SomaFM)`, `Live TV`, `Open movies`, `Test stream` | `""` | no | yes -> `category` (CATALOG rows) |
+| 1 | `category` | high-level rubric | `Radio`, `Radio (SomaFM)`, `Live TV`, `Open movies`, `Test stream`, `Webcam` | `""` | no | yes -> `category` (CATALOG rows) |
 | 2 | `topic` | genre/theme for filtering | `Jazz`, `Classical`, `Ambient`, `News`, `Movie` | `""` | no | yes -> `topic` |
 | 3 | `name` | display title | `TRT Radyo 3` | - | **yes** | yes -> `title` |
 | 4 | `url` | direct playable stream URL (playlists already resolved) | `https://host/stream.aac` | - | **yes** | yes -> `url` (unique) |
@@ -108,8 +108,8 @@ normalizers (`scripts/streams/modules/StreamPublisher.Common.ps1`, `Get-Canonica
 construction and by the isolated rewrite mode below. The app import applies the same contract
 (`StreamCatalogFacetNormalizer`), so an older asset and a fresh download converge on the same ids.
 
-- `category` - closed set: `Radio`, `Live TV`, `On-demand video`, `Test streams`. Known provider aliases
-  (`radio (somafm)`, `tv`, `open movies`, `movie`, `test stream`, ...) fold into these. An unknown
+- `category` - closed set: `Radio`, `Live TV`, `On-demand video`, `Test streams`, `Webcam`. Known provider aliases
+  (`radio (somafm)`, `somafm`, `tv`, `open movies`, `movie`, `test stream`, `webcam`, `webcams`, `cam`, `cams`, ...) fold into these. An unknown
   non-blank value is **preserved verbatim** for review (visible fallback), never dropped.
 - `topic` - the app's closed rubric set (S1477). Unknown or stale values fold into `General`.
 - `language` - lowercase English language names, comma-separated inside the cell; known regional variants

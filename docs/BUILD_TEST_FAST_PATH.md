@@ -238,7 +238,7 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Code -Build
 .\a.ps1 fw
 .\a.ps1 fwr
 .\a.ps1 fwu
-.\gradlew.bat :wear:assembleDebug   # wear packaging proof only - fw/fwr/fwu cover the rest
+.\a.ps1 wd                           # wear packaging proof (assembleStandardDebug) - fw/fwr/fwu cover the rest
 .\a.ps1 adb install -Flavor standard
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
@@ -419,7 +419,7 @@ Use:
 .\a.ps1 fwu                         # unit tests under wear/src/test
 .\a.ps1 faw                         # instrumented tests compile under wear/src/androidTest (S2355)
 .\a.ps1 fwm                         # Room migration tests run on connected watch (S2355)
-.\gradlew.bat :wear:assembleDebug   # only when packaging proof is the point
+.\a.ps1 wd                          # only when packaging proof is the point (assembleStandardDebug)
 ```
 
 **Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
@@ -513,7 +513,7 @@ Move upward only when needed:
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
 | Wear-only Kotlin edit | `.\a.ps1 fw` | resources or tests also changed |
 | Wear-only resource/manifest edit | `.\a.ps1 fwr` | Kotlin also changed |
-| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `:wear:assembleDebug` |
+| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `.\a.ps1 wd` |
 | Wear-only instrumented test edit | `.\a.ps1 faw` | execution on watch needed - then `.\a.ps1 fwm` |
 | Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 

@@ -149,10 +149,48 @@ class ImportStreamBroadcastUseCaseTest {
         assertEquals(ImportStreamBroadcastUseCase.ImportResult.Success, second)
     }
 
-    private fun watchDto(url: String, sourceId: String? = WATCH_ID) = BroadcastDescriptorDto(
+    // S2868: a row created while the watch titled itself with its model code takes the node name on
+    // the next visit; a row the user renamed keeps the user's name.
+
+    @Test
+    fun importFromKnownDevice_replacesAStoredModelCodeWithTheOfferedName() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "SM-L310")))
+
+        val result = importUseCase(serializer.serialize(watchDto(SECOND_URL, title = "Galaxy Watch7")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("Galaxy Watch7", dao.getByUrl(SECOND_URL)?.title)
+    }
+
+    @Test
+    fun importFromKnownDeviceOnTheSameAddress_stillReplacesAModelCode() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "SM-L310")))
+
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "Galaxy Watch7")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Updated, result)
+        assertEquals("Galaxy Watch7", dao.getByUrl(FIRST_URL)?.title)
+    }
+
+    @Test
+    fun importFromKnownDevice_neverOverwritesAUserRename() = runTest {
+        importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "SM-L310")))
+        dao.updateTitle(requireNotNull(dao.getByUrl(FIRST_URL)).id, "Kitchen watch")
+
+        val result = importUseCase(serializer.serialize(watchDto(FIRST_URL, title = "Galaxy Watch7")))
+
+        assertEquals(ImportStreamBroadcastUseCase.ImportResult.Duplicate, result)
+        assertEquals("Kitchen watch", dao.getByUrl(FIRST_URL)?.title)
+    }
+
+    private fun watchDto(
+        url: String,
+        sourceId: String? = WATCH_ID,
+        title: String = "Galaxy Watch",
+    ) = BroadcastDescriptorDto(
         schemaVersion = 1,
         url = url,
-        title = "Galaxy Watch",
+        title = title,
         mode = "AUDIO_ONLY",
         sourceId = sourceId
     )

@@ -757,4 +757,5 @@
     <string name="wear_cast_phone_busy">Телефон не ответил - проверьте, что он рядом</string>
     <string name="wear_cast_not_castable">На телевизоре можно показать только стримы и файлы из источников телефона</string>
     <string name="wear_stream_stalled">Поток перестал передавать данные. Воспроизведение остановлено, чтобы не сажать батарею.</string>
+    <string name="phone_resource_companion_disabled">На телефоне выключен Wear-компаньон. Включите его в настройках FastMediaSorter и повторите.</string>
 </resources>

@@ -37,3 +37,5 @@
 {"kind":"refusal","at":"2026-09-09T01:33:34+02:00","session":"6760c804-c74b-468a-ac62-825106eb1733","tool":"Glob","pattern":"**/HomeSectionId*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":"correct"}
 {"kind":"refusal","at":"2026-09-10T01:54:44+02:00","session":"c3b9a984-5198-4bd3-b685-66b9cac6e27d","tool":"Glob","pattern":"**/*FileSize*.kt","glob":"","path":"","type":"","markerPresent":false,"classification":"correct"}
 {"kind":"verdict","at":"2026-09-11T11:28:34+02:00","verdict":"reject","classifiedCount":28,"falseBlockCount":15,"slowSectorCount":1}
+{"kind":"refusal","at":"2026-09-11T22:26:03+02:00","session":"fd367ef7-1f4d-4c08-956b-6c0daa7fb176","tool":"Grep","pattern":"VIDEO_WITH_AUDIO","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}
+{"kind":"refusal","at":"2026-09-11T23:30:23+02:00","session":"fed1c0d9-c10e-4bf9-8e90-6103e6cca3a1","tool":"Grep","pattern":"VIDEO_WITH_AUDIO","glob":"*.kt","path":"","type":"","markerPresent":false,"classification":""}

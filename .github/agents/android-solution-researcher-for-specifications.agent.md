@@ -29,7 +29,7 @@ Never edit files. Never suggest implementation. Produce a research report only.
 Parse the argument. Identify:
 - Primary module: `app_v2/` or `wear/`?
 - Feature area(s) from `dev/PROJECT_OPERATIONS_INDEX.md` § "Feature-to-Path Map".
-- Likely affected flavors (standard / lite / photos / legacy).
+- Likely affected flavors, out of the seven in `docs/FLAVOR_MATRIX.md` (standard / noLegal / lite / photos / legacy / vr / foss).
 
 ### Step 1 - Fast routing
 
@@ -55,7 +55,7 @@ Use Search to fill gaps the catalogue and docs didn't answer:
 ### Step 3 - API level analysis
 
 For any Android platform API the feature touches, verify:
-- `minSdk` per flavor (26 standard, 23 legacy).
+- `minSdk` per flavor (the `minSdk` row of `docs/FLAVOR_MATRIX.md` - never a remembered list).
 - Whether the API was introduced after minSdk (requires `@RequiresApi` or compat shim).
 - Whether scoped storage / MediaStore batch / photo picker / predictive back applies.
 
@@ -79,7 +79,7 @@ Single markdown report with these sections. Omit a section only if genuinely N/A
 
 ## 1. Affected Scope
 - Module(s): app_v2 / wear
-- Flavor(s): standard / lite / photos / legacy
+- Flavor(s): standard / noLegal / lite / photos / legacy / vr / foss
 - Feature area(s) (from PROJECT_OPERATIONS_INDEX Feature-to-Path Map): ...
 
 ## 2. Current Architecture - Key Files

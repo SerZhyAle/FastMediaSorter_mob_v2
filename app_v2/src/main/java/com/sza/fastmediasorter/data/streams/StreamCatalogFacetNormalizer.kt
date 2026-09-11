@@ -21,12 +21,13 @@ class StreamCatalogFacetNormalizer @Inject constructor() {
         country = canonicalCountry(country),
     )
 
-    private fun canonicalCategory(value: String): String = when (val normalized = normalized(value)) {
-        "radio", "radio (somafm)" -> "Radio"
+    private fun canonicalCategory(value: String): String = when (normalized(value)) {
+        "radio", "radio (somafm)", "somafm" -> "Radio"
         "live tv", "live-tv", "television", "tv" -> "Live TV"
-        "open movies", "movie", "movies", "on demand", "on-demand video" -> "On-demand video"
-        "test stream", "test streams", "test" -> "Test streams"
-        else -> normalized.ifBlank { value.trim() }
+        "open movies", "movie", "movies", "on demand", "on-demand video", "on demand video" -> "On-demand video"
+        "test", "test stream", "test streams" -> "Test streams"
+        "webcam", "webcams", "cam", "cams" -> "Webcam"
+        else -> value.trim()
     }
 
     private fun canonicalTopic(value: String): String = when (normalized(value)) {
@@ -51,8 +52,12 @@ class StreamCatalogFacetNormalizer @Inject constructor() {
     private fun canonicalLanguage(value: String): String = when (normalized(value)) {
         "american english", "british english", "english uk", "engilsh" -> "english"
         "deutsch", "gernan", "gerrnan" -> "german"
-        "brazilian portuguese", "portuguese brazil" -> "portuguese"
+        "español argentino", "español internacional", "#spanish" -> "spanish"
+        "brazilian portuguese", "portuguese brazil", "português brasileiro",
+        "portugues do brasil", "português (br)",
+        -> "portuguese"
         "bahasa indonesia" -> "indonesian"
+        "ภาษาไทย" -> "thai"
         else -> normalized(value)
     }
 

@@ -1398,7 +1398,7 @@ Comprehensive testing of all features on real device and emulator.
 - [ ] Google Drive connection works
 - [ ] Network streaming performance acceptable
 
-**Build Target**: `:wear:assembleRelease`
+**Build Target**: `:wear:assembleStandardRelease` (or `.\scripts\builders\build-wear-release.PS1`)
 
 **Commit Message**: `test: Final testing and polish for Wear OS enhancements`
 

@@ -38,7 +38,6 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 import kotlin.math.abs
 
 private const val THREE_SECONDS = 3
@@ -144,20 +143,22 @@ private fun otherSettingsItems(
     val keepOnWatchLabel = stringResource(R.string.wear_voice_note_policy_manual)
     return buildList {
         add(
-            WearSettingsItem { _ ->
+            WearSettingsItem { narrow ->
                 WearSettingsToggleCell(
                     label = albumArtLabel,
                     checked = uiState.downloadAlbumArt,
-                    onToggle = { viewModel.toggleAlbumArt() }
+                    onToggle = { viewModel.toggleAlbumArt() },
+                    narrow = narrow
                 )
             }
         )
         add(
-            WearSettingsItem { _ ->
+            WearSettingsItem { narrow ->
                 WearSettingsToggleCell(
                     label = disableAnimationsLabel,
                     checked = uiState.isAnimationsDisabled,
-                    onToggle = { viewModel.toggleDisableAnimations() }
+                    onToggle = { viewModel.toggleDisableAnimations() },
+                    narrow = narrow
                 )
             }
         )
@@ -167,17 +168,18 @@ private fun otherSettingsItems(
         add(stepperPowerSaving(uiState, viewModel))
         if (uiState.hasAutoRotationSensor) {
             add(
-                WearSettingsItem { _ ->
+                WearSettingsItem { narrow ->
                     WearSettingsToggleCell(
                         label = autoRotationLabel,
                         checked = uiState.isAutoRotationEnabled,
-                        onToggle = { viewModel.toggleAutoRotation() }
+                        onToggle = { viewModel.toggleAutoRotation() },
+                        narrow = narrow
                     )
                 }
             )
         }
         add(
-            WearSettingsItem { _ ->
+            WearSettingsItem { narrow ->
                 WearSettingsToggleCell(
                     label = backgroundPlaybackLabel,
                     checked = uiState.backgroundPlaybackEnabled,
@@ -194,7 +196,8 @@ private fun otherSettingsItems(
                         } else {
                             notificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                         }
-                    }
+                    },
+                    narrow = narrow
                 )
             }
         )
@@ -289,7 +292,6 @@ private fun panelAutoHideRow(
     // the list actually offers and the first tap writes a list member back.
     val storedSeconds = uiState.panelAutoHideSeconds
     val currentSeconds = PANEL_AUTO_HIDE_INTERVALS.minByOrNull { abs(it - storedSeconds) } ?: storedSeconds
-    Timber.d("S2923: auto-hide row shows seconds=$currentSeconds")
     WearSettingsStepperCell(
         values = PANEL_AUTO_HIDE_INTERVALS,
         currentValue = currentSeconds,

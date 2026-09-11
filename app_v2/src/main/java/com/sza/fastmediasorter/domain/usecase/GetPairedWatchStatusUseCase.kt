@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.domain.model.PairedWatchStatus
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -24,7 +23,6 @@ class GetPairedWatchStatusUseCase @Inject constructor(
             // S2868: the raw display name carries the model code in parentheses, and the UI names the
             // watch by the human part only.
             ?.let(::watchDisplayNameWithoutModelCode)
-        Timber.d("S2868: paired-watch row names the watch '%s'", name)
         // A blank display name is treated as no watch: a row naming an empty string reads as a bug,
         // and "not connected" is the honest answer when the bridge cannot say who answered.
         return if (name == null) PairedWatchStatus.NotConnected else PairedWatchStatus.Connected(name)

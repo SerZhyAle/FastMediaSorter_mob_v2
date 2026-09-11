@@ -20,6 +20,17 @@ class StreamCatalogFacetNormalizerTest {
         assertEquals("Pop", facets.topic)
         assertEquals("english,german", facets.language)
         assertEquals("DE", facets.country)
+
+        val webcamFacets = normalizer.normalize(
+            category = "webcams",
+            topic = "Webcam",
+            language = "Portuguese Brazil",
+            country = "USA",
+        )
+        assertEquals("Webcam", webcamFacets.category)
+        assertEquals("Webcam", webcamFacets.topic)
+        assertEquals("portuguese", webcamFacets.language)
+        assertEquals("US", webcamFacets.country)
     }
 
     @Test
@@ -30,5 +41,8 @@ class StreamCatalogFacetNormalizerTest {
         assertEquals("Future topic", facets.topic)
         assertEquals("future language", facets.language)
         assertEquals("Atlantis", facets.country)
+
+        val unknownCategory = normalizer.normalize("Future Category", "", "", "")
+        assertEquals("Future Category", unknownCategory.category)
     }
 }

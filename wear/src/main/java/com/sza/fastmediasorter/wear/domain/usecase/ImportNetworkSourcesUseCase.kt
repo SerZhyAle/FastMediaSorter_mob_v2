@@ -51,10 +51,13 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         val deletionResolver = WearRecordMergeResolver(senderCarriesStamps = true, skewMillis = skewMillis)
         // Applied before any ordinary record of the same batch, so a record is ranked against the
         // tombstone this batch just accepted rather than against the source it is about to replace.
-        applyIncomingTombstones(payload.tombstones, deletionResolver)
+        val deleted = applyIncomingTombstones(payload.tombstones, deletionResolver)
         // S2882: after the deletions and before the records, so the set this batch's own records are
         // ranked against is the one the phone's withdrawals already left behind.
-        val removed = applyDeselections(payload.deselectedIds)
+        // S2932: both kinds of disappearance share one counter - the phone reports either as "Removed
+        // N source(s)". No id is counted twice, because the withdrawals re-read what is still here.
+        val removed = deleted + applyDeselections(payload.deselectedIds)
+        Timber.d("S2932: watch ack removed=$removed, of which tombstone deletions applied=$deleted")
 
         val stored = repository.getAllSources().toMutableList()
         val localTombstones = repository.getTombstones().associateBy { it.id }
@@ -114,19 +117,24 @@ class ImportNetworkSourcesUseCase @Inject constructor(
      * against local edits without measuring the skew again. A rejected one is not stored: the local
      * edit that beat it wins again every time, and keeping the losing event would only hand it a
      * second chance it already lost.
+     *
+     * @return S2932: how many sources this batch actually took off the watch. A rejected tombstone
+     *   deleted nothing, and an accepted one for an id this watch never held is still stored - so the
+     *   source cannot come back later - yet removed nothing either. Neither is counted.
      */
     private suspend fun applyIncomingTombstones(
         incoming: List<WearSourceTombstonePayload>?,
         deletionResolver: WearRecordMergeResolver
-    ) {
+    ): Int {
         // S2885: the guard sits here rather than at the call site so a second caller inherits it. Null
         // is a phone that ships no deletions at all, which for this list means the same as declaring
         // none - unlike `deselectedIds`, where null and empty must stay distinguishable.
         if (incoming.isNullOrEmpty()) {
-            return
+            return 0
         }
         Timber.d("S2507: watch import leg received ${incoming.size} tombstone(s) from the phone")
         val stored = repository.getAllSources().associateBy { it.id }
+        var deleted = 0
         for (tombstone in incoming) {
             val decision = deletionResolver.resolve(tombstone.deletedAt, stored[tombstone.id]?.lastEditedAt)
             if (!decision.apply) {
@@ -137,7 +145,11 @@ class ImportNetworkSourcesUseCase @Inject constructor(
             repository.recordTombstone(
                 tombstone.copy(deletedAt = decision.stampEpochMillis ?: tombstone.deletedAt)
             )
+            if (tombstone.id in stored) {
+                deleted++
+            }
         }
+        return deleted
     }
 
     /**

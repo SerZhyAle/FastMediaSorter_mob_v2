@@ -1051,7 +1051,6 @@
     <string name="toast_copy_cancelled">Копирование отменено</string>
     <string name="toast_delete_cancelled">Удаление отменено</string>
     <string name="toast_unexpected_result">Неожиданный результат</string>
-    <string name="toast_delete_error">Не получилось завершить удаление файлов. Попробуйте ещё раз.</string>
     <string name="error_deletion_failed">Удаление не выполнено</string>
     <string name="toast_filter_applied">Фильтр применён</string>
     <string name="toast_filter_failed">Не получилось применить этот фильтр. Попробуйте ещё раз.</string>
@@ -3989,4 +3988,9 @@
     <string name="tourist_daylight_active">День</string>
     <string name="tourist_daylight_night">Ночь</string>
     <string name="tourist_share_template">Координаты: %1$s, %2$s</string>
+    <string name="wear_help_media_types">Выберите типы медиа, которые часы могут просматривать и воспроизводить.</string>
+    <string name="wear_help_slideshow">Управление слайд-шоу на часах: включите его и задайте длительность показа каждого фото.</string>
+    <string name="wear_help_screen">Настройте экран часов: режим просмотра, фон, цветовую схему и блокировку отключения.</string>
+    <string name="wear_help_other">Другие настройки часов: энергосбережение и длительность авто-скрытия панели плеера.</string>
+    <string name="wear_slideshow_custom_value">Ввести своё значение</string>
 </resources>

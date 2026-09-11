@@ -392,6 +392,7 @@ private fun VideoPlayerContent(
     }
 
     if (showMenu) {
+        Timber.d("S2531: video player overflow menu opened")
         PlayerOverflowMenu(
             actions = videoMenuActions(
                 uiState = uiState,
@@ -733,8 +734,9 @@ private fun videoMenuActions(
  * S2766: back, the favourite where a third slot exists, and the menu button - the same two-or-three
  * composition the audio player draws. The scale mode and the stream pin left this row for the menu.
  *
- * S2803: the ORIGINAL view restores the four the pre-S2766 tree drew - back, favourite, pin for a
- * stream or file operations for a file, scale mode - and the menu button has nothing left to open.
+ * S2803: the ORIGINAL view restores pin for a stream or file operations for a file. S2531: the cast
+ * entry lives in the overflow menu, so the restored row keeps a menu button where it held scale mode
+ * - scale mode moved to the menu.
  */
 @Composable
 private fun VideoControlsSecondaryRow(
@@ -746,14 +748,8 @@ private fun VideoControlsSecondaryRow(
     val pinDesc = stringResource(
         if (uiState.isPinned) R.string.wear_player_stream_unpin else R.string.wear_player_stream_pin
     )
-    val scaleDesc = stringResource(R.string.wear_scale_mode)
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
     Timber.d("S2803: video secondary restored=%b columns=%s", restored, secondaryRowColumns())
-    val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
-        Icons.Filled.AspectRatio
-    } else {
-        Icons.Filled.CropFree
-    }
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(
@@ -788,22 +784,14 @@ private fun VideoControlsSecondaryRow(
                     size = targetSize
                 )
             }
-
-            PlayerCommandButton(
-                onClick = actions.onToggleScaleMode,
-                icon = scaleIcon,
-                contentDescription = scaleDesc,
-                size = targetSize,
-                checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
-            )
-        } else {
-            PlayerCommandButton(
-                onClick = onOpenMenu,
-                icon = Icons.Default.MoreVert,
-                contentDescription = menuDesc,
-                size = targetSize
-            )
         }
+
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = menuDesc,
+            size = targetSize
+        )
     }
 
     if (uiState.hasSet && !uiState.isStream) {

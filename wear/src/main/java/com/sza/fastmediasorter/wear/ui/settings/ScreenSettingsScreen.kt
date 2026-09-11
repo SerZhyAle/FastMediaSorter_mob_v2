@@ -78,16 +78,7 @@ fun ScreenSettingsScreen(
     }
     val geometryLabel = stringResource(R.string.wear_setting_original_layout)
     val geometryItems = geometryModeItems(uiState, viewModel)
-    val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
-    val keepAwakeItems = listOf(
-        WearSettingsItem { _ ->
-            WearSettingsToggleCell(
-                label = keepAwakeLabel,
-                checked = uiState.keepScreenAwakeOutsidePlayers,
-                onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() }
-            )
-        }
-    )
+    val keepAwakeItems = keepAwakeItem(uiState, viewModel)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -151,6 +142,29 @@ private fun geometryModeItems(
                 label = summary,
                 checked = uiState.geometryMode == WearGeometryMode.ORIGINAL,
                 onToggle = { viewModel.toggleGeometryMode() }
+            )
+        }
+    )
+}
+
+/**
+ * The keep-awake toggle, lifted out of [ScreenSettingsScreen] so the screen stays under detekt's
+ * length ceiling. A single-item run today, but the `narrow` flag is passed through so a future
+ * sibling in the same row would not break mid-word (S2986).
+ */
+@Composable
+private fun keepAwakeItem(
+    uiState: SettingsUiState,
+    viewModel: SettingsViewModel
+): List<WearSettingsItem> {
+    val keepAwakeLabel = stringResource(R.string.screen_settings_keep_awake)
+    return listOf(
+        WearSettingsItem { narrow ->
+            WearSettingsToggleCell(
+                label = keepAwakeLabel,
+                checked = uiState.keepScreenAwakeOutsidePlayers,
+                onToggle = { viewModel.toggleKeepScreenAwakeOutsidePlayers() },
+                narrow = narrow
             )
         }
     )

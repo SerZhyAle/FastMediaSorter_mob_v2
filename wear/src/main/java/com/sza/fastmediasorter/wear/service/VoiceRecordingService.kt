@@ -350,14 +350,12 @@ class VoiceRecordingService : Service() {
         val endpoint = withContext(Dispatchers.IO) {
             lanServer.start(serviceScope, sessionManager.liveSink, lease.address, preferredPort)
         }
-        Timber.d("S2813: broadcast bound port ${endpoint.port}, preferred was $preferredPort")
         // Recorded after the bind, not before it: a refused preferred port falls back, and the next
         // session must start from the port that actually worked.
         broadcastIdentity.rememberPort(endpoint.port)
         // Resolved here rather than inside liveStateOf: naming the node is a Data Layer round trip and
         // this is the one suspending caller.
         val watchName = getWatchDisplayName()
-        Timber.d("S2868: broadcast descriptor titled '%s'", watchName)
         broadcastSession.publish(liveStateOf(endpoint, broadcastIdentity.sourceId(), watchName))
     }
 

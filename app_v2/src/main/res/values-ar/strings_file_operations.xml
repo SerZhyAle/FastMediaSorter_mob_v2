@@ -76,7 +76,6 @@
     <string name="delete_by_size_warning_no_trash">تحذير: لا يدعم هذا المورد خاصية حذف الملفات. الحذف نهائي!</string>
     <string name="delete_confirmation">حذف الملفات؟</string>
     <string name="delete_failed">تعذر حذف الملفات.</string>
-    <string name="delete_file_confirmation">هل تريد حذف %1$s من %2$s؟</string>
     <string name="delete_folder_confirm">هل تريد حذف المجلد \"%1$s\" وجميع محتوياته؟ لا يمكن التراجع عن هذا الإجراء.</string>
     <string name="delete_n_files_from_network_title">هل تريد حذف %d ملفًا من الشبكة؟</string>
     <string name="delete_n_folders_confirm">هل تريد حذف مجلدات %1$d وجميع محتوياتها؟ لا يمكن التراجع عن هذا الإجراء.</string>

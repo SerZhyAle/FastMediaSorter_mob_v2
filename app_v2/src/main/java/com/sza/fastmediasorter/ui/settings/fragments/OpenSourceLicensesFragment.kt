@@ -49,7 +49,6 @@ class OpenSourceLicensesFragment : Fragment() {
         // S2899: Ensure initial focus on TV / D-pad
         view.post {
             if (isAdded && _binding != null) {
-                Timber.d("S2899: OpenSourceLicenses initial focus requested")
                 binding.toolbar.requestFocus()
             }
         }

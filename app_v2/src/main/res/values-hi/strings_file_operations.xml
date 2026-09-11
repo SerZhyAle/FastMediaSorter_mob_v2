@@ -76,8 +76,6 @@
     <string name="delete_by_size_warning_no_trash">चेतावनी: इस संसाधन के लिए ट्रैश समर्थित नहीं है। डिलीट करना स्थायी होगा!</string>
     <string name="delete_confirmation">फाइलों को नष्ट?</string>
     <string name="delete_failed">फाइलें डिलीट नहीं हो सकीं।</string>
-    <string name="delete_file_confirmation">%2$s में से %1$s को हटाएँ?</string>
-    <string name="delete_files_confirmation">%2$s से %1$d फ़ाइलें हटाएं?</string>
     <string name="delete_folder_confirm">क्या आप फ़ोल्डर \"%1$s\" और उसकी सभी सामग्री को हटाना चाहते हैं? इसे पूर्ववत नहीं किया जा सकता है।</string>
     <string name="delete_n_files_from_network_title">नेटवर्क से %d फ़ाइलें हटाएं?</string>
     <string name="delete_n_folders_confirm">%1$d फ़ोल्डर और उनकी सभी सामग्री को हटा दें? इसे पूर्ववत नहीं किया जा सकता है।</string>

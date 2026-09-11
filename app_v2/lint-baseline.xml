@@ -103,17 +103,6 @@
     <issue
         id="UnsafeFlowCollect"
         message="Collecting Flow directly in lifecycleScope.launch is unsafe. Use repeatOnLifecycle or flowWithLifecycle to prevent background resource usage and leaks."
-        errorLine1="                    fileOperationUseCase.executeWithProgress(operation).collect { progress ->"
-        errorLine2="                    ^">
-        <location
-            file="src/main/java/com/sza/fastmediasorter/ui/dialog/DeleteDialog.kt"
-            line="100"
-            column="21"/>
-    </issue>
-
-    <issue
-        id="UnsafeFlowCollect"
-        message="Collecting Flow directly in lifecycleScope.launch is unsafe. Use repeatOnLifecycle or flowWithLifecycle to prevent background resource usage and leaks."
         errorLine1="            settingsRepository.getSettings()"
         errorLine2="            ^">
         <location

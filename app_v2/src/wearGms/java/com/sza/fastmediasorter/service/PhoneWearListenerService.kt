@@ -439,6 +439,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handlePhoneResourceBrowse(data: ByteArray) {
         applicationScope.launch {
             val request = parsePhoneResourceRequest(data) ?: return@launch
+            if (refusedAsCompanionDisabled(request)) return@launch
             sendPhoneResourcePage(listPhoneResourcePageUseCase(request))
         }
     }
@@ -446,6 +447,7 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handlePhoneResourceOpen(nodeId: String, data: ByteArray) {
         applicationScope.launch {
             val request = parsePhoneResourceRequest(data) ?: return@launch
+            if (refusedAsCompanionDisabled(request)) return@launch
             when (val outcome = openPhoneResourceChannelUseCase(request)) {
                 is PhoneResourceChannel.Rejected -> sendPhoneResourcePage(
                     WearPhoneResourcePage(requestId = request.requestId, status = outcome.status)
@@ -626,6 +628,36 @@ class PhoneWearListenerService : WearableListenerService() {
         }.onFailure { Timber.w(it, "Open on phone: acknowledgement could not be sent") }
     }
 
+    /**
+     * S2981: answers [request] with a companion-off refusal when the owner switched the companion off.
+     *
+     * Checked before any listing or channel work, so nothing but the status leaves the phone. Without
+     * it the ordinary publish is swallowed by the switch and the watch times out blaming a missing
+     * phone. Returns true when the request was refused and the caller must stop.
+     */
+    // A failed refusal falls back to the watch's own timeout, the pre-S2981 behaviour, so one catch
+    // arm covers whatever GMS raised; cancellation is rethrown ahead of it.
+    @Suppress("TooGenericExceptionCaught")
+    private suspend fun refusedAsCompanionDisabled(request: WearPhoneResourceRequest): Boolean {
+        if (wearableDataLayerRepository.isCompanionEnabled()) return false
+        Timber.d("S2981: companion off, refusing phone-resource request %s", request.requestId)
+        val refusal = WearPhoneResourcePage(
+            requestId = request.requestId,
+            status = WearPhoneResourceResponseStatus.COMPANION_DISABLED
+        )
+        try {
+            wearableDataLayerRepository.putCompanionRefusal(
+                "${WearDataLayerPaths.PHONE_RESOURCE_PAGE}/${request.requestId}",
+                encodePage(refusal)
+            )
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Timber.w(e, "Companion-off refusal could not be published")
+        }
+        return true
+    }
+
     private fun parsePhoneResourceRequest(data: ByteArray): WearPhoneResourceRequest? = try {
         gson.fromJson(data.decodeToString(), WearPhoneResourceRequest::class.java)
     } catch (e: Exception) {
@@ -637,10 +669,14 @@ class PhoneWearListenerService : WearableListenerService() {
     // contract. Cancellation is rethrown as the first arm above it rather than folded in.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun sendPhoneResourcePage(page: WearPhoneResourcePage) {
+        // S2985: per-request path so concurrent responses (a burst of thumbnail requests)
+        // do not overwrite each other on the shared DataItem path before the watch reads them.
+        val path = "${WearDataLayerPaths.PHONE_RESOURCE_PAGE}/${page.requestId}"
         val envelopeBytes = withinWireLimit(page)
         try {
+            Timber.d("S2985: publishing page requestId=%s path=%s", page.requestId, path)
             wearableDataLayerRepository.putDataItem(
-                WearDataLayerPaths.PHONE_RESOURCE_PAGE,
+                path,
                 envelopeBytes
             )
         } catch (e: CancellationException) {

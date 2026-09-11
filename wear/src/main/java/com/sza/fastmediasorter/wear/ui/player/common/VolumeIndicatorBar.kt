@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -23,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
-import timber.log.Timber
 
 private val VOLUME_BAR_HEIGHT = 4.dp
 private val VOLUME_BAR_VERTICAL_PADDING = 6.dp
@@ -94,16 +94,21 @@ internal fun VolumeIndicatorBar(
  * screen that keeps the transient right-hand bar needs no change. On a screen where the bar is
  * permanent, [isChanging] is what still tells a bezel step apart from rest - the bar is dimmed
  * while nothing is being adjusted rather than removed.
+ *
+ * Declared on [BoxScope] because the edge has to be chosen with `align` and nothing else can do it:
+ * the bar wraps its own 4 dp width, so a `contentAlignment` set inside it aligns nothing horizontally,
+ * and a wrap-width child with no alignment is placed by the parent Box at the start edge - which is
+ * how Browse drew its right-hand bar on the left on a Galaxy Watch 7 (device run 2026-09-11). Filling
+ * the width instead would lay a merged-semantics node across the whole screen.
  */
 @Composable
-internal fun VolumeIndicatorSideBar(
+internal fun BoxScope.VolumeIndicatorSideBar(
     level: Int,
     max: Int,
     modifier: Modifier = Modifier,
     atStartEdge: Boolean = false,
     isChanging: Boolean = true
 ) {
-    Timber.d("S2477: VolumeIndicatorSideBar level=%d, max=%d", level, max)
     val readout = stringResource(R.string.wear_audio_volume_level, level, max)
     val filled = if (max > 0) (level.toFloat() / max).coerceIn(0f, 1f) else 0f
     val shape = RoundedCornerShape(percent = VOLUME_BAR_CORNER_PERCENT)
@@ -111,6 +116,7 @@ internal fun VolumeIndicatorSideBar(
 
     Box(
         modifier = modifier
+            .align(if (atStartEdge) Alignment.CenterStart else Alignment.CenterEnd)
             .fillMaxHeight()
             .padding(
                 start = if (atStartEdge) SIDE_BAR_EDGE_PADDING else 0.dp,
@@ -118,7 +124,7 @@ internal fun VolumeIndicatorSideBar(
             )
             .alpha(emphasis)
             .semantics(mergeDescendants = true) { contentDescription = readout },
-        contentAlignment = if (atStartEdge) Alignment.CenterStart else Alignment.CenterEnd
+        contentAlignment = Alignment.Center
     ) {
         Box(
             modifier = Modifier

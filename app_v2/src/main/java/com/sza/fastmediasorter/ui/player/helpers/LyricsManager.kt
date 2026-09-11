@@ -208,10 +208,19 @@ class LyricsManager(
                 }
             )
 
+        safeViews.btnCloseLyricsViewer.setOnClickListener {
+            hideLyricsViewer()
+        }
         safeViews.lyricsViewerContainer.isVisible = true
         // Hide top command panel when showing lyrics
         safeViews.topCommandPanel.isVisible = false
     }
+
+    /**
+     * S1143: reports whether the lyrics overlay viewer is currently visible.
+     */
+    val isViewerVisible: Boolean
+        get() = safeViews.lyricsViewerContainerOrNull?.isVisible == true
 
     /**
      * Hide lyrics viewer overlay and restore top command panel.

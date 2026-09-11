@@ -50,10 +50,13 @@ data class WearFavoriteRecord(
                 return null
             }
             val path = key.substring(separator + 1)
+            val rawName = path.substringAfterLast('/').ifBlank { path }
+            val dot = rawName.lastIndexOf('.')
+            val displayName = if (dot > 0) rawName.substring(0, dot) else rawName
             return WearFavoriteRecord(
                 sourceId = key.substring(0, separator),
                 filePath = path,
-                displayName = path.substringAfterLast('/').ifBlank { path }
+                displayName = displayName
             )
         }
     }

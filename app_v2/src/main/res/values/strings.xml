@@ -1205,7 +1205,6 @@
     <string name="toast_copy_cancelled">Copy operation cancelled</string>
     <string name="toast_delete_cancelled">Delete operation cancelled</string>
     <string name="toast_unexpected_result">Unexpected result</string>
-    <string name="toast_delete_error">Couldn\'t finish deleting the files. Try again.</string>
     <string name="error_deletion_failed">Deletion failed</string>
     <string name="toast_filter_applied">Filter applied successfully</string>
     <string name="toast_filter_failed">Couldn\'t apply that filter. Try again.</string>
@@ -4047,4 +4046,9 @@
     <string name="tourist_daylight_active">Day</string>
     <string name="tourist_daylight_night">Night</string>
     <string name="tourist_share_template">Coordinates: %1$s, %2$s</string>
+    <string name="wear_help_media_types">Choose which media types the watch can browse and play.</string>
+    <string name="wear_help_slideshow">Control the watch slideshow: enable it and set how long each photo stays on screen.</string>
+    <string name="wear_help_screen">Customize the watch display: view mode, background, color scheme and keep-awake.</string>
+    <string name="wear_help_other">Other watch settings: power saving and player panel auto-hide duration.</string>
+    <string name="wear_slideshow_custom_value">Enter custom value</string>
 </resources>

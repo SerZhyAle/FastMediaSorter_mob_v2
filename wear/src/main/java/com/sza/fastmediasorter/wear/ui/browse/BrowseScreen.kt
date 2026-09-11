@@ -368,7 +368,6 @@ private fun BrowseRefineMenuHost(
     viewModel: BrowseViewModel
 ) {
     if (!refine.showRefineMenu) return
-    Timber.d("S2473: refine menu opened over the browse list")
     WearRefineMenuScreen(
         state = WearRefineMenuState(
             sortOptions = viewModel.availableSortOrders(),
@@ -613,7 +612,7 @@ private fun MediaListContent(
 
         // S2477: Volume side bar fixed at right edge instead of taking a row in the list
         if (volume.max > 0) {
-            Timber.d("S2477: BrowseScreen rendering right side volume bar")
+            Timber.d("S2477: Browse volume side bar composed, aligned to the end edge")
             VolumeIndicatorSideBar(level = volume.level, max = volume.max)
         }
     }

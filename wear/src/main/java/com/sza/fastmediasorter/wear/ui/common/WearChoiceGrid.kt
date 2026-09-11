@@ -111,7 +111,8 @@ private fun WearChoiceListChip(
 ) {
     Chip(
         onClick = onClick,
-        label = { Text(text = label, maxLines = GRID_LABEL_MAX_LINES, overflow = TextOverflow.Ellipsis) },
+        // A full-width chip wraps its label; only the narrow grid cell below caps to one line (S2473).
+        label = { Text(text = label) },
         icon = if (isSelected) {
             {
                 Icon(

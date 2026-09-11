@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import com.sza.fastmediasorter.wear.domain.repository.WearSystemInfoDataSource
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -32,7 +31,6 @@ class GetWatchDisplayNameUseCase @Inject constructor(
         val name = nodeName
             ?: systemInfo.model?.takeIf { it.isNotBlank() }
             ?: FALLBACK_NAME
-        Timber.d("S2868: watch names itself '%s' (from node: %s)", name, nodeName != null)
         return name
     }
 

@@ -93,7 +93,6 @@ class StreamsViewModel @Inject constructor(
                     withContext(Dispatchers.Default) { computeDisplayChannels(inputs) }
                 }
                 .collect { display ->
-                    Timber.d("S2528: streams display channels projected count=%d", display.size)
                     _uiState.update { it.copy(displayChannels = display, isLoading = false) }
                 }
         }
