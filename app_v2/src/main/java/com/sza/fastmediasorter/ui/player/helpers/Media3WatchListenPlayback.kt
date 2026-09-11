@@ -27,11 +27,30 @@ class Media3WatchListenPlayback @Inject constructor(
     private val audioController by lazy { AudioServiceController(context) }
 
     private var onDropped: (() -> Unit)? = null
+    private var onEndedElsewhere: (() -> Unit)? = null
 
-    private val errorListener = object : Player.Listener {
+    /** STATE_IDLE is also where a source starts from, so only an IDLE after READY is an end. */
+    private var reachedReady = false
+
+    private val sessionListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             Timber.i(error, "The watch's audio stream dropped")
             onDropped?.invoke()
+        }
+
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            if (!playWhenReady) {
+                reportEndedElsewhere()
+            }
+        }
+
+        override fun onPlaybackStateChanged(playbackState: Int) {
+            when (playbackState) {
+                Player.STATE_READY -> reachedReady = true
+                Player.STATE_ENDED -> reportEndedElsewhere()
+                Player.STATE_IDLE -> if (reachedReady) reportEndedElsewhere()
+                else -> Unit
+            }
         }
     }
 
@@ -39,18 +58,31 @@ class Media3WatchListenPlayback @Inject constructor(
         RadioStreamBufferConfig.syncLiveSessionMirror(context, true)
     }
 
-    override fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit) {
+    override fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit, onEndedElsewhere: () -> Unit) {
         this.onDropped = onDropped
+        this.onEndedElsewhere = onEndedElsewhere
+        reachedReady = false
         audioController.playAudio(Uri.parse(url), mimeType = LISTEN_MIME_TYPE) { player ->
-            player.addListener(errorListener)
+            player.addListener(sessionListener)
             onPlaying()
         }
     }
 
+    /**
+     * S2939: a live microphone stream has no meaningful pause - a paused listener holds the watch's
+     * microphone for nobody - so every end the session did not order ends the session.
+     */
+    private fun reportEndedElsewhere() {
+        Timber.i("Playback of the watch's stream ended outside the listening session")
+        onEndedElsewhere?.invoke()
+    }
+
     override fun stop() {
+        // Detached before the player is touched, so this stop is never reported back as one from elsewhere.
         onDropped = null
+        onEndedElsewhere = null
         audioController.player?.let { player ->
-            player.removeListener(errorListener)
+            player.removeListener(sessionListener)
             player.stop()
             player.clearMediaItems()
         }

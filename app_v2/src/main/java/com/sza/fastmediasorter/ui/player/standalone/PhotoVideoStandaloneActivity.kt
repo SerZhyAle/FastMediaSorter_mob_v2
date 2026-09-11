@@ -28,7 +28,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -72,6 +71,7 @@ import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -650,12 +650,7 @@ class PhotoVideoStandaloneActivity :
         val isVideoControllerVisible = binding.playerView.isControllerFullyVisible
         val shouldBeVisible = isVideoFullscreen && isVideoControllerVisible && pipManager?.isInPipMode != true
         btnFullscreenExit.isVisible = shouldBeVisible
-        Timber.d(
-            "S2895: PhotoVideoStandaloneActivity exit button - isVideoFullscreen=%b, controllerVisible=%b, exitButtonVisible=%b",
-            isVideoFullscreen,
-            isVideoControllerVisible,
-            shouldBeVisible,
-        )
+        Timber.d("S2895: standalone exit fs=$isVideoFullscreen ctrl=$isVideoControllerVisible vis=$shouldBeVisible")
     }
 
     private fun setupBackPressHandler() {

@@ -160,11 +160,23 @@ private fun BeamDialogBody(
         is WearSyncUiState.Success -> {
             Text("✓", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.primary)
             Spacer(Modifier.height(8.dp))
-            Text(
-                stringResource(R.string.wear_sync_success, state.sent),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
+            // S2882: a batch that only removed sources is not "Sent N" - it is reported in its own words.
+            // When both halves moved, both lines show, so the user sees the full exchange.
+            if (state.sent > 0) {
+                Text(
+                    stringResource(R.string.wear_sync_success, state.sent),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+            if (state.removed > 0) {
+                if (state.sent > 0) Spacer(Modifier.height(4.dp))
+                Text(
+                    stringResource(R.string.wear_sync_removed, state.removed),
+                    style = MaterialTheme.typography.bodyMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
         is WearSyncUiState.Error -> {
             Text("✗", style = MaterialTheme.typography.displayMedium, color = MaterialTheme.colorScheme.error)

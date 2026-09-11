@@ -94,7 +94,8 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 ## 📊 Post-Release Monitoring
 
 ### First 24 Hours
-- [ ] Check crash rate in Play Console
+- [ ] Check crash and ANR rates - `..ps1 pv` reads them from the Play Developer Reporting API, records
+      them in `docs/PLAY_PUBLISHING_STATE.md` block 4 and files a Draft ticket on a red band (S2917)
 - [ ] Monitor user reviews
 - [ ] Track installation success rate
 - [ ] Watch for ANR (Application Not Responding) reports
@@ -104,9 +105,9 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 - [ ] Check reported bugs
 - [ ] Monitor performance metrics
 - [ ] **Technical quality thresholds (enforced from February 2027)** - run section G of
-      `PLAY_CONSOLE_CHECKLIST.md`. The four surfaces and where the figures are recorded are listed
-      there and deliberately not repeated here, so there is one place to update when Play changes
-      the thresholds.
+      `PLAY_CONSOLE_CHECKLIST.md`. Which surfaces a script reads, which are still read by hand, and
+      where the figures are recorded are listed there and deliberately not repeated here, so there
+      is one place to update when Play changes the thresholds.
 - [ ] Plan hotfix if needed
 
 ## 🎯 This Release Fixes

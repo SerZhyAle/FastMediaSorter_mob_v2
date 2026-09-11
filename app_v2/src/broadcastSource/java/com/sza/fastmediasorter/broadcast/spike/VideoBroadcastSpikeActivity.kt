@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.broadcast.spike
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.view.ViewGroup
@@ -13,6 +14,7 @@ import androidx.core.content.ContextCompat
 import com.pedro.common.ConnectChecker
 import com.pedro.rtspserver.RtspServerCamera2
 import com.pedro.rtspserver.util.RtspServerStreamClient
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import timber.log.Timber
 
 /**
@@ -27,6 +29,10 @@ import timber.log.Timber
  * Phase 05 deletes this file. Nothing in the shipped broadcast path may reference it.
  */
 class VideoBroadcastSpikeActivity : AppCompatActivity(), ConnectChecker {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     private var server: RtspServerCamera2? = null
     private lateinit var statusView: TextView

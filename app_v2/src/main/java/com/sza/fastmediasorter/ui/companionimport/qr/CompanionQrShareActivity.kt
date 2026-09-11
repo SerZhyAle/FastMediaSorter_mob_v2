@@ -10,6 +10,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrShareBinding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +26,10 @@ import kotlin.math.min
  */
 @AndroidEntryPoint
 class CompanionQrShareActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     // S1045: this screen does not extend BaseActivity (pure rendering, no ViewBinding generics), so it
     // cannot use BaseActivity.isSensitiveScreen(). S1195: the setting now arrives through this ViewModel

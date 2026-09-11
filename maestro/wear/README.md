@@ -31,10 +31,16 @@ tree because `testTagsAsResourceId` is declared once on the watch navigation roo
 - `wear_nav_root` - the navigation host
 - `wear_home_section_<section id>` - a home chip, in both the single-column and the grid layout
 - `wear_settings_row_<route>` - a settings destination
+- `wear_category_<token>` - a category chip on a source screen (Local, Phone), in both layouts; the
+  id tracks the route token ("music", "recents"), never the caption beside it
+- `wear_media_type_<type>` - a media-type toggle inside Settings -> Media types ("music", "video",
+  "image", "document")
+- `wear_about_version`, `wear_about_web_portal`, `wear_about_web_portal_on_phone`,
+  `wear_about_send_logs` - the About screen's rows
 
 A caption is translated into thirteen locales and an id is not, so a caption-aimed flow passes only on
 the language it was written in. Use a caption only where the node is drawn by code this project does
-not own.
+not own - after S2548's id pass, no flow in this tree has a reason to.
 
 ## The bezel is not in the flow language
 

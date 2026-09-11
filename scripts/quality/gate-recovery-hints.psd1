@@ -28,6 +28,11 @@
         Fix   = 'A register/add call in your files has no matching unregister/remove on the paired lifecycle callback - add the removal, or move both to the same owner.'
     }
 
+    'activity-locale-wrapper-gate' = @{
+        Repro = 'pwsh -NoProfile -File scripts/quality/assert-activity-locale-wrapper.ps1 -Gate -ChangedFiles "<your,files>"'
+        Fix   = 'An Activity in your files resolves resources outside the app locale wrapper, so it shows the framework configuration language instead of the one the user chose. Extend BaseActivity, or override attachBaseContext with super.attachBaseContext(LocaleHelper.applyLocale(newBase)). If it genuinely must not wrap its context (the print trampoline is the one such case), add it to scripts/quality/activity-locale-wrapper-baseline.txt with the reason - a row with no reason fails the gate.'
+    }
+
     'doc-pin-drift' = @{
         Repro = 'pwsh -NoProfile -File scripts/quality/assert-doc-pin-drift.ps1'
         Fix   = 'A version pin quoted in the docs no longer matches the build files - update the doc line to the value the report names, never the other way round.'

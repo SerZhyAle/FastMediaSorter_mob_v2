@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
+import com.sza.fastmediasorter.ui.tourist.TouristInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
@@ -84,6 +85,10 @@ object AppLaunchPanelRouteIntents {
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
+
+    // S2922: Tourist dashboard subprogram.
+    fun touristInfo(context: Context): Intent =
+        TouristInfoActivity.createIntent(context).withPanelFlags()
 
     // S1883: the same host window the settings button and the programs entry open, so all four
     // surfaces are one behaviour rather than several that resemble each other.

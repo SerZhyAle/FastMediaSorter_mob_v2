@@ -57,7 +57,9 @@ class SyncWithWatchUseCaseTest {
 
     @Test
     fun `both legs succeeding reports the exchange as complete`() = runTest {
-        coEvery { sendResources() } returns Result.success(SendResult(sent = 3, skipped = 0))
+        coEvery { sendResources() } returns Result.success(
+            SendResult(sent = 3, skipped = 0, dispatched = true)
+        )
         coEvery { pushSettings(settings) } returns Result.success(Unit)
 
         val outcome = useCase(settings)
@@ -71,7 +73,9 @@ class SyncWithWatchUseCaseTest {
 
     @Test
     fun `an empty resource selection is not a failure and does not stop the settings leg`() = runTest {
-        coEvery { sendResources() } returns Result.success(SendResult(sent = 0, skipped = 0))
+        coEvery { sendResources() } returns Result.success(
+            SendResult(sent = 0, skipped = 0, dispatched = false)
+        )
         coEvery { pushSettings(settings) } returns Result.success(Unit)
 
         val outcome = useCase(settings)
@@ -86,7 +90,24 @@ class SyncWithWatchUseCaseTest {
     @Test
     fun `a batch that only withdrew resources is a success, not an empty selection`() = runTest {
         coEvery { sendResources() } returns Result.success(
-            SendResult(sent = 0, skipped = 0, deselected = 2)
+            SendResult(sent = 0, skipped = 0, deselected = 2, dispatched = true)
+        )
+        coEvery { pushSettings(settings) } returns Result.success(Unit)
+
+        val outcome = useCase(settings)
+
+        assertEquals(WearSyncLegResult.Succeeded(0), outcome.legs[WearSyncLeg.RESOURCES_OUT])
+        assertTrue(outcome.failedLegs.isEmpty())
+    }
+
+    // S2926: a batch of pure deletions carries no sources and withdraws nothing, so both counters
+    // read zero on a batch that did travel. Reported as NothingToSend the leg also skipped the ack
+    // wait, which passes through everything that is not Succeeded.
+
+    @Test
+    fun `a dispatched batch with both counters at zero is a success, not an empty selection`() = runTest {
+        coEvery { sendResources() } returns Result.success(
+            SendResult(sent = 0, skipped = 0, deselected = 0, dispatched = true)
         )
         coEvery { pushSettings(settings) } returns Result.success(Unit)
 
@@ -98,7 +119,9 @@ class SyncWithWatchUseCaseTest {
 
     @Test
     fun `a failing settings leg leaves the resource leg's success intact`() = runTest {
-        coEvery { sendResources() } returns Result.success(SendResult(sent = 2, skipped = 0))
+        coEvery { sendResources() } returns Result.success(
+            SendResult(sent = 2, skipped = 0, dispatched = true)
+        )
         coEvery { pushSettings(settings) } returns Result.failure(IllegalStateException("rejected"))
 
         val outcome = useCase(settings)

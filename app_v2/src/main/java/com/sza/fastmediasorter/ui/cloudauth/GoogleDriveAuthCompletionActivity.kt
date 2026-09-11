@@ -1,17 +1,23 @@
 package com.sza.fastmediasorter.ui.cloudauth
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.cloud.GoogleDriveBrowserAuthManager
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class GoogleDriveAuthCompletionActivity : ComponentActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject
     lateinit var browserAuthManager: GoogleDriveBrowserAuthManager

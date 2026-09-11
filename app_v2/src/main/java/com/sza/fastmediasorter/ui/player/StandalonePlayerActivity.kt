@@ -48,7 +48,6 @@ import com.sza.fastmediasorter.ui.player.helpers.StandalonePlayerSettingsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoControlsManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVideoTouchDelegate
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneVrCinemaLaunchManager
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeDecrease
 import com.sza.fastmediasorter.ui.player.helpers.btnEpubFontSizeIncrease
@@ -63,6 +62,7 @@ import com.sza.fastmediasorter.ui.player.standalone.StandaloneFileOpsCallbacks
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneHostFactory
 import com.sza.fastmediasorter.ui.player.standalone.applyStandaloneOverflowIcons
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -659,7 +659,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // Mirror PlayerActivity: opt out of auto-fit, handle insets manually
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) + display cutout + nav bar (left/right in landscape).
+        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) +
+        // display cutout + nav bar (left/right in landscape).
         // Uses getStatusBarHeightSafe fallback for OEM Android 8 car screens where statusBars() inset reports 0.
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
@@ -1059,7 +1060,7 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         binding.btnTranslateEpubCmd.isVisible =
             CapabilityAvailabilityAccessor.isTranslationAvailable(this) && cachedTranslationEnabled &&
-                isLandscape && viewManager.isEpubActive()
+            isLandscape && viewManager.isEpubActive()
     }
 
     /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the app settings stream. */

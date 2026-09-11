@@ -370,6 +370,38 @@ class ListPhoneResourcePageUseCaseTest {
         assertEquals(2, page.items.orEmpty().map { it.token }.distinct().size)
     }
 
+    /**
+     * S2911: the open channel delivers phone-owned storage only, so the listing must not offer a
+     * resource whose every file would be refused at tap time - on the watch the rejected tile reads
+     * as "The watch cannot open this kind of file.", blaming a format that is fine.
+     */
+    @Test
+    fun `a network resource is offered nowhere in the phone section`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos"),
+            resource(id = 2, name = "NAS", type = ResourceType.SFTP)
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns
+            listOf(file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"))
+        coEvery {
+            scanner.listDirectoryContents(match { it.endsWith("NAS") }, any(), any(), any(), any())
+        } returns listOf(file(name = "remote.jpg"))
+
+        val roots = useCase(request(WearPhoneResourceRequestKind.ROOT))
+        val flat = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "a network resource is not a phone-section root",
+            listOf("Photos"),
+            roots.items.orEmpty().map { it.name }
+        )
+        assertEquals(
+            "a network resource contributes no files to the flat list",
+            listOf("IMG_0001.jpg"),
+            flat.items.orEmpty().map { it.name }
+        )
+    }
+
     private fun request(
         kind: WearPhoneResourceRequestKind,
         parentToken: String? = null,

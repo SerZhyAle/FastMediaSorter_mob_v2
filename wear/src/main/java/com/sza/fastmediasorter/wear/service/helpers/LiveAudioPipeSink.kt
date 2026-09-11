@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.service.helpers
 
 import android.os.ParcelFileDescriptor
+import android.os.SystemClock
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +54,7 @@ class LiveAudioPipeSink @Inject constructor() : LiveAudioSource {
      * drains that queue. [finished] is what [readInto] suspends on, so the listener's HTTP connection
      * lives exactly as long as this object does.
      */
-    private class Listener(val sink: OutputStream) {
+    private class Listener(val sink: OutputStream, private val onAccepted: () -> Unit) {
 
         val frames = Channel<ByteArray>(
             capacity = LiveAudioLimits.LISTENER_BUFFER_FRAMES,
@@ -75,6 +76,7 @@ class LiveAudioPipeSink @Inject constructor() : LiveAudioSource {
                     for (frame in frames) {
                         sink.write(frame)
                         sink.flush()
+                        onAccepted()
                     }
                 } catch (e: IOException) {
                     // This listener walked out of Wi-Fi or closed its tab. It costs itself the stream
@@ -111,6 +113,17 @@ class LiveAudioPipeSink @Inject constructor() : LiveAudioSource {
         get() = synchronized(lock) { listeners.size }
 
     /**
+     * S2939: when any listener last took bytes off this pipe, in elapsed realtime; [open] counts as one
+     * so a session nobody ever connects to is measured from its start.
+     *
+     * Bytes, not sockets: a paused or frozen phone player holds its connection open and stops reading,
+     * and its writer then blocks on a full socket buffer without ever failing.
+     */
+    @Volatile
+    var lastAudienceProgressAtMs: Long = 0L
+        private set
+
+    /**
      * Creates the pipe and starts draining it. The returned descriptor is what `MediaRecorder` is
      * given as its output; the caller never closes it.
      *
@@ -125,6 +138,7 @@ class LiveAudioPipeSink @Inject constructor() : LiveAudioSource {
         readEnd = read
         writeEnd = write
         this.scope = scope
+        markAudienceProgress()
         pumpJob = scope.launch(Dispatchers.IO) { drain(read) }
         return write
     }
@@ -179,11 +193,15 @@ class LiveAudioPipeSink @Inject constructor() : LiveAudioSource {
             if (listeners.size >= LiveAudioLimits.MAX_LISTENERS) {
                 null
             } else {
-                Listener(sink).also { listeners.add(it) }
+                Listener(sink, ::markAudienceProgress).also { listeners.add(it) }
             }
         }
         listener?.startWriter(pumpScope)
         return listener
+    }
+
+    private fun markAudienceProgress() {
+        lastAudienceProgressAtMs = SystemClock.elapsedRealtime()
     }
 
     private fun unregister(listener: Listener) {

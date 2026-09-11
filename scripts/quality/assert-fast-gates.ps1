@@ -32,6 +32,7 @@
       - assert-gate-placement        (S2870 the gate-placement registry vs where the gates are wired)
 - assert-sdk-pin-claims        (S1438 SDK pins stated in prose vs the build files)
 - assert-flavor-count-prose    (S2445 flavor counts and complete-set lists in prose vs the matrix)
+      - assert-gate-count-prose      (S2935 the fg gate count in prose vs the $gates table below)
       - assert-ctor-arg-slots        (S1470 primary constructors near the 255 argument-slot ceiling)
       - assert-packaging-excludes-parity (S1679 shared-library payload stripped in one module only)
       - assert-module-version-parity  (app_v2 / wear version fields under one applicationId)
@@ -164,6 +165,11 @@ $gates = [ordered]@{
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
     # The individual scripts still exist as wrappers for any direct caller.
     'assert-source-gates.ps1'                   = @()
+    # S2930: an Activity that skips LocaleHelper.applyLocale resolves its strings from the framework
+    # configuration rather than the language the user chose. Per-ticket by Rule 33 - the subject is a
+    # single source file, and the author of a new Activity is the only one who can say whether it is
+    # the rare one that must not wrap its context. Exclusions are named with a reason, never counted.
+    'assert-activity-locale-wrapper.ps1'        = @()
     'assert-wear-route-literals.ps1'            = @()
     # S2547: the declared watch pre-release walk against the module it claims to walk. Per-ticket by
     # Rule 33 - the subject is a wear string, so a rename must fail in the ticket that made it rather
@@ -348,6 +354,13 @@ $gates = [ordered]@{
     # Only quantified claims are judged, so a deliberate subset ("standard/legacy/noLegal/vr - HLS")
     # is not a finding. Reads the generated matrix JSON, no gradle daemon.
     'assert-flavor-count-prose.ps1'             = @('-Quiet')
+    # S2935: the gate count the `fg` row of docs/BUILD_TEST_FAST_PATH.md states, against the table
+    # it is standing in. That count moves in whichever ticket adds a gate - a ticket about
+    # something else, written by someone with no reason to open that document - so it had gone
+    # fifteen revisions stale in silence, 45 against a live 61. Per-ticket by Rule 33 for the same
+    # reason: the only session that can fix it cheaply is the one adding the entry below. Reads
+    # this file by AST, no gradle daemon and no child process.
+    'assert-gate-count-prose.ps1'               = @('-Quiet')
     # S1259: android:id parity between layout-land and layout-w600dp siblings. w600dp beats
     # -land on wide landscape devices, so an id missing on one side is a latent findViewById
     # null (the recording-indicator include NPE). Static regex over 4 shared files, ~ms.

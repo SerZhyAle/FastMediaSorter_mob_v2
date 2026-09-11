@@ -26,9 +26,13 @@
 # Usage:  pwsh -NoProfile -File scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
 #
 # Exit codes:
-#   0   all cases pass.
+#   0   all cases pass (a skip is not a failure).
 #   1   at least one case failed.
 #   2   the fixtures could not be prepared.
+#
+# S2934 added the shape half: a probe must be one statement alone on its physical line, because it
+# is deleted in bulk when the ticket leaves the status. Those cases are skipped by name while the
+# resolved harness predates them, and the summary line counts the skips.
 
 [CmdletBinding()]
 param()
@@ -120,7 +124,36 @@ class Neighbour {
 }
 '@
 
+# S2934: the shape half. This probe IS found by the presence half - it is a real Timber.d carrying a
+# real id - and it is exactly the shape that broke the build when a release swept 176 files, because
+# dropping the line also drops the `val x =` binding that the rest of the function reads.
+Set-Content -LiteralPath (Join-Path $fixtureSrc 'SharedLine.kt') -Value @'
+package fixture
+
+class SharedLine {
+    fun run() {
+        val x = compute().also { Timber.d("S9006: a probe sharing its line with code") }
+        use(x)
+    }
+}
+'@
+
 $roots = @($fixtureRoot)
+
+# S2934 added the -All switch and the LineText field to the helper, and the shape half to the gate.
+# The mechanism ships with the canon harness and arrives by a plugin deploy no project session
+# performs, so while the RESOLVED harness predates it the cases below are skipped BY NAME rather
+# than failed - otherwise every sibling session goes red over a deploy it cannot run (the rule
+# S2577/S2578 established). Run with $env:SZA_HARNESS_ROOT pointed at the canon checkout to see them
+# execute before the deploy.
+$hasShapeHalf = (Get-Command Test-TicketProbeInSource).Parameters.ContainsKey('All')
+$script:skipped = 0
+
+function Skip-Case([string]$name, [string]$why) {
+    Write-Host "  SKIP  $name" -ForegroundColor DarkYellow
+    Write-Host "        $why" -ForegroundColor DarkGray
+    $script:skipped++
+}
 
 Write-Host ""
 Write-Host "check-probe-present.tests"
@@ -140,6 +173,80 @@ Assert-That "a probe inside a comment is not a probe" ($r3.Found -eq $false) ("F
 $r4 = Test-TicketProbeInSource -Id 'S9005' -SourceRoots $roots
 Assert-That "a neighbour's probe does not satisfy another ticket" ($r4.Found -eq $false) `
     "S9004's probe must not answer for S9005"
+
+# --- shape half (S2934) -----------------------------------------------------
+if (-not $hasShapeHalf) {
+    Skip-Case "a probe sharing its line is found, and its line text is carried" `
+        "S2934 shape half - the resolved harness has no -All switch yet"
+    Skip-Case "the gate refuses a probe that shares its line, and admits it once split" `
+        "S2934 shape half - the resolved harness has no -All switch yet"
+} else {
+    $ownLineRx = [regex]([string](Get-SzaProfileValue 'probes.ownLineRegex'))
+
+    $r5 = Test-TicketProbeInSource -Id 'S9006' -SourceRoots $roots -All
+    $carriesText = $r5.Found -and $r5.Hits.Count -eq 1 -and -not [string]::IsNullOrWhiteSpace($r5.Hits[0].LineText)
+    $shapeRejected = $carriesText -and -not $ownLineRx.IsMatch($r5.Hits[0].LineText)
+    Assert-That "a probe sharing its line is found, and its line text is carried" $shapeRejected `
+        "presence must still say yes - it is the SHAPE that is wrong, and the gate needs the physical line to say so"
+
+    # The gate itself, against a throwaway project root. The harness script is resolved and invoked
+    # DIRECTLY rather than through scripts/spec_catalog/check-probe-present.ps1, because that
+    # forwarder overwrites SZA_PROJECT_ROOT with this repository's root (S2520) - the redirect would
+    # be silently discarded and the case would scan app_v2/ for real.
+    $harnessGate = Get-SzaHarnessScript 'spec_catalog/check-probe-present.ps1'
+    $sandbox = Join-Path $repoRoot 'temp/scratch/s2934-shape-sandbox'
+    if (Test-Path -LiteralPath $sandbox) { Remove-Item -LiteralPath $sandbox -Recurse -Force }
+    New-Item -ItemType Directory -Path (Join-Path $sandbox 'PLAN') -Force | Out-Null
+    New-Item -ItemType Directory -Path (Join-Path $sandbox 'app_v2/src') -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Destination (Join-Path $sandbox '.sza-profile.json')
+    $sandboxRecord = [ordered]@{ id = 'S9006'; title = 'sandbox subject'; status = 'BlockNeedUserTest'; priority = 50; file = 'PLAN/S9006_sandbox.md' }
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/spec-catalog.jsonl') -Value ($sandboxRecord | ConvertTo-Json -Compress) -Encoding utf8
+    Set-Content -LiteralPath (Join-Path $sandbox 'PLAN/S9006_sandbox.md') -Value '**Status:** BlockNeedUserTest' -Encoding utf8
+    $sandboxSrc = Join-Path $sandbox 'app_v2/src/Sandbox.kt'
+
+    $priorProjectRoot = $env:SZA_PROJECT_ROOT
+    $priorHarnessRoot = $env:SZA_HARNESS_ROOT
+    try {
+        # Both variables, and they do different jobs: SZA_PROJECT_ROOT picks WHERE the gate looks,
+        # SZA_HARNESS_ROOT picks WHICH code runs. Without the second, a checkout-side gate would
+        # resolve its own library through Get-SzaHarnessScript and dot-source the deployed cache.
+        $env:SZA_PROJECT_ROOT = $sandbox
+        $env:SZA_HARNESS_ROOT = Split-Path -Parent (Split-Path -Parent $harnessGate)
+
+        Set-Content -LiteralPath $sandboxSrc -Encoding utf8 -Value @'
+package sandbox
+
+class Sandbox {
+    fun run() {
+        val x = compute().also { Timber.d("S9006: shares its line") }
+        use(x)
+    }
+}
+'@
+        & $pwshExe -NoProfile -File $harnessGate -Id 'S9006' > $null 2>&1
+        $sharedCode = $LASTEXITCODE
+
+        Set-Content -LiteralPath $sandboxSrc -Encoding utf8 -Value @'
+package sandbox
+
+class Sandbox {
+    fun run() {
+        Timber.d("S9006: shares its line")
+        val x = compute()
+        use(x)
+    }
+}
+'@
+        & $pwshExe -NoProfile -File $harnessGate -Id 'S9006' > $null 2>&1
+        $ownCode = $LASTEXITCODE
+    } finally {
+        $env:SZA_PROJECT_ROOT = $priorProjectRoot
+        $env:SZA_HARNESS_ROOT = $priorHarnessRoot
+        Remove-Item -LiteralPath $sandbox -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Assert-That "the gate refuses a probe that shares its line, and admits it once split" `
+        ($sharedCode -eq 1 -and $ownCode -eq 0) ("shared=$sharedCode (want 1), own=$ownCode (want 0)")
+}
 
 # --- baseline parse ---------------------------------------------------------
 $baselineFixture = Join-Path $fixtureRoot 'baseline.txt'
@@ -184,21 +291,47 @@ foreach ($line in Get-Content -LiteralPath $catalog) {
     if ($rec.status -eq 'BlockNeedUserTest') { $blocked.Add($rec.id) }
 }
 
+# S2938: All tickets the tree gate marked missing are tested against the closing gate (100% of
+# unprobed tickets). For tickets the tree gate did NOT mark missing, a deterministic sample
+# (first 2 and last 2) is tested. This validates the integration between both gates in both
+# directions without spawning 250+ separate pwsh processes.
+$treePresent = @($blocked | Where-Object { -not $treeMissing.Contains($_) })
+$sampleSize = 4
+$presentSample = if ($treePresent.Count -le $sampleSize) {
+    $treePresent
+} else {
+    $half = [int]($sampleSize / 2)
+    @($treePresent[0..($half - 1)]) + @($treePresent[-($sampleSize - $half)..-1])
+}
+
+$sampleToTest = @($treeMissing) + @($presentSample) | Select-Object -Unique
+
 $disagreements = [System.Collections.Generic.List[string]]::new()
-foreach ($id in $blocked) {
-    & $pwshExe -NoProfile -File $gatePs1 -Id $id > $null 2>&1
-    $closingSaysMissing = ($LASTEXITCODE -eq 1)
+$shapeRefusals = [System.Collections.Generic.List[string]]::new()
+foreach ($id in $sampleToTest) {
+    $closingOut = (& $pwshExe -NoProfile -File $gatePs1 -Id $id 2>&1 | Out-String)
+    # S2934: exit 1 now covers TWO refusals, and only one of them is the sentence this case compares.
+    # A shape refusal means the probe is present - the tree gate reports it under its own
+    # probe-line-shape finding, not as a missing probe - so counting it as "missing" here would
+    # manufacture a disagreement out of the two gates agreeing.
+    $closingSaysShape = ($LASTEXITCODE -eq 1) -and ($closingOut -match 'share a line')
+    $closingSaysMissing = ($LASTEXITCODE -eq 1) -and -not $closingSaysShape
+    if ($closingSaysShape) { $shapeRefusals.Add($id) }
     $treeSaysMissing = $treeMissing.Contains($id)
     if ($closingSaysMissing -ne $treeSaysMissing) {
         $disagreements.Add(("{0} (tree={1}, closing={2})" -f $id, $treeSaysMissing, $closingSaysMissing))
     }
 }
-Assert-That "tree gate and closing gate agree on every BlockNeedUserTest ticket" `
+Assert-That "tree gate and closing gate agree on BlockNeedUserTest tickets" `
     ($disagreements.Count -eq 0) (($disagreements -join '; '))
+Assert-That "no sampled parked ticket on the live tree carries a probe that shares its line" `
+    ($shapeRefusals.Count -eq 0) (($shapeRefusals -join ', '))
 
 Remove-Item -LiteralPath $fixtureRoot -Recurse -Force -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host ("check-probe-present.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
+$summary = "check-probe-present.tests: {0} passed, {1} failed" -f $script:pass, $script:fail
+if ($script:skipped -gt 0) { $summary += ", {0} case(s) skipped" -f $script:skipped }
+Write-Host $summary
 if ($script:fail -gt 0) { exit 1 }
 exit 0

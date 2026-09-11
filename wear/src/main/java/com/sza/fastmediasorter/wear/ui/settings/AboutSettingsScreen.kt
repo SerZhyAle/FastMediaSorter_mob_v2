@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -31,6 +32,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearLinkRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import timber.log.Timber
 
 @Composable
@@ -65,7 +67,10 @@ fun AboutSettingsScreen(
             item {
                 Text(
                     text = stringResource(R.string.version, uiState.appVersion),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 2.dp)
+                        .testTag(WearTestTags.WEAR_ABOUT_VERSION),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.caption1
                 )
@@ -94,6 +99,7 @@ fun AboutSettingsScreen(
                         }
                         viewModel.onWatchPortalOpened(launched)
                     },
+                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL),
                     message = portalMessage(watchPortalState)
                 )
             }
@@ -101,6 +107,7 @@ fun AboutSettingsScreen(
                 WearLinkRow(
                     label = stringResource(R.string.about_web_portal_on_phone),
                     onClick = viewModel::openPortalOnPhone,
+                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
                     message = portalMessage(phonePortalState)
                 )
             }
@@ -142,7 +149,9 @@ private fun SendLogsRow(
             enabled = !sending,
             label = { Text(text = label) },
             colors = ChipDefaults.secondaryChipColors(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(WearTestTags.WEAR_ABOUT_SEND_LOGS)
         )
 
         val message = (state as? WearLogReportState.Finished)?.outcome?.let { outcomeMessageRes(it) }

@@ -5,11 +5,13 @@ import androidx.media3.common.Timeline
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.LoadControl
-import androidx.media3.exoplayer.Renderer
+import androidx.media3.exoplayer.analytics.PlayerId
 import androidx.media3.exoplayer.source.MediaSource.MediaPeriodId
 import androidx.media3.exoplayer.source.TrackGroupArray
 import androidx.media3.exoplayer.trackselection.ExoTrackSelection
+import androidx.media3.exoplayer.upstream.Allocator
 import androidx.media3.exoplayer.upstream.BandwidthMeter
+import timber.log.Timber
 
 /**
  * S0688: bandwidth-adaptive runtime buffer for the stream player.
@@ -29,26 +31,30 @@ import androidx.media3.exoplayer.upstream.BandwidthMeter
  *
  * One instance per stream session (the stream player is recreated per `playStreamVideo`), so liveness
  * never changes under a single instance.
+ *
+ * S2914: media3 1.11.0 eliminated the cross-calling default overloads that required `by delegate` with
+ * deprecated-override suppressions in 1.2.1 (S1776 ADR-3). Explicit `LoadControl` implementation with
+ * direct delegation to DefaultLoadControl via `LoadControl.Parameters` replaces the old pattern.
  */
 @UnstableApi
 internal class BandwidthAdaptiveLoadControl private constructor(
     private val delegate: DefaultLoadControl,
     private val bandwidthMeter: BandwidthMeter,
-) : LoadControl by delegate {
+) : LoadControl {
 
     // Conservative default: treat the stream as live until shouldStartPlayback proves otherwise, so a
     // live stream is never over-buffered during its initial fill before liveness is known.
     @Volatile
     private var isLive = true
 
-    override fun shouldContinueLoading(
-        playbackPositionUs: Long,
-        bufferedDurationUs: Long,
-        playbackSpeed: Float,
-    ): Boolean {
+    override fun shouldContinueLoading(parameters: LoadControl.Parameters): Boolean {
         // Cap at the dynamic target first, then defer to the delegate for its memory/size thresholds.
-        if (bufferedDurationUs >= currentTargetBufferUs()) return false
-        return delegate.shouldContinueLoading(playbackPositionUs, bufferedDurationUs, playbackSpeed)
+        val targetUs = currentTargetBufferUs()
+        if (parameters.bufferedDurationUs >= targetUs) {
+            Timber.d("S2914: shouldContinueLoading capped at target")
+            return false
+        }
+        return delegate.shouldContinueLoading(parameters)
     }
 
     /**
@@ -72,50 +78,47 @@ internal class BandwidthAdaptiveLoadControl private constructor(
         return targetMs * 1_000L
     }
 
-    override fun shouldStartPlayback(
-        timeline: Timeline,
-        mediaPeriodId: MediaPeriodId,
-        bufferedDurationUs: Long,
-        playbackSpeed: Float,
-        rebuffering: Boolean,
-        targetLiveOffsetUs: Long,
-    ): Boolean {
-        isLive = targetLiveOffsetUs != C.TIME_UNSET
-        return delegate.shouldStartPlayback(
-            timeline, mediaPeriodId, bufferedDurationUs, playbackSpeed, rebuffering, targetLiveOffsetUs
-        )
+    override fun shouldStartPlayback(parameters: LoadControl.Parameters): Boolean {
+        isLive = parameters.targetLiveOffsetUs != C.TIME_UNSET
+        Timber.d("S2914: shouldStartPlayback live=$isLive")
+        return delegate.shouldStartPlayback(parameters)
     }
-
-    // Kotlin `by delegate` routes Java default methods through LoadControl.DefaultImpls.<method>(this, ..)
-    // instead of delegate.<method>(..). LoadControl has cross-calling default overloads
-    // (shouldStartPlayback, onTracksSelected) that would recurse through `this` forever (StackOverflowError).
-    // The explicit overrides below force dispatch to the DefaultLoadControl delegate. Mirrors PauseAwareLoadControl.
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun shouldStartPlayback(
-        bufferedDurationUs: Long,
-        playbackSpeed: Float,
-        rebuffering: Boolean,
-        targetLiveOffsetUs: Long,
-    ): Boolean = delegate.shouldStartPlayback(bufferedDurationUs, playbackSpeed, rebuffering, targetLiveOffsetUs)
 
     override fun onTracksSelected(
-        timeline: Timeline,
-        mediaPeriodId: MediaPeriodId,
-        renderers: Array<out Renderer>,
+        parameters: LoadControl.Parameters,
         trackGroups: TrackGroupArray,
-        trackSelections: Array<out ExoTrackSelection>,
+        trackSelections: Array<out ExoTrackSelection?>,
     ) {
-        delegate.onTracksSelected(timeline, mediaPeriodId, renderers, trackGroups, trackSelections)
+        delegate.onTracksSelected(parameters, trackGroups, trackSelections)
     }
 
-    @Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
-    override fun onTracksSelected(
-        renderers: Array<out Renderer>,
-        trackGroups: TrackGroupArray,
-        trackSelections: Array<out ExoTrackSelection>,
-    ) {
-        delegate.onTracksSelected(renderers, trackGroups, trackSelections)
+    override fun getAllocator(playerId: PlayerId): Allocator =
+        delegate.getAllocator(playerId)
+
+    override fun getBackBufferDurationUs(playerId: PlayerId): Long =
+        delegate.getBackBufferDurationUs(playerId)
+
+    override fun retainBackBufferFromKeyframe(playerId: PlayerId): Boolean =
+        delegate.retainBackBufferFromKeyframe(playerId)
+
+    override fun onPrepared(playerId: PlayerId) {
+        delegate.onPrepared(playerId)
     }
+
+    override fun onStopped(playerId: PlayerId) {
+        delegate.onStopped(playerId)
+    }
+
+    override fun onReleased(playerId: PlayerId) {
+        delegate.onReleased(playerId)
+    }
+
+    override fun shouldContinuePreloading(
+        playerId: PlayerId,
+        timeline: Timeline,
+        mediaPeriodId: MediaPeriodId,
+        playbackPositionUs: Long,
+    ): Boolean = delegate.shouldContinuePreloading(playerId, timeline, mediaPeriodId, playbackPositionUs)
 
     companion object {
         /**

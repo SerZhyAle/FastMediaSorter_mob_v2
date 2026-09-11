@@ -48,7 +48,7 @@ fun createPlaybackRenderersFactory(context: Context): DefaultRenderersFactory {
         ): AudioSink = DefaultAudioSink.Builder(context)
             .setAudioProcessors(arrayOf(ChannelBalanceAudioProcessor()))
             .setEnableFloatOutput(enableFloatOutput)
-            .setEnableAudioTrackPlaybackParams(enableAudioTrackPlaybackParams)
+            .setEnableAudioOutputPlaybackParameters(enableAudioTrackPlaybackParams)
             .build()
     }
         .setEnableDecoderFallback(true)

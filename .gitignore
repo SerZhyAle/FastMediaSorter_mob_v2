@@ -27,6 +27,8 @@ build/
 bin/
 gen/
 out/
+# S2918: dependency trees are restored from the tracked lock file with `npm install`, never versioned.
+node_modules/
 # Note: a broad `release/` rule was removed (collateral damage -
 # it excluded `app_v2/src/release/` source set and `scripts/release/`
 # tooling from the repo, which silently broke release builds on main).

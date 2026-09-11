@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.testing
 
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
+import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
 
 /**
  * S2548: the addresses the watch flow tree taps, declared once so the value the UI writes and the
@@ -20,13 +22,27 @@ object WearTestTags {
     const val WEAR_NAV_ROOT = "wear_nav_root"
     const val WEAR_SETTINGS_ENTRY = "wear_settings_entry"
     const val WEAR_ABOUT_VERSION = "wear_about_version"
+    const val WEAR_ABOUT_WEB_PORTAL = "wear_about_web_portal"
+    const val WEAR_ABOUT_WEB_PORTAL_ON_PHONE = "wear_about_web_portal_on_phone"
+    const val WEAR_ABOUT_SEND_LOGS = "wear_about_send_logs"
 
     private const val HOME_SECTION_PREFIX = "wear_home_section_"
     private const val SETTINGS_ROW_PREFIX = "wear_settings_row_"
+    private const val BROWSE_CATEGORY_PREFIX = "wear_category_"
+    private const val MEDIA_TYPE_PREFIX = "wear_media_type_"
 
     private val NON_TAG_CHARS = Regex("[^a-z0-9]+")
 
     fun homeSection(id: HomeSectionId): String = HOME_SECTION_PREFIX + id.name.lowercase()
+
+    /**
+     * A category is named by its route token, which is a wire value the navigation already depends
+     * on, so the id tracks the token and never the translated caption beside it.
+     */
+    fun browseCategory(category: WearBrowseCategory): String =
+        BROWSE_CATEGORY_PREFIX + NON_TAG_CHARS.replace(category.token.lowercase(), "_").trim('_')
+
+    fun mediaType(type: WearContentType): String = MEDIA_TYPE_PREFIX + type.name.lowercase()
 
     /**
      * A navigation route carries slashes, braces and argument placeholders; a `resource-id` that keeps

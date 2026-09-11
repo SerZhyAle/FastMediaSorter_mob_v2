@@ -17,13 +17,17 @@ appId: com.sza.fastmediasorter.debug
 
 - tapOn:
     id: "wear_settings_row_settings_media_types"
-- assertVisible: "Audio"
-- tapOn: "Audio"
+- assertVisible:
+    id: "wear_media_type_music"
+- tapOn:
+    id: "wear_media_type_music"
 - pressKey: Back
 
 - tapOn:
     id: "wear_settings_row_settings_media_types"
-- assertVisible: "Audio"
-- tapOn: "Audio"
+- assertVisible:
+    id: "wear_media_type_music"
+- tapOn:
+    id: "wear_media_type_music"
 - pressKey: Back
 - pressKey: Back

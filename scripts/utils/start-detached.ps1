@@ -108,6 +108,15 @@ $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
 $logPath = Join-Path $outDir "detached-$safeLabel-$stamp.log"
 $errPath = [System.IO.Path]::ChangeExtension($logPath, '.err')
 $donePath = [System.IO.Path]::ChangeExtension($logPath, '.done')
+# -RedirectStandardInput needs a real, existing file - Start-Process validates the path and the
+# reserved device name 'NUL' fails that check (Test-Path 'NUL' is $false), so passing it made
+# Start-Process itself emit a non-terminating parameter error the wrapper's try/catch never saw
+# and no child ever launched. An empty file gives the same result (an immediate EOF) through a
+# path Start-Process accepts; one file is created once and every detached job reads it.
+$emptyStdinPath = Join-Path $repoRoot 'temp/EMPTY-STDIN.txt'
+if (-not (Test-Path -LiteralPath $emptyStdinPath)) {
+    New-Item -ItemType File -Path $emptyStdinPath -Force -ErrorAction SilentlyContinue | Out-Null
+}
 
 function ConvertTo-PsLiteral([string]$s) { return "'" + ($s -replace "'", "''") + "'" }
 
@@ -126,6 +135,16 @@ try {
         WorkingDirectory = $(ConvertTo-PsLiteral $repoRoot)
         RedirectStandardOutput = $(ConvertTo-PsLiteral $logPath)
         RedirectStandardError = $(ConvertTo-PsLiteral $errPath)
+        # Without this, -NoNewWindow leaves the child attached to a console that
+        # [Console]::IsInputRedirected reports as FALSE (looks interactive) but that no human can
+        # ever type into (this wrapper is launched -WindowStyle Hidden below). A mandatory
+        # parameter left unbound anywhere in a long dot-sourced chain then prompts and blocks
+        # forever - Responding stays True and CPU stays flat, so nothing on the process list says
+        # it is stuck. Measured 2026-09-11: the dev monitor writer hung on its very first tick
+        # three restarts running, every sub-step fast and error-free when called directly outside
+        # this wrapper. The empty file gives any such read an immediate EOF instead of a console
+        # nobody can type into.
+        RedirectStandardInput = $(ConvertTo-PsLiteral $emptyStdinPath)
     }
     if ($(ConvertTo-PsLiteral $rawArgs) -ne '') { `$startArgs.ArgumentList = $(ConvertTo-PsLiteral $rawArgs) }
     `$p = Start-Process @startArgs

@@ -11,14 +11,16 @@ appId: com.sza.fastmediasorter.debug
 
 - tapOn:
     id: "wear_home_section_local"
-- assertVisible: "Audio"
+- assertVisible:
+    id: "wear_category_music"
 - pressKey: Back
 - assertVisible:
     id: "wear_home_section_local"
 
 - tapOn:
     id: "wear_home_section_phone"
-- assertVisible: "Recents"
+- assertVisible:
+    id: "wear_category_recents"
 - pressKey: Back
 - assertVisible:
     id: "wear_home_section_resources"

@@ -36,14 +36,29 @@ Third comparison - the rule sheet (S2872):
   An absent sheet is exit 2, matching how a missing inventory is answered: "the
   sheet is gone" and "the sheet forgot a hook" call for opposite reactions.
 
+Fourth comparison - MCP servers (S2918):
+  An MCP tool call passes every hook not written for it and every Rule 23 lock, so
+  a registered MCP server whose one-way tools nothing guards is the gap research 04
+  of S2918 found: mobile-mcp's uninstall tool could run on the owner's phone with
+  nothing in front of it. The "## MCP servers" table in docs/AGENT_HOOKS.md is
+  compared with the mcpServers keys of .mcp.json in both directions, and every
+  one-way tool on a .mcp.json row must be matched by some PreToolUse matcher in
+  .claude/settings.json, each matcher read as a regex anchored over its
+  alternatives. Only .mcp.json is judged: it is the tracked config, while
+  .vscode/mcp.json is gitignored and per machine, so a verdict on it would not
+  reproduce on a fresh checkout - the reason the global hook half is advisory.
+  The matchers come from the same settings walk that yields the registered hook
+  names, so the two comparisons cannot disagree about one file (S1621). An absent
+  .mcp.json means no servers; an unparsable one is exit 2.
+
 Usage:
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1
     pwsh -NoProfile -File scripts/quality/assert-hook-inventory.ps1 -Gate
 
 Exit codes (CLAUDE.md Rule 7):
   0  in sync, or a divergence was reported without -Gate (advisories may print in both)
-  1  a real divergence between the registered set, the inventory and the rule sheet, with -Gate
-  2  could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable
+  1  a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate
+  2  could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 #>
 
 [CmdletBinding()]
@@ -61,7 +76,11 @@ param(
     # S2872. Overridable for the same reason as the line above - a fixture can
     # exercise the "sheet names no hook" and "sheet absent" branches without
     # damaging the real sheet.
-    [string]$RuleSheetPath = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
+    [string]$RuleSheetPath = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md'),
+
+    # S2918. Overridable for the same reason as -RuleSheetPath: fixtures exercise the
+    # "server with no row" and "unguarded one-way tool" branches without a live .mcp.json.
+    [string]$McpConfigPath = (Join-Path $RepoRoot '.mcp.json')
 )
 
 $ErrorActionPreference = 'Stop'
@@ -74,22 +93,87 @@ $GlobalSettings = $GlobalSettingsPath
 $advisories = New-Object System.Collections.Generic.List[string]
 $failures = New-Object System.Collections.Generic.List[string]
 
+function Get-SettingsHookGroups([string]$Path) {
+    # The one walk over a settings file's hooks block. Both the registered-name set and the
+    # PreToolUse matcher list come from here, so they cannot disagree about one file (S1621).
+    $groups = New-Object System.Collections.Generic.List[object]
+    $json = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
+    if (-not $json.PSObject.Properties['hooks']) { return , $groups }
+    foreach ($hookEvent in $json.hooks.PSObject.Properties) {
+        foreach ($group in @($hookEvent.Value)) {
+            $groups.Add([pscustomobject]@{ Event = $hookEvent.Name; Group = $group })
+        }
+    }
+    return , $groups
+}
+
 function Get-HookNamesFromSettings([string]$Path) {
     # Returns the set of <name>.ps1 referenced by any hook command in a settings file.
     $names = New-Object System.Collections.Generic.HashSet[string]
-    $json = Get-Content -LiteralPath $Path -Raw | ConvertFrom-Json
-    if (-not $json.PSObject.Properties['hooks']) { return $names }
-    foreach ($event in $json.hooks.PSObject.Properties) {
-        foreach ($group in @($event.Value)) {
-            foreach ($hook in @($group.hooks)) {
-                if (-not $hook.command) { continue }
-                foreach ($m in [regex]::Matches($hook.command, '([A-Za-z0-9._-]+)\.ps1')) {
-                    [void]$names.Add($m.Groups[1].Value)
-                }
+    foreach ($entry in (Get-SettingsHookGroups $Path)) {
+        foreach ($hook in @($entry.Group.hooks)) {
+            if (-not $hook.command) { continue }
+            foreach ($m in [regex]::Matches($hook.command, '([A-Za-z0-9._-]+)\.ps1')) {
+                [void]$names.Add($m.Groups[1].Value)
             }
         }
     }
     return $names
+}
+
+function Get-PreToolUseMatchers([string]$Path) {
+    # S2918. Matchers of PreToolUse groups that actually run a hook command.
+    $matchers = New-Object System.Collections.Generic.List[string]
+    foreach ($entry in (Get-SettingsHookGroups $Path)) {
+        if ($entry.Event -ne 'PreToolUse') { continue }
+        $matcher = [string]$entry.Group.matcher
+        if ([string]::IsNullOrWhiteSpace($matcher)) { continue }
+        if (-not (@($entry.Group.hooks) | Where-Object { $_.command })) { continue }
+        $matchers.Add($matcher)
+    }
+    return , $matchers
+}
+
+function Test-ToolMatched([string]$ToolName, $Matchers) {
+    foreach ($matcher in $Matchers) {
+        try {
+            if ([regex]::IsMatch($ToolName, "^(?:$matcher)$")) { return $true }
+        } catch {
+            # A matcher that is not a valid regex cannot cover a tool name; the next one may.
+            continue
+        }
+    }
+    return $false
+}
+
+function Get-McpRowsFromInventory([string]$Path) {
+    # S2918. Reads ONLY the "## MCP servers" table. Server name = first column's backticked token,
+    # config = third column's first backticked token, one-way tools = every backticked token in the
+    # fifth column ("none" carries no backticks and yields an empty list).
+    $rows = New-Object System.Collections.Generic.List[object]
+    $sectionSeen = $false
+    $inSection = $false
+    foreach ($line in (Get-Content -LiteralPath $Path)) {
+        if ($line -match '^##\s') {
+            $inSection = ($line -match '^##\s+MCP servers\s*$')
+            if ($inSection) { $sectionSeen = $true }
+            continue
+        }
+        if (-not $inSection) { continue }
+        if ($line -notmatch '^\|') { continue }
+        $cols = $line -split '\|'
+        if ($cols.Count -lt 7) { continue }
+        $server = [regex]::Match($cols[1].Trim(), '^`([^`]+)`$')
+        if (-not $server.Success) { continue }
+        $config = [regex]::Match($cols[3], '`([^`]+)`')
+        $tools = @([regex]::Matches($cols[5], '`([^`]+)`') | ForEach-Object { $_.Groups[1].Value })
+        $rows.Add([pscustomobject]@{
+            Server = $server.Groups[1].Value
+            Config = if ($config.Success) { $config.Groups[1].Value } else { '' }
+            Tools  = $tools
+        })
+    }
+    return [pscustomobject]@{ SectionSeen = $sectionSeen; Rows = $rows }
 }
 
 function Get-HookNamesFromInventory([string]$Path) {
@@ -245,6 +329,49 @@ foreach ($n in ($inventory | Sort-Object)) {
     }
 }
 
+# --- fourth comparison: MCP servers (S2918) -----------------------------------
+
+$mcpServers = New-Object System.Collections.Generic.List[string]
+if (Test-Path -LiteralPath $McpConfigPath) {
+    try {
+        $mcpJson = Get-Content -LiteralPath $McpConfigPath -Raw | ConvertFrom-Json
+    } catch {
+        Write-Error "hook-inventory: could not parse $McpConfigPath - $($_.Exception.Message)" -ErrorAction Continue
+        exit 2
+    }
+    if ($null -ne $mcpJson -and $mcpJson.PSObject.Properties['mcpServers'] -and $null -ne $mcpJson.mcpServers) {
+        foreach ($p in $mcpJson.mcpServers.PSObject.Properties) { $mcpServers.Add($p.Name) }
+    }
+}
+
+$mcpTable = Get-McpRowsFromInventory $InventoryPath
+$trackedRows = @($mcpTable.Rows | Where-Object { $_.Config -eq '.mcp.json' })
+
+if ($mcpServers.Count -gt 0 -and -not $mcpTable.SectionSeen) {
+    $failures.Add(".mcp.json registers $($mcpServers.Count) MCP server(s) but docs/AGENT_HOOKS.md has no '## MCP servers' section - add one row per server with its one-way tools and their guard")
+} else {
+    $rowNames = @($mcpTable.Rows | ForEach-Object { $_.Server })
+    foreach ($s in ($mcpServers | Sort-Object)) {
+        if ($rowNames -notcontains $s) {
+            $failures.Add("MCP server '$s' is in .mcp.json but has no row in the '## MCP servers' table of docs/AGENT_HOOKS.md - add it with its one-way tools and the hook that guards them")
+        }
+    }
+    foreach ($row in $trackedRows) {
+        if ($mcpServers -notcontains $row.Server) {
+            $failures.Add("the '## MCP servers' table names '$($row.Server)' with config .mcp.json, but .mcp.json does not register it - drop the row or register the server")
+        }
+    }
+    $matchers = Get-PreToolUseMatchers $ProjectSettings
+    foreach ($row in $trackedRows) {
+        foreach ($tool in $row.Tools) {
+            $full = "mcp__$($row.Server)__$tool"
+            if (-not (Test-ToolMatched $full $matchers)) {
+                $failures.Add("one-way MCP tool '$full' is matched by no PreToolUse matcher in .claude/settings.json - register the guard in the same change that registers the server")
+            }
+        }
+    }
+}
+
 # --- advisory: a hook file that nothing registers ------------------------------
 
 if (Test-Path -LiteralPath $ProjectHookDir) {
@@ -276,6 +403,11 @@ if ($failures.Count -gt 0) {
   Claude Code will ever be told. Either the hook guards a decision the model can make, and the
   sheet states it as an imperative, or it does not, and the sheet says so under "Not portable".
   Both answers are cheap; leaving the sheet silent is the only expensive one.
+
+  An MCP server registered in .mcp.json gets a row under "## MCP servers" in the same change, and
+  every one-way tool on that row needs a registered PreToolUse matcher (S2918). No other hook sees
+  an MCP call, and the unattended runner bypasses permission prompts, so an unguarded uninstall
+  tool is one call away from a device whose content cannot be restored.
 '@
     # The reason must sit immediately before the exit: assert-exit-contract.ps1 walks back a bounded
     # number of lines looking for a printed reason, and the block above is longer than that window.
@@ -285,5 +417,5 @@ if ($failures.Count -gt 0) {
 }
 
 $scope = if ($globalJudged) { 'project + global' } else { 'project only' }
-Write-Host "hook-inventory: PASS ($($registered.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s))"
+Write-Host "hook-inventory: PASS ($($registered.Count) registered hook(s), $scope; rule sheet covers all $($inventory.Count) inventory hook(s); $($mcpServers.Count) .mcp.json server(s) listed and guarded)"
 exit 0

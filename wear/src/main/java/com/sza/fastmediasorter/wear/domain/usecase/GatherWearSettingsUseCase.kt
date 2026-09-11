@@ -24,38 +24,44 @@ class GatherWearSettingsUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): WearSettingsPayload {
-        Timber.d("S2461: gathering watch settings, reporting version=${BuildConfig.VERSION_NAME}")
         return gather()
     }
 
-    private suspend fun gather(): WearSettingsPayload = WearSettingsPayload(
-        audioEnabled = preferencesRepository.isAudioEnabled.first(),
-        videoEnabled = preferencesRepository.isVideoEnabled.first(),
-        imagesEnabled = preferencesRepository.isImagesEnabled.first(),
-        documentsEnabled = preferencesRepository.isDocumentsEnabled.first(),
-        slideshowEnabled = preferencesRepository.isSlideshowEnabled.first(),
-        slideshowIntervalSeconds = preferencesRepository.slideshowIntervalSeconds.first(),
-        downloadAlbumArt = preferencesRepository.downloadAlbumArt.first(),
-        viewMode = preferencesRepository.viewMode.first().name,
-        keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers.first(),
-        fileListViewMode = preferencesRepository.fileListViewMode.first().name,
-        // appLanguage is a PHONE_ONLY registry entry: the watch inherits it and never holds the later
-        // value, so reporting it back could only overwrite the phone's own choice with an echo.
-        appLanguage = null,
-        backgroundMode = preferencesRepository.backgroundMode.first().name,
-        colorScheme = preferencesRepository.colorScheme.first().name,
-        streamsSectionEnabled = preferencesRepository.streamsSectionEnabled.first(),
-        disableAnimations = preferencesRepository.isAnimationsDisabled.first(),
-        powerSavingTrigger = preferencesRepository.powerSavingTrigger.first().name,
-        backgroundPlaybackEnabled = preferencesRepository.backgroundPlaybackEnabled.first(),
-        fieldTimestamps = preferencesRepository.settingTimestamps.first(),
-        capabilities = mapOf(
-            WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR to hasAutoRotationSensor()
-        ),
-        // S2461: the same string the watch's own settings screen shows, so the phone displays the
-        // version the owner would read on the watch itself rather than a second, differently-derived one.
-        appVersionName = BuildConfig.VERSION_NAME
-    )
+    private suspend fun gather(): WearSettingsPayload {
+        // S2923: the field is BOTH in the registry and the phone's merge consumes it, so a report
+        // without it tells the phone the watch never answered instead of what the watch holds.
+        val panelAutoHide = preferencesRepository.panelAutoHideSeconds.first()
+        Timber.d("S2923: report gather carries panelAutoHideSeconds=$panelAutoHide")
+        return WearSettingsPayload(
+            audioEnabled = preferencesRepository.isAudioEnabled.first(),
+            videoEnabled = preferencesRepository.isVideoEnabled.first(),
+            imagesEnabled = preferencesRepository.isImagesEnabled.first(),
+            documentsEnabled = preferencesRepository.isDocumentsEnabled.first(),
+            slideshowEnabled = preferencesRepository.isSlideshowEnabled.first(),
+            slideshowIntervalSeconds = preferencesRepository.slideshowIntervalSeconds.first(),
+            downloadAlbumArt = preferencesRepository.downloadAlbumArt.first(),
+            viewMode = preferencesRepository.viewMode.first().name,
+            keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers.first(),
+            fileListViewMode = preferencesRepository.fileListViewMode.first().name,
+            // appLanguage is a PHONE_ONLY registry entry: the watch inherits it and never holds the later
+            // value, so reporting it back could only overwrite the phone's own choice with an echo.
+            appLanguage = null,
+            backgroundMode = preferencesRepository.backgroundMode.first().name,
+            colorScheme = preferencesRepository.colorScheme.first().name,
+            streamsSectionEnabled = preferencesRepository.streamsSectionEnabled.first(),
+            disableAnimations = preferencesRepository.isAnimationsDisabled.first(),
+            powerSavingTrigger = preferencesRepository.powerSavingTrigger.first().name,
+            backgroundPlaybackEnabled = preferencesRepository.backgroundPlaybackEnabled.first(),
+            fieldTimestamps = preferencesRepository.settingTimestamps.first(),
+            capabilities = mapOf(
+                WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR to hasAutoRotationSensor()
+            ),
+            // S2461: the same string the watch's own settings screen shows, so the phone displays the
+            // version the owner would read on the watch itself rather than a second, differently-derived one.
+            appVersionName = BuildConfig.VERSION_NAME,
+            panelAutoHideSeconds = panelAutoHide
+        )
+    }
 
     // The same check the auto-rotation row uses to decide whether it exists at all, so the phone can
     // grey out what this watch cannot do instead of offering a switch that changes nothing.

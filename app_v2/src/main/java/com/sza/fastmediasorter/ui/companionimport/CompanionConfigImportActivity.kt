@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.companionimport
 
+import android.content.Context
 import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
@@ -14,6 +15,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.companion.CompanionConfigDto
 import com.sza.fastmediasorter.ui.companionimport.helpers.CompanionConfigImportManager
 import com.sza.fastmediasorter.util.showBoundToHost
@@ -32,6 +34,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class CompanionConfigImportActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject
     lateinit var importManager: CompanionConfigImportManager

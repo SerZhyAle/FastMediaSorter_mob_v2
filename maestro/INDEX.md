@@ -23,6 +23,7 @@ Status: active S0551 capability-regression suite.
 - `features/player/` - video, image, audio lyrics, documents, resume, info dialog.
 - `features/slideshow/` - slideshow start/stop regression.
 - `features/edge/` - no-extension and large-video edge cases, back-from-every-screen.
+- `wear/` - the watch tree (S2548): home navigation, local playback, settings persistence, rotary reach. Run `-Suite wear` with the watch's `-DeviceId`; a watch suite aimed at a non-watch target is refused with exit 5, because both debug builds share one application id. Flow steps address project-owned nodes by `WearTestTags` resource-id, never by a caption.
 - `_shared/` - reusable permission/navigation fragments.
 
 `-Suite all` is the emulator-default suite. It excludes device-only file-operation flows until

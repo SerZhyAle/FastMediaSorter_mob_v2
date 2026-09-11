@@ -278,12 +278,12 @@ clear it with margin - 6144 MB would report about 5.7 GB and land in `STANDARD`,
 
 ## 3. Play Console figures
 
-Readable only after a bundle upload. No local check substitutes for these. Filled by the release
-operator - see section F of `store_assets/PLAY_CONSOLE_CHECKLIST.md`.
-
-| Date | Release | DEX optimization % | OOM kills | Memory percentile alerts | Bad-behaviour alerts fired |
-|---|---|---|---|---|---|
-| | | | | | |
+Two halves since S2917, kept apart because only one of them can be measured. What the Play
+Developer Reporting API serves - crash, ANR and low-memory-kill rates and both memory metric sets -
+is written by `scripts/release/watch-play-vitals.ps1` (`.\a.ps1 pv`) into section 3.2 and is
+never typed. What no API serves - the DEX optimization percentage and the proactive alerts - is
+still readable only in Play Console after a bundle upload and is transcribed by the release
+operator into section 3.3, following section G of `store_assets/PLAY_CONSOLE_CHECKLIST.md`.
 
 ### 3.1 The split-bundle alert - what this project can and cannot produce (S2449)
 
@@ -314,6 +314,32 @@ configuration splits cannot be settled from documentation. If it fires, record i
 as an observation and **do not treat it as a defect to fix**: with no feature module to add and the
 configuration splits already on, there is no delivery change left that would satisfy it. If it never
 fires across a release, that is the answer too, and it closes S2449's residual.
+
+### 3.2 Measured - Reporting API (S2917)
+
+Written only by `watch-play-vitals.ps1`; anything typed between the markers is overwritten on the
+next run, and a run whose read failed writes nothing at all. One row per versionCode that carried
+users in the window: the phone and the watch publish under one applicationId and are told apart
+only by versionCode (nine digits against eight). Rates are the user-perceived 28-day user-weighted
+values exactly as the API returns them. The memory column reads `unit unconfirmed` until S2917
+research item 6 establishes the unit of the memory percentiles; section 1 is the grid they will
+be judged against.
+
+<!-- s2917:measured:play-vitals:begin -->
+
+No measurement yet - the Reporting API was not enabled on the service account's project when this
+block was created (2026-09-11).
+
+<!-- s2917:measured:play-vitals:end -->
+
+### 3.3 Transcribed - DEX optimization and proactive alerts
+
+Typed in by the release operator from Play Console after a bundle upload; no API serves either
+figure. S1157 is waiting on the DEX percentage specifically.
+
+| Date | Release | DEX optimization % | Proactive alerts fired |
+|---|---|---|---|
+| | | | |
 
 ---
 

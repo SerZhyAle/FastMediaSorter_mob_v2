@@ -98,6 +98,18 @@ $idRx = [regex]'(?<![A-Za-z0-9])S(?<num>\d{4})(?![0-9A-Za-z])'
 # Probe form: Timber.d("Sxxxx: ..) - the string may sit on a later line, so the
 # span is matched from its start and \s spans newlines.
 $probeRx = Get-TimberProbeFormRegex
+# S2934: the probe-line-shape predicate, judged against the trimmed physical opener line. It used to
+# be a literal spelled out at the point of use here, which made this file the ONLY home of the
+# sentence "a probe owns its line" - so check-probe-present.ps1, which admits the probe in the first
+# place, could not ask it and the violation surfaced later, on someone else's project-wide run
+# (S1621, the same split S2324 closed for the presence half).
+#
+# Read straight from the profile rather than through a Get-Timber* accessor like its two neighbours
+# above, deliberately: this gate runs against the RESOLVED harness, which is the plugin cache, so a
+# new accessor function would be undefined here until a deploy no project session performs, while an
+# unknown key in .sza-profile.json is carried into the merged tree by Merge-SzaProfileNode and reads
+# correctly today.
+$ownLineRx = [regex]([string](Get-SzaProfileValue 'probes.ownLineRegex'))
 
 $findings = [System.Collections.Generic.List[object]]::new()
 # Ids for which a probe call actually exists in source, whatever its status. A stale probe counts
@@ -151,7 +163,7 @@ foreach ($root in $scanRoots) {
                     $lineEnd = $content.IndexOf("`n", $m.Index)
                     if ($lineEnd -lt 0) { $lineEnd = $content.Length }
                     $wholeLine = $content.Substring($lineStart, $lineEnd - $lineStart).TrimEnd("`r").Trim()
-                    $isOwnLine = $wholeLine -match '^(timber\.log\.)?Timber\.d\(' -and $wholeLine.EndsWith(')')
+                    $isOwnLine = $ownLineRx.IsMatch($wholeLine)
                     if (-not $isOwnLine) {
                         $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
                         $findings.Add([pscustomobject]@{

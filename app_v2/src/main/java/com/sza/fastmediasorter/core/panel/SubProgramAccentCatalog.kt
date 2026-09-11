@@ -84,14 +84,17 @@ object SubProgramAccentCatalog {
         InternalRouteCatalog.KEY_WATER_FLASHLIGHT to R.color.color_program_accent_amber,
         InternalRouteCatalog.KEY_BLACK_SCREEN to R.color.color_program_accent_amber,
 
-        // Play.
+        // Play and outdoors.
         InternalRouteCatalog.KEY_GAME to R.color.color_program_accent_green,
+        InternalRouteCatalog.KEY_TOURIST_INFO to R.color.color_program_accent_green,
 
         // Anything that reaches another machine.
         InternalRouteCatalog.KEY_NETWORK_MONITOR to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_STREAMS to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_LINK_DOWNLOAD to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_WEAR_COMPANION to R.color.color_program_accent_teal,
+        InternalRouteCatalog.KEY_WATCH_LISTEN to R.color.color_program_accent_teal,
+        InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to R.color.color_program_accent_teal,
 
         // Taking a photo.
         InternalRouteCatalog.KEY_QUICK_CAMERA to R.color.color_program_accent_blue,

@@ -40,7 +40,6 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
             lookup.isFailure -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.PHONE_UNAVAILABLE)
             resource == null -> PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.NOT_FOUND)
             !resource.isDeliverable() -> {
-                Timber.d("S2911: rejected UNSUPPORTED_MEDIA path=%s type=%s", resource.path, resource.type)
                 PhoneResourceChannel.Rejected(WearPhoneResourceResponseStatus.UNSUPPORTED_MEDIA)
             }
             else -> approveOrReject(resource, item, forWatchTransfer)
@@ -113,7 +112,9 @@ class OpenPhoneResourceChannelUseCase @Inject constructor(
      *
      * S2911: a `virtual://` resource is an on-device MediaStore aggregate the phone reads from disk, so
      * it is deliverable by the same reasoning as a LOCAL folder. Admitting it by path keeps delivery
-     * independent of the `type` field, which a device database may hold either way.
+     * independent of the `type` field, which a device database may hold either way. The watch listing
+     * mirrors this predicate (`ListPhoneResourcePageUseCase.isExposedToWatch`), so a resource whose
+     * files this channel would refuse is never offered in the first place.
      */
     private fun MediaResource.isDeliverable(): Boolean =
         isAvailable && accessPin == null && (type == ResourceType.LOCAL || VirtualPathUtils.isVirtualPath(path))

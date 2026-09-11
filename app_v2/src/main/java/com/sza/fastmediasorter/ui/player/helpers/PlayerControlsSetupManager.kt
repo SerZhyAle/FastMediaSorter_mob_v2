@@ -520,12 +520,7 @@ class PlayerControlsSetupManager(
         safeViews.btnDocumentFullscreenExit.visibility =
             if (shouldBeVisible) android.view.View.VISIBLE else android.view.View.GONE
 
-        Timber.d(
-            "S2895: updateDocumentFullscreenExitButtonVisibility - isVideo=%b, controllerVisible=%b, exitButtonVisible=%b",
-            isVideo,
-            isVideoControllerVisible,
-            shouldBeVisible,
-        )
+        Timber.d("S2895: doc exit btn video=$isVideo ctrl=$isVideoControllerVisible visible=$shouldBeVisible")
     }
 
     /**
@@ -567,7 +562,8 @@ class PlayerControlsSetupManager(
         }
 
         // Apply WindowInsets to topCommandPanel.
-        // Use statusBars | captionBar | displayCutout with getStatusBarHeightSafe fallback for OEM Android 8 car screens
+        // Use statusBars | captionBar | displayCutout with getStatusBarHeightSafe fallback for OEM
+        // Android 8 car screens
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
             val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
             val captionTop = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.captionBar()).top

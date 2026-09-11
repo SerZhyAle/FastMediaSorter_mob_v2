@@ -18,6 +18,8 @@ FastMediaSorter собран на перечисленных ниже компо
 | AndroidX Activity Compose | `androidx.activity:activity-compose` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Activity KTX | `androidx.activity:activity-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX AppCompat | `androidx.appcompat:appcompat` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX AppFunctions Core | `androidx.appfunctions:appfunctions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX AppFunctions Service | `androidx.appfunctions:appfunctions-service` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Browser | `androidx.browser:browser` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX CameraX Camera2 | `androidx.camera:camera-camera2` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX CameraX Core | `androidx.camera:camera-core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | все сборки | [link](https://android.googlesource.com/platform/frameworks/support/) |

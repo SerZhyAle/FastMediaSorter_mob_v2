@@ -248,7 +248,7 @@ _Available in: Standard, Legacy, VR_
 | Send file to.. | Settings for the "Send file to.." commands shown in the player. |
 | Operating system interaction | Settings that control how the app integrates with the Android operating system. |
 | Video recording | Settings for recording video with the in-app camera and choosing where recordings are saved. |
-| Wear OS | Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window. |
+| Wear Companion | Groups everything about a Wear OS watch: the master switch for the companion, a short explanation, the install guide and the button that opens the companion window. |
 | Ask for each photo name | Prompts you to enter a name for each photo immediately after it is captured. |
 | Save photos to clipboard | Automatically copies each captured photo to the clipboard after saving. |
 | Geotag photos | Saves your GPS location in the EXIF of photos taken with the built-in camera. Needs location permission and is off by default. |
@@ -270,7 +270,7 @@ _Available in: Standard, Legacy, VR_
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
-| Wear companion | Adds the Wear companion to the app's program menus and panel, so the watch screen is reachable without opening Settings. It is off by default, and it appears at all only in builds that carry the watch bridge. |
+| Wear Companion | Adds the Wear companion to the app's program menus and panel, so the watch screen is reachable without opening Settings. It is off by default, and it appears at all only in builds that carry the watch bridge. |
 | Flashlight in the notification shade | Keeps a permanent entry in the notification shade that lights the camera flash on a tap and puts it out on the next one; needs permission to show notifications, and is hidden on a device with no flash. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |
 | Front flashlight | Adds the front flashlight to the programs list: the screen itself becomes a lamp. |

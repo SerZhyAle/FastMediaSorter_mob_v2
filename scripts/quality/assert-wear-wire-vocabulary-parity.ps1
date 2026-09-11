@@ -171,7 +171,7 @@ $vocabularies = @(
 
     @{ Name = 'WearSettingsFieldIssue'; Kind = 'LocalOnly'; Type = 'WearSettingsFieldIssue'
        PhoneFile = 'domain/model/WearSettingsDecodeResult.kt'; WatchFile = 'domain/model/WearSettingsDecodeResult.kt'
-       Reason = 'Decode diagnostics: a side produces it while parsing a payload that ARRIVED and consumes it locally - WatchWearListenerService filters on WRONG_TYPE to decide what to log. It is never placed into an outgoing payload in either direction, so the two copies describe each side reading, not the two sides agreeing.' }
+       Reason = 'Decode diagnostics: a side produces it while parsing a payload that ARRIVED and consumes it locally - the watch-side SettingsPushResponder filters on WRONG_TYPE to decide what to log. It is never placed into an outgoing payload in either direction, so the two copies describe each side reading, not the two sides agreeing.' }
 )
 
 function Read-SideOrNull {

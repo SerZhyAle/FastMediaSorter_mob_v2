@@ -781,6 +781,10 @@ $runsRtlLayoutGate = ($isResourceChange -and
     (Test-AnyChangedFile 'res/layout.*/.*\.xml$'))
 # S0721 listener symmetry gate. Runs on Kotlin or Mixed change types.
 $runsListenerSymmetryGate = $isCodeChange
+# S2930 activity locale wrapper gate. An Activity that skips LocaleHelper.applyLocale shows the
+# framework configuration language instead of the one the user chose. Narrow trigger: the subject is
+# an app_v2 Kotlin source file, so a wear-only or resource-only change never pays for it.
+$runsActivityLocaleWrapperGate = Test-AnyChangedFile '^app_v2/src/[^/]+/java/.*\.kt$'
 # S0918 orientation-implied-feature gate. Fires only when a manifest is touched - an
 # activity that pins screenOrientation implies a required screen.* hardware feature,
 # which shrinks Google Play device reach unless src/main declares it not-required.
@@ -1401,6 +1405,8 @@ $argvRtlLayout = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/asse
 if ($ScopeToFile) { $argvRtlLayout += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvListenerSymmetry = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-listener-symmetry.ps1"), '-Gate')
 if ($ScopeToFile) { $argvListenerSymmetry += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvActivityLocaleWrapper = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-activity-locale-wrapper.ps1"), '-Gate')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvActivityLocaleWrapper += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvAllFeatures = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-allfeatures-sync.ps1"), '-Gate', '-Quiet')
 $argvHowToPaths = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-howto-settings-paths.ps1"), '-Gate')
 $argvScriptCheatsheet = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-cheatsheet-sync.ps1"), '-Gate', '-Quiet')
@@ -1430,6 +1436,7 @@ if ($runsFocusHighlightGate) { Start-PooledGate @argvFocusHighlight }
 if ($runsDialogCancelGate) { Start-PooledGate @argvDialogCancel }
 if ($runsRtlLayoutGate) { Start-PooledGate @argvRtlLayout }
 if ($runsListenerSymmetryGate) { Start-PooledGate @argvListenerSymmetry }
+if ($runsActivityLocaleWrapperGate) { Start-PooledGate @argvActivityLocaleWrapper }
 if ($runsAllFeaturesGate) { Start-PooledGate @argvAllFeatures }
 if ($runsHowToPathGate) { Start-PooledGate @argvHowToPaths }
 if ($runsScriptCheatsheetGate) { Start-PooledGate @argvScriptCheatsheet }
@@ -1514,6 +1521,16 @@ if ($runsListenerSymmetryGate) {
 }
 else {
     Skip-Step "listener-symmetry-gate" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsActivityLocaleWrapperGate) {
+    # S2930: stays FATAL under -ScopeToFile. Exclusions are a named list with reasons, not a count,
+    # so a changed file is either wrapped or explicitly excused - there is no pre-existing debt for
+    # this change to be judged against.
+    Invoke-Gate "activity-locale-wrapper-gate" { Invoke-GateChild @argvActivityLocaleWrapper }
+}
+else {
+    Skip-Step "activity-locale-wrapper-gate" "not applicable - no changed file is an app_v2 Kotlin source"
 }
 
 if ($runsAllFeaturesGate) {

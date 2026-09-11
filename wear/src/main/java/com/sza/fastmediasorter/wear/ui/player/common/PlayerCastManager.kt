@@ -20,7 +20,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -57,12 +56,10 @@ class PlayerCastManager @Inject constructor(
      * definition, because every network origin on this watch publishes one.
      */
     fun castCurrentFile(file: WearMediaFile, selection: SelectedMedia?, mediaType: WearCastMediaType) {
-        Timber.d("S2531: watch asked the phone to cast, type $mediaType, network=${selection?.isNetworkSource}")
         launchRequest { subjectFor(file, selection, mediaType) }
     }
 
     fun stopCasting() {
-        Timber.d("S2531: watch asked the phone to stop casting")
         requestJob?.cancel()
         requestJob = scope.launch {
             _message.value = wearCastRepository.requestStop().toMessage()
@@ -83,6 +80,11 @@ class PlayerCastManager @Inject constructor(
         }
     }
 
+    // Four guard clauses, one subject type each: a watch-local file, a stream, an unknown source id
+    // falling back to watch-local, and a network file. Folding them into one expression would make
+    // the fallback path share a branch with the resolved one, which is the distinction this function
+    // exists to draw.
+    @Suppress("ReturnCount")
     private suspend fun subjectFor(
         file: WearMediaFile,
         selection: SelectedMedia?,

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsRow
 import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 
 private val TITLE_BOTTOM_PADDING = 8.dp
@@ -50,12 +53,14 @@ fun MediaTypesSettingsScreen(
         mediaTypeItem(
             checked = type in allowed,
             label = stringResource(settingsLabelFor(type)),
+            tag = WearTestTags.mediaType(type),
             onToggle = { viewModel.toggleType(type) }
         )
     } + listOf(
         mediaTypeItem(
             checked = uiState.streamsSectionEnabled,
             label = stringResource(R.string.wear_streams_section_enabled),
+            tag = null,
             onToggle = viewModel::toggleStreamsSection
         )
     )
@@ -108,11 +113,19 @@ internal fun settingsLabelFor(type: WearContentType): Int = when (type) {
 private fun mediaTypeItem(
     checked: Boolean,
     label: String,
+    tag: String?,
     onToggle: () -> Unit
 ): WearSettingsItem = WearSettingsItem { _ ->
-    WearSettingsToggleCell(
-        label = label,
-        checked = checked,
-        onToggle = onToggle
-    )
+    // The tag rides an outer Box rather than the toggle row itself: the row rewrites its own
+    // semantics with clearAndSetSemantics, so a tag declared on the same node is not guaranteed
+    // to survive into the UiAutomator tree a flow reads.
+    Box(
+        modifier = tag?.let { Modifier.testTag(it) } ?: Modifier
+    ) {
+        WearSettingsToggleCell(
+            label = label,
+            checked = checked,
+            onToggle = onToggle
+        )
+    }
 }

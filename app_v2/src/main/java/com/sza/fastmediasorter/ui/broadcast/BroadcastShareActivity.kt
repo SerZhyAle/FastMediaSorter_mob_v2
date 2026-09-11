@@ -12,6 +12,7 @@ import com.google.zxing.WriterException
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.share.SharePayload
 import com.sza.fastmediasorter.core.share.SystemShareInvoker
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastShareBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastShareManager
 import com.sza.fastmediasorter.ui.companionimport.qr.QrCodeEncoder
@@ -23,6 +24,10 @@ import kotlin.math.min
 
 @AndroidEntryPoint
 class BroadcastShareActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject
     lateinit var shareManager: BroadcastShareManager

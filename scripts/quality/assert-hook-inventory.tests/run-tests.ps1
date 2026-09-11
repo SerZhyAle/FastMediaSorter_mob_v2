@@ -34,7 +34,13 @@ function New-Fixture {
         # without knowing it, so those cases needed no edit beyond this default.
         [string[]]$SheetRuleHooks = $null,
         [string[]]$SheetNotPortableHooks = @(),
-        [switch]$OmitRuleSheet
+        [switch]$OmitRuleSheet,
+
+        # S2918 - the fourth comparison. $null servers = no MCP config file at all; $null rows = no
+        # '## MCP servers' section. Both default to $null, so every earlier case sees neither.
+        [string[]]$McpServers = $null,
+        [object[]]$McpRows = $null,
+        [string[]]$PreToolUseMatchers = @()
     )
 
     $root = Join-Path ([System.IO.Path]::GetTempPath()) ("s1604-" + [guid]::NewGuid().ToString('N'))
@@ -45,6 +51,13 @@ function New-Fixture {
         $entries = @($ProjectHooks | ForEach-Object {
             [pscustomobject]@{ hooks = @([pscustomobject]@{ type = 'command'; command = "pwsh -NoProfile -File `"`$CLAUDE_PROJECT_DIR/.claude/hooks/$_.ps1`"" }) }
         })
+        # A matcher group runs the first project hook, so it adds no hook name the inventory lacks.
+        foreach ($m in $PreToolUseMatchers) {
+            $entries += [pscustomobject]@{
+                matcher = $m
+                hooks   = @([pscustomobject]@{ type = 'command'; command = "pwsh -NoProfile -File `"`$CLAUDE_PROJECT_DIR/.claude/hooks/$($ProjectHooks[0]).ps1`"" })
+            }
+        }
         $settings = [pscustomobject]@{ hooks = [pscustomobject]@{ PreToolUse = $entries } }
         $settings | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath (Join-Path $root '.claude/settings.json') -Encoding utf8
     }
@@ -72,6 +85,17 @@ function New-Fixture {
             }
         }
         $lines.Add('')
+        if ($null -ne $McpRows) {
+            $lines.Add('## MCP servers')
+            $lines.Add('')
+            $lines.Add('| Server | Runtime | Config | Purpose | One-way tools | Guard |')
+            $lines.Add('|--------|---------|--------|---------|---------------|-------|')
+            foreach ($r in $McpRows) {
+                $tools = if (@($r.Tools).Count -gt 0) { (@($r.Tools) | ForEach-Object { "``$_``" }) -join ', ' } else { 'none' }
+                $lines.Add("| ``$($r.Server)`` | Claude Code | ``$($r.Config)`` | fixture | $tools | none |")
+            }
+            $lines.Add('')
+        }
         $lines.Add('## Contracts')
         $lines.Add('')
         # Prose naming a .ps1 that is NOT a hook - the gate must ignore it.
@@ -100,7 +124,17 @@ function New-Fixture {
         $sheet | Set-Content -LiteralPath (Join-Path $root 'docs/NON_CLAUDE_RUNTIME_RULES.md') -Encoding utf8
     }
 
-    return [pscustomobject]@{ Root = $root; GlobalPath = $globalPath }
+    # Deliberately NOT <root>/.mcp.json: a case passes only if the gate reads the -McpConfigPath it
+    # is given, so the override is exercised rather than shadowed by the default location.
+    $mcpPath = Join-Path $root 'fixture-mcp.json'
+    if ($null -ne $McpServers) {
+        $servers = [ordered]@{}
+        foreach ($s in $McpServers) { $servers[$s] = [pscustomobject]@{ type = 'stdio'; command = 'fixture' } }
+        [pscustomobject]@{ mcpServers = [pscustomobject]$servers } | ConvertTo-Json -Depth 6 |
+            Set-Content -LiteralPath $mcpPath -Encoding utf8
+    }
+
+    return [pscustomobject]@{ Root = $root; GlobalPath = $globalPath; McpPath = $mcpPath }
 }
 
 function Invoke-Case {
@@ -115,7 +149,7 @@ function Invoke-Case {
     try {
         # -Gate is what assert-fast-gates.ps1 passes, and it is the mode that turns a
         # reported divergence into a failing exit code - so it is the mode under test.
-        $out = & pwsh -NoProfile -File $Gate -Gate -RepoRoot $fx.Root -GlobalSettingsPath $fx.GlobalPath 2>&1
+        $out = & pwsh -NoProfile -File $Gate -Gate -RepoRoot $fx.Root -GlobalSettingsPath $fx.GlobalPath -McpConfigPath $fx.McpPath 2>&1
         $code = $LASTEXITCODE
         $text = ($out | Out-String)
 
@@ -209,6 +243,59 @@ Invoke-Case -Name 'a missing rule sheet cannot verify' -ExpectedExit 2 -Expected
     ProjectHooks   = @('guard-alpha')
     InventoryHooks = @('guard-alpha')
     OmitRuleSheet  = $true
+}
+
+# --- S2918: the fourth comparison, MCP servers ---------------------------------
+# The first three failures are the ways a tracked server and its guard drift apart; the
+# unguarded-tool case uses a longer matcher so it also proves the matcher is anchored. The
+# three passes keep the comparison from reaching past the tracked config: a VS Code row is
+# prose, and a repository with no MCP config owes no section.
+
+Invoke-Case -Name 'an .mcp.json server with no row fails 1' -ExpectedExit 1 -ExpectedText 'has no row' -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
+    McpServers     = @('drv')
+    McpRows        = @(@{ Server = 'docs'; Config = '.vscode/mcp.json'; Tools = @() })
+}
+
+Invoke-Case -Name 'an .mcp.json row naming an absent server fails 1' -ExpectedExit 1 -ExpectedText 'does not register it' -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
+    McpServers     = @('drv')
+    McpRows        = @(@{ Server = 'drv'; Config = '.mcp.json'; Tools = @() }, @{ Server = 'ghost'; Config = '.mcp.json'; Tools = @() })
+}
+
+Invoke-Case -Name 'a one-way tool no anchored matcher covers fails 1' -ExpectedExit 1 -ExpectedText 'matched by no PreToolUse matcher' -Fixture @{
+    ProjectHooks       = @('guard-alpha')
+    InventoryHooks     = @('guard-alpha')
+    McpServers         = @('drv')
+    McpRows            = @(@{ Server = 'drv'; Config = '.mcp.json'; Tools = @('wipe') })
+    PreToolUseMatchers = @('mcp__drv__wipe_all')
+}
+
+Invoke-Case -Name 'servers in .mcp.json with no MCP section fail 1' -ExpectedExit 1 -ExpectedText "no '## MCP servers' section" -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
+    McpServers     = @('drv')
+}
+
+Invoke-Case -Name 'a VS Code row with no counterpart anywhere passes' -ExpectedExit 0 -ExpectedText 'PASS' -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
+    McpRows        = @(@{ Server = 'docs'; Config = '.vscode/mcp.json'; Tools = @() })
+}
+
+Invoke-Case -Name 'servers, rows and guards in sync pass' -ExpectedExit 0 -ExpectedText '1 .mcp.json server(s) listed and guarded' -Fixture @{
+    ProjectHooks       = @('guard-alpha')
+    InventoryHooks     = @('guard-alpha')
+    McpServers         = @('drv')
+    McpRows            = @(@{ Server = 'drv'; Config = '.mcp.json'; Tools = @('wipe', 'nuke') }, @{ Server = 'docs'; Config = '.vscode/mcp.json'; Tools = @() })
+    PreToolUseMatchers = @('Grep|Glob', 'mcp__drv__wipe|mcp__drv__nuke')
+}
+
+Invoke-Case -Name 'no .mcp.json and no MCP section pass' -ExpectedExit 0 -ExpectedText 'PASS' -Fixture @{
+    ProjectHooks   = @('guard-alpha')
+    InventoryHooks = @('guard-alpha')
 }
 
 Write-Host ""

@@ -9,8 +9,10 @@ appId: com.sza.fastmediasorter.debug
     clearState: false
 - tapOn:
     id: "wear_home_section_local"
-- assertVisible: "Audio"
-- tapOn: "Audio"
+- assertVisible:
+    id: "wear_category_music"
+- tapOn:
+    id: "wear_category_music"
 - tapOn:
     point: "50%,45%"
 - assertVisible:

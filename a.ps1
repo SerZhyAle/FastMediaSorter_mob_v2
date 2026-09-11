@@ -78,6 +78,8 @@
     rmw  - Monitor page: start the detached writer and open temp/monitor/index.html in the browser;
            refreshes every 3 s from the same snapshot as rm (-Stop, -Status).
            `.\a.ps1 rm -Watch` refreshes until Ctrl+C.
+    pv   - Play vitals watch (S2917): read Android vitals from the Reporting API, rewrite the two measured
+           blocks and file a Draft on a red band (-Check writes nothing, -NoFile files no ticket).
     chat - Agent chat (S2372): what sibling sessions are doing and what they measured; verb and
            options ride in via $Rest, e.g. `.\a.ps1 chat -Verb Status`, `.\a.ps1 chat -Verb Find -Topic "check:*"`.
     ub   - Unlock build: clear EVERY build domain (Build.Phone + Build.Wear) and its queue when
@@ -294,6 +296,8 @@ $scripts = @{
     # S2406: the monitor page - a detached writer keeps temp/monitor/index.html current every 3 s
     # from the same snapshot `rm` prints; `-Stop` ends it, `-Status` asks.
     'rmw'       = @{ Path = 'scripts\utils\dev-monitor-writer.ps1'; Args = @{} }
+    # S2917: the Play vitals watch - read, judge against Google's bands, record, file a Draft on red.
+    'pv'        = @{ Path = 'scripts\release\watch-play-vitals.ps1'; Args = @{} }
     # S2372: the descriptive layer beside the locks - read at a refusal, written by the scripts.
     'chat'      = @{ Path = 'scripts\utils\agent-chat.ps1'; Args = @{} }
     # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
@@ -401,6 +405,7 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
     Write-Host "  rm   - Monitor the runners (-Watch to refresh, -Json for the snapshot)" -ForegroundColor Cyan
     Write-Host "  rmw  - Monitor page: detached writer + browser, temp/monitor/index.html (-Stop, -Status)" -ForegroundColor Cyan
+    Write-Host "  pv   - Play vitals watch: read vitals, rewrite measured blocks, Draft on red (-Check, -NoFile)" -ForegroundColor Cyan
     Write-Host "  ub   - Unlock build: every build domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
     Write-Host "         ubp/ubw - one domain: Build.Phone / Build.Wear" -ForegroundColor Cyan
     Write-Host "  uc   - Unlock code: every code domain, stale/dead only (-Force to override)" -ForegroundColor Cyan

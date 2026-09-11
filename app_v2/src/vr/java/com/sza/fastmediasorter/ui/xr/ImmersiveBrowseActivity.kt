@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.xr
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -15,6 +16,7 @@ import androidx.annotation.Keep
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrMediaType
@@ -46,6 +48,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject lateinit var runtimeProvider: Lazy<DiagnosticXrRuntime>
 

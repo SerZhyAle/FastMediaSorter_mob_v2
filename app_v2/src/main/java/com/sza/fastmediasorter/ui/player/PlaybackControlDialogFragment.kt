@@ -11,23 +11,22 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.di.StreamTrackPreferenceEntryPoint
-import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
-import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import com.google.android.material.button.MaterialButton
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import timber.log.Timber
 
 class PlaybackControlDialogFragment : DialogFragment() {
 
@@ -395,7 +394,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 applyVolumePreset(restorePercent / PERCENT_SCALE)
             } else {
                 prefs.edit()
-                    .putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, (liveVolume * PERCENT_SCALE).roundToInt())
+                    .putInt(
+                        PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
+                        (liveVolume * PERCENT_SCALE).roundToInt()
+                    )
                     .apply()
                 host().setPlayerVolume(0f)
                 binding.seekVolume.progress = 0
@@ -532,7 +534,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
             if (isUpdatingStereoControls) return@setOnCheckedChangeListener
             updateStereoFamilyAvailability(resolveStereoFamily(host().stereoMode.value), isChecked)
         }
-
     }
 
     private fun bindStereoMode(mode: StereoMode) {
@@ -797,6 +798,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         private const val BALANCE_QUIET_GAIN = 0.3f
         private const val BALANCE_LOUD_GAIN = 0.7f
         private const val PERCENT_SCALE = 100f
+
         // S2907: player volume is 0.0-1.0; the seek bar works in percent (0-100).
         private const val MAX_VOLUME_PERCENT = 100
         private const val HALF_VOLUME_PERCENT = 50

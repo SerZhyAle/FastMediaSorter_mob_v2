@@ -138,6 +138,21 @@ class WatchListenSessionManagerTest {
     }
 
     @Test
+    fun `playback ended elsewhere ends the session and tells the watch once`() = runTest {
+        manager.start()
+        val requestId = repository.startedRequestIds.single()
+        WearSyncEvents.emitListenAck(ackFor(requestId, host = "10.0.0.9"))
+
+        // S2939: a pause from the media notification, then the IDLE that follows it - one end, one STOP.
+        playback.endElsewhere()
+        playback.endElsewhere()
+
+        assertEquals(WearListenState.Idle(), manager.listenState.value)
+        assertTrue(playback.stopped)
+        assertEquals(listOf(requestId), repository.stoppedRequestIds)
+    }
+
+    @Test
     fun `starting twice does not open a second session`() = runTest {
         manager.start()
         manager.start()
@@ -164,12 +179,16 @@ class WatchListenSessionManagerTest {
         /** Runs where the real data source would be opened, so a test can look at that instant. */
         var onStart: (() -> Unit)? = null
 
+        /** What the real player calls when playback ends by a path the session did not take. */
+        var endElsewhere: () -> Unit = {}
+
         override fun prepareSession() {
             prepared = true
         }
 
-        override fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit) {
+        override fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit, onEndedElsewhere: () -> Unit) {
             started = true
+            endElsewhere = onEndedElsewhere
             onStart?.invoke()
             onPlaying()
         }

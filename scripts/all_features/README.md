@@ -65,6 +65,66 @@ exactly matches some flag's row (S1934). An unexplained set raises the count in
 Read the **exit code**, not the last line: the ratchet verdict prints at the top of the output, so a
 `| tail` misses it entirely.
 
+## A watch record's reach is now checked against the companion row (S2933)
+
+The warning above stopped being advice on 2026-09-11. `wear.settings-sync-timeout` (S2916) and
+`wear.watch-settings-report-carries-panel-auto-hide` (S2923) both declared
+`[standard, noLegal, lite, photos, legacy]` - byte-identical to the `SUPPORT_CAST` row, so the
+ratchet counted them explained - while describing phone-to-watch settings sync, which lives behind
+`SUPPORT_WEAR_COMPANION` and reaches two flavors, not five.
+
+Check 4 of `scripts/quality/assert-allfeatures-sync.ps1` now refuses that. A record whose subject is
+declared in `scripts/quality/allfeatures-subject-reach.json` - today one subject, the watch, matched
+by `area` = `Wear OS` or an `id` starting `wear.` / `wear-` - must declare either that subject's flag
+row, read live out of `docs/FLAVOR_MATRIX.md`, or the full flavor dimension. Eight records were in
+neither shape when the check landed; all eight were corrected rather than excused, so there is no
+baseline file and a finding here is always real.
+
+**The check keys off the set, never off the `gate` field**, and that is forced rather than chosen:
+`close-and-log.ps1` is a canon facade (S2402) with no `-FeatGate` parameter, so a record written
+through the sanctioned closure path cannot carry a gate at all. A rule demanding one would be
+unsatisfiable - the `hooks.postClose` check judges the whole file inside the very call that wrote the
+record, so the close would fail before anyone could add the field. `-FeatFlavors` is free, so a
+wrong set is always fixable in one call.
+
+A record that **does** name a gate is skipped here and left to `validate.ps1`, which compares its set
+against the named row - a stronger claim than this check makes. That is the in-band exit for a watch
+capability living behind some other flag.
+
+What it cannot see: a record that picked the wrong one of two legal shapes. `wear.blood-pressure`
+declares the companion row while its sensor is compiled only into the watch's `noLegal` variant, so
+shape 3 is the truthful one - but both sets are legal and only the capability's meaning separates
+them. The check narrows the error to a choice between legal shapes; it does not make the choice.
+
+Why the general form of this rule is not here: the ratchet's blind spot is not specific to the watch.
+Measured 2026-09-11, **491 of 1085 records** are explained only by coinciding with some flag's row,
+and a set often equals several rows at once - `[legacy, noLegal, standard, vr]` is `SUPPORT_STREAMS`,
+`ENABLE_TRANSLATION` and `SUPPORT_MIC_RECORDING` together - so no rule can derive which flag produced
+a set. Closing the class needs `gate` on the write path, which is the canon change above.
+
+## The author's own session judges the record now (S2927)
+
+`scripts/quality/assert-allfeatures-sync.ps1 -Gate` is declared in `hooks.postClose` in
+`.sza-profile.json`, so `close-and-log.ps1` runs it immediately after the `all-features` step that
+wrote the record - in the same call, in every runtime, not only under Claude Code. That script is the
+one that carries all three checks at once: `validate.ps1`'s schema and flavors ratchet, the
+record-count ratchet, and the `area` vocabulary.
+
+This exists because `all-features-gate` in `post-change.ps1` fires only when the changed set contains
+`docs/ALL_FEATURES.jsonl`, and the one path that writes the ledger never puts it there: the file is
+written by a script, so nobody names it in `-Files`. The session that **wrote** the record therefore
+never judged it, and the FAIL landed on whichever session next touched the ledger by hand - S2531,
+S2461, S2868 and S2927 all paid that bill, twice over two separate checks.
+
+It is detection inside the same call, not a refusal before the write: the record is already in the
+file when the check runs, and a failure surfaces as a `FAILED` step in the `close-and-log` report. A
+refusal at the moment of typing belongs in `add.ps1`, which is a canon forwarder this repository does
+not own - the same boundary the section below draws for the baseline file.
+
+The hook is only as usable as the ledger is clean, because it judges the whole file rather than the
+row just written: it could not be wired until S2928 cleared the eight records whose `area` sat outside
+the closed vocabulary, since a permanently red hook would have failed every close in the repository.
+
 `wearFlavors` deliberately takes no part in the ratchet. It is an added axis, not a reinterpretation
 of `flavors` - which is why shape 3 keeps the full flavor list rather than narrowing the field that the
 ratchet reads.
@@ -99,6 +159,8 @@ run with `baseline is not an integer`.
 So a raised count says only that the total grew, never whose record grew it, and the FAIL lands on
 whichever session's change set happens to contain `docs/ALL_FEATURES.jsonl` - which is how S2531 paid
 for a record it did not add. Turning the file into an identity-carrying list, the shape
-`scripts/quality/compose-island-baseline.txt` already uses, is a change to the harness in the canon
-repository, not to anything here; editing the local forwarder achieves nothing and is overwritten by
-the next plugin update.
+`scripts/quality/assert-unreferenced-strings-baseline.txt` and
+`scripts/quality/blockneedusertest-probe-baseline.txt` already use - a named row per exemption with
+the reason it was granted - is a change to the harness in the canon repository, not to anything here;
+editing the local forwarder achieves nothing and is overwritten by the next plugin update.
+(`compose-island-baseline.txt`, named here until S2933 measured it, is a bare count like this one.)

@@ -38,6 +38,8 @@ import com.sza.fastmediasorter.wear.ui.common.WearSettingsToggleCell
 import com.sza.fastmediasorter.wear.ui.common.packSettingsRows
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
+import kotlin.math.abs
 
 private const val THREE_SECONDS = 3
 private const val FIVE_SECONDS = 5
@@ -282,11 +284,16 @@ private fun panelAutoHideRow(
     uiState: SettingsUiState,
     viewModel: SettingsViewModel
 ): WearSettingsItem = WearSettingsItem(fullWidth = true) { _ ->
-    val currentIndex = PANEL_AUTO_HIDE_INTERVALS.indexOfFirst { it == uiState.panelAutoHideSeconds }.coerceAtLeast(0)
+    // S2923: the phone stopped producing values outside the list (S2866), but a watch synced by an
+    // older build may still store one; snap it to the nearest interval so the label names a value
+    // the list actually offers and the first tap writes a list member back.
+    val storedSeconds = uiState.panelAutoHideSeconds
+    val currentSeconds = PANEL_AUTO_HIDE_INTERVALS.minByOrNull { abs(it - storedSeconds) } ?: storedSeconds
+    Timber.d("S2923: auto-hide row shows seconds=$currentSeconds")
     WearSettingsStepperCell(
         values = PANEL_AUTO_HIDE_INTERVALS,
-        currentValue = uiState.panelAutoHideSeconds,
-        labelText = stringResource(R.string.panel_auto_hide_label, PANEL_AUTO_HIDE_INTERVALS[currentIndex]),
+        currentValue = currentSeconds,
+        labelText = stringResource(R.string.panel_auto_hide_label, currentSeconds),
         decreaseDescription = stringResource(R.string.panel_auto_hide_decrease),
         increaseDescription = stringResource(R.string.panel_auto_hide_increase),
         onValueChanged = viewModel::setPanelAutoHideSeconds

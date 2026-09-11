@@ -74,7 +74,7 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `compose-bom`                   | 2024.02.00 | BOM for Compose dependencies       |
+| `compose-bom`                   | 2024.12.01 | BOM for Compose dependencies       |
 | `compose-ui`                    | (BOM)      | Core Compose UI                    |
 | `compose-material3`            | (BOM)      | Material 3 components              |
 | `compose-material-icons`       | (BOM)      | Icon sets (core + extended)        |
@@ -86,9 +86,9 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `wear-compose-material`        | 1.2.1      | Wear OS Material Compose           |
-| `wear-compose-foundation`      | 1.2.1      | Wear OS Compose Foundation         |
-| `wear-compose-navigation`      | 1.2.1      | Wear OS Compose Navigation         |
+| `wear-compose-material`        | 1.4.1      | Wear OS Material Compose           |
+| `wear-compose-foundation`      | 1.4.1      | Wear OS Compose Foundation         |
+| `wear-compose-navigation`      | 1.4.1      | Wear OS Compose Navigation         |
 | `play-services-wearable`       | 18.1.0     | Phone↔Watch communication          |
 | `wear`                          | 1.3.0      | Wear OS essentials                 |
 | `wear-input`                    | 1.1.0      | System remote text and voice input |

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -33,6 +34,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
@@ -157,6 +159,7 @@ private fun OriginCategoryChip(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
+        modifier = Modifier.testTag(WearTestTags.browseCategory(category)),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
@@ -178,6 +181,7 @@ private fun OriginFolderChip(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
+        modifier = Modifier.testTag(WearTestTags.browseCategory(category)),
         fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
@@ -217,7 +221,7 @@ private fun OriginCategoryCell(
         thumbnail = WearThumbnail.Unavailable,
         caption = label,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier.testTag(WearTestTags.browseCategory(category))
     ) { glyphModifier ->
         Icon(
             painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),

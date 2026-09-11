@@ -10,6 +10,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityCompanionQrScanBinding
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
@@ -22,6 +23,10 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
  * this only requests the runtime grant. Injects nothing - it purely returns a string.
  */
 class CompanionQrScanActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     private lateinit var binding: ActivityCompanionQrScanBinding
     private val session by lazy { QrScanSessionManager(this) }

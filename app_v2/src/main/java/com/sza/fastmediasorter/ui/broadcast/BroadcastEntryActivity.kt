@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.broadcast
 
 import android.Manifest
+import android.content.Context
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -8,6 +9,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.databinding.ActivityBroadcastEntryBinding
 import com.sza.fastmediasorter.ui.broadcast.helpers.BroadcastEntryManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
@@ -22,6 +24,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class BroadcastEntryActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject
     lateinit var controller: BroadcastSourceController

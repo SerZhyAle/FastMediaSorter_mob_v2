@@ -90,13 +90,16 @@
     "formRegexForId": "^Timber\\.d\\(\\s*\"{Id}:",
     "tagRegex": "Timber\\.d\\(\"S\\d{4}:",
     "templateRegex": "^Timber\\.d\\(\\s*\"(?<ticket>S\\d{4}):\\s*(?<message>(?:\\\\.|[^\"\\\\])*)\"",
+    "ownLineRegex": "^(timber\\.log\\.)?Timber\\.d\\(.*\\)$",
     "callTemplate": "Timber.d(\"{Id}: {Message}\")",
-    "callName": "Timber.d"
+    "callName": "Timber.d",
+    "removeCommand": "pwsh -NoProfile -File scripts/quality/remove-ticket-probes.ps1 -Id {Id} -Force"
   },
   "hooks": {
     "postClose": [
       { "script": "dev/CATALOG/scripts/scan.ps1", "args": ["-Module", "{Module}"] },
-      { "script": "dev/CATALOG/scripts/render.ps1", "args": ["-Module", "{Module}"] }
+      { "script": "dev/CATALOG/scripts/render.ps1", "args": ["-Module", "{Module}"] },
+      { "script": "scripts/quality/assert-allfeatures-sync.ps1", "args": ["-Gate"] }
     ],
     "deviceReady": "scripts/devtest/device-ready.ps1",
     "deviceReadyArgs": ["-Package", "com.sza.fastmediasorter.debug", "-CheckMcp", "-Module", "app_v2"],

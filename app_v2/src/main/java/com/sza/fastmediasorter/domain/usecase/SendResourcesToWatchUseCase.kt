@@ -4,6 +4,7 @@ import android.os.Build
 import com.google.gson.Gson
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsEntity
 import com.sza.fastmediasorter.data.repository.WearResourceSelectionRepositoryImpl
+import com.sza.fastmediasorter.data.repository.wear.WearDeliveredResourceStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
 import com.sza.fastmediasorter.domain.model.HostPort
@@ -11,6 +12,7 @@ import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearEndpointPayload
 import com.sza.fastmediasorter.domain.model.WearNetworkSourcePayload
+import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.domain.networkmonitor.ReachableEndpointProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
@@ -28,11 +30,18 @@ private const val STALE_THRESHOLD_MS = 24 * 60 * 60 * 1000L
  *   watch. Declared last with a default so the older two-value call sites still build. A caller reads
  *   it to tell a batch that withdrew something from one that did nothing at all - the two used to be
  *   the same value, and the companion reported both as an empty selection.
+ * @param dispatched S2926: whether this batch reached the Data Layer. The three counters above
+ *   describe what was inside the batch and cannot answer it: a batch carrying only tombstones is
+ *   written to the wire with every one of them at zero, and both callers that inferred "nothing
+ *   left the phone" from `sent` and `deselected` therefore reported it as an empty selection while
+ *   the watch was already acknowledging it. No default, so a new call site has to state the fact
+ *   rather than inherit it.
  */
 data class SendResult(
     val sent: Int,
     val skipped: Int,
-    val deselected: Int = 0
+    val deselected: Int = 0,
+    val dispatched: Boolean
 )
 
 class SendResourcesToWatchUseCase @Inject constructor(
@@ -44,7 +53,9 @@ class SendResourcesToWatchUseCase @Inject constructor(
     // S2502: the edit times the watch ranks the incoming records by.
     private val wearResourceStampStore: WearResourceStampStore,
     // S2507: the deletions this phone has made, which the watch ranks the same way.
-    private val wearResourceTombstoneStore: WearResourceTombstoneStore
+    private val wearResourceTombstoneStore: WearResourceTombstoneStore,
+    // S2909: what this phone has already put on the watch, which is what a withdrawal can name.
+    private val wearDeliveredResourceStore: WearDeliveredResourceStore
 ) {
     private val gson = Gson()
     suspend operator fun invoke(): Result<SendResult> = runCatching {
@@ -62,25 +73,27 @@ class SendResourcesToWatchUseCase @Inject constructor(
                 it.type in ResourceType.WATCH_TRANSFERABLE
         }
         val collected = collectPayloads(networkResources, editStamps)
-        // S2882: the registered resources this phone declares unwanted on the watch when a selection exists.
-        // S2909: when selectedIds is empty, there is no active selection to compute deselections against.
-        val deselectedIds = if (selectedIds.isEmpty()) {
-            emptyList()
-        } else {
-            allResources
-                .filterNot { it.id in selectedIds }
-                .map { it.id.toString() }
-        }
+        val delivered = wearDeliveredResourceStore.read()
+        // S2882: the registered resources this phone declares unwanted on the watch, narrowed by
+        // S2909 to the ones the watch was actually given - see withdrawalsFor.
+        val deselectedIds = withdrawalsFor(allResources, selectedIds, delivered)
         // S2507: every tombstone travels, whatever the selection holds. Selection says which
         // resources the watch should carry; it never says which deletions it may hear about, and
         // dropping a deselected resource's tombstone is what would let the watch resurrect it.
         val tombstones = wearResourceTombstoneStore.read()
 
-        // S1781/S2909: an empty selection with no tombstones and no active deselections sends nothing.
+        // S1781: an empty selection with no tombstones and no active deselections sends nothing.
         if (collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
             Timber.d("S2909: empty selection push skipped, no DataItem sent to watch")
-            return@runCatching SendResult(sent = 0, skipped = collected.skipped, deselected = 0)
+            return@runCatching SendResult(
+                sent = 0,
+                skipped = collected.skipped,
+                deselected = 0,
+                dispatched = false
+            )
         }
+
+        Timber.d("S2909: push leg declared ${deselectedIds.size} withdrawn resource(s) from the delivered set")
 
         val syncPayload = WearSyncPayload(
             sentAt = System.currentTimeMillis(),
@@ -92,15 +105,65 @@ class SendResourcesToWatchUseCase @Inject constructor(
             deselectedIds = deselectedIds.ifEmpty { null }
         )
         Timber.d("S2507: phone push leg carries ${syncPayload.tombstones.orEmpty().size} tombstone(s)")
-        Timber.d("S2882: phone push leg declares ${deselectedIds.size} withdrawn resource(s)")
         val syncJson = gson.toJson(syncPayload)
         val bytes = syncJson.toByteArray(Charsets.UTF_8)
         wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
+        rememberDelivered(delivered, collected.payloads, deselectedIds, tombstones)
         Timber.i(
             "Sent ${collected.payloads.size} resources to watch " +
                 "(${collected.skipped} skipped, ${deselectedIds.size} withdrawn)"
         )
-        SendResult(collected.payloads.size, collected.skipped, deselectedIds.size)
+        Timber.d("S2926: batch dispatched, sent=${collected.payloads.size} withdrawn=${deselectedIds.size}")
+        SendResult(
+            sent = collected.payloads.size,
+            skipped = collected.skipped,
+            deselected = deselectedIds.size,
+            dispatched = true
+        )
+    }
+
+    /**
+     * S2909: the ids this batch declares unwanted on the watch.
+     *
+     * S2882's set was the whole registry minus the selection, which is never empty while the registry
+     * is not - so a selection holding nothing re-declared every resource withdrawn on every push, and
+     * the "nothing to send" branch above could not be reached at all. Only a resource this phone
+     * actually delivered can be withdrawn from the watch, and the watch drops an id it does not hold
+     * anyway (`ImportNetworkSourcesUseCase.applyDeselections`).
+     *
+     * [delivered] being null means no push has completed since the store existed, so that one batch
+     * keeps the older, wider set: guessing "nothing was delivered" there would strand whatever the
+     * watch is already holding, which is the loss S2882 exists to prevent. The next push writes the
+     * precise set and the wide one is never used again.
+     */
+    private fun withdrawalsFor(
+        allResources: List<MediaResource>,
+        selectedIds: Set<Long>,
+        delivered: Set<String>?
+    ): List<String> {
+        if (delivered == null) {
+            return allResources.filterNot { it.id in selectedIds }.map { it.id.toString() }
+        }
+        val selected = selectedIds.mapTo(mutableSetOf()) { it.toString() }
+        // Sorted so one selection state produces one batch of bytes, whatever order the store kept.
+        return delivered.filterNot { it in selected }.sorted()
+    }
+
+    /**
+     * S2909: what the watch holds once this batch lands - what it already had, plus what travelled
+     * now, minus what this batch withdrew or deleted.
+     *
+     * Written after the Data Layer accepted the bytes and never before, so a push that failed does not
+     * leave the phone believing a resource arrived - the phone would then never withdraw it.
+     */
+    private suspend fun rememberDelivered(
+        deliveredBefore: Set<String>?,
+        payloads: List<WearNetworkSourcePayload>,
+        withdrawn: List<String>,
+        tombstones: List<WearSourceTombstonePayload>
+    ) {
+        val gone = withdrawn.toSet() + tombstones.map { it.id }
+        wearDeliveredResourceStore.write(deliveredBefore.orEmpty() + payloads.map { it.id } - gone)
     }
 
     /** What the per-resource loop produced: the records that travel, and how many could not. */

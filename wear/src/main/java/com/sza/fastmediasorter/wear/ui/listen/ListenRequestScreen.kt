@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.BrightnessLow
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.FiberManualRecord
@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.HourglassEmpty
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +45,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 
 private val SECTION_GAP = 6.dp
 private val STATUS_ICON_SIZE = 32.dp
@@ -52,20 +54,31 @@ private val STATUS_LABEL_TOP_PADDING = 4.dp
 private val TEXT_HORIZONTAL_PADDING = 8.dp
 
 /**
- * S2550 Pillar F: the tap that makes the feature legal, and the face that makes it honest.
+ * S2550 Pillar F / S2941: the window that makes the feature legal, now auto-starting the microphone.
  *
- * Confirming starts the microphone from a window the owner opened, which is the only path strategic
- * §6.1 left open. While the session runs the screen says so in words and in a glyph, with the state
- * also on the accessibility tree - §3.2 requires an active-transmission indicator distinguishable by
- * more than colour, and there is no action here that hides it.
+ * S2941 replaces the confirm/decline tap with an automatic start: the window opens via
+ * `setFullScreenIntent` and calls `confirm()` from `LaunchedEffect` while in the `Idle` state, so the
+ * microphone starts from a foreground context without user interaction. While the session runs the
+ * screen says so in words and in a glyph, with the state also on the accessibility tree - §3.2 requires
+ * an active-transmission indicator distinguishable by more than colour, and there is no action here
+ * that hides it. The "dim screen" button finishes the activity; the session continues in the
+ * foreground notification, whose `contentIntent` reopens this window.
  */
 @Composable
 fun ListenRequestScreen(
     onFinished: () -> Unit,
+    onDimScreen: () -> Unit,
     viewModel: ListenRequestViewModel = hiltViewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val listState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
+
+    LaunchedEffect(Unit) {
+        if (state is ListenSessionState.Idle) {
+            Timber.d("S2941: auto-starting listen from full-screen intent window")
+            viewModel.confirm()
+        }
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -82,15 +95,12 @@ fun ListenRequestScreen(
             item {
                 ListenActions(
                     state = state,
-                    onConfirm = viewModel::confirm,
-                    onDecline = {
-                        viewModel.decline()
-                        onFinished()
-                    },
+                    onDimScreen = onDimScreen,
                     onStop = {
                         viewModel.stopListening()
                         onFinished()
-                    }
+                    },
+                    onFinished = onFinished
                 )
             }
         }
@@ -138,16 +148,18 @@ private fun ListenStatus(state: ListenSessionState) {
 }
 
 /**
- * A live session offers exactly one action, and it ends the session. There is no dismiss and no
+ * A live session offers two actions: "dim screen" (finish the activity, session continues in the
+ * notification) and "stop listening" (end the session on both sides). There is no dismiss and no
  * setting that hides the indicator above: Pillar F makes covert listening structurally impossible
- * rather than merely discouraged.
+ * rather than merely discouraged. A failed start offers a close action; `Idle` is transient
+ * (auto-start fires in `LaunchedEffect`), and `Starting` shows no action while the microphone opens.
  */
 @Composable
 private fun ListenActions(
     state: ListenSessionState,
-    onConfirm: () -> Unit,
-    onDecline: () -> Unit,
-    onStop: () -> Unit
+    onDimScreen: () -> Unit,
+    onStop: () -> Unit,
+    onFinished: () -> Unit
 ) {
     Column(
         modifier = Modifier.width(IntrinsicSize.Min),
@@ -155,27 +167,28 @@ private fun ListenActions(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         when (state) {
-            is ListenSessionState.Live -> ActionChip(
-                labelRes = R.string.wear_listen_stop,
-                icon = Icons.Default.Stop,
-                primary = true,
-                onClick = onStop
-            )
-            is ListenSessionState.Starting -> Unit
-            else -> {
+            is ListenSessionState.Live -> {
                 ActionChip(
-                    labelRes = R.string.wear_listen_request_confirm,
-                    icon = Icons.Default.Check,
-                    primary = true,
-                    onClick = onConfirm
+                    labelRes = R.string.wear_listen_dim_screen,
+                    icon = Icons.Default.BrightnessLow,
+                    primary = false,
+                    onClick = onDimScreen
                 )
                 ActionChip(
-                    labelRes = R.string.wear_listen_request_decline,
-                    icon = Icons.Default.Close,
-                    primary = false,
-                    onClick = onDecline
+                    labelRes = R.string.wear_listen_stop,
+                    icon = Icons.Default.Stop,
+                    primary = true,
+                    onClick = onStop
                 )
             }
+            is ListenSessionState.Starting -> Unit
+            is ListenSessionState.Idle -> Unit
+            is ListenSessionState.Failed -> ActionChip(
+                labelRes = R.string.wear_listen_request_decline,
+                icon = Icons.Default.Close,
+                primary = false,
+                onClick = onFinished
+            )
         }
     }
 }

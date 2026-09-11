@@ -64,22 +64,26 @@ class WearResourceSelectionViewModel @Inject constructor(
         viewModelScope.launch {
             resourceRepository.getAllResources().collect { resources ->
                 val deduplicated = resources.distinctBy { Pair(it.id, it.path) }
+                // S2910: the send path drops everything outside WATCH_TRANSFERABLE, so listing the
+                // rest here would hand the user a tick that cannot travel.
+                val watchTransferable = deduplicated.filter {
+                    !it.isHidden && it.type in ResourceType.WATCH_TRANSFERABLE
+                }
                 Timber.d("S2482: Wear resource selection loaded deduplicated=${deduplicated.size}")
+                Timber.d("S2910: Wear picker transferable=${watchTransferable.size} of ${deduplicated.size}")
                 val hasSaved = selectionRepository.hasSavedSelection()
                 val selectedIds = if (hasSaved) {
-                    selectionRepository.getSelectedIds()
+                    val saved = selectionRepository.getSelectedIds()
+                    val sanitized = saved.intersect(watchTransferable.map { it.id }.toSet())
+                    if (sanitized != saved) {
+                        selectionRepository.setSelectedIds(sanitized)
+                    }
+                    sanitized
                 } else {
-                    // Default selection: local and virtual resources start ticked, external network
-                    // ones start unticked - pushing a remote source to the watch is never assumed.
-                    val defaultSelected = deduplicated
-                        .filter { it.getResourceCategory() != ResourceCategory.EXTERNAL }
-                        .map { it.id }
-                        .toSet()
-                    selectionRepository.setSelectedIds(defaultSelected)
-                    defaultSelected
+                    emptySet()
                 }
                 _uiState.value = _uiState.value.copy(
-                    resources = deduplicated,
+                    resources = watchTransferable,
                     selectedIds = selectedIds,
                     isLoaded = true
                 )

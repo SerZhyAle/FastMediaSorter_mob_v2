@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -216,7 +217,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
         val unique = allFiles.filter { (_, file) ->
             seen.add(file.mediaStoreIdOrNull()?.toString() ?: file.path)
         }
-        Timber.d("S2860: flat list dedup %d -> %d items", allFiles.size, unique.size)
 
         val sorted = unique.sortedByDescending { pair ->
             pair.second.lastModified.coerceAtLeast(pair.second.createdDate)
@@ -442,7 +442,13 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     /**
      * A PIN-protected or unavailable resource stays invisible instead of returning ACCESS_DENIED per
      * item: the watch has no way to satisfy the PIN, and naming a protected resource already tells
-     * the holder of the watch that it exists. Streams are excluded because they are not scannable.
+     * the holder of the watch that it exists.
+     *
+     * S2911: the section lists exactly what the open channel delivers - phone-owned storage only.
+     * Every file a network resource (SMB, SFTP, FTP, CLOUD) contributes is a tile the open channel
+     * then refuses, because `OpenPhoneResourceChannelUseCase` deliberately does not relay network
+     * content: the watch reaches those hosts itself. Streams stay out for the same reason, plus
+     * they are not scannable.
      */
     /**
      * S1846: the media kinds one watch chip asks for, or null when it asks for everything.
@@ -484,8 +490,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private fun MediaResource.isExposedToWatch(): Boolean =
         isAvailable &&
             accessPin == null &&
-            type != ResourceType.HTTP_STREAM &&
-            type != ResourceType.RTSP_STREAM
+            (type == ResourceType.LOCAL || VirtualPathUtils.isVirtualPath(path))
 
     private fun MediaResource.toRootItem(): WearPhoneResourceItem = WearPhoneResourceItem(
         token = PhoneResourceToken(id, "").serialize(),

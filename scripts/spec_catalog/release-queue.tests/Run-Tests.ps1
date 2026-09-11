@@ -173,6 +173,98 @@ try {
     Sync-ReleaseQueue -Records ([object[]]$records)
     Assert-Condition ((Get-ReleaseQueueDuplicatesDropped) -eq 0) 'Second reconcile still reported duplicates.'
 
+    # ── S2921: where a brand-new row lands ──────────────────────────────────────────────────
+    # Two placements, one root cause. A package ends with an owner-gated boundary ticket that is
+    # its release line, and the writer used to append every new row BELOW it - the heading above
+    # the row then said one package while the owner reads everything under that line as the next.
+    # A package holding a heading but no rows yet was indistinguishable from a package the file
+    # does not carry at all, so its first row went to the very END of the file and grew a SECOND
+    # heading with the same number.
+    #
+    # Hermetic in both directions: the release paths point at the sandbox as above, and
+    # $script:SpecsDirPath does too, so the owner-gate predicate reads spec bodies this test wrote
+    # rather than live tickets. Keying the case on the real boundary ticket would have expired it
+    # at the next release, which is the trap the S1698 fixture above already names.
+    if (-not (Get-Command Find-ReleaseBlockInsertIndex -ErrorAction SilentlyContinue)) {
+        Write-Output 'release-queue tests: SKIP S2921 placement - the resolved harness predates the fix (claude plugin update sza@sza-unified-rules).'
+    } else {
+        $priorSpecsDir = $script:SpecsDirPath
+        try {
+            $script:SpecsDirPath = $sandbox
+            Clear-OwnerGateCache
+            # The marker phrase is the owner directive itself, not a test token: the predicate has
+            # to match what a real boundary spec says, or the case passes on a shape nothing writes.
+            [System.IO.File]::WriteAllLines((Join-Path $sandbox 'S9101_ordinary.md'), @('# ordinary ticket'))
+            [System.IO.File]::WriteAllLines((Join-Path $sandbox 'S9102_boundary.md'),
+                @('# boundary ticket', '', '**Автоматическая передача отключена** - запускает владелец.'))
+
+            $placementQueue = @(
+                '# sandbox queue',
+                '',
+                'current-next-release: 50',
+                '',
+                '50',
+                '# the open package',
+                (Format-ReleaseQueueLine -Ticket 'S9101_ordinary' -Changed '26-08-01 09:00' -Status 'Draft'),
+                (Format-ReleaseQueueLine -Ticket 'S9102_boundary' -Changed '26-08-01 09:00' -Status 'Draft'),
+                '',
+                '51',
+                '# the next package',
+                (Format-ReleaseQueueLine -Ticket 'S9103_later' -Changed '26-08-01 09:00' -Status 'Draft')
+            )
+            [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $placementQueue)
+            [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, @('# sandbox ready', '', '50'))
+
+            $placementRecords = @(
+                [pscustomobject]@{ id = 'S9101'; status = 'Draft'; file = 'PLAN/S9101_ordinary.md'; updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9102'; status = 'Draft'; file = 'PLAN/S9102_boundary.md'; updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9103'; status = 'Draft'; file = 'PLAN/S9103_later.md';    updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9104'; status = 'Draft'; file = 'PLAN/S9104_fresh.md';    updated = '2026-09-11 10:00' }
+            )
+            Sync-ReleaseQueue -Records ([object[]]$placementRecords)
+            $placed = @(Get-Content -LiteralPath $script:ReleaseQueuePath)
+
+            $indexOf = {
+                param($lines, $id)
+                for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -match "^$id`_") { return $i } }
+                return -1
+            }
+            $freshAt = & $indexOf $placed 'S9104'
+            Assert-Condition ($freshAt -ge 0) 'The new ticket did not reach the queue at all.'
+            Assert-Condition ((& $sectionOf $placed 'S9104') -eq '50') 'The new ticket landed outside the open package.'
+            Assert-Condition ($freshAt -lt (& $indexOf $placed 'S9102')) 'The new ticket landed below the package boundary row.'
+            Assert-Condition ($freshAt -gt (& $indexOf $placed 'S9101')) 'The new ticket jumped above work the owner already ordered.'
+            Assert-Condition (@($placed | Where-Object { $_ -match '^\s*50\s*$' }).Count -eq 1) 'The reconcile grew a second heading for the open package.'
+
+            # The same placement with the open package holding a heading and no rows: the row goes
+            # inside that block, not past the end of the file.
+            $emptyQueue = @(
+                '# sandbox queue',
+                '',
+                'current-next-release: 50',
+                '',
+                '50',
+                '# the open package - no rows yet',
+                '',
+                '51',
+                (Format-ReleaseQueueLine -Ticket 'S9103_later' -Changed '26-08-01 09:00' -Status 'Draft')
+            )
+            [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $emptyQueue)
+            [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, @('# sandbox ready', '', '50'))
+            Sync-ReleaseQueue -Records ([object[]]@(
+                    [pscustomobject]@{ id = 'S9103'; status = 'Draft'; file = 'PLAN/S9103_later.md'; updated = '2026-08-01 10:00' },
+                    [pscustomobject]@{ id = 'S9104'; status = 'Draft'; file = 'PLAN/S9104_fresh.md'; updated = '2026-09-11 10:00' }
+                ))
+            $emptyAfter = @(Get-Content -LiteralPath $script:ReleaseQueuePath)
+            Assert-Condition ((& $sectionOf $emptyAfter 'S9104') -eq '50') 'A row added to an empty package left its block.'
+            Assert-Condition ((& $indexOf $emptyAfter 'S9104') -lt (& $indexOf $emptyAfter 'S9103')) 'A row added to an empty package landed past the next package.'
+            Assert-Condition (@($emptyAfter | Where-Object { $_ -match '^\s*50\s*$' }).Count -eq 1) 'An empty package gained a second heading.'
+        } finally {
+            $script:SpecsDirPath = $priorSpecsDir
+            Clear-OwnerGateCache
+        }
+    }
+
     Write-Output 'release-queue tests: PASS'
 }
 finally {

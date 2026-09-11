@@ -25,8 +25,12 @@ interface WatchListenPlayback {
      *
      * @param onPlaying invoked once the player has accepted the source.
      * @param onDropped invoked when a playing session fails mid-stream.
+     * @param onEndedElsewhere S2939: invoked when playback ends by a path the session did not take - a
+     * pause or stop from the media notification or a remote control, the stream running out, a
+     * permanent loss of audio focus. Such an end used to tell the watch nothing, and its microphone ran
+     * until the battery died.
      */
-    fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit)
+    fun start(url: String, onPlaying: () -> Unit, onDropped: () -> Unit, onEndedElsewhere: () -> Unit)
 
     /** Stops and releases. Safe to call when nothing is playing, and safe to call twice. */
     fun stop()

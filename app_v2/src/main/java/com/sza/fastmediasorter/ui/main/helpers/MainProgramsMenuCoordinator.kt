@@ -214,6 +214,8 @@ class MainProgramsMenuCoordinator(
             WatchListenLaunchActivity.createIntent(activity, record = false)
         MENU_ITEM_WATCH_LISTEN_RECORD ->
             WatchListenLaunchActivity.createIntent(activity, record = true)
+        MENU_ITEM_TOURIST ->
+            com.sza.fastmediasorter.ui.tourist.TouristInfoActivity.createIntent(activity)
         else -> null
     }
 
@@ -239,6 +241,8 @@ class MainProgramsMenuCoordinator(
                 com.sza.fastmediasorter.core.game.GameLaunchIntents.game(activity)
             MainWearCompanionMenuManager.MENU_ITEM_WEAR_COMPANION ->
                 WearCompanionActivity.createIntent(activity)
+            MENU_ITEM_TOURIST ->
+                com.sza.fastmediasorter.ui.tourist.TouristInfoActivity.createIntent(activity)
             else -> null
         }
         return intent?.let { resolved -> { hostActions.launchInNewWindow(resolved) } }
@@ -295,6 +299,7 @@ class MainProgramsMenuCoordinator(
         // no manager of their own, so the id lives here and the generic route dispatch handles it.
         const val MENU_ITEM_WATCH_LISTEN = 28
         const val MENU_ITEM_WATCH_LISTEN_RECORD = 29
+        const val MENU_ITEM_TOURIST = 30
 
         /**
          * S2673: label, icon and menu item id per sub-program - the three things ADR-1 keeps out of the
@@ -398,6 +403,11 @@ class MainProgramsMenuCoordinator(
                 MENU_ITEM_STOPWATCH,
                 R.string.stopwatch_title,
                 R.drawable.ic_stopwatch,
+            ),
+            InternalRouteCatalog.KEY_TOURIST_INFO to MenuPresentation(
+                MENU_ITEM_TOURIST,
+                R.string.tourist_info_title,
+                R.drawable.ic_tourist,
             ),
         )
 

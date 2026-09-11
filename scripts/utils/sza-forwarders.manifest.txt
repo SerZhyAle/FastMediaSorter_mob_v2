@@ -13,6 +13,7 @@ scripts/spec_catalog/check-evidence-durable.ps1|spec_catalog/check-evidence-dura
 scripts/spec_catalog/check-headings-unique.ps1|spec_catalog/check-headings-unique.ps1
 scripts/spec_catalog/check-open-items-carried.ps1|spec_catalog/check-open-items-carried.ps1
 scripts/spec_catalog/check-owner-inputs.ps1|spec_catalog/check-owner-inputs.ps1
+scripts/spec_catalog/check-probe-absent.ps1|spec_catalog/check-probe-absent.ps1
 scripts/spec_catalog/check-probe-present.ps1|spec_catalog/check-probe-present.ps1
 scripts/spec_catalog/close-and-log.ps1|spec_catalog/close-and-log.ps1
 scripts/spec_catalog/close.ps1|spec_catalog/close.ps1

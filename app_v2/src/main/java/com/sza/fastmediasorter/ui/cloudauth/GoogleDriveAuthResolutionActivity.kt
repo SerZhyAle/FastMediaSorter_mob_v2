@@ -9,6 +9,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.IntentCompat
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import kotlinx.coroutines.CompletableDeferred
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -40,6 +41,11 @@ object GoogleDriveAuthResolutionTracker {
 }
 
 class GoogleDriveAuthResolutionActivity : ComponentActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
+
     private var resolutionId: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {

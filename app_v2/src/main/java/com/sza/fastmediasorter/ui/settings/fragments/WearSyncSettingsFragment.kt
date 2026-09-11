@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.common.compose.FastMediaSorterComposeTheme
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
+import com.sza.fastmediasorter.ui.settings.SettingsPushEvent
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.WearWatchResourceEvent
 import com.sza.fastmediasorter.ui.settings.helpers.BeamAnimationDialog
@@ -79,6 +80,14 @@ class WearSyncSettingsFragment : Fragment() {
                 is WearWatchResourceEvent.Open ->
                     startActivity(BrowseActivity.createIntent(requireContext(), event.resourceId))
                 WearWatchResourceEvent.Failed -> toast(getString(R.string.friendly_copy_error_generic))
+            }
+        }
+        // S2916: the settings push does not open the beam dialog, so its timeout and local failure
+        // reach the owner as a toast through the same one-shot pattern as watchResourceEvents above.
+        collectOnLifecycle(viewModel.settingsPushEvent) { event ->
+            when (event) {
+                is SettingsPushEvent.Timeout -> toast(event.message)
+                is SettingsPushEvent.Failed -> toast(event.message)
             }
         }
     }

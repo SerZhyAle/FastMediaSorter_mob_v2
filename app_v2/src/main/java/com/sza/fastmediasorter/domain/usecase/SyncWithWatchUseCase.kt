@@ -50,9 +50,13 @@ class SyncWithWatchUseCase @Inject constructor(
 
     private suspend fun sendResourcesLeg(): WearSyncLegResult = sendResourcesToWatch().fold(
         onSuccess = { result ->
+            Timber.d("S2926: unified resources leg dispatched=${result.dispatched}")
             // S2882: a batch that withdrew resources and sent none did something, and reporting it as
             // an empty selection was the same silence the unticked box itself used to produce.
-            if (result.sent == 0 && result.deselected == 0) {
+            // S2926: a batch of pure deletions has both counters at zero and still travels, so the
+            // leg reads the departure the use case states. Reported as NothingToSend it also skipped
+            // awaitResourcesAck, which passes through every leg that is not Succeeded.
+            if (!result.dispatched) {
                 WearSyncLegResult.NothingToSend
             } else {
                 WearSyncLegResult.Succeeded(result.sent)

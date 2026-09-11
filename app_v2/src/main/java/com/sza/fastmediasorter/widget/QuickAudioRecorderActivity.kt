@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.widget
 
 import android.Manifest
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import com.sza.fastmediasorter.core.util.LocaleHelper
 
 /**
  * S0349 - transparent, no-UI trampoline for the Quick Audio Recorder widget.
@@ -13,6 +15,10 @@ import androidx.appcompat.app.AppCompatActivity
  * with [Theme.FastMediaSorter.Transparent] + `noHistory`, so the user stays on the home screen.
  */
 class QuickAudioRecorderActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     private lateinit var launchManager: QuickAudioRecorderLaunchManager
 

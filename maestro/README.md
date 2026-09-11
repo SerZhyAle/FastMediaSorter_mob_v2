@@ -32,6 +32,9 @@ Runner contract:
 - Exit `2`: Maestro CLI not found.
 - Exit `3`: at least one flow assertion failed.
 - Exit `4`: execution error such as no device or Maestro runtime failure.
+- Exit `5`: a `wear` suite was aimed at a target whose `ro.build.characteristics` does not say
+  `watch` - the watch and phone debug builds share one application id, so the runner refuses the
+  pairing instead of verifying the wrong app (S2548 ADR-3).
 
 ## Flow Map
 
@@ -111,6 +114,19 @@ operation resources and the file-operation menu is known tappable on that device
 - `settings_open_interface.yaml` - open Settings, select the General tab and bring the Interface section into view, expanded. Extracted from the three launcher flows, which carried it verbatim (S2720).
 - `launcher_mode_enable.yaml` - turn launcher mode on and leave the caller on an active `rowLauncherSettings`. Tapping the toggle only makes the app a home-screen candidate; the row is enabled off the held `ROLE_HOME` role, so this fragment also answers the system role dialog (select the candidate row, then confirm - a lone confirm tap leaves the role where it was). A flow that runs it declares `# maestro-requires: home-role` in its header, and the runner restores the previous role holder afterwards (S2720).
 - `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
+
+`wear/` (the watch tree, S2548; invisible to `-Suite all` by construction - run `-Suite wear` with the
+watch's `-DeviceId`; full contract in `wear/README.md`):
+
+- `wear_home_navigation.yaml` - the home hops through Local and Phone, each destination asserted by
+  its own category id.
+- `wear_local_playback.yaml` - a seeded file actually plays; declares `# maestro-requires: seeded-content`.
+- `wear_settings_persistence.yaml` - a media type toggled, left, re-entered, and still toggled.
+- `wear_rotary_reach.yaml` - an off-glass About row reached by scroll; the runner drives the bezel
+  around this flow with `adb.ps1 rotary`, never inside the `.yaml`.
+
+Every flow addresses project-owned nodes by `WearTestTags` resource-id, never by a caption: the watch
+flows must survive a locale change the phone suite's ru-label convention does not cover.
 
 ## Preconditions
 

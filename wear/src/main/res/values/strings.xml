@@ -635,7 +635,7 @@
     <string name="wear_media_types_source_unsupported">This resource holds only file kinds the watch cannot show. Open it on the phone.</string>
     <string name="wear_listen_request_channel_name">Listening requests</string>
     <string name="wear_listen_request_notification_title">The phone asks to listen</string>
-    <string name="wear_listen_request_notification_text">Tap to turn on this watch microphone</string>
+    <string name="wear_listen_request_notification_text">The phone is turning on this watch microphone</string>
     <string name="wear_listen_request_caption">The paired phone wants to listen through this watch microphone</string>
     <string name="wear_listen_request_confirm">Allow</string>
     <string name="wear_listen_request_decline">Decline</string>
@@ -644,6 +644,7 @@
     <string name="wear_listen_active_description">The microphone is on and the paired phone is listening through it</string>
     <string name="wear_listen_failed">The microphone could not start</string>
     <string name="wear_listen_stop">Stop listening</string>
+    <string name="wear_listen_dim_screen">Dim screen</string>
     <string name="wear_listen_notification_title">The phone is listening through this watch</string>
     <string name="wear_broadcast_notification_title">This watch is broadcasting</string>
     <string name="wear_broadcast_notification_stop">Stop broadcast</string>

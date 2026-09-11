@@ -165,16 +165,20 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 ## G. Technical quality thresholds - February 2027 (S2100)
 
 Play enforces memory, bitmap and DEX thresholds from February 2027; exceeding one costs Play
-visibility and restricts publishing. All four surfaces below read **only after a bundle upload** -
-no local check substitutes for them, which is why they are an operator step and not a build gate.
+visibility and restricts publishing. None of these surfaces can be read before real users run the
+published build, which is why they are an operator step and not a build gate. Since S2917 two of
+them are measured by a script and only two are still read by hand.
 
-- [ ] Android vitals → **Dynamic memory metrics** - record the percentiles per RAM bucket
-- [ ] Crashes and ANRs → **out-of-memory filter** - record OS kills for low memory
+- [ ] Run `.\a.ps1 pv` - reads the dynamic memory, bitmap memory and low-memory-kill figures (with
+      crash and ANR rates) from the Play Developer Reporting API and writes them into
+      `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.2 and `docs/PLAY_PUBLISHING_STATE.md` block 4.
+      Nothing to copy by hand. An exit 2 naming an activation URL or a permission is the one-time
+      owner setup in `scripts/release/README.md` (`watch-play-vitals.ps1`).
 - [ ] Bundle upload → **DEX code optimization insights** - record the achieved optimization %
 - [ ] **Proactive alerts** - note which fired, if any: unoptimized bitmaps, weak DEX optimization,
       limited split-bundle usage
-- [ ] Copy every figure above into `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3, with the date
-      and the release it came from. Numbers left in the console are numbers the next ticket
+- [ ] Copy the two figures above into `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.3, with the
+      date and the release they came from. Numbers left in the console are numbers the next ticket
       re-gathers from zero - and S1157 is blocked waiting on the DEX percentage specifically.
 
 Two things not to go looking for (S2449 - both settled before the upload, neither needs re-deriving):

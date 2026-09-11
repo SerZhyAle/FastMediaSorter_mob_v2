@@ -5,7 +5,6 @@ import com.sza.fastmediasorter.domain.model.WearSettingsMergeResolver
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
 import com.sza.fastmediasorter.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.domain.model.WearSettingsRegistry
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -61,13 +60,10 @@ class MergeWearSettingsReportUseCase @Inject constructor(
         // absent local stamp, which the resolver already answers with "take the incoming value", so the
         // first report needs no branch of its own.
         val merged = mergeAgainst(stored ?: incoming, incoming, merge)
-        Timber.d("S2799: merged anim=${merged.disableAnimations} pwr=${merged.powerSavingTrigger}")
-        Timber.d("S2799: merged hide=${merged.panelAutoHideSeconds}")
         mirrorStore.writeSettings(merged)
         mirrorStore.writeFieldTimestamps(stamps)
         // S2461: the version rides in on the same call as the time, because this line is the single
         // point at which a full exchange is known to have completed (research 02).
-        Timber.d("S2461: report merged - marking sync, watch version=${incoming.appVersionName}")
         mirrorStore.markSynced(receivedAtEpochMillis, incoming.appVersionName)
         return merged
     }

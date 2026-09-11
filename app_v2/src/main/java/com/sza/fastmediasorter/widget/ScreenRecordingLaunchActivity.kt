@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.widget
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -10,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.domain.model.PermissionTask
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import dagger.hilt.android.AndroidEntryPoint
@@ -26,6 +28,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class ScreenRecordingLaunchActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject
     lateinit var controllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>

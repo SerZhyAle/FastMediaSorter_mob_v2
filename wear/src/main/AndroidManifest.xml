@@ -81,6 +81,13 @@
         android:name="android.permission.POST_NOTIFICATIONS"
         android:minSdkVersion="33" />
 
+    <!--
+        S2941: lets the listen-request notification open ListenRequestActivity automatically via
+        setFullScreenIntent, putting the app in the foreground so the microphone FGS can start without
+        a tap. CATEGORY_CALL on the notification qualifies for this permission on Android 14+.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
 
    <application
         android:name=".FastMediaSorterWearApp"
@@ -113,10 +120,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!-- S2550 ADR-6: the window the listening-request notification opens. Not exported - only
-             this process may raise it, and only a tap on the notification reaches it. Starting the
-             microphone service from a window the user opened is the one platform exemption that
-             lifts both the API 31 and the API 34 background-start barriers (strategic §6.1). -->
+        <!-- S2550 ADR-6 / S2941: the window the listening-request notification opens, now also
+             automatically via setFullScreenIntent. Not exported - only this process may raise it, and
+             only the notification (full-screen intent or tap) reaches it. Starting the microphone
+             service from a window the user opened or that full-screen intent brought to the foreground
+             is the one platform exemption that lifts both the API 31 and the API 34 background-start
+             barriers (strategic §6.1). -->
         <activity
             android:name=".ui.listen.ListenRequestActivity"
             android:exported="false"

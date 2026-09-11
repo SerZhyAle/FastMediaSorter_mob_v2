@@ -49,7 +49,6 @@ class WearCastRequestHandler @Inject constructor(
     }
 
     fun handle(nodeId: String, data: ByteArray) {
-        Timber.d("S2531: phone received a cast request from the watch")
         applicationScope.launch {
             val request = parse(data)
             val ack = if (request == null) {

@@ -14,8 +14,13 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 
 class CrashActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     companion object {
         private const val EXTRA_REPORT = "extra_crash_report"

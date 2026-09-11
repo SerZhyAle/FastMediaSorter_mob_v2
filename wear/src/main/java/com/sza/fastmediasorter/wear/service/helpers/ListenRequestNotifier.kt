@@ -21,6 +21,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -86,6 +87,7 @@ class ListenRequestNotifier @Inject constructor(
         if (!canPostNotification()) {
             return false
         }
+        Timber.d("S2941: posting listen request with full-screen intent")
         val manager = notificationManager()
         manager.createNotificationChannel(
             NotificationChannel(
@@ -142,6 +144,7 @@ class ListenRequestNotifier @Inject constructor(
         .setCategory(NotificationCompat.CATEGORY_CALL)
         .setAutoCancel(true)
         .setContentIntent(pendingIntent())
+        .setFullScreenIntent(pendingIntent(), true)
         .build()
 
     /**

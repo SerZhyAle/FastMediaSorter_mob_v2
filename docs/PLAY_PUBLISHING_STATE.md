@@ -1,7 +1,8 @@
 # Play publishing state
 
 The single record of what Google Play is currently publishing for `com.sza.fastmediasorter`: what the
-store serves, what each track holds, and what the Console's `Policy status` page lists. Before this
+store serves, what each track holds, what the Console's `Policy status` page lists, and how the
+published builds behave on users' devices (Android vitals, block 4, S2917). Before this
 file existed the answer was derived on demand from ticket status notes and from memory - three times
 in one week, and once wrongly (S2272, ADR-2).
 
@@ -11,7 +12,7 @@ row with no date is read as **unmeasured**, never as unchanged. Two source class
 - `measured` - written by a script, from the Play Developer API or from an anonymous page fetch.
 - `transcribed` - typed in by the owner from a Console screen no API serves.
 
-The three blocks are deliberately kept apart because they disagree in practice. The console can report
+The four blocks are deliberately kept apart because they disagree in practice. The console can report
 a track `completed` while the store still serves a two-week-old build, and a record holding only one
 of those two rows reads as green.
 
@@ -133,6 +134,30 @@ rejections of 2026-08-23 and 2026-08-24 is gone. The build that removed `MANAGE_
 from the store flavors and `ACCESS_FINE_LOCATION` from the watch (S2012, S2013), plus the accepted
 appeal, closed it. Recorded because an absence measured once is worth more than the same question
 researched again.
+
+---
+
+## 4. Android vitals - `measured`
+
+How the published builds behave on users' devices, read from the Play Developer Reporting API.
+Produced by `pwsh -NoProfile -File scripts/release/watch-play-vitals.ps1` (`.\a.ps1 pv`), which is
+the only writer of this block and the only script that reads that API.
+
+- The window is the last 28 days the API has data for, in `America/Los_Angeles` dates - the only
+  time zone its daily figures exist in - and the rates are the user-perceived 28-day values Google
+  judges bad behaviour by.
+- The bands are Google's published thresholds, kept in the `PlayVitals` block of
+  `scripts/devtest/prerelease.config.psd1` with the date they were read.
+- `insufficient data` is a result, not a failure: too few users for a rate to mean anything.
+- A red band files a Draft ticket; the ticket's section 0 carries the evidence.
+- A run whose read failed writes nothing, so a date in this block is always a date of real data.
+
+<!-- s2272:measured:vitals:begin -->
+
+No measurement yet - the Reporting API was not enabled on the service account's Cloud project when
+this block was created (2026-09-11). The reader names the activation URL.
+
+<!-- s2272:measured:vitals:end -->
 
 ---
 
@@ -262,14 +287,16 @@ exists to prevent - one watch defect held a phone release for which there was no
 
 ## How this file is kept current
 
-`scripts/release/refresh-play-publishing-state.ps1` is the **only** writer of blocks 1 and 2. Anything
-hand-written between the `s2272:measured:*` marker comments is overwritten on the next refresh - edit
-the readers or the refresher instead. Block 3 is the owner's and no script touches it; the refresher
-only reports its age.
+`scripts/release/refresh-play-publishing-state.ps1` is the **only** writer of blocks 1 and 2, and
+`scripts/release/watch-play-vitals.ps1` the only writer of block 4. Anything hand-written between the
+`s2272:measured:*` marker comments is overwritten on the next run - edit the readers or the writers
+instead. Block 3 is the owner's and no script touches it; the refresher only reports its age.
 
 Refresh at every release and at every Play verdict:
 
 ```powershell
 pwsh -NoProfile -File scripts/release/refresh-play-publishing-state.ps1
 pwsh -NoProfile -File scripts/release/refresh-play-publishing-state.ps1 -Check   # staleness probe, writes nothing
+pwsh -NoProfile -File scripts/release/watch-play-vitals.ps1                      # block 4; files a Draft on a red band
+pwsh -NoProfile -File scripts/release/watch-play-vitals.ps1 -Check               # block 4 staleness probe, writes nothing
 ```

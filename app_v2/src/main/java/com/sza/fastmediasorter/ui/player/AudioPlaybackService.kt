@@ -309,13 +309,20 @@ class AudioPlaybackService : MediaSessionService() {
         var isRunning: Boolean = false
 
         /**
-         * S2810: the package of the Wear OS companion app on the phone, which bridges the phone's
-         * active MediaSession to the watch's system "now playing" surface. Refused in
-         * [AudioSessionCallback.onConnect] when `suppressWearMediaTakeover` is on, so the watch stops
-         * surfacing this service's player. A constant rather than a runtime lookup because the bridge
-         * package is fixed by the Wear OS platform.
+         * S2810 / S2941: the packages of the Wear OS companion apps on the phone, which bridge the
+         * phone's active MediaSession to the watch's system "now playing" surface. Refused in
+         * [AudioSessionCallback.onConnect] when `suppressWearMediaTakeover` is on or when a listen
+         * session is live ([RadioStreamBufferConfig.isLiveSession]), so the watch stops surfacing this
+         * service's player. Constants rather than a runtime lookup because the bridge packages are
+         * fixed by the Wear OS platform: the Google companion and the Samsung companion.
          */
         const val WEAR_COMPANION_PACKAGE = "com.google.android.wearable.app"
+        const val SAMSUNG_WEAR_COMPANION_PACKAGE = "com.samsung.android.wearable.app"
+
+        private val WEAR_COMPANION_PACKAGES = setOf(
+            WEAR_COMPANION_PACKAGE,
+            SAMSUNG_WEAR_COMPANION_PACKAGE
+        )
 
         /** Direction for the next navigation event triggered via hardware media buttons.
          *  Set by ForwardingPlayer when the user presses NEXT or PREVIOUS.
@@ -1000,12 +1007,17 @@ class AudioPlaybackService : MediaSessionService() {
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
             Timber.d("S2876: phone session onConnect from ${controller.packageName} on media3 1.11.0")
-            // S2810: refuse the Wear OS companion bridge so the watch stops surfacing this service's
-            // player as a system "now playing" screen. Only the bridge package is refused - the app's
-            // own UI (same package), the system `android` (lockscreen/Bluetooth) and every other
-            // controller keep the existing accept path, so on-phone controls are unaffected.
-            if (suppressWearMediaTakeover && controller.packageName == WEAR_COMPANION_PACKAGE) {
-                Timber.d("S2810: refused Wear OS companion media-session connection")
+            Timber.d("S2914: onConnect building AcceptedResultBuilder with ControllerInfo")
+            // S2810 / S2941: refuse the Wear OS companion bridge so the watch stops surfacing this
+            // service's player. Refused when the owner's setting is on, or when a listen session is
+            // live (isLiveSession), so the watch never shows the phone's media controls during
+            // listening. Only the bridge packages are refused - the app's own UI (same package), the
+            // system `android` (lockscreen/Bluetooth) and every other controller keep the accept path.
+            val isWearBridge = controller.packageName in WEAR_COMPANION_PACKAGES
+            val shouldSuppress = suppressWearMediaTakeover ||
+                RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
+            if (isWearBridge && shouldSuppress) {
+                Timber.d("S2941: refused Wear companion bridge during live listen")
                 return ConnectionResult.reject()
             }
             // Explicitly include SEEK_TO_NEXT/PREVIOUS so notification always shows skip buttons
@@ -1014,7 +1026,7 @@ class AudioPlaybackService : MediaSessionService() {
                 .add(Player.COMMAND_SEEK_TO_NEXT)
                 .add(Player.COMMAND_SEEK_TO_PREVIOUS)
                 .build()
-            return ConnectionResult.AcceptedResultBuilder(session)
+            return ConnectionResult.AcceptedResultBuilder(session, controller)
                 .setAvailablePlayerCommands(playerCommands)
                 .setAvailableSessionCommands(ConnectionResult.DEFAULT_SESSION_COMMANDS)
                 .build()

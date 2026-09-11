@@ -18,6 +18,7 @@ appId: com.sza.fastmediasorter.debug
     direction: DOWN
 - tapOn:
     id: "wear_settings_row_settings_about"
-- assertVisible: "Web Portal"
+- assertVisible:
+    id: "wear_about_web_portal"
 - pressKey: Back
 - pressKey: Back

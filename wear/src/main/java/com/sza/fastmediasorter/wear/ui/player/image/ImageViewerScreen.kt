@@ -266,17 +266,23 @@ private fun ImageViewerContent(
             }
     ) {
         var isImageLoading by remember { mutableStateOf(true) }
+        var isImageError by remember(uiState.mediaFile?.uri) { mutableStateOf(false) }
         // Held outside the panel: the panel is dismissed by a tap on the picture, and a menu hosted
         // inside it would take the wearer's half-made choice with it.
         var showMenu by rememberSaveable { mutableStateOf(false) }
 
-        ZoomableImage(
-            uiState = uiState,
-            onLoadingChange = { isImageLoading = it }
-        )
+        if (isImageError) {
+            ErrorContent(message = stringResource(R.string.wear_state_error))
+        } else {
+            ZoomableImage(
+                uiState = uiState,
+                onLoadingChange = { isImageLoading = it },
+                onError = { isImageError = true }
+            )
+        }
 
         // Loading indicator while image loads
-        if (isImageLoading) {
+        if (isImageLoading && !isImageError) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .size(32.dp)
@@ -318,7 +324,8 @@ private fun ImageViewerContent(
 @Composable
 private fun ZoomableImage(
     uiState: ImageViewerUiState,
-    onLoadingChange: (Boolean) -> Unit
+    onLoadingChange: (Boolean) -> Unit,
+    onError: () -> Unit
 ) {
     val cropMode = uiState.scaleMode == VideoScaleMode.CROP_PAN
     val fileId = uiState.mediaFile?.id
@@ -350,7 +357,13 @@ private fun ZoomableImage(
                 translationY = offset.y
             },
         contentScale = if (cropMode) ContentScale.Crop else ContentScale.Fit,
-        onState = { state -> onLoadingChange(state is AsyncImagePainter.State.Loading) }
+        onState = { state ->
+            onLoadingChange(state is AsyncImagePainter.State.Loading)
+            if (state is AsyncImagePainter.State.Error) {
+                Timber.w(state.result.throwable, "AsyncImage failed to load image: %s", uiState.mediaFile?.uri)
+                onError()
+            }
+        }
     )
 }
 

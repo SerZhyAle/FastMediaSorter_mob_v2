@@ -28,6 +28,7 @@ class ImportStreamBroadcastUseCase @Inject constructor(
 
     private suspend fun resolveImport(dto: BroadcastDescriptorDto): ImportResult {
         val title = dto.title?.takeIf { it.isNotBlank() } ?: "Audio Broadcast"
+        Timber.d("S2868: imported broadcast row will be named '%s'", title)
         val deviceId = dto.sourceId?.trim()?.takeIf { it.isNotEmpty() }
         val known = deviceId?.let { repository.getBySourceDeviceId(it) }
         return if (known == null) {

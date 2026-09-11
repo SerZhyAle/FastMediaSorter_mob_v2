@@ -22,9 +22,10 @@ class ApplyWearSettingsUseCase @Inject constructor(
     @ApplicationContext private val context: Context,
     private val preferencesRepository: WearPreferencesRepository,
     /**
-     * S2626: Lazy because [WatchWearListenerService] field-injects this use case and is constructed
-     * for every Data Layer message, not only for a settings push - an eager dependency would pull the
-     * voice-note database into the construction path of every message the watch receives.
+     * S2626: Lazy so that only a push which actually changes the language opens the voice-note
+     * database. The listener service used to field-inject this use case for every Data Layer message;
+     * since S2461 it reaches it through a Lazy responder, and a push that leaves the language alone
+     * still has no reason to touch the notes.
      */
     private val refreshVoiceNoteTitles: Lazy<RefreshVoiceNoteTitlesUseCase>,
     /**

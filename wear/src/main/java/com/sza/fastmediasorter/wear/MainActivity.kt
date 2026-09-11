@@ -32,12 +32,12 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -267,6 +267,7 @@ class MainActivity : ComponentActivity() {
 
         Timber.d("MainActivity created")
         Timber.d("S2545: wear release 36 strings translated")
+        Timber.d("S2913: wear compose stack initialized")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
         // configChanges does not cover a locale, font-scale or density change, so re-reading it here
@@ -971,6 +972,13 @@ private fun NavGraphBuilder.miniAppRoutes(
         SystemInfoScreen()
     }
 
+    healthAndHardwareAppRoutes(navController)
+}
+
+/**
+ * Health sensors, broadcast and auxiliary hardware program routes.
+ */
+private fun NavGraphBuilder.healthAndHardwareAppRoutes(navController: NavHostController) {
     // S2458: a live session rather than a report, so the destination owns nothing - leaving the
     // composition is what unregisters the sensors, through the repository's own awaitClose.
     composable(WearRoutes.MOTION_MONITOR) {

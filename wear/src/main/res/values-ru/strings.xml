@@ -635,7 +635,7 @@
     <string name="wear_media_types_source_unsupported">Этот ресурс содержит только типы файлов, которые часы не показывают. Откройте его на телефоне.</string>
     <string name="wear_listen_request_channel_name">Запросы на прослушивание</string>
     <string name="wear_listen_request_notification_title">Телефон просит послушать</string>
-    <string name="wear_listen_request_notification_text">Коснитесь, чтобы включить микрофон часов</string>
+    <string name="wear_listen_request_notification_text">Телефон включает микрофон часов</string>
     <string name="wear_listen_request_caption">Спаренный телефон хочет слушать через микрофон этих часов</string>
     <string name="wear_listen_request_confirm">Разрешить</string>
     <string name="wear_listen_request_decline">Отклонить</string>
@@ -644,6 +644,7 @@
     <string name="wear_listen_active_description">Микрофон включён, и спаренный телефон слушает через него</string>
     <string name="wear_listen_failed">Микрофон не удалось включить</string>
     <string name="wear_listen_stop">Прекратить прослушивание</string>
+    <string name="wear_listen_dim_screen">Погасить экран</string>
     <string name="wear_listen_notification_title">Телефон слушает через эти часы</string>
     <string name="wear_broadcast_notification_title">Эти часы ведут трансляцию</string>
     <string name="wear_broadcast_notification_stop">Остановить трансляцию</string>

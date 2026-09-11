@@ -23,10 +23,12 @@ import com.sza.fastmediasorter.data.repository.StreamingCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.ThumbnailCacheRepositoryImpl
 import com.sza.fastmediasorter.data.repository.settings.MainListSessionStore
 import com.sza.fastmediasorter.data.repository.streams.RealStreamFrameIngestor
+import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearDeliveredResourceStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceIdAliasStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceStampStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearResourceTombstoneStore
 import com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore
+import com.sza.fastmediasorter.data.repository.wear.WearDeliveredResourceStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceIdAliasStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceStampStore
 import com.sza.fastmediasorter.data.repository.wear.WearResourceTombstoneStore
@@ -100,6 +102,14 @@ abstract class RepositoryModule {
     abstract fun bindWearResourceIdAliasStore(
         impl: SharedPreferencesWearResourceIdAliasStore
     ): WearResourceIdAliasStore
+
+    // S2909: what the watch was actually given, which is what decides whether a withdrawal has a
+    // subject. Bound as an interface so the push leg's test can hand it a plain in-memory fake.
+    @Binds
+    @Singleton
+    abstract fun bindWearDeliveredResourceStore(
+        impl: SharedPreferencesWearDeliveredResourceStore
+    ): WearDeliveredResourceStore
 
     // S2199: the resource list's remembered sort and filters. Bound as an interface because the
     // screen must not import the data layer - see the ui-imports-data gate (S2103).

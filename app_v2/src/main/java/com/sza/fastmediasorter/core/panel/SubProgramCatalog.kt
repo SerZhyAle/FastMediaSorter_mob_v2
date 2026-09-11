@@ -131,6 +131,16 @@ object SubProgramCatalog {
             ),
             disable = { it.copy(enableSystemInfo = false) },
         ),
+        // S2922: Tourist dashboard sub-program.
+        SubProgramEntry(
+            routeKey = InternalRouteCatalog.KEY_TOURIST_INFO,
+            order = 85,
+            surfaces = setOf(
+                SubProgramSurface.PROGRAMS_MENU,
+                SubProgramSurface.QUICK_ACCESS_PANEL,
+                SubProgramSurface.LAUNCHER_SHORTCUT,
+            ),
+        ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_WEAR_COMPANION,
             order = 90,

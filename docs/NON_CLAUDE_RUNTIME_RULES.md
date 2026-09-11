@@ -15,6 +15,7 @@ Claude Code refuses these mistakes at the tool call; for you nothing refuses any
 9. Try `/quick` and `/skill-fix` before a spec pipeline - measured 2026-08-05 over the whole transcript corpus, the two cheap tiers fired 2 times against 135 for `/spec-next` and `/spec-all`, because the tier ordering was an ungated sentence and never fired (`nudge-small-task-tier`).
 10. Post your own session lines: `agent-chat.ps1 -Verb Post -Kind session -Note "session started (<runtime>)"` at the start and `"session ended (<reason>)"` at the end, after setting `FMS_AGENT_ID` - the end reason is the one fact separating "died mid-phase" from "finished and left" (`post-agent-chat-session`).
 11. Never end a `/spec-do` loop yourself - only the operator ends it; recover or wait, and if you are waiting, say so and keep waiting (`refuse-spec-do-stop`).
+12. Run a one-way device action through an MCP tool - install, uninstall, a Maestro flow that clears app data - only on an emulator; on a physical device read `docs/DEVICE_FLEET.md` first and use `scripts/devtest/adb.ps1 install`, `uninstall -Yes` or `wipe-data -Yes`, because the device you did not check may hold content that cannot be restored (`guard-mcp-one-way-tools`).
 
 ## Before you say done
 

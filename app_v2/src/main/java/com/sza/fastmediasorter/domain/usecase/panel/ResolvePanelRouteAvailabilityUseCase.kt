@@ -102,6 +102,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // S1733: the same pair the game uses - compiled into every flavor, gated only by its switch.
             InternalRouteCatalog.KEY_SYSTEM_INFO ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
+            // S2922: Tourist dashboard sub-program - universal across flavors.
+            InternalRouteCatalog.KEY_TOURIST_INFO ->
+                Availability(availableInBuild = true, enabledAtRuntime = true)
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
             // S2881: the two listen calls are that bridge in action, so they answer with the same pair -

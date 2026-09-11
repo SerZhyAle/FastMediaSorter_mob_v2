@@ -97,7 +97,7 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         if (ids.isNullOrEmpty()) {
             return 0
         }
-        Timber.d("S2882: watch import leg received ${ids.size} withdrawn id(s) from the phone")
+        Timber.d("S2882: watch import received ${ids.size} withdrawn id(s)")
         val present = repository.getAllSources().map { it.id }.toSet()
         var removed = 0
         for (id in ids.filter { it in present }) {
@@ -107,11 +107,6 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         return removed
     }
 
-    /**
-     * Applies one incoming record and says what it did to it. Written as a function returning an
-     * outcome rather than as branches inside the loop, so the loop carries no jump statements and the
-     * three counters cannot drift from what was actually written.
-     */
     /**
      * S2507: applies the phone's deletions before any ordinary record of the same batch.
      *
@@ -145,6 +140,11 @@ class ImportNetworkSourcesUseCase @Inject constructor(
         }
     }
 
+    /**
+     * Applies one incoming record and says what it did to it. Written as a function returning an
+     * outcome rather than as branches inside the loop, so the loop carries no jump statements and the
+     * three counters cannot drift from what was actually written.
+     */
     private suspend fun applyOne(
         item: WearNetworkSourcePayload,
         resolver: WearRecordMergeResolver,

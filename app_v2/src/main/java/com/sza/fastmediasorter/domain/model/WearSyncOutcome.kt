@@ -28,6 +28,12 @@ enum class WearSyncLeg {
  * S2882 narrowed what counts as nothing: an empty selection also withdraws every marked resource the
  * watch still holds, and that exchange changes the watch. [NothingToSend] now means "nothing to send
  * AND nothing to withdraw"; a batch that only removed things reports [Succeeded].
+ *
+ * S2926 narrowed it once more, to what it was always meant to be: [NothingToSend] means no batch was
+ * written to the Data Layer at all. Deletions the phone made travel as tombstones without being
+ * counted as either sends or withdrawals, so the previous wording still reported a real exchange as
+ * nothing - and, because the ack wait skips every leg that is not [Succeeded], never waited for the
+ * answer the watch sends back.
  */
 sealed class WearSyncLegResult {
     data class Succeeded(val itemCount: Int) : WearSyncLegResult()

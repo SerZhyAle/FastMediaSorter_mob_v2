@@ -12,9 +12,9 @@ import com.sza.fastmediasorter.wear.data.db.MediaMetadataVoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDurationReader
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteIndexRebuilder
+import com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase
 import com.sza.fastmediasorter.wear.data.db.WearDatabaseResetNotice
 import com.sza.fastmediasorter.wear.data.db.WearHeartRateDatabase
-import com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase
 import com.sza.fastmediasorter.wear.data.db.WearVoiceNoteMigrations
 import com.sza.fastmediasorter.wear.data.network.StreamNetworkHoldManager
@@ -29,8 +29,8 @@ import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
 import com.sza.fastmediasorter.wear.data.preferences.NetworkSourceRepositoryImpl
 import com.sza.fastmediasorter.wear.data.preferences.WearNowPlayingRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.AlbumArtRepositoryImpl
-import com.sza.fastmediasorter.wear.data.repository.HeartRateHistoryRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.BloodPressureHistoryRepositoryImpl
+import com.sza.fastmediasorter.wear.data.repository.HeartRateHistoryRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.VoiceNoteRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearCastRepositoryImpl
 import com.sza.fastmediasorter.wear.data.repository.WearFavoritesRepositoryImpl
@@ -47,14 +47,14 @@ import com.sza.fastmediasorter.wear.data.wear.AndroidWearSystemInfoDataSource
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.recorder.VoiceRecordingStateHolder
 import com.sza.fastmediasorter.wear.domain.repository.AlbumArtRepository
+import com.sza.fastmediasorter.wear.domain.repository.BloodPressureHistoryRepository
+import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearEnvironmentDataSource
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
-import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
-import com.sza.fastmediasorter.wear.domain.repository.BloodPressureHistoryRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearHardwareDataSource
@@ -495,7 +495,9 @@ object WearAppModule {
 
     @Provides
     @Singleton
-    fun provideBloodPressureHistoryRepository(impl: BloodPressureHistoryRepositoryImpl): BloodPressureHistoryRepository = impl
+    fun provideBloodPressureHistoryRepository(
+        impl: BloodPressureHistoryRepositoryImpl
+    ): BloodPressureHistoryRepository = impl
 
     /**
      * Application-scoped by construction: the recording service writes here and the recorder screen

@@ -18,7 +18,6 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityStandaloneAudioBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -38,6 +37,7 @@ import com.sza.fastmediasorter.ui.player.helpers.StandaloneKeyboardManager
 import com.sza.fastmediasorter.ui.player.helpers.StandaloneViewManager
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow

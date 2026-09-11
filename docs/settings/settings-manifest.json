@@ -576,9 +576,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "SECTION_HEADER",
-      "titleEn": "Wear OS",
-      "titleRu": "Wear OS",
-      "titleUk": "Wear OS"
+      "titleEn": "Wear Companion",
+      "titleRu": "Wear-компаньон",
+      "titleUk": "Wear-супутник"
     },
     {
       "key": "rowCameraAskFilename",
@@ -796,9 +796,9 @@
       "destination": "OPERATIONS",
       "layout": "fragment_settings_destinations",
       "kind": "TOGGLE_ROW",
-      "titleEn": "Wear companion",
-      "titleRu": "Компаньон часов",
-      "titleUk": "Компаньйон годинника"
+      "titleEn": "Wear Companion",
+      "titleRu": "Wear-компаньон",
+      "titleUk": "Wear-супутник"
     },
     {
       "key": "rowFlashlightShortcut",

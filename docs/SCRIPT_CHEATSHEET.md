@@ -2226,6 +2226,19 @@ scripts/quality/assert-acceptance-preconditions.ps1
   Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
+### assert-activity-locale-wrapper.ps1
+S2930: every Activity in app_v2 resolves resources through the app locale wrapper.
+
+```
+scripts/quality/assert-activity-locale-wrapper.ps1
+  S2930: every Activity in app_v2 resolves resources through the app locale wrapper.
+  Params:
+    -Gate                 [SwitchParameter]
+    -List                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 every in-scope Activity carries the wrapper, or a non-gate report run.; 1 -Gate and at least one Activity is unwrapped and unexcused.; 2 cannot verify - the source root is missing, or a baseline row carries no reason.
+```
+
 ### assert-activity-logic-not-growing.ps1
 Ratchet gate: the number of domain-layer field injections in Activities must never grow.
 
@@ -2249,7 +2262,7 @@ scripts/quality/assert-allfeatures-sync.ps1
     -Gate                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error, record-count regression, or a
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error, record-count regression, a record
 ```
 
 ### assert-always-loaded-budget.ps1
@@ -2674,6 +2687,20 @@ scripts/quality/assert-focus-highlight.ps1
   Exit: 0 - pass: at or below baseline, no growth in the named files, or a non-gate mode.; 1 - fail: the count rose above the baseline, a named file introduced a gap, or a
 ```
 
+### assert-gate-count-prose.ps1
+S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+
+```
+scripts/quality/assert-gate-count-prose.ps1
+  S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+  Params:
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -RunnerPath         [String]
+    -DocPath            [String]
+  Exit: 0 - the documented count matches the live table, or a finding exists and -Gate was absent.; 1 - the documented count contradicts the live table, and -Gate was passed.; 2 - could not verify: either file is absent, the runner does not parse, it holds no single
+```
+
 ### assert-gate-hints-sync.ps1
 Keep the closure facade's gate labels and the recovery-hint registry in step.
 
@@ -2783,7 +2810,8 @@ scripts/quality/assert-hook-inventory.ps1
     -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
     -RuleSheetPath              [String] = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
-  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory and the rule sheet, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable
+    -McpConfigPath              [String] = (Join-Path $RepoRoot '.mcp.json')
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -4442,6 +4470,15 @@ scripts/quality/lib/fixed-input-scope.ps1
   (no param block)
 ```
 
+### flavor-matrix.ps1
+Read docs/FLAVOR_MATRIX.md - flag name -> the flavors it is ON in, plus the full dimension.
+
+```
+scripts/quality/lib/flavor-matrix.ps1
+  Read docs/FLAVOR_MATRIX.md - flag name -> the flavors it is ON in, plus the full dimension.
+  (no param block)
+```
+
 ### flavor-source-map.ps1
 S1453: the one reader of the flavor / source-set mount map declared in app_v2/build.gradle.kts.
 
@@ -4850,6 +4887,20 @@ scripts/release/read-play-tracks.ps1
   Exit: 0 - state read (and the -RequireWearCodeBelow assertion held, when given); 1 - the -RequireWearCodeBelow assertion failed: the Wear track already holds that code or higher; 2 - could not verify: no virtual environment, no service-account key, or the API call failed
 ```
 
+### read-play-vitals.ps1
+Read Android vitals from the Play Developer Reporting API - read-only, safe to run at any time (S2917).
+
+```
+scripts/release/read-play-vitals.ps1
+  Read Android vitals from the Play Developer Reporting API - read-only, safe to run at any time (S2917).
+  Params:
+    -Json            [SwitchParameter]
+    -Package         [String] = 'com.sza.fastmediasorter'
+    -Days            [Int32] = 28
+    -Fixture         [String]
+  Exit: 0 - every call succeeded and the snapshot was printed; 2 - could not verify: no virtual environment, no key, the service disabled or refused, a fixture
+```
+
 ### refresh-play-publishing-state.ps1
 Rewrite the measured half of docs/PLAY_PUBLISHING_STATE.md from live reads (S2272).
 
@@ -4860,6 +4911,20 @@ scripts/release/refresh-play-publishing-state.ps1
     -Check           [SwitchParameter]
     -Package         [String] = 'com.sza.fastmediasorter'
   Exit: 0 - both measured blocks refreshed, or -Check found both already current; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: a reader failed, the document is missing, or a marker pair is absent
+```
+
+### register-play-vitals-task.ps1
+Register, remove or inspect the daily Windows scheduled task that runs the Play vitals watch (S2917).
+
+```
+scripts/release/register-play-vitals-task.ps1
+  Register, remove or inspect the daily Windows scheduled task that runs the Play vitals watch (S2917).
+  Params:
+    -Action           [String] = 'Status'  {Register|Unregister|Status}
+    -TaskName         [String] = 'FastMediaSorter-PlayVitalsWatch'
+    -At               [String] = '09:00'
+    -WhatIf           [SwitchParameter]
+  Exit: 0 - done: registered, removed, or the Status of a registered task printed; 1 - Status or Unregister found no task of that name; 2 - could not act: the ScheduledTasks module is unavailable, -At is not a time, or the scheduler refused
 ```
 
 ### retain-deobfuscation.ps1
@@ -4934,6 +4999,25 @@ scripts/release/standard-surface-snapshot.ps1
   Exit: 0 - snapshot emitted (default) / no regression candidates (-CheckRegressions); 1 - regression candidate(s) found (only with -CheckRegressions); 2 - infrastructure abort (source files missing / unreadable)
 ```
 
+### watch-play-vitals.ps1
+Read Android vitals, judge them against Google's published bands and rewrite the two measured records (S2917).
+
+```
+scripts/release/watch-play-vitals.ps1
+  Read Android vitals, judge them against Google's published bands and rewrite the two measured records (S2917).
+  Params:
+    -Check                 [SwitchParameter]
+    -DocRoot               [String]
+    -CatalogRoot           [String]
+    -SnapshotPath          [String]
+    -Fixture               [String]
+    -NoFile                [SwitchParameter]
+    -BandsOverride         [Hashtable]
+    -LogDir                [String]
+    -Package               [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
+```
+
 ## scripts\release\compose-feature-graphic.tests
 
 ### Run-Tests.ps1
@@ -4958,6 +5042,35 @@ scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
 ```
 
+## scripts\release\lib
+
+### marked-region.ps1
+replace the text between a begin and an end marker comment. Dot-source it.
+
+```
+scripts/release/lib/marked-region.ps1
+  replace the text between a begin and an end marker comment. Dot-source it.
+  (no param block)
+```
+
+### play-vitals-filing.ps1
+play-vitals-filing.ps1 (S2917) - file one Draft ticket per red Play vitals finding. Dot-source it.
+
+```
+scripts/release/lib/play-vitals-filing.ps1
+  play-vitals-filing.ps1 (S2917) - file one Draft ticket per red Play vitals finding. Dot-source it.
+  (no param block)
+```
+
+### play-vitals-verdict.ps1
+play-vitals-verdict.ps1 (S2917) - turn a Play vitals snapshot into coloured findings. Dot-source it.
+
+```
+scripts/release/lib/play-vitals-verdict.ps1
+  play-vitals-verdict.ps1 (S2917) - turn a Play vitals snapshot into coloured findings. Dot-source it.
+  (no param block)
+```
+
 ## scripts\release\publish-play-listing.tests
 
 ### Run-Tests.ps1
@@ -4978,6 +5091,18 @@ Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play 
 ```
 scripts/release/publish-play-release.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2346) - regression suite for the exit-code contract of the Play AAB uploader.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
+## scripts\release\watch-play-vitals.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2917) - regression suite for the Play vitals watch: reader, verdict, records, filing.
+
+```
+scripts/release/watch-play-vitals.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2917) - regression suite for the Play vitals watch: reader, verdict, records, filing.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
 ```
@@ -5141,6 +5266,15 @@ scripts/spec_catalog/check-open-items-carried.ps1
 scripts/spec_catalog/check-owner-inputs.ps1
   Params:
     -Id  (req)  [String]
+```
+
+### check-probe-absent.ps1
+
+```
+scripts/spec_catalog/check-probe-absent.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 1 = at least one remains - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or sources unreadable.
 ```
 
 ### check-probe-present.ps1
@@ -5661,7 +5795,7 @@ Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-pr
 scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-present.ps1 and the
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+  Exit: 0 all cases pass (a skip is not a failure).; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\spec_catalog\close-and-log.tests

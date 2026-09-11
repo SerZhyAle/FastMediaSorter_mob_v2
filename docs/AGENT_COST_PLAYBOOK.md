@@ -160,6 +160,7 @@ expiry rule and the no-restatement rule are correctness measures.
 - **Maestro** (`scripts/devtest/maestro/`) for repeatable multi-step flows that will be re-run.
 - **`mobile-mcp` ONLY** for exploratory, agent-driven UI walks where element discovery or dynamic coordinates cannot be scripted up front.
 - Because MCP results are sticky, bound the mobile-mcp window and `/compact` immediately after the walk to flush the accumulated tool results.
+- **claude.ai connectors are off for this project** through `disableClaudeAiConnectors` in `.claude/settings.json` (S2918): none of them loads its tool names into a session here, while the owner's claude.ai chat keeps every one. The setting has any-source-true semantics, so neither `/mcp` nor a `false` elsewhere brings one connector back while it stands. If this project ever needs one, replace the switch with `deniedMcpServers` entries naming every other connector - the documented per-connector form, whose effect in a project settings file is unverified here, so confirm it with `claude mcp list` in the same change.
 
 ---
 

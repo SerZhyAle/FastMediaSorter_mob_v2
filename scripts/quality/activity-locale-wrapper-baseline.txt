@@ -1,0 +1,8 @@
+# S2930 - Activities exempt from the app locale wrapper.
+#
+# Format: <repo-relative path> | <why wrapping breaks this one>
+# A row with no reason fails the gate as a misconfiguration. This is a NAMED list, never a count:
+# an exemption is read by a human before it is granted, and it never expires silently.
+
+app_v2/src/main/java/com/sza/fastmediasorter/ui/player/print/PrintDispatchActivity.kt | Wrapping calls createConfigurationContext on the print trampoline, after which Samsung/One UI rejects PrintManager.print() with "Can print only from an activity" (S0613). Its two toasts arrive already localized from the caller; the one string that did leak is read through LocaleHelper.localizedContext in PrintShareFallbackManager.
+app_v2/src/benchmark/java/com/sza/fastmediasorter/perf/BenchmarkRouteActivity.kt | Benchmark harness route, never a user-facing surface - it renders no text and exists only to give a macrobenchmark an entry point.

@@ -349,15 +349,15 @@ private fun LastSyncedCaption(
  * S2461: which build on the watch accepted the last completed sync.
  *
  * Label and value are one string rather than two adjacent texts, so a screen reader announces them as
- * one phrase (strategic 3.2 "Доступность"). A version differing from this phone's is drawn in the error
- * colour because a mismatched pair is the common cause of the odd behaviour this readout exists to make
- * diagnosable (strategic 3.1.2).
+ * one phrase (strategic 3.2 "Доступность"). A watch build from a different day than this phone's is drawn
+ * in the error colour because a mismatched pair is the common cause of the odd behaviour this readout
+ * exists to make diagnosable (strategic 3.1.2).
  */
 @Composable
 private fun WatchVersionCaption(watchAppVersionName: String?) {
     val phoneVersion = BuildConfig.VERSION_NAME
-    val mismatched = !watchAppVersionName.isNullOrBlank() && watchAppVersionName != phoneVersion
-    Timber.d("S2461: version line drawn - watch=$watchAppVersionName phone=$phoneVersion")
+    val mismatched = isWatchVersionMismatched(watch = watchAppVersionName, phone = phoneVersion)
+    Timber.d("S2461: version line drawn - watch=$watchAppVersionName phone=$phoneVersion mismatched=$mismatched")
     val caption = when {
         watchAppVersionName.isNullOrBlank() -> stringResource(R.string.wear_settings_watch_version_unknown)
         mismatched -> stringResource(
@@ -378,6 +378,54 @@ private fun WatchVersionCaption(watchAppVersionName: String?) {
         modifier = Modifier.testTag("wearWatchVersion")
     )
 }
+
+/**
+ * S2461: whether the two halves of the pair were built from different generations.
+ *
+ * The halves are packaged by two separate builds minutes apart, so the stamp alone always differs and
+ * comparing whole version names paints every pair as mismatched, including a pair built from one revision
+ * (S2861 run 4). The comparison is therefore on the build DATE - the coarsest thing the stamp still states
+ * plainly. Two builds of one revision share it; a watch left on an older build does not, and that older
+ * build is the case this readout exists to catch (strategic 1). Comparing the major.minor pair instead
+ * would read as the calendar YEAR in this format and green every watch build of the same year.
+ */
+internal fun isWatchVersionMismatched(watch: String?, phone: String): Boolean {
+    if (watch.isNullOrBlank()) return false
+    return extractVersionGeneration(watch) != extractVersionGeneration(phone)
+}
+
+/**
+ * S2461: the generation key of a version name - the build date for this project's stamped format, the
+ * major.minor pair for anything else.
+ *
+ * The stamped format is `Y.YM.MDDH.Hmm` (`app_v2/build.gradle.kts`), so "2.60.9110.137-NoLegal-DEBUG" is
+ * 2026-09-11 01:37 and its key is "260911". A name carrying no stamp - a hand-set version on an old build -
+ * has no date to read, and keying it by major.minor keeps it apart from a stamped one instead of
+ * collapsing every shape into one bucket.
+ */
+internal fun extractVersionGeneration(version: String): String {
+    val clean = version.substringBefore('-').substringBefore('+').trim()
+    val parts = clean.split('.')
+    val fallback = if (parts.size >= 2 && parts[0].isNotEmpty()) "${parts[0]}.${parts[1]}" else clean
+    return stampedBuildDateOrNull(parts) ?: fallback
+}
+
+/**
+ * S2461: "2.60.9110.137" -> "260911". The last digit of the third group is the hour's first digit, which
+ * belongs to the time rather than to the date, so it is dropped. Null when the name is not a stamp.
+ */
+private fun stampedBuildDateOrNull(parts: List<String>): String? {
+    val stamped = parts.size == STAMPED_GROUP_COUNT &&
+        parts.all { it.isNotEmpty() && it.all(Char::isDigit) } &&
+        parts[0].length == 1 &&
+        parts[1].length == 2 &&
+        parts[2].length == STAMPED_DATE_GROUP_LENGTH
+    return if (stamped) parts[0] + parts[1] + parts[2].dropLast(1) else null
+}
+
+/** S2461: `Y.YM.MDDH.Hmm` - four dot-separated groups, the third of them four digits wide. */
+private const val STAMPED_GROUP_COUNT = 4
+private const val STAMPED_DATE_GROUP_LENGTH = 4
 
 /** S0111 Phase 03: sources the watch offered to hand back, waiting for the owner to accept them. */
 @Composable

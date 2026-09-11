@@ -635,7 +635,7 @@
     <string name="wear_media_types_source_unsupported">Цей ресурс містить лише типи файлів, які годинник не показує. Відкрийте його на телефоні.</string>
     <string name="wear_listen_request_channel_name">Запити на прослуховування</string>
     <string name="wear_listen_request_notification_title">Телефон просить послухати</string>
-    <string name="wear_listen_request_notification_text">Торкніться, щоб увімкнути мікрофон годинника</string>
+    <string name="wear_listen_request_notification_text">Телефон вмикає мікрофон годинника</string>
     <string name="wear_listen_request_caption">Спарений телефон хоче слухати через мікрофон цього годинника</string>
     <string name="wear_listen_request_confirm">Дозволити</string>
     <string name="wear_listen_request_decline">Відхилити</string>
@@ -644,6 +644,7 @@
     <string name="wear_listen_active_description">Мікрофон увімкнено, і спарений телефон слухає через нього</string>
     <string name="wear_listen_failed">Мікрофон не вдалося увімкнути</string>
     <string name="wear_listen_stop">Припинити прослуховування</string>
+    <string name="wear_listen_dim_screen">Заслабити екран</string>
     <string name="wear_listen_notification_title">Телефон слухає через цей годинник</string>
     <string name="wear_broadcast_notification_title">Цей годинник веде трансляцію</string>
     <string name="wear_broadcast_notification_stop">Зупинити трансляцію</string>

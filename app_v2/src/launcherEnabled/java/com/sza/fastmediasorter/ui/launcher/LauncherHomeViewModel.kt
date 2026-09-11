@@ -861,7 +861,7 @@ class LauncherHomeViewModel @Inject constructor(
     fun seedDesktopIfNeeded(widthDp: Float, heightDp: Float, startedPortrait: Boolean) {
         viewModelScope.launch {
             val density = settingsRepository.getSettings().first().launcherDensityFactor
-            Timber.d("Seeding starter desktop at density $density")
+            Timber.d("S2903: seeding starter desktop at density $density")
             val widthColumns = LauncherGridGeometry.columns(widthDp, density)
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns

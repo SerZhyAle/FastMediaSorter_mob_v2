@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
-import android.os.Build
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
@@ -18,7 +17,8 @@ import javax.inject.Inject
 class ExportSourcesUseCase @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     @ApplicationContext private val context: Context,
-    private val gson: Gson
+    private val gson: Gson,
+    private val getWatchDisplayName: GetWatchDisplayNameUseCase
 ) {
 
     private val envelopeCodec = WearEventEnvelopeCodec()
@@ -53,7 +53,9 @@ class ExportSourcesUseCase @Inject constructor(
         Timber.d("S2502: watch export leg built ${payloads.size} record(s) with sentAt=$sentAt")
         val payload = WearSourcesExportPayload(
             sources = payloads,
-            watchName = localWatchDisplayName(),
+            // S2868: the phone renders this in its sources-import card, so it reads the same human name
+            // the phone's settings row and the imported broadcast row do.
+            watchName = getWatchDisplayName(),
             sentAt = sentAt,
             // S2507: the deletions this watch made. Without them the phone cannot tell a resource the
             // user removed here from one it has never seen, and hands the removed one straight back.
@@ -78,25 +80,5 @@ class ExportSourcesUseCase @Inject constructor(
         }
 
         payloads.size
-    }
-
-    /**
-     * S2868: the phone shows this name in its sources-import card, so the card reads the same human
-     * name the phone's settings row does - the node's display name with the model code in
-     * parentheses stripped. [Build.MODEL] stays the fallback for a bridge that cannot name the node.
-     */
-    private suspend fun localWatchDisplayName(): String {
-        val nodeName = runCatching { Wearable.getNodeClient(context).localNode.await().displayName }
-            .getOrNull()
-            ?.takeIf { it.isNotBlank() }
-            ?.let(::withoutModelCode)
-        val name = nodeName ?: Build.MODEL
-        Timber.d("S2868: export watchName=%s", name)
-        return name
-    }
-
-    private fun withoutModelCode(displayName: String): String {
-        val withoutModelCode = displayName.substringBefore('(').trim()
-        return withoutModelCode.ifBlank { displayName.trim() }
     }
 }

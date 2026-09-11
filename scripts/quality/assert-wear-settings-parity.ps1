@@ -47,6 +47,11 @@
          merges the watch's report back into its mirror) and by ApplyWearSettingsUseCase (the watch
          applies the phone's push). Checks 2, 3 and 7 prove only that the value can travel and be
          ranked - not that either side reads it on arrival.
+     15. S2923 report-reader coverage: a BOTH entry is named in the watch's outbound settings report
+         (a named-argument assignment in GatherWearSettingsUseCase). Check 14 proves both sides
+         resolve a field on arrival; the watch's outbound report is a hand-written list of its own,
+         and a field missing from it never leaves the watch at all - which is how panelAutoHideSeconds
+         sat everywhere except the one list that actually carries it to the phone.
 
     Check 13 is check 11 one level down. S2464 compares the field NAMES of the contract; a field
     whose value is an enum's constant name carries a second vocabulary INSIDE that value, and the two
@@ -145,6 +150,7 @@ $paths = [ordered]@{
     WatchDecoder   = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearSettingsPayloadDecoder.kt'
     PhoneMerge     = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCase.kt'
     WatchApply     = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/ApplyWearSettingsUseCase.kt'
+    WatchGather    = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/usecase/GatherWearSettingsUseCase.kt'
     PhonePowerSaving = 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/PowerSavingTrigger.kt'
     WatchPowerSaving = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/PowerSavingTrigger.kt'
     WatchViewMode    = 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/model/WearViewMode.kt'
@@ -481,6 +487,15 @@ foreach ($entry in $phoneEntries) {
         }
         if ($text.WatchApply -notmatch "apply\(\s*resolver\s*,\s*""$escaped""") {
             $findings += "S2093: '$field' is BOTH but ApplyWearSettingsUseCase does not apply it - a phone edit to it never reaches the watch."
+        }
+        # 15. S2923: a shared setting must also be read back OUT on the watch. Check 14 proves both
+        #     sides resolve the field on arrival, and checks 2, 3 and 7 prove it can travel - but the
+        #     phone mirror only learns a watch edit through the report the watch assembles, and that
+        #     assembly is a hand-written list of its own. panelAutoHideSeconds sat in the registry,
+        #     the payload, the store, the decoder, the apply and the merge, and still never left the
+        #     watch, because this reader was simply never written.
+        if ($text.WatchGather -notmatch "(?m)^\s*$escaped\s*=") {
+            $findings += "S2923: '$field' is BOTH but GatherWearSettingsUseCase does not report it - a watch edit to it never reaches the phone."
         }
     } else {
         # 4. A one-sided setting without a recorded reason is indistinguishable from a forgotten one.

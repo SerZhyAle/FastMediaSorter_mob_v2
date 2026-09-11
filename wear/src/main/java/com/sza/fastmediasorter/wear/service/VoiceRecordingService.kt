@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
+import android.os.SystemClock
 import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -26,14 +27,19 @@ import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastFailure
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionState
 import com.sza.fastmediasorter.wear.domain.broadcast.WearBroadcastSessionStateHolder
+import com.sza.fastmediasorter.wear.domain.listen.LISTEN_ABANDON_AFTER_MS
+import com.sza.fastmediasorter.wear.domain.listen.LISTEN_AUDIENCE_CHECK_INTERVAL_MS
+import com.sza.fastmediasorter.wear.domain.listen.ListenAudienceWatchdog
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionState
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
 import com.sza.fastmediasorter.wear.domain.model.ListenRefusal
 import com.sza.fastmediasorter.wear.domain.model.LiveAudioEndpoint
 import com.sza.fastmediasorter.wear.domain.repository.BroadcastNetworkLease
 import com.sza.fastmediasorter.wear.domain.repository.StreamNetworkHold
+import com.sza.fastmediasorter.wear.domain.usecase.GetWatchDisplayNameUseCase
 import com.sza.fastmediasorter.wear.service.helpers.LiveAudioLanServer
 import com.sza.fastmediasorter.wear.service.helpers.VoiceRecordingSessionManager
+import com.sza.fastmediasorter.wear.ui.listen.ListenRequestActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -102,6 +108,13 @@ class VoiceRecordingService : Service() {
     lateinit var broadcastIdentity: WearBroadcastIdentityStore
 
     /**
+     * S2868: the descriptor's title becomes the name of the row the phone adds for this broadcast, so
+     * it is the watch's one human name rather than the factory model code the phone used to display.
+     */
+    @Inject
+    lateinit var getWatchDisplayName: GetWatchDisplayNameUseCase
+
+    /**
      * S2509: the broadcast binds its server to the network this hands out, so "held" and "served on"
      * are the same interface rather than two guesses that usually agree.
      */
@@ -110,6 +123,9 @@ class VoiceRecordingService : Service() {
 
     /** Owned for the broadcast's whole life and released on every stop and every failed-start path. */
     private var broadcastLease: BroadcastNetworkLease? = null
+
+    /** S2939: live only while a phone-requested listening session is serving; cancelled on every stop. */
+    private var listenWatchdog: ListenAudienceWatchdog? = null
 
     /**
      * Main, deliberately: the session state the manager holds is also touched by `onStartCommand` and
@@ -141,6 +157,7 @@ class VoiceRecordingService : Service() {
         when (intent?.action) {
             ACTION_START -> handleStart()
             ACTION_START_LISTENING -> handleStartListening()
+            ACTION_STOP_LISTENING -> handleStopListeningFromNotification()
             ACTION_START_BROADCAST -> handleStartBroadcast()
             ACTION_STOP_BROADCAST -> serviceScope.launch { stopBroadcastSession() }
             ACTION_STOP -> serviceScope.launch { stopSession() }
@@ -179,6 +196,8 @@ class VoiceRecordingService : Service() {
 
     /** Same ordering rule as `onDestroy`: the server stops before the session closes the pipe. */
     private suspend fun stopSession() {
+        listenWatchdog?.cancel()
+        listenWatchdog = null
         lanServer.stop()
         sessionManager.stop()
     }
@@ -210,7 +229,7 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a listen start: the microphone session is already open")
             return
         }
-        val notification = buildNotification(R.string.wear_listen_notification_title)
+        val notification = buildNotification(R.string.wear_listen_notification_title, NotificationStop.LISTEN)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         listenSession.publish(ListenSessionState.Starting)
         serviceScope.launch { openListeningSession() }
@@ -240,6 +259,49 @@ class VoiceRecordingService : Service() {
         // session outlives that screen by design (ADR-4), so a wrist dropped between the tap and the
         // bind would otherwise leave a live microphone with nobody told where to hear it.
         listenAckSender.answerServing(endpoint)
+        startListenWatchdog()
+    }
+
+    /**
+     * S2939: the listening session's own end, for the night the phone's STOP never arrives.
+     *
+     * Until this, one lost command kept the microphone, the encoder and a CPU that never slept running
+     * until the battery died. It starts once the address is out, so the phone's connect time sits
+     * inside the grace instead of being counted against it.
+     */
+    private fun startListenWatchdog() {
+        listenWatchdog?.cancel()
+        listenWatchdog = ListenAudienceWatchdog(
+            scope = serviceScope,
+            abandonAfterMs = LISTEN_ABANDON_AFTER_MS,
+            checkIntervalMs = LISTEN_AUDIENCE_CHECK_INTERVAL_MS,
+            now = SystemClock::elapsedRealtime,
+            lastAudienceProgressAt = { sessionManager.liveSink.lastAudienceProgressAtMs },
+            onAbandoned = ::onListeningAbandoned
+        ).also { it.start() }
+    }
+
+    private fun onListeningAbandoned() {
+        Timber.d("S2939: nobody took the listening stream, ending the session")
+        Timber.i("Nobody took the listening stream for %d ms; ending the session", LISTEN_ABANDON_AFTER_MS)
+        endListeningFromWatch()
+    }
+
+    private fun handleStopListeningFromNotification() {
+        Timber.d("S2939: listening stopped from the watch notification")
+        endListeningFromWatch()
+    }
+
+    /**
+     * The same pair of actions the request screen's stop performs: the phone is told first, so its
+     * control returns to idle with a reason instead of waiting on a stream that has gone.
+     */
+    private fun endListeningFromWatch() {
+        if (!listenSession.state.value.isActive) {
+            return
+        }
+        listenAckSender.answerRefusal(ListenRefusal.STOPPED)
+        serviceScope.launch { stopSession() }
     }
 
     /**
@@ -255,7 +317,7 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a broadcast start: the microphone session is already open")
             return
         }
-        val notification = buildNotification(R.string.wear_broadcast_notification_title, withStopAction = true)
+        val notification = buildNotification(R.string.wear_broadcast_notification_title, NotificationStop.BROADCAST)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         broadcastSession.publish(WearBroadcastSessionState.Starting)
         serviceScope.launch { openBroadcastSession() }
@@ -292,7 +354,11 @@ class VoiceRecordingService : Service() {
         // Recorded after the bind, not before it: a refused preferred port falls back, and the next
         // session must start from the port that actually worked.
         broadcastIdentity.rememberPort(endpoint.port)
-        broadcastSession.publish(liveStateOf(endpoint, broadcastIdentity.sourceId()))
+        // Resolved here rather than inside liveStateOf: naming the node is a Data Layer round trip and
+        // this is the one suspending caller.
+        val watchName = getWatchDisplayName()
+        Timber.d("S2868: broadcast descriptor titled '%s'", watchName)
+        broadcastSession.publish(liveStateOf(endpoint, broadcastIdentity.sourceId(), watchName))
     }
 
     /**
@@ -300,10 +366,14 @@ class VoiceRecordingService : Service() {
      * screen and any later relay therefore encode the same address by construction - two encoders
      * reading the endpoint separately is how they would come to disagree.
      */
-    private fun liveStateOf(endpoint: LiveAudioEndpoint, sourceId: String): WearBroadcastSessionState.Live {
+    private fun liveStateOf(
+        endpoint: LiveAudioEndpoint,
+        sourceId: String,
+        watchName: String
+    ): WearBroadcastSessionState.Live {
         val descriptor = BroadcastDescriptorDto(
             url = endpoint.url,
-            title = Build.MODEL,
+            title = watchName,
             sourceId = sourceId
         )
         return WearBroadcastSessionState.Live(
@@ -378,15 +448,18 @@ class VoiceRecordingService : Service() {
             PackageManager.PERMISSION_GRANTED
 
     /**
-     * S2509: [withStopAction] adds the one action a broadcast owes the owner.
+     * S2509: [stop] adds the one action a broadcast owes the owner.
      *
      * Strategic criterion 3 asks for a stop in one action, and criterion 5 lets the owner leave the
      * control screen while the microphone stays open - so the notification has to be a place the
      * broadcast can be ended from, not only a place it is announced from. The action names what it
      * ends rather than saying "stop", because this same channel also carries a voice note and a
      * paired-phone listening session.
+     *
+     * S2939 gave the listening session the same action: once its request screen closed, nothing on the
+     * watch could end it, and a session whose phone had gone quiet ran until the battery died.
      */
-    private fun buildNotification(@StringRes titleRes: Int, withStopAction: Boolean = false): Notification {
+    private fun buildNotification(@StringRes titleRes: Int, stop: NotificationStop? = null): Notification {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             CHANNEL_ID,
@@ -400,32 +473,65 @@ class VoiceRecordingService : Service() {
             .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .setOngoing(true)
             .setSilent(true)
-        if (withStopAction) {
-            builder.addAction(
-                NotificationIcons.STATUS_BAR,
-                getString(R.string.wear_broadcast_notification_stop),
-                stopBroadcastPendingIntent()
-            )
+        if (stop != null) {
+            builder.addAction(NotificationIcons.STATUS_BAR, getString(stop.labelRes), stopPendingIntent(stop))
+        }
+        if (stop == NotificationStop.LISTEN) {
+            builder.setContentIntent(listenContentPendingIntent())
         }
         return builder.build()
     }
 
     /**
-     * IMMUTABLE because nothing about this action is parameterised: it ends this service's broadcast
-     * and there is no field an outside filler could usefully supply. API 31 requires the flag to be
-     * stated either way.
+     * IMMUTABLE because nothing about this action is parameterised: it ends one of this service's
+     * sessions and there is no field an outside filler could usefully supply. API 31 requires the flag
+     * to be stated either way.
      */
-    private fun stopBroadcastPendingIntent(): PendingIntent = PendingIntent.getService(
-        this,
-        STOP_BROADCAST_REQUEST_CODE,
-        stopBroadcastIntent(this),
-        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-    )
+    private fun stopPendingIntent(stop: NotificationStop): PendingIntent {
+        val intent = when (stop) {
+            NotificationStop.BROADCAST -> stopBroadcastIntent(this)
+            NotificationStop.LISTEN -> stopListeningIntent(this)
+        }
+        return PendingIntent.getService(
+            this,
+            stop.requestCode,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /**
+     * S2941: opens `ListenRequestActivity` so the owner can return to the live-broadcast screen after
+     * dimming. The session is already running when this notification is live, so the activity's
+     * `LaunchedEffect` sees a non-`Idle` state and does not auto-start a second time.
+     */
+    private fun listenContentPendingIntent(): PendingIntent {
+        val intent = Intent(this, ListenRequestActivity::class.java)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        return PendingIntent.getActivity(
+            this,
+            LISTEN_CONTENT_REQUEST_CODE,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+    }
+
+    /** The sessions whose notification carries a stop; a voice note ends on its own screen. */
+    private enum class NotificationStop(@StringRes val labelRes: Int, val requestCode: Int) {
+        BROADCAST(R.string.wear_broadcast_notification_stop, STOP_BROADCAST_REQUEST_CODE),
+        LISTEN(R.string.wear_listen_stop, STOP_LISTENING_REQUEST_CODE)
+    }
 
     companion object {
         const val ACTION_START = "com.sza.fastmediasorter.wear.action.START_VOICE_RECORDING"
         const val ACTION_START_LISTENING = "com.sza.fastmediasorter.wear.action.START_LISTENING"
         const val ACTION_STOP = "com.sza.fastmediasorter.wear.action.STOP_VOICE_RECORDING"
+
+        /**
+         * S2939: the listening notification's own stop. Not [ACTION_STOP]: that one is also what the
+         * phone's STOP arrives as, and it must not answer the phone a second time.
+         */
+        const val ACTION_STOP_LISTENING = "com.sza.fastmediasorter.wear.action.STOP_LISTENING"
 
         /** S2509: the owner's own broadcast, started from the wrist with no phone in the exchange. */
         const val ACTION_START_BROADCAST = "com.sza.fastmediasorter.wear.action.START_BROADCAST"
@@ -437,8 +543,12 @@ class VoiceRecordingService : Service() {
          */
         const val ACTION_STOP_BROADCAST = "com.sza.fastmediasorter.wear.action.STOP_BROADCAST"
 
-        /** Distinct from any other pending intent of this service; there is only the one. */
+        /** Distinct per notification stop, so the two pending intents never replace each other. */
         private const val STOP_BROADCAST_REQUEST_CODE = 1
+        private const val STOP_LISTENING_REQUEST_CODE = 2
+
+        /** S2941: opens the live-broadcast screen when the user taps the listening foreground notification. */
+        private const val LISTEN_CONTENT_REQUEST_CODE = 3
 
         /**
          * S1961: moved into [WearNotificationIds] once the watch gained a second notification.
@@ -459,6 +569,9 @@ class VoiceRecordingService : Service() {
         /** S2550: called from `ListenRequestActivity` only - see `handleStartListening`. */
         fun startListeningIntent(context: Context): Intent =
             Intent(context, VoiceRecordingService::class.java).setAction(ACTION_START_LISTENING)
+
+        fun stopListeningIntent(context: Context): Intent =
+            Intent(context, VoiceRecordingService::class.java).setAction(ACTION_STOP_LISTENING)
 
         /** S2509: called from the broadcast control screen, which is a window the owner opened. */
         fun startBroadcastIntent(context: Context): Intent =

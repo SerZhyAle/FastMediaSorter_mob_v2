@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.xr
 
+import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -29,6 +30,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.xr.VrLaunchInput
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
@@ -81,6 +83,10 @@ import javax.inject.Inject
 /** S0282: dedicated OpenXR session host Activity with dynamic playlist. */
 @AndroidEntryPoint
 class DiagnosticXrActivity : ComponentActivity(), SurfaceHolder.Callback {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject lateinit var runtimeProvider: Lazy<DiagnosticXrRuntime>
 

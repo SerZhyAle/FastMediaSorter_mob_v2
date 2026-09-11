@@ -8,16 +8,19 @@ import com.sza.fastmediasorter.domain.model.HostPort
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.WearNode
+import com.sza.fastmediasorter.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.domain.model.WearSyncPayload
 import com.sza.fastmediasorter.domain.networkmonitor.ReachableEndpointProvider
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.WearableDataLayerRepository
+import com.sza.fastmediasorter.testing.fakes.FakeWearDeliveredResourceStore
 import com.sza.fastmediasorter.testing.fakes.FakeWearResourceTombstoneStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -39,6 +42,7 @@ class SendResourcesToWatchUseCaseTest {
     private lateinit var endpointProvider: FakeReachableEndpointProvider
     private lateinit var stampStore: FakeWearResourceStampStore
     private lateinit var tombstoneStore: FakeWearResourceTombstoneStore
+    private lateinit var deliveredStore: FakeWearDeliveredResourceStore
     private lateinit var useCase: SendResourcesToWatchUseCase
 
     @Before
@@ -50,6 +54,7 @@ class SendResourcesToWatchUseCaseTest {
         endpointProvider = FakeReachableEndpointProvider()
         stampStore = FakeWearResourceStampStore()
         tombstoneStore = FakeWearResourceTombstoneStore()
+        deliveredStore = FakeWearDeliveredResourceStore()
         useCase = SendResourcesToWatchUseCase(
             resourceRepository,
             credentialsRepository,
@@ -57,7 +62,8 @@ class SendResourcesToWatchUseCaseTest {
             selectionRepository,
             endpointProvider,
             stampStore,
-            tombstoneStore
+            tombstoneStore,
+            deliveredStore
         )
     }
 
@@ -104,7 +110,7 @@ class SendResourcesToWatchUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrThrow().sent)
         assertEquals(1, result.getOrThrow().skipped)
-        assertEquals(1, wearableRepository.putCalls.size)
+        assertEquals(0, wearableRepository.putCalls.size)
     }
 
     @Test
@@ -118,7 +124,7 @@ class SendResourcesToWatchUseCaseTest {
         assertTrue(result.isSuccess)
         assertEquals(0, result.getOrThrow().sent)
         assertEquals(1, result.getOrThrow().skipped)
-        assertEquals(1, wearableRepository.putCalls.size)
+        assertEquals(0, wearableRepository.putCalls.size)
     }
 
     @Test
@@ -224,12 +230,33 @@ class SendResourcesToWatchUseCaseTest {
     // S2882: an empty selection used to take an early return, and unticking the last marked resource
     // could therefore never reach the watch. The batch travels now, and S1781's invariant moves to
     // where it always belonged: `sources` is empty, never the whole registry.
+    //
+    // S2909 narrowed the withdrawal set to what the watch was actually given, so the four cases below
+    // hold on the unknown-delivery path - the fake reports null until a test says otherwise, which is
+    // what a phone updating from a build without the store reports. The S2909 block further down
+    // covers the same registry once the delivered set is known.
 
     @Test
-    fun `empty selection sends no payload to watch and returns zero counts`() = runTest {
+    fun `empty selection with registered resources sends payload withdrawing all of them`() = runTest {
         wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
         resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
         credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.getOrThrow().sent)
+        assertEquals(0, result.getOrThrow().skipped)
+        assertEquals(1, result.getOrThrow().deselected)
+        assertEquals(1, wearableRepository.putCalls.size)
+        assertEquals(listOf("1"), sentPayload().deselectedIds)
+        assertTrue(sentSources().isEmpty())
+    }
+
+    @Test
+    fun `empty registry sends no payload to watch and returns zero counts`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = emptyList()
 
         val result = useCase()
 
@@ -288,6 +315,155 @@ class SendResourcesToWatchUseCaseTest {
 
         assertTrue(result.isSuccess)
         assertEquals(listOf("2"), sentPayload().deselectedIds)
+    }
+
+    // S2909: a withdrawal names a resource the watch was given, never the whole registry. The first
+    // two cases are the pair that told this fix apart from the attempt S2861 run 4 refuted: forcing
+    // deselectedIds empty on an empty selection passed the first and silently broke the second.
+
+    @Test
+    fun `empty selection sends nothing when the watch was given nothing`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        deliveredStore.delivered = emptySet()
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.getOrThrow().sent)
+        assertEquals(0, result.getOrThrow().skipped)
+        assertEquals(0, result.getOrThrow().deselected)
+        assertEquals(0, wearableRepository.putCalls.size)
+    }
+
+    @Test
+    fun `unticking the last delivered resource still declares it withdrawn`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        deliveredStore.delivered = setOf("1")
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(1, result.getOrThrow().deselected)
+        assertEquals(1, wearableRepository.putCalls.size)
+        assertEquals(listOf("1"), sentPayload().deselectedIds)
+        assertTrue(sentSources().isEmpty())
+    }
+
+    @Test
+    fun `a registry resource the watch never received is not declared withdrawn`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = (1L..2L).map { id ->
+            makeResource(id = id, type = ResourceType.SMB, credId = "cred-$id")
+        }
+        (1L..2L).forEach { id ->
+            credentialsRepository.byCredentialId["cred-$id"] = makeCredentials("cred-$id", "pass$id")
+        }
+        deliveredStore.delivered = setOf("1")
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(listOf("1"), sentPayload().deselectedIds)
+        assertEquals(1, result.getOrThrow().deselected)
+    }
+
+    @Test
+    fun `a withdrawal that travelled empties the delivered set and silences the next push`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        deliveredStore.delivered = setOf("1")
+
+        useCase()
+        val second = useCase()
+
+        assertEquals(emptySet<String>(), deliveredStore.delivered)
+        assertEquals(0, second.getOrThrow().deselected)
+        // Still the one call the first push made: the repeat visit to the list carries nothing, which
+        // is the pair of idle round trips this ticket was opened for.
+        assertEquals(1, wearableRepository.putCalls.size)
+    }
+
+    @Test
+    fun `a sent resource is remembered as delivered`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        deliveredStore.delivered = emptySet()
+        select(1L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(setOf("1"), deliveredStore.delivered)
+    }
+
+    @Test
+    fun `a tombstoned resource leaves the delivered set with the batch that carries the deletion`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 2, type = ResourceType.SMB, credId = "cred-2"))
+        credentialsRepository.byCredentialId["cred-2"] = makeCredentials("cred-2", "pass2")
+        // Resource 1 is gone from the registry, which is why only its tombstone can speak for it.
+        tombstoneStore.tombstones.add(WearSourceTombstonePayload(id = "1", deletedAt = 1_000L))
+        deliveredStore.delivered = setOf("1", "2")
+        select(2L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(setOf("2"), deliveredStore.delivered)
+    }
+
+    // S2926: a batch of pure deletions - the phone deleted a resource, nothing is marked and the
+    // watch holds nothing to withdraw - writes a DataItem with every counter at zero. No case fed
+    // tombstones without a selection, which is why the divergence survived every run since S2507.
+
+    @Test
+    fun `a batch carrying only tombstones travels and says so`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        // The deleted resource is gone from the registry, so only its tombstone can speak for it.
+        resourceRepository.resources = emptyList()
+        tombstoneStore.tombstones.add(WearSourceTombstonePayload(id = "1", deletedAt = 1_000L))
+        deliveredStore.delivered = emptySet()
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertEquals(0, result.getOrThrow().sent)
+        assertEquals(0, result.getOrThrow().deselected)
+        assertTrue(result.getOrThrow().dispatched)
+        assertEquals(1, wearableRepository.putCalls.size)
+        assertEquals(listOf("1"), sentPayload().tombstones?.map { it.id })
+    }
+
+    @Test
+    fun `a batch that writes no DataItem says it did not travel`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = emptyList()
+        deliveredStore.delivered = emptySet()
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertFalse(result.getOrThrow().dispatched)
+        assertEquals(0, wearableRepository.putCalls.size)
+    }
+
+    @Test
+    fun `a batch that sends resources says it travelled`() = runTest {
+        wearableRepository.connectedNodes = listOf(WearNode("node-1", "Pixel Watch"))
+        resourceRepository.resources = listOf(makeResource(id = 1, type = ResourceType.SMB, credId = "cred-1"))
+        credentialsRepository.byCredentialId["cred-1"] = makeCredentials("cred-1", "pass1")
+        select(1L)
+
+        val result = useCase()
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrThrow().dispatched)
     }
 
     // S2488: the four cases below cover the endpoint substitution and both of its exclusions.

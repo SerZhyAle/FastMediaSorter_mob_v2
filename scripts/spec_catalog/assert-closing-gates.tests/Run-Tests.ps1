@@ -107,6 +107,10 @@ Assert-That 'C2 entry into an ungated status still runs nothing' ($outcomeC2 -eq
 Write-Host "D: a re-affirmation of a ticket that HAS a probe passes" -ForegroundColor Yellow
 $probeLib = (Get-SzaHarnessScript 'spec_catalog/lib/blockneedusertest-probes.ps1')
 $subject = $null
+# Pre-declared because case E reads both, and under StrictMode a variable only ever assigned inside
+# a branch that did not run is an error rather than an empty list.
+$roots = @()
+$parked = @()
 if ($probeLib -and (Test-Path -LiteralPath $probeLib)) {
     . $probeLib
     $roots = @(Get-ProbeSourceRoot -RepoRoot $repoRoot)
@@ -130,6 +134,49 @@ if (-not $fixPresent) {
 } else {
     $outcomeD = Get-GateOutcome 'BlockNeedUserTest' 'BlockNeedUserTest' $subject
     Assert-That "D1 [$subject] re-affirmation accepted" ($outcomeD -eq 'silent') "outcome=$outcomeD"
+}
+
+Write-Host "E: the EXIT from BlockNeedUserTest is gated (S2934)" -ForegroundColor Yellow
+# The direction the function never judged: it read $NewStatus only, so BlockNeedUserTest ->
+# In Progress left through the early return with no checker reached, and the probes stayed in
+# source owned by nobody. Cases below use live tickets rather than fixtures for the same reason
+# case D does - the subject of check-probe-absent.ps1 is the source tree, and a fixture tree would
+# certify a path no session walks.
+$exitFixPresent = (Select-String -LiteralPath $libPath -Pattern 'S2934' -SimpleMatch -Quiet) -eq $true
+
+# A parked ticket excused in the baseline: it has no executable path to instrument, so it carries
+# no probe and is the natural negative fixture - nothing to leave behind, nothing to refuse.
+$excusedSubject = $null
+if ($probeLib -and (Test-Path -LiteralPath $probeLib) -and $roots.Count -gt 0) {
+    $excusedIds = Get-ExcusedProbeTickets -BaselinePath (Get-ProbeBaselinePath -RepoRoot $repoRoot)
+    foreach ($id in ($parked | Where-Object { $excusedIds.Contains($_) } | Select-Object -First 4)) {
+        if (-not (Test-TicketProbeInSource -Id $id -SourceRoots $roots).Found) { $excusedSubject = $id; break }
+    }
+}
+
+if (-not $exitFixPresent) {
+    Skip-Case 'E1' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
+    Skip-Case 'E2' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
+    Skip-Case 'E3' 'S2934 not in the resolved harness _lib.ps1 - the canon change is not deployed yet'
+} else {
+    if (-not $subject) {
+        Skip-Case 'E1' 'no BlockNeedUserTest ticket with a probe in the first 8 - no fixture for the refusal'
+    } else {
+        $outcomeE1 = Get-GateOutcome 'BlockNeedUserTest' 'In Progress' $subject
+        Assert-That "E1 [$subject] leaving with its probe still in source is refused" ($outcomeE1 -eq 'threw') "outcome=$outcomeE1"
+    }
+
+    if (-not $excusedSubject) {
+        Skip-Case 'E2' 'no excused parked ticket without a probe - no fixture for the clean exit'
+    } else {
+        $outcomeE2 = Get-GateOutcome 'BlockNeedUserTest' 'In Progress' $excusedSubject
+        Assert-That "E2 [$excusedSubject] leaving with nothing in source is accepted" ($outcomeE2 -eq 'silent') "outcome=$outcomeE2"
+    }
+
+    # The branch must not fire on an exit from anything else. S9999 names no record, so the exit
+    # checker would exit 2 and throw if it ran - silence is the proof it did not.
+    $outcomeE3 = Get-GateOutcome 'Implemented' 'In Progress' $absentId
+    Assert-That 'E3 an exit from another status runs nothing' ($outcomeE3 -eq 'silent') "outcome=$outcomeE3"
 }
 
 Write-Host ""

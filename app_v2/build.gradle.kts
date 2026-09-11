@@ -2129,6 +2129,11 @@ dependencies {
     // Paging 3
     implementation(libs.androidx.paging.runtime.ktx)
     
+    // AppFunctions - Android 16+ Assistant Actions (S2920)
+    implementation(libs.androidx.appfunctions)
+    implementation(libs.androidx.appfunctions.service)
+    ksp(libs.androidx.appfunctions.compiler)
+    
     // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
     // replace an existing file on Windows, so every write after the first one fails (S1449).
     implementation(libs.androidx.datastore.preferences)

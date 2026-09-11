@@ -568,7 +568,7 @@ The fourth coordination layer, and the only one with no rights: it grants nothin
 Two streams, deliberately separate, under `temp/AGENT-CHAT/` (one file per message, atomic create, never a shared file with five appenders):
 
 - `progress/` - what a session is doing now: `kind` from a closed list (`session`, `phase`, `lock`, `wait`, `ticket`, `status`, `verdict`, `check`, `build`, `device`, `abandon`, `heartbeat`, `note`), ticket, phase, domains, one line of prose. Kept 180 minutes - a successful ticket run fits in 90 (max over 326 journal rows, 2026-09-02) and the successor of a dead session arrives no sooner than the lease's 45-minute stale window, so the last trace outlives both. The last message of a session that died is where it stopped.
-- `findings/` - a result: a measurement, an answer, an environment state. Carries a `topic`, evidence (command, exit code, artifact) and a **scope** - up to 16 repository paths whose change makes it wrong. A finding is dead when anything in its scope was written after it, when its TTL passed (default `SpecTicket.TicketCeilingMinutes`, 480), or when the device it names is not in `adb devices` (adb missing counts as gone). The clock is never the truth; the scope is. Measured 2026-09-02: enumerating `app_v2/src` (4,881 files) costs 241 ms, against the 14-32 s a fast check a finding lets a session skip costs (S2451 re-measured `fg` at 32 s).
+- `findings/` - a result: a measurement, an answer, an environment state. Carries a `topic`, evidence (command, exit code, artifact) and a **scope** - up to 16 repository paths whose change makes it wrong. A finding is dead when anything in its scope was written after it, when its TTL passed (default `SpecTicket.TicketCeilingMinutes`, 480), or when the device it names is not in `adb devices` (adb missing counts as gone). The clock is never the truth; the scope is. Measured 2026-09-02: enumerating `app_v2/src` (4,881 files) costs 241 ms, against the 14-47 s a fast check a finding lets a session skip costs (S2935 re-measured `fg` at 47 s on 2026-09-11; S2451 had it at 32 s).
 
 Who writes, without costing a token: `Enter-AgentLock` / `Exit-AgentLock` (`lock`), `enter-code-lock.ps1` and `Enter-BuildLockOrExit` when queued (`wait`), `ticket-lease.ps1` (`ticket`), `update.ps1` (`status`), `post-change.ps1` (`verdict`), `assert-release-scope-gates.ps1` on green (finding `gates:release-scope`, scope `app_v2/src`, `wear/src`, `scripts`, `docs`, etc.), `device-ready.ps1` on READY (finding `device:<serial>`, TTL 60, carrying its canonical request string, dies with the serial), and the `post-agent-chat-session.ps1` hook at session start and end (`session`). The model owes three lines: a phase start (`/spec-dev`), a stage boundary (`/spec-all`), giving work up (`-Kind abandon`).
 
@@ -1144,6 +1144,27 @@ A site that already re-throws by hand keeps its own log line instead: give it a 
 
 The matcher recognises the family by name shape (`\w+UnlessCancellation`), so a new member needs no paired gate edit.
 
+### Activity locale wrapper gate - S2930
+
+`scripts/quality/assert-activity-locale-wrapper.ps1` refuses an Activity in `app_v2` that resolves its resources outside the app's locale wrapper - one that neither extends `BaseActivity` nor overrides `attachBaseContext` with `LocaleHelper.applyLocale`. Such a screen shows the framework configuration's language rather than the one the user chose, and it does so silently: every other screen in the same flow is correct, so the defect reads as a translation bug. Measured 2026-09-11, 36 Activity declarations existed across the module and 34 of them were unwrapped; `WearCompanionActivity` was observed in Russian on an `en-US` device one tap from a screen showing English.
+
+Scope is every non-test source set, `app_v2/src/*/java`, not just `src/main`: nine of the offenders lived in flavor sets, including both VR activities and both launcher ones, and a gate rooted at `src/main` would have reported them clean.
+
+**Exclusions are named, never counted.** `scripts/quality/activity-locale-wrapper-baseline.txt` carries one `<repo-relative path> | <reason>` per line, and a row with no reason fails the gate as a misconfiguration (exit 2) instead of passing quietly. A count ratchet was rejected for this rule: it admits a fresh violation the moment an old one is fixed, and the exemptions here are genuinely rare and genuinely need reading - the one that matters is `PrintDispatchActivity`, where wrapping the context makes Samsung/One UI reject `PrintManager.print()` outright (S0613).
+
+Per-ticket by Rule 33, so it runs from `post-change.ps1` on any changed `app_v2/src/*/java/**.kt`, and it is also listed in `assert-fast-gates.ps1` so `.\a.ps1 fg` reports it.
+
+```powershell
+# Full tree
+pwsh -NoProfile -File scripts/quality/assert-activity-locale-wrapper.ps1 -Gate
+
+# Only what this change touched
+pwsh -NoProfile -File scripts/quality/assert-activity-locale-wrapper.ps1 -Gate -ChangedFiles "a.kt,b.kt"
+
+# Report, naming each excused Activity and its reason
+pwsh -NoProfile -File scripts/quality/assert-activity-locale-wrapper.ps1 -List
+```
+
 ### Listener symmetry ratchet gate - S0721
 
 A lexical ratchet over Kotlin listener ownership: `register*`/`unregister*`, `registerReceiver`/`unregisterReceiver`, and `add*Listener|Callback|Observer` vs the matching `remove*` calls. The gate is deliberately cheap - it scans `app_v2/src/main` + `wear/src/main`, compares the aggregate balance per file, and fails only when the total imbalance grows above the frozen baseline.
@@ -1550,6 +1571,19 @@ status -> command map, the ledger's `flavors` dimension and the site's locales a
 Editing a harness script body is the wrong move twice over: it is overwritten by the next plugin
 update, and it never reaches the other projects.
 
+- **`hooks.postClose` is the repository's slot inside a canon script.** The profile declares a list of
+  scripts plus arguments (`{Module}` stands for the module being closed) and `close-and-log.ps1` runs
+  each one after the status flip, the dev-log rows and the capability record - so a check placed here
+  judges a ticket's closure in the closing call itself, in every runtime, without touching the canon
+  body. It carries the class-catalogue scan and render, and since S2927 also
+  `scripts/quality/assert-allfeatures-sync.ps1 -Gate`: the ledger is written by a script, so the
+  session that writes a record never names `docs/ALL_FEATURES.jsonl` in its changed set and
+  `all-features-gate` in `post-change.ps1` never judged it - the FAIL surfaced one or more sessions
+  later, against whoever next touched the file by hand. A hook exiting non-zero becomes a `FAILED`
+  step in the close report, which is detection in the same call rather than a refusal before the
+  write; refusing at the keystroke would mean editing `all_features/add.ps1`, whose body is the
+  canon's. A hook here judges the whole artifact, not the row just written, so it may only carry a
+  check the tree already passes.
 - **Regenerate the forwarders** after a plugin update that adds or renames a harness script:
   `pwsh -NoProfile -File scripts/utils/install-sza-forwarders.ps1`. The set it writes is
   `scripts/utils/sza-forwarders.manifest.txt` (local path | harness path, one per line); `-Restore`

@@ -54,9 +54,15 @@ import javax.inject.Inject
 sealed class WearSyncUiState {
     data object Idle : WearSyncUiState()
     data object Sending : WearSyncUiState()
-    data class Success(val sent: Int, val skipped: Int) : WearSyncUiState()
+    data class Success(val sent: Int, val skipped: Int, val removed: Int = 0) : WearSyncUiState()
 
-    /** S1781: the owner has marked no resources for the watch, so nothing was sent - not a failure. */
+    /**
+     * S1781: the owner has marked no resources for the watch, so nothing was sent - not a failure.
+     *
+     * S2926: "nothing was sent" means no DataItem was written, which is what `SendResult.dispatched`
+     * states. A batch of pure deletions carries no sources and withdraws nothing yet still travels,
+     * and it belongs in [Sending] until the watch answers, not here.
+     */
     data object NothingSelected : WearSyncUiState()
     data object SettingsPushed : WearSyncUiState()
     data class Error(val message: String) : WearSyncUiState()
@@ -113,6 +119,18 @@ sealed class WearWatchResourceEvent {
     data object Failed : WearWatchResourceEvent()
 }
 
+/**
+ * S2916: one-shot feedback for the settings push, delivered outside the beam dialog.
+ *
+ * The resources push shows its outcome inside [BeamAnimationDialog], but the settings push does not open
+ * that dialog, so its timeout and local failure need their own channel. A [SharedFlow] mirrors the
+ * existing [WearWatchResourceEvent] pattern collected by the host fragment as a toast.
+ */
+sealed class SettingsPushEvent {
+    data class Timeout(val message: String) : SettingsPushEvent()
+    data class Failed(val message: String) : SettingsPushEvent()
+}
+
 // Every parameter is a distinct collaborator this screen needs (sync legs, watch resource ops,
 // listening, settings mirror) - S2731 added settingsRepository for the one read-only unitSystem value.
 @Suppress("LongParameterList")
@@ -159,6 +177,10 @@ class WearSyncViewModel @Inject constructor(
     val uiState: StateFlow<WearSyncUiState> = _uiState.asStateFlow()
 
     private var ackTimeoutJob: Job? = null
+
+    // S2916: tracks the settings push's ack wait, parallel to ackTimeoutJob for resources.
+    private var settingsAckTimeoutJob: Job? = null
+    private var settingsPushInFlight = false
 
     // The sheet that shows these values is a BottomSheetDialogFragment, so this ViewModel dies with
     // it and an in-memory-only mirror lost every edit the moment the sheet closed - a picked GRID_3
@@ -228,8 +250,14 @@ class WearSyncViewModel @Inject constructor(
                 val current = _uiState.value
                 if (current is WearSyncUiState.Sending) {
                     ackTimeoutJob?.cancel()
-                    val applied = parseAppliedCount(ackJson)
-                    _uiState.value = WearSyncUiState.Success(applied, 0)
+                    // S2882: the push dialog reports what the watch actually did, not a sum that calls
+                    // a removal a send. `sent` is what travelled onto the watch; `removed` is what the
+                    // phone declared unwanted and the watch deleted. A removal-only batch now reads
+                    // "Removed N source(s) from watch" instead of "Sent N source(s) to watch".
+                    val sent = parseIntField(ackJson, "added") + parseIntField(ackJson, "updated")
+                    val removed = parseIntField(ackJson, "removed")
+                    Timber.d("S2882: companion reports sent=$sent removed=$removed")
+                    _uiState.value = WearSyncUiState.Success(sent, 0, removed)
                     Timber.i("Wear sync ack received: $ackJson")
                 }
             }
@@ -285,6 +313,10 @@ class WearSyncViewModel @Inject constructor(
     private val _watchResourceEvents = MutableSharedFlow<WearWatchResourceEvent>(extraBufferCapacity = 1)
     val watchResourceEvents: SharedFlow<WearWatchResourceEvent> = _watchResourceEvents.asSharedFlow()
 
+    // S2916: one-shot toast channel for settings push timeout and local failure.
+    private val _settingsPushEvent = MutableSharedFlow<SettingsPushEvent>(extraBufferCapacity = 1)
+    val settingsPushEvent: SharedFlow<SettingsPushEvent> = _settingsPushEvent.asSharedFlow()
+
     /**
      * S2034: the companion window's add-or-open button - strategic 2 goals 1-3.
      *
@@ -301,7 +333,7 @@ class WearSyncViewModel @Inject constructor(
                 ?.name
                 ?.takeIf { it.isNotBlank() }
                 ?: defaultName
-            Timber.d("S2868: add-or-open watch name=%s", name)
+            Timber.d("S2868: add-or-open names the watch resource '%s'", name)
             val outcome = ensureWatchResourceUseCase(name).getOrElse { e ->
                 Timber.e(e, "Could not ensure the watch resource")
                 _watchResourceEvents.emit(WearWatchResourceEvent.Failed)
@@ -323,11 +355,15 @@ class WearSyncViewModel @Inject constructor(
         viewModelScope.launch {
             outbound.sendResources()
                 .onSuccess { result ->
-                    if (result.sent == 0 && result.deselected == 0) {
+                    Timber.d("S2926: push returned dispatched=${result.dispatched}")
+                    if (!result.dispatched) {
                         // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
                         // timeout would report a watch failure for an empty selection instead.
                         // S2882: a batch that withdrew resources DID leave the phone and will be
                         // acknowledged, so only a batch that did neither takes this branch.
+                        // S2926: the use case now states that departure instead of leaving it to be
+                        // inferred from the counters - a batch of pure deletions has both of them at
+                        // zero and was landing here, dropping the ack the watch does send.
                         _uiState.value = WearSyncUiState.NothingSelected
                     } else {
                         // S1682: the use case returns as soon as Play Services accepts the bytes, which is
@@ -436,23 +472,55 @@ class WearSyncViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2916: the settings push's counterpart to [startAckTimeout]. Waits for the watch's merge report
+     * to arrive via [WearSyncEvents.watchSettingsMergedFlow]; if it does not, tells the owner via a toast
+     * rather than leaving the old timestamp and version on screen in silence.
+     */
+    private fun startSettingsAckTimeout() {
+        settingsAckTimeoutJob = viewModelScope.launch {
+            delay(ACK_TIMEOUT_MS)
+            if (settingsPushInFlight) {
+                settingsPushInFlight = false
+                Timber.w("Watch did not report the settings merge within $ACK_TIMEOUT_MS ms")
+                Timber.d("S2916: settings push timed out - no merge report")
+                _uiState.value = WearSyncUiState.Idle
+                _settingsPushEvent.tryEmit(
+                    SettingsPushEvent.Timeout(context.getString(R.string.wear_sync_settings_no_ack))
+                )
+            }
+        }
+    }
+
     fun reset() {
         ackTimeoutJob?.cancel()
+        settingsAckTimeoutJob?.cancel()
+        settingsPushInFlight = false
         _uiState.value = WearSyncUiState.Idle
     }
 
     fun pushSettings(settings: WearSettingsPayload) {
         val merged = withScreenChoices(settings)
         rememberSettings(merged)
+        settingsAckTimeoutJob?.cancel()
         _uiState.value = WearSyncUiState.Sending
         viewModelScope.launch {
             outbound.pushSettings(stampedForWire(merged))
                 .onSuccess {
-                    _uiState.value = WearSyncUiState.SettingsPushed
+                    // S2916: Play Services accepting the Data Item means "handed to the Data Layer",
+                    // not "the watch answered". Stay in Sending and wait for the merge report, mirroring
+                    // the resources path's startAckTimeout. The report arrives via
+                    // watchSettingsMergedFlow and completes the push in adoptMergedSettings.
+                    settingsPushInFlight = true
+                    startSettingsAckTimeout()
+                    Timber.d("S2916: settings push waiting for merge report")
                 }
                 .onFailure { e ->
                     Timber.e(e, "Failed to push watch settings")
-                    _uiState.value = WearSyncUiState.Error(context.getString(R.string.wear_push_settings_failed))
+                    _uiState.value = WearSyncUiState.Idle
+                    _settingsPushEvent.tryEmit(
+                        SettingsPushEvent.Failed(context.getString(R.string.wear_push_settings_failed))
+                    )
                 }
         }
     }
@@ -511,6 +579,14 @@ class WearSyncViewModel @Inject constructor(
         // otherwise the next push would carry the pre-merge stamps and the watch's just-accepted edit
         // could lose to its own prior value. readFieldTimestamps() is suspend, so the refresh is async.
         viewModelScope.launch { fieldTimestampsCache = wearSettingsMirrorStore.readFieldTimestamps() }
+        // S2916: the merge report is the watch's answer. When a settings push is waiting for it,
+        // this arrival completes the exchange - the timestamp and version above are already updated.
+        if (settingsPushInFlight) {
+            settingsPushInFlight = false
+            settingsAckTimeoutJob?.cancel()
+            _uiState.value = WearSyncUiState.SettingsPushed
+            Timber.d("S2916: settings push completed by merge report")
+        }
     }
 
     /**

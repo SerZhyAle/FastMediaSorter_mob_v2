@@ -181,7 +181,23 @@ class WatchListenSessionManager @Inject constructor(
             url = url,
             onPlaying = { _listenState.value = WearListenState.Listening(recordRequested) },
             onDropped = { onListenStreamDropped() },
+            onEndedElsewhere = { onListenPlaybackEndedElsewhere() },
         )
+    }
+
+    /**
+     * S2939: playback ended by a path this class did not take - the media notification, a remote
+     * control, a permanent loss of audio focus.
+     *
+     * It ends the session exactly as the owner's own stop does, because that is what it was: before
+     * this the watch was never told, and its microphone ran for nobody until the battery died.
+     */
+    private fun onListenPlaybackEndedElsewhere() {
+        if (_listenState.value !is WearListenState.Listening) {
+            return
+        }
+        Timber.d("S2939: phone playback ended outside the session, telling the watch")
+        endListenSession(messageRes = null)
     }
 
     /**

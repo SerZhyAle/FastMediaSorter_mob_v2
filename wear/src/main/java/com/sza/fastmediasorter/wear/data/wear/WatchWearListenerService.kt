@@ -18,6 +18,7 @@ import com.google.gson.JsonSyntaxException
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
 import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.helpers.WearTransferOutcomeCoordinator
+import com.sza.fastmediasorter.wear.di.ApplicationScope
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequestRegistry
 import com.sza.fastmediasorter.wear.domain.listen.ListenRequester
 import com.sza.fastmediasorter.wear.domain.listen.ListenSessionStateHolder
@@ -33,9 +34,6 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearFileTransferMetadata
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
 import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiversPayload
-import com.sza.fastmediasorter.wear.domain.model.WearSettingsDivergence
-import com.sza.fastmediasorter.wear.domain.model.WearSettingsFieldIssue
-import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPinsPayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
@@ -45,10 +43,8 @@ import com.sza.fastmediasorter.wear.domain.model.asSessionFailure
 import com.sza.fastmediasorter.wear.domain.repository.PhoneCameraSessionHolder
 import com.sza.fastmediasorter.wear.domain.repository.WearCastRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileReceiverRepository
-import com.sza.fastmediasorter.wear.domain.usecase.ApplyWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ImportNetworkSourcesUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.ReportWearSettingsUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.StoreTransferredStreamUseCase
 import com.sza.fastmediasorter.wear.service.helpers.ListenRequestNotifier
 import com.sza.fastmediasorter.wear.service.helpers.ListenSessionTerminator
@@ -57,9 +53,6 @@ import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
@@ -84,9 +77,9 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var importNetworkSourcesUseCase: ImportNetworkSourcesUseCase
 
-    @Inject lateinit var applyWearSettingsUseCase: ApplyWearSettingsUseCase
-
-    @Inject lateinit var reportWearSettingsUseCase: ReportWearSettingsUseCase
+    // S2461: Lazy for S2626's reason - this service is constructed for every Data Layer message, and
+    // only a settings push needs the apply-and-report chain behind the responder.
+    @Inject lateinit var settingsPushResponder: dagger.Lazy<SettingsPushResponder>
 
     @Inject lateinit var wearFileReceiverRepository: WearFileReceiverRepository
 
@@ -122,12 +115,6 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Inject lateinit var phoneCameraSessionHolder: PhoneCameraSessionHolder
 
-    // S2462: built from the injected Gson rather than injected itself - it carries no state and no
-    // dependency of its own, so a Hilt binding would be ceremony around a constructor call.
-    private val settingsPayloadDecoder: WearSettingsPayloadDecoder by lazy {
-        WearSettingsPayloadDecoder(gson)
-    }
-
     // S2149: the phone's pinned-stream set. Kept apart from the watch's own favourites so the star
     // still means "I marked this here" and the phone can withdraw only what the phone sent.
     @Inject lateinit var wearPhonePinsRepository: WearPhonePinsRepository
@@ -140,7 +127,14 @@ class WatchWearListenerService : WearableListenerService() {
     // phone pushes session state between requests and two receivers would race over the same two paths.
     @Inject lateinit var wearCastRepository: WearCastRepository
 
-    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    // S2915: every handler below launches on the application-owned scope. The platform destroys this
+    // service shortly after the callback returns, and the service-owned scope this used to cancel in
+    // onDestroy took every job still in flight with it - a cancelled job reports nothing, so a slow
+    // import, file transfer or DataStore write died without a log line on either device. The injected
+    // scope is never cancelled by anything shorter-lived than the process.
+    @Inject
+    @ApplicationScope
+    lateinit var applicationScope: CoroutineScope
 
     /**
      * S1862: the phone coming back into reach is what releases the notes taken while it was gone.
@@ -154,14 +148,18 @@ class WatchWearListenerService : WearableListenerService() {
         val phoneIsBack = capabilityInfo.name == PHONE_COMPANION_CAPABILITY &&
             capabilityInfo.nodes.isNotEmpty()
         if (phoneIsBack) {
-            serviceScope.launch { drainPendingVoiceNotesUseCase() }
+            applicationScope.launch {
+                Timber.d("S2915: pending voice notes drain launched on the app scope")
+                drainPendingVoiceNotesUseCase()
+            }
         }
     }
 
     override fun onChannelOpened(channel: ChannelClient.Channel) {
         if (channel.path.startsWith(WearDataLayerPaths.FILE_TRANSFER)) {
             val fileName = channel.path.substringAfterLast('/', DEFAULT_INCOMING_FILE_NAME)
-            serviceScope.launch {
+            applicationScope.launch {
+                Timber.d("S2915: incoming file receive launched on the app scope")
                 val result = wearFileReceiverRepository.receiveFile(channel, fileName)
                 Timber.i("Incoming file %s ended as %s", fileName, result.outcome)
                 answerFileTransfer(channel.nodeId, result)
@@ -228,7 +226,8 @@ class WatchWearListenerService : WearableListenerService() {
 
     @Suppress("TooGenericExceptionCaught")
     private fun handleFileUploadOutcome(payloadBytes: ByteArray, uri: android.net.Uri) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: upload outcome handling launched on the app scope")
             try {
                 val outcome = gson.fromJson(
                     payloadBytes.decodeToString(),
@@ -374,7 +373,8 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     private fun handleStreamTransfer(nodeId: String, data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: stream transfer handling launched on the app scope")
             val payload = try {
                 val envelope = envelopeCodec.decode(data)
                 gson.fromJson(envelope.data.decodeToString(), WearStreamTransferPayload::class.java)
@@ -413,51 +413,11 @@ class WatchWearListenerService : WearableListenerService() {
         }
     }
 
+    // S2461: handed over rather than launched here - the apply-and-report must outlive this service,
+    // which the platform destroys shortly after the callback returns. The responder keeps its own
+    // scope with a serialized exchange; S2915 moved the remaining handlers onto the application scope.
     private fun handleSettingsPush(payloadBytes: ByteArray) {
-        val receivedAt = System.currentTimeMillis()
-        serviceScope.launch {
-            try {
-                val envelope = envelopeCodec.decode(payloadBytes)
-                // S2462: decoded key by key rather than straight into the payload class. A phone on a
-                // different build may omit a key or send it as another type, and a single typed
-                // fromJson answers both with an exception that the catch below turns into a dropped
-                // event - one incompatible field silencing the whole exchange.
-                val decoded = settingsPayloadDecoder.decode(envelope.data.decodeToString())
-                Timber.d("S2462: push decoded p=%d d=%s", decoded.presentFields.size, decoded.divergences)
-                logSettingsDivergences(decoded.divergences)
-                val payload = decoded.payload
-                if (payload == null) {
-                    Timber.w("Settings push carried nothing decodable")
-                } else {
-                    applyWearSettingsUseCase(payload, envelope.sentAt, receivedAt, decoded.presentFields)
-                    // S2093: a push is answered with what the watch ended up holding, so one press on
-                    // the phone completes the exchange in both directions rather than only sending.
-                    reportWearSettingsUseCase()
-                }
-            } catch (e: Exception) {
-                e.errorUnlessCancellation("Failed to apply settings push")
-                WatchSyncEvents.settingsErrorFlow.emit(e.message ?: "Settings apply failed")
-            }
-        }
-    }
-
-    /**
-     * S2462: says which keys did not survive the decode, split by what the reason implies.
-     *
-     * A wrong type is a defect in the contract and is worth a warning; a key the peer never sent or a
-     * key this build does not know are the normal shape of two devices on different versions, so they
-     * stay at debug rather than crying wolf on every exchange with an older phone.
-     */
-    private fun logSettingsDivergences(divergences: List<WearSettingsDivergence>) {
-        if (divergences.isEmpty()) return
-        val mistyped = divergences.filter { it.issue == WearSettingsFieldIssue.WRONG_TYPE }
-        if (mistyped.isNotEmpty()) {
-            Timber.w("Settings push: %d field(s) of unexpected type - %s", mistyped.size, mistyped)
-        }
-        val skewed = divergences - mistyped.toSet()
-        if (skewed.isNotEmpty()) {
-            Timber.d("Settings push: %d field(s) not exchanged - %s", skewed.size, skewed)
-        }
+        settingsPushResponder.get().respond(payloadBytes, System.currentTimeMillis())
     }
 
     /**
@@ -467,7 +427,8 @@ class WatchWearListenerService : WearableListenerService() {
      * message must not silently clear a set the owner can only restore by re-pinning on the phone.
      */
     private fun handleStreamPinsPush(payloadBytes: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: stream pins push launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val payload = gson.fromJson(envelope.data.decodeToString(), WearStreamPinsPayload::class.java)
@@ -490,7 +451,8 @@ class WatchWearListenerService : WearableListenerService() {
      * clear a list the owner can only restore by toggling receivers again on the phone.
      */
     private fun handleSendToReceiversPush(payloadBytes: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: send-to receivers push launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(payloadBytes)
                 val json = envelope.data.decodeToString()
@@ -507,7 +469,8 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     private fun handlePlaybackCommand(data: ByteArray) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: playback command launched on the app scope")
             try {
                 val envelope = envelopeCodec.decode(data)
                 val commandName = gson.fromJson(envelope.data.decodeToString(), String::class.java)
@@ -520,7 +483,8 @@ class WatchWearListenerService : WearableListenerService() {
     }
 
     private fun handlePush(payloadBytes: ByteArray, senderNodeId: String) {
-        serviceScope.launch {
+        applicationScope.launch {
+            Timber.d("S2915: network sources import launched on the app scope")
             try {
                 val json = payloadBytes.decodeToString()
                 val payload = gson.fromJson(json, WearSyncPayload::class.java)
@@ -559,11 +523,6 @@ class WatchWearListenerService : WearableListenerService() {
         } catch (e: Exception) {
             e.errorUnlessCancellation("Failed to send ack to phone")
         }
-    }
-
-    override fun onDestroy() {
-        serviceScope.cancel()
-        super.onDestroy()
     }
 }
 

@@ -1,0 +1,36 @@
+{
+  "$comment": [
+    "S2933 - subject -> the BuildConfig flag that dictates a record's reach in docs/ALL_FEATURES.jsonl.",
+    "Read by scripts/quality/assert-allfeatures-sync.ps1 (check 4) and by nothing else.",
+    "",
+    "Why this file exists: the S1934 ratchet in the canon-shipped all_features/validate.ps1 counts an",
+    "ungated record as explained when its flavors set equals the row of ANY flag, which cannot tell a",
+    "set that is right on purpose from one that is right by coincidence. Measured 2026-09-11, 491 of",
+    "1085 records sat in that position, and two of them (wear.settings-sync-timeout,",
+    "wear.watch-settings-report-carries-panel-auto-hide) claimed the SUPPORT_CAST row while describing",
+    "phone-to-watch settings sync - a reach three flavors wider than the build produces.",
+    "",
+    "The rule keys off the SET, never off the record's `gate` field: close-and-log.ps1 is a canon",
+    "facade with no -FeatGate parameter, so a record written through the sanctioned closure path can",
+    "never carry a gate, and a rule demanding one would be unsatisfiable. -FeatFlavors is free.",
+    "",
+    "A record matching a subject must declare either that flag's row (read live out of the matrix, so",
+    "the rule follows the row when it moves - S1951 moved SUPPORT_WEAR_COMPANION's) or the full",
+    "dimension, which is S1934's own 'nothing narrows this' claim and stays legal for every record. A",
+    "record carrying an explicit `gate` is left to validate.ps1, which checks its set against the",
+    "named row - that is the in-band exit for a subject record living behind some other flag.",
+    "",
+    "Adding a subject is an edit to this file alone. It needs a flag whose row genuinely dictates the",
+    "reach of everything the subject matches; a flag that merely correlates would turn a real defect",
+    "into a green run for every record that happens to agree with it."
+  ],
+  "subjects": [
+    {
+      "name": "the watch",
+      "areas": ["Wear OS"],
+      "idPattern": "^wear[-.]",
+      "gate": "SUPPORT_WEAR_COMPANION",
+      "why": "A watch record's flavors field answers 'which phone build gates this', never 'which watch build has this' (scripts/all_features/README.md). A phone-bridge capability is reachable exactly where SUPPORT_WEAR_COMPANION is on; a watch-standalone one lives entirely in the wear module, is narrowed by no phone flavor, and therefore carries the full dimension, narrowing the watch variant through wearFlavors instead (S2090). Both the area and the id are matched because neither covers the set alone: three wear-prefixed records sit under other areas, and product.wear-companion-as-a-program sits under Wear OS with a non-wear id."
+    }
+  ]
+}

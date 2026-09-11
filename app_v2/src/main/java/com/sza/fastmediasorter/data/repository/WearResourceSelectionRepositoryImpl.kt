@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -21,7 +23,8 @@ import javax.inject.Singleton
  */
 @Singleton
 class WearResourceSelectionRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
     // Resolved per access rather than in a field initialiser: a @Singleton field would parse the XML
@@ -30,11 +33,11 @@ class WearResourceSelectionRepositoryImpl @Inject constructor(
     private val prefs
         get() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    suspend fun hasSavedSelection(): Boolean = withContext(Dispatchers.IO) {
+    suspend fun hasSavedSelection(): Boolean = withContext(ioDispatcher) {
         prefs.contains(KEY_SELECTED_IDS)
     }
 
-    suspend fun getSelectedIds(): Set<Long> = withContext(Dispatchers.IO) {
+    suspend fun getSelectedIds(): Set<Long> = withContext(ioDispatcher) {
         prefs.getStringSet(KEY_SELECTED_IDS, emptySet())
             .orEmpty()
             .mapNotNull { it.toLongOrNull() }
@@ -42,7 +45,7 @@ class WearResourceSelectionRepositoryImpl @Inject constructor(
     }
 
     suspend fun setSelectedIds(ids: Set<Long>) {
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             prefs.edit()
                 .putStringSet(KEY_SELECTED_IDS, ids.map { it.toString() }.toSet())
                 .apply()

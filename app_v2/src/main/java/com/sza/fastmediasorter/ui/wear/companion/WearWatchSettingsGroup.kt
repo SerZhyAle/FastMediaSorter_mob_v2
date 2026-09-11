@@ -5,6 +5,7 @@ import android.widget.ImageView
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -17,6 +18,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material.icons.Icons
@@ -30,6 +33,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -290,6 +294,7 @@ internal class WatchSettingsState(watchSettings: WearSettingsPayload?) {
 }
 
 /** S2169: the watch menu's "Other" subgroup, in the watch's own row order. */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     SwitchRow(
@@ -333,16 +338,25 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
     // S2865: one horizontal line instead of a wrapping FlowRow - the six thresholds are one ranked
     // scale, and the wrapped second row outweighed the rest of the group. A narrow screen or a long
     // locale scrolls rather than wraps.
+    // S2924: bring selected chip into view on initial open or when selection changes, so the active
+    // threshold is not hidden beyond the right scroll edge.
+    val powerSavingScrollState = rememberScrollState()
+    val powerSavingBringIntoViewRequester = remember { BringIntoViewRequester() }
+    LaunchedEffect(state.powerSavingTrigger) {
+        Timber.d("S2924: power saving row scrolled to selected trigger %s", state.powerSavingTrigger)
+        powerSavingBringIntoViewRequester.bringIntoView()
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .horizontalScroll(rememberScrollState()),
+            .horizontalScroll(powerSavingScrollState),
         horizontalArrangement = Arrangement.spacedBy(SPACING_SMALL)
     ) {
         POWER_SAVING_TRIGGERS.forEach { (value, labelRes) ->
             val chipLabel = stringResource(labelRes)
+            val isSelected = value == state.powerSavingTrigger
             FilterChip(
-                selected = value == state.powerSavingTrigger,
+                selected = isSelected,
                 onClick = {
                     state.powerSavingTrigger = value
                     onChanged()
@@ -352,6 +366,9 @@ private fun OtherSubgroup(state: WatchSettingsState, onChanged: () -> Unit) {
                 // options dump as anonymous checkboxes and the screen reader announces none of them.
                 modifier = Modifier
                     .testTag("wearPowerSavingTrigger_" + value)
+                    .then(
+                        if (isSelected) Modifier.bringIntoViewRequester(powerSavingBringIntoViewRequester) else Modifier
+                    )
                     .semantics { contentDescription = chipLabel }
             )
         }

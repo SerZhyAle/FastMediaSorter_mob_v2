@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/touristRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?actionBarSize"
+        app:navigationIcon="@drawable/ic_arrow_back"
+        app:navigationIconTint="?attr/colorControlNormal"
+        app:title="@string/tourist_info_title" />
+
+    <!-- Hero Focus Tile Card -->
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/cardHeroTile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="4dp"
+        android:layout_marginBottom="8dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="4dp"
+        app:strokeWidth="1.5dp"
+        app:strokeColor="?attr/colorPrimary">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:id="@+id/ivHeroIcon"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@null"
+                    app:tint="?attr/colorPrimary"
+                    tools:src="@drawable/ic_speed" />
+
+                <TextView
+                    android:id="@+id/tvHeroTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textStyle="bold"
+                    tools:text="Speed" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="8dp">
+
+                <LinearLayout
+                    android:id="@+id/layoutHeroTextMetrics"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/tvHeroPrimaryValue"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textSize="56sp"
+                        android:textStyle="bold"
+                        android:textColor="?attr/colorOnSurface"
+                        tools:text="0.0" />
+
+                    <TextView
+                        android:id="@+id/tvHeroPrimaryUnit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginBottom="8dp"
+                        android:layout_gravity="bottom"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="?attr/colorOnSurfaceVariant"
+                        tools:text="km/h" />
+                </LinearLayout>
+
+                <ImageView
+                    android:id="@+id/ivHeroCompassRose"
+                    android:layout_width="120dp"
+                    android:layout_height="120dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@null"
+                    android:visibility="gone"
+                    tools:src="@drawable/ic_compass" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/tvHeroSecondaryDetail"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                tools:text="Max: 0.0 km/h • Trip: 0.00 km" />
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <!-- Secondary Tiles Grid -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvSecondaryTiles"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:paddingBottom="8dp" />
+
+    <!-- Action Bar -->
+    <LinearLayout
+        android:id="@+id/layoutActionButtons"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOpenMap"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            app:icon="@drawable/ic_map"
+            android:text="@string/tourist_action_open_map" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnShareLocation"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            app:icon="@drawable/ic_share"
+            android:text="@string/tourist_action_share_location" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnResetTrip"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:layout_weight="1"
+            app:icon="@drawable/ic_refresh"
+            android:text="@string/tourist_action_reset_trip" />
+    </LinearLayout>
+</LinearLayout>

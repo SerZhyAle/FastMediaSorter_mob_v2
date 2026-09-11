@@ -59,6 +59,9 @@ object InternalRouteCatalog {
 
     // S1733: system information as a program of its own, reachable without going into settings.
     const val KEY_SYSTEM_INFO = "system_info"
+
+    // S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
+    const val KEY_TOURIST_INFO = "tourist_info"
     const val KEY_WEAR_COMPANION = "wear_companion"
 
     // S2881: two routes, not one - a registry entry resolves to exactly one intent, so the plain and
@@ -127,6 +130,13 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_info,
             intent = AppLaunchPanelRouteIntents::systemInfo,
             settingsIntent = AppLaunchPanelRouteIntents::systemInfoSettings,
+        ),
+        // S2922: Tourist dashboard sub-program.
+        Route(
+            key = KEY_TOURIST_INFO,
+            labelRes = R.string.tourist_info_title,
+            iconRes = R.drawable.ic_tourist,
+            intent = AppLaunchPanelRouteIntents::touristInfo,
         ),
         // S1883: label reused from the button that has always opened the companion, for the same reason
         // system information reuses its settings string - two wordings for one program drift apart.

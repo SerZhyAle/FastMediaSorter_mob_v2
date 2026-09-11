@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.service.WatchListenSessionManager
 import com.sza.fastmediasorter.service.WearListenState
 import dagger.hilt.android.AndroidEntryPoint
@@ -25,6 +26,10 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class WatchListenLaunchActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     @Inject lateinit var sessionManager: WatchListenSessionManager
 

@@ -94,6 +94,56 @@
       "note": null
     },
     {
+      "coordinate": "androidx.appfunctions:appfunctions",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "AndroidX AppFunctions Core",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
+      "coordinate": "androidx.appfunctions:appfunctions-service",
+      "modules": [
+        "app_v2"
+      ],
+      "name": "AndroidX AppFunctions Service",
+      "spdx": "Apache-2.0",
+      "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+      "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+      "oss": true,
+      "shippedIn": [
+        "foss",
+        "legacy",
+        "lite",
+        "noLegal",
+        "photos",
+        "standard",
+        "vr"
+      ],
+      "allFlavors": true,
+      "transitive": false,
+      "via": null,
+      "bundled": false,
+      "note": null
+    },
+    {
       "coordinate": "androidx.browser:browser",
       "modules": [
         "app_v2"

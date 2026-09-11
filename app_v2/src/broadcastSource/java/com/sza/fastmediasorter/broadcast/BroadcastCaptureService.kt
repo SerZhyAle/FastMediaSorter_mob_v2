@@ -39,9 +39,11 @@ class BroadcastCaptureService : Service() {
     lateinit var settingsRepository: SettingsRepository
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     // Assigned on the session coroutine, read and cleared from the main-thread stop path.
     @Volatile
     private var httpServer: BroadcastHttpServer? = null
+
     @Volatile
     private var audioRecord: AudioRecord? = null
     private val isRecording = AtomicBoolean(false)
@@ -132,14 +134,9 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        Timber.d(
-            "S2817: broadcast session config from settings: title=%s, bitrate=%d, port=%d, rate=%d, ch=%d",
-            settings.broadcastStreamTitle,
-            settings.broadcastBitRateBps,
-            settings.broadcastPort,
-            settings.broadcastSampleRateHz,
-            settings.broadcastChannelCount,
-        )
+        Timber.d("S2817: session title=${settings.broadcastStreamTitle} bitrate=${settings.broadcastBitRateBps}")
+        Timber.d("S2817: session port=${settings.broadcastPort} rate=${settings.broadcastSampleRateHz}")
+        Timber.d("S2817: session channels=${settings.broadcastChannelCount}")
         val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
             settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
