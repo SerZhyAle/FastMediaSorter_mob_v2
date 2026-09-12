@@ -58,7 +58,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
             val seated = candidate.copy(
                 colIndex = LauncherCellSeating.seatColumn(candidate.colIndex, candidate.spanW, columns),
             )
-            Timber.d("S2599: add seats col ${candidate.colIndex} -> ${seated.colIndex} of $columns")
             // The push and the insert must be one transaction: a shift that landed without its cell would
             // leave a hole in the desktop, and two concurrent adds that each saw free space would both
             // land, making the "cells never overlap" invariant false forever after.
@@ -492,7 +491,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                     spanW = spanW,
                     columns = columns - source.colIndex.coerceAtLeast(0),
                 )
-                Timber.d("S2599: resize caps width $spanW -> $safeW at col ${source.colIndex}")
                 if (source.spanW == safeW && source.spanH == safeH) return@withTransaction false
                 // Self is excluded, so growing over the cell's own current squares is fine; only another
                 // cell's squares block the resize, keeping the "cells never overlap" invariant.
@@ -572,7 +570,6 @@ class LauncherDesktopRepositoryImpl @Inject constructor(
                 } else {
                     LauncherCellSeating.seatColumn(colIndex, source.spanW, columns)
                 }
-                Timber.d("S2599: move seats col $colIndex -> $targetCol of $columns")
                 if (source.rowIndex == targetRow && source.colIndex == targetCol) {
                     return@withTransaction false
                 }

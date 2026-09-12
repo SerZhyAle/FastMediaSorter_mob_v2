@@ -57,7 +57,6 @@ fun NetworkMonitorSummaryScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val snapshot = state.snapshot
     val nonSummarySections = state.sections.filter { it != WearNetworkSection.Summary }
-    Timber.d("S2805: Network Monitor summary as one-column report, sections=%d", nonSummarySections.size)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

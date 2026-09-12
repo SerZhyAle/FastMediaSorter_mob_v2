@@ -82,7 +82,6 @@ fun AppsScreen(
                     apps = uiState.apps,
                     columns = columns,
                     onAppClick = { app ->
-                        Timber.d("S2751: program tapped, id=%s", app.id)
                         navController.navigate(
                             WearLaunchRoutes.routeFor(destinationFor(app.id))
                         )
@@ -189,6 +188,5 @@ private fun AppCell(
  */
 @DrawableRes
 private fun iconFor(id: WearAppId): Int {
-    timber.log.Timber.d("S2474: AppsScreen.iconFor id=%s", id)
     return WearAppIconCatalog.iconFor(id)
 }

@@ -136,7 +136,6 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     ): LauncherCommandVisual? =
         withContext(Dispatchers.IO) {
             val targetContext = if (language != null) {
-                Timber.d("S2571: resolving cell label in $language without touching the process locale")
                 LocaleHelper.localizedContext(context, language)
             } else {
                 context

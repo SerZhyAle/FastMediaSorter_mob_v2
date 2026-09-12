@@ -70,7 +70,6 @@ class SyncEnabledResourceTilesUseCase @Inject constructor(
 
             val present = presentAggregates()
             val baseline = syncBaseline.syncedResourcePaths()
-            Timber.d("S2564: sync present=%d baseline=%s", present.size, baseline?.size)
 
             if (baseline == null) {
                 // First run on this install: adopt what exists now without placing anything. The

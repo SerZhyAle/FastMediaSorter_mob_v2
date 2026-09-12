@@ -112,7 +112,6 @@ private fun WearListOpeningAnchor(state: ScalingLazyListState, index: Int, resto
         // recomposed, and Images in single column landed on data row one because the tiles were not
         // yet measured. A short delay lets both the recomposition and the re-measurement land.
         delay(ANCHOR_SETTLE_DELAY_MS)
-        Timber.d("S2466: list anchored at item %d of %d", index, state.layoutInfo.totalItemsCount)
         state.scrollToItem(index)
     }
 }
@@ -149,7 +148,6 @@ private fun WearListPositionMemory(
     LaunchedEffect(positionKey) {
         val saved = store.peek(positionKey) ?: return@LaunchedEffect
         snapshotFlow { state.layoutInfo.totalItemsCount }.first { it > saved.index }
-        Timber.d("S2816: list restored key=%s index=%d offset=%d", positionKey, saved.index, saved.offset)
         state.scrollToItem(saved.index, saved.offset)
         settled.value = true
     }
@@ -159,7 +157,6 @@ private fun WearListPositionMemory(
             val index = state.centerItemIndex
             val offset = state.centerItemScrollOffset
             if (settled.value && state.layoutInfo.totalItemsCount > 0) {
-                Timber.d("S2816: list saved key=%s index=%d offset=%d", positionKey, index, offset)
                 store.save(positionKey, index, offset)
             }
         }

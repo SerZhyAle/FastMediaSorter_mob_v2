@@ -256,7 +256,6 @@ class LauncherSignalRowView @JvmOverloads constructor(
         // S2734 ADR-1: the owner's limit caps what the width allows, it does not replace it - the side
         // capacities stay as measured, since they only split what the bounded total already permits.
         capacity = signalSlots(startCapacity + endCapacity, topStatusBarMode)
-        Timber.d("S2790: strip statusBar=$topStatusBarMode start=$startCapacity end=$endCapacity slots=$capacity")
         // The counter takes a slot of its own, so one fewer signal is drawn when it appears. Nothing is
         // dropped silently: what the row cannot show, the counter stands for and the sheet lists.
         val chipCount = when {
@@ -265,7 +264,6 @@ class LauncherSignalRowView @JvmOverloads constructor(
             else -> capacity - 1
         }
         val hidden = signals.size - chipCount
-        Timber.d("S2734: strip rebuild signals=${signals.size} slots=$capacity chips=$chipCount hidden=$hidden")
         val shown = signals.take(chipCount)
         syncChildren(chipCount, showCounter = hidden > 0 && capacity > 0)
         shown.forEachIndexed { index, signal -> bindChip(flowChildAt(index), signal) }

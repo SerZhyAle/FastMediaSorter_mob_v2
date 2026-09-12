@@ -26,7 +26,6 @@ class ApplyAllAppsSortDefaultUseCase @Inject constructor(
     suspend operator fun invoke() {
         if (dataStore.data.first()[KEY_DONE] == true) return
         val stored = settingsRepository.getSettings().first().allAppsSortOrder
-        Timber.d("S2736: all-apps sort default migration sees stored order %s", stored)
         if (stored == InstalledAppSortOrder.LABEL.name) {
             settingsRepository.updateSettings { settings ->
                 settings.withLauncher { copy(allAppsSortOrder = InstalledAppSortOrder.LAUNCH_FREQUENCY.name) }

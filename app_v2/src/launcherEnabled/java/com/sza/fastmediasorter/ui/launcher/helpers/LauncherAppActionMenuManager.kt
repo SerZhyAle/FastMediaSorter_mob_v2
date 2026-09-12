@@ -95,7 +95,6 @@ class LauncherAppActionMenuManager(
         }
         uninstallIntent(packageName)?.let { intent ->
             rows += action(anchor, R.string.launcher_app_action_uninstall, R.drawable.ic_delete) {
-                Timber.d("S2576: uninstall row fired for %s", packageName)
                 startSystemIntent(anchor, intent)
             }
         }

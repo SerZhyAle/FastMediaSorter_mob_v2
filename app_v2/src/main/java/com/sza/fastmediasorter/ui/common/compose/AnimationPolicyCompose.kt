@@ -30,7 +30,6 @@ fun rememberAnimationAllowed(intent: AnimationIntent): Boolean {
         // sites, which post because they touch views, not because they write state.
         val listener: () -> Unit = {
             value = AnimationPolicy.mayAnimate(intent)
-            Timber.d("S2567: bridge heard level=${AnimationPolicy.level} mayAnimate($intent)=$value")
         }
         AnimationPolicy.addLevelListener(listener)
         // A change landing between the seed read above and the subscription fires into nobody, so the

@@ -57,7 +57,6 @@ class LauncherTaskbarManager(
             if (command == null) {
                 false
             } else {
-                Timber.d("S2391: recents icon long press for %s", command)
                 recentMenuManager.show(anchor, command)
             }
         },
@@ -113,7 +112,6 @@ class LauncherTaskbarManager(
      * previous list's until then.
      */
     private fun submitRecents(icons: List<LauncherTaskbarIcon>) {
-        Timber.d("S2393: recents strip submit, size=%d", icons.size)
         recentsAdapter.submitIcons(icons.reversed()) {
             val last = recentsAdapter.itemCount - 1
             if (last >= 0) {

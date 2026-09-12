@@ -72,7 +72,6 @@ class RefreshInstalledAppsUseCase @Inject constructor(
             return@withContext
         }
         val cached = repository.observeApps().first()
-        Timber.d("S2745: reconcile cached=%d resolved=%d", cached.size, resolved.size)
         cached.forEach { app ->
             if (!resolved.containsKey(app.packageName)) {
                 repository.remove(app.packageName)

@@ -381,7 +381,6 @@ class AudioWaveParticleView @JvmOverloads constructor(
         if (animatorsDisabled()) {
             if (oldW == 0 && oldH == 0) renderStaticFrame() else renderResizedFrame()
         }
-        Timber.d("S2678: onSizeChanged ${w}x$h from ${oldW}x$oldH animatorsOff=${animatorsDisabled()}")
     }
 
     /**
@@ -546,7 +545,6 @@ class AudioWaveParticleView @JvmOverloads constructor(
      * has no draw pass left in which to notice the change on its own.
      */
     fun refreshPolicy() {
-        Timber.d("S2536: visualizer refresh intent=$intent level=${AnimationPolicy.level}")
         if (AnimationPolicy.mayAnimate(intent)) {
             if (frozenByPolicy) startAnimation()
         } else {

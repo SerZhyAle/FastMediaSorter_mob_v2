@@ -129,7 +129,6 @@ fun OriginHomeScreen(
                     // its own, which is what left the space beside it unusable. It stays last, so it
                     // fills a row only after every category has one.
                     val cells = if (folderChip != null) vocabulary + folderChip else vocabulary
-                    Timber.d("S2495: %d cell(s) over %d column(s), browse in row", cells.size, columns)
                     items(cells.chunked(columns)) { rowCategories ->
                         OriginCategoryRow(
                             categories = rowCategories,

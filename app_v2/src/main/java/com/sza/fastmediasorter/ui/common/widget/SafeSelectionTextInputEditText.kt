@@ -25,6 +25,5 @@ class SafeSelectionTextInputEditText @JvmOverloads constructor(
 
     init {
         movementMethod = SafeSelectionMovementMethod.INSTANCE
-        Timber.d("S2572: guarded input field inflated, movement method installed")
     }
 }

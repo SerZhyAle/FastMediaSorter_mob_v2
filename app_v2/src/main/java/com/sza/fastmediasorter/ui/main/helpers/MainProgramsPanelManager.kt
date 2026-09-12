@@ -207,7 +207,6 @@ class MainProgramsPanelManager(
             button.icon = model.icon
             button.text = if (showLabels) model.title else ""
             button.contentDescription = model.title
-            Timber.d("S2889: panel strip item '${model.title}' accentOnDark=${model.accentOnDarkRes}")
             button.setTextColor(accentForeground)
             button.iconTint = ColorStateList.valueOf(
                 model.accentOnDarkRes?.let { ContextCompat.getColor(context, it) } ?: accentForeground
@@ -327,7 +326,6 @@ class MainProgramsPanelManager(
             // window on the theme's menu surface, not on the panel strip. Left unset the row would fall back
             // to item_main_program.xml's ?attr/colorControlNormal, which is how it was the one place a panel
             // item was drawn with no tone at all.
-            Timber.d("S2889: overflow row '${model.title}' accent=${model.accentRes}")
             model.accentRes?.let { button.iconTint = ColorStateList.valueOf(ContextCompat.getColor(context, it)) }
             button.setOnClickListener {
                 popup.dismiss()

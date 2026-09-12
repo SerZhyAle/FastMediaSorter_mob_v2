@@ -256,7 +256,6 @@ class CredentialManagerGoogleIdentityRepository @Inject constructor(
             boundAt = Instant.now()
         )
         store.save(account)
-        Timber.d("S2101: Google binding restored from a transferred envelope")
         _state.value = PrimaryGoogleAccountState.Bound(account)
         // Deliberately no write back through the transfer writer: the record being restored FROM is
         // the same record a write would produce, and re-stamping it would move writtenAt on a device

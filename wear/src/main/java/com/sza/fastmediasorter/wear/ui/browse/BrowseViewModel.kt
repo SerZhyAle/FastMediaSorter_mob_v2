@@ -330,7 +330,6 @@ class BrowseViewModel @Inject constructor(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                Timber.d("S2278: browse network load catch entered, cancellation cure routes it")
                 e.errorUnlessCancellation("Exception loading network files")
                 withContext(Dispatchers.Main) {
                     _uiState.value = BrowseUiState.Error(ScreenTitle.Resource(messageFor(e)))

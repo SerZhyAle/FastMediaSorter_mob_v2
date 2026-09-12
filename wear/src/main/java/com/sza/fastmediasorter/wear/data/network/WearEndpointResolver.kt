@@ -43,7 +43,6 @@ class WearEndpointResolver @Inject constructor(
         val candidates = WearEndpointGroup.candidatesFor(source)
         if (candidates.size <= 1) return source
 
-        Timber.d("S2488: resolving endpoints for source %s from %d candidates", source.id, candidates.size)
 
         // The value is read, never collected: a resolver that owned a scope would outlive its callers.
         val currentChannel = channelMonitor.channel.value

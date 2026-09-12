@@ -69,7 +69,6 @@ fun MotionHistoryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Timber.d("S3014: motion history screen opened")
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

@@ -112,7 +112,6 @@ class NetworkFileManager(
 
         // Streaming URLs (http://, https://, rtsp://) - played directly, not downloaded as local files
         if (mediaFile.path.startsWith("http://") || mediaFile.path.startsWith("https://") || mediaFile.path.startsWith("rtsp://")) {
-            Timber.d("S3006: prepareFileForRead rejected stream URL ${mediaFile.path}")
             Timber.w("NetworkFileManager: Skipping file download for stream URL: ${mediaFile.path}")
             throw IllegalArgumentException("Unsupported streaming protocol for local file operation: ${mediaFile.path}")
         }

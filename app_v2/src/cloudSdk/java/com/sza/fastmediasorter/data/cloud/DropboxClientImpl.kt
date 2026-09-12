@@ -922,7 +922,6 @@ class DropboxClientImpl @Inject constructor(
                 dbxClient = null
                 accountEmail = null
 
-                Timber.d("S2455: Dropbox sign-out successful")
                 CloudResult.Success(true)
             } catch (e: Exception) {
                 e.rethrowIfCancellation()

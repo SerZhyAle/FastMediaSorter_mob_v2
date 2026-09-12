@@ -97,7 +97,6 @@ class GeneralSettingsLauncherHelper(
     fun refreshState() {
         if (!launcherModeContract.isAvailableInBuild) return
         coroutineScope.launch {
-            Timber.d("S2659: refreshing launcher-role settings state")
             val state = withContext(ioDispatcher) { launcherRoleManager.readState() }
             if (state.roleRequestPending) return@launch
             if (!state.homeRoleHeld && state.modeEnabled) {
@@ -108,7 +107,6 @@ class GeneralSettingsLauncherHelper(
             binding.rowLauncherModeEnabled.setCheckedSilently(state.homeRoleHeld)
             updateOpenRowEnabled(state.homeRoleHeld)
             binding.rowLauncherStartWindow.isVisible = !state.homeRoleHeld
-            Timber.d("S2858: startWindowRow visible=${!state.homeRoleHeld}")
         }
     }
 

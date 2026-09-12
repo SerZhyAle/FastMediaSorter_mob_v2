@@ -35,7 +35,6 @@ class SystemInfoViewModel @Inject constructor(
 
     /** Ignored while a read is already in flight - the report cannot be more current than the read. */
     fun refresh() {
-        Timber.d("S2165: manual refresh requested")
         if (state.value.refreshing) {
             return
         }

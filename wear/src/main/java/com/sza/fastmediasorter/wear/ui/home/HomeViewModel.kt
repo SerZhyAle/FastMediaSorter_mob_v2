@@ -159,7 +159,6 @@ class HomeViewModel @Inject constructor(
      * keeps them from becoming two answers to "open this channel".
      */
     suspend fun resolveShortcutRoute(section: HomeSection): String? {
-        Timber.d("S2751: home shortcut resolving, id=%s", section.id)
         val route = section.route
             ?: destinationFor(section.id)?.let(WearLaunchRoutes::routeFor)
             ?: section.targetRef

@@ -118,7 +118,6 @@ class ResourceOpsMenuManager @Inject constructor(
         val canAddToReceivers = resource != null && resource.allowsWriteOperations() &&
             !resource.isDestination && !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
         popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible = canAddToReceivers
-        Timber.d("S2594: resource menu canCreateFolder=$canCreateFolder canAddToReceivers=$canAddToReceivers")
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
         popup.menu.findItem(R.id.action_video_capture)?.isVisible = isVideoVisible && onVideoCapture != null

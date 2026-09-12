@@ -164,7 +164,6 @@ class PhoneResourceClient @Inject constructor(
                     val match = events.firstMatchingPageWithUri(requestId)
                     events.release()
                     if (match != null && continuation.isActive) {
-                        Timber.d("S2985: received page requestId=%s", requestId)
                         dataItemUri = match.first
                         continuation.resume(match.second)
                     }

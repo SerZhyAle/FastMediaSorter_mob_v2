@@ -65,7 +65,6 @@ object HomeWidgetAccent {
      */
     fun applyIconTint(views: RemoteViews, @IdRes viewId: Int, context: Context, widgetKey: String) {
         val accentRes = accentResFor(widgetKey) ?: return
-        Timber.d("S2889: widget '$widgetKey' tinted with accent=$accentRes")
         views.setInt(viewId, "setColorFilter", ContextCompat.getColor(context, accentRes))
     }
 }

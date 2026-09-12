@@ -33,7 +33,6 @@ class GeneralSettingsBrowseSwipeSetupHelper(
                 val picked = actions.getOrNull(index) ?: return@setOnItemSelectedListener
                 val current = viewModel.settings.value
                 if (direction.actionOf(current) == picked) return@setOnItemSelectedListener
-                Timber.d("S2533: swipe action set ${direction.name} -> ${picked.name}")
                 viewModel.updateSettings(direction.withAction(current, picked))
             }
         }

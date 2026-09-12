@@ -95,7 +95,6 @@ class GeneralSettingsCacheHelper(
 
     fun autoCalculateCacheSize() {
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            Timber.d("S2659: calculating optimal cache size from settings")
             val storageInfo = withContext(Dispatchers.IO) {
                 val optimalSizeMb = calculateOptimalCacheSizeUseCase()
                 optimalSizeMb to calculateOptimalCacheSizeUseCase.getStorageInfo()

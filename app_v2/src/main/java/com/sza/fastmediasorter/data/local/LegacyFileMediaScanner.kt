@@ -25,7 +25,6 @@ internal class LegacyFileMediaScanner {
         showHiddenFiles: Boolean,
         onProgress: ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
-        Timber.d("S2401: LegacyFileMediaScanner.scanFolder entered for '$path'")
         val folder = File(path)
         if (!folder.isDirectory) {
             Timber.w("LegacyFileMediaScanner: '$path' does not exist or is not a directory")

@@ -31,7 +31,6 @@ class ResolveLauncherColumnsUseCase @Inject constructor(
         val occupiedColumns = desktop.observeCells(orientation).first()
             .maxOfOrNull { it.colIndex + it.spanW } ?: 0
         val derived = maxOf(occupiedColumns, MIN_DESKTOP_COLUMNS)
-        Timber.d("S2679: derived %s width %d from occupied columns", orientation, derived)
         return derived
     }
 

@@ -88,7 +88,6 @@ object ColorThemePrefs {
             "LIGHT_RED" -> R.style.ThemeOverlay_FastMediaSorter_LightRed
             else -> return
         }
-        Timber.d("S2557: applyThemeOverlay mode=%s", getMode(activity))
         activity.theme.applyStyle(overlayResId, true)
     }
 

@@ -35,7 +35,6 @@ internal class BrowseDeleteDialogManager(
             return
         }
 
-        Timber.d("S2990: showDeleteConfirmation entry - $fileCount files")
 
         if (resource?.type?.isNetworkResource == true) {
             val prefs = activity.getSharedPreferences("NetworkDeletePrefs", Context.MODE_PRIVATE)

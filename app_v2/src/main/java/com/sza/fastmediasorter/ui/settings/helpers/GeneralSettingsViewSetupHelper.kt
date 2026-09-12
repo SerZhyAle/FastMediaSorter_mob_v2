@@ -137,7 +137,6 @@ class GeneralSettingsViewSetupHelper(
             val current = viewModel.settings.value
             if (current.unitSystem == system) return@setOnItemSelectedListener
             viewModel.updateSettings(current.copy(unitSystem = system))
-            Timber.d("S2731: unit system selected=%s", system)
         }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->

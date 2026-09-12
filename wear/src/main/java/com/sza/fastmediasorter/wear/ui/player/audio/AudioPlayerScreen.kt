@@ -175,7 +175,6 @@ private fun AudioPlayerLifecycleEffects(viewModel: AudioPlayerViewModel) {
     // S2802: navigating here happens after the host is already started, so the ON_START effect
     // above does not fire on first entry - without this the permanent indicator would open at zero.
     LaunchedEffect(Unit) {
-        Timber.d("S2802: audio player entered, refreshing volume readout")
         viewModel.onVolumeRefresh()
     }
 }
@@ -195,7 +194,6 @@ fun AudioPlayerScreen(
 
     AudioPlayerLifecycleEffects(viewModel)
 
-    Timber.d("S2481: AudioPlayerScreen composed")
 
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
@@ -331,10 +329,8 @@ private fun AudioPlayerContent(
                 detectVerticalDragGestures { change, dragAmount ->
                     change.consume()
                     if (dragAmount < DRAG_THRESHOLD_UP_PX) {
-                        Timber.d("S2477: audio player vertical drag volume step up")
                         onRotaryStep(1)
                     } else if (dragAmount > DRAG_THRESHOLD_DOWN_PX) {
-                        Timber.d("S2477: audio player vertical drag volume step down")
                         onRotaryStep(-1)
                     }
                 }
@@ -394,7 +390,6 @@ private fun AudioPlayerContent(
     }
 
     if (showMenu) {
-        Timber.d("S2531: audio player overflow menu opened")
         PlayerOverflowMenu(
             actions = playerMenuActions(
                 uiState = uiState,
@@ -797,7 +792,6 @@ private fun PlaybackControls(
     val isPlaying = uiState.isPlaying
     val playbackMode = uiState.playbackMode
     val progress = uiState.progress
-    Timber.d("S2529: AudioPlayerScreen PlaybackControls composed, isPlaying=$isPlaying")
     val previousDesc = stringResource(R.string.wear_previous_file)
     val nextDesc = stringResource(R.string.wear_next_file)
     val seekBackwardDesc = stringResource(R.string.wear_seek_backward)
@@ -808,7 +802,6 @@ private fun PlaybackControls(
     // previous, play/pause, playback mode, next - and the bare play button that stood before S2766
     // moved the position onto the ring for the compact column. The STORE branch keeps that ring.
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: audio primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
     val playbackModeIcon = when (playbackMode) {
         WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
         WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
@@ -919,7 +912,6 @@ private fun SecondaryControls(
     // three the reviewed one. S2531: the cast entry lives in the overflow menu, so the restored row
     // keeps a menu button where the pre-S2766 tree held screen off - screen off moved to the menu.
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: audio secondary restored=%b columns=%s", restored, secondaryRowColumns())
 
     PlayerCommandGrid(
         horizontalPadding = horizontalPadding,

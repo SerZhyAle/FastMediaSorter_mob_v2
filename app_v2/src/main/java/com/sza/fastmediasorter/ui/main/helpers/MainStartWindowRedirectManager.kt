@@ -41,8 +41,6 @@ class MainStartWindowRedirectManager(
             contract.isAvailableInBuild &&
             startWindowManager.isEnabled() &&
             !isHomeRoleHeld()
-        Timber.d("S2811: redirect eligible=$eligible")
-        Timber.d("S2858: homeRoleHeld=${isHomeRoleHeld()}")
         val startWindow = if (eligible) contract.startWindowIntent(activity) else null
         startWindow?.let {
             activity.startActivity(it)

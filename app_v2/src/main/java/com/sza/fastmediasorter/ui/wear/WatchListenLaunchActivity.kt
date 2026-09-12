@@ -36,7 +36,6 @@ class WatchListenLaunchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val record = intent?.getBooleanExtra(EXTRA_RECORD, false) ?: false
-        Timber.d("S2881: trampoline entered, action=%s record=%s", intent?.action, record)
         when (intent?.action) {
             ACTION_TOGGLE ->
                 when (sessionManager.listenState.value) {

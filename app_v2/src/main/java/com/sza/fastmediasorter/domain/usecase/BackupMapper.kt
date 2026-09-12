@@ -137,7 +137,6 @@ object BackupMapper {
     }
 
     fun toBackupSettings(settings: AppSettings): BackupSettings {
-        Timber.d("S2843: toBackupSettings - carrying streams/programs/integration broadcast fields")
         return BackupSettings(
             isResourceGridMode = settings.isResourceGridMode,
             resourceGridCellSize = settings.resourceGridCellSize.name,
@@ -508,7 +507,6 @@ object BackupMapper {
         // S2648: the eight grouped blocks apply on top of the flat copy above. A group the file does not
         // carry leaves its settings untouched, which is what lets a backup written before these groups
         // existed restore without resetting any of the 124 settings it never held.
-        Timber.d("S2843: toAppSettings - restoring streams/programs/integration broadcast fields")
         return BackupSettingsGroupMapper.applyGroups(flatRestored, backup)
     }
 

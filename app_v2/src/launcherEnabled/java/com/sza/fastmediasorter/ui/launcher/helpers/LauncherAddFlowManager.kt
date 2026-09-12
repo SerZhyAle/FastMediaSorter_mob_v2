@@ -721,7 +721,6 @@ class LauncherAddFlowManager(
     /** S2032: same reason as [placeWeatherGadget] - the channel rides the target, not a resource id. */
     private fun placeYouTubeChannelWindowGadget(encodedChannel: String) {
         val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW) ?: return
-        Timber.d("S2032: placing channel window ${gadget.defaultSpanW}x${gadget.defaultSpanH}")
         placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(

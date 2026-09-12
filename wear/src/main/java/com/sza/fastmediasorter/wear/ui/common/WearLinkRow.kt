@@ -30,7 +30,6 @@ fun WearLinkRow(
     modifier: Modifier = Modifier,
     message: String? = null
 ) {
-    Timber.d("S3016: WearLinkRow composed")
     // A Column, not two siblings: one ScalingLazyColumn item is a single slot, so a bare Chip and
     // Text would stack on top of each other - the same trap already documented in SendLogsRow.
     Column(

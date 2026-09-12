@@ -95,7 +95,6 @@ private class SpeedGadgetView(
         // gadget teaching the seam a second input unit.
         val quantity = Quantity.Speed(speedKmh * METRES_PER_SECOND_PER_KMH)
         binding.gadgetSpeedValue.text = quantityFormatter.format(quantity, system)
-        Timber.d("S2904: SpeedGadget value = %s", binding.gadgetSpeedValue.text)
         binding.gadgetSpeedMessage.isVisible = false
         contentDescription = context.getString(
             R.string.launcher_gadget_speed_description,

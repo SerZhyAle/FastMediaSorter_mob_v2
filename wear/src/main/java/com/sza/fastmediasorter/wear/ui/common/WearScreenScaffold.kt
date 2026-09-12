@@ -153,7 +153,6 @@ fun WearScreenScaffold(
                         blurRadius = 6f
                     )
                 )
-                Timber.d("S2479: TimeText contrast halo composed")
                 TimeText(
                     timeTextStyle = textStyle,
                     modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)

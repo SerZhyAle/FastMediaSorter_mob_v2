@@ -285,7 +285,6 @@ class StereoDetector @javax.inject.Inject constructor() {
         } else {
             StereoMode.UNKNOWN
         }
-        Timber.d("S2893: mp4-format stereoMode=%d projection=equirect -> %s", format.stereoMode, result)
         return result
     }
 
@@ -523,7 +522,6 @@ class StereoDetector @javax.inject.Inject constructor() {
             C.STEREO_MODE_TOP_BOTTOM -> StereoMode.OU
             else -> StereoMode.UNKNOWN
         }
-        Timber.d("S2892: matroska stereoMode=${format.stereoMode} -> $result")
         return result
     }
 

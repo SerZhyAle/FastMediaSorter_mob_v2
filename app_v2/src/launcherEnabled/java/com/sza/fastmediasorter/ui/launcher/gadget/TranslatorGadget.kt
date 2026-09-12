@@ -162,7 +162,6 @@ private class TranslatorGadgetView(
         // IME_FLAG_NO_ENTER_ACTION there, so the keyboard offers a newline and no action at all. This
         // button is what makes typed text translatable; the listener stays for hardware keyboards.
         binding.gadgetTranslatorTranslate.setOnClickListener {
-            Timber.d("S2732: translator cell translate button tapped")
             translate(binding.gadgetTranslatorInput.text?.toString().orEmpty())
         }
         binding.gadgetTranslatorSwap.setOnClickListener { swapDirection() }
@@ -272,9 +271,7 @@ private class TranslatorGadgetView(
                 if (translated != null) {
                     binding.gadgetTranslatorResult.text = translated
                 }
-                Timber.d("S2988: state translated=%s modelMissing=%s", translated != null, modelMissing)
                 val state = decideTranslatorState(text, translated, modelMissing, failed)
-                Timber.d("S2732: translator cell state after engine call: %s", state)
                 renderState(state)
             }
         }

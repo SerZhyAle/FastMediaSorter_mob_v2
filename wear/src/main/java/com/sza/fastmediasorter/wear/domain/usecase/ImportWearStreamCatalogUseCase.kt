@@ -120,7 +120,6 @@ class ImportWearStreamCatalogUseCase @Inject constructor(
         // already-released archive has no entry, and clearing on its absence would empty the picker
         // on every import from an older publication.
         if (payload.collectionsJson != null) {
-            Timber.d("S2669: watch import found the collections entry")
             try {
                 val collections = collectionsParser.parse(payload.collectionsJson)
                 collectionRepository.saveAll(collections)

@@ -89,7 +89,6 @@ private class WeatherGadgetView(
     }
 
     private fun refreshWeatherOnTap() {
-        Timber.d("S1905: weather gadget tapped, forcing refresh for ${location?.label}")
         val place = location ?: return
         findViewTreeLifecycleOwner()?.lifecycleScope?.launch {
             when (val result = getWeather(place, forceRefresh = true)) {
@@ -113,7 +112,6 @@ private class WeatherGadgetView(
             .distinctUntilChanged()
             .collectLatest { system ->
                 unitSystem = system
-                Timber.d("S2716: unit system selected=$system")
                 while (currentCoroutineContext().isActive) {
                     when (val result = getWeather(place)) {
                         is WeatherResult.Fresh -> showSnapshot(result.snapshot, stale = false)
@@ -127,7 +125,6 @@ private class WeatherGadgetView(
     }
 
     private fun showSnapshot(snapshot: WeatherSnapshot, stale: Boolean) {
-        Timber.d("S1905: gadget draws ${snapshot.location.label} at ${snapshot.observedAtMs} stale=$stale")
         binding.gadgetWeatherIcon.setImageResource(iconFor(snapshot.condition, snapshot.isDay))
         binding.gadgetWeatherIcon.isVisible = true
         binding.gadgetWeatherCaption.isVisible = false

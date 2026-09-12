@@ -19,7 +19,6 @@ internal fun CenteredGridRow(
     gap: Dp,
     content: @Composable RowScope.() -> Unit
 ) {
-    Timber.d("S2525: CenteredGridRow columns=%d items=%d", columns, itemCount)
     BoxWithConstraints(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
         val cellWidth = (maxWidth - gap * (columns - 1)) / columns
         val rowWidth = cellWidth * itemCount + gap * (itemCount - 1)

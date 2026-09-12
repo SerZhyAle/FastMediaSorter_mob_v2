@@ -50,7 +50,6 @@ class ExportSourcesUseCase @Inject constructor(
         // S2502: one reading for both, so the payload's own send time and the envelope's cannot drift
         // apart and describe two different moments for one exchange.
         val sentAt = System.currentTimeMillis()
-        Timber.d("S2502: watch export leg built ${payloads.size} record(s) with sentAt=$sentAt")
         val payload = WearSourcesExportPayload(
             sources = payloads,
             // S2868: the phone renders this in its sources-import card, so it reads the same human name
@@ -61,7 +60,6 @@ class ExportSourcesUseCase @Inject constructor(
             // user removed here from one it has never seen, and hands the removed one straight back.
             tombstones = networkSourceRepository.getTombstones()
         )
-        Timber.d("S2507: watch export leg carries ${payload.tombstones.orEmpty().size} tombstone(s)")
         val envelopeBytes = envelopeCodec.encode(
             WearEventEnvelope(
                 eventType = WearDataLayerPaths.EVENT_SOURCES_EXPORT,

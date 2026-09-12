@@ -67,7 +67,6 @@ class OperationsSendCommandsManager(
             distributeColumnMajor(container, rows, effectiveColumns)
         }
         upgradeSendCommandLabelsAndIcons(targets)
-        Timber.d("S2390: OperationsSendCommandsManager setup complete, targets=${targets.size}, cols=$effectiveColumns")
     }
 
     fun onConfigurationChanged(

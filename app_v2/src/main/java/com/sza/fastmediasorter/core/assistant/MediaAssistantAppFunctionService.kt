@@ -28,7 +28,6 @@ class MediaAssistantAppFunctionService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Timber.d("S2920: MediaAssistantAppFunctionService created")
     }
 
     override fun onBind(intent: Intent?): IBinder? {

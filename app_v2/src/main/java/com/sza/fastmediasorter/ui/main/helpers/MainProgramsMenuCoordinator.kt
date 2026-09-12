@@ -114,7 +114,6 @@ class MainProgramsMenuCoordinator(
         // S2673: the one call that draws a sub-program. Its order is the registry's own `order`, which
         // is what puts every surface on one sequence and what makes the accent pass below match.
         val visible = visibleSubPrograms(gate)
-        Timber.d("S2673: programs menu drew ${visible.size} sub-program entries from the registry")
         for (entry in visible) {
             val presentation = PRESENTATION.getValue(entry.routeKey)
             popup.menu.add(0, presentation.itemId, MainProgramsMenuOrder.menuOrderFor(entry), presentation.labelRes)

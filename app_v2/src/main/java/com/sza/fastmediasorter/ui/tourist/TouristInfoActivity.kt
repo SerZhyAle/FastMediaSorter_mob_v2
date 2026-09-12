@@ -31,7 +31,6 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
         ActivityTouristInfoBinding.inflate(layoutInflater)
 
     override fun setupViews() {
-        timber.log.Timber.d("S2922: TouristInfoActivity setupViews")
         binding.touristRoot.applySystemBarInsetPadding()
         binding.toolbar.setNavigationOnClickListener { finish() }
 

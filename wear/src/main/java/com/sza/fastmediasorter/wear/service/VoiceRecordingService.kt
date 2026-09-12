@@ -207,7 +207,6 @@ class VoiceRecordingService : Service() {
             Timber.i("Ignoring a start: the microphone session is already open")
             return
         }
-        Timber.d("S2161: voice recording started")
         val notification = buildNotification(R.string.wear_voice_recorder_notification_title)
         ServiceCompat.startForeground(this, NOTIFICATION_ID, notification, foregroundServiceType())
         serviceScope.launch {
@@ -282,13 +281,11 @@ class VoiceRecordingService : Service() {
     }
 
     private fun onListeningAbandoned() {
-        Timber.d("S2939: nobody took the listening stream, ending the session")
         Timber.i("Nobody took the listening stream for %d ms; ending the session", LISTEN_ABANDON_AFTER_MS)
         endListeningFromWatch()
     }
 
     private fun handleStopListeningFromNotification() {
-        Timber.d("S2939: listening stopped from the watch notification")
         endListeningFromWatch()
     }
 

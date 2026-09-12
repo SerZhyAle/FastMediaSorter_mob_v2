@@ -674,7 +674,6 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
             val rightPadding = maxOf(navBar.right, cutout.right)
 
             view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
-            timber.log.Timber.d("S2908: Standalone topCommandPanel insets applied top=$topPadding")
             insets
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }

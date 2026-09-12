@@ -1062,7 +1062,6 @@ class PlayerMediaLoaderManager(
         } else {
             // For video: auto-hide controls after configured delay
             val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000
-            Timber.d("S2505: PlayerMediaLoaderManager controllerShowTimeoutMs=$delayMs")
             binding.playerView.controllerShowTimeoutMs = delayMs
 
             // S1005: reveal the transport controller when a video opens (mirrors the audio branch). The

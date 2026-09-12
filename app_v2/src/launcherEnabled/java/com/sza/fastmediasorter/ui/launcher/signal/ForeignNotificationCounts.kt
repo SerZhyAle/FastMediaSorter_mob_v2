@@ -200,7 +200,6 @@ class ForeignNotificationCounts @Inject constructor(
      * signal source turns that order into each chip's rank, and the strip lays the ranks out left to right.
      */
     private fun publish() {
-        Timber.d("S2734: notification order ${keysByPackage.keys.sortedByDescending { orderByPackage[it] ?: 0L }}")
         mutableCounts.value = keysByPackage.entries
             .sortedByDescending { (packageName, _) -> orderByPackage[packageName] ?: 0L }
             .associateTo(LinkedHashMap()) { (packageName, keys) -> packageName to keys.size }

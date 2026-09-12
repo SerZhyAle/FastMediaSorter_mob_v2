@@ -33,7 +33,6 @@ class ToggleFavoriteUseCase @Inject constructor(
 
     /** S2987: Flips the mark using a full record so display name and mime type are preserved in storage. */
     suspend fun toggle(record: WearFavoriteRecord, wasFavorite: Boolean): Boolean {
-        Timber.d("S2987: ToggleFavoriteUseCase.toggle record=${record.displayName}, wasFav=$wasFavorite")
         if (wasFavorite) {
             favoritesRepository.removeFavorite(record.sourceId, record.filePath)
         } else {

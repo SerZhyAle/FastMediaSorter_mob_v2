@@ -164,7 +164,6 @@ class LauncherTrayManager(
         val routeTo = { indicator: LauncherTrayIndicator ->
             val (sectionKey, osShortcutKey) = LauncherTraySectionRouting.routeFor(indicator, lastTransport)
             if (LauncherTraySectionRouting.opensSystemScreenDirectly(indicator)) {
-                Timber.d("S2027: tray tap $indicator -> system screen $osShortcutKey")
                 openSystem(osShortcutKey)
             } else {
                 openNetwork(sectionKey, osShortcutKey)
@@ -253,7 +252,6 @@ class LauncherTrayManager(
     }
 
     private fun renderHotspot(state: HotspotState) {
-        Timber.d("S2027: tray hotspot render state=$state")
         if (state != HotspotState.ENABLED) {
             indicators.trayHotspot.isVisible = false
             return
@@ -527,7 +525,6 @@ class LauncherTrayManager(
             charging,
         )
 
-        Timber.d("S2738: tray battery $percent%, plug source $chargingSource")
         // S2738 strategic §2 goal 3: the lightning mark is the half of the charging signal that survives
         // colour blindness and a warning colour, so it is on the number itself rather than on the tint.
         val valueRes = if (chargingSource.isCharging) {

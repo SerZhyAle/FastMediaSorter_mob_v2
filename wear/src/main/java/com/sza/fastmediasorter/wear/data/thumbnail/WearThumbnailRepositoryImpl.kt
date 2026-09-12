@@ -82,7 +82,6 @@ class WearThumbnailRepositoryImpl @Inject constructor(
         "${sourceId ?: "local"}|${file.uri}"
 
     private suspend fun load(file: WearMediaFile, sourceId: String?): WearThumbnail {
-        Timber.d("S2489: Wear fetching thumbnail for %s (sourceId=%s)", file.name, sourceId)
         val isAudio = file.mimeType?.startsWith(AUDIO_PREFIX) == true
         val bitmap = if (sourceId == null) {
             // Local audio uses MediaMetadataRetriever for reliable embedded art extraction;

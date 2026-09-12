@@ -69,7 +69,6 @@ fun HeartRateHistoryScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Timber.d("S3013: heart rate history screen opened")
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

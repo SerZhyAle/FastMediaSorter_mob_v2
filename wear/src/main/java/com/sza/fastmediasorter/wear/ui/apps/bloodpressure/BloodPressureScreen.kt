@@ -68,7 +68,6 @@ fun BloodPressureScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    Timber.d("S3012: blood pressure screen opened")
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),

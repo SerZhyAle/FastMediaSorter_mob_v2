@@ -49,7 +49,6 @@ class BroadcastEntryActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Timber.d("S2818: broadcast entry screen opened, action=%s", intent?.action)
         val binding = ActivityBroadcastEntryBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val broadcastManager = mainHelperFactory.createBroadcastManager(

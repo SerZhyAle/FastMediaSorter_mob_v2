@@ -70,7 +70,6 @@ class ExtensionsManagerFragment : Fragment() {
 
         // S2899: Hide the activity's underlying content so D-pad focus cannot escape the overlay.
         hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
-        Timber.d("S2899: ExtensionsManager focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         applyWindowInsets()
 
@@ -111,7 +110,6 @@ class ExtensionsManagerFragment : Fragment() {
         val binding = _binding ?: return
         val target = if (binding.btnInstallAll.isVisible) binding.btnInstallAll else binding.btnBack
         target.requestFocus()
-        Timber.d("S2899: ExtensionsManager initial focus requested on ${target.javaClass.simpleName}")
     }
 
     // Edge-to-edge safety (CLAUDE.md Rule 17): the header keeps its colored background under the status

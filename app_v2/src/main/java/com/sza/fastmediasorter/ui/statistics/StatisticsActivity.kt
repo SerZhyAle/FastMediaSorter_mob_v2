@@ -57,7 +57,6 @@ class StatisticsActivity : BaseActivity<ActivityStatisticsBinding>() {
         binding.toolbar.setNavigationOnClickListener { finish() }
 
         val span = resources.getInteger(R.integer.statistics_card_span)
-        Timber.d("S2719: statistics grid span=$span, metric rows take the full width")
         binding.rvStatistics.layoutManager = GridLayoutManager(this, span).apply {
             spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
                 override fun getSpanSize(position: Int): Int = statisticsAdapter.spanSizeFor(position)

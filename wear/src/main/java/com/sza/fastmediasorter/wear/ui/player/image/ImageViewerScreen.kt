@@ -211,7 +211,6 @@ private data class ImageViewerActions(
  * taps the edge asked for the next picture, not for a row of buttons over it.
  */
 private fun dispatchZoneTap(xFraction: Float, actions: ImageViewerActions) {
-    Timber.d("S2480: zone tap at fraction $xFraction")
     when {
         xFraction <= TAP_ZONE_PREVIOUS_END_FRACTION -> actions.onSwipeRight()
         xFraction >= TAP_ZONE_NEXT_START_FRACTION -> actions.onSwipeLeft()
@@ -301,7 +300,6 @@ private fun ImageViewerContent(
         }
 
         if (showMenu) {
-            Timber.d("S2531: image viewer overflow menu opened")
             PlayerOverflowMenu(
                 actions = imageMenuActions(
                     uiState = uiState,
@@ -391,7 +389,6 @@ private fun Modifier.cropTransformGestures(
                 val event = awaitPointerEvent()
                 val multiTouch = event.changes.size > 1
                 if (multiTouch || currentZoom() > IMAGE_ZOOM_MIN) {
-                    Timber.d("S2480: crop transform, pointers ${event.changes.size}, zoom ${currentZoom()}")
                     onTransform(event.calculateZoom(), event.calculatePan())
                     event.changes.forEach { change ->
                         if (change.positionChanged()) {
@@ -496,12 +493,10 @@ private fun ImageCommandRow(
     onToggleSlideshow: () -> Unit,
     onTogglePlaybackMode: () -> Unit
 ) {
-    Timber.d("S2529: ImageViewerScreen ImageCommandRow composed, slideshowActive=${uiState.isSlideshowActive}")
     val slideshowDesc = stringResource(
         if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
     )
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: image primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
     val playbackModeIcon = when (uiState.playbackMode) {
         WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
         WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
@@ -572,7 +567,6 @@ private fun ImageSecondaryRow(
     val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
     val menuDesc = stringResource(R.string.wear_file_op_actions)
     val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
-    Timber.d("S2803: image secondary restored=%b columns=%s", restored, secondaryRowColumns())
 
     PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
         PlayerCommandButton(

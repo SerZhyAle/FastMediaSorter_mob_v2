@@ -27,7 +27,6 @@ class GeneralSettingsLinkButtonsSetupHelper(
     private val fragment get() = hostContext.fragment
 
     fun setup() {
-        Timber.d("S2601: link-buttons group setup entered in its extracted helper")
         binding.btnUserGuide.setOnClickListener {
             val url = when (LocaleHelper.getLanguage(fragment.requireContext())) {
                 "ru" -> "$DOCS_ROOT/howto/index-ru.html"

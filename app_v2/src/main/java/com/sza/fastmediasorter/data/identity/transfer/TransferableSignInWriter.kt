@@ -43,7 +43,6 @@ class TransferableSignInWriter @Inject constructor(
      * signed-out app leaves no stored bytes rather than an empty envelope.
      */
     suspend fun removeEntry(providerKey: String) {
-        Timber.d("S2101: erasing transferable entry for $providerKey")
         val remaining = currentRecord().withoutProvider(providerKey)
         if (remaining.entries.isEmpty()) {
             store.clear()

@@ -314,8 +314,6 @@ private fun PhoneResourceStateBranch(
         )
 
         is PhoneResourceUiState.Unavailable -> {
-            Timber.d("S2471: PhoneResourceScreen rendering Unavailable state block")
-            Timber.d("S2981: PhoneResourceScreen Unavailable reason=%s", current.reason)
             WearStateBlock(
                 kind = WearStateKind.UNAVAILABLE,
                 message = stringResource(current.reason.toMessageRes()),

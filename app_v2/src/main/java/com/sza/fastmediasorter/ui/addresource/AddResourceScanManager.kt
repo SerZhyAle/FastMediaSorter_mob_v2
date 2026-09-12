@@ -291,7 +291,6 @@ internal class AddResourceScanManager(
         // typing an absolute path on top of the pre-filled default text that used to
         // sit in the manual-path field.
         val path = normalizeStoragePrefix(path)
-        Timber.d("S3003: selectFolderByPath path=$path")
         Timber.w("FOLDER_PICKER: Attempting to select path: $path")
         if (path.isBlank()) {
             Toast.makeText(activity, R.string.folder_path_hint, Toast.LENGTH_SHORT).show()

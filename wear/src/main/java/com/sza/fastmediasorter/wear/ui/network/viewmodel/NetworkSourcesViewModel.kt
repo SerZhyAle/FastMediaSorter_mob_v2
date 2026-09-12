@@ -271,7 +271,6 @@ class NetworkSourcesViewModel @Inject constructor(
             try {
                 // S2507: the user-delete path, which records the deletion event. The plain
                 // deleteSource is the import path - it applies a decision the phone already made.
-                Timber.d("S2507: watch user-delete, recording a tombstone for source $id")
                 networkSourceRepository.deleteSourceWithTombstone(id, System.currentTimeMillis())
                 Timber.d("Deleted source $id")
             } catch (e: Exception) {

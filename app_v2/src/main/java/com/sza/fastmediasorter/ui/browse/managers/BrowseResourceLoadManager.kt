@@ -211,7 +211,6 @@ class BrowseResourceLoadManager(
 
             // Try DB-cached file list (rememberFileList mode)
             if (resource.rememberFileList && !forceRescan && !initialSubfolderMode) {
-                Timber.d("S3005: BrowseResourceLoadManager DB-cache branch entered")
                 try {
                     val dbCache = cachedFileListRepository.getCachedFiles(resource.id)
                     if (!dbCache.isNullOrEmpty()) {

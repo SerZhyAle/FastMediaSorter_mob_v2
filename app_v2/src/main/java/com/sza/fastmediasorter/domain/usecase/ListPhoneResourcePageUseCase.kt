@@ -63,7 +63,6 @@ class ListPhoneResourcePageUseCase @Inject constructor(
      * draws its type glyph either way, and a failure status would be reported to the owner as one.
      */
     private suspend fun thumbnailFor(request: WearPhoneResourceRequest): WearPhoneResourcePage {
-        Timber.d("S2489: Phone generating watch thumbnail for token %s", request.itemToken)
         val token = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
 

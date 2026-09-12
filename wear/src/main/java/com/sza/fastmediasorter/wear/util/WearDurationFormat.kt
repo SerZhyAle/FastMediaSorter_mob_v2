@@ -21,7 +21,6 @@ private const val MINUTES_PER_HOUR = 60L
  * absent duration to render as nothing - the media grid's badge - tests for that itself.
  */
 internal fun formatWearDuration(durationMs: Long): String {
-    Timber.d("S2278: formatWearDuration $durationMs ms")
     val totalSeconds = (durationMs / MILLIS_PER_SECOND).coerceAtLeast(0L)
     val minutes = totalSeconds / SECONDS_PER_MINUTE
     val seconds = totalSeconds % SECONDS_PER_MINUTE

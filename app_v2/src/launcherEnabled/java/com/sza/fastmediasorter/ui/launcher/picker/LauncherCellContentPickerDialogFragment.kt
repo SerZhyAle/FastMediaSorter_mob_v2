@@ -121,7 +121,6 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
             else -> 1
         }
         if (gadgetMode) {
-            Timber.d("S2906: gadget picker columns=$columns")
         }
         return columns
     }

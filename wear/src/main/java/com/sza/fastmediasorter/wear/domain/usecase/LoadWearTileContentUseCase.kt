@@ -39,7 +39,6 @@ class LoadWearTileContentUseCase @Inject constructor(
     private val capabilities: WearRestrictedCapabilities
 ) {
     suspend operator fun invoke(kind: WearTileKind): WearTileContent {
-        Timber.d("S2751: tile content requested, kind=%s", kind)
         return contentFor(kind)
     }
 

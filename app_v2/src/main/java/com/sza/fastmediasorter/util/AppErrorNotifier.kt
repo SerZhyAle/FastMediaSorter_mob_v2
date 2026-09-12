@@ -45,7 +45,6 @@ object AppErrorNotifier {
         screenName: String? = null,
         showDetailedErrors: Boolean = false
     ) {
-        Timber.d("S2394: AppErrorNotifier.show entry severity=$severity")
         // DEBUG_ONLY suppressed in release builds
         if (severity == ErrorSeverity.DEBUG_ONLY && !BuildConfig.DEBUG) {
             Timber.d("AppErrorNotifier: suppressed DEBUG_ONLY in release build")

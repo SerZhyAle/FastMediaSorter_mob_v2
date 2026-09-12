@@ -55,7 +55,6 @@ class StopwatchWidgetProvider : AppWidgetProvider() {
             StopwatchWidgetStateStore.read(context, appWidgetId),
             SystemClock.elapsedRealtime(),
         )
-        Timber.d("S1411: stopwatch widget %d toggled, running=%b", appWidgetId, toggled.running)
         StopwatchWidgetStateStore.write(context, appWidgetId, toggled)
         updateAppWidget(context, AppWidgetManager.getInstance(context), appWidgetId)
     }
@@ -98,7 +97,6 @@ class StopwatchWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val state = StopwatchWidgetStateStore.read(context, appWidgetId)
-            Timber.d("S1411: stopwatch widget %d drawn, running=%b", appWidgetId, state.running)
             val toggleLabel = context.getString(
                 if (state.running) R.string.stopwatch_action_stop else R.string.stopwatch_action_start
             )

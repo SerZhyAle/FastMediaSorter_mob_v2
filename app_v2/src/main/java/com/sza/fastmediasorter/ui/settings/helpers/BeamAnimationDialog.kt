@@ -230,7 +230,6 @@ private fun PulsingBeamAnimation() {
     // stopping them tells the user nothing false. Held at phase zero the same three rings read as an
     // intentional static graphic rather than as a dialog that died.
     val mayPulse = rememberAnimationAllowed(AnimationIntent.DECORATIVE)
-    Timber.d("S2567: beam rings mayPulse=$mayPulse")
     val pulse = if (mayPulse) beamPulsePhase() else 0f
     val color = MaterialTheme.colorScheme.primary
     Box(modifier = Modifier.height(120.dp).fillMaxWidth(), contentAlignment = Alignment.Center) {

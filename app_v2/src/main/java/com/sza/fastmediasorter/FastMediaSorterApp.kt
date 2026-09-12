@@ -665,7 +665,6 @@ open class FastMediaSorterApp : Application(), Configuration.Provider {
                 // memory: Play's 2027 thresholds judge bitmaps resident in background and cached
                 // states. Disk cache is deliberately untouched - it is outside those metrics and
                 // dropping it only costs reopening time (S2100, strategic ADR-3).
-                Timber.d("S2100: App backgrounded level=$level($levelName), mem=$memInfo, trimming Glide")
                 Glide.get(this).trimMemory(level)
             }
         }

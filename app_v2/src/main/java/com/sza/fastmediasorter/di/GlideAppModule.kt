@@ -237,7 +237,6 @@ class GlideAppModule : AppGlideModule() {
                 "GoogleDriveThumbnailModelLoader, PdfPageDecoder, EpubCoverDecoder, " +
                 "NetworkPdfThumbnailLoader, and NetworkEpubCoverLoader"
         )
-        Timber.d("S2877: Glide 5.0.7 registerComponents completed - custom loaders and decoders registered")
     }
 
     /**

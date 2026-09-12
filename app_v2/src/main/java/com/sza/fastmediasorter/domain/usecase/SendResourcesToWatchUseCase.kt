@@ -65,7 +65,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
         val selectedIds = selectionRepository.getSelectedIds()
         // S2502: read once for the whole batch - the map is small and every record consults it.
         val editStamps = wearResourceStampStore.readStamps()
-        Timber.d("S2502: phone push leg entered, ${editStamps.size} edit stamp(s) known")
         val allResources = resourceRepository.getAllResourcesSync()
         // S1009: never push hidden resources to the watch (defense-in-depth; hidden resources are LOCAL today).
         val networkResources = allResources.filter {
@@ -88,7 +87,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
         // subsequent push - without that, this branch is unreachable whenever the tombstone store is
         // non-empty, which is always once a deletion has been recorded.
         if (collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
-            Timber.d("S2909: empty selection push skipped, no DataItem sent to watch")
             return@runCatching SendResult(
                 sent = 0,
                 skipped = collected.skipped,
@@ -106,8 +104,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
             // to one a build without this field would have produced.
             deselectedIds = deselectedIds.ifEmpty { null }
         )
-        Timber.d("S2507: phone push leg carries ${syncPayload.tombstones.orEmpty().size} tombstone(s)")
-        Timber.d("S2909: push leg declared ${deselectedIds.size} withdrawn resource(s) from the delivered set")
         val syncJson = gson.toJson(syncPayload)
         val bytes = syncJson.toByteArray(Charsets.UTF_8)
         wearableRepository.putDataItem(DATA_LAYER_PATH, bytes)
@@ -117,7 +113,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
             "Sent ${collected.payloads.size} resources to watch " +
                 "(${collected.skipped} skipped, ${deselectedIds.size} withdrawn)"
         )
-        Timber.d("S2926: batch dispatched, sent=${collected.payloads.size} withdrawn=${deselectedIds.size}")
         SendResult(
             sent = collected.payloads.size,
             skipped = collected.skipped,
@@ -186,7 +181,6 @@ class SendResourcesToWatchUseCase @Inject constructor(
      */
     private suspend fun retireTombstones(tombstones: List<WearSourceTombstonePayload>?) {
         tombstones.orEmpty().forEach { wearResourceTombstoneStore.forget(it.id) }
-        Timber.d("S2909: retired ${tombstones.orEmpty().size} tombstone(s) after dispatch")
     }
 
     /** What the per-resource loop produced: the records that travel, and how many could not. */

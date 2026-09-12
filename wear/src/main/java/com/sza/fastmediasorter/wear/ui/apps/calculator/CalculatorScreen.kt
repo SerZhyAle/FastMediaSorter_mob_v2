@@ -296,7 +296,6 @@ fun CalculatorScreen(
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    Timber.d("S3020: wear calculator 480 layout initialized")
     val keypadScrollState = rememberScrollState()
     val clipboard = LocalClipboardManager.current
     var menuOpen by remember { mutableStateOf(false) }

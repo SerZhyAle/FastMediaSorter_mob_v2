@@ -306,7 +306,6 @@ class StreamsViewModel @Inject constructor(
      * that list, matching [setSelectedCollection], which persists nothing either.
      */
     fun clearNarrowing() {
-        Timber.d("S2820: clearNarrowing from filtered-empty state")
         _uiState.update {
             it.copy(
                 searchQuery = "",

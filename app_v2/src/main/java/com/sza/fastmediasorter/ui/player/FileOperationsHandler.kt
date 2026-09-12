@@ -121,7 +121,6 @@ class FileOperationsHandler(
             )
 
             browseTransferCoordinator.enqueue(request)
-            Timber.d("S1224: FileOperationsHandler.performCopy enqueued to %s", destination.path)
 
             withContext(Dispatchers.Main) {
                 if (!isActivityGone()) {
@@ -144,7 +143,6 @@ class FileOperationsHandler(
     fun performMove(destination: MediaResource) {
         val currentFile = callback.getCurrentFile() ?: return
         callback.onBeforeMove(currentFile.path)
-        Timber.d("S1224: FileOperationsHandler.performMove for %s", currentFile.path)
 
         appScope.launch {
             val destinationReachabilityError = checkSmbDestinationReachability(destination)

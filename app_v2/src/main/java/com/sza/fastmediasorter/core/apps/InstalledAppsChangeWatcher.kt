@@ -42,7 +42,6 @@ class InstalledAppsChangeWatcher @Inject constructor(
         val listener = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
                 val packageName = intent.data?.schemeSpecificPart ?: return
-                Timber.d("S2745: runtime package change %s for %s", intent.action, packageName)
                 val action = intent.action
                 val isReplacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
                 runInBackground(packageName) { handler.handle(action, packageName, isReplacing) }

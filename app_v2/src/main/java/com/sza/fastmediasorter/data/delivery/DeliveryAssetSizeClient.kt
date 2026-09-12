@@ -42,7 +42,6 @@ class DeliveryAssetSizeClient @Inject constructor(
     override suspend fun streamCatalogBytes(): Long? = mutex.withLock {
         cachedBytes?.let { return it }
         val measured = head(DeliveryAssets.STREAM_CATALOG_URL)
-        Timber.d("S2652: stream-catalog HEAD content-length=%s", measured)
         if (measured == null) return null
         cachedBytes = measured
         measured

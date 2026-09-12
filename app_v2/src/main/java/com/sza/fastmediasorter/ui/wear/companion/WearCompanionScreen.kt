@@ -166,7 +166,6 @@ fun WearCompanionScreen(
             watchAppVersionName = watchAppVersion,
             pushEnabled = state !is WearSyncUiState.Sending,
             onPush = {
-                Timber.d("S2460: sync row push tapped from screen level")
                 viewModel.pushSettings(watchSettingsState.payload(context, unitSystem))
             }
         )

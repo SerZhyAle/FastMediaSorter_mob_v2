@@ -387,7 +387,6 @@ class SettingsDropdownRow @JvmOverloads constructor(
             width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
         }
         binding.sdrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
-        Timber.d("S2780: value text row hug=$hug title=${titleView.text}")
     }
 
     /**

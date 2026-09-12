@@ -66,7 +66,6 @@ class RefreshVoiceNoteTitlesUseCase(
     suspend operator fun invoke(activeTag: String) {
         refreshMutex.withLock {
             val storedTag = readTag()
-            Timber.d("S2626: title refresh asked for $activeTag, rows carry $storedTag")
             if (storedTag == activeTag) return@withLock
             refreshAll(activeTag)
         }

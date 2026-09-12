@@ -134,7 +134,6 @@ class ApplyWearSettingsUseCase @Inject constructor(
         WearLocaleManager.applyLocale(context, resolvedTag)
         // S2626: the one moment the watch's language actually changes, and so the one moment the
         // stored voice-note titles stop matching it. The pass exits on its own when they still do.
-        Timber.d("S2626: language push applied $resolvedTag, refreshing note titles")
         refreshVoiceNoteTitles.get().invoke(resolvedTag)
     }
 
@@ -143,7 +142,6 @@ class ApplyWearSettingsUseCase @Inject constructor(
     private suspend fun applyUnitSystem(payload: WearSettingsPayload, gate: FieldGate) {
         val raw = payload.unitSystem?.takeIf { gate.carries("unitSystem") } ?: return
         preferencesRepository.setUnitSystem(UnitSystem.fromNameOrDefault(raw))
-        Timber.d("S2731: unit system applied=%s", raw)
     }
 
     /**

@@ -53,7 +53,6 @@ class WearStopwatchViewModel @Inject constructor(
                 _uiState.update { current ->
                     current.copy(state = WearStopwatchEngine.resize(current.state, count))
                 }
-                Timber.d("S2825: participant count applied: $count")
             }
         }
         viewModelScope.launch {
@@ -88,7 +87,6 @@ class WearStopwatchViewModel @Inject constructor(
      * an empty one, which is the one thing the store is here to prevent.
      */
     fun onResultRendered(text: String) {
-        Timber.d("S2825: result rendered, chars=${text.length}")
         if (_uiState.value.state.isPristine) return
         viewModelScope.launch { preferencesRepository.setStopwatchLastResult(text) }
     }
@@ -98,7 +96,6 @@ class WearStopwatchViewModel @Inject constructor(
         _uiState.update { current ->
             current.copy(state = transform(current.state, now), nowMillis = now)
         }
-        Timber.d("S2825: stopwatch state changed, running=${_uiState.value.anyRunning}")
         refreshTicker()
     }
 

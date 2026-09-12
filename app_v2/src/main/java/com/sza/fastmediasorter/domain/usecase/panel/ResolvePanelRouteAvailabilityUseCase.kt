@@ -107,7 +107,6 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // S2922: Tourist dashboard sub-program - universal across flavors.
             InternalRouteCatalog.KEY_TOURIST_INFO ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist).also {
-                    Timber.d("S2997: tourist route availability=%s", it)
                 }
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.

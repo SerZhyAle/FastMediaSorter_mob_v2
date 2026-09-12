@@ -255,7 +255,6 @@ class LauncherAllAppsFragment : DialogFragment() {
         val groups = groupManager.groupApps(latestApps, spanCount, expandedGroupKeys, previewRows)
         letterGroupCount = groups.count { !it.isPreview }
         singleAppGroupCount = groups.count { it.isSingleApp }
-        Timber.d("S2740: rendered %d single-app group(s)", singleAppGroupCount)
         appsAdapter.submitGroups(groups)
     }
 
@@ -284,7 +283,6 @@ class LauncherAllAppsFragment : DialogFragment() {
             columns = desktopColumns(),
         )
         if (resolved == previewRows) return
-        Timber.d("S2736: preview rows resolved to %d (was %d)", resolved, previewRows)
         previewRows = resolved
         // Posted, not immediate: this runs inside a layout traversal, and RecyclerView refuses an
         // adapter change while it is computing one.

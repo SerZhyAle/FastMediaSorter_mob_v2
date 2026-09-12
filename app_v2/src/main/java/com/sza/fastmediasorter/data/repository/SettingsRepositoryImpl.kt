@@ -313,8 +313,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 val language = LocaleHelper.getLanguage(context)
                 if (lastEmittedS2571Language != language) {
                     lastEmittedS2571Language = language
-                    Timber.d("S3004: deduplicated settings probe emit language=$language")
-                    Timber.d("S2571: settings emit, language derived from LocaleHelper = $language")
                 }
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
 
@@ -341,7 +339,6 @@ class SettingsRepositoryImpl @Inject constructor(
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
                 if (lastEmittedS2603VideoSizeMin != mediaSize.videoSizeMin) {
                     lastEmittedS2603VideoSizeMin = mediaSize.videoSizeMin
-                    Timber.d("S2603: snapshot from store videoSizeMin=${mediaSize.videoSizeMin}")
                 }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)

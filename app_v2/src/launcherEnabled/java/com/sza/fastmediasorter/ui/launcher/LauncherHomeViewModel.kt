@@ -439,7 +439,6 @@ class LauncherHomeViewModel @Inject constructor(
         screenIndex: Int = _activeScreenIndex.value,
     ) {
         viewModelScope.launch {
-            Timber.d("S2905: addCell screenIndex=%d (%d,%d)", screenIndex, rowIndex, colIndex)
             rememberResourceFileList(draft.rememberFileListResourceId)
             val placement = desktopDependencies.desktopRepository.addCell(
                 LauncherCell(
@@ -491,7 +490,6 @@ class LauncherHomeViewModel @Inject constructor(
         onPlaced: (Boolean) -> Unit = {},
     ) {
         viewModelScope.launch {
-            Timber.d("S2905: addCellInFirstFreeSlot screenIndex=%d", screenIndex)
             rememberResourceFileList(rememberFileListResourceId)
             val id = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
@@ -646,7 +644,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Pins a recents entry through the same slot-allocation path as every other taskbar pin. */
     fun pinRecentToTaskbar(command: LauncherCellCommand) {
-        Timber.d("S1901: pinRecentToTaskbar %s", command)
         addPin(command)
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
@@ -655,7 +652,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Hides the command from recents until it is launched again. */
     fun removeRecentCommand(command: LauncherCellCommand) {
-        Timber.d("S1901: removeRecentCommand %s", command)
         viewModelScope.launch {
             taskbarDependencies.removeRecentCommand(command)
         }
@@ -687,7 +683,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** S1905: stores chosen weather location into per-cell configuration in Room. */
     fun saveWeatherCellLocation(cellId: Long, encodedLocation: String) {
-        Timber.d("S1905: saving weather location for cellId=$cellId encoded=$encodedLocation")
         if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) return
         viewModelScope.launch(Dispatchers.IO) {
             desktopDependencies.cellConfigDao.upsert(
@@ -861,7 +856,6 @@ class LauncherHomeViewModel @Inject constructor(
     fun seedDesktopIfNeeded(widthDp: Float, heightDp: Float, startedPortrait: Boolean) {
         viewModelScope.launch {
             val density = settingsRepository.getSettings().first().launcherDensityFactor
-            Timber.d("S2903: seeding starter desktop at density $density")
             val widthColumns = LauncherGridGeometry.columns(widthDp, density)
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
@@ -871,7 +865,6 @@ class LauncherHomeViewModel @Inject constructor(
             // the syncs below wait - the flag's first pass must find the desktop the seed made.
             viewModelScope.launch {
                 desktopDependencies.placeAddResourceTile()
-                Timber.d("S2859: add-resource tile backfill pass")
             }
             // S2564: its own coroutine, because each observation collects for the lifetime of this
             // ViewModel and the first one would otherwise never let the second start.
@@ -933,7 +926,6 @@ class LauncherHomeViewModel @Inject constructor(
             .map { desktopDependencies.syncEnabledResourceTiles.enabledMediaTypes() }
             .distinctUntilChanged()
             .collect { types ->
-                Timber.d("S2564: enabled media types changed, %d type(s)", types.size)
                 desktopDependencies.syncEnabledResourceTiles()
             }
     }
@@ -949,7 +941,6 @@ class LauncherHomeViewModel @Inject constructor(
         screenIndex: Int = _activeScreenIndex.value,
     ) {
         viewModelScope.launch {
-            Timber.d("S2905: placeAppOnDesktop screenIndex=%d pkg=%s", screenIndex, packageName)
             val placed = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
@@ -983,7 +974,6 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** S2392: pins an App Functions cell, reusing the same confirmation the app menu speaks. */
     fun pinFeatureToTaskbar(command: LauncherCellCommand) {
-        Timber.d("S2392: pinFeatureToTaskbar %s", command)
         addPin(command)
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))

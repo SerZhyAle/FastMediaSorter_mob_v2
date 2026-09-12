@@ -74,8 +74,6 @@ class LauncherWallpaperManager(
      */
     private fun startCameraIfPolicyAllows(cameraId: String) {
         val mayAnimate = AnimationPolicy.mayAnimate(AnimationIntent.DECORATIVE)
-        timber.log.Timber.d("S2536: launcher camera backdrop level=${AnimationPolicy.level}")
-        timber.log.Timber.d("S2661: launcher camera backdrop level=${AnimationPolicy.level} allows=$mayAnimate")
         if (mayAnimate) {
             stopWaves()
             cameraLayer.isVisible = true
@@ -102,7 +100,6 @@ class LauncherWallpaperManager(
             wavesLayer.backdropIntensity = tuning.intensity
             wavesLayer.animationSpeedScale = tuning.animationSpeed
             wavesLayer.particleDensityScale = tuning.particleDensity
-            timber.log.Timber.d("S2729: launcher backdrop intensity=${tuning.intensity}")
         }
         lifecycleOwner.collectOnLifecycle(viewModel.animationPalette) { paletteKey ->
             wavesLayer.palette = AudioWaveParticleView.AnimationColorPalette.fromKeyOrDefault(paletteKey)

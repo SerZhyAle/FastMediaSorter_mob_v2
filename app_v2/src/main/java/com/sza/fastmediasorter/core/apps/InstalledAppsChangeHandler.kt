@@ -31,7 +31,6 @@ class InstalledAppsChangeHandler @Inject constructor(
         if (replacingRemoval) return
         refreshInstalledApps.refreshPackage(packageName)
         packageChange(action, isReplacing)?.let { change ->
-            Timber.d("S2665: shortcut sync requested for %s", packageName)
             syncInstalledAppShortcut(packageName, change)
         }
     }

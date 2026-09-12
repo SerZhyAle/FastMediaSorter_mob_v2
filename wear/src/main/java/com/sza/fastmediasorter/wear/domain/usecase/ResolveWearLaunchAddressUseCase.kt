@@ -38,7 +38,6 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(target: WearLaunchTarget): WearLaunchAddress? {
-        Timber.d("S2751: launch address requested, target=%s", target)
         return addressFor(target)
     }
 

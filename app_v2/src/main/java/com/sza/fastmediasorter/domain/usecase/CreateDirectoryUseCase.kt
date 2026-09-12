@@ -34,7 +34,6 @@ class CreateDirectoryUseCase @Inject constructor(
         parentPath: String,
         folderName: String
     ): Result<String> = withContext(Dispatchers.IO) {
-        Timber.d("S2625: create-folder type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
         // 1. Validation: S2625 - the user flag alone misses the probe for LOCAL/CLOUD and never
         // refuses a stream, so this boundary resolves write permission through the shared helper.
         if (!resource.allowsWriteOperations()) {

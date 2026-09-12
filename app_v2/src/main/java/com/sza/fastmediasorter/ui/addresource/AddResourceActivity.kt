@@ -511,7 +511,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
      * is the confirmation.
      */
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
-        Timber.d("S2859: add-flow success, pin=%b, ids=%d", pinShortcutOnCreate, createdResourceIds.size)
         if (!pinShortcutOnCreate) {
             finish()
             return

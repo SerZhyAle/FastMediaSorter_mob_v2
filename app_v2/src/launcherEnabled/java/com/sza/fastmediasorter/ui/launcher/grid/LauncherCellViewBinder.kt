@@ -141,7 +141,6 @@ class LauncherCellViewBinder(
         // grid; at rest only the occupied rows may size the canvas, or the viewport floor below turns
         // its rounding remainder into scroll travel over empty space.
         val contentRows = if (editMode) rows else occupied
-        Timber.d("S2660: bind occupied=$occupied rows=$rows contentRows=$contentRows edit=$editMode")
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
         // screen - must not tear down every gadget for an identical render.
@@ -200,7 +199,6 @@ class LauncherCellViewBinder(
             )
         }
         if (editMode) addEmptySlots(inflater, container, plan, columns)
-        Timber.d("S2686: rebind cells=${plan.size} reused=$reusedRoots inflated=${plan.size - reusedRoots}")
         // S2686: a desktop that shrank leaves blanks nobody took. Dropping them here rather than at the
         // next harvest is what keeps this a hand-off between two renders instead of a cache that outlives
         // the desktop it was filled from.
@@ -485,7 +483,6 @@ class LauncherCellViewBinder(
         // roots, so a pooled root that carried a sub-program's tone last render would keep it under whatever
         // app icon, contact photo or stream favicon lands in it next - a colour on something that is not a
         // sub-program at all. Clearing is the half that makes the tint safe, not an optimisation.
-        Timber.d("S2889: launcher cell '${visual?.label}' accent=${visual?.accentRes}")
         ImageViewCompat.setImageTintList(
             binding.cellIcon,
             visual?.accentRes?.let { ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, it)) },

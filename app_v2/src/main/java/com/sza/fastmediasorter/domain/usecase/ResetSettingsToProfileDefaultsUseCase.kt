@@ -28,7 +28,6 @@ class ResetSettingsToProfileDefaultsUseCase @Inject constructor(
     private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
 ) {
     suspend operator fun invoke() {
-        Timber.d("S2664: settings reset - re-applying the stored device profile preset")
         settingsRepository.resetToDefaults()
         val profileType = profileRepository.getCurrentProfile().first().type
         if (profileType == DeviceProfileType.OTHER) return

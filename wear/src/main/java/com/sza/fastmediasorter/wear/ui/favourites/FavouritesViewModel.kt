@@ -97,7 +97,6 @@ class FavouritesViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                Timber.d("S2489: FavouritesViewModel requesting thumbnail for %s", record.displayName)
                 val mediaFile = record.toMediaFile()
                 val sourceId = record.sourceId.takeIf { it != SOURCE_ID_LOCAL }
                 val thumbnail = thumbnailRepository.thumbnailFor(mediaFile, sourceId)

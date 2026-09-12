@@ -459,7 +459,6 @@ class TranslationOverlayView @JvmOverloads constructor(
             val (paper, ink, fallback) = samplePlateColors(block.boundingBox)
             block.backgroundColor = paper
             block.textColor = ink
-            Timber.d("S1714: paper=$paper ink=$ink fallback=$fallback")
         }
 
         translatedBlocks.addAll(blocks)

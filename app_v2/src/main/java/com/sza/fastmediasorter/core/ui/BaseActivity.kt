@@ -153,7 +153,6 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         applyKeepScreenAwake()
         collectOnLifecycle(appSettings) { settings ->
             keepScreenAwakeDecision = keepScreenAwakeFor(settings)
-            Timber.d("S2536: keepScreenAwake=$keepScreenAwakeDecision level=${AnimationPolicy.level}")
             applyKeepScreenAwake()
             // S1045: drive the secure flag from the same settings stream (initial + reactive apply).
             lastSecureFlagSettings = settings

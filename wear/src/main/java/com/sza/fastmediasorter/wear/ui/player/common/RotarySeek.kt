@@ -33,7 +33,6 @@ fun Modifier.rotaryAction(
     onScroll: (Float) -> Unit
 ): Modifier = this
     .onRotaryScrollEvent { event ->
-        Timber.d("S2838: rotary event reached the app, verticalScrollPixels=${event.verticalScrollPixels}")
         onScroll(event.verticalScrollPixels)
         true
     }
@@ -62,7 +61,6 @@ fun rememberRotaryFocus(): FocusRequester {
 
     val owned = stack == null || stack.isTop(token)
     LaunchedEffect(owned) {
-        Timber.d("S2838: rotary focus effect, owned=$owned stack=${stack != null}")
         if (owned) {
             focusRequester.requestFocus()
         }

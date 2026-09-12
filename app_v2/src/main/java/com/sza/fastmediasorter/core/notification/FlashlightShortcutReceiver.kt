@@ -31,7 +31,6 @@ class FlashlightShortcutReceiver : BroadcastReceiver() {
         if (intent.action != ACTION_TOGGLE) {
             return
         }
-        Timber.d("S2776: shortcut tapped, torch was ${deviceActionHandler.isTorchOn}")
         deviceActionHandler.setTorch(context, !deviceActionHandler.isTorchOn)
         // Re-drawn whatever the hardware answered, so a device that refused shows the dark state
         // rather than a lit icon over an unlit flash.

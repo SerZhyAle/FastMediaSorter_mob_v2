@@ -450,7 +450,6 @@ internal fun OperationRunDialog(
 /** The file, then what happened to it - and the name it actually landed under when that differs. */
 @Composable
 private fun OperationResultRow(result: WearFileOperationResult) {
-    Timber.d("S3016: OperationResultRow composed")
     Column(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -622,7 +621,6 @@ private fun MediaListContent(
 
         // S2477: Volume side bar fixed at right edge instead of taking a row in the list
         if (volume.max > 0) {
-            Timber.d("S2477: Browse volume side bar composed, aligned to the end edge")
             VolumeIndicatorSideBar(level = volume.level, max = volume.max)
         }
     }
@@ -788,7 +786,6 @@ private fun browseFileActions(
     },
     onFileLongClick = { file ->
         if (!running) {
-            Timber.d("S2491: BrowseScreen long click on file=%s", file.name)
             viewModel.fileOperations.enterSelection(file)
             onShowActions()
         }
@@ -956,7 +953,6 @@ private fun BrowseStateBranch(
             )
         }
         is BrowseUiState.Error -> {
-            Timber.d("S2471: BrowseScreen rendering Error state block")
             WearStateBlock(
                 kind = WearStateKind.ERROR,
                 message = state.message.resolveText(),

@@ -254,7 +254,6 @@ class SettingsInputRow @JvmOverloads constructor(
      */
     private fun applyEntry(position: Int) {
         val picked = entries.getOrNull(position) ?: return
-        Timber.d("S2786: preset picked in settings input row")
         editText.setText(picked)
         editText.setSelection(editText.text?.length ?: 0)
         commitListener?.invoke(picked)
@@ -267,7 +266,6 @@ class SettingsInputRow @JvmOverloads constructor(
      * (owner ruling 2026-09-01).
      */
     private fun applyInlineLayout() {
-        Timber.d("S2786: inline layout applied to settings input row")
         orientation = HORIZONTAL
         gravity = Gravity.CENTER_VERTICAL
         titleLineSpacer.visibility = View.GONE

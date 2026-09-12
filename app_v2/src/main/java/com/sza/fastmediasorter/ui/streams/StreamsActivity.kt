@@ -587,7 +587,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // must stay on the toolbar - a per-item listener would survive the first rotation as a
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
-            Timber.d("S2898: toolbar menu item clicked: ${item.title}")
             when (item.itemId) {
                 R.id.action_stream_add -> {
                     showSourceDialog(isImport = false)
@@ -1006,7 +1005,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * and content (empty list / section headers) below, and that down from banner targets content in landscape.
      */
     private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
-        Timber.d("S2991: updateCatalogBannerFocus bannerVisible=$bannerVisible")
         val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
         val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
         binding.etSearch.nextFocusUpId = upTargetId

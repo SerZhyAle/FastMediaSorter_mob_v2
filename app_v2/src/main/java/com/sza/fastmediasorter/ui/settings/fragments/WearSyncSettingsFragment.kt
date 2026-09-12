@@ -100,7 +100,6 @@ class WearSyncSettingsFragment : Fragment() {
             WearDocLink.PORTAL -> SupportIntentFactory.wearWebPortalUrl(requireContext())
             WearDocLink.INSTALL_GUIDE -> SupportIntentFactory.wearInstallGuideUrl(requireContext())
         }
-        Timber.d("S2460: companion docs link tapped")
         try {
             startActivity(SupportIntentFactory.openUrl(url))
         } catch (e: ActivityNotFoundException) {

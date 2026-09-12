@@ -97,7 +97,6 @@ internal fun playerMenuCycleAction(
     label = label,
     icon = { Icon(imageVector = icon, contentDescription = null) },
     onClick = {
-        Timber.d("S2802: menu cycle entry tapped, menu stays open")
         onRun()
     }
 )

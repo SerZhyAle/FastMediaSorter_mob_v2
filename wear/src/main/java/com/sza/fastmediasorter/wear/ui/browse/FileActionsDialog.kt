@@ -84,7 +84,6 @@ internal fun FileActionsDialog(
     state: FileActionsDialogState,
     callbacks: FileActionsCallbacks
 ) {
-    Timber.d("S2491: FileActionsDialog selectedCount=%d totalCount=%d", state.selectedCount, state.totalCount)
     val operationActions = batchActions(callbacks)
         .filter { it.first in state.allowedOperations }
         .map { (kind, onClick) ->

@@ -436,7 +436,6 @@ class StandaloneFileOperationsHandler(
                     ),
                 )
                 coordinator.enqueue(request)
-                Timber.d("S1224: standalone enqueued %s to %s", if (isMove) "move" else "copy", destinationPath)
                 if (isMove) activity.finish()
             } else {
                 val useCase = fileOperationUseCase ?: run {

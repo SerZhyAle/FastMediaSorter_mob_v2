@@ -1002,7 +1002,6 @@ class AudioPlaybackService : MediaSessionService() {
             controller: MediaSession.ControllerInfo
         ): ConnectionResult {
             Timber.d("AudioPlaybackService: MediaSession onConnect from ${controller.packageName}")
-            Timber.d("S2914: onConnect building AcceptedResultBuilder with ControllerInfo")
             // S2810 / S2941: refuse the Wear OS companion bridge so the watch stops surfacing this
             // service's player. Refused when the owner's setting is on, or when a listen session is
             // live (isLiveSession), so the watch never shows the phone's media controls during
@@ -1012,9 +1011,7 @@ class AudioPlaybackService : MediaSessionService() {
             val isLive = RadioStreamBufferConfig.isLiveSession(this@AudioPlaybackService)
             val shouldSuppress = suppressWearMediaTakeover || isLive
             if (isWearBridge && shouldSuppress) {
-                Timber.d("S2810: refused Wear OS companion media-session connection")
                 if (isLive) {
-                    Timber.d("S2941: refused Wear companion bridge during live listen")
                 }
                 return ConnectionResult.reject()
             }

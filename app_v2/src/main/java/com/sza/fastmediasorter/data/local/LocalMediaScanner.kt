@@ -62,7 +62,6 @@ class LocalMediaScanner @Inject constructor(
         onProgress: ScanProgressCallback?
     ): List<MediaFile> = withContext(Dispatchers.IO) {
         Timber.d("LocalMediaScanner.scanFolder: START - path='$path'")
-        Timber.d("S2401: scanFolder dispatch entered for '$path'")
         scanVirtualPath(path, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles, onProgress)
             ?: if (path.startsWith(SAF_URI_PREFIX)) {
                 safScanner.scanFolderFast(
@@ -107,7 +106,6 @@ class LocalMediaScanner @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
     ): Int = withContext(Dispatchers.IO) {
-        Timber.d("S2401: getFileCount dispatch entered for '$path'")
         countVirtualPath(path, supportedTypes, sizeFilter, scanSubdirectories, showHiddenFiles)
             ?: if (path.startsWith(SAF_URI_PREFIX)) {
                 safScanner.getFileCount(path, supportedTypes, sizeFilter, scanSubdirectories)

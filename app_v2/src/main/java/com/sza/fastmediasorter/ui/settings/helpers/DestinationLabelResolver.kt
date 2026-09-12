@@ -43,7 +43,6 @@ class DestinationLabelResolver(
         missingLabel: CharSequence = unsetLabel,
         setLabel: (CharSequence) -> Unit,
     ) {
-        Timber.d("S2797: destination label render id=$resourceId inFlight=${pending.size}")
         if (resourceId == null) {
             setLabel(unsetLabel)
             return

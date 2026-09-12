@@ -42,7 +42,6 @@ class OpenSourceLicensesFragment : Fragment() {
 
         // S2899: Hide the activity's underlying content so D-pad focus cannot escape the overlay.
         hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
-        Timber.d("S2899: OpenSourceLicenses focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         binding.toolbar.setNavigationOnClickListener {
             parentFragmentManager.popBackStack()
@@ -57,7 +56,6 @@ class OpenSourceLicensesFragment : Fragment() {
         view.post {
             if (isAdded && _binding != null) {
                 binding.toolbar.requestFocus()
-                Timber.d("S2899: OpenSourceLicenses initial focus requested")
             }
         }
     }

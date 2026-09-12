@@ -102,7 +102,6 @@ class ResourceAdapter(
             isDirectPathReconnectCandidate = isReconnectCandidate(context, resource),
         )
         val visible = ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
-        Timber.d("S2644: menu composed, reconnect=${ResourceMenuAction.RECONNECT_RESOURCE in visible}")
         ResourceMenuAction.entries.forEach { action ->
             menu.findItem(action.menuItemId)?.isVisible = action in visible
         }
@@ -596,7 +595,6 @@ class ResourceAdapter(
                     // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
                     btnMoreActions.contentDescription = "more_options:${resource.name}"
                     btnMoreActions.setOnClickListener { view ->
-                        Timber.d("S2644: grid tile overflow opened")
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
@@ -952,7 +950,6 @@ class ResourceAdapter(
                     // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
                     btnMoreActions.contentDescription = "more_options:${resource.name}"
                     btnMoreActions.setOnClickListenerDebounced { view ->
-                        Timber.d("S2644: list row overflow opened")
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)

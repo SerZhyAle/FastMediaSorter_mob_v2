@@ -42,7 +42,6 @@ fun TouristScreen(
     viewModel: TouristViewModel = hiltViewModel(),
     listState: ScalingLazyListState = rememberWearListState(),
 ) {
-    Timber.d("S3007: Tourist screen composed")
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val telemetry = state.telemetry
 

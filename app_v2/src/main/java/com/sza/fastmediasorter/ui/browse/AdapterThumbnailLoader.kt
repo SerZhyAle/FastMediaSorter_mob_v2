@@ -136,7 +136,6 @@ class AdapterThumbnailLoader(
         val binarySizePx = binaryGeneratorSizePx ?: CACHED_THUMBNAIL_SIZE
         val context = imageView.context
         val isScrolling = getIsScrolling()
-        Timber.d("S2877: browse thumbnail load entry - ${file.name} type=${file.type}")
 
         // S0783: a rebind/recycle of this view cancels any in-flight favicon decode targeting it.
         cancelFavicon(imageView)

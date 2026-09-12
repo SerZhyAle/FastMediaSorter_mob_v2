@@ -63,7 +63,6 @@ fun TouristAthleteCard(
     onExitAthleteMode: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Timber.d("S3015: tourist athlete tile active")
 
     val accentColor = when (state.focusedMetric) {
         TouristMetricType.HEART_RATE -> COLOR_HR

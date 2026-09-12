@@ -9,7 +9,6 @@ import timber.log.Timber
  * resume is refused while the stream session says the network is not ready for it.
  */
 internal fun StreamPlaybackSessionManager.togglePlayPause(player: ExoPlayer) {
-    Timber.d("S2432: shared toggle play/pause, playing=${player.isPlaying}")
     if (player.isPlaying) {
         player.pause()
         stop()

@@ -92,7 +92,6 @@ fun NetworkSourceMediaTypeScreen(
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        Timber.d("S2487: auto-skip single category %s for source %s", only.token, sourceId)
         navController.navigate(routeFor(only, sourceId, sourceName, source)) {
             popUpTo(WearRoutes.SOURCE_MEDIA_TYPE_PATTERN) { inclusive = true }
         }

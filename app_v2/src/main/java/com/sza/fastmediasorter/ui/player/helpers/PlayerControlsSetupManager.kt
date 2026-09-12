@@ -520,7 +520,6 @@ class PlayerControlsSetupManager(
         safeViews.btnDocumentFullscreenExit.visibility =
             if (shouldBeVisible) android.view.View.VISIBLE else android.view.View.GONE
 
-        Timber.d("S2895: doc exit btn video=$isVideo ctrl=$isVideoControllerVisible visible=$shouldBeVisible")
     }
 
     /**
@@ -581,7 +580,6 @@ class PlayerControlsSetupManager(
                 rightPadding,
                 view.paddingBottom
             )
-            Timber.d("S2908: TopCommandPanel applied insets - top=$topPadding, left=$leftPadding, right=$rightPadding")
             insets
         }
 

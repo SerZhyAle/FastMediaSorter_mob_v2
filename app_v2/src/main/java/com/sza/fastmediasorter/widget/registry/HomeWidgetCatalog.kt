@@ -311,7 +311,6 @@ class HomeWidgetCatalog @Inject constructor(
             entry.providerClass.name in installed &&
                 (entry.settingGate?.invoke(settings) ?: true)
         }.sortedBy { registryOrder[it.gadgetKey] ?: WIDGET_ONLY_ORDER }
-        Timber.d("S2613: picker offers ${available.map { it.gadgetKey }}")
         return available
     }
 

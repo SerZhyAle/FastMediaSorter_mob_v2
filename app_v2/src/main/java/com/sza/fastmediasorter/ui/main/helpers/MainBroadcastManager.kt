@@ -50,12 +50,10 @@ class MainBroadcastManager(
     fun bind(lifecycleOwner: LifecycleOwner) {
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             autoOpenShare = settings.broadcastAutoOpenShare
-            Timber.d("S2817: broadcast auto-open-share=%b", autoOpenShare)
         }
         lifecycleOwner.collectOnLifecycle(controller.state) { state ->
             when (state) {
                 is BroadcastState.Live -> {
-                    Timber.d("S2822: broadcast live state emitted, autoOpenShare=$autoOpenShare")
                     showIndicator(state)
                     if (autoOpenShare) {
                         BroadcastShareActivity.launchIfNew(
@@ -84,7 +82,6 @@ class MainBroadcastManager(
 
     private fun showIndicator(state: BroadcastState.Live) {
         liveStartedAtElapsedRealtimeMs = state.startedAtElapsedRealtimeMs
-        Timber.d("S2826: broadcast indicator shown, session started at ${state.startedAtElapsedRealtimeMs}")
         if (!indicatorShown) {
             indicatorShown = true
             recordingElapsedTimer.start()
@@ -95,7 +92,6 @@ class MainBroadcastManager(
             onPauseResume = null,
             onStop = { stopBroadcast() },
             onTapRoot = {
-                Timber.d("S2822: broadcast indicator tapped, reopening share screen")
                 BroadcastShareActivity.launch(
                     activity,
                     state.descriptor.url,
@@ -107,7 +103,6 @@ class MainBroadcastManager(
     }
 
     private fun showFailure(state: BroadcastState.Failed) {
-        Timber.d("S2793: broadcast failure surfaced")
         Timber.w("Broadcast failed: %s (%s)", state.failure, state.detail)
         val messageRes = when (state.failure) {
             BroadcastFailure.MICROPHONE_PERMISSION -> R.string.broadcast_failed_microphone_permission
@@ -131,7 +126,6 @@ class MainBroadcastManager(
             startBroadcast()
             return
         }
-        Timber.d("S2793: broadcast permission denied")
         Timber.w("Broadcast permission denied: %s", permission)
         val messageRes = if (permission == Manifest.permission.RECORD_AUDIO) {
             R.string.broadcast_permission_microphone_required
@@ -172,7 +166,6 @@ class MainBroadcastManager(
      * just closed - trapping them there for as long as the broadcast ran.
      */
     private fun endBroadcastSession() {
-        Timber.d("S2822: broadcast session ended, launch tracking reset")
         liveStartedAtElapsedRealtimeMs = null
         dismissIndicator()
         BroadcastShareActivity.resetLaunchTracking()
@@ -197,7 +190,6 @@ class MainBroadcastManager(
             return
         }
 
-        Timber.d("S2508: starting live audio broadcast")
         controller.start(BroadcastMode.AUDIO_ONLY)
     }
 

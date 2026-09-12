@@ -57,7 +57,6 @@ class WearUnitDateTimeFormatter @Inject constructor() {
     )
 
     private fun render(epochMillis: Long, pattern: String, locale: Locale): String {
-        Timber.d("S2795: watch renders with pattern=%s", pattern)
         return SimpleDateFormat(pattern, locale).format(Date(epochMillis))
     }
 

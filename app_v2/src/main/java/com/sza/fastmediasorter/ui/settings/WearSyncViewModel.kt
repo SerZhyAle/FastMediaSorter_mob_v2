@@ -256,7 +256,6 @@ class WearSyncViewModel @Inject constructor(
                     // "Removed N source(s) from watch" instead of "Sent N source(s) to watch".
                     val sent = parseIntField(ackJson, "added") + parseIntField(ackJson, "updated")
                     val removed = parseIntField(ackJson, "removed")
-                    Timber.d("S2882: companion reports sent=$sent removed=$removed")
                     _uiState.value = WearSyncUiState.Success(sent, 0, removed)
                     Timber.i("Wear sync ack received: $ackJson")
                 }
@@ -354,7 +353,6 @@ class WearSyncViewModel @Inject constructor(
         viewModelScope.launch {
             outbound.sendResources()
                 .onSuccess { result ->
-                    Timber.d("S2926: push returned dispatched=${result.dispatched}")
                     if (!result.dispatched) {
                         // S1781: nothing left the phone, so no ack can ever arrive - waiting out the
                         // timeout would report a watch failure for an empty selection instead.

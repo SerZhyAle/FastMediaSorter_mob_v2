@@ -126,7 +126,6 @@ class BroadcastCaptureService : Service() {
             mode = BroadcastMode.AUDIO_ONLY.name,
             sourceId = config.sourceDeviceId,
         )
-        Timber.d("S2814: source device id=%s", config.sourceDeviceId ?: "none")
         _state.value = BroadcastState.Live(dto, SystemClock.elapsedRealtime())
 
         captureAudioLoop(server, config)
@@ -134,9 +133,6 @@ class BroadcastCaptureService : Service() {
 
     private suspend fun readSessionConfig(): BroadcastSessionConfig {
         val settings = settingsRepository.getSettings().first()
-        Timber.d("S2817: session title=${settings.broadcastStreamTitle} bitrate=${settings.broadcastBitRateBps}")
-        Timber.d("S2817: session port=${settings.broadcastPort} rate=${settings.broadcastSampleRateHz}")
-        Timber.d("S2817: session channels=${settings.broadcastChannelCount}")
         val sourceDeviceId = settings.broadcastSourceDeviceId ?: run {
             val id = UUID.randomUUID().toString()
             settingsRepository.updateSettings(settings.copy(broadcastSourceDeviceId = id))
@@ -176,7 +172,6 @@ class BroadcastCaptureService : Service() {
             return
         }
 
-        Timber.d("S2508: broadcast audio loop is encoding to ADTS AAC")
         try {
             val recorder = AudioRecord(
                 MediaRecorder.AudioSource.MIC,

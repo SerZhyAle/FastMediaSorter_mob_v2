@@ -73,7 +73,6 @@ class FastMediaSorterWearApp : Application() {
                     WearLocaleManager.applyLocale(this@FastMediaSorterWearApp, lang)
                     // S2626: repairs titles a build that predates the refresh pass left in an
                     // abandoned language. Exits without touching the note index once they match.
-                    Timber.d("S2626: startup locale $lang applied, refreshing note titles")
                     refreshVoiceNoteTitlesUseCase.get().invoke(lang)
                 }
             } catch (e: CancellationException) {

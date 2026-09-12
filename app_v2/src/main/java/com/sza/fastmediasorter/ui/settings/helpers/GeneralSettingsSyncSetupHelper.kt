@@ -25,7 +25,6 @@ class GeneralSettingsSyncSetupHelper(
     private val fragment get() = hostContext.fragment
 
     fun setup() {
-        Timber.d("S2601: sync group setup entered in its extracted helper")
         binding.rowEnableBackgroundSync.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))

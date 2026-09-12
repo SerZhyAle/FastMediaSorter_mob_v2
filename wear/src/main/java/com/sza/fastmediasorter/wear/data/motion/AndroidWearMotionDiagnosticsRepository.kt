@@ -101,7 +101,6 @@ class AndroidWearMotionDiagnosticsRepository @Inject constructor(
             manager?.unregisterListener(listener)
         }
     }.sample(UPDATE_THROTTLE_MS).onEach {
-        Timber.d("S2807: throttled motion snapshot emitted")
     }
 
     private fun availabilityOf(

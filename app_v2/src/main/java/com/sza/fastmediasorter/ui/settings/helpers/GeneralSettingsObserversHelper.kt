@@ -76,9 +76,7 @@ class GeneralSettingsObserversHelper(
             // SAVING with neither of those means the platform raised it, not this app.
             else -> context.getString(R.string.pref_power_saving_state_system_saver)
         }
-        Timber.d("S2707: power saving row noBattery=${batteryLevelUnavailable.value} threshold=$threshold")
         val base = context.getString(R.string.pref_power_saving_desc)
-        Timber.d("S2536: settings row trigger=$trigger cause=${state != null} level=${AnimationPolicy.level}")
         row.setSubtitle(if (state == null) base else "$base\n$state")
     }
 

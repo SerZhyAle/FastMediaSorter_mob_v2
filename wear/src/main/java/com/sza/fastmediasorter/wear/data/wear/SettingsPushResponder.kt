@@ -71,7 +71,6 @@ class SettingsPushResponder @Inject constructor(
         // build may omit a key or send it as another type, and a single typed fromJson answers both with
         // an exception that drops the event - one incompatible field silencing the whole exchange.
         val decoded = settingsPayloadDecoder.decode(envelope.data.decodeToString())
-        Timber.d("S2462: push decoded p=%d d=%s", decoded.presentFields.size, decoded.divergences)
         logSettingsDivergences(decoded.divergences)
         val payload = decoded.payload
         if (payload == null) {

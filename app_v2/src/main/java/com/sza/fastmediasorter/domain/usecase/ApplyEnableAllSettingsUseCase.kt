@@ -43,7 +43,6 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
      * the welcome enable-all flow spawns concurrent deliverable-install writers right after this call.
      */
     suspend operator fun invoke() {
-        Timber.d("S2664: enable-all pressed - remote sources join the button")
         // S2382: resolved BEFORE updateSettings and never inside its transform - the transform runs under
         // the repository mutex while all() performs a settings read of its own.
         val compiledRoutes = routeAvailability.all()
@@ -76,7 +75,6 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
             // S2674: the flags deciding whether a file operation is OFFERED, not how it behaves. Delete is
             // absent on purpose - it is the one whose return the user cannot undo, so it stays with the
             // destructive defaults the rule keeps out.
-            Timber.d("S2674: enable-all switching the file-operation flags on")
             val withFileOperations = withMediaTypes.copy(
                 enableCopying = true,
                 enableMoving = true,
@@ -138,7 +136,6 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
             // tool's music and volume-key settings are a mode and a resource choice, which the membership
             // rule keeps out.
             InternalRouteCatalog.KEY_STOPWATCH to { s: AppSettings ->
-                Timber.d("S1411: enable-all switching the stopwatch on")
                 s.copy(enableStopwatch = true)
             },
             InternalRouteCatalog.KEY_NETWORK_MONITOR to { s: AppSettings -> s.copy(enableNetworkMonitor = true) },

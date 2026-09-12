@@ -331,7 +331,6 @@ class PhoneWearListenerService : WearableListenerService() {
                 // fromJson answers both with an exception that the catch below turns into a dropped
                 // event - one incompatible field silencing the whole exchange.
                 val decoded = settingsPayloadDecoder.decode(envelope.data.decodeToString())
-                Timber.d("S2462: report decoded p=%d d=%s", decoded.presentFields.size, decoded.divergences)
                 logSettingsDivergences(decoded.divergences)
                 val payload = decoded.payload
                 if (payload == null) {
@@ -539,7 +538,6 @@ class PhoneWearListenerService : WearableListenerService() {
             } else {
                 WearOpenOnPhoneOutcome.NOT_FOUND
             }
-            Timber.d("S2142: handleOpenOnPhone token=%s outcome=%s", request.token, outcome)
             answerOpenOnPhone(nodeId, request.token, outcome)
         }
     }
@@ -640,7 +638,6 @@ class PhoneWearListenerService : WearableListenerService() {
     @Suppress("TooGenericExceptionCaught")
     private suspend fun refusedAsCompanionDisabled(request: WearPhoneResourceRequest): Boolean {
         if (wearableDataLayerRepository.isCompanionEnabled()) return false
-        Timber.d("S2981: companion off, refusing phone-resource request %s", request.requestId)
         val refusal = WearPhoneResourcePage(
             requestId = request.requestId,
             status = WearPhoneResourceResponseStatus.COMPANION_DISABLED
@@ -674,7 +671,6 @@ class PhoneWearListenerService : WearableListenerService() {
         val path = "${WearDataLayerPaths.PHONE_RESOURCE_PAGE}/${page.requestId}"
         val envelopeBytes = withinWireLimit(page)
         try {
-            Timber.d("S2985: publishing page requestId=%s path=%s", page.requestId, path)
             wearableDataLayerRepository.putDataItem(
                 path,
                 envelopeBytes

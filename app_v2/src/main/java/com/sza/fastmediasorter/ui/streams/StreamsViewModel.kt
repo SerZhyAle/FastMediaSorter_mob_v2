@@ -458,7 +458,6 @@ class StreamsViewModel @Inject constructor(
      * payload goes straight to the shared import use case and only its verdict reaches the screen.
      */
     fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
-        Timber.d("S2508: importing a broadcast descriptor from the streams toolbar")
         val messageRes = when (importStreamBroadcast(payload)) {
             ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
             ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
@@ -562,7 +561,6 @@ class StreamsViewModel @Inject constructor(
 
     private suspend fun applyCollectionSelection(collectionId: String?) {
         if (_filter.value.collectionId == collectionId) return
-        Timber.d("S2669: collection selected id=$collectionId")
         val memberOrder = collectionId
             ?.let { id -> observeStreamCollections.memberOrder(id) }
             .orEmpty()

@@ -54,10 +54,8 @@ class WearWatchMediaScannerImpl @Inject constructor(
         onProgress: ScanProgressCallback?
     ): List<MediaFile> {
         if (!isWatchReachable()) {
-            Timber.d("S2483: watch is not reachable, returning empty list")
             return emptyList()
         }
-        Timber.d("S2483: watch reachable, scanning watch folder %s", path)
         return emptyList()
     }
 

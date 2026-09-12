@@ -41,7 +41,6 @@ fun GameRulesScreen(
     listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 ) {
     LaunchedEffect(Unit) {
-        Timber.d("S2350: game rules screen opened")
     }
 
     WearScreenScaffold(

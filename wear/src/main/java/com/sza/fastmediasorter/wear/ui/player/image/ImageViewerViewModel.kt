@@ -268,7 +268,6 @@ class ImageViewerViewModel @Inject constructor(
         // S2480: the press has to produce a visible result. Starting the controller alone left the
         // same picture on screen for a whole interval under an unchanged panel, which read as the
         // button doing nothing - so the next picture comes up at once and the panel goes with it.
-        Timber.d("S2480: slideshow start advances and clears the panel")
         controlsHideJob?.cancel()
         _uiState.update { it.copy(isSlideshowActive = true, showControls = false) }
         navigateToNext()
@@ -308,12 +307,9 @@ class ImageViewerViewModel @Inject constructor(
     @Suppress("MagicNumber")
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
-        Timber.d("S2480: panel hide countdown started")
         controlsHideJob = viewModelScope.launch {
             val hideDelayMs = preferencesRepository.panelAutoHideSeconds.first().coerceIn(1, 600) * 1000L
-            Timber.d("S2505: ImageViewerViewModel scheduleHideControls delayMillis=$hideDelayMs")
             if (awaitPanelHide(isActive = true, delayMillis = hideDelayMs)) {
-                Timber.d("S2480: panel hidden by countdown")
                 _uiState.update { it.copy(showControls = false) }
             }
         }

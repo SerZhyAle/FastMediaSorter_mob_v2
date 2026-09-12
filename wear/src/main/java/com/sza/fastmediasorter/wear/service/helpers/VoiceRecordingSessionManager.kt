@@ -107,7 +107,6 @@ class VoiceRecordingSessionManager @Inject constructor(
     }
 
     suspend fun begin(mode: Mode) {
-        Timber.d("S2430: session manager begin, recorder open=%s", isSessionOpen)
         this.mode = mode
         when (mode) {
             Mode.VOICE_NOTE -> beginVoiceNote()
@@ -143,7 +142,6 @@ class VoiceRecordingSessionManager @Inject constructor(
     }
 
     suspend fun stop() {
-        Timber.d("S2430: session manager stop, recorder open=%s", isSessionOpen)
         val active = recorder
         if (active == null) {
             Timber.i("Ignoring a stop: no microphone session is open")

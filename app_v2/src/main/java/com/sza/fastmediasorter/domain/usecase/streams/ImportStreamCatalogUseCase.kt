@@ -146,7 +146,6 @@ class ImportStreamCatalogUseCase @Inject constructor(
      */
     private suspend fun applyCollections(json: String?) {
         if (json == null) return
-        Timber.d("S2669: phone import found the collections entry")
         try {
             collectionRepository.replaceAll(collectionsParser.parse(json))
         } catch (e: Exception) {

@@ -69,7 +69,6 @@ class WearResourceSelectionViewModel @Inject constructor(
                 val watchTransferable = deduplicated.filter {
                     !it.isHidden && it.type in ResourceType.WATCH_TRANSFERABLE
                 }
-                Timber.d("S2482: Wear resource selection loaded deduplicated=${deduplicated.size}")
                 val hasSaved = selectionRepository.hasSavedSelection()
                 val selectedIds = if (hasSaved) {
                     val saved = selectionRepository.getSelectedIds()

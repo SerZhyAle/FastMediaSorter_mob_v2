@@ -34,7 +34,6 @@ class SyncWithPhoneUseCase @Inject constructor(
 
     /** Never throws - a failed leg is a value, so one refusal cannot abort the rest of the exchange. */
     suspend operator fun invoke(): WearSyncOutcome {
-        Timber.d("S2484: starting unified sync with phone")
         val nodes = runCatching {
             Wearable.getNodeClient(context).connectedNodes.await()
         }.getOrDefault(emptyList())

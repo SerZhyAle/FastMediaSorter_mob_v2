@@ -20,7 +20,6 @@ class GatherWearSystemInfoUseCase @Inject constructor(
 ) {
 
     suspend operator fun invoke(): List<WearSystemInfoSection> = withContext(Dispatchers.IO) {
-        Timber.d("S2165: assembling report from %d contributor(s)", contributors.size)
         contributors
             .sortedBy { contributor -> contributor.order }
             .flatMap { contributor -> sectionsOf(contributor) }

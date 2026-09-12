@@ -21,7 +21,6 @@ internal data class FileSizeParts(val value: String, @StringRes val unitRes: Int
  */
 internal fun fileSizeParts(bytes: Long, locale: Locale = Locale.getDefault()): FileSizeParts {
     val (amount, unit) = byteSizeAmount(bytes, ByteSizeUnit.BYTES, ByteSizeUnit.MEGABYTES)
-    Timber.d("S2433: file list split %d bytes into %.1f %s", bytes, amount, unit.name)
     return if (unit == ByteSizeUnit.BYTES) {
         FileSizeParts(bytes.toString(), R.string.wear_unit_size_bytes)
     } else {

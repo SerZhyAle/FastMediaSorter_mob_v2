@@ -94,7 +94,6 @@ class VideoBroadcastSpikeActivity : AppCompatActivity(), ConnectChecker {
     }
 
     private fun startServing() {
-        Timber.d("S2662: video broadcast spike is starting the RTSP server on port %d", RTSP_PORT)
         // The Context constructor is the headless one - no OpenGlView, so no preview surface is
         // created. That is the shape the owner's 2026-09-06 no-preview ruling needs, and proving it
         // works is part of what this spike measures.

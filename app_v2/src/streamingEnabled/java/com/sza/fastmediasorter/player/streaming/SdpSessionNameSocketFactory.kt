@@ -122,7 +122,6 @@ internal class SdpSessionNameNormalizingInputStream(
         lineState == SESSION_VALUE_START && value == SPACE && !sessionNameNormalized -> {
             lineState = OTHER
             sessionNameNormalized = true
-            Timber.d("S2876: normalized RTSP SDP fallback session name")
             DASH
         }
         else -> {

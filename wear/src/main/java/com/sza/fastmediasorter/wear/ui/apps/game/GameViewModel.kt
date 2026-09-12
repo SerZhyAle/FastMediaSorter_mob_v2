@@ -114,7 +114,6 @@ class GameViewModel @Inject constructor(
      */
     fun skipTurn() {
         val current = _uiState.value.level ?: return
-        Timber.d("S2158: skip turn requested at turn %d", current.stats.turns)
         val result = engine.applySkipTurn(current)
         if (!result.accepted) {
             return
@@ -135,7 +134,6 @@ class GameViewModel @Inject constructor(
         if (current == null || current.status != GameStatus.PLAYING) {
             return
         }
-        Timber.d("S2158: voluntary restart of level %d at score %d", current.config.levelNumber, current.stats.score)
         val generated = generate(current.config.levelNumber)
         if (generated != null) {
             publish(engine.restartLevelVoluntarily(current, generated))
@@ -147,7 +145,6 @@ class GameViewModel @Inject constructor(
      */
     fun startNewGame() {
         val currentLevel = _uiState.value.level?.config?.levelNumber ?: FIRST_LEVEL_NUMBER
-        Timber.d("S2350: starting new game from level %d", currentLevel)
         val generated = generate(FIRST_LEVEL_NUMBER) ?: return
         publish(generated)
     }
@@ -156,11 +153,9 @@ class GameViewModel @Inject constructor(
         val stored = preferencesRepository.gameState.first()
         val restored = GameStateSnapshot.fromStorage(stored)?.toLevelState()
         if (restored != null) {
-            Timber.d("S2553: resumed saved game at level %d turn %d", restored.config.levelNumber, restored.stats.turns)
             _uiState.value = GameUiState(restored, restored.stats, restored.status)
             return
         }
-        Timber.d("S2553: no readable save, starting a fresh game")
         // An absent or unreadable save is a first run, never an error the player has to see.
         val generated = generate(FIRST_LEVEL_NUMBER) ?: return
         publish(generated)
@@ -187,7 +182,6 @@ class GameViewModel @Inject constructor(
         val capture = result.events.filterIsInstance<GameEvent.PlayerCaptured>().firstOrNull()
             ?: return null to null
         val killer = result.state.enemies.firstOrNull { it.id == capture.enemyId }
-        Timber.d("S2804: captured by %s at %s", capture.type, killer?.position)
         return capture.type to killer?.position
     }
 
@@ -209,7 +203,6 @@ class GameViewModel @Inject constructor(
             shadowCount = shadowCountFor(levelNumber),
             seed = seedSource.nextSeed(levelNumber)
         )
-        Timber.d("S2494: level %d seed %d (%dx%d)", levelNumber, config.seed, boardWidth, boardHeight)
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)

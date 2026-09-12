@@ -33,7 +33,6 @@ class SoftApInterfaceProbe @Inject constructor() {
             }
         }.getOrNull()
 
-        timber.log.Timber.d("S2027: softAp probe ifaces=$interfaces")
         return evaluateInterfaces(interfaces)
     }
 

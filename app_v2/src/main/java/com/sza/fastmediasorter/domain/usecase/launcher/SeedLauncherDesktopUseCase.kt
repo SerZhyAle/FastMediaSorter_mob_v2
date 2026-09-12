@@ -121,8 +121,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // pays for it. A target that does not resolve is a cell that leads nowhere (strategic §3.2).
             val resolvableOsShortcuts =
                 OsShortcutCatalog.available(context).mapTo(mutableSetOf()) { it.key }
-            Timber.d("S2735: seed resolved ${resolvableOsShortcuts.size} resolvable system settings entries")
-            Timber.d("S2717: seed resolved ${thirdPartyApps.size} third-party app(s) for the Apps section")
 
             // S2309: read behind the same already-seeded early exit as every other probe above, so a
             // desktop that will not be seeded never pays for it (strategic §3.2).
@@ -256,7 +254,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
         // narrower than the desktop the seed had just built.
         if (desktop.seedIfEmpty(orientation, cells)) {
             desktop.updateColumns(orientation, columns)
-            Timber.d("S2679: seeded %s at width %d and recorded it", orientation, columns)
         }
     }
 }

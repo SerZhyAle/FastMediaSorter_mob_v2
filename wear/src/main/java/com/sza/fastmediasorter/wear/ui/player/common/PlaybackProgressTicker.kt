@@ -27,7 +27,6 @@ internal class PlaybackProgressTicker(
     private var job: Job? = null
 
     fun start() {
-        Timber.d("S2432: shared progress ticker started")
         job?.cancel()
         job = scope.launch {
             while (isActive && player.isPlaying) {

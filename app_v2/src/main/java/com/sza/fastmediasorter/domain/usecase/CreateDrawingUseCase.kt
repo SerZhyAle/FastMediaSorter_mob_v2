@@ -43,7 +43,6 @@ class CreateDrawingUseCase @Inject constructor(
         parentPath: String,
         fileName: String,
     ): Result<String> = withContext(Dispatchers.IO) {
-        Timber.d("S2625: create-drawing type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
         // S2625: the user flag alone misses the probe for LOCAL/CLOUD and never refuses a stream.
         if (!resource.allowsWriteOperations()) {
             return@withContext Result.failure(Exception("Resource does not allow write operations"))

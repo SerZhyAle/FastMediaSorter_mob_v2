@@ -85,7 +85,6 @@ class SystemInfoWindowManager @Inject constructor(
             putExtra(Intent.EXTRA_TEXT, text)
         }
         if (activity.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
-            Timber.d("S2902: SystemInfoWindowManager: no share targets available, copying to clipboard")
             currentReport?.let(::copyReport)
             Toast.makeText(activity, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
         } else {

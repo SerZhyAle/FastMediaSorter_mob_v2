@@ -29,7 +29,6 @@ class HealthInfoContributor @Inject constructor(
     override val order: Int = WearSystemInfoOrder.HEALTH
 
     override suspend fun sections(): List<WearSystemInfoSection> {
-        Timber.d("S2775: health section built with accent wiring")
         return listOf(
             section(
                 titleRes = R.string.system_info_section_health,

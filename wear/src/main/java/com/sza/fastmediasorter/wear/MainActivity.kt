@@ -275,7 +275,6 @@ class MainActivity : ComponentActivity() {
         logAppInfo()
 
         Timber.d("MainActivity created")
-        Timber.d("S2913: wear compose stack initialized")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
         // configChanges does not cover a locale, font-scale or density change, so re-reading it here
@@ -581,8 +580,6 @@ fun MainNavigation(
 
     val showWallpaper = showsWallpaper(currentRoute)
     val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) && currentRoute !in PLAYER_ROUTES
-    Timber.d("S2475: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
-    Timber.d("S2542: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
 
     // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
     // every screen already calls read it from here. The initial value is the reviewed view, so the one
@@ -591,7 +588,6 @@ fun MainNavigation(
         initialValue = WearGeometryMode.STORE
     )
 
-    Timber.d("S2773: geometry mode published to the screen tree = %s", geometryMode)
 
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(

@@ -64,7 +64,6 @@ class BroadcastShareActivity : AppCompatActivity() {
         // Set before renderBarcode so the address survives a QR encoding failure, which leaves the
         // image empty and a toast as the only feedback.
         binding.tvUrlValue.text = url
-        Timber.d("S2707: broadcast share url row bound, length=${url.length}")
 
         binding.btnClose.setOnClickListener { finish() }
         binding.btnExportFile.setOnClickListener {
@@ -73,7 +72,6 @@ class BroadcastShareActivity : AppCompatActivity() {
         }
 
         binding.btnSendLink.setOnClickListener {
-            Timber.d("S2857: send-link button tapped, launching share chooser")
             val payload = shareManager.generateQrPayload(url, activeTitle, activeMode)
             val launched = SystemShareInvoker.invoke(
                 this,

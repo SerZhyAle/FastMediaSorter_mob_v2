@@ -34,7 +34,6 @@ internal class PauseAwareLoadControl(
     private var isPlayWhenReady = true
 
     override fun shouldContinueLoading(parameters: LoadControl.Parameters): Boolean {
-        Timber.d("S2914: shouldContinueLoading paused=${!isPlayWhenReady}")
         if (!isPlayWhenReady) return false
         return delegate.shouldContinueLoading(parameters)
     }

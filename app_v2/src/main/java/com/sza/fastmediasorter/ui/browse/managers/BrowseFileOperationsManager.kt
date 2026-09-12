@@ -665,7 +665,6 @@ class BrowseFileOperationsManager(
      * DESTINATION_INSIDE_SOURCE could only fire for a nesting the forward operation already refused.
      */
     suspend fun enqueueDirectoryUndoTransfer(treePaths: List<String>, destinationParent: String): Boolean {
-        Timber.d("S1326: undo ride-back requested for ${treePaths.size} tree(s) into $destinationParent")
         val resource = callbacks.getCurrentResource()
         if (treePaths.isEmpty() || resource == null) return false
         val request = BrowseFileTransferRequest(

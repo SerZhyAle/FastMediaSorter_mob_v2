@@ -76,7 +76,6 @@ class BrowseUndoManager(
             lastOperation = operation,
             undoOperationTimestamp = operation.timestamp
         )
-        Timber.d("S1326: undo window age at save = ${System.currentTimeMillis() - operation.timestamp}ms")
 
         Timber.d("saveOperation: ${operation.type}, ${operation.sourceFiles.size} files")
 
@@ -146,7 +145,6 @@ class BrowseUndoManager(
      */
     private suspend fun undoCopyOperation(operation: UndoOperation): Boolean {
         val directories = operation.copiedDirectories
-        Timber.d("S1326: undo copy - ${directories.size} dirs, ${operation.copiedFiles?.size ?: 0} files")
         if (directories.isNotEmpty() && !callbacks.confirmDestructiveUndo(directories.size)) {
             return false
         }
@@ -170,7 +168,6 @@ class BrowseUndoManager(
      */
     private suspend fun undoMoveOperation(operation: UndoOperation): Boolean {
         val folderOutcome = startDirectoryMoveUndo(operation)
-        Timber.d("S1326: undo move - folders $folderOutcome, ${operation.copiedFiles?.size ?: 0} files")
         if (folderOutcome == DirectoryUndoOutcome.REFUSED) {
             callbacks.showMessage(context.getString(R.string.browse_transfer_already_running))
             return false

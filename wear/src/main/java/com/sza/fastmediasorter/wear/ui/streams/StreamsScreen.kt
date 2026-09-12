@@ -788,7 +788,6 @@ private fun StreamFilterDialog(
     actions: StreamsFilterDialogActions,
     onDismiss: () -> Unit
 ) {
-    Timber.d("S2819: streams filter dialog opened with the segmented kind row")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss
@@ -975,7 +974,6 @@ private fun StreamSortDialog(
     onSortSelected: (StreamSortOrder) -> Unit,
     onDismiss: () -> Unit
 ) {
-    Timber.d("S2819: streams sort dialog opened in single-column shape")
     Dialog(
         showDialog = true,
         onDismissRequest = onDismiss

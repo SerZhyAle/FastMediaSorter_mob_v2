@@ -34,7 +34,6 @@ class DeleteResourceUseCase @Inject constructor(
             // S2507: recorded before the row goes, because deleteResource also drops this resource's
             // S2502 edit stamp. A tombstone written afterwards would be lost to any failure between
             // the two, and the next exchange would hand the resource back from the watch.
-            Timber.d("S2507: phone user-delete, recording a tombstone for resource $resourceId")
             wearResourceTombstoneStore.record(
                 WearSourceTombstonePayload(
                     id = resourceId.toString(),

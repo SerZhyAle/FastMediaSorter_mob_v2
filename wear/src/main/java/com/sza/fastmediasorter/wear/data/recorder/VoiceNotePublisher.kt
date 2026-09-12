@@ -45,7 +45,6 @@ class VoiceNotePublisher(
      * or null if refused (pre-Q) or on error.
      */
     fun publish(file: File): Uri? {
-        Timber.d("S2161: voice note publication requested")
         val sdkInt = sdkIntProvider()
         if (!canPublish(sdkInt, file)) return null
         val uri = insertPendingRow(file, sdkInt)
@@ -69,7 +68,6 @@ class VoiceNotePublisher(
     }
 
     private fun insertPendingRow(file: File, sdkInt: Int): Uri? {
-        Timber.d("S2495: publishing %s with title %s", file.name, readableTitle(file))
         val initialValues = ContentValues().apply {
             put(MediaStore.Audio.Media.DISPLAY_NAME, file.name)
             put(MediaStore.Audio.Media.TITLE, readableTitle(file))

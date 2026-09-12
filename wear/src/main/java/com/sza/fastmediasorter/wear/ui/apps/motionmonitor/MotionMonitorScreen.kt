@@ -62,7 +62,6 @@ fun MotionMonitorScreen(
     listState: ScalingLazyListState = rememberWearListState(),
     onHistoryClick: (() -> Unit)? = null
 ) {
-    Timber.d("S3014: motion monitor screen opened")
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val requestable = remember { requestableActivityPermissions() }

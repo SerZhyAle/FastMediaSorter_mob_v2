@@ -87,7 +87,6 @@ class ImmersiveBrowseInteractionDispatcher(
         val clickTriggered = isClick && !isTriggerPressed
         isTriggerPressed = isClick
         if (clickTriggered) {
-            Timber.d("S1133: off-panel trigger activates stick selection $hoveredIndex")
             cells.getOrNull(hoveredIndex)?.let { onCellSelected?.invoke(it) }
         }
         return hoveredIndex

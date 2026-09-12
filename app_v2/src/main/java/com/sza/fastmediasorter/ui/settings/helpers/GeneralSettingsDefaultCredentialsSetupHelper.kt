@@ -28,7 +28,6 @@ class GeneralSettingsDefaultCredentialsSetupHelper(
     private var lastCommittedDefaultPassword: String = ""
 
     fun setup() {
-        Timber.d("S2601: default-credentials group setup entered in its extracted helper")
         val currentSettings = viewModel.settings.value
         lastCommittedDefaultUser = currentSettings.defaultUser
         lastCommittedDefaultPassword = currentSettings.defaultPassword

@@ -105,7 +105,6 @@ class WearMediaRepositoryImpl(
         val isImages = preferencesRepository?.isImagesEnabled?.firstOrNull() ?: true
         val isDocs = preferencesRepository?.isDocumentsEnabled?.firstOrNull() ?: true
 
-        Timber.d("S2492: getAllMediaFiles with audio=$isAudio video=$isVideo images=$isImages docs=$isDocs")
 
         val mediaFiles = mutableListOf<WearMediaFile>()
         if (isAudio) mediaFiles.addAll(queryMediaStore(MediaType.MUSIC))

@@ -107,7 +107,6 @@ class NetworkMonitorSummaryFragment : Fragment() {
     }
 
     private fun renderActiveCard(state: NetworkMonitorSummaryUiState) {
-        Timber.d("S1936: Network Monitor summary card speed metric rendered")
         val transportRes = state.transport?.toLabelRes()
         val hasLink = transportRes != null
         binding.networkMonitorActiveHeadline.text = if (hasLink) {

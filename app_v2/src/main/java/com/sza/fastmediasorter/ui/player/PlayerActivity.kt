@@ -878,7 +878,6 @@ class PlayerActivity :
         val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
         if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
             val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000L
-            Timber.d("S2505: PlayerActivity scheduleHideControls delayMs=$delayMs")
             hideControlsHandler.postDelayed(hideControlsRunnable, delayMs)
         }
     }

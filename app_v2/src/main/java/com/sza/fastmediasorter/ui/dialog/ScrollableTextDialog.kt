@@ -179,7 +179,6 @@ object ScrollableTextDialog {
                     putExtra(Intent.EXTRA_TEXT, fullText)
                 }
                 if (context.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
-                    Timber.d("S2902: ScrollableTextDialog: no share targets available, copying to clipboard")
                     copyToClipboard(context, fullText)
                     Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
                 } else {

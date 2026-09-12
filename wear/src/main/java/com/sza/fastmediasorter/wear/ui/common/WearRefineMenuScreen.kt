@@ -91,7 +91,6 @@ fun WearRefineMenuScreen(
     ) {
         val listState = rememberWearListState(initialCenterItemIndex = REFINE_MENU_OPEN_ANCHOR)
         LaunchedEffect(Unit) {
-            Timber.d("S2473: refine menu opened over the browse list")
         }
         val filterColors = ChipDefaults.childChipColors()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -168,7 +167,6 @@ private fun ScalingLazyListScope.sortGroup(
         selected = state.sortSelected,
         labelOf = { stringResource(labelForSortOrder(it)) },
         onSelected = { order ->
-            Timber.d("S2473: sort order picked on the refine menu")
             actions.onSortSelected(order)
             actions.onDismiss()
         },

@@ -41,7 +41,6 @@ class WearTransferOutcomeCoordinator @Inject constructor(
         result: WearFileReceiveResult,
         declaration: WearFileTransferMetadata,
     ): String {
-        Timber.d("S2431: coordinator decides file outcome")
         return decideFileOutcome(result, declaration)
     }
 
@@ -63,7 +62,6 @@ class WearTransferOutcomeCoordinator @Inject constructor(
      * playback.
      */
     suspend fun streamAck(channel: WearStreamChannel, requestId: String): WearStreamTransferAck {
-        Timber.d("S2431: coordinator decides stream outcome")
         val handled = awaitOpenConfirmation(
             echo = WatchStreamOpenEvents.openedFlow,
             expected = channel.url,
