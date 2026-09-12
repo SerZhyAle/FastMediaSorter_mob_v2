@@ -39,6 +39,13 @@ private const val UPDATE_THROTTLE_MS = 500L
 private const val AGE_TICK_INTERVAL_MS = 1_000L
 private const val MIN_LOCATION_TIME_MS = 1_000L
 private const val MIN_LOCATION_DISTANCE_M = 1.0f
+private const val MS_TO_KMH = 3.6f
+private const val ROTATION_MATRIX_SIZE = 9
+private const val ORIENTATION_ANGLES_SIZE = 3
+private const val FULL_ROTATION_DEGREES = 360.0
+private const val CARDINAL_OFFSET_DEGREES = 22.5f
+private const val CARDINAL_SECTOR_DEGREES = 45f
+private const val CARDINAL_SECTORS_COUNT = 8
 
 /**
  * S3007: Android implementation of [WearTouristRepository] aggregating GPS, GNSS, orientation,
@@ -93,7 +100,7 @@ class AndroidWearTouristRepository @Inject constructor(
         // 1. Location and GNSS Listeners
         val locationListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
-                val speed = if (location.hasSpeed()) location.speed * 3.6f else null
+                val speed = if (location.hasSpeed()) location.speed * MS_TO_KMH else null
                 if (speed != null && speed > maxSpeedKmh.get()) {
                     maxSpeedKmh.set(speed)
                 }
@@ -185,15 +192,16 @@ class AndroidWearTouristRepository @Inject constructor(
 
         // 2. Sensor Listeners (Compass, Barometer, Steps)
         val sensorListener = object : SensorEventListener {
-            private val rotationMatrix = FloatArray(9)
-            private val orientationAngles = FloatArray(3)
+            private val rotationMatrix = FloatArray(ROTATION_MATRIX_SIZE)
+            private val orientationAngles = FloatArray(ORIENTATION_ANGLES_SIZE)
 
             override fun onSensorChanged(event: SensorEvent) {
                 when (event.sensor.type) {
                     Sensor.TYPE_ROTATION_VECTOR -> {
                         SensorManager.getRotationMatrixFromVector(rotationMatrix, event.values)
                         SensorManager.getOrientation(rotationMatrix, orientationAngles)
-                        val degrees = (Math.toDegrees(orientationAngles[0].toDouble()) + 360.0) % 360.0
+                        val degrees = (Math.toDegrees(orientationAngles[0].toDouble()) + FULL_ROTATION_DEGREES) %
+                            FULL_ROTATION_DEGREES
                         val cardinal = degreeToCardinal(degrees.toFloat())
                         updateAndEmit {
                             it.copy(
@@ -205,7 +213,10 @@ class AndroidWearTouristRepository @Inject constructor(
                     }
                     Sensor.TYPE_PRESSURE -> {
                         val pressureHpa = event.values[0]
-                        val alt = SensorManager.getAltitude(SensorManager.PRESSURE_STANDARD_ATMOSPHERE, pressureHpa).toDouble()
+                        val alt = SensorManager.getAltitude(
+                            SensorManager.PRESSURE_STANDARD_ATMOSPHERE,
+                            pressureHpa,
+                        ).toDouble()
                         updateAndEmit { it.copy(altitudeMeters = alt) }
                     }
                     Sensor.TYPE_STEP_COUNTER -> {

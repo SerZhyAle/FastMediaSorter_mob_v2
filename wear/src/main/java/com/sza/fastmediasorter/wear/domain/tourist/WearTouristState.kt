@@ -29,4 +29,3 @@ data class WearTouristState(
     val hasStepSensor: Boolean = true,
     val hasHeartRateSensor: Boolean = true,
 )
-

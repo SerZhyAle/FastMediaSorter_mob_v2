@@ -25,6 +25,10 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 
+private val OVERLAY_BG_COLOR = Color(0xD9000000.toInt())
+private val HINT_TEXT_COLOR = Color(0xFFFFCC00.toInt())
+private val ICON_SIZE_SP = 36.sp
+
 /**
  * S3015: Fullscreen touch-lock overlay preventing accidental screen interactions during activity.
  * Unlocks only via long-press gesture.
@@ -40,7 +44,7 @@ fun TouristLockOverlay(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xD9000000))
+            .background(OVERLAY_BG_COLOR)
             .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
@@ -56,7 +60,7 @@ fun TouristLockOverlay(
         ) {
             Text(
                 text = "🔒",
-                fontSize = 36.sp,
+                fontSize = ICON_SIZE_SP,
                 textAlign = TextAlign.Center,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -71,7 +75,7 @@ fun TouristLockOverlay(
             Text(
                 text = stringResource(R.string.wear_tourist_hold_to_unlock),
                 style = MaterialTheme.typography.caption2,
-                color = Color(0xFFFFCC00),
+                color = HINT_TEXT_COLOR,
                 textAlign = TextAlign.Center,
             )
         }

@@ -77,4 +77,3 @@ class TouristViewModel @Inject constructor(
         }
     }
 }
-

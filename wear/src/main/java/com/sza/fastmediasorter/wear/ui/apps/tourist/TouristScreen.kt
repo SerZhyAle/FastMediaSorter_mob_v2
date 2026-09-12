@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.apps.tourist
 
 import android.Manifest
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,13 +27,14 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
+import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
 /**
- * S3007: Tourist telemetry and navigation dashboard for Wear OS.
+ * S3007 / S3015: Tourist telemetry and athlete navigation dashboard for Wear OS.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -55,6 +57,52 @@ fun TouristScreen(
         TouristMetricType.values().filter { it != telemetry.focusedMetric }
     }
 
+    Box(modifier = Modifier.fillMaxSize()) {
+        if (state.isAthleteMode) {
+            TouristAthleteCard(
+                state = telemetry,
+                isMetric = state.isMetricSystem,
+                onSelectMetric = { viewModel.selectMetric(it) },
+                onLockScreen = { viewModel.setScreenLocked(true) },
+                onExitAthleteMode = { viewModel.toggleAthleteMode() },
+            )
+        } else {
+            TouristDashboardContent(
+                telemetry = telemetry,
+                isMetricSystem = state.isMetricSystem,
+                secondaryMetrics = secondaryMetrics,
+                listState = listState,
+                onRequestLocationPermission = { permissionsState.launchMultiplePermissionRequest() },
+                onSelectMetric = { viewModel.selectMetric(it) },
+                onResetTrip = { viewModel.resetTrip() },
+                onResetSteps = { viewModel.resetSteps() },
+                onToggleAthleteMode = { viewModel.toggleAthleteMode() },
+                onLockScreen = { viewModel.setScreenLocked(true) },
+            )
+        }
+
+        if (state.isScreenLocked) {
+            TouristLockOverlay(
+                onUnlock = { viewModel.setScreenLocked(false) },
+            )
+        }
+    }
+}
+
+@Suppress("LongParameterList")
+@Composable
+private fun TouristDashboardContent(
+    telemetry: WearTouristState,
+    isMetricSystem: Boolean,
+    secondaryMetrics: List<TouristMetricType>,
+    listState: ScalingLazyListState,
+    onRequestLocationPermission: () -> Unit,
+    onSelectMetric: (TouristMetricType) -> Unit,
+    onResetTrip: () -> Unit,
+    onResetSteps: () -> Unit,
+    onToggleAthleteMode: () -> Unit,
+    onLockScreen: () -> Unit,
+) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
@@ -79,7 +127,7 @@ fun TouristScreen(
             if (!telemetry.hasLocationPermission) {
                 item {
                     CompactChip(
-                        onClick = { permissionsState.launchMultiplePermissionRequest() },
+                        onClick = onRequestLocationPermission,
                         label = { Text(stringResource(R.string.wear_tourist_permission_location)) },
                         colors = ChipDefaults.primaryChipColors(),
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
@@ -90,15 +138,17 @@ fun TouristScreen(
             item {
                 TouristHeroCard(
                     state = telemetry,
-                    isMetric = state.isMetricSystem,
+                    isMetric = isMetricSystem,
                     modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
 
             item {
                 TouristActionsRow(
-                    onResetTrip = { viewModel.resetTrip() },
-                    onResetSteps = { viewModel.resetSteps() },
+                    onResetTrip = onResetTrip,
+                    onResetSteps = onResetSteps,
+                    onToggleAthleteMode = onToggleAthleteMode,
+                    onLockScreen = onLockScreen,
                     modifier = Modifier.padding(vertical = 4.dp),
                 )
             }
@@ -107,12 +157,11 @@ fun TouristScreen(
                 TouristSecondaryCard(
                     metricType = metricType,
                     state = telemetry,
-                    isMetric = state.isMetricSystem,
-                    onClick = { viewModel.selectMetric(metricType) },
+                    isMetric = isMetricSystem,
+                    onClick = { onSelectMetric(metricType) },
                     modifier = Modifier.padding(horizontal = 4.dp),
                 )
             }
         }
     }
 }
-

@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.apps.tourist
 
-import com.sza.fastmediasorter.wear.domain.tourist.TouristMetricType
 import com.sza.fastmediasorter.wear.domain.tourist.WearTouristState
 
 /**
@@ -12,4 +11,3 @@ data class TouristUiState(
     val isAthleteMode: Boolean = false,
     val isScreenLocked: Boolean = false,
 )
-

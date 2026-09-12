@@ -14,4 +14,3 @@ enum class TouristMetricType {
     SUN_TIME,
     HEART_RATE,
 }
-
