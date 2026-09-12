@@ -70,6 +70,15 @@ enum class WearFileOperationOutcome {
      */
     REFUSED_PHONE_NOTIFICATIONS_OFF,
 
+    /**
+     * S2142: the file reached the phone and the «Send to..» action there is waiting for a tap.
+     *
+     * Its own outcome rather than [SUCCEEDED], because the send has not happened yet: strategic 6
+     * question 5 settles that the watch reports the errand queued and never claims that an external
+     * application received anything.
+     */
+    AWAITING_PHONE_ACTION,
+
     FAILED,
 
     CANCELLED

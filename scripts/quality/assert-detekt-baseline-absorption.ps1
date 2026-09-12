@@ -34,6 +34,8 @@
       2  Cannot verify - a baseline or snapshot file is missing or unparseable. Never a PASS:
          "could not check" is a different fact from "checked and found nothing". A missing snapshot
          is this case on purpose - seed it once with -Update, do not let an unseeded gate read green.
+      4  the target's code domain is held by another session, so nothing was written. The queue
+         place is held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Module
     app_v2 or wear. Omit to check both.
@@ -72,6 +74,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
@@ -200,7 +203,15 @@ foreach ($m in $modules) {
             "# Reason: $Reason"
         )
         $sorted = @($baselineIds | Sort-Object)
-        Set-Content -LiteralPath $snapshotPath -Value ($header + $sorted) -Encoding utf8NoBOM
+        # Taken per module, so a two-module -Update holds Code.Phone only while app_v2's snapshot
+        # is being written and Code.Wear only while wear's is.
+        $codeScope = $null
+        try {
+            $codeScope = Enter-CodeLockOrExit -Path $snapshotPath `
+                -Reason "assert-detekt-baseline-absorption.ps1 -Update ($m snapshot)"
+            Set-Content -LiteralPath $snapshotPath -Value ($header + $sorted) -Encoding utf8NoBOM
+        }
+        finally { Exit-CodeLockScope -Scope $codeScope }
 
         $seedWord = if ($hadSnapshot) { 're-seeded' } else { 'seeded (initial)' }
         Write-Host "assert-detekt-baseline-absorption: snapshot $seedWord for $m - $($sorted.Count) ID(s)." -ForegroundColor Green

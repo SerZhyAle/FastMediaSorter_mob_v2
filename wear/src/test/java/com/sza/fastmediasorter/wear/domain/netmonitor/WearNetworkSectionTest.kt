@@ -11,7 +11,7 @@ import org.junit.Test
 class WearNetworkSectionTest {
 
     @Test
-    fun `a watch with every radio gets all seven sections in declaration order`() {
+    fun `a watch with every radio gets all applicable sections in declaration order`() {
         val sections = sectionsFor(
             WearNetworkCapabilities(
                 hasWifi = true,
@@ -21,11 +21,20 @@ class WearNetworkSectionTest {
             )
         )
 
-        assertEquals(WearNetworkSection.entries, sections)
+        val expected = listOf(
+            WearNetworkSection.Wifi,
+            WearNetworkSection.Mobile,
+            WearNetworkSection.Bluetooth,
+            WearNetworkSection.Gnss,
+            WearNetworkSection.Traffic,
+            WearNetworkSection.Internet,
+            WearNetworkSection.History
+        )
+        assertEquals(expected, sections)
     }
 
     @Test
-    fun `a wifi only watch gets summary wifi internet and history`() {
+    fun `a wifi only watch gets wifi mobile traffic internet and history`() {
         val sections = sectionsFor(
             WearNetworkCapabilities(
                 hasWifi = true,
@@ -37,8 +46,9 @@ class WearNetworkSectionTest {
 
         assertEquals(
             listOf(
-                WearNetworkSection.Summary,
                 WearNetworkSection.Wifi,
+                WearNetworkSection.Mobile,
+                WearNetworkSection.Traffic,
                 WearNetworkSection.Internet,
                 WearNetworkSection.History
             ),
@@ -51,7 +61,6 @@ class WearNetworkSectionTest {
         allCapabilityCombinations().forEach { capabilities ->
             val sections = sectionsFor(capabilities)
             assertTrue("empty for $capabilities", sections.isNotEmpty())
-            assertTrue("no summary for $capabilities", sections.contains(WearNetworkSection.Summary))
         }
     }
 
@@ -63,6 +72,7 @@ class WearNetworkSectionTest {
             WearNetworkSection.Mobile to "mobile",
             WearNetworkSection.Bluetooth to "bluetooth",
             WearNetworkSection.Gnss to "gnss",
+            WearNetworkSection.Traffic to "traffic",
             WearNetworkSection.Internet to "internet",
             WearNetworkSection.History to "history"
         )

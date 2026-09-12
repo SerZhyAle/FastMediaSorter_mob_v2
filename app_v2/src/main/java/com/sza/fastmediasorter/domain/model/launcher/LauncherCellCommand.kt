@@ -210,6 +210,17 @@ sealed interface LauncherCellCommand {
         /** The preset section a fresh desktop opens with; §6.2 defers user-created ones to their own ticket. */
         const val SECTION_APP_FUNCTIONS = "app_functions"
 
+        /**
+         * S2735: the settings section split out of [SECTION_APP_FUNCTIONS] - the app's own settings
+         * entries plus the quick entries into the Android system settings.
+         *
+         * The literal is a persistence token: it is written verbatim into a cell's `target` and the
+         * settings backup restores that string untouched, so it is never renamed once shipped. The
+         * caption is looked up separately through [LauncherSectionCatalog][com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog],
+         * which is what lets the user rename the section without the desktop losing track of it.
+         */
+        const val SECTION_SETTINGS = "settings"
+
         /** S1746: starter section for installed Android applications. */
         const val SECTION_ANDROID_APPS = "android_apps"
 

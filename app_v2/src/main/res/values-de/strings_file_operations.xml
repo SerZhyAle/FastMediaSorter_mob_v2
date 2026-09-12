@@ -76,7 +76,6 @@
     <string name="delete_by_size_warning_no_trash">Warnung: Für diese Ressource wird kein Papierkorb unterstützt. Das Löschen ist endgültig!</string>
     <string name="delete_confirmation">Dateien löschen?</string>
     <string name="delete_failed">Die Dateien konnten nicht gelöscht werden.</string>
-    <string name="delete_file_confirmation">%1$s aus %2$s löschen?</string>
     <string name="delete_folder_confirm">Ordner \"%1$s\" und seinen gesamten Inhalt löschen? Dies kann nicht rückgängig gemacht werden.</string>
     <string name="delete_n_files_from_network_title">%d Dateien aus dem Netzwerk löschen?</string>
     <string name="delete_n_folders_confirm">%1$d-Ordner und deren gesamten Inhalt löschen? Dies kann nicht rückgängig gemacht werden.</string>
@@ -135,4 +134,11 @@
     <string name="browse_row_folder_checkbox">Ordner %1$s auswählen</string>
     <string name="browse_row_file_checkbox">Datei %1$s auswählen</string>
     <string name="browse_transfer_folders_included">Enthaltene Ordner: %1$d</string>
+    <string name="undo_folder_move_started">Ordner werden zurückverschoben..</string>
+    <string name="undo_folder_copy_confirm_title">Kopiervorgang des Ordners rückgängig machen?</string>
+    <string name="undo_folder_copy_confirm_message">Die Kopien am Zielort werden gelöscht, einschließlich allem, was seitdem hinzugefügt wurde. Die ursprünglichen Ordner bleiben, wo sie sind.</string>
+    <string name="undo_folder_copy_confirm_action">Kopien löschen</string>
+    <string name="undo_folder_copy_done">Kopien gelöscht.</string>
+    <string name="undo_mixed_move_started">Ordner werden zurückverschoben, %1$d Dateien werden wiederhergestellt..</string>
+    <string name="undo_mixed_copy_done">Kopien gelöscht: %1$d Dateien, %2$d Ordner.</string>
 </resources>

@@ -9,6 +9,8 @@ import android.graphics.RectF
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.sza.fastmediasorter.core.util.AnimationIntent
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import timber.log.Timber
 import kotlin.math.sin
 import kotlin.random.Random
@@ -37,8 +39,8 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     companion object {
         private const val BAR_COUNT = 15
         private const val ANIMATION_DURATION_MS = 5000L
-        private const val HUE_CYCLE_DURATION_MS = 45_000L  // full-spectrum colour drift period
-        private const val MIN_HEIGHT_FRACTION = 0.15f   // fraction of view height
+        private const val HUE_CYCLE_DURATION_MS = 45_000L // full-spectrum colour drift period
+        private const val MIN_HEIGHT_FRACTION = 0.15f // fraction of view height
         private const val MAX_HEIGHT_FRACTION = 0.85f
         private const val BAR_CORNER_RADIUS_DP = 4f
         private const val INTER_BAR_GAP_FRACTION = 0.15f // gap = barWidth * fraction
@@ -111,7 +113,40 @@ class AudioBreathingBarsView @JvmOverloads constructor(
 
     // ────────────────────────── Public API ──────────────────────────
 
+    // Fires on the settings collector's thread, so the work is posted to the view's own thread.
+    private val policyListener: () -> Unit = { post { refreshPolicy() } }
+
+    /** True while the policy, not the host, is what is holding the animation still. */
+    private var frozenByPolicy = false
+
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        AnimationPolicy.addLevelListener(policyListener)
+    }
+
+    /**
+     * S2536: this is the alternate skin of the same visualizer, so it follows the same rule - it keeps
+     * moving under the user's cosmetic switch and freezes only in the power-saving level. Leaving it
+     * out would make strategic criterion 3 true on one player skin and false on the other.
+     */
+    fun refreshPolicy() {
+        if (AnimationPolicy.mayAnimate(AnimationIntent.AMBIENT)) {
+            if (frozenByPolicy) startAnimation()
+        } else if (!frozenByPolicy) {
+            frozenByPolicy = true
+            // Pause, never cancel: the last computed frame stays on screen, so a frozen visualizer
+            // reads as held rather than as blank.
+            pauseAnimation()
+        }
+    }
+
     fun startAnimation() {
+        if (!AnimationPolicy.mayAnimate(AnimationIntent.AMBIENT)) {
+            frozenByPolicy = true
+            pauseAnimation()
+            return
+        }
+        frozenByPolicy = false
         when {
             animator.isPaused -> {
                 Timber.d("AudioBreathingBarsView: startAnimation() - resume from pause")
@@ -197,7 +232,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
 
         for (i in 0 until RING_COUNT) {
             // Each ring is offset by 1/RING_COUNT of the cycle - continuous staggered stream
-            val progress = (animProgress + i.toFloat() / RING_COUNT) % 1f  // 0..1
+            val progress = (animProgress + i.toFloat() / RING_COUNT) % 1f // 0..1
             val radius = maxRadius * progress
             // Fade: full opacity at center, transparent at edge
             val alpha = ((1f - progress).coerceIn(0f, 1f) * 230).toInt()
@@ -217,6 +252,7 @@ class AudioBreathingBarsView @JvmOverloads constructor(
     }
 
     override fun onDetachedFromWindow() {
+        AnimationPolicy.removeLevelListener(policyListener)
         super.onDetachedFromWindow()
         animator.cancel()
         hueAnimator.cancel()

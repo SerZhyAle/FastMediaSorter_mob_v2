@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.apps.ApplyAllAppsSortDefaultUseCase
 import com.sza.fastmediasorter.domain.usecase.apps.QueryAllAppsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -28,8 +29,15 @@ import javax.inject.Inject
 @HiltViewModel
 class LauncherAllAppsViewModel @Inject constructor(
     private val queryAllApps: QueryAllAppsUseCase,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val applyAllAppsSortDefault: ApplyAllAppsSortDefaultUseCase
 ) : ViewModel() {
+
+    init {
+        // S2736: here rather than in the deferred startup worker, which runs half a minute after launch
+        // and could let this screen open on the order the migration is about to replace.
+        viewModelScope.launch { applyAllAppsSortDefault() }
+    }
 
     private val _query = MutableStateFlow("")
     val query: StateFlow<String> = _query
@@ -79,6 +87,6 @@ class LauncherAllAppsViewModel @Inject constructor(
 
     private companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
-        val DEFAULT_ORDER = InstalledAppSortOrder.LABEL
+        val DEFAULT_ORDER = InstalledAppSortOrder.LAUNCH_FREQUENCY
     }
 }

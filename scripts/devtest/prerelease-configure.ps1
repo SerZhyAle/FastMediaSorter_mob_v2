@@ -4,6 +4,7 @@
 
 .DESCRIPTION
   Owns the parts of /spec-prerelease configuration that adb can drive without UI:
+    0. Package-presence guard with self-restore (S2709).
     1. Credential-free clean-emulator resource fixture declaration.
     2. Theme + language settings via SharedPreferences / cmd locale (step 02.4).
 
@@ -19,9 +20,14 @@
     0  - configuration applied (reachable resources + required adb settings OK)
     1  - bad arguments / config unreadable
     10 - a required configuration stage failed
+    11 - the app is not installed on the device and was not restored
 
 .PARAMETER DeviceId
   Specific adb device id. Required when multiple devices are online.
+
+.PARAMETER NoRestore
+  Report a missing app and exit 11 instead of reinstalling it. For a diagnostic run that must not
+  change the device's state.
 
 .PARAMETER Json
   Emit a single JSON object instead of human-readable lines.
@@ -32,6 +38,7 @@
 [CmdletBinding()]
 param(
     [string]$DeviceId,
+    [switch]$NoRestore,
     [switch]$Json
 )
 
@@ -39,7 +46,6 @@ $ErrorActionPreference = 'Stop'
 
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
-$RepoRoot      = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $DebugPackage  = 'com.sza.fastmediasorter.debug'
 $ConfigPath    = Join-Path $PSScriptRoot 'prerelease.config.psd1'
 
@@ -68,15 +74,8 @@ function Complete-Run {
 
 if (-not (Test-Path $ConfigPath)) { Add-Stage 'load-config' 'FAIL' "config not found: $ConfigPath"; Complete-Run 1 }
 $config = Import-PowerShellDataFile $ConfigPath
-$script:result.resources += [ordered]@{
-    name = 'owner-network-fixtures'
-    type = 'OWNER_ONLY'
-    reachability = 'not-shipped'
-    status = 'SKIP'
-}
-Add-Stage 'resources' 'SKIP' 'owner-only network fixtures are not shipped; seeded Downloads covers clean-emulator browsing'
 
-# ---------- adb resolution (shared by settings stages) ----------
+# ---------- adb resolution (shared by every stage below) ----------
 # Resolve adb (not on PATH on the dev machine), mirroring device-ready.ps1.
 function Get-Adb {
     foreach ($root in @($env:ANDROID_HOME, $env:ANDROID_SDK_ROOT)) {
@@ -91,6 +90,51 @@ function Get-Adb {
 $adb = Get-Adb
 if (-not $adb) { Add-Stage 'configure' 'FAIL' 'adb not found'; Complete-Run 10 }
 $adbTarget = @(); if ($DeviceId) { $adbTarget = @('-s', $DeviceId) }
+
+# ---------- stage 0: package presence, with self-restore (S2709) ----------
+# Step 1.4 of the sweep runs connectedStandardDebugAndroidTest, which installs the app and the test
+# APK, runs the tests and REMOVES BOTH when it finishes - so the sweep reaches this script with no
+# app on the device, and every stage below silently describes a package that is not there. The
+# guard lives here rather than at the end of step 1.4 because the package can also vanish through a
+# manual uninstall, a wipe-data, a failed install at step 1.1, or another session on the device;
+# the consumer that needs the app is the one place a single check covers all of them.
+. (Join-Path $PSScriptRoot 'lib/prerelease-package-guard.ps1')
+
+function Test-AppInstalled {
+    $raw = & $adb @adbTarget shell pm list packages $DebugPackage 2>$null
+    return (Test-PmPackagePresent -PmListOutput @($raw) -Package $DebugPackage)
+}
+
+if (Test-AppInstalled) {
+    Add-Stage 'package-present' 'OK' "$DebugPackage installed"
+} elseif ($NoRestore) {
+    Add-Stage 'package-present' 'FAIL' "$DebugPackage not installed; -NoRestore given, so no reinstall was attempted"
+    Complete-Run 11
+} else {
+    Add-Stage 'package-present' 'WARN' "$DebugPackage not installed (step 1.4's connected test run removes it); restoring via prerelease-prepare.ps1"
+    $prepArgs = @('-NoProfile', '-File', (Join-Path $PSScriptRoot 'prerelease-prepare.ps1'))
+    if ($DeviceId) { $prepArgs += @('-DeviceId', $DeviceId) }
+    & pwsh @prepArgs *> $null
+    $prepCode = $LASTEXITCODE
+    if ($prepCode -ne 0) {
+        Add-Stage 'package-present' 'FAIL' "prerelease-prepare.ps1 exit $prepCode; $DebugPackage still absent"
+        Complete-Run 11
+    }
+    if (-not (Test-AppInstalled)) {
+        Add-Stage 'package-present' 'FAIL' "prerelease-prepare.ps1 reported success but $DebugPackage is still not installed"
+        Complete-Run 11
+    }
+    Add-Stage 'package-present' 'OK' "$DebugPackage restored by prerelease-prepare.ps1"
+}
+
+# ---------- stage 1: resource fixtures ----------
+$script:result.resources += [ordered]@{
+    name = 'owner-network-fixtures'
+    type = 'OWNER_ONLY'
+    reachability = 'not-shipped'
+    status = 'SKIP'
+}
+Add-Stage 'resources' 'SKIP' 'owner-only network fixtures are not shipped; seeded Downloads covers clean-emulator browsing'
 
 # Device API level. Per-app locale via `cmd locale set-app-locales` is API 33+ (Android 13);
 # below that the framework `locale` service does not exist ("Can't find service: locale") and
@@ -121,6 +165,9 @@ foreach ($name in $config.Settings.Keys) {
         # without it set/get-app-locales operate on user 0, which reads back empty on a freshly
         # installed app and previously failed the sweep (exit 10) for a locale that was in fact
         # applied (S0626). Set and verify against the same user so a real apply is never misread.
+        # `get-app-locales` returns "Unknown package .." through the same channel as a locale, so
+        # the FAIL below cannot tell the two apart; stage 0 above answers that question first and
+        # exits 11, which is why this message may stay about the locale alone (S2709).
         & $adb @adbTarget shell cmd locale set-app-locales $DebugPackage --user current --locales $s.Locale *> $null
         $loc = & $adb @adbTarget shell cmd locale get-app-locales $DebugPackage --user current 2>$null
         $okLoc = ("$loc" -match [regex]::Escape($s.Locale))

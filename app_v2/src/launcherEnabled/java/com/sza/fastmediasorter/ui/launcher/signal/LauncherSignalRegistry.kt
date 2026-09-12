@@ -26,6 +26,10 @@ class LauncherSignalRegistry @Inject constructor(
      * Sorted by [LauncherSignalKind] declaration order, not by the injected set's iteration order: a Dagger
      * multibinding is a `Set` and guarantees no order at all, so relying on binding order would let the row
      * reshuffle between builds.
+     *
+     * S2734: within one kind the source's own [LauncherSignal.rank] decides, and the id only breaks a tie.
+     * That is what puts a fresh notification at the left edge of its group without letting it overtake this
+     * app's own playback or file transfer, which the owner's ruling of 2026-08-17 forbids (S1465).
      */
     fun observe(): Flow<List<LauncherSignal>> {
         if (sources.isEmpty()) {
@@ -34,7 +38,7 @@ class LauncherSignalRegistry @Inject constructor(
         return combine(sources.map(::guarded)) { parts ->
             parts.toList()
                 .flatten()
-                .sortedWith(compareBy({ it.kind.ordinal }, { it.id }))
+                .sortedWith(compareBy({ it.kind.ordinal }, { it.rank }, { it.id }))
         }.distinctUntilChanged()
     }
 

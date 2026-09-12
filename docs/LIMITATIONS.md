@@ -64,7 +64,7 @@ This document outlines the current technical constraints, functional limitations
 - **Soft Delete:** Local files are moved to a hidden `.trash/` folder. This takes up space until you manually select "Empty Trash" in settings.
 
 ### Wear OS App
-- **Limited Scope:** The Wear OS companion app currently supports **local media only**. Network and cloud resources are not accessible from the watch.
+- **Read-only network access:** SMB, FTP and SFTP resources are reachable from the watch and can be walked into their subfolders, but they are read-only there - moving, deleting and renaming apply to the watch's own storage only.
 - **Performance:** Image and video processing on watches is significantly slower than on phones.
 
 ### Home-Screen (Launcher) Mode

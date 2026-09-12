@@ -12,18 +12,29 @@ pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -DeviceId emulator-5554
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite maestro/features/player/player_image.yaml -Json
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite player_image.yaml -ListFlows
 ```
 
 Runner contract:
 
 - Full Maestro traces are written under `temp/`; console output is a compact verdict only.
-- `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,log}] }`.
+- `-Json` emits `{ pass, total, failed, reason, flows:[{flow,pass,status,log}] }`.
+- A `-Suite` ending in `.yaml` that no root resolves falls back to the file NAME under `maestro/`,
+  so re-running one failed flow never requires remembering its category (S2396).
+- `-ListFlows` prints the resolved set and exits without touching Maestro or a device - the only
+  way to check a selector form with no emulator attached.
+- `status` per flow is `pass|fail|execError`. `execError` is the transport between Maestro and the
+  device failing; it is not an app defect and `scripts/devtest/prerelease-verdict.ps1` does not
+  count it as one.
 - `-DeviceId <adb serial>` pins a device; omit it when exactly one device is online.
 - Exit `0`: all selected flows passed.
 - Exit `1`: bad args or no flow matched `-Suite`.
 - Exit `2`: Maestro CLI not found.
 - Exit `3`: at least one flow assertion failed.
 - Exit `4`: execution error such as no device or Maestro runtime failure.
+- Exit `5`: a `wear` suite was aimed at a target whose `ro.build.characteristics` does not say
+  `watch` - the watch and phone debug builds share one application id, so the runner refuses the
+  pairing instead of verifying the wrong app (S2548 ADR-3).
 
 ## Flow Map
 
@@ -100,7 +111,22 @@ operation resources and the file-operation menu is known tappable on that device
 - `permissions.yaml` - optional system permission taps.
 - `navigate_to_add_resource.yaml` - shared add-resource navigation fragment.
 - `go_home.yaml` - back out of any restored player/browse to the main resource tabs (resumeOnNextLaunch reopens the last file on cold start). Every capability flow runs this right after `permissions.yaml`. When backing out cannot reach the tabs - the foreground screen is not on the app's back stack, as under launcher mode - it relaunches the app instead of failing (S1673).
+- `settings_open_interface.yaml` - open Settings, select the General tab and bring the Interface section into view, expanded. Extracted from the three launcher flows, which carried it verbatim (S2720).
+- `launcher_mode_enable.yaml` - turn launcher mode on and leave the caller on an active `rowLauncherSettings`. Tapping the toggle only makes the app a home-screen candidate; the row is enabled off the held `ROLE_HOME` role, so this fragment also answers the system role dialog (select the candidate row, then confirm - a lone confirm tap leaves the role where it was). A flow that runs it declares `# maestro-requires: home-role` in its header, and the runner restores the previous role holder afterwards (S2720).
 - `downloads_sort_reset.yaml` - scroll the open list back to the top (guarded `fabScrollToTop` tap), so a following down-only `scrollUntilVisible` reaches any target regardless of the per-resource scroll position restored by `rememberTheFileList`.
+
+`wear/` (the watch tree, S2548; invisible to `-Suite all` by construction - run `-Suite wear` with the
+watch's `-DeviceId`; full contract in `wear/README.md`):
+
+- `wear_home_navigation.yaml` - the home hops through Local and Phone, each destination asserted by
+  its own category id.
+- `wear_local_playback.yaml` - a seeded file actually plays; declares `# maestro-requires: seeded-content`.
+- `wear_settings_persistence.yaml` - a media type toggled, left, re-entered, and still toggled.
+- `wear_rotary_reach.yaml` - an off-glass About row reached by scroll; the runner drives the bezel
+  around this flow with `adb.ps1 rotary`, never inside the `.yaml`.
+
+Every flow addresses project-owned nodes by `WearTestTags` resource-id, never by a caption: the watch
+flows must survive a locale change the phone suite's ru-label convention does not cover.
 
 ## Preconditions
 
@@ -124,6 +150,13 @@ Run against `standard-debug` (`com.sza.fastmediasorter.debug`). The capability f
   back off. It is not a precondition: `go_home.yaml` escapes the desktop by relaunching, so the
   suite runs either way. The runner still prints the state (`launcher-mode: on|off`) in its
   header, because otherwise it is invisible in every flow trace (S1673).
+- **The `ROLE_HOME` system role** is a precondition of two flows only - `launcher_settings_open.yaml`
+  and `launcher_start_menu.yaml`, both marked `# maestro-requires: home-role`. They take it
+  themselves through the system dialog and the runner gives it back to the previous holder after
+  each one, pass or fail; leaving it held would hang the next flow's `go_home.yaml` on a `stopApp`
+  aimed at the device's home app. On a physical device the grant needs `-AllowHomeRoleGrant`,
+  because whether that serial may be handed a system role is recorded in `docs/DEVICE_FLEET.md`;
+  without it the two flows report `skip` with the reason and the suite still passes (S2720).
 
 The runner needs `resumeOnNextLaunch` and `rememberTheFileList` to stay at their defaults; the
 `go_home` and `downloads_sort_reset` fragments make flows deterministic against both. Flows do

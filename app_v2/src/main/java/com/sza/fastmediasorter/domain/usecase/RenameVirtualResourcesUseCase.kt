@@ -2,10 +2,12 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Environment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.UiLanguageCatalog
+import com.sza.fastmediasorter.core.util.UriPathResolver
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -28,6 +30,12 @@ import javax.inject.Inject
  *
  * Covered: the six virtual:// resources, the predefined All Files resource
  * (identified by [ResourceProfile.ALL_FILES], never by name), and the Downloads destination.
+ *
+ * S2627: the current language is resolved BEFORE any comparison, and the remaining declared
+ * languages only when the stored value already differs from it. The pass moved off the
+ * thirty-second deferred worker onto the startup path, where resolving all thirteen declared tags
+ * for every record on every launch - the shape this class had while it ran once, late, in the
+ * background - would be paid by every cold start instead.
  */
 class RenameVirtualResourcesUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -54,41 +62,41 @@ class RenameVirtualResourcesUseCase @Inject constructor(
     suspend operator fun invoke() {
         try {
             UiLanguageCatalog.ensureInitialized(context)
-            val languages = UiLanguageCatalog.supportedTags.ifEmpty { listOf("en") }
+            val languages = UiLanguageCatalog.supportedTags.ifEmpty { listOf(UiLanguageCatalog.DEFAULT_TAG) }
             val currentLang = LocaleHelper.getLanguage(context)
+            // The rewrite only ever replaces a value that equals some OTHER declared language's
+            // default, so a current language outside the declared set has nothing to compare against
+            // and no value it may safely claim. Unreachable while LocaleHelper resolves through the
+            // same catalog; kept because the alternative to skipping is rewriting on no evidence.
+            if (currentLang !in languages) {
+                Timber.w("RenameVirtualResources: lang='%s' is not declared, nothing to compare", currentLang)
+                return
+            }
             val allResources = resourceRepository.getAllResourcesSync()
             var updatedCount = 0
 
             val virtualResources = allResources.filter { VirtualPathUtils.isVirtualPath(it.path) }
             for (resource in virtualResources) {
                 val (nameRes, commentRes) = virtualStringKeys[resource.path] ?: continue
-                val defaults = languages.associateWith { lang ->
-                    LocalizedEntry(
-                        name = getStringForLanguage(nameRes, lang),
-                        comment = getStringForLanguage(commentRes, lang),
-                    )
-                }
-                if (applyLocalizedDefaults(resource, defaults, currentLang)) updatedCount++
+                if (applyLocalizedDefaults(resource, nameRes, commentRes, languages, currentLang)) updatedCount++
             }
 
             val allFiles = allResources.filter {
                 it.profile == ResourceProfile.ALL_FILES && !VirtualPathUtils.isVirtualPath(it.path)
             }
             for (resource in allFiles) {
-                val defaults = languages.associateWith { lang ->
-                    LocalizedEntry(name = getStringForLanguage(R.string.all_files, lang), comment = null)
-                }
-                if (applyLocalizedDefaults(resource, defaults, currentLang)) updatedCount++
+                if (applyLocalizedDefaults(resource, R.string.all_files, null, languages, currentLang)) updatedCount++
             }
 
             val downloadsPath = Environment
                 .getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                 .absolutePath
-            val downloadsDefaults = languages.associateWith { lang ->
-                LocalizedEntry(name = getStringForLanguage(R.string.resource_name_downloads, lang), comment = null)
-            }
-            for (resource in allResources.filter { it.isDestination && it.path == downloadsPath }) {
-                if (applyLocalizedDefaults(resource, downloadsDefaults, currentLang)) updatedCount++
+            val downloads = allResources.filter { it.isDestination && isDownloadsPath(it.path, downloadsPath) }
+            for (resource in downloads) {
+                val renamed = applyLocalizedDefaults(
+                    resource, R.string.resource_name_downloads, null, languages, currentLang
+                )
+                if (renamed) updatedCount++
             }
 
             if (updatedCount > 0) {
@@ -101,26 +109,50 @@ class RenameVirtualResourcesUseCase @Inject constructor(
         }
     }
 
+    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean {
+        if (path == downloadsPath) return true
+        if (path.startsWith("content://")) {
+            val resolved = UriPathResolver.getPath(context, Uri.parse(path))
+            if (resolved == downloadsPath) return true
+        }
+        return false
+    }
+
     /**
      * Rewrites name/comment to [currentLang]'s default when the stored value still equals some
-     * OTHER supported language's default. Returns true when a DB update was written.
+     * OTHER declared language's default. Returns true when a DB update was written.
+     *
+     * [commentRes] is null for the records that carry no comment (All Files, Downloads), which is
+     * why a null comment can never be judged stale rather than being compared against nothing.
      */
     private suspend fun applyLocalizedDefaults(
         resource: MediaResource,
-        defaults: Map<String, LocalizedEntry>,
+        nameRes: Int,
+        commentRes: Int?,
+        languages: List<String>,
         currentLang: String,
     ): Boolean {
-        val currentEntry = defaults[currentLang]
-        val nameNeedsUpdate = currentEntry != null &&
-            resource.name != currentEntry.name &&
-            defaults.any { (lang, entry) -> lang != currentLang && entry.name == resource.name }
-        val commentNeedsUpdate = currentEntry?.comment != null &&
-            resource.comment != currentEntry.comment &&
-            defaults.any { (lang, entry) ->
-                lang != currentLang && entry.comment != null && entry.comment == resource.comment
-            }
+        val currentEntry = LocalizedEntry(
+            name = getStringForLanguage(nameRes, currentLang),
+            comment = commentRes?.let { getStringForLanguage(it, currentLang) },
+        )
+        val nameDiffers = resource.name != currentEntry.name
+        val commentDiffers = currentEntry.comment != null && resource.comment != currentEntry.comment
+        // The record already speaks the current language: the other declared tags are never resolved,
+        // which is what makes this affordable on the startup path (S2627).
+        if (!nameDiffers && !commentDiffers) return false
+
+        val otherEntries = languages.filter { it != currentLang }.map { lang ->
+            LocalizedEntry(
+                name = getStringForLanguage(nameRes, lang),
+                comment = commentRes?.let { getStringForLanguage(it, lang) },
+            )
+        }
+        val nameNeedsUpdate = nameDiffers && otherEntries.any { it.name == resource.name }
+        val commentNeedsUpdate = commentDiffers &&
+            otherEntries.any { it.comment != null && it.comment == resource.comment }
         val needsUpdate = nameNeedsUpdate || commentNeedsUpdate
-        if (currentEntry != null && needsUpdate) {
+        if (needsUpdate) {
             resourceRepository.updateResource(
                 resource.copy(
                     name = if (nameNeedsUpdate) currentEntry.name else resource.name,

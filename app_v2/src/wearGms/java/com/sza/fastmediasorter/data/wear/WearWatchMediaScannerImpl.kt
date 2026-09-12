@@ -52,7 +52,14 @@ class WearWatchMediaScannerImpl @Inject constructor(
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean,
         onProgress: ScanProgressCallback?
-    ): List<MediaFile> = emptyList()
+    ): List<MediaFile> {
+        if (!isWatchReachable()) {
+            Timber.d("S2483: watch is not reachable, returning empty list")
+            return emptyList()
+        }
+        Timber.d("S2483: watch reachable, scanning watch folder %s", path)
+        return emptyList()
+    }
 
     override suspend fun scanFolderPaged(
         path: String,
@@ -63,7 +70,14 @@ class WearWatchMediaScannerImpl @Inject constructor(
         credentialsId: String?,
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
-    ): MediaFilePage = MediaFilePage(files = emptyList(), hasMore = false)
+    ): MediaFilePage {
+        if (!isWatchReachable()) {
+            Timber.d("WearWatchMediaScannerImpl: watch is not reachable, returning empty page")
+            return MediaFilePage(files = emptyList(), hasMore = false)
+        }
+        Timber.d("WearWatchMediaScannerImpl: watch reachable, scanning paged watch folder %s", path)
+        return MediaFilePage(files = emptyList(), hasMore = false)
+    }
 
     override suspend fun getFileCount(
         path: String,
@@ -72,7 +86,10 @@ class WearWatchMediaScannerImpl @Inject constructor(
         credentialsId: String?,
         scanSubdirectories: Boolean,
         showHiddenFiles: Boolean
-    ): Int = 0
+    ): Int {
+        if (!isWatchReachable()) return 0
+        return 0
+    }
 
     /**
      * Writability is reachability: the watch's own storage imposes no per-folder permission the phone

@@ -18,13 +18,15 @@
 
     Exit codes: 0 = every surface rewritten. A missing generated asset (svg or png) throws
     before the first write, which surfaces as the PowerShell host's own exit 1 - no surface
-    is left half-rewritten.
+    is left half-rewritten. 4 = Code.Scripts is held by another session, so no surface was
+    touched at all - the place in the queue is held, wait for the turn and rerun.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 
 $map    = Get-Content -LiteralPath (Join-Path $RepoRoot 'docs/icons/doc-icon-map.json') -Raw | ConvertFrom-Json
@@ -59,28 +61,6 @@ foreach ($f in 'docs/howto/index.md', 'docs/howto/index-ru.md', 'docs/howto/inde
 }
 $markdownSurfaces += [ordered]@{ file = 'docs/DOCS_MAP.md'; pairs = @($map.docsMap | ForEach-Object { [ordered]@{ emoji = $_.emoji; tag = Get-PngImgTag $_.drawable 'icons/doc/' } }) }
 
-# --- Landing pages: inline SVG per card, by order ---
-$rxCard = [regex]'(<span class="card-icon">)(.*?)(</span>)'
-foreach ($file in 'index.html', 'index-ru.html', 'index-uk.html') {
-    $path = Join-Path $RepoRoot $file
-    $text = Get-Content -LiteralPath $path -Raw
-    $matches = $rxCard.Matches($text)
-    if ($matches.Count -ne $landingIcons.Count) {
-        throw "$file - card count $($matches.Count) != map landing count $($landingIcons.Count)"
-    }
-    # Rebuild by walking matches in reverse so earlier indices stay valid (writes into the
-    # regex MatchEvaluator scope do not propagate in PowerShell, so splice by hand).
-    $sb = [System.Text.StringBuilder]::new($text)
-    for ($k = $matches.Count - 1; $k -ge 0; $k--) {
-        $m = $matches[$k]
-        $repl = $m.Groups[1].Value + $landingIcons[$k] + $m.Groups[3].Value
-        [void]$sb.Remove($m.Index, $m.Length)
-        [void]$sb.Insert($m.Index, $repl)
-    }
-    [System.IO.File]::WriteAllText($path, $sb.ToString(), $utf8)
-    Write-Host ("landing: {0} - {1} cards inlined" -f $file, $matches.Count)
-}
-
 # --- Markdown surfaces: emoji -> <img> PNG (tags already resolved above) ---
 function Convert-MarkdownEmoji([string] $relFile, [object[]] $pairs) {
     $path = Join-Path $RepoRoot $relFile
@@ -96,9 +76,42 @@ function Convert-MarkdownEmoji([string] $relFile, [object[]] $pairs) {
     Write-Host ("markdown: {0} - {1}/{2} emoji kinds replaced" -f $relFile, $replaced, $pairs.Count)
 }
 
-foreach ($surface in $markdownSurfaces) {
-    Convert-MarkdownEmoji $surface.file $surface.pairs
+# S2615: the landing pages and the markdown surfaces are ONE window. This script's whole design is
+# "resolve everything, then rewrite all surfaces or none" (S1956) - a lock held for only half of the
+# rewrite would give a sibling exactly the mixed state that design exists to prevent.
+$codeTargets = @('index.html', 'index-ru.html', 'index-uk.html') + @($markdownSurfaces.file) |
+    ForEach-Object { Join-Path $RepoRoot $_ }
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path $codeTargets -Reason 'apply-doc-icons.ps1 (landing pages + docs surfaces)'
+
+    # --- Landing pages: inline SVG per card, by order ---
+    $rxCard = [regex]'(<span class="card-icon">)(.*?)(</span>)'
+    foreach ($file in 'index.html', 'index-ru.html', 'index-uk.html') {
+        $path = Join-Path $RepoRoot $file
+        $text = Get-Content -LiteralPath $path -Raw
+        $matches = $rxCard.Matches($text)
+        if ($matches.Count -ne $landingIcons.Count) {
+            throw "$file - card count $($matches.Count) != map landing count $($landingIcons.Count)"
+        }
+        # Rebuild by walking matches in reverse so earlier indices stay valid (writes into the
+        # regex MatchEvaluator scope do not propagate in PowerShell, so splice by hand).
+        $sb = [System.Text.StringBuilder]::new($text)
+        for ($k = $matches.Count - 1; $k -ge 0; $k--) {
+            $m = $matches[$k]
+            $repl = $m.Groups[1].Value + $landingIcons[$k] + $m.Groups[3].Value
+            [void]$sb.Remove($m.Index, $m.Length)
+            [void]$sb.Insert($m.Index, $repl)
+        }
+        [System.IO.File]::WriteAllText($path, $sb.ToString(), $utf8)
+        Write-Host ("landing: {0} - {1} cards inlined" -f $file, $matches.Count)
+    }
+
+    foreach ($surface in $markdownSurfaces) {
+        Convert-MarkdownEmoji $surface.file $surface.pairs
+    }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host ''
 Write-Host 'Doc icon application complete.'

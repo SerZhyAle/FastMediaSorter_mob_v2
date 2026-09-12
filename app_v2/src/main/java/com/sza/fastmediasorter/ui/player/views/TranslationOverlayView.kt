@@ -16,6 +16,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import com.sza.fastmediasorter.BuildConfig
+import com.sza.fastmediasorter.domain.ocr.OverlayPlateColorSampler
 import com.sza.fastmediasorter.domain.ocr.OverlayPlateGeometry
 import com.sza.fastmediasorter.domain.ocr.OverlaySourceBox
 import com.sza.fastmediasorter.domain.ocr.OverlayTranslationExtent
@@ -44,8 +45,8 @@ import kotlin.math.abs
  * - Tap on a block to bring it to front (raise z-order)
  * - S1713: padding is a share of the type size (see PLATE_PADDING_EM), not of the box height
  * - Slight letter spacing for better readability
- * - Rounded corners and an OPAQUE backing (S1713, S2064 - sampleBackgroundColor keeps alpha at 255
- *   for every path into the view, so the source letters never read through)
+ * - Rounded corners and an OPAQUE backing (S1713, S2064 - every colour OverlayPlateColorSampler
+ *   returns is built opaque, so the source letters never read through)
  */
 class TranslationOverlayView @JvmOverloads constructor(
     context: Context,
@@ -61,9 +62,9 @@ class TranslationOverlayView @JvmOverloads constructor(
         val translatedText: String,
         val boundingBox: Rect,
         val confidence: Float,
-        // S1713: opaque, so the plate covers the source text. S2064: sampleBackgroundColor keeps this
-        // default's alpha at 255 for every path into the view; if the result looks heavy the cause is
-        // the sampled colour (S1704, S1714), not the alpha.
+        // S1713: opaque, so the plate covers the source text. S2064: OverlayPlateColorSampler keeps
+        // alpha at 255 on every path into the view; if the result looks heavy the cause is the
+        // sampled colour (S1704, S1714), not the alpha.
         var backgroundColor: Int = Color.parseColor("#FFFFFFFF"),
         var textColor: Int = Color.BLACK, // Contrast text color
         var customFontSize: Float? = null, // Per-block font size override (6-72sp)
@@ -403,32 +404,32 @@ class TranslationOverlayView @JvmOverloads constructor(
     }
 
     /**
-     * Sample background color from source image at top-left corner of bounding box.
+     * Sample background and text colors from source image for the bounding box.
      *
      * The bounding box is measured on the (possibly down-scaled) OCR bitmap, while
      * [sourceBitmap] is the full-resolution original. Scale the OCR coordinates into
-     * source-bitmap space before sampling so the plate colour is read from the point
-     * actually under the plate (S1704).
+     * source-bitmap space before sampling (S1704). Color sampling is delegated to
+     * [OverlayPlateColorSampler] (S1714).
      */
-    private fun sampleBackgroundColor(boundingBox: Rect): Int {
-        val bitmap = sourceBitmap ?: return Color.parseColor("#FFFFFFFF")
+    private fun samplePlateColors(boundingBox: Rect): OverlayPlateColorSampler.PlateColorResult {
+        val bitmap = sourceBitmap ?: return OverlayPlateColorSampler.PlateColorResult(
+            paperColor = Color.WHITE,
+            inkColor = Color.BLACK,
+            isFallbackPair = true
+        )
 
-        try {
-            val (x, y) = ocrPointToSource(boundingBox.left, boundingBox.top, bitmap)
-            val pixelColor = bitmap.getPixel(x, y)
+        val sourceRect = ocrRectToSource(boundingBox, bitmap)
+        return OverlayPlateColorSampler.samplePlateColors(bitmap, sourceRect)
+    }
 
-            // S2064: fully opaque - a reduced alpha here let the source text read through the plate
-            // regardless of TranslatedBlock.backgroundColor's opaque default, because this is the only
-            // path setTranslatedBlocks uses to populate that field.
-            return Color.rgb(
-                Color.red(pixelColor),
-                Color.green(pixelColor),
-                Color.blue(pixelColor)
-            )
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to sample background color")
-            return Color.parseColor("#FFFFFFFF")
-        }
+    /**
+     * Map a rectangle from OCR-bitmap coordinates to source-bitmap coordinates.
+     * Exposed as a pure, testable helper (S1714).
+     */
+    internal fun ocrRectToSource(ocrRect: Rect, source: Bitmap): Rect {
+        val (left, top) = ocrPointToSource(ocrRect.left, ocrRect.top, source)
+        val (right, bottom) = ocrPointToSource(ocrRect.right, ocrRect.bottom, source)
+        return Rect(left, top, maxOf(left + 1, right), maxOf(top + 1, bottom))
     }
 
     /**
@@ -448,34 +449,17 @@ class TranslationOverlayView @JvmOverloads constructor(
     }
 
     /**
-     * Calculate contrast text color (black or white) based on background brightness
-     * Uses luminance formula: 0.299*R + 0.587*G + 0.114*B
-     */
-
-    private fun getContrastTextColor(backgroundColor: Int): Int {
-        val r = Color.red(backgroundColor)
-        val g = Color.green(backgroundColor)
-        val b = Color.blue(backgroundColor)
-
-        // Calculate perceived brightness (0-255)
-        val luminance = 0.299 * r + 0.587 * g + 0.114 * b
-
-        // Threshold at 128 (mid-point)
-        // Dark background → white text, Light background → black text
-        return if (luminance < 128) Color.WHITE else Color.BLACK
-    }
-
-    /**
      * Update the translated blocks to display
      */
     fun setTranslatedBlocks(blocks: List<TranslatedBlock>) {
         translatedBlocks.clear()
 
-        // Sample colors for each block
+        // Sample colors for each block using median paper and ink color sampler (S1714)
         for (block in blocks) {
-            val bgColor = sampleBackgroundColor(block.boundingBox)
-            block.backgroundColor = bgColor
-            block.textColor = getContrastTextColor(bgColor)
+            val (paper, ink, fallback) = samplePlateColors(block.boundingBox)
+            block.backgroundColor = paper
+            block.textColor = ink
+            Timber.d("S1714: paper=$paper ink=$ink fallback=$fallback")
         }
 
         translatedBlocks.addAll(blocks)

@@ -45,7 +45,6 @@ import com.sza.fastmediasorter.ui.welcome.helpers.WelcomeTvNavigationManager
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -111,7 +110,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
     // S2312: the slider's D-pad / keyboard focus logic owns no Activity state, so it lives in its own
     // manager and this Activity only dispatches keys into it. Built lazily because it needs the binding.
     private val tvNavigation: WelcomeTvNavigationManager by lazy {
-        Timber.d("S2312: welcome TV navigation delegated to WelcomeTvNavigationManager")
         WelcomeTvNavigationManager(
             binding = binding,
             currentPage = { currentPage },
@@ -321,7 +319,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
         val shellPitch = launcherModeContract.isAvailableInBuild
         val streamsInPitch = capabilityAvailability.isStreamsAvailable()
         val wearInPitch = mediaCapabilities.supportsWearCompanion
-        Timber.d("S2310: welcome pitch shell=$shellPitch streams=$streamsInPitch wear=$wearInPitch")
 
         val firstPageDescriptionRes = if (shellPitch) {
             R.string.welcome_description_1_shell
@@ -627,7 +624,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
             val type = bundle.getString(DeviceProfilePickerDialogFragment.RESULT_PROFILE)
                 ?.let { name -> runCatching { DeviceProfileType.valueOf(name) }.getOrNull() }
                 ?: return@setFragmentResultListener
-            Timber.d("S2311: enable-all profile confirmed: %s", type)
             enableAllManager.start { viewModel.applyProfileForEnableAll(type) }
         }
 
@@ -641,7 +637,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 WelcomeEnableAllExplainerDialogFragment.RESULT_PROCEED,
                 false
             )
-            Timber.d("S2322: enable-all overview answered, proceed=%s", proceed)
             val pickerUp = supportFragmentManager.findFragmentByTag(TAG_ENABLE_ALL_PROFILE) != null
             if (proceed && !pickerUp) {
                 val state = viewModel.state.value
@@ -668,7 +663,6 @@ class WelcomeActivity : BaseActivity<ActivityWelcomeBinding>() {
                 WelcomeEnableAllExplainerDialogFragment.RESULT_PROCEED,
                 false
             )
-            Timber.d("S2322: default-app reminder answered, proceed=%s", proceed)
             if (proceed) {
                 enableAllManager.onDefaultPlayerStageConfirmed()
             } else {

@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.wear.ui.settings
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -11,16 +10,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -29,17 +28,23 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportOutcome
 import com.sza.fastmediasorter.wear.data.wear.WearLogReportRefusalReasons
+import com.sza.fastmediasorter.wear.domain.model.WearPortalLinks
+import com.sza.fastmediasorter.wear.ui.common.WearLinkRow
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import timber.log.Timber
 
 @Composable
 fun AboutSettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberScalingLazyListState()
+    listState: ScalingLazyListState = rememberWearListState()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val logReportState by viewModel.logReportState.collectAsStateWithLifecycle()
+    val watchPortalState by viewModel.watchPortalState.collectAsStateWithLifecycle()
+    val phonePortalState by viewModel.phonePortalState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     WearScreenScaffold(
@@ -47,11 +52,10 @@ fun AboutSettingsScreen(
         scrollState = listState,
         positionIndicator = { PositionIndicator(listState) }
     ) {
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            contentPadding = wearScreenInsets(),
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            centered = true
         ) {
             item {
                 Text(
@@ -64,7 +68,10 @@ fun AboutSettingsScreen(
             item {
                 Text(
                     text = stringResource(R.string.version, uiState.appVersion),
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 2.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 2.dp)
+                        .testTag(WearTestTags.WEAR_ABOUT_VERSION),
                     textAlign = TextAlign.Center,
                     style = MaterialTheme.typography.caption1
                 )
@@ -78,21 +85,31 @@ fun AboutSettingsScreen(
                 )
             }
             item {
-                Chip(
+                WearLinkRow(
+                    label = stringResource(R.string.about_web_portal),
                     onClick = {
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse("https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/wear/")
-                        )
-                        try {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(WearPortalLinks.WEB_PORTAL_URL))
+                        val launched = try {
                             context.startActivity(intent)
+                            true
                         } catch (e: ActivityNotFoundException) {
+                            // Not swallowed: the verdict goes to the view model, which turns it into
+                            // the on-screen hint pointing at the row below.
                             Timber.w(e, "No browser to open Wear web portal")
+                            false
                         }
+                        viewModel.onWatchPortalOpened(launched)
                     },
-                    label = { Text(text = stringResource(R.string.about_web_portal)) },
-                    colors = ChipDefaults.primaryChipColors(),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL),
+                    message = portalMessage(watchPortalState)
+                )
+            }
+            item {
+                WearLinkRow(
+                    label = stringResource(R.string.about_web_portal_on_phone),
+                    onClick = viewModel::openPortalOnPhone,
+                    modifier = Modifier.testTag(WearTestTags.WEAR_ABOUT_WEB_PORTAL_ON_PHONE),
+                    message = portalMessage(phonePortalState)
                 )
             }
             item {
@@ -125,15 +142,26 @@ private fun SendLogsRow(
 
     // A Column, not two siblings: one ScalingLazyColumn item is a single slot, so a bare Chip and
     // Text stack on top of each other - the message rendered over the row until this was added.
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Chip(
             // A second press while sending would queue an identical report; the view model refuses
             // it too, so the guard survives even if this one is ever lost in a redesign.
             onClick = { if (!sending) onSend() },
             enabled = !sending,
-            label = { Text(text = label) },
+            label = {
+                Text(
+                    text = label,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
             colors = ChipDefaults.secondaryChipColors(),
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .testTag(WearTestTags.WEAR_ABOUT_SEND_LOGS)
         )
 
         val message = (state as? WearLogReportState.Finished)?.outcome?.let { outcomeMessageRes(it) }
@@ -146,6 +174,25 @@ private fun SendLogsRow(
             )
         }
     }
+}
+
+/**
+ * S2496: the sentence a portal row shows under itself, or null when it has nothing to say.
+ *
+ * A successful watch launch says nothing on purpose - the browser is already covering the screen, so
+ * a message would only be read after coming back to a row the user has finished with.
+ */
+@Composable
+private fun portalMessage(state: WearPortalLinkState): String? {
+    val outcome = (state as? WearPortalLinkState.Finished)?.outcome ?: return null
+    return stringResource(
+        when (outcome) {
+            WearPortalLinkOutcome.OPENED_ON_PHONE -> R.string.about_web_portal_phone_opened
+            WearPortalLinkOutcome.NO_WATCH_BROWSER -> R.string.about_web_portal_no_browser
+            WearPortalLinkOutcome.NO_CONNECTED_PHONE -> R.string.about_web_portal_no_phone
+            WearPortalLinkOutcome.PHONE_FAILED -> R.string.about_web_portal_phone_failed
+        }
+    )
 }
 
 private fun outcomeMessageRes(outcome: WearLogReportOutcome): Int = when (outcome) {

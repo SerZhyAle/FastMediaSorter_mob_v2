@@ -118,7 +118,7 @@ Expected effect: fewer global greps, fewer wrong-version assumptions, fewer manu
 2. Add `scripts/agent_validate.ps1` as a task-aware validation facade:
    - `-ChangeType Doc|Script|Config|Kotlin|Xml|Mixed`,
    - `-Module app_v2|wear`,
-   - `-Flavor standard|lite|photos|legacy|noLegal|vr`,
+   - `-Flavor standard|lite|photos|legacy|noLegal|vr|foss`,
    - `-Tests <pattern>`,
    - output expected vs actual in the repo-required format.
 

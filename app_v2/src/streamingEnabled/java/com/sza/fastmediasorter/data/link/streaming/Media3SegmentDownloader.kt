@@ -2,15 +2,14 @@ package com.sza.fastmediasorter.data.link.streaming
 
 import android.content.Context
 import android.net.Uri
-import androidx.media3.common.MediaItem
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
-import androidx.media3.exoplayer.dash.offline.DashDownloader
-import androidx.media3.exoplayer.hls.offline.HlsDownloader
+import androidx.media3.exoplayer.offline.DefaultDownloaderFactory
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.Downloader
 import com.sza.fastmediasorter.core.log.LinkDownloadTrace
@@ -21,14 +20,16 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import java.io.File
+import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
  * S0116 §5.1 pillar I (segment download via Media3).
  *
- * Wraps Media3 [HlsDownloader] / [DashDownloader] in a coroutine-friendly API.
+ * Wraps Media3 segment download via [DefaultDownloaderFactory] in a coroutine-friendly API.
  * Cache layer is a per-session [SimpleCache] rooted at `cacheDir/url-stream/<id>/`
  * with no eviction (cleanup happens via [StreamingCacheCleaner] after remux).
  *
@@ -89,17 +90,23 @@ class Media3SegmentDownloader @Inject constructor(
             .setCache(cache)
             .setUpstreamDataSourceFactory(httpFactory)
         try {
-            val mediaItem = MediaItem.Builder()
-                .setUri(Uri.parse(manifest.manifestUrl))
-                .build()
+            // S2914: DefaultDownloaderFactory infers the downloader type (HLS/DASH) from the
+            // DownloadRequest MIME type, replacing the deprecated direct HlsDownloader/DashDownloader
+            // constructors. The direct executor runs factory-internal tasks on the calling thread;
+            // the blocking download itself runs via runInterruptible on Dispatchers.IO below.
+            val mimeType = when (manifest) {
+                is StreamingManifest.Hls -> MimeTypes.APPLICATION_M3U8
+                is StreamingManifest.Dash -> MimeTypes.APPLICATION_MPD
+            }
             val request = DownloadRequest.Builder(
                 /* id = */ "s0116-${System.currentTimeMillis()}",
                 /* uri = */ Uri.parse(manifest.manifestUrl),
-            ).build()
-            val downloader: Downloader = when (manifest) {
-                is StreamingManifest.Hls -> HlsDownloader(mediaItem, cacheFactory)
-                is StreamingManifest.Dash -> DashDownloader(mediaItem, cacheFactory)
-            }
+            )
+                .setMimeType(mimeType)
+                .build()
+            val downloaderFactory = DefaultDownloaderFactory(cacheFactory, Executor { it.run() })
+            val downloader: Downloader = downloaderFactory.createDownloader(request)
+            Timber.d("S2914: downloader created via factory mime=$mimeType")
 
             LinkDownloadTrace.verbose(
                 "media3-segment-downloader start manifest=${manifest::class.simpleName} " +

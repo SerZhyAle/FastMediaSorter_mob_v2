@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.ui.cameracapture.helpers
 
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.databinding.ActivityCameraCaptureBinding
-import timber.log.Timber
 
 /**
  * S0844: applies the device-orientation icon rotation to the fixed set of overlay controls on
@@ -38,7 +37,6 @@ class CameraOverlayRotationManager(binding: ActivityCameraCaptureBinding) {
     /** Rotates every tracked view to [degrees], animated unless [animate] is false. */
     fun apply(degrees: Float, animate: Boolean = true) {
         currentDegrees = degrees
-        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: camera overlay rotation skipped")
         views.forEach { view ->
             if (animate && AnimationPolicy.isAnimationAllowed) {
                 view.animate()

@@ -38,6 +38,15 @@ object NotificationIds {
     /** S2004: the watch asked this phone to show one of its own files while the app was not in front. */
     const val WEAR_OPEN_ON_PHONE = 4206
 
+    /** S2142: a file the watch sent here to be handed on to one of this phone's «Send to..» receivers. */
+    const val WEAR_SEND_TO_FROM_WATCH = 4207
+
+    /** S2551: the paired watch is asking to see this phone's camera and the owner must allow it. */
+    const val WEAR_CAMERA_SESSION_CONSENT = 4208
+
+    /** S2776: the permanent shade entry that lights and extinguishes the camera flash on a tap. */
+    const val FLASHLIGHT_SHORTCUT = 4209
+
     /** MediaProjection screenshot capture service. */
     const val SCREEN_CAPTURE = 0x4053
 
@@ -49,6 +58,9 @@ object NotificationIds {
 
     /** Quick audio recorder widget service. */
     const val QUICK_AUDIO_RECORDER = 0xA349
+
+    /** Live phone audio/video broadcast service. */
+    const val PHONE_BROADCAST = 0xB700
 
     /**
      * SaveFallbackNotifier derives one id per rescued file by adding an offset to this base, so the

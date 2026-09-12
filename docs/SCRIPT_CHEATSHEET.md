@@ -72,6 +72,16 @@ dev/ACTIVITY_CATALOG/scripts/set.ps1
 
 ## dev\CATALOG\scripts
 
+### _source-roots.ps1
+Shared source-root derivation for the class catalogue (S2837).
+
+```
+dev/CATALOG/scripts/_source-roots.ps1
+  Shared source-root derivation for the class catalogue (S2837).
+  (no param block)
+  Exit: 0 dot-sourced successfully; this library defines Get-CatalogSourceRoots.; 2 invoked as a script instead of being dot-sourced.
+```
+
 ### apply-role-drafts.ps1
 Applies owner-reviewed role drafts (from generate-role-drafts.ps1) back into the catalogue.
 
@@ -304,8 +314,8 @@ scripts/post-change.ps1
     -File                [String]
     -Files               [String[]]
     -Deleted             [String[]]
-    -Target       (req)  [String]
-    -Description  (req)  [String]
+    -Target              [String]
+    -Description         [String]
     -ChangeType          [String]  {Doc|Script|Config|Tooling|Kotlin|Xml|Mixed}
     -Module              [String] = "app_v2"
     -KeyPrefix           [String]
@@ -324,6 +334,35 @@ scripts/test-compatibility.ps1
   K.5: install and smoke-test FastMediaSorter across several Android API levels sequentially.
   Params:
     -ApiLevel         [String] = "all"  {28|29|30|33|35|all}
+```
+
+## scripts\agent_latency
+
+### compare-routes.ps1
+S2760: compares stored latency records route against route, on one control task at a time.
+
+```
+scripts/agent_latency/compare-routes.ps1
+  S2760: compares stored latency records route against route, on one control task at a time.
+  Params:
+    -Path                [String] = 'temp/S2760/records'
+    -ControlTask         [String]
+    -Json                [SwitchParameter]
+  Exit: 2 there is not enough data to compare; 3 the record directory could not be read.
+```
+
+### record-run.ps1
+S2760: validates one agent latency record and stores it under the ticket's evidence root.
+
+```
+scripts/agent_latency/record-run.ps1
+  S2760: validates one agent latency record and stores it under the ticket's evidence root.
+  Params:
+    -Record          (req)  [String]
+    -OutRoot                [String] = 'temp/S2760'
+    -ToolDurationMs         [Double] = -1
+    -QueueWaitMs            [Double] = -1
+    -Json                   [SwitchParameter]
 ```
 
 ## scripts\all_features
@@ -617,6 +656,15 @@ scripts/builders/build-nolegal-release.ps1
   (no param block)
 ```
 
+### build-output-holder.ps1
+Tells "another process is holding this module's build output" apart from "the change under test is broken".
+
+```
+scripts/builders/build-output-holder.ps1
+  Tells "another process is holding this module's build output" apart from "the change under test is broken".
+  (no param block)
+```
+
 ### build-photos-debug.ps1
 Build Photos Debug APK
 
@@ -641,6 +689,15 @@ Build Photos Release APK
 ```
 scripts/builders/build-photos-release.ps1
   Build Photos Release APK
+  (no param block)
+```
+
+### build-queue-refusal.ps1
+Decides whether a foreground-scale build check should refuse a busy build domain instead of blocking in it, and renders the refusal an agent can act on.
+
+```
+scripts/builders/build-queue-refusal.ps1
+  Decides whether a foreground-scale build check should refuse a busy build domain instead of blocking in it, and renders the refusal an agent can act on.
   (no param block)
 ```
 
@@ -751,14 +808,17 @@ Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instr
 scripts/builders/check-standard-fast.ps1
   Fast per-module, per-flavor Gradle check - compile, resources, unit tests, instrumented tests on a connected device (-Mode ConnectedAndroidTest, the only mode needing one) or assemble. Defaults to app_v2. Every module in scripts/utils/gradle-modules.ps1 is accepted, including one with no flavor dimension, whose task names carry no variant segment (:watchface:processDebugResources).
   Params:
-    -Mode                   [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|ConnectedAndroidTest|Assemble}
-    -Flavor                 [String]
-    -Module                 [String] = "app_v2"
-    -BuildType              [String]
-    -Tests                  [String]
-    -SystemProperty         [String[]]
-    -DeviceId               [String] = $env:ANDROID_SERIAL
-    -Quiet                  [SwitchParameter]
+    -Mode                    [String] = "CodeAndResources"  {Code|Resources|CodeAndResources|Unit|AndroidTest|ConnectedAndroidTest|Assemble}
+    -Flavor                  [String]
+    -Module                  [String] = "app_v2"
+    -BuildType               [String]
+    -Tests                   [String]
+    -SystemProperty          [String[]]
+    -ProjectProperty         [String[]]
+    -DeviceId                [String] = $env:ANDROID_SERIAL
+    -BlockThrough            [SwitchParameter]
+    -Quiet                   [SwitchParameter]
+  Exit: 120 s foreground timeout, which would have killed it with no verdict at all. The place
 ```
 
 ### clean-gradle-caches.ps1
@@ -767,6 +827,28 @@ Gradle caches clean script (project-level)
 ```
 scripts/builders/clean-gradle-caches.ps1
   Gradle caches clean script (project-level)
+  (no param block)
+```
+
+### compile-vp9-classes.ps1
+S1126 - compiles the media3 VP9 decoder module's Java half into a classes.jar and writes the AAR manifest beside it, ready for build-libvpx-vp9.sh to package.
+
+```
+scripts/builders/compile-vp9-classes.ps1
+  S1126 - compiles the media3 VP9 decoder module's Java half into a classes.jar and writes the AAR manifest beside it, ready for build-libvpx-vp9.sh to package.
+  Params:
+    -Media3Dir             [String] = '$HOME/ffmpeg-android-build/media'
+    -CompileSdk            [String] = 'android-36'
+    -Media3Version         [String] = '1.2.1'
+  Exit: 0 classes.jar and AndroidManifest.xml were written to the staging directory.; 1 the JDK, the android.jar or a required media3 artifact could not be located.; 2 the media3 VP9 sources could not be copied out of the WSL checkout.; 3 javac failed.; 4 the jar could not be written, or the staging copy back into WSL failed.
+```
+
+### filtered-test-report.ps1
+Gives a filtered unit run its OWN copy of the reports it produced, so the path printed under a green line cannot be read after a sibling session has overwritten it.
+
+```
+scripts/builders/filtered-test-report.ps1
+  Gives a filtered unit run its OWN copy of the reports it produced, so the path printed under a green line cannot be read after a sibling session has overwritten it.
   (no param block)
 ```
 
@@ -797,6 +879,15 @@ scripts/builders/gradle-run-verdict.ps1
   (no param block)
 ```
 
+### gradle-worker-reaper.ps1
+Finds and stops the Gradle unit-test workers a run spawned, so none of them outlives its wrapper.
+
+```
+scripts/builders/gradle-worker-reaper.ps1
+  Finds and stops the Gradle unit-test workers a run spawned, so none of them outlives its wrapper.
+  (no param block)
+```
+
 ### install-nolegal-debug-to-device.ps1
 Install noLegal DEBUG APK on connected device WITHOUT launching it.
 
@@ -819,17 +910,6 @@ scripts/builders/install-standard-debug-to-device.ps1
     -DeviceId         [String] = $env:ANDROID_SERIAL
 ```
 
-### publish-ffmpeg-dts-aar.ps1
-publish-ffmpeg-dts-aar.ps1
-
-```
-scripts/builders/publish-ffmpeg-dts-aar.ps1
-  publish-ffmpeg-dts-aar.ps1
-  Params:
-    -AarPath         [String] = 'app_v2/libs/fms-ffmpeg-dts.aar'
-    -Tag             [String] = 'delivery-so-v1'
-```
-
 ### publish-libvlc-so.ps1
 publish-libvlc-so.ps1
 
@@ -844,6 +924,19 @@ scripts/builders/publish-libvlc-so.ps1
     -WhatIf          [SwitchParameter]
 ```
 
+### publish-prebuilt-native-aar.ps1
+publish-prebuilt-native-aar.ps1
+
+```
+scripts/builders/publish-prebuilt-native-aar.ps1
+  publish-prebuilt-native-aar.ps1
+  Params:
+    -Name                 [String]
+    -All                  [SwitchParameter]
+    -ManifestPath         [String] = 'scripts/ci/prebuilt-native-aars.txt'
+    -Tag                  [String] = 'delivery-so-v1'
+```
+
 ### run-standard-macrobenchmark.ps1
 
 ```
@@ -851,6 +944,54 @@ scripts/builders/run-standard-macrobenchmark.ps1
   Params:
     -DryRun             [SwitchParameter]
     -GradleArgs         [String[]]
+```
+
+## scripts\builders\build-failure-digest.contract.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2563) - regression suite for scripts/builders/build-failure-digest.contract.ps1.
+
+```
+scripts/builders/build-failure-digest.contract.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2563) - regression suite for scripts/builders/build-failure-digest.contract.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed, or a required fixture is missing from scripts/builders/testdata/.
+```
+
+## scripts\builders\build-output-holder.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2584) - regression suite for scripts/builders/build-output-holder.ps1.
+
+```
+scripts/builders/build-output-holder.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2584) - regression suite for scripts/builders/build-output-holder.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\build-queue-refusal.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
+
+```
+scripts/builders/build-queue-refusal.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2612) - contract suite for scripts/builders/build-queue-refusal.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\filtered-test-report.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2588) - regression suite for scripts/builders/filtered-test-report.ps1.
+
+```
+scripts/builders/filtered-test-report.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2588) - regression suite for scripts/builders/filtered-test-report.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
 ## scripts\builders\gradle-run-verdict.tests
@@ -863,6 +1004,17 @@ scripts/builders/gradle-run-verdict.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1463) - regression suite for scripts/builders/gradle-run-verdict.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\builders\gradle-worker-reaper.tests
+
+### Run-Tests.ps1
+Contract set for gradle-worker-reaper.ps1 - the selection rule and the stop.
+
+```
+scripts/builders/gradle-worker-reaper.tests/Run-Tests.ps1
+  Contract set for gradle-worker-reaper.ps1 - the selection rule and the stop.
+  (no param block)
 ```
 
 ## scripts\devtest
@@ -901,6 +1053,10 @@ scripts/devtest/adb.ps1
     -Index              [Int32] = 1
     -OutDir             [String]
     -Json               [SwitchParameter]
+    -Strict             [SwitchParameter]
+    -Scale              [Double]
+    -Axis               [Double]
+    -Repeat             [Int32] = 1
     -Yes                [SwitchParameter]
   Exit: 0 - OK; 1 - adb not found, or bad arguments; 2 - no online device; 3 - multiple online devices and -DeviceId not supplied (for verbs needing a device); 4 - target package not installed (for app verbs); 5 - a destructive verb was refused: `clear` (removed), or `wipe-data`/`uninstall` without -Yes.
 ```
@@ -970,8 +1126,35 @@ scripts/devtest/device-ready.ps1
     -Json                    [SwitchParameter]
     -StrictExit              [SwitchParameter]
     -ClaimFree               [SwitchParameter]
+    -WithRegistry            [SwitchParameter]
     -ReuseFinding            [SwitchParameter]
+    -Module                  [String]  {app_v2|wear}
   Exit: 0 - state determined and reported: ready, or not-ready with a `state`/`reason`; 2 - the probe itself could not run
+```
+
+### device-registry.ps1
+Durable per-device registry for test devices - the last install mark and its history (S2855).
+
+```
+scripts/devtest/device-registry.ps1
+  Durable per-device registry for test devices - the last install mark and its history (S2855).
+  Params:
+    -Verb         (req)  [String]  {Record|Get|List|Status|Refresh|Forget}
+    -Id                  [String]
+    -Package             [String]
+    -Module              [String]
+    -Flavor              [String]
+    -BuildType           [String]
+    -VersionName         [String]
+    -VersionCode         [String]
+    -Artifact            [String]
+    -Ticket              [String] = ''
+    -RecordedBy          [String] = 'device-registry Record'
+    -Model               [String] = ''
+    -Role                [String] = ''
+    -Yes                 [SwitchParameter]
+    -Json                [SwitchParameter]
+  Exit: 0 - done: recorded, reported, refreshed, or nothing to report.; 1 - error: bad argument shape, unreadable store, adb missing for Refresh, Forget without -Yes.
 ```
 
 ### find-recent-screenshots.ps1
@@ -989,6 +1172,19 @@ scripts/devtest/find-recent-screenshots.ps1
     -NearBlackVarianceMax          [Double] = 25.0
     -NearBlackLuminanceMax         [Double] = 12.0
   Exit: 0 - the scan ran to completion, including when it found nothing (an empty corpus is a valid
+```
+
+### grant-all-files-access.ps1
+S2713 - grant MANAGE_EXTERNAL_STORAGE to a debug build and PROVE the grant took.
+
+```
+scripts/devtest/grant-all-files-access.ps1
+  S2713 - grant MANAGE_EXTERNAL_STORAGE to a debug build and PROVE the grant took.
+  Params:
+    -DeviceId         [String]
+    -Package          [String] = 'com.sza.fastmediasorter.debug'
+    -Json             [SwitchParameter]
+  Exit: 0 - granted; `appops get` reads back `allow`; 1 - refused; the permission is declared but the appop did not take (value quoted in the output); 2 - cannot verify: adb missing, no online device, several devices and no -DeviceId, or the
 ```
 
 ### maestro-run.ps1
@@ -1012,9 +1208,10 @@ S0484 pre-release sweep - resource + settings configuration (adb-scriptable part
 scripts/devtest/prerelease-configure.ps1
   S0484 pre-release sweep - resource + settings configuration (adb-scriptable parts).
   Params:
-    -DeviceId         [String]
-    -Json             [SwitchParameter]
-  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed
+    -DeviceId          [String]
+    -NoRestore         [SwitchParameter]
+    -Json              [SwitchParameter]
+  Exit: 0 - configuration applied (reachable resources + required adb settings OK); 1 - bad arguments / config unreadable; 10 - a required configuration stage failed; 11 - the app is not installed on the device and was not restored
 ```
 
 ### prerelease-log-audit.ps1
@@ -1076,6 +1273,19 @@ scripts/devtest/prerelease-verdict.ps1
   Exit: 0 - PASS; 1 - content FAIL (log / perf / maestro); 2 - infrastructure abort (LogFile missing / inputs unreadable)
 ```
 
+### resolve-ticket-module.ps1
+Which device module a ticket's on-device test belongs to: app_v2 (phone) or wear (watch).
+
+```
+scripts/devtest/resolve-ticket-module.ps1
+  Which device module a ticket's on-device test belongs to: app_v2 (phone) or wear (watch).
+  Params:
+    -Id        (req)  [String]
+    -Json             [SwitchParameter]
+    -RepoRoot         [String]
+  Exit: 0 resolved - `module` is app_v2 or wear, and `reason` says how it was decided.; 2 cannot verify - the probe helper, the module table or every source root is missing.; 3 the ticket carries probes in more than one module, so no single device run covers it.
+```
+
 ### streams-perf-seed.ps1
 S1502 streams performance sweep - seed a device with the full shipped stream catalog.
 
@@ -1086,6 +1296,58 @@ scripts/devtest/streams-perf-seed.ps1
     -DeviceId         [String]
     -Json             [SwitchParameter]
   Exit: 0 - seeded and verified: the table holds the expected row count; 1 - bad arguments / adb or sqlite3 missing / catalog csv missing / package not installed; 2 - no device reachable; 11 - device reachable but the catalog did not reach the expected size
+```
+
+### ui-sweep-bench.ps1
+S2380 - provision and assert the phone screen geometries the automated UI sweep runs on.
+
+```
+scripts/devtest/ui-sweep-bench.ps1
+  S2380 - provision and assert the phone screen geometries the automated UI sweep runs on.
+  Params:
+    -Profile             [String]
+    -Ensure              [SwitchParameter]
+    -Assert              [SwitchParameter]
+    -List                [SwitchParameter]
+    -DeviceId            [String]
+    -SystemImage         [String] = 'system-images;android-36;google_apis_playstore;x86_64'
+    -Json                [SwitchParameter]
+  Exit: 0 - the verb succeeded: -List printed, -Ensure left a usable AVD, or -Assert matched.; 1 - -Assert ran and the attached device does NOT match the declared profile. A real answer, and
+```
+
+### ui-sweep-seed.ps1
+S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+
+```
+scripts/devtest/ui-sweep-seed.ps1
+  S2380 - stage a device for the automated UI sweep: synthetic media in its own root, MediaStore told about it, and the media-read permissions granted before the app is first launched.
+  Params:
+    -DeviceId             [String]
+    -Root                 [String] = '/sdcard/Download/FastMediaSorter_UiSweep'
+    -Package              [String] = 'com.sza.fastmediasorter.debug'
+    -SkipGenerate         [SwitchParameter]
+  Exit: 0 - corpus generated (unless skipped), pushed, handed to MediaStore, and the three media-read
+```
+
+### wear-ink-clip.ps1
+S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
+
+```
+scripts/devtest/wear-ink-clip.ps1
+  S2757 - judge a captured frame the way a Play reviewer does: is anything DRAWN outside the glass.
+  Params:
+    -Image                [String]
+    -DeviceId             [String]
+    -Round                [SwitchParameter]
+    -CornerRadius         [Int32] = -1
+    -Tolerance            [Int32] = 24
+    -MinPixels            [Int32] = 40
+    -Feather              [Int32] = 2
+    -DensityDpi           [Int32] = 0
+    -OutDir               [String]
+    -Json                 [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 - clean: no ink outside the glass.; 2 - could not verify: bad arguments, unreadable image, no device, or a uniform frame.; 9 - ink found outside the glass.
 ```
 
 ### wear-prerelease-prepare.ps1
@@ -1110,15 +1372,17 @@ S1984 - walk the declared watch screens, capture evidence for each, then audit t
 scripts/devtest/wear-prerelease-walk.ps1
   S1984 - walk the declared watch screens, capture evidence for each, then audit the process log.
   Params:
-    -DeviceId               [String]
-    -OutDir                 [String] = 'temp/scratch/wear-prerelease'
-    -ScreenList             [String]
-    -SettleMs               [Int32] = 1200
-    -MaxScrolls             [Int32] = 4
-    -SkipLogAudit           [SwitchParameter]
-    -SkipShapeCheck         [SwitchParameter]
-    -Json                   [SwitchParameter]
-  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed, an OFF-GLASS finding was recorded, or the log audit reported a finding; 2 could not verify: the watch display could not be woken (S2547 - every reading under a
+    -DeviceId                       [String]
+    -OutDir                         [String] = 'temp/scratch/wear-prerelease'
+    -ScreenList                     [String]
+    -SettleMs                       [Int32] = 1200
+    -MaxScrolls                     [Int32] = 12
+    -RehomeAfterUnreachable         [Int32] = 2
+    -MinBatteryPct                  [Int32] = 20
+    -SkipLogAudit                   [SwitchParameter]
+    -SkipShapeCheck                 [SwitchParameter]
+    -Json                           [SwitchParameter]
+  Exit: 0 every declared screen was observed, no OFF-GLASS finding (unless SkipShapeCheck), and log audit found nothing; 1 at least one screen failed or was unreachable, an OFF-GLASS finding was recorded, or the
 ```
 
 ### wear-shape-bench.ps1
@@ -1211,6 +1475,42 @@ scripts/devtest/device-lease.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
+## scripts\devtest\device-ready.tests
+
+### Run-Tests.ps1
+S2600 contract suite for the form-factor half of scripts/devtest/device-ready.ps1.
+
+```
+scripts/devtest/device-ready.tests/Run-Tests.ps1
+  S2600 contract suite for the form-factor half of scripts/devtest/device-ready.ps1.
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed; 2 - the suite could not run (stub call the table does not answer)
+```
+
+## scripts\devtest\device-ready.tests\stub
+
+### adb-stub.ps1
+Stub `adb` for scripts/devtest/device-ready.tests/Run-Tests.ps1 (S2600).
+
+```
+scripts/devtest/device-ready.tests/stub/adb-stub.ps1
+  Stub `adb` for scripts/devtest/device-ready.tests/Run-Tests.ps1 (S2600).
+  (no param block)
+  Exit: 0 - the call matched the table; 99 - the call matched nothing. Silence would turn any change in the probe's adb usage into a
+```
+
+## scripts\devtest\device-registry.tests
+
+### Run-Tests.ps1
+Contract tests for the device registry (S2855).
+
+```
+scripts/devtest/device-registry.tests/Run-Tests.ps1
+  Contract tests for the device registry (S2855).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.
+```
+
 ## scripts\devtest\devtest-encoding.tests
 
 ### Run-Tests.ps1
@@ -1234,12 +1534,39 @@ scripts/devtest/lib/adb-log-filter.ps1
   (no param block)
 ```
 
+### clip-shape-outcome.ps1
+S2782 - classifies one `adb.ps1 clip-check` exit code for the watch pre-release sweep.
+
+```
+scripts/devtest/lib/clip-shape-outcome.ps1
+  S2782 - classifies one `adb.ps1 clip-check` exit code for the watch pre-release sweep.
+  (no param block)
+```
+
+### device-form-factor.ps1
+Shared phone-vs-watch signal for the device scripts (S2600), extracted the way lib/find-adb.ps1 was (S1341) so a caller reads the form factor instead of guessing it.
+
+```
+scripts/devtest/lib/device-form-factor.ps1
+  Shared phone-vs-watch signal for the device scripts (S2600), extracted the way lib/find-adb.ps1 was (S1341) so a caller reads the form factor instead of guessing it.
+  (no param block)
+```
+
 ### find-adb.ps1
 Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (adb.ps1, spec-prerelease.md, any future device script) uses one discovery order instead of each hand-rolling its own hardcoded fallback.
 
 ```
 scripts/devtest/lib/find-adb.ps1
   Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (adb.ps1, spec-prerelease.md, any future device script) uses one discovery order instead of each hand-rolling its own hardcoded fallback.
+  (no param block)
+```
+
+### prerelease-package-guard.ps1
+S2709 - decide whether `pm list packages` reported an exact package as installed.
+
+```
+scripts/devtest/lib/prerelease-package-guard.ps1
+  S2709 - decide whether `pm list packages` reported an exact package as installed.
   (no param block)
 ```
 
@@ -1252,12 +1579,39 @@ scripts/devtest/lib/ui-tree.ps1
   (no param block)
 ```
 
+### wear-battery.ps1
+S2794 - reads the battery level out of `dumpsys battery`, for the pre-release walk.
+
+```
+scripts/devtest/lib/wear-battery.ps1
+  S2794 - reads the battery level out of `dumpsys battery`, for the pre-release walk.
+  (no param block)
+```
+
+### wear-foreign-window.ps1
+S2794 - reads the top visible window's package out of `dumpsys window`, for the pre-release walk.
+
+```
+scripts/devtest/lib/wear-foreign-window.ps1
+  S2794 - reads the top visible window's package out of `dumpsys window`, for the pre-release walk.
+  (no param block)
+```
+
 ### wear-wakefulness.ps1
 S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
 
 ```
 scripts/devtest/lib/wear-wakefulness.ps1
   S2547 - reads a watch's wakefulness out of `dumpsys power`, for the pre-release walk.
+  (no param block)
+```
+
+### wear-walk-position.ps1
+S2779 - the watch walk's standing position, and the decision to recover it.
+
+```
+scripts/devtest/lib/wear-walk-position.ps1
+  S2779 - the watch walk's standing position, and the decision to recover it.
   (no param block)
 ```
 
@@ -1271,6 +1625,65 @@ scripts/devtest/prerelease-log-audit.tests/Run-Tests.ps1
   S1859 / S1969 regression suite for the pre-release log audit's classification rules.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-package-guard.tests
+
+### Run-Tests.ps1
+S2709 regression suite for the pre-release configure step's package-presence guard.
+
+```
+scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1
+  S2709 regression suite for the pre-release configure step's package-presence guard.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\devtest\prerelease-package-guard.tests\stub
+
+### adb-stub.ps1
+Stub `adb` for scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1 (S2709).
+
+```
+scripts/devtest/prerelease-package-guard.tests/stub/adb-stub.ps1
+  Stub `adb` for scripts/devtest/prerelease-package-guard.tests/Run-Tests.ps1 (S2709).
+  (no param block)
+  Exit: 0 - the call matched the table; 99 - the call matched nothing. Silence would turn any change in the script's adb usage into a
+```
+
+### prepare-stub.ps1
+Stub `prerelease-prepare.ps1` for the S2709 suite.
+
+```
+scripts/devtest/prerelease-package-guard.tests/stub/prepare-stub.ps1
+  Stub `prerelease-prepare.ps1` for the S2709 suite.
+  (no param block)
+  Exit: 0 - the stubbed prepare "succeeded"; 10 - the stubbed prepare failed (or FMS_STUB_PREPARE_EXIT)
+```
+
+## scripts\devtest\resolve-ticket-module.tests
+
+### Run-Tests.ps1
+S2611 contract suite for scripts/devtest/resolve-ticket-module.ps1.
+
+```
+scripts/devtest/resolve-ticket-module.tests/Run-Tests.ps1
+  S2611 contract suite for scripts/devtest/resolve-ticket-module.ps1.
+  (no param block)
+  Exit: 0 - every case passed; 1 - at least one case failed; 2 - the suite could not run (the subject script is missing)
+```
+
+## scripts\devtest\wear-ink-clip.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/devtest/wear-ink-clip.ps1 (S2757).
+
+```
+scripts/devtest/wear-ink-clip.tests/Run-Tests.ps1
+  Contract suite for scripts/devtest/wear-ink-clip.ps1 (S2757).
+  Params:
+    -KeepArtifacts         [SwitchParameter]
+  Exit: 0 clean, 2 could not verify, 9 ink outside the glass. A case that only asserted "not zero" would
 ```
 
 ## scripts\devtest\wear-prerelease-walk.tests
@@ -1454,6 +1867,7 @@ scripts/docs/export-doc-icon-pngs.ps1
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -Color            [String] = '#24292e'
     -PngWidth         [Int32] = 96
+  Exit: 4 = Code.Scripts is held by another session, so nothing was written or pruned - the place in
 ```
 
 ### export-icon-svgs.ps1
@@ -1464,6 +1878,7 @@ scripts/docs/export-icon-svgs.ps1
   S0815 Phase 2 - export app VectorDrawable icons to lightweight web SVGs.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - the generated tree is complete and current.; 1 - the inventory is missing, or a source drawable named by it is absent.; 4 - Code.Scripts is held by another session: nothing was written or pruned,
 ```
 
 ### generate-flavor-matrix.ps1
@@ -1519,6 +1934,7 @@ scripts/docs/render-icon-legend.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutDir           [String]
+  Exit: 0 - the three legend pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
 ```
 
 ### render-settings-reference.ps1
@@ -1530,6 +1946,7 @@ scripts/docs/render-settings-reference.ps1
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -OutDir           [String]
+  Exit: 0 - the four reference pages were written.; 4 - Code.Scripts is held by another session: nothing was written, the place
 ```
 
 ### strip-landing-filter-emoji.ps1
@@ -1573,7 +1990,7 @@ scripts/docs/oss-notices.tests/Run-Tests.ps1
   S1495 - test suite for the OSS notice parser and generator.
   Params:
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..')).Path
-  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing
+  Exit: 0 every assertion passed; 1 at least one assertion failed; 2 could not verify: parser or fixture missing, or the generator was queued
 ```
 
 ## scripts\document_registry
@@ -1703,158 +2120,6 @@ scripts/guard.tests/Run-Tests.ps1
   Exit: 0 all fixture cases pass.; 1 at least one case failed.
 ```
 
-## scripts\layout-dimen-migration
-
-### 0-backup-layouts.ps1
-Backup all Layout files before dimension migration
-
-```
-scripts/layout-dimen-migration/0-backup-layouts.ps1
-  Backup all Layout files before dimension migration
-  Params:
-    -LayoutDir         [String] = "app_v2\src\main\res\layout"
-    -BackupDir         [String] = "temp\layout_backups"
-```
-
-### 1-extract-all-resources-v2.ps1
-Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
-
-```
-scripts/layout-dimen-migration/1-extract-all-resources-v2.ps1
-  Extract ALL attribute values from Layout files with SEMANTIC CONSOLIDATION
-  Params:
-    -LayoutDir                    [String] = "app_v2\src\main\res\layout"
-    -OutputFile                   [String] = "temp\resources_library.json"
-    -ConsolidationMapFile         [String] = "temp\consolidation_map.json"
-```
-
-### 1-extract-all-resources.ps1
-Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
-
-```
-scripts/layout-dimen-migration/1-extract-all-resources.ps1
-  Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
-  Params:
-    -LayoutDir          [String] = "app_v2\src\main\res\layout"
-    -OutputFile         [String] = "temp\resources_library.json"
-```
-
-### 1-extract-dimensions.ps1
-Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
-
-```
-scripts/layout-dimen-migration/1-extract-dimensions.ps1
-  Extract ALL attribute values from Layout files (dimensions, colors, drawables, strings, etc.)
-  Params:
-    -LayoutDir          [String] = "app_v2\src\main\res\layout"
-    -OutputFile         [String] = "temp\resources_library.json"
-```
-
-### 2-generate-dimens.ps1
-Generate resource XMLs from extracted resources library
-
-```
-scripts/layout-dimen-migration/2-generate-dimens.ps1
-  Generate resource XMLs from extracted resources library
-  Params:
-    -InputFile             [String] = "temp\resources_library.json"
-    -OutputDir             [String] = "temp\generated_resources"
-    -GroupByLayout         [SwitchParameter] = $false
-    -SortByValue           [SwitchParameter] = $false
-    -Types                 [String[]] = @('dimension', 'color_hex', 'string_literal')
-```
-
-### 2-generate-resources.ps1
-Generate resource XMLs from extracted resources library
-
-```
-scripts/layout-dimen-migration/2-generate-resources.ps1
-  Generate resource XMLs from extracted resources library
-  Params:
-    -InputFile                    [String] = "temp\resources_library.json"
-    -OutputDir                    [String] = "temp\generated_resources"
-    -ExistingResourcesDir         [String] = "app_v2\src\main\res\values"
-    -GroupByLayout                [SwitchParameter] = $false
-    -SortByValue                  [SwitchParameter] = $false
-    -MergeWithExisting            [SwitchParameter] = $true
-    -Types                        [String[]] = @('dimension', 'color_hex', 'string_literal', 'integer', 'boolean')
-```
-
-### 3-replace-with-dimens.ps1
-Replace hardcoded dimension values with @dimen references
-
-```
-scripts/layout-dimen-migration/3-replace-with-dimens.ps1
-  Replace hardcoded dimension values with @dimen references
-  Params:
-    -LibraryFile         [String] = "temp\dimensions_library.json"
-    -LayoutDir           [String] = "app_v2\src\main\res\layout"
-    -DryRun              [SwitchParameter] = $false
-    -Verbose             [SwitchParameter] = $false
-```
-
-### 3-replace-with-resources.ps1
-Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
-
-```
-scripts/layout-dimen-migration/3-replace-with-resources.ps1
-  Replace hardcoded resource values with resource references (@dimen, @color, @string, etc.)
-  Params:
-    -LibraryFile         [String] = "temp\resources_library.json"
-    -LayoutDir           [String] = "app_v2\src\main\res\layout"
-    -DryRun              [SwitchParameter] = $false
-    -Verbose             [SwitchParameter] = $false
-    -Types               [String[]] = @('dimension', 'color_hex', 'string_literal', 'integer', 'boolean')
-```
-
-### 4-unify-dimensions.ps1
-Unify duplicate dimension values into semantic base resources
-
-```
-scripts/layout-dimen-migration/4-unify-dimensions.ps1
-  Unify duplicate dimension values into semantic base resources
-  Params:
-    -InputFile          [String] = "temp\generated_resources\dimens.xml"
-    -OutputFile         [String] = "temp\generated_resources\dimens_unified.xml"
-```
-
-### analyze-duplicates.ps1
-Analyze duplicate values in generated resources
-
-```
-scripts/layout-dimen-migration/analyze-duplicates.ps1
-  Analyze duplicate values in generated resources
-  Params:
-    -InputFile             [String] = "temp\resources_library.json"
-    -OutputFile            [String] = "temp\duplicate_analysis.txt"
-    -MinUsageCount         [Int32] = 5
-```
-
-### run-migration.ps1
-Master script for full layout dimension migration
-
-```
-scripts/layout-dimen-migration/run-migration.ps1
-  Master script for full layout dimension migration
-  Params:
-    -SkipBackup         [SwitchParameter] = $false
-    -AutoApply          [SwitchParameter] = $false
-```
-
-### sort-resources-semantic.ps1
-Sort generated resource XMLs by semantic priority
-
-```
-scripts/layout-dimen-migration/sort-resources-semantic.ps1
-  Sort generated resource XMLs by semantic priority
-  Params:
-    -InputFile           [String] = "temp\generated_resources\dimens.xml"
-    -OutputFile          [String] = ""
-    -LibraryFile         [String] = "temp\resources_library.json"
-    -DryRun              [SwitchParameter] = $false
-    -NoComments          [SwitchParameter] = $true
-```
-
 ## scripts\metrics
 
 ### agent-cost-report.ps1
@@ -1869,6 +2134,18 @@ scripts/metrics/agent-cost-report.ps1
     -TranscriptRoot         [String]
     -OutputPath             [String]
     -Json                   [SwitchParameter]
+```
+
+### measure-unit-fork-parallelism.ps1
+S2851: measure the app_v2 unit suite's wall clock against fms.unitTestMaxParallelForks, recording for every run what else was building at the same time.
+
+```
+scripts/metrics/measure-unit-fork-parallelism.ps1
+  S2851: measure the app_v2 unit suite's wall clock against fms.unitTestMaxParallelForks, recording for every run what else was building at the same time.
+  Params:
+    -Forks           [String] = "1,2,4"
+    -Repeats         [Int32] = 1
+    -CsvPath         [String]
 ```
 
 ## scripts\ocrbench
@@ -1946,7 +2223,20 @@ scripts/quality/assert-acceptance-preconditions.ps1
     -Quiet                  [SwitchParameter]
     -Path                   [String]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read.
+  Exit: 0 - clean, or violations reported in audit mode.; 1 - `-Gate` found a criterion outside the baseline that names no precondition.; 2 - the spec corpus or the baseline cannot be read.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+```
+
+### assert-activity-locale-wrapper.ps1
+S2930: every Activity in app_v2 resolves resources through the app locale wrapper.
+
+```
+scripts/quality/assert-activity-locale-wrapper.ps1
+  S2930: every Activity in app_v2 resolves resources through the app locale wrapper.
+  Params:
+    -Gate                 [SwitchParameter]
+    -List                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 every in-scope Activity carries the wrapper, or a non-gate report run.; 1 -Gate and at least one Activity is unwrapped and unexcused.; 2 cannot verify - the source root is missing, or a baseline row carries no reason.
 ```
 
 ### assert-activity-logic-not-growing.ps1
@@ -1972,7 +2262,7 @@ scripts/quality/assert-allfeatures-sync.ps1
     -Gate                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error or record-count regression.; 2 - the gate itself cannot run (inventory or validate.ps1 missing). Distinct
+  Exit: 0 - clean (or audit mode).; 1 - substantive failure: validation error, record-count regression, a record
 ```
 
 ### assert-always-loaded-budget.ps1
@@ -1986,6 +2276,7 @@ scripts/quality/assert-always-loaded-budget.ps1
     -BaselineFile           [String]
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
+    -SlackBytes             [Int32] = 1024
     -Quiet                  [SwitchParameter]
     -RepoRoot               [String]
   Exit: 0 every judged file is at or below its ceiling, or a report-only run, or a successful
@@ -2000,6 +2291,18 @@ scripts/quality/assert-appsettings-persistence.ps1
   Params:
     -Gate            [SwitchParameter]
     -Explain         [SwitchParameter]
+```
+
+### assert-archive-artefacts.ps1
+S2592: every record in the spec archive journal must point at a file that exists, or be a listed known loss.
+
+```
+scripts/quality/assert-archive-artefacts.ps1
+  S2592: every record in the spec archive journal must point at a file that exists, or be a listed known loss.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every archive record resolves, or is a listed known loss, and no baseline line is stale.; 1 - at least one record dangles unlisted, or a listed record has come back.; 2 - could not verify: the archive journal or the baseline file is absent.
 ```
 
 ### assert-artifact-version-fresh.ps1
@@ -2027,6 +2330,36 @@ scripts/quality/assert-backup-rules-consistent.ps1
   Exit: 0 - clean, every pre-31 exclusion is repeated in both API 31+ sections; 1 - at least one exclusion is missing, or a root element is wrong; 2 - cannot verify: a rules file is missing or is not well-formed XML
 ```
 
+### assert-bridge-scenario-coverage.ps1
+S2880 - binds the bridge scenario registry to the Data Layer route catalogs it must cover.
+
+```
+scripts/quality/assert-bridge-scenario-coverage.ps1
+  S2880 - binds the bridge scenario registry to the Data Layer route catalogs it must cover.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -ChangedFiles           [String]
+    -CatalogA               [String]
+    -CatalogB               [String]
+    -Registry               [String]
+    -BaselineFile           [String]
+  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: a catalog or the registry is missing or unreadable. Never conflated
+```
+
+### assert-code-domain-writers.ps1
+S2635: every script that writes a Code.* path takes that domain, and no new writer slips in.
+
+```
+scripts/quality/assert-code-domain-writers.ps1
+  S2635: every script that writes a Code.* path takes that domain, and no new writer slips in.
+  Params:
+    -Gate                   [SwitchParameter]
+    -UpdateBaseline         [SwitchParameter]
+    -Quiet                  [SwitchParameter]
+  Exit: 0 every manifest entry adopts the helper, and the unregistered-writer count is at or below
+```
+
 ### assert-ctor-arg-slots.ps1
 Fail when a Kotlin primary constructor approaches the 255 argument-slot ceiling.
 
@@ -2039,6 +2372,18 @@ scripts/quality/assert-ctor-arg-slots.ps1
     -Quiet                [SwitchParameter]
     -ChangedFiles         [String]
   Exit: 0 - every parsed constructor is under the ceiling (or over it without -Gate).; 1 - at least one constructor exceeds the ceiling, and -Gate was passed.; 2 - could not verify: no source root was readable, so nothing was measured.
+```
+
+### assert-delivery-size-estimates.ps1
+Gate: every download size compiled into the app still describes the asset it names (S2652).
+
+```
+scripts/quality/assert-delivery-size-estimates.ps1
+  Gate: every download size compiled into the app still describes the asset it names (S2652).
+  Params:
+    -Quiet                    [SwitchParameter]
+    -TolerancePercent         [Double] = 25.0
+  Exit: 0 - every compiled fallback is within tolerance of its published asset, or the release could
 ```
 
 ### assert-deobfuscation-retained.ps1
@@ -2114,6 +2459,19 @@ scripts/quality/assert-device-profile-matrix.ps1
   Exit: 0 PASS - matrix, registry and applier agree.; 1 FAIL - at least one coverage rule is violated, or the underlying check is missing.
 ```
 
+### assert-device-ready-module.ps1
+Rejects a call site that invokes scripts/devtest/device-ready.ps1 without naming a -Module.
+
+```
+scripts/quality/assert-device-ready-module.ps1
+  Rejects a call site that invokes scripts/devtest/device-ready.ps1 without naming a -Module.
+  Params:
+    -Gate                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -Quiet                [SwitchParameter]
+  Exit: 0 PASS, or findings reported without -Gate.; 1 FAIL - at least one call site names no module, and -Gate was supplied.; 2 Cannot verify - the repository root does not carry the probe this gate is about.
+```
+
 ### assert-dialog-cancel-style.ps1
 Ratchet gate: a dialog/bottom-sheet cancel button must use the unified DialogCancel style (target: 0 one-offs).
 
@@ -2124,6 +2482,7 @@ scripts/quality/assert-dialog-cancel-style.ps1
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
+  Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-doc-house-style.ps1
@@ -2156,9 +2515,39 @@ Gate wrapper (S1075): documentation-vs-Gradle pin drift.
 scripts/quality/assert-doc-pin-drift.ps1
   Gate wrapper (S1075): documentation-vs-Gradle pin drift.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 - no drift (doc pins match Gradle).; 1 - drift found (FAIL / INCONSISTENT / MISSING), or the underlying checker could
+```
+
+### assert-document-registry-coverage.ps1
+Assert every directory holding .md documents is named by a document-registry record (S2618).
+
+```
+scripts/quality/assert-document-registry-coverage.ps1
+  Assert every directory holding .md documents is named by a document-registry record (S2618).
+  Params:
+    -RepoRoot         [String] = ''
+    -Quiet            [SwitchParameter]
+    -Gate             [SwitchParameter]
+  Exit: 0 - every directory holding documents is covered by a record or accounted for in the baseline.; 1 - a directory is unaccounted for, a baseline reason is too thin, or a baseline row is stale.; 2 - cannot verify: the registry is missing or unreadable, or RepoRoot does not exist.
+```
+
+### assert-dotsource-tracked.ps1
+S2616: a script reached by a dot-source must also be known to git.
+
+```
+scripts/quality/assert-dotsource-tracked.ps1
+  S2616: a script reached by a dot-source must also be known to git.
+  Params:
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Root                 [String]
+    -GitRoot              [String]
+    -Quiet                [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 every judged dot-source target is in the git index (or none was judged), or -Gate was absent.; 1 at least one judged target is not in the index, and -Gate was passed.; 2 cannot verify - git absent, the target is not a git work tree, or the discovery root is unreadable.
 ```
 
 ### assert-enum-persistence-contract.ps1
@@ -2170,6 +2559,7 @@ scripts/quality/assert-enum-persistence-contract.ps1
   Params:
     -Mapping          [String]
     -RepoRoot         [String]
+    -Module           [String]  {app_v2|wear}
     -Gate             [SwitchParameter]
     -Quiet            [SwitchParameter]
   Exit: 0 - every durable enum-name path has a matching base rule (and, with -Mapping, kept its name).; 1 - a durable enum-name path is unpinned, a base rule names no declared class, or the mapping
@@ -2201,7 +2591,7 @@ scripts/quality/assert-fast-gates.ps1
     -ChangedFiles          [String[]]
     -Sequential            [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
-  Exit: 0 every gate passed.; 1 at least one gate failed or is MISSING.
+  Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
 ```
 
 ### assert-fgs-notifications.ps1
@@ -2250,8 +2640,9 @@ Fail when prose or a script's help text claims a flavor count, or a complete fla
 scripts/quality/assert-flavor-count-prose.ps1
   Fail when prose or a script's help text claims a flavor count, or a complete flavor list, that the generated flavor matrix disagrees with.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate             [SwitchParameter]
+    -Quiet            [SwitchParameter]
+    -RepoRoot         [String] = (Split-Path -Parent (Split-Path -Parent $PSScriptRoot))
   Exit: 0 - every quantified flavor claim matches the matrix (or findings exist without -Gate).; 1 - at least one claim contradicts the matrix, and -Gate was passed.; 2 - could not verify: docs/flavors/flavor-matrix.json is absent or declares no flavors, so
 ```
 
@@ -2275,11 +2666,12 @@ S1392 - documentation-vs-gradle flavor capability matrix gate.
 scripts/quality/assert-flavor-matrix-docs.ps1
   S1392 - documentation-vs-gradle flavor capability matrix gate.
   Params:
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-    -Table            [String]
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -Table                [String]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: snapshot or manifest missing / unreadable, or the snapshot is stale; 3 S2828: a finding stands - a stale snapshot, or a table that disagrees with it - but no file
 ```
 
 ### assert-focus-highlight.ps1
@@ -2296,6 +2688,20 @@ scripts/quality/assert-focus-highlight.ps1
   Exit: 0 - pass: at or below baseline, no growth in the named files, or a non-gate mode.; 1 - fail: the count rose above the baseline, a named file introduced a gap, or a
 ```
 
+### assert-gate-count-prose.ps1
+S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+
+```
+scripts/quality/assert-gate-count-prose.ps1
+  S2935: fail when docs/BUILD_TEST_FAST_PATH.md claims a fast-gate count the live $gates table in assert-fast-gates.ps1 disagrees with.
+  Params:
+    -Gate               [SwitchParameter]
+    -Quiet              [SwitchParameter]
+    -RunnerPath         [String]
+    -DocPath            [String]
+  Exit: 0 - the documented count matches the live table, or a finding exists and -Gate was absent.; 1 - the documented count contradicts the live table, and -Gate was passed.; 2 - could not verify: either file is absent, the runner does not parse, it holds no single
+```
+
 ### assert-gate-hints-sync.ps1
 Keep the closure facade's gate labels and the recovery-hint registry in step.
 
@@ -2305,6 +2711,23 @@ scripts/quality/assert-gate-hints-sync.ps1
   Params:
     -Gate         [SwitchParameter]
   Exit: 0 - registry and facade agree (or audit mode).; 1 - substantive failure: at least one label or key is unpaired (-Gate only).; 2 - the gate itself cannot run: the facade or the registry is missing or
+```
+
+### assert-gate-placement.ps1
+S2870: the gate-placement registry must agree with where the gates are actually wired.
+
+```
+scripts/quality/assert-gate-placement.ps1
+  S2870: the gate-placement registry must agree with where the gates are actually wired.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String]
+    -Registry             [String]
+    -SourceMap            [String]
+    -Help                 [SwitchParameter]
+  Exit: 0 registry and wiring agree (or findings exist but -Gate was not passed).; 1 at least one finding, under -Gate with a declared input in the changed set.; 2 cannot verify - the registry is missing or a line is not valid JSON.; 3 advisory: findings exist but no declared input was in the changed set (S2824).
 ```
 
 ### assert-gate-timing-claims.ps1
@@ -2365,7 +2788,18 @@ scripts/quality/assert-guide-coverage.ps1
     -UpdateBaseline         [SwitchParameter]
     -Json                   [SwitchParameter]
     -Quiet                  [SwitchParameter]
-  Exit: 0 - clean, or audit mode (no -Gate).; 1 - -Gate and at least one uncovered id is not in the baseline.; 2 - the gate cannot run: the inventory, the registry, or the guide set is missing.
+  Exit: 0 - clean, or audit mode (no -Gate).; 1 - -Gate and at least one uncovered id is not in the baseline.; 2 - the gate cannot run: the inventory, the registry, or the guide set is missing.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place
+```
+
+### assert-harness-drift.ps1
+S2608. Does the harness that actually RUNS match the canon checkout it was authored in?
+
+```
+scripts/quality/assert-harness-drift.ps1
+  S2608. Does the harness that actually RUNS match the canon checkout it was authored in?
+  Params:
+    -Quiet         [SwitchParameter]
+  Exit: 0 - looked, and the running harness matches the canon checkout.; 2 - could not look: no resolvable harness, or no canon checkout on this machine. Distinct from 3
 ```
 
 ### assert-hook-inventory.ps1
@@ -2376,7 +2810,9 @@ scripts/quality/assert-hook-inventory.ps1
     -Gate                       [SwitchParameter]
     -RepoRoot                   [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -GlobalSettingsPath         [String] = (Join-Path $HOME '.claude/settings.json')
-  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set and the inventory, with -Gate; 2 could not verify - the inventory or .claude/settings.json is missing or unparsable
+    -RuleSheetPath              [String] = (Join-Path $RepoRoot 'docs/NON_CLAUDE_RUNTIME_RULES.md')
+    -McpConfigPath              [String] = (Join-Path $RepoRoot '.mcp.json')
+  Exit: 0 in sync, or a divergence was reported without -Gate (advisories may print in both); 1 a real divergence between the registered set, the inventory, the rule sheet and the MCP server table, with -Gate; 2 could not verify - the inventory, .claude/settings.json or the rule sheet is missing or unparsable, or .mcp.json is unparsable
 ```
 
 ### assert-howto-settings-paths.ps1
@@ -2403,7 +2839,23 @@ scripts/quality/assert-icon-inventory-sync.ps1
     -RegenerateInventory         [SwitchParameter]
     -RepoRoot                    [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
     -TimeoutSeconds              [Int32] = 600
-  Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).
+  Exit: 0 - every enforced check passed, or the inventory was regenerated.; 1 - a check failed.; 2 - regeneration could not run (gradle returned non-zero).; 4 - Code.Scripts is held by another session: nothing was written, the place in
+```
+
+### assert-invoked-tracked.ps1
+S2654: a script invoked by another script must also be known to git.
+
+```
+scripts/quality/assert-invoked-tracked.ps1
+  S2654: a script invoked by another script must also be known to git.
+  Params:
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Root                 [String]
+    -GitRoot              [String]
+    -Quiet                [SwitchParameter]
+    -Help                 [SwitchParameter]
+  Exit: 0 every judged target is in the git index (or none judged), or -Gate was absent.; 1 at least one judged target is not in the index, and -Gate was passed.; 2 cannot verify - git absent, not a work tree, or discovery root unreadable.
 ```
 
 ### assert-launcher-contrast.ps1
@@ -2425,8 +2877,9 @@ S1540: every launcher setting is restored by the launcher reset, or excused by n
 scripts/quality/assert-launcher-reset-coverage.ps1
   S1540: every launcher setting is restored by the launcher reset, or excused by name.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 PASS - the reset assigns the whole group and its exceptions match the registry below.; 1 FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
 ```
 
@@ -2452,6 +2905,7 @@ scripts/quality/assert-listener-symmetry.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
+  Exit: 0 - pass: at or below baseline, a report/list run, or a completed baseline write.; 1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-maestro-oracle.ps1
@@ -2479,7 +2933,8 @@ scripts/quality/assert-memory-budget.ps1
     -TargetBytes            [Int32] = 9000
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
-  Exit: 0 at or below MaxBytes with every link resolving, or a report-only run.; 1 -Gate and the index is above MaxBytes, or -Gate and a `[[link]]` is unresolvable.; 2 cannot verify - the index or the memory directory does not exist.
+    -SlackBytes             [Int32] = 1024
+  Exit: 1024 B are in `assert-always-loaded-budget.ps1` -SlackBytes - MEMORY.md is an always-loaded
 ```
 
 ### assert-migration-schema-conformance.ps1
@@ -2495,7 +2950,7 @@ scripts/quality/assert-migration-schema-conformance.ps1
     -Quiet                  [SwitchParameter]
     -Module                 [String]
     -Help                   [SwitchParameter]
-  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory or registration
+  Exit: 0 no unbaselined disagreement (or reporting only, without -Gate).; 1 an unbaselined disagreement was found, under -Gate.; 2 cannot verify - a registry row's migration directory, schema directory, registration file
 ```
 
 ### assert-migration-test-pairing.ps1
@@ -2549,6 +3004,18 @@ scripts/quality/assert-new-lexemes-translated.ps1
     -OutDir                   [String]
     -Quiet                    [SwitchParameter]
   Exit: 0 - every string reaches all thirteen declared locales, or its gap predates the rule.; 1 - new untranslated strings exist; the release is blocked until they are translated.; 2 - the gate cannot verify: the producer is missing, the baseline is missing, or the
+```
+
+### assert-no-line-budget.ps1
+S2037: no self-cost estimate column (`Line budget`) in planning output.
+
+```
+scripts/quality/assert-no-line-budget.ps1
+  S2037: no self-cost estimate column (`Line budget`) in planning output.
+  Params:
+    -Gate          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - clean, or audit mode (findings printed, no -Gate).; 1 - substantive failure: at least one forbidden column, and -Gate was passed.; 2 - the gate itself cannot run (PLAN/ missing or unreadable). Distinct from 1
 ```
 
 ### assert-no-orphan-merged-resources.ps1
@@ -2644,10 +3111,11 @@ S1495 - OSS notice conformance gate.
 scripts/quality/assert-oss-notices.ps1
   S1495 - OSS notice conformance gate.
   Params:
-    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-    -Gate             [SwitchParameter]
-    -Quiet            [SwitchParameter]
-  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: generator, parser or manifest missing or unreadable; 3 S2828: findings stand, but no file this gate declares as an input is in -ChangedFiles, so
 ```
 
 ### assert-packaging-excludes-parity.ps1
@@ -2662,6 +3130,17 @@ scripts/quality/assert-packaging-excludes-parity.ps1
   Exit: 0 - clean, every module carrying a shared library repeats its payload exclusions; 1 - a module is missing an exclusion, or an unknown payload prefix appeared; 2 - cannot verify: a build file is missing, or has no packaging/resources block to read
 ```
 
+### assert-play-listing-graphics.ps1
+Gate: every single image the Play listing publisher declares has a source, and a listing image that lives in more than one tree is one artwork (S2597).
+
+```
+scripts/quality/assert-play-listing-graphics.ps1
+  Gate: every single image the Play listing publisher declares has a source, and a listing image that lives in more than one tree is one artwork (S2597).
+  Params:
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every declared single image has a source and every mirrored artwork agrees.; 1 - at least one MISSING or DIVERGED finding. The output names each one.; 2 - the check could not happen: the publisher is unreadable or declares no SINGLE_IMAGES map.
+```
+
 ### assert-play-listing-locales.ps1
 S2340 parity gate: the Play store listing carries every locale the app declares.
 
@@ -2673,6 +3152,22 @@ scripts/quality/assert-play-listing-locales.ps1
     -Quiet         [SwitchParameter]
     -Help          [SwitchParameter]
   Exit: 0 - every declared locale is served, every mapped folder is complete and inside its limits.; 1 - a parity, completeness or character-limit violation.; 2 - cannot verify: locales_config.xml or publish-play-listing.py is missing or unreadable.
+```
+
+### assert-play-listing-screenshot-geometry.ps1
+Gate: no composed Play listing screenshot buries its own frame under a caption band, the images inside one carousel all have one shape (S2602), no screenshot carries transparency and no wear frame carries a device frame (S2764).
+
+```
+scripts/quality/assert-play-listing-screenshot-geometry.ps1
+  Gate: no composed Play listing screenshot buries its own frame under a caption band, the images inside one carousel all have one shape (S2602), no screenshot carries transparency and no wear frame carries a device frame (S2764).
+  Params:
+    -ListingRoot               [String]
+    -MaxBandShare              [Double] = 0.20
+    -MaxFrameRingWidth         [Double] = 0.04
+    -Gate                      [SwitchParameter]
+    -Quiet                     [SwitchParameter]
+    -Help                      [SwitchParameter]
+  Exit: 0 - every composed screenshot is inside the band ceiling, its carousel's shape and Play
 ```
 
 ### assert-prerelease-content-gates.ps1
@@ -2712,6 +3207,19 @@ scripts/quality/assert-qualifier-shadowing.ps1
     -Quiet         [SwitchParameter]
 ```
 
+### assert-quantity-format-seam.ps1
+Ratchet gate: a user-facing quantity is formatted by the seam, never by a call site of its own.
+
+```
+scripts/quality/assert-quantity-format-seam.ps1
+  Ratchet gate: a user-facing quantity is formatted by the seam, never by a call site of its own.
+  Params:
+    -Gate                 [SwitchParameter]
+    -List                 [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 - pass: no offender outside the baseline, or a report/list run.; 1 - fail: an offender outside the baseline.; 2 - could not verify: a source root named below is missing from the checkout.
+```
+
 ### assert-release-scope-gates.ps1
 S1939: run the RELEASE-SCOPE quality gates in ONE process over the whole tree.
 
@@ -2722,6 +3230,7 @@ scripts/quality/assert-release-scope-gates.ps1
     -Json                 [SwitchParameter]
     -Help                 [SwitchParameter]
     -ReuseFinding         [SwitchParameter]
+    -OnlyGroups           [String[]] = @()
   Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding).; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
 ```
 
@@ -2760,7 +3269,7 @@ scripts/quality/assert-rtl-layout-attrs.ps1
     -UpdateBaseline         [SwitchParameter]
     -List                   [SwitchParameter]
     -ChangedFiles           [String[]]
-  Exit: 0 - pass (count at or below baseline, or a non-gate mode).; 1 - fail: the count rose above the baseline, or a changed file carries an occurrence.; 2 - cannot verify: the scan root is missing, or a named changed file does not exist.
+  Exit: 0 - pass (count at or below baseline, or a non-gate mode).; 1 - fail: the count rose above the baseline, or a changed file carries an occurrence.; 2 - cannot verify: the scan root is missing, or a named changed file does not exist.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-rule-digest-sync.ps1
@@ -2770,9 +3279,10 @@ Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548)
 scripts/quality/assert-rule-digest-sync.ps1
   Keep the agent-rule digests in step with the numbered rules in CLAUDE.md (S1548).
   Params:
-    -Gate             [SwitchParameter]
-    -RepoRoot         [String]
-  Exit: 0 - every full digest cites every rule and every pointer is reachable, or audit mode.; 1 - substantive failure: a rule is uncited or a pointer is a dead end (-Gate only).; 2 - the gate itself cannot run: a declared file is missing, or the authority
+    -Gate                 [SwitchParameter]
+    -RepoRoot             [String]
+    -ChangedFiles         [String[]]
+  Exit: 0 - every full digest cites every rule and every labelled closing gate, and every
 ```
 
 ### assert-script-cheatsheet-sync.ps1
@@ -2800,6 +3310,18 @@ scripts/quality/assert-script-described.ps1
     -Quiet            [SwitchParameter]
     -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
   Exit: 0 - both counts at or below their ceilings, or -Report was given; 1 - either count rose above its ceiling; 2 - cannot verify: a script root or a baseline file is missing or unreadable
+```
+
+### assert-script-parses.ps1
+Refuses a .ps1 in the scanned roots that the PowerShell parser cannot read at all.
+
+```
+scripts/quality/assert-script-parses.ps1
+  Refuses a .ps1 in the scanned roots that the PowerShell parser cannot read at all.
+  Params:
+    -Path          [String]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every scanned file parses.; 1 - at least one file has a parse error (path, line and first error printed).; 2 - the gate itself cannot run (no scan root found). Distinct from 1 on purpose: "found
 ```
 
 ### assert-script-references.ps1
@@ -2919,7 +3441,7 @@ S1706 - generated splash brand drawables vs their source.
 scripts/quality/assert-splash-brand-sync.ps1
   S1706 - generated splash brand drawables vs their source.
   Params:
-    -Module         [String]  {app_v2|wear}
+    -Module         [String]  {app_v2}
     -Gate           [SwitchParameter]
     -Quiet          [SwitchParameter]
   Exit: 0 every generated drawable matches its source; 1 at least one drawable diverges, or a slogan no longer fits the mask circle; 2 could not verify: the generator is missing, or python/fontTools is unavailable
@@ -2950,6 +3472,7 @@ scripts/quality/assert-string-format.ps1
     -List                   [SwitchParameter]
     -Module                 [String] = 'app_v2'
     -SourceSet              [String] = 'main'
+  Exit: 0 - pass: no finding outside the baseline, a report/list run, or a completed baseline write.; 1 - fail: a finding is not in the baseline, or -UpdateBaseline was asked to RAISE it.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-suite-tracked.ps1
@@ -2991,7 +3514,7 @@ scripts/quality/assert-tactical-step-form.ps1
     -Gate                   [SwitchParameter]
     -UpdateBaseline         [SwitchParameter]
     -Quiet                  [SwitchParameter]
-  Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).
+  Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-test-suite-complete.ps1
@@ -3019,6 +3542,23 @@ scripts/quality/assert-ticket-acceptance-probes.ps1
   Exit: 0 - clean, or mismatches reported in audit mode.; 1 - `-Gate` found a missing source template or invalid alternative evidence.; 2 - required catalog, helper, or source roots cannot be read.
 ```
 
+### assert-ui-sweep-catalog.ps1
+S2380 - binds the declared phone UI sweep to the app_v2 module it claims to walk.
+
+```
+scripts/quality/assert-ui-sweep-catalog.ps1
+  S2380 - binds the declared phone UI sweep to the app_v2 module it claims to walk.
+  Params:
+    -Gate                     [SwitchParameter]
+    -ChangedFiles             [String]
+    -ScreenList               [String]
+    -ActivityCatalog          [String]
+    -SettingsManifest         [String]
+    -ResRoot                  [String]
+    -SourceRoot               [String]
+  Exit: 0 - no divergence, or reporting mode, or advisory downgrade under -ChangedFiles.; 1 - divergence found and -Gate was passed.; 2 - cannot verify: a declared input file is missing or does not parse.; 3 - advisory: -ChangedFiles was given and named none of this gate's inputs.
+```
+
 ### assert-unreferenced-strings.ps1
 S1568 ratchet gate: no NEW unreferenced name may appear in a module's strings file.
 
@@ -3032,7 +3572,7 @@ scripts/quality/assert-unreferenced-strings.ps1
     -Quiet                  [SwitchParameter]
     -Module                 [String] = 'app_v2'
     -File                   [String] = 'strings.xml'
-  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.
+  Exit: 0 - no new unreferenced name (or reporting mode, which never fails).; 1 - under -Gate: at least one unreferenced name is not in the baseline.; 2 - cannot verify: the module, its values directory, or the strings file could not be read.; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
 ### assert-unsafe-collect.ps1
@@ -3061,6 +3601,19 @@ scripts/quality/assert-untracked-dialogs.ps1
     -ChangedFiles           [String[]]
 ```
 
+### assert-wear-canonical-key-parity.ps1
+S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
+
+```
+scripts/quality/assert-wear-canonical-key-parity.ps1
+  S2579: fails when a watch mini-program's canonicalKey is neither a phone route key nor a declared watch-only program.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+  Exit: 0 - the rule holds; or a divergence was reported without -Gate, matching the advisory shape; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: a source file is missing, or one of the two literal sets parsed to
+```
+
 ### assert-wear-mirrored-strings.ps1
 S2125: fails when a string mirrored on the phone and the watch stops reading the same.
 
@@ -3070,6 +3623,7 @@ scripts/quality/assert-wear-mirrored-strings.ps1
   Params:
     -Gate          [SwitchParameter]
     -Quiet         [SwitchParameter]
+    -Scope         [String] = 'All'  {Authored|All}
   Exit: 0 - every declared pair is in step; or a divergence was reported without -Gate, matching the; 1 - a divergence was found and -Gate was passed.; 2 - could not verify: the declaration is missing, parses to zero pairs, or a strings.xml under
 ```
 
@@ -3102,8 +3656,9 @@ S2093: fails when a watch setting exists on one side of the phone/watch pair and
 scripts/quality/assert-wear-settings-parity.ps1
   S2093: fails when a watch setting exists on one side of the phone/watch pair and not the other.
   Params:
-    -Gate          [SwitchParameter]
-    -Quiet         [SwitchParameter]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
   Exit: 0 - parity holds; or a divergence was reported without -Gate, matching the advisory shape of; 1 - a divergence was found and -Gate was passed.; 2 - a source file could not be read (a registry, a payload, the watch preferences, the doc
 ```
 
@@ -3114,13 +3669,44 @@ S2547 - binds the declared watch pre-release walk to the wear module it claims t
 scripts/quality/assert-wear-walk-contract.ps1
   S2547 - binds the declared watch pre-release walk to the wear module it claims to walk.
   Params:
-    -Gate                   [SwitchParameter]
-    -UpdateBaseline         [SwitchParameter]
-    -ScreenList             [String]
-    -StringsFile            [String]
-    -WearSource             [String]
-    -BaselineFile           [String]
-  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or
+    -Gate                       [SwitchParameter]
+    -UpdateBaseline             [SwitchParameter]
+    -ChangedFiles               [String]
+    -ScreenListBaseline         [String]
+    -ScreenList                 [String]
+    -StringsFile                [String]
+    -WearSource                 [String]
+    -BaselineFile               [String]
+  Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: the screen list, the strings file or the wear source tree is missing or; 4 Code.Scripts is held by another session, so no baseline was written. The queue place is held -
+```
+
+### assert-wear-wire-nullability.ps1
+S2885/S2887: refuse a phone/watch bridge envelope field whose Kotlin default is not what Gson will actually leave in it when the key is absent, because the declaration then states a protection the receiver does not have.
+
+```
+scripts/quality/assert-wear-wire-nullability.ps1
+  S2885/S2887: refuse a phone/watch bridge envelope field whose Kotlin default is not what Gson will actually leave in it when the key is absent, because the declaration then states a protection the receiver does not have.
+  Params:
+    -RepoRoot             [String]
+    -BaselinePath         [String]
+    -ChangedFiles         [String[]]
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+```
+
+### assert-wear-wire-vocabulary-parity.ps1
+S2642: a phone/watch wire vocabulary outside the settings channel diverged, or a new mirrored one was added without being declared here.
+
+```
+scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+  S2642: a phone/watch wire vocabulary outside the settings channel diverged, or a new mirrored one was added without being declared here.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -PhoneRoot            [String]
+    -WatchRoot            [String]
+    -ChangedFiles         [String[]]
+  Exit: 0 - parity holds; or a divergence was reported without -Gate.; 1 - a divergence was found and -Gate was passed; or a mirrored enum is declared in both modules
 ```
 
 ### assert-window-insets.ps1
@@ -3262,7 +3848,7 @@ scripts/quality/migrate-locale-fingerprints-module.ps1
     -Modules                  [String[]] = @('app_v2', 'wear')
     -CorpusDir                [String]
     -DryRun                   [SwitchParameter]
-  Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.
+  Exit: 0 - migration completed, or -DryRun classified without writing.; 1 - a corpus export failed, so ownership could not be resolved; nothing was written.; 2 - the registry is already at the current schema version; nothing to do.; 4 - the target's code domain is held by another session, so nothing was written. The queue
 ```
 
 ### prune-detekt-baseline.ps1
@@ -3297,6 +3883,18 @@ scripts/quality/reindex-settings.ps1
   Exit: 0 - already fresh: nothing regenerated, verify gate green. Shippable.; 2 - drift regenerated: manifest/reference changed and are now fresh, but the
 ```
 
+### release-scope-fingerprint.ps1
+Record and compare a fingerprint of the tree the release-scope gates judge (S3010).
+
+```
+scripts/quality/release-scope-fingerprint.ps1
+  Record and compare a fingerprint of the tree the release-scope gates judge (S3010).
+  Params:
+    -Verb  (req)  [String]  {Record|Compare}
+    -Json         [SwitchParameter]
+  Exit: 0 Record wrote the fingerprint, or Compare found nothing moved.; 2 Compare found no recorded fingerprint, or it could not be read.; 3 Compare found at least one group moved - the names are on stdout.
+```
+
 ### remove-ticket-probes.ps1
 Remove exact temporary Timber probes for supplied archived ticket ids.
 
@@ -3306,8 +3904,10 @@ scripts/quality/remove-ticket-probes.ps1
   Params:
     -Id                      [String] = ''
     -Archived                [SwitchParameter]
+    -Force                   [SwitchParameter]
     -BackupDirectory         [String] = 'temp/scratch'
     -WhatIf                  [SwitchParameter]
+  Exit: 3 refused - a named ticket is still in BlockNeedUserTest, so its probe is required (use -Force).
 ```
 
 ### run-script-suites.ps1
@@ -3396,6 +3996,16 @@ scripts/quality.tests/gate-pool.Tests.ps1
   Exit: 0 every test passed.; 1 at least one test failed.
 ```
 
+### locale-fingerprints-concurrency.Tests.ps1
+S3008: tests that two processes writing the fingerprint registry at once both keep their entries.
+
+```
+scripts/quality.tests/locale-fingerprints-concurrency.Tests.ps1
+  S3008: tests that two processes writing the fingerprint registry at once both keep their entries.
+  (no param block)
+  Exit: 0 every assertion passed.; 1 at least one assertion failed.
+```
+
 ### locale-fingerprints.Tests.ps1
 requires -Version 7.0
 
@@ -3434,6 +4044,15 @@ scripts/quality.tests/set-android-string-remove.Tests.ps1
   (no param block)
 ```
 
+### settings-doc-inputs.Tests.ps1
+S2604 - regression tests for the shared settings-doc input map.
+
+```
+scripts/quality.tests/settings-doc-inputs.Tests.ps1
+  S2604 - regression tests for the shared settings-doc input map.
+  (no param block)
+```
+
 ## scripts\quality\assert-always-loaded-budget.tests
 
 ### Run-Tests.ps1
@@ -3458,6 +4077,30 @@ scripts/quality/assert-detekt.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-document-registry-coverage.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-document-registry-coverage.ps1
+
+```
+scripts/quality/assert-document-registry-coverage.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-document-registry-coverage.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+```
+
+## scripts\quality\assert-dotsource-tracked.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-dotsource-tracked.ps1
+
+```
+scripts/quality/assert-dotsource-tracked.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-dotsource-tracked.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (git absent, or the sandbox could not be built).
+```
+
 ## scripts\quality\assert-enum-persistence-contract.tests
 
 ### Run-Tests.ps1
@@ -3480,6 +4123,41 @@ scripts/quality/assert-exit-contract.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1070) - regression suite for scripts/quality/assert-exit-contract.ps1.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-fast-gates.tests
+
+### Run-Tests.ps1
+S2693: contract suite for the two-verdict form of assert-fast-gates.ps1.
+
+```
+scripts/quality/assert-fast-gates.tests/Run-Tests.ps1
+  S2693: contract suite for the two-verdict form of assert-fast-gates.ps1.
+  Params:
+    -Help         [SwitchParameter]
+  Exit: 0 every case passed.; 1 at least one case failed.; 2 cannot verify - the subject script is missing.
+```
+
+## scripts\quality\assert-flavor-count-prose.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
+
+```
+scripts/quality/assert-flavor-count-prose.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2919) - regression suite for assert-flavor-count-prose.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.
+```
+
+## scripts\quality\assert-gate-placement.tests
+
+### Run-Tests.ps1
+
+```
+scripts/quality/assert-gate-placement.tests/Run-Tests.ps1
+  (no param block)
+  Exit: 0 every case passed; 1 at least one case failed
 ```
 
 ## scripts\quality\assert-gate-timing-claims.tests
@@ -3514,6 +4192,18 @@ scripts/quality/assert-gson-persistence-contract.tests/Run-Tests.ps1
 scripts/quality/assert-hook-inventory.tests/run-tests.ps1
   (no param block)
   Exit: 0 every case passed; 1 at least one case failed
+```
+
+## scripts\quality\assert-invoked-tracked.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-invoked-tracked.ps1
+
+```
+scripts/quality/assert-invoked-tracked.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-invoked-tracked.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 fixtures could not be prepared.
 ```
 
 ## scripts\quality\assert-listener-symmetry.tests
@@ -3588,6 +4278,18 @@ scripts/quality/assert-orientation-layout-pairing.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.
 ```
 
+## scripts\quality\assert-play-listing-screenshot-geometry.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+
+```
+scripts/quality/assert-play-listing-screenshot-geometry.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-play-listing-screenshot-geometry.ps1
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (the venv python or Pillow absent, or the source
+```
+
 ## scripts\quality\assert-script-references.tests
 
 ### Run-Tests.ps1
@@ -3645,6 +4347,18 @@ scripts/quality/assert-ticket-acceptance-probes.tests/Run-Tests.ps1
   (no param block)
 ```
 
+## scripts\quality\assert-wear-mirrored-strings.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2562) - regression suite for the mirrored-strings gate's locale scope.
+
+```
+scripts/quality/assert-wear-mirrored-strings.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2562) - regression suite for the mirrored-strings gate's locale scope.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - a file the sandbox must copy is missing from the repository.
+```
+
 ## scripts\quality\assert-wear-walk-contract.tests
 
 ### Run-Tests.ps1
@@ -3655,6 +4369,28 @@ scripts/quality/assert-wear-walk-contract.tests/Run-Tests.ps1
   S2547 regression suite for the watch walk contract gate. # Subject: scripts/quality/assert-wear-walk-contract.ps1
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\quality\assert-wear-wire-nullability.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-wear-wire-nullability.ps1
+
+```
+scripts/quality/assert-wear-wire-nullability.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-wear-wire-nullability.ps1
+  (no param block)
+```
+
+## scripts\quality\assert-wear-wire-vocabulary-parity.tests
+
+### Run-Tests.ps1
+Subject: scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+
+```
+scripts/quality/assert-wear-wire-vocabulary-parity.tests/Run-Tests.ps1
+  Subject: scripts/quality/assert-wear-wire-vocabulary-parity.ps1
+  (no param block)
 ```
 
 ## scripts\quality\assert-window-insets.tests
@@ -3761,12 +4497,39 @@ scripts/quality/lib/doc-icon-gate-routing.ps1
   (no param block)
 ```
 
+### fixed-input-scope.ps1
+S2824: shared chargeability test for a gate whose inputs are a fixed, enumerated file list.
+
+```
+scripts/quality/lib/fixed-input-scope.ps1
+  S2824: shared chargeability test for a gate whose inputs are a fixed, enumerated file list.
+  (no param block)
+```
+
+### flavor-matrix.ps1
+Read docs/FLAVOR_MATRIX.md - flag name -> the flavors it is ON in, plus the full dimension.
+
+```
+scripts/quality/lib/flavor-matrix.ps1
+  Read docs/FLAVOR_MATRIX.md - flag name -> the flavors it is ON in, plus the full dimension.
+  (no param block)
+```
+
 ### flavor-source-map.ps1
 S1453: the one reader of the flavor / source-set mount map declared in app_v2/build.gradle.kts.
 
 ```
 scripts/quality/lib/flavor-source-map.ps1
   S1453: the one reader of the flavor / source-set mount map declared in app_v2/build.gradle.kts.
+  (no param block)
+```
+
+### gate-placement-registry.ps1
+S2870: shared reader for the gate-placement registry and for runner membership.
+
+```
+scripts/quality/lib/gate-placement-registry.ps1
+  S2870: shared reader for the gate-placement registry and for runner membership.
   (no param block)
 ```
 
@@ -3784,6 +4547,15 @@ scripts/quality/lib/gate-pool.ps1
 
 ```
 scripts/quality/lib/gate-telemetry.ps1
+  (no param block)
+```
+
+### git-index-membership.ps1
+Split a set of paths into the ones git's index knows and the ones it does not (S2616).
+
+```
+scripts/quality/lib/git-index-membership.ps1
+  Split a set of paths into the ones git's index knows and the ones it does not (S2616).
   (no param block)
 ```
 
@@ -3842,6 +4614,15 @@ scripts/quality/lib/script-reference-resolution.ps1
   (no param block)
 ```
 
+### settings-doc-inputs.ps1
+S2604 - which changed paths feed the settings-doc composite gate, and which of its stages.
+
+```
+scripts/quality/lib/settings-doc-inputs.ps1
+  S2604 - which changed paths feed the settings-doc composite gate, and which of its stages.
+  (no param block)
+```
+
 ### source-matchers.ps1
 S1338: the one definition of every lexical source rule in the neuroslop family.
 
@@ -3866,6 +4647,15 @@ Shared extraction and comparison helpers for ticket acceptance probes.
 ```
 scripts/quality/lib/ticket-acceptance-probes.ps1
   Shared extraction and comparison helpers for ticket acceptance probes.
+  (no param block)
+```
+
+### wear-vocabulary-parsers.ps1
+Extracts the mirrored phone/watch wire vocabularies out of Kotlin sources.
+
+```
+scripts/quality/lib/wear-vocabulary-parsers.ps1
+  Extracts the mirrored phone/watch wire vocabularies out of Kotlin sources.
   (no param block)
 ```
 
@@ -3918,12 +4708,26 @@ scripts/quality/prune-detekt-baseline.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\quality\release-scope-fingerprint.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/release-scope-fingerprint.ps1 (S3010).
+
+```
+scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/release-scope-fingerprint.ps1 (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\remove-ticket-probes.tests
 
 ### Run-Tests.ps1
+Exit codes: 0 all cases passed; 1 a case failed.
 
 ```
 scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1
+  Exit codes: 0 all cases passed; 1 a case failed.
   (no param block)
 ```
 
@@ -3989,6 +4793,7 @@ scripts/release/capture-play-screenshots.ps1
     -Locale               [String]
     -SetAppLocale         [SwitchParameter]
     -Launch               [SwitchParameter]
+    -Tablet               [SwitchParameter]
     -List                 [SwitchParameter]
 ```
 
@@ -4063,6 +4868,7 @@ scripts/release/gen_fastlane_changelog.ps1
     -VersionName          [String]
     -WhatsNewRoot         [String]
     -FastlaneRoot         [String]
+  Exit: 0 - at least one locale produced a changelog file.; 1 - a locale's "Current release" block is missing or empty, or no changelog was produced
 ```
 
 ### publish-github-release.ps1
@@ -4131,6 +4937,20 @@ scripts/release/read-play-tracks.ps1
   Exit: 0 - state read (and the -RequireWearCodeBelow assertion held, when given); 1 - the -RequireWearCodeBelow assertion failed: the Wear track already holds that code or higher; 2 - could not verify: no virtual environment, no service-account key, or the API call failed
 ```
 
+### read-play-vitals.ps1
+Read Android vitals from the Play Developer Reporting API - read-only, safe to run at any time (S2917).
+
+```
+scripts/release/read-play-vitals.ps1
+  Read Android vitals from the Play Developer Reporting API - read-only, safe to run at any time (S2917).
+  Params:
+    -Json            [SwitchParameter]
+    -Package         [String] = 'com.sza.fastmediasorter'
+    -Days            [Int32] = 28
+    -Fixture         [String]
+  Exit: 0 - every call succeeded and the snapshot was printed; 2 - could not verify: no virtual environment, no key, the service disabled or refused, a fixture
+```
+
 ### refresh-play-publishing-state.ps1
 Rewrite the measured half of docs/PLAY_PUBLISHING_STATE.md from live reads (S2272).
 
@@ -4141,6 +4961,20 @@ scripts/release/refresh-play-publishing-state.ps1
     -Check           [SwitchParameter]
     -Package         [String] = 'com.sza.fastmediasorter'
   Exit: 0 - both measured blocks refreshed, or -Check found both already current; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: a reader failed, the document is missing, or a marker pair is absent
+```
+
+### register-play-vitals-task.ps1
+Register, remove or inspect the daily Windows scheduled task that runs the Play vitals watch (S2917).
+
+```
+scripts/release/register-play-vitals-task.ps1
+  Register, remove or inspect the daily Windows scheduled task that runs the Play vitals watch (S2917).
+  Params:
+    -Action           [String] = 'Status'  {Register|Unregister|Status}
+    -TaskName         [String] = 'FastMediaSorter-PlayVitalsWatch'
+    -At               [String] = '09:00'
+    -WhatIf           [SwitchParameter]
+  Exit: 0 - done: registered, removed, or the Status of a registered task printed; 1 - Status or Unregister found no task of that name; 2 - could not act: the ScheduledTasks module is unavailable, -At is not a time, or the scheduler refused
 ```
 
 ### retain-deobfuscation.ps1
@@ -4161,6 +4995,19 @@ scripts/release/retain-deobfuscation.ps1
     -DryRun                [SwitchParameter]
     -Help                  [SwitchParameter]
   Exit: 0 - payload stored, or already present with an identical mapping.; 1 - retention failed: the source could not be read, the bundle carries no
+```
+
+### seed-store-shot-media.ps1
+Put the store-safe synthetic media corpus on a device, ready for a Play listing capture.
+
+```
+scripts/release/seed-store-shot-media.ps1
+  Put the store-safe synthetic media corpus on a device, ready for a Play listing capture.
+  Params:
+    -DeviceId             [String]
+    -Root                 [String] = '/sdcard/Download/FastMediaSorter_Store'
+    -SkipGenerate         [SwitchParameter]
+  Exit: 0 - corpus generated (unless skipped), pushed and handed to MediaStore.; 1 - a generation, push or scan step failed.; 2 - could not verify: no device, no python, or an empty local corpus.
 ```
 
 ### standard-release-gate.ps1
@@ -4202,6 +5049,78 @@ scripts/release/standard-surface-snapshot.ps1
   Exit: 0 - snapshot emitted (default) / no regression candidates (-CheckRegressions); 1 - regression candidate(s) found (only with -CheckRegressions); 2 - infrastructure abort (source files missing / unreadable)
 ```
 
+### watch-play-vitals.ps1
+Read Android vitals, judge them against Google's published bands and rewrite the two measured records (S2917).
+
+```
+scripts/release/watch-play-vitals.ps1
+  Read Android vitals, judge them against Google's published bands and rewrite the two measured records (S2917).
+  Params:
+    -Check                 [SwitchParameter]
+    -DocRoot               [String]
+    -CatalogRoot           [String]
+    -SnapshotPath          [String]
+    -Fixture               [String]
+    -NoFile                [SwitchParameter]
+    -BandsOverride         [Hashtable]
+    -LogDir                [String]
+    -Package               [String] = 'com.sza.fastmediasorter'
+  Exit: 0 - read, judged and recorded (whatever the verdict colour); tickets filed where a band was red; 1 - -Check found at least one block out of date; nothing was written; 2 - could not verify: the read failed, the verdict refused, a document or its marker pair is
+```
+
+## scripts\release\compose-feature-graphic.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2597) - regression suite for the Play feature graphic composer.
+
+```
+scripts/release/compose-feature-graphic.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2597) - regression suite for the Play feature graphic composer.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
+```
+
+## scripts\release\compose-play-screenshots.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2573) - regression suite for the caption geometry of the Play screenshot composer.
+
+```
+scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2573) - regression suite for the caption geometry of the Play screenshot composer.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
+```
+
+## scripts\release\lib
+
+### marked-region.ps1
+replace the text between a begin and an end marker comment. Dot-source it.
+
+```
+scripts/release/lib/marked-region.ps1
+  replace the text between a begin and an end marker comment. Dot-source it.
+  (no param block)
+```
+
+### play-vitals-filing.ps1
+play-vitals-filing.ps1 (S2917) - file one Draft ticket per red Play vitals finding. Dot-source it.
+
+```
+scripts/release/lib/play-vitals-filing.ps1
+  play-vitals-filing.ps1 (S2917) - file one Draft ticket per red Play vitals finding. Dot-source it.
+  (no param block)
+```
+
+### play-vitals-verdict.ps1
+play-vitals-verdict.ps1 (S2917) - turn a Play vitals snapshot into coloured findings. Dot-source it.
+
+```
+scripts/release/lib/play-vitals-verdict.ps1
+  play-vitals-verdict.ps1 (S2917) - turn a Play vitals snapshot into coloured findings. Dot-source it.
+  (no param block)
+```
+
 ## scripts\release\publish-play-listing.tests
 
 ### Run-Tests.ps1
@@ -4226,6 +5145,18 @@ scripts/release/publish-play-release.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
 ```
 
+## scripts\release\watch-play-vitals.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2917) - regression suite for the Play vitals watch: reader, verdict, records, filing.
+
+```
+scripts/release/watch-play-vitals.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2917) - regression suite for the Play vitals watch: reader, verdict, records, filing.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (a subject is missing, or the project virtual environment is absent).
+```
+
 ## scripts\site
 
 ### ping-indexnow.ps1
@@ -4240,6 +5171,15 @@ scripts/site/ping-indexnow.ps1
 ```
 
 ## scripts\spec_catalog
+
+### _blocker-links.ps1
+Shared resolver for a spec's DIRECTIONAL blocker links.
+
+```
+scripts/spec_catalog/_blocker-links.ps1
+  Shared resolver for a spec's DIRECTIONAL blocker links.
+  (no param block)
+```
 
 ### _lib.ps1
 Shared helpers for spec_catalog scripts.
@@ -4284,8 +5224,9 @@ Archive one or more specs: move their files to PLAN/archive/ and flip the record
 scripts/spec_catalog/archive.ps1
   Archive one or more specs: move their files to PLAN/archive/ and flip the records to Archived.
   Params:
-    -Id  (req)  [String[]]
-  Exit: 0 every id archived.; 1 at least one id failed (invalid, not found, already archived with nothing left to move, or a
+    -Id                    (req)  [String[]]
+    -AllowMissingArtefact         [SwitchParameter]
+  Exit: 0 every id archived (including any archived under -AllowMissingArtefact, which is behaviour
 ```
 
 ### bulk-update.ps1
@@ -4293,9 +5234,10 @@ scripts/spec_catalog/archive.ps1
 ```
 scripts/spec_catalog/bulk-update.ps1
   Params:
-    -Id        (req)  [String[]]
-    -Status           [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
-    -Priority         [Int32] = -1  {range 0..100}
+    -Id          (req)  [String[]]
+    -Status             [String]  {Draft|Approved|Tactical|In Progress|Implemented|Verified|Partial|Broken|BlockByOtherTask|BlockNeedUserTest|BlockQuestions|BlockExternal|Archived}
+    -Priority           [Int32] = -1  {range 0..100}
+    -StatusNote         [String] = $null
 ```
 
 ### check-audit-current.ps1
@@ -4318,6 +5260,18 @@ scripts/spec_catalog/check-audit-recorded.ps1
   Params:
     -Id  (req)  [String]
   Exit: 0 - the spec carries a non-empty `## Last Audit` block.; 1 - the block is absent, or present with nothing under it.; 2 - bad invocation (malformed id, or an id no record carries), or catalog / spec unreadable.
+```
+
+### check-block-note.ps1
+
+```
+scripts/spec_catalog/check-block-note.ps1
+  Params:
+    -Id            (req)  [String]
+    -NewStatus     (req)  [String]
+    -StatusNote           [String]
+    -NoteSupplied         [SwitchParameter]
+  Exit: 1 = no reason, or no directional blocker - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or the spec file
 ```
 
 ### check-capability-recorded.ps1
@@ -4364,13 +5318,22 @@ scripts/spec_catalog/check-owner-inputs.ps1
     -Id  (req)  [String]
 ```
 
+### check-probe-absent.ps1
+
+```
+scripts/spec_catalog/check-probe-absent.ps1
+  Params:
+    -Id  (req)  [String]
+  Exit: 1 = at least one remains - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or sources unreadable.
+```
+
 ### check-probe-present.ps1
 
 ```
 scripts/spec_catalog/check-probe-present.ps1
   Params:
     -Id  (req)  [String]
-  Exit: 1 = neither - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or catalog /
+  Exit: 1 = no probe, or a probe that shares its line with code - the transition must not
 ```
 
 ### close-and-log.ps1
@@ -4524,7 +5487,7 @@ scripts/spec_catalog/plan-tick.ps1
     -Log               [String] = ''
     -Json              [SwitchParameter]
     -Reconcile         [SwitchParameter]
-  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
+  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or neither layout holds the requested phase.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
 ### preview.ps1
@@ -4813,6 +5776,18 @@ scripts/spec_catalog/archive.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
+## scripts\spec_catalog\assert-closing-gates.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
+
+```
+scripts/spec_catalog/assert-closing-gates.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2656) - regression suite for WHICH checkers Assert-ClosingGates runs on a
+  (no param block)
+  Exit: 0 every case passed (skips are not failures).; 1 at least one case failed.; 2 could not look - the harness _lib.ps1 did not resolve, or the catalog is unreadable.
+```
+
 ## scripts\spec_catalog\check-audit-current.tests
 
 ### Run-Tests.ps1
@@ -4837,6 +5812,18 @@ scripts/spec_catalog/check-audit-recorded.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared (no real spec on disk to anchor cases A-C).
 ```
 
+## scripts\spec_catalog\check-block-note.tests
+
+### Run-Tests.ps1
+Run-Tests.ps1 (S2581) - regression suite for scripts/spec_catalog/check-block-note.ps1 and the
+
+```
+scripts/spec_catalog/check-block-note.tests/Run-Tests.ps1
+  Run-Tests.ps1 (S2581) - regression suite for scripts/spec_catalog/check-block-note.ps1 and the
+  (no param block)
+  Exit: 0 all cases pass (or the resolved harness predates the fix and they were skipped).; 1 at least one case failed.; 2 the fixtures could not be prepared.
+```
+
 ## scripts\spec_catalog\check-headings-unique.tests
 
 ### Run-Tests.ps1
@@ -4858,7 +5845,7 @@ Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-pr
 scripts/spec_catalog/check-probe-present.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2324) - regression suite for scripts/spec_catalog/check-probe-present.ps1 and the
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 the fixtures could not be prepared.
+  Exit: 0 all cases pass (a skip is not a failure).; 1 at least one case failed.; 2 the fixtures could not be prepared.
 ```
 
 ## scripts\spec_catalog\close-and-log.tests
@@ -4871,7 +5858,7 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1063) - regression suite for scripts/spec_catalog/close-and-log.ps1.
   Params:
     -SubjectId         [String] = 'S1063'
-  Exit: 0 all cases pass.; 1 at least one case failed.
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - another instance held the suite lock past its timeout (S3022).
 ```
 
 ## scripts\spec_catalog\drift-check.tests
@@ -4908,7 +5895,7 @@ Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalo
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalog/preview.ps1's
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.
+  Exit: 0 all cases pass (or non-S2834 cases pass when harness is current).; 1 at least one case failed.; 2 could not verify: the resolved SZA harness predates S2834 and does not define
 ```
 
 ## scripts\spec_catalog\release-queue.tests
@@ -4930,6 +5917,18 @@ scripts/spec_catalog/session-bootstrap.tests/Run-Tests.ps1
   Regression suite for scripts/spec_catalog/session-bootstrap.ps1 (S1596).
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the harness itself could not run (missing script, sandbox could not be built).
+```
+
+## scripts\spec_catalog\spec-header-sync.tests
+
+### Run-Tests.ps1
+Subject: scripts/spec_catalog/update.ps1, scripts/spec_catalog/close.ps1
+
+```
+scripts/spec_catalog/spec-header-sync.tests/Run-Tests.ps1
+  Subject: scripts/spec_catalog/update.ps1, scripts/spec_catalog/close.ps1
+  (no param block)
+  Exit: 1 = a contract failed,; 2 = could not verify (harness unresolvable, fixture could not be built).
 ```
 
 ## scripts\spec_catalog\spec-preamble.tests
@@ -4978,7 +5977,7 @@ Collect, validate, and maintain delivery/stream-catalog/streams.csv.
 scripts/streams/collect-stream-candidates.ps1
   Collect, validate, and maintain delivery/stream-catalog/streams.csv.
   Params:
-    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph}
+    -Axis                             [String[]] = @('official', 'livetv', 'genres', 'geo', 'webcam')  {official|livetv|genres|geo|webcam|iptvcam|tfl|webradiodb|radioparadise|akc|lautfm|xiph|language}
     -LautFmImageBudget                [Int32] = 0
     -PerQuery                         [Int32] = 20
     -LivenessTimeoutSec               [Int32] = 12
@@ -4995,6 +5994,8 @@ scripts/streams/collect-stream-candidates.ps1
     -FaviconS2Fallback                [SwitchParameter] = $true
     -FaviconS2Only                    [SwitchParameter]
     -AtlasPath                        [String] = 'delivery/stream-catalog/favicon-atlas.png'
+    -BuildCollections                 [SwitchParameter]
+    -CollectionsPath                  [String] = 'delivery/stream-catalog/collections.json'
     -FaviconTimeoutSec                [Int32] = 8
     -FaviconThrottle                  [Int32] = 16
     -LogoCacheDir                     [String] = 'temp/stream-logo-src'
@@ -5004,6 +6005,7 @@ scripts/streams/collect-stream-candidates.ps1
     -ArtworkCacheOnly                 [SwitchParameter]
     -NormalizeTopics                  [SwitchParameter]
     -NormalizeFacets                  [SwitchParameter]
+    -NormalizeNames                   [SwitchParameter]
     -WithChannelPreviews              [SwitchParameter]
     -PublishPreviewAtlas              [SwitchParameter]
     -PreviewAtlasPath                 [String] = 'temp/channel-preview-atlas.webp'
@@ -5052,6 +6054,10 @@ scripts/streams/collect-stream-candidates.ps1
     -GeoCountries                     [String[]] = @(
         'JP', 'KR', 'BR', 'MX', 'IN', 'AR', 'TR', 'ZA', 'NG', 'PL', 'SE', 'ID', 'TH', 'EG', 'SA'
     )
+    -GeoLanguages                     [String[]] = @(
+        'hindi', 'bengali', 'urdu', 'tamil', 'telugu', 'vietnamese', 'thai', 'indonesian',
+        'swahili', 'amharic', 'persian', 'greek', 'hebrew', 'czech', 'hungarian', 'romanian'
+    )
     -LiveTvCategories                 [String[]] = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
     )
@@ -5073,6 +6079,13 @@ scripts/streams.tests/Run-Tests.ps1
 
 ```
 scripts/streams.tests/StreamPublisher.Artwork.Tests.ps1
+  (no param block)
+```
+
+### StreamPublisher.Collections.Tests.ps1
+
+```
+scripts/streams.tests/StreamPublisher.Collections.Tests.ps1
   (no param block)
 ```
 
@@ -5103,6 +6116,13 @@ scripts/streams.tests/StreamPublisher.Probes.Tests.ps1
 
 ```
 scripts/streams/modules/StreamPublisher.Artwork.ps1
+  (no param block)
+```
+
+### StreamPublisher.Collections.ps1
+
+```
+scripts/streams/modules/StreamPublisher.Collections.ps1
   (no param block)
 ```
 
@@ -5203,6 +6223,23 @@ Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
 scripts/utils/agent-lock.ps1
   Cross-agent coordination locks: temp/BUILD.LOCK and temp/CODE.LOCK.
   (no param block)
+```
+
+### agent-watchdog.ps1
+Keeps the batch runners working: reaps the jams that stop them, restarts an instance that died.
+
+```
+scripts/utils/agent-watchdog.ps1
+  Keeps the batch runners working: reaps the jams that stop them, restarts an instance that died.
+  Params:
+    -Instances                [String[]] = @()
+    -IntervalSeconds          [Int32] = 90
+    -StallMinutes             [Int32] = 25
+    -RunawayMinutes           [Int32] = 75
+    -SampleSeconds            [Int32] = 6
+    -IdleCpuThreshold         [Double] = 0.4
+    -MaxPasses                [Int32] = 0
+    -WhatIf                   [SwitchParameter]
 ```
 
 ### archive-temp.ps1
@@ -5324,6 +6361,16 @@ scripts/utils/clear-agent-lock.ps1
   Exit: 0 - the named domain(s) are free: already free, or cleared here.; 1 - refused: a live holder was found and -Force was not given. Its pid, age, reason and
 ```
 
+### code-lock-scope.ps1
+S2615 - the Code.* twin of Enter-BuildLockOrExit: let a script that rewrites a render target take that target's code domain in one line and give back exactly what it took.
+
+```
+scripts/utils/code-lock-scope.ps1
+  S2615 - the Code.* twin of Enter-BuildLockOrExit: let a script that rewrites a render target take that target's code domain in one line and give back exactly what it took.
+  (no param block)
+  Exit: 4 - queued, not your turn: nothing was written and nothing is wrong. The place in the queue
+```
+
 ### commit-push.ps1
 Commit and Push Script for FastMediaSorter v2
 
@@ -5422,6 +6469,15 @@ scripts/utils/dev-monitor-writer.ps1
   Exit: 0 done - started, already running, once written, stopped (or nothing to stop), status shown.; 1 could not start: the launcher failed, the first snapshot never appeared, or -Loop found
 ```
 
+### devlog-mutex.ps1
+S3022: takes the canon dev-log writer's mutex so a repo-side WHOLE-FILE rewrite of dev/CHANGELOG.md is serialised against the appends every other session is making.
+
+```
+scripts/utils/devlog-mutex.ps1
+  S3022: takes the canon dev-log writer's mutex so a repo-side WHOLE-FILE rewrite of dev/CHANGELOG.md is serialised against the appends every other session is making.
+  (no param block)
+```
+
 ### enter-code-lock.ps1
 Acquire the code domains a changed file set belongs to, before a source/XML/build-file edit.
 
@@ -5478,7 +6534,7 @@ scripts/utils/fix-house-style.ps1
     -Path          [String[]]
     -Rules         [String[]]
     -Apply         [SwitchParameter]
-  Exit: 0 - nothing needed changing, or -Apply completed and every file was written.; 1 - unusable input: an explicit -Path does not exist, or a file could not be written.; 3 - dry run only: changes are pending. Re-run with -Apply to write them.
+  Exit: 0 - nothing needed changing, or -Apply completed and every file was written.; 1 - unusable input: an explicit -Path does not exist, or a file could not be written.; 3 - dry run only: changes are pending. Re-run with -Apply to write them.; 4 - the target's code domain is held by another session, so nothing was written. The queue
 ```
 
 ### format-kotlin-imports.ps1
@@ -5538,7 +6594,7 @@ Generate the splash brand drawable for every locale that declares `splash_slogan
 scripts/utils/generate-splash-brand.ps1
   Generate the splash brand drawable for every locale that declares `splash_slogan`.
   Params:
-    -Module         [String] = 'app_v2'  {app_v2|wear}
+    -Module         [String] = 'app_v2'  {app_v2}
     -Check          [SwitchParameter]
 ```
 
@@ -5572,7 +6628,7 @@ scripts/utils/help.ps1
     -Generate         [SwitchParameter]
     -Check            [SwitchParameter]
     -Root             [String]
-  Exit: 3 ambiguous name.
+  Exit: 3 ambiguous name; 4 -Generate only: Code.Scripts is held by another session, so
 ```
 
 ### import-remote-logs.ps1
@@ -5619,7 +6675,7 @@ scripts/utils/install-sza-forwarders.ps1
   Replace this repository's copies of the exported harness scripts with thin forwarders (S2402).
   Params:
     -Restore         [SwitchParameter]
-  Exit: 2 = the manifest or the staged harness could not be read.
+  Exit: 2 = the manifest or the staged harness could not be read;; 4 = the target's code domain is held by another session, so nothing was written. The
 ```
 
 ### invoke-isolated-stdout.ps1
@@ -5712,6 +6768,20 @@ scripts/utils/lock-status.ps1
   Exit: 2 = could not determine (lock file unreadable), or -Wait ran out of time.; 1 = held, ONLY under -StrictExit.
 ```
 
+### measure-build-lock-wait.ps1
+Reconstructs how long fast checks waited for a Build.* domain, from the logs already in temp/.
+
+```
+scripts/utils/measure-build-lock-wait.ps1
+  Reconstructs how long fast checks waited for a Build.* domain, from the logs already in temp/.
+  Params:
+    -LogDir         [String]
+    -Since          [DateTime] = [datetime]::MinValue
+    -Top            [Int32] = 10
+    -Json           [SwitchParameter]
+  Exit: 0 - measured; 1 - two runs held one build domain at the same time; mutual exclusion did not hold; 2 - could not verify: the log directory is missing, or holds no parsable run
+```
+
 ### measure-concurrent-build.ps1
 Measure whether one Gradle root tolerates two concurrent invocations (S2109).
 
@@ -5747,6 +6817,18 @@ scripts/utils/monitor-spec-queue.ps1
   Exit: 2 - the repository layout could not be read (temp/ missing, journals unreadable).
 ```
 
+### normalize-all-features-areas.ps1
+One-shot migration: fold the free-string ALL_FEATURES 'area' values onto the closed vocabulary declared in docs/ALL_FEATURES.schema.json (S2842).
+
+```
+scripts/utils/normalize-all-features-areas.ps1
+  One-shot migration: fold the free-string ALL_FEATURES 'area' values onto the closed vocabulary declared in docs/ALL_FEATURES.schema.json (S2842).
+  Params:
+    -Apply           [SwitchParameter]
+    -NoLegal         [SwitchParameter]
+  Exit: 0 - clean: dry run reported its plan, or -Apply wrote the ledger.; 1 - the ledger carries a value this map does not cover, or a record is not JSON.; 2 - cannot run: the schema, its area enum, or the ledger is missing.
+```
+
 ### post-release-cleanup.ps1
 Post-release housekeeping facade - prunes, archives and compresses every temp surface at once.
 
@@ -5759,6 +6841,18 @@ scripts/utils/post-release-cleanup.ps1
     -SkipUserTemp                          [SwitchParameter]
     -DryRun                                [SwitchParameter]
   Exit: 0 - every stage that ran completed.; 1 - at least one stage failed; the failing stage is named.; 2 - could not run: the repository root does not carry the stage scripts.
+```
+
+### preflight-checks.ps1
+S2872 - the closure check a runtime runs before it says "done".
+
+```
+scripts/utils/preflight-checks.ps1
+  S2872 - the closure check a runtime runs before it says "done".
+  Params:
+    -Json          [SwitchParameter]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every state check passed. Advisories may still have printed.; 1 - at least one state check failed. Each failure names its own remedy.; 2 - could not verify: the coordination harness could not be loaded.
 ```
 
 ### process-timeout.ps1
@@ -5809,6 +6903,33 @@ scripts/utils/publish-artifact.ps1
   Exit: 0 - the artifact was delivered, or a sink is not reachable on this machine and that half was
 ```
 
+### reap-abandoned-script-processes.ps1
+Find - and optionally kill - pwsh processes running this repository's scripts that a caller started and never reaped (S2610).
+
+```
+scripts/utils/reap-abandoned-script-processes.ps1
+  Find - and optionally kill - pwsh processes running this repository's scripts that a caller started and never reaped (S2610).
+  Params:
+    -OlderThanMinutes         [Int32] = 60
+    -MaxCpuSeconds            [Double] = 5
+    -Kill                     [SwitchParameter]
+    -Json                     [SwitchParameter]
+    -StrictExit               [SwitchParameter]
+  Exit: 1 = candidates found, ONLY under -StrictExit;; 2 = could not determine (the process table could not be enumerated).
+```
+
+### recover-archived-specs.ps1
+S2592 one-shot repair: restore archived spec artefacts that still exist in git history.
+
+```
+scripts/utils/recover-archived-specs.ps1
+  S2592 one-shot repair: restore archived spec artefacts that still exist in git history.
+  Params:
+    -DryRun             [SwitchParameter]
+    -StagingDir         [String]
+  Exit: 0 - recovery complete, or the dry run reported its plan.; 1 - at least one file could not be written.; 2 - could not run: the archive journal or git is unavailable.
+```
+
 ### recover-kapt-stall.ps1
 Targeted recovery for KAPT stalls on standardDebug (and friends).
 
@@ -5818,6 +6939,42 @@ scripts/utils/recover-kapt-stall.ps1
   Params:
     -Task              [String]
     -SkipRetry         [SwitchParameter]
+```
+
+### release-freeze.ps1
+Take, report and release the release-sweep tree freeze (S3010).
+
+```
+scripts/utils/release-freeze.ps1
+  Take, report and release the release-sweep tree freeze (S3010).
+  Params:
+    -Verb    (req)  [String]  {Take|Status|Release}
+    -Reason         [String] = ''
+    -Hours          [Int32] = 4  {range 1..24}
+    -Json           [SwitchParameter]
+    -Force          [SwitchParameter]
+  Exit: 0 the verb succeeded - freeze taken, released, or reported (held or not).; 2 the marker exists but could not be read or written.; 4 refused - a live foreign session holds the freeze.
+```
+
+### rename-doc-locale-suffix.ps1
+Rename localized documentation files to the single lowercase hyphen locale suffix (S1211).
+
+```
+scripts/utils/rename-doc-locale-suffix.ps1
+  Rename localized documentation files to the single lowercase hyphen locale suffix (S1211).
+  Params:
+    -RepoRoot         [String]
+```
+
+### repoint-doc-locale-references.ps1
+Rewrite in-repo references to localized documentation filenames onto the hyphen suffix (S1211).
+
+```
+scripts/utils/repoint-doc-locale-references.ps1
+  Rewrite in-repo references to localized documentation filenames onto the hyphen suffix (S1211).
+  Params:
+    -RepoRoot         [String]
+    -Scope            [String] = 'Scripts'  {Scripts|Phone}
 ```
 
 ### run-maestro-smoke.ps1
@@ -5854,12 +7011,13 @@ scripts/utils/run-spec-queue.ps1
     -Ids                       [String] = ''
     -MaxTickets                [Int32] = 0
     -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|fixed|default}
+    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
     -Model                     [String] = 'opus'
     -StrongModel               [String] = 'opus'
     -CheapModel                [String] = 'sonnet'
     -Instance                  [String] = 'a'
     -StartDelaySeconds         [Int32] = 0
+    -ClaimGraceSeconds         [Int32] = 180
     -PromptTemplate            [String] = ''
     -PermissionMode            [String] = 'bypassPermissions'  {acceptEdits|auto|bypassPermissions|manual|dontAsk|plan}
     -Quiet                     [SwitchParameter]
@@ -6072,15 +7230,6 @@ scripts/utils/test-agent-lock-queue.ps1
   Exit: 0 - every assertion that ran passed; the sandbox is deleted. S2421: a case whose behaviour
 ```
 
-### update_docs_frontmatter.ps1
-Script to add Jekyll Frontmatter to documentation files
-
-```
-scripts/utils/update_docs_frontmatter.ps1
-  Script to add Jekyll Frontmatter to documentation files
-  (no param block)
-```
-
 ### wait-for-lock-turn.ps1
 Take a place in a lock's queue, block until it is this session's turn, then EXIT.
 
@@ -6147,6 +7296,30 @@ scripts/utils/agent-lock.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - a case failed.
 ```
 
+## scripts\utils\agent-watchdog.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/agent-watchdog.ps1.
+
+```
+scripts/utils/agent-watchdog.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/agent-watchdog.ps1.
+  (no param block)
+  Exit: 2 - out-of-range arguments are refused rather than silently clamped. An interval of one second
+```
+
+## scripts\utils\code-lock-scope.tests
+
+### Run-Tests.ps1
+S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
+
+```
+scripts/utils/code-lock-scope.tests/Run-Tests.ps1
+  S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
+  (no param block)
+  Exit: 0 - every runnable case passed. When a code domain is held (by this session or a
+```
+
 ## scripts\utils\dev-monitor-snapshot.tests
 
 ### Run-Tests.ps1
@@ -6169,6 +7342,18 @@ scripts/utils/dev-monitor-writer.tests/Run-Tests.ps1
   Contract suite for scripts/utils/dev-monitor-writer.ps1 and scripts/utils/dev-monitor-html.ps1 (S2406): the page shell, the data script and the detached writer's lifecycle.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
+```
+
+## scripts\utils\devlog-mutex.tests
+
+### Run-Tests.ps1
+S3022 - contract suite for scripts/utils/devlog-mutex.ps1.
+
+```
+scripts/utils/devlog-mutex.tests/Run-Tests.ps1
+  S3022 - contract suite for scripts/utils/devlog-mutex.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the canon harness is not installed, so case A has nothing to compare
 ```
 
 ## scripts\utils\format-kotlin-imports.tests
@@ -6216,6 +7401,18 @@ scripts/utils/invoke-isolated-stdout.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - could not verify - the runner script is missing.
 ```
 
+## scripts\utils\preflight-checks.tests
+
+### Run-Tests.ps1
+S2872 - contract tests for scripts/utils/preflight-checks.ps1.
+
+```
+scripts/utils/preflight-checks.tests/Run-Tests.ps1
+  S2872 - contract tests for scripts/utils/preflight-checks.ps1.
+  (no param block)
+  Exit: 0 - every case passed.; 1 - a case failed.; 2 - could not verify: the script under test is missing.
+```
+
 ## scripts\utils\project-paths.tests
 
 ### Run-Tests.ps1
@@ -6238,6 +7435,63 @@ scripts/utils/publish-artifact.tests/Run-Tests.ps1
   Regression suite for scripts/utils/publish-artifact.ps1 (S2332).
   (no param block)
   Exit: 0 - all cases pass; 1 - at least one case failed
+```
+
+## scripts\utils\reap-abandoned-script-processes.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/utils/reap-abandoned-script-processes.ps1 (S2610).
+
+```
+scripts/utils/reap-abandoned-script-processes.tests/Run-Tests.ps1
+  Contract suite for scripts/utils/reap-abandoned-script-processes.ps1 (S2610).
+  (no param block)
+```
+
+## scripts\utils\reap-abandoned-script-processes.tests\fixtures
+
+### probe.ps1
+Fixture for the reaper contract suite. Started WITHOUT -Required and with an open stdin pipe it
+
+```
+scripts/utils/reap-abandoned-script-processes.tests/fixtures/probe.ps1
+  Fixture for the reaper contract suite. Started WITHOUT -Required and with an open stdin pipe it
+  Params:
+    -Required  (req)  [String]
+    -Loop             [SwitchParameter]
+```
+
+### supervise.ps1
+Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
+
+```
+scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
+  Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
+  (no param block)
+```
+
+## scripts\utils\release-freeze.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+
+```
+scripts/utils/release-freeze.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
+## scripts\utils\run-spec-queue.tests
+
+### Run-Tests.ps1
+Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child invocation - command, argument template and their fallbacks (S2698).
+
+```
+scripts/utils/run-spec-queue.tests/Run-Tests.ps1
+  Regression tests for the queue runner: the idle-run series (S2695) and the per-instance child invocation - command, argument template and their fallbacks (S2698).
+  (no param block)
+  Exit: 0 - every case passed, or the resolved harness predates a fix and its cases were skipped.; 1 - a case failed.
 ```
 
 ## scripts\utils\script-help-text.tests
@@ -6274,6 +7528,6 @@ scripts/wear/generate-wear-resource-icons.ps1
   S2129 - mirrors the phone's resource-icon set into the wear module (single source of truth renderer).
   Params:
     -Check         [SwitchParameter]
-  Exit: 0 outputs written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 cannot verify - source directory missing, or it holds no ico_*.xml at all
+  Exit: 0 outputs written, or -Check found them current; 1 -Check found drift (regenerate without -Check); 2 cannot verify - source directory missing, or it holds no ico_*.xml at all; 4 the target's code domain is held by another session, so nothing was written. The queue
 ```
 

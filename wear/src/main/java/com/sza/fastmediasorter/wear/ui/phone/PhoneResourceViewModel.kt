@@ -9,6 +9,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -18,6 +19,7 @@ import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
 import com.sza.fastmediasorter.wear.domain.files.WEAR_PHONE_FILE_CACHE_DIR
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
@@ -28,6 +30,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForMime
@@ -130,7 +133,8 @@ sealed interface PhoneResourceUiState {
     data class Content(
         val items: List<WearPhoneResourceItem>,
         val parentToken: String?,
-        val title: ScreenTitle
+        val title: ScreenTitle,
+        val canLoadMore: Boolean = false
     ) : PhoneResourceUiState
 
     /** The phone answered, and there is nothing here it is willing to show. */
@@ -181,6 +185,7 @@ class PhoneResourceViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
+    private val sendToReceiversRepository: WearSendToReceiversRepository,
     @ApplicationContext context: Context,
     preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
@@ -227,6 +232,17 @@ class PhoneResourceViewModel @Inject constructor(
     private var loadedItems: List<WearPhoneResourceItem> = emptyList()
     private var loadedParentToken: String? = null
 
+    /**
+     * S2984: the phone's cursor for the next page, or null once the level is exhausted.
+     *
+     * The phone sends `nextPageToken` as a string offset (see `ListPhoneResourcePageUseCase.page`),
+     * and the watch replays it verbatim - it carries no meaning the ViewModel needs to interpret.
+     */
+    private var nextPageToken: String? = null
+
+    /** S2984: the in-flight next-page request, cancelled on every new folder load. */
+    private var loadMoreJob: Job? = null
+
     private val _refineState = MutableStateFlow(BrowseRefineState())
     val refineState: StateFlow<BrowseRefineState> = _refineState.asStateFlow()
 
@@ -243,6 +259,9 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private val _openOutcome = MutableStateFlow<PhoneFileOpenOutcome?>(null)
     val openOutcome: StateFlow<PhoneFileOpenOutcome?> = _openOutcome.asStateFlow()
+
+    /** The run in flight, kept only so a second press cannot start a parallel one (S2142). */
+    private var operationJob: Job? = null
 
     /** What the last file operation came to, or null when there is nothing to report. */
     private val _operationNotice = MutableStateFlow<WearFileOperationOutcome?>(null)
@@ -266,14 +285,14 @@ class PhoneResourceViewModel @Inject constructor(
         if (inFlightThumbnails.size >= MAX_IN_FLIGHT_THUMBNAILS) return
 
         inFlightThumbnails.add(itemToken)
-        Timber.d("S2129: on-demand thumbnail requested, inFlight=%s", inFlightThumbnails.size)
         _thumbnails.update { current -> current + (itemToken to WearThumbnail.Loading) }
 
         viewModelScope.launch {
             try {
                 val outcome = phoneResourceClient.requestThumbnail(itemToken)
                 val thumbnail = if (outcome is PhoneResourceOutcome.Page) {
-                    outcome.page.items.firstOrNull()?.toWearThumbnail() ?: WearThumbnail.Unavailable
+                    outcome.page.items.orEmpty().firstOrNull()?.toWearThumbnail()
+                        ?: WearThumbnail.Unavailable
                 } else {
                     WearThumbnail.Unavailable
                 }
@@ -327,6 +346,38 @@ class PhoneResourceViewModel @Inject constructor(
     }
 
     /**
+     * S2984: appends the next page of the current level, or does nothing once the level is exhausted.
+     *
+     * Mirrors the `WearFolderWalkViewModel.loadMore` pattern (S2201): the phone's `nextPageToken`
+     * is replayed verbatim, the returned items are appended to [loadedItems], and the UI is
+     * re-projected through [refinedState]. A request in flight is not started twice, and a new
+     * folder load cancels this job before it can append rows to the wrong list.
+     */
+    fun loadMore() {
+        val token = nextPageToken ?: return
+        if (loadMoreJob?.isActive == true) return
+        val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
+        loadMoreJob = viewModelScope.launch {
+            val outcome = phoneResourceClient.browse(
+                loadedParentToken,
+                pageToken = token,
+                mediaType = mediaType,
+                isFlat = isFlat
+            )
+            if (outcome is PhoneResourceOutcome.Page) {
+                nextPageToken = outcome.page.nextPageToken
+                val moreItems = outcome.page.items.orEmpty()
+                if (moreItems.isNotEmpty()) {
+                    loadedItems = loadedItems + moreItems
+                    if (_uiState.value.isProjected()) {
+                        _uiState.value = refinedState()
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Asks the phone to deliver [entry] and hands the delivered copy to the players.
      *
      * The transfer lands in the cache directory, and the directory is trimmed back under
@@ -344,7 +395,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     fun openFile(entry: WearPhoneResourceItem) {
         if (entry.mimeType == null) {
-            Timber.d("S2092: no player for %s - refusing before any transfer", entry.name)
             _openOutcome.value = PhoneFileOpenOutcome.Unsupported
             return
         }
@@ -374,7 +424,6 @@ class PhoneResourceViewModel @Inject constructor(
      * between landing and being read.
      */
     private suspend fun evictOlderCopies(justWritten: File) = withContext(Dispatchers.IO) {
-        Timber.d("S2004: trimming the phone-copy cache, sparing %s", justWritten.name)
         MediaCacheEvictor.evictOldestUntilUnderCap(
             cacheDir = cacheDir,
             keep = justWritten,
@@ -399,7 +448,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     fun allowedOperationsFor(entry: WearPhoneResourceItem): Set<WearFileOperationKind> {
         val destination = destinationFor(entry)
-        Timber.d("S2092: menu for %s, copy present: %s", entry.name, destination.exists())
         val onTheCopy = if (destination.exists()) {
             capabilityPolicy.allowedOperations(
                 capabilityPolicy.classify(entry.toWatchFile(destination), isNetworkSource = false)
@@ -411,6 +459,18 @@ class PhoneResourceViewModel @Inject constructor(
     }
 
     /**
+     * S2142: the receivers [entry]'s fetched copy may be handed to, through the shared filter.
+     *
+     * Reached only once that copy exists, because [allowedOperationsFor] withholds the whole entry
+     * until it does - a receiver takes bytes, and the phone's original is not on this watch.
+     */
+    fun sendToReceiversFor(entry: WearPhoneResourceItem): List<WearSendToReceiverEntry> =
+        WearSendToReceiverFilter.apply(
+            sendToReceiversRepository.observe().value,
+            listOf(actionTargetFor(entry))
+        )
+
+    /**
      * Runs [operation] over the watch's copy of [entry] and reports what came of it.
      *
      * The list itself never changes: it shows what the phone holds, and this acts on the watch's copy
@@ -418,8 +478,15 @@ class PhoneResourceViewModel @Inject constructor(
      * a delete indistinguishable from a menu that did nothing.
      */
     fun runOperation(entry: WearPhoneResourceItem, operation: WearFileOperation) {
+        // S2142: a second press while the first run is still going is ignored rather than started
+        // beside it - a send through the phone hands bytes over in its middle, so a parallel run is
+        // how one file reaches a receiver twice.
+        if (operationJob?.isActive == true) {
+            Timber.i("Wear file operation ignored: a run is already in progress")
+            return
+        }
         val local = actionTargetFor(entry)
-        viewModelScope.launch {
+        operationJob = viewModelScope.launch {
             performFileOperation(listOf(local), operation, isNetworkSource = false).collect { result ->
                 _operationNotice.value = result.outcome
             }
@@ -492,14 +559,19 @@ class PhoneResourceViewModel @Inject constructor(
         // no cell can ask for again.
         inFlightThumbnails.clear()
         _thumbnails.value = emptyMap()
+        // S2984: a new folder or retry starts from the first page; a late next-page response would
+        // otherwise append rows of the folder just left to the folder now shown.
+        nextPageToken = null
+        loadMoreJob?.cancel()
         val isFlat = BrowseCategoryCatalog.shapeForToken(categoryToken) == WearListShape.FLAT_MEDIA
-        Timber.d("S2130: browse category=%s isFlat=%s", categoryToken, isFlat)
         viewModelScope.launch {
             val outcome = phoneResourceClient.browse(parentToken, mediaType = mediaType, isFlat = isFlat)
             _uiState.value = when (outcome) {
                 is PhoneResourceOutcome.Page -> {
-                    decodeThumbnails(outcome.page.items)
-                    outcome.page.items.toState(parentToken)
+                    val items = outcome.page.items.orEmpty()
+                    nextPageToken = outcome.page.nextPageToken
+                    decodeThumbnails(items)
+                    items.toState(parentToken)
                 }
                 // S2130: one refusal is not a failure. The phone answered, correctly, that no
                 // configured resource carries this category - so it gets its own state rather than
@@ -527,7 +599,13 @@ class PhoneResourceViewModel @Inject constructor(
         // pictures keyed to tokens no cell here asks for.
         decodeJob?.cancel()
         decodeJob = viewModelScope.launch(Dispatchers.Default) {
-            _thumbnails.value = items.associate { it.token to it.toWearThumbnail() }
+            val embedded = items.mapNotNull { item ->
+                val thumb = item.toWearThumbnail()
+                if (thumb is WearThumbnail.Ready) item.token to thumb else null
+            }.toMap()
+            if (embedded.isNotEmpty()) {
+                _thumbnails.update { current -> current + embedded }
+            }
         }
     }
 
@@ -583,11 +661,7 @@ class PhoneResourceViewModel @Inject constructor(
 
     fun setSortOrder(order: BrowseSortOrder) = updateRefine { it.copy(sortOrder = order) }
 
-    fun setShowSearchDialog(show: Boolean) = updateRefine { it.copy(showSearchDialog = show) }
-
-    fun setShowFilterDialog(show: Boolean) = updateRefine { it.copy(showFilterDialog = show) }
-
-    fun setShowSortDialog(show: Boolean) = updateRefine { it.copy(showSortDialog = show) }
+    fun setShowRefineMenu(show: Boolean) = updateRefine { it.copy(showRefineMenu = show) }
 
     fun setSearchInputUnavailable(unavailable: Boolean) =
         updateRefine { it.copy(searchInputUnavailable = unavailable) }
@@ -600,7 +674,6 @@ class PhoneResourceViewModel @Inject constructor(
      */
     private fun updateRefine(transform: (BrowseRefineState) -> BrowseRefineState) {
         _refineState.value = transform(_refineState.value)
-        Timber.d("S2136: phone refine q='${_refineState.value.searchQuery}' order=${_refineState.value.sortOrder}")
         // Only the states the projection itself produces may be re-projected. A refine choice made
         // before the first page landed has nothing to project yet, and re-projecting a state that
         // reports why there is no list - S2130's NoResourceForType, or an Unavailable - would replace
@@ -625,7 +698,8 @@ class PhoneResourceViewModel @Inject constructor(
             PhoneResourceUiState.Content(
                 items = shown,
                 parentToken = loadedParentToken,
-                title = currentTitle()
+                title = currentTitle(),
+                canLoadMore = nextPageToken != null
             )
         }
     }

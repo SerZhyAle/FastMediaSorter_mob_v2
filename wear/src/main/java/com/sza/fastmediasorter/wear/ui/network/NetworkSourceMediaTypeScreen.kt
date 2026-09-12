@@ -1,17 +1,16 @@
 package com.sza.fastmediasorter.wear.ui.network
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -20,36 +19,36 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
+import com.sza.fastmediasorter.wear.domain.browse.WearSourceEmptyReason
+import com.sza.fastmediasorter.wear.domain.model.NetworkBasePath
+import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearBrowseCategory
-import com.sza.fastmediasorter.wear.domain.model.WearCategoryOrigin
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.BrowseCategoryPresentation
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourceMediaTypeViewModel
 import com.sza.fastmediasorter.wear.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.wear.ui.settings.allowedContentTypes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 12.dp
 
 /**
@@ -74,21 +73,27 @@ fun NetworkSourceMediaTypeScreen(
     navController: NavController,
     sourceId: String,
     sourceName: String,
+    mediaTypeViewModel: NetworkSourceMediaTypeViewModel = hiltViewModel(),
     settingsViewModel: SettingsViewModel = hiltViewModel()
 ) {
     val settings by settingsViewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val source by mediaTypeViewModel.source.collectAsStateWithLifecycle()
+    val listState = rememberWearListState(positionKey = "source_media_type/$sourceId")
+    val stateScrollState = rememberScrollState()
 
-    val categories = BrowseCategoryCatalog.categoriesFor(
-        WearCategoryOrigin.NETWORK_SOURCE,
-        settings.allowedContentTypes()
-    )
+    val categories = remember(source, settings.allowedContentTypes()) {
+        BrowseCategoryCatalog.categoriesForSource(
+            source = source,
+            allowedTypes = settings.allowedContentTypes()
+        )
+    }
 
     // A choice between one option is not a choice. Pass straight through and drop this screen from the
     // back stack, so Back returns to the source list rather than to a step that decided nothing.
     LaunchedEffect(categories, sourceId) {
         val only = categories.singleOrNull() ?: return@LaunchedEffect
-        navController.navigate(WearRoutes.browseSource(only.token, sourceId, sourceName)) {
+        Timber.d("S2487: auto-skip single category %s for source %s", only.token, sourceId)
+        navController.navigate(routeFor(only, sourceId, sourceName, source)) {
             popUpTo(WearRoutes.SOURCE_MEDIA_TYPE_PATTERN) { inclusive = true }
         }
     }
@@ -96,15 +101,29 @@ fun NetworkSourceMediaTypeScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: with no category to list the state block is what scrolls, so the indicator follows it.
+        positionIndicator = {
+            if (categories.isEmpty()) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         if (categories.isEmpty()) {
-            // No retry: the list is empty because a settings read succeeded and returned three
-            // disabled types, so repeating that read would return the same answer.
+            // No retry: the list is empty because a settings read succeeded and returned an answer,
+            // so repeating that read would return the same one. S2640: which answer it was decides
+            // the message - a source allowed only binary file kinds is not a switched-off setting,
+            // and naming settings for it sends the wearer somewhere with nothing to change.
+            val reason = BrowseCategoryCatalog.emptyReasonForSource(
+                source = source,
+                allowedTypes = settings.allowedContentTypes()
+            )
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
-                message = stringResource(R.string.wear_media_types_all_disabled),
-                onBack = { navController.popBackStack() }
+                message = stringResource(messageFor(reason)),
+                onBack = { navController.popBackStack() },
+                scrollState = stateScrollState
             )
             return@WearScreenScaffold
         }
@@ -113,11 +132,9 @@ fun NetworkSourceMediaTypeScreen(
         // name - the same rule the other browse screens apply, so this step cannot drift from them.
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(settings.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item {
                     Text(
@@ -134,14 +151,48 @@ fun NetworkSourceMediaTypeScreen(
                     categories = categories,
                     columns = columns,
                     onCategoryClick = { category ->
-                        navController.navigate(
-                            WearRoutes.browseSource(category.token, sourceId, sourceName)
-                        )
+                        navController.navigate(routeFor(category, sourceId, sourceName, source))
                     }
                 )
             }
         }
     }
+}
+
+/**
+ * S2694: where a chosen category goes.
+ *
+ * Every media token opens the flat listing it always did; the browse token opens the folder walk,
+ * which is a different route with a different argument shape - it carries a level address, not a
+ * media type. The entry level is the source's own base path put through the one normalisation rule
+ * the flat listing already uses, so the walk and the listing cannot disagree about where a share
+ * starts. A source still loading answers null, and the browse token then has no level to open, so
+ * the flat route stays the fallback rather than a crash.
+ */
+private fun routeFor(
+    category: WearBrowseCategory,
+    sourceId: String,
+    sourceName: String,
+    source: NetworkSource?
+): String {
+    if (category.token != BrowseCategoryCatalog.TOKEN_BROWSE || source == null) {
+        return WearRoutes.browseSource(category.token, sourceId, sourceName)
+    }
+    val entryPath = NetworkBasePath.normalize(source.basePath, source.type, source.shareName)
+    return WearRoutes.networkFolder(sourceId = sourceId, path = entryPath, sourceName = sourceName)
+}
+
+/**
+ * S2640: the string that names why this source offers nothing.
+ *
+ * [WearSourceEmptyReason.NONE] cannot reach here - the caller tested the list first - but it is an
+ * ordinary member of the enum and answering it with the settings message keeps the mapping total
+ * rather than throwing on a state that is merely unreachable.
+ */
+private fun messageFor(reason: WearSourceEmptyReason): Int = when (reason) {
+    WearSourceEmptyReason.SOURCE_TYPES_UNSUPPORTED -> R.string.wear_media_types_source_unsupported
+    WearSourceEmptyReason.TYPES_DISABLED_IN_SETTINGS,
+    WearSourceEmptyReason.NONE -> R.string.wear_media_types_all_disabled
 }
 
 private fun ScalingLazyListScope.categoryItems(
@@ -169,19 +220,19 @@ private fun CategoryChip(
     category: WearBrowseCategory,
     onClick: () -> Unit
 ) {
-    Chip(
+    val label = stringResource(BrowseCategoryPresentation.labelFor(category))
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = stringResource(BrowseCategoryPresentation.labelFor(category))) },
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(BrowseCategoryPresentation.glyphFor(category)),
                 contentDescription = null,
-                modifier = Modifier.size(CELL_ICON_SIZE),
+                modifier = glyphModifier,
                 tint = BrowseCategoryPresentation.tintFor(category.type)
             )
-        },
-        modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -192,9 +243,10 @@ private fun CategoryRow(
     columns: Int,
     onCategoryClick: (WearBrowseCategory) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = categories.size,
+        gap = GRID_GAP
     ) {
         categories.forEach { category ->
             CategoryCell(
@@ -202,9 +254,6 @@ private fun CategoryRow(
                 modifier = Modifier.weight(1f),
                 onClick = { onCategoryClick(category) }
             )
-        }
-        repeat(columns - categories.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

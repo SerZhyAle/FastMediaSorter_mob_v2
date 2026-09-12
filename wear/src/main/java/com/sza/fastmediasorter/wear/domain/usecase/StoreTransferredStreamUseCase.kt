@@ -6,6 +6,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferAck
 import com.sza.fastmediasorter.wear.domain.model.WearStreamTransferPayload
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import timber.log.Timber
 import java.util.UUID
 import javax.inject.Inject
@@ -57,6 +58,7 @@ class StoreTransferredStreamUseCase @Inject constructor(
             requestWearTileRefreshUseCase(WearTileKind.STREAM)
             WearStreamStoreResult(WearStreamTransferAck(requestId = payload.requestId, outcome = outcome), channel)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             Timber.w(e, "Failed to store transferred stream")
             WearStreamStoreResult(
                 WearStreamTransferAck(

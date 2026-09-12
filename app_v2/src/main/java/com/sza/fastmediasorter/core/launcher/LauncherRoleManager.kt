@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
@@ -31,6 +32,19 @@ class LauncherRoleManager @Inject constructor(
     @ApplicationContext private val context: Context,
     private val contract: LauncherModeContract,
 ) {
+
+    data class LauncherModeState(
+        val roleRequestPending: Boolean,
+        val homeRoleHeld: Boolean,
+        val modeEnabled: Boolean,
+    )
+
+    /** Reads the complete durable state as one snapshot for a background screen refresh. */
+    fun readState(): LauncherModeState {
+        val roleRequestPending = isRoleRequestPending()
+        val homeRoleHeld = isHomeRoleHeld()
+        return LauncherModeState(roleRequestPending, homeRoleHeld, isModeEnabled())
+    }
 
     /** True when the HOME component is enabled, i.e. the app is a home-screen candidate. */
     fun isModeEnabled(): Boolean {
@@ -69,8 +83,21 @@ class LauncherRoleManager @Inject constructor(
         openHomeChooser(activity)
     }
 
+    /** Performs the durable component change before the caller launches a role request on the UI thread. */
+    fun enableModeForRequest(): Intent? {
+        val component = contract.homeComponent(context) ?: return null
+        setLauncherComponentsEnabled(component, enabled = true)
+        return createRoleRequestIntent()
+    }
+
     /** Stops being a home-screen candidate; the system falls back to the previous launcher. */
     fun disableMode() {
+        val component = contract.homeComponent(context) ?: return
+        setLauncherComponentsEnabled(component, enabled = false)
+    }
+
+    /** Keeps package-manager component work out of a screen's rendering callback. */
+    fun disableModeForBackgroundRefresh() {
         val component = contract.homeComponent(context) ?: return
         setLauncherComponentsEnabled(component, enabled = false)
     }
@@ -165,7 +192,12 @@ class LauncherRoleManager @Inject constructor(
 
     private fun createRoleRequestIntent(): Intent? {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return null
-        return context.getSystemService(RoleManager::class.java)
+        val tvDevice = isTvDevice()
+        if (tvDevice) {
+            Timber.d("S2901: TV form-factor detected, skipping ROLE_HOME dialog")
+        }
+        val roleManager = if (tvDevice) null else context.getSystemService(RoleManager::class.java)
+        return roleManager
             ?.takeIf { it.isRoleAvailable(RoleManager.ROLE_HOME) }
             ?.createRequestRoleIntent(RoleManager.ROLE_HOME)
     }
@@ -191,6 +223,18 @@ class LauncherRoleManager @Inject constructor(
 
     private fun resolves(intent: Intent): Boolean =
         context.packageManager.resolveActivityCompat(intent, 0) != null
+
+    /**
+     * True on Android TV / Google TV / Fire TV. The ROLE_HOME role dialog silently fails on these
+     * devices: the system bakes its launcher into the image and does not honor the role swap, so the
+     * enable flow must route to the system home-settings screen instead (S2901).
+     */
+    private fun isTvDevice(): Boolean {
+        val hasLeanback = context.packageManager.hasSystemFeature(PackageManager.FEATURE_LEANBACK)
+        val isTvUiMode = (context.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK) ==
+            Configuration.UI_MODE_TYPE_TELEVISION
+        return hasLeanback || isTvUiMode
+    }
 
     private fun homeIntent(): Intent =
         Intent(Intent.ACTION_MAIN).addCategory(Intent.CATEGORY_HOME)

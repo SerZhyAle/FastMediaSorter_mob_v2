@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.sza.fastmediasorter.core.serialization.InstantTypeAdapter
 import com.sza.fastmediasorter.domain.model.WearSettingsPayload
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
@@ -46,14 +47,14 @@ class WearSettingsMirrorStoreTest {
     )
 
     @Test
-    fun `written settings read back equal`() {
+    fun `written settings read back equal`() = runTest {
         store.writeSettings(payload)
 
         assertEquals(payload, store.readSettings())
     }
 
     @Test
-    fun `malformed stored json reads back as null instead of throwing`() {
+    fun `malformed stored json reads back as null instead of throwing`() = runTest {
         context.getSharedPreferences("wear_sync_prefs", Context.MODE_PRIVATE)
             .edit()
             .putString("watch_settings_payload", "{not json")
@@ -63,14 +64,14 @@ class WearSettingsMirrorStoreTest {
     }
 
     @Test
-    fun `marked sync timestamp reads back unchanged`() {
-        store.markSynced(1_700_000_000_000L)
+    fun `marked sync timestamp reads back unchanged`() = runTest {
+        store.markSynced(1_700_000_000_000L, null)
 
         assertEquals(1_700_000_000_000L, store.readLastSyncTimestamp())
     }
 
     @Test
-    fun `last sync timestamp defaults to zero when nothing was ever written`() {
+    fun `last sync timestamp defaults to zero when nothing was ever written`() = runTest {
         assertEquals(0L, store.readLastSyncTimestamp())
     }
 }

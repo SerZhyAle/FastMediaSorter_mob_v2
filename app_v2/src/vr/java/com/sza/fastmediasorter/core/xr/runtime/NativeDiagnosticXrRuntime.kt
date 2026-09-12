@@ -32,6 +32,10 @@ import timber.log.Timber
  * 2026-05-21).
  */
 @Singleton
+// Every native entry point costs two functions here - the interface override and its `external`
+// twin - and a JNI symbol is bound by the declaring class, so splitting the surface would rename
+// every export in diagnostic_xr_runtime.cpp for no behavioural gain.
+@Suppress("TooManyFunctions")
 class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
 
     override val isNativeAvailable: Boolean
@@ -217,6 +221,13 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
         }
     }
 
+    override fun setInputMode(mode: Int) {
+        if (!isNativeAvailable) return
+        runCatching { nativeSetInputMode(mode) }.onFailure {
+            Timber.w(it, "setInputMode: native call threw")
+        }
+    }
+
     override fun applyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float) {
         if (!isNativeAvailable) return
         runCatching { nativeApplyHaptic(hand, durationSeconds, frequency, amplitude) }.onFailure {
@@ -250,6 +261,7 @@ class NativeDiagnosticXrRuntime @Inject constructor() : DiagnosticXrRuntime {
     )
     private external fun nativeSetHudQuadDistance(distanceMeters: Float)
     private external fun nativeSetHudVisible(visible: Boolean)
+    private external fun nativeSetInputMode(mode: Int)
     private external fun nativeApplyHaptic(hand: Int, durationSeconds: Float, frequency: Float, amplitude: Float)
     private external fun nativeGetCurrentFps(): Float
     private external fun nativeRunFrameLoop(): Int

@@ -6,9 +6,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -37,10 +38,12 @@ class AuthSessionRepositoryImplTest {
         every { store.listAllAccounts() } returns emptyList()
     }
 
-    // Unconfined scope runs the init launch eagerly on the calling thread, so migrateIfNeeded +
-    // refreshFlows complete synchronously during construction - matching the pre-S1153 timing the
-    // flow assertions below rely on. Production injects the IO-backed @ApplicationScope.
-    private fun repo() = AuthSessionRepositoryImpl(store, CoroutineScope(Dispatchers.Unconfined))
+    // S2748: the scope belongs to the test's own scheduler, so the init launch is a child of this
+    // test and cannot outlive its body. UnconfinedTestDispatcher still runs migrateIfNeeded +
+    // refreshFlows eagerly during construction, which is the pre-S1153 timing the flow assertions
+    // below rely on. Production injects the IO-backed @ApplicationScope.
+    private fun TestScope.repo() =
+        AuthSessionRepositoryImpl(store, CoroutineScope(UnconfinedTestDispatcher(testScheduler)))
 
     private fun cookie() = HttpCookie("sid", "abc")
 

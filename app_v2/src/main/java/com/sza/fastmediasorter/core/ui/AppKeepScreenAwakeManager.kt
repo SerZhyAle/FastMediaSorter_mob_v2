@@ -5,6 +5,8 @@ import android.app.Application
 import android.os.Bundle
 import android.view.WindowManager
 import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.AnimationPolicy
+import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -47,7 +49,10 @@ class AppKeepScreenAwakeManager @Inject constructor(
 
     private fun applyTo(activity: Activity) {
         if (activity is BaseActivity<*>) return
-        if (preventSleep) {
+        // S2536: the same stand-down BaseActivity applies, for the hosts that do not inherit it. The
+        // level is read here rather than cached with preventSleep so a resume after the charge
+        // recovered gets the current answer without this class observing the level itself.
+        if (preventSleep && AnimationPolicy.level != PowerPolicyLevel.SAVING) {
             activity.window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         } else {
             activity.window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

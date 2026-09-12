@@ -24,6 +24,24 @@ enum class VrMediaType : Serializable {
 }
 
 /**
+ * S1218 (ADR-1): where the launched media comes from, stated by the caller instead of guessed from
+ * the address inside the validator - which is the one place a live channel used to be rejected.
+ *
+ * [LOCAL_FILE] is a filesystem path or a `file://` / `content://` URI the immersive host resolves to
+ * a [java.io.File]. [NETWORK_STREAM] is an address ExoPlayer opens over the network; nothing is
+ * materialised to disk, so the host's file resolvers are skipped for it entirely.
+ */
+enum class VrLaunchSourceKind : Serializable {
+    LOCAL_FILE,
+    NETWORK_STREAM,
+    ;
+
+    companion object {
+        private const val serialVersionUID: Long = 1L
+    }
+}
+
+/**
  * S1233: one navigable item of the ordered list handed to the immersive host.
  *
  * The type travels with the entry instead of being sniffed from the extension, because the caller
@@ -44,6 +62,7 @@ enum class VrLaunchPoint : Serializable {
     OVERFLOW_MENU,
     SETTINGS_TEST,
     BROWSE_TILE,
+
     // S1114: VR entry from the video transport controls row (reachable in fullscreen), both hosts.
     CONTROLS_ROW,
 }
@@ -100,6 +119,10 @@ data class StartVrPlaybackRequest(
     // "navigate nothing" and the host falls back to the single fileUriString.
     val playlist: List<VrPlaylistEntry> = emptyList(),
     val playlistIndex: Int = -1,
+    // S1218: defaulted so every pre-existing caller keeps its meaning without naming the kind.
+    val sourceKind: VrLaunchSourceKind = VrLaunchSourceKind.LOCAL_FILE,
+    // S1218: a live channel has a name but no filename, and the name is known only here at launch.
+    val displayTitle: String? = null,
 ) : Serializable {
 
     companion object {
@@ -139,6 +162,9 @@ data class VrLaunchInput(
     // S1233: see StartVrPlaybackRequest.playlist - carried through unchanged.
     val playlist: List<VrPlaylistEntry> = emptyList(),
     val playlistIndex: Int = -1,
+    // S1218: carried through from the request unchanged - see StartVrPlaybackRequest.
+    val sourceKind: VrLaunchSourceKind = VrLaunchSourceKind.LOCAL_FILE,
+    val displayTitle: String? = null,
 ) : Serializable {
 
     fun requireFileUriString(): String = requireNotNull(fileUriString) {
@@ -169,6 +195,8 @@ data class VrLaunchInput(
             resourceId = request.resourceId,
             playlist = request.playlist,
             playlistIndex = request.playlistIndex,
+            sourceKind = request.sourceKind,
+            displayTitle = request.displayTitle,
         )
     }
 }

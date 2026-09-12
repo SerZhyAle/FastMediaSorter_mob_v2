@@ -1,10 +1,13 @@
 {
   "mcpServers": {
-    "mobile-mcp": {
+    "maestro": {
       "type": "stdio",
-      "command": "node",
+      "command": "cmd",
       "args": [
-        "C:/Users/serzh/AppData/Roaming/npm/node_modules/@mobilenext/mobile-mcp/lib/index.js"
+        "/c",
+        "${USERPROFILE}\\.maestro\\bin\\maestro.bat",
+        "mcp",
+        "--no-viewer"
       ],
       "env": {}
     }

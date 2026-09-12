@@ -18,11 +18,9 @@ class SyncGoogleLauncherSessionUseCase @Inject constructor(
 ) {
 
     suspend fun observeAndSync() {
-        Timber.d("S2286: SyncGoogleLauncherSessionUseCase active observer started")
         identityRepository.state.collectLatest { state ->
             when (state) {
                 is PrimaryGoogleAccountState.Bound -> {
-                    Timber.d("S2286: Primary Google account bound (${state.account.email}) - WebView cookies active")
                     runCatching {
                         val cookieManager = CookieManager.getInstance()
                         cookieManager.setAcceptCookie(true)
@@ -32,7 +30,6 @@ class SyncGoogleLauncherSessionUseCase @Inject constructor(
                 is PrimaryGoogleAccountState.Unbound,
                 is PrimaryGoogleAccountState.Error,
                 is PrimaryGoogleAccountState.NeedsResignIn -> {
-                    Timber.d("S2286: Primary Google account inactive - clearing launcher WebView cookies")
                     runCatching {
                         val cookieManager = CookieManager.getInstance()
                         cookieManager.removeAllCookies(null)

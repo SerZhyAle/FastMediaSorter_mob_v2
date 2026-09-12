@@ -31,11 +31,28 @@ class CreateTextNoteUseCaseTest {
         }
     }
 
-    private val localResource = createMediaResource(id = 1L, path = "/local/dir", isReadOnly = false)
+    // S2625 routes this boundary through allowsWriteOperations(), which for LOCAL also demands the
+    // probed isWritable - clearing isReadOnly alone no longer reaches validation or the handler.
+    private val localResource = createMediaResource(
+        id = 1L,
+        path = "/local/dir",
+        isReadOnly = false,
+        isWritable = true,
+    )
 
     @Test
     fun `read-only resource fails without delegating`() = runTest {
         val result = useCase(createMediaResource(isReadOnly = true), "/local/dir", "note.txt")
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { handler.executeCreateTextFile(any(), any(), any(), any()) }
+    }
+
+    @Test
+    fun `local resource without probed write access fails without delegating`() = runTest {
+        val notProbed = createMediaResource(isReadOnly = false, isWritable = false)
+
+        val result = useCase(notProbed, "/local/dir", "note.txt")
 
         assertTrue(result.isFailure)
         coVerify(exactly = 0) { handler.executeCreateTextFile(any(), any(), any(), any()) }

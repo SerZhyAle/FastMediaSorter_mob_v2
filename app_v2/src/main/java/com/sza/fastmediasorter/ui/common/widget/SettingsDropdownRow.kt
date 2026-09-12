@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.ViewSettingsDropdownRowBinding
 import com.sza.fastmediasorter.ui.dialog.TooltipDialog
 import timber.log.Timber
+import kotlin.math.ceil
 
 /**
  * Canonical reusable dropdown row for settings and dialog surfaces.
@@ -65,6 +66,10 @@ class SettingsDropdownRow @JvmOverloads constructor(
     // -1 (MATCH_PARENT) keeps the legacy fill behaviour; a positive value caps the field to a fixed width.
     private var fieldWidthPx: Int = LayoutParams.MATCH_PARENT
     private var valueAsText: Boolean = false
+    private var labelColumnWidthPx: Int = 0
+
+    // null until value text mode picks a form; then true = hugging the content, false = weighted group.
+    private var valueAsTextHugged: Boolean? = null
 
     init {
         orientation = VERTICAL
@@ -100,6 +105,9 @@ class SettingsDropdownRow @JvmOverloads constructor(
             subtitleView.text = text
             subtitleView.visibility = View.VISIBLE
         }
+        // A subtitle may arrive long after inflation - the power saving row names its active cause from
+        // a battery broadcast - and it decides which value text form the row takes (S2780).
+        if (valueAsText) syncValueAsTextTextGroup()
     }
 
     /**
@@ -180,6 +188,31 @@ class SettingsDropdownRow @JvmOverloads constructor(
     override fun onDetachedFromWindow() {
         dismissOptions()
         super.onDetachedFromWindow()
+    }
+
+    /**
+     * Caps the value text so the trailing chevron always keeps its slot.
+     *
+     * The row hugs its content, because the glyph belongs beside the value and not at the row's far
+     * edge (S0644). Hugging means the value is measured before the glyph and may take the whole row,
+     * which is what left the one Streams entry long enough to wrap without a chevron (S2783).
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        if (valueAsText && MeasureSpec.getMode(widthMeasureSpec) != MeasureSpec.UNSPECIFIED) {
+            val gap = resources.getDimensionPixelSize(R.dimen.settings_help_icon_margin)
+            val label = if (labelColumnWidthPx > 0) {
+                labelColumnWidthPx + resources.getDimensionPixelSize(R.dimen.margin_medium)
+            } else {
+                measureLabelNaturalWidth()
+            }
+            val glyph = resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) + gap
+            val room = MeasureSpec.getSize(widthMeasureSpec) - paddingStart - paddingEnd - label - glyph - gap
+            val cap = room.coerceAtLeast(0)
+            if (valueTextView.maxWidth != cap) {
+                valueTextView.maxWidth = cap
+            }
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
     }
 
     private fun bindItemSelection() {
@@ -314,14 +347,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
     private fun applyValueAsTextLayout() {
         orientation = HORIZONTAL
         gravity = android.view.Gravity.CENTER_VERTICAL
-        textGroup.updateLayoutParams<LayoutParams> {
-            width = LayoutParams.WRAP_CONTENT
-            weight = 0f
-        }
-        binding.sdrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
-            width = ViewGroup.LayoutParams.WRAP_CONTENT
-        }
-        binding.sdrTitleLineSpacer.visibility = View.GONE
+        syncValueAsTextTextGroup()
         inputLayout.visibility = View.GONE
         valueTextView.visibility = View.VISIBLE
         valueTextIcon.visibility = View.VISIBLE
@@ -336,6 +362,32 @@ class SettingsDropdownRow @JvmOverloads constructor(
         val background = TypedValue()
         context.theme.resolveAttribute(android.R.attr.selectableItemBackground, background, true)
         if (background.resourceId != 0) setBackgroundResource(background.resourceId)
+    }
+
+    /**
+     * Picks the text group's form for value text mode from whether the row shows a subtitle.
+     *
+     * Without one the group hugs its content, so the chevron sits right after the value. With one the
+     * group keeps its weight: the subtitle spans the full row width, and a hugged group would squeeze
+     * it into a column as narrow as the title line above it (S2780). Either way the value stays on the
+     * title line immediately after the caption, which is the point of the mode. Same split as
+     * [SettingsSelectionRow], which reached it first (S0644).
+     */
+    private fun syncValueAsTextTextGroup() {
+        val hug = subtitleView.visibility == View.GONE
+        // The subtitle is rewritten on every settings emission, and updateLayoutParams always requests
+        // a layout pass - so re-apply only when the form actually changes.
+        if (hug == valueAsTextHugged) return
+        valueAsTextHugged = hug
+        textGroup.updateLayoutParams<LayoutParams> {
+            width = if (hug) LayoutParams.WRAP_CONTENT else 0
+            weight = if (hug) 0f else 1f
+        }
+        binding.sdrTitleLine.updateLayoutParams<ViewGroup.LayoutParams> {
+            width = if (hug) ViewGroup.LayoutParams.WRAP_CONTENT else ViewGroup.LayoutParams.MATCH_PARENT
+        }
+        binding.sdrTitleLineSpacer.visibility = if (hug) View.GONE else View.VISIBLE
+        Timber.d("S2780: value text row hug=$hug title=${titleView.text}")
     }
 
     /**
@@ -358,11 +410,14 @@ class SettingsDropdownRow @JvmOverloads constructor(
      * of its label column.
      */
     override fun measureTrailingNaturalWidth(): Int {
-        val unbounded = MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED)
         var width = resources.getDimensionPixelSize(R.dimen.margin_medium)
         if (valueTextView.visibility != View.GONE) {
-            valueTextView.measure(unbounded, unbounded)
-            width += valueTextView.measuredWidth
+            // Read off the paint rather than by measuring the view, which already carries the cap
+            // onMeasure put on it - feeding that cap back would let the group size a column that only
+            // fits because the value was truncated to make it fit.
+            val text = valueTextView.text ?: ""
+            width += ceil(valueTextView.paint.measureText(text, 0, text.length)).toInt() +
+                valueTextView.paddingStart + valueTextView.paddingEnd
         }
         if (valueTextIcon.visibility != View.GONE) {
             width += resources.getDimensionPixelSize(R.dimen.settings_help_icon_size) +
@@ -380,6 +435,7 @@ class SettingsDropdownRow @JvmOverloads constructor(
      */
     override fun applyLabelColumnWidth(widthPx: Int) {
         val column = widthPx > 0
+        labelColumnWidthPx = widthPx
         titleView.maxLines = if (column) 1 else Int.MAX_VALUE
         titleView.ellipsize = if (column) TextUtils.TruncateAt.END else null
         binding.sdrTitleCluster.updateLayoutParams<LinearLayout.LayoutParams> {

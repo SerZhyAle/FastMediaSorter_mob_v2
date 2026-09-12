@@ -14,6 +14,9 @@
   (Android 13+, no reboot) - run it once before a locale batch, never between navigation
   and capture, because the override recreates the running activity.
 
+  -Tablet files the shot under temp/play-shots-tablet/ instead, which is the tree
+  compose-play-screenshots.py --tablet reads; it composes with -Locale the same way.
+
   Per CLAUDE.md, the live device id and the per-slot exit code are printed by the caller.
 
 .EXAMPLE
@@ -22,6 +25,8 @@
   pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Slot video-player -DeviceId emulator-5556
 .EXAMPLE
   pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Locale ru-RU -SetAppLocale -Launch -Slot browse
+.EXAMPLE
+  pwsh -NoProfile -File scripts/release/capture-play-screenshots.ps1 -Tablet -Locale en-US -Slot launcher
 #>
 param(
     [string]$Slot,
@@ -29,6 +34,7 @@ param(
     [string]$Locale,
     [switch]$SetAppLocale,
     [switch]$Launch,
+    [switch]$Tablet,
     [switch]$List
 )
 
@@ -54,6 +60,7 @@ if ($SetAppLocale) {
     Write-Host "APP LOCALE -> $Locale"
 }
 
+if ($Tablet) { $outDir = Join-Path $repoRoot 'temp/play-shots-tablet' }
 if ($Locale) { $outDir = Join-Path $outDir $Locale }
 
 if ($Launch) {

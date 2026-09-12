@@ -17,24 +17,30 @@ import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import timber.log.Timber
 
 private val REFUSAL_GLYPH_SIZE = 32.dp
 private val TEXT_TOP_PADDING = 8.dp
 
 /**
- * What a file the watch cannot play opens instead of a player.
+ * What a file in a format the watch does not render opens instead of a player.
  *
  * S2006: a document used to fall through the router's last branch and open the **audio** player over
- * itself, which is a wrong answer to the user's action rather than a missing feature. This screen is
- * the right answer, and deliberately nothing more: it carries no action, because a viewer for these
- * files is out of the ticket's scope and offering a button that leads nowhere would be a second wrong
- * answer. The way back is the platform dismiss gesture, as on every other screen in this module.
+ * itself, which is a wrong answer to the user's action rather than a missing feature. This screen was
+ * the right answer for every document alike.
+ *
+ * S2532: it is no longer the answer to every document - the watch reads text itself now - so this is
+ * the answer to a format it does not render, and it says which one. It still carries no action: what
+ * a wearer can do about a PDF belongs to the "open on the phone" transport (S2142), not here, and a
+ * button that led nowhere would be a second wrong answer. The way back is the platform dismiss
+ * gesture, as on every other screen in this module.
+ *
+ * @param format the refused format, as the route argument named it. Only the unreadable entries of
+ * [WearDocumentFormat] ever reach here; a readable one opens the reader instead.
  */
 @Composable
-fun UnsupportedFileScreen() {
-    Timber.d("S2006: unsupported file refused instead of opening the audio player")
+fun UnsupportedFileScreen(format: WearDocumentFormat) {
     WearScreenScaffold {
         Column(
             modifier = Modifier
@@ -56,7 +62,10 @@ fun UnsupportedFileScreen() {
                 modifier = Modifier.padding(top = TEXT_TOP_PADDING)
             )
             Text(
-                text = stringResource(R.string.wear_unsupported_file_message),
+                text = stringResource(
+                    R.string.wear_unsupported_file_message_format,
+                    stringResource(format.labelRes)
+                ),
                 style = MaterialTheme.typography.body2,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(top = TEXT_TOP_PADDING)

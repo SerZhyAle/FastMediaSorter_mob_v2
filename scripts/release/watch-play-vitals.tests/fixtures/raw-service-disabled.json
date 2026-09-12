@@ -1,0 +1,32 @@
+{
+ "_comment": "S2917 test fixture - the 403 body Google returned on 2026-09-11 for every Reporting API call (temp/S2917/play_vitals_probe.out.jsonl), re-serialised as JSON.",
+ "_httpError": {
+  "status": 403,
+  "content": {
+   "error": {
+    "code": 403,
+    "message": "Google Play Developer Reporting API has not been used in project 764216752430 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/playdeveloperreporting.googleapis.com/overview?project=764216752430 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry.",
+    "status": "PERMISSION_DENIED",
+    "details": [
+     {
+      "@type": "type.googleapis.com/google.rpc.ErrorInfo",
+      "reason": "SERVICE_DISABLED",
+      "domain": "googleapis.com",
+      "metadata": {
+       "service": "playdeveloperreporting.googleapis.com",
+       "consumer": "projects/764216752430",
+       "containerInfo": "764216752430",
+       "serviceTitle": "Google Play Developer Reporting API",
+       "activationUrl": "https://console.developers.google.com/apis/api/playdeveloperreporting.googleapis.com/overview?project=764216752430"
+      }
+     },
+     {
+      "@type": "type.googleapis.com/google.rpc.LocalizedMessage",
+      "locale": "en-US",
+      "message": "Google Play Developer Reporting API has not been used in project 764216752430 before or it is disabled. Enable it by visiting https://console.developers.google.com/apis/api/playdeveloperreporting.googleapis.com/overview?project=764216752430 then retry. If you enabled this API recently, wait a few minutes for the action to propagate to our systems and retry."
+     }
+    ]
+   }
+  }
+ }
+}

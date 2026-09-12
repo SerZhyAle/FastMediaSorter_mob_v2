@@ -14,6 +14,14 @@
       - a facade label with no registry entry (a gate that will fail mute);
       - a registry key naming no facade label (a hint for a gate that is gone).
 
+    Label collection covers both dispatch forms the facade uses: the block form
+    (Invoke-Gate / Invoke-Step / Invoke-AdvisoryStep / a wrapper variable, each
+    taking a quoted label before its script block) and the argument form
+    (Invoke-FixedInputGate, taking the label as its first positional argument).
+    A new dispatch head that carries a label requires an edit here as well -
+    S2841 was eight hints reported as orphaned because the argument form was
+    added to the facade and never taught to this collector.
+
     Exit codes (S1070):
       0 - registry and facade agree (or audit mode).
       1 - substantive failure: at least one label or key is unpaired (-Gate only).
@@ -54,12 +62,23 @@ catch {
     exit 2
 }
 
-# A step is "a label followed by its script block". The dispatch head varies: the
+# Two dispatch forms carry a label, and both must be collected.
+#
+# Block form: "a label followed by its script block". The head varies - the
 # ratchet gates are called through a variable holding either the fatal or the
 # advisory wrapper, so matching the wrapper names alone would miss them.
+#
+# Argument form: a fixed-input gate takes its label as the first positional
+# argument and passes it on in a variable, so the label never stands before a
+# brace and the block pattern cannot see it (S2841).
 $stepRx = [regex]'(?:Invoke-Gate|Invoke-Step|Invoke-AdvisoryStep|&\s+\$\w+)\s+"([^"]+)"\s*\{'
+$argRx = [regex]'Invoke-FixedInputGate\s+"([^"]+)"'
 $facadeText = Get-Content -LiteralPath $facade -Raw
-$labels = @($stepRx.Matches($facadeText) | ForEach-Object { $_.Groups[1].Value } | Sort-Object -Unique)
+$labels = @(
+    @($stepRx.Matches($facadeText)) + @($argRx.Matches($facadeText)) |
+        ForEach-Object { $_.Groups[1].Value } |
+        Sort-Object -Unique
+)
 
 if ($labels.Count -eq 0) {
     Write-Error "assert-gate-hints-sync: no gate labels found in $facade - the extraction pattern no longer matches the facade." -ErrorAction Continue

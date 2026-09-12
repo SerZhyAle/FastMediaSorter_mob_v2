@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design System Component Catalog - Fast Media Sorter</title>
+    <meta name="description" content="Living component catalog and visual reference for FastMediaSorter v2 documentation.">
+    
+    <link rel="icon" type="image/x-icon" href="../../favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="../../favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="../../favicon-16x16.png">
+
+    <!-- Pre-paint theme resolver -->
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('sza-theme') ||
+                    (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+                document.documentElement.setAttribute('data-theme', t);
+            } catch (e) { }
+        }());
+    </script>
+
+    <!-- Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="../../styles.css">
+    <link rel="stylesheet" href="../assets/docs.css">
+
+    <style>
+        /* Demo showcase helper styles */
+        .demo-section {
+            margin-bottom: 3.5rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px dashed var(--doc-border);
+        }
+        .demo-section:last-of-type {
+            border-bottom: none;
+        }
+        .demo-title {
+            font-family: var(--doc-font-heading);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--doc-text);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .demo-desc {
+            color: var(--doc-text-muted);
+            font-size: 0.9375rem;
+            margin-bottom: 1.25rem;
+        }
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+        }
+        .demo-box {
+            background: var(--doc-bg-surface);
+            border: 1px solid var(--doc-border);
+            border-radius: var(--doc-radius);
+            padding: 1.25rem;
+        }
+        .demo-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--doc-text-muted);
+            margin-bottom: 0.75rem;
+        }
+    </style>
+</head>
+
+<body class="doc-body">
+
+    <!-- Sticky Header -->
+    <header class="doc-header">
+        <div class="doc-header-inner">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a class="doc-header-brand" href="../../index.html">Fast Media Sorter<span style="color: var(--doc-accent, #3fb950);">.</span></a>
+                <span class="doc-badge doc-badge-sm" style="color: var(--doc-text-secondary);">Docs Kit S2976</span>
+            </div>
+
+            <nav class="doc-header-nav" aria-label="Main Navigation">
+                <a href="../sample-recipe.html" class="doc-header-link">Sample Recipe</a>
+                <a href="index.html" class="doc-header-link active">Component Catalog</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener" class="doc-header-link doc-link-external">GitHub</a>
+                
+                <!-- Live Theme Toggle Button -->
+                                <!-- 13-Language Selector -->
+                <div class="doc-lang-picker">
+                    <button class="doc-lang-btn" id="langBtn" aria-label="Select Language" title="Select Language">Language</button>
+                    <div class="doc-lang-menu" id="langMenu" role="menu">
+                        <a href="?lang=en" class="doc-lang-item active" data-lang="en"><span>English</span><span class="lang-code">en</span></a>
+                        <a href="?lang=es" class="doc-lang-item" data-lang="es"><span>Español</span><span class="lang-code">es</span></a>
+                        <a href="?lang=de" class="doc-lang-item" data-lang="de"><span>Deutsch</span><span class="lang-code">de</span></a>
+                        <a href="?lang=fr" class="doc-lang-item" data-lang="fr"><span>Français</span><span class="lang-code">fr</span></a>
+                        <a href="?lang=it" class="doc-lang-item" data-lang="it"><span>Italiano</span><span class="lang-code">it</span></a>
+                        <a href="?lang=pt" class="doc-lang-item" data-lang="pt"><span>Português</span><span class="lang-code">pt</span></a>
+                        <a href="?lang=ru" class="doc-lang-item" data-lang="ru"><span>Русский</span><span class="lang-code">ru</span></a>
+                        <a href="?lang=uk" class="doc-lang-item" data-lang="uk"><span>Українська</span><span class="lang-code">uk</span></a>
+                        <a href="?lang=zh-Hans" class="doc-lang-item" data-lang="zh-Hans"><span>简体中文</span><span class="lang-code">zh</span></a>
+                        <a href="?lang=hi" class="doc-lang-item" data-lang="hi"><span>हिन्दी</span><span class="lang-code">hi</span></a>
+                        <a href="?lang=bn" class="doc-lang-item" data-lang="bn"><span>বাংলা</span><span class="lang-code">bn</span></a>
+                        <a href="?lang=ar" class="doc-lang-item" data-lang="ar"><span>العربية</span><span class="lang-code">ar</span></a>
+                        <a href="?lang=ur" class="doc-lang-item" data-lang="ur"><span>اردو</span><span class="lang-code">ur</span></a>
+                    </div>
+                </div>
+
+                <a href="../../index.html" title="FastMediaSorter v2 Home" style="display:flex;align-items:center;"><img src="../../apple-touch-icon.png" alt="FastMediaSorter Icon" class="doc-app-icon"></a>
+                <button class="doc-theme-btn" id="themeBtn" aria-label="Toggle light/dark theme" title="Toggle theme">◐</button>
+            </nav>
+        </div>
+    </header>
+
+    <div class="doc-container">
+
+        <!-- Breadcrumbs -->
+        <nav class="doc-breadcrumbs" aria-label="Breadcrumb">
+            <a href="../../index.html">Home</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <a href="../index.html">Documentation</a>
+            <span class="doc-breadcrumb-separator">/</span>
+            <span class="doc-breadcrumb-current">Design System Catalog</span>
+        </nav>
+
+        <div class="doc-grid">
+
+            <!-- Sticky Sidebar Menu -->
+            <aside class="doc-sidebar" aria-label="Catalog Navigation">
+                <div class="doc-sidebar-section">
+                    <div class="doc-sidebar-title">Catalog Sections</div>
+                    <ul class="doc-sidebar-list">
+                        <li><a href="#typography" class="doc-sidebar-link">1. Typography & Colors</a></li>
+                        <li><a href="#badges" class="doc-sidebar-link">2. Badges & Tags</a></li>
+                        <li><a href="#prereq" class="doc-sidebar-link">3. Prerequisite Cards</a></li>
+                        <li><a href="#steps" class="doc-sidebar-link">4. Step Cards</a></li>
+                        <li><a href="#callouts" class="doc-sidebar-link">5. Callouts & Alerts</a></li>
+                        <li><a href="#frames" class="doc-sidebar-link">6. Device Frames</a></li>
+                        <li><a href="#links" class="doc-sidebar-link">7. Semantic Links</a></li>
+                    </ul>
+                </div>
+            </aside>
+
+            <!-- Main Content: Living Component Catalog -->
+            <main class="doc-content" id="main-content">
+
+                <div class="doc-lead" style="margin-bottom: 2rem;">
+                    Living showcase of all visual components and design tokens developed for the <strong>FastMediaSorter v2 Documentation Portal</strong>. Use the theme toggle button (top right) to inspect light and dark modes.
+                </div>
+
+                <!-- 1. Typography & Colors -->
+                <section id="typography" class="demo-section">
+                    <div class="demo-title">1. Typography & Theme Colors</div>
+                    <div class="demo-desc">Fonts: Outfit (headings) and Plus Jakarta Sans (body). Light/Dark automatic token shifts.</div>
+
+                    <div class="demo-grid">
+                        <div class="demo-box">
+                            <div class="demo-label">Heading Hierarchy</div>
+                            <h1>Heading 1 (2.25rem Outfit)</h1>
+                            <h2>Heading 2 (1.625rem Outfit)</h2>
+                            <h3>Heading 3 (1.25rem Outfit)</h3>
+                            <h4>Heading 4 (1.0625rem Outfit)</h4>
+                        </div>
+                        <div class="demo-box">
+                            <div class="demo-label">Body Text & Inline Code</div>
+                            <p>Standard paragraph with <a href="#">regular link</a> and <span class="doc-link-term" data-term="NAS">NAS storage</span> term tooltip.</p>
+                            <p class="doc-lead">Lead paragraph used for page introductions and summary notes.</p>
+                            <p>Use <code>Android 8.0+</code> and <code>MediaStore.Audio.Media</code> inline code chips.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. Badges & Editions -->
+                <section id="badges" class="demo-section">
+                    <div class="demo-title">2. Badges & Edition Chips</div>
+                    <div class="demo-desc">Canonical media type colors derived from MediaTypeColorCatalog.kt and app flavors.</div>
+
+                    <div class="demo-box">
+                        <div class="demo-label">Media Type Badges</div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem;">
+                            <span class="doc-badge doc-badge-music">Music</span>
+                            <span class="doc-badge doc-badge-video">Video</span>
+                            <span class="doc-badge doc-badge-image">Photos</span>
+                            <span class="doc-badge doc-badge-docs">Documents</span>
+                            <span class="doc-badge doc-badge-other">Other Media</span>
+                        </div>
+
+                        <div class="demo-label">Application Editions & OS Targets</div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <span class="doc-badge doc-badge-standard">Standard Edition</span>
+                            <span class="doc-badge doc-badge-nolegal">NoLegal Edition</span>
+                            <span class="doc-badge doc-badge-vr">VR Edition</span>
+                            <span class="doc-badge doc-badge-wear">Wear OS</span>
+                            <span class="doc-badge doc-badge-android-tv">Android TV</span>
+                            <span class="doc-badge doc-badge-sm">Small Chip</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. Prerequisite Cards -->
+                <section id="prereq" class="demo-section">
+                    <div class="demo-title">3. Prerequisite Checklist Cards</div>
+                    <div class="demo-desc">Structured cards positioned at the top of recipe articles to outline requirements upfront.</div>
+
+                    <div class="doc-card-prereq">
+                        <div class="doc-card-prereq-title">
+                            <span class="doc-card-prereq-icon">✓</span>
+                            <span>What You Will Need for this Recipe</span>
+                        </div>
+                        <ul class="doc-prereq-list">
+                            <li><span class="doc-prereq-bullet">✓</span> FastMediaSorter v2 (Standard or NoLegal edition, version 2.6+)</li>
+                            <li><span class="doc-prereq-bullet">✓</span> Android 8.0 (Oreo) or later device with storage permissions enabled</li>
+                            <li><span class="doc-prereq-bullet">✓</span> Local music tracks stored in internal storage or SD card</li>
+                            <li><span class="doc-prereq-bullet">✓</span> (Optional) Local Wi-Fi connection for SMB network playback</li>
+                        </ul>
+                    </div>
+                </section>
+
+                <!-- 4. Step Cards -->
+                <section id="steps" class="demo-section">
+                    <div class="demo-title">4. Step Cards & Sequential Workflows</div>
+                    <div class="demo-desc">Clear numerical badges and containers for instructional walkthroughs.</div>
+
+                    <div class="doc-step">
+                        <div class="doc-step-header">
+                            <span class="doc-step-badge">1</span>
+                            <h3 class="doc-step-title">Select Storage Source & Browse Folders</h3>
+                        </div>
+                        <div class="doc-step-body">
+                            <p>Open the app sidebar and tap <strong>Local Storage</strong>. Choose your primary music collection folder (e.g. <code>/Music/Albums</code>). FastMediaSorter indexes folders without moving your files.</p>
+                            <div class="doc-step-img-container">
+                                <span class="doc-step-img-placeholder">Image Placeholder: Main Browse Screen</span>
+                            </div>
+                            <div class="doc-step-img-caption">Figure 1.1: Browse view displaying local music albums with duration badges.</div>
+                        </div>
+                    </div>
+
+                    <div class="doc-step">
+                        <div class="doc-step-header">
+                            <span class="doc-step-badge">2</span>
+                            <h3 class="doc-step-title">Queue Tracks & Adjust Playback Order</h3>
+                        </div>
+                        <div class="doc-step-body">
+                            <p>Long-press any album or individual track and choose <strong>Add to Queue</strong>. Use the floating mini-player at the bottom to reorder tracks or toggle shuffle and repeat.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. Callouts & Alerts -->
+                <section id="callouts" class="demo-section">
+                    <div class="demo-title">5. Callouts & Alert Boxes</div>
+                    <div class="demo-desc">High-contrast tip, warning, and note callouts styled in harmony with Pine + Gold palette.</div>
+
+                    <div class="doc-callout doc-callout-tip">
+                        <div class="doc-callout-title">
+                            <span class="doc-callout-icon">💡</span> Pro-Tip: Background Audio Playback
+                        </div>
+                        <p>FastMediaSorter continues playback seamlessly when the screen is locked or when you switch apps, using battery-efficient Media3 background services.</p>
+                    </div>
+
+                    <div class="doc-callout doc-callout-warning">
+                        <div class="doc-callout-title">
+                            <span class="doc-callout-icon">⚠️</span> Caution: OEM Battery Optimizers
+                        </div>
+                        <p>Some vendor devices (Xiaomi MIUI, Samsung OneUI) aggressively kill background services. Add FastMediaSorter to <em>Battery &gt; Unrestricted</em> to prevent playback pauses.</p>
+                    </div>
+
+                    <div class="doc-callout doc-callout-note">
+                        <div class="doc-callout-title">
+                            <span class="doc-callout-icon">ℹ️</span> Note: NoLegal Edition Differences
+                        </div>
+                        <p>The NoLegal edition includes built-in standalone audio decoders without relying on Google Play services.</p>
+                    </div>
+                </section>
+
+                <!-- 6. Device Frames -->
+                <section id="frames" class="demo-section">
+                    <div class="demo-title">6. Device Mockup Frames</div>
+                    <div class="demo-desc">Adaptive frames for phone screenshots, round/square Wear OS watches, and VR headsets.</div>
+
+                    <div class="demo-grid" style="align-items: start;">
+                        <!-- Phone Frame -->
+                        <div class="demo-box" style="text-align: center;">
+                            <div class="demo-label">Phone Mockup</div>
+                            <div class="doc-frame-phone" style="height: 380px;">
+                                <div class="doc-frame-notch"></div>
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.875rem;">
+                                    Phone Screen Content (9:16)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Round Watch Frame -->
+                        <div class="demo-box" style="text-align: center;">
+                            <div class="demo-label">Wear OS Round Watch</div>
+                            <div class="doc-frame-watch-round">
+                                <div class="doc-frame-watch-crown"></div>
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.75rem; text-align: center; padding: 1rem;">
+                                    Wear OS Companion Controller
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- VR Visor Frame -->
+                        <div class="demo-box" style="text-align: center;">
+                            <div class="demo-label">VR Visor / Headset</div>
+                            <div class="doc-frame-vr">
+                                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: var(--doc-text-muted); font-size: 0.8125rem;">
+                                    VR 360° / Stereo 3D Viewer
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 7. Semantic Links & Cross-References -->
+                <section id="links" class="demo-section">
+                    <div class="demo-title">7. Semantic Links & Future Cross-References</div>
+                    <div class="demo-desc">Termbase tooltips, bookmark placeholders for unwritten pages, and external resource anchors.</div>
+
+                    <div class="demo-box">
+                        <div class="demo-label">Interactive Link Types</div>
+                        <ul style="list-style: none; padding: 0; display: flex; flex-direction: column; gap: 0.75rem;">
+                            <li>
+                                <strong>Termbase Tooltip:</strong> Hover over <span class="doc-link-term" data-term="SMB">SMB (Server Message Block)</span> to preview glossary definition.
+                            </li>
+                            <li>
+                                <strong>Bookmark Placeholder:</strong> See the upcoming <a href="#s2950" class="doc-link-bookmark" data-target="S2950">Network & Cloud Setup Guide</a> (ticket S2950).
+                            </li>
+                            <li>
+                                <strong>External Resource Link:</strong> Refer to the official <a href="https://developer.android.com/guide/topics/media/media3" target="_blank" rel="noopener" class="doc-link-external">Android Media3 Documentation</a>.
+                            </li>
+                        </ul>
+                    </div>
+                </section>
+
+            </main>
+
+            <!-- Table of Contents -->
+            <aside class="doc-toc-wrapper" aria-label="Page Table of Contents">
+                <nav class="doc-toc">
+                    <div class="doc-toc-title">Catalog Contents</div>
+                    <ul class="doc-toc-list">
+                        <li><a href="#typography" class="doc-toc-link">1. Typography & Colors</a></li>
+                        <li><a href="#badges" class="doc-toc-link">2. Badges & Tags</a></li>
+                        <li><a href="#prereq" class="doc-toc-link">3. Prerequisite Cards</a></li>
+                        <li><a href="#steps" class="doc-toc-link">4. Step Cards</a></li>
+                        <li><a href="#callouts" class="doc-toc-link">5. Callouts & Alerts</a></li>
+                        <li><a href="#frames" class="doc-toc-link">6. Device Frames</a></li>
+                        <li><a href="#links" class="doc-toc-link">7. Semantic Links</a></li>
+                    </ul>
+                </nav>
+            </aside>
+
+        </div><!-- /.doc-grid -->
+
+    </div><!-- /.doc-container -->
+
+    <footer class="doc-footer">
+        <div class="doc-footer-inner">
+            <div>Fast Media Sorter &copy; 2026 SerZhyAle. Documentation Component Catalog.</div>
+            <div class="doc-footer-links">
+                <a href="../../index.html">Main Website</a>
+                <a href="../sample-recipe.html">Sample Recipe</a>
+                <a href="https://github.com/SerZhyAle/FastMediaSorter_mob_v2" target="_blank" rel="noopener">GitHub</a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive script for Theme Toggle & 13-Language selector -->
+    <script>
+        (function () {
+            var btn = document.getElementById('themeBtn');
+            if (btn) {
+                btn.addEventListener('click', function () {
+                    var current = document.documentElement.getAttribute('data-theme') || 'dark';
+                    var next = current === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    try { localStorage.setItem('sza-theme', next); } catch (e) { }
+                });
+            }
+
+            var langBtn = document.getElementById('langBtn');
+            var langMenu = document.getElementById('langMenu');
+            if (langBtn && langMenu) {
+                langBtn.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    langMenu.classList.toggle('show');
+                });
+                document.addEventListener('click', function () {
+                    langMenu.classList.remove('show');
+                });
+            }
+
+            var urlParams = new URLSearchParams(window.location.search);
+            var activeLang = urlParams.get('lang') || localStorage.getItem('sza-docs-lang') || 'en';
+            
+            var items = document.querySelectorAll('.doc-lang-item');
+            items.forEach(function (item) {
+                var lang = item.getAttribute('data-lang');
+                if (lang === activeLang) {
+                    item.classList.add('active');
+                    if (langBtn) {
+                        var name = item.querySelector('span').textContent;
+                        langBtn.textContent = 'Language: ' + name;
+                    }
+                } else {
+                    item.classList.remove('active');
+                }
+                item.addEventListener('click', function (e) {
+                    try { localStorage.setItem('sza-docs-lang', lang); } catch (err) { }
+                });
+            });
+        }());
+    </script>
+
+    <!-- Background Animated Waves & Particles Canvas -->
+    <canvas id="docCanvas"></canvas>
+    <script>
+        (function () {
+            var canvas = document.getElementById('docCanvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var width, height, animId;
+
+            function resize() {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            }
+
+            var particles = [];
+            var PARTICLE_COUNT = 45;
+
+            function initParticles() {
+                particles = [];
+                for (var i = 0; i < PARTICLE_COUNT; i++) {
+                    particles.push({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        radius: Math.random() * 1.6 + 0.5,
+                        vx: (Math.random() - 0.5) * 0.25,
+                        vy: (Math.random() - 0.5) * 0.25,
+                        hue: (Math.random() < 0.5 ? 135 + Math.random() * 20 : 40 + Math.random() * 15)
+                    });
+                }
+            }
+
+            var time = 0;
+            function draw() {
+                ctx.clearRect(0, 0, width, height);
+                time += 0.002;
+                ctx.lineWidth = 1.4;
+                for (var j = 0; j < 4; j++) {
+                    ctx.beginPath();
+                    var phaseShift = j * 20;
+                    for (var i = 0; i <= width; i += 24) {
+                        var y = height * 0.35 +
+                            Math.sin(i * 0.0022 + time + phaseShift) * height * 0.25 *
+                            Math.sin(time * 0.25 + j * 0.25);
+                        if (i === 0) ctx.moveTo(i, y);
+                        else ctx.lineTo(i, y);
+                    }
+                    var waveHue = (j % 2 === 0) ? (135 + j * 6) : (44 + j * 4);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.strokeStyle = 'hsla(' + waveHue + ', 65%, ' + (isDark ? '55%' : '40%') + ', ' + (isDark ? '0.18' : '0.10') + ')';
+                    ctx.stroke();
+                }
+                particles.forEach(function (p) {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    if (p.x < 0 || p.x > width) p.vx *= -1;
+                    if (p.y < 0 || p.y > height) p.vy *= -1;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    var isDark = document.documentElement.getAttribute('data-theme') !== 'light';
+                    ctx.fillStyle = 'hsla(' + p.hue + ', 90%, ' + (isDark ? '70%' : '45%') + ', ' + (isDark ? '0.4' : '0.25') + ')';
+                    ctx.fill();
+                });
+                animId = requestAnimationFrame(draw);
+            }
+
+            window.addEventListener('resize', function () { resize(); initParticles(); });
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) { cancelAnimationFrame(animId); } else { draw(); }
+            });
+            resize();
+            initParticles();
+            draw();
+        }());
+    </script>
+</body>
+</html>
+
+
+

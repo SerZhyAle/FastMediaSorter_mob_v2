@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -19,9 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -29,15 +28,15 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Alert
-import com.sza.fastmediasorter.wear.BuildConfig
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateExtraAction
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.viewmodel.ConnectionTestState
@@ -60,6 +59,8 @@ fun NetworkSourcesScreen(
     val uiState by viewModel.uiState.collectAsState()
     val syncState by viewModel.syncState.collectAsState()
     val exportState by viewModel.exportState.collectAsState()
+    val listState = rememberWearListState(positionKey = WearRoutes.NETWORK_SOURCES)
+    val stateScrollState = rememberScrollState()
     val viewMode by viewModel.viewMode.collectAsState()
     val connectionTestState by viewModel.connectionTestState.collectAsState()
 
@@ -78,17 +79,17 @@ fun NetworkSourcesScreen(
 
     Timber.d("NetworkSourcesScreen composing with state: $uiState, sync: $syncState")
 
-    val listState = rememberScalingLazyListState()
-
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        // The sources list is the only branch whose length is unbounded, so it is the only one whose
-        // position is worth indicating.
-        positionIndicator = if (uiState is NetworkSourcesUiState.Success) {
-            { PositionIndicator(listState) }
-        } else {
-            null
+        // The sources list is the only branch whose length is unbounded, but the state block that
+        // replaces it scrolls too - and S2754 is the Play rejection for leaving that one unmarked.
+        positionIndicator = {
+            if (uiState is NetworkSourcesUiState.Success) {
+                PositionIndicator(listState)
+            } else {
+                PositionIndicator(stateScrollState)
+            }
         }
     ) {
         when (val state = uiState) {
@@ -101,6 +102,7 @@ fun NetworkSourcesScreen(
                     syncState = syncState,
                     listState = listState,
                     viewMode = viewMode,
+                    offersCredentialEntry = viewModel.offersCredentialEntry,
                     actions = NetworkSourcesActions(
                         onSourceClick = { sourceId, sourceName ->
                             Timber.d("Source selected: $sourceName (ID: $sourceId)")
@@ -139,8 +141,10 @@ fun NetworkSourcesScreen(
                     kind = if (syncFailure != null) WearStateKind.ERROR else WearStateKind.EMPTY,
                     message = syncFailure ?: stringResource(R.string.wear_resources_empty_hint),
                     onBack = { navController.popBackStack() },
+                    scrollState = stateScrollState,
                     extraActions = emptyResourceActions(
                         syncState = syncState,
+                        offersCredentialEntry = viewModel.offersCredentialEntry,
                         onSyncClick = { viewModel.requestSyncFromPhone() },
                         onAddClick = { navController.navigate(WearRoutes.ADD_NETWORK_SOURCE) }
                     )
@@ -154,7 +158,8 @@ fun NetworkSourcesScreen(
                     onRetry = {
                         Timber.d("Retrying network sources load")
                         viewModel.retryLoad()
-                    }
+                    },
+                    scrollState = stateScrollState
                 )
             }
         }
@@ -173,7 +178,13 @@ fun NetworkSourcesScreen(
             negativeButton = {
                 Chip(
                     onClick = { pendingDeleteSource = null },
-                    label = { Text(stringResource(R.string.cancel)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     colors = ChipDefaults.secondaryChipColors()
                 )
             },
@@ -183,7 +194,13 @@ fun NetworkSourcesScreen(
                         viewModel.deleteSource(source.id)
                         pendingDeleteSource = null
                     },
-                    label = { Text(stringResource(R.string.delete)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.delete),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     colors = ChipDefaults.primaryChipColors()
                 )
             }
@@ -233,7 +250,13 @@ private fun SourceActionsDialog(
         item {
             Chip(
                 onClick = onTest,
-                label = { Text(stringResource(R.string.test_connection)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.test_connection),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.primaryChipColors()
             )
@@ -241,7 +264,13 @@ private fun SourceActionsDialog(
         item {
             Chip(
                 onClick = onDelete,
-                label = { Text(stringResource(R.string.delete)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
             )
@@ -303,7 +332,13 @@ private fun ConnectionTestDialog(
                 item {
                     Chip(
                         onClick = onDismiss,
-                        label = { Text(stringResource(android.R.string.ok)) },
+                        label = {
+                            Text(
+                                text = stringResource(android.R.string.ok),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ChipDefaults.primaryChipColors()
                     )
@@ -345,6 +380,7 @@ private fun SourcesListContent(
     syncState: SyncState,
     listState: ScalingLazyListState,
     viewMode: WearViewMode,
+    offersCredentialEntry: Boolean,
     actions: NetworkSourcesActions,
     exportState: ExportState = ExportState.Idle
 ) {
@@ -352,11 +388,9 @@ private fun SourcesListContent(
     // the same rule the home screen applies, so the two screens cannot drift apart (strategic ADR-1).
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
+            state = listState
         ) {
             item {
                 Text(
@@ -390,12 +424,16 @@ private fun SourcesListContent(
                 }
             }
 
-            if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+            if (NetworkSourceEntry.isOffered(offersCredentialEntry)) {
                 item {
                     Chip(
                         onClick = actions.onAddClick,
                         label = {
-                            Text(text = stringResource(R.string.add_network_source))
+                            Text(
+                                text = stringResource(R.string.add_network_source),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ChipDefaults.secondaryChipColors()
@@ -422,13 +460,14 @@ private fun SourcesListContent(
  * The two ways out of an empty Resources list, in the order they are worth trying.
  *
  * Pulling the phone's sources over is the answer for almost everyone and stays first. Typing a
- * source in by hand is offered only where [NetworkSourceEntry.isOffered] allows it, which today is
- * debug builds - so a release build shows one offer and Back, and the extra chip is a debug-only
- * shape rather than the one that ships.
+ * source in by hand is offered only where [NetworkSourceEntry.isOffered] allows it, which since S2486
+ * is the `noLegal` flavor in both build types - so the store build shows one offer and Back, and the
+ * extra chip is a sideload-only shape rather than the one Play reviews.
  */
 @Composable
 private fun emptyResourceActions(
     syncState: SyncState,
+    offersCredentialEntry: Boolean,
     onSyncClick: () -> Unit,
     onAddClick: () -> Unit
 ): List<WearStateExtraAction> = buildList {
@@ -441,7 +480,7 @@ private fun emptyResourceActions(
             enabled = syncState !is SyncState.Pending
         )
     )
-    if (NetworkSourceEntry.isOffered(BuildConfig.DEBUG)) {
+    if (NetworkSourceEntry.isOffered(offersCredentialEntry)) {
         add(
             WearStateExtraAction(
                 label = stringResource(R.string.add_network_source),
@@ -463,7 +502,11 @@ private fun SyncFromPhoneChip(
             if (syncState is SyncState.Pending) {
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             } else {
-                Text(text = stringResource(R.string.wear_sync_from_phone))
+                Text(
+                    text = stringResource(R.string.wear_sync_from_phone),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         modifier = Modifier.fillMaxWidth(),
@@ -483,11 +526,23 @@ private fun ExportToPhoneChip(
             if (exportState is ExportState.Exporting) {
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             } else {
-                Text(text = stringResource(R.string.wear_export_to_phone))
+                Text(
+                    text = stringResource(R.string.wear_export_to_phone),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         modifier = Modifier.fillMaxWidth(),
-        colors = ChipDefaults.secondaryChipColors()
+        // S2522: spelled out through the base factory rather than through secondaryChipColors(), which
+        // exposes no disabled colour and derives it as the content colour at a fixed low alpha - the
+        // pattern AndroidX documents as insufficient contrast on a light background and patched only in
+        // the primary family (b/254025377). This chip is disabled for the whole export, which is
+        // exactly when it has to stay readable. The surface background matches the secondary look.
+        colors = ChipDefaults.chipColors(
+            backgroundColor = MaterialTheme.colors.surface,
+            disabledContentColor = MaterialTheme.colors.onSurfaceVariant
+        )
     )
 }
 

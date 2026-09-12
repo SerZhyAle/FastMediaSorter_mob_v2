@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequest
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceRequestKind
 import com.sza.fastmediasorter.domain.model.WearPhoneResourceResponseStatus
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
+import com.sza.fastmediasorter.util.VirtualPathUtils
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.async
@@ -29,6 +30,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private val resourceRepository: ResourceRepository,
     private val mediaScannerFactory: MediaScannerFactory,
     private val buildWatchThumbnail: BuildWatchThumbnailUseCase,
+    private val mediaStoreRepository: com.sza.fastmediasorter.domain.repository.MediaStoreRepository,
     // S1860: the scan runs here rather than in the caller's job, so a scanner blocked on a dead host
     // can be abandoned. See `withinScanBudget`.
     @ApplicationScope private val applicationScope: CoroutineScope
@@ -61,6 +63,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
      * draws its type glyph either way, and a failure status would be reported to the owner as one.
      */
     private suspend fun thumbnailFor(request: WearPhoneResourceRequest): WearPhoneResourcePage {
+        Timber.d("S2489: Phone generating watch thumbnail for token %s", request.itemToken)
         val token = request.itemToken?.let { PhoneResourceToken.parse(it) }
             ?: return failure(request, WearPhoneResourceResponseStatus.NOT_FOUND)
 
@@ -105,22 +108,22 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     /**
      * The file a token addresses, or null when the resource no longer holds it.
      *
-     * A scan is the only way back from a token to a file: the token is stateless by design, so there
-     * is no server-side table to look the item up in. A path token scans the folder it names; a
-     * MediaStore token scans the resource root, because an element of a virtual resource has no path
-     * inside that resource and is separated from its same-named siblings only by its store id.
+     * A MediaStore id is resolved directly via MediaStoreRepository first. Otherwise, the folder
+     * path named by relativePath is scanned.
      */
     // S1911: same plugin boundary as the listing paths - any host or provider failure becomes one
     // domain answer, and only CancellationException is let through.
     @Suppress("TooGenericExceptionCaught")
     private suspend fun locateFile(token: PhoneResourceToken, resource: MediaResource): MediaFile? {
-        val byMediaStoreId = token.mediaStoreId != null
-        val scanPath = if (byMediaStoreId) {
-            resource.path
-        } else {
-            PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
-                .resolveAgainst(resource)
+        if (token.mediaStoreId != null) {
+            val file = runCatching { mediaStoreRepository.getFileByMediaStoreId(token.mediaStoreId) }.getOrNull()
+            if (file != null) {
+                return file
+            }
         }
+
+        val scanPath = PhoneResourceToken(token.resourceId, token.relativePath.substringBeforeLast('/', ""))
+            .resolveAgainst(resource)
 
         val children = runCatching { mediaScannerFactory.getScanner(resource.type) }.getOrNull()
             ?.let { scanner ->
@@ -142,7 +145,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
 
         val visible = children?.visibleTo(resource)?.filterNot { it.isDirectory }.orEmpty()
-        return if (byMediaStoreId) {
+        return if (token.mediaStoreId != null) {
             visible.firstOrNull { it.mediaStoreIdOrNull() == token.mediaStoreId }
         } else {
             visible.firstOrNull { it.name == token.relativePath.substringAfterLast('/') }
@@ -205,7 +208,25 @@ class ListPhoneResourcePageUseCase @Inject constructor(
             }
         }
 
-        val sorted = allFiles.sortedByDescending { pair ->
+        // S2860: the default virtual resources overlap - virtual://recent, virtual://all_images
+        // and virtual://camera_photos all return the same MediaStore row for one physical file.
+        // Without deduplication each file appears once per resource that covers it, so the watch
+        // renders it once per overlapping resource. The MediaStore id is the stable identity when
+        // the scanner carried a content URI; the physical path is the fallback for File-API entries.
+        // S2982: a file covered by a virtual resource (MediaStore id key) AND a local folder resource
+        // (path key) survived twice - two different keys for one file. Both keys are now entered into
+        // the seen set, and a file is kept only when every key it carries is new. The path is the
+        // stronger identity of the two: it names at most one physical file, so two MediaStore rows
+        // pointing at one path are one file (a stale row beside the fresh one) and collapse here.
+        val seen = mutableSetOf<String>()
+        val unique = allFiles.filter { (_, file) ->
+            val mediaStoreId = file.mediaStoreIdOrNull()?.toString()
+            val pathIsNew = seen.add(file.path)
+            val idIsNew = mediaStoreId == null || seen.add(mediaStoreId)
+            pathIsNew && idIsNew
+        }
+
+        val sorted = unique.sortedByDescending { pair ->
             pair.second.lastModified.coerceAtLeast(pair.second.createdDate)
         }
         return page(request, sorted) { (resource, file) ->
@@ -429,7 +450,13 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     /**
      * A PIN-protected or unavailable resource stays invisible instead of returning ACCESS_DENIED per
      * item: the watch has no way to satisfy the PIN, and naming a protected resource already tells
-     * the holder of the watch that it exists. Streams are excluded because they are not scannable.
+     * the holder of the watch that it exists.
+     *
+     * S2911: the section lists exactly what the open channel delivers - phone-owned storage only.
+     * Every file a network resource (SMB, SFTP, FTP, CLOUD) contributes is a tile the open channel
+     * then refuses, because `OpenPhoneResourceChannelUseCase` deliberately does not relay network
+     * content: the watch reaches those hosts itself. Streams stay out for the same reason, plus
+     * they are not scannable.
      */
     /**
      * S1846: the media kinds one watch chip asks for, or null when it asks for everything.
@@ -471,8 +498,7 @@ class ListPhoneResourcePageUseCase @Inject constructor(
     private fun MediaResource.isExposedToWatch(): Boolean =
         isAvailable &&
             accessPin == null &&
-            type != ResourceType.HTTP_STREAM &&
-            type != ResourceType.RTSP_STREAM
+            (type == ResourceType.LOCAL || VirtualPathUtils.isVirtualPath(path))
 
     private fun MediaResource.toRootItem(): WearPhoneResourceItem = WearPhoneResourceItem(
         token = PhoneResourceToken(id, "").serialize(),

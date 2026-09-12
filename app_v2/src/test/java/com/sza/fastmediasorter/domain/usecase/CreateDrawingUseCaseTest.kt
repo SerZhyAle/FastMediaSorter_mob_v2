@@ -27,6 +27,10 @@ class CreateDrawingUseCaseTest {
         useCase = CreateDrawingUseCase(context, stagingDirectoryProvider, stagingRegistry)
     }
 
+    // S2625 routes this boundary through allowsWriteOperations(), which for LOCAL also demands the
+    // probed isWritable - clearing isReadOnly alone no longer reaches name validation.
+    private val writableResource = createMediaResource(isReadOnly = false, isWritable = true)
+
     @Test
     fun `read-only resource is rejected`() = runTest {
         val resource = createMediaResource(isReadOnly = true)
@@ -34,14 +38,22 @@ class CreateDrawingUseCaseTest {
         val result = useCase(resource, "/parent", "drawing.jpg")
 
         assertTrue(result.isFailure)
-        assertTrue(result.exceptionOrNull()?.message?.contains("read-only") == true)
+        assertTrue(result.exceptionOrNull()?.message?.contains("write operations") == true)
+    }
+
+    @Test
+    fun `local resource without probed write access is rejected`() = runTest {
+        val resource = createMediaResource(isReadOnly = false, isWritable = false)
+
+        val result = useCase(resource, "/parent", "drawing.jpg")
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull()?.message?.contains("write operations") == true)
     }
 
     @Test
     fun `blank file name is rejected`() = runTest {
-        val resource = createMediaResource(isReadOnly = false)
-
-        val result = useCase(resource, "/parent", "   ")
+        val result = useCase(writableResource, "/parent", "   ")
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull()?.message?.contains("empty") == true)
@@ -49,9 +61,7 @@ class CreateDrawingUseCaseTest {
 
     @Test
     fun `file name with forbidden characters is rejected`() = runTest {
-        val resource = createMediaResource(isReadOnly = false)
-
-        val result = useCase(resource, "/parent", "bad/name?.jpg")
+        val result = useCase(writableResource, "/parent", "bad/name?.jpg")
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull()?.message?.contains("invalid characters") == true)
@@ -59,9 +69,7 @@ class CreateDrawingUseCaseTest {
 
     @Test
     fun `overlong file name is rejected`() = runTest {
-        val resource = createMediaResource(isReadOnly = false)
-
-        val result = useCase(resource, "/parent", "a".repeat(256))
+        val result = useCase(writableResource, "/parent", "a".repeat(256))
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull()?.message?.contains("too long") == true)

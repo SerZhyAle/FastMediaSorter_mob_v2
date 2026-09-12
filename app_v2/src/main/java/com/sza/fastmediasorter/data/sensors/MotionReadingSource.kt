@@ -114,7 +114,7 @@ class MotionReadingSource @Inject constructor(
     private companion object {
         val CANDIDATE_PROVIDERS =
             listOf(LocationManager.GPS_PROVIDER, LocationManager.NETWORK_PROVIDER)
-        const val MIN_UPDATE_INTERVAL_MS = 2000L
+        const val MIN_UPDATE_INTERVAL_MS = 500L
         const val MIN_UPDATE_DISTANCE_M = 0f
         const val MAX_TRUSTED_ACCURACY_M = 50f
     }

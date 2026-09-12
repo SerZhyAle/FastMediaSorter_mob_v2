@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.core.capability
 import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
+import com.sza.fastmediasorter.core.util.LicensedDeviceClass
 import javax.inject.Inject
 import javax.inject.Qualifier
 import javax.inject.Singleton
@@ -23,7 +24,9 @@ annotation class CompiledCapabilities
  *
  * Onboarding pages and settings both ask this contract instead of reading build flags directly
  * (CLAUDE.md Rule 15). The compile-time axis is the multibound [compiled] set fed by per-capability
- * source-set modules; the device-runtime axis (OCR RAM/API) is folded in via [DeviceCapabilities].
+ * source-set modules; the device-runtime axis is folded in via [DeviceCapabilities] for OCR (RAM/API)
+ * and via [LicensedDeviceClass] for translation, where it encodes a licence restriction rather than a
+ * hardware one - the ML Kit Translation terms permit only phones, tablets, laptops and desktops.
  *
  * VR exposure here is compile-time only - whether the immersive runtime is even present in the build.
  * The per-device "is this a headset right now" check stays in the XR detection facade and is combined
@@ -34,7 +37,39 @@ class CapabilityAvailability @Inject constructor(
     @CompiledCapabilities private val compiled: Set<@JvmSuppressWildcards String>
 ) {
 
-    fun isTranslationAvailable(): Boolean = CAP_TRANSLATION in compiled
+    /** Whether ML Kit translation is linked into this build - the compile axis alone. */
+    fun isTranslationCompiledIn(): Boolean = CAP_TRANSLATION in compiled
+
+    /**
+     * Whether translation may be offered here: linked into the build AND running on a device class
+     * the ML Kit Translation licence permits (S1625).
+     *
+     * There is deliberately no no-argument overload. The device axis was added to a predicate a dozen
+     * call sites already answered on the compile axis alone, and an overload would have left every one
+     * of them compiling unchanged and still violating the terms.
+     */
+    fun isTranslationAvailable(context: Context): Boolean =
+        translationSupport(context) is TranslationSupport.Supported
+
+    /**
+     * Same decision as [isTranslationAvailable] with the reason attached. A surface that must explain
+     * itself needs to tell "this build never shipped translation" from "this device class is not
+     * licensed for it" - those two states owe the user different copy.
+     */
+    fun translationSupport(context: Context): TranslationSupport {
+        val deviceClass = LicensedDeviceClass.current(context)
+        return when {
+            !isTranslationCompiledIn() -> TranslationSupport.Unsupported(
+                reason = TranslationUnavailableReason.NOT_COMPILED_IN,
+                deviceClass = deviceClass,
+            )
+            deviceClass !in LicensedDeviceClass.MLKIT_TRANSLATION_ALLOWED -> TranslationSupport.Unsupported(
+                reason = TranslationUnavailableReason.DEVICE_CLASS_NOT_LICENSED,
+                deviceClass = deviceClass,
+            )
+            else -> TranslationSupport.Supported
+        }
+    }
 
     fun isVrAvailable(): Boolean = CAP_VR in compiled
 
@@ -59,10 +94,27 @@ class CapabilityAvailability @Inject constructor(
      */
     fun isPersistentAudioPlaybackAvailable(): Boolean = BuildConfig.ENABLE_PERSISTENT_AUDIO_PLAYBACK
 
-    fun isExtensionsScreenAvailable(): Boolean = isOcrCompiledIn() || isTranslationAvailable() || isStreamsAvailable()
+    fun isExtensionsScreenAvailable(context: Context): Boolean =
+        isOcrCompiledIn() || isTranslationAvailable(context) || isStreamsAvailable()
 
     /** Whether the GPL NewPipe extractor is linked in (noLegal only) - gates its license card. */
     fun isNewPipeAvailable(): Boolean = CAP_NEWPIPE in compiled
+
+    enum class TranslationUnavailableReason {
+        /** This flavor does not link ML Kit translation at all. */
+        NOT_COMPILED_IN,
+
+        /** The ML Kit Translation licence does not permit this device class (S1625). */
+        DEVICE_CLASS_NOT_LICENSED,
+    }
+
+    sealed interface TranslationSupport {
+        object Supported : TranslationSupport
+        data class Unsupported(
+            val reason: TranslationUnavailableReason,
+            val deviceClass: LicensedDeviceClass.DeviceClass,
+        ) : TranslationSupport
+    }
 
     companion object {
         const val CAP_OCR = "ocr"

@@ -52,7 +52,7 @@ $failed = 0
 $cannotVerify = 0
 
 foreach ($file in $testFiles) {
-    & $pwshExe -NoProfile -File $file.FullName
+    & $pwshExe -NoProfile -NonInteractive -File $file.FullName
     $code = [int]$LASTEXITCODE
 
     $verdict = switch ($code) {

@@ -1,0 +1,24 @@
+{
+  "$comment": "Input groups for scripts/quality/release-scope-fingerprint.ps1 (S3010). Each group names the tree roots one or more release-scope gates READ. Held as data, not as literals in the script: assert-code-domain-writers.ps1 flags any .ps1 that carries both a write cmdlet and a quoted Code.* path, and the fingerprint writes only temp/ - registering it as a writer would have demanded a domain lock it does not need, while hiding the roots inside expressions would have been obfuscation. As data they are also the vocabulary assert-release-scope-gates.ps1 -OnlyGroups speaks.",
+  "groups": {
+    "phone-src": [
+      "app_v2/src"
+    ],
+    "wear-src": [
+      "wear/src"
+    ],
+    "play-listing": [
+      "play"
+    ],
+    "docs": [
+      "docs"
+    ],
+    "scripts": [
+      "scripts",
+      "lint-rules"
+    ],
+    "specs-archive": [
+      "PLAN/archive"
+    ]
+  }
+}

@@ -15,7 +15,9 @@ class ClockGadgetStateStore @Inject constructor(
     @ApplicationContext context: Context,
 ) {
 
-    private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    private val preferences by lazy {
+        context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
+    }
 
     fun read(): ClockGadgetDisplayState = ClockGadgetDisplayState(
         secondsVisible = preferences.getBoolean(KEY_SECONDS_VISIBLE, true),

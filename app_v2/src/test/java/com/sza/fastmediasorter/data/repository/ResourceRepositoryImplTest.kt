@@ -57,7 +57,9 @@ class ResourceRepositoryImplTest {
             credentialsRepository,
             smbOperations,
             storageVolumeRepository,
-            wearWatchMediaScanner
+            wearWatchMediaScanner,
+            // S2502: the edit-stamp store. Relaxed - these tests assert on the DAO, not on stamping.
+            mockk(relaxed = true)
         )
     }
 

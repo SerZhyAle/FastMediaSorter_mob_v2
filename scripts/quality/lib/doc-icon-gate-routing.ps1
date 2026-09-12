@@ -12,7 +12,7 @@ function Test-DocIconGateRoute {
         '^index(-ru|-uk)?\.html$',
         '^docs/howto/index(-ru|-uk)?\.md$',
         '^docs/DOCS_MAP\.md$',
-        '^docs/SETTINGS_REFERENCE(_RU|_UK)?\.md$'
+        '^docs/SETTINGS_REFERENCE(-ru|-uk)?\.md$'
     )
 
     foreach ($changedFile in $ChangedFiles) {

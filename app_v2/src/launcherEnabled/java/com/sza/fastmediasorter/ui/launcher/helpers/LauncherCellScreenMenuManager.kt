@@ -4,7 +4,6 @@ import android.view.View
 import android.widget.ListPopupWindow
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
-import timber.log.Timber
 
 /**
  * S2301: the edit-mode menu of one desktop object - today, which screen to move it to.
@@ -49,7 +48,6 @@ class LauncherCellScreenMenuManager(
                 )
             }
         if (rows.isEmpty() || !anchor.isAttachedToWindow) return
-        Timber.d("S2301: edit menu for cell %d offers %d screen(s)", cell.cell.id, rows.size)
         showPopup(anchor, rows)
     }
 

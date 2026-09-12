@@ -48,7 +48,7 @@ license_note, notes, confidence, favicon_index, access
 
 | # | Column | Meaning | Example values | Blank default | Required | Persisted to `stream_sources`? |
 |---|--------|---------|----------------|---------------|----------|--------------------------------|
-| 1 | `category` | high-level rubric | `Radio`, `Radio (SomaFM)`, `Live TV`, `Open movies`, `Test stream` | `""` | no | yes -> `category` (CATALOG rows) |
+| 1 | `category` | high-level rubric | `Radio`, `Radio (SomaFM)`, `Live TV`, `Open movies`, `Test stream`, `Webcam` | `""` | no | yes -> `category` (CATALOG rows) |
 | 2 | `topic` | genre/theme for filtering | `Jazz`, `Classical`, `Ambient`, `News`, `Movie` | `""` | no | yes -> `topic` |
 | 3 | `name` | display title | `TRT Radyo 3` | - | **yes** | yes -> `title` |
 | 4 | `url` | direct playable stream URL (playlists already resolved) | `https://host/stream.aac` | - | **yes** | yes -> `url` (unique) |
@@ -108,8 +108,8 @@ normalizers (`scripts/streams/modules/StreamPublisher.Common.ps1`, `Get-Canonica
 construction and by the isolated rewrite mode below. The app import applies the same contract
 (`StreamCatalogFacetNormalizer`), so an older asset and a fresh download converge on the same ids.
 
-- `category` - closed set: `Radio`, `Live TV`, `On-demand video`, `Test streams`. Known provider aliases
-  (`radio (somafm)`, `tv`, `open movies`, `movie`, `test stream`, ...) fold into these. An unknown
+- `category` - closed set: `Radio`, `Live TV`, `On-demand video`, `Test streams`, `Webcam`. Known provider aliases
+  (`radio (somafm)`, `somafm`, `tv`, `open movies`, `movie`, `test stream`, `webcam`, `webcams`, `cam`, `cams`, ...) fold into these. An unknown
   non-blank value is **preserved verbatim** for review (visible fallback), never dropped.
 - `topic` - the app's closed rubric set (S1477). Unknown or stale values fold into `General`.
 - `language` - lowercase English language names, comma-separated inside the cell; known regional variants
@@ -129,6 +129,57 @@ backup and a per-value move report under `temp/S2233/`, keeps the row count and 
 and uploads nothing unless `-Publish` is also passed. It is a separate mode by design (strategic ADR-2):
 a mass metadata rewrite must never ride along with a discovery or artwork run. The legacy
 `-NormalizeTopics` switch remains the topic-only subset of the same operation.
+
+### 2.5 `name` guarantees (S2645, S2651) **[CONTRACT]**
+
+Until 2026-09-06 the `name` cell was whatever the upstream directory wrote, forwarded untouched. It is now
+repaired publisher-side, and a published bank carries five guarantees. A consumer may rely on them; a
+consumer that already works around their absence may stop.
+
+- **No undecoded HTML entity.** Named and numeric forms are decoded, including the double-encoded shape
+  (`102 FM L&amp;#039;Originale` -> `102 FM L'Originale`).
+- **No serialised encoder-slot prefix.** A leading `- <n> <X> - ` is stripped. A leading dash that is part
+  of the station's own name is not - the pattern requires the digit.
+- **Never literally `(null)`, and never free of letters and digits.** A row whose name says nothing gets
+  one derived from its address instead (below).
+- **Non-blank.** Unchanged from 2.1, and now enforced at publish time rather than assumed.
+- **No Unicode replacement character (U+FFFD).** The Xiph YP directory serves 31 station names whose
+  accented letter is already destroyed in its own bytes, so the app showed a black diamond inside the
+  name (`Roxy R<U+FFFD>di<U+FFFD>`). The letter is restored from a word table - `Roxy Rádió`,
+  `Radio Lübeck`, `RCF Liège` - and only that letter: an accent the source had already lost elsewhere
+  in the word is not added, because that would rename the station. A word the table does not know is a
+  terminal case: the row leaves the bank, reported, rather than shipping the diamond.
+
+**Derived names.** A name that carries no information - no letter and no digit, `(null)`, or one of the
+encoder defaults (`Online Radio`, `Unspecified name`, `Default Stream`, `Orban Opticodec-PC Encoder`,
+`MB STUDIO`, `RadioBOSS Stream`, ...) - is rebuilt from the row's own `host[:port]`, dropping a default
+port. A name that still carries the broadcaster's own words keeps them and gains the token beside them
+(`Online Radio (quincy.torontocast.com:2150)`); one that only asserts the absence of a name is replaced by
+the token outright (`(null)` -> `hoth.alonhosting.com:3410`). The port is part of the token because shared
+streaming hosts give every tenant one hostname and a port of its own.
+
+This is a **name** guarantee, not a uniqueness guarantee. Two rows may still share a name: a station with
+several quality rungs legitimately does, and 83 rows of the 2026-09-06 bank sit on one host and port with
+nothing in the URL to tell them apart. The mount path is deliberately not appended - it would reach
+uniqueness by putting an opaque id such as `/p5q8mompi9z/64k.aac` in front of the user.
+
+**Row identity.** Rows that fold to one channel identity - the `StreamChannelIdentity` key, i.e. the
+normalized URL with `http` and `https` folded to one token - are collapsed to a single row. This removes a
+duplicate **row**, never a channel: both copies already resolved to the same key on the device, so a pin
+placed on one showed on the other. The 2026-09-06 pass collapsed 62.
+
+**Rewrite mode.** `-NormalizeNames` applies all of the above to an existing catalog with no network
+collection, in the shape `-NormalizeFacets` established: a timestamped backup, a per-rule move report
+(`name-normalization-moves.csv`), a per-row list of collapsed duplicates
+(`identity-duplicates-dropped.csv`), a per-row list of names it could not repair
+(`replacement-char-dropped.csv`), and no upload unless `-Publish` is passed. It refuses to write when the
+surviving row count is not the input count minus the collapsed duplicates and those dropped rows. It is
+idempotent - a second pass over a repaired bank reports zero moves.
+
+**Publish gate.** `Assert-CatalogNamesClean` runs inside `Invoke-PublishCatalog` and refuses a bank that
+violates any of the five guarantees, naming the count per class. It repairs nothing: a silent repair on the
+publish path would be an unrecorded change to the shipped bank, which is what `-NormalizeNames` exists to
+keep reviewable.
 
 ---
 
@@ -288,8 +339,52 @@ From the current `streams.csv` (19,534 data rows): **AUDIO 16,616, VIDEO 2,917, 
 
 ---
 
-## 8. Ticket index for this file
+## 8. `collections.json` - curated collections (S2669) **[CONTRACT]**
+
+An optional third ZIP entry (see `01_delivery_contract.md` 5.3a for the packaging rules). It names groups
+of bank rows; it changes no column of `streams.csv` and adds none.
+
+```json
+{
+  "schemaVersion": 1,
+  "collections": [
+    {
+      "id": "tv-ru",
+      "order": 10,
+      "names": { "en": "Russian TV", "ru": "TV России", "uk": "Телебачення Росії" },
+      "members": [ { "url": "https://example/stream.m3u8", "order": 1 } ]
+    }
+  ]
+}
+```
+
+| Field | Type | Meaning |
+|---|---|---|
+| `schemaVersion` | int | Currently `1`. A consumer that reads a number it does not know MUST ignore the whole payload rather than guess at it. |
+| `collections[].id` | string | Stable kebab-case identifier, unique within the file, never reused for a different collection. Not shown to the user. |
+| `collections[].order` | int | Ascending; the order in which collections are presented. Not necessarily contiguous. |
+| `collections[].names` | object | Open map of BCP-47 language tag to display name. `en`, `ru` and `uk` are always present - the producer refuses a collection missing any of them. Further locales are optional and appear without any client change. |
+| `collections[].members[].url` | string | **The member key: the bank's `url` column, byte-identical.** Not the channel name, not a synthetic id. |
+| `collections[].members[].order` | int | Contiguous from 1 within the collection; the curator's reading order. |
+
+### 8.1 Rules a consumer can rely on **[CONTRACT]**
+
+- **A url may appear in several collections.** That is the point of the entry: nothing is duplicated in
+  the bank to express membership, and a channel legitimately belongs to "Russian TV" and to "News" at once.
+- **Every member url exists in the `streams.csv` shipped in the same ZIP.** The producer refuses to publish
+  otherwise, so a consumer needs no missing-member branch beyond ordinary defensive coding.
+- **No collection is empty** and **no id repeats** - both refused by the producer.
+- **Name resolution:** pick the full locale tag, then the language-only tag, then `en`. `en` is guaranteed,
+  so a raw id must never reach a user's screen.
+- **Replacement, not merge.** The payload is the whole truth about collections at publication time. A client
+  that stores them replaces its stored set; there is no per-collection delta and no user-authored member.
+- **Absence means "unchanged", not "empty".** A ZIP with no `collections.json` leaves a client's stored
+  collections alone. To clear them, the producer publishes the entry with an empty `collections` array.
+
+---
+
+## 9. Ticket index for this file
 
 S0570 (catalog CSV + parser + import), S0668 (`favicon_index` column), S0583 (import size/timeout budgets),
-S0761 (`country` column), S0805 (deep-signal append gate in the collector), plus the classifier and m3u
-paths under S0565.
+S0761 (`country` column), S0805 (deep-signal append gate in the collector), S2669 (`collections.json`),
+plus the classifier and m3u paths under S0565.

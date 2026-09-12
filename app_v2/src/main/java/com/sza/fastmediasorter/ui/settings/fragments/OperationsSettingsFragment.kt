@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -24,11 +25,15 @@ import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
+import com.sza.fastmediasorter.core.share.ShareTargetAvailabilityResolver
+import com.sza.fastmediasorter.core.share.ShareTargetIconResolver
+import com.sza.fastmediasorter.core.share.ShareTargetRegistry
 import com.sza.fastmediasorter.core.util.DeviceCapabilities
 import com.sza.fastmediasorter.databinding.FragmentSettingsDestinationsBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
+import com.sza.fastmediasorter.domain.usecase.IsShareTargetEnabledUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncherDesktopUseCase
 import com.sza.fastmediasorter.ui.common.permissions.permissionRationale
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
@@ -40,14 +45,18 @@ import com.sza.fastmediasorter.ui.settings.SettingsActivity
 import com.sza.fastmediasorter.ui.settings.SettingsViewModel
 import com.sza.fastmediasorter.ui.settings.WearSyncViewModel
 import com.sza.fastmediasorter.ui.settings.gesture.EdgeGestureConfigDialogFragment
+import com.sza.fastmediasorter.ui.settings.helpers.DestinationLabelResolver
 import com.sza.fastmediasorter.ui.settings.helpers.HomeWidgetSettingsHelper
 import com.sza.fastmediasorter.ui.settings.helpers.LocalFolderDestinationPickerManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsCaptureManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsDestinationsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsGesturesManager
+import com.sza.fastmediasorter.ui.settings.helpers.OperationsProgramsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsScheduledManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsSectionsManager
+import com.sza.fastmediasorter.ui.settings.helpers.OperationsSendCommandsManager
 import com.sza.fastmediasorter.ui.settings.helpers.OperationsWearGroupManager
+import com.sza.fastmediasorter.ui.stopwatch.StopwatchSettingsDialogFragment
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
@@ -79,6 +88,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
     @Inject
     lateinit var mediaCapabilities: MediaCapabilities
 
+    // S2390: Share targets registry, availability, icon resolvers and use case for «Send file to..» group
+    @Inject
+    lateinit var shareTargetRegistry: ShareTargetRegistry
+
+    @Inject
+    lateinit var shareTargetAvailabilityResolver: ShareTargetAvailabilityResolver
+
+    @Inject
+    lateinit var shareTargetIconResolver: ShareTargetIconResolver
+
+    @Inject
+    lateinit var isShareTargetEnabledUseCase: IsShareTargetEnabledUseCase
+
     // Empty on every flavor except noLegal, where the gesture-overlay capability contributes one.
     @Inject
     lateinit var screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>
@@ -109,8 +131,24 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
     private val sectionsHost by lazy { OperationsSectionsManager(binding, requireContext()) }
     private val destinationsManager by lazy { OperationsDestinationsManager(binding, viewModel, this) }
+    private val sendCommandsManager by lazy {
+        OperationsSendCommandsManager(
+            fragment = this,
+            binding = binding,
+            viewModel = viewModel,
+            shareTargetRegistry = shareTargetRegistry,
+            shareTargetAvailabilityResolver = shareTargetAvailabilityResolver,
+            shareTargetIconResolver = shareTargetIconResolver,
+            isShareTargetEnabledUseCase = isShareTargetEnabledUseCase,
+        )
+    }
     private val localFolderDestinationPickerManager by lazy {
         LocalFolderDestinationPickerManager(this, viewModel, localFolderDestinationPickerLauncher)
+    }
+
+    // S2797: the scope is read per call - viewLifecycleOwner is a different object after recreation.
+    private val destinationLabelResolver by lazy {
+        DestinationLabelResolver({ viewLifecycleOwner.lifecycleScope }, viewModel.resourceRepository)
     }
     private val scheduledManager by lazy {
         OperationsScheduledManager(
@@ -139,6 +177,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             { isUpdatingFromSettings },
             wearSyncViewModel::refreshPairedWatchStatus,
         )
+    }
+    private val programsManager by lazy {
+        OperationsProgramsManager(
+            binding,
+            viewModel,
+            networkMonitorContract.isAvailableInBuild,
+        ) { isUpdatingFromSettings }
     }
     private val gesturesManager by lazy {
         OperationsGesturesManager(
@@ -218,7 +263,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         _binding = FragmentSettingsDestinationsBinding.inflate(inflater, container, false)
         return binding.root
     }
-    
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setupViews()
@@ -245,8 +290,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         super.onDestroyView()
         _binding = null
     }
-    
+
     private fun setupViews() {
+        sendCommandsManager.setup()
         binding.rowUseTrash.setTrailingControl(binding.btnClearTrash)
 
         // Copying switches
@@ -256,19 +302,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(enableCopying = isChecked))
             updateCopyOptionsVisibility(isChecked)
         }
-        
+
         binding.rowGoToNextAfterCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(goToNextAfterCopy = isChecked))
         }
-        
+
         binding.rowOverwriteOnCopy.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnCopy = isChecked))
         }
-        
+
         // Moving switches
         binding.rowEnableMoving.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -276,13 +322,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(enableMoving = isChecked))
             updateMoveOptionsVisibility(isChecked)
         }
-        
+
         binding.rowOverwriteOnMove.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             viewModel.updateSettings(current.copy(overwriteOnMove = isChecked))
         }
-        
+
         // Safety & Confirmation group (moved from General settings)
         binding.rowEnableSafeMode.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -313,7 +359,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Max Recipients
         val maxRecipientsOptions = arrayOf("5", "10", "15", "20", "25", "30")
-        val maxRecipientsAdapter = android.widget.ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, maxRecipientsOptions)
+        val maxRecipientsAdapter = android.widget.ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            maxRecipientsOptions
+        )
         binding.etMaxRecipients.setAdapter(maxRecipientsAdapter)
         binding.etMaxRecipients.setOnItemClickListener { _, _, position, _ ->
             val limit = maxRecipientsOptions[position].toInt()
@@ -335,15 +385,19 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                     // Invalid input
                     binding.tilMaxRecipients.error = getString(R.string.max_recipients_error)
                     // Restore previous valid value
-                    binding.etMaxRecipients.setText(getString(R.string.number_format, viewModel.settings.value.maxRecipients))
+                    binding.etMaxRecipients.setText(
+                        getString(R.string.number_format, viewModel.settings.value.maxRecipients)
+                    )
                 }
             }
         }
-        
+
         binding.etMaxRecipients.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == android.view.inputmethod.EditorInfo.IME_ACTION_DONE) {
                 binding.etMaxRecipients.clearFocus()
-                val imm = requireContext().getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                val imm = requireContext().getSystemService(
+                    android.content.Context.INPUT_METHOD_SERVICE
+                ) as android.view.inputmethod.InputMethodManager
                 imm.hideSoftInputFromWindow(binding.etMaxRecipients.windowToken, 0)
                 true
             } else {
@@ -392,6 +446,14 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             EdgeGestureConfigDialogFragment().show(childFragmentManager, EdgeGestureConfigDialogFragment.TAG)
         }
 
+        // S1411 ADR-5: the stopwatch's own options, the second way in beside its gear button. The row
+        // above it only decides whether the tool is offered at all, so this one is never gated on it -
+        // a user turning the tool on wants its options in the same place, not after a screen reload.
+        binding.rowOpenStopwatchSettings.setOnRowClickListener {
+            StopwatchSettingsDialogFragment.newInstance()
+                .show(childFragmentManager, StopwatchSettingsDialogFragment.TAG)
+        }
+
         // OCR/Translation toggles (containerAdditionalPrograms).
         binding.rowCameraOcrTranslationEnabled.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings) return@setOnCheckedChangeListener
@@ -431,29 +493,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             viewModel.updateSettings(current.copy(defaultRememberFileList = isChecked))
         }
 
-        // Other features group rows.
-        binding.rowEnableCalculator.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            val current = viewModel.settings.value
-            viewModel.updateSettings(current.copy(enableCalculator = isChecked))
-        }
-        binding.rowEnableNetworkMonitor.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableNetworkMonitor = isChecked))
-        }
-        binding.rowEnableSystemInfo.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableSystemInfo = isChecked))
-        }
-        binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            viewModel.updateEmbeddedGameEnabled(isChecked)
-        }
-        binding.rowFrontFlashlight.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingFromSettings) return@setOnCheckedChangeListener
-            Timber.d("front flashlight toggle -> $isChecked")
-            viewModel.updateSettings(viewModel.settings.value.copy(frontFlashlightEnabled = isChecked))
-        }
+        // S2516: the sub-program switches belong to their own manager now, so nothing about them is
+        // bound inline here.
+        programsManager.setup()
 
         // System apps group rows.
         // S1051: accessibility-shortcut control relocated here from the edge-gesture dialog. Visibility
@@ -538,7 +580,10 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
 
         // Reset Management settings button (Step 3.8).
         binding.btnResetOperationsSection.setOnClickListener {
-            MaterialAlertDialogBuilder(requireContext(), R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive)
+            MaterialAlertDialogBuilder(
+                requireContext(),
+                R.style.ThemeOverlay_FastMediaSorter_MaterialAlertDialog_Destructive
+            )
                 .setTitle(R.string.reset_operations_section_title)
                 .setMessage(R.string.reset_operations_section_message)
                 .setPositiveButton(R.string.reset) { _, _ ->
@@ -549,13 +594,16 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                 .showBoundTo(this@OperationsSettingsFragment)
         }
     }
-    
+
     private fun observeData() {
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 launch {
                     viewModel.settings.collect { settings ->
                         withSettingsUpdate {
+                            // S2797: every label below is re-rendered here, so a lookup left over
+                            // from the previous pass can only write a stale name.
+                            destinationLabelResolver.cancelPending()
                             scheduledManager.render(settings)
                             binding.rowEnableCopying.setCheckedSilently(settings.enableCopying)
                             binding.rowGoToNextAfterCopy.setCheckedSilently(settings.goToNextAfterCopy)
@@ -575,7 +623,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 if (settings.enableSafeMode) View.VISIBLE else View.GONE
 
                             if (binding.etMaxRecipients.text.toString() != settings.maxRecipients.toString()) {
-                                binding.etMaxRecipients.setText(getString(R.string.number_format, settings.maxRecipients))
+                                binding.etMaxRecipients.setText(
+                                    getString(R.string.number_format, settings.maxRecipients)
+                                )
                             }
 
                             // Behaviour group (moved from Player tab).
@@ -599,11 +649,13 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                             }
 
                             // OtherFeatures group (moved from Player tab).
-                            val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
+                            val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable(requireContext()) &&
                                 DeviceCapabilities.isOcrSupported(requireContext())
                             if (hasOcrAndTranslation) {
                                 if (binding.rowCameraOcrTranslationEnabled.isChecked != settings.cameraOcrTranslationEnabled) {
-                                    binding.rowCameraOcrTranslationEnabled.setCheckedSilently(settings.cameraOcrTranslationEnabled)
+                                    binding.rowCameraOcrTranslationEnabled.setCheckedSilently(
+                                        settings.cameraOcrTranslationEnabled
+                                    )
                                 }
                                 if (binding.rowCameraOcrOnly.isChecked != settings.cameraOcrOnly) {
                                     binding.rowCameraOcrOnly.setCheckedSilently(settings.cameraOcrOnly)
@@ -611,27 +663,11 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 binding.layoutCameraOcrOnly.isVisible = settings.cameraOcrTranslationEnabled
                             }
                             captureManager.render(settings)
-                            if (binding.rowEnableCalculator.isChecked != settings.enableCalculator) {
-                                binding.rowEnableCalculator.setCheckedSilently(settings.enableCalculator)
-                            }
-                            binding.rowEnableNetworkMonitor.isVisible = networkMonitorContract.isAvailableInBuild
-                            if (binding.rowEnableNetworkMonitor.isChecked != settings.enableNetworkMonitor) {
-                                binding.rowEnableNetworkMonitor.setCheckedSilently(settings.enableNetworkMonitor)
-                            }
-                            // No visibility line, unlike the Monitor above: system information is compiled
-                            // into every flavor, so the row is never absent from a build.
-                            if (binding.rowEnableSystemInfo.isChecked != settings.enableSystemInfo) {
-                                binding.rowEnableSystemInfo.setCheckedSilently(settings.enableSystemInfo)
-                            }
+                            // S2516: every sub-program switch is rendered by its own manager.
+                            programsManager.render(settings)
                             // S1883: the whole Wear OS group - its checkbox, its button and its gates -
                             // belongs to its own manager now, so nothing about it is rendered inline here.
                             wearGroupManager.render(settings)
-                            if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
-                                binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)
-                            }
-                            if (binding.rowFrontFlashlight.isChecked != settings.frontFlashlightEnabled) {
-                                binding.rowFrontFlashlight.setCheckedSilently(settings.frontFlashlightEnabled)
-                            }
 
                             // SystemApps group (moved from Player tab).
                             if (binding.rowFollowSystemRotation.isChecked != settings.programFollowSystemRotation) {
@@ -642,7 +678,9 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 binding.rowLinkAutodownloadEnabled.setCheckedSilently(settings.linkAutoDownloadEnabled)
                             }
                             if (binding.rowLinkAutodownloadOpenInPlayer.isChecked != settings.linkAutoDownloadOpenInPlayer) {
-                                binding.rowLinkAutodownloadOpenInPlayer.setCheckedSilently(settings.linkAutoDownloadOpenInPlayer)
+                                binding.rowLinkAutodownloadOpenInPlayer.setCheckedSilently(
+                                    settings.linkAutoDownloadOpenInPlayer
+                                )
                             }
                             // Disable child controls when master link-download toggle is off.
                             binding.rowLinkAutodownloadOpenInPlayer.isEnabled = settings.linkAutoDownloadEnabled
@@ -653,6 +691,7 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
                                 fallbackRes = R.string.link_autodownload_resource_not_set,
                             ) { binding.tvLinkAutodownloadResource.text = it }
 
+                            sendCommandsManager.updateAvailability(settings)
                             gesturesManager.render(settings)
                         }
 
@@ -671,23 +710,26 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
         }
         destinationsManager.observe()
     }
-    
+
     private fun updateCopyOptionsVisibility(enabled: Boolean) {
         binding.layoutCopyOptions.isVisible = enabled
         binding.layoutOverwriteCopyWrapper.isVisible = enabled
     }
-    
+
     private fun updateMoveOptionsVisibility(enabled: Boolean) {
         binding.layoutOverwriteMoveWrapper.isVisible = enabled
     }
-    
+
     override fun onConfigurationChanged(newConfig: android.content.res.Configuration) {
         super.onConfigurationChanged(newConfig)
         destinationsManager.onConfigurationChanged()
+        if (_binding != null) {
+            sendCommandsManager.onConfigurationChanged(newConfig)
+        }
     }
-    
+
     private fun applyFlavorRestrictions() {
-        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable() &&
+        val hasOcrAndTranslation = capabilityAvailability.isTranslationAvailable(requireContext()) &&
             DeviceCapabilities.isOcrSupported(requireContext())
         binding.rowCameraOcrTranslationEnabled.isVisible = hasOcrAndTranslation
         binding.layoutCameraOcrOnly.isVisible = hasOcrAndTranslation
@@ -696,10 +738,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             binding.rowCameraOcrOnly.setCheckedSilently(false)
             val current = viewModel.settings.value
             if (current.cameraOcrTranslationEnabled || current.cameraOcrOnly) {
-                viewModel.updateSettings(current.copy(
-                    cameraOcrTranslationEnabled = false,
-                    cameraOcrOnly = false
-                ))
+                viewModel.updateSettings(
+                    current.copy(
+                        cameraOcrTranslationEnabled = false,
+                        cameraOcrOnly = false
+                    )
+                )
             }
         }
 
@@ -711,10 +755,12 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
             // dialog is unreachable here (launcher hidden), so this reset must stay in the fragment.
             val current = viewModel.settings.value
             if (current.isPrimaryMediaPlayer || current.acceptSharedFiles) {
-                viewModel.updateSettings(current.copy(
-                    isPrimaryMediaPlayer = false,
-                    acceptSharedFiles = false
-                ))
+                viewModel.updateSettings(
+                    current.copy(
+                        isPrimaryMediaPlayer = false,
+                        acceptSharedFiles = false
+                    )
+                )
             }
         }
     }
@@ -776,16 +822,6 @@ class OperationsSettingsFragment : BaseSettingsFragment() {
      * when unset/missing. S0567: takes a setter lambda so both plain TextViews (capture selectors) and
      * SettingsSelectionRow targets (link-autodownload, screenshot destination) share one resolver.
      */
-    private fun refreshDestinationLabel(resourceId: String?, fallbackRes: Int, setLabel: (CharSequence) -> Unit) {
-        val id = resourceId?.toLongOrNull()
-        if (id == null) {
-            setLabel(getString(fallbackRes))
-            return
-        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            val resource = viewModel.resourceRepository.getResourceById(id)
-            setLabel(resource?.name ?: getString(fallbackRes))
-        }
-    }
-
+    private fun refreshDestinationLabel(resourceId: String?, fallbackRes: Int, setLabel: (CharSequence) -> Unit) =
+        destinationLabelResolver.render(resourceId?.toLongOrNull(), getString(fallbackRes), setLabel = setLabel)
 }

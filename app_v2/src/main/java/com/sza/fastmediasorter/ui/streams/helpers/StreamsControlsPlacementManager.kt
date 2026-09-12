@@ -19,6 +19,12 @@ import com.sza.fastmediasorter.R
  * config changes without recreating (S0692, so a live stream is not torn down), therefore the
  * move is done programmatically here rather than via a layout-variant swap.
  *
+ * S2669: this manager moves `streamControls` and nothing else. The curated-collection strip
+ * (`streamCollectionsStrip`) deliberately STAYS in the content column in both orientations, so in
+ * landscape it becomes the topmost content row directly under the toolbar. It is not folded into the
+ * header host: that slot has room for one control row, and stacking a scrolling chip strip inside it
+ * would leave the list a few rows tall - the very space landscape moves the controls to free.
+ *
  * In the header slot the group must not stretch: a full-width search field covers the toolbar
  * title, and its outlined box is unreadable on the primary-colored toolbar. Landscape therefore
  * pins the search field to a fixed width and fills its box with colorSurface; portrait restores

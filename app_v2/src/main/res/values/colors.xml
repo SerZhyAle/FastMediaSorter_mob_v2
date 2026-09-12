@@ -189,6 +189,13 @@
     <color name="info_color">#FF0288D1</color>
     <color name="scrollbar_thumb">#FF9E9E9E</color>
 
+    <!-- S2738: launcher tray battery indicator, charging plug type. Named separately from the semantic
+         colours they borrow so a later palette change to success/info does not silently repaint the tray. -->
+    <color name="launcher_tray_battery_ac">@color/success_color</color>
+    <color name="launcher_tray_battery_usb">@color/info_color</color>
+    <color name="launcher_tray_battery_wireless">#FF7B1FA2</color>    <!-- Purple 700 -->
+    <color name="launcher_tray_battery_charging">#FF00796B</color>    <!-- Teal 700 - plug type unknown -->
+
     <!-- Focus and hover colors for keyboard/mouse navigation -->
     <color name="item_focused">#FFBBDEFB</color>    <!-- Blue 100 - visible focus highlight -->
     <color name="item_hovered">#FFF5F5F5</color>    <!-- Grey 100 - subtle hover -->
@@ -256,7 +263,11 @@
          S0914-R1 (2026-07-03): the resource-type filter panel dropped its accent (owner decision after the
          S0809/S0914 device-test screenshot) - it now sits on the form's own ?attr/colorSurface with
          ?attr/colorControlNormal content, so main_filter_panel_accent was removed as unused. -->
-    <color name="main_programs_panel_accent">#CC4D4D00</color>
+    <!-- S2889: opaque, not #CC4D4D00. The alpha made this strip composite with ?attr/colorSurface, so it
+         read #414104 in the dark theme but #717133 in the light one - and on that lighter olive five of the
+         eight color_program_accent_*_on_dark tones fell below the 3:1 non-text contrast threshold (worst:
+         purple at 2.14). Opaque, all eight pass in both themes at 3.70 or better. The hue is unchanged. -->
+    <color name="main_programs_panel_accent">#FF4D4D00</color>
     <color name="main_streams_panel_accent">#CC4D004D</color>
     <color name="main_panel_accent_foreground">@color/white</color>
 
@@ -417,6 +428,39 @@
     <color name="color_media_docs">#FFE65100</color>      <!-- Orange 900 -->
     <color name="color_media_other">#FF616161</color>     <!-- Grey 700 -->
 
+    <!-- S2510: per-mini-program accent palette (light theme). Read through
+         core/panel/SubProgramAccentCatalog - a surface asks there instead of picking a tone.
+         Key names are frozen: wear/src/main/res/values/colors.xml declares the same eight against
+         its own values, and that name match is the entire contract between two modules that share
+         no source (S2510 ADR-4).
+         Deliberately outside the dynamic palette (S2510 ADR-2): a tone that moves with the wallpaper
+         cannot stay attached to a program, which is the whole point of the feature. Eight tones, not
+         one per program - what makes a list scannable is how far apart the hues sit, and nearly
+         thirty unique tones would only produce neighbours nobody can tell apart on a small glyph. -->
+    <color name="color_program_accent_red">#FFC62828</color>     <!-- Red 800 -->
+    <color name="color_program_accent_orange">#FFE65100</color>  <!-- Orange 900 -->
+    <color name="color_program_accent_amber">#FFF9A825</color>   <!-- Amber 800 -->
+    <color name="color_program_accent_green">#FF2E7D32</color>   <!-- Green 800 -->
+    <color name="color_program_accent_teal">#FF00796B</color>    <!-- Teal 700 -->
+    <color name="color_program_accent_blue">#FF1976D2</color>    <!-- Blue 700 -->
+    <color name="color_program_accent_indigo">#FF303F9F</color>  <!-- Indigo 700 -->
+    <color name="color_program_accent_purple">#FF7B1FA2</color>  <!-- Purple 700 -->
+
+    <!-- S2889: the same eight tones for a surface whose background does NOT follow the theme - today the
+         main-window programs panel, which sits on an opaque dark strip in both themes. Declared here and
+         deliberately given NO values-night twin: that absence is the mechanism, not an omission, and it is
+         what makes these resolve to the light half of the palette whatever the theme is doing. A caller
+         picks between these and the theme-following names by the background it draws on (strategic ADR-2);
+         the names above stay frozen because the wear module declares the same set (S2510 ADR-4). -->
+    <color name="color_program_accent_red_on_dark">#FFEF9A9A</color>     <!-- Red 200 -->
+    <color name="color_program_accent_orange_on_dark">#FFFFCC80</color>  <!-- Orange 200 -->
+    <color name="color_program_accent_amber_on_dark">#FFFFE082</color>   <!-- Amber 200 -->
+    <color name="color_program_accent_green_on_dark">#FFA5D6A7</color>   <!-- Green 200 -->
+    <color name="color_program_accent_teal_on_dark">#FF80CBC4</color>    <!-- Teal 200 -->
+    <color name="color_program_accent_blue_on_dark">#FF90CAF9</color>    <!-- Blue 200 -->
+    <color name="color_program_accent_indigo_on_dark">#FF9FA8DA</color>  <!-- Indigo 200 -->
+    <color name="color_program_accent_purple_on_dark">#FFCE93D8</color>  <!-- Purple 200 -->
+
     <!-- S0593: streams per-row play-status bullet. Distinct icon shapes carry the meaning too (not colour alone). -->
     <color name="stream_status_ok">#FF2E7D32</color>      <!-- Green 800 - last play succeeded -->
     <color name="stream_status_failed">#FFC62828</color>  <!-- Red 800 - last play failed -->
@@ -443,6 +487,11 @@
     <!-- S1062: red pill behind the grid-tile "Pinned" badge (top-left indicator). Deliberately a full
          red so the pinned state reads at a glance; a separate element from the bottom-left play-status dot. -->
     <color name="stream_pin_badge_bg">#FFC62828</color>
+    <!-- S2556: the splash background, named once because two surfaces now render it - the platform
+         starting window via windowSplashScreenBackground, and the app's own startup brand frame,
+         which continues that window because the platform one cannot draw live text. Two literals
+         would be two things free to drift apart into a visible seam at the handover. -->
+    <color name="splash_background">#F5F5F5</color>
     <!-- S0997: splash-screen center content (app logo + wordmark) - dark on the light splash background, light in night mode. -->
     <color name="splash_content">#FF37474F</color>
     <!-- S1706: splash logo gradient, sampled from the lit and shaded faces of the launcher icon's
@@ -487,4 +536,27 @@
          scroll buttons are flat white (see values-land/values-w600dp). An alias rather than a copied
          selector, so the portrait state list stays defined in exactly one place. -->
     <item name="browse_scroll_button_tint" type="color">@color/selector_player_button_tint</item>
+
+    <!-- S1924: the mirror's zoom presets carry their own opaque body instead of following the control
+         tint. They sit on the glow field, which is white while the backlight is on and black once it is
+         off, and a transparent preset was unreadable against the white one on the owner's 2026-09-06
+         device run. Opaque in both states, and the active preset inverts body and label - a cue that
+         survives greyscale, unlike a colour swap. -->
+    <color name="mirror_zoom_preset_body">#FF212121</color>
+    <color name="mirror_zoom_preset_body_active">#FFFFFFFF</color>
+
+    <!-- S2847: vivid orange ring around mirror control buttons, visible on both the white glow
+         field and the black root background. Fixed colour - does not flip with backlight state. -->
+    <color name="mirror_control_border_color">#FF6D00</color>
+    <!-- Tourist dashboard tile permanent background tints (light theme) -->
+    <color name="tourist_tile_bg_speed">#FFFDE7</color>
+    <color name="tourist_tile_bg_altitude">#E0F7FA</color>
+    <color name="tourist_tile_bg_compass">#E8F5E9</color>
+    <color name="tourist_tile_bg_coordinates">#FFF3E0</color>
+    <color name="tourist_tile_bg_satellites">#EDE7F6</color>
+    <color name="tourist_tile_bg_steps">#F1F8E9</color>
+    <color name="tourist_tile_bg_trip_distance">#FCE4EC</color>
+    <color name="tourist_tile_bg_sun_time">#FFF8E1</color>
+    <color name="tourist_tile_bg_weather">#E1F5FE</color>
+    <color name="tourist_tile_bg_dew_point">#E0F2F1</color>
 </resources>

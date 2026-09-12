@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -29,10 +30,12 @@ import com.sza.fastmediasorter.databinding.ItemExtensionSectionHeaderBinding
 import com.sza.fastmediasorter.domain.delivery.ExtensionItem
 import com.sza.fastmediasorter.domain.delivery.ExtensionSection
 import com.sza.fastmediasorter.domain.delivery.ExtensionStatus
+import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.util.showBoundTo
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 /**
  * Fragment displaying the Extensions Manager settings screen (S0386 Phase 08, grouped in Phase 11).
@@ -51,6 +54,8 @@ class ExtensionsManagerFragment : Fragment() {
 
     private val viewModel: ExtensionsManagerViewModel by viewModels()
 
+    private var hiddenSiblings: List<View> = emptyList()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -62,6 +67,10 @@ class ExtensionsManagerFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // S2899: Hide the activity's underlying content so D-pad focus cannot escape the overlay.
+        hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
+        Timber.d("S2899: ExtensionsManager focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         applyWindowInsets()
 
@@ -82,6 +91,27 @@ class ExtensionsManagerFragment : Fragment() {
         binding.recyclerExtensions.adapter = adapter
 
         adapter.submitList(buildRows(viewModel.extensions))
+
+        // S2899: Ensure initial focus on TV / D-pad
+        view.post {
+            if (isAdded && _binding != null) {
+                requestInitialFocus()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (activity?.currentFocus == null) {
+            requestInitialFocus()
+        }
+    }
+
+    private fun requestInitialFocus() {
+        val binding = _binding ?: return
+        val target = if (binding.btnInstallAll.isVisible) binding.btnInstallAll else binding.btnBack
+        target.requestFocus()
+        Timber.d("S2899: ExtensionsManager initial focus requested on ${target.javaClass.simpleName}")
     }
 
     // Edge-to-edge safety (CLAUDE.md Rule 17): the header keeps its colored background under the status
@@ -162,6 +192,8 @@ class ExtensionsManagerFragment : Fragment() {
     }
 
     override fun onDestroyView() {
+        OverlayFocusTrap.restore(hiddenSiblings)
+        hiddenSiblings = emptyList()
         super.onDestroyView()
         _binding = null
     }
@@ -206,8 +238,20 @@ class ExtensionsAdapter(
 
             job = lifecycleOwner.lifecycleScope.launch {
                 lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    item.statusFlow.collect { status ->
-                        updateStatus(status)
+                    // S2652: the measured size arrives after the row is already on screen, so the two
+                    // flows are collected side by side rather than one after the other - awaiting the
+                    // size probe first would hold the status (and the download button) behind a
+                    // network request.
+                    launch {
+                        item.statusFlow.collect { status ->
+                            updateStatus(status)
+                        }
+                    }
+                    launch {
+                        item.sizeLabelFlow.collect { label ->
+                            binding.tvSize.text =
+                                binding.root.context.getString(R.string.ext_estimated_size, label)
+                        }
                     }
                 }
             }

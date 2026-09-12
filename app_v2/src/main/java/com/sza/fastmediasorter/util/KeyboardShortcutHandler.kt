@@ -485,8 +485,8 @@ class KeyboardShortcutHandler(
         if (keyCode == KeyEvent.KEYCODE_ESCAPE) return InputAction.DialogDismiss
 
         if (keyCode == KeyEvent.KEYCODE_SPACE) return InputAction.ToggleSelection
-        if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return InputAction.MoveFocus(FocusDirection.UP)
-        if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return InputAction.MoveFocus(FocusDirection.DOWN)
+        // S2894 / S0289: bare D-pad arrows are NOT converted to MoveFocus here, allowing native framework
+        // focus traversal on ACTION_DOWN so DialogKeyboardDelegate does not double-step focus on ACTION_UP.
         if (keyCode == KeyEvent.KEYCODE_NUMPAD_ADD) return InputAction.SelectAll
         if (ctrl && keyCode == KeyEvent.KEYCODE_A && !shift) return InputAction.SelectAll
         if (keyCode == KeyEvent.KEYCODE_NUMPAD_SUBTRACT) return InputAction.ClearSelection

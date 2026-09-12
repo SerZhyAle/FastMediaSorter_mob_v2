@@ -1,0 +1,32 @@
+appId: com.sza.fastmediasorter.debug
+---
+# Open Settings and bring the General -> Interface section into view, expanded.
+#
+# S1043: SettingsActivity restores the last-active tab, and headerInterface / rowLauncherModeEnabled
+# / rowLauncherSettings live only on "Общие". Run after a flow that ended on Медиа, Плеер or
+# Управление and they are simply not in the view tree - the failure surfaces further down as a
+# scroll timeout rather than at the tab, which is how it read as a launcher regression during the
+# release-35 sweep. The shared tab fragment is idempotent, so it is called unconditionally.
+#
+# S2720: extracted from the three launcher flows, which carried this block verbatim, because
+# _shared/launcher_mode_enable.yaml has to walk the same path a second time after the system role
+# dialog rebuilds the task. Precondition: the app is on MainActivity (run _shared/go_home.yaml first).
+- tapOn:
+    id: "com.sza.fastmediasorter.debug:id/btnSettings"
+- runFlow: dismiss_settings_dialogs.yaml
+- runFlow: settings_select_general_tab.yaml
+
+- scrollUntilVisible:
+    visibilityPercentage: 30
+    element:
+      id: "com.sza.fastmediasorter.debug:id/headerInterface"
+    timeout: 15000
+
+- runFlow:
+    when:
+      notVisible:
+        id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
+    commands:
+      - tapOn:
+          id: "com.sza.fastmediasorter.debug:id/headerInterface"
+      - waitForAnimationToEnd

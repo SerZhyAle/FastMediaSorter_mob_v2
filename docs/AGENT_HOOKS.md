@@ -24,6 +24,8 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `guard-uncapped-read.ps1` | PreToolUse / Read | **rewrites** | global | - | `.claude/hooks/global-hook-tests/Run-GuardUncappedRead-Tests.ps1` |
 | `warn-context-size.ps1` | UserPromptSubmit / `*` | warns | global | - | `.claude/hooks/global-hook-tests/Run-WarnContextSize-Tests.ps1` |
 | `guard-catalog-before-kt-search.ps1` | PreToolUse / Grep, Glob | refuses | project | - | `.claude/hooks/tests/run-guard-catalog-cases.ps1` |
+| `guard-mcp-one-way-tools.ps1` | PreToolUse / one-way MCP device tools | refuses | project | 35 | `.claude/hooks/tests/Run-GuardMcpOneWayTools-Tests.ps1` |
+| `guard-release-freeze.ps1` | PreToolUse / Bash, PowerShell | refuses | project | 23 | `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1` |
 | `observe-empty-grep.ps1` | PostToolUse / Grep | observes | project | - | `.claude/hooks/tests/Run-ObserveEmptyGrep-Tests.ps1` |
 | `nudge-small-task-tier.ps1` | UserPromptSubmit | nudges | project | - | - |
 | `sweep-agent-lock-queues.ps1` | UserPromptSubmit | observes | project | 23 | - |
@@ -31,6 +33,31 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `reset-catalog-touch-marker.ps1` | SessionStart | arms | project | - | - |
 | `post-agent-chat-session.ps1` | SessionStart, SessionEnd | observes | project | 34 | `.claude/hooks/tests/Run-PostAgentChatSession-Tests.ps1` |
 | `refuse-spec-do-stop.ps1` | Stop | **refuses** | project | - | `.claude/hooks/tests/Run-RefuseSpecDoStop-Tests.ps1` |
+
+## MCP servers
+
+An MCP tool call passes every hook above except one written for it, and every lock in Rule 23, so each MCP server this project runs is listed here with the one-way tools a hook stands in front of (S2918).
+
+| Server | Runtime | Config | Purpose | One-way tools | Guard |
+|--------|---------|--------|---------|---------------|-------|
+| `maestro` | Claude Code | `.mcp.json` | exploratory agent-driven device walks, taps by selector (adopted over `mobile-mcp`, S2918 research 06) | `run`, `run_on_cloud`, `list_cloud_devices`, `get_cloud_run_status` | `guard-mcp-one-way-tools.ps1` |
+| `docs-search` | VS Code | `.vscode/mcp.json` (per machine, gitignored) | read-only doc and repo-knowledge search | none | none |
+| `repo-knowledge` | VS Code | `.vscode/mcp.json` (per machine, gitignored) | read-only doc and repo-knowledge search | none | none |
+| `filesystem_ro` | VS Code | `.vscode/mcp.json` (per machine, gitignored) | read-only doc and repo-knowledge search | none | none |
+
+Only the `.mcp.json` rows are gate-checked, by `scripts/quality/assert-hook-inventory.ps1`: a server there with no row, a row naming a server the file does not carry, or a one-way tool no registered `PreToolUse` matcher covers fails the gate. The VS Code config never reaches a checkout, so its rows are a description, not a verdict.
+
+### Admission rule
+
+A new MCP server belongs in this project only when all three hold:
+
+- It gives a capability no script under the hooks already has.
+- It neither builds nor writes the tree, or does so only through `a.ps1` and the Rule 23 locks.
+- Its one-way tools are guarded by a hook registered in the same change, and its row lands here in that change too.
+
+### Where MCP does not belong
+
+Build, tickets, the class catalogue, log intake and publishing stay with scripts. A script has exit codes, hooks and locks in front of it; an MCP call passes all three, so wrapping a script in a server trades a guarded path for an unguarded one (S2918 ADR-1; the same conclusion for guard tools, S2872).
 
 ## Contracts and escape hatches
 
@@ -42,6 +69,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 - **`guard-bash-unavailable-command`** (Rule 28) refuses three heads: a PowerShell cmdlet, an interpreter absent from this machine (`node`, `npm`, `npx`), and `& {` at the start of a command. **Escape:** the PowerShell tool, or `pwsh -NoProfile -Command "<pipeline>"`. Only a *head* is refused - a cmdlet in quotes, in a heredoc, or as an argument passes. `python3` is deliberately **not** refused: `~/bin/python3` shims to the `python` on PATH.
 - **Rule 27 (the slash-command argument value) is no longer a project hook.** The canon's `sza` plugin ships the check as check 6 of its own `guard-bash.ps1`, verified present in the *installed* cache and proven live by refusal on 2026-08-18, so the project copy `guard-bash-slash-arg.ps1` was removed rather than run twice. **Escape:** unchanged - double the slash (`//spec-dev ..`), prefix `MSYS2_ARG_CONV_EXCL='*'`, or issue the call from the PowerShell tool. **One coverage difference, recorded rather than glossed:** the project hook matched names read from `.claude/commands/*.md`, while the canon guard matches any first path segment that is not a POSIX root - so a future command named `run`, `dev`, `var`, `bin`, `etc`, `opt`, `lib`, `tmp` or `usr` would pass unrefused. None of the current 32 command names collides.
 - **`guard-catalog-before-kt-search`** refuses an **unnarrowed** Kotlin search issued before the class catalogue was consulted this session. All three must hold: the tool is `Grep`/`Glob`, the call targets `.kt`, and it carries no path or glob restricting it to a subtree. **Escape:** name a subtree, or run `dev/CATALOG/scripts/query.ps1` first - any successful query writes `temp/catalog-touch.marker`, which is the pass condition for the rest of the session.
+- **`guard-mcp-one-way-tools`** (Rule 35, S2918) refuses a one-way MCP device call - Maestro's `run` when its flow wipes app data (`clearState`, `clearKeychain`, `launchApp` with `clearState: true`, followed through every `runFlow` it pulls in), and the install / uninstall tools of the retired `mobile-mcp` driver, kept in its table so a re-registration arrives guarded - unless the call's device parameter is an emulator serial (`emulator-<port>`); it refuses Maestro's three cloud tools always, because they upload the app binary to a third-party service. **Why emulators only:** `docs/DEVICE_FLEET.md` is prose and Rule 35 forbids restating a per-device permission elsewhere, while every emulator is free-hand as a class and recognisable by its serial. It **fails closed** - an unparsable payload, an empty device, or a flow file it cannot read is refused - because the action cannot be undone. It runs under every permission mode, so it also stands in front of the unattended runner, where the allowlist does not. Read-only tools are never matched. **Escape:** an emulator, or `scripts/devtest/adb.ps1` `install` / `uninstall -Yes` / `wipe-data -Yes` after matching the serial in `docs/DEVICE_FLEET.md`.
 
 ### Refusing to finish - the one hook that guards a turn, not a tool call
 
@@ -62,7 +90,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 
 ## Keeping this file honest
 
-`scripts/quality/assert-hook-inventory.ps1` compares the registered set against the names above and fails on any divergence in either direction. It is wired into `scripts/quality/assert-fast-gates.ps1`, so `.\a.ps1 fg` runs it.
+`scripts/quality/assert-hook-inventory.ps1` compares three things and fails on any divergence: the registered set against the names above, in either direction, and since S2872 the names above against `docs/NON_CLAUDE_RUNTIME_RULES.md`, which must name every one of them in its `## The rules` or `## Not portable` section. It is wired into `scripts/quality/assert-fast-gates.ps1`, so `.\a.ps1 fg` runs it. A missing rule sheet is exit 2, "could not verify", not a pass.
 
 It judges asymmetrically, by design. The **project** half is judged strictly and always: it is version-controlled, so the verdict reproduces on any machine. The **global** half is judged only when `~/.claude/settings.json` is readable; where it is absent the gate prints one advisory line and does not fail, because a red that cannot be fixed from the repository is a red that teaches people to bypass the gate.
 
@@ -73,3 +101,4 @@ It judges asymmetrically, by design. The **project** half is judged strictly and
 - **Prefer making a name work over refusing it.** A missing interpreter is cheaper to shim onto the PATH than to guard, because no hook can fix and retry a failed command.
 - **Fail open.** A hook that changes what the model reads corrupts content when it errs, rather than merely gating a call.
 - Add the hook to the inventory above in the same change - the gate requires it.
+- **Name it in `docs/NON_CLAUDE_RUNTIME_RULES.md` in the same change too** (S2872), and the gate requires that as well. Pick a side: if the hook guards a decision a model can make on its own, write the imperative under `## The rules`; if it does not - it advises the owner, or it sweeps other sessions' state - write one line under `## Not portable` saying so. For every runtime without hooks that sheet is the entire enforcement, so a hook missing from it is a rule nobody outside Claude Code is ever told.

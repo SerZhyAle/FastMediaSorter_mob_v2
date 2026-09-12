@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  The first AndroidManifest.xml in either wear flavor source set, created by S2458 and shared with S2457.
+
+  S2090 ADR-5 created the flavor dimension so that a capability Play refuses on a watch had somewhere to
+  go instead of being deleted, and predicted that "the first capability that needs a permission creates
+  that file". Two tickets reached that point within the same hour, so this file serves both and will
+  serve the next one: it is the whole module's noLegal permission surface, not any one ticket's.
+
+  Why none of these permissions may live in wear/src/main/AndroidManifest.xml: each is reviewed by
+  Google Play before an app may ship it, against a short list of admitted use cases that a media sorter
+  matches none of, and a mismatch with the declared core functionality is denied. A declaration in
+  src/main would merge into standard and put that denial on the store listing of a shipping product
+  rather than on the feature. The two flavors share one applicationId (S1681), so the source set is the
+  only isolation there is.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <!--
+      S2457: heart rate. Two permissions for one capability, split at API 36. The granular health permission replaces the
+      legacy sensor one there, so the legacy declaration is capped below it rather than removed - a watch
+      on API 30..35 has no other way to ask. Background access is out of scope, which is why neither
+      BODY_SENSORS_BACKGROUND nor READ_HEALTH_DATA_IN_BACKGROUND appears here: the measurement exists
+      only while its screen is open.
+    -->
+    <uses-permission
+        android:name="android.permission.BODY_SENSORS"
+        android:maxSdkVersion="35" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+
+    <!--
+      S2458: the step counter and step detector, which are activity-recognition sensors and NOT body
+      sensors - a different permission family with a different reason for being confined here. The phone
+      edition that declared this permission was rejected with HTTP 403 against the App content -> Health
+      apps questionnaire on 2026-08-12, and S1614 is still BlockExternal waiting on that answer. Keeping
+      it out of standard is what lets the Motion Monitor's other half - accelerometer, gyroscope and
+      rotation vector, which need no permission at all - ship in every edition regardless.
+
+      Availability is read back from the MERGED manifest at runtime (WearActivityRecognitionState), never
+      from a flavor check, which Rule 14 bans in shared code.
+    -->
+    <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+
+    <!--
+      androidx.health:health-services-client declares minSdk 30; this module's floor is 28 and is pinned
+      there as a Wear OS 2.0 support commitment, so the merger is told to accept the gap instead of the
+      floor being raised. What makes that safe is not this line but the runtime guard: the data source
+      answers PLATFORM_TOO_OLD below API 30 and never touches a Health Services class, because Health
+      Services is a mandatory component only from Wear OS 3.
+    -->
+    <uses-sdk tools:overrideLibrary="androidx.health.services.client" />
+
+</manifest>

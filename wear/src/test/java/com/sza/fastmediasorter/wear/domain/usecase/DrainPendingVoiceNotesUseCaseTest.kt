@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
@@ -34,9 +35,21 @@ class DrainPendingVoiceNotesUseCaseTest {
 
         val sentFiles: MutableList<File> = mutableListOf()
 
-        override suspend fun sendFile(file: File): WearFileSendResult {
+        override suspend fun sendFile(file: File, sendToReceiverId: String?): WearFileSendResult {
             val index = sentFiles.size
             sentFiles += file
+            delay(SEND_DELAY_MILLIS)
+            return WearFileSendResult(outcomes.getOrElse(index) { fallback })
+        }
+
+        override suspend fun isPhoneReachable(): Boolean = true
+
+        override suspend fun sendUri(
+            uri: Uri,
+            displayName: String,
+            sizeBytes: Long
+        ): WearFileSendResult {
+            val index = sentFiles.size
             delay(SEND_DELAY_MILLIS)
             return WearFileSendResult(outcomes.getOrElse(index) { fallback })
         }

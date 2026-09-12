@@ -40,6 +40,7 @@ class OperationsSectionsManager(
         register(binding.headerSafety, binding.containerSafety, "operations__safety")
         register(binding.headerCopyMove, binding.containerFileOperations, "operations__file_ops")
         register(binding.headerDestinations, binding.containerDestinations, "operations__destinations")
+        register(binding.headerSendCommands, binding.containerSendCommands, "operations__send_commands")
         if (scheduledAvailable) {
             register(binding.headerScheduled, binding.containerScheduled, "operations__scheduled")
         } else {

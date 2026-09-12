@@ -13,6 +13,9 @@ Scripts that publish FastMediaSorter to GitHub Releases so that **GitHub Store**
 | `publish-play-release.ps1` | Publish the standard AAB to Google Play Console: attach the bundle if its versionCode is already in the library else upload it, fetch generated Fastlane changelogs for that versionCode, update specified track (internal/alpha/beta/production) as draft/completed, and commit edit. |
 | `read-play-tracks.ps1` | Read-only: what each Play track **holds** - versionName, versionCode and status for `production`, `wear:production`, `internal`, `beta`, `alpha`. Needs `.venv` and `.secrets/play-console-key.json`. A track's `completed` status is not proof the release is served or that it passed review - a rejected release keeps reporting `completed`. |
 | `refresh-play-publishing-state.ps1` | The only writer of the measured half of `docs/PLAY_PUBLISHING_STATE.md`: runs both readers and rewrites the two `s2272:measured:*` regions, touching nothing outside them. `-Check` makes it a non-writing staleness probe (exit 1 = out of date). The `Policy status` block stays the owner's - the API serves no policy surface, so the script only reports how old that transcription is. Run it at every release and at every Play verdict. |
+| `read-play-vitals.ps1` | Read-only: Android vitals from the Play Developer Reporting API (S2917) - user-perceived crash, ANR and low-memory-kill rates over 28 days by versionCode and device model, both February-2027 memory sets, the top grouped error issues with their console links and Google's own anomalies. A separate Google service from the publishing API: it needs enabling on the service account's Cloud project and a Play Console permission, and its exit 2 names whichever is missing. |
+| `watch-play-vitals.ps1` | The Play vitals watch (`.\a.ps1 pv`, S2917): read -> judge against Google's published bands -> rewrite block 4 of `docs/PLAY_PUBLISHING_STATE.md` and section 3.2 of `dev/PLAY_QUALITY_THRESHOLDS_2027.md` -> file one Draft ticket per red finding through the catalog CLI. No model takes part. `-Check` writes nothing (exit 1 = out of date); a failed read writes nothing. |
+| `register-play-vitals-task.ps1` | Register, remove or inspect the daily Windows scheduled task that runs the watch with no session open. Not registered by default; `-WhatIf` prints the definition. Logs and `last-exit.json` land in `temp/play-vitals/`. |
 | `read-play-public-serve.ps1` | Read-only: what the store actually **serves** - the version on the anonymous listing page, plus its `Updated on` date. Needs no credentials at all. The two readers answer different questions and disagree in practice, which is why both exist (S1256, S2272); `-RequireVersionAbove` turns it into a one-command release check. |
 | `extract-release-notes.ps1` | Helper used by `publish-github-release.ps1`. Emits the section from `docs/WHATS_NEW.md` for a given `-Version`. Exit 0 on match, 2 if not found. |
 | `expected-signing-fingerprint.txt` | (Phase 04) Pinned SHA-256 of the release signing key. Aborts the publisher on mismatch. |
@@ -111,6 +114,29 @@ pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
 | `-Verify` | Read the payload back and recheck its SHA-256. Extracts nothing. |
 | `-Destination <path>` | Extraction root. Default `temp/deobfuscation`. |
 
+### `watch-play-vitals.ps1`
+
+Reads Android vitals through `read-play-vitals.ps1`, judges them against the `PlayVitals` bands in `scripts/devtest/prerelease.config.psd1` (Google's published thresholds, with the date they were read), rewrites the two measured blocks, and on a red band files one Draft ticket per finding - its section 0 carries the metric, the value, the band, the window, the versionCodes and the top issues with their console links. A finding already carried by an open ticket gets one dated evidence line appended instead; a ticket in `Implemented`, `Verified` or `BlockNeedUserTest` is left alone until the release archives it. Yellow and `insufficient data` are recorded and never filed.
+
+| Flag | Effect |
+|------|--------|
+| `-Check` | Compute both blocks, write nothing, file nothing. Exit 1 if either would change. |
+| `-NoFile` | Write the records, file no ticket. |
+| `-SnapshotPath <json>` | Judge a saved snapshot instead of reading the API. |
+| `-BandsOverride <hashtable>` | Merge over the configured bands for a synthetic breach run from a PowerShell prompt. |
+| `-LogDir <path>` | Also write a transcript and `last-exit.json` there - what the scheduled task passes. |
+
+Exit codes: **0** read, judged and recorded (whatever the colour); **1** `-Check` found a block out of date; **2** could not verify - the read failed, the verdict refused a rate that cannot be a fraction, a marker pair is missing, or filing failed after the records were written.
+
+**One-time owner setup, before the first run can read anything.** The Reporting API is not part of the publishing API the release scripts use. On 2026-09-11 every call answered `SERVICE_DISABLED` for Cloud project `764216752430` (the service account's project):
+
+1. Enable "Google Play Developer Reporting API" at `https://console.developers.google.com/apis/api/playdeveloperreporting.googleapis.com/overview?project=764216752430`. Free.
+2. If the next run answers `PERMISSION_DENIED`, grant the service account "View app information and download bulk reports (read-only)" in Play Console, Users and permissions.
+
+Until then the watch exits 2 with that instruction and writes nothing. Two values are still assumptions until the first live response (S2917 research 6): `PlayVitals.RateUnit = 'fraction'` - a rate above 1 refuses rather than being read as a percentage - and the memory bands, which stay off (`MemoryBandsEnabled = $false`) because Google names no unit for the memory percentiles.
+
+`register-play-vitals-task.ps1 -Action Register [-At 09:00]` schedules the watch daily as the current user; `-Action Unregister` removes it; no argument prints its state and the last `last-exit.json`.
+
 ---
 
 ## Order of Operations (publish-github-release.ps1)
@@ -130,7 +156,7 @@ pwsh -NoProfile -File scripts/quality/assert-deobfuscation-retained.ps1
 ## Order of Operations (publish-play-release.ps1)
 
 1. **Prerequisite Check** - verify project virtual environment `.venv` contains `google-api-python-client` and `google-auth`.
-2. **Version & Path Discovery** - retrieve current `versionName` and `versionCode` from `app_v2/build.gradle.kts` (the release build stamps both into `defaultAppVersionName`/`defaultAppVersionCode`). Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
+2. **Version & Path Discovery** - retrieve `versionName` and `versionCode` from the release bundle's AGP metadata at `app_v2/build/outputs/bundle/standardRelease/output-metadata.json`. S1873: the build no longer writes the version into `app_v2/build.gradle.kts`, so the checked-in constants there are a deliberate non-releasable sentinel and reading them would answer with a version no artifact carries. Locate standard AAB at `DOWNLOADS/FastMediaSorter_standard_release.aab`.
 3. **Edit Transaction** - open an API edit session in the Google Play Console for package `com.sza.fastmediasorter` using the service account credentials from `.secrets/play-console-key.json` (root fallback supported).
 4. **Attach-or-Upload** - list bundles already in the App Bundle Explorer (`edits().bundles().list()`). If the build's `versionCode` is already present (e.g. a prior run uploaded it but the commit was rejected by the Foreground-service-permissions gate), skip the upload and attach that bundle - Play refuses re-uploading an existing `versionCode`. Otherwise upload the AAB via resumable chunk transfers with automatic socket retry guards and read the `versionCode` from the response. This makes a post-FGS re-run finish the release instead of failing on a duplicate.
 5. **Release Notes Discovery** - check `fastlane/metadata/android/*/changelogs/<versionCode>.txt` for English, Russian, and Ukrainian release notes generated during the build.

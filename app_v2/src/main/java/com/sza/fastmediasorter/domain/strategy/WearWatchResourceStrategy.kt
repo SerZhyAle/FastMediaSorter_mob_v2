@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceFieldKey
 import com.sza.fastmediasorter.domain.model.ResourceFormData
 import com.sza.fastmediasorter.domain.model.ResourceValidationResult
-import timber.log.Timber
 
 /**
  * S1976: the paired watch as an editable resource.
@@ -59,7 +58,6 @@ class WearWatchResourceStrategy : ResourceStrategy {
     }
 
     override fun fieldSchema(): List<ResourceFieldSchema> {
-        Timber.d("S1976: watch resource editor schema requested - name, destination, slideshow only")
         return listOf(
             ResourceFieldSchema(ResourceFieldKey.NAME, required = true),
             ResourceFieldSchema(ResourceFieldKey.IS_DESTINATION, required = false),

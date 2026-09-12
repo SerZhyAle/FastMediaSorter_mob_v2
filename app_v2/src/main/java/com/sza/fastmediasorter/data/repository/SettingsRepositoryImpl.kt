@@ -10,6 +10,7 @@ import com.sza.fastmediasorter.core.theme.ColorThemePrefs
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.local.db.CryptoHelper
 import com.sza.fastmediasorter.data.repository.settings.AudioSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.BroadcastSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.CaptureSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LauncherSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.LinkSettingsStore
@@ -19,11 +20,16 @@ import com.sza.fastmediasorter.data.repository.settings.RemoteSourceSettingsStor
 import com.sza.fastmediasorter.data.repository.settings.ScreenshotSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.SlideshowSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StereoSettingsStore
+import com.sza.fastmediasorter.data.repository.settings.StopwatchSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.StreamsSettingsStore
 import com.sza.fastmediasorter.data.repository.settings.TextRecognitionSettingsStore
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BrowseSwipeAction
+import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
+import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureSettings
 import com.sza.fastmediasorter.domain.model.SortMode
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.ui.player.model.TouchZoneHintType
@@ -32,6 +38,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
@@ -56,9 +63,10 @@ class SettingsRepositoryImpl @Inject constructor(
     private val transformMutex = Mutex()
 
     companion object {
-        private val KEY_LANGUAGE = stringPreferencesKey("language")
         private val KEY_COLOR_THEME = stringPreferencesKey("color_theme")
         private val KEY_DISABLE_ANIMATIONS = booleanPreferencesKey("disable_animations")
+        private val KEY_POWER_SAVING_TRIGGER = stringPreferencesKey("power_saving_trigger")
+        private val KEY_UNIT_SYSTEM = stringPreferencesKey("unit_system")
         private val KEY_PREVENT_SLEEP = booleanPreferencesKey("prevent_sleep")
         private val KEY_KEEP_SCREEN_ON_PLAYER = booleanPreferencesKey("keep_screen_on_player")
         private val KEY_SHOW_SMALL_CONTROLS = booleanPreferencesKey("show_small_controls")
@@ -129,9 +137,12 @@ class SettingsRepositoryImpl @Inject constructor(
         private val KEY_HIDE_GRID_ACTION_BUTTONS = booleanPreferencesKey("hide_grid_action_buttons")
         private val KEY_FILE_OPS_IN_OVERFLOW_MENU = booleanPreferencesKey("file_ops_in_overflow_menu")
         private val KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN = booleanPreferencesKey("file_ops_overflow_menu_hint_shown")
+        private val KEY_BROWSE_SWIPE_LEFT_ACTION = stringPreferencesKey("browse_swipe_left_action")
+        private val KEY_BROWSE_SWIPE_RIGHT_ACTION = stringPreferencesKey("browse_swipe_right_action")
         private val KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN = booleanPreferencesKey("hide_system_ui_in_fullscreen")
         private val KEY_DEFAULT_ICON_SIZE = intPreferencesKey("default_icon_size")
         private val KEY_DEFAULT_SHOW_COMMAND_PANEL = booleanPreferencesKey("default_show_command_panel")
+        private val KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS = intPreferencesKey("player_panel_auto_hide_seconds")
         private val KEY_OPEN_VIDEO_IN_FULLSCREEN = booleanPreferencesKey("open_video_in_fullscreen")
         private val KEY_SHOW_DETAILED_ERRORS = booleanPreferencesKey("show_detailed_errors")
         private val KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN = booleanPreferencesKey("show_player_hint_on_first_run")
@@ -276,6 +287,10 @@ class SettingsRepositoryImpl @Inject constructor(
         }.getOrDefault(false)
     }
 
+    // S3004: deduplicate probes in hot settings flow to prevent log flooding
+    @Volatile private var lastEmittedS2571Language: String? = null
+    @Volatile private var lastEmittedS2603VideoSizeMin: Long? = null
+
     override fun getSettings(): Flow<AppSettings> {
         return dataStore.data
             .catch { exception ->
@@ -286,16 +301,20 @@ class SettingsRepositoryImpl @Inject constructor(
                     throw exception
                 }
             }
+            // S2571: a language change writes nothing here any more, so a DataStore write is no longer
+            // the only reason to re-emit. Combining LocaleHelper's revision is what keeps S1745's live
+            // section titles refreshing on a locale change instead of only on the next rebuild.
+            .combine(LocaleHelper.languageRevision) { preferences, _ -> preferences }
             .map { preferences ->
-                val languageFromDataStore = preferences[KEY_LANGUAGE] // null = not explicitly set
-                // When DataStore has no saved language (first launch / data cleared), fall back to
-                // LocaleHelper which resolves SharedPreferences → system locale → "en". Legacy
-                // installs can still carry the old "system" sentinel here, so normalize that to
-                // the effective app language before exposing AppSettings to the rest of the app.
-                val language = when {
-                    languageFromDataStore == null -> LocaleHelper.getLanguage(context)
-                    LocaleHelper.isFollowSystemLanguage(languageFromDataStore) -> LocaleHelper.getLanguage(context)
-                    else -> LocaleHelper.resolveSupportedLanguageCode(languageFromDataStore)
+                // S2571: the interface language has exactly one owner, LocaleHelper - this repository
+                // neither reads nor writes it. The stored copy that used to live here diverged from the
+                // real locale whenever its write was lost, and re-pinned itself on every later settings
+                // write, so the only user-reachable cure was clearing app data.
+                val language = LocaleHelper.getLanguage(context)
+                if (lastEmittedS2571Language != language) {
+                    lastEmittedS2571Language = language
+                    Timber.d("S3004: deduplicated settings probe emit language=$language")
+                    Timber.d("S2571: settings emit, language derived from LocaleHelper = $language")
                 }
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
 
@@ -320,27 +339,30 @@ class SettingsRepositoryImpl @Inject constructor(
                 val slideshow = SlideshowSettingsStore.read(preferences)
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
+                if (lastEmittedS2603VideoSizeMin != mediaSize.videoSizeMin) {
+                    lastEmittedS2603VideoSizeMin = mediaSize.videoSizeMin
+                    Timber.d("S2603: snapshot from store videoSizeMin=${mediaSize.videoSizeMin}")
+                }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
+                val broadcast = BroadcastSettingsStore.read(preferences)
                 val programs = ProgramsSettingsStore.read(preferences)
+                val stopwatch = StopwatchSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
 
                 val base = AppSettings(
                     language = language,
                     colorTheme = colorTheme,
                     disableAnimations = preferences[KEY_DISABLE_ANIMATIONS] ?: false,
+                    // Through fromNameOrDefault, not valueOf: an absent key is the normal state of
+                    // every install that predates this setting, and it must read as the default.
+                    powerSavingTrigger = PowerSavingTrigger.fromNameOrDefault(
+                        preferences[KEY_POWER_SAVING_TRIGGER]
+                    ),
+                    unitSystem = UnitSystem.fromNameOrDefault(preferences[KEY_UNIT_SYSTEM]),
                     preventSleep = preferences[KEY_PREVENT_SLEEP] ?: true,
                     keepScreenOnPlayer = preferences[KEY_KEEP_SCREEN_ON_PLAYER] ?: true,
                     showSmallControls = preferences[KEY_SHOW_SMALL_CONTROLS] ?: false,
-                    enableCalculator = programs.enableCalculator,
-                    enableNetworkMonitor = programs.enableNetworkMonitor,
-                    enableSystemInfo = programs.enableSystemInfo,
-                    enableWearCompanion = programs.enableWearCompanion,
-                    recordGnssTrack = programs.recordGnssTrack,
-                    embeddedGameEnabled = programs.embeddedGameEnabled,
-                    frontFlashlightEnabled = programs.frontFlashlightEnabled,
-                    frontFlashlightColor = programs.frontFlashlightColor,
-                    showProgramsPanelInMainWindow = programs.showProgramsPanelInMainWindow,
                     defaultUser = preferences[KEY_DEFAULT_USER] ?: "",
                     defaultPassword = decryptPassword(preferences[KEY_DEFAULT_PASSWORD]),
                     networkParallelism = preferences[KEY_NETWORK_PARALLELISM] ?: 4,
@@ -382,7 +404,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     saveAudioMetadataLocally = preferences[KEY_SAVE_AUDIO_METADATA_LOCALLY] ?: true,
                     enablePhotosDuringAudio = preferences[KEY_ENABLE_PHOTOS_DURING_AUDIO] ?: false,
                     audioBackgroundPhotosResourceId = audio.audioBackgroundPhotosResourceId,
-                    enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: false,
+                    enablePersistentAudioPlayback = preferences[KEY_ENABLE_BACKGROUND_AUDIO] ?: true,
                     backgroundAudioExitBehavior = preferences[KEY_BACKGROUND_AUDIO_EXIT_BEHAVIOR]
                         ?.let { runCatching { com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.valueOf(it) }.getOrNull() }
                         ?: com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior.ASK,
@@ -414,8 +436,16 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsCatalogRefreshPolicy = streams.streamsCatalogRefreshPolicy,
                     showStreamsPanelInMainWindow = streams.showStreamsPanelInMainWindow,
                     streamsSmartBuffering = streams.streamsSmartBuffering,
+                    streamsVisualizeAsMusic = streams.streamsVisualizeAsMusic,
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
+                    broadcastStreamTitle = broadcast.streamTitle,
+                    broadcastBitRateBps = broadcast.bitRateBps,
+                    broadcastPort = broadcast.port,
+                    broadcastSampleRateHz = broadcast.sampleRateHz,
+                    broadcastChannelCount = broadcast.channelCount,
+                    broadcastAutoOpenShare = broadcast.autoOpenShare,
+                    broadcastSourceDeviceId = broadcast.sourceDeviceId,
                     translationSourceLanguage = textRec.translationSourceLanguage,
                     translationTargetLanguage = textRec.translationTargetLanguage,
                     translationLensStyle = textRec.translationLensStyle,
@@ -444,10 +474,19 @@ class SettingsRepositoryImpl @Inject constructor(
                     fileOpsInOverflowMenu = preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall).also {
                     }, // S0293: capability-detected devices (VR/XR/ChromeOS) get ON; otherwise S0253 fresh install → ON; existing non-capable user → OFF
                     fileOpsOverflowMenuHintShown = preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] ?: (MultiWindowCapabilityDetector.defaultFileOpsInOverflowMenu(context) || isFreshInstall), // S0293: capability device or fresh install suppresses one-time "ops moved to menu" Toast (symmetric with fileOpsInOverflowMenu default)
+                    browseSwipeLeftAction = BrowseSwipeAction.fromName(
+                        preferences[KEY_BROWSE_SWIPE_LEFT_ACTION],
+                        BrowseSwipeDirection.LEFT.default,
+                    ),
+                    browseSwipeRightAction = BrowseSwipeAction.fromName(
+                        preferences[KEY_BROWSE_SWIPE_RIGHT_ACTION],
+                        BrowseSwipeDirection.RIGHT.default,
+                    ),
                     hideSystemUiInFullscreen = preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] ?: true,
                     defaultIconSize = (preferences[KEY_DEFAULT_ICON_SIZE] ?: 96)
                         .let { if (it < 32 || it > 256 || (it - 32) % 8 != 0) 96 else it },
                     defaultShowCommandPanel = preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] ?: true,
+                    playerPanelAutoHideSeconds = preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] ?: 10,
                     openVideoInFullscreen = preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] ?: true,
                     showDetailedErrors = preferences[KEY_SHOW_DETAILED_ERRORS] ?: false,
                     showPlayerHintOnFirstRun = preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] ?: true,
@@ -466,7 +505,6 @@ class SettingsRepositoryImpl @Inject constructor(
                     overwriteOnMove = preferences[KEY_OVERWRITE_ON_MOVE] ?: false,
                     enableUndo = preferences[KEY_ENABLE_UNDO] ?: true,
                     maxRecipients = (preferences[KEY_MAX_RECIPIENTS] ?: 10).coerceIn(1, 10),
-                    enableFavorites = programs.enableFavorites,
                     disableCameraCapture = preferences[KEY_DISABLE_CAMERA_CAPTURE] ?: false,
                     skipCameraFilenameDialog = preferences[KEY_SKIP_CAMERA_FILENAME_DIALOG] ?: false,
                     cameraCaptureOpenForEditing = capture.cameraCaptureOpenForEditing,
@@ -611,7 +649,12 @@ class SettingsRepositoryImpl @Inject constructor(
                 )
                 // S0404: launcher desktop tuning - owned by LauncherSettingsStore, which now applies its
                 // own group rather than having the field names restated here (S2213).
-                LauncherSettingsStore.applyTo(base, launcher)
+                // S1924: the sub-program group is applied by its own store for the same reason the
+                // launcher group is - restating every field name here is what pushed this class over
+                // detekt's LargeClass threshold.
+                val withPrograms = ProgramsSettingsStore.applyTo(base, programs)
+                val withStopwatch = StopwatchSettingsStore.applyTo(withPrograms, stopwatch)
+                LauncherSettingsStore.applyTo(withStopwatch, launcher)
             }
             .distinctUntilChanged()
             // S1517: without this the whole mapping - including the Keystore round trip behind the
@@ -638,17 +681,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 Timber.d("SettingsRepo: updateSettings diff detected - proceeding with DataStore write")
             }
 
-            // NOTE: Language is NOT synced to SharedPreferences here.
-            // LocaleHelper.saveLanguage() must be called explicitly when user changes the language.
-            // Syncing here would overwrite system-locale fallback (uk/ru) with the DataStore default "en".
-            val storedLanguage = if (
-                LocaleHelper.isFollowSystemLanguage(settings.language) ||
-                LocaleHelper.isFollowingSystemLanguage(context)
-            ) {
-                LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
-            } else {
-                LocaleHelper.resolveSupportedLanguageCode(settings.language)
-            }
+            // S2571: settings.language is derived at read and is deliberately not persisted here.
+            // LocaleHelper.saveLanguage() is the only way to change the interface language.
             val storedColorTheme = ColorThemePrefs.normalizeValue(settings.colorTheme)
 
             // S1148: mirror for synchronous reads at player-build time (see RadioStreamBufferConfig).
@@ -665,15 +699,15 @@ class SettingsRepositoryImpl @Inject constructor(
             }
 
             dataStore.edit { preferences ->
-                // Preserve the follow-system sentinel so later settings writes do not silently pin the
-                // app to the currently effective language.
-                preferences[KEY_LANGUAGE] = storedLanguage
                 preferences[KEY_COLOR_THEME] = storedColorTheme
                 preferences[KEY_DISABLE_ANIMATIONS] = settings.disableAnimations
+                preferences[KEY_POWER_SAVING_TRIGGER] = settings.powerSavingTrigger.name
+                preferences[KEY_UNIT_SYSTEM] = settings.unitSystem.name
                 preferences[KEY_PREVENT_SLEEP] = settings.preventSleep
                 preferences[KEY_KEEP_SCREEN_ON_PLAYER] = settings.keepScreenOnPlayer
                 preferences[KEY_SHOW_SMALL_CONTROLS] = settings.showSmallControls
                 ProgramsSettingsStore.write(preferences, settings)
+                StopwatchSettingsStore.write(preferences, settings)
                 preferences[KEY_DEFAULT_USER] = settings.defaultUser
                 preferences[KEY_DEFAULT_PASSWORD] = encryptPassword(settings.defaultPassword)
                 preferences[KEY_NETWORK_PARALLELISM] = settings.networkParallelism
@@ -719,6 +753,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_EPUB_HORIZONTAL_MARGIN] = settings.epubHorizontalMargin
                 TextRecognitionSettingsStore.write(preferences, settings)
                 StreamsSettingsStore.write(preferences, settings)
+                BroadcastSettingsStore.write(preferences, settings)
                 preferences[KEY_DEFAULT_SORT_MODE] = settings.defaultSortMode.name
                 SlideshowSettingsStore.write(preferences, settings)
                 preferences[KEY_PLAY_TO_END] = settings.playToEndInSlideshow
@@ -731,9 +766,12 @@ class SettingsRepositoryImpl @Inject constructor(
                 preferences[KEY_HIDE_GRID_ACTION_BUTTONS] = settings.hideGridActionButtons
                 preferences[KEY_FILE_OPS_IN_OVERFLOW_MENU] = settings.fileOpsInOverflowMenu
                 preferences[KEY_FILE_OPS_OVERFLOW_MENU_HINT_SHOWN] = settings.fileOpsOverflowMenuHintShown
+                preferences[KEY_BROWSE_SWIPE_LEFT_ACTION] = settings.browseSwipeLeftAction.name
+                preferences[KEY_BROWSE_SWIPE_RIGHT_ACTION] = settings.browseSwipeRightAction.name
                 preferences[KEY_HIDE_SYSTEM_UI_IN_FULLSCREEN] = settings.hideSystemUiInFullscreen
                 preferences[KEY_DEFAULT_ICON_SIZE] = settings.defaultIconSize
                 preferences[KEY_DEFAULT_SHOW_COMMAND_PANEL] = settings.defaultShowCommandPanel
+                preferences[KEY_PLAYER_PANEL_AUTO_HIDE_SECONDS] = settings.playerPanelAutoHideSeconds
                 preferences[KEY_OPEN_VIDEO_IN_FULLSCREEN] = settings.openVideoInFullscreen
                 preferences[KEY_SHOW_DETAILED_ERRORS] = settings.showDetailedErrors
                 preferences[KEY_SHOW_PLAYER_HINT_ON_FIRST_RUN] = settings.showPlayerHintOnFirstRun

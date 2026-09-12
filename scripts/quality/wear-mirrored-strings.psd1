@@ -30,6 +30,30 @@
 
         # ---- Mirrored: the same control, and it must read the same on both sides ----
 
+        # S2484: one action, one glyph, one wording. The whole point of the unified sync control is
+        # that the owner recognizes the same thing on the phone and on the watch, so these two are
+        # the case Mirrored exists for - a divergence here would undo the ticket.
+        @{
+            Phone  = 'wear_sync_now'
+            Watch  = 'wear_sync_now'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_sync_now_description'
+            Watch  = 'wear_sync_now_description'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        # S2550: one session, ended from either end, and the two controls stop the same thing. The
+        # owner may be looking at the phone or at the watch when the microphone goes off, so a
+        # different wording on each side would read as two features rather than one.
+        @{
+            Phone  = 'wear_listen_stop'
+            Watch  = 'wear_listen_stop'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
         @{
             Phone  = 'wear_settings_sync_button'
             Watch  = 'wear_settings_sync_button'
@@ -66,14 +90,11 @@
             Mode   = 'Independent'
             Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
-        # The cross-name pair. Phone key from S2000, watch key from S2093; the names
-        # differ because one is a section heading and the other a row label, and
-        # renaming either would touch 13 locale files for cosmetics alone.
         @{
-            Phone  = 'wear_background_section_title'
-            Watch  = 'wear_setting_background_mode'
+            Phone  = 'wear_background_mode_still'
+            Watch  = 'wear_background_mode_still'
             Mode   = 'Independent'
-            Reason = 'Phone section heading and watch row label use distinct localized phrasing.'
+            Reason = 'Phone and watch background option labels use distinct localized phrasing.'
         },
 
         # ---- Independent: the name collides, the wording is deliberately not shared ----
@@ -356,6 +377,110 @@
         @{
             Phone  = 'streams_rubric_world'
             Watch  = 'streams_rubric_world'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+
+        # ---- Mirrored: the settings group titles the companion window shows (S2169) ----
+        # The companion window mirrors the watch settings menu, so its subgroup headers must read
+        # exactly what the watch menu shows. The phone values are lifted verbatim from the watch in
+        # every locale, which is what a Mirrored pair demands.
+        @{
+            Phone  = 'wear_settings_group_media_types'
+            Watch  = 'media_types'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_slideshow'
+            Watch  = 'slideshow_settings'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_screen'
+            Watch  = 'screen_settings_title'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_group_other'
+            Watch  = 'settings_group_other'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_disable_animations'
+            Watch  = 'pref_disable_animations'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_settings_background_mode'
+            Watch  = 'wear_setting_background_mode'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+
+        # ---- Mirrored: the watch appearance option sets, declared by S2562 ----
+        # One background option and the eight colour-scheme options the companion window offers for
+        # the watch. Both modules render the SAME option list for the same setting, so the two copies
+        # name one choice each and a reworded option on one side only is the defect this gate exists
+        # for. Mirrored rather than Independent is a measurement, not a preference: on 2026-09-05 all
+        # nine were byte-identical in every authored locale - values, values-ru and values-uk - which
+        # is what a verbatim copy looks like. They arrived after S2125 built this file and sat
+        # unclassified, so check 4 reported all nine on every closure that touched any strings.xml.
+        @{
+            Phone  = 'wear_background_mode_none'
+            Watch  = 'wear_background_mode_none'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark'
+            Watch  = 'wear_color_scheme_dark'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light'
+            Watch  = 'wear_color_scheme_light'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_green'
+            Watch  = 'wear_color_scheme_dark_green'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_blue'
+            Watch  = 'wear_color_scheme_dark_blue'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_dark_red'
+            Watch  = 'wear_color_scheme_dark_red'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_green'
+            Watch  = 'wear_color_scheme_light_green'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_blue'
+            Watch  = 'wear_color_scheme_light_blue'
+            Mode   = 'Mirrored'
+            Reason = ''
+        },
+        @{
+            Phone  = 'wear_color_scheme_light_red'
+            Watch  = 'wear_color_scheme_light_red'
             Mode   = 'Mirrored'
             Reason = ''
         }

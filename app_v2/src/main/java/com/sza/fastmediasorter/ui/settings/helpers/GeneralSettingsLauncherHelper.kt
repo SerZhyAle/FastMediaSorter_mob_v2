@@ -7,11 +7,16 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.LauncherSettingsDialogFragment
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 /**
@@ -29,8 +34,14 @@ class GeneralSettingsLauncherHelper(
     private val fragment: Fragment,
     private val launcherModeContract: LauncherModeContract,
     private val launcherRoleManager: LauncherRoleManager,
+    private val launcherStartWindowManager: LauncherStartWindowManager,
     private val launcherRoleLauncher: ActivityResultLauncher<Intent>,
+    private val scopeProvider: () -> CoroutineScope = { fragment.viewLifecycleOwner.lifecycleScope },
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
+
+    private val coroutineScope: CoroutineScope
+        get() = scopeProvider()
 
     // Guards against scheduling the deferred role request more than once per Activity instance
     // (onResume can fire repeatedly). Reset naturally: each recreated instance gets a fresh helper.
@@ -39,31 +50,66 @@ class GeneralSettingsLauncherHelper(
     fun setup() {
         if (!launcherModeContract.isAvailableInBuild) {
             binding.rowLauncherModeEnabled.isVisible = false
+            binding.rowLauncherStartWindow.isVisible = false
             binding.rowLauncherSettings.isVisible = false
             return
         }
+        // S2811: the start window is the entry for the user who declined the home role. S2858: the row's
+        // visibility is tied to homeRoleHeld in refreshState - when the app is the device launcher the
+        // desktop is already the Home button destination, so the setting is redundant and hidden.
+        binding.rowLauncherStartWindow.setCheckedSilently(launcherStartWindowManager.isEnabled())
+        binding.rowLauncherStartWindow.setOnCheckedChangeListener { isChecked ->
+            coroutineScope.launch {
+                withContext(ioDispatcher) { launcherStartWindowManager.setEnabled(isChecked) }
+            }
+        }
         binding.rowLauncherModeEnabled.setOnCheckedChangeListener { isChecked ->
             val host = fragment.activity ?: return@setOnCheckedChangeListener
-            if (isChecked) {
-                launcherRoleManager.enableMode(host, launcherRoleLauncher)
-            } else {
-                launcherRoleManager.disableMode()
+            coroutineScope.launch {
+                if (isChecked) {
+                    val roleIntent = withContext(ioDispatcher) {
+                        launcherRoleManager.enableModeForRequest()
+                    }
+                    if (roleIntent != null) {
+                        launcherRoleLauncher.launch(roleIntent)
+                    } else {
+                        launcherRoleManager.openHomeChooser(host)
+                    }
+                } else {
+                    withContext(ioDispatcher) {
+                        launcherRoleManager.disableModeForBackgroundRefresh()
+                    }
+                }
+                updateOpenRowEnabled(isChecked)
             }
-            updateOpenRowEnabled(isChecked)
         }
         binding.rowLauncherSettings.setOnClickListener {
             LauncherSettingsDialogFragment().show(fragment.childFragmentManager, LauncherSettingsDialogFragment.TAG)
         }
-        Timber.d("S2288: launcher entry wired as button, enabled=${launcherRoleManager.isModeEnabled()}")
         refreshState()
     }
 
-    /** Re-reads the HOME component state; call from onResume and the role-request result callback. */
+    /**
+     * S2381: Re-reads the home role holding state; call from onResume and the role-request result callback.
+     * When a role request is not pending, if the role is not held by this app, resets the component state
+     * via [LauncherRoleManager.disableMode] and updates the UI toggle to false so the user can re-attempt.
+     */
     fun refreshState() {
         if (!launcherModeContract.isAvailableInBuild) return
-        val enabled = launcherRoleManager.isModeEnabled()
-        binding.rowLauncherModeEnabled.setCheckedSilently(enabled)
-        updateOpenRowEnabled(enabled)
+        coroutineScope.launch {
+            Timber.d("S2659: refreshing launcher-role settings state")
+            val state = withContext(ioDispatcher) { launcherRoleManager.readState() }
+            if (state.roleRequestPending) return@launch
+            if (!state.homeRoleHeld && state.modeEnabled) {
+                withContext(ioDispatcher) {
+                    launcherRoleManager.disableModeForBackgroundRefresh()
+                }
+            }
+            binding.rowLauncherModeEnabled.setCheckedSilently(state.homeRoleHeld)
+            updateOpenRowEnabled(state.homeRoleHeld)
+            binding.rowLauncherStartWindow.isVisible = !state.homeRoleHeld
+            Timber.d("S2858: startWindowRow visible=${!state.homeRoleHeld}")
+        }
     }
 
     // The launcher-settings button only makes sense once the launcher is enabled - keep it inert otherwise.
@@ -86,14 +132,25 @@ class GeneralSettingsLauncherHelper(
     fun handleLauncherRoleDeepLink() {
         if (!launcherModeContract.isAvailableInBuild) return
         if (roleRequestScheduled) return
-        if (!launcherRoleManager.isRoleRequestPending()) return
         roleRequestScheduled = true
-        fragment.viewLifecycleOwner.lifecycleScope.launch {
+        coroutineScope.launch {
+            val pending = withContext(ioDispatcher) { launcherRoleManager.isRoleRequestPending() }
+            if (!pending) {
+                roleRequestScheduled = false
+                return@launch
+            }
             delay(STORM_SETTLE_DELAY_MS)
             val settledHost = fragment.activity ?: return@launch
             if (settledHost.isFinishing || settledHost.isDestroyed) return@launch
-            launcherRoleManager.recordRoleRequestAttempt()
-            launcherRoleManager.enableMode(settledHost, launcherRoleLauncher)
+            val roleIntent = withContext(ioDispatcher) {
+                launcherRoleManager.recordRoleRequestAttempt()
+                launcherRoleManager.enableModeForRequest()
+            }
+            if (roleIntent != null) {
+                launcherRoleLauncher.launch(roleIntent)
+            } else {
+                launcherRoleManager.openHomeChooser(settledHost)
+            }
             revealEnableToggle()
         }
     }

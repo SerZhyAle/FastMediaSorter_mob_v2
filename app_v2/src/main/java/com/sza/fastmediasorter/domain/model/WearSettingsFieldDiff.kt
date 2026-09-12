@@ -35,6 +35,12 @@ object WearSettingsFieldDiff {
                 after.keepScreenAwakeOutsidePlayers
             )
             addIfChanged("backgroundMode", before.backgroundMode, after.backgroundMode)
+            addIfChanged("colorScheme", before.colorScheme, after.colorScheme)
+            addIfChanged(
+                "backgroundPlaybackEnabled",
+                before.backgroundPlaybackEnabled,
+                after.backgroundPlaybackEnabled
+            )
             addIfChanged("streamsSectionEnabled", before.streamsSectionEnabled, after.streamsSectionEnabled)
         }
     }

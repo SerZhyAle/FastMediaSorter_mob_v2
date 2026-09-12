@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
+import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationContent
 import com.sza.fastmediasorter.wear.domain.model.WearComplicationKind
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
@@ -27,26 +29,56 @@ class LoadWearComplicationContentUseCase @Inject constructor(
         WearComplicationKind.NOW_PLAYING -> loadNowPlayingContent()
     }
 
+    /**
+     * S2499: the newest entry is not necessarily a network source any more.
+     *
+     * Before that ticket the whole method assumed it was, so a user whose newest item became a channel
+     * lost the complication entirely - it answered [WearComplicationContent.Empty], which reads as
+     * "nothing has been opened". A channel needs no second lookup: the resolver has already dropped it
+     * if the catalog no longer lists it, and it carried the live channel's name across.
+     */
     private suspend fun loadLastResourceContent(): WearComplicationContent {
-        val lastUsedId = resolveLastUsedResourceUseCase().first().firstOrNull()?.id
-        val source = lastUsedId?.let { id -> networkSourceRepository.getAllSources().find { it.id == id } }
-            ?: return WearComplicationContent.Empty
-
-        val targetRef = WearTileTargetRef.Resource(
-            id = source.id,
-            type = source.type,
-            server = source.server,
-            port = source.port,
-            shareName = source.shareName,
-            basePath = source.basePath
-        )
-        return WearComplicationContent.Value(
-            shortText = source.name,
-            longText = source.name,
-            contentDescription = "Last resource: ${source.name}",
-            launchTarget = WearLaunchTarget.Open(targetRef)
-        )
+        val newest = resolveLastUsedResourceUseCase().first().firstOrNull()
+        val target = newest?.let { lastResourceTarget(it) }
+        return if (target == null) {
+            WearComplicationContent.Empty
+        } else {
+            WearComplicationContent.Value(
+                shortText = target.caption,
+                longText = target.caption,
+                contentDescription = "Last resource: ${target.caption}",
+                launchTarget = WearLaunchTarget.Open(target.ref)
+            )
+        }
     }
+
+    /** Null means the newest entry no longer addresses anything this watch can open. */
+    private suspend fun lastResourceTarget(newest: LastUsedResource): LastResourceTarget? =
+        when (newest.kind) {
+            // The channel's caption comes from the entry, which the resolver already refreshed from
+            // the live catalog row - a second lookup here would answer the same thing.
+            LastUsedKind.STREAM -> LastResourceTarget(newest.name, WearTileTargetRef.Stream(newest.id))
+
+            // A source's caption is read from the store rather than from the entry, which is what
+            // keeps a renamed source current on the complication.
+            LastUsedKind.RESOURCE -> networkSourceRepository.getAllSources()
+                .find { it.id == newest.id }
+                ?.let { source ->
+                    LastResourceTarget(
+                        caption = source.name,
+                        ref = WearTileTargetRef.Resource(
+                            id = source.id,
+                            type = source.type,
+                            server = source.server,
+                            port = source.port,
+                            shareName = source.shareName,
+                            basePath = source.basePath
+                        )
+                    )
+                }
+        }
+
+    private data class LastResourceTarget(val caption: String, val ref: WearTileTargetRef)
 
     private suspend fun loadFavouritesCountContent(): WearComplicationContent {
         val favorites = wearFavoritesRepository.getFavorites()

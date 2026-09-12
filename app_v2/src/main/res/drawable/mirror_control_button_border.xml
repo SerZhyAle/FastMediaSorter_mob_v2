@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2847: colored ring drawn behind each mirror control button. Oval so it reads as a circle
+     around the square ImageButton, with a 3dp stroke in a fixed vivid colour that contrasts
+     with both the white glow field and the black root background. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <solid android:color="@color/mirror_zoom_preset_body" />
+    <stroke
+        android:width="3dp"
+        android:color="@color/mirror_control_border_color" />
+</shape>

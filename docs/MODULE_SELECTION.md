@@ -76,13 +76,13 @@ Use the `a.ps1` launcher from the repository root. Note that the phone and watch
 ### Build Wear OS
 
 ```powershell
-# Build scripts
+# Build scripts (or .\a.ps1 wd)
 .\scripts\builders\build-wear-debug.PS1
 .\scripts\builders\build-wear-release.PS1
 
-# Or Gradle directly
-.\gradlew.bat :wear:assembleDebug
-.\gradlew.bat :wear:assembleRelease
+# Or Gradle directly (under Build.Wear lock)
+.\gradlew.bat :wear:assembleStandardDebug
+.\gradlew.bat :wear:assembleStandardRelease
 ```
 
 ### Build the main app

@@ -13,7 +13,6 @@ import com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeAction
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
 import com.sza.fastmediasorter.domain.model.launcher.LauncherSettings
-import timber.log.Timber
 
 /**
  * Owns persistence of launcher-mode desktop settings: grid density, taskbar composition and
@@ -31,11 +30,13 @@ object LauncherSettingsStore {
 
     private val KEY_LAUNCHER_DENSITY_FACTOR = floatPreferencesKey("launcher_density_factor")
     private val KEY_LAUNCHER_SCREEN_COUNT = intPreferencesKey("launcher_screen_count")
+    private val KEY_LAUNCHER_SHOW_SCREEN_NUMBER = booleanPreferencesKey("launcher_show_screen_number")
     private val KEY_LAUNCHER_TASKBAR_SHOW_RECENTS = booleanPreferencesKey("launcher_taskbar_show_recents")
     private val KEY_LAUNCHER_TASKBAR_SHOW_PINNED = booleanPreferencesKey("launcher_taskbar_show_pinned")
     private val KEY_LAUNCHER_TASKBAR_SHOW_TRAY = booleanPreferencesKey("launcher_taskbar_show_tray")
     private val KEY_LAUNCHER_TRAY_SHOW_CLOCK = booleanPreferencesKey("launcher_tray_show_clock")
     private val KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH = booleanPreferencesKey("launcher_tray_show_bluetooth")
+    private val KEY_LAUNCHER_TRAY_SHOW_TETHERING = booleanPreferencesKey("launcher_tray_show_tethering")
     private val KEY_LAUNCHER_TRAY_SHOW_SIM1 = booleanPreferencesKey("launcher_tray_show_sim1")
     private val KEY_LAUNCHER_TRAY_SHOW_SIM2 = booleanPreferencesKey("launcher_tray_show_sim2")
     private val KEY_LAUNCHER_TRAY_SHOW_NETWORK = booleanPreferencesKey("launcher_tray_show_network")
@@ -87,6 +88,11 @@ object LauncherSettingsStore {
     private val KEY_LAUNCHER_WALLPAPER_MODE = stringPreferencesKey("launcher_wallpaper_mode")
     private val KEY_LAUNCHER_WALLPAPER_IMAGE_PATH = stringPreferencesKey("launcher_wallpaper_image_path")
     private val KEY_LAUNCHER_WALLPAPER_CAMERA_ID = stringPreferencesKey("launcher_wallpaper_camera_id")
+    private val KEY_LAUNCHER_WALLPAPER_INTENSITY = floatPreferencesKey("launcher_wallpaper_intensity")
+    private val KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED =
+        floatPreferencesKey("launcher_wallpaper_animation_speed")
+    private val KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY =
+        floatPreferencesKey("launcher_wallpaper_particle_density")
     private val KEY_ALL_APPS_SORT_ORDER = stringPreferencesKey("all_apps_sort_order")
     private val KEY_ALL_APPS_SORT_DESCENDING = booleanPreferencesKey("all_apps_sort_descending")
     private val KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS =
@@ -96,6 +102,7 @@ object LauncherSettingsStore {
         stringPreferencesKey("launcher_weather_last_location")
     private val KEY_LAUNCHER_STEPS_RESET_COUNT = longPreferencesKey("launcher_steps_reset_count")
     private val KEY_LAUNCHER_STEPS_RESET_TIMESTAMP = longPreferencesKey("launcher_steps_reset_timestamp")
+    private val KEY_LAUNCHER_ANIMATION_PALETTE = stringPreferencesKey("launcher_animation_palette")
 
     // S0404: absent keys resolve to auto density + full taskbar (S2017: except the tray clock, off by
     // default), hidden system status bar and foreign-notification badges on (S2017 ADR-1).
@@ -130,7 +137,43 @@ object LauncherSettingsStore {
             allAppsSwipeRightPayload = preferences.getOrDefault(KEY_LAUNCHER_ALL_APPS_SWIPE_RIGHT_PAYLOAD, ""),
         )
 
-    private fun readCore(preferences: Preferences): LauncherSettings = LauncherSettings(
+    private fun readCore(preferences: Preferences): LauncherSettings =
+        readCoreValues(preferences).withWallpaperTuning(preferences)
+
+    /**
+     * S2730: the branded backdrop's three tuning values, applied on top of the core read.
+     *
+     * They sit in their own step rather than inline above because [readCoreValues] is already at the
+     * length ceiling, and because every one of them is coerced on read - a value from a newer build, or
+     * one a later ticket narrows the range of, has to paint what the settings slider shows instead of
+     * the two disagreeing (the S2320 lesson).
+     */
+    private fun LauncherSettings.withWallpaperTuning(preferences: Preferences): LauncherSettings = copy(
+        wallpaperIntensity = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_INTENSITY,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_INTENSITY,
+            AppSettings::coerceLauncherWallpaperIntensity,
+        ),
+        wallpaperAnimationSpeed = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+            AppSettings::coerceLauncherWallpaperAnimationSpeed,
+        ),
+        wallpaperParticleDensity = preferences.readWallpaperFloat(
+            KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
+            AppSettings.DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
+            AppSettings::coerceLauncherWallpaperParticleDensity,
+        ),
+    )
+
+    /** S2730: one stored wallpaper tuning value, fitted to the range the renderer was measured at. */
+    private fun Preferences.readWallpaperFloat(
+        key: Preferences.Key<Float>,
+        default: Float,
+        coerce: (Float) -> Float,
+    ): Float = coerce(getOrDefault(key, default))
+
+    private fun readCoreValues(preferences: Preferences): LauncherSettings = LauncherSettings(
         // S2320: reads the canonical default rather than a literal - this line carried its own copy of
         // the old 1.0f and would have kept a fresh install on the previous density after it moved.
         densityFactor = preferences
@@ -139,12 +182,17 @@ object LauncherSettingsStore {
             KEY_LAUNCHER_SCREEN_COUNT,
             DEFAULT_LAUNCHER_SCREEN_COUNT
         ).coerceIn(MIN_LAUNCHER_SCREEN_COUNT, MAX_LAUNCHER_SCREEN_COUNT),
+        showScreenNumber = preferences.getOrDefault(
+            KEY_LAUNCHER_SHOW_SCREEN_NUMBER,
+            AppSettings.DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER,
+        ),
         taskbarShowRecents = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_RECENTS, true),
         taskbarShowPinned = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_PINNED, true),
         taskbarShowTray = preferences.getOrDefault(KEY_LAUNCHER_TASKBAR_SHOW_TRAY, true),
         // S2017: the one taskbar exception - duplicates the top bar's own clock once the status area is replaced.
         trayShowClock = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_CLOCK, false),
         trayShowBluetooth = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH, true),
+        trayShowTethering = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_TETHERING, true),
         trayShowSim1 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM1, true),
         trayShowSim2 = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_SIM2, true),
         trayShowNetwork = preferences.getOrDefault(KEY_LAUNCHER_TRAY_SHOW_NETWORK, true),
@@ -195,9 +243,13 @@ object LauncherSettingsStore {
         allAppsSortOrder = InstalledAppSortOrder
             .fromNameOrDefault(preferences[KEY_ALL_APPS_SORT_ORDER]).name,
         allAppsSortDescending = preferences.getOrDefault(KEY_ALL_APPS_SORT_DESCENDING, false),
-        // S1741: non-negative seconds (0 = Off)
+        // S1741/S2384: non-negative seconds (0 = Off). The fallback is what a fresh install reads,
+        // because nothing has been written to the preference yet.
         screenBlackoutTimeoutSeconds = preferences
-            .getOrDefault(KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS, 0)
+            .getOrDefault(
+                KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS,
+                AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
+            )
             .coerceAtLeast(0),
         // S1748: the widget backdrop opacity stored as a float, with the default matching the app's
         // launcher setting rows and the last chosen value surviving a restart.
@@ -211,6 +263,9 @@ object LauncherSettingsStore {
         weatherLastLocation = preferences.getOrDefault(KEY_LAUNCHER_WEATHER_LAST_LOCATION, ""),
         stepsResetCount = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_COUNT, 0L),
         stepsResetTimestamp = preferences.getOrDefault(KEY_LAUNCHER_STEPS_RESET_TIMESTAMP, 0L),
+        animationPalette = preferences[KEY_LAUNCHER_ANIMATION_PALETTE]
+            ?.takeIf { it in AppSettings.ANIMATION_PALETTE_OPTIONS }
+            ?: AppSettings.ANIMATION_PALETTE_DYNAMIC,
     )
 
     /**
@@ -224,11 +279,13 @@ object LauncherSettingsStore {
     fun write(preferences: MutablePreferences, settings: AppSettings) {
         preferences[KEY_LAUNCHER_DENSITY_FACTOR] = settings.launcherDensityFactor
         preferences[KEY_LAUNCHER_SCREEN_COUNT] = settings.launcherScreenCount
+        preferences[KEY_LAUNCHER_SHOW_SCREEN_NUMBER] = settings.launcherShowScreenNumber
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_RECENTS] = settings.launcherTaskbarShowRecents
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_PINNED] = settings.launcherTaskbarShowPinned
         preferences[KEY_LAUNCHER_TASKBAR_SHOW_TRAY] = settings.launcherTaskbarShowTray
         preferences[KEY_LAUNCHER_TRAY_SHOW_CLOCK] = settings.launcherTrayShowClock
         preferences[KEY_LAUNCHER_TRAY_SHOW_BLUETOOTH] = settings.launcherTrayShowBluetooth
+        preferences[KEY_LAUNCHER_TRAY_SHOW_TETHERING] = settings.launcherTrayShowTethering
         preferences[KEY_LAUNCHER_TRAY_SHOW_SIM1] = settings.launcherTrayShowSim1
         preferences[KEY_LAUNCHER_TRAY_SHOW_SIM2] = settings.launcherTrayShowSim2
         preferences[KEY_LAUNCHER_TRAY_SHOW_NETWORK] = settings.launcherTrayShowNetwork
@@ -265,6 +322,9 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_WALLPAPER_MODE] = settings.launcherWallpaperMode
         preferences[KEY_LAUNCHER_WALLPAPER_IMAGE_PATH] = settings.launcherWallpaperImagePath
         preferences[KEY_LAUNCHER_WALLPAPER_CAMERA_ID] = settings.launcherWallpaperCameraId
+        preferences[KEY_LAUNCHER_WALLPAPER_INTENSITY] = settings.launcherWallpaperIntensity
+        preferences[KEY_LAUNCHER_WALLPAPER_ANIMATION_SPEED] = settings.launcherWallpaperAnimationSpeed
+        preferences[KEY_LAUNCHER_WALLPAPER_PARTICLE_DENSITY] = settings.launcherWallpaperParticleDensity
         preferences[KEY_ALL_APPS_SORT_ORDER] = settings.allAppsSortOrder
         preferences[KEY_ALL_APPS_SORT_DESCENDING] = settings.allAppsSortDescending
         preferences[KEY_LAUNCHER_SCREEN_BLACKOUT_TIMEOUT_SECONDS] =
@@ -273,10 +333,6 @@ object LauncherSettingsStore {
         preferences[KEY_LAUNCHER_WEATHER_LAST_LOCATION] = settings.launcherWeatherLastLocation
         preferences[KEY_LAUNCHER_STEPS_RESET_COUNT] = settings.launcherStepsResetCount
         preferences[KEY_LAUNCHER_STEPS_RESET_TIMESTAMP] = settings.launcherStepsResetTimestamp
-        Timber.d(
-            "S2243: persisted reset count=%d timestamp=%d",
-            settings.launcherStepsResetCount,
-            settings.launcherStepsResetTimestamp
-        )
+        preferences[KEY_LAUNCHER_ANIMATION_PALETTE] = settings.launcherAnimationPalette
     }
 }

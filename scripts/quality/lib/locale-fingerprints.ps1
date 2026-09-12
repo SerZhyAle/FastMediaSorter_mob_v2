@@ -213,7 +213,84 @@ function Save-LocaleSourceFingerprints {
 
     $json = $orderedRoot | ConvertTo-Json -Depth 5
     $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
-    [System.IO.File]::WriteAllText($resolvedPath, $json + "`n", $utf8NoBom)
+    # S3008: write beside the target and move over it, so a writer killed mid-save leaves either the
+    # whole old document or the whole new one. Writing 4.7 MB in place leaves a third state - a
+    # truncated file - which Get-LocaleSourceFingerprints parses as empty and every reader then reads
+    # as "no locale was ever translated". The pid in the name keeps two writers' temporaries apart
+    # even though Edit-LocaleSourceFingerprints already orders them.
+    $tempPath = "$resolvedPath.$PID.tmp"
+    [System.IO.File]::WriteAllText($tempPath, $json + "`n", $utf8NoBom)
+    [System.IO.File]::Move($tempPath, $resolvedPath, $true)
+}
+
+function Get-LocaleFingerprintsMutexName {
+    <#
+    .SYNOPSIS
+        Names the cross-process mutex guarding one store file.
+    #>
+    param([Parameter(Mandatory = $true)][string]$Path)
+
+    # Keyed on the store path so the contract suites, which point at scratch files under temp/, never
+    # serialize against the shipped registry or against one another. A mutex name cannot carry a path
+    # separator, hence the hash. Local\ rather than Global\ because every writer is a process in the
+    # same logon session, and the global namespace needs a privilege a plain agent process may lack.
+    $full = [System.IO.Path]::GetFullPath($Path).ToLowerInvariant()
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes($full)
+    $hash = [System.Security.Cryptography.SHA256]::Create().ComputeHash($bytes)
+    return 'Local\FMS-locale-fingerprints-' + [System.Convert]::ToHexString($hash).Substring(0, 16).ToLowerInvariant()
+}
+
+function Edit-LocaleSourceFingerprints {
+    <#
+    .SYNOPSIS
+        S3008: runs one read-modify-write of the store under a cross-process lock.
+    .DESCRIPTION
+        The read happens INSIDE the lock, and that is the whole point of this function. Every writer
+        used to call Get-LocaleSourceFingerprints, mutate the returned map and call
+        Save-LocaleSourceFingerprints, which rewrites the entire document - so a writer that loaded
+        the file before another writer's save and saved after it discarded every identity the other
+        had added. Both processes exit 0 and both print their own stamp count, so nothing reports the
+        loss: on the r37 import round 145 of 146 stamps written for `de` were gone by the time the
+        gate re-ran, and the single survivor was the one key stamped from a different source file by
+        a separate process. Locking only the save would not have helped, because the stale snapshot
+        is formed at the read.
+
+        -Mutate receives the freshly loaded map and edits it in place through the
+        Update-/Remove-/Rename-LocaleSourceFingerprint helpers; anything it emits is discarded.
+    .OUTPUTS
+        The saved map, so a caller can verify its own work without a second read.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][scriptblock]$Mutate,
+        [string]$Path,
+        [int]$TimeoutSeconds = 120
+    )
+
+    $resolvedPath = Get-LocaleSourceFingerprintsPath -Path $Path
+    $mutex = [System.Threading.Mutex]::new($false, (Get-LocaleFingerprintsMutexName -Path $resolvedPath))
+    $held = $false
+    try {
+        try {
+            $held = $mutex.WaitOne([TimeSpan]::FromSeconds($TimeoutSeconds))
+        } catch [System.Threading.AbandonedMutexException] {
+            # The previous holder died between acquiring and releasing; ownership passes here. The
+            # store is re-read below, and Save- replaces the file atomically, so that process can have
+            # left neither a half-applied mutation nor a truncated document.
+            $held = $true
+        }
+        if (-not $held) {
+            throw "locale-fingerprints: waited ${TimeoutSeconds}s for another writer of $resolvedPath and gave up."
+        }
+
+        $fingerprints = Get-LocaleSourceFingerprints -Path $resolvedPath
+        & $Mutate $fingerprints | Out-Null
+        Save-LocaleSourceFingerprints -Fingerprints $fingerprints -Path $resolvedPath
+        return $fingerprints
+    }
+    finally {
+        if ($held) { $mutex.ReleaseMutex() }
+        $mutex.Dispose()
+    }
 }
 
 function Update-LocaleSourceFingerprint {

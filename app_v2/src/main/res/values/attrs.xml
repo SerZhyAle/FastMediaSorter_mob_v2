@@ -18,6 +18,9 @@
     <attr name="launcherStartRowGroup2" format="color" />
     <attr name="launcherStartRowGroup3" format="color" />
     <attr name="launcherStartRowGroup4" format="color" />
+    <!-- S2539: foreground colours of the launcher desktop labels and gadgets following the theme. -->
+    <attr name="launcherDesktopText" format="color" />
+    <attr name="launcherDesktopTextSecondary" format="color" />
 
     <!-- Consumed by CollapsibleSectionHeader.kt. All public attrs use the csh_ prefix. -->
     <declare-styleable name="CollapsibleSectionHeader">
@@ -102,6 +105,10 @@
         </attr>
         <!-- Caps the input field max width while it still shrinks with the row (weighted columns). Default unset = uncapped. -->
         <attr name="sir_fieldMaxWidth" format="dimension|reference" />
+        <!-- Puts the title and the field on one line; opt-in so the stacked default of the other call sites is untouched (S2786). -->
+        <attr name="sir_inline" format="boolean" />
+        <!-- Preset values offered next to the still-editable field. Unset = no picker, plain input row (S2786). -->
+        <attr name="sir_entries" format="reference" />
     </declare-styleable>
 
     <!-- Consumed by FormFieldPairLayout.kt. All public attrs use the ffp_ prefix. -->
@@ -136,6 +143,11 @@
     <declare-styleable name="OutlinedTextView">
         <attr name="otv_outlineColor" format="color|reference" />
         <attr name="otv_outlineWidth" format="dimension" />
+        <!-- Contour width as a fraction of the CURRENT text size, for a label whose size is not fixed:
+             an autosizing gadget value moves between 12sp and 96sp, and one dimension cannot serve both
+             ends - it blots the small end or disappears at the large one. Zero (the default) keeps the
+             fixed otv_outlineWidth. Shared by OutlinedTextClock, which reads this same styleable. -->
+        <attr name="otv_outlineScale" format="float" />
     </declare-styleable>
 
     <!-- Consumed by OutlinedImageView.kt. All public attrs use the oiv_ prefix. Defaults are shared
@@ -144,5 +156,13 @@
     <declare-styleable name="OutlinedImageView">
         <attr name="oiv_outlineColor" format="color|reference" />
         <attr name="oiv_outlineWidth" format="dimension" />
+    </declare-styleable>
+
+    <!-- Child parameters of SettingsValueRowGroup, read off each row rather than off the group. -->
+    <declare-styleable name="SettingsValueRowGroup_Layout">
+        <!-- Keeps this row out of the block's shared caption column: it hugs its own content and its
+             own width is ignored when the column is sized. Set it on a sub-row that belongs to the row
+             above it, whose caption and value are unrelated in length to the block around it. -->
+        <attr name="layout_excludeFromLabelColumn" format="boolean" />
     </declare-styleable>
 </resources>

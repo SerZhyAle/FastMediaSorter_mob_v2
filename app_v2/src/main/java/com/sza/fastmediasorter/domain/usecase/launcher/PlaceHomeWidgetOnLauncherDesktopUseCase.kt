@@ -31,6 +31,7 @@ class PlaceHomeWidgetOnLauncherDesktopUseCase @Inject constructor(
         entry: HomeWidgetEntry,
         orientation: LauncherOrientation,
         addedAt: Long,
+        screenIndex: Int = 0,
     ): Long? {
         val state = desktopRepository.state()
         val columns = when (orientation) {
@@ -41,6 +42,7 @@ class PlaceHomeWidgetOnLauncherDesktopUseCase @Inject constructor(
         val cell = LauncherCell(
             id = 0,
             orientation = orientation,
+            screenIndex = screenIndex,
             // Ignored: addCellInFirstFreeSlot scans for the anchor and overwrites both.
             rowIndex = 0,
             colIndex = 0,

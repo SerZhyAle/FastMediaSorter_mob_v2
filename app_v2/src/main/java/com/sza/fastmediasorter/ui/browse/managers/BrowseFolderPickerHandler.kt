@@ -166,18 +166,28 @@ class BrowseFolderPickerHandler(
         var dirSucceeded = 0
         var dirFailed = 0
         var refusal: DirectoryOperationRefusal? = null
+        val succeededSources = mutableListOf<String>()
         for (dir in op.dirItems) {
             val result = when (op.operationType) {
                 FileOperationType.COPY -> unifiedFileOperationHandler.executeCopyDirectory(dir.path, destinationPath)
                 FileOperationType.MOVE -> unifiedFileOperationHandler.executeMoveDirectory(dir.path, destinationPath)
                 else -> Result.failure(IllegalArgumentException("Unsupported dir op: ${op.operationType}"))
             }
-            result.onSuccess { dirSucceeded++ }
+            result.onSuccess {
+                dirSucceeded++
+                succeededSources += dir.path
+            }
                 .onFailure { e ->
                     Timber.e(e, "folderPickerLauncher: dir op failed for ${dir.path}")
                     dirFailed++
                     if (refusal == null && e is DirectoryOperationRefusal) refusal = e
                 }
+        }
+        // S1326: offer undo only for a clean run, matching the worker path - a batch where some folder
+        // failed cannot be reversed as a whole. A SAF destination never gets here: a content: target is
+        // refused as DESTINATION_NOT_SUPPORTED, so only the resolved real-path branch reaches this.
+        if (dirFailed == 0 && succeededSources.isNotEmpty()) {
+            fileOperationsManager.saveDirectoryUndoRecord(op.operationType, succeededSources, destinationPath)
         }
         // A destination the tree layer cannot address is a different fact from "some operations
         // failed" - the user has to choose another destination, not retry the same one.

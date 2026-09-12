@@ -2,7 +2,20 @@
 # Builds ALL flavors (Standard, Lite, Photos, Legacy, VR, noLegal) in both Debug and Release modes
 # Also builds Wear OS (Debug + Release)
 # Copies artifacts to DOWNLOADS folder
-# Commits and pushes to git
+# Commits and pushes to git only when asked - see -Push below.
+#
+# Exit codes:
+#   0 - every artifact built (and, with -Push, the commit and push were attempted)
+#   1 - the build failed after its retries
+
+param(
+    # S1873, owner decision 2026-08-21: publishing is opt-in and OFF by default. The tail of this
+    # script used to run `git add .` unconditionally, so the only way to observe the sweep's own
+    # output was to publish everything else in the tree at the same time - including whatever a
+    # parallel session had in flight. That made the sweep's central claim, that all fourteen
+    # artifacts carry one versionName, unverifiable by construction rather than merely unverified.
+    [switch]$Push
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -220,7 +233,15 @@ if (Test-Path $wearApkRoot) {
     Write-Host "  Warning: Wear build output not found at $wearApkRoot" -ForegroundColor Yellow
 }
 
-# 3. Git Operations
+# 3. Git Operations - opt-in only (S1873)
+if (-not $Push) {
+    Write-Host "`nSkipping git commit and push (-Push not given)." -ForegroundColor Cyan
+    Write-Host "  Artifacts are in $downloadsDir and in each module's build/outputs." -ForegroundColor DarkGray
+    Write-Host "  Every artifact of this sweep carries versionName $($stamp.VersionName)." -ForegroundColor DarkGray
+    Write-Host "  Re-run with -Push to commit and push them." -ForegroundColor DarkGray
+    return
+}
+
 Write-Host "`nStarting Git Push..." -ForegroundColor Cyan
 
 # Check if there are changes to commit (specifically in DOWNLOADS or elsewhere)

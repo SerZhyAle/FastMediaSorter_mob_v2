@@ -18,6 +18,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | AndroidX Activity Compose | `androidx.activity:activity-compose` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Activity KTX | `androidx.activity:activity-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX AppCompat | `androidx.appcompat:appcompat` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX AppFunctions Core | `androidx.appfunctions:appfunctions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Browser | `androidx.browser:browser` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX CameraX Camera2 | `androidx.camera:camera-camera2` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX CameraX Core | `androidx.camera:camera-core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -40,6 +41,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | AndroidX DocumentFile | `androidx.documentfile:documentfile` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX ExifInterface | `androidx.exifinterface:exifinterface` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Fragment KTX | `androidx.fragment:fragment-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
+| AndroidX Health Services Client | `androidx.health:health-services-client` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | noLegal | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Hilt Navigation Compose | `androidx.hilt:hilt-navigation-compose` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Hilt WorkManager | `androidx.hilt:hilt-work` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
 | AndroidX Lifecycle LiveData KTX | `androidx.lifecycle:lifecycle-livedata-ktx` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://android.googlesource.com/platform/frameworks/support/) |
@@ -56,6 +58,7 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | AndroidX Media3 ExoPlayer HLS | `androidx.media3:media3-exoplayer-hls` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer MIDI | `androidx.media3:media3-exoplayer-midi` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | legacy, lite, noLegal, standard, vr | [link](https://github.com/androidx/media) |
 | AndroidX Media3 ExoPlayer RTSP | `androidx.media3:media3-exoplayer-rtsp` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
+| AndroidX Media3 Inspector | `androidx.media3:media3-inspector` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Session | `androidx.media3:media3-session` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 Transformer | `androidx.media3:media3-transformer` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
 | AndroidX Media3 UI | `androidx.media3:media3-ui` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/androidx/media) |
@@ -88,9 +91,13 @@ FastMediaSorter is built on the open source components listed below. We are grat
 | PhotoView | `com.github.chrisbanes:PhotoView` | [Apache-2.0](https://raw.githubusercontent.com/Baseflow/PhotoView/2.3.0/LICENSE) | all builds | [link](https://github.com/Baseflow/PhotoView) |
 | Chucker (no-op) | `com.github.chuckerteam.chucker:library-no-op` | [Apache-2.0](https://raw.githubusercontent.com/ChuckerTeam/chucker/main/LICENSE.txt) | all builds | [link](https://github.com/ChuckerTeam/chucker) |
 | JSch (mwiede fork) | `com.github.mwiede:jsch` | [BSD-3-Clause](https://raw.githubusercontent.com/mwiede/jsch/master/LICENSE.txt) | all builds | [link](https://github.com/mwiede/jsch) |
+| RTSP-Server | `com.github.pedroSG94:RTSP-Server` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RTSP-Server/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RTSP-Server) |
+| RootEncoder Common | `com.github.pedroSG94.RootEncoder:common` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RootEncoder) |
+| RootEncoder | `com.github.pedroSG94.RootEncoder:library` | [Apache-2.0](https://raw.githubusercontent.com/pedroSG94/RootEncoder/master/LICENSE) | legacy, noLegal, standard | [link](https://github.com/pedroSG94/RootEncoder) |
 | NewPipe Extractor | `com.github.TeamNewPipe:NewPipeExtractor` | [GPL-3.0-or-later](https://raw.githubusercontent.com/TeamNewPipe/NewPipeExtractor/dev/LICENSE) | noLegal | [link](https://github.com/TeamNewPipe/NewPipeExtractor) |
 | Accompanist Permissions | `com.google.accompanist:accompanist-permissions` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/accompanist) |
 | Material Components for Android | `com.google.android.material:material` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/material-components/material-components-android) |
+| Gson | `com.google.code.gson:gson` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/gson) |
 | Dagger Hilt Android | `com.google.dagger:hilt-android` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/google/dagger) |
 | ZXing Core | `com.google.zxing:core` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/zxing/zxing) |
 | SMBJ | `com.hierynomus:smbj` | [Apache-2.0](https://www.apache.org/licenses/LICENSE-2.0) | all builds | [link](https://github.com/hierynomus/smbj) |
@@ -138,7 +145,10 @@ These components are not open source. They are distributed under their vendor te
 - **Glide** (`BSD-2-Clause AND Apache-2.0 AND MIT`) - Compound licence: BSD-2-Clause for Glide itself, Apache-2.0 for third_party/disklrucache, MIT for third_party/gif_decoder, plus two permissive grants in third_party/gif_encoder that have no SPDX identifier.
 - **PhotoView** (`Apache-2.0`) - Published on JitPack under the original author coordinate; the canonical repository is Baseflow/PhotoView.
 - **JSch (mwiede fork)** (`BSD-3-Clause`) - The POM declares three licences: BSD-3-Clause for JSch, BSD-3-Clause for the bundled JZlib, ISC for the bundled jBCrypt.
+- **RTSP-Server** (`Apache-2.0`) - Published on JitPack; hosts the on-device RTSP server used by the camera broadcast (standard/noLegal/legacy only).
+- **RootEncoder** (`Apache-2.0`) - Declared explicitly rather than transitively: JitPack generates the RTSP-Server POM with runtime scope, so its base classes never reach the compile classpath.
 - **NewPipe Extractor** (`GPL-3.0-or-later`) - Copyleft without a linking exception, linked only into the sideload-only noLegal build. In accordance with GPLv3 §6, the Corresponding Source code (including both the application source code and the extractor source code) is available at https://github.com/SerZhyAle/FastMediaSorter_mob_v2 and https://github.com/TeamNewPipe/NewPipeExtractor.
+- **Gson** (`Apache-2.0`) - S2509: declared outright by the wear module, which previously took it transitively through converter-gson above. The broadcast descriptor is a cross-module wire contract, so its serializer may not rest on a version a Retrofit bump could change.
 - **ZXing Core** (`Apache-2.0`) - Licence inherited from the zxing-parent POM; the core artifact declares no licences block of its own.
 - **SMBJ** (`Apache-2.0`) - Apache-2.0 per the repository LICENSE_HEADER and the licences block of the 0.12.1 POM. The LGPL sometimes associated with SMB clients on Android belongs to jcifs-ng, a different library this project does not use.
 - **Tesseract4Android** (`Apache-2.0`) - Bundles Tesseract OCR (Apache-2.0) and Leptonica (BSD-2-Clause) as native libraries.

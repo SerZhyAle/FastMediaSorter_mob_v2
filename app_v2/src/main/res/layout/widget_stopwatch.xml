@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_stopwatch_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/widget_background"
+    android:contentDescription="@string/widget_stopwatch_label"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:padding="@dimen/padding_small">
+
+    <Chronometer
+        android:id="@+id/widget_stopwatch_reading"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:singleLine="true"
+        android:textColor="@color/white"
+        android:textSize="@dimen/widget_stopwatch_reading_text_size"
+        android:textStyle="bold" />
+
+    <ImageView
+        android:id="@+id/widget_stopwatch_toggle"
+        android:layout_width="@dimen/widget_stopwatch_toggle_size"
+        android:layout_height="@dimen/widget_stopwatch_toggle_size"
+        android:contentDescription="@string/stopwatch_action_start"
+        android:padding="@dimen/padding_small"
+        android:src="@drawable/ic_play"
+        android:tint="@color/white" />
+
+</LinearLayout>

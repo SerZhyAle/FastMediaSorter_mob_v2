@@ -47,6 +47,8 @@
       1 - under -Gate: at least one unreferenced name is not in the baseline.
       2 - cannot verify: the module, its values directory, or the strings file could not be read.
           Never conflated with 0 - a gate that could not look has not passed.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-unreferenced-strings.ps1 -Gate
@@ -70,6 +72,8 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'lib/android-string-liveness.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $baselineFile = Join-Path $PSScriptRoot 'assert-unreferenced-strings-baseline.txt'
 
 # name -> reason (possibly empty). Everything from '#' on is the reason; blank lines and whole-line
@@ -117,7 +121,12 @@ if ($UpdateBaseline) {
         $reason = if ($baseline.Contains($name) -and $baseline[$name]) { $baseline[$name] } else { 'TODO: state why this name is kept' }
         $lines.Add(("{0}  # {1}" -f $name, $reason))
     }
-    Set-Content -LiteralPath $baselineFile -Value ($lines -join [Environment]::NewLine) -Encoding UTF8
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-unreferenced-strings.ps1 -UpdateBaseline'
+        Set-Content -LiteralPath $baselineFile -Value ($lines -join [Environment]::NewLine) -Encoding UTF8
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-unreferenced-strings: baseline updated - $($current.Count) name(s)." -ForegroundColor Cyan
     exit 0
 }

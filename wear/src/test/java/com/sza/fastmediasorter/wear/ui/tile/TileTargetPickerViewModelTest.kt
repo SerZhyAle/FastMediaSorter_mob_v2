@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.tile
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
+import com.sza.fastmediasorter.wear.domain.model.WearSourceTombstonePayload
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
@@ -154,6 +155,10 @@ private class PickerFakeNetworkSourceRepository : NetworkSourceRepository {
     override suspend fun updateSource(source: NetworkSource) {}
     override suspend fun upsertSource(source: NetworkSource) {}
     override suspend fun deleteSource(id: String) {}
+    override suspend fun deleteSourceWithTombstone(id: String, deletedAt: Long) {}
+    override suspend fun getTombstones(): List<WearSourceTombstonePayload> = emptyList()
+    override suspend fun recordTombstone(tombstone: WearSourceTombstonePayload) {}
+    override suspend fun removeTombstone(id: String) {}
     override suspend fun testConnection(source: NetworkSource): Result<Boolean> = Result.success(true)
 }
 

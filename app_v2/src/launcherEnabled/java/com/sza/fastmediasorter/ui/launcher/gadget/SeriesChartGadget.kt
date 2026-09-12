@@ -11,20 +11,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.GadgetLauncherSeriesChartBinding
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.sensors.MotionReading
 import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.model.sensors.SensorSeriesId
 import com.sza.fastmediasorter.domain.model.sensors.SensorSeriesPoint
-import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
-import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
-import com.sza.fastmediasorter.domain.usecase.sensors.ObserveSensorSeriesUseCase
-import com.sza.fastmediasorter.domain.usecase.sensors.RecordSensorSeriesPointUseCase
-import com.sza.fastmediasorter.domain.usecase.sensors.ResetSensorSeriesUseCase
+import com.sza.fastmediasorter.ui.launcher.gadget.di.SeriesChartDependencies
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import java.util.Locale
 import java.util.concurrent.atomic.AtomicBoolean
-import kotlin.math.roundToInt
 
 /**
  * S1179: one chart tile over one persistent series - instantiated twice, for speed and for
@@ -35,11 +32,10 @@ class SeriesChartGadget(
     override val labelRes: Int,
     internal val seriesId: SensorSeriesId,
     internal val secondaryShown: Boolean,
-    private val availability: SensorAvailabilityRepository,
-    internal val observeSeries: ObserveSensorSeriesUseCase,
-    internal val observeMotion: ObserveMotionUseCase,
-    internal val recordPoint: RecordSensorSeriesPointUseCase,
-    internal val resetSeries: ResetSensorSeriesUseCase,
+    // S2795: the collaborators arrive as the holder rather than one parameter each. Unfolding them
+    // again would put this constructor past detekt's constructorThreshold the moment the format seam
+    // joined, and the holder exists precisely to keep the tile's own four fields the visible ones.
+    internal val dependencies: SeriesChartDependencies,
 ) : LauncherGadget {
 
     override val defaultSpanW: Int = 2
@@ -57,7 +53,8 @@ class SeriesChartGadget(
      */
     private val recording = AtomicBoolean(false)
 
-    override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.LOCATION)
+    override fun isAvailable(): Boolean =
+        dependencies.availability.isAvailable(SensorCapability.LOCATION)
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
         SeriesChartGadgetView(container.context, this)
@@ -87,17 +84,25 @@ private class SeriesChartGadgetView(
     init {
         binding.gadgetChartSeries.showSecondary = gadget.secondaryShown
         binding.gadgetChartReset.setOnClickListener {
-            activeScope?.launch { gadget.resetSeries(gadget.seriesId) }
+            activeScope?.launch { gadget.dependencies.resetSeries(gadget.seriesId) }
         }
     }
 
     override suspend fun CoroutineScope.onActive() {
         activeScope = this
         try {
-            launch { gadget.observeSeries(gadget.seriesId).collect { render(it) } }
+            launch {
+                // S2795: the setting is folded into the series stream, so flipping the unit system
+                // relabels the newest reading at once instead of waiting for the next recorded point.
+                combine(
+                    gadget.dependencies.observeSeries(gadget.seriesId),
+                    gadget.dependencies.unitSystemProvider.current,
+                ) { points, system -> points to system }
+                    .collect { (points, system) -> render(points, system) }
+            }
             if (hasLocationPermission() && gadget.claimRecording()) {
                 try {
-                    gadget.observeMotion().collect { recordSample(it) }
+                    gadget.dependencies.observeMotion().collect { recordSample(it) }
                 } finally {
                     gadget.releaseRecording()
                 }
@@ -121,10 +126,15 @@ private class SeriesChartGadgetView(
                 secondaryDelta = reading.distanceDeltaMeters
             }
         }
-        gadget.recordPoint(gadget.seriesId, primary, secondaryDelta, reading.takenAtMillis)
+        gadget.dependencies.recordPoint(
+            gadget.seriesId,
+            primary,
+            secondaryDelta,
+            reading.takenAtMillis,
+        )
     }
 
-    private fun render(points: List<SensorSeriesPoint>) {
+    private fun render(points: List<SensorSeriesPoint>, system: UnitSystem) {
         binding.gadgetChartSeries.setPoints(points)
         val hasData = binding.gadgetChartSeries.hasData
         binding.gadgetChartSeries.isVisible = hasData
@@ -137,11 +147,11 @@ private class SeriesChartGadgetView(
         }
 
         val newest = points.last()
-        val value = formatValue(newest.primaryValue)
+        val value = formatValue(newest.primaryValue, system)
         val elapsed = DateUtils.formatElapsedTime(
             (newest.takenAtMillis - points.first().takenAtMillis) / MILLIS_PER_SECOND,
         )
-        val distance = newest.secondaryValue?.let { formatDistance(it) }
+        val distance = newest.secondaryValue?.let { formatDistance(it, system) }
 
         binding.gadgetChartValue.text = value
         binding.gadgetChartSecondary.isVisible = gadget.secondaryShown && distance != null
@@ -158,18 +168,25 @@ private class SeriesChartGadgetView(
         }
     }
 
-    private fun formatValue(value: Double): String = when (gadget.seriesId) {
-        SensorSeriesId.SPEED ->
-            context.getString(R.string.launcher_gadget_speed_value, value.roundToInt())
+    /**
+     * S2795: the speed line carries no unit of its own - the seam picks one. The series stores km/h
+     * because S1179 converted at the source, so the value is put back on the platform's metres per
+     * second rather than teaching the seam a second input scale (the speed tile does the same).
+     */
+    private fun formatValue(value: Double, system: UnitSystem): String = when (gadget.seriesId) {
+        SensorSeriesId.SPEED -> gadget.dependencies.quantityFormatter.format(
+            Quantity.Speed(value * METRES_PER_SECOND_PER_KMH),
+            system,
+        )
 
-        SensorSeriesId.ALTITUDE_DISTANCE ->
-            context.getString(R.string.launcher_gadget_chart_altitude_current, value.roundToInt())
+        SensorSeriesId.ALTITUDE_DISTANCE -> context.getString(
+            R.string.launcher_gadget_chart_altitude_now,
+            gadget.dependencies.quantityFormatter.format(Quantity.Altitude(value), system),
+        )
     }
 
-    private fun formatDistance(meters: Double): String = context.getString(
-        R.string.launcher_gadget_chart_distance,
-        String.format(Locale.getDefault(), DISTANCE_FORMAT, meters / METERS_PER_KILOMETRE),
-    )
+    private fun formatDistance(meters: Double, system: UnitSystem): String =
+        gadget.dependencies.quantityFormatter.format(Quantity.Distance(meters), system)
 
     private fun hasLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) ==
@@ -177,7 +194,6 @@ private class SeriesChartGadgetView(
 
     private companion object {
         const val MILLIS_PER_SECOND = 1000L
-        const val METERS_PER_KILOMETRE = 1000.0
-        const val DISTANCE_FORMAT = "%.1f"
+        const val METRES_PER_SECOND_PER_KMH = 1.0 / 3.6
     }
 }

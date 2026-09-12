@@ -76,8 +76,6 @@
     <string name="delete_by_size_warning_no_trash">Aviso: a lixeira não é suportada para este recurso. A exclusão será permanente!</string>
     <string name="delete_confirmation">Apagar arquivos?</string>
     <string name="delete_failed">Não foi possível excluir os arquivos.</string>
-    <string name="delete_file_confirmation">Excluir %1$s de %2$s?</string>
-    <string name="delete_files_confirmation">Excluir arquivos %1$d de %2$s?</string>
     <string name="delete_folder_confirm">Apagar a pasta \"%1$s\" e todo o seu conteúdo? Esta ação é irreversível.</string>
     <string name="delete_n_files_from_network_title">Excluir %d arquivos da rede?</string>
     <string name="delete_n_folders_confirm">Excluir as pastas %1$d e todo o seu conteúdo? Esta ação é irreversível.</string>
@@ -136,4 +134,11 @@
     <string name="browse_row_folder_checkbox">Pasta %1$s, selecione</string>
     <string name="browse_row_file_checkbox">Arquivo %1$s, selecione</string>
     <string name="browse_transfer_folders_included">Pastas incluídas: %1$d</string>
+    <string name="undo_folder_move_started">A mover as pastas de volta..</string>
+    <string name="undo_folder_copy_confirm_title">Anular a cópia da pasta?</string>
+    <string name="undo_folder_copy_confirm_message">As cópias no destino serão eliminadas, incluindo tudo o que lhes foi acrescentado desde então. As pastas originais permanecem onde estão.</string>
+    <string name="undo_folder_copy_confirm_action">Eliminar as cópias</string>
+    <string name="undo_folder_copy_done">Cópias eliminadas.</string>
+    <string name="undo_mixed_move_started">A mover as pastas de volta, a restaurar %1$d ficheiros..</string>
+    <string name="undo_mixed_copy_done">Cópias eliminadas: %1$d ficheiros, %2$d pastas.</string>
 </resources>

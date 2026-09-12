@@ -8,7 +8,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -41,6 +40,5 @@ class VolumeIndicatorViewModel @Inject constructor(
                 max = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
             )
         }
-        Timber.d("S2140: file list volume readout ${_readout.value.level}/${_readout.value.max}")
     }
 }

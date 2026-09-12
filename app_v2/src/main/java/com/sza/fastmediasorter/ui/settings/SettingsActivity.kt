@@ -234,7 +234,6 @@ class SettingsActivity : BaseActivity<ActivitySettingsBinding>() {
             }
         } else {
             binding.viewPager.setPageTransformer(null)
-            Timber.d("S2250: settings tab transformer disabled")
         }
         if (BuildConfig.DEBUG) Timber.d("SettingsActivity: [${elapsed()}ms] viewPager configured (transformer)")
 

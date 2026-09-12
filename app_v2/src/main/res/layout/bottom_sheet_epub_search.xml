@@ -20,7 +20,7 @@
         app:endIconMode="clear_text"
         style="@style/Widget.Material3.TextInputLayout.OutlinedBox">
 
-        <com.google.android.material.textfield.TextInputEditText
+        <com.sza.fastmediasorter.ui.common.widget.SafeSelectionTextInputEditText
             android:id="@+id/etSearchAllQuery"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

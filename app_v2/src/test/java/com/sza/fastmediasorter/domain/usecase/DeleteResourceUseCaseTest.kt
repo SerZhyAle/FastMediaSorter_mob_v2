@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase
 import com.sza.fastmediasorter.testing.createScheduledOperation
 import com.sza.fastmediasorter.testing.fakes.FakeResourceRepository
 import com.sza.fastmediasorter.testing.fakes.FakeScheduledOperationRepository
+import com.sza.fastmediasorter.testing.fakes.FakeWearResourceTombstoneStore
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
 import io.mockk.every
 import io.mockk.mockk
@@ -18,12 +19,13 @@ class DeleteResourceUseCaseTest {
     private val resourceRepository = FakeResourceRepository()
     private val scheduledRepository = FakeScheduledOperationRepository()
     private val scheduler = mockk<WorkManagerScheduler>(relaxUnitFun = true)
+    private val tombstoneStore = FakeWearResourceTombstoneStore()
 
     private lateinit var useCase: DeleteResourceUseCase
 
     @Before
     fun setup() {
-        useCase = DeleteResourceUseCase(resourceRepository, scheduledRepository, scheduler)
+        useCase = DeleteResourceUseCase(resourceRepository, scheduledRepository, scheduler, tombstoneStore)
     }
 
     @Test
@@ -57,11 +59,20 @@ class DeleteResourceUseCaseTest {
     }
 
     @Test
+    fun `records a tombstone for the deleted resource`() = runTest {
+        scheduledRepository.setOperations(emptyList())
+
+        useCase(resourceId = 7L)
+
+        assertEquals(listOf("7"), tombstoneStore.read().map { it.id })
+    }
+
+    @Test
     fun `repository failure is wrapped as Result failure`() = runTest {
         val failingRepo = mockk<com.sza.fastmediasorter.domain.repository.ResourceRepository>()
         every { failingRepo.toString() } returns "repo"
         io.mockk.coEvery { failingRepo.deleteResource(any()) } throws IllegalStateException("db down")
-        val uc = DeleteResourceUseCase(failingRepo, scheduledRepository, scheduler)
+        val uc = DeleteResourceUseCase(failingRepo, scheduledRepository, scheduler, tombstoneStore)
         scheduledRepository.setOperations(emptyList())
 
         val result = uc(resourceId = 1L)

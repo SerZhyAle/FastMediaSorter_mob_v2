@@ -555,7 +555,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
         // OPTIMIZATION: Document Viewers and VideoPlayerManager use lazy initialization
         activity.lyricsManager = LyricsManager(
             context = activity,
-            binding = activity.activityBinding,
+            root = activity.activityBinding.root,
             lifecycleScope = activity.lifecycleScope,
             settingsRepository = activity.playerHostFactory.settingsRepository,
             searchLyricsUseCase = activity.playerHostFactory.searchLyrics,
@@ -567,6 +567,7 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             lifecycleOwner = activity,
             binding = activity.activityBinding,
             settingsRepository = activity.playerHostFactory.settingsRepository,
+            capabilityAvailability = activity.capabilityAvailability,
             callback = com.sza.fastmediasorter.ui.player.callbacks.PlayerTranslationButtonCallbackImpl(
                 activity = activity,
                 viewModel = activity.viewModel
@@ -697,6 +698,9 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
                 }
                 override fun isVrEntryAvailable(): Boolean =
                     activity.playerVrLaunchManager?.isOverflowEntryVisible() == true
+                override fun onControllerVisibilityChanged(visibility: Int) {
+                    activity.controlsSetupManager.updateDocumentFullscreenExitButtonVisibility()
+                }
             }
         )
 
@@ -781,6 +785,8 @@ internal class PlayerManagerInitializer(private val activity: PlayerActivity) {
             }
         )
         activity.castMediaManager.init()
+        // S2531: the watch bridge has no player of its own to ask, so the live seam is deposited here.
+        activity.activeCastControllerHolder.attach(activity.castMediaManager)
         activity.commandPanelController.bindCastManager(activity.castMediaManager)
 
         activity.audioServiceController = AudioServiceController(activity)

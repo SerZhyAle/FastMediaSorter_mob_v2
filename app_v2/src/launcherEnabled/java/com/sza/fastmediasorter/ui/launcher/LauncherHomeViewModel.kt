@@ -10,9 +10,8 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
-import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
+import com.sza.fastmediasorter.data.local.db.LauncherCellConfigEntity
 import com.sza.fastmediasorter.domain.model.AppSettings
-import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.launcher.AppShortcut
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
@@ -28,19 +27,19 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherWallpaper
 import com.sza.fastmediasorter.domain.repository.LauncherSectionVisibilityRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.ExecuteScheduledOperationUseCase
-import com.sza.fastmediasorter.domain.usecase.ExportResourcesToFileUseCase
-import com.sza.fastmediasorter.domain.usecase.companion.ExportCompanionConfigUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.ExecuteLauncherCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.IsCameraWallpaperAvailableUseCase
 import com.sza.fastmediasorter.domain.usecase.launcher.PickContactShortcutUseCase
 import com.sza.fastmediasorter.domain.usecase.panel.ResolvePanelRouteAvailabilityUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherCellMenuManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherSectionCollapseManager
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarComposition
 import com.sza.fastmediasorter.ui.launcher.helpers.LauncherTaskbarIcon
+import com.sza.fastmediasorter.ui.launcher.helpers.LauncherWallpaperTuning
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
 import com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayComposition
-import com.sza.fastmediasorter.ui.main.helpers.ResourceScanCoordinator
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -49,6 +48,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -58,7 +58,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
@@ -110,6 +109,9 @@ class LauncherHomeViewModel @Inject constructor(
     /** S2330: guards [startShortcutSyncObservation] - see the note there on why a rotation must not restart it. */
     private var shortcutSyncObservationStarted = false
 
+    /** S2564: the same guard for [startResourceTileSyncObservation], which a rotation must not restart either. */
+    private var resourceTileSyncObservationStarted = false
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val cells: StateFlow<List<LauncherCellUi>> = _orientation
         .flatMapLatest { desktopDependencies.resolveDesktop(it) }
@@ -117,6 +119,15 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** S1428: folded sections and the tap that folds them - see [LauncherSectionCollapseManager]. */
     val sections = LauncherSectionCollapseManager(visibility, viewModelScope, cells, _orientation)
+
+    /** S1905: per-cell configuration entries (e.g. weather location) mapped by cell ID. */
+    val cellConfigs: StateFlow<Map<Long, Map<String, String>>> = desktopDependencies.cellConfigDao
+        .observeAllConfigs()
+        .map { list ->
+            list.groupBy { it.cellId }
+                .mapValues { (_, entries) -> entries.associate { it.key to it.value } }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), emptyMap())
 
     /**
      * S1680: the seed every settings-derived flow below starts from, so a seed and the model's default
@@ -150,6 +161,27 @@ class LauncherHomeViewModel @Inject constructor(
         .map { it.launcherWeatherLastLocation }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherWeatherLastLocation)
+
+    /**
+     * S2223: animation color palette for procedural waves/particles wallpaper.
+     */
+    val animationPalette: StateFlow<String> = settingsRepository.getSettings()
+        .map { it.launcherAnimationPalette }
+        .distinctUntilChanged()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, settingsDefaults.launcherAnimationPalette)
+
+    /**
+     * S2730: the branded backdrop's tuning, replacing the constant the render layer used to carry.
+     */
+    val wallpaperTuning: Flow<LauncherWallpaperTuning> = settingsRepository.getSettings()
+        .map {
+            LauncherWallpaperTuning(
+                intensity = it.launcherWallpaperIntensity,
+                animationSpeed = it.launcherWallpaperAnimationSpeed,
+                particleDensity = it.launcherWallpaperParticleDensity,
+            )
+        }
+        .distinctUntilChanged()
 
     val taskbarComposition: Flow<LauncherTaskbarComposition> = settingsRepository.getSettings()
         .map {
@@ -362,11 +394,27 @@ class LauncherHomeViewModel @Inject constructor(
     private val _events = Channel<LauncherHomeEvent>(Channel.BUFFERED)
     val events: Flow<LauncherHomeEvent> = _events.receiveAsFlow()
 
+    /** S2561: the resource/channel long-press menu's domain work - see [LauncherCellMenuManager]. */
+    val cellMenu = LauncherCellMenuManager(
+        dependencies = cellMenuDependencies,
+        resourceRepository = desktopDependencies.resourceRepository,
+        observeStreams = observeStreams,
+        scope = viewModelScope,
+        sendMessage = { messageRes -> _events.send(LauncherHomeEvent.Message(messageRes)) },
+    )
+
     // The target takes a few hundred ms to appear, and Home stays touchable the whole time, so a
     // second tap must not start it again. The guard is held until the user is actually back on the
     // desktop ([onHomeResumed]) - releasing it when the launch call returns would re-arm the cell
     // while the target is still opening, which is precisely the window it guards.
     private var launchInFlight = false
+
+    private val _activeScreenIndex = MutableStateFlow(0)
+    val activeScreenIndex: StateFlow<Int> = _activeScreenIndex.asStateFlow()
+
+    fun setActiveScreenIndex(index: Int) {
+        _activeScreenIndex.value = index
+    }
 
     fun setOrientation(orientation: LauncherOrientation) {
         _orientation.value = orientation
@@ -383,13 +431,21 @@ class LauncherHomeViewModel @Inject constructor(
      * to make room, and the only outcome the user still has to be told about is a footprint wider than
      * the grid, which nothing can seat.
      */
-    fun addCell(rowIndex: Int, colIndex: Int, draft: LauncherCellDraft, columns: Int) {
+    fun addCell(
+        rowIndex: Int,
+        colIndex: Int,
+        draft: LauncherCellDraft,
+        columns: Int,
+        screenIndex: Int = _activeScreenIndex.value,
+    ) {
         viewModelScope.launch {
+            Timber.d("S2905: addCell screenIndex=%d (%d,%d)", screenIndex, rowIndex, colIndex)
             rememberResourceFileList(draft.rememberFileListResourceId)
             val placement = desktopDependencies.desktopRepository.addCell(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     rowIndex = rowIndex,
                     colIndex = colIndex,
                     spanW = draft.spanW,
@@ -430,15 +486,18 @@ class LauncherHomeViewModel @Inject constructor(
         // S1742: a user-created section carries its name from the moment it is placed - it has no preset
         // label to fall back on, so a header written without one would draw as unavailable.
         labelOverride: String? = null,
+        screenIndex: Int = _activeScreenIndex.value,
         // S2247: answers whether a slot was found, so a programmatic placement can speak its refusal.
         onPlaced: (Boolean) -> Unit = {},
     ) {
         viewModelScope.launch {
+            Timber.d("S2905: addCellInFirstFreeSlot screenIndex=%d", screenIndex)
             rememberResourceFileList(rememberFileListResourceId)
             val id = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     // Ignored: the repository scans for the anchor and overwrites both.
                     rowIndex = 0,
                     colIndex = 0,
@@ -455,7 +514,6 @@ class LauncherHomeViewModel @Inject constructor(
             // the first free square it finds can sit inside a collapsed section - where the render plan
             // drops the cell and the user is left with an item that was written and cannot be seen.
             id?.let { sections.revealSectionHolding(it) }
-            Timber.d("S2033: addCellInFirstFreeSlot id=%s", id)
             onPlaced(id != null)
         }
     }
@@ -480,17 +538,27 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
-    /** Rejected when the footprint is not free; the cell simply snaps back where it was. */
-    fun moveCell(id: Long, rowIndex: Int, colIndex: Int) {
+    /**
+     * Rejected when the footprint is not free; the cell simply snaps back where it was.
+     *
+     * S2599: the column count comes from the surface rendering the desktop, because it decides how far
+     * right a cell of this width can be seated - the drop point alone does not say.
+     */
+    fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int) {
         viewModelScope.launch {
-            desktopDependencies.desktopRepository.moveCell(id, rowIndex, colIndex)
+            desktopDependencies.desktopRepository.moveCell(id, rowIndex, colIndex, columns)
         }
     }
 
-    /** Rejected when the new footprint overlaps another cell; the gesture keeps the last valid size. */
-    fun resizeCell(id: Long, spanW: Int, spanH: Int) {
+    /**
+     * Rejected when the new footprint overlaps another cell; the gesture keeps the last valid size.
+     *
+     * S2599: [columns] caps the growth at the right edge, so a width the renderer would have to narrow
+     * is never stored in the first place.
+     */
+    fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int) {
         viewModelScope.launch {
-            desktopDependencies.desktopRepository.resizeCell(id, spanW, spanH)
+            desktopDependencies.desktopRepository.resizeCell(id, spanW, spanH, columns)
         }
     }
 
@@ -527,13 +595,12 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun moveCellToScreen(cellId: Long, screenIndex: Int, columns: Int) {
         viewModelScope.launch {
-            val moved = desktopDependencies.desktopRepository.moveCellToScreen(
+            desktopDependencies.desktopRepository.moveCellToScreen(
                 orientation = _orientation.value,
                 cellId = cellId,
                 screenIndex = screenIndex,
                 columns = columns,
             )
-            Timber.d("S2301: moveCellToScreen id=%s screen=%d moved=%s", cellId, screenIndex, moved)
         }
     }
 
@@ -543,7 +610,6 @@ class LauncherHomeViewModel @Inject constructor(
             val removed = desktopDependencies.desktopRepository.removeSection(_orientation.value, cellId)
             removed.forEach(desktopDependencies.configuredWidgetInstances::clearInstanceOf)
             header?.let(sections::clear)
-            Timber.d("S2222: deleteSection id=%s removed=%d", cellId, removed.size)
         }
     }
 
@@ -551,8 +617,7 @@ class LauncherHomeViewModel @Inject constructor(
         viewModelScope.launch {
             val header = cells.value.find { it.cell.id == cellId }?.cell ?: return@launch
             sections.reveal(header)
-            val moved = desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
-            Timber.d("S2222: resortSection id=%s columns=%d moved=%s", cellId, columns, moved)
+            desktopDependencies.desktopRepository.resortSection(_orientation.value, cellId, columns)
         }
     }
 
@@ -563,7 +628,10 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun addPin(command: LauncherCellCommand) {
         viewModelScope.launch {
-            val used = taskbarDependencies.pinsRepository.observePins().first().map { it.first }.toSet()
+            val pins = taskbarDependencies.pinsRepository.observePins().first()
+            val pinnedCommands = pins.map { it.second }.toSet()
+            if (command in pinnedCommands) return@launch
+            val used = pins.map { it.first }.toSet()
             var position = 0
             while (position in used) position++
             taskbarDependencies.pinsRepository.setPin(position, command)
@@ -578,6 +646,7 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Pins a recents entry through the same slot-allocation path as every other taskbar pin. */
     fun pinRecentToTaskbar(command: LauncherCellCommand) {
+        Timber.d("S1901: pinRecentToTaskbar %s", command)
         addPin(command)
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
@@ -586,6 +655,7 @@ class LauncherHomeViewModel @Inject constructor(
 
     /** Hides the command from recents until it is launched again. */
     fun removeRecentCommand(command: LauncherCellCommand) {
+        Timber.d("S1901: removeRecentCommand %s", command)
         viewModelScope.launch {
             taskbarDependencies.removeRecentCommand(command)
         }
@@ -611,8 +681,18 @@ class LauncherHomeViewModel @Inject constructor(
      */
     fun rememberWeatherLocation(encoded: String) {
         viewModelScope.launch {
-            Timber.d("S2213: weather place remembered outside the desktop cell")
             settingsRepository.updateSettings { it.withLauncher { copy(weatherLastLocation = encoded) } }
+        }
+    }
+
+    /** S1905: stores chosen weather location into per-cell configuration in Room. */
+    fun saveWeatherCellLocation(cellId: Long, encodedLocation: String) {
+        Timber.d("S1905: saving weather location for cellId=$cellId encoded=$encodedLocation")
+        if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) return
+        viewModelScope.launch(Dispatchers.IO) {
+            desktopDependencies.cellConfigDao.upsert(
+                LauncherCellConfigEntity(cellId = cellId, key = KEY_WEATHER_LOCATION, value = encodedLocation)
+            )
         }
     }
 
@@ -621,6 +701,25 @@ class LauncherHomeViewModel @Inject constructor(
         viewModelScope.launch {
             settingsRepository.updateSettings { it.withLauncher { copy(rotationHintShown = true) } }
         }
+    }
+
+    /**
+     * S2397: writes the desktop lock from the desktop itself, so the decision to freeze the layout is
+     * taken where the layout is - the settings dialog switch keeps writing the same flag from its screen.
+     */
+    fun setDesktopLocked(locked: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.updateSettings { it.withLauncher { copy(desktopLocked = locked) } }
+        }
+    }
+
+    /**
+     * S2397: the long press landed on a locked desktop. Answering it is the whole point - the gesture was
+     * a silent no-op since S1090, which reads as a freeze rather than as the guard the user switched on,
+     * and the message names the way back because the menu that would offer it never opens while locked.
+     */
+    fun onLockedDesktopLongPress() {
+        _events.trySend(LauncherHomeEvent.Message(R.string.launcher_desktop_locked_toast))
     }
 
     /** The desktop is in front again: whatever was launched is done, so taps are live once more. */
@@ -722,120 +821,6 @@ class LauncherHomeViewModel @Inject constructor(
         }
     }
 
-    /**
-     * S1424: the long-press menu needs the resource behind a cell to decide which rows it offers -
-     * the cell stores the identifier and nothing more. Off the main thread, because a network
-     * resource's row can be a disk read.
-     */
-    suspend fun resourceById(resourceId: Long): MediaResource? = withContext(Dispatchers.IO) {
-        desktopDependencies.resourceRepository.getResourceById(resourceId)
-    }
-
-    /**
-     * S1424: reached only after the shared confirmation dialog, which the desktop raises rather than
-     * copies (strategic 6.2).
-     *
-     * The cell itself is left where it is on purpose: a cell whose target has gone renders as
-     * unavailable, which is what every other vanished target already does, and silently rearranging
-     * the desktop under a delete would be a second surprise on top of the first.
-     */
-    fun deleteResource(resourceId: Long) {
-        viewModelScope.launch {
-            val result = cellMenuDependencies.deleteResource(resourceId)
-            if (result.isFailure) {
-                Timber.e(result.exceptionOrNull(), "Deleting resource %d from the desktop failed", resourceId)
-            }
-            _events.send(
-                LauncherHomeEvent.Message(
-                    if (result.isSuccess) R.string.resource_deleted else R.string.error_unknown,
-                ),
-            )
-        }
-    }
-
-    /**
-     * S1424: the channel behind a `stream:` cell, or null when it is gone from the catalog. Read from
-     * the same flow the picker reads, so the desktop menu cannot describe a channel the streams
-     * screen has already dropped.
-     */
-    // S1832: [cellKey] is the channel's identity, or a row id for a cell written before that ticket.
-    // Matched in that order for the same reason the repository resolves it that way - the long-press
-    // menu must open on the channel the cell's tap would play, not on a different one.
-    suspend fun streamById(cellKey: String): StreamSourceEntity? {
-        val sources = observeStreams().first()
-        return sources.firstOrNull { it.identityKey == cellKey }
-            ?: sources.firstOrNull { it.id == cellKey }
-    }
-
-    /**
-     * S1500: what backs the desktop's edit-a-channel row. A passthrough property rather than three
-     * wrapper methods: this ViewModel adds nothing on the way to those two use cases, and the action
-     * manager that reads them already owns the scope the writes need.
-     */
-    val streamEditDependencies: LauncherStreamEditDependencies
-        get() = cellMenuDependencies.streamEdit
-
-    /** S1424: the pinned block is what decides whether a channel's reorder rows have anywhere to go. */
-    suspend fun pinnedStreams(): List<StreamSourceEntity> = observeStreams().first().filter { it.pinned }
-
-    /** S1424: same toggle the streams screen offers - pins to top if loose, unpins if pinned. */
-    fun toggleStreamPin(source: StreamSourceEntity) {
-        viewModelScope.launch {
-            if (source.pinned) {
-                cellMenuDependencies.unpinStreamSource(source.id)
-            } else {
-                cellMenuDependencies.pinStreamSource(source.id)
-            }
-        }
-    }
-
-    /**
-     * S1424: reached only after the shared confirmation dialog (strategic 6.2). The persisted last
-     * frame goes with the channel, exactly as it does on the streams screen (S0712) - otherwise a
-     * removal from the desktop would leave an orphan file behind.
-     */
-    fun removeStream(source: StreamSourceEntity) {
-        viewModelScope.launch {
-            cellMenuDependencies.removeStreamSource(source)
-            cellMenuDependencies.streamFrameStore.remove(source.url)
-            // The streams screen needs no message - the row vanishes from its list. A desktop cell
-            // does not vanish; it turns unavailable, which alone would not read as "I removed it".
-            _events.send(LauncherHomeEvent.Message(R.string.launcher_home_channel_removed))
-        }
-    }
-
-    /**
-     * S1424: rescans one resource and reports whether it is reachable. The desktop shows the same
-     * "unavailable" message the main window shows; an available resource says nothing, because the
-     * scan's whole effect is the refreshed record behind the cell.
-     */
-    suspend fun scanResource(resource: MediaResource): Boolean = withContext(Dispatchers.IO) {
-        val result = cellMenuDependencies.scanCoordinator.scanAndRefreshSingleResource(resource)
-        result is ResourceScanCoordinator.SingleScanResult.Available
-    }
-
-    /**
-     * S1424: writes the exported resource to [target] and reports whether anything landed there.
-     *
-     * The caller owns the file, because the cache directory and the share sheet both belong to the
-     * Activity; this end owns only the export itself.
-     */
-    suspend fun exportResource(resourceId: Long, target: Uri): Boolean {
-        val result = cellMenuDependencies.exportResourcesToFile(listOf(resourceId), target)
-        return result is ExportResourcesToFileUseCase.ExportResult.Success && result.exported > 0
-    }
-
-    /** S1424: the SFTP access payload as a file, or null when it could not be written. */
-    suspend fun exportCompanionConfig(resource: MediaResource, includePassword: Boolean): File? =
-        cellMenuDependencies.exportCompanionConfig(resource, includePassword).getOrNull()
-
-    /** S1424: the same access payload as a QR string, or null when it could not be built. */
-    suspend fun companionQrPayload(
-        resource: MediaResource,
-        includePassword: Boolean,
-    ): ExportCompanionConfigUseCase.CompanionQrExport? =
-        cellMenuDependencies.exportCompanionConfig.exportQrPayload(resource, includePassword).getOrNull()
-
     private fun emitCannotOpen() {
         viewModelScope.launch {
             _events.send(LauncherHomeEvent.Message(R.string.launcher_home_cannot_open))
@@ -876,17 +861,21 @@ class LauncherHomeViewModel @Inject constructor(
     fun seedDesktopIfNeeded(widthDp: Float, heightDp: Float, startedPortrait: Boolean) {
         viewModelScope.launch {
             val density = settingsRepository.getSettings().first().launcherDensityFactor
+            Timber.d("S2903: seeding starter desktop at density $density")
             val widthColumns = LauncherGridGeometry.columns(widthDp, density)
             val heightColumns = LauncherGridGeometry.columns(heightDp, density)
             val portraitColumns = if (startedPortrait) widthColumns else heightColumns
             val landscapeColumns = if (startedPortrait) heightColumns else widthColumns
-            Timber.d(
-                "S2320: seeding desktop density=%s portraitColumns=%s landscapeColumns=%s",
-                density,
-                portraitColumns,
-                landscapeColumns,
-            )
             desktopDependencies.seedLauncherDesktop(portraitColumns, landscapeColumns)
+            // S2859: the once-only Add-resource tile backfill, after the seed for the same reason
+            // the syncs below wait - the flag's first pass must find the desktop the seed made.
+            viewModelScope.launch {
+                desktopDependencies.placeAddResourceTile()
+                Timber.d("S2859: add-resource tile backfill pass")
+            }
+            // S2564: its own coroutine, because each observation collects for the lifetime of this
+            // ViewModel and the first one would otherwise never let the second start.
+            viewModelScope.launch { startResourceTileSyncObservation() }
             startShortcutSyncObservation()
         }
     }
@@ -910,14 +899,42 @@ class LauncherHomeViewModel @Inject constructor(
     private suspend fun startShortcutSyncObservation() {
         if (shortcutSyncObservationStarted) return
         shortcutSyncObservationStarted = true
-        Timber.d("S2330: shortcut sync observation started after seeding")
 
         settingsRepository.getSettings()
             .map { desktopDependencies.syncEnabledToolShortcuts.launchableShortcutRoutes() }
             .distinctUntilChanged()
             .collect { routes ->
-                Timber.d("S2330: launchable shortcut route set changed, size=%d", routes.size)
                 desktopDependencies.syncEnabledToolShortcuts()
+            }
+    }
+
+    /**
+     * S2564: the same keeping-current for an aggregate resource whose media type was switched on
+     * after the starter set was laid out.
+     *
+     * Started after the seed and never before it, for the reason [startShortcutSyncObservation]
+     * carries: the first pass records what the desktop already accounts for, so running it ahead of
+     * the seed would file the starter set as accounted-for while its cells do not exist yet.
+     *
+     * The trigger is the enabled media TYPE SET, not the settings object, because any settings write
+     * emits and the sync reads the resource table on each pass - `distinctUntilChanged` over the
+     * derived set is what keeps a database read from following every unrelated write (strategic
+     * §3.2). Which tile is placed is decided from the resource table inside the use case, never from
+     * this set.
+     *
+     * The boolean guards re-entry for the same reason the shortcut one does: [seedDesktopIfNeeded]
+     * runs again on every rotation.
+     */
+    private suspend fun startResourceTileSyncObservation() {
+        if (resourceTileSyncObservationStarted) return
+        resourceTileSyncObservationStarted = true
+
+        settingsRepository.getSettings()
+            .map { desktopDependencies.syncEnabledResourceTiles.enabledMediaTypes() }
+            .distinctUntilChanged()
+            .collect { types ->
+                Timber.d("S2564: enabled media types changed, %d type(s)", types.size)
+                desktopDependencies.syncEnabledResourceTiles()
             }
     }
 
@@ -926,12 +943,18 @@ class LauncherHomeViewModel @Inject constructor(
      * lives here rather than in the menu for the same reason the add flow does - a data mutation stays
      * visible to every reader of the desktop stream instead of hiding inside a popup.
      */
-    fun placeAppOnDesktop(packageName: String, columns: Int) {
+    fun placeAppOnDesktop(
+        packageName: String,
+        columns: Int,
+        screenIndex: Int = _activeScreenIndex.value,
+    ) {
         viewModelScope.launch {
+            Timber.d("S2905: placeAppOnDesktop screenIndex=%d pkg=%s", screenIndex, packageName)
             val placed = desktopDependencies.desktopRepository.addCellInFirstFreeSlot(
                 LauncherCell(
                     id = 0,
                     orientation = _orientation.value,
+                    screenIndex = screenIndex,
                     // Ignored: the repository scans for the anchor and overwrites both.
                     rowIndex = 0,
                     colIndex = 0,
@@ -957,6 +980,18 @@ class LauncherHomeViewModel @Inject constructor(
             _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
         }
     }
+
+    /** S2392: pins an App Functions cell, reusing the same confirmation the app menu speaks. */
+    fun pinFeatureToTaskbar(command: LauncherCellCommand) {
+        Timber.d("S2392: pinFeatureToTaskbar %s", command)
+        addPin(command)
+        viewModelScope.launch {
+            _events.send(LauncherHomeEvent.Message(R.string.launcher_app_action_pinned))
+        }
+    }
+
+    /** S2392: null when the feature behind [routeKey] declares no settings screen. */
+    fun featureSettingsIntent(routeKey: String): Intent? = executeCommand.settingsIntentFor(routeKey)
 
     /** S1401: null when no installed activity can show this app's details page. */
     fun appInfoIntent(packageName: String): Intent? =
@@ -1159,7 +1194,7 @@ class LauncherHomeViewModel @Inject constructor(
             savedStateHandle[KEY_PENDING_WIDGET_TOKEN] = value?.second
         }
 
-    private companion object {
+    companion object {
         const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
 
         /** As many recents as fit a phone taskbar beside the Start button and the tray. */
@@ -1174,6 +1209,7 @@ class LauncherHomeViewModel @Inject constructor(
         const val KEY_PENDING_CONTACT_MESSENGER = "launcher_pending_contact_messenger"
         const val KEY_PENDING_WIDGET_KEY = "launcher_pending_widget_key"
         const val KEY_PENDING_WIDGET_TOKEN = "launcher_pending_widget_token"
+        const val KEY_WEATHER_LOCATION = "weather_location"
     }
 }
 

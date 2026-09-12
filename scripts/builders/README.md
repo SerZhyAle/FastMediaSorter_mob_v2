@@ -69,6 +69,38 @@ Activity never reaches FOCUSED and immersive entry cannot be judged; launch from
 .\scripts\builders\build-wear-release.PS1       # Wear release
 ```
 
+## Native decoder extensions (media3)
+
+Two media3 decoder extensions are built from source and shipped as local AARs. Neither can be
+fetched instead: `androidx.media3` publishes no decoder extension artifact on Google Maven at any
+version - its group index lists `media3-decoder` and nothing else.
+
+Both are pinned to the media3 version the app links against. **Raising the media3 pin invalidates
+both AARs** - they must be rebuilt from the matching source tree, or the renderer ABI diverges.
+
+```powershell
+.\scripts\builders\build-ffmpeg-dts-wsl.ps1               # FFmpeg audio: DTS, APE, WMA, WavPack, TTA, DSD
+pwsh -NoProfile -File .\scripts\builders\compile-vp9-classes.ps1   # VP9 step 1: the Java half
+wsl bash scripts/builders/build-libvpx-vp9.sh /mnt/<drive>/<path to checkout>   # VP9 step 2: native + AAR
+```
+
+| | FFmpeg DTS | libvpx VP9 |
+|---|---|---|
+| Artifact | `app_v2/libs/fms-ffmpeg-dts.aar` | `app_v2/libs/fms-vpx.aar` |
+| Source pin | media3 1.2.1 | media3 1.2.1 + libvpx `v1.8.0` |
+| Builder | `build-ffmpeg-dts.sh` | `build-libvpx-vp9.sh` |
+| ABIs | four | four |
+| Ticket | `PLAN/spec_ffmpeg-custom-build-dts.md` | S1126 |
+
+Why VP9 takes two commands and DTS takes one: the DTS builder lifts `classes.jar` out of the
+prebuilt `media3-decoder-ffmpeg` AAR sitting in the Gradle cache, and no such artifact exists for
+VP9, so its five Java sources are compiled here. That compile runs on the Windows side because the
+WSL guest has neither a JDK nor a Linux Android SDK.
+
+Both builders verify 16 KB LOAD-segment alignment (`-Wl,-z,max-page-size=16384`) inside the build
+and fail rather than emit a slice Play would reject. The AAR is wired per flavor in
+`app_v2/build.gradle.kts`; `lite` and `photos` receive neither, since they ship no video path.
+
 ## Device Deployment
 
 Build + install to connected device:

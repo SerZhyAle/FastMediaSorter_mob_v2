@@ -3,7 +3,6 @@ package com.sza.fastmediasorter.ui.networkmonitor.sections
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -11,11 +10,14 @@ import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorGnssBinding
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssConstellation
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssSatellite
 import com.sza.fastmediasorter.domain.model.networkmonitor.GnssTrackState
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.ChartValueUnit
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.NetworkMonitorPermissionManager
@@ -25,8 +27,8 @@ import com.sza.fastmediasorter.ui.networkmonitor.helpers.startSystemSurfaceFor
 import com.sza.fastmediasorter.ui.networkmonitor.helpers.toReasonRes
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import java.util.Date
 import java.util.Locale
+import javax.inject.Inject
 
 /**
  * S1433: the GNSS subscreen - the satellite list, the counts, the C/N0 chart, the current position and the
@@ -44,6 +46,12 @@ class GnssSectionFragment : Fragment() {
         get() = requireNotNull(_binding) { "Binding is valid only between onCreateView and onDestroyView" }
 
     private val viewModel: GnssSectionViewModel by viewModels()
+
+    @Inject
+    lateinit var quantityFormatter: QuantityFormatter
+
+    @Inject
+    lateinit var unitSystemProvider: UnitSystemProvider
 
     private val permissionManager = NetworkMonitorPermissionManager(this)
 
@@ -194,9 +202,9 @@ class GnssSectionFragment : Fragment() {
         String.format(Locale.getDefault(), METERS_FORMAT, value),
     )
 
-    /** The device's own clock format, because a fix time is read against the clock on the same screen. */
+    /** The app's own clock format, because a fix time is read against the clock on the same screen. */
     private fun fixTime(millis: Long): String =
-        DateFormat.getTimeFormat(requireContext()).format(Date(millis))
+        quantityFormatter.format(Quantity.Instant(millis), unitSystemProvider.value)
 
     private fun unknown(): String = getString(R.string.network_monitor_value_unknown)
 

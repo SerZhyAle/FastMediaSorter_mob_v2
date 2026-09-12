@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
 import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
@@ -14,6 +15,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceItem
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourcePage
 import com.sza.fastmediasorter.wear.domain.model.WearPhoneResourceResponseStatus
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
@@ -29,6 +31,7 @@ import io.mockk.unmockkStatic
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -66,6 +69,11 @@ class PhoneResourceViewModelTest {
     private val capabilityPolicy: WearFileCapabilityPolicy = mockk(relaxed = true)
     private val performFileOperation: PerformWearFileOperationUseCase = mockk(relaxed = true)
 
+    /** S2142: an explicitly empty receiver list - these cases pin the browse mapping, not receivers. */
+    private val sendToReceivers: WearSendToReceiversRepository = mockk<WearSendToReceiversRepository>().also {
+        every { it.observe() } returns MutableStateFlow(emptyList())
+    }
+
     // S1846: the view model now prepares a cache directory for a delivered phone file. Only the path is
     // read at construction, so a stub context with a real temp dir is enough and no Robolectric is needed.
     // S2092 hoisted the directory into a field so a case can plant a copy where the view model looks.
@@ -88,6 +96,8 @@ class PhoneResourceViewModelTest {
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         every { preferences.fileListViewMode } returns flowOf(WearViewMode.LIST)
+        // S2473: read on construction for the refine overlay's fade, same as the device browser.
+        every { preferences.isAnimationsDisabled } returns flowOf(false)
         // The action menu builds a Uri for the entry's copy, and android.net.Uri is a stub in a unit test.
         mockkStatic(Uri::class)
         every { Uri.fromFile(any()) } returns mockk(relaxed = true)
@@ -145,6 +155,20 @@ class PhoneResourceViewModelTest {
 
         assertEquals(
             PhoneResourceUiState.Unavailable(WearPhoneResourceResponseStatus.ACCESS_DENIED),
+            viewModel.uiState.value
+        )
+    }
+
+    @Test
+    fun `a companion-off refusal keeps its status instead of reading as a silent phone`() = runTest {
+        coEvery { client.browse(any(), any(), any(), any()) } returns
+            PhoneResourceOutcome.Rejected(WearPhoneResourceResponseStatus.COMPANION_DISABLED)
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        assertEquals(
+            PhoneResourceUiState.Unavailable(WearPhoneResourceResponseStatus.COMPANION_DISABLED),
             viewModel.uiState.value
         )
     }
@@ -425,6 +449,7 @@ class PhoneResourceViewModelTest {
         selectedMedia,
         capabilityPolicy,
         performFileOperation,
+        sendToReceivers,
         context,
         preferences,
         SavedStateHandle(
@@ -488,6 +513,32 @@ class PhoneResourceViewModelTest {
         advanceUntilIdle()
 
         coVerify(exactly = 3) { client.requestThumbnail(any()) }
+    }
+
+    @Test
+    fun `items on a loaded page without embedded thumbnails can request on-demand thumbnails`() = runTest {
+        val page = WearPhoneResourcePage(
+            requestId = "r1",
+            status = WearPhoneResourceResponseStatus.OK,
+            items = listOf(fileItem("photo.jpg"))
+        )
+        coEvery { client.browse(any(), any(), any(), any()) } returns PhoneResourceOutcome.Page(page)
+        coEvery { client.requestThumbnail("1:photo.jpg") } returns PhoneResourceOutcome.Page(page)
+
+        val viewModel = buildViewModel()
+        advanceUntilIdle()
+
+        // Page load should not have marked photo.jpg as Unavailable
+        assertNull(
+            "Page load must not pre-populate Unavailable for items without embedded thumbnails",
+            viewModel.thumbnails.value["1:photo.jpg"]
+        )
+
+        viewModel.requestThumbnail("1:photo.jpg")
+        advanceUntilIdle()
+
+        coVerify(exactly = 1) { client.requestThumbnail("1:photo.jpg") }
+        assertEquals(WearThumbnail.Unavailable, viewModel.thumbnails.value["1:photo.jpg"])
     }
 
     /** A file outside the three renderable families: the phone sends it with no type at all. */

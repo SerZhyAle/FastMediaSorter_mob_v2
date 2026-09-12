@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.player.video
 
 import android.content.Context
-import android.media.AudioManager
 import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -9,15 +8,21 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchPlaybackCommandEvents
+import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
+import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearPlaybackCommand
-import com.sza.fastmediasorter.wear.domain.model.WearPlaybackStatePayload
-import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
-import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.domain.playback.WEAR_PLAYBACK_STALL_TIMEOUT_MS
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallPolicy
+import com.sza.fastmediasorter.wear.domain.playback.WearPlaybackStallWatchdog
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
@@ -28,31 +33,34 @@ import com.sza.fastmediasorter.wear.domain.usecase.ClassifyWearStreamMediaKindUs
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PublishPlaybackStateUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.PlaybackProgressTicker
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerVolumeController
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
+import com.sza.fastmediasorter.wear.ui.player.common.backwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.forwardSeekTarget
+import com.sza.fastmediasorter.wear.ui.player.common.pauseForHostStop
+import com.sza.fastmediasorter.wear.ui.player.common.resolveFavoriteIdentity
+import com.sza.fastmediasorter.wear.ui.player.common.togglePlayPause
+import com.sza.fastmediasorter.wear.ui.player.common.wearPlaybackStatePayload
 import com.sza.fastmediasorter.wear.ui.player.helpers.StreamPlaybackSessionFactory
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 
 private const val PREFS_NAME = "wear_video_prefs"
 private const val KEY_BATTERY_WARNING_SHOWN = "battery_warning_shown"
-
-/** S1683: same step the audio player uses, so one bezel detent means the same thing in both. */
-private const val SEEK_STEP_MS = 10_000L
-
-/** S2140: how long the volume readout stays after the last bezel step - same value audio uses. */
-private const val VOLUME_VISIBLE_MS = 1_500L
+private const val MAX_AUTO_HIDE_SECONDS = 600
+private const val MILLIS_PER_SECOND = 1000L
 
 /**
  * ViewModel for the video player screen.
@@ -71,7 +79,10 @@ class VideoPlayerViewModel @Inject constructor(
     private val publishPlaybackStateUseCase: PublishPlaybackStateUseCase,
     private val streamPlaybackSessionFactory: StreamPlaybackSessionFactory,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    private val toggleStreamPinUseCase: com.sza.fastmediasorter.wear.domain.usecase.ToggleStreamPinUseCase,
     private val nowPlayingRepository: WearNowPlayingRepository,
+    val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
+    val castManager: PlayerCastManager,
     savedStateHandle: SavedStateHandle,
     @ApplicationContext private val context: Context
 ) : ViewModel() {
@@ -80,10 +91,21 @@ class VideoPlayerViewModel @Inject constructor(
     val uiState: StateFlow<VideoPlayerUiState> = _uiState.asStateFlow()
 
     private val fileId: Long = savedStateHandle.get<Long>("fileId") ?: -1L
-    private var progressUpdateJob: Job? = null
 
     private var controlsHideJob: Job? = null
-    private var volumeHideJob: Job? = null
+
+    private val progressTicker = PlaybackProgressTicker(viewModelScope, exoPlayer) { position ->
+        _uiState.update { it.copy(currentPositionMs = position) }
+    }
+
+    private val volumeController = PlayerVolumeController(
+        scope = viewModelScope,
+        context = context,
+        onReadout = { level, max ->
+            _uiState.update { it.copy(volumeLevel = level, volumeMax = max, isVolumeVisible = true) }
+        },
+        onHidden = { _uiState.update { it.copy(isVolumeVisible = false) } }
+    )
 
     /**
      * S1683: the selection this screen was opened with, kept only when it is a network one, so paging
@@ -110,14 +132,25 @@ class VideoPlayerViewModel @Inject constructor(
             Timber.d("onIsPlayingChanged: $isPlaying")
             _uiState.update { it.copy(isPlaying = isPlaying) }
             if (isPlaying) {
-                startProgressUpdates()
+                progressTicker.start()
                 scheduleHideControls()
                 streamPlaybackSession.withWideChannel()
             } else {
-                stopProgressUpdates()
+                progressTicker.stop()
                 showControls()
             }
             publishPlaybackState()
+            updateStallWatch()
+        }
+
+        /**
+         * S2849: the edge a stalled session is left on. A player that is paused while already silent
+         * changes neither `isPlaying` nor the playback state, so without this callback the watchdog
+         * armed by the stall would still be counting down over a session that is already settled.
+         */
+        override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+            _uiState.update { it.copy(isPlaybackRequested = playWhenReady) }
+            updateStallWatch()
         }
 
         override fun onPlaybackStateChanged(playbackState: Int) {
@@ -141,7 +174,10 @@ class VideoPlayerViewModel @Inject constructor(
                     // A set of one is excluded, because restarting the only file is the endless loop
                     // S0902 removed below.
                     val setSize = playbackSetManager.currentSet.value?.files?.size ?: 0
-                    if (isSlideshowEnabled && setSize > 1) {
+                    if (_uiState.value.playbackMode == WearPlaybackMode.LOOP) {
+                        exoPlayer.seekTo(0)
+                        exoPlayer.play()
+                    } else if (isSlideshowEnabled && setSize > 1) {
                         skipToNext()
                     } else {
                         streamPlaybackSession.stop()
@@ -164,6 +200,7 @@ class VideoPlayerViewModel @Inject constructor(
                     Timber.d("Player STATE_IDLE")
                 }
             }
+            updateStallWatch()
         }
 
         override fun onPlayerError(error: androidx.media3.common.PlaybackException) {
@@ -183,9 +220,47 @@ class VideoPlayerViewModel @Inject constructor(
         onChannelReason = { reason -> _uiState.update { it.copy(channelReason = reason) } }
     )
 
+    /**
+     * S2849: the screen's own copy of the guard S2848 gave the background service. The screen was
+     * spared the overnight drain by the pause on ON_STOP (S0902), which the screen-off mode suppresses
+     * by holding the display awake - so behind that sheet a stream that stops answering has exactly
+     * the service's problem, with a lit screen on top of it.
+     */
+    private val stallWatchdog = WearPlaybackStallWatchdog(
+        scope = viewModelScope,
+        stallTimeoutMs = WEAR_PLAYBACK_STALL_TIMEOUT_MS,
+        onStalled = { onPlaybackStalled() }
+    )
+
     init {
         Timber.d("VideoPlayerViewModel initialized with fileId: $fileId")
         exoPlayer.addListener(playerListener)
+
+        castManager.bind(viewModelScope)
+        val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
+        fileOperations.bind(
+            scope = viewModelScope,
+            currentFile = currentFileFlow,
+            isNetworkSource = { networkSelection != null }
+        )
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                currentFileFlow.value = state.mediaFile
+            }
+        }
+        viewModelScope.launch {
+            fileOperations.operationResult.collect { result ->
+                when (result) {
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
+                        playFile(result.nextFile)
+                    }
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
+                        _uiState.update { it.copy(closeScreen = true) }
+                    }
+                    com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Stay, null -> {}
+                }
+            }
+        }
 
         // Auto-load if fileId is valid (from SavedStateHandle)
         if (fileId != -1L) {
@@ -237,8 +312,14 @@ class VideoPlayerViewModel @Inject constructor(
             WatchPlaybackCommandEvents.commandFlow.collect { command ->
                 when (command) {
                     WearPlaybackCommand.PLAY_PAUSE -> togglePlayPause()
-                    WearPlaybackCommand.NEXT -> exoPlayer.seekToNextMediaItem()
-                    WearPlaybackCommand.PREVIOUS -> exoPlayer.seekToPreviousMediaItem()
+                    WearPlaybackCommand.NEXT -> {
+                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.NEXT, invoking skipToNext()")
+                        skipToNext()
+                    }
+                    WearPlaybackCommand.PREVIOUS -> {
+                        Timber.d("S2523: VideoPlayer received WearPlaybackCommand.PREVIOUS, invoking skipToPrevious()")
+                        skipToPrevious()
+                    }
                     WearPlaybackCommand.STOP -> {
                         exoPlayer.stop()
                         streamPlaybackSession.stop()
@@ -249,9 +330,7 @@ class VideoPlayerViewModel @Inject constructor(
     }
 
     fun toggleShuffle() {
-        Timber.d("S2006: shuffle toggled on video player, was=${_uiState.value.isShuffleEnabled}")
-        val enabled = !_uiState.value.isShuffleEnabled
-        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+        togglePlaybackMode()
     }
 
     private fun loadVideoFile() {
@@ -337,7 +416,12 @@ class VideoPlayerViewModel @Inject constructor(
             val selectedMedia = selectedMediaManager.getSelectedFileById(fileId)
 
             if (selectedMedia != null) {
-                _uiState.update { it.copy(mediaFile = selectedMedia.file) }
+                _uiState.update {
+                    it.copy(
+                        mediaFile = selectedMedia.file,
+                        isStream = selectedMedia.sourceId == SOURCE_ID_STREAM
+                    )
+                }
                 refreshFavoriteState()
                 if (selectedMedia.isNetworkSource) {
                     // S1683: remembered so paging can re-enter the download path with the same source id.
@@ -408,26 +492,14 @@ class VideoPlayerViewModel @Inject constructor(
 
     fun getPlayer(): ExoPlayer = exoPlayer
 
-    fun togglePlayPause() {
-        if (exoPlayer.isPlaying) {
-            exoPlayer.pause()
-            streamPlaybackSession.stop()
-        } else {
-            if (streamPlaybackSession.canStartCurrentStream()) {
-                exoPlayer.play()
-            }
-        }
-    }
+    fun togglePlayPause() = streamPlaybackSession.togglePlayPause(exoPlayer)
 
     /**
-     * S0902: called from the screen's onStop lifecycle effect - without this, playback
-     * keeps running while the host activity is stopped (screen off / app backgrounded);
-     * onCleared was the only prior teardown edge.
+     * S2166 (ADR-1): this pause stays unconditional while the audio twin of it became conditional.
+     * A minimized watch app has no surface to show video on, so "video in the background" would be
+     * the sound of a video and not this content at all - a different capability, not this one.
      */
-    fun onHostStopped() {
-        exoPlayer.pause()
-        streamPlaybackSession.stop()
-    }
+    fun onHostStopped() = streamPlaybackSession.pauseForHostStop(exoPlayer)
 
     fun onScreenTap() {
         if (_uiState.value.showControls) {
@@ -440,6 +512,20 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2815: blanks the screen without touching playback, and any touch on the black screen calls this
+     * again. The flag lives here rather than in the composition so it survives a recomposition, and it
+     * dies with this view model when the player is left - a screen reopened is never already dark.
+     *
+     * The control panel's own visibility is left alone: the wearer had it open to reach this command,
+     * so the touch that leaves the mode puts the screen back exactly as it was found.
+     */
+    fun toggleDimmed() {
+        Timber.d("S2815: video player screen-off toggled, dimmed=${!_uiState.value.isDimmed}")
+        _uiState.update { it.copy(isDimmed = !it.isDimmed) }
+        Timber.d("S2849: video display hold=%b", _uiState.value.holdsDisplay)
+    }
+
     private fun showControls() {
         controlsHideJob?.cancel()
         _uiState.update { it.copy(showControls = true) }
@@ -448,7 +534,11 @@ class VideoPlayerViewModel @Inject constructor(
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
         controlsHideJob = viewModelScope.launch {
-            if (awaitPanelHide(isActive = exoPlayer.isPlaying)) {
+            val autoHideSec = preferencesRepository.panelAutoHideSeconds.first()
+                .coerceIn(1, MAX_AUTO_HIDE_SECONDS)
+            val hideDelayMs = autoHideSec * MILLIS_PER_SECOND
+            Timber.d("S2505: VideoPlayerViewModel scheduleHideControls delayMillis=$hideDelayMs")
+            if (awaitPanelHide(isActive = exoPlayer.isPlaying, delayMillis = hideDelayMs)) {
                 _uiState.update { it.copy(showControls = false) }
             }
         }
@@ -463,31 +553,9 @@ class VideoPlayerViewModel @Inject constructor(
      * one-directional guarantee - going through the toggle would hide the panel on every other step.
      */
     fun onVolumeStep(up: Boolean) {
-        Timber.d("S2140: video bezel volume step, up=$up")
-        val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager ?: return
-        audioManager.adjustStreamVolume(
-            AudioManager.STREAM_MUSIC,
-            if (up) AudioManager.ADJUST_RAISE else AudioManager.ADJUST_LOWER,
-            0,
-        )
-        _uiState.update {
-            it.copy(
-                volumeLevel = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC),
-                volumeMax = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
-                isVolumeVisible = true,
-            )
-        }
-        hideVolumeAfterDelay()
+        volumeController.onStep(up)
         showControls()
         scheduleHideControls()
-    }
-
-    private fun hideVolumeAfterDelay() {
-        volumeHideJob?.cancel()
-        volumeHideJob = viewModelScope.launch {
-            delay(VOLUME_VISIBLE_MS)
-            _uiState.update { it.copy(isVolumeVisible = false) }
-        }
     }
 
     fun seekTo(positionMs: Long) {
@@ -495,32 +563,9 @@ class VideoPlayerViewModel @Inject constructor(
         _uiState.update { it.copy(currentPositionMs = positionMs) }
     }
 
-    fun seekForward() {
-        Timber.d("S2140: video long-press seek forward")
-        val target = exoPlayer.currentPosition + SEEK_STEP_MS
-        // ExoPlayer reports C.TIME_UNSET, a large negative, while the duration is still unknown -
-        // clamping to it would send playback backwards past the start on the first turn of the bezel.
-        val duration = exoPlayer.duration
-        seekTo(if (duration > 0) target.coerceAtMost(duration) else target)
-    }
+    fun seekForward() = seekTo(forwardSeekTarget(exoPlayer))
 
-    fun seekBackward() {
-        Timber.d("S2140: video long-press seek backward")
-        val newPosition = (exoPlayer.currentPosition - SEEK_STEP_MS).coerceAtLeast(0)
-        seekTo(newPosition)
-    }
-
-    private fun startProgressUpdates() {
-        progressUpdateJob?.cancel()
-        progressUpdateJob = viewModelScope.launch {
-            while (isActive && exoPlayer.isPlaying) {
-                _uiState.update {
-                    it.copy(currentPositionMs = exoPlayer.currentPosition.coerceAtLeast(0))
-                }
-                delay(500)
-            }
-        }
-    }
+    fun seekBackward() = seekTo(backwardSeekTarget(exoPlayer))
 
     fun toggleScaleMode() {
         scaleModeChosen = true
@@ -548,23 +593,12 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
-    private fun stopProgressUpdates() {
-        progressUpdateJob?.cancel()
-        progressUpdateJob = null
-    }
-
     private fun publishPlaybackState() {
         val state = _uiState.value
-        val selected = selectedMediaManager.getSelectedFileById(fileId)
-        val sourceName = if (selected?.isNetworkSource == true) {
-            selected.file.uri.host ?: ""
-        } else {
-            "Local"
-        }
-        val payload = WearPlaybackStatePayload(
+        val payload = wearPlaybackStatePayload(
+            selected = selectedMediaManager.getSelectedFileById(fileId),
             isPlaying = state.isPlaying,
             fileName = state.mediaFile?.name ?: "",
-            sourceName = sourceName,
             positionMs = state.currentPositionMs,
             durationMs = state.durationMs,
             mediaType = "VIDEO"
@@ -579,15 +613,50 @@ class VideoPlayerViewModel @Inject constructor(
         }
     }
 
-    fun toggleFavorite() {
-        Timber.d("S1954: video player favourite toggled")
+    fun togglePlaybackMode() {
+        val nextMode = _uiState.value.playbackMode.next()
+        val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
+        _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
+    fun togglePin() {
         val identity = currentFavoriteIdentity() ?: return
+        if (_uiState.value.isStream) {
+            viewModelScope.launch {
+                val marked = toggleStreamPinUseCase.toggle(identity.filePath, _uiState.value.isPinned)
+                _uiState.update { it.copy(isPinned = marked) }
+            }
+        }
+    }
+
+    /**
+     * S2531: hands what this screen is playing to the phone, which owns the Cast session, or ends the
+     * one already running - one entry, and the phone's reported state decides which of the two it is.
+     */
+    fun toggleCast() {
+        if (castManager.castState.value.isCasting) {
+            castManager.stopCasting()
+            return
+        }
+        val file = _uiState.value.mediaFile ?: return
+        castManager.castCurrentFile(file, networkSelection, WearCastMediaType.VIDEO)
+    }
+
+    fun toggleFavorite() {
+        val identity = currentFavoriteIdentity() ?: return
+        val file = _uiState.value.mediaFile
+        val isStream = _uiState.value.isStream
         viewModelScope.launch {
-            val marked = toggleFavoriteUseCase.toggle(
-                identity.sourceId,
-                identity.filePath,
-                _uiState.value.isFavorite
+            val fallbackName = identity.filePath.substringAfterLast('/').ifBlank { identity.filePath }
+            val record = WearFavoriteRecord(
+                sourceId = identity.sourceId,
+                filePath = identity.filePath,
+                displayName = file?.displayName ?: fallbackName,
+                mimeType = file?.mimeType,
+                itemKind = if (isStream) FAVORITE_ITEM_KIND_STREAM else null
             )
+            val marked = toggleFavoriteUseCase.toggle(record, _uiState.value.isFavorite)
             _uiState.update { it.copy(isFavorite = marked) }
         }
     }
@@ -596,40 +665,72 @@ class VideoPlayerViewModel @Inject constructor(
     private fun refreshFavoriteState() {
         val identity = currentFavoriteIdentity()
         if (identity == null) {
-            _uiState.update { it.copy(isFavorite = false) }
+            _uiState.update { it.copy(isFavorite = false, isPinned = false) }
             return
         }
         viewModelScope.launch {
             val marked = toggleFavoriteUseCase.isFavorite(identity.sourceId, identity.filePath)
-            _uiState.update { it.copy(isFavorite = marked) }
+            val pinned = if (_uiState.value.isStream) {
+                toggleStreamPinUseCase.isPinned(identity.filePath)
+            } else {
+                false
+            }
+            _uiState.update { it.copy(isFavorite = marked, isPinned = pinned) }
         }
     }
 
     /**
-     * S1954: a direct stream is addressed by its normalized url under the reserved stream source id,
-     * because the catalog row it was opened from does not survive a re-import while the address does.
-     * A file keeps the identity the audio player and the image viewer already write, so one file is
-     * not marked twice under two spellings.
+     * The manager answers first here; the remembered network selection only stands in when it cannot.
+     * The identity rule itself is shared with the audio player.
      */
-    private fun currentFavoriteIdentity(): FavoriteIdentity? {
-        val selected = selectedMediaManager.getSelectedFileById(fileId) ?: networkSelection
-        if (selected != null && selected.isDirectStream) {
-            return FavoriteIdentity(SOURCE_ID_STREAM, normalizeWearStreamUrl(selected.streamUri))
-        }
-        val path = selected?.streamUri ?: _uiState.value.mediaFile?.uri?.toString()
-        return path?.let {
-            FavoriteIdentity(favoriteSourceId(selected?.isNetworkSource == true, selected?.sourceId), it)
-        }
+    private fun currentFavoriteIdentity() = resolveFavoriteIdentity(
+        selected = selectedMediaManager.getSelectedFileById(fileId) ?: networkSelection,
+        fallbackUri = _uiState.value.mediaFile?.uri?.toString()
+    )
+
+    /** S2849: asked after anything that could have started or ended a stall. */
+    private fun updateStallWatch() {
+        val playbackState = exoPlayer.playbackState
+        stallWatchdog.onActivityChanged(
+            WearPlaybackStallPolicy.activityOf(
+                playWhenReady = exoPlayer.playWhenReady,
+                isPlaying = exoPlayer.isPlaying,
+                isEndedOrIdle = playbackState == Player.STATE_ENDED || playbackState == Player.STATE_IDLE
+            )
+        )
     }
 
-    private data class FavoriteIdentity(val sourceId: String, val filePath: String)
+    /**
+     * S2849: pausing is what ends the retry loop, and it is also what releases the display - the
+     * screen-off hold follows `playWhenReady`, so the same call that stops the refetching lets the
+     * watch sleep. The mode is left as well, because a black sheet over a stopped stream hides the
+     * one thing the wearer now needs to see.
+     */
+    private fun onPlaybackStalled() {
+        Timber.d("S2849: video stall guard stops the session")
+        Timber.w(
+            "VideoPlayerViewModel: no picture for %d ms, stopping the stalled stream",
+            WEAR_PLAYBACK_STALL_TIMEOUT_MS
+        )
+        exoPlayer.pause()
+        streamPlaybackSession.stop()
+        _uiState.update {
+            it.copy(
+                isDimmed = false,
+                isLoading = false,
+                isPlaying = false,
+                error = context.getString(R.string.wear_stream_stalled)
+            )
+        }
+    }
 
     override fun onCleared() {
         super.onCleared()
         Timber.d("VideoPlayerViewModel cleared")
-        stopProgressUpdates()
+        stallWatchdog.cancel()
+        progressTicker.stop()
         controlsHideJob?.cancel()
-        volumeHideJob?.cancel()
+        volumeController.cancel()
         streamPlaybackSession.clear()
         exoPlayer.removeListener(playerListener)
         viewModelScope.launch {

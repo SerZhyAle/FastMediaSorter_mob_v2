@@ -5,6 +5,7 @@ import com.jcraft.jsch.JSch
 import com.jcraft.jsch.JSchException
 import com.jcraft.jsch.Session
 import com.jcraft.jsch.SftpException
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -22,9 +23,13 @@ import javax.inject.Inject
  * Host-key checking is left permissive to match the browse path; tightening both together, plus a
  * place to store the expected key, is S1555.
  */
-class SftpConnectionTest @Inject constructor() {
+class SftpConnectionTest @Inject constructor(
+    private val endpointResolver: WearEndpointResolver
+) {
 
-    suspend fun testSftp(source: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
+    suspend fun testSftp(sourceIn: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
+        // S2488: the same endpoint choice browsing makes, so the button cannot answer differently.
+        val source = endpointResolver.resolve(sourceIn)
         val jsch = JSch()
         var session: Session? = null
         var channel: ChannelSftp? = null

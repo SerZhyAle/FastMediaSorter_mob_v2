@@ -24,11 +24,19 @@ data class WearSettingsPayload(
     @SerializedName("fileListViewMode") val fileListViewMode: String? = null,
     // S1814: active interface language of the phone, nullable so older phones do not clear watch locale.
     @SerializedName("appLanguage") val appLanguage: String? = null,
+    // S2731: name of the phone's UnitSystem. Nullable for the S1781 reason - a phone that predates it
+    // omits the key, and only a nullable field lets the watch keep its own stored value instead of
+    // reading the absence as a system choice the owner never made.
+    @SerializedName("unitSystem") val unitSystem: String? = null,
     // S2000: name of the watch's WearBackgroundMode. Only the choice rides here - the picture itself
     // goes over the file-transfer channel, because this payload is Gson-encoded and a ByteArray would
     // serialize as an array of numbers, pushing the data item past the size where it is dropped in
     // silence and reads on the watch as "phone out of reach".
     @SerializedName("backgroundMode") val backgroundMode: String? = null,
+    // S2522: name of the watch's WearColorScheme. Nullable for the S1781 reason - a watch that predates
+    // it omits the key, and only a nullable field lets this side keep its own stored value instead of
+    // reading the absence as a scheme choice the owner never made.
+    @SerializedName("colorScheme") val colorScheme: String? = null,
     // S2093: the watch row that had no phone control until this ticket.
     @SerializedName("streamsSectionEnabled") val streamsSectionEnabled: Boolean? = null,
     // S2130: the fourth allowed-type switch. Nullable unlike its three siblings above for the S1781
@@ -37,6 +45,15 @@ data class WearSettingsPayload(
     @SerializedName("documentsEnabled") val documentsEnabled: Boolean? = null,
     // S2209: disable animations toggle synced between phone and watch.
     @SerializedName("disableAnimations") val disableAnimations: Boolean? = null,
+    // S2536: the charge at which the watch enters power saving on its own, as the enum's name. Only
+    // this VALUE crosses; the verdict is always local, because the two devices have separate
+    // batteries. Nullable for the S1781 reason - a watch that predates it omits the key, and only a
+    // nullable field lets this side keep its own stored value instead of reading the absence as OFF.
+    @SerializedName("powerSavingTrigger") val powerSavingTrigger: String? = null,
+    // S2166: whether audio keeps playing on the watch after the app is minimized. Nullable for the
+    // S1781 reason - a watch that predates it omits the key, and only a nullable field lets this side
+    // keep its own stored value instead of reading the absence as "background playback is off".
+    @SerializedName("backgroundPlaybackEnabled") val backgroundPlaybackEnabled: Boolean? = null,
     // S2093: contract field name to epoch-millis of that field's last edit on the sending side. One map
     // rather than a companion field per setting, so a later registry entry needs no new contract field
     // and no new storage key. Absent entirely on a side that predates the two-way exchange, which the
@@ -44,7 +61,15 @@ data class WearSettingsPayload(
     @SerializedName("fieldTimestamps") val fieldTimestamps: Map<String, Long>? = null,
     // S2093: device traits the other side cannot infer, keyed by
     // WearSettingsRegistry.CAPABILITY_AUTO_ROTATION_SENSOR and its future peers.
-    @SerializedName("capabilities") val capabilities: Map<String, Boolean>? = null
+    @SerializedName("capabilities") val capabilities: Map<String, Boolean>? = null,
+    // S2461: the SENDER's own version name, not a setting - it says which build produced this packet, so
+    // the receiving side can tell "the settings did not arrive" from "an older build accepted them".
+    // Nullable because the pair updates as two builds at different times: a partner that predates this
+    // field omits it and is served exactly as before. The envelope's schemaVersion is deliberately not
+    // raised (ADR-1) - a hard version check would turn a mismatched pair into a refusal to sync.
+    @SerializedName("appVersionName") val appVersionName: String? = null,
+    // S2505: player panel auto-hide duration in seconds.
+    @SerializedName("panelAutoHideSeconds") val panelAutoHideSeconds: Int? = null
 ) {
     /**
      * S2000: the watch's `WearBackgroundMode` entries, mirrored as strings.
@@ -55,6 +80,34 @@ data class WearSettingsPayload(
      */
     companion object {
         const val BACKGROUND_MODE_BRANDED_ANIMATION = "BRANDED_ANIMATION"
+        const val BACKGROUND_MODE_BRANDED_STILL = "BRANDED_STILL"
         const val BACKGROUND_MODE_IMAGE = "IMAGE"
+        const val BACKGROUND_MODE_NONE = "NONE"
+
+        /**
+         * S2522: the watch's `WearColorScheme` entries, pinned here for the same reason as the
+         * background modes above - the two modules share no artifact, so each side names the
+         * vocabulary independently and an unknown name resolves to the dark scheme on the watch.
+         *
+         * There is deliberately no AUTO member: Wear OS gives no system light/dark switch, so it could
+         * never differ from the dark scheme (strategic ADR-2).
+         */
+        const val COLOR_SCHEME_DARK = "DARK"
+        const val COLOR_SCHEME_LIGHT = "LIGHT"
+        const val COLOR_SCHEME_DARK_GREEN = "DARK_GREEN"
+        const val COLOR_SCHEME_DARK_BLUE = "DARK_BLUE"
+        const val COLOR_SCHEME_DARK_RED = "DARK_RED"
+        const val COLOR_SCHEME_LIGHT_GREEN = "LIGHT_GREEN"
+        const val COLOR_SCHEME_LIGHT_BLUE = "LIGHT_BLUE"
+        const val COLOR_SCHEME_LIGHT_RED = "LIGHT_RED"
+
+        /**
+         * S2643: the watch's `WearViewMode` members, pinned here for the same reason as the two
+         * vocabularies above - the two modules share no artifact, the payload carries the member
+         * name rather than an ordinal, and an unknown name resolves to LIST on the watch.
+         */
+        const val VIEW_MODE_LIST = "LIST"
+        const val VIEW_MODE_GRID_2 = "GRID_2"
+        const val VIEW_MODE_GRID_3 = "GRID_3"
     }
 }

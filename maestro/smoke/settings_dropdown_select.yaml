@@ -37,8 +37,7 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/headerSortingSlideshow"
-    visibilityPercentage: 100
-    centerElement: true
+    visibilityPercentage: 30
     timeout: 8000
 - runFlow:
     when:

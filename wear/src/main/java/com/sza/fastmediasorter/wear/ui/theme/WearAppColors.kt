@@ -16,14 +16,47 @@ import androidx.compose.ui.graphics.Color
 private const val RECORDING_RED = 0xFFFF4438
 
 /**
- * S2161: the tones this app adds on top of the Wear Material palette.
+ * S2468: toggle states on the watch.
+ *
+ * Deliberately NOT `MaterialTheme.colors.secondary`. The watch module already uses the Material
+ * accent for other surfaces, so a toggle painted with it would report membership in the accent
+ * rather than "on". These are dedicated tones: blue for on and brown for off (ADR-1).
+ */
+private const val TOGGLE_ON_BLUE = 0xFF4A90E2
+private const val TOGGLE_OFF_BROWN = 0xFF8D6E63
+
+/**
+ * S2494: the start-of-level guide arrow in the game.
+ *
+ * The phone's amber, taken as is so the same hint reads the same on both devices. Deliberately NOT
+ * one of the Material roles: the board already spends `surface`, `onSurfaceVariant` and `secondary`
+ * on floor, wall and exit tiles, and the arrow crosses all three - a colour borrowed from any of
+ * them would vanish over its own tiles exactly where the hint is needed.
+ */
+private const val GUIDE_ARROW_AMBER = 0xFFFFA000
+
+/**
+ * S2161 / S2468 / S2494: the tones this app adds on top of the Wear Material palette.
  *
  * Held here rather than as loose top-level values so a second state - a pause, say - extends one
  * type instead of adding one more literal to whichever screen needs it first (strategic 5.5).
+ *
+ * S2522: [isLight] rides here because `androidx.wear.compose.material.Colors` carries no light/dark
+ * signal at all - it declares thirteen colour roles and nothing else, and `MaterialTheme` does not
+ * provide one either. So this companion set is the only place a composable can ask which way round the
+ * current scheme is, which the background layer and the clock both have to know.
+ *
+ * The four state tones stay the same in every scheme on purpose: they report what is happening - a
+ * live recording, a switch position, a hint - not which scheme is active, and repainting them per
+ * scheme would make a state indistinguishable from an accent.
  */
 @Immutable
 data class WearAppColors(
-    val recording: Color = Color(RECORDING_RED)
+    val recording: Color = Color(RECORDING_RED),
+    val toggleOn: Color = Color(TOGGLE_ON_BLUE),
+    val toggleOff: Color = Color(TOGGLE_OFF_BROWN),
+    val guideArrow: Color = Color(GUIDE_ARROW_AMBER),
+    val isLight: Boolean = false
 )
 
 internal val LocalWearAppColors = staticCompositionLocalOf { WearAppColors() }

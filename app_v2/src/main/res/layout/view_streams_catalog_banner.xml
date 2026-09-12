@@ -33,6 +33,8 @@
         android:text="@string/streams_catalog_refresh_action"
         android:focusable="true"
         android:clickable="true"
+        android:nextFocusUp="@id/toolbar"
+        android:nextFocusDown="@id/btnFilter"
         android:nextFocusRight="@id/btnCatalogBannerDismiss" />
 
     <ImageButton
@@ -43,6 +45,8 @@
         android:src="@drawable/ic_clear"
         android:focusable="true"
         android:clickable="true"
+        android:nextFocusUp="@id/toolbar"
+        android:nextFocusDown="@id/btnSort"
         android:nextFocusLeft="@id/btnCatalogBannerAction"
         app:tint="?attr/colorOnSurfaceVariant"
         android:contentDescription="@string/close" />

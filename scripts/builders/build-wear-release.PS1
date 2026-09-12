@@ -1,8 +1,8 @@
 # Release build script for Wear OS
-# Note: this build carries the version constants checked into wear/build.gradle.kts as-is,
-# unless -VersionName/-VersionCode pin one explicitly.
-# Nothing here is generated from the clock - a release version is stamped into BOTH modules
-# by scripts/release/build-release-spectrum.ps1, so the watch and the phone stay one version.
+# S1873: -VersionName/-VersionCode carry the release orchestrator's single shared stamp, which is
+# what keeps the watch and the phone on one versionName. Omitted, the invocation clock applies -
+# reusing the checked-in constants was never a decision, and after ADR-4 nothing writes them, so
+# that path would have shipped the sentinel.
 #
 # Exit codes:
 #   0 - requested artifacts built and copied
@@ -43,11 +43,15 @@ if ([string]::IsNullOrWhiteSpace($VersionName) -xor ($VersionCode -le 0)) {
     exit 1
 }
 
-$versionArgs = @()
-if (-not [string]::IsNullOrWhiteSpace($VersionName)) {
-    $versionArgs += "-Pfms.versionName=$VersionName"
-    $versionArgs += "-Pfms.versionCode=$VersionCode"
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
+if ([string]::IsNullOrWhiteSpace($VersionName)) {
+    $stamp = Get-BuildVersionStamp
+    # WearVersionCode, not AppVersionCode: both modules publish under one applicationId and Play
+    # refuses a release whose artifacts repeat a versionCode.
+    $VersionName = $stamp.VersionName
+    $VersionCode = $stamp.WearVersionCode
 }
+$versionArgs = @("-Pfms.versionName=$VersionName", "-Pfms.versionCode=$VersionCode")
 
 $buildApk = $Artifact -in @('Apk', 'Both')
 $buildAab = $Artifact -in @('Aab', 'Both')
@@ -56,14 +60,18 @@ $buildAab = $Artifact -in @('Aab', 'Both')
 Enter-BuildLockOrExit -Reason "build-wear-release.PS1" -Domain Build.Wear
 try {
 
-# AGP capitalises the flavor inside a task name and lower-cases it inside an output path.
+# AGP capitalises the flavor inside a task name. The two output trees then disagree, and the
+# disagreement is not cosmetic: an APK lands in apk/<flavor>/<buildType>/ while a BUNDLE lands
+# in bundle/<flavor><BuildType>/ - one segment, flavor camel-joined to the build type. Reading
+# the APK rule onto the bundle path made every wear AAB unfindable after S2090 split the
+# module into flavors: gradle reported BUILD SUCCESSFUL and this script exited 1 (2026-09-04).
 $taskFlavor = $Flavor.Substring(0, 1).ToUpperInvariant() + $Flavor.Substring(1)
 
 $gradleTasks = @()
 if ($buildApk) { $gradleTasks += ":wear:assemble${taskFlavor}Release" }
 if ($buildAab) { $gradleTasks += ":wear:bundle${taskFlavor}Release" }
 
-$versionLabel = if ($versionArgs.Count -gt 0) { "$VersionName ($VersionCode)" } else { 'version as checked into wear/build.gradle.kts' }
+$versionLabel = "$VersionName ($VersionCode)"
 Write-Host "Building Wear OS release [$Flavor] [$($gradleTasks -join ', ')] - $versionLabel.." -ForegroundColor Cyan
 
 # Start the Gradle build process
@@ -86,7 +94,7 @@ if (-not $NoDistribute -and !(Test-Path -Path $downloadsDir)) {
 if ($buildAab) {
     # The Play Wear OS track accepts a bundle only. Kept next to the phone AAB under the same
     # naming scheme so publish-play-release.ps1 can address either by path alone.
-    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\$Flavor\release"
+    $aabDir = Join-Path $projectRoot "wear\build\outputs\bundle\${Flavor}Release"
     $aab = Get-ChildItem -Path $aabDir -Filter *.aab -ErrorAction SilentlyContinue |
         Sort-Object LastWriteTime -Descending | Select-Object -First 1
     if (-not $aab) {

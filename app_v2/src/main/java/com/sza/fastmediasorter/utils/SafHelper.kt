@@ -148,7 +148,6 @@ object SafHelper {
                     arrayOf(filePath)
                 )
                 android.media.MediaScannerConnection.scanFile(context, arrayOf(filePath), null, null)
-                Timber.d("S2074: SafHelper unindexed deleted file from MediaStore: $filePath")
                 Timber.d("$tag: Unindexed deleted file from MediaStore: $filePath")
             }
         } catch (e: Exception) {

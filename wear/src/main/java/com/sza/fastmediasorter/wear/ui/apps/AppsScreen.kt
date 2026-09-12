@@ -1,11 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.apps
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -13,21 +10,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -36,18 +29,21 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.destinationFor
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val APP_LABEL_MAX_LINES = 2
 private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
-private val CELL_ICON_SIZE = 24.dp
 private val TITLE_VERTICAL_PADDING = 16.dp
 
 @Composable
@@ -56,7 +52,7 @@ fun AppsScreen(
     viewModel: AppsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState(positionKey = WearRoutes.APPS)
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -67,11 +63,9 @@ fun AppsScreen(
         // the home screen never disagree about how many columns fit the same display.
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams
+                state = listState
             ) {
                 item {
                     Text(
@@ -87,7 +81,12 @@ fun AppsScreen(
                 appItems(
                     apps = uiState.apps,
                     columns = columns,
-                    onAppClick = { app -> navController.navigate(app.route) }
+                    onAppClick = { app ->
+                        Timber.d("S2751: program tapped, id=%s", app.id)
+                        navController.navigate(
+                            WearLaunchRoutes.routeFor(destinationFor(app.id))
+                        )
+                    }
                 )
             }
         }
@@ -104,7 +103,6 @@ private fun ScalingLazyListScope.appItems(
             AppChip(app = app, onClick = { onAppClick(app) })
         }
     } else {
-        Timber.d("S2082: apps grid, columns=$columns, caption wraps to $APP_LABEL_MAX_LINES lines")
         items(apps.chunked(columns)) { rowApps ->
             AppRow(apps = rowApps, columns = columns, onAppClick = onAppClick)
         }
@@ -117,20 +115,18 @@ private fun AppChip(
     onClick: () -> Unit
 ) {
     val label = stringResource(app.labelRes)
-    Chip(
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = label) },
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(iconFor(app.id)),
-                contentDescription = label,
-                modifier = Modifier.size(CELL_ICON_SIZE)
+                contentDescription = null,
+                modifier = glyphModifier,
+                tint = colorResource(WearAppAccentCatalog.accentFor(app.id))
             )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -141,9 +137,10 @@ private fun AppRow(
     columns: Int,
     onAppClick: (WearApp) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = apps.size,
+        gap = GRID_GAP
     ) {
         apps.forEach { app ->
             AppCell(
@@ -151,9 +148,6 @@ private fun AppRow(
                 modifier = Modifier.weight(1f),
                 onClick = { onAppClick(app) }
             )
-        }
-        repeat(columns - apps.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -180,7 +174,8 @@ private fun AppCell(
         Icon(
             painter = painterResource(iconFor(app.id)),
             contentDescription = null,
-            modifier = glyphModifier
+            modifier = glyphModifier,
+            tint = colorResource(WearAppAccentCatalog.accentFor(app.id))
         )
     }
 }
@@ -189,16 +184,11 @@ private fun AppCell(
  * Icons stay here rather than on the program record, matching the home screen's own reason: the
  * domain layer carries no drawing concern.
  *
- * The network monitor reuses the Wi-Fi glyph the home screen already gives to Resources, because on a
- * watch both mean the same thing to look at - the radio - and inventing a second one would tell the
- * user they are different. System information takes the watch glyph for the same reason: a report
- * about this watch is what that glyph already means, and the module ships no information drawable.
+ * S2474: every sub-app on the watch reuses the exact same icon as its counterpart in the phone app
+ * (InternalRouteCatalog in app_v2), ensuring visual recognition across both form factors.
  */
 @DrawableRes
-private fun iconFor(id: WearAppId): Int = when (id) {
-    WearAppId.CALCULATOR -> R.drawable.ic_app_calculator
-    WearAppId.NETWORK_MONITOR -> R.drawable.ic_wifi
-    WearAppId.GAME -> R.drawable.ic_app_game
-    WearAppId.VOICE_RECORDER -> R.drawable.ic_voice_note
-    WearAppId.SYSTEM_INFO -> R.drawable.ic_watch
+private fun iconFor(id: WearAppId): Int {
+    timber.log.Timber.d("S2474: AppsScreen.iconFor id=%s", id)
+    return WearAppIconCatalog.iconFor(id)
 }

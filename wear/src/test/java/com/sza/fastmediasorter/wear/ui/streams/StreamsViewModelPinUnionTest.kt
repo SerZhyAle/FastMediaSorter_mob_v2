@@ -2,21 +2,18 @@ package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
-import com.sza.fastmediasorter.wear.domain.model.FAVORITE_ITEM_KIND_STREAM
-import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
-import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
-import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
+import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
@@ -33,8 +30,13 @@ import org.junit.Before
 import org.junit.Test
 
 /**
- * S2149: the top group is the union of two sources that must stay distinguishable - marks made on this
- * watch, and pins that arrived from the phone.
+ * S2149: the top group draws on two sources that must stay distinguishable - marks made on this watch,
+ * and pins that arrived from the phone.
+ *
+ * S2514: the two are ranked rather than unioned, so a mark made on this watch precedes a pin that only
+ * the phone holds. Most cases below cannot see that on their own, because the ranks happen to agree
+ * with the sort the projection already applied; `a watch mark outranks a phone pin the sort would put
+ * first` is the one that separates them, and it is the test the union behaviour fails.
  *
  * The withdrawal case is the one that carries strategic goal 2: an unpin on the phone has to take its
  * channel out of the top group without touching a mark the owner placed here. The cross-scheme case is
@@ -87,8 +89,10 @@ class StreamsViewModelPinUnionTest {
             phonePinsFlow = phonePins
         )
         delay(SETTLE_MS)
-        // S2146: the two pinned channels lead in the order the sort left them, which since this ticket
-        // is MOST_USED - and on an empty counter that degrades to name ascending, not to catalog rows.
+        // S2146: the sort here is MOST_USED, which on an empty counter degrades to name ascending, not
+        // to catalog rows. S2514: the watch's mark leads on rank, and the phone's follows on rank - an
+        // order the name sort would have produced anyway, which is why this case cannot tell the two
+        // rules apart and `a watch mark outranks a phone pin the sort would put first` exists.
         assertEquals(
             "both sources lead the list while the phone still pins its channel",
             listOf("City Cam", "Morning Report", "Jazz FM"),
@@ -123,6 +127,41 @@ class StreamsViewModelPinUnionTest {
         delay(SETTLE_MS)
 
         assertEquals("Morning Report", renderedNames(viewModel).first())
+    }
+
+    /**
+     * The discriminating case. Name ascending would place City Cam first, and the union rule did
+     * exactly that because both channels sat in one unordered top group. Ranking by source has to
+     * lift the watch's own mark above it.
+     */
+    @Test
+    fun `a watch mark outranks a phone pin the sort would put first`() = runBlocking {
+        val viewModel = buildViewModel(
+            pinnedUrls = listOf("https://example.invalid/2"),
+            phonePins = setOf("web://example.invalid/3")
+        )
+        delay(SETTLE_MS)
+
+        assertEquals(
+            "the watch's mark leads, the phone's pin follows it, the unpinned channel comes last",
+            listOf("Morning Report", "City Cam", "Jazz FM"),
+            renderedNames(viewModel)
+        )
+    }
+
+    /**
+     * "если там канала нет - просто пропускается": a phone pin naming an address the watch catalogue
+     * does not carry ranks nothing, so the list is exactly the sorted catalogue.
+     */
+    @Test
+    fun `a phone pin for a channel absent from the catalog leaves the order alone`() = runBlocking {
+        val viewModel = buildViewModel(phonePins = setOf("web://example.invalid/404"))
+        delay(SETTLE_MS)
+
+        assertEquals(
+            listOf("City Cam", "Jazz FM", "Morning Report"),
+            renderedNames(viewModel)
+        )
     }
 
     @Test
@@ -161,17 +200,16 @@ class StreamsViewModelPinUnionTest {
         every { preferences.streamsSelectedLanguage } returns flowOf(null)
         val atlasStore = mockk<WearFaviconAtlasStore>(relaxed = true)
         every { atlasStore.atlasFile() } returns null
-        val favorites = mockk<WearFavoritesRepository>(relaxed = true)
-        coEvery { favorites.getFavorites() } returns pinnedUrls.map { url ->
-            WearFavoriteRecord(
-                sourceId = SOURCE_ID_STREAM,
-                filePath = normalizeWearStreamUrl(url),
-                displayName = url,
-                itemKind = FAVORITE_ITEM_KIND_STREAM
-            )
-        }
+        val streamPinsRepository = mockk<WearStreamPinsRepository>(relaxed = true)
+        val pinnedIdentities = pinnedUrls.map { foldWearStreamIdentity(it) }.toSet()
+        every { streamPinsRepository.observeWatchPins() } returns MutableStateFlow(pinnedIdentities)
+        every { streamPinsRepository.getWatchPins() } returns pinnedIdentities
         val phonePinsRepository = mockk<WearPhonePinsRepository>()
         every { phonePinsRepository.observe() } returns phonePinsFlow
+        // S2669: stubbed rather than left relaxed - the view model collects this flow, and a relaxed
+        // mock answers a Flow-returning call with null.
+        val collections = mockk<WearStreamCollectionRepository>(relaxed = true)
+        every { collections.observeCollections() } returns flowOf(emptyList())
         return StreamsViewModel(
             repository = repository,
             importCatalogUseCase = mockk<ImportWearStreamCatalogUseCase>(relaxed = true),
@@ -181,10 +219,12 @@ class StreamsViewModelPinUnionTest {
                 selectedMediaManager = mockk<SelectedMediaManager>(relaxed = true),
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
                 usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+                preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
             ),
-            favoritesRepository = favorites,
+            streamPinsRepository = streamPinsRepository,
             phonePinsRepository = phonePinsRepository,
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+            collectionRepository = collections,
         )
     }
 

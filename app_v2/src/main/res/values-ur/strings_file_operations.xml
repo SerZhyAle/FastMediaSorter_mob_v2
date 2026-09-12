@@ -77,8 +77,6 @@
     <string name="delete_by_size_warning_no_trash">انتباہ: ردی کی ٹوکری اس وسائل کے لیے تعاون یافتہ نہیں ہے۔ حذف کرنا مستقل ہو جائے گا!</string>
     <string name="delete_confirmation">فائلیں حذف کریں؟</string>
     <string name="delete_failed">فائلوں کو حذف نہیں کیا جا سکا۔</string>
-    <string name="delete_file_confirmation">%1$s کو %2$s سے حذف کریں؟</string>
-    <string name="delete_files_confirmation">%2$s سے %1$d فائلیں حذف کریں؟</string>
     <string name="delete_folder_confirm">فولڈر \"%1$s\" اور اس کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>
     <string name="delete_n_files_from_network_title">نیٹ ورک سے %d فائلیں حذف کریں؟</string>
     <string name="delete_n_folders_confirm">%1$d فولڈرز اور ان کے تمام مواد کو حذف کریں؟ اسے کالعدم نہیں کیا جا سکتا۔</string>
@@ -137,4 +135,11 @@
     <string name="browse_row_folder_checkbox">فولڈر %1$s، منتخب کریں۔</string>
     <string name="browse_row_file_checkbox">فائل %1$s، منتخب کریں۔</string>
     <string name="browse_transfer_folders_included">فولڈرز شامل ہیں: %1$d</string>
+    <string name="undo_folder_move_started">فولڈرز واپس منتقل کیے جا رہے ہیں..</string>
+    <string name="undo_folder_copy_confirm_title">کیا فولڈر کی نقل واپس لی جائے؟</string>
+    <string name="undo_folder_copy_confirm_message">منزل پر موجود نقول حذف کر دی جائیں گی، بشمول ہر اس چیز کے جو اس کے بعد ان میں شامل کی گئی۔ اصل فولڈرز اپنی جگہ پر رہیں گے۔</string>
+    <string name="undo_folder_copy_confirm_action">نقول حذف کریں</string>
+    <string name="undo_folder_copy_done">نقول حذف ہو گئیں۔</string>
+    <string name="undo_mixed_move_started">فولڈرز واپس منتقل کیے جا رہے ہیں، %1$d فائلیں بحال کی جا رہی ہیں..</string>
+    <string name="undo_mixed_copy_done">نقول حذف ہوئیں: %1$d فائلیں، %2$d فولڈرز۔</string>
 </resources>

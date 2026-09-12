@@ -85,7 +85,10 @@ class AudioEmptyStateController(
 
     // ────────────────────────── Public API ──────────────────────────
 
-    fun show(mode: String) {
+    fun show(mode: String, animationPalette: String? = null) {
+        if (animationPalette != null) {
+            wavesView.palette = AudioWaveParticleView.AnimationColorPalette.fromKeyOrDefault(animationPalette)
+        }
         // De-dupe the expensive video visualization. AudioCoverArtLoader fires show() twice per track:
         // once eagerly, then again ~1.5s later when the cover-check resolves to "no cover". Each call
         // re-picks a random clip and spins up a fresh MediaPlayer, so the background visibly swaps

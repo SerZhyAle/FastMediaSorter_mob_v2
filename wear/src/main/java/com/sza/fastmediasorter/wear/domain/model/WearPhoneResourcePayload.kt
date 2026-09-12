@@ -1,13 +1,14 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 /**
- * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE].
+ * S2130 raised this to 5 for [WearPhoneResourceResponseStatus.NO_RESOURCE_FOR_TYPE], S2981 to 6 for
+ * [WearPhoneResourceResponseStatus.COMPANION_DISABLED].
  *
  * Both sides move together, in one change: an unknown enum name deserialises to null through Gson,
  * so a watch built before the value would read the new status as a malformed page rather than as an
  * unknown one. There is no installed base to negotiate with - the pair ships as one artifact set.
  */
-const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 5
+const val WEAR_PHONE_RESOURCE_SCHEMA_VERSION = 6
 
 enum class WearPhoneResourceRequestKind {
     ROOT,
@@ -49,7 +50,14 @@ enum class WearPhoneResourceResponseStatus {
     ACCESS_DENIED,
     UNSUPPORTED_MEDIA,
     TRANSFER_REJECTED,
-    NOT_FOUND
+    NOT_FOUND,
+
+    /**
+     * S2981: the phone answered, and its Wear Companion switch is off. Kept apart from
+     * [PHONE_UNAVAILABLE] so the screen sends the wearer to that switch rather than telling them to
+     * open an app that is already open.
+     */
+    COMPANION_DISABLED
 }
 
 data class WearPhoneResourceRequest(
@@ -89,6 +97,18 @@ data class WearPhoneResourcePage(
     val schemaVersion: Int = WEAR_PHONE_RESOURCE_SCHEMA_VERSION,
     val requestId: String,
     val status: WearPhoneResourceResponseStatus,
-    val items: List<WearPhoneResourceItem> = emptyList(),
+    // S2885: nullable because Gson leaves an absent field null whatever the Kotlin default says. A
+    // page that carries no `items` key is an empty page, so every reader goes through `.orEmpty()`.
+    val items: List<WearPhoneResourceItem>? = null,
     val nextPageToken: String? = null
 )
+
+/**
+ * S2476: returns the file name without extension for compact display on watch screens.
+ */
+val WearPhoneResourceItem.displayName: String
+    get() {
+        if (isDirectory) return name
+        val dot = name.lastIndexOf('.')
+        return if (dot > 0) name.substring(0, dot) else name
+    }

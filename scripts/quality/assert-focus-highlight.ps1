@@ -55,6 +55,8 @@
       1 - fail: the count rose above the baseline, a named file introduced a gap, or a
           MaterialCardView overwrites android:foreground during construction.
       2 - cannot verify: the scan root is absent, or a named changed file does not exist.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-focus-highlight.ps1
@@ -79,6 +81,7 @@ $resRoot = Join-Path $repoRoot 'app_v2/src/main/res'
 $baselineFile = Join-Path $PSScriptRoot 'focus-highlight-baseline.txt'
 
 . (Join-Path $PSScriptRoot 'lib/changed-files-delta.ps1')
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 # Element open-tag matcher: <Tag ...>  and  <Tag .../>  (skips </close>, <!--comment-->, <?xml?>).
 $rxElement = [regex]'(?s)<([A-Za-z][\w.]*)\b([^>]*?)/?>'
@@ -120,7 +123,10 @@ $nonTargetIds = @(
     'translationOverlay',           # player translation card overlay (passthrough block)
     'translationOverlayBackground', # player translation dismiss scrim
     'nowPlayingTitle',              # bottom-sheet title, focusable only to drive marquee scroll
-    'streamWindowOverlayRoot'       # S2230: stream window overlay scrim (tap-to-dismiss)
+    'streamWindowOverlayRoot',      # S2230: stream window overlay scrim (tap-to-dismiss)
+    'startup_brand_frame'           # S2556: startup brand-frame scrim, clickable only to block
+                                    # touch passthrough during its 700 ms beat; deliberately NOT
+                                    # focusable, so a focus stroke would have nothing to sit on.
 )
 
 $materialCardForegroundPattern = [regex]'(?s)<com\.google\.android\.material\.card\.MaterialCardView\b(?<attrs>[^>]*?)>'
@@ -307,23 +313,30 @@ if ($List) {
 }
 
 if ($UpdateBaseline) {
-    if (-not (Test-Path $baselineFile)) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "focus-highlight baseline SEEDED: $current"
-        exit 0
+    # One scope over both branches: they are mutually exclusive writes to the same file, and the
+    # seed branch's `exit 0` still runs the finally before the process terminates.
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-focus-highlight.ps1 -UpdateBaseline'
+        if (-not (Test-Path $baselineFile)) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "focus-highlight baseline SEEDED: $current"
+            exit 0
+        }
+        $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
+        if ($current -lt $baseline) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "focus-highlight baseline ratcheted DOWN: $baseline -> $current"
+        }
+        elseif ($current -eq $baseline) {
+            Write-Host "focus-highlight baseline unchanged ($baseline)"
+        }
+        else {
+            Write-Error "Refusing to RAISE baseline ($baseline -> $current). New interactive view(s) lack a focus indication - add a focus-state foreground/background, a ?attr/selectableItemBackground ripple, or use a Material/framework control." -ErrorAction Continue
+            exit 1
+        }
     }
-    $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
-    if ($current -lt $baseline) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "focus-highlight baseline ratcheted DOWN: $baseline -> $current"
-    }
-    elseif ($current -eq $baseline) {
-        Write-Host "focus-highlight baseline unchanged ($baseline)"
-    }
-    else {
-        Write-Error "Refusing to RAISE baseline ($baseline -> $current). New interactive view(s) lack a focus indication - add a focus-state foreground/background, a ?attr/selectableItemBackground ripple, or use a Material/framework control." -ErrorAction Continue
-        exit 1
-    }
+    finally { Exit-CodeLockScope -Scope $scope }
     exit 0
 }
 

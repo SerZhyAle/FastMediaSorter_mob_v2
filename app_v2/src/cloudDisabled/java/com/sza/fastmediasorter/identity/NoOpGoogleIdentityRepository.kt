@@ -38,6 +38,9 @@ class NoOpGoogleIdentityRepository @Inject constructor() : GoogleIdentityReposit
     override suspend fun requestAdditionalScopes(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult =
         IdentitySignInResult.Failed(IdentityFailureReason.UnknownError)
 
+    // S2101: nothing to restore - this flavor binds no Google account in the first place.
+    override suspend fun restoreTransferredBinding(email: String, scopes: Set<GoogleScope>): Boolean = false
+
     override suspend fun signOutPrimary() = Unit
 
     override suspend fun getAccessToken(scopes: Set<GoogleScope>): GoogleAccessToken? = null

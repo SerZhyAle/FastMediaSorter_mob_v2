@@ -24,4 +24,12 @@ class NoOpWearableDataLayerRepository @Inject constructor() : WearableDataLayerR
     override suspend fun sendMessage(nodeId: String, path: String, data: ByteArray) = Unit
 
     override suspend fun putEnvelopeDataItem(path: String, envelope: WearEventEnvelope) = Unit
+
+    /**
+     * S2550: inert here, and the feature is absent rather than broken in these flavors - the entry
+     * point that would call this is not built without `SUPPORT_WEAR_COMPANION` (strategic §3.2).
+     */
+    override suspend fun sendListenStart(nodeId: String, requestId: String) = Unit
+
+    override suspend fun sendListenStop(nodeId: String, requestId: String) = Unit
 }

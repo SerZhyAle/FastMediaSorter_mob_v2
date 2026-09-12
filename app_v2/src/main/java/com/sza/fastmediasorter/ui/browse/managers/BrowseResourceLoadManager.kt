@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
@@ -157,10 +158,17 @@ class BrowseResourceLoadManager(
             Timber.i("║ supportedMediaTypes: ${resource.supportedMediaTypes.map { it.name }}")
 
             val isNetworkResource = resource.type in setOf(ResourceType.SMB, ResourceType.SFTP, ResourceType.FTP)
-            if (!skipAvailabilityCheck && !isNetworkResource && resource.fileCount == 0 && !resource.isWritable) {
+            val looksEmptyAndReadOnly = !isNetworkResource && resource.fileCount == 0 && !resource.isWritable
+            val watchNotConnected = resource.type == ResourceType.WEAR_WATCH && !resource.isAvailable
+            if (!skipAvailabilityCheck && (looksEmptyAndReadOnly || watchNotConnected)) {
                 Timber.w("BrowseResourceLoadManager.loadResource: unavailable resource")
+                val errorMessage = if (resource.type == ResourceType.WEAR_WATCH) {
+                    context.getString(R.string.paired_watch_not_connected)
+                } else {
+                    context.getString(R.string.error_resource_unavailable, resource.name)
+                }
                 sendEvent(BrowseEvent.ShowError(
-                    message = context.getString(R.string.error_resource_unavailable, resource.name),
+                    message = errorMessage,
                     details = "Resource ID: ${resource.id}\nType: ${resource.type}\nPath: ${resource.path}"
                 ))
                 setLoading(false)
@@ -203,6 +211,7 @@ class BrowseResourceLoadManager(
 
             // Try DB-cached file list (rememberFileList mode)
             if (resource.rememberFileList && !forceRescan && !initialSubfolderMode) {
+                Timber.d("S3005: BrowseResourceLoadManager DB-cache branch entered")
                 try {
                     val dbCache = cachedFileListRepository.getCachedFiles(resource.id)
                     if (!dbCache.isNullOrEmpty()) {
@@ -220,7 +229,7 @@ class BrowseResourceLoadManager(
                         return@launch
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "BrowseResourceLoadManager.loadResource: DB cache load failed")
+                    e.errorUnlessCancellation("BrowseResourceLoadManager.loadResource: DB cache load failed")
                 }
             }
 

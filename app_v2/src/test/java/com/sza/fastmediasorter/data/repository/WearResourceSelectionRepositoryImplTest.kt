@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.data.repository
 
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -22,26 +23,26 @@ class WearResourceSelectionRepositoryImplTest {
     private val repo = WearResourceSelectionRepositoryImpl(context)
 
     @Test
-    fun `getSelectedIds is empty before any write`() {
+    fun `getSelectedIds is empty before any write`() = runTest {
         assertTrue(repo.getSelectedIds().isEmpty())
     }
 
     @Test
-    fun `setSelectedIds round-trips exactly the written set`() {
+    fun `setSelectedIds round-trips exactly the written set`() = runTest {
         repo.setSelectedIds(setOf(1L, 2L))
 
         assertEquals(setOf(1L, 2L), repo.getSelectedIds())
     }
 
     @Test
-    fun `selectAll stores every id it is given`() {
+    fun `selectAll stores every id it is given`() = runTest {
         repo.selectAll(setOf(1L, 2L, 3L))
 
         assertEquals(setOf(1L, 2L, 3L), repo.getSelectedIds())
     }
 
     @Test
-    fun `deselecting one id survives a new repository instance`() {
+    fun `deselecting one id survives a new repository instance`() = runTest {
         repo.setSelectedIds(setOf(1L, 2L, 3L))
 
         repo.setSelectedIds(setOf(1L, 3L))

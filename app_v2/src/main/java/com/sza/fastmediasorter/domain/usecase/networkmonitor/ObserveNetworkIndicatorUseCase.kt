@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.networkmonitor
 
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkIndicatorReading
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMonitorSnapshot
@@ -15,7 +16,7 @@ import javax.inject.Inject
 import kotlin.math.roundToInt
 
 /**
- * S1440: the read seam for the six indicators that report by themselves.
+ * S1440: the read seam for the seven indicators that report by themselves.
  *
  * Every indicator routes through an existing S1433 flow rather than through a new measurement, because
  * strategic 2 non-goal 2 forbids background work for the sake of a widget and those flows are cold -
@@ -42,6 +43,7 @@ class ObserveNetworkIndicatorUseCase @Inject constructor(
     ): Flow<NetworkIndicatorReading> = when (indicator) {
         NetworkMonitorIndicator.LOCAL_ADDRESS -> observeSnapshot(::localAddress)
         NetworkMonitorIndicator.RADIO_STATUS -> observeSnapshot(::radioStatus)
+        NetworkMonitorIndicator.HOTSPOT_STATE -> observeSnapshot(::hotspotState)
         NetworkMonitorIndicator.SIGNAL_LEVEL -> observeSignalLevel()
         NetworkMonitorIndicator.LIVE_THROUGHPUT -> observeThroughput()
         NetworkMonitorIndicator.SATELLITE_COUNT -> observeSatellites()
@@ -83,6 +85,14 @@ class ObserveNetworkIndicatorUseCase @Inject constructor(
             caption = snapshot.activeLink?.interfaceName,
             levelBars = null
         )
+    }
+
+    private fun hotspotState(snapshot: NetworkMonitorSnapshot): NetworkIndicatorReading {
+        return when (snapshot.hotspot) {
+            HotspotState.ENABLED -> NetworkIndicatorReading.Value(HOTSPOT_ON_LABEL, null, null)
+            HotspotState.DISABLED -> NetworkIndicatorReading.Value(HOTSPOT_OFF_LABEL, null, null)
+            HotspotState.UNKNOWN -> NetworkIndicatorReading.Failed(HOTSPOT_UNKNOWN_LABEL)
+        }
     }
 
     /**
@@ -176,6 +186,9 @@ class ObserveNetworkIndicatorUseCase @Inject constructor(
         const val WIFI_LABEL = "Wi-Fi"
         const val BLUETOOTH_LABEL = "BT"
         const val SIM_LABEL = "SIM"
+        const val HOTSPOT_ON_LABEL = "On"
+        const val HOTSPOT_OFF_LABEL = "Off"
+        const val HOTSPOT_UNKNOWN_LABEL = "unknown"
         const val NONE_LIVE = "-"
         const val RADIO_SEPARATOR = " . "
         const val DBM_UNIT = "dBm"

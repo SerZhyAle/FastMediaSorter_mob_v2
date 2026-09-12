@@ -5,4 +5,8 @@
     <string name="browse_network_source_not_found">This network source is no longer available. Return and choose another source.</string>
     <string name="browse_network_connection_failed">Couldn\'t connect to this source. Check the connection and try again.</string>
     <string name="browse_load_failed">Couldn\'t load files. Try again.</string>
+    <string name="browse_network_error_refused">Connection refused. Check the computer is sharing files.</string>
+    <string name="browse_network_error_timeout">No answer in time. Check the network and try again.</string>
+    <string name="browse_network_error_auth">Wrong user name or password. Update the source on your phone.</string>
+    <string name="browse_network_error_unknown_host">Computer not found on this network. Check the Wi-Fi connection.</string>
 </resources>

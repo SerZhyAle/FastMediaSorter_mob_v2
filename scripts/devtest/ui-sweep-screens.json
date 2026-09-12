@@ -1,0 +1,725 @@
+{
+  "_comment": [
+    "S2380 - the declared phone UI sweep, in the order it is taken. Mirrors the field set of",
+    "wear-prerelease-screens.json rather than generalising it (strategic ADR-2).",
+    "",
+    "reach: resourceId is preferred over label EVERYWHERE, because the sweep runs in two languages",
+    "and a label is translated. Two places cannot use an id and say so in their own note: the four",
+    "SettingsActivity tabs (TabLayoutMediator builds them, a TabLayout.Tab carries no android:id) and",
+    "the MainActivity three-dots popup (MainProgramsMenuCoordinator adds items at runtime with",
+    "popup.menu.add(.., labelRes), and a PopupMenu row carries no resource-id).",
+    "",
+    "expect: a token that is on the DESTINATION and not on the screen it was opened from. For a",
+    "popup-reached screen this rules out the popup item's OWN label - a tap that misses leaves the",
+    "popup open still showing that text, and the walk would record a screen it never opened.",
+    "expectRes: the string resource the token is matched against. The gate asserts the resource",
+    "resolves, that its CURRENT value contains `expect`, and that some file in the module renders it.",
+    "",
+    "backAfter: BACK presses after the check, to return to a known position. 0 keeps the walk where",
+    "it is - used when the next entry opens from this screen.",
+    "optional: the entry may legitimately be absent; a missing control is `skipped`, not `unreachable`.",
+    "stateDependent: present only in some app states; same relief as optional but for a different cause.",
+    "secure: the surface sets FLAG_SECURE while settings.secureSensitiveScreens is on. `setup` turns",
+    "that setting off for the run, so these shoot normally; if a frame still comes back blank the",
+    "outcome is `manual` with the node tree beside it, never `failed`.",
+    "",
+    "setup: run ONCE per run, before the first combination - not per combination. Nothing here",
+    "depends on orientation, theme or language, and the app state it builds is what makes roughly a",
+    "third of the catalog reachable at all (a seeded DEVICE is not a seeded APP: app_v2's resource",
+    "list starts empty). teardown restores what setup changed.",
+    "",
+    "S2380 phase 03: `excluded` and the per-screen `expand` lists are added by step 03.3."
+  ],
+
+  "reasonSet": [
+    "not-a-destination",
+    "arg-external",
+    "gesture-only",
+    "timed",
+    "needs-seeded-content",
+    "pre-graph-gate",
+    "no-static-marker",
+    "absent-from-this-flavor",
+    "secure-surface"
+  ],
+
+  "setup": [
+    {
+      "id": "setup-disable-secure-screens",
+      "name": "Turn off secure sensitive screens",
+      "steps": [
+        { "resourceId": "btnSettings", "from": "main" },
+        { "label": "@string/settings_tab_general", "note": "Tab strip carries no id - see _comment." },
+        { "resourceId": "rowSecureSensitiveScreens", "action": "toggle-off" }
+      ],
+      "expect": "Secure sensitive screens",
+      "expectRes": "settings_secure_sensitive_screens_title",
+      "backAfter": 1,
+      "note": "Default ON (S1045). While on, the add-resource wizard and the resource editor return a black frame through BaseActivity.applySecureFlagIfEnabled, so four surfaces would be unphotographable. It is an app settings key, not a system one, and adb.ps1 prefs only reads - so the switch is thrown through the UI, which the walker can already do. teardown puts it back."
+    },
+    {
+      "id": "setup-enable-streams",
+      "name": "Enable the Streams sub-program",
+      "steps": [
+        { "resourceId": "btnSettings", "from": "main" },
+        { "label": "@string/settings_tab_media" },
+        { "resourceId": "headerStreams", "action": "expand" },
+        { "resourceId": "rowEnableStreams", "action": "toggle-on" }
+      ],
+      "expect": "Enable Streams",
+      "expectRes": "settings_streams_toggle",
+      "backAfter": 1,
+      "note": "AppSettings.enableStreams defaults false, so without this the Streams entry is absent from the popup and StreamsActivity is never swept."
+    },
+    {
+      "id": "setup-add-local-resource",
+      "name": "Configure one local resource over the seeded root",
+      "steps": [
+        { "resourceId": "btnAddResource", "from": "main" },
+        { "action": "pick-local-folder", "target": "@seedRoot" },
+        { "action": "confirm" }
+      ],
+      "expect": "Add Resource",
+      "expectRes": "add_resource_title",
+      "backAfter": 0,
+      "note": "Browse, the player, duplicates and the resource editor all open only from a configured resource row. Without this they would every one be excluded needs-seeded-content and the sweep would photograph the shell of the app rather than the app."
+    }
+  ],
+
+  "teardown": [
+    {
+      "id": "teardown-restore-secure-screens",
+      "name": "Turn secure sensitive screens back on",
+      "steps": [
+        { "resourceId": "btnSettings", "from": "main" },
+        { "label": "@string/settings_tab_general" },
+        { "resourceId": "rowSecureSensitiveScreens", "action": "toggle-on" }
+      ],
+      "note": "Research 03 residual risk: a run that dies mid-walk leaves the protection off. The walker re-asserts this at start of run as well as at end, so the next run repairs an abandoned one."
+    }
+  ],
+
+  "screens": [
+    {
+      "id": "main",
+      "name": "Main - resource list",
+      "expect": "Add Resource",
+      "expectRes": "add_resource_title",
+      "backAfter": 0,
+      "note": "Start destination; the app is already here after launch. The marker is the add-resource button's own label, which is on Main and on no screen Main opens from - there is no screen it opens from."
+    },
+    {
+      "id": "add-resource",
+      "name": "Add resource wizard",
+      "resourceId": "btnAddResource",
+      "from": "main",
+      "expect": "Add Resource",
+      "expectRes": "add_resource_title",
+      "backAfter": 0,
+      "secure": true,
+      "note": "FLAG_SECURE via BaseActivity.applySecureFlagIfEnabled + isSensitiveScreen(); setup-disable-secure-screens makes it photographable."
+    },
+    {
+      "id": "companion-qr-scan",
+      "name": "Companion QR scan",
+      "resourceId": "btnImportFromBarcode",
+      "from": "add-resource",
+      "expect": "Point the camera at the companion QR code",
+      "expectRes": "companion_qr_scan_hint",
+      "backAfter": 2,
+      "note": "Opens the camera; the hint is drawn over the preview."
+    },
+    {
+      "id": "browse",
+      "name": "Browse - resource contents",
+      "resourceId": "rvResources",
+      "from": "main",
+      "action": "tap-first-item",
+      "expect": "Resource Operations Menu",
+      "expectRes": "cd_resource_ops_menu",
+      "backAfter": 0,
+      "note": "Needs setup-add-local-resource. The marker is the ops button's content description; Main's own cards carry no such node."
+    },
+    {
+      "id": "player",
+      "name": "Player - unified viewer",
+      "resourceId": "rvMediaFiles",
+      "from": "browse",
+      "action": "tap-first-item",
+      "expect": "Play/Pause",
+      "expectRes": "play_pause",
+      "backAfter": 0,
+      "note": "Reached by tapping a seeded media row, so it inherits the seed's file names rather than a fixed label."
+    },
+    {
+      "id": "player-translation-settings",
+      "name": "Player - translation settings dialog",
+      "resourceId": "btnTextSettingsCmd",
+      "from": "player",
+      "expect": "Original Language and OCR",
+      "expectRes": "translation_source_language_and_ocr",
+      "backAfter": 1,
+      "stateDependent": true,
+      "note": "The `translation` settings section lives here and nowhere else - it is not reachable from the Settings entry point. `translation_settings` is NOT the marker: it is the content description of the four host buttons on the player itself."
+    },
+    {
+      "id": "duplicates",
+      "name": "Duplicates",
+      "resourceId": "action_find_duplicates",
+      "from": "browse",
+      "via": "btnResourceOps",
+      "expect": "Duplicates",
+      "expectRes": "duplicate_detection_title",
+      "backAfter": 2,
+      "note": "Two taps: the ops button opens menu_resource_ops, the menu item starts the activity."
+    },
+    {
+      "id": "resource-editor",
+      "name": "Resource editor",
+      "resourceId": "btnEdit",
+      "from": "main",
+      "expect": "Edit Resource",
+      "expectRes": "title_edit_resource",
+      "backAfter": 1,
+      "secure": true,
+      "note": "The pencil on a resource card. FLAG_SECURE like the wizard; the title is set on the toolbar for ResourceEditorMode.EDIT."
+    },
+
+    {
+      "id": "settings",
+      "name": "Settings",
+      "resourceId": "btnSettings",
+      "from": "main",
+      "expect": "Media",
+      "expectRes": "settings_tab_media",
+      "backAfter": 0,
+      "note": "Marker is a tab title rather than the screen title, because `settings` (\"Settings\") is also the label of the button on Main that opens it."
+    },
+    {
+      "id": "settings-general",
+      "name": "Settings - General tab",
+      "label": "@string/settings_tab_general",
+      "from": "settings",
+      "expect": "General interface settings",
+      "expectRes": "settings_category_interface",
+      "backAfter": 0,
+      "note": "Tab, not a row: TabLayoutMediator builds the strip and a tab carries no android:id. The four tab labels are the reason the language dimension changes only between whole catalog passes.",
+      "expand": [
+        { "resourceId": "headerInterface", "expect": "Color theme", "expectRes": "color_theme" },
+        { "resourceId": "headerMainWindowInterface", "expect": "Resource grid cell size", "expectRes": "pref_resource_grid_cell_size_title" },
+        { "resourceId": "headerFileBrowser", "expect": "Allow All Files mode", "expectRes": "setting_all_files_allow_title" },
+        { "resourceId": "headerRemoteSources", "expect": "Local network (Ethernet) SMB", "expectRes": "settings_remote_source_smb_title" },
+        { "resourceId": "headerAuthorization", "expect": "Google Play Services", "expectRes": "gms_settings_link" },
+        { "resourceId": "headerAppData", "expect": "Share Debug Logs", "expectRes": "share_debug_logs" },
+        { "resourceId": "headerSystem", "expect": "Video pre-cache size", "expectRes": "pref_prefetch_cache_title" },
+        { "resourceId": "headerDebugSettings", "expect": "Show log", "expectRes": "show_log", "stateDependent": true, "note": "Drawn only in a debug build, which is what the sweep runs." }
+      ]
+    },
+    {
+      "id": "settings-media",
+      "name": "Settings - Media tab",
+      "label": "@string/settings_tab_media",
+      "from": "settings",
+      "expect": "Visualizer when no cover art",
+      "expectRes": "audio_empty_state_label",
+      "backAfter": 0,
+      "note": "The tab's own container has no unique static string of its own; the marker is taken from the first sub-page, which the container attaches on expand.",
+      "expand": [
+        { "resourceId": "headerBroadcast", "expect": "Broadcast", "expectRes": "settings_broadcast_section", "note": "Its body is built at runtime, so the token is the header's own title - presence, not expansion. The live broadcast screen itself is excluded; see `excluded`." },
+        { "resourceId": "headerVr", "expect": "3D-VR playback and controls", "expectRes": "vr_settings_block_title", "stateDependent": true, "note": "Drawn only in the vr flavor; the sweep runs standard, so this node is expected to be `skipped` and that is not a defect." }
+      ],
+      "expandNote": "The other six headers in this container - Images, Video, Audio, Documents, Other, Streams - are not expand nodes: each attaches its own child fragment and is walked as a screen record of its own above."
+    },
+    {
+      "id": "settings-audio",
+      "name": "Settings - Media - Audio",
+      "resourceId": "headerAudio",
+      "from": "settings-media",
+      "expect": "Visualizer when no cover art",
+      "expectRes": "audio_empty_state_label",
+      "backAfter": 0,
+      "note": "A collapsible section inside one long NestedScrollView, not a separate screen; the child fragment is attached lazily on expand."
+    },
+    {
+      "id": "settings-images",
+      "name": "Settings - Media - Images",
+      "resourceId": "headerImages",
+      "from": "settings-media",
+      "expect": "Load images at full resolution",
+      "expectRes": "load_full_size_images",
+      "backAfter": 0
+    },
+    {
+      "id": "settings-video",
+      "name": "Settings - Media - Video",
+      "resourceId": "headerVideo",
+      "from": "settings-media",
+      "expect": "Show video thumbnails",
+      "expectRes": "show_video_thumbnails",
+      "backAfter": 0
+    },
+    {
+      "id": "settings-documents",
+      "name": "Settings - Media - Documents",
+      "resourceId": "headerDocuments",
+      "from": "settings-media",
+      "expect": "Support EPUB e-books",
+      "expectRes": "support_epub_description",
+      "backAfter": 0
+    },
+    {
+      "id": "settings-streams",
+      "name": "Settings - Media - Streams",
+      "resourceId": "headerStreams",
+      "from": "settings-media",
+      "expect": "Enable Streams",
+      "expectRes": "settings_streams_toggle",
+      "backAfter": 0,
+      "note": "The section header's own string is settings_streams_section, so the toggle inside it is the marker rather than the header that is visible before opening."
+    },
+    {
+      "id": "settings-other",
+      "name": "Settings - Media - Other",
+      "resourceId": "headerOther",
+      "from": "settings-media",
+      "expect": "Enable text recognition",
+      "expectRes": "enable_ocr",
+      "backAfter": 0
+    },
+    {
+      "id": "settings-playback",
+      "name": "Settings - Player tab",
+      "label": "@string/settings_tab_playback",
+      "from": "settings",
+      "expect": "Sorting, slideshow and playback order",
+      "expectRes": "settings_category_sorting_slideshow",
+      "backAfter": 0,
+      "note": "The tab renders \"Player\", not \"Playback\" - the resource key and the drawn text diverge, so the walker must resolve the label through the resource, never from the key name.",
+      "expand": [
+        { "resourceId": "headerSortingSlideshow", "expect": "Default sort mode", "expectRes": "default_sort_mode" },
+        { "resourceId": "headerFileOperations", "expect": "Allow rename", "expectRes": "allow_rename" },
+        { "resourceId": "headerPlayerUI", "expect": "Hide OS UI in fullscreen", "expectRes": "hide_system_ui_in_fullscreen" },
+        { "resourceId": "headerTouchZones", "expect": "Disable 9-zone tracking", "expectRes": "disable_nine_zone_tracking" },
+        { "resourceId": "headerBackgroundAudio", "expect": "Background Playback", "expectRes": "background_audio_setting_title" }
+      ]
+    },
+    {
+      "id": "settings-operations",
+      "name": "Settings - Management tab",
+      "label": "@string/settings_tab_operations",
+      "from": "settings",
+      "expect": "Copy, move and overwrite behavior",
+      "expectRes": "settings_category_copy_move",
+      "backAfter": 0,
+      "note": "Drawn as \"Management\"; its layout is still named fragment_settings_destinations and the settings manifest still calls the section `destinations`.",
+      "expand": [
+        { "resourceId": "headerCopyMove", "expect": "Allow copying", "expectRes": "enable_copying" },
+        { "resourceId": "headerSafety", "expect": "Enable Safe Mode", "expectRes": "enable_safe_mode" },
+        { "resourceId": "headerDestinations", "expect": "+ Add", "expectRes": "add_destination" },
+        { "resourceId": "headerScheduled", "expect": "Use scheduled operations", "expectRes": "scheduled_ops_toggle" },
+        { "resourceId": "headerBehaviour", "expect": "Show detailed errors", "expectRes": "show_detailed_errors" },
+        { "resourceId": "headerCameraPhotos", "expect": "Enable photo capture", "expectRes": "setting_camera_to_resource_enabled_title" },
+        { "resourceId": "headerVideoCapture", "expect": "Enable video recording", "expectRes": "setting_video_capture_enable_title" },
+        { "resourceId": "headerMicRecording", "expect": "Enable microphone recording", "expectRes": "settings_mic_recording_enable_title" },
+        { "resourceId": "headerScreenRecording", "expect": "Screen video recording", "expectRes": "settings_screen_recording_enable_title" },
+        { "resourceId": "headerWear", "expect": "Wear companion", "expectRes": "settings_enable_wear_companion" },
+        { "resourceId": "headerAdditionalPrograms", "expect": "Camera OCR translation", "expectRes": "setting_camera_ocr_translation_title" },
+        { "resourceId": "headerSystemApps", "expect": "Prevent sleep", "expectRes": "prevent_sleep" },
+        { "resourceId": "headerScreenGestures", "expect": "Gesture overlay", "expectRes": "setting_gesture_overlay_title" },
+        { "resourceId": "headerSendCommands", "expect": "Send file to..", "expectRes": "settings_send_commands_group", "note": "The only section whose body carries no string resource of its own - every row inside it is built at runtime from the share-target registry - so this node's token is the header's own title and it proves presence rather than expansion." }
+      ]
+    },
+
+    {
+      "id": "settings-default-apps",
+      "name": "Settings - Default app dialog",
+      "resourceId": "btnOpenDefaultAppsDialog",
+      "from": "settings-operations",
+      "expect": "Default app",
+      "expectRes": "default_apps_dialog_title",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-edge-gestures",
+      "name": "Settings - Edge gestures dialog",
+      "resourceId": "btnOpenEdgeGestureConfig",
+      "from": "settings-operations",
+      "expect": "Edge gestures",
+      "expectRes": "edge_gesture_config_dialog_title",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-stopwatch",
+      "name": "Settings - Stopwatch dialog",
+      "resourceId": "rowOpenStopwatchSettings",
+      "from": "settings-operations",
+      "expect": "Participants",
+      "expectRes": "stopwatch_settings_participants",
+      "backAfter": 1,
+      "note": "The dialog's title is set programmatically, so the marker is a row inside it. StopwatchActivity opens the same dialog from btnStopwatchSettings; it is walked here, from settings, so the sweep does not photograph one surface twice."
+    },
+    {
+      "id": "settings-launcher",
+      "name": "Settings - Launcher dialog",
+      "resourceId": "rowLauncherSettings",
+      "from": "settings-general",
+      "expect": "Change home screen",
+      "expectRes": "launcher_settings_open_home_chooser_title",
+      "backAfter": 0,
+      "note": "launcher_settings_dialog_title is NOT the marker - it is also the label of the row that opens it."
+    },
+    {
+      "id": "settings-launcher-wallpaper",
+      "name": "Settings - Launcher wallpaper dialog",
+      "resourceId": "rowLauncherWallpaper",
+      "from": "settings-launcher",
+      "expect": "What is drawn",
+      "expectRes": "launcher_wallpaper_section_mode",
+      "backAfter": 1
+    },
+    {
+      "id": "settings-launcher-reset",
+      "name": "Settings - Launcher reset confirmation",
+      "resourceId": "btnResetLauncher",
+      "from": "settings-launcher",
+      "expect": "System launcher settings will be reset",
+      "expectRes": "launcher_settings_reset_message",
+      "backAfter": 2,
+      "note": "A destructive confirmation. The walk photographs it and leaves by BACK - it never presses the confirm button."
+    },
+
+    {
+      "id": "keybinding-remap",
+      "name": "Controls and keybindings",
+      "resourceId": "rowControlsKeybindings",
+      "from": "settings-operations",
+      "expect": "Keybindings",
+      "expectRes": "settings_controls_keybindings_title",
+      "backAfter": 1,
+      "note": "The resource value is \"Controls & Keybindings\"; the token is the tail so the ampersand's XML escaping never enters the comparison."
+    },
+    {
+      "id": "auth-sessions",
+      "name": "Saved authorizations",
+      "resourceId": "row_saved_authorizations",
+      "from": "settings-general",
+      "expect": "Saved authorizations",
+      "expectRes": "setting_saved_authorizations_title",
+      "backAfter": 1
+    },
+    {
+      "id": "statistics",
+      "name": "Statistics",
+      "resourceId": "rowOpenStatistics",
+      "from": "settings-general",
+      "expect": "Statistics",
+      "expectRes": "statistics_title",
+      "backAfter": 1,
+      "stateDependent": true,
+      "note": "The row is drawn only while AppSettings.enableStatistics is on, which is its default."
+    },
+
+    {
+      "id": "wear-companion",
+      "name": "Wear companion",
+      "label": "@string/wear_companion",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Push network sources to your connected Wear OS watch.",
+      "expectRes": "wear_sync_description",
+      "backAfter": 0,
+      "note": "Popup item, so label rather than id. The marker is drawn by the Compose island WearCompanionScreen, not by the activity's XML shell - the shell carries only the popup item's own title."
+    },
+    {
+      "id": "wear-resource-selection",
+      "name": "Wear resource selection",
+      "label": "@string/wear_resource_selection_title",
+      "from": "wear-companion",
+      "expect": "Select all",
+      "expectRes": "wear_resource_selection_select_all",
+      "backAfter": 2,
+      "note": "wear_resource_selection_title is the opening button's own label on the parent, so a row inside the screen is the marker instead."
+    },
+
+    {
+      "id": "calculator",
+      "name": "Calculator",
+      "label": "@string/calculator_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Tap to copy, long-press to paste a number",
+      "expectRes": "calculator_display_content_description",
+      "backAfter": 1,
+      "note": "calculator_title is the popup item's label, so the display's content description is the marker."
+    },
+    {
+      "id": "stopwatch",
+      "name": "Stopwatch",
+      "label": "@string/stopwatch_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Start all",
+      "expectRes": "stopwatch_action_start_all",
+      "backAfter": 1
+    },
+    {
+      "id": "mirror",
+      "name": "Mirror",
+      "label": "@string/mirror_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Close mirror",
+      "expectRes": "mirror_close_button",
+      "backAfter": 1,
+      "note": "Opens the front camera full screen; the close button's content description is the only static string on it."
+    },
+    {
+      "id": "front-flashlight",
+      "name": "Front flashlight",
+      "label": "@string/front_flashlight_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Light colour",
+      "expectRes": "front_flashlight_color_button",
+      "backAfter": 1
+    },
+    {
+      "id": "water-flashlight",
+      "name": "Water flashlight",
+      "label": "@string/water_flashlight_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Locked. Use the buttons",
+      "expectRes": "water_flashlight_locked_hint",
+      "backAfter": 1,
+      "note": "The screen is deliberately deaf to touch, so BACK is the only exit and the walker must not try to tap its way out."
+    },
+    {
+      "id": "game",
+      "name": "Mini-game",
+      "label": "@string/game_menu_label",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Kryvavitsa and the Monster",
+      "expectRes": "game_title",
+      "backAfter": 0,
+      "note": "The popup item reads \"Play mini-game\" and the screen reads its own title, so the two do not collide."
+    },
+    {
+      "id": "game-help",
+      "name": "Mini-game - how to play",
+      "resourceId": "btnGameHelp",
+      "from": "game",
+      "expect": "How to play",
+      "expectRes": "game_help_title",
+      "backAfter": 2
+    },
+    {
+      "id": "app-launch-panel",
+      "name": "Quick launch panel",
+      "label": "@string/app_launch_panel_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Edit",
+      "expectRes": "app_launch_panel_edit_action",
+      "backAfter": 0,
+      "note": "The activity is a transparent host; the panel itself is a dialog fragment. app_launch_panel_title is both the popup item and the panel's own title, so the edit action is the marker."
+    },
+    {
+      "id": "edit-app-launch-panel",
+      "name": "Quick launch panel - edit",
+      "resourceId": "btnEditPanel",
+      "from": "app-launch-panel",
+      "expect": "Reset panel",
+      "expectRes": "app_launch_panel_reset",
+      "backAfter": 2
+    },
+    {
+      "id": "streams",
+      "name": "Streams",
+      "label": "@string/streams_title",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Search",
+      "expectRes": "streams_search_hint",
+      "backAfter": 1,
+      "stateDependent": true,
+      "note": "Present only after setup-enable-streams. streams_title is the popup item's label, so the search hint is the marker."
+    },
+    {
+      "id": "camera-capture",
+      "name": "Camera capture",
+      "label": "@string/quick_camera_menu_label",
+      "from": "main",
+      "via": "btnMainDropdownMenu",
+      "expect": "Photo",
+      "expectRes": "camera_mode_photo",
+      "backAfter": 0,
+      "note": "The popup item reads \"Camera\"; the mode toggle on the screen reads \"Photo\"."
+    },
+    {
+      "id": "camera-settings",
+      "name": "Camera settings dialog",
+      "resourceId": "btnCameraSettings",
+      "from": "camera-capture",
+      "expect": "Exposure",
+      "expectRes": "camera_setting_exposure",
+      "backAfter": 0,
+      "note": "The `camera` settings section is covered here. It is not reachable from the Settings entry point: CameraSettingsDialogFragment has exactly one call site, the gear button on the capture screen. camera_settings_title is NOT the marker - it is the content description of that same gear button on the host screen. The section's second layout, dialog_camera_ocr_settings, belongs to CameraOcrTranslateActivity, which is excluded no-static-marker; the section stays covered by this entry."
+    }
+  ],
+
+  "excluded": [
+    {
+      "activity": "WelcomeActivity",
+      "reason": "pre-graph-gate",
+      "note": "First-run onboarding, started from MainActivity before the main graph is usable. The sweep runs against an app that has already been through it."
+    },
+    {
+      "activity": "SystemInfoActivity",
+      "reason": "no-static-marker",
+      "note": "activity_system_info.xml carries the toolbar title - which is also the popup item's own label - three buttons on the shared copy/save/share strings, and an empty ScrollView filled at runtime. Nothing on it can distinguish 'opened' from 'popup still showing'."
+    },
+    {
+      "activity": "BlackScreenActivity",
+      "reason": "no-static-marker",
+      "note": "activity_black_screen.xml is a single FrameLayout with a black background and no child views. There is nothing to assert and nothing to photograph."
+    },
+    {
+      "activity": "NetworkMonitorActivity",
+      "reason": "no-static-marker",
+      "note": "Its content container is an empty FrameLayout filled at runtime; the only static string sits in a fallback group that is visible ONLY while the sub-program is disabled, so it proves the opposite of an open screen."
+    },
+    {
+      "activity": "CameraOcrTranslateActivity",
+      "reason": "no-static-marker",
+      "note": "Three mutually exclusive states - result, crop, loading - with no string common to all of them, so no token proves the screen opened rather than that it landed in one particular state."
+    },
+    {
+      "activity": "BroadcastShareActivity",
+      "reason": "needs-seeded-content",
+      "note": "The content it needs is a LIVE microphone session: the screen renders a descriptor the Live state carries, and reaching it means opening the microphone and broadcasting for the length of the sweep. That is a side effect a UI sweep must not have - the same call the watch walk made for WearBroadcastQrScreen."
+    },
+    {
+      "activity": "FlashlightToggleActivity",
+      "reason": "no-static-marker",
+      "note": "Reachable by a popup tap, but it toggles the torch and calls finish() in onCreate with no UI at all - noHistory, transparent theme."
+    },
+    {
+      "activity": "PrintDispatchActivity",
+      "reason": "no-static-marker",
+      "note": "Reached in-app from the player's Print action, but it is transparent, hands off to the system print dialog and finishes without ever rendering an app string."
+    },
+    {
+      "activity": "CompanionQrShareActivity",
+      "reason": "needs-seeded-content",
+      "note": "Reached only through shareSftpResourceConfigAsQr, which requires an SFTP resource. The sweep seeds a LOCAL resource, so the event never fires."
+    },
+    { "activity": "GoogleDriveFolderPickerActivity", "reason": "needs-seeded-content", "note": "Opens only after a completed Google sign-in - a cloud account, not local media." },
+    { "activity": "DropboxFolderPickerActivity", "reason": "needs-seeded-content", "note": "Same shape, Dropbox authentication." },
+    { "activity": "OneDriveFolderPickerActivity", "reason": "needs-seeded-content", "note": "Same shape, MSAL/OneDrive authentication." },
+    { "activity": "GoogleDriveAuthCompletionActivity", "reason": "arg-external", "note": "Completion hop for the AppAuth redirect; reached only by the external OAuth browser." },
+    { "activity": "GoogleDriveAuthResolutionActivity", "reason": "arg-external", "note": "GMS PendingIntent resolution trampoline." },
+    { "activity": "ResourceLaunchWidgetConfigActivity", "reason": "arg-external", "note": "APPWIDGET_CONFIGURE only; the appWidgetId is minted by the launcher's widget picker, and no in-app tap reaches it." },
+    { "activity": "RandomPhotoFrameConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
+    { "activity": "StreamLaunchWidgetConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
+    { "activity": "CameraQuickCaptureConfigActivity", "reason": "arg-external", "note": "Widget configuration, same as above." },
+    { "activity": "QuickAudioRecorderActivity", "reason": "arg-external", "note": "Transparent trampoline that toggles recording from a widget tap." },
+    { "activity": "CameraQuickCaptureActivity", "reason": "arg-external", "note": "Widget-tap trampoline." },
+    { "activity": "CameraLaunchActivity", "reason": "arg-external", "note": "Widget-tap trampoline." },
+    { "activity": "StreamPlayLaunchActivity", "reason": "arg-external", "note": "Stream shortcut trampoline." },
+    { "activity": "PhotoCaptureLaunchActivity", "reason": "gesture-only", "note": "Take-photo edge-gesture trampoline; no menu or button reaches it." },
+    { "activity": "ScreenRecordingLaunchActivity", "reason": "gesture-only", "note": "Edge-gesture trampoline. The popup's 'Screen video recording' item acts in-window and never opens this activity." },
+    { "activity": "LinkDownloadLaunchActivity", "reason": "gesture-only", "note": "Panel trampoline. The popup's 'Download by link' item also acts in-window." },
+    { "activity": "StandalonePlayerActivity", "reason": "arg-external", "note": "Exported fallback for an external VIEW intent." },
+    { "activity": "PhotoVideoStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
+    { "activity": "AudioStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
+    { "activity": "DocumentStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
+    { "activity": "TextStandaloneActivity", "reason": "arg-external", "note": "Reached through a VIEW activity-alias." },
+    { "activity": "StandalonePlayerDispatcherActivity", "reason": "arg-external", "note": "No-UI dispatcher trampoline for a typeless VIEW intent." },
+    { "activity": "ReceiveShareActivity", "reason": "arg-external", "note": "ACTION_SEND receiver; the sweep sends nothing to the app." },
+    { "activity": "ResourceImportActivity", "reason": "arg-external", "note": "VIEW/SEND intent filters only." },
+    { "activity": "CompanionConfigImportActivity", "reason": "arg-external", "note": "VIEW/SEND intent filters only." },
+    { "activity": "DiagnosticXrActivity", "reason": "absent-from-this-flavor", "note": "Declared only in app_v2/src/vr/AndroidManifest.xml; the sweep is pinned to standard by strategic 3.2." },
+    { "activity": "ImmersiveBrowseActivity", "reason": "absent-from-this-flavor", "note": "Declared only in app_v2/src/vr/AndroidManifest.xml." }
+  ],
+
+  "excludedSurfaces": [
+    {
+      "surface": "WebViewAuthDialogFragment",
+      "reason": "needs-seeded-content",
+      "note": "The fourth FLAG_SECURE surface, and the only one that is not an activity. It sets the flag by its own path rather than through BaseActivity, and it opens only while authorizing a real remote source - a live account the sweep does not have. Named here so all four secure surfaces are accounted for: two carry `secure: true` on their screen record, CompanionQrShareActivity is in `excluded`, and this one is here."
+    }
+  ],
+
+  "excludedSettingsSections": [
+    {
+      "sectionId": "networkMonitor",
+      "reason": "not-a-destination",
+      "note": "Not a phone settings page: a single entry belonging to a Network Monitor tool tab, reached from its own activity, which is itself excluded no-static-marker."
+    },
+    {
+      "sectionId": "wear",
+      "reason": "not-a-destination",
+      "note": "Four Compose screens that live in the wear module and render no app_v2 resource. Strategic 3.2 puts Wear OS out of scope entirely; the watch has its own walk."
+    }
+  ],
+
+  "_activityCoverage": {
+    "main": "MainActivity",
+    "add-resource": "AddResourceActivity",
+    "companion-qr-scan": "CompanionQrScanActivity",
+    "browse": "BrowseActivity",
+    "player": "PlayerActivity",
+    "duplicates": "DuplicatesActivity",
+    "resource-editor": "ResourceEditorActivity",
+    "settings": "SettingsActivity",
+    "keybinding-remap": "KeybindingRemapActivity",
+    "auth-sessions": "AuthSessionsActivity",
+    "statistics": "StatisticsActivity",
+    "wear-companion": "WearCompanionActivity",
+    "wear-resource-selection": "WearResourceSelectionActivity",
+    "calculator": "CalculatorActivity",
+    "stopwatch": "StopwatchActivity",
+    "mirror": "MirrorActivity",
+    "front-flashlight": "FrontFlashlightActivity",
+    "water-flashlight": "WaterFlashlightActivity",
+    "game": "GameActivity",
+    "game-help": "GameHelpActivity",
+    "app-launch-panel": "AppLaunchPanelActivity",
+    "edit-app-launch-panel": "EditAppLaunchPanelActivity",
+    "streams": "StreamsActivity",
+    "camera-capture": "CameraCaptureActivity"
+  },
+
+  "_sectionCoverage": {
+    "general": "settings-general",
+    "audio": "settings-audio",
+    "images": "settings-images",
+    "video": "settings-video",
+    "documents": "settings-documents",
+    "streams": "settings-streams",
+    "other": "settings-other",
+    "playback": "settings-playback",
+    "destinations": "settings-operations",
+    "defaultApps": "settings-default-apps",
+    "gestures": "settings-edge-gestures",
+    "stopwatch": "settings-stopwatch",
+    "launcher": "settings-launcher",
+    "camera": "camera-settings",
+    "translation": "player-translation-settings"
+  },
+
+  "_coverage": [
+    "Activities: dev/ACTIVITY_CATALOG/app_v2.jsonl holds 60 records. 24 are walked by the `screens` list",
+    "above (some screens are dialogs hosted by an already-counted activity, so screens > activities),",
+    "and 36 are named in `excluded`. 24 + 36 = 60, with no record in both lists and none in neither.",
+    "",
+    "Settings sections: docs/settings/settings-manifest.json holds 17 distinct sectionId values.",
+    "15 are covered by a walk entry - 9 as settings pages, 6 as dialogs, two of those six (camera,",
+    "translation) from their host screen rather than from the settings entry, because no settings path",
+    "to them exists. 2 are named in `excludedSettingsSections`. 15 + 2 = 17.",
+    "",
+    "The step 03.4 gate re-derives both sums from the source files rather than trusting this note."
+  ]
+}

@@ -11,23 +11,22 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.doOnPreDraw
 import androidx.core.view.isVisible
 import androidx.fragment.app.DialogFragment
+import androidx.lifecycle.lifecycleScope
+import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.databinding.DialogPlaybackControlBinding
-import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.di.StreamTrackPreferenceEntryPoint
-import dagger.hilt.android.EntryPointAccessors
-import kotlinx.coroutines.launch
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.usecase.streams.StreamTrackPreferenceUseCase
 import com.sza.fastmediasorter.ui.dialog.DialogKeyboardDelegate
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
-import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
-import com.google.android.material.button.MaterialButton
+import dagger.hilt.android.EntryPointAccessors
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.roundToInt
-import timber.log.Timber
 
 class PlaybackControlDialogFragment : DialogFragment() {
 
@@ -38,6 +37,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private enum class ControlSection(val buttonId: Int) {
         VOLUME(R.id.btnSectionVolume),
+        BALANCE(R.id.btnSectionBalance),
         AUDIO(R.id.btnSectionAudio),
         SUBTITLES(R.id.btnSectionSubtitles),
         STEREO(R.id.btnSectionStereo),
@@ -108,9 +108,12 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private val activeSections: List<ControlSection>
         get() = when (currentMediaType) {
-            MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.SPEED)
+            MediaType.AUDIO -> listOf(ControlSection.VOLUME, ControlSection.BALANCE, ControlSection.SPEED)
             else -> buildList {
                 add(ControlSection.VOLUME)
+                // Never hidden by content capability: mono disables the controls, it does not remove
+                // the tab (S1267 strategic §2 goal 3).
+                add(ControlSection.BALANCE)
                 if (hasMultipleAudioTracks) add(ControlSection.AUDIO)
                 if (hasSubtitles) add(ControlSection.SUBTITLES)
                 if (supportsVrMediaControls && is3dVrEnabled) add(ControlSection.STEREO)
@@ -153,6 +156,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         sourceIsLive = host().activeSourceIsLive
         setupSectionNavigation(savedInstanceState?.getString(STATE_SELECTED_SECTION))
         setupVolumeTab()
+        setupBalanceTab()
         if (currentMediaType == MediaType.VIDEO) {
             setupAudioTab()
             setupSubtitleTab()
@@ -266,6 +270,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
     private fun updateVisibleSection(section: ControlSection?) {
         binding.sectionVolume.isVisible = false
+        binding.sectionBalance.isVisible = false
         binding.sectionAudio.isVisible = false
         binding.sectionSubtitles.isVisible = false
         binding.sectionStereo3d.isVisible = false
@@ -275,6 +280,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
 
         when (section) {
             ControlSection.VOLUME -> binding.sectionVolume.isVisible = true
+            ControlSection.BALANCE -> binding.sectionBalance.isVisible = true
             ControlSection.AUDIO -> binding.sectionAudio.isVisible = true
             ControlSection.SUBTITLES -> binding.sectionSubtitles.isVisible = true
             ControlSection.STEREO -> binding.sectionStereo3d.isVisible = true
@@ -285,40 +291,92 @@ class PlaybackControlDialogFragment : DialogFragment() {
         }
     }
 
-    private fun setupVolumeTab() {
-        val audioManager = requireContext().getSystemService(Context.AUDIO_SERVICE) as android.media.AudioManager
-        val maxVolume = audioManager.getStreamMaxVolume(android.media.AudioManager.STREAM_MUSIC)
-        val currentVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
-        val halfVolume = (maxVolume / 2).coerceAtLeast(1)
+    private fun setupBalanceTab() {
+        val leftGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, BALANCE_DEFAULT_GAIN)
+        val rightGain = prefs.getFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, BALANCE_DEFAULT_GAIN)
+        updateBalanceLabel(leftGain, rightGain)
 
-        binding.seekVolume.max = maxVolume
-        binding.seekVolume.progress = currentVolume
-        updateVolumeLabel(currentVolume, maxVolume)
-        syncMuteToggleUi(currentVolume)
+        bindBalancePreset(binding.btnBalance5050, BALANCE_EVEN_GAIN, BALANCE_EVEN_GAIN)
+        bindBalancePreset(binding.btnBalance3070, BALANCE_QUIET_GAIN, BALANCE_LOUD_GAIN)
+        bindBalancePreset(binding.btnBalance7030, BALANCE_LOUD_GAIN, BALANCE_QUIET_GAIN)
 
-        if (maxVolume == 0) {
-            binding.seekVolume.isEnabled = false
-            binding.btnMuteToggle.isEnabled = false
-            binding.btnVolumeHalf.isEnabled = false
-            binding.btnVolumeMax.isEnabled = false
-            return
+        // Mono has no sides to balance: keep the section visible and disable its controls, the same
+        // shape setupVolumeTab() uses for maxVolume == 0.
+        val isStereo = host().supportsChannelBalanceForActiveSource
+        Timber.d("S1267: balance tab opened left=$leftGain right=$rightGain stereo=$isStereo")
+        binding.tvBalanceNoStereo.isVisible = !isStereo
+        binding.btnBalance5050.isEnabled = isStereo
+        binding.btnBalance3070.isEnabled = isStereo
+        binding.btnBalance7030.isEnabled = isStereo
+    }
+
+    private fun bindBalancePreset(button: MaterialButton, leftGain: Float, rightGain: Float) {
+        // The numeric label alone ("30/70") does not say "balance" out of context, unlike the volume
+        // presets whose own text is self-explanatory.
+        button.contentDescription = getString(
+            R.string.playback_control_balance_description,
+            gainToPercent(leftGain),
+            gainToPercent(rightGain)
+        )
+        button.setOnClickListener {
+            prefs.edit()
+                .putFloat(PlaybackControlPreferences.KEY_BALANCE_LEFT_GAIN, leftGain)
+                .putFloat(PlaybackControlPreferences.KEY_BALANCE_RIGHT_GAIN, rightGain)
+                .apply()
+            host().setChannelBalance(leftGain, rightGain)
+            updateBalanceLabel(leftGain, rightGain)
         }
+    }
+
+    private fun updateBalanceLabel(leftGain: Float, rightGain: Float) {
+        val label = balancePresetLabel(leftGain, rightGain)
+            ?: "${gainToPercent(leftGain)}/${gainToPercent(rightGain)}"
+        binding.tvBalanceValue.text = getString(R.string.playback_control_balance_value, label)
+    }
+
+    // Null for a persisted pair matching no preset - including the unity default, which is why a
+    // first open reads as the raw pair rather than as a preset name.
+    private fun balancePresetLabel(leftGain: Float, rightGain: Float): String? = when {
+        leftGain == BALANCE_EVEN_GAIN && rightGain == BALANCE_EVEN_GAIN ->
+            getString(R.string.playback_control_balance_50_50)
+        leftGain == BALANCE_QUIET_GAIN && rightGain == BALANCE_LOUD_GAIN ->
+            getString(R.string.playback_control_balance_30_70)
+        leftGain == BALANCE_LOUD_GAIN && rightGain == BALANCE_QUIET_GAIN ->
+            getString(R.string.playback_control_balance_70_30)
+        else -> null
+    }
+
+    private fun gainToPercent(gain: Float): Int = (gain * PERCENT_SCALE).roundToInt()
+
+    private fun setupVolumeTab() {
+        // S2907: control player volume (0.0-1.0) instead of system AudioManager volume. On car
+        // stereos and TV boxes the system STREAM_MUSIC volume is often fixed, so the previous
+        // AudioManager.setStreamVolume calls were no-ops. The seek bar works in percent (0-100).
+        val currentVolume = host().getPlayerVolume()
+        val currentPercent = (currentVolume * PERCENT_SCALE).roundToInt()
+        Timber.d("S2907: setupVolumeTab playerVolume=$currentVolume percent=$currentPercent")
+
+        binding.seekVolume.max = MAX_VOLUME_PERCENT
+        binding.seekVolume.progress = currentPercent
+        updateVolumeLabel(currentPercent)
+        syncMuteToggleUi(currentPercent)
 
         binding.btnVolumeHalf.setOnClickListener {
-            applyVolumePreset(audioManager, halfVolume, maxVolume)
+            applyVolumePreset(VOLUME_HALF)
         }
         binding.btnVolumeMax.setOnClickListener {
-            applyVolumePreset(audioManager, maxVolume, maxVolume)
+            applyVolumePreset(VOLUME_MAX)
         }
 
         binding.seekVolume.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
             override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
                 if (!fromUser) return
-                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, progress, 0)
+                val volume = progress / PERCENT_SCALE
+                host().setPlayerVolume(volume)
                 if (progress > 0) {
                     prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, progress).apply()
                 }
-                updateVolumeLabel(progress, maxVolume)
+                updateVolumeLabel(progress)
                 syncMuteToggleUi(progress)
             }
 
@@ -327,42 +385,42 @@ class PlaybackControlDialogFragment : DialogFragment() {
         })
 
         binding.btnMuteToggle.setOnClickListener {
-            val liveVolume = audioManager.getStreamVolume(android.media.AudioManager.STREAM_MUSIC)
-            if (liveVolume == 0) {
-                // Restore previously saved non-zero volume
-                val restoreVolume = prefs.getInt(
+            val liveVolume = host().getPlayerVolume()
+            if (liveVolume == 0f) {
+                val restorePercent = prefs.getInt(
                     PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
-                    halfVolume
+                    HALF_VOLUME_PERCENT
                 )
-                applyVolumePreset(audioManager, restoreVolume, maxVolume)
+                applyVolumePreset(restorePercent / PERCENT_SCALE)
             } else {
-                prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, liveVolume).apply()
-                audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, 0, 0)
+                prefs.edit()
+                    .putInt(
+                        PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME,
+                        (liveVolume * PERCENT_SCALE).roundToInt()
+                    )
+                    .apply()
+                host().setPlayerVolume(0f)
                 binding.seekVolume.progress = 0
-                updateVolumeLabel(0, maxVolume)
+                updateVolumeLabel(0)
                 syncMuteToggleUi(0)
             }
         }
     }
 
-    private fun applyVolumePreset(
-        audioManager: android.media.AudioManager,
-        volume: Int,
-        maxVolume: Int
-    ) {
-        val targetVolume = volume.coerceIn(0, maxVolume)
-        audioManager.setStreamVolume(android.media.AudioManager.STREAM_MUSIC, targetVolume, 0)
-        binding.seekVolume.progress = targetVolume
-        if (targetVolume > 0) {
-            // Quick presets should become the new restore target after the next mute toggle.
-            prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, targetVolume).apply()
+    private fun applyVolumePreset(volume: Float) {
+        val targetVolume = volume.coerceIn(0f, 1f)
+        val percent = (targetVolume * PERCENT_SCALE).roundToInt()
+        host().setPlayerVolume(targetVolume)
+        binding.seekVolume.progress = percent
+        if (percent > 0) {
+            prefs.edit().putInt(PlaybackControlPreferences.KEY_LAST_NON_ZERO_VOLUME, percent).apply()
         }
-        updateVolumeLabel(targetVolume, maxVolume)
-        syncMuteToggleUi(targetVolume)
+        updateVolumeLabel(percent)
+        syncMuteToggleUi(percent)
     }
 
-    private fun syncMuteToggleUi(volume: Int) {
-        val isMuted = volume == 0
+    private fun syncMuteToggleUi(percent: Int) {
+        val isMuted = percent == 0
         binding.btnMuteToggle.isSelected = isMuted
         binding.btnMuteToggle.setText(
             if (isMuted) R.string.playback_control_unmute else R.string.playback_control_mute
@@ -395,15 +453,10 @@ class PlaybackControlDialogFragment : DialogFragment() {
                     rememberStreamTrackPick { url ->
                         streamTrackPreferenceUseCase.writeAudio(url, track.language)
                     }
-                    refreshAudioTab()
                 }
             }
             binding.groupAudioTracks.addView(button)
         }
-    }
-
-    private fun refreshAudioTab() {
-        setupAudioTab()
     }
 
     private fun setupSubtitleTab() {
@@ -424,7 +477,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 rememberStreamTrackPick { url ->
                     streamTrackPreferenceUseCase.writeSubtitle(url, null, false)
                 }
-                refreshSubtitleTab()
             }
         }
         binding.groupSubtitleTracks.addView(offButton)
@@ -437,19 +489,15 @@ class PlaybackControlDialogFragment : DialogFragment() {
                 isFocusable = true
                 isFocusableInTouchMode = false
                 setOnClickListener {
+                    Timber.d("S2907: subtitle track selected group=${track.groupIndex} track=${track.trackIndex}")
                     handle.selectSubtitleTrack(track.groupIndex, track.trackIndex)
                     rememberStreamTrackPick { url ->
                         streamTrackPreferenceUseCase.writeSubtitle(url, track.language, true)
                     }
-                    refreshSubtitleTab()
                 }
             }
             binding.groupSubtitleTracks.addView(button)
         }
-    }
-
-    private fun refreshSubtitleTab() {
-        setupSubtitleTab()
     }
 
     private fun setupStereoSection() {
@@ -486,7 +534,6 @@ class PlaybackControlDialogFragment : DialogFragment() {
             if (isUpdatingStereoControls) return@setOnCheckedChangeListener
             updateStereoFamilyAvailability(resolveStereoFamily(host().stereoMode.value), isChecked)
         }
-
     }
 
     private fun bindStereoMode(mode: StereoMode) {
@@ -690,8 +737,7 @@ class PlaybackControlDialogFragment : DialogFragment() {
         updateSpeedLabel(speed)
     }
 
-    private fun updateVolumeLabel(progress: Int, maxVolume: Int) {
-        val percent = if (maxVolume == 0) 0 else (progress * 100f / maxVolume).roundToInt()
+    private fun updateVolumeLabel(percent: Int) {
         binding.tvVolumeValue.text = getString(R.string.volume_level, percent)
     }
 
@@ -745,6 +791,19 @@ class PlaybackControlDialogFragment : DialogFragment() {
     companion object {
         const val TAG = "PlaybackControlDialog"
         private const val STATE_SELECTED_SECTION = "selected_section"
+
+        // S1267 ADR-1: the first number of a preset label is always the LEFT channel.
+        private const val BALANCE_DEFAULT_GAIN = 1f
+        private const val BALANCE_EVEN_GAIN = 0.5f
+        private const val BALANCE_QUIET_GAIN = 0.3f
+        private const val BALANCE_LOUD_GAIN = 0.7f
+        private const val PERCENT_SCALE = 100f
+
+        // S2907: player volume is 0.0-1.0; the seek bar works in percent (0-100).
+        private const val MAX_VOLUME_PERCENT = 100
+        private const val HALF_VOLUME_PERCENT = 50
+        private const val VOLUME_HALF = 0.5f
+        private const val VOLUME_MAX = 1.0f
 
         fun newInstance(): PlaybackControlDialogFragment = PlaybackControlDialogFragment()
     }

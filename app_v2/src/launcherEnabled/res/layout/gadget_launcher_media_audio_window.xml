@@ -16,7 +16,7 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/mediaAudioWindowTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -26,9 +26,10 @@
             android:foreground="@drawable/focus_button_background"
             android:maxLines="1"
             android:minHeight="28dp"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textSize="13sp"
             android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Road trip" />
 
         <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
@@ -39,7 +40,7 @@
             android:ellipsize="end"
             android:gravity="center_vertical"
             android:maxLines="2"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="12sp"
             app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Blue Monday" />

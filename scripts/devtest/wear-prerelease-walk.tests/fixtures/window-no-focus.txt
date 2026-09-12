@@ -1,0 +1,4 @@
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window)
+  Display 0 "default" ...
+
+  mFocusedWindow=Window{abc1234 com.sza.fastmediasorter/com.sza.fastmediasorter.wear.MainActivity}

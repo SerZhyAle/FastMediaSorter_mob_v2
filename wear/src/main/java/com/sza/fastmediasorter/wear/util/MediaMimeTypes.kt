@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.wear.util
 
 import android.webkit.MimeTypeMap
+import timber.log.Timber
 
 /**
- * Extension-to-MIME inference for network listings.
+ * Extension-to-MIME inference for the whole `wear` module.
  *
  * On a network source the file name is the only source of truth - no protocol the watch speaks
  * reports a MIME type - so every listing derives it here. S1690: this used to be written three
  * times in two different versions, and the two that lacked the fallback table dropped .mkv, .flac,
  * .heic and .wma from FTP and SFTP listings entirely, because an unresolved type is filtered out.
+ * S2443: the two that had grown back - the voice-note publisher and the file sender - delegate here
+ * again, so this is the module's only resolver and one extension has one answer.
  */
 object MediaMimeTypes {
 
@@ -34,7 +37,9 @@ object MediaMimeTypes {
         "flv" to "video/x-flv",
         "3gp" to "video/3gpp",
         "mp3" to "audio/mpeg",
-        "m4a" to "audio/aac",
+        // .m4a is an MPEG-4 container (RFC 4337), not a raw ADTS stream, so audio/mp4 rather than
+        // audio/aac - and it is what the rest of the module already answers for a voice note.
+        "m4a" to "audio/mp4",
         "aac" to "audio/aac",
         "wav" to "audio/wav",
         "ogg" to "audio/ogg",
@@ -47,10 +52,19 @@ object MediaMimeTypes {
 
     fun fromFileName(fileName: String): String? {
         val extension = fileName.substringAfterLast('.', "").lowercase()
-        return if (extension.isEmpty()) {
-            null
-        } else {
-            MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension) ?: FALLBACK[extension]
+        if (extension.isEmpty()) {
+            return null
         }
+        return platformMimeType(extension) ?: FALLBACK[extension]
     }
+
+    // The platform table is a stub outside an Android runtime and throws rather than answering, and
+    // since S2443 every caller in the module reaches it through here, so the throw is absorbed once.
+    private fun platformMimeType(extension: String): String? =
+        try {
+            MimeTypeMap.getSingleton()?.getMimeTypeFromExtension(extension)
+        } catch (e: IllegalStateException) {
+            Timber.w(e, "MediaMimeTypes: MimeTypeMap unavailable for extension %s", extension)
+            null
+        }
 }

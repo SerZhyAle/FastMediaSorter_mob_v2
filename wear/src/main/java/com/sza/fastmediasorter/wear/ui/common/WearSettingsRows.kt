@@ -5,12 +5,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.sza.fastmediasorter.wear.util.GridColumnFit
-import timber.log.Timber
 
 private val ROW_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
+
+/**
+ * CompositionLocal providing whether the current grid cell is at an even
+ * checkerboard position `(rowIndex + colIndex) % 2 == 0`.
+ */
+val LocalWearTileEven = compositionLocalOf<Boolean?> { null }
 
 /**
  * Splits settings controls into rows of at most [columns].
@@ -27,7 +34,6 @@ fun packSettingsRows(
     items: List<WearSettingsItem>,
     columns: Int
 ): List<List<WearSettingsItem>> {
-    Timber.d("S1949: packSettingsRows columns=$columns items=${items.size}")
     if (columns <= 1) {
         return items.map { listOf(it) }
     }
@@ -60,16 +66,20 @@ fun packSettingsRows(
 @Composable
 fun WearSettingsRow(
     row: List<WearSettingsItem>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    rowIndex: Int = 0
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(ROW_GAP)
     ) {
         val narrow = row.size > 1
-        for (item in row) {
-            Box(modifier = Modifier.weight(1f)) {
-                item.content(narrow)
+        row.forEachIndexed { colIndex, item ->
+            val isEven = (rowIndex + colIndex) % 2 == 0
+            CompositionLocalProvider(LocalWearTileEven provides isEven) {
+                Box(modifier = Modifier.weight(1f)) {
+                    item.content(narrow)
+                }
             }
         }
     }

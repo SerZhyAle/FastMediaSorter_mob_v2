@@ -30,12 +30,31 @@
     The database list now lives in scripts/quality/lib/room-databases.ps1, shared with
     assert-migration-test-pairing so the two cannot disagree about which databases exist (S1621).
 
+    S2829 made the row NAME its @Database class instead of the gate scanning the row's directory for
+    the annotation. The scan assumed one database per directory, and the watch outgrew it: three
+    @Database classes now sit in `wear/data/db`, and the ambiguity was fatal for the whole run rather
+    than for that row, so every closure whose file set touched any Room path stopped at "cannot
+    verify" - including the phone migration the gate exists to check. A named file also turns a wrong
+    registry entry into a message that says so, where the scan silently picked a neighbour.
+
     A module with an exported schema and ZERO migrations is clean, not unverifiable - the watch's
     real state at version 1, and a Room builder with no .addMigrations(..) at all is correct there.
     Refusing it would mean the gate could not be switched on until somebody else's ticket wrote the
     first migration, which is the deferred activation this repository has paid for four times.
 
-    Six dimensions, all decidable from text - no device, no gradle, no Room:
+    S2830 ended the gate's last silent verdict. Discovery was a directory listing anchored on the
+    row's file-name prefix, so a hop declared inside an AGGREGATE file had no address to be found by
+    and the gate printed, for the watch's voice-note database, the same sentence it prints for a
+    database with no migration at all: "no migration yet, exported schema only". MIGRATION_1_2 was
+    registered, its edge closed, and its SQL read by nobody - at version 2, with 1.json and 2.json
+    both exported. The phone carries an aggregate of its own, AppDatabase.kt's companion object with
+    MIGRATION_1_18 .. MIGRATION_30_31 in it; nothing is lost there today only because the oldest
+    exported schema is 36.json, so all 26 hops would be skipped for having nothing to compare
+    against. Discovery now reads both shapes and lives in room-databases.ps1 beside the registry that
+    names the aggregate files, and the new dimension below keeps the fix from decaying into the same
+    silence the next time somebody writes a shape nobody expected.
+
+    Seven dimensions, all decidable from text - no device, no gradle, no Room:
 
       registration   every MigrationNNToMM.kt is registered in the module's Room builder, every
                      exported schema version below the declared one has an outgoing edge, and the
@@ -57,13 +76,21 @@
                      migration. Frozen at an older target it keeps passing while covering one hop
                      less every release, which is the exact shape of evidence this gate refuses.
                      Skipped for a module with no migration yet; required from its first one on.
+      unclaimed-migration
+                     a `Migration(N, M)` declared in a .kt file under a registered migration
+                     directory that no registry row reads - its name matches no database's migration
+                     prefix and no row lists it as an aggregate file. This is the dimension that
+                     separates "this database has no migration" from "this database has migrations
+                     nothing found", which were one sentence until S2830. Without it the next
+                     aggregate file reproduces that whole ticket in silence.
 
     RATCHET, like assert-migration-test-pairing. The tree carries migrations older than the
     exported-schema set (31..35 have no schema to compare against and are reported as skipped)
     and any finding on a migration that already shipped is history, not a defect to fix - the
     database on those users' devices is whatever the SQL actually produced. Baseline file:
-    migration-schema-conformance-baseline.txt, one finding key per line, module-prefixed since
-    S2355. A NEW disagreement fails; regenerate with -UpdateBaseline only when deliberately
+    migration-schema-conformance-baseline.txt, one finding key per line, prefixed since S2355 by the
+    registry Key - which names a DATABASE rather than a module since S2829, because the watch runs
+    three of them. A NEW disagreement fails; regenerate with -UpdateBaseline only when deliberately
     accepting one, which for a migration that has not shipped should be never.
 
 .PARAMETER Gate
@@ -95,9 +122,11 @@
     Exit codes (CLAUDE.md Rule 7):
       0  no unbaselined disagreement (or reporting only, without -Gate).
       1  an unbaselined disagreement was found, under -Gate.
-      2  cannot verify - a registry row's migration directory, schema directory or registration
-         file is missing, no @Database class was found for a row, or its declared version cannot
-         be read. Every such message names the module.
+      2  cannot verify - a registry row's migration directory, schema directory, registration file
+         or named @Database class file is missing, that file carries no @Database annotation, or its
+         declared version cannot be read. Every such message names the database.
+      4  Code.Scripts is held by another session, so no baseline was written. The queue place is
+         held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding()]
 param(
@@ -119,6 +148,11 @@ if ($Help) {
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $PSScriptRoot 'lib/room-databases.ps1')
+# The code-lock helper is loaded LAZILY, inside the -UpdateBaseline branch, not here. This script
+# is exercised by its contract suite from a temp sandbox that copies scripts/quality/ alone, so a
+# top-level dot-source of ../utils/ cannot resolve and every case dies before it asserts anything.
+# Loading it at the write keeps the sandbox's read-only cases working and still makes the helper
+# mandatory on the one path that needs it (S2635).
 $baselineFile = Join-Path $PSScriptRoot 'migration-schema-conformance-baseline.txt'
 
 function Stop-CannotVerify([string]$message) {
@@ -147,6 +181,36 @@ function Add-Finding([string]$module, [string]$migration, [string]$dimension, [s
             Subject   = $subject
             Message   = $message
         })
+}
+
+# ---- @Database annotation ---------------------------------------------------------------
+function Get-DatabaseAnnotationBody([string]$text) {
+    <#
+    .SYNOPSIS
+        The text between @Database( and its matching ), or $null when there is no such annotation.
+    .DESCRIPTION
+        S2355 step 04.0. The version used to be read with a bare `version\s*=\s*(\d+)` over the whole
+        source. Step 02.3 unanchored it to reach the watch's single-line annotation, and unanchored it
+        takes the FIRST such assignment anywhere in the file - so a `const val version = 9`, or a KDoc
+        line mentioning one, would silently decide which exported schema every migration in that module
+        is compared against while the gate printed PASS. Scanning to the balanced closing parenthesis
+        rather than to the first one is what makes it safe for real annotations: entities, autoMigrations
+        and typeConverters all carry nested parentheses and brackets.
+    #>
+    $open = [regex]::Match($text, '@Database\s*\(')
+    if (-not $open.Success) { return $null }
+
+    $bodyStart = $open.Index + $open.Length
+    $depth = 0
+    for ($i = $bodyStart - 1; $i -lt $text.Length; $i++) {
+        $ch = $text[$i]
+        if ($ch -eq '(') { $depth++ }
+        elseif ($ch -eq ')') {
+            $depth--
+            if ($depth -eq 0) { return $text.Substring($bodyStart, $i - $bodyStart) }
+        }
+    }
+    return $null
 }
 
 # ---- schema cache -----------------------------------------------------------------------
@@ -195,29 +259,45 @@ function ConvertTo-ComparableDefault([string]$value) {
 $reports = [System.Collections.Generic.List[object]]::new()
 $moduleSummaries = [System.Collections.Generic.List[object]]::new()
 
-foreach ($db in $databases) {
-    # The declared schema version, read from whichever class in the module's database directory
-    # carries @Database. Named by annotation rather than by file name: the phone's is AppDatabase.kt
-    # and the watch's is WearVoiceNoteDatabase.kt.
-    $dbClassFile = @(
-        Get-ChildItem -Path $db.MigrationDir -Filter '*.kt' -File |
-            Where-Object { (Get-Content $_.FullName -Raw) -match '(?m)^\s*@Database\s*\(' }
-    )
-    if ($dbClassFile.Count -eq 0) { Stop-CannotVerify "$($db.Module): no @Database class found in $($db.RelativePaths.MigrationDir)" }
-    if ($dbClassFile.Count -gt 1) { Stop-CannotVerify "$($db.Module): $($dbClassFile.Count) @Database classes in $($db.RelativePaths.MigrationDir) - the registry names one database per row" }
+# ---- unclaimed-migration ------------------------------------------------------------------
+# Run once for the whole tree rather than per row: the finding's subject is a file no row claims,
+# and asking each row in turn would report one per row for the same file. Deliberately NOT narrowed
+# by -Module - a declaration nobody reads is a hole in the gate itself, and a hand run filtered to
+# one module is the run least likely to be looking for it.
+foreach ($unclaimed in @(Get-RoomUnclaimedMigrationDeclaration -RepoRoot $repoRoot)) {
+    Add-Finding $unclaimed.Key "$($unclaimed.From)To$($unclaimed.To)" 'unclaimed-migration' $unclaimed.SourceFile `
+        "$($unclaimed.Key): $($unclaimed.Message)"
+}
 
-    $dbClassText = Get-Content $dbClassFile[0].FullName -Raw
-    $versionMatch = [regex]::Match($dbClassText, 'version\s*=\s*(\d+)')
-    if (-not $versionMatch.Success) { Stop-CannotVerify "$($db.Module): no 'version = N' found in $($dbClassFile[0].Name)" }
+foreach ($db in $databases) {
+    # The declared schema version, read from the @Database class the registry row NAMES. Discovering
+    # it by scanning the directory for the annotation was wrong in both directions (S2829): a module
+    # may hold several databases in one directory - the watch's `data/db` holds three since the
+    # heart-rate and blood-pressure databases landed - and the scan then refused to verify ANY of
+    # them, including the phone's, because the refusal aborts the whole run.
+    $dbClassPath = $db.DatabaseClassPath
+    if (-not (Test-Path $dbClassPath)) { Stop-CannotVerify "$($db.Key): registry names $($db.RelativePaths.DatabaseClassPath) as the @Database class and it does not exist" }
+
+    $dbClassText = Get-Content $dbClassPath -Raw
+    if ($dbClassText -notmatch '(?m)^\s*@Database\s*\(') { Stop-CannotVerify "$($db.Key): $($db.RelativePaths.DatabaseClassPath) carries no @Database annotation - the registry row names the wrong file" }
+    # Read the version from INSIDE the annotation body, never from the whole file - see
+    # Get-DatabaseAnnotationBody for what the unanchored form silently accepted.
+    $annotationBody = Get-DatabaseAnnotationBody $dbClassText
+    if ($null -eq $annotationBody) {
+        Stop-CannotVerify "$($db.Key): no closed @Database( .. ) annotation body in $($db.DatabaseClassFile)"
+    }
+    $versionMatch = [regex]::Match($annotationBody, 'version\s*=\s*(\d+)')
+    if (-not $versionMatch.Success) {
+        Stop-CannotVerify "$($db.Key): the @Database annotation in $($db.DatabaseClassFile) declares no 'version = N'"
+    }
     $declaredVersion = [int]$versionMatch.Groups[1].Value
 
-    # "Migration31To32.kt" -> "31To32". Anchored so a helper like MigrationHelpers.kt is not taken
-    # for a migration.
-    $migrationFiles = @(
-        Get-ChildItem -Path $db.MigrationDir -Filter 'Migration*.kt' -File |
-            Where-Object { $_.BaseName -match '^Migration(\d+)To(\d+)$' } |
-            Sort-Object { [int]([regex]::Match($_.BaseName, '^Migration(\d+)To').Groups[1].Value) }
-    )
+    # Every hop this database really declares - Migration<N>To<M>.kt as before, plus each
+    # `Migration(N, M)` object inside an aggregate file the registry row names. Discovery lives in
+    # the shared registry rather than here (S2830): the name-only listing this replaced reported a
+    # database whose migrations it could not find in the same words as a database that has none, so
+    # the watch's MIGRATION_1_2 was never compared against 2.json at all.
+    $migrations = @(Get-RoomMigrationSource -Database $db)
 
     # ---- registration ---------------------------------------------------------------------
     $moduleText = Get-Content $db.RegistrationFile -Raw
@@ -231,13 +311,13 @@ foreach ($db in $databases) {
     }
     # A builder with no .addMigrations(..) at all is correct for a database that has no migration
     # yet. It is only a failure to verify when migration files exist and none of them is registered.
-    if ($registeredEdges.Count -eq 0 -and $migrationFiles.Count -gt 0) {
-        Stop-CannotVerify "$($db.Module): $($migrationFiles.Count) migration file(s) exist but no MIGRATION_N_M reference is in $($db.RelativePaths.RegistrationFile)"
+    if ($registeredEdges.Count -eq 0 -and $migrations.Count -gt 0) {
+        Stop-CannotVerify "$($db.Key): $($migrations.Count) migration(s) are declared but no MIGRATION_N_M reference is in $($db.RelativePaths.RegistrationFile)"
     }
 
     if (-not (Test-Path (Join-Path $db.SchemaDir "$declaredVersion.json"))) {
         Add-Finding $db.Key "v$declaredVersion" 'registration' "schemas/$declaredVersion.json" `
-            "$($db.Module): the database declares version $declaredVersion but no exported schema exists for it - Room has nothing to validate an upgraded database against"
+            "$($db.Key): the database declares version $declaredVersion but no exported schema exists for it - Room has nothing to validate an upgraded database against"
     }
 
     $exportedVersions = @(
@@ -250,7 +330,7 @@ foreach ($db in $databases) {
         $hasEdge = $registeredEdges.Keys | Where-Object { $_ -match "^$v" + 'To\d+$' }
         if (-not $hasEdge) {
             Add-Finding $db.Key "v$v" 'registration' "schemas/$v.json" `
-                "$($db.Module): schema version $v shipped but no registered migration leaves it - a device on $v is wiped by the recovery path on update"
+                "$($db.Key): schema version $v shipped but no registered migration leaves it - a device on $v is wiped by the recovery path on update"
         }
     }
 
@@ -259,46 +339,45 @@ foreach ($db in $databases) {
     # version as a literal. Absent that check it keeps passing while the version moves past it -
     # green, and one hop shorter every release. Skipped while the module has no migration: there is
     # no chain to walk, and demanding the file would block the gate's own activation.
-    if ($migrationFiles.Count -gt 0) {
+    if ($migrations.Count -gt 0) {
         $chainTestFile = Join-Path $db.AndroidTestDir $db.ChainTestFile
         if (-not (Test-Path $chainTestFile)) {
             Add-Finding $db.Key 'chain' 'chain-test' $db.ChainTestFile `
-                "$($db.Module): $($db.ChainTestFile) does not exist in $($db.RelativePaths.AndroidTestDir), so nothing walks the whole migration chain"
+                "$($db.Key): $($db.ChainTestFile) does not exist in $($db.RelativePaths.AndroidTestDir), so nothing walks the whole migration chain"
         }
         else {
             $chainText = Get-Content $chainTestFile -Raw
             $chainVersionMatch = [regex]::Match($chainText, "$($db.ChainTestConstant)\s*=\s*(\d+)")
             if (-not $chainVersionMatch.Success) {
                 Add-Finding $db.Key 'chain' 'chain-test' $db.ChainTestConstant `
-                    "$($db.Module): $($db.ChainTestFile) declares no $($db.ChainTestConstant) constant, so nothing can tell which version it walks to"
+                    "$($db.Key): $($db.ChainTestFile) declares no $($db.ChainTestConstant) constant, so nothing can tell which version it walks to"
             }
             elseif ([int]$chainVersionMatch.Groups[1].Value -ne $declaredVersion) {
                 Add-Finding $db.Key 'chain' 'chain-test' $db.ChainTestConstant `
-                    "$($db.Module): $($db.ChainTestFile) walks to $($chainVersionMatch.Groups[1].Value) while the database declares $declaredVersion - the newest hop is covered by nothing"
+                    "$($db.Key): $($db.ChainTestFile) walks to $($chainVersionMatch.Groups[1].Value) while the database declares $declaredVersion - the newest hop is covered by nothing"
             }
             $newestEdge = "MIGRATION_$($declaredVersion - 1)_$declaredVersion"
             if ($chainText -notmatch [regex]::Escape($newestEdge)) {
                 Add-Finding $db.Key 'chain' 'chain-test' $newestEdge `
-                    "$($db.Module): $($db.ChainTestFile) does not pass $newestEdge, so the chain stops short of the version the app ships"
+                    "$($db.Key): $($db.ChainTestFile) does not pass $newestEdge, so the chain stops short of the version the app ships"
             }
         }
     }
 
     # ---- per-migration SQL dimensions ------------------------------------------------------
-    foreach ($file in $migrationFiles) {
-        $null = $file.BaseName -match '^Migration(\d+)To(\d+)$'
-        $from = [int]$Matches[1]
-        $to = [int]$Matches[2]
-        $token = "$($from)To$($to)"
+    foreach ($migration in $migrations) {
+        $from = $migration.From
+        $to = $migration.To
+        $token = $migration.Token
 
         if (-not $registeredEdges.ContainsKey($token)) {
             Add-Finding $db.Key $token 'registration' "MIGRATION_$($from)_$($to)" `
-                "$($db.Module): Migration$token.kt exists but is not registered in $($db.RelativePaths.RegistrationFile) - the hop throws and the recovery path deletes the database"
+                "$($db.Key): $($migration.SourceFile) declares this hop but it is not registered in $($db.RelativePaths.RegistrationFile) - the hop throws and the recovery path deletes the database"
         }
 
-        # Join Kotlin string concatenation ("CREATE TABLE .." + "..") so a statement split across
-        # lines is matched as the single SQL statement it becomes at runtime.
-        $text = (Get-Content $file.FullName -Raw) -replace '"\s*\+\s*\r?\n?\s*"', ''
+        # Already joined across Kotlin string concatenation by the discovery function, so a statement
+        # split across source lines arrives here as the single SQL statement it becomes at runtime.
+        $text = $migration.Text
 
         $schema = Get-Schema $db.SchemaDir $to
         $statements = 0
@@ -319,7 +398,7 @@ foreach ($db in $databases) {
             if ($skipped -or $transientTables.ContainsKey($table)) { continue }
             if ($null -eq (Get-SchemaTable $schema $table)) {
                 Add-Finding $db.Key $token 'table-name' $table `
-                    "$($db.Module): CREATE TABLE `"$table`" but schema $to has no such table - Room validates a table this migration never created under that name"
+                    "$($db.Key): CREATE TABLE `"$table`" but schema $to has no such table - Room validates a table this migration never created under that name"
             }
         }
 
@@ -337,14 +416,14 @@ foreach ($db in $databases) {
 
             if ($sqlNotNull -and $null -eq $sqlDefault) {
                 Add-Finding $db.Key $token 'not-null' $subject `
-                    "$($db.Module): ADD COLUMN `"$column`" is NOT NULL with no DEFAULT - SQLite refuses the statement on any table that has rows"
+                    "$($db.Key): ADD COLUMN `"$column`" is NOT NULL with no DEFAULT - SQLite refuses the statement on any table that has rows"
             }
 
             $schemaTable = Get-SchemaTable $schema $table
             if ($null -eq $schemaTable) {
                 if (-not $transientTables.ContainsKey($table)) {
                     Add-Finding $db.Key $token 'table-name' $table `
-                        "$($db.Module): ALTER TABLE `"$table`" but schema $to has no such table"
+                        "$($db.Key): ALTER TABLE `"$table`" but schema $to has no such table"
                 }
                 continue
             }
@@ -353,7 +432,7 @@ foreach ($db in $databases) {
             if ($null -eq $field) {
                 $near = (@(Get-SchemaProperty $schemaTable 'fields') | ForEach-Object { $_.columnName }) -join ', '
                 Add-Finding $db.Key $token 'column-name' $subject `
-                    "$($db.Module): ADD COLUMN `"$column`" but schema $to declares no such column on `"$table`" - Room's validation fails on every upgrading device and the database is reset. Schema has: $near"
+                    "$($db.Key): ADD COLUMN `"$column`" but schema $to declares no such column on `"$table`" - Room's validation fails on every upgrading device and the database is reset. Schema has: $near"
                 continue
             }
 
@@ -362,7 +441,7 @@ foreach ($db in $databases) {
                 $sqlWord = if ($sqlNotNull) { 'NOT NULL' } else { 'nullable' }
                 $schemaWord = if ($schemaNotNull) { 'NOT NULL' } else { 'nullable' }
                 Add-Finding $db.Key $token 'not-null' $subject `
-                    "$($db.Module): SQL adds `"$column`" as $sqlWord, schema $to declares it $schemaWord"
+                    "$($db.Key): SQL adds `"$column`" as $sqlWord, schema $to declares it $schemaWord"
             }
 
             $rawDefault = Get-SchemaProperty $field 'defaultValue'
@@ -370,7 +449,7 @@ foreach ($db in $databases) {
             if ($null -ne $schemaDefault -and $schemaDefault -ne $sqlDefault) {
                 $shown = if ($null -eq $sqlDefault) { '<none>' } else { $sqlDefault }
                 Add-Finding $db.Key $token 'column-default' $subject `
-                    "$($db.Module): schema $to declares DEFAULT $schemaDefault for `"$column`", the migration writes $shown - Room refuses a default the table does not carry"
+                    "$($db.Key): schema $to declares DEFAULT $schemaDefault for `"$column`", the migration writes $shown - Room refuses a default the table does not carry"
             }
         }
 
@@ -388,13 +467,20 @@ foreach ($db in $databases) {
             Module          = $db.Module
             Key             = $db.Key
             DeclaredVersion = $declaredVersion
-            MigrationCount  = $migrationFiles.Count
+            MigrationCount  = $migrations.Count
         })
 }
 
 # ---- baseline ---------------------------------------------------------------------------
 if ($UpdateBaseline) {
-    ($findings | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+    . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile `
+            -Reason 'assert-migration-schema-conformance.ps1 -UpdateBaseline'
+        ($findings | ForEach-Object { $_.Key }) | Set-Content -Path $baselineFile -Encoding utf8NoBOM
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host ("assert-migration-schema-conformance: baseline rewritten - {0} accepted disagreement(s)." -f $findings.Count)
     exit 0
 }
@@ -409,10 +495,10 @@ if (Test-Path $baselineFile) {
 if ($List) {
     foreach ($summary in $moduleSummaries) {
         if ($summary.MigrationCount -eq 0) {
-            Write-Host ("  [{0}] version {1}, no migration yet - exported schema only" -f $summary.Module, $summary.DeclaredVersion)
+            Write-Host ("  [{0}] version {1}, no migration yet - exported schema only" -f $summary.Key, $summary.DeclaredVersion)
             continue
         }
-        Write-Host ("  [{0}] version {1}" -f $summary.Module, $summary.DeclaredVersion)
+        Write-Host ("  [{0}] version {1}" -f $summary.Key, $summary.DeclaredVersion)
         foreach ($r in @($reports | Where-Object { $_.Key -eq $summary.Key })) {
             $state = if ($r.Skipped) { 'no exported schema - skipped' } elseif ($r.Findings -gt 0) { "$($r.Findings) finding(s)" } else { 'clean' }
             Write-Host ("    Migration{0,-8} {1,3} statement(s)  {2}" -f $r.Token, $r.Statements, $state)
@@ -441,13 +527,13 @@ if (-not $Quiet -or $List) {
             # A module with no migration reads "0 compared, 0 skipped" otherwise, which sounds like
             # something was declined rather than like the database being at its first version.
             if ($summary.MigrationCount -eq 0) {
-                "{0} version {1}: no migration yet, exported schema only" -f $summary.Module, $summary.DeclaredVersion
+                "{0} version {1}: no migration yet, exported schema only" -f $summary.Key, $summary.DeclaredVersion
                 continue
             }
             $moduleReports = @($reports | Where-Object { $_.Key -eq $summary.Key })
             $compared = @($moduleReports | Where-Object { -not $_.Skipped }).Count
             $skippedCount = @($moduleReports | Where-Object { $_.Skipped }).Count
-            "{0} version {1}: {2} compared, {3} skipped (no schema exported)" -f $summary.Module, $summary.DeclaredVersion, $compared, $skippedCount
+            "{0} version {1}: {2} compared, {3} skipped (no schema exported)" -f $summary.Key, $summary.DeclaredVersion, $compared, $skippedCount
         }
     ) -join '; '
     Write-Host ("assert-migration-schema-conformance: PASS - {0} database(s) [{1}], {2} baselined." -f `

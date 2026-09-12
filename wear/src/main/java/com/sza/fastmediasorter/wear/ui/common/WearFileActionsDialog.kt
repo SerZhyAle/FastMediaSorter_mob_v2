@@ -1,28 +1,27 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.displayName
 
 /**
  * The one long-press menu every file surface opens.
@@ -50,53 +49,53 @@ fun WearFileActionsDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets()
-        ) {
-            item {
-                val title = stringResource(R.string.wear_file_actions_for, file.name)
-                Text(
-                    text = file.name,
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier
-                        .padding(bottom = TITLE_GAP)
-                        .semantics { contentDescription = title }
+        val menuScrollState = rememberScrollState()
+        val actions = buildList {
+            ACTION_ORDER.filter { it in allowed }.forEach { kind ->
+                val label = stringResource(labelOf(kind))
+                val iconRes = iconOf(kind)
+                add(
+                    WearAction(
+                        label = label,
+                        icon = {
+                            Icon(
+                                painter = painterResource(iconRes),
+                                contentDescription = null
+                            )
+                        },
+                        onClick = { onPick(kind) }
+                    )
                 )
             }
-
-            items(ACTION_ORDER.filter { it in allowed }) { kind ->
-                val label = stringResource(labelOf(kind))
-                ActionChip(label = label, onClick = { onPick(kind) })
-            }
-
-            // Unmarking is list membership rather than a file operation, so it never passes through
-            // the capability policy and is drawn after everything the policy did decide.
             if (onUnmark != null) {
-                item {
-                    ActionChip(
-                        label = stringResource(R.string.wear_favourites_unmark),
+                val label = stringResource(R.string.wear_favourites_unmark)
+                add(
+                    WearAction(
+                        label = label,
                         onClick = onUnmark
                     )
-                }
+                )
             }
         }
-    }
-}
 
-@Composable
-private fun ActionChip(label: String, onClick: () -> Unit) {
-    Chip(
-        onClick = onClick,
-        label = { Text(label) },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        colors = ChipDefaults.secondaryChipColors()
-    )
+        // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own over the menu.
+        Box(modifier = Modifier.fillMaxSize()) {
+            WearActionColumn(
+                actions = actions,
+                scrollState = menuScrollState,
+                header = {
+                    val title = stringResource(R.string.wear_file_actions_for, file.displayName)
+                    Text(
+                        text = file.displayName,
+                        style = MaterialTheme.typography.title3,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.semantics { contentDescription = title }
+                    )
+                }
+            )
+            PositionIndicator(menuScrollState)
+        }
+    }
 }
 
 @StringRes
@@ -106,9 +105,18 @@ private fun labelOf(kind: WearFileOperationKind): Int = when (kind) {
     WearFileOperationKind.DELETE -> R.string.delete
     WearFileOperationKind.RENAME -> R.string.wear_file_op_rename
     WearFileOperationKind.OPEN_ON_PHONE -> R.string.wear_file_op_open_on_phone
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.string.wear_file_op_send_to
 }
 
-private val TITLE_GAP = 8.dp
+@DrawableRes
+private fun iconOf(kind: WearFileOperationKind): Int = when (kind) {
+    WearFileOperationKind.SEND_TO_PHONE -> R.drawable.ic_copy
+    WearFileOperationKind.MOVE_TO_PHONE -> R.drawable.ic_move
+    WearFileOperationKind.DELETE -> R.drawable.ic_delete
+    WearFileOperationKind.RENAME -> R.drawable.ic_edit
+    WearFileOperationKind.OPEN_ON_PHONE -> R.drawable.ic_open_in_new
+    WearFileOperationKind.SEND_TO_RECEIVER -> R.drawable.ic_share
+}
 
 /**
  * Destructive last, the order and the reason `ui/browse/FileActionsDialog.kt` already recorded: on a
@@ -119,6 +127,8 @@ private val TITLE_GAP = 8.dp
  * ahead of renaming because renaming keeps the user here (strategic 3.4 item 8).
  */
 private val ACTION_ORDER = listOf(
+    // First, by the owner's ruling in strategic 3.4: «Send to..» leads, deletion still trails.
+    WearFileOperationKind.SEND_TO_RECEIVER,
     WearFileOperationKind.SEND_TO_PHONE,
     WearFileOperationKind.MOVE_TO_PHONE,
     WearFileOperationKind.OPEN_ON_PHONE,

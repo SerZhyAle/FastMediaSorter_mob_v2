@@ -95,6 +95,14 @@ interface DiagnosticXrRuntime {
      */
     fun setHudVisible(visible: Boolean)
 
+    /**
+     * S1133: thread-safe - choose what the controller thumbstick means. [INPUT_MODE_PLAYER] keeps
+     * the S1240 seek / S0291 zoom semantics; [INPUT_MODE_BROWSE] turns both axes into discrete
+     * grid steps and lets a trigger held off-panel activate the current selection. The runtime is a
+     * process singleton, so a screen asserts its mode on entry rather than trusting the default.
+     */
+    fun setInputMode(mode: Int)
+
     // S1232: onNativeRayInteraction was declared here and overridden as an empty stub, with a
     // matching JNI export whose body was the comment "validation grep target". Nothing bound to
     // it - the Kotlin side was never `external` - and the live path reflects the callback onto
@@ -109,6 +117,12 @@ interface DiagnosticXrRuntime {
      * 0.0 before the second frame has been delivered. Thread-safe; reads an atomic native value.
      */
     fun getCurrentFps(): Float
+
+    companion object {
+        // S1133: ordinals shared with kXrInputModePlayer / kXrInputModeBrowse in xr_session.h.
+        const val INPUT_MODE_PLAYER = 0
+        const val INPUT_MODE_BROWSE = 1
+    }
 }
 
 /**

@@ -20,8 +20,21 @@ class GetPairedWatchStatusUseCase @Inject constructor(
             .firstOrNull()
             ?.displayName
             ?.takeIf { it.isNotBlank() }
+            // S2868: the raw display name carries the model code in parentheses, and the UI names the
+            // watch by the human part only.
+            ?.let(::watchDisplayNameWithoutModelCode)
         // A blank display name is treated as no watch: a row naming an empty string reads as a bug,
         // and "not connected" is the honest answer when the bridge cannot say who answered.
         return if (name == null) PairedWatchStatus.NotConnected else PairedWatchStatus.Connected(name)
     }
+}
+
+/**
+ * The bridge renders a node as "Galaxy Watch7 (8CRZ)" - the parenthetical is a diagnostics tail that
+ * S2868 keeps out of user-visible labels, not part of the name. A display name without a
+ * parenthetical passes through unchanged, and an empty result falls back to the input.
+ */
+fun watchDisplayNameWithoutModelCode(displayName: String): String {
+    val withoutModelCode = displayName.substringBefore('(').trim()
+    return withoutModelCode.ifBlank { displayName.trim() }
 }

@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.wear.ui.voicenote
 
-import android.text.format.DateFormat
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -21,16 +20,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -43,10 +40,17 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
+import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
 import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
-import java.util.Date
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import timber.log.Timber
 
 private val TITLE_VERTICAL_PADDING = 8.dp
 private val TEXT_HORIZONTAL_PADDING = 8.dp
@@ -55,17 +59,21 @@ private val ROW_LABEL_GAP = 6.dp
 private val PROGRESS_STROKE = 2.dp
 
 /**
- * S1862: the notes this watch holds, with the two things section 7 asks the list to make possible -
- * sending one by hand and deleting one to free the space back.
+ * S1862 / S2161: the notes this watch holds, with sending, renaming, deleting and playback.
  *
- * A note is never removed by the app itself (ADR-3), so this list is the only way a recording ever
- * leaves the watch, and a waiting note has to read as waiting rather than as a flag nobody sees.
+ * A single tap plays the voice note directly. S2495: long press opens the module's shared file-actions
+ * dialog rather than a menu of this screen's own, so what a note offers is decided by the capability
+ * policy and matches what an ordinary app-owned file offers. Play left that menu with the change and
+ * is the tap - it was the only entry the shared dialog has no operation for, and it was already the
+ * easier gesture.
  */
 @Composable
-fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
+fun VoiceNoteListScreen(
+    onPlayNote: (VoiceNote) -> Unit = {},
+    viewModel: VoiceNoteListViewModel = hiltViewModel()
+) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
-    var actionsFor by remember { mutableStateOf<VoiceNote?>(null) }
+    val listState = rememberWearListState(positionKey = WearRoutes.VOICE_NOTES)
     var deleteFor by remember { mutableStateOf<VoiceNote?>(null) }
 
     WearScreenScaffold(
@@ -76,22 +84,42 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
         NoteListContent(
             uiState = uiState,
             listState = listState,
-            onOpenActions = { note -> actionsFor = note }
+            onPlayNote = onPlayNote,
+            onOpenActions = viewModel::openActions
         )
     }
 
-    actionsFor?.let { note ->
-        NoteActionsDialog(
-            note = note,
-            onSend = {
-                viewModel.send(note.id)
-                actionsFor = null
+    // S2495: remembered outside the dialog, because the dialog is dismissed the moment Rename is
+    // picked and the watch's text entry outlives it by a whole screen.
+    var renameFor by remember { mutableStateOf<VoiceNote?>(null) }
+    val launchRenameInput = rememberWearRenameInput { newName ->
+        renameFor?.let { note -> viewModel.rename(note.id, newName) }
+        renameFor = null
+    }
+
+    uiState.actions?.let { actions ->
+        WearFileActionsDialog(
+            file = actions.file,
+            allowed = actions.allowed,
+            onPick = { kind ->
+                viewModel.dismissActions()
+                when (kind) {
+                    WearFileOperationKind.SEND_TO_PHONE -> viewModel.send(actions.note.id)
+                    WearFileOperationKind.DELETE -> deleteFor = actions.note
+                    WearFileOperationKind.RENAME -> {
+                        renameFor = actions.note
+                        launchRenameInput(actions.note.fileName)
+                    }
+                    // Everything else is withheld by the ViewModel and never reaches this menu.
+                    else -> Timber.w("Voice note action %s is not served by the note list", kind)
+                }
             },
-            onDelete = {
-                deleteFor = note
-                actionsFor = null
-            }
+            onDismiss = viewModel::dismissActions
         )
+    }
+
+    if (uiState.lastRenameFailed) {
+        RenameFailedDialog(onDismiss = viewModel::acknowledgeRenameFailure)
     }
 
     deleteFor?.let { note ->
@@ -120,12 +148,12 @@ fun VoiceNoteListScreen(viewModel: VoiceNoteListViewModel = hiltViewModel()) {
 private fun NoteListContent(
     uiState: VoiceNoteListUiState,
     listState: ScalingLazyListState,
+    onPlayNote: (VoiceNote) -> Unit,
     onOpenActions: (VoiceNote) -> Unit
 ) {
-    ScalingLazyColumn(
+    WearListColumn(
         modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
+        state = listState
     ) {
         item {
             Text(
@@ -155,6 +183,7 @@ private fun NoteListContent(
             NoteRow(
                 note = note,
                 sending = uiState.sendingNoteId == note.id,
+                onPlay = { onPlayNote(note) },
                 onOpenActions = { onOpenActions(note) }
             )
         }
@@ -165,19 +194,25 @@ private fun NoteListContent(
 private fun NoteRow(
     note: VoiceNote,
     sending: Boolean,
+    onPlay: () -> Unit,
     onOpenActions: () -> Unit
 ) {
     val stateLabel = stringResource(deliveryLabelOf(note.deliveryState))
     LongPressChip(
-        // Tap and long press open the same sheet on purpose. A note is not played on the watch, so
-        // a tap with nothing behind it would read as a broken row - and a destructive action
-        // reachable only by a gesture is unreachable to anyone who does not know the gesture.
-        onClick = onOpenActions,
+        // S2161: a tap plays the note; long press opens the actions sheet where send and delete live.
+        // Playback is the thing a person wants to do next (strategic §5.3), so it gets the easy gesture.
+        onClick = onPlay,
         onLongClick = onOpenActions,
         label = {
-            Text(text = noteTimeLabel(note), maxLines = 1)
+            // Time and duration divide one chip's width between them, so at a large font scale each
+            // has to end in an ellipsis inside its own share rather than be cut by the row (S2755).
+            Text(text = noteTimeLabel(note), maxLines = 1, overflow = TextOverflow.Ellipsis)
             Spacer(modifier = Modifier.width(ROW_LABEL_GAP))
-            Text(text = formatVoiceNoteDuration(note.durationMillis), maxLines = 1)
+            Text(
+                text = formatVoiceNoteDuration(note.durationMillis),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         },
         modifier = Modifier.fillMaxWidth(),
         icon = {
@@ -196,39 +231,30 @@ private fun NoteRow(
                 )
             }
         },
-        secondaryLabel = { Text(text = stateLabel, maxLines = 1) },
+        secondaryLabel = { Text(text = stateLabel, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         colors = ChipDefaults.secondaryChipColors()
     )
 }
 
+/**
+ * S2495: shown when a rename left the note's two halves as they were.
+ *
+ * Reported rather than swallowed: a rename that silently did nothing reads as a watch that ignored
+ * the tap, and the owner's next move would be to try again on a name that will refuse again.
+ */
 @Composable
-private fun NoteActionsDialog(
-    note: VoiceNote,
-    onSend: () -> Unit,
-    onDelete: () -> Unit
-) {
+private fun RenameFailedDialog(onDismiss: () -> Unit) {
     Alert(
         title = {
             Text(
-                text = noteTimeLabel(note),
+                text = stringResource(R.string.wear_voice_note_rename_failed),
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.title3
+                style = MaterialTheme.typography.body2
             )
         }
     ) {
         item {
-            DialogChip(
-                labelRes = R.string.wear_voice_note_send,
-                onClick = onSend,
-                primary = true
-            )
-        }
-        item {
-            DialogChip(
-                labelRes = R.string.wear_voice_note_delete,
-                onClick = onDelete,
-                primary = false
-            )
+            DialogChip(labelRes = android.R.string.ok, onClick = onDismiss, primary = true)
         }
     }
 }
@@ -253,14 +279,26 @@ private fun DeleteNoteDialog(
         negativeButton = {
             Chip(
                 onClick = onCancel,
-                label = { Text(stringResource(R.string.cancel)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors()
             )
         },
         positiveButton = {
             Chip(
                 onClick = onConfirm,
-                label = { Text(stringResource(R.string.delete)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.primaryChipColors()
             )
         }
@@ -323,19 +361,25 @@ private fun DialogChip(
 ) {
     Chip(
         onClick = onClick,
-        label = { Text(text = stringResource(labelRes)) },
+        label = {
+            Text(
+                text = stringResource(labelRes),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
         modifier = Modifier.fillMaxWidth(),
         colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
     )
 }
 
-/** The watch's own clock format, so a 24-hour watch never shows a note stamped in AM/PM. */
+/**
+ * S2795: the app's measurement system, not the watch's clock switch - a note's stamp is read beside
+ * the app's other times, and the owner set one format for all of them on the phone.
+ */
 @Composable
-private fun noteTimeLabel(note: VoiceNote): String {
-    val context = LocalContext.current
-    val timeFormat = remember(context) { DateFormat.getTimeFormat(context) }
-    return timeFormat.format(Date(note.createdAtMillis))
-}
+private fun noteTimeLabel(note: VoiceNote): String =
+    LocalWearDateTimeFormatter.current.formatTime(note.createdAtMillis, LocalWearUnitSystem.current)
 
 @StringRes
 private fun deliveryLabelOf(state: VoiceNoteDeliveryState): Int = when (state) {

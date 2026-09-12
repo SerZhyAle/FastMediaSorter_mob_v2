@@ -1,0 +1,71 @@
+# Ratchet baseline for assert-always-loaded-budget.ps1 (S2517).
+#
+# Format: <repo-relative path>|<ceiling bytes>|<stretch bytes>|<where the text goes instead>
+#
+# A ceiling goes DOWN on a run that passed and never up. Lower it with -UpdateBaseline; do not
+# hand-edit a number upward, and never drop a rule to fit under one (S2517 ADR-4).
+#
+# A ratcheted ceiling carries SLACK (S2708): -UpdateBaseline writes min(old ceiling, size + 1024),
+# so a page that was just compacted has room for one ordinary rule line instead of zero. Measured
+# 2026-09-07 over the numbered rule lines of CLAUDE.md - median 140 B, p75 540 B, 37 of 41 under
+# 1024 B - so the slack admits a rule statement and refuses an incident narrative. The min() form
+# is what stops it accumulating: once the file has grown into the granted slack the next run
+# computes min() against an unchanged ceiling and writes the same number, so the upper bound stays
+# the historic minimum plus one slack. Before this, the ceiling equalled the size and all three
+# files below sat on it to the byte, which made a better compaction the harsher constraint.
+#
+# A stretch at or above the ceiling means no target below the ceiling has been set yet. S2517
+# section 6 item 4 defers that number until after the first rationale move, because before it any
+# target is assigned blind.
+#
+# Seeded 2026-09-04 at the sizes measured that day. The floor those sizes sit in was 75702 tokens
+# per request, 37.8% of all billed cache_read (S2513).
+#
+# MEMORY.md is deliberately absent: it is always-loaded too, but assert-memory-budget.ps1 already
+# judges it and carries three correctness checks that only make sense for a memory directory.
+# Judging it twice would produce two verdicts on one file.
+
+# Stretch targets, reset 2026-09-04 by S2521. The first move (S2517) set 57717 for CLAUDE.md as
+# "the page minus the 7666 B held behind canon-shipped gates". S2521 then found the lever the
+# docs prescribe for an oversized page - .claude/rules/*.md with paths: frontmatter, loaded only
+# when Claude reads a matching file - and moved section 4, most of section 3, Rule 34's body and
+# the Android-source rationale there, 65383 -> 41531 injected bytes with every rule number and
+# statement kept. The canon-gate text S2520 targets now lives in .claude/rules/spec-catalog.md
+# and is paid only by sessions that read PLAN/, so the old stretch no longer describes anything;
+# no target below the new ceiling is set until the next measured move (stretch = ceiling).
+#
+# Bytes are INJECTED bytes: block-level HTML comments are stripped by Claude Code before a
+# memory file enters context, so the gate strips them too (S2521). AGENTS.md is measured the
+# same way for consistency, although non-Claude runtimes read it raw.
+
+# S2851, owner ruling 2026-09-10: the two ceilings below were RAISED by hand, by one slack unit
+# (1024 B) each - CLAUDE.md 41518 -> 42542, AGENTS.md 37807 -> 38831. The script cannot do this and
+# should not: a raise is a decision, and this is the record of one.
+#
+# What forced it. S2851 measured the unit suite at 429 s and needed one rule line saying so, and
+# both files were on their ceiling to the byte - 8 B free in CLAUDE.md, 16 B in AGENTS.md. The rule
+# was compressed to 276 B and still overflowed by 276 B, because nothing at all fitted. That is the
+# ratchet doing something it was not built for: S2517 ADR-4 protects rules from being deleted to fit
+# a ceiling, but a ceiling with zero headroom also refuses rules that were never written, and a rule
+# that cannot be written is not a cheaper page - it is an unenforced rule. Here it would have been
+# the second unenforced attempt at the same thing: the priced anti-pattern this rule states already
+# lived in docs/BUILD_TEST_FAST_PATH.md unpriced, and several sessions ran the whole suite anyway.
+#
+# The raise is one slack unit rather than the 276 B needed, for the reason S2708 gives: a ceiling
+# set to the exact current size leaves the next rule with the same zero headroom, which is the
+# condition that produced this entry. The ratchet is otherwise unchanged - -UpdateBaseline still
+# refuses to raise, and the next compaction still lowers these numbers past the raise.
+#
+# S2856, 2026-09-10: both ceilings LOWERED by the ratchet, not by hand - CLAUDE.md 42542 -> 39963
+# (41793 -> 38939 B measured), AGENTS.md 38831 -> 38359 (38070 -> 37335 B measured). Nothing was
+# deleted to fit a ceiling (S2517 ADR-4): every removal named a destination that was read first and
+# found to already hold the text. Most of it was owed rather than decided - S2521 section 4 had
+# already ruled Rule 23's measurements into docs/DEV_OPS.md "Rule 23 history" and section 13 into
+# .claude/rules/android-source.md, and the canon's contrib record had deferred the consumer-side
+# removal of rationale now printed by the deployed guard refusals until that deploy landed, which
+# it has. Rule 35 lost its device roster and GAINED coverage: the fleet file carries a Meta Quest 3
+# that neither always-loaded file named at all, which is the drift Rule 35's own last sentence
+# predicts. The raise this reverses is the S2851 entry above.
+CLAUDE.md|39963|42542|the refusal text of the gate the rule names, a .claude/rules/<topic>.md with paths: frontmatter, or docs/ + dev/ for mechanism prose
+AGENTS.md|38359|45008|the same destination as the CLAUDE.md rule it mirrors - these two move together
+.claude/agents/android-rd-specialist.md|9762|9762|CLAUDE.md when the line is a project rule, or the skill that needs it

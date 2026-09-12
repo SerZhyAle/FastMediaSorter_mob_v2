@@ -139,6 +139,15 @@
 -keepclassmembers,allowobfuscation class * {
   @com.google.gson.annotations.SerializedName <fields>;
 }
+# S0722: `-keepattributes Signature` above preserves the attribute only on classes R8 keeps, and an
+# anonymous `object : TypeToken<Map<String, Long>>() {}` is not one of them - R8 erases its generic
+# superclass and Gson throws `RuntimeException: Missing type parameter.` in the class initializer.
+# Caught by the macrobenchmark harness on the minified standardBenchmark variant, where
+# WearResourceStampStore.<clinit> crashed MainActivity at launch; the same rules build the shipped
+# release APK, so this was a release crash waiting for the first caller. Gson ships these rules
+# itself from 2.10 - keep them here until the dependency moves.
+-keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
+-keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
 
 # Keep all Kotlin data class component functions and field names
 # This prevents obfuscation of constructor parameter names used by Gson
@@ -345,10 +354,16 @@
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode {
     <fields>;
 }
--keepclassmembernames enum com.sza.fastmediasorter.ui.dialog.Mode {
+# S2364: both of the rules below named a class that does not exist. The enums are nested, so their
+# real R8 names carry `$`, and R8 ignores a rule matching nothing in silence - each protected
+# nothing from the day it was written while the gate reported it as a satisfied contract.
+# SearchableLanguagePickerDialog.Mode round-trips through a Bundle, kept for the lexical reason
+# spelled out on the welcome explainer below; StreamsViewModel.SortMode decodes a name persisted in
+# the "streams_session" DataStore, so its round trip really does cross an update.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog$Mode {
     <fields>;
 }
--keepclassmembernames enum com.sza.fastmediasorter.ui.streams.SortMode {
+-keepclassmembernames enum com.sza.fastmediasorter.ui.streams.StreamsViewModel$SortMode {
     <fields>;
 }
 # S2363-adjacent, found by assert-enum-persistence-contract during the release-35 sweep.
@@ -363,5 +378,263 @@
 # the Room column can - the rule is here because the contract is lexical: an enum resolved by
 # name carries the rule, and arguing the exception per call site is how the Room case was missed.
 -keepclassmembernames enum com.sza.fastmediasorter.ui.welcome.WelcomeEnableAllExplainerDialogFragment$Mode {
+    <fields>;
+}
+# S2364: seven enums the gate could not see until it resolved a `.name` receiver by its declared
+# type instead of by its identifier spelling. Every one of them writes its constant name into a
+# DataStore key or value, so an R8 remap orphans what the user already stored.
+# DeliverableSet names the DataStore keys "delivery_installed_<name>" and "delivery_stamp_<name>"
+# in InstalledSetMarkerStore, and also the on-disk marker directory entry.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.delivery.DeliverableSet {
+    <fields>;
+}
+# GameMode.name is the value under "embedded_game_mode"; GameMode.fromStorageName degrades to
+# CLASSIC on an unknown name, so a remap silently resets the chosen game skin instead of throwing.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameMode {
+    <fields>;
+}
+# CommandGroup.name builds the preference key "keybinding__<name>" in KeybindingRemapViewModel,
+# so a remap orphans the user's remapped key bindings.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.input.CommandGroup {
+    <fields>;
+}
+# LauncherOrientation.name is interpolated into the launcher visibility key prefix
+# "launcher_desktop__<name>__".
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation {
+    <fields>;
+}
+# LauncherCellOrigin.name is stored in the launcher_cells.origin column, so a remap makes every
+# automatically added shortcut read back as USER and stop being removed with its app.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherCellOrigin {
+    <fields>;
+}
+# StatsKey.name and StatsMediaType.name are lowercased into every counter key that
+# StatsAggregateDataStore writes, so a remap orphans the whole accumulated statistics set.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsKey {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsMediaType {
+    <fields>;
+}
+# ControlSection.name is written to SharedPreferences as the last opened playback section and read
+# back by matching `it.name`. Nested, which is the shape S2364 made expressible at all.
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment$ControlSection {
+    <fields>;
+}
+# S2454: durable enums where serialization, persistence or decoding spans across file/layer
+# boundaries (Streams session/settings DataStore, launcher/gesture stores, Room repositories,
+# transferable account JSON codecs, device profile presets, camera/calculator/player settings).
+-keepclassmembernames enum com.sza.fastmediasorter.core.memory.MemoryCheckpoint {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.core.memory.MemoryScenario {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.core.util.MemoryTier {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.data.model.DetectionConfidence {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.data.model.DeviceProfileSource {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameBoardValidationError {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameCell {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameDifficulty {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameEnemyType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameMoveRejectReason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.game.GameStatus {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.identity.IdentityFailureReason {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord$Kind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.AppLaunchPanelTileType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.FileOperationType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherGeographicAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.LauncherDesktopSwipeDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.MetadataState {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.networkmonitor.GnssConstellation {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMeasurementKind {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceEditorMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ResourceProfile {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScheduledOpType {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureDirection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.ScreenshotGestureZone {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StereoMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamDefaultSort {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.StreamTrackLanguage {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.TimeFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.models.TranslationFontFamily {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.models.TranslationFontSize {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.stats.StatsCategory {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.usecase.StreamOffloadUseCase$SourceProtocol {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.calculator.helpers.CalculatorKeypadMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.CameraCaptureMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.CameraScenario {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.cameracapture.model.PhotoProfile {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.common.input.UiSurface {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.delivery.DeliveryPromptOutcome {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.icon.ResourceIconSet {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.main.ResourceTab {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.EpubStyleManager$ReaderTheme {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.PdfColorConversion$PdfColorMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.helpers.TextReaderTheme {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.PlaybackControlDialogFragment$StereoFamily {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity$PrintMode {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.ui.streams.StreamsViewModel$MediaKindFilter {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator {
+    <fields>;
+}
+# S2569: two enums that shipped without a rule, both restoring a persisted value by matching a
+# stored string against a constant name and both degrading to a default instead of throwing - so an
+# R8 rename resets the user's choice silently. BrowseSwipeAction arrived with S2533 (Browse row
+# swipe actions, SharedPreferences), PowerSavingTrigger with S2536 (battery power-saving mode,
+# AppSettings). The AppSettings field rule above pins the FIELD name `powerSavingTrigger`, never the
+# constants of the enum that field holds - those are static fields of a different class.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.BrowseSwipeAction {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.PowerSavingTrigger {
+    <fields>;
+}
+# S2716: the measurement system, restored the same way - a stored constant name matched against the
+# entries, degrading to METRIC, so a rename would silently return an imperial user to Celsius.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.UnitSystem {
+    <fields>;
+}
+# S2840: the transfer kind stamps the file it travels in. ExportPinnedStreamsUseCase writes
+# `TransferDataKind.PINNED_STREAMS.name` into the payload's `kind` field, and ApplyTransferPayloadUseCase
+# compares the stamp it reads against `kind.name`, refusing the file when the two differ. The file is
+# read by another device and another build, so a rename here makes an export unreadable by its own
+# importer - reported as an incompatible file rather than as a mismatch.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.transfer.TransferDataKind {
+    <fields>;
+}
+# S2840: the two enums the watch-to-phone cast request carries. Gson writes an enum constant by the
+# constant's own name, never by the field's, so the @SerializedName annotations WearCastRequest already
+# carries on `origin` and `mediaType` pin the field names and leave these constants exposed. A rule
+# rather than annotations on the constants: WearCastPayload.kt is mirrored verbatim in the wear module
+# and held there by assert-wear-wire-vocabulary-parity, and a rule in this file touches neither copy.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastOrigin {
+    <fields>;
+}
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastMediaType {
+    <fields>;
+}
+# S2840: the answer side of the same wire. WearCastAck carries `outcome` back to the watch, and the watch
+# reads that constant by name to tell a cast that started from one that was refused - the two produce
+# opposite screens. Reached only once the gate could resolve `gson.toJson(ack)`, which it could not while
+# its identifier walk read `val ack = if (..)` as a constructor call.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastOutcome {
     <fields>;
 }

@@ -4,6 +4,7 @@
      tap-driven indicators cost a network round trip: the body opens the Monitor, only the icon asks
      for a fresh reading. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -29,7 +30,7 @@
             android:contentDescription="@string/launcher_gadget_network_indicator"
             android:focusable="true"
             android:maxWidth="48dp"
-            android:tint="?attr/colorOnSurface"
+            android:tint="?attr/launcherDesktopText"
             tools:ignore="UseAppTint"
             tools:src="@drawable/ic_network_monitor" />
 
@@ -39,7 +40,7 @@
             android:layout_weight="2"
             android:orientation="vertical">
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetNetworkIndicatorValue"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -50,19 +51,22 @@
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/launcherDesktopText"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="192.168.1.42" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetNetworkIndicatorCaption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Local address" />
 
         </LinearLayout>

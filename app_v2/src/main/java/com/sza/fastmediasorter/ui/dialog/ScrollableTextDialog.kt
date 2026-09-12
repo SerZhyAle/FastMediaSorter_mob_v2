@@ -27,6 +27,7 @@ import com.sza.fastmediasorter.core.ui.DialogAccessibilityHelper
 import com.sza.fastmediasorter.ui.common.support.SupportIntentFactory
 import com.sza.fastmediasorter.util.applicationScope
 import com.sza.fastmediasorter.util.launchBoundToHost
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import com.sza.fastmediasorter.util.showBoundToHost
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -177,7 +178,13 @@ object ScrollableTextDialog {
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, fullText)
                 }
-                context.startActivity(Intent.createChooser(shareIntent, title))
+                if (context.packageManager.queryIntentActivitiesCompat(shareIntent, 0).isEmpty()) {
+                    Timber.d("S2902: ScrollableTextDialog: no share targets available, copying to clipboard")
+                    copyToClipboard(context, fullText)
+                    Toast.makeText(context, R.string.export_logs_no_share_target, Toast.LENGTH_LONG).show()
+                } else {
+                    context.startActivity(Intent.createChooser(shareIntent, title))
+                }
             }
         } else {
             btnPrimaryCta.visibility = View.GONE
@@ -241,7 +248,6 @@ object ScrollableTextDialog {
                 // S2358: bound to the host - a destroyed activity has nowhere to receive the intent,
                 // so packaging the ZIP for it is wasted work that also outlives its own context.
                 context.launchBoundToHost {
-                    Timber.d("S2358: dialog crash-report send started on the host lifecycle")
                     val zipUri = withContext(Dispatchers.IO) { LogExportHelper.buildLogsZipUri(context) }
                     // Email-first with share-sheet fallback; previously createChooser stripped the
                     // mailto selector and silently dropped the recipient for non-email targets.
@@ -261,6 +267,11 @@ object ScrollableTextDialog {
             val width = (context.resources.displayMetrics.widthPixels * 0.9).toInt()
             dialog.window?.setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT)
             DialogAccessibilityHelper.applyInitialFocus(dialog)
+            val initialTarget = listOf(btnPrimaryCta, btnInlineAction, btnPrimary, btnCopy, btnClose)
+                .firstOrNull { it.visibility == View.VISIBLE } ?: btnClose
+            initialTarget.post {
+                initialTarget.requestFocus()
+            }
             dialog
         } catch (e: WindowManager.BadTokenException) {
             Timber.e(e, "ScrollableTextDialog: show failed - bad window token")
@@ -287,7 +298,6 @@ object ScrollableTextDialog {
         // must not truncate the write and leave an IS_PENDING row behind in Downloads; the app context
         // also keeps the host activity out of the reference held for the duration.
         val appContext = context.applicationContext
-        Timber.d("S2358: saveErrorToFile entered - write goes to the application scope")
         appContext.applicationScope().launch {
             try {
                 val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())

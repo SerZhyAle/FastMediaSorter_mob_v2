@@ -21,11 +21,16 @@ data class LauncherSettings(
     // the user's manual nudge on top of it (higher factor = smaller cells = more columns), needed
     // because head units and TV boxes report unreliable densities. Desktop content itself lives in
     // Room, not here - a device profile seeds it once and never re-applies (ADR-4).
-    // S2320: dense is the shipped default; the profile preset may still loosen it for a device that
-    // asks for it, and the value is named in AppSettings so the settings rows derive their index.
+    // S2320 named the value in AppSettings so the settings rows derive their index; S2903 ships the
+    // sparse default - the profile preset may still override it for a device that asks.
     val densityFactor: Float = AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR,
     // S2251: number of desktop screens in launcher mode (1..5, default 2).
     val screenCount: Int = 2,
+    // S2730: draws the screen number over the desktop while paging, independently of whether animation
+    // is allowed. S2323 tied the badge to the animation ban, which made a live branded backdrop and the
+    // number mutually exclusive; ADR-3 hands the badge to this switch alone. Off by default - the owner
+    // asked for an opt-in, and the page dots below the desktop already point at the current screen.
+    val showScreenNumber: Boolean = AppSettings.DEFAULT_LAUNCHER_SHOW_SCREEN_NUMBER,
     // S1643: which screen edge the whole taskbar composition is anchored to, one of
     // [AppSettings.LAUNCHER_TASKBAR_PLACEMENT_OPTIONS]. Stored as a token (like [wallpaperMode]) so an
     // unknown value from a newer build degrades to the bottom edge. Defaults to the bottom edge
@@ -55,6 +60,7 @@ data class LauncherSettings(
     // bar's own clock once [replaceSystemStatusArea] is on by default).
     val trayShowClock: Boolean = false,
     val trayShowBluetooth: Boolean = true,
+    val trayShowTethering: Boolean = true,
     val trayShowSim1: Boolean = true,
     val trayShowSim2: Boolean = true,
     val trayShowNetwork: Boolean = true,
@@ -102,12 +108,20 @@ data class LauncherSettings(
     // S2076: chosen camera lens id in [CameraLensEntry.id] form; empty unless [wallpaperMode]
     // is [AppSettings.LAUNCHER_WALLPAPER_CAMERA].
     val wallpaperCameraId: String = "",
+    // S2730: how strongly the branded backdrop is drawn. Was a constant in the render layer until this
+    // ticket; it lives here so it reaches the settings backup, which is what S2632 and S2727 lost.
+    val wallpaperIntensity: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_INTENSITY,
+    // S2730: multiplier on the backdrop's per-frame time advance.
+    val wallpaperAnimationSpeed: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_ANIMATION_SPEED,
+    // S2730: multiplier on the backdrop's seeded particle count; 0 draws the waves without particles.
+    val wallpaperParticleDensity: Float = AppSettings.DEFAULT_LAUNCHER_WALLPAPER_PARTICLE_DENSITY,
     // S1401: the all-apps screen's chosen order, stored as an [InstalledAppSortOrder] name rather than
     // an ordinal so reordering the enum later cannot silently repoint a saved preference.
-    val allAppsSortOrder: String = InstalledAppSortOrder.LABEL.name,
+    // S2736: the owner's default, so the list opens on what he actually launches.
+    val allAppsSortOrder: String = InstalledAppSortOrder.LAUNCH_FREQUENCY.name,
     val allAppsSortDescending: Boolean = false,
-    // S1741: launcher-private screen blackout timeout in seconds (0 = Off).
-    val screenBlackoutTimeoutSeconds: Int = 0,
+    // S1741/S2384: idle seconds before the launcher turns the screen off (0 = Off, on by default).
+    val screenBlackoutTimeoutSeconds: Int = AppSettings.DEFAULT_LAUNCHER_SCREEN_TIMEOUT_SECONDS,
     // S1748/S2253: launcher shared-surface opacity (0.0f = fully transparent, 1.0f = fully opaque).
     val widgetBackdropAlpha: Float = AppSettings.DEFAULT_LAUNCHER_WIDGET_BACKDROP_ALPHA,
     // S2213: the place last picked for a weather gadget, in `WeatherLocation.encode` form. It lives here
@@ -118,4 +132,6 @@ data class LauncherSettings(
     // S2239: resetting the launcher steps widget stores the cumulative step count and timestamp of reset.
     val stepsResetCount: Long = 0L,
     val stepsResetTimestamp: Long = 0L,
+    // S2223: animation color palette for procedural waves/particles (DYNAMIC, GREEN, PINK, BLUE).
+    val animationPalette: String = AppSettings.ANIMATION_PALETTE_DYNAMIC,
 )

@@ -20,4 +20,10 @@
     
     <!-- Exclude DataStore preferences (contains encrypted default password) -->
     <exclude domain="file" path="datastore/" />
+
+    <!-- S2101: EncryptedSharedPreferences credential stores - same Keystore reason as above -->
+    <exclude domain="sharedpref" path="primary_google_account_v1.xml" />
+    <exclude domain="sharedpref" path="google_drive_credentials.xml" />
+    <exclude domain="sharedpref" path="dropbox_credentials.xml" />
+    <exclude domain="sharedpref" path="link_download_cookies.xml" />
 </full-backup-content>

@@ -10,6 +10,8 @@ import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.usecase.ApplyProfilePresetUseCase
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.domain.usecase.ProfileImpliesAllFilesUseCase
+import com.sza.fastmediasorter.domain.usecase.ResetSettingsToProfileDefaultsUseCase
+import kotlinx.coroutines.CancellationException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -23,7 +25,8 @@ class SettingsProfileViewModel @Inject constructor(
     private val deviceProfileRepository: DeviceProfileRepository,
     private val applyProfilePresetUseCase: ApplyProfilePresetUseCase,
     private val profileImpliesAllFilesUseCase: ProfileImpliesAllFilesUseCase,
-    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
+    private val ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase,
+    private val resetSettingsToProfileDefaultsUseCase: ResetSettingsToProfileDefaultsUseCase
 ) : ViewModel() {
 
     val currentProfile: StateFlow<DeviceProfile?> = deviceProfileRepository.getCurrentProfile()
@@ -32,6 +35,27 @@ class SettingsProfileViewModel @Inject constructor(
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = null
         )
+
+    /**
+     * S2664: the settings reset ends at the stored profile's state rather than at the defaults of a
+     * device with no profile. It lives here, beside the other profile-preset entry point, so the
+     * general-settings ViewModel does not take a dependency on profile knowledge.
+     *
+     * Runs on [viewModelScope] rather than suspending into the caller's scope: the reset is two
+     * writes, and a rotation between them would leave the factory defaults applied without the
+     * profile's overrides on top.
+     */
+    fun resetSettingsToProfileDefaults() {
+        viewModelScope.launch {
+            try {
+                resetSettingsToProfileDefaultsUseCase()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "SettingsProfileViewModel: failed to reset settings to profile defaults")
+            }
+        }
+    }
 
     fun saveProfile(type: DeviceProfileType, ensureAllFilesResource: Boolean = false) {
         viewModelScope.launch {

@@ -399,6 +399,7 @@ class ImageLoadingManager(
         // treated as intentional user zoom gestures on the new image.
         isPhotoViewImageLoaded = false
         Timber.i("ImageLoadingManager.displayImage: START - path=$path")
+        Timber.d("S2877: player image load entry - dispatching static image/GIF to Glide")
         LoggingHelper.updateDebugMirrorTargetFromPath(path)
 
         // Log memory state BEFORE loading new image
@@ -729,7 +730,6 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: cloud image crossfade skipped")
         val cloudTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {
@@ -780,7 +780,6 @@ class ImageLoadingManager(
             size = currentFile.size,
             createdDate = currentFile.createdDate
         )
-        Timber.d("S2151: network image credentials for resourceId=${currentFile.resourceId}")
         val cacheKey = networkData.getCacheKey()
 
         val isGif = currentFile.type == MediaType.GIF || path.endsWith(".gif", ignoreCase = true)
@@ -848,7 +847,6 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: network image crossfade skipped")
         val networkTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {
@@ -968,7 +966,6 @@ class ImageLoadingManager(
         }
 
         // In slideshow mode skip crossfade so image and edge-strips appear simultaneously.
-        if (!AnimationPolicy.isAnimationAllowed) Timber.d("S2250: local image crossfade skipped")
         val localTransition = if (isSlideshowActive || !AnimationPolicy.isAnimationAllowed) {
             DrawableTransitionOptions.withCrossFade(0)
         } else {

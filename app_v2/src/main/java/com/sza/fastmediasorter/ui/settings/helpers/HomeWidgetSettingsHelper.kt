@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
@@ -16,6 +17,7 @@ import com.sza.fastmediasorter.domain.usecase.launcher.PlaceHomeWidgetOnLauncher
 import com.sza.fastmediasorter.ui.dialog.ListSelectionAdapter
 import com.sza.fastmediasorter.ui.dialog.ListSelectionConfig
 import com.sza.fastmediasorter.ui.dialog.ListSelectionDialog
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 import com.sza.fastmediasorter.widget.registry.HomeWidgetCatalog
 import com.sza.fastmediasorter.widget.registry.HomeWidgetEntry
 import com.sza.fastmediasorter.widget.registry.HomeWidgetPinner
@@ -77,9 +79,14 @@ class HomeWidgetSettingsHelper(
         fragment.viewLifecycleOwner.lifecycleScope.launch {
             val entries = catalog.availableEntries()
             if (!fragment.isAdded || fragment.view == null) return@launch
-            // Calculator has no flavor or setting gate, so the list is never empty in practice;
-            // the guard is purely defensive against an unexpected empty result.
-            if (entries.isEmpty()) return@launch
+            // S2613: the calculator used to carry no gate at all, which is what made this branch
+            // unreachable and let it return in silence. Now that every sub-program widget follows its
+            // own switch, a build with all of them off empties the list for real - and a button that
+            // does nothing reads as broken, not as "nothing to offer".
+            if (entries.isEmpty()) {
+                Toast.makeText(context, R.string.widget_none_available, Toast.LENGTH_SHORT).show()
+                return@launch
+            }
             showPickerDialog(entries, destination)
         }
     }
@@ -123,8 +130,21 @@ class HomeWidgetSettingsHelper(
 
                     // S1165: show the same glyph the widget carries on the home screen, so the row
                     // is recognised by its picture rather than read.
-                    override fun getIcon(item: HomeWidgetEntry): Drawable? =
-                        ContextCompat.getDrawable(context, item.iconRes)
+                    // S2889: and in the same tone, from the one accent catalog. mutate() first - this
+                    // formatter hands back a Drawable rather than a view, and getDrawable shares its
+                    // constantState with every other user of the vector, so tinting the shared instance
+                    // would recolour that glyph app-wide.
+                    override fun getIcon(item: HomeWidgetEntry): Drawable? {
+                        val drawable = ContextCompat.getDrawable(context, item.iconRes)
+                        val accentRes = HomeWidgetAccent.accentResFor(item.gadgetKey)
+                        return if (drawable == null || accentRes == null) {
+                            drawable
+                        } else {
+                            drawable.mutate().apply {
+                                DrawableCompat.setTint(this, ContextCompat.getColor(context, accentRes))
+                            }
+                        }
+                    }
                 },
                 hasSelection = false,
                 isSelected = { false },

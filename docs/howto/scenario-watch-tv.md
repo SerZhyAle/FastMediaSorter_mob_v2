@@ -43,7 +43,7 @@ A fresh install has no channels yet, and the screen says so.
 There are two ways to fill it, and they work together:
 
 - **Download the shared catalogue.** Tap **Refresh catalog**. The watch fetches the published channel bank in one archive - many thousands of TV and radio channels with their topics, languages and countries.
-- **Send channels from your phone.** A channel you added yourself in FastMediaSorter on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised into the top group of the watch's list, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that top group again.
+- **Send channels from your phone.** A channel you added yourself in FastMediaSorter on the phone can be pushed across with **Send to watch** from the phone's stream list. Channels you pin on the phone are also raised towards the top of the watch's list, just behind the ones you pinned on the watch itself, so the two or three you actually watch are reachable without scrolling. Unpinning on the phone withdraws the channel from that group again, and a channel the watch's own catalogue does not carry is simply skipped.
 
 Channels sent from the phone survive a catalogue refresh - the refresh replaces the shared bank and leaves your own rows alone.
 
@@ -55,6 +55,7 @@ The three buttons at the top of the list stay pinned while the list scrolls, so 
 
 - **Search** filters the list as you type.
 - **Filter** narrows by topic and by language. The names are shown in your interface language rather than raw catalogue English, most-populated first, with the channel count on each row, and the app's own three languages on top.
+- **Filter** also lists the curated collections that came with the catalogue - "Russian TV", "Radio of the former USSR", "African TV" and the rest, the same ones the phone shows. Pick one to see only its channels, or pick **All** to drop the restriction. A channel may belong to several collections, so the same station turns up under more than one. If the downloaded catalogue carries no collections, the entry is not shown at all.
 - **Sort** offers Most used, Name A-Z, Name Z-A and By media type. Most used is the default and rises with the channels you actually start on the watch, so the list teaches itself your habits.
 
 Above the list, a small two-line counter shows how many channels the current search and filters leave, over the size of the whole catalogue.
@@ -71,7 +72,8 @@ In grid mode, a video channel shows a preview picture before you have ever opene
 2. **Volume:** turn the rotating bezel or crown.
 3. **Seek:** long press the previous or next button. Both buttons stay on screen even for a single channel.
 4. **Frame:** the frame-mode button switches between fitting the whole picture inside the round glass and cropping it to fill the screen. The watch remembers your choice - it survives leaving the player and restarting the app, and the same choice covers your own video files.
-5. **Pin:** the mark on the player pins the channel. Pinned channels are listed first the next time you open Streams. The pin is keyed to the channel address, so it survives a catalogue re-import.
+5. **Screen off:** the player menu has a **Screen off** entry. The display goes completely black - no clock, no controls - while the channel keeps playing, and the watch will not fall asleep. Tap anywhere to bring the picture and the controls back exactly as you left them.
+6. **Pin:** the mark on the player pins the channel. Pinned channels are listed first the next time you open Streams: the ones you pinned here on the watch lead, the ones pinned on the phone follow them, and everything else keeps the order your chosen sort gives it. The pin is keyed to the channel address, so it survives a catalogue re-import.
 
 > **Video needs the screen.** Background playback keeps **audio** going after you leave the app - useful for radio channels - but video and slideshows stop when the app leaves the screen. That is deliberate: a video you cannot see only drains the battery.
 
@@ -102,6 +104,6 @@ Live streams are the most demanding thing a watch does with its network, so the 
 | "No streams available" after a fresh install | Tap **Refresh catalog**, or send a channel from the phone with **Send to watch** |
 | "Could not update streams" | The catalogue is one download of several megabytes. Put the watch on Wi-Fi rather than a phone-relayed link, and try again |
 | A channel opens and then stops | The source itself may be offline. The watch retries three times before giving up - try another channel to tell a dead stream from a dead network |
-| Video stops when you lower your wrist | Expected: only audio continues in the background. Use a radio channel if you want to keep listening with the screen off |
+| Video stops when you lower your wrist | Expected: only audio continues once the app leaves the screen. To keep a channel playing with the display dark, stay in the player and use its **Screen off** entry |
 | The channel you pinned on the phone is not at the top | Pins travel when the Wear companion is switched on in the phone app; check that first |
 | Sound is too quiet | Turn the bezel or crown in the player - it changes the watch's media volume, not the playback position |

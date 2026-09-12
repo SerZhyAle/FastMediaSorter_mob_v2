@@ -1,12 +1,12 @@
 package com.sza.fastmediasorter.wear.ui.folder
 
-import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -14,16 +14,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
@@ -33,34 +29,47 @@ import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.model.contentTypeForEntry
+import com.sza.fastmediasorter.wear.ui.common.CellCaption
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
-import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
+import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.util.GridColumnFit
 import timber.log.Timber
 
+private const val SINGLE_COLUMN = 1
+private val GRID_GAP = GridColumnFit.DEFAULT_GAP_DP.dp
 private val TITLE_PADDING_VERTICAL = 12.dp
 
 /**
  * S2201: the walk over the watch's own storage, one level at a time.
+ * S2490: respects fileListViewMode so grid/columns mode (2 or 3 columns)
+ * renders grid cells consistently with all browse screens.
  *
- * @param onOpenFile receives the tapped file and its mime type. The screen resolves no player
- * itself: which destination renders a kind is the navigation host's answer already, and a second
- * copy of that rule here would be free to disagree with it.
- * @param onExit called when Back is pressed at the level the walk started on, so the trail is spent
- * before the screen is - a walk that left from depth three would be indistinguishable from a crash.
+ * @param onOpenFile receives the tapped row, whose uri is non-null - only a file row invokes it.
+ *   S2694 widened this from the bare uri and mime type: a network row's name, size and timestamp
+ *   were read off the protocol by the level that produced it, and the host has no cheaper way back
+ *   to them than a second listing of the same directory.
+ * @param onExit called when Back is pressed at the level the walk started on.
  */
 @Composable
 fun WearFolderWalkScreen(
-    onOpenFile: (Uri, String?) -> Unit,
+    onOpenFile: (WearFolderEntry) -> Unit,
     onExit: () -> Unit,
     viewModel: WearFolderWalkViewModel = hiltViewModel()
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
+    Timber.d("S2490: WearFolderWalkScreen composing with viewMode=%s", fileListViewMode)
 
     BackHandler(enabled = true) {
         if (!viewModel.navigateUp()) {
@@ -68,28 +77,35 @@ fun WearFolderWalkScreen(
         }
     }
 
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState()
+    val stateScrollState = rememberScrollState()
 
     WearScreenScaffold(
-        // The list insets itself instead, so rows scroll under the rim rather than inside a
-        // padded viewport that clips them.
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: an empty folder draws the state block instead of the list, and the block carries its
+        // own scroll - so the indicator moves with it rather than with the list standing still behind.
+        positionIndicator = {
+            if (state is WearFolderWalkUiState.Empty) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         when (val current = state) {
             is WearFolderWalkUiState.Loading -> CircularProgressIndicator()
 
             is WearFolderWalkUiState.Empty -> WearStateBlock(
                 kind = WearStateKind.EMPTY,
-                // No Retry: the listing that came back empty already succeeded, so repeating it
-                // returns the same empty level.
-                onBack = { if (current.canGoUp) viewModel.navigateUp() else onExit() }
+                onBack = { if (current.canGoUp) viewModel.navigateUp() else onExit() },
+                scrollState = stateScrollState
             )
 
             is WearFolderWalkUiState.Content -> FolderWalkList(
                 content = current,
                 listState = listState,
+                viewMode = fileListViewMode,
                 onOpenFolder = viewModel::openFolder,
                 onOpenFile = onOpenFile,
                 onLoadMore = viewModel::loadMore
@@ -102,37 +118,55 @@ fun WearFolderWalkScreen(
 private fun FolderWalkList(
     content: WearFolderWalkUiState.Content,
     listState: ScalingLazyListState,
+    viewMode: WearViewMode,
     onOpenFolder: (WearFolderEntry) -> Unit,
-    onOpenFile: (Uri, String?) -> Unit,
+    onOpenFile: (WearFolderEntry) -> Unit,
     onLoadMore: () -> Unit
 ) {
-    ScalingLazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        state = listState,
-        contentPadding = wearScreenInsets()
-    ) {
-        item {
-            LevelTitle(title = content.title)
-        }
-
-        items(content.entries) { entry ->
-            FolderWalkRow(
-                entry = entry,
-                onOpenFolder = onOpenFolder,
-                onOpenFile = onOpenFile
-            )
-        }
-
-        // The last row rather than an edge-triggered fetch: a window is bounded on purpose (ADR-5),
-        // and a wearer who has reached the end is the one who decides whether to read further.
-        if (content.canLoadMore) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+        WearListColumn(
+            modifier = Modifier.fillMaxSize(),
+            state = listState
+        ) {
             item {
-                Chip(
-                    onClick = onLoadMore,
-                    label = { Text(text = stringResource(R.string.wear_folder_load_more)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.secondaryChipColors()
-                )
+                LevelTitle(title = content.title)
+            }
+
+            if (columns == SINGLE_COLUMN) {
+                items(content.entries) { entry ->
+                    FolderWalkRow(
+                        entry = entry,
+                        onOpenFolder = onOpenFolder,
+                        onOpenFile = onOpenFile
+                    )
+                }
+            } else {
+                items(content.entries.chunked(columns)) { rowEntries ->
+                    FolderWalkGridRow(
+                        entries = rowEntries,
+                        columns = columns,
+                        onOpenFolder = onOpenFolder,
+                        onOpenFile = onOpenFile
+                    )
+                }
+            }
+
+            if (content.canLoadMore) {
+                item {
+                    Chip(
+                        onClick = onLoadMore,
+                        label = {
+                            Text(
+                                text = stringResource(R.string.wear_folder_load_more),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ChipDefaults.secondaryChipColors()
+                    )
+                }
             }
         }
     }
@@ -155,26 +189,63 @@ private fun LevelTitle(title: ScreenTitle) {
 }
 
 @Composable
+private fun FolderWalkGridRow(
+    entries: List<WearFolderEntry>,
+    columns: Int,
+    onOpenFolder: (WearFolderEntry) -> Unit,
+    onOpenFile: (WearFolderEntry) -> Unit
+) {
+    CenteredGridRow(columns = columns, itemCount = entries.size, gap = GRID_GAP) {
+        entries.forEach { entry ->
+            val type = contentTypeForEntry(entry.mimeType, entry.isDirectory)
+            ThumbnailCell(
+                thumbnail = WearThumbnail.Unavailable,
+                caption = entry.name,
+                onClick = {
+                    val uri = entry.uri
+                    when {
+                        entry.isDirectory -> onOpenFolder(entry)
+                        uri != null -> onOpenFile(entry)
+                        else -> Timber.w("Folder entry is neither a directory nor a file: %s", entry.name)
+                    }
+                },
+                modifier = Modifier.weight(1f),
+                captionLayout = CellCaption(overGroupIcon = true)
+            ) { glyphModifier ->
+                Icon(
+                    painter = painterResource(ContentTypeCatalog.iconFor(type)),
+                    contentDescription = null,
+                    tint = if (ContentTypeCatalog.isMonochrome(type)) {
+                        colorResource(ContentTypeCatalog.tintFor(type))
+                    } else {
+                        Color.Unspecified
+                    },
+                    modifier = glyphModifier
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun FolderWalkRow(
     entry: WearFolderEntry,
     onOpenFolder: (WearFolderEntry) -> Unit,
-    onOpenFile: (Uri, String?) -> Unit
+    onOpenFile: (WearFolderEntry) -> Unit
 ) {
     val type = contentTypeForEntry(entry.mimeType, entry.isDirectory)
-    Chip(
+    SingleColumnTileCell(
+        thumbnail = WearThumbnail.Unavailable,
+        caption = entry.name,
         onClick = {
             val uri = entry.uri
             when {
                 entry.isDirectory -> onOpenFolder(entry)
-                uri != null -> onOpenFile(uri, entry.mimeType)
-                // The entry model's invariant makes this unreachable, and a row with neither an
-                // address nor a uri is not a tap target - leading nowhere silently would read as
-                // the walk having broken.
+                uri != null -> onOpenFile(entry)
                 else -> Timber.w("Folder entry is neither a directory nor a file: %s", entry.name)
             }
         },
-        label = { Text(text = entry.name) },
-        icon = {
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(ContentTypeCatalog.iconFor(type)),
                 contentDescription = null,
@@ -183,12 +254,8 @@ private fun FolderWalkRow(
                 } else {
                     Color.Unspecified
                 },
-                modifier = Modifier.size(WearListMetrics.LeadingIconNormal)
+                modifier = glyphModifier
             )
-        },
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = entry.name },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }

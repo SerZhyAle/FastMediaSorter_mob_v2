@@ -12,4 +12,21 @@
     src/standardScreenCapture/AndroidManifest.xml; the shared engine in src/screenCapture/AndroidManifest.xml.
 -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+        <!--
+            S2551: where the owner's "allow the watch to see this camera" tap lands. Declared for the
+            standard flavor only - noLegal answers the same question from a standing switch and ships
+            no such surface. Shape copied from ScreenCaptureConsentActivity: the decision was already
+            made on the notification, so this must not become a second screen.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.broadcast.CameraSessionConsentActivity"
+            android:exported="false"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:taskAffinity=""
+            android:theme="@style/Theme.FastMediaSorter.Transparent" />
+    </application>
+
 </manifest>

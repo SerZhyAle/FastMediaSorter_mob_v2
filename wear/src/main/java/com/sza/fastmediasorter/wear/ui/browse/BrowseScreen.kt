@@ -14,9 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.SelectAll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -35,15 +33,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.AutoCenteringParams
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
-import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
@@ -52,36 +46,40 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.browse.BrowseCategoryCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseRefineState
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.MediaType
-import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationResult
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.common.WEAR_SEARCH_INPUT_KEY
-import com.sza.fastmediasorter.wear.ui.common.WearChoiceDialog
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearRefineControlHeader
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderActions
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderHeight
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderLabels
 import com.sza.fastmediasorter.wear.ui.common.WearRefineHeaderState
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuActions
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuScreen
+import com.sza.fastmediasorter.wear.ui.common.WearRefineMenuState
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
-import com.sza.fastmediasorter.wear.ui.common.WearSearchDialog
+import com.sza.fastmediasorter.wear.ui.common.WearScreenScrolls
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
-import com.sza.fastmediasorter.wear.ui.common.labelForContentType
-import com.sza.fastmediasorter.wear.ui.common.labelForSortOrder
 import com.sza.fastmediasorter.wear.ui.common.launchWearSearchInput
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberOverlayVisibleOnIdle
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorBar
+import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorSideBar
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeIndicatorViewModel
 import com.sza.fastmediasorter.wear.ui.player.common.VolumeReadout
 import com.sza.fastmediasorter.wear.util.GridColumnFit
@@ -106,7 +104,6 @@ fun BrowseScreen(
     val mediaTypeArg = backStackEntry.arguments?.getString(WearRoutes.ARG_MEDIA_TYPE)
     val sourceId = backStackEntry.arguments?.getString(WearRoutes.ARG_SOURCE_ID)
     val sourceName = backStackEntry.arguments?.getString(WearRoutes.ARG_SOURCE_NAME)
-    Timber.d("S2028: browse args mediaType=$mediaTypeArg sourceId=$sourceId")
 
     val mediaType = parseMediaType(mediaTypeArg)
 
@@ -121,10 +118,7 @@ fun BrowseScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val fileListViewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
     val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
-    // Collected beside uiState rather than inside it, so a tap does not re-emit the whole list.
-    val selectedIds by viewModel.selectedFileIds.collectAsStateWithLifecycle()
-    val allowedOperations by viewModel.allowedOperations.collectAsStateWithLifecycle()
-    val operationRun by viewModel.operationRun.collectAsStateWithLifecycle()
+    val operations = rememberBrowseOperationsUi(viewModel.fileOperations)
     // S2140: its own holder, not a field on BrowseViewModel - the reading belongs to the indicator, so
     // another screen adopting the bar needs this one line and no edit to its state holder.
     val volumeViewModel: VolumeIndicatorViewModel = hiltViewModel()
@@ -133,28 +127,32 @@ fun BrowseScreen(
 
     var showActions by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
     val requestRename = rememberWearRenameInput { newName ->
-        viewModel.runOperation(WearFileOperation.Rename(newName))
+        viewModel.fileOperations.runOperation(WearFileOperation.Rename(newName))
     }
 
     Timber.d("BrowseScreen composing with state: ${uiState.summarize()}")
 
     // Selection mode owns back first: leaving the screen with a selection still armed would strand
     // the user's choice on a list they can no longer see.
-    BackHandler(enabled = selectedIds.isNotEmpty()) {
+    BackHandler(enabled = operations.selectedIds.isNotEmpty()) {
         showActions = false
         showDeleteConfirm = false
-        viewModel.clearFileSelection()
+        showReceivers = false
+        viewModel.fileOperations.clearFileSelection()
     }
 
-    val listState = rememberScalingLazyListState()
+    val listState = rememberWearListState(positionKey = "browse/$mediaTypeArg/$sourceId")
+    val scrolls = WearScreenScrolls(list = listState, stateBlock = rememberScrollState())
 
     val refineState by viewModel.refineState.collectAsStateWithLifecycle()
+    val refineUi = rememberBrowseRefineUi(viewModel, refineState)
 
     BrowseScaffold(
         uiState = uiState,
-        listState = listState,
-        refine = browseRefineUi(viewModel, refineState),
+        scrolls = scrolls,
+        refine = refineUi,
         presentation = BrowseListPresentation(
             title = title,
             thumbnails = thumbnails,
@@ -163,16 +161,17 @@ fun BrowseScreen(
             volume = volume
         ),
         selection = MediaSelectionState(
-            selectedIds = selectedIds,
-            onSelectAll = viewModel::selectAll,
+            selectedIds = operations.selectedIds,
+            onSelectAll = viewModel.fileOperations::selectAll,
             onActionsClick = { showActions = true }
         ),
         actions = browseFileActions(
             viewModel = viewModel,
             navController = navController,
             mediaType = mediaType,
-            selectedIds = selectedIds,
-            running = operationRun.running
+            selectedIds = operations.selectedIds,
+            running = operations.run.running,
+            onShowActions = { showActions = true }
         ),
         stateActions = BrowseStateActions(
             onRetry = viewModel::loadMediaFiles,
@@ -180,26 +179,67 @@ fun BrowseScreen(
         )
     )
 
-    BrowseDialogsHost(
-        state = BrowseDialogsState(
-            // Keyed to the selection they act on, following the precedent's
-            // `pendingActionSource?.let {}`: back can empty the selection underneath a dialog, and a
-            // menu left standing over nothing offers no actions and no way out.
-            showActions = showActions && selectedIds.isNotEmpty(),
-            showDeleteConfirm = showDeleteConfirm && selectedIds.isNotEmpty(),
-            selectedCount = selectedIds.size,
-            allowedOperations = allowedOperations,
-            run = operationRun
+    BrowseScreenDialogs(
+        uiState = uiState,
+        operations = operations,
+        visibilities = BrowseDialogVisibilities(
+            showActions = showActions,
+            showDeleteConfirm = showDeleteConfirm,
+            showReceivers = showReceivers,
+            onActionsVisibilityChange = { showActions = it },
+            onDeleteVisibilityChange = { showDeleteConfirm = it },
+            onReceiversVisibilityChange = { showReceivers = it }
         ),
         viewModel = viewModel,
-        onActionsVisibilityChange = { showActions = it },
-        onDeleteVisibilityChange = { showDeleteConfirm = it },
-        onRequestRename = requestRename
+        requestRename = { initialName -> requestRename(initialName) }
     )
 
-    BrowseRefineDialogsHost(refine = refineState, viewModel = viewModel, viewMode = fileListViewMode)
+    BrowseRefineMenuHost(refine = refineState, viewModel = viewModel)
 
     MediaStoreConsentPrompt(viewModel = viewModel)
+}
+
+private data class BrowseDialogVisibilities(
+    val showActions: Boolean,
+    val showDeleteConfirm: Boolean,
+    val showReceivers: Boolean,
+    val onActionsVisibilityChange: (Boolean) -> Unit,
+    val onDeleteVisibilityChange: (Boolean) -> Unit,
+    val onReceiversVisibilityChange: (Boolean) -> Unit
+)
+
+@Composable
+private fun BrowseScreenDialogs(
+    uiState: BrowseUiState,
+    operations: BrowseOperationsUi,
+    visibilities: BrowseDialogVisibilities,
+    viewModel: BrowseViewModel,
+    requestRename: (String?) -> Unit
+) {
+    val totalCount = (uiState as? BrowseUiState.Success)?.files?.size ?: 0
+    val selectedFileName = (uiState as? BrowseUiState.Success)
+        ?.files
+        ?.firstOrNull { it.id in operations.selectedIds }
+        ?.name
+
+    BrowseDialogsHost(
+        state = BrowseDialogsState(
+            showActions = visibilities.showActions && operations.selectedIds.isNotEmpty(),
+            showDeleteConfirm = visibilities.showDeleteConfirm && operations.selectedIds.isNotEmpty(),
+            showReceivers = visibilities.showReceivers && operations.selectedIds.isNotEmpty(),
+            selectedCount = operations.selectedIds.size,
+            totalCount = totalCount,
+            selectedFileName = selectedFileName,
+            allowedOperations = operations.allowedOperations,
+            receivers = operations.receivers,
+            run = operations.run
+        ),
+        viewModel = viewModel,
+        onActionsVisibilityChange = visibilities.onActionsVisibilityChange,
+        onDeleteVisibilityChange = visibilities.onDeleteVisibilityChange,
+        onReceiversVisibilityChange = visibilities.onReceiversVisibilityChange,
+        onRequestRename = requestRename
+    )
 }
 
 /**
@@ -216,12 +256,12 @@ fun BrowseScreen(
  */
 @Composable
 private fun MediaStoreConsentPrompt(viewModel: BrowseViewModel) {
-    val consentRequest by viewModel.consentRequest.collectAsStateWithLifecycle()
+    val consentRequest by viewModel.fileOperations.consentRequest.collectAsStateWithLifecycle()
     var launched by rememberSaveable { mutableStateOf(false) }
     val consentLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
-        viewModel.onConsentAnswered(result.resultCode == Activity.RESULT_OK)
+        viewModel.fileOperations.onConsentAnswered(result.resultCode == Activity.RESULT_OK)
     }
     LaunchedEffect(consentRequest) {
         val request = consentRequest
@@ -247,32 +287,38 @@ private fun BrowseUiState.summarize(): String = when (this) {
     else -> javaClass.simpleName
 }
 
-/** S2136: binds the refine header to the ViewModel that answers it. */
-private fun browseRefineUi(
+/**
+ * S2136: binds the refine header to the ViewModel that answers it.
+ *
+ * S2473: the search icon no longer opens anything - it starts the watch's text input directly, so
+ * the launcher and the animation preference are gathered here rather than in the screen, which was
+ * already at its length limit and gained nothing by holding two values it never read itself.
+ */
+@Composable
+private fun rememberBrowseRefineUi(
     viewModel: BrowseViewModel,
     refineState: BrowseRefineState
-) = BrowseRefineUi(
-    state = refineState,
-    // ADR-2: read off the loaded list, not off the route - a category screen lists one type, and
-    // its filter icon would open a dialog offering that single type.
-    showFilter = viewModel.presentContentTypes().size > 1,
-    onSearchClick = {
-        // A new attempt retires the previous refusal, so the notice does not outlive the condition
-        // it reported.
-        viewModel.setSearchInputUnavailable(false)
-        viewModel.setShowSearchDialog(true)
-    },
-    onFilterClick = { viewModel.setShowFilterDialog(true) },
-    onSortClick = { viewModel.setShowSortDialog(true) }
-)
+): BrowseRefineUi {
+    // The launcher lives here rather than in the screen: it belongs to the search icon, and the
+    // dialog that used to remember it no longer exists.
+    val launchSearchInput = rememberBrowseSearchInput(viewModel)
+    return BrowseRefineUi(
+        state = refineState,
+        onSearchClick = {
+            // A new attempt retires the previous refusal, so the notice does not outlive the
+            // condition it reported.
+            viewModel.setSearchInputUnavailable(false)
+            launchSearchInput()
+        },
+        onRefineClick = { viewModel.setShowRefineMenu(true) }
+    )
+}
 
 /** S2136: what the refine header needs from the screen's state, in one carrier. */
 private data class BrowseRefineUi(
     val state: BrowseRefineState,
-    val showFilter: Boolean,
     val onSearchClick: () -> Unit,
-    val onFilterClick: () -> Unit,
-    val onSortClick: () -> Unit
+    val onRefineClick: () -> Unit
 )
 
 /**
@@ -308,77 +354,37 @@ private fun rememberBrowseSearchInput(viewModel: BrowseViewModel): () -> Unit {
     }
 }
 
-/** S2136: the three dialogs behind the refine header, each shown by its own flag. */
-@Composable
-private fun BrowseRefineDialogsHost(
-    refine: BrowseRefineState,
-    viewModel: BrowseViewModel,
-    viewMode: WearViewMode
-) {
-    // The launcher is remembered here rather than by the screen: it exists only to answer this
-    // dialog, and hoisting it made the screen carry a value it never read itself.
-    val onLaunchInput = rememberBrowseSearchInput(viewModel)
-    if (refine.showSearchDialog) {
-        WearSearchDialog(
-            title = stringResource(R.string.wear_browse_search),
-            inputLabel = stringResource(R.string.wear_browse_search_hint),
-            clearLabel = stringResource(R.string.wear_browse_clear_search),
-            currentQuery = refine.searchQuery,
-            onLaunchInput = onLaunchInput,
-            onClear = {
-                viewModel.setSearchQuery("")
-                viewModel.setShowSearchDialog(false)
-            },
-            onDismiss = { viewModel.setShowSearchDialog(false) }
-        )
-    }
-
-    if (refine.showSortDialog) {
-        WearChoiceDialog(
-            title = stringResource(R.string.wear_browse_sort),
-            options = viewModel.availableSortOrders(),
-            selected = refine.sortOrder,
-            labelOf = { stringResource(labelForSortOrder(it)) },
-            onSelected = viewModel::setSortOrder,
-            onDismiss = { viewModel.setShowSortDialog(false) },
-            viewMode = viewMode
-        )
-    }
-
-    if (refine.showFilterDialog) {
-        BrowseTypeFilterDialog(
-            present = viewModel.presentContentTypes(),
-            selected = refine.contentTypes,
-            onSelected = viewModel::setContentTypes,
-            onDismiss = { viewModel.setShowFilterDialog(false) },
-            viewMode = viewMode
-        )
-    }
-}
-
 /**
- * S2136: the type filter, offered as one choice rather than a set of toggles.
+ * S2473: the one surface behind the refine icon.
  *
- * A null option is the "all types" row that clears the set - modelling it as an absent value keeps
- * [WearChoiceDialog] generic instead of teaching it what "everything" means for this screen.
+ * Where three dialogs stood - search, sort, filter - there is now one menu and no search dialog at
+ * all. The type-filter rule is unchanged and still read off the loaded list rather than off the
+ * route (ADR-2); what changed is that a list with one type now says so inside the menu instead of
+ * silently dropping a control the wearer was looking for.
  */
 @Composable
-private fun BrowseTypeFilterDialog(
-    present: List<WearContentType>,
-    selected: Set<WearContentType>,
-    onSelected: (Set<WearContentType>) -> Unit,
-    onDismiss: () -> Unit,
-    viewMode: WearViewMode
+private fun BrowseRefineMenuHost(
+    refine: BrowseRefineState,
+    viewModel: BrowseViewModel
 ) {
-    val allTypes = stringResource(R.string.wear_browse_filter_type_all)
-    WearChoiceDialog(
-        title = stringResource(R.string.wear_browse_filter),
-        options = listOf(null) + present,
-        selected = selected.singleOrNull(),
-        labelOf = { type -> if (type == null) allTypes else stringResource(labelForContentType(type)) },
-        onSelected = { type -> onSelected(if (type == null) emptySet() else setOf(type)) },
-        onDismiss = onDismiss,
-        viewMode = viewMode
+    if (!refine.showRefineMenu) return
+    WearRefineMenuScreen(
+        state = WearRefineMenuState(
+            sortOptions = viewModel.availableSortOrders(),
+            sortSelected = refine.sortOrder,
+            filterOptions = viewModel.presentContentTypes(),
+            filterSelected = refine.contentTypes.singleOrNull(),
+            searchQuery = refine.searchQuery
+        ),
+        actions = WearRefineMenuActions(
+            onSortSelected = viewModel::setSortOrder,
+            // A null type is the "all types" row, which clears the set rather than naming one.
+            onFilterSelected = { type ->
+                viewModel.setContentTypes(if (type == null) emptySet() else setOf(type))
+            },
+            onClearSearch = { viewModel.setSearchQuery("") },
+            onDismiss = { viewModel.setShowRefineMenu(false) }
+        )
     )
 }
 
@@ -387,7 +393,7 @@ private fun BrowseTypeFilterDialog(
  * turns into, and a user who looked away must still find the outcome where the progress was.
  */
 @Composable
-private fun OperationRunDialog(
+internal fun OperationRunDialog(
     run: WearFileOperationRunState,
     onCancel: () -> Unit,
     onDismiss: () -> Unit
@@ -444,10 +450,16 @@ private fun OperationRunDialog(
 /** The file, then what happened to it - and the name it actually landed under when that differs. */
 @Composable
 private fun OperationResultRow(result: WearFileOperationResult) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Timber.d("S3016: OperationResultRow composed")
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = result.fileName,
             style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -461,12 +473,16 @@ private fun OperationResultRow(result: WearFileOperationResult) {
         Text(
             text = outcomeText,
             style = MaterialTheme.typography.caption2,
-            color = MaterialTheme.colors.onSurfaceVariant
+            color = MaterialTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
         result.finalName?.let { finalName ->
             Text(
                 text = stringResource(R.string.wear_file_op_renamed_to, finalName),
                 style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -487,6 +503,7 @@ private fun WearFileOperationOutcome.messageRes(): Int = when (this) {
     WearFileOperationOutcome.NOTIFIED_ON_PHONE -> R.string.wear_open_on_phone_notified
     WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF ->
         R.string.wear_open_on_phone_no_notifications
+    WearFileOperationOutcome.AWAITING_PHONE_ACTION -> R.string.wear_send_to_awaiting_phone
     WearFileOperationOutcome.FAILED -> R.string.wear_file_op_outcome_failed
     WearFileOperationOutcome.CANCELLED -> R.string.wear_file_op_outcome_cancelled
 }
@@ -562,25 +579,27 @@ private fun MediaListContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
         val screenInsets = wearScreenInsets()
-        val initialCenterIndex = if (columns == 1) 1 else 1
-        val autoCentering = remember(columns) { AutoCenteringParams(itemIndex = initialCenterIndex) }
-        ScalingLazyColumn(
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
             state = listState,
-            autoCentering = autoCentering,
             // S2136: the refine header is laid over this list rather than in it, so the list has to
             // give back the height it covers - otherwise the first row starts under the icons.
             contentPadding = PaddingValues(
                 start = screenInsets.calculateLeftPadding(LayoutDirection.Ltr),
                 top = screenInsets.calculateTopPadding() + WearRefineHeaderHeight,
                 end = screenInsets.calculateRightPadding(LayoutDirection.Ltr),
-                bottom = screenInsets.calculateBottomPadding()
-            ),
-            scalingParams = WearGridScalingParams
+                bottom = screenInsets.calculateBottomPadding() + GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
+            )
         ) {
             item {
+                val formattedCount = if (data.files.size > MAX_COUNTER_DISPLAY_COUNT) {
+                    "###"
+                } else {
+                    data.files.size.toString()
+                }
+                val headerTitle = if (data.files.isNotEmpty()) "$title ($formattedCount)" else title
                 Text(
-                    text = title,
+                    text = headerTitle,
                     style = MaterialTheme.typography.title2,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -589,46 +608,8 @@ private fun MediaListContent(
                 )
             }
 
-            // S2140: unconditional, and second so it is read before the eye reaches the files. This is
-            // the last screen before a tap starts playback, which is the moment the warning is for -
-            // the category screens above deliberately do not carry it (strategic ADR-3).
-            item {
-                VolumeIndicatorBar(level = volume.level, max = volume.max)
-            }
-
             // Offered only once a selection exists: on an untouched list they would be controls with
             // nothing to act on.
-            if (selection.selectedIds.isNotEmpty()) {
-                item {
-                    Chip(
-                        onClick = selection.onActionsClick,
-                        label = { Text(text = stringResource(R.string.wear_file_op_actions)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.MoreVert,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ChipDefaults.primaryChipColors()
-                    )
-                }
-                item {
-                    Chip(
-                        onClick = selection.onSelectAll,
-                        label = { Text(text = stringResource(R.string.wear_select_all)) },
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Default.SelectAll,
-                                contentDescription = null
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ChipDefaults.secondaryChipColors()
-                    )
-                }
-            }
-
             mediaFileItems(
                 files = data.files,
                 columns = columns,
@@ -637,6 +618,12 @@ private fun MediaListContent(
                 selectedIds = selection.selectedIds,
                 actions = actions
             )
+        }
+
+        // S2477: Volume side bar fixed at right edge instead of taking a row in the list
+        if (volume.max > 0) {
+            Timber.d("S2477: Browse volume side bar composed, aligned to the end edge")
+            VolumeIndicatorSideBar(level = volume.level, max = volume.max)
         }
     }
 }
@@ -647,18 +634,46 @@ private fun navigateToPlayer(
     mediaType: MediaType
 ) {
     // The file's own mime type decides; the screen's media type answers only for an unknown one.
-    val route = playerRouteFor(file.id, file.mimeType, mediaType)
-    Timber.d("S2005: media item tap routes to $route")
+    val route = playerRouteFor(file.id, file.mimeType, mediaType, file.name)
     Timber.d("Navigating to: $route for file: ${file.name} (mimeType: ${file.mimeType})")
     navController.navigate(route)
+}
+
+/**
+ * S2444: everything [BrowseFileOperationsManager] publishes, collected once.
+ *
+ * The four flows are read together or not at all - the selection decides which dialogs may open, and
+ * each of them draws from one of the other three - so collecting them at four separate call sites
+ * only spread one concern across the screen function.
+ */
+private data class BrowseOperationsUi(
+    /** Collected beside the ui state rather than inside it, so a tap does not re-emit the whole list. */
+    val selectedIds: Set<Long>,
+    val allowedOperations: Set<WearFileOperationKind>,
+    /** Already narrowed to what this selection can be handed to, so the dialog draws what it is given. */
+    val receivers: List<WearSendToReceiverEntry>,
+    val run: WearFileOperationRunState
+)
+
+@Composable
+private fun rememberBrowseOperationsUi(operations: BrowseFileOperationsManager): BrowseOperationsUi {
+    val selectedIds by operations.selectedFileIds.collectAsStateWithLifecycle()
+    val allowedOperations by operations.allowedOperations.collectAsStateWithLifecycle()
+    val receivers by operations.sendToReceivers.collectAsStateWithLifecycle()
+    val run by operations.operationRun.collectAsStateWithLifecycle()
+    return BrowseOperationsUi(selectedIds, allowedOperations, receivers, run)
 }
 
 /** What the browse dialogs draw. */
 private data class BrowseDialogsState(
     val showActions: Boolean,
     val showDeleteConfirm: Boolean,
+    val showReceivers: Boolean,
     val selectedCount: Int,
+    val totalCount: Int,
+    val selectedFileName: String?,
     val allowedOperations: Set<WearFileOperationKind>,
+    val receivers: List<WearSendToReceiverEntry>,
     val run: WearFileOperationRunState
 )
 
@@ -674,32 +689,56 @@ private fun BrowseDialogsHost(
     viewModel: BrowseViewModel,
     onActionsVisibilityChange: (Boolean) -> Unit,
     onDeleteVisibilityChange: (Boolean) -> Unit,
-    onRequestRename: () -> Unit
+    onReceiversVisibilityChange: (Boolean) -> Unit,
+    onRequestRename: (String?) -> Unit
 ) {
     if (state.showActions) {
         FileActionsDialog(
             state = FileActionsDialogState(
                 selectedCount = state.selectedCount,
+                totalCount = state.totalCount,
                 allowedOperations = state.allowedOperations
             ),
             callbacks = FileActionsCallbacks(
+                onSelectAllRequested = {
+                    viewModel.fileOperations.selectAll()
+                },
+                onSendToRequested = {
+                    onActionsVisibilityChange(false)
+                    onReceiversVisibilityChange(true)
+                },
                 onSendToPhone = {
                     onActionsVisibilityChange(false)
-                    viewModel.runOperation(WearFileOperation.SendToPhone)
+                    viewModel.fileOperations.runOperation(WearFileOperation.SendToPhone)
                 },
                 onMoveToPhone = {
                     onActionsVisibilityChange(false)
-                    viewModel.runOperation(WearFileOperation.MoveToPhone)
+                    viewModel.fileOperations.runOperation(WearFileOperation.MoveToPhone)
                 },
                 onRenameRequested = {
                     onActionsVisibilityChange(false)
-                    onRequestRename()
+                    onRequestRename(state.selectedFileName)
                 },
                 onDeleteRequested = {
                     onActionsVisibilityChange(false)
                     onDeleteVisibilityChange(true)
-                }
+                },
+                // Closes the menu and leaves the selection standing: the set was gathered one file
+                // at a time, and a touch near the rim that meant "not this operation" must not cost
+                // it. The screen's own BackHandler still clears it on the next back.
+                onDismiss = { onActionsVisibilityChange(false) }
             )
+        )
+    }
+
+    if (state.showReceivers) {
+        ReceiverListDialog(
+            receivers = state.receivers,
+            onPick = { entry ->
+                onReceiversVisibilityChange(false)
+                viewModel.fileOperations.runOperation(WearFileOperation.SendToReceiver(entry.id))
+            },
+            onDismiss = { onReceiversVisibilityChange(false) }
         )
     }
 
@@ -708,7 +747,7 @@ private fun BrowseDialogsHost(
             selectedCount = state.selectedCount,
             onConfirm = {
                 onDeleteVisibilityChange(false)
-                viewModel.runOperation(WearFileOperation.Delete)
+                viewModel.fileOperations.runOperation(WearFileOperation.Delete)
             },
             onDismiss = { onDeleteVisibilityChange(false) }
         )
@@ -717,8 +756,8 @@ private fun BrowseDialogsHost(
     if (!state.run.isIdle) {
         OperationRunDialog(
             run = state.run,
-            onCancel = viewModel::cancelOperation,
-            onDismiss = viewModel::dismissOperationResults
+            onCancel = viewModel.fileOperations::cancelOperation,
+            onDismiss = viewModel.fileOperations::dismissOperationResults
         )
     }
 }
@@ -732,7 +771,8 @@ private fun browseFileActions(
     navController: NavController,
     mediaType: MediaType,
     selectedIds: Set<Long>,
-    running: Boolean
+    running: Boolean,
+    onShowActions: () -> Unit
 ): MediaFileActions = MediaFileActions(
     // A run in flight owns the list: letting a tap re-select or open a player while files are being
     // moved would act on rows that are already gone.
@@ -743,12 +783,14 @@ private fun browseFileActions(
             viewModel.selectFile(file)
             navigateToPlayer(navController, file, mediaType)
         } else {
-            viewModel.toggleSelection(file)
+            viewModel.fileOperations.toggleSelection(file)
         }
     },
     onFileLongClick = { file ->
         if (!running) {
-            viewModel.enterSelection(file)
+            Timber.d("S2491: BrowseScreen long click on file=%s", file.name)
+            viewModel.fileOperations.enterSelection(file)
+            onShowActions()
         }
     },
     onThumbnailNeeded = viewModel::thumbnailFor
@@ -773,7 +815,7 @@ private data class BrowseStateActions(
 @Composable
 private fun BrowseScaffold(
     uiState: BrowseUiState,
-    listState: ScalingLazyListState,
+    scrolls: WearScreenScrolls,
     refine: BrowseRefineUi,
     presentation: BrowseListPresentation,
     selection: MediaSelectionState,
@@ -782,73 +824,93 @@ private fun BrowseScaffold(
 ) {
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
-        scrollState = listState,
-        // Only the list branch scrolls, so only it has a position to indicate.
-        positionIndicator = if (uiState is BrowseUiState.Success) {
-            { PositionIndicator(listState) }
-        } else {
-            null
+        scrollState = scrolls.list,
+        // S2754: the list branch is not the only one that scrolls - the state block replacing it
+        // carries its own scroll, and leaving that one unmarked is what Play rejected.
+        positionIndicator = {
+            if (uiState is BrowseUiState.Success) {
+                PositionIndicator(scrolls.list)
+            } else {
+                PositionIndicator(scrolls.stateBlock)
+            }
         }
     ) {
         // The header sits over the list rather than inside it (strategic 5.3): as a list item it
         // would scroll away, and it has to stay reachable in exactly the states that need it - a
         // search that emptied the list is undone from this row and nowhere else.
+        val overlayVisible = rememberOverlayVisibleOnIdle(scrolls.list)
         Box(modifier = Modifier.fillMaxSize()) {
             BrowseStateBranch(
                 uiState = uiState,
-                listState = listState,
+                scrolls = scrolls,
                 presentation = presentation,
                 selection = selection,
                 actions = actions,
                 stateActions = stateActions
             )
 
-            Column(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(wearScreenInsets()),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                WearRefineControlHeader(
-                    state = WearRefineHeaderState(
-                        searchActive = refine.state.searchQuery.isNotBlank(),
-                        filterActive = refine.state.contentTypes.isNotEmpty(),
-                        sortActive = refine.state.sortOrder != BrowseSortOrder.DEFAULT,
-                        showFilter = refine.showFilter
-                    ),
-                    labels = WearRefineHeaderLabels(
-                        search = stringResource(R.string.wear_browse_search),
-                        filter = stringResource(R.string.wear_browse_filter),
-                        sort = stringResource(R.string.wear_browse_sort)
-                    ),
-                    actions = WearRefineHeaderActions(
-                        onSearchClick = refine.onSearchClick,
-                        onFilterClick = refine.onFilterClick,
-                        onSortClick = refine.onSortClick
+            // S2471: the refine header is only shown when there is content to refine or when active
+            // filters produced no matches. When the browse screen is in error, loading, or empty,
+            // drawing the header would obscure the central error and retry message.
+            // S2473: and only while the list is standing still. The state gate above answers
+            // "is there anything to refine"; this answers "is the wearer reading or scrolling",
+            // which is a different question and must not be folded into the same condition.
+            if (uiState.hasRefinableContent() && overlayVisible) {
+                Column(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(wearScreenInsets()),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    WearRefineControlHeader(
+                        state = WearRefineHeaderState(
+                            searchActive = refine.state.searchQuery.isNotBlank(),
+                            // One button, so one active state: either narrowing counts.
+                            refineActive = refine.state.contentTypes.isNotEmpty() ||
+                                refine.state.sortOrder != BrowseSortOrder.DEFAULT
+                        ),
+                        labels = WearRefineHeaderLabels(
+                            search = stringResource(R.string.wear_browse_search),
+                            refine = stringResource(R.string.wear_refine_menu_title)
+                        ),
+                        actions = WearRefineHeaderActions(
+                            onSearchClick = refine.onSearchClick,
+                            onRefineClick = refine.onRefineClick
+                        )
                     )
-                )
 
-                // The watch refused to offer any input path. Said here rather than in the dialog
-                // because the dialog has already closed by the time the refusal comes back, and an
-                // unsaid refusal reads as a search that matched everything (S1946).
-                if (refine.state.searchInputUnavailable) {
-                    Text(
-                        text = stringResource(R.string.wear_browse_search_unavailable),
-                        style = MaterialTheme.typography.caption2,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                    // The watch refused to offer any input path. Said here rather than in the dialog
+                    // because the dialog has already closed by the time the refusal comes back, and an
+                    // unsaid refusal reads as a search that matched everything (S1946).
+                    if (refine.state.searchInputUnavailable) {
+                        Text(
+                            text = stringResource(R.string.wear_browse_search_unavailable),
+                            style = MaterialTheme.typography.caption2,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }
     }
 }
 
+/**
+ * S2471: whether this state has anything the refine header could act on.
+ *
+ * `NoMatches` counts: the query that emptied the list is cleared from that header and nowhere else.
+ * Loading, empty and error states do not, because the header would sit over the message they exist
+ * to show.
+ */
+private fun BrowseUiState.hasRefinableContent(): Boolean =
+    this is BrowseUiState.Success || this is BrowseUiState.NoMatches
+
 /** Picks the branch for the current state. The header above it is composed in every branch. */
 @Composable
 private fun BrowseStateBranch(
     uiState: BrowseUiState,
-    listState: ScalingLazyListState,
+    scrolls: WearScreenScrolls,
     presentation: BrowseListPresentation,
     selection: MediaSelectionState,
     actions: MediaFileActions,
@@ -866,7 +928,7 @@ private fun BrowseStateBranch(
                     thumbnails = presentation.thumbnails,
                     mediaType = presentation.mediaType
                 ),
-                listState = listState,
+                listState = scrolls.list,
                 viewMode = presentation.viewMode,
                 selection = selection,
                 actions = actions,
@@ -878,24 +940,29 @@ private fun BrowseStateBranch(
             WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = state.message.resolveText(),
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
         is BrowseUiState.NoMatches -> {
-            // Deliberately not EMPTY and deliberately without Retry: the resource has files, the
-            // wearer's own narrowing is hiding them, and reloading would change nothing.
+            // S2471: the refine header sits above the block in NoMatches state, so add top padding
+            // so the message is centered below the buttons without collision.
             WearStateBlock(
+                modifier = Modifier.padding(top = WearRefineHeaderHeight),
                 kind = WearStateKind.EMPTY,
                 message = stringResource(R.string.wear_browse_no_matches),
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
         is BrowseUiState.Error -> {
+            Timber.d("S2471: BrowseScreen rendering Error state block")
             WearStateBlock(
                 kind = WearStateKind.ERROR,
                 message = state.message.resolveText(),
                 onRetry = stateActions.onRetry,
-                onBack = stateActions.onBack
+                onBack = stateActions.onBack,
+                scrollState = scrolls.stateBlock
             )
         }
     }

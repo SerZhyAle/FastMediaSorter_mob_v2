@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 enum class StreamFilterKind {
@@ -45,7 +46,7 @@ data class StreamFacetValue(
 data class StreamsUiState(
     val channels: List<WearStreamChannel> = emptyList(),
     val displayChannels: List<WearStreamChannel> = emptyList(),
-    val isLoading: Boolean = false,
+    val isLoading: Boolean = true,
     val isRefreshing: Boolean = false,
     val error: String? = null,
     val viewMode: WearViewMode = WearViewMode.LIST,
@@ -56,6 +57,14 @@ data class StreamsUiState(
     val selectedLanguage: String? = null,
     val availableTopics: List<StreamFacetValue> = emptyList(),
     val availableLanguages: List<StreamFacetValue> = emptyList(),
+    /**
+     * S2669: the curated collections delivered with the catalog. Empty when the archive carried no
+     * entry or delivered none, which is also what hides the picker section - a watch that never got
+     * collections must show the filter dialog exactly as before (strategic criterion 7).
+     */
+    val availableCollections: List<WearStreamCollection> = emptyList(),
+    /** S2669: the selected curated collection, or null for the whole catalog. */
+    val selectedCollectionId: String? = null,
     val showSearchDialog: Boolean = false,
     /**
      * S1946: no activity answered the request for text or speech input. The screen has to say so -
@@ -78,4 +87,23 @@ data class StreamsUiState(
      * only when the top group is built.
      */
     val phonePinnedIdentities: Set<String> = emptySet()
-)
+) {
+    /**
+     * S2820: whether the wearer narrowed the list themselves. Every narrowing the projection applies is
+     * listed here and only here, so a facet added later (strategic §5.3) is declared once.
+     */
+    val hasActiveNarrowing: Boolean
+        get() = searchQuery.isNotBlank() ||
+            filterKind != StreamFilterKind.ALL ||
+            !selectedTopic.isNullOrBlank() ||
+            !selectedLanguage.isNullOrBlank() ||
+            selectedCollectionId != null
+
+    /**
+     * S2820: the list is empty because of the narrowing, not because the catalogue is. Derived rather
+     * than stored (strategic ADR-1): a stored flag would have to be refreshed in every selection setter
+     * and in every projection pass, and the branch that reads it already reads both lists.
+     */
+    val isNarrowedEmpty: Boolean
+        get() = channels.isNotEmpty() && displayChannels.isEmpty() && hasActiveNarrowing
+}

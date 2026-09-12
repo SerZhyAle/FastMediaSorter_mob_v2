@@ -27,6 +27,8 @@
       1 - substantive failure: more Why-less steps than the baseline allows.
       2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).
           Distinct from 1 on purpose.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Gate
     Fail-closed: exit 1 when the count exceeds the baseline.
@@ -53,6 +55,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $planRoot = Join-Path $repoRoot 'PLAN'
 $baselineFile = Join-Path $PSScriptRoot 'tactical-step-form-baseline.txt'
 
@@ -115,7 +119,12 @@ $actual = $offenders.Count
 
 if ($UpdateBaseline) {
     $previous = if (Test-Path -LiteralPath $baselineFile) { (Get-Content -LiteralPath $baselineFile -Raw).Trim() } else { 'absent' }
-    Set-Content -LiteralPath $baselineFile -Value $actual -Encoding utf8NoBOM
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-tactical-step-form.ps1 -UpdateBaseline'
+        Set-Content -LiteralPath $baselineFile -Value $actual -Encoding utf8NoBOM
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-tactical-step-form: baseline $previous -> $actual."
     exit 0
 }

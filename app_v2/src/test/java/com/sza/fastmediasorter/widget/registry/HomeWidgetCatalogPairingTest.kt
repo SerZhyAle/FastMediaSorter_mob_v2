@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.widget.registry
 
 import android.content.Context
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import io.mockk.mockk
@@ -59,7 +60,25 @@ class HomeWidgetCatalogPairingTest {
         )
     }
 
+    @Test
+    fun `the stopwatch sub-program pairs with the stopwatch widget`() {
+        // S1411 phase 08: the registry row and the widget are one change, and the generic checks above
+        // only judge a pairing that is already declared - losing the pairing entirely leaves them green.
+        val stopwatch = SubProgramCatalog.all()
+            .firstOrNull { it.routeKey == InternalRouteCatalog.KEY_STOPWATCH }
+        assertEquals(
+            "the stopwatch row must name the widget that launches it",
+            STOPWATCH_KEY,
+            stopwatch?.widgetKey,
+        )
+        assertTrue(
+            "no widget catalog entry declares '$STOPWATCH_KEY'",
+            STOPWATCH_KEY in gadgetKeys(),
+        )
+    }
+
     private companion object {
         const val STREAM_LAUNCH_KEY = "stream_launch"
+        const val STOPWATCH_KEY = "stopwatch"
     }
 }

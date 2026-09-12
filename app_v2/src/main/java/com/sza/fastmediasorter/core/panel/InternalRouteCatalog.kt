@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.ui.wear.WatchListenLaunchActivity
 
 /**
  * Static descriptor table of our own launchable features offered in the app-launch panel
@@ -30,6 +31,9 @@ object InternalRouteCatalog {
     // S1103: launch the quick-access panel overlay from a launcher cell.
     const val KEY_APP_LAUNCH_PANEL = "app_launch_panel"
     const val KEY_CALCULATOR = "calculator"
+
+    // S1411: a built-in stopwatch present wherever the calculator is present.
+    const val KEY_STOPWATCH = "stopwatch"
     const val KEY_NETWORK_MONITOR = "network_monitor"
     const val KEY_GAME = "game"
     const val KEY_OCR = "ocr"
@@ -44,12 +48,26 @@ object InternalRouteCatalog {
     const val KEY_FRONT_FLASHLIGHT = "front_flashlight"
     const val KEY_PHYSICAL_FLASHLIGHT = "physical_flashlight"
 
+    // S2516: torch and screen lit together behind a lock only a hardware key opens.
+    const val KEY_WATER_FLASHLIGHT = "water_flashlight"
+
     // S2211: black screen as an autonomous sub-program.
     const val KEY_BLACK_SCREEN = "black_screen"
 
+    // S1924: the front camera shown as a mirror, lit by the window around it.
+    const val KEY_MIRROR = "mirror"
+
     // S1733: system information as a program of its own, reachable without going into settings.
     const val KEY_SYSTEM_INFO = "system_info"
+
+    // S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
+    const val KEY_TOURIST_INFO = "tourist_info"
     const val KEY_WEAR_COMPANION = "wear_companion"
+
+    // S2881: two routes, not one - a registry entry resolves to exactly one intent, so the plain and
+    // the record variant cannot share an entry and still appear as two items on the non-widget surfaces.
+    const val KEY_WATCH_LISTEN = "watch_listen"
+    const val KEY_WATCH_LISTEN_RECORD = "watch_listen_record"
 
     // S0978: the camera/video gesture actions that already have a Context-generic trampoline, offered
     // as panel routes too (labels reused from the left-edge gesture picker so wording never drifts).
@@ -81,6 +99,15 @@ object InternalRouteCatalog {
             intent = AppLaunchPanelRouteIntents::calculator,
             settingsIntent = AppLaunchPanelRouteIntents::calculatorSettings,
         ),
+        // S1411: label reused from the screen's own title, the way the network monitor and system
+        // information reuse theirs - two wordings for one program drift apart.
+        Route(
+            key = KEY_STOPWATCH,
+            labelRes = R.string.stopwatch_title,
+            iconRes = R.drawable.ic_stopwatch,
+            intent = AppLaunchPanelRouteIntents::stopwatch,
+            settingsIntent = AppLaunchPanelRouteIntents::stopwatchSettings,
+        ),
         Route(
             key = KEY_NETWORK_MONITOR,
             labelRes = R.string.network_monitor_title,
@@ -104,6 +131,14 @@ object InternalRouteCatalog {
             intent = AppLaunchPanelRouteIntents::systemInfo,
             settingsIntent = AppLaunchPanelRouteIntents::systemInfoSettings,
         ),
+        // S2922: Tourist dashboard sub-program.
+        Route(
+            key = KEY_TOURIST_INFO,
+            labelRes = R.string.tourist_info_title,
+            iconRes = R.drawable.ic_tourist,
+            intent = AppLaunchPanelRouteIntents::touristInfo,
+            settingsIntent = AppLaunchPanelRouteIntents::touristSettings,
+        ),
         // S1883: label reused from the button that has always opened the companion, for the same reason
         // system information reuses its settings string - two wordings for one program drift apart.
         Route(
@@ -112,6 +147,23 @@ object InternalRouteCatalog {
             iconRes = R.drawable.ic_watch,
             intent = AppLaunchPanelRouteIntents::wearCompanion,
             settingsIntent = AppLaunchPanelRouteIntents::wearCompanionSettings,
+        ),
+        // S2881: the listen calls stand beside the companion they extend, and read the watch icon
+        // like it; the record variant takes the microphone, because recording is what separates it.
+        // Their rows are the one place this catalog names an activity directly: the trampoline's own
+        // createIntent already carries the NEW_TASK flag, and the intents builder object sat at its
+        // TooManyFunctions ceiling.
+        Route(
+            key = KEY_WATCH_LISTEN,
+            labelRes = R.string.watch_listen_label,
+            iconRes = R.drawable.ic_watch_listen,
+            intent = { WatchListenLaunchActivity.createIntent(it, record = false) },
+        ),
+        Route(
+            key = KEY_WATCH_LISTEN_RECORD,
+            labelRes = R.string.watch_listen_record_label,
+            iconRes = R.drawable.ic_watch_listen_record,
+            intent = { WatchListenLaunchActivity.createIntent(it, record = true) },
         ),
         Route(
             key = KEY_OCR,
@@ -171,10 +223,24 @@ object InternalRouteCatalog {
             intent = AppLaunchPanelRouteIntents::physicalFlashlight,
         ),
         Route(
+            key = KEY_WATER_FLASHLIGHT,
+            labelRes = R.string.water_flashlight_title,
+            iconRes = R.drawable.ic_water_flashlight,
+            intent = AppLaunchPanelRouteIntents::waterFlashlight,
+            settingsIntent = AppLaunchPanelRouteIntents::frontFlashlightSettings,
+        ),
+        Route(
             key = KEY_BLACK_SCREEN,
             labelRes = R.string.launcher_action_black_screen,
             iconRes = R.drawable.ic_black_screen,
             intent = AppLaunchPanelRouteIntents::blackScreen,
+        ),
+        Route(
+            key = KEY_MIRROR,
+            labelRes = R.string.mirror_title,
+            iconRes = R.drawable.ic_mirror,
+            intent = AppLaunchPanelRouteIntents::mirror,
+            settingsIntent = AppLaunchPanelRouteIntents::mirrorSettings,
         ),
         // S0978: camera/video gesture actions with an existing standalone trampoline. Labels reuse the
         // left-edge gesture picker's own strings; order follows the ScreenshotGestureAction enum order.

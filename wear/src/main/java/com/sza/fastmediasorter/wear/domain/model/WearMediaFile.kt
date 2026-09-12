@@ -22,6 +22,18 @@ data class WearMediaFile(
     val title: String? = null
 )
 
+/** Maximum file count displayed numerically before capping at "###" (S2476). */
+const val MAX_COUNTER_DISPLAY_COUNT = 999
+
+/**
+ * S2476: returns the file name without extension for compact display on watch screens.
+ */
+val WearMediaFile.displayName: String
+    get() {
+        val dot = name.lastIndexOf('.')
+        return if (dot > 0) name.substring(0, dot) else name
+    }
+
 /**
  * Media type categories for browsing.
  */

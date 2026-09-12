@@ -42,6 +42,7 @@ import javax.inject.Inject
  *
  * Unscoped on purpose - what it builds is Activity-scoped and must not outlive the host that asked.
  */
+@Suppress("LongParameterList")
 class StandaloneHostFactory @Inject constructor(
     private val networkClients: StandaloneNetworkClients,
     private val fileOpHandlers: StandaloneFileOpHandlers,
@@ -54,6 +55,12 @@ class StandaloneHostFactory @Inject constructor(
     private val getDestinationsUseCase: GetDestinationsUseCase,
     private val sendToMenuManager: SendToMenuManager,
     private val saveTextNoteUseCase: SaveTextNoteUseCase,
+    val browseTransferCoordinator: com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator,
+    private val searchLyricsUseCase: dagger.Lazy<com.sza.fastmediasorter.domain.usecase.SearchLyricsUseCase>,
+    private val getStreamSourceByUrlUseCase:
+    dagger.Lazy<com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase>,
+    private val getStreamPlayOutcomeUseCase:
+    dagger.Lazy<com.sza.fastmediasorter.domain.usecase.streams.GetStreamPlayOutcomeUseCase>,
 ) {
 
     /**
@@ -79,6 +86,7 @@ class StandaloneHostFactory @Inject constructor(
         fileOperationUseCase = fileOperationUseCase,
         getDestinationsUseCase = getDestinationsUseCase,
         onPickCustomFolderForCopy = callbacks.onPickCustomFolderForCopy,
+        browseTransferCoordinator = browseTransferCoordinator,
     )
 
     fun createViewManager(
@@ -254,4 +262,27 @@ class StandaloneHostFactory @Inject constructor(
         credentialsRepository = networkClients.credentialsRepository.get(),
         unifiedCache = fileOpHandlers.unifiedCache.get(),
     )
+
+    fun createLyricsManager(
+        activity: AppCompatActivity,
+        root: View,
+        lifecycleScope: LifecycleCoroutineScope,
+        getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings = {
+            com.sza.fastmediasorter.domain.models.TranslationSessionSettings()
+        },
+    ): com.sza.fastmediasorter.ui.player.helpers.LyricsManager =
+        com.sza.fastmediasorter.ui.player.helpers.LyricsManager(
+            context = activity,
+            root = root,
+            lifecycleScope = lifecycleScope,
+            settingsRepository = settingsRepository,
+            searchLyricsUseCase = searchLyricsUseCase.get(),
+            getTranslationSessionSettings = getTranslationSessionSettings,
+        )
+
+    suspend fun getStreamSource(url: String): com.sza.fastmediasorter.data.local.db.StreamSourceEntity? =
+        getStreamSourceByUrlUseCase.get().invoke(url)
+
+    suspend fun getStreamPlayOutcome(id: String): String? =
+        getStreamPlayOutcomeUseCase.get().invoke(id)
 }

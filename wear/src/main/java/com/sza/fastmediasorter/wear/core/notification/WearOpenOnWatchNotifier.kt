@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.writeTo
 import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -53,9 +52,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
      * open rather than only that something will.
      */
     fun notifyPendingOpen(target: WearLaunchTarget, subtitle: String): Boolean {
-        Timber.d("S2231: notifyPendingOpen uses Wear status-bar icon")
         if (!canPostNotification()) {
-            Timber.d("S1961: notifyPendingOpen POST_NOTIFICATIONS is denied")
             return false
         }
         val manager = notificationManager()
@@ -70,7 +67,6 @@ class WearOpenOnWatchNotifier @Inject constructor(
             )
         )
         manager.notify(WearNotificationIds.OPEN_ON_WATCH, build(target, subtitle))
-        Timber.d("S1961: notifyPendingOpen posted notification subtitle=%s", subtitle)
 
         return true
     }
@@ -83,7 +79,6 @@ class WearOpenOnWatchNotifier @Inject constructor(
      * shade is worse than never having shown it (strategic §3.2).
      */
     fun cancel() {
-        Timber.d("S1961: cancel notification OPEN_ON_WATCH")
         notificationManager().cancel(WearNotificationIds.OPEN_ON_WATCH)
     }
 
@@ -91,7 +86,7 @@ class WearOpenOnWatchNotifier @Inject constructor(
         NotificationCompat.Builder(context, CHANNEL_ID)
             .setContentTitle(context.getString(R.string.wear_open_on_watch_notification_title))
             .setContentText(subtitle)
-            .setSmallIcon(R.drawable.ic_notification_app_logo)
+            .setSmallIcon(NotificationIcons.STATUS_BAR)
             .setCategory(NotificationCompat.CATEGORY_RECOMMENDATION)
             // Half of "it puts itself away": the tap clears it. The other half is [cancel].
             .setAutoCancel(true)

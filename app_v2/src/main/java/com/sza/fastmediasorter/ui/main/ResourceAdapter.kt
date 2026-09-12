@@ -35,6 +35,7 @@ import com.sza.fastmediasorter.util.LimitedStorageReach
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
 import com.sza.fastmediasorter.utils.setOnLongClickListenerDebounced
+import timber.log.Timber
 
 /** Callback from the adapter to the host (MainActivity) to start an ItemTouchHelper drag. */
 interface DragStartListener {
@@ -101,6 +102,7 @@ class ResourceAdapter(
             isDirectPathReconnectCandidate = isReconnectCandidate(context, resource),
         )
         val visible = ResourceActionCatalog.actionsFor(MenuActionSurface.MAIN_WINDOW, facts).toSet()
+        Timber.d("S2644: menu composed, reconnect=${ResourceMenuAction.RECONNECT_RESOURCE in visible}")
         ResourceMenuAction.entries.forEach { action ->
             menu.findItem(action.menuItemId)?.isVisible = action in visible
         }
@@ -582,14 +584,19 @@ class ResourceAdapter(
                     false
                 }
 
-                // Overflow menu for grid items (S0160)
+                // Overflow menu for grid items (S0160).
+                // S2644: the tile layout carries no inline action row, so gating this button on
+                // overflowModeEnabled left a tile with no action surface at all - on every device and
+                // every orientation - and seven of the ten device profile presets ship that setting
+                // off. The button is now present for any real resource.
                 if (resource.id == -100L) {
                     btnMoreActions.visibility = android.view.View.GONE
-                } else if (overflowModeEnabled) {
+                } else {
                     btnMoreActions.visibility = android.view.View.VISIBLE
                     // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
                     btnMoreActions.contentDescription = "more_options:${resource.name}"
                     btnMoreActions.setOnClickListener { view ->
+                        Timber.d("S2644: grid tile overflow opened")
                         val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
                         popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
                         applyActionVisibility(popup.menu, resource, view.context)
@@ -598,8 +605,6 @@ class ResourceAdapter(
                         popup.setOnMenuItemClickListener { item -> onActionSelected(item.itemId, resource) }
                         popup.show()
                     }
-                } else {
-                    btnMoreActions.visibility = android.view.View.GONE
                 }
             }
         }
@@ -926,7 +931,6 @@ class ResourceAdapter(
                     val showInlineActions = !overflowModeEnabled &&
                         root.resources.getBoolean(R.bool.is_resource_actions_inline)
                     if (showInlineActions) {
-                        btnMoreActions.visibility = android.view.View.GONE
                         layoutInlineActions.visibility = android.view.View.VISIBLE
                         btnEdit.setOnClickListenerDebounced { onEditClick(resource) }
                         btnCopy.visibility = if (isPredefinedVirtualResource) android.view.View.GONE else android.view.View.VISIBLE
@@ -935,22 +939,29 @@ class ResourceAdapter(
                         btnMoveDown.setOnClickListenerDebounced { onMoveDownClick(resource) }
                         btnDelete.setOnClickListenerDebounced { onDeleteClick(resource) }
                     } else {
-                        btnMoreActions.visibility = android.view.View.VISIBLE
                         layoutInlineActions.visibility = android.view.View.GONE
-                        // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
-                        btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    }
 
-                        btnMoreActions.setOnClickListenerDebounced { view ->
-                            val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
-                            popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
-                            applyActionVisibility(popup.menu, resource, view.context)
-                            popup.setForceShowIcon(true)
-                            tintPopupMenuIcons(view.context, popup.menu)
-                            popup.setOnMenuItemClickListener { item ->
-                                onActionSelected(item.itemId, resource)
-                            }
-                            popup.show()
+                    // S2644: the overflow is the action catalogue's only surface, so it is present for
+                    // every real resource. The inline row carries five of sixteen ResourceMenuAction
+                    // entries and is a shortcut beside it, never a replacement: while it replaced the
+                    // menu, the other eleven - reconnect among them - had no entry point on a tablet
+                    // or on any phone in landscape, and the storage-reach banner sends the user to one
+                    // of those eleven.
+                    btnMoreActions.visibility = android.view.View.VISIBLE
+                    // S0977: per-card E2E handle so a specific resource's overflow is uniquely targetable
+                    btnMoreActions.contentDescription = "more_options:${resource.name}"
+                    btnMoreActions.setOnClickListenerDebounced { view ->
+                        Timber.d("S2644: list row overflow opened")
+                        val popup = androidx.appcompat.widget.PopupMenu(view.context, view)
+                        popup.menuInflater.inflate(R.menu.resource_item_actions, popup.menu)
+                        applyActionVisibility(popup.menu, resource, view.context)
+                        popup.setForceShowIcon(true)
+                        tintPopupMenuIcons(view.context, popup.menu)
+                        popup.setOnMenuItemClickListener { item ->
+                            onActionSelected(item.itemId, resource)
                         }
+                        popup.show()
                     }
 
                     // Drag handle - visible for real resources when drag is wired up

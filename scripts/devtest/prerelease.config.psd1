@@ -8,7 +8,7 @@
 # network resources and their credentials are intentionally not part of this checkout.
 #
 # Apply channel:      'adb' = scriptable (theme SharedPrefs / cmd locale);
-#                     'ui'  = DataStore-backed, applied via mobile-mcp in the skill scenario.
+#                     'ui'  = DataStore-backed, applied via the Maestro MCP server in the skill scenario.
 @{
     Settings = @{
         Theme        = @{ Key = 'color_theme';       Value = 'DARK';     Channel = 'ui' }
@@ -71,5 +71,39 @@
             background  = 204800
             cached      = 409600
         }
+    }
+
+    # S2917: bands for the Play vitals watch (scripts/release/watch-play-vitals.ps1).
+    # Read on 2026-09-11 from Play Console help answer 9844486 ("Android vitals" bad behaviour).
+    #
+    # Red is Google's published threshold as it stands, never a number of our own (S2917 ADR-2):
+    # user-perceived crash rate 1.09 % and ANR rate 0.47 % over 28 days, 8 % on a single device model.
+    # RateUnit is an ASSUMPTION until the first live response settles it (S2917 research 6): the API
+    # calls these values "percentage" yet returns a bare decimal. Under 'fraction' a value above 1
+    # cannot be a fraction, so the verdict refuses instead of reading 1.5 as 150 %.
+    # MemoryBandsEnabled stays $false for the same reason - Google names no unit for the memory
+    # percentiles and only FOREGROUND as an appState value - so the memory limits in PlayMemory above
+    # are not compared until research 6 is resolved; the verdict reports "unit unconfirmed" instead.
+    # MemoryUnit ('bytes', 'kB' or 'MB') is the unit of the API's memory percentiles; it has to be set
+    # before MemoryBandsEnabled may be switched on, and the verdict refuses the combination otherwise.
+    # The two MinDistinctUsers floors are a noise guard, not a quality threshold: distinctUsers is
+    # rounded by Google, and below the floor the verdict is "insufficient data".
+    PlayVitals = @{
+        RateUnit                  = 'fraction'
+        Red = @{
+            UserPerceivedCrashRate = 0.0109
+            UserPerceivedAnrRate   = 0.0047
+            PerDeviceModel         = 0.08
+        }
+        YellowShareOfRed          = 0.5
+        SpikeFactor               = 3.0
+        MinDistinctUsers          = 100
+        MinDistinctUsersPerDevice = 50
+        MemoryBandsEnabled        = $false
+        MemoryUnit                = $null
+        AppStateMap = @{
+            FOREGROUND = 'foreground'
+        }
+        TopIssuesInTicket         = 5
     }
 }

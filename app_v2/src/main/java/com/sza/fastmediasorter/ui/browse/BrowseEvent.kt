@@ -8,6 +8,9 @@ sealed class BrowseEvent {
     data class ShowError(val message: String, val details: String? = null, val exception: Throwable? = null) : BrowseEvent()
     data class ShowMessage(val message: String) : BrowseEvent()
     data class ShowUndoToast(val operationType: String) : BrowseEvent()
+
+    /** S1326: authorise deleting [treeCount] copied folder trees before a copy undo runs. */
+    data class ShowUndoFolderCopyConfirm(val treeCount: Int) : BrowseEvent()
     data class NavigateToPlayer(val filePath: String, val fileIndex: Int) : BrowseEvent()
     /** S0783: a favorited live channel was tapped in the favorites list - open it in the stream player. */
     data class OpenStreamPlayer(val url: String) : BrowseEvent()

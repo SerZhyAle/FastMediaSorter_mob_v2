@@ -15,17 +15,17 @@ import androidx.media3.exoplayer.mediacodec.MediaCodecRenderer
 import com.sza.fastmediasorter.core.xr.PlayerStateSnapshot
 import com.sza.fastmediasorter.core.xr.runtime.DiagnosticXrRuntime
 import com.sza.fastmediasorter.ui.player.helpers.PrefetchLoadControlFactory
+import com.sza.fastmediasorter.ui.xr.VrPlaybackSource
 import timber.log.Timber
-import java.io.File
 
 /**
  * S0989: owns the immersive diagnostic ExoPlayer instance, its [Player.Listener], and the ordered
  * teardown, extracted from DiagnosticXrActivity. Not to be confused with [HudPlaybackController],
  * the transport-button wrapper - this one builds and releases the player itself.
  *
- * The host wires behaviour via callbacks: [onError] paints the error banner + toast (the controller
- * releases the player right after, preserving the original order), [onTracksChanged] refreshes the
- * panel track rows, [onCues] feeds the subtitle quad, and [onPlayerChanged] mirrors the player into
+ * The host wires behaviour via [Callbacks]: `onError` paints the error banner + toast (the controller
+ * releases the player right after, preserving the original order), `onTracksChanged` refreshes the
+ * panel track rows, `onCues` feeds the subtitle quad, and `onPlayerChanged` mirrors the player into
  * [HudPlaybackController] and seeds/clears the panel model.
  */
 class VrDiagnosticPlaybackController(
@@ -34,12 +34,22 @@ class VrDiagnosticPlaybackController(
     private val snapshotProvider: () -> PlayerStateSnapshot?,
     private val runOnUiThread: (() -> Unit) -> Unit,
     private val isHostActive: () -> Boolean,
-    private val onSurfaceUnavailable: () -> Unit,
-    private val onError: (file: File, shortErr: String) -> Unit,
-    private val onTracksChanged: () -> Unit,
-    private val onCues: (CueGroup) -> Unit,
-    private val onPlayerChanged: (ExoPlayer?) -> Unit,
+    private val callbacks: Callbacks,
 ) {
+
+    /**
+     * The five host hooks, grouped rather than listed one by one. S1218 changed [onError]'s shape
+     * and the constructor tipped over the parameter-count rule at that moment; the hooks were
+     * already a single collaborator - what the host does when the player says something.
+     */
+    class Callbacks(
+        val onSurfaceUnavailable: () -> Unit,
+        // S1218: the failing item is named, not handed over as a File - a live channel has none.
+        val onError: (name: String, shortErr: String) -> Unit,
+        val onTracksChanged: () -> Unit,
+        val onCues: (CueGroup) -> Unit,
+        val onPlayerChanged: (ExoPlayer?) -> Unit,
+    )
 
     var player: ExoPlayer? = null
         private set
@@ -48,12 +58,13 @@ class VrDiagnosticPlaybackController(
     // for the class; the field exists only to give the paired removal in release() an addressee.
     private var playerListener: Player.Listener? = null
 
-    fun start(file: File): Boolean {
+    fun start(source: VrPlaybackSource): Boolean {
         release()
+        val name = source.displayName
         val videoSurface = runtime.getVideoSurface()
         if (videoSurface == null) {
-            Timber.w("DiagnosticXrActivity: native video surface is not ready for ${file.name}")
-            onSurfaceUnavailable()
+            Timber.w("DiagnosticXrActivity: native video surface is not ready for $name")
+            callbacks.onSurfaceUnavailable()
             return false
         }
         val snapshot = snapshotProvider()
@@ -106,7 +117,7 @@ class VrDiagnosticPlaybackController(
 
                     Timber.e(
                         error,
-                        "VR diagnostic playback failed! File: ${file.name}, Stage: $stage, " +
+                        "VR diagnostic playback failed! Item: $name, Stage: $stage, " +
                             "Code: ${error.errorCode} (${error.errorCodeName}), " +
                             "Msg: ${error.message}, $decoderDetails"
                     )
@@ -114,7 +125,7 @@ class VrDiagnosticPlaybackController(
                     runOnUiThread {
                         if (isHostActive()) {
                             val shortErr = "${error.errorCodeName} ($stage)"
-                            onError(file, shortErr)
+                            callbacks.onError(name, shortErr)
 
                             Toast.makeText(
                                 context,
@@ -138,14 +149,14 @@ class VrDiagnosticPlaybackController(
                 override fun onTracksChanged(tracks: Tracks) {
                     runOnUiThread {
                         if (!isHostActive()) return@runOnUiThread
-                        onTracksChanged()
+                        callbacks.onTracksChanged()
                     }
                 }
 
                 // S0986: feed the selected subtitle track's cues to the lower-third subtitle quad.
                 // Cue callbacks arrive on the main thread; the controller renders + uploads there.
                 override fun onCues(cueGroup: CueGroup) {
-                    onCues(cueGroup)
+                    callbacks.onCues(cueGroup)
                 }
             }
             playerListener = listener
@@ -160,15 +171,20 @@ class VrDiagnosticPlaybackController(
                 playWhenReady = true
             }
 
-            val mediaItem = MediaItem.fromUri(Uri.fromFile(file))
+            // S1218 (ADR-3): the engine is unchanged - ExoPlayer already opens a network address;
+            // only the line that assumed the address was a file had to stop assuming it.
+            val mediaItem = when (source) {
+                is VrPlaybackSource.LocalFile -> MediaItem.fromUri(Uri.fromFile(source.file))
+                is VrPlaybackSource.NetworkStream -> MediaItem.fromUri(source.uri)
+            }
             setMediaItem(mediaItem)
             prepare()
         }
         runtime.setVideoSurfaceEnabled(true)
         // S0964: seed the panel model from the real player state (snapshot-aware) so the HUD does
         // not show stale defaults (volume 1.0 / playing) on warm entries from the flat player.
-        onPlayerChanged(player)
-        Timber.d("Started video playback for: ${file.name}")
+        callbacks.onPlayerChanged(player)
+        Timber.d("Started video playback for: $name")
         return true
     }
 
@@ -182,6 +198,6 @@ class VrDiagnosticPlaybackController(
         playerListener = null
         // S0986: the host mirrors null into HudPlaybackController and drops any stale cue so the
         // subtitle quad hides when playback stops or media switches.
-        onPlayerChanged(null)
+        callbacks.onPlayerChanged(null)
     }
 }

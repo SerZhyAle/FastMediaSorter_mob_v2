@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
+import android.net.Uri
 import android.os.Environment
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.DestinationColors
+import com.sza.fastmediasorter.core.util.UriPathResolver
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.ResourceProfile
@@ -15,7 +17,7 @@ import javax.inject.Inject
 
 /**
  * Creates the Downloads folder as the first destination on a fresh install.
- * Condition: no destination with the Downloads path exists yet.
+ * Condition: no destination with the Downloads path (raw or reconnected SAF tree) exists yet.
  */
 class ProvisionDownloadsDestinationUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
@@ -33,7 +35,14 @@ class ProvisionDownloadsDestinationUseCase @Inject constructor(
         if (!java.io.File(downloadsPath).isDirectory) return false
 
         val existing = resourceRepository.getAllResourcesSync()
-        if (existing.any { it.isDestination && it.path == downloadsPath }) return false
+        val downloadsDestinations = existing.filter { it.isDestination && isDownloadsPath(it.path, downloadsPath) }
+
+        if (downloadsDestinations.isNotEmpty()) {
+            if (downloadsDestinations.size > 1) {
+                collapseDuplicateDownloadsDestinations(downloadsDestinations)
+            }
+            return false
+        }
 
         val destinationOrder = 0
         val destinationColor = DestinationColors.getColorForDestination(destinationOrder)
@@ -70,5 +79,26 @@ class ProvisionDownloadsDestinationUseCase @Inject constructor(
         resourceRepository.addResource(resource)
         Timber.i("Provisioned Downloads destination on first launch")
         return true
+    }
+
+    private suspend fun collapseDuplicateDownloadsDestinations(destinations: List<MediaResource>) {
+        val sorted = destinations.sortedWith(
+            compareByDescending<MediaResource> { it.path.startsWith("content://") }
+                .thenBy { it.id }
+        )
+        val toDelete = sorted.drop(1)
+        for (resource in toDelete) {
+            resourceRepository.deleteResource(resource.id)
+            Timber.w("Removed duplicate Downloads destination resource %d (path=%s)", resource.id, resource.path)
+        }
+    }
+
+    private fun isDownloadsPath(path: String, downloadsPath: String): Boolean {
+        if (path == downloadsPath) return true
+        if (path.startsWith("content://")) {
+            val resolved = UriPathResolver.getPath(context, Uri.parse(path))
+            if (resolved == downloadsPath) return true
+        }
+        return false
     }
 }

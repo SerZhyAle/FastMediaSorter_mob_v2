@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.data.repository
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import com.sza.fastmediasorter.domain.repository.LauncherShortcutSyncRepository
@@ -41,7 +42,46 @@ class LauncherShortcutSyncRepositoryImpl @Inject constructor(
         dataStore.edit { preferences -> preferences.remove(KEY_SYNCED_SHORTCUT_ROUTES) }
     }
 
+    override suspend fun isStopwatchShortcutBackfilled(): Boolean =
+        dataStore.data.first()[KEY_STOPWATCH_SHORTCUT_BACKFILLED] ?: false
+
+    override suspend fun setStopwatchShortcutBackfilled() {
+        dataStore.edit { preferences -> preferences[KEY_STOPWATCH_SHORTCUT_BACKFILLED] = true }
+    }
+
+    override suspend fun syncedResourcePaths(): Set<String>? =
+        dataStore.data.first()[KEY_SYNCED_RESOURCE_PATHS]
+
+    override suspend fun setSyncedResourcePaths(paths: Set<String>) {
+        val snapshot = paths.toSet()
+        dataStore.edit { preferences -> preferences[KEY_SYNCED_RESOURCE_PATHS] = snapshot }
+    }
+
+    override suspend fun clearSyncedResourcePaths() {
+        dataStore.edit { preferences -> preferences.remove(KEY_SYNCED_RESOURCE_PATHS) }
+    }
+
+    override suspend fun isResourcesAddTileBackfilled(): Boolean =
+        dataStore.data.first()[KEY_RESOURCES_ADD_TILE_BACKFILLED] ?: false
+
+    override suspend fun setResourcesAddTileBackfilled() {
+        dataStore.edit { preferences -> preferences[KEY_RESOURCES_ADD_TILE_BACKFILLED] = true }
+    }
+
+    override suspend fun clearResourcesAddTileBackfilled() {
+        dataStore.edit { preferences -> preferences.remove(KEY_RESOURCES_ADD_TILE_BACKFILLED) }
+    }
+
     private companion object {
         val KEY_SYNCED_SHORTCUT_ROUTES = stringSetPreferencesKey("launcher_synced_shortcut_routes")
+        val KEY_STOPWATCH_SHORTCUT_BACKFILLED = booleanPreferencesKey("launcher_stopwatch_shortcut_backfilled")
+
+        // S2564: a key of its own, so the launcher reset and the two sync passes can clear one
+        // baseline without disturbing the other.
+        val KEY_SYNCED_RESOURCE_PATHS = stringSetPreferencesKey("launcher_synced_resource_paths")
+
+        // S2859: a key of its own, so the reset can clear the tile flag without touching either
+        // baseline.
+        val KEY_RESOURCES_ADD_TILE_BACKFILLED = booleanPreferencesKey("launcher_resources_add_tile_backfilled")
     }
 }

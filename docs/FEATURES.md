@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-09-02*
+*Last updated: 2026-09-12*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -18,11 +18,13 @@ This document is the curated showcase of standout user-facing features. The comp
 - **One app for local, NAS, SFTP, FTP, and cloud drives** `[Standard / VR]`: Browse local folders, SMB/NAS shares, FTP/SFTP servers, and Google Drive, Dropbox, or OneDrive in one interface instead of splitting your library across separate apps.
 - **Share a configured resource with another device** `[Standard / VR]`: Export a ready-to-use source, then import it on another device from a file, share sheet, or backup flow instead of re-entering the whole connection by hand.
 - **Share a resource as a QR code** `[Standard]`: Hand an SFTP resource to another device by showing a QR code the recipient scans - no file transfer or manual re-entry.
+- **Cloud sources survive a move to a new device** `[Standard / Photos / Legacy / VR / noLegal]`: Google Drive, Dropbox and OneDrive stay signed in after a backup restore on new hardware, instead of asking for every account again.
 
 ## 2. Replace copy apps and duplicate cleaners
 - **Cross-protocol transfers** `[Standard / VR]`: Copy or move files between Local, SMB, FTP, SFTP, and Cloud in any direction with background progress, speed, and ETA.
 - **Duplicate file finder** `[Standard / VR]`: Find and remove identical files with a staged matcher (size -> partial hash -> SHA-256) for large photo, music, or download libraries.
 - **Soft delete with restore** `[Standard / VR]`: Deleted files go to an app-managed trash snapshot first, so mistakes can be undone instead of becoming permanent immediately.
+- **Undo a whole folder transfer** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A folder copy or move can be taken back in one action, not file by file.
 
 ## 3. Replace capture, quick-launch, and send-out utilities
 - **Direct capture into the folder you actually use** `[Standard / VR]`: Take photos, record voice notes, or capture video directly into local, network, or cloud destinations instead of first dumping everything into the camera roll.
@@ -36,6 +38,12 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Frame the shot the way it will save** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Choose 4:3, 16:9, or full screen and the viewfinder itself changes, so the picture you see is the picture you get, and every lens keeps its own zoom and scenario for next time.
 
 - **Front flashlight** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The screen itself becomes a lamp - it opens white at full brightness, a vertical swipe dims it, a corner button remembers another colour, and one tap closes it without touching your device brightness setting.
+- **Built-in stopwatch** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Time several participants on one screen, and keep the stopwatch on the home screen as a widget.
+- **Mirror** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The front camera as a plain mirror, one tap from the programs menu.
+- **Water flashlight** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A screen light wet hands cannot switch off by accident, on the phone and on the watch.
+- **Camera flashlight from the notification shade** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One tile turns the camera light on and off without opening anything.
+- **Live broadcast over Wi-Fi** `[Standard / Legacy / noLegal]`: The phone microphone becomes a station anyone on the same network can listen to, with its own settings section.
+- **Listen to the paired watch** `[Standard / noLegal]`: Live audio from the watch arrives on the phone, and can be recorded there.
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
 - **Open a file from another app and keep browsing nearby files** `[Standard / VR]`: When another app hands off one file, continue with next, previous, random, or slideshow inside the same folder instead of getting stuck on a single item.
@@ -44,6 +52,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **SD cards and plugged-in drives** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Removable storage and mounted external drives appear as browsable sources instead of staying invisible.
 - **Reconnect a folder through the system chooser** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A folder you added by typing its path can be reconnected through Android's own folder window, keeping its name, place in the list, PIN, icon and favorites - and gaining the documents a typed path can never read.
 - **The app tells you what a folder cannot show** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: When a connection can only reach photos, video and audio, the list says so and points at the fix, instead of quietly leaving documents out of the count.
+- **Swipe a file row to act on it** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Assign your own action to a left or right swipe and run it without opening a menu.
 
 ## 5. Replace several media viewers and editors
 - **Image viewer with real file actions** `[Standard / VR]`: Crop, rotate, flip, adjust colors, speed-control GIFs, and export GIF frames without switching to a separate image utility.
@@ -61,6 +70,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **A real player on the watch** `[Wear OS]`: Audio and video play on the watch with shuffle, bezel volume, a draggable position bar, paging controls, and a screen-off mode that keeps the sound going.
 - **The watch as a place to put files** `[Wear OS]`: Add the paired watch as a resource beside local and cloud ones, copy or move files onto it from any phone screen, and receive what the watch sends back into a destination you choose, up to 32 MB per file.
 - **Rectangular tiles on the watch** `[Wear OS]`: Every grid on the watch draws rectangular cells - a thumbnail fills its cell with no plate underneath, and an item without one shows its type glyph in a thin frame.
+- **Mono audio playback** `[Standard / Lite / Legacy / VR / noLegal]`: Fold both channels into one for a single earphone or a mono speaker.
+- **Stereo balance presets** `[Standard / Lite / Legacy / VR / noLegal]`: Shift the balance between left and right without hunting through system settings.
 ## 6. Replace OCR, translation, and note extraction tools
 - **Offline OCR and offline translation** `[Standard / VR]`: Extract text from images and PDFs, then translate it locally without sending content to a cloud OCR service.
 - **Photo-to-text and screenshot-to-translation flow** `[Standard / VR]`: Capture, crop, recognize, translate, and save the result as editable text in one flow.
@@ -81,6 +92,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Live streams on Wear OS** `[Wear OS]`: The watch app now plays live radio and video streams straight from its own channel list, over the watch's own network, with no phone nearby.
 
 - **Stream widget on the home screen** `[Standard / Legacy / VR / noLegal]`: Start a channel straight from the home screen without opening the app first.
+- **Curated stream collections** `[Standard / Legacy / VR / noLegal]`: Ready-made sets of channels open as a collection instead of one long catalog to scroll.
+- **A picture for radio** `[Standard / Legacy / VR / noLegal]`: An audio stream plays behind a music visualizer rather than a blank screen.
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
 - **App panel for apps, tools, and internal actions** `[Standard]`: Build a quick-launch panel that mixes Android apps, system shortcuts, captures, OCR tools, streams, and chosen resources in one place.
@@ -91,7 +104,12 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Accessibility Service quick disable before banking** `[noLegal]`: 1-tap disabling of Accessibility Service from Settings, Android Quick Settings Tile, or 1x1 homescreen AppWidget for safe banking app execution.
 
 - **Mini-programs on the watch** `[Wear OS]`: The calculator, the network monitor and the mini-game each get their own watch screen, so the wrist is not just a remote.
+- **Blood pressure tracking on the watch** `[Wear OS]`: Manually enter systolic and diastolic blood pressure readings on the watch and review them in a history list with timestamps.
 - **System information as a program** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The full device report sits in the programs menu instead of behind Settings, and the watch has its own screen for it.
+- **Automatic power saving** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The app steps down its own activity on phone and watch, and says when a battery threshold cannot work.
+- **Backup carries 124 more settings** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A restore brings back the screenshot gestures and launcher readouts a backup used to drop.
+- **One unit system across the app** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Metric or imperial decides every distance, speed and temperature the app shows, and survives a backup.
+- **Fully open-source edition** `[FOSS]`: A build with no proprietary components, for the F-Droid catalogue.
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.
 - **Make the desktop yours** `[Standard / noLegal]`: Choose the branded waves-and-particles animation, a flat empty surface, or a picture of your own including an animated GIF, cropped to fill the screen.
@@ -109,3 +127,6 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Search the web and switch radios from the desktop** `[Standard / noLegal]`: Type a query and it opens in the browser, and the Wi-Fi and Bluetooth tiles turn the radios on or off in place.
 - **Other apps' notifications on the desktop** `[Standard / noLegal]`: The launcher top bar shows what other apps are reporting, and the Active signals panel lets you dismiss them without leaving the desktop.
 - **See the wallpaper through your gadgets** `[Standard / noLegal]`: Desktop cells draw anywhere from fully transparent to an opaque card, and edit mode always shows the full card so a cell stays easy to grab.
+- **The desktop locks itself** `[Standard / noLegal]`: Lock from the desktop itself, or let an idle screen-off do it.
+- **Automatic package shortcuts** `[Standard / noLegal]`: Newly installed apps seed their own desktop cells instead of being placed by hand.
+- **The desktop can start the app** `[Standard / noLegal]`: Open on the desktop instead of the main window, with its own list of screens and its own settings section.

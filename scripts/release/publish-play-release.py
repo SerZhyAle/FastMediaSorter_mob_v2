@@ -16,8 +16,8 @@ Exit codes:
     2 - could not verify: a sustained transient failure (5xx, rate limit, network). The release is
         NOT implicated - re-run when the API recovers.
 """
+import json
 import os
-import re
 import socket
 import ssl
 import sys
@@ -84,26 +84,67 @@ KEY_FILE = next(
 )
 AAB_PATH = os.path.join(REPO_ROOT, 'DOWNLOADS', 'FastMediaSorter_standard_release.aab')
 
-def get_version_name():
-    """Reads the current versionName from app_v2/build.gradle.kts."""
-    build_gradle = os.path.join(REPO_ROOT, 'app_v2', 'build.gradle.kts')
+def bundle_metadata_path(aab_path):
+    """Resolves the AGP output-metadata.json belonging to the bundle being uploaded.
+
+    The metadata must come from the module that produced THIS artifact. The watch releases on its
+    own cadence, so app_v2/build/outputs usually holds a metadata file from some earlier phone
+    release; reading it for a wear upload files the watch release under the phone's versionName.
+
+    The uploaded path is a DOWNLOADS copy and carries no variant, only the module in its name, so
+    the module is taken from the file name and the newest metadata under that module's bundle root
+    is used - which is the bundle the release just built. Returns None when the module produced no
+    bundle at all, so the caller can say "did not look" rather than guess.
+    """
+    module = 'wear' if 'wear' in os.path.basename(aab_path).lower() else 'app_v2'
+    root = os.path.join(REPO_ROOT, module, 'build', 'outputs', 'bundle')
+    found = []
+    for dirpath, _dirnames, filenames in os.walk(root):
+        if 'output-metadata.json' in filenames:
+            found.append(os.path.join(dirpath, 'output-metadata.json'))
+    if not found:
+        print(f"Warning: no output-metadata.json under {root} - the {module} bundle was not built here.")
+        return None
+    return max(found, key=os.path.getmtime)
+
+
+def read_bundle_metadata_element(aab_path):
+    """Returns the first element of the release bundle's AGP output-metadata.json, or None.
+
+    S1873: the version of a release is the version its artifact carries. Reading it out of
+    app_v2/build.gradle.kts stopped being possible at ADR-4 - the version travels to gradle as a
+    property and nothing writes those constants any more, so the build file holds a deliberate
+    non-releasable sentinel. Any element answers: AGP gives every slice of one build the same
+    version pair.
+
+    None means "no metadata to read", which is a different answer from "the version is wrong".
+    """
+    path = bundle_metadata_path(aab_path)
+    if not path:
+        return None
     try:
-        with open(build_gradle, 'r', encoding='utf-8') as f:
-            content = f.read()
-            match = re.search(r'versionName\s*=\s*"([^"]+)"', content)
-            if match:
-                return match.group(1)
+        with open(path, 'r', encoding='utf-8') as f:
+            elements = json.load(f).get('elements') or []
+            if elements:
+                return elements[0]
+        print(f"Warning: {path} declares no elements.")
     except Exception as e:
-        print(f"Warning: Could not read versionName from gradle files: {e}")
+        print(f"Warning: Could not read {path}: {e}")
     return None
+
+
+def get_version_name(aab_path):
+    """Reads the versionName the release build packaged into the bundle being uploaded."""
+    element = read_bundle_metadata_element(aab_path)
+    return element['versionName'] if element else None
 
 def parse_args(argv):
     """Positional track/status, plus the flags a non-standard artifact needs.
 
     The phone AAB is the default because it is the only artifact this script published for
     its first two years. The watch bundle goes to its own form-factor track under the same
-    applicationId, carries its own versionCode, and cannot be read out of app_v2's
-    build.gradle.kts - hence the explicit --aab / --version-code pair (S1707).
+    applicationId, carries its own versionCode, and is not described by the phone bundle's
+    output-metadata.json - hence the explicit --aab / --version-code pair (S1707).
     """
     aab_path = AAB_PATH
     version_code = None
@@ -129,24 +170,21 @@ def parse_args(argv):
     return track, status, aab_path, version_code, notes_code
 
 
-def get_expected_version_code():
-    """Reads the release versionCode the build stamped into app_v2/build.gradle.kts.
+def get_expected_version_code(aab_path):
+    """Reads the versionCode the release build actually packaged into the bundle.
 
-    The release build (a.ps1 r / build-release-spectrum.ps1) writes the resolved
-    code into `defaultAppVersionCode`, so the first `versionCode = <digits>` match
-    is the version of the AAB on disk. Used to pre-check the Play library without
-    uploading first. Returns the int code, or None if it cannot be resolved.
+    S1873: this used to parse `defaultAppVersionCode` out of app_v2/build.gradle.kts, on the
+    assumption that the release build had just written it there. ADR-4 removed that writer - the
+    version travels to gradle as a property and the checked-in constants are a deliberate
+    non-releasable sentinel - so the build file would now answer with a code no AAB carries, and
+    the Play pre-check would compare the library against a version nobody built.
+
+    AGP writes output-metadata.json beside the bundle it produced, so that file cannot disagree
+    with the artifact. Used to pre-check the Play library without uploading first. Returns the int
+    code, or None if it cannot be resolved.
     """
-    build_gradle = os.path.join(REPO_ROOT, 'app_v2', 'build.gradle.kts')
-    try:
-        with open(build_gradle, 'r', encoding='utf-8') as f:
-            content = f.read()
-            match = re.search(r'versionCode\s*=\s*(\d+)', content)
-            if match:
-                return int(match.group(1))
-    except Exception as e:
-        print(f"Warning: Could not read versionCode from gradle files: {e}")
-    return None
+    element = read_bundle_metadata_element(aab_path)
+    return int(element['versionCode']) if element else None
 
 def list_existing_bundle_codes(service, edit_id):
     """Returns the set of versionCodes already present in the App Bundle Explorer.
@@ -234,7 +272,7 @@ def main():
         # prior run uploaded it but the commit was rejected by the FGS-permissions
         # gate), skip the upload and attach that bundle to the track - Play refuses
         # re-uploading a versionCode that already exists. Otherwise upload as usual.
-        expected_version_code = forced_version_code if forced_version_code else get_expected_version_code()
+        expected_version_code = forced_version_code if forced_version_code else get_expected_version_code(aab_path)
         existing_codes = list_existing_bundle_codes(service, edit_id)
         version_code = None
 
@@ -268,7 +306,7 @@ def main():
         # different versionCode, so the fastlane changelog is filed under the phone's number.
         # --notes-code names that number instead of shipping a Wear release with no notes at all.
         release_notes = get_release_notes(notes_code if notes_code else version_code)
-        version_name = get_version_name()
+        version_name = get_version_name(aab_path)
 
         # 5. Update Track
         print(f"\nAdding bundle {version_code} to track '{track_name}' as {status}...")

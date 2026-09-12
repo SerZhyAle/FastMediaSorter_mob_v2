@@ -103,7 +103,7 @@ When **"Auto-next"** is enabled, the next episode starts automatically when the 
 > **This section is for people with a VR headset (like Meta Quest 2/3 or Pico 4).** If you don't have one, skip this step.
 
 Android-based VR headsets can run FastMediaSorter. Install it via sideloading:
-1. Download the APK from the [Downloads page](../DOWNLOADS_EN.md)
+1. Download the APK from the [Downloads page](../DOWNLOADS.md)
 2. On your headset, enable **"Install from unknown sources"** in Developer settings
 3. Install the APK using SideQuest or directly via ADB
 

@@ -3,8 +3,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 import android.content.Context
 import android.widget.Toast
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.local.staging.LocalStagingRegistry
 import com.sza.fastmediasorter.domain.model.MediaFile
@@ -93,7 +93,8 @@ internal class TextViewerLoader(
         coroutineScope.launch(Dispatchers.IO) {
             val settings = settingsRepository.getSettings().first()
             withContext(Dispatchers.Main) {
-                safeViews.btnTranslateTextCmd.isVisible = BuildConfig.ENABLE_TRANSLATION && settings.enableTranslation
+                safeViews.btnTranslateTextCmd.isVisible =
+                    CapabilityAvailabilityAccessor.isTranslationAvailable(context) && settings.enableTranslation
             }
             try {
                 // S0189: new note may be registered as deferred - file is created on first Save, not when editor opens. Skip not-found error in that case and render empty buffer; auto-open edit mode is next step.

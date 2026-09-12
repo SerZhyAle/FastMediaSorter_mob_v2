@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.ui.player.PlayerViewModel
 import com.sza.fastmediasorter.ui.player.SlideshowController
 import com.sza.fastmediasorter.ui.player.SlideshowSettingsDialogFragment
 import com.sza.fastmediasorter.utils.UserActionLogger
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -512,8 +513,14 @@ class PlayerControlsSetupManager(
                 currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.TEXT ||
                 currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.VIDEO
 
+        val isVideo = currentFile?.type == com.sza.fastmediasorter.domain.model.MediaType.VIDEO
+        val isVideoControllerVisible = binding.playerView.isControllerFullyVisible
+
+        val shouldBeVisible = isFullscreen && isFullscreenExitEligible && (!isVideo || isVideoControllerVisible)
         safeViews.btnDocumentFullscreenExit.visibility =
-            if (isFullscreen && isFullscreenExitEligible) android.view.View.VISIBLE else android.view.View.GONE
+            if (shouldBeVisible) android.view.View.VISIBLE else android.view.View.GONE
+
+        Timber.d("S2895: doc exit btn video=$isVideo ctrl=$isVideoControllerVisible visible=$shouldBeVisible")
     }
 
     /**
@@ -541,36 +548,40 @@ class PlayerControlsSetupManager(
 
         // Apply WindowInsets to toolbar to avoid overlap with status bar
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.toolbar) { view, insets ->
-            val statusBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.statusBars())
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val cutoutTop = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, cutoutTop)
             view.setPadding(
                 view.paddingLeft,
-                statusBarInsets.top,
+                topPadding,
                 view.paddingRight,
                 view.paddingBottom
             )
-            Timber.d("Toolbar: Applied status bar insets - top=${statusBarInsets.top}")
+            Timber.d("Toolbar: Applied status bar insets - top=$topPadding")
             insets
         }
 
         // Apply WindowInsets to topCommandPanel.
-        // Use statusBars | captionBar so the panel is also pushed below the Chrome OS window
-        // title bar (captionBar), which is not reported under statusBars() in windowed mode.
+        // Use statusBars | captionBar | displayCutout with getStatusBarHeightSafe fallback for OEM
+        // Android 8 car screens
         androidx.core.view.ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val topInsets = insets.getInsets(
-                androidx.core.view.WindowInsetsCompat.Type.statusBars() or
-                    androidx.core.view.WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val navBarInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.navigationBars())
+            val cutoutInsets = insets.getInsets(androidx.core.view.WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(navBarInsets.left, cutoutInsets.left)
+            val rightPadding = maxOf(navBarInsets.right, cutoutInsets.right)
+
             view.setPadding(
-                navBarInsets.left,
-                topInsets.top,
-                navBarInsets.right,
+                leftPadding,
+                topPadding,
+                rightPadding,
                 view.paddingBottom
             )
-            Timber.d(
-                "TopCommandPanel: Applied insets - top=${topInsets.top}, " +
-                    "navBar.left=${navBarInsets.left}, navBar.right=${navBarInsets.right}"
-            )
+            Timber.d("S2908: TopCommandPanel applied insets - top=$topPadding, left=$leftPadding, right=$rightPadding")
             insets
         }
 

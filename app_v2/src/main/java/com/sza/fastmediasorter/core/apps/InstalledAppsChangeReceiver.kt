@@ -17,9 +17,15 @@ import javax.inject.Inject
  *
  * A manifest receiver rather than `LauncherApps.Callback`, which only reports while this app holds the
  * home role - it would go silent in every flavor without launcher mode, and the moment the user hands
- * the role back, which is exactly when a stale list is hardest to notice (strategic research 03). The
- * package broadcasts are exempt from the implicit-broadcast restrictions, so this still fires with the
- * app not running.
+ * the role back, which is exactly when a stale list is hardest to notice (strategic research 03).
+ *
+ * S2739 / S2745: of the package broadcasts, only `ACTION_PACKAGE_FULLY_REMOVED` is exempt from the
+ * Android 8.0 implicit-broadcast restrictions, so it is the one that actually reaches a manifest
+ * receiver on `minSdk 26`. `ADDED` / `REMOVED` / `REPLACED` are kept for the `legacy` flavor (API 23),
+ * where the restriction does not exist; from API 26 up those three arrive through the runtime
+ * registration in [InstalledAppsChangeWatcher] instead. The locale branch stays here: a manifest
+ * receiver does get `ACTION_LOCALE_CHANGED`, and it must be answered even when the process was not
+ * running to register anything.
  */
 @AndroidEntryPoint
 class InstalledAppsChangeReceiver : BroadcastReceiver() {
@@ -28,12 +34,15 @@ class InstalledAppsChangeReceiver : BroadcastReceiver() {
     lateinit var refreshInstalledApps: RefreshInstalledAppsUseCase
 
     @Inject
+    lateinit var changeHandler: InstalledAppsChangeHandler
+
+    @Inject
     @ApplicationScope
     lateinit var applicationScope: CoroutineScope
 
-    private companion object {
+    companion object {
         /** Names the locale branch in a failure log, where there is no package name to name it by. */
-        const val LOCALE_REASON = "locale change"
+        private const val LOCALE_REASON = "locale change"
     }
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -42,22 +51,19 @@ class InstalledAppsChangeReceiver : BroadcastReceiver() {
                 runInBackground(LOCALE_REASON) { refreshInstalledApps.refreshLabelsOnly() }
             Intent.ACTION_PACKAGE_ADDED,
             Intent.ACTION_PACKAGE_REMOVED,
+            Intent.ACTION_PACKAGE_FULLY_REMOVED,
             Intent.ACTION_PACKAGE_REPLACED -> refreshChangedPackage(intent)
             else -> Unit
         }
     }
 
-    /**
-     * An app update arrives as REMOVED+ADDED with `EXTRA_REPLACING` set on both halves. Ignoring the
-     * removal half keeps an update from costing two sweeps, and from briefly deleting the row of an
-     * app that never actually left.
-     */
     private fun refreshChangedPackage(intent: Intent) {
-        val replacingRemoval = intent.action == Intent.ACTION_PACKAGE_REMOVED &&
-            intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
-        val packageName = intent.data?.schemeSpecificPart
-        if (packageName != null && !replacingRemoval) {
-            runInBackground(packageName) { refreshInstalledApps.refreshPackage(packageName) }
+        val packageName = intent.data?.schemeSpecificPart ?: return
+        val isReplacing = intent.getBooleanExtra(Intent.EXTRA_REPLACING, false)
+        val action = intent.action
+        runInBackground(packageName) {
+            Timber.d("S2739: package change %s delivered for %s", action, packageName)
+            changeHandler.handle(action, packageName, isReplacing)
         }
     }
 

@@ -1,0 +1,20 @@
+# One forbidden dependency coordinate prefix per line, matched against "group:module".
+# A coordinate on this list may not appear on the foss runtime classpath: F-Droid's
+# inclusion policy refuses proprietary libraries, and a flag set to false does not
+# unlink one - only a per-flavor dependency block does (S0403 research 01).
+# Gate: VerifyNoProprietaryDepsTask in app_v2/build.gradle.kts.
+
+# Google Play Services - sign-in, Cast, Wearable, Blockstore.
+com.google.android.gms
+# ML Kit - translation and language identification.
+com.google.mlkit
+# Play Core / Feature Delivery - Play-only dynamic delivery.
+com.google.android.play
+# Credential Manager Google identity provider.
+com.google.android.libraries.identity.googleid
+# MSAL - OneDrive sign-in.
+com.microsoft.identity.client
+# Dropbox SDK.
+com.dropbox.core
+# Chaquopy - ships a prebuilt Python runtime F-Droid cannot rebuild.
+com.chaquo.python

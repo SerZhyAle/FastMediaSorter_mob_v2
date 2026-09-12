@@ -12,9 +12,9 @@
     <integer name="streams_mini_title_max_lines">2</integer>
     <integer name="resource_grid_column_count">2</integer>
     <integer name="destinations_column_count">1</integer>
-    <!-- S0999: column count for the Playback "Send file to.." toggle list. Narrow portrait = 1;
-         values-land / values-sw600dp widen to 2. Extensible to 3+ via new width buckets, no Kotlin change. -->
-    <integer name="settings_send_commands_columns">1</integer>
+    <!-- S0999/S2390: column count for the "Send file to.." toggle list. Portrait & landscape = 2.
+         Extensible to 3+ via new width buckets, no Kotlin change. -->
+    <integer name="settings_send_commands_columns">2</integer>
     <!-- S1161: settings group cards per row. Portrait stays 1 on every device - a sw600dp override
          here would silently give portrait tablets two columns, which the ticket rules out. -->
     <integer name="settings_group_columns">1</integer>

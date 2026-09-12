@@ -34,6 +34,9 @@ import javax.inject.Inject
  * 8. S2330: the shortcut-sync baseline - the set of routes the desktop has already accounted for.
  *    Cleared to absent rather than to empty, so the re-seeded desktop is adopted silently the way a
  *    fresh install adopts it, instead of every launchable route reading as newly enabled.
+ * 9. S2859: the once-flag of the Add-resource tile backfill. Cleared together with the baselines,
+ *    so the re-seeded desktop gets the tile again - a surviving flag would leave the fresh desktop
+ *    without it, because the backfill reads the flag before it reads the grid.
  *
  * A ticket that introduces a new launcher-owned store must extend this list, otherwise the reset goes
  * silently incomplete.
@@ -83,12 +86,15 @@ class ResetLauncherToDefaultsUseCase @Inject constructor(
             // before the rest of the inventory clears anything else.
             val clearedTargets = desktop.clearAll()
             clearedTargets.forEach { configuredWidgetInstances.clearInstanceOf(it) }
-            Timber.d("S2217: launcher reset cleared %d configured widget instance targets", clearedTargets.size)
             pins.clearPins()
             journal.clearJournal()
             installedApps.clearLaunchStats()
             shortcutSyncBaseline.clearSyncedRoutes()
-            Timber.d("S2330: launcher reset cleared the shortcut sync baseline")
+            // S2564: both baselines by name. A resource baseline surviving the reset would let the
+            // next sync pass read every re-provisioned aggregate as already accounted for.
+            shortcutSyncBaseline.clearSyncedResourcePaths()
+            // S2859: the Add-resource tile flag joins them, so the re-seeded desktop gets the tile.
+            shortcutSyncBaseline.clearResourcesAddTileBackfilled()
 
             restoreLauncherSettings(densityFactor)
             storeLauncherWallpaperUseCase.clear()

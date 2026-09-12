@@ -43,6 +43,9 @@ class ListPhoneResourcePageUseCaseTest {
     // producer is stubbed to decline - the state in which the watch draws a type icon.
     private val buildWatchThumbnail: BuildWatchThumbnailUseCase = mockk()
 
+    private val mediaStoreRepository: com.sza.fastmediasorter.domain.repository.MediaStoreRepository =
+        mockk(relaxed = true)
+
     private lateinit var useCase: ListPhoneResourcePageUseCase
 
     @Before
@@ -53,6 +56,7 @@ class ListPhoneResourcePageUseCaseTest {
             resourceRepository,
             scannerFactory,
             buildWatchThumbnail,
+            mediaStoreRepository,
             // S1860: the scan is started in this scope rather than in the caller's job. Its own
             // scheduler is never advanced, so a stub that delays never finishes - which is exactly
             // the blocking scanner the timeout exists for, expressed without a real wait.
@@ -72,8 +76,8 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
         assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
-        assertEquals(listOf("Photos"), page.items.map { it.name })
-        assertTrue("root entries are browsable", page.items.all { it.isDirectory })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
+        assertTrue("root entries are browsable", page.items.orEmpty().all { it.isDirectory })
     }
 
     @Test
@@ -85,7 +89,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
         assertEquals(WearPhoneResourceResponseStatus.EMPTY, page.status)
-        assertTrue(page.items.isEmpty())
+        assertTrue(page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -97,14 +101,14 @@ class ListPhoneResourcePageUseCaseTest {
 
         val first = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, first.items.size)
+        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, first.items.orEmpty().size)
         assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE.toString(), first.nextPageToken)
 
         val second = useCase(
             request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:", pageToken = first.nextPageToken)
         )
 
-        assertEquals(10, second.items.size)
+        assertEquals(10, second.items.orEmpty().size)
         assertNull("last page ends the walk", second.nextPageToken)
     }
 
@@ -119,7 +123,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(listOf("visible.jpg"), page.items.map { it.name })
+        assertEquals(listOf("visible.jpg"), page.items.orEmpty().map { it.name })
     }
 
     /**
@@ -146,7 +150,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
-        assertTrue("a failure carries no metadata", page.items.isEmpty())
+        assertTrue("a failure carries no metadata", page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -186,7 +190,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT))
 
-        assertEquals(listOf("Photos", "Podcasts"), page.items.map { it.name })
+        assertEquals(listOf("Photos", "Podcasts"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -198,7 +202,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "photos"))
 
-        assertEquals(listOf("Photos"), page.items.map { it.name })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -210,7 +214,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "documents"))
 
-        assertEquals(listOf("Papers"), page.items.map { it.name })
+        assertEquals(listOf("Papers"), page.items.orEmpty().map { it.name })
     }
 
     @Test
@@ -221,7 +225,7 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "sculptures"))
 
-        assertEquals(listOf("Photos"), page.items.map { it.name })
+        assertEquals(listOf("Photos"), page.items.orEmpty().map { it.name })
     }
 
     /**
@@ -240,8 +244,8 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.size)
-        assertEquals(0, page.items.count { it.thumbnailBase64 != null })
+        assertEquals(ListPhoneResourcePageUseCase.PAGE_SIZE, page.items.orEmpty().size)
+        assertEquals(0, page.items.orEmpty().count { it.thumbnailBase64 != null })
         coVerify(exactly = 0) { buildWatchThumbnail(any()) }
     }
 
@@ -261,7 +265,7 @@ class ListPhoneResourcePageUseCaseTest {
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
         assertEquals(WearPhoneResourceResponseStatus.SOURCE_UNAVAILABLE, page.status)
-        assertTrue("a timed-out scan carries no metadata", page.items.isEmpty())
+        assertTrue("a timed-out scan carries no metadata", page.items.orEmpty().isEmpty())
     }
 
     @Test
@@ -297,11 +301,170 @@ class ListPhoneResourcePageUseCaseTest {
 
         val page = useCase(request(WearPhoneResourceRequestKind.CHILDREN, parentToken = "1:"))
 
-        assertEquals(listOf("IMG_0001.jpg", "IMG_0001.jpg"), page.items.map { it.name })
+        assertEquals(listOf("IMG_0001.jpg", "IMG_0001.jpg"), page.items.orEmpty().map { it.name })
         assertEquals(
             "a shared name must not collapse two files onto one token",
             2,
-            page.items.map { it.token }.distinct().size
+            page.items.orEmpty().map { it.token }.distinct().size
+        )
+    }
+
+    // S2860: the default virtual resources (virtual://recent, virtual://all_images,
+    // virtual://camera_photos) overlap - they all return the same MediaStore row for one
+    // physical file. Without deduplication the watch renders each file once per resource.
+    @Test
+    fun `flat list deduplicates files shared across overlapping resources`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent"),
+            resource(id = 2, name = "All Images")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"),
+            file(name = "IMG_0002.jpg", contentUri = "content://media/external/images/media/101")
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
+        assertEquals(
+            "each file appears once despite two resources covering it",
+            listOf("IMG_0001.jpg", "IMG_0002.jpg"),
+            page.items.orEmpty().map { it.name }
+        )
+    }
+
+    @Test
+    fun `flat list deduplicates by path when files carry no content URI`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Folder A"),
+            resource(id = 2, name = "Folder B")
+        )
+        val sharedPath = "/storage/emulated/0/DCIM/IMG_0001.jpg"
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = null).copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(listOf("IMG_0001.jpg"), page.items.orEmpty().map { it.name })
+    }
+
+    // S2982: two distinct files sharing a display name live at two paths - a path names at most one
+    // physical file. The original S2860 form of this test left both copies on the helper's
+    // name-derived path, which models a state no filesystem can hold, and the dual-key dedup then
+    // correctly collapsed them.
+    @Test
+    fun `flat list keeps same-named files with different MediaStore ids separate`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent"),
+            resource(id = 2, name = "All Images")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100")
+                .copy(path = "/storage/emulated/0/DCIM/IMG_0001.jpg"),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+                .copy(path = "/storage/emulated/0/Download/IMG_0001.jpg")
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "two distinct MediaStore entries survive deduplication",
+            2,
+            page.items.orEmpty().size
+        )
+        assertEquals(2, page.items.orEmpty().map { it.token }.distinct().size)
+    }
+
+    // S2982: MediaStore can hold a stale row beside the fresh one for a file that was rewritten in
+    // place - two ids, one `_data`. The path is what says they are one file, so the dual-key dedup
+    // collapses them rather than rendering the same tile twice on the watch.
+    @Test
+    fun `flat list collapses two MediaStore ids that share one path`() = runTest {
+        val sharedPath = "/storage/emulated/0/DCIM/IMG_0001.jpg"
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent")
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns listOf(
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100")
+                .copy(path = sharedPath),
+            file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/200")
+                .copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "one path is one physical file however many MediaStore rows point at it",
+            listOf("IMG_0001.jpg"),
+            page.items.orEmpty().map { it.name }
+        )
+    }
+
+    // S2982: a file covered by a virtual resource (MediaStore id key) and a local folder resource
+    // (path key, no contentUri) is one physical file. The dual-key dedup must recognise it as one.
+    @Test
+    fun `flat list deduplicates a file shared between a virtual and a folder resource`() = runTest {
+        val sharedPath = "/storage/emulated/0/Download/S2925_bg_light.png"
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Recent").copy(path = "virtual://recent"),
+            resource(id = 2, name = "Download")
+        )
+        coEvery {
+            scanner.listDirectoryContents(
+                match { it == "virtual://recent" }, any(), any(), any(), any()
+            )
+        } returns listOf(
+            file(name = "S2925_bg_light.png", contentUri = "content://media/external/images/media/32090")
+                .copy(path = sharedPath)
+        )
+        coEvery {
+            scanner.listDirectoryContents(
+                match { it == "/storage/emulated/0/Download" }, any(), any(), any(), any()
+            )
+        } returns listOf(
+            file(name = "S2925_bg_light.png", contentUri = null).copy(path = sharedPath)
+        )
+
+        val page = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(WearPhoneResourceResponseStatus.OK, page.status)
+        assertEquals(
+            "a file covered by both a virtual and a folder resource appears once",
+            listOf("S2925_bg_light.png"),
+            page.items.orEmpty().map { it.name }
+        )
+    }
+
+    /**
+     * S2911: the open channel delivers phone-owned storage only, so the listing must not offer a
+     * resource whose every file would be refused at tap time - on the watch the rejected tile reads
+     * as "The watch cannot open this kind of file.", blaming a format that is fine.
+     */
+    @Test
+    fun `a network resource is offered nowhere in the phone section`() = runTest {
+        coEvery { resourceRepository.getAllResourcesSync() } returns listOf(
+            resource(id = 1, name = "Photos"),
+            resource(id = 2, name = "NAS", type = ResourceType.SFTP)
+        )
+        coEvery { scanner.listDirectoryContents(any(), any(), any(), any(), any()) } returns
+            listOf(file(name = "IMG_0001.jpg", contentUri = "content://media/external/images/media/100"))
+        coEvery {
+            scanner.listDirectoryContents(match { it.endsWith("NAS") }, any(), any(), any(), any())
+        } returns listOf(file(name = "remote.jpg"))
+
+        val roots = useCase(request(WearPhoneResourceRequestKind.ROOT))
+        val flat = useCase(request(WearPhoneResourceRequestKind.ROOT, mediaType = "recents"))
+
+        assertEquals(
+            "a network resource is not a phone-section root",
+            listOf("Photos"),
+            roots.items.orEmpty().map { it.name }
+        )
+        assertEquals(
+            "a network resource contributes no files to the flat list",
+            listOf("IMG_0001.jpg"),
+            flat.items.orEmpty().map { it.name }
         )
     }
 

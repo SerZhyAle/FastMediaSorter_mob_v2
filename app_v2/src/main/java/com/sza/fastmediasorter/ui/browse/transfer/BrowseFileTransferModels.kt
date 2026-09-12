@@ -28,6 +28,9 @@ data class BrowseFileTransferRequest(
     // the worker owns the purge instead, on every terminal outcome.
     @SerializedName("sourcesOwnedByOperation") val sourcesOwnedByOperation: Boolean = false,
     @SerializedName("stagingDirectoryPath") val stagingDirectoryPath: String? = null,
+    // S1326: true when this transfer is itself the reversal of an earlier one. The worker suppresses the
+    // undo record for such a run, otherwise the reversal registers its own record and the tree ping-pongs.
+    @SerializedName("isUndo") val isUndo: Boolean = false,
 )
 
 data class BrowseFileTransferSource(
@@ -113,6 +116,14 @@ data class BrowseFileTransferTerminalPayload(
     @SerializedName("undoSourceFiles") val undoSourceFiles: List<String> = emptyList(),
     @SerializedName("undoDestinationFolder") val undoDestinationFolder: String? = null,
     @SerializedName("undoCopiedFiles") val undoCopiedFiles: List<String> = emptyList(),
+    // S1326: nullable rather than defaulted, unlike the file lists above. The injected Gson is plain
+    // reflection Gson, which allocates through Unsafe and never runs the Kotlin constructor, so a key
+    // absent from a terminal_event.json written by an earlier build arrives as null whatever the default
+    // says. That replay across an app update is the case this file's S0957 comment exists for.
+    @SerializedName("undoSourceDirectories") val undoSourceDirectories: List<String>? = null,
+    @SerializedName("undoCopiedDirectories") val undoCopiedDirectories: List<String>? = null,
+    // 0 marks "written before this field existed"; the reader then falls back to read time.
+    @SerializedName("undoTimestamp") val undoTimestamp: Long = 0L,
 )
 
 // S1638: none of these types has a no-arg constructor, so Gson allocates the instance directly and leaves
@@ -160,6 +171,9 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         undoSourceFiles = undoOperation?.sourceFiles.orEmpty(),
         undoDestinationFolder = undoOperation?.destinationFolder,
         undoCopiedFiles = undoOperation?.copiedFiles.orEmpty(),
+        undoSourceDirectories = undoOperation?.sourceDirectories,
+        undoCopiedDirectories = undoOperation?.copiedDirectories,
+        undoTimestamp = undoOperation?.timestamp ?: 0L,
     )
     is BrowseFileTransferTerminalEvent.PartialSuccess -> BrowseFileTransferTerminalPayload(
         kind = KIND_PARTIAL,
@@ -171,6 +185,9 @@ fun BrowseFileTransferTerminalEvent.toPayload(): BrowseFileTransferTerminalPaylo
         undoSourceFiles = undoOperation?.sourceFiles.orEmpty(),
         undoDestinationFolder = undoOperation?.destinationFolder,
         undoCopiedFiles = undoOperation?.copiedFiles.orEmpty(),
+        undoSourceDirectories = undoOperation?.sourceDirectories,
+        undoCopiedDirectories = undoOperation?.copiedDirectories,
+        undoTimestamp = undoOperation?.timestamp ?: 0L,
     )
     is BrowseFileTransferTerminalEvent.Failure -> BrowseFileTransferTerminalPayload(
         kind = KIND_FAILURE,
@@ -242,15 +259,24 @@ fun BrowseFileTransferTerminalPayload.toEvent(
 }
 
 private fun BrowseFileTransferTerminalPayload.buildUndoOperation(): UndoOperation? {
-    if (undoSourceFiles.isEmpty() || undoDestinationFolder.isNullOrBlank() || undoCopiedFiles.isEmpty()) {
-        return null
-    }
+    val hasFiles = undoSourceFiles.isNotEmpty() &&
+        !undoDestinationFolder.isNullOrBlank() &&
+        undoCopiedFiles.isNotEmpty()
+    // S1326: read through orEmpty - a payload written by a build without these keys arrives as null.
+    val directorySources = undoSourceDirectories.orEmpty()
+    val directoryCopies = undoCopiedDirectories.orEmpty()
+    val hasDirectories = directorySources.isNotEmpty() && directoryCopies.isNotEmpty()
+    if (!hasFiles && !hasDirectories) return null
     return UndoOperation(
         type = operationType,
-        sourceFiles = undoSourceFiles,
+        sourceFiles = if (hasFiles) undoSourceFiles else emptyList(),
         destinationFolder = undoDestinationFolder,
-        copiedFiles = undoCopiedFiles,
+        copiedFiles = if (hasFiles) undoCopiedFiles else null,
         oldNames = null,
-        timestamp = System.currentTimeMillis(),
+        // S1326: the recorded completion time, so a record replayed after process death reports when the
+        // transfer actually finished instead of restarting the expiry window at read time.
+        timestamp = undoTimestamp.takeIf { it > 0L } ?: System.currentTimeMillis(),
+        sourceDirectories = if (hasDirectories) directorySources else emptyList(),
+        copiedDirectories = if (hasDirectories) directoryCopies else emptyList(),
     )
 }

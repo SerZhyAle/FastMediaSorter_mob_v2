@@ -86,10 +86,19 @@ function ConvertFrom-BuildFailureLog {
       Reads no file and spawns no process; it only inspects the lines passed in. Never
       throws on malformed input - unrecognized lines simply leave fields $null.
 
-      Precedence for firstActionableFailure:
+      Precedence for firstActionableFailure (lower rank wins, regardless of the order the
+      lines appear in the log):
         1. First compiler error line ('e: file:///PATH:LINE:COL: MESSAGE') -> file/line/message.
-        2. Else first failed-task line ('> Task :module:taskName FAILED') -> message = task token.
+        2. Else first install refusal ('INSTALL_FAILED_*') -> message = refusal + its detail.
+        3. Else first failed-task line ('> Task :module:taskName FAILED') -> message = task token.
       module/flavor are always derived from the first failed-task line when one exists.
+
+      S2377 put the install refusal at rank 2. It outranks the task token because the task
+      token is precisely the string that gets misread: a refused install surfaced as
+      ':app_v2:connectedStandardDebugAndroidTest' plus "Could not load test results", which
+      reads as a failed Room migration - a data-loss-grade verdict - when the database was
+      never opened at all. It stays below a compiler error because the two cannot honestly
+      compete: a build that failed to compile produced no APK to refuse.
 
       verdict:
         failure - any FAILURE: line OR any actionable failure was found.
@@ -110,7 +119,16 @@ function ConvertFrom-BuildFailureLog {
         return $digest
     }
 
-    $foundActionable = $false
+    # Rank of whatever currently occupies firstActionableFailure, per the precedence documented
+    # above: 0 = nothing yet, then 1..3 best to worst. A rank rather than a boolean because the
+    # ranks do not arrive in rank order - an install refusal is printed by the installer long
+    # before gradle prints the task line it outranks - so "first line wins" and "best line wins"
+    # are different answers, and only the second one is the contract.
+    $rankNone = 0
+    $rankCompilerError = 1
+    $rankInstallRefusal = 2
+    $rankFailedTask = 3
+    $actionableRank = $rankNone
     $foundFailureMarker = $false
     $foundSuccess = $false
 
@@ -119,12 +137,22 @@ function ConvertFrom-BuildFailureLog {
 
         # Compiler error anchor. Same 'e: file:///' marker get-last-build-failure.ps1 uses.
         # Groups: path (lazy up to the line:col), line (digits), msg (remainder).
-        if (-not $foundActionable -and
+        if (($actionableRank -eq $rankNone -or $actionableRank -gt $rankCompilerError) -and
             $line -match '^\s*e: file:///(?<path>.+?):(?<line>\d+):\d+:?\s*(?<msg>.*)$') {
             $digest.firstActionableFailure.file    = $Matches['path']
             $digest.firstActionableFailure.line    = [int]$Matches['line']
             $digest.firstActionableFailure.message = $Matches['msg']
-            $foundActionable = $true
+            $actionableRank = $rankCompilerError
+        }
+
+        # Install refusal anchor. Captured from the token onward so the message keeps the refusal
+        # name and the detail behind it - for a downgrade that detail is both version codes, which
+        # is what turns "it failed" into "it refused, and here is the pair that made it refuse".
+        # The session id and the log tag ahead of the token are dropped as noise.
+        if (($actionableRank -eq $rankNone -or $actionableRank -gt $rankInstallRefusal) -and
+            $line -match '(?<refusal>INSTALL_FAILED_[A-Z_]+.*)$') {
+            $digest.firstActionableFailure.message = $Matches['refusal'].Trim()
+            $actionableRank = $rankInstallRefusal
         }
 
         # Failed-task anchor. Same '> Task ... FAILED' marker get-last-build-failure.ps1 uses.
@@ -155,9 +183,9 @@ function ConvertFrom-BuildFailureLog {
                 }
             }
 
-            if (-not $foundActionable) {
+            if ($actionableRank -eq $rankNone) {
                 $digest.firstActionableFailure.message = $taskToken
-                $foundActionable = $true
+                $actionableRank = $rankFailedTask
             }
         }
 
@@ -170,7 +198,7 @@ function ConvertFrom-BuildFailureLog {
         }
     }
 
-    if ($foundFailureMarker -or $foundActionable) {
+    if ($foundFailureMarker -or $actionableRank -ne $rankNone) {
         $digest.verdict = 'failure'
     }
     elseif ($foundSuccess) {

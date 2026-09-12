@@ -1,12 +1,12 @@
 package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
+import android.view.View
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.LifecycleCoroutineScope
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
-import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -30,20 +30,20 @@ import timber.log.Timber
  */
 class LyricsManager(
     private val context: Context,
-    private val binding: ActivityPlayerUnifiedBinding,
+    private val root: View,
     private val lifecycleScope: LifecycleCoroutineScope,
     private val settingsRepository: SettingsRepository,
     private val searchLyricsUseCase: SearchLyricsUseCase,
     private val getTranslationSessionSettings: () -> com.sza.fastmediasorter.domain.models.TranslationSessionSettings
 ) {
-    private val safeViews = PlayerBindingSafeViews(binding)
+    private val safeViews = PlayerBindingSafeViews(root)
 
     /**
      * S1549: re-point every accessor at a re-inflated hierarchy. This manager is constructed once
      * per screen - its init-block settings collector must not double - so a layout re-inflate
      * re-points it instead of re-creating it.
      */
-    fun rebindRoot(newRoot: android.view.View) = safeViews.rebindRoot(newRoot)
+    fun rebindRoot(newRoot: View) = safeViews.rebindRoot(newRoot)
     private var ttsManager: TtsReadAloudManager? = null
     private val calculatorEnabledFlow = MutableStateFlow(false)
 
@@ -208,11 +208,20 @@ class LyricsManager(
                 }
             )
 
+        safeViews.btnCloseLyricsViewer.setOnClickListener {
+            hideLyricsViewer()
+        }
         safeViews.lyricsViewerContainer.isVisible = true
         // Hide top command panel when showing lyrics
-        binding.topCommandPanel.isVisible = false
+        safeViews.topCommandPanel.isVisible = false
     }
-    
+
+    /**
+     * S1143: reports whether the lyrics overlay viewer is currently visible.
+     */
+    val isViewerVisible: Boolean
+        get() = safeViews.lyricsViewerContainerOrNull?.isVisible == true
+
     /**
      * Hide lyrics viewer overlay and restore top command panel.
      */
@@ -221,10 +230,10 @@ class LyricsManager(
         releaseTts()
         safeViews.lyricsViewerContainer.isVisible = false
         // Restore top command panel visibility
-        binding.topCommandPanel.isVisible = true
+        safeViews.topCommandPanel.isVisible = true
         // Force WindowInsets re-application via post() to ensure visual update
-        binding.topCommandPanel.post {
-            binding.topCommandPanel.requestApplyInsets()
+        safeViews.topCommandPanel.post {
+            safeViews.topCommandPanel.requestApplyInsets()
         }
     }
 

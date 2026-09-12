@@ -1,6 +1,6 @@
 # FastMediaSorter v2 - Project Operations Index
 
-Last Updated: 2026-03-19
+Last Updated: 2026-09-11
 Purpose: single entrypoint for fast research and navigation.
 
 ## 1) Workspace Topology
@@ -12,7 +12,7 @@ Purpose: single entrypoint for fast research and navigation.
 - Automation scripts: `scripts/`
 - Temporary artifacts only: `temp/`
 - Read-only zones: `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`
-- Branch model: `main` = release-stable only; development in `DEBUG-v001`, `DEBUG-v002`, … (see `CLAUDE.md § Git Branching Model`).
+- Branch model: `main` = release-stable only; development in `DEBUG-v0NN` branches. What a push to one does and does not trigger: `docs/BUILD_VS_RELEASE.md`; how a release moves to the next branch: `docs/HOW_TO_DEVELOP_AND_RELEASE-ru.md`.
 
 ## 2) Source Layout (Main App)
 Root package: `app_v2/src/main/java/com/sza/fastmediasorter/`
@@ -37,31 +37,33 @@ Root package: `wear/src/main/java/com/sza/fastmediasorter/wear/`
 - Modules included: `settings.gradle.kts` -> `:app_v2`, `:wear`
 - Main build config: `app_v2/build.gradle.kts`
 - Wear build config: `wear/build.gradle.kts`
-- SDK / Java baseline: compileSdk 36, minSdk 26 (Android 8+), Java 17; legacy flavor minSdk 23
-- Flavors (main app): `standard`, `lite`, `photos`, `legacy`
+- SDK / Java baseline: compileSdk 37, default minSdk 26 (Android 8+), Java 17. Several flavors override `minSdk` - read the `minSdk` row of `docs/FLAVOR_MATRIX.md`, never a list written here
+- Flavors (main app): `standard`, `noLegal`, `lite`, `photos`, `legacy`, `vr`, `foss`. Which capability each one carries: `docs/FLAVOR_MATRIX.md`, generated from the `productFlavors` block - never answer a flavor question from memory (S1392)
+- Watch flavors: `standard` (what Play accepts) and `noLegal` (sideload), declared in `wear/build.gradle.kts` since S2090, so every watch gradle task and output path carries a flavor segment
 
 Dependency version policy:
 - First check `gradle/libs.versions.toml`
 - If absent, treat module Gradle files as authoritative
 
 ## 5) Fast Commands
-- Primary debug build: `./a.ps1 d`
-- Timestamped debug artifact: `./a.ps1 dav`
-- Fast code check: `./a.ps1 fk`
-- Fast code + resources check: `./a.ps1 fc`
-- Flavor debug build: `./gradlew.bat assembleStandardDebug`
-- Unit tests: `./a.ps1 fu` or `./gradlew.bat testStandardDebugUnitTest`
-- Lint: `./gradlew.bat lintStandardDebug`
-- Wear debug build: `./gradlew.bat :wear:assembleDebug`
+Every gradle-backed command goes through `a.ps1`, never `gradlew.bat` directly: the launcher takes the `Build.Phone` / `Build.Wear` lock (CLAUDE.md Rule 23), and a bare gradle call races a sibling session's build. From the Bash tool: `pwsh -NoProfile -File ./a.ps1 <target>`. Full target list: CLAUDE.md section 9; which one fits which change and what each costs: `docs/BUILD_TEST_FAST_PATH.md`.
+
+- Phone debug build: `./a.ps1 d` (`dq` quiet, `dav` timestamped version, `cd` clean)
+- Fast Kotlin compile: `./a.ps1 fk` (`fkn` for noLegal)
+- Fast resources/manifest check: `./a.ps1 fr`; code + resources: `./a.ps1 fc`
+- Unit tests for your own change: `pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Unit -Tests "<pattern>"`; the full suite `./a.ps1 fu` holds `Build.Phone` for minutes
+- Fast static gates batch: `./a.ps1 fg`
+- Lint + typos: `./a.ps1 ch`
+- Watch debug build: `./a.ps1 wd` (builds `:wear:assembleStandardDebug`; `iw` builds noLegal and installs it)
+- Watch fast checks: `./a.ps1 fw` (Kotlin), `fwr` (resources/manifest), `fwu` (unit suite) - the phone targets exit 0 without compiling a single watch file
 - Show current branch: `git branch --show-current`
-- Create next DEBUG branch: `git checkout main && git pull && git checkout -b DEBUG-v00N`
-- Merge DEBUG to main: `git checkout main && git merge --no-ff DEBUG-v00N`
+- Branch creation and the merge to `main` belong to the release flow (`/skill-release`, which builds in a dedicated worktree), never to a hand-typed merge
 
 ## 6) Mandatory Constraints
 - Never write generated files/logs/backups to project root; use `temp/`
 - Keep activity logic minimal; move complex logic to manager/helper classes
 - Use `Timber`; avoid `Log.d()`
-- If modifying a file >500 lines, create timestamped backup in `temp/`
+- If modifying a file >500 lines, create timestamped backup in `temp/Sxxxx/` (or `temp/scratch/` with no ticket)
 
 ## 7) Research Routing (What to Open First)
 - Architecture/data flow: `docs/ARCHITECTURE.md`
@@ -70,6 +72,7 @@ Dependency version policy:
 - Full tech stack, dependencies, constraints, min/recommended requirements: `dev/TECH_REQUIREMENTS.md`
 - Process and phase gating: `dev/AGENT_WORKFLOW.md`
 - Agent-session cost discipline (spawn policy, context hygiene, skill tiers, MCP usage, measurement loop): `docs/AGENT_COST_PLAYBOOK.md` (S0816)
+- Which physical device / emulator / workstation may be acted on, and how far: `docs/DEVICE_FLEET.md` (CLAUDE.md Rule 35) - read it before the first `adb` call of a task; authorization is per device, and it is written nowhere else
 - Device profile presets / first-run onboarding: `dev/DEVICE_PROFILE_PRESET_MATRIX.md` (matrix data: `app_v2/src/main/assets/device_profile_presets.csv`; consistency guard: `scripts/check_device_profile_presets.ps1`)
 - Usability review of accumulated test screenshots (secondary UI findings unrelated to what each frame was shot for): `.claude/skills/screenshot-usability-audit/SKILL.md` is the entry point; discovery and non-signal pre-filter via `scripts/devtest/find-recent-screenshots.ps1`; each run writes its own dated `dev/SCREENSHOT_USABILITY_AUDIT_<YYYY-MM-DD>.md` (S2108)
 - Feature specs, roadmaps, proposals: `PLAN/` folder
@@ -112,6 +115,13 @@ Main app (`app_v2/src/main/java/com/sza/fastmediasorter/`):
 	- `ui/settings/`
 	- `ui/settings/fragments/`
 	- Primary files: `ui/settings/SettingsActivity.kt`, `ui/settings/SettingsViewModel.kt`
+
+- Lights and screen-as-a-surface programs (front flashlight, water flashlight, physical flash, black screen):
+	- `ui/flashlight/` (`FrontFlashlightActivity.kt` the screen lamp, `WaterFlashlightActivity.kt` the touch-locked one, `FlashlightToggleActivity.kt` the screenless torch trampoline)
+	- `ui/blackscreen/`
+	- Torch hardware: `core/screencapture/gesture/DeviceActionHandler.kt` (`setTorch` / `toggleFlashlight`)
+	- Watch half: `wear/.../ui/apps/waterflashlight/`
+	- Which surfaces each one appears on: `core/panel/SubProgramCatalog.kt`
 
 - Desktop companion config (`.fmscfg` SFTP-share import/export) - NOT the Wear companion:
 	- `data/companion/` (`CompanionConfigParser.kt` read side, `CompanionConfigSerializer.kt` write side, `CompanionConfigDto.kt` contract mirror, `CompanionResourceTokens.kt`)

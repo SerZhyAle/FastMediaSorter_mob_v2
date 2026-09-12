@@ -67,6 +67,9 @@ class StreamSourceAdapter(
     // current Wear Companion setting without an adapter rebuild.
     private val onSendToWatch: (StreamSourceEntity) -> Unit = {},
     private val onOpenOnWatch: (StreamSourceEntity) -> Unit = {},
+    // S1218: immersive entry for a video channel; the availability probe is the host's XR mirror.
+    private val onOpenInVr: (StreamSourceEntity) -> Unit = {},
+    private val vrLaunchAvailable: () -> Boolean = { false },
     private val wearSendAvailable: () -> Boolean = { false },
     // S0668: favicon plumbing kept as plain collaborators (not DI) so the adapter stays test-friendly.
     // faviconResolver maps a url -> its sprite-atlas tile index (null = no favicon -> empty slot);
@@ -372,6 +375,7 @@ class StreamSourceAdapter(
             favoritesEnabled(),
             isFavorite(source),
             wearSendAvailable(),
+            vrLaunchAvailable(),
         )
         StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
     }
@@ -397,6 +401,7 @@ class StreamSourceAdapter(
             StreamMenuAction.EDIT -> onEdit(source)
             StreamMenuAction.SEND_TO_WATCH -> onSendToWatch(source)
             StreamMenuAction.OPEN_ON_WATCH -> onOpenOnWatch(source)
+            StreamMenuAction.OPEN_IN_VR -> onOpenInVr(source)
             StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)

@@ -20,18 +20,29 @@
     fkn  - Fast Kotlin compile check (noLegal)
     fr   - Fast resources/manifest check (-Flavor applies)
     fc   - Fast code + resources check (-Flavor applies)
-           All six flavors are reachable on fk/fr/fc without a dedicated letter:
-           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr, e.g. `.\a.ps1 fc -Flavor Lite`.
+           Every flavor is reachable on fk/fr/fc without a dedicated letter:
+           -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss, e.g. `.\a.ps1 fc -Flavor Lite`.
            This is how "build every affected variant" is satisfied - each call takes
            BUILD.LOCK, so no direct gradlew invocation is needed.
     fu   - Fast full unit-test suite (app_v2)
     fa   - Fast instrumented-test COMPILE check (app_v2 androidTest; does not run them)
     fam  - RUN the Room migration tests on a connected device (the database-upgrade proof)
-    fw   - Fast Kotlin compile check, wear module
-    fwr  - Fast resources/manifest check, wear module
+           Takes -DeviceId <serial>. With several devices attached it now REFUSES and lists
+           them instead of installing on each one, the owner's phone included (S2363).
+    fw   - Fast Kotlin compile check, wear module (standard flavor)
+    fwn  - Fast Kotlin compile check, wear module (noLegal flavor)
+    fwr  - Fast resources/manifest check, wear module (standard flavor)
+    fwrn - Fast resources/manifest check, wear module (noLegal flavor)
     fwu  - Fast unit-test suite, wear module
            fk/fkn/fr/fc/fu all check app_v2. A change under wear/ needs fw/fwr/fwu -
            the phone target exits 0 without looking at the watch module at all.
+           fw covers only the flavor the module declares first, standard. Since S2486 the
+           two wear flavors compile different code, so a change under wear/src/standard or
+           wear/src/noLegal needs fwn as well - fw alone passes on a binding declared once.
+           The same now holds for resources: S2458 created wear/src/noLegal/AndroidManifest.xml,
+           so the flavors merge DIFFERENT manifests and fwr sees only the one with no permission
+           in it. A change to a flavor manifest needs fwrn, and its merged output is the only
+           place the permission's presence or absence can actually be read.
     flr  - Fast lint-rules detector test suite (:lint-rules:test)
     fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log; -IncludeDetekt opt-in)
     fs   - Script regression suites (bare = full sweep, background it; -ChangedFiles "<paths>", -ListOnly)
@@ -50,16 +61,27 @@
     nl   - Build noLegal Release
     nd   - Build noLegal Debug
     wd   - Build Wear OS Debug and distribute APK
+    iw   - Build and install noLegal Wear OS Debug APK on a selected watch
     r1   - Run the release queue unattended, instance A (one fresh claude process per ticket)
     r2   - Same, instance B - the second parallel stream, staggered so it does not race A
     r3   - Same, instance C - the third parallel stream, staggered further so it does not race A or B
            Order comes from PLAN/RELEASE_QUEUE.md; the model is picked per ticket (Opus where a
            decision is left, Sonnet for Implemented and tier 1-2). Options forward through, e.g.
            `.\a.ps1 r1 -MaxTickets 5 -TimeoutMinutes 45`.
+           Each start cleans stale ticket leases first (same as `ul`), so a ticket a killed
+           instance was on - still Draft/Tactical/Partial/whatever it was, never "done" - is
+           immediately eligible again instead of reading as held for up to 45 minutes.
     rs   - Stop the runners: each finishes the ticket it is on, then exits.
            `.\a.ps1 rs -Instance b` stops one; `.\a.ps1 rs -Kill` also kills the children.
-    rm   - Monitor: running children, claimed tickets, locks, and what each instance finished.
+    rm   - Monitor: running children, claimed tickets, locks, and what each instance finished
+           (-Watch to refresh, -Json for the snapshot object).
+    rmw  - Monitor page: start the detached writer and open temp/monitor/index.html in the browser;
+           refreshes every 3 s from the same snapshot as rm (-Stop, -Status).
            `.\a.ps1 rm -Watch` refreshes until Ctrl+C.
+    pv   - Play vitals watch (S2917): read Android vitals from the Reporting API, rewrite the two measured
+           blocks and file a Draft on a red band (-Check writes nothing, -NoFile files no ticket).
+    chat - Agent chat (S2372): what sibling sessions are doing and what they measured; verb and
+           options ride in via $Rest, e.g. `.\a.ps1 chat -Verb Status`, `.\a.ps1 chat -Verb Find -Topic "check:*"`.
     ub   - Unlock build: clear EVERY build domain (Build.Phone + Build.Wear) and its queue when
            the holder is stale or dead. Per domain: ubp (Build.Phone), ubw (Build.Wear).
     uc   - Unlock code: the same across EVERY code domain (Code.Phone + Code.Wear + Code.Scripts).
@@ -113,6 +135,85 @@ $ProjectRoot = $PSScriptRoot
 # Sibling directories (the release worktree below) resolve through the shared resolver.
 . "$PSScriptRoot\scripts\utils\project-paths.ps1"
 
+# --- S2412: keep a Gradle daemon away from the caller's pipe ------------------------------------
+#
+# A daemon born under an agent's tool call inherits that call's stdout handle and outlives the
+# build, so the call never sees EOF and hangs until the tool's own timeout - measured 2026-09-03 at
+# 9 min 11 s past the point the script itself had finished, with every lock that session held still
+# taken. Running the target in a child whose streams are FILES removes the pipe from what the daemon
+# can inherit. a.ps1 is the seam because it is the one entry point an agent is obliged to use
+# (CLAUDE.md Rule 25), which beats patching 99 gradlew call sites in 50 scripts.
+
+function Test-GradleBackedScript {
+    param([string]$Path)
+
+    # Read from the target's own text, never from a list of target names: there are 73 targets here
+    # and the gradle-backed subset changes whenever one is added, so a list would go stale silently
+    # and the hang would come back for exactly the target nobody remembered to add.
+    # `gradlew` is the invocation itself; `Enter-BuildLockOrExit` is what Rule 23 obliges every
+    # gradle entry point to call, and catches a target that assembles its command line elsewhere.
+    $text = Get-Content -LiteralPath $Path -Raw -ErrorAction SilentlyContinue
+    if (-not $text) { return $false }
+    return ($text -match 'gradlew') -or ($text -match 'Enter-BuildLockOrExit')
+}
+
+function Test-StdoutIsolationWanted {
+    param([string]$Path)
+
+    # FMS_ISOLATE_STDOUT is the escape hatch for the transitive case the text test cannot see - a
+    # target that reaches gradle only through another script, `fg -IncludeDetekt` being the one such
+    # target today. 1 forces isolation on, 0 forces it off.
+    switch ($env:FMS_ISOLATE_STDOUT) {
+        '1' { return $true }
+        '0' { return $false }
+    }
+    # Redirected stdout means a pipe or a file, which is the agent; a console is the owner in a
+    # terminal, who has never reproduced this and would only lose the colour of the output.
+    return [Console]::IsOutputRedirected -and (Test-GradleBackedScript -Path $Path)
+}
+
+function ConvertTo-ChildArgumentList {
+    param($Preset, $Extra)
+
+    # A hashtable splat binds by name in-process but cannot cross a process boundary, so the preset
+    # is flattened to tokens here. Switches carry no value; everything else becomes two tokens.
+    $flat = @()
+    if ($Preset -is [hashtable]) {
+        foreach ($key in $Preset.Keys) {
+            $value = $Preset[$key]
+            if ($value -is [bool]) {
+                if ($value) { $flat += "-$key" }
+            }
+            else {
+                $flat += "-$key"
+                $flat += "$value"
+            }
+        }
+    }
+    elseif ($Preset) {
+        $flat += @($Preset | ForEach-Object { "$_" })
+    }
+    foreach ($token in $Extra) { $flat += "$token" }
+    return , $flat
+}
+
+function Invoke-LauncherTarget {
+    param([string]$Path, $PresetArgs, $ExtraArgs, [string]$WorkingDirectory)
+
+    if (-not (Test-StdoutIsolationWanted -Path $Path)) {
+        & $Path @PresetArgs @ExtraArgs
+        return
+    }
+    $isolator = Join-Path $PSScriptRoot 'scripts\utils\invoke-isolated-stdout.ps1'
+    $childArgs = ConvertTo-ChildArgumentList -Preset $PresetArgs -Extra $ExtraArgs
+    if ($WorkingDirectory) {
+        & $isolator -ScriptPath $Path -Arguments $childArgs -WorkingDirectory $WorkingDirectory
+    }
+    else {
+        & $isolator -ScriptPath $Path -Arguments $childArgs
+    }
+}
+
 # Script mapping.
 #
 # Args MUST be a hashtable, not a string array. Reason: `& $script @arrayArgs` splats
@@ -149,8 +250,17 @@ $scripts = @{
     # 2026-09-01. Needs a device; long, so background it (CLAUDE.md section 6).
     'fam'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Tests = 'com.sza.fastmediasorter.data.local.db' } }
     'fw'        = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear' } }  # S1496: fast Kotlin compile for the wear module
+    'fwn'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Code'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2486: fw resolves to the module's first flavor, standard - this is the other one
     'fwr'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear' } }  # S1807: fast resources/manifest check for the wear module
+    'fwrn'      = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Resources'; Module = 'wear'; Flavor = 'NoLegal' } }  # S2458: fwr resolves to standard, and since wear/src/noLegal/AndroidManifest.xml exists the two flavors merge different manifests - fwr cannot see the one that carries a permission
     'fwu'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'Unit'; Module = 'wear' } }  # S1807: fast unit-test suite for the wear module
+    # S2355: compile the WATCH instrumented set. `fa` compiles app_v2 only, so quoting it under a
+    # wear change records a verdict about the other module - the miss S1807 measured five times.
+    # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
+    'faw'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'AndroidTest'; Module = 'wear'; Flavor = 'Standard' } }
+    # S2355: RUN the watch Room migration tests on a connected device. `fam` runs the phone package only.
+    # The flavor is named rather than defaulted: S2090 gave the watch a standard/noLegal dimension.
+    'fwm'       = @{ Path = 'scripts\builders\check-standard-fast.ps1'; Args = @{ Mode = 'ConnectedAndroidTest'; Module = 'wear'; Flavor = 'Standard'; Tests = 'com.sza.fastmediasorter.wear.data.db' } }
     'flr'       = @{ Path = 'scripts\builders\check-lint-rules.ps1'; Args = @{} }  # S1195: custom lint detectors' own test suite
     'fg'        = @{ Path = 'scripts\quality\assert-fast-gates.ps1'; Args = @{} }  # S0826: batch fast static gates in one process
     # S2122: the repository's *.tests/Run-Tests.ps1 suites, by hand. Bare = the full sweep (measured
@@ -172,6 +282,7 @@ $scripts = @{
     'nl'        = @{ Path = 'scripts\builders\build-nolegal-release.ps1'; Args = @{} }
     'nd'        = @{ Path = 'scripts\builders\build-nolegal-debug.ps1'; Args = @{} }
     'wd'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{} }
+    'iw'        = @{ Path = 'scripts\builders\build-wear-debug.PS1'; Args = @{ Flavor = 'noLegal'; Install = $true } }
     # Unattended queue runners. Each ticket gets its own claude process, so the context resets
     # between tickets instead of growing all session. r1, r2 and r3 are the parallel instances -
     # r2 and r3 stagger their first ranking, each by a wider window than the last, so no pair
@@ -182,6 +293,13 @@ $scripts = @{
     'r3'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Instance = 'c'; StartDelaySeconds = 40 } }
     'rs'        = @{ Path = 'scripts\utils\run-spec-queue.ps1'; Args = @{ Stop = $true } }
     'rm'        = @{ Path = 'scripts\utils\monitor-spec-queue.ps1'; Args = @{} }
+    # S2406: the monitor page - a detached writer keeps temp/monitor/index.html current every 3 s
+    # from the same snapshot `rm` prints; `-Stop` ends it, `-Status` asks.
+    'rmw'       = @{ Path = 'scripts\utils\dev-monitor-writer.ps1'; Args = @{} }
+    # S2917: the Play vitals watch - read, judge against Google's bands, record, file a Draft on red.
+    'pv'        = @{ Path = 'scripts\release\watch-play-vitals.ps1'; Args = @{} }
+    # S2372: the descriptive layer beside the locks - read at a refusal, written by the scripts.
+    'chat'      = @{ Path = 'scripts\utils\agent-chat.ps1'; Args = @{} }
     # Lock releasers. Conservative by design: a lock whose owner is still alive is REFUSED and its
     # holder printed, so the shortcut cannot silently drop a sibling's turn mid-edit. `-Force` rides
     # through $Rest for the case the operator has confirmed the holder is gone.
@@ -209,6 +327,8 @@ $scripts = @{
     # Ticket leases are the third thing a killed flow leaves behind, and the one the built-in sweep
     # will not touch for 45 minutes: its window is sized for a working session that writes nothing,
     # not for a dead one. Clean judges on live evidence instead - see the verb's own docs.
+    # r1/r2/r3 now run this same cleanup automatically at start; reach for `ul` by hand right after
+    # a `rs -Kill`, or to free a ticket for something other than a queue runner (e.g. /spec-next).
     'ul'        = @{ Path = 'scripts\spec_catalog\ticket-lease.ps1'; Args = @{ Verb = 'Clean' } }
     # adb swiss-army (scripts/devtest/adb.ps1). `adb` is the full passthrough - the verb
     # and any options ride in via $Rest, e.g. `.\a.ps1 adb log -Tail 400 -Grep S0035`.
@@ -248,15 +368,19 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  fkn  - Fast Kotlin compile check (noLegal)" -ForegroundColor Cyan
     Write-Host "  fr   - Fast resources/manifest check" -ForegroundColor Cyan
     Write-Host "  fc   - Fast code + resources check" -ForegroundColor Cyan
-    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr," -ForegroundColor DarkCyan
-    Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any of the six flavors." -ForegroundColor DarkCyan
+    Write-Host "         fk/fr/fc take -Flavor Standard|NoLegal|Lite|Photos|Legacy|Vr|Foss," -ForegroundColor DarkCyan
+    Write-Host "         e.g. '.\a.ps1 fc -Flavor Lite' - proves any single flavor." -ForegroundColor DarkCyan
     Write-Host "  fu   - Fast full unit-test suite (app_v2)" -ForegroundColor Cyan
     Write-Host "  fa   - Fast instrumented-test COMPILE check (app_v2 androidTest)" -ForegroundColor Cyan
     Write-Host "  fam  - RUN the Room migration tests on a connected device (database-upgrade proof)" -ForegroundColor Cyan
-    Write-Host "  fw   - Fast Kotlin compile check, wear module" -ForegroundColor Cyan
-    Write-Host "  fwr  - Fast resources/manifest check, wear module" -ForegroundColor Cyan
+    Write-Host "         fam/fwm take -DeviceId <serial>; several devices attached = refusal, not a fan-out" -ForegroundColor Cyan
+    Write-Host "  fw   - Fast Kotlin compile check, wear module (standard flavor)" -ForegroundColor Cyan
+    Write-Host "  fwn  - Fast Kotlin compile check, wear module (noLegal flavor)" -ForegroundColor Cyan
+    Write-Host "  fwr  - Fast resources/manifest check, wear module (standard flavor)" -ForegroundColor Cyan
+    Write-Host "  fwrn - Fast resources/manifest check, wear module (noLegal flavor)" -ForegroundColor Cyan
     Write-Host "  fwu  - Fast unit-test suite, wear module" -ForegroundColor Cyan
     Write-Host "         fk/fkn/fr/fc/fu all check app_v2 - a wear/ change needs fw/fwr/fwu." -ForegroundColor DarkCyan
+    Write-Host "         a wear/src/<flavor> change needs fwn too - fw only sees standard (S2486)." -ForegroundColor DarkCyan
     Write-Host "  flr  - Fast lint-rules detector test suite (:lint-rules:test)" -ForegroundColor Cyan
     Write-Host "  fg   - Fast static gates batch (neuroslop+pm+listener+flavor+ticket-log)" -ForegroundColor Cyan
     Write-Host "  fs   - Script regression suites (-ChangedFiles / -ListOnly; bare = full sweep)" -ForegroundColor Cyan
@@ -274,11 +398,14 @@ if (-not $scripts.ContainsKey($Command)) {
     Write-Host "  nl   - Build noLegal Release" -ForegroundColor Cyan
     Write-Host "  nd   - Build noLegal Debug" -ForegroundColor Cyan
     Write-Host "  wd   - Build Wear OS Debug and distribute APK" -ForegroundColor Cyan
+    Write-Host "  iw   - Build + install noLegal Wear OS Debug (-DeviceId <watch> when multiple devices)" -ForegroundColor Cyan
     Write-Host "  r1   - Run the release queue unattended, instance A (fresh process per ticket)" -ForegroundColor Cyan
     Write-Host "  r2   - Same, instance B - the second parallel stream" -ForegroundColor Cyan
     Write-Host "  r3   - Same, instance C - the third parallel stream" -ForegroundColor Cyan
     Write-Host "  rs   - Stop the runners after the ticket each is on (-Kill to terminate now)" -ForegroundColor Cyan
-    Write-Host "  rm   - Monitor the runners (-Watch to refresh)" -ForegroundColor Cyan
+    Write-Host "  rm   - Monitor the runners (-Watch to refresh, -Json for the snapshot)" -ForegroundColor Cyan
+    Write-Host "  rmw  - Monitor page: detached writer + browser, temp/monitor/index.html (-Stop, -Status)" -ForegroundColor Cyan
+    Write-Host "  pv   - Play vitals watch: read vitals, rewrite measured blocks, Draft on red (-Check, -NoFile)" -ForegroundColor Cyan
     Write-Host "  ub   - Unlock build: every build domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
     Write-Host "         ubp/ubw - one domain: Build.Phone / Build.Wear" -ForegroundColor Cyan
     Write-Host "  uc   - Unlock code: every code domain, stale/dead only (-Force to override)" -ForegroundColor Cyan
@@ -374,7 +501,10 @@ if ($releaseCommands -contains $Command) {
         # producing artifacts with stale versions and silently mirroring dev outputs.
         Push-Location $worktreePath
         try {
-            & $worktreeScript @scriptArgs @Rest
+            # The working directory is passed explicitly rather than inherited: under S2412's
+            # isolation the build runs in a CHILD process, and a child does not inherit Push-Location.
+            Invoke-LauncherTarget -Path $worktreeScript -PresetArgs $scriptArgs -ExtraArgs $Rest `
+                -WorkingDirectory $worktreePath
             $buildExit = $LASTEXITCODE
         }
         finally {
@@ -420,6 +550,32 @@ if ($releaseCommands -contains $Command) {
     }
 }
 
+# A queue-runner instance starting up cleans stale ticket leases first (same effect as `ul`).
+#
+# The lease a killed r1/r2/r3 child leaves behind is not swept by ordinary liveness: that check
+# reads a QUIET session, not a dead one, so a lease from a process that no longer exists still
+# looks live for SessionStaleMinutes (45 min - see the 'ul' entry above). Without this, restarting
+# the instance that was just killed - or starting a sibling - ranks the ticket as still held and
+# skips it, which is indistinguishable from "marked done" to whoever is waiting on it. Clean tells
+# the two apart (a running child, a held lock still vouch for a lease; nothing else does), so
+# running it here is free when every lease is genuinely live and frees a real one immediately when
+# it is not. Best-effort: a failed cleanup must not block the runner from starting - the lease
+# would still be swept by its own staleness window eventually.
+$queueRunnerStartCommands = @('r1', 'r2', 'r3')
+if ($queueRunnerStartCommands -contains $Command) {
+    $leaseCleanScript = Join-Path $ProjectRoot 'scripts\spec_catalog\ticket-lease.ps1'
+    if (Test-Path $leaseCleanScript) {
+        Write-Host "Cleaning stale ticket leases before starting instance.." -ForegroundColor DarkGray
+        try {
+            & $leaseCleanScript -Verb Clean
+        }
+        catch {
+            Write-Host "  lease cleanup failed, continuing anyway - $($_.Exception.Message)" -ForegroundColor DarkYellow
+        }
+        Write-Host ""
+    }
+}
+
 # Execute script (non-release commands, or release fallback when no worktree)
 $argsDisplay = if ($scriptArgs -is [hashtable]) {
     ($scriptArgs.GetEnumerator() | ForEach-Object {
@@ -429,7 +585,7 @@ $argsDisplay = if ($scriptArgs -is [hashtable]) {
 Write-Host "Executing: $($scriptEntry.Path) $argsDisplay $($Rest -join ' ')" -ForegroundColor Green
 Write-Host ""
 
-& $scriptPath @scriptArgs @Rest
+Invoke-LauncherTarget -Path $scriptPath -PresetArgs $scriptArgs -ExtraArgs $Rest
 
 # Return exit code from executed script
 exit $LASTEXITCODE

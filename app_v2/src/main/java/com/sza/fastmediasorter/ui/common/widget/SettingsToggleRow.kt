@@ -134,16 +134,24 @@ class SettingsToggleRow @JvmOverloads constructor(
 
     /**
      * Sets an optional leading feature icon. Passing `null` hides the icon slot (S0776).
+     * S2390: clears the theme tint so full-color Drawables (e.g. launcher icons)
+     * display in their natural colors rather than being converted into monochrome white silhouettes.
      */
     fun setIcon(icon: Drawable?) {
+        iconView.imageTintList = null
+        iconView.clearColorFilter()
         iconView.setImageDrawable(icon)
         iconView.visibility = if (icon == null) View.GONE else View.VISIBLE
     }
 
     /**
      * Sets an optional leading feature icon from a drawable resource (S0776).
+     * S2390: applies the standard themed color for vector glyphs.
      */
     fun setIcon(@DrawableRes resId: Int) {
+        val typedValue = android.util.TypedValue()
+        context.theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurfaceVariant, typedValue, true)
+        iconView.imageTintList = android.content.res.ColorStateList.valueOf(typedValue.data)
         iconView.setImageResource(resId)
         iconView.visibility = View.VISIBLE
     }

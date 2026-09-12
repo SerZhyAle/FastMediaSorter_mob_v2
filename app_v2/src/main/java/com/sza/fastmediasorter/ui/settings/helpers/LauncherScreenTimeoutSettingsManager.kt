@@ -10,12 +10,19 @@ import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.util.showBoundTo
 
-/** Owns the screen-timeout row and restores its stored value after an abandoned custom entry. */
+/**
+ * Owns the screen-timeout row and restores its stored value after an abandoned custom entry.
+ *
+ * @param systemActionsAvailable whether this build can reach a real device lock. S2384: the row promises
+ * two different things depending on it - a locked device, or an app-drawn black surface over a lit
+ * screen - and a caption that named only the first would be read as a defect wherever the second happens.
+ */
 class LauncherScreenTimeoutSettingsManager(
     private val host: DialogFragment,
     private val binding: DialogLauncherSettingsBinding,
     private val currentSettings: () -> AppSettings,
     private val isUpdating: () -> Boolean,
+    private val systemActionsAvailable: Boolean,
     private val updateSettings: (AppSettings) -> Unit,
 ) {
     fun setupRow() {
@@ -30,6 +37,13 @@ class LauncherScreenTimeoutSettingsManager(
     }
 
     fun render(settings: AppSettings) {
+        binding.rowLauncherScreenTimeout.setSubtitle(
+            if (systemActionsAvailable) {
+                R.string.launcher_settings_screen_timeout_subtitle
+            } else {
+                R.string.launcher_settings_screen_timeout_subtitle_no_lock
+            },
+        )
         val presets = AppSettings.LAUNCHER_SCREEN_TIMEOUT_PRESETS
         val seconds = settings.launcherScreenBlackoutTimeoutSeconds
         val customLabel = if (seconds !in presets && seconds > 0) {

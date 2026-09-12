@@ -806,7 +806,6 @@ class MediaFileAdapter(
                     // For files in non-audio-only mode, respect skipInitialThumbnailLoad flag
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
-                    } else {
                     }
                 }
                 // audioOnlyFile: thumbnail is GONE, nothing to load
@@ -1074,7 +1073,6 @@ class MediaFileAdapter(
                     // For files, respect skipInitialThumbnailLoad flag
                     if (!skipInitialThumbnailLoad) {
                         loadThumbnail(file)
-                    } else {
                     }
                 }
 
@@ -1136,7 +1134,6 @@ class MediaFileAdapter(
             binding.tvNameOverlay.isVisible = showOverlay
             if (!showOverlay) return
 
-            Timber.d("S2202: plate tile=$tileHeightPx band=$topBandPx lines=$lines name=${file.name}")
             // FrameLayout lays a centred child out at (parentHeight - childHeight) / 2 + topMargin, so half
             // the reserved band is exactly the offset that re-centres the plate in the strip left below it.
             applyCaptionTopMargin(topBandPx / 2)

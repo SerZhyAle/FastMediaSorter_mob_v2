@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.domain.usecase.launcher
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
@@ -31,15 +32,22 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun addCell(cell: LauncherCell, columns: Int): LauncherCellPlacement =
             LauncherCellPlacement.Placed(1L)
 
+        private var nextId = 1L
+
         override suspend fun addCellInFirstFreeSlot(cell: LauncherCell, columns: Int): Long? {
             addedCells.add(cell to columns)
+            val id = nextId++
             val current = cellsMap[cell.orientation] ?: emptyList()
-            cellsMap[cell.orientation] = current + cell
-            return 1L
+            cellsMap[cell.orientation] = current + cell.copy(id = id)
+            return id
         }
 
-        override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? =
-            addCellInFirstFreeSlot(cell, columns)
+        val sectionPlacements = mutableListOf<Pair<LauncherCell, String>>()
+
+        override suspend fun addCellInSection(cell: LauncherCell, columns: Int, sectionKey: String): Long? {
+            sectionPlacements.add(cell to sectionKey)
+            return addCellInFirstFreeSlot(cell, columns)
+        }
 
         val removedIds = mutableListOf<Long>()
 
@@ -54,16 +62,18 @@ class SyncEnabledToolShortcutsUseCaseTest {
             columns: Int,
         ): Boolean = false
         override suspend fun normalizeSectionSpans() = Unit
-        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean = true
-        override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean = true
+        override suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean = true
+        override suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int): Boolean = true
         override suspend fun updateCellTarget(id: Long, target: String): Boolean = true
         override suspend fun seedIfEmpty(orientation: LauncherOrientation, cells: List<LauncherCell>): Boolean = true
         override suspend fun clearAll(): List<String> = emptyList()
+        var storedLandscapeColumns = 6
+
         override suspend fun state(): LauncherDesktopState = LauncherDesktopState(
             seededPortrait = true,
             seededLandscape = true,
             columnsPortrait = 4,
-            columnsLandscape = 6,
+            columnsLandscape = storedLandscapeColumns,
         )
         override suspend fun updateCellLabel(id: Long, labelOverride: String?): Boolean = true
         override suspend fun swapSectionBlock(
@@ -89,6 +99,7 @@ class SyncEnabledToolShortcutsUseCaseTest {
     private class FakeLauncherShortcutSyncRepository(
         var routes: Set<String>?,
     ) : LauncherShortcutSyncRepository {
+        var stopwatchShortcutBackfilled = false
         override suspend fun syncedRoutes(): Set<String>? = routes
 
         override suspend fun setSyncedRoutes(routeKeys: Set<String>) {
@@ -98,6 +109,27 @@ class SyncEnabledToolShortcutsUseCaseTest {
         override suspend fun clearSyncedRoutes() {
             routes = null
         }
+
+        override suspend fun isStopwatchShortcutBackfilled(): Boolean = stopwatchShortcutBackfilled
+
+        override suspend fun setStopwatchShortcutBackfilled() {
+            stopwatchShortcutBackfilled = true
+        }
+
+        // S2564: the resource baseline shares this repository but no route test reads it, so the
+        // three members answer for the contract without keeping state this file would never assert.
+        override suspend fun syncedResourcePaths(): Set<String>? = null
+
+        override suspend fun setSyncedResourcePaths(paths: Set<String>) = Unit
+
+        override suspend fun clearSyncedResourcePaths() = Unit
+
+        // S2859: the Add-resource tile flag shares the same store; no route test reads it either.
+        override suspend fun isResourcesAddTileBackfilled(): Boolean = false
+
+        override suspend fun setResourcesAddTileBackfilled() = Unit
+
+        override suspend fun clearResourcesAddTileBackfilled() = Unit
     }
 
     /**
@@ -125,6 +157,7 @@ class SyncEnabledToolShortcutsUseCaseTest {
             }
         },
         syncBaseline = baseline,
+        resolveColumns = ResolveLauncherColumnsUseCase(desktop),
     )
 
     private fun launcherEntryKeys(): List<String> =
@@ -248,16 +281,18 @@ class SyncEnabledToolShortcutsUseCaseTest {
     // S2330 strategic 11 criterion 3: the comparison is against the baseline, never against the
     // desktop, so a cell the user deleted by hand stays deleted.
     @Test
-    fun `a route already in the baseline is not replaced after the user deletes its cell`() = runBlocking {
+    fun `a route re-enabled after its cell was deleted by hand gets the cell back`() = runBlocking {
         val desktopRepo = FakeLauncherDesktopRepository()
-        val baseline = FakeLauncherShortcutSyncRepository(setOf(CALCULATOR_KEY))
+        // The route left the launchable set, so the baseline no longer holds it - which is what makes
+        // its return an appearance rather than a no-op. The desktop carries no cell for it: the user
+        // deleted the one the sync placed.
+        val baseline = FakeLauncherShortcutSyncRepository(emptySet())
 
         useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
 
-        assertEquals(
-            "a cell the user removed came back because the desktop, not the baseline, was consulted",
-            emptyList<String>(),
-            desktopRepo.addedCells.map { it.first.target },
+        assertTrue(
+            "S2664 ADR-1: presence follows the toggle, so the cell comes back whatever the reason it was gone",
+            desktopRepo.addedCells.any { it.first.target == CALCULATOR_TARGET },
         )
     }
 
@@ -281,24 +316,103 @@ class SyncEnabledToolShortcutsUseCaseTest {
         assertTrue("the placed route did not join the baseline", CALCULATOR_KEY in baseline.routes.orEmpty())
     }
 
-    // S2330 strategic 11 criterion 4 and strategic 5.2: switching a tool off keeps its cell, and the
-    // baseline never shrinks - a shrinking one would let a re-enable restore a hand-deleted cell.
+    // S2664 strategic 11 criteria 6 and 7, ADR-1: switching a program off takes its cell away in both
+    // orientations, and the baseline shrinks so the next switch-on registers as an appearance.
     @Test
-    fun `a route that stops being launchable keeps its cell and its baseline entry`() = runBlocking {
+    fun `a route that stops being launchable loses its cell in both orientations`() = runBlocking {
         val desktopRepo = FakeLauncherDesktopRepository()
         desktopRepo.addCellInFirstFreeSlot(cellAt(LauncherOrientation.PORTRAIT, CALCULATOR_TARGET), COLUMNS)
+        desktopRepo.addCellInFirstFreeSlot(cellAt(LauncherOrientation.LANDSCAPE, CALCULATOR_TARGET), COLUMNS)
         desktopRepo.addedCells.clear()
         val baseline = FakeLauncherShortcutSyncRepository(setOf(CALCULATOR_KEY))
 
         useCaseWith(desktopRepo, enabled = emptySet(), baseline = baseline)()
 
-        assertEquals("a switched-off tool had its cell removed", emptyList<Long>(), desktopRepo.removedIds)
-        assertEquals(setOf(CALCULATOR_KEY), baseline.routes)
+        assertEquals("both orientations should have lost the cell", 2, desktopRepo.removedIds.size)
+        assertEquals(emptySet<String>(), baseline.routes)
+    }
+
+    @Test
+    fun `a new shortcut is seated inside the app-functions section`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY))()
+
+        val sections = desktopRepo.sectionPlacements
+            .filter { it.first.target == CALCULATOR_TARGET }
+            .map { it.second }
+            .toSet()
+        assertEquals(setOf(LauncherCellCommand.SECTION_APP_FUNCTIONS), sections)
+    }
+
+    @Test
+    fun `an unchanged launchable set writes and removes nothing`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(CALCULATOR_KEY))
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY), baseline)()
+
+        assertEquals(emptyList<String>(), desktopRepo.addedCells.map { it.first.target })
+        assertEquals(emptyList<Long>(), desktopRepo.removedIds)
+    }
+
+    @Test
+    fun `backfills Stopwatch once when the old baseline already contains it`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(STOPWATCH_KEY))
+
+        useCaseWith(desktopRepo, setOf(STOPWATCH_KEY), baseline)()
+        useCaseWith(desktopRepo, setOf(STOPWATCH_KEY), baseline)()
+
+        val stopwatchCells = desktopRepo.addedCells.filter { it.first.target == STOPWATCH_TARGET }
+        assertEquals(2, stopwatchCells.size)
+        assertTrue(baseline.stopwatchShortcutBackfilled)
+    }
+
+    @Test
+    fun `does not complete Stopwatch backfill while Stopwatch is unavailable`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        val baseline = FakeLauncherShortcutSyncRepository(setOf(STOPWATCH_KEY))
+
+        useCaseWith(desktopRepo, emptySet(), baseline)()
+
+        assertTrue(desktopRepo.addedCells.isEmpty())
+        assertTrue(!baseline.stopwatchShortcutBackfilled)
+    }
+
+    /**
+     * S2679: the landscape width stays 0 on a desktop the user has never rotated, and the placement
+     * used to answer that with a constant four - narrower than the seven columns the seeded section
+     * already occupied, so the free square inside it was invisible and the shortcut started a new row.
+     */
+    @Test
+    fun `an unrecorded landscape width is taken from the seeded desktop, not from a constant`() = runBlocking {
+        val desktopRepo = FakeLauncherDesktopRepository()
+        desktopRepo.storedLandscapeColumns = 0
+        desktopRepo.addCellInFirstFreeSlot(
+            cellAt(LauncherOrientation.LANDSCAPE, "fn:seeded").copy(colIndex = 10),
+            COLUMNS,
+        )
+        desktopRepo.addedCells.clear()
+
+        useCaseWith(desktopRepo, setOf(CALCULATOR_KEY))()
+
+        val landscapeColumns = desktopRepo.addedCells
+            .filter { it.first.target == CALCULATOR_TARGET && it.first.orientation == LauncherOrientation.LANDSCAPE }
+            .map { it.second }
+        assertEquals(
+            "placement must scan the width the desktop actually occupies",
+            listOf(SEEDED_LANDSCAPE_COLUMNS),
+            landscapeColumns,
+        )
     }
 
     private companion object {
         const val CALCULATOR_KEY = "calculator"
         const val CALCULATOR_TARGET = "fn:calculator"
+        const val STOPWATCH_KEY = "stopwatch"
+        const val STOPWATCH_TARGET = "fn:stopwatch"
         const val COLUMNS = 4
+        const val SEEDED_LANDSCAPE_COLUMNS = 11
     }
 }

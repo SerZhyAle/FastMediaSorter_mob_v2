@@ -14,8 +14,10 @@ import androidx.fragment.app.viewModels
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.logging.LogExportHelper
 import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.power.PowerStateObserver
 import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.data.repository.AudioMetadataCacheRepository
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
@@ -75,6 +77,9 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     @Inject lateinit var systemInfoDialogManager: SystemInfoDialogManager
 
+    /** S2707: the power-saving row needs the device fact, not a setting, to explain a dead threshold. */
+    @Inject lateinit var powerStateObserver: PowerStateObserver
+
     @Inject lateinit var ensureAllFilesPredefinedResourceUseCase: EnsureAllFilesPredefinedResourceUseCase
     @Inject lateinit var saveTextFileToResourceUseCase: SaveTextFileToResourceUseCase
 
@@ -82,6 +87,8 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var launcherModeContract: LauncherModeContract
 
     @Inject lateinit var launcherRoleManager: LauncherRoleManager
+
+    @Inject lateinit var launcherStartWindowManager: LauncherStartWindowManager
 
     // S1052: empty except on standard + noLegal (shared capture engine binds the menu launcher).
     // Gates the debug-only screenshot-test button relocated into the General-tab debug section.
@@ -174,7 +181,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
 
     /** S1967: hands the base the sections this tab registered, so a search jump can open one. */
     override fun collapsibleSections(): CollapsibleSectionsManager = sectionsManager
-    private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, this) }
+    private val resetHelper by lazy { GeneralSettingsResetHelper(binding, viewModel, profileViewModel, this) }
     private val logHelper by lazy {
         GeneralSettingsLogHelper(
             binding = binding,
@@ -234,6 +241,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             { isUpdatingSpinner },
             { isUpdatingSpinner = it },
             capabilityAvailability,
+            powerStateObserver.batteryLevelUnavailable,
         )
     }
     private val viewSetupHelper by lazy {
@@ -267,6 +275,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
             this,
             launcherModeContract,
             launcherRoleManager,
+            launcherStartWindowManager,
             launcherRoleLauncher,
         )
     }
@@ -329,7 +338,7 @@ class GeneralSettingsFragment : BaseSettingsFragment() {
         // S0386 Phase 10: app-wide Downloadable Extensions aggregator lives on the General tab. Uses
         // the activity FragmentManager so the full-screen overlay attaches to a real container.
         // S0547: hide on flavors with nothing to download (lite/photos) - mirrors the welcome page gate.
-        if (!capabilityAvailability.isExtensionsScreenAvailable()) {
+        if (!capabilityAvailability.isExtensionsScreenAvailable(requireContext())) {
             binding.btnDownloadableExtensions?.visibility = View.GONE
         } else {
             binding.btnDownloadableExtensions?.setOnClickListener {

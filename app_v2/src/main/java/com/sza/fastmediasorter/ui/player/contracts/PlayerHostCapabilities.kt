@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.player.contracts
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
+import com.sza.fastmediasorter.ui.player.helpers.ChannelBalanceController
 import kotlinx.coroutines.flow.StateFlow
 
 /**
@@ -83,6 +84,18 @@ interface PlayerHostCapabilities {
     /** Defaults to a seekable local file whose colour controls are supported. */
     val supportsColorAdjustmentForActiveSource: Boolean get() = true
 
+    /**
+     * True while the decoded stream actually has two channels to balance between. No host overrides
+     * this: per S1267 ADR-3 the balance value is process-wide, because the audio path of all four
+     * hosts is the same background service that no host holds a reference to.
+     */
+    val supportsChannelBalanceForActiveSource: Boolean
+        get() = ChannelBalanceController.isStereoContentActive
+
+    /** Apply a stereo-balance gain pair to every active playback path. */
+    fun setChannelBalance(leftGain: Float, rightGain: Float) =
+        ChannelBalanceController.setBalance(leftGain, rightGain)
+
     /** Set the user-selected stereo mode for the current file. */
     fun setStereoMode(mode: StereoMode)
 
@@ -104,6 +117,25 @@ interface PlayerHostCapabilities {
      * Always false for standalone (no audio service; see ADR-2).
      */
     val isAudioServiceActive: Boolean
+
+    // ── Player volume ─────────────────────────────────────────────────────────
+
+    /**
+     * Current player volume in the 0.0-1.0 range. The playback-control dialog reads this instead of
+     * [android.media.AudioManager] because on car stereos and TV boxes the system STREAM_MUSIC volume
+     * is often fixed and `setStreamVolume` is a no-op, while [androidx.media3.common.Player.volume]
+     * always controls the actual decoder output. Hardware volume keys already use the player volume;
+     * this gives the dialog the same path. (S2907)
+     *
+     * Default 1.0 so hosts that do not override keep full volume.
+     */
+    fun getPlayerVolume(): Float = 1f
+
+    /**
+     * Set the player volume in the 0.0-1.0 range. See [getPlayerVolume] for why this exists separately
+     * from [android.media.AudioManager]. (S2907)
+     */
+    fun setPlayerVolume(volume: Float) = Unit
 
     // ── Host callbacks ────────────────────────────────────────────────────────
 

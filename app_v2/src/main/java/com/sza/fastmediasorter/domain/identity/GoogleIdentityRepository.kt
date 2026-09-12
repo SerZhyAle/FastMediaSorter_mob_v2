@@ -70,4 +70,17 @@ interface GoogleIdentityRepository {
      * the secondary email and any per-secondary-account state.
      */
     suspend fun requestSecondaryAccount(activityContext: Context, scopes: Set<GoogleScope>): IdentitySignInResult
+
+    /**
+     * Re-binds a primary account carried over from a previous device (S2101), without any
+     * interactive step.
+     *
+     * The caller supplies only what the transferable record holds - which account and which scopes -
+     * because the GMS route stores no token: the system account migrated on its own, so the next
+     * ordinary token request mints against it as usual (ADR-2).
+     *
+     * Refuses and returns false when an account is already bound, so a restore can never displace a
+     * binding the user established on this device.
+     */
+    suspend fun restoreTransferredBinding(email: String, scopes: Set<GoogleScope>): Boolean
 }

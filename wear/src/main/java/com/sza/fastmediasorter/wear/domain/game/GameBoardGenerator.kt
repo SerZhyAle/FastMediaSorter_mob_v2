@@ -74,30 +74,30 @@ class GameBoardGenerator(
         )
     }
 
-    // Mirrors the phone's tryCreateState move for move; the shape is held identical on purpose
-    // (ADR-1), so the guard chain is suppressed rather than restructured.
     @Suppress("ReturnCount")
     private fun tryCreateState(config: GameLevelConfig, random: Random): GameLevelState? {
-        val playerPosition = randomPosition(config.width, config.height, random)
+        val baseBoard = GameBoard.createRoundTemplate(config.width, config.height)
+        val playablePositions = allPositions(config.width, config.height).filter { baseBoard.contains(it) }
+        val playerPosition = findPosition(baseBoard, random) { true } ?: return null
         val fieldBase = minOf(config.width, config.height)
-        val exitPosition = findPosition(config.width, config.height, random) { position ->
+        val exitPosition = findPosition(baseBoard, random) { position ->
             position != playerPosition &&
                 position.manhattanDistanceTo(playerPosition) > fieldBase / EXIT_DISTANCE_DIVISOR
         } ?: return null
-        val exitPath = buildReservedPath(playerPosition, exitPosition, random)
-        val kryvavitsaPosition = findPosition(config.width, config.height, random) { position ->
+        val exitPath = buildReservedPath(baseBoard, playerPosition, exitPosition, random) ?: return null
+        val kryvavitsaPosition = findPosition(baseBoard, random) { position ->
             position != playerPosition &&
                 position != exitPosition &&
                 position !in exitPath &&
                 position.manhattanDistanceTo(playerPosition) > fieldBase / KRYVAVITSA_DISTANCE_DIVISOR
         } ?: return null
         // Reserve a corridor from the player to Kryvavitsa as well, so she is always reachable from the start.
-        val kryvavitsaPath = buildReservedPath(playerPosition, kryvavitsaPosition, random)
+        val kryvavitsaPath = buildReservedPath(baseBoard, playerPosition, kryvavitsaPosition, random) ?: return null
         val reservedPath = exitPath + kryvavitsaPath
 
         val shadowPositions = mutableListOf<GamePosition>()
-        repeat(config.shadowCount) { shadowIndex ->
-            val shadowPosition = findPosition(config.width, config.height, random) { position ->
+        repeat(config.shadowCount) {
+            val shadowPosition = findPosition(baseBoard, random) { position ->
                 position != playerPosition &&
                     position != exitPosition &&
                     position != kryvavitsaPosition &&
@@ -114,17 +114,13 @@ class GameBoardGenerator(
             add(kryvavitsaPosition)
             addAll(shadowPositions)
         }
-        val wallCandidates = allPositions(config.width, config.height)
+        val wallCandidates = playablePositions
             .filter { it !in occupiedPositions && it !in reservedPath }
-        val wallTarget = chooseWallTarget(config.width, config.height, random)
+        val wallTarget = chooseWallTarget(playablePositions.size, random)
         if (wallCandidates.size < wallTarget) return null
         val wallPositions = wallCandidates.shuffled(random).take(wallTarget).toSet()
 
-        var board = GameBoard(
-            width = config.width,
-            height = config.height,
-            cells = List(config.width * config.height) { GameCell.FLOOR }
-        )
+        var board = baseBoard
         wallPositions.forEach { position ->
             board = board.withCell(position, GameCell.WALL)
         }
@@ -152,7 +148,9 @@ class GameBoardGenerator(
             state.enemies.count { it.type == GameEnemyType.SHADOW } <= maximumShadowCapacity(state)
 
     private fun hasValidWallDensity(board: GameBoard): Boolean {
-        val density = board.cells.count { it == GameCell.WALL }.toDouble() / board.cells.size.toDouble()
+        val playableCount = board.cells.count { it != GameCell.VOID }
+        if (playableCount == 0) return false
+        val density = board.cells.count { it == GameCell.WALL }.toDouble() / playableCount.toDouble()
         return density >= MIN_WALL_DENSITY && density <= MAX_WALL_DENSITY
     }
 
@@ -190,8 +188,10 @@ class GameBoardGenerator(
                 .all { it.position.manhattanDistanceTo(state.player.position) > fieldBase / SHADOW_DISTANCE_DIVISOR }
     }
 
-    private fun maximumShadowCapacity(state: GameLevelState): Int =
-        (state.board.width * state.board.height) - state.board.cells.count { it == GameCell.WALL } - FIXED_ENTITY_COUNT
+    private fun maximumShadowCapacity(state: GameLevelState): Int {
+        val playableCount = state.board.cells.count { it != GameCell.VOID }
+        return playableCount - state.board.cells.count { it == GameCell.WALL } - FIXED_ENTITY_COUNT
+    }
 
     private fun maximumShadowCount(width: Int, height: Int): Int =
         maxOf(1, floor(width * height * MAX_SHADOW_LEVEL_FACTOR).toInt())
@@ -204,63 +204,63 @@ class GameBoardGenerator(
         }
     }
 
-    private fun chooseWallTarget(width: Int, height: Int, random: Random): Int {
-        val cellCount = width * height
-        val minimumWalls = ceil(cellCount * MIN_WALL_DENSITY).toInt()
-        val extraWallLimit = floor(cellCount * WALL_DENSITY_SPREAD).toInt() + 1
+    private fun chooseWallTarget(playableCells: Int, random: Random): Int {
+        val minimumWalls = ceil(playableCells * MIN_WALL_DENSITY).toInt()
+        val extraWallLimit = floor(playableCells * WALL_DENSITY_SPREAD).toInt() + 1
         return minimumWalls + random.nextInt(extraWallLimit)
     }
 
-    private fun randomPosition(width: Int, height: Int, random: Random): GamePosition =
-        GamePosition(random.nextInt(height), random.nextInt(width))
+    private fun randomPosition(board: GameBoard, random: Random): GamePosition {
+        val pos = GamePosition(random.nextInt(board.height), random.nextInt(board.width))
+        return if (board.contains(pos)) {
+            pos
+        } else {
+            allPositions(board.width, board.height).filter { board.contains(it) }.random(random)
+        }
+    }
 
     private fun findPosition(
-        width: Int,
-        height: Int,
+        board: GameBoard,
         random: Random,
         predicate: (GamePosition) -> Boolean
     ): GamePosition? {
         repeat(MAX_PLACEMENT_ATTEMPTS) {
-            val position = randomPosition(width, height, random)
-            if (predicate(position)) return position
+            val position = randomPosition(board, random)
+            if (board.contains(position) && predicate(position)) return position
         }
-        val candidates = allPositions(width, height).filter(predicate)
+        val candidates = allPositions(board.width, board.height).filter { board.contains(it) && predicate(it) }
         return candidates.randomOrNull(random)
     }
 
-    private fun buildReservedPath(from: GamePosition, to: GamePosition, random: Random): Set<GamePosition> {
-        val path = mutableListOf(from)
-        var current = from
-        if (random.nextBoolean()) {
-            current = appendHorizontalPath(path, current, to.col)
-            appendVerticalPath(path, current, to.row)
-        } else {
-            current = appendVerticalPath(path, current, to.row)
-            appendHorizontalPath(path, current, to.col)
-        }
-        return path.toSet()
-    }
-
-    private fun appendHorizontalPath(
-        path: MutableList<GamePosition>,
+    private fun buildReservedPath(
+        board: GameBoard,
         from: GamePosition,
-        targetCol: Int
-    ): GamePosition {
-        var currentCol = from.col
-        while (currentCol != targetCol) {
-            currentCol += if (targetCol > currentCol) 1 else -1
-            path += GamePosition(from.row, currentCol)
+        to: GamePosition,
+        random: Random
+    ): Set<GamePosition>? {
+        val queue = ArrayDeque<GamePosition>()
+        val parent = mutableMapOf<GamePosition, GamePosition>()
+        queue += from
+        while (queue.isNotEmpty()) {
+            val current = queue.removeFirst()
+            if (current == to) break
+            val directions = GameDirection.entries.shuffled(random)
+            for (dir in directions) {
+                val next = current.move(dir)
+                if (board.contains(next) && next !in parent && next != from) {
+                    parent[next] = current
+                    queue += next
+                }
+            }
         }
-        return GamePosition(from.row, currentCol)
-    }
-
-    private fun appendVerticalPath(path: MutableList<GamePosition>, from: GamePosition, targetRow: Int): GamePosition {
-        var currentRow = from.row
-        while (currentRow != targetRow) {
-            currentRow += if (targetRow > currentRow) 1 else -1
-            path += GamePosition(currentRow, from.col)
+        if (to !in parent && from != to) return null
+        val path = mutableSetOf<GamePosition>()
+        var curr: GamePosition? = to
+        while (curr != null) {
+            path += curr
+            curr = parent[curr]
         }
-        return GamePosition(currentRow, from.col)
+        return path
     }
 
     private fun reachableFloorsAndExits(board: GameBoard, start: GamePosition): Set<GamePosition> {
@@ -294,6 +294,7 @@ class GameBoardGenerator(
             GameCell.FLOOR -> Occupant.FLOOR
             GameCell.WALL -> Occupant.WALL
             GameCell.EXIT -> Occupant.EXIT
+            GameCell.VOID -> Occupant.OUT_OF_BOUNDS
         }
     }
 

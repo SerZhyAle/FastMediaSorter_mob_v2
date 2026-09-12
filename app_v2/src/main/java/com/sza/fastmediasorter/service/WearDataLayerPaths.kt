@@ -2,10 +2,28 @@ package com.sza.fastmediasorter.service
 
 /**
  * Path constants for the Wear OS Data Layer.
- * Existing /fms/network_sources/ paths are defined locally in their respective services
- * for backward compatibility and are not listed here.
+ * The compatible network-sources routes remain in this catalogue even though their payloads predate
+ * the event envelope: both modules still need one mechanically checked declaration for every route.
  */
 object WearDataLayerPaths {
+
+    /** Message, watch → phone. Requests the compatible network-sources sync. */
+    const val NETWORK_SOURCES_REQUEST = "/fms/network_sources/request"
+
+    /**
+     * Data Item, phone → watch. Carries the compatible network-sources payload.
+     *
+     * The batch states both halves of the owner's choice (S2882): the sources that belong on the watch
+     * AND the ids declared as not belonging there, which is what lets unticking a box withdraw a
+     * source. [STREAM_PINS] and [SEND_TO_RECEIVERS] reach the same end by replacing their set whole,
+     * and that reasoning does NOT transfer here - this catalogue is edited on the watch too, and the
+     * watch holds sources under ids this phone never issued, so an absence from the batch cannot be
+     * read as a withdrawal without destroying them.
+     */
+    const val NETWORK_SOURCES_PUSH = "/fms/network_sources/push"
+
+    /** Message, watch → phone. Acknowledges the compatible network-sources payload. */
+    const val NETWORK_SOURCES_ACK = "/fms/network_sources/ack"
 
     /** Data Item, phone → watch. Carries watch companion settings payload. */
     const val SETTINGS_PUSH = "/fms/wear/settings"
@@ -74,6 +92,22 @@ object WearDataLayerPaths {
     const val STREAM_PINS = "/fms/phone/stream_pins"
 
     /**
+     * Data Item, phone → watch. Carries the whole set of «Send to..» receivers the watch may offer
+     * (S2142).
+     *
+     * A Data Item and a whole set for [STREAM_PINS]'s reasons: the list is state the watch must hold
+     * while out of reach, and replacing it whole is the only thing that lets a receiver switched off
+     * on the phone disappear from the watch. Its own path rather than a field of the settings
+     * payload, because the list is a derivative of the owner's settings and not a setting - a field
+     * would owe `assert-wear-settings-parity.ps1` an ownership entry and an exception reason that do
+     * not exist (ADR-5).
+     *
+     * Sits under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it
+     * needs no manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val SEND_TO_RECEIVERS = "/fms/phone/send_to_receivers"
+
+    /**
      * Channel, either direction. Carries the bytes of one file sent to the paired watch (S1861).
      *
      * The file name rides in the path as a trailing segment ("$FILE_TRANSFER/photo.jpg"): the watch
@@ -106,6 +140,18 @@ object WearDataLayerPaths {
     /** Message, phone → watch. Answers one open request - shown, notified, or refused. */
     const val OPEN_ON_PHONE_ACK = "/fms/phone/open_on_phone_ack"
 
+    /** Message, watch → phone. Asks the phone to cast the content the watch is showing (S2531). */
+    const val CAST_REQUEST = "/fms/watch/cast_request"
+
+    /** Message, watch → phone. Asks the phone to end the cast session it is running (S2531). */
+    const val CAST_STOP = "/fms/watch/cast_stop"
+
+    /** Message, phone → watch. Answers one cast request - casting, picker needed, or refused. */
+    const val CAST_ACK = "/fms/phone/cast_ack"
+
+    /** Message, phone → watch. The phone's current cast session, which the watch only displays. */
+    const val CAST_STATE = "/fms/phone/cast_state"
+
     /**
      * Reserved name the watch background frame is transferred under (S2000).
      *
@@ -124,6 +170,63 @@ object WearDataLayerPaths {
      */
     const val BACKGROUND_IMAGE_EDGE_PX = 480
 
+    /** Message, watch → phone. Carries stream pins delta payload (S2497). */
+    const val STREAM_PINS_DELTA = "/fms/watch/stream_pins_delta"
+
+    /**
+     * Message, phone → watch. Asks the paired watch to let this phone listen to its microphone
+     * (S2550).
+     *
+     * It carries no audio and never can: ADR-1 keeps every byte of sound on the watch's own LAN
+     * server, because the Data Layer's Bluetooth path is below the project's floor for audio and its
+     * Wi-Fi path routes through a node on Google servers - the intermediary S1699 excluded.
+     *
+     * Under the `/fms/phone` prefix `wear/src/main/AndroidManifest.xml` already declares, so it needs
+     * no manifest edit; a path outside a declared prefix is dropped by GMS in silence (S1697).
+     */
+    const val LISTEN_START = "/fms/phone/listen_start"
+
+    /** Message, phone → watch. Ends the listening session - server, microphone and notification. */
+    const val LISTEN_STOP = "/fms/phone/listen_stop"
+
+    /**
+     * Message, watch → phone. Answers one listen command with an address, or with a refusal (S2550).
+     *
+     * ADR-2: this answer is why no discovery is built - the watch reports its own host and port here.
+     * A refusal rides the same payload rather than arriving as silence, so this phone never has to
+     * tell "refused" from "lost". Under the `/fms/watch` prefix `src/wearGms/AndroidManifest.xml`
+     * already declares for PhoneWearListenerService, so it needs no filter of its own.
+     */
+    const val LISTEN_ACK = "/fms/watch/listen_ack"
+
+    /**
+     * Message, watch → phone. Asks this phone to open a camera and serve it on the LAN (S2551).
+     *
+     * The direction is the reverse of [LISTEN_START] and that is what decides the prefix: the three
+     * camera-session commands travel watch → phone, so they live under `/fms/watch`, which
+     * `src/wearGms/AndroidManifest.xml` already declares for PhoneWearListenerService. A path outside
+     * a declared prefix is dropped by GMS in silence (S1697), so the prefix is the delivery contract
+     * rather than a naming convention.
+     */
+    const val CAMERA_VIEW_START = "/fms/watch/camera_view_start"
+
+    /** Message, watch → phone. Ends the camera session - capture, server and notification (S2551). */
+    const val CAMERA_VIEW_STOP = "/fms/watch/camera_view_stop"
+
+    /** Message, watch → phone. Asks the running session to switch to another lens (S2551). */
+    const val CAMERA_VIEW_SWITCH = "/fms/watch/camera_view_switch"
+
+    /**
+     * Message, phone → watch. Answers one camera command with a stream URL, or with a refusal
+     * (S2551).
+     *
+     * Travels phone → watch, so it lives under the `/fms/phone` prefix
+     * `wear/src/main/AndroidManifest.xml` already declares for the watch listener - no manifest edit
+     * on either side. A refusal rides this payload rather than arriving as silence, so the watch
+     * never has to tell "refused" from "lost".
+     */
+    const val CAMERA_VIEW_ACK = "/fms/phone/camera_view_ack"
+
     // --- WearEventEnvelope.eventType constants ---
 
     /** eventType value for SETTINGS_PUSH envelopes. */
@@ -134,6 +237,12 @@ object WearDataLayerPaths {
 
     /** eventType value for STREAM_PINS envelopes (S2149). */
     const val EVENT_STREAM_PINS = "STREAM_PINS"
+
+    /** eventType value for STREAM_PINS_DELTA envelopes (S2497). */
+    const val EVENT_STREAM_PINS_DELTA = "STREAM_PINS_DELTA"
+
+    /** eventType value for SEND_TO_RECEIVERS envelopes (S2142). */
+    const val EVENT_SEND_TO_RECEIVERS = "SEND_TO_RECEIVERS"
 
     /** eventType value for SOURCES_EXPORT envelopes. */
     const val EVENT_SOURCES_EXPORT = "SOURCES_EXPORT"

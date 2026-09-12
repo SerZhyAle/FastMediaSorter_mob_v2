@@ -9,6 +9,9 @@ private const val SCHEME_APP_OWNED = "f"
 /** Marks a level reconstructed from the `RELATIVE_PATH` of MediaStore rows. */
 private const val SCHEME_MEDIA_STORE = "m"
 
+/** Marks a directory of a network source (S2694). */
+private const val SCHEME_NETWORK = "n"
+
 /**
  * Where one level of the watch-local folder walk lives.
  *
@@ -45,11 +48,22 @@ sealed interface WearFolderAddress {
      */
     data class MediaStoreFolder(val relativePath: String) : WearFolderAddress
 
+    /**
+     * A directory of a network source, addressed by that source and a path inside it (S2694).
+     *
+     * [path] is already in the form the owning protocol client lists: share-relative for SMB, where
+     * the share root is the **empty string**, and an absolute server path for FTP and SFTP. The
+     * protocol itself is read from the source record and never from this scheme - a fourth protocol
+     * is a fourth source type, not a fourth address scheme.
+     */
+    data class NetworkLevel(val sourceId: String, val path: String) : WearFolderAddress
+
     /** The route-safe form of this address. */
     fun asToken(): String = when (this) {
         is Root -> ""
         is AppOwned -> "$SCHEME_APP_OWNED$SCHEME_SEPARATOR$path"
         is MediaStoreFolder -> "$SCHEME_MEDIA_STORE$SCHEME_SEPARATOR$relativePath"
+        is NetworkLevel -> "$SCHEME_NETWORK$SCHEME_SEPARATOR$sourceId$SCHEME_SEPARATOR$path"
     }
 
     companion object {
@@ -65,11 +79,30 @@ sealed interface WearFolderAddress {
             val scheme = token.substringBefore(SCHEME_SEPARATOR, missingDelimiterValue = "")
             val value = token.substringAfter(SCHEME_SEPARATOR, missingDelimiterValue = "")
             return when {
+                // S2694: judged before the emptiness test below, which this scheme does not share -
+                // an SMB share root is legitimately the empty path, and refusing it here would send
+                // the walk to the local root instead, a wrong screen rather than a visible failure.
+                scheme == SCHEME_NETWORK -> parseNetworkLevel(value)
                 value.isEmpty() -> null
                 scheme == SCHEME_APP_OWNED -> AppOwned(value)
                 scheme == SCHEME_MEDIA_STORE -> MediaStoreFolder(value)
                 else -> null
             }
+        }
+
+        /**
+         * The network level `<sourceId>:<path>` names, or null when it names no source.
+         *
+         * The path may be empty (the SMB share root) but the source identifier may not: without it
+         * there is nothing to list against.
+         */
+        private fun parseNetworkLevel(value: String): WearFolderAddress? {
+            val separator = value.indexOf(SCHEME_SEPARATOR)
+            if (separator <= 0) return null
+            return NetworkLevel(
+                sourceId = value.substring(0, separator),
+                path = value.substring(separator + 1)
+            )
         }
     }
 }

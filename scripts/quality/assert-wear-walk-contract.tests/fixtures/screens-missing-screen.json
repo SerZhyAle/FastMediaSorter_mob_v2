@@ -1,0 +1,26 @@
+{
+  "_comment": [
+    "Fixture: the strings are fine but the declared composable does not exist."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Hello",
+      "screen": "GammaScreen",
+      "expectRes": "good_marker"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    },
+    {
+      "screen": "AlphaScreen",
+      "reason": "timed",
+      "note": "Fixture."
+    }
+  ]
+}

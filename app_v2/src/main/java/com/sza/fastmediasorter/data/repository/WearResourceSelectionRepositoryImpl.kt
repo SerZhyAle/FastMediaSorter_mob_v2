@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
-import android.content.SharedPreferences
-import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.core.di.IoDispatcher
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -13,33 +15,44 @@ import javax.inject.Singleton
  * An absent key means "nothing selected", never "everything": an update that read a missing set as
  * "select all" would silently push every registered resource to the watch on the first transfer.
  * Ids are stored as strings because SharedPreferences has no long-set type.
+ *
+ * S2515: every member suspends and moves itself to IO. This class previously wrapped each access in
+ * `StrictModeHelper.allowDiskReads`/`allowDiskWrites`, which stopped the warning being printed
+ * without stopping the disk access it warned about - so the send path stayed on the main thread while
+ * looking clean. The suppressions are gone along with the reason they existed.
  */
 @Singleton
 class WearResourceSelectionRepositoryImpl @Inject constructor(
-    @ApplicationContext context: Context
+    @ApplicationContext private val context: Context,
+    @IoDispatcher private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) {
 
-    private val prefs: SharedPreferences =
-        StrictModeHelper.allowDiskReads {
-            context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        }
+    // Resolved per access rather than in a field initialiser: a @Singleton field would parse the XML
+    // at first injection, on whatever thread Hilt happened to construct it, which no suspend member
+    // could move off. Android caches the instance after the first load, so this costs a map lookup.
+    private val prefs
+        get() = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun getSelectedIds(): Set<Long> = StrictModeHelper.allowDiskReads {
+    suspend fun hasSavedSelection(): Boolean = withContext(ioDispatcher) {
+        prefs.contains(KEY_SELECTED_IDS)
+    }
+
+    suspend fun getSelectedIds(): Set<Long> = withContext(ioDispatcher) {
         prefs.getStringSet(KEY_SELECTED_IDS, emptySet())
             .orEmpty()
             .mapNotNull { it.toLongOrNull() }
             .toSet()
     }
 
-    fun setSelectedIds(ids: Set<Long>) {
-        StrictModeHelper.allowDiskWrites {
+    suspend fun setSelectedIds(ids: Set<Long>) {
+        withContext(ioDispatcher) {
             prefs.edit()
                 .putStringSet(KEY_SELECTED_IDS, ids.map { it.toString() }.toSet())
                 .apply()
         }
     }
 
-    fun selectAll(allIds: Set<Long>) {
+    suspend fun selectAll(allIds: Set<Long>) {
         setSelectedIds(allIds)
     }
 

@@ -13,10 +13,12 @@ import android.widget.NumberPicker
 import android.widget.Toast
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.orientation.isWideLayout
 import com.sza.fastmediasorter.databinding.DialogScheduledOperationBinding
 import com.sza.fastmediasorter.domain.model.FileTypeFlags
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ScheduledOpType
 import com.sza.fastmediasorter.domain.model.ScheduledOperation
 import com.sza.fastmediasorter.domain.model.ScheduledOperationDraft
@@ -24,10 +26,8 @@ import com.sza.fastmediasorter.domain.model.TimeFilter
 import com.sza.fastmediasorter.domain.model.computeNextRunAt
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
-import java.text.SimpleDateFormat
+import dagger.hilt.android.EntryPointAccessors
 import java.util.Calendar
-import java.util.Date
-import java.util.Locale
 
 /** S1009: which scheduled-op field an ad-hoc local-folder pick targets. */
 enum class SchedOpPickSide { SOURCE, TARGET }
@@ -56,7 +56,12 @@ class ScheduledOperationDialog(
     // S0535: Conditions section uses the unified orchestrator + consolidated store, default collapsed.
     private val sectionsManager by lazy { CollapsibleSectionsManager(context) }
 
-    private val nextRunFormat = SimpleDateFormat("yy-MM-dd HH:mm", Locale.getDefault())
+    // S2795: a Dialog is built by hand, not by Hilt, so it reaches the format seam the way the
+    // project's other out-of-graph surfaces do. The system itself is read per call, so a switched
+    // setting shows the next time the preview is recomputed.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -366,7 +371,9 @@ class ScheduledOperationDialog(
             startHour, startMinute, intervalHours, intervalMinutes, System.currentTimeMillis()
         )
         val label = context.getString(R.string.scheduled_ops_next_run)
-        b.tvNextRun.text = "$label ${nextRunFormat.format(Date(nextRunAt))}"
+        val nextRunText = unitSeam.quantityFormatter()
+            .format(Quantity.DateTime(nextRunAt), unitSeam.unitSystemProvider().value)
+        b.tvNextRun.text = "$label $nextRunText"
         b.tvNextRun.visibility = View.VISIBLE
     }
 

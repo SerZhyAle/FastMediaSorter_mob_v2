@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.browse.helpers
 
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.MediaType
 
 /**
  * Operations a browse row can offer. [SELECT] is the row's participation in multi-selection;
@@ -51,4 +52,13 @@ object BrowseItemOperationPolicy {
         if (file.isDirectory) operation in DIRECTORY_OPERATIONS else true
 
     fun isSelectable(file: MediaFile): Boolean = supports(BrowseItemOperation.SELECT, file)
+
+    /**
+     * S2533: extraction needs a zip specifically, not any archive. Lives here beside the other
+     * item-type questions so the overflow menu and the swipe resolver share one definition instead
+     * of each carrying a predicate that can drift.
+     */
+    fun isZipArchive(file: MediaFile): Boolean =
+        file.type == MediaType.BINARY_ARCHIVE &&
+            file.name.substringAfterLast('.', "").equals("zip", ignoreCase = true)
 }

@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.data.network.smb
 
 import com.hierynomus.msdtyp.AccessMask
+import com.hierynomus.msfscc.FileAttributes
 import com.hierynomus.mssmb2.SMB2CreateDisposition
 import com.hierynomus.mssmb2.SMB2ShareAccess
 import com.hierynomus.smbj.SMBClient
@@ -9,7 +10,13 @@ import com.hierynomus.smbj.auth.AuthenticationContext
 import com.hierynomus.smbj.connection.Connection
 import com.hierynomus.smbj.session.Session
 import com.hierynomus.smbj.share.DiskShare
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.PARENT_ENTRY
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkEntry.Companion.SELF_ENTRY
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
+import com.sza.fastmediasorter.wear.util.rethrowIfCancellation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -23,63 +30,68 @@ import java.util.concurrent.TimeUnit
  * SMB data source for accessing files on SMB/CIFS network shares.
  * Uses SMBJ library for SMB protocol communication.
  */
-class SmbDataSource {
-    
+class SmbDataSource(
+    private val endpointResolver: WearEndpointResolver
+) {
+
     private var connection: Connection? = null
     private var session: Session? = null
     private var share: DiskShare? = null
-    
+
     // Store connection parameters for reconnection
     private var currentSource: NetworkSource? = null
-    
+
     private val config = SmbConfig.builder()
         .withTimeout(30, TimeUnit.SECONDS)
         .withSoTimeout(30, TimeUnit.SECONDS)
         .build()
-    
+
     private val client = SMBClient(config)
-    
+
     /**
      * Connect to SMB server and authenticate.
      */
-    suspend fun connect(source: NetworkSource): Result<Unit> {
+    suspend fun connect(sourceIn: NetworkSource): Result<Unit> {
         return withContext(Dispatchers.IO) {
             try {
+                // S2488: SMB carries no imported alternates today, so the group is one element and the
+                // source comes back untouched - the wiring is what lets a future group work.
+                val source = endpointResolver.resolve(sourceIn)
                 Timber.d("Connecting to SMB: ${source.server}:${source.port}")
-                
+
                 // Disconnect if already connected
                 disconnect()
-                
+
                 // Store source for reconnection
                 currentSource = source
-                
+
                 // Establish connection
                 connection = client.connect(source.server, source.port)
-                
+
                 // Authenticate
                 val authContext = AuthenticationContext(
                     source.username,
                     source.password.toCharArray(),
                     null // Domain (null for workgroup)
                 )
-                
+
                 session = connection?.authenticate(authContext)
-                
+
                 // Connect to share
                 if (source.shareName != null) {
                     share = session?.connectShare(source.shareName) as? DiskShare
                     Timber.d("Connected to share: ${source.shareName}")
                 }
-                
+
                 Result.success(Unit)
             } catch (e: Exception) {
-                Timber.e(e, "Failed to connect to SMB")
+                e.errorUnlessCancellation("Failed to connect to SMB")
                 disconnect()
                 Result.failure(e)
             }
         }
     }
-    
+
     /**
      * Ensure connection is alive, reconnect if needed.
      */
@@ -89,26 +101,27 @@ class SmbDataSource {
             val isAlive = try {
                 connection?.isConnected == true && share != null
             } catch (e: Exception) {
+                e.rethrowIfCancellation()
                 false
             }
-            
+
             if (isAlive) {
                 Timber.d("SMB connection is alive")
                 return@withContext Result.success(Unit)
             }
-            
+
             // Need to reconnect
             val source = currentSource
             if (source == null) {
                 Timber.e("Cannot reconnect - no stored connection parameters")
                 return@withContext Result.failure(IllegalStateException("Not connected to share"))
             }
-            
+
             Timber.d("SMB connection lost, reconnecting...")
             connect(source)
         }
     }
-    
+
     /**
      * Disconnect from SMB server.
      */
@@ -119,7 +132,7 @@ class SmbDataSource {
                 session?.close()
                 connection?.close()
             } catch (e: Exception) {
-                Timber.e(e, "Error disconnecting from SMB")
+                e.errorUnlessCancellation("Error disconnecting from SMB")
             } finally {
                 share = null
                 session = null
@@ -127,7 +140,7 @@ class SmbDataSource {
             }
         }
     }
-    
+
     /**
      * One entry of an SMB directory listing.
      *
@@ -139,7 +152,10 @@ class SmbDataSource {
     data class SmbEntry(
         val name: String,
         val size: Long,
-        val modifiedTime: Long
+        val modifiedTime: Long,
+        // S2694: read from the listing record's attribute bits. A name heuristic was refused there -
+        // it calls an extension-less file a directory and a dotted directory a file, silently.
+        val isDirectory: Boolean = false
     )
 
     /**
@@ -169,7 +185,9 @@ class SmbDataSource {
                 SmbEntry(
                     name = fileInfo.fileName,
                     size = fileInfo.endOfFile,
-                    modifiedTime = fileInfo.lastWriteTime.toEpochMillis()
+                    modifiedTime = fileInfo.lastWriteTime.toEpochMillis(),
+                    isDirectory = fileInfo.fileAttributes and
+                        FileAttributes.FILE_ATTRIBUTE_DIRECTORY.value != 0L
                 )
             }
 
@@ -181,10 +199,42 @@ class SmbDataSource {
             Result.failure(e)
         }
     }
-    
+
+    /**
+     * S2694: the same listing as [listFiles], in the protocol-neutral shape the folder walk consumes.
+     *
+     * The self and parent entries are dropped here rather than in [listFiles]: a walk that showed
+     * them would offer the wearer a row leading to the level already on screen, while the flat
+     * listing never displayed them anyway - neither carries a mime type the listing filter can place.
+     *
+     * @param path Path relative to share root; the empty string is the share root
+     */
+    suspend fun listEntries(path: String): Result<List<WearNetworkEntry>> =
+        listFiles(path).map { entries -> toNetworkEntries(path, entries) }
+
+    /**
+     * The pure half of [listEntries], separated so the join and the flag can be tested without a
+     * share. Its subject is a mapping, and a mapping that needs a socket to be checked is a mapping
+     * nothing checks.
+     */
+    internal fun toNetworkEntries(path: String, entries: List<SmbEntry>): List<WearNetworkEntry> {
+        val parent = path.trim('/')
+        return entries
+            .filterNot { it.name == SELF_ENTRY || it.name == PARENT_ENTRY }
+            .map { entry ->
+                WearNetworkEntry(
+                    name = entry.name,
+                    path = if (parent.isEmpty()) entry.name else "$parent/${entry.name}",
+                    isDirectory = entry.isDirectory,
+                    sizeBytes = entry.size,
+                    dateModifiedEpochMillis = entry.modifiedTime
+                )
+            }
+    }
+
     /**
      * Get input stream for file.
-     * 
+     *
      * @param path Path to file relative to share root
      * @return InputStream for reading file content
      */
@@ -204,7 +254,7 @@ class SmbDataSource {
 
             val cleanPath = path.trim('/').trim('\\')
             Timber.d("Opening file: $cleanPath")
-            
+
             // Open file with read access using proper SMBJ API
             val file = currentShare.openFile(
                 cleanPath,
@@ -214,7 +264,7 @@ class SmbDataSource {
                 SMB2CreateDisposition.FILE_OPEN,
                 null
             )
-            
+
             // S1304: closing only the stream leaked the smbj File handle - one open SMB2 handle per
             // viewed media file, held by the server until the session died. Tie the handle's
             // lifetime to the stream the caller actually closes.
@@ -237,7 +287,7 @@ class SmbDataSource {
             Result.failure(e)
         }
     }
-    
+
     /**
      * Check if currently connected.
      */

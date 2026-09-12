@@ -74,7 +74,6 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
                 origin: String?,
                 callback: GeolocationPermissions.Callback?,
             ) {
-                Timber.d("S2292: geolocation prompt denied for $origin")
                 callback?.invoke(origin, false, false)
             }
         }
@@ -127,7 +126,6 @@ class GoogleMapsLiveFrameView @JvmOverloads constructor(
         val tileLongitude = WebMercatorTile.coarseLongitude(longitude, DEFAULT_ZOOM)
         lastLatitude = tileLatitude
         lastLongitude = tileLongitude
-        Timber.d("S2292: live map centred on tile $tileLatitude,$tileLongitude")
         loadMapUrl(mapUrlFor(tileLatitude, tileLongitude))
     }
 

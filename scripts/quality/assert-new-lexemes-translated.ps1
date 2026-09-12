@@ -131,6 +131,13 @@ $keys = @($records | ForEach-Object { Get-LocaleUnitId -Module $Module -Set $_.s
 if (-not $Quiet) {
     Write-Host ''
     Write-Host "assert-new-lexemes-translated: $($keys.Count) new string(s) do not reach every declared locale."
+    Write-Host @'
+  Why this refuses here and not at the authoring call (S2517 moved this off the rules page): the
+  authoring call and the ticket close only NAME what is missing, because a surface and its authored
+  locales (en/ru/uk) move in one edit while the rest of the declared thirteen fan out at the release
+  boundary. This gate is that boundary. The ruling is the owner's, 2026-08-14 (S1627 ADR-2), and
+  until 2026-08-28 it contradicted canon invariant 17, which now reads "every authored locale".
+'@
     foreach ($key in ($keys | Select-Object -First 20)) { Write-Host "  $key" }
     if ($keys.Count -gt 20) { Write-Host "  .. and $($keys.Count - 20) more - see $indexPath" }
     Write-Host ''

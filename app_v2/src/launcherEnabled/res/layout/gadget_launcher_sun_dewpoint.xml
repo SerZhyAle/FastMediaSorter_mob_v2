@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S1907: sunrise, sunset and dew point for one place. Same shape as gadget_launcher_weather.xml -
+     sized by the desktop grid, so nothing here sets a fixed height. No layout-land counterpart: a cell
+     is sized by the grid, not by the device orientation, and no gadget layout has one. -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:padding="@dimen/margin_small">
+
+        <!-- android:src, not tools:src as on the weather cell this layout was modelled on: that icon
+             varies with the condition and is therefore assigned in code, while this one never changes,
+             so declaring it here is what makes it render at all. -->
+        <ImageView
+            android:id="@+id/gadgetSunDewpointIcon"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:adjustViewBounds="true"
+            android:contentDescription="@null"
+            android:maxWidth="48dp"
+            android:src="@drawable/ic_sun_dewpoint"
+            android:tint="?attr/launcherDesktopText"
+            tools:ignore="UseAppTint" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="3"
+            android:gravity="center_vertical"
+            android:orientation="vertical">
+
+            <!-- Shown only while the card carries no reading, for S1587's reason on the weather cell:
+                 an unconfigured card would otherwise be an unlabelled instruction. -->
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointCaption"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:importantForAccessibility="no"
+                android:maxLines="1"
+                android:text="@string/launcher_gadget_sun_dewpoint"
+                android:textColor="?attr/launcherDesktopTextSecondary"
+                android:textSize="11sp"
+                android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:visibility="visible" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointSunrise"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopText"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Sunrise 06:12" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointSunset"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopText"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Sunset 19:48" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointDew"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopText"
+                android:textSize="13sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Dew point 12°" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointPlace"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopTextSecondary"
+                android:textSize="11sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Kyiv" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetSunDewpointMessage"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="2"
+                android:textColor="?attr/launcherDesktopTextSecondary"
+                android:textSize="11sp"
+                android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Long press to choose a place"
+                tools:visibility="visible" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</merge>

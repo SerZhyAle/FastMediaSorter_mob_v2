@@ -8,8 +8,11 @@ import android.provider.MediaStore
 import com.sza.fastmediasorter.wear.domain.model.MediaType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.repository.WearMediaRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.util.errorUnlessCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -86,7 +89,8 @@ private val DOCUMENT_SELECTION = listOf(
  * Singleton scope is managed by the @Provides method in the module.
  */
 class WearMediaRepositoryImpl(
-    private val contentResolver: ContentResolver
+    private val contentResolver: ContentResolver,
+    private val preferencesRepository: WearPreferencesRepository? = null
 ) : WearMediaRepository {
 
     override fun getMediaFiles(mediaType: MediaType): Flow<Result<List<WearMediaFile>>> =
@@ -96,11 +100,20 @@ class WearMediaRepositoryImpl(
         listing("documents") { queryDocuments() }
 
     override fun getAllMediaFiles(): Flow<Result<List<WearMediaFile>>> = listing("flat listing") {
-        // Merged from the collections this repository already knows rather than read once off
-        // MediaStore.Files: the audio collection carries the album and artist columns the player
-        // needs for cover art, and a Files row would reach the player without them.
-        (MediaType.entries.flatMap { queryMediaStore(it) } + queryDocuments())
-            .sortedByDescending { it.dateModified }
+        val isAudio = preferencesRepository?.isAudioEnabled?.firstOrNull() ?: true
+        val isVideo = preferencesRepository?.isVideoEnabled?.firstOrNull() ?: true
+        val isImages = preferencesRepository?.isImagesEnabled?.firstOrNull() ?: true
+        val isDocs = preferencesRepository?.isDocumentsEnabled?.firstOrNull() ?: true
+
+        Timber.d("S2492: getAllMediaFiles with audio=$isAudio video=$isVideo images=$isImages docs=$isDocs")
+
+        val mediaFiles = mutableListOf<WearMediaFile>()
+        if (isAudio) mediaFiles.addAll(queryMediaStore(MediaType.MUSIC))
+        if (isVideo) mediaFiles.addAll(queryMediaStore(MediaType.VIDEO))
+        if (isImages) mediaFiles.addAll(queryMediaStore(MediaType.PHOTO))
+        if (isDocs) mediaFiles.addAll(queryDocuments())
+
+        mediaFiles.sortedByDescending { it.dateModified }
     }
 
     override suspend fun getMediaFileById(id: Long, mediaType: MediaType): WearMediaFile? =
@@ -109,7 +122,7 @@ class WearMediaRepositoryImpl(
                 val files = queryMediaStore(mediaType, selectionId = id)
                 files.firstOrNull()
             } catch (e: Exception) {
-                Timber.e(e, "Failed to fetch media file by id: $id")
+                e.errorUnlessCancellation("Failed to fetch media file by id: $id")
                 null
             }
         }
@@ -120,14 +133,14 @@ class WearMediaRepositoryImpl(
      */
     private fun listing(
         label: String,
-        query: () -> List<WearMediaFile>
+        query: suspend () -> List<WearMediaFile>
     ): Flow<Result<List<WearMediaFile>>> = flow {
         try {
             val files = query()
             Timber.d("Found ${files.size} watch file(s) for $label")
             emit(Result.success(files))
         } catch (e: Exception) {
-            Timber.e(e, "Failed to fetch watch files for $label")
+            e.errorUnlessCancellation("Failed to fetch watch files for $label")
             emit(Result.failure(e))
         }
     }.flowOn(Dispatchers.IO)

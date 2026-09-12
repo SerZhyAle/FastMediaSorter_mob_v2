@@ -47,9 +47,6 @@ import com.sza.fastmediasorter.domain.model.MediaType
 import com.sza.fastmediasorter.domain.model.StereoMode
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResumeStateRepository
-import com.sza.fastmediasorter.ui.player.commands.FullscreenCommandOverride
-import com.sza.fastmediasorter.ui.player.commands.SaveFrameCommandOverride
-import com.sza.fastmediasorter.ui.player.commands.SystemUiCommandOverride
 import com.sza.fastmediasorter.ui.player.contracts.PlayerActionHost
 import com.sza.fastmediasorter.ui.player.contracts.PlayerHostCapabilities
 import com.sza.fastmediasorter.ui.player.contracts.VideoPlayerHandle
@@ -73,7 +70,6 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import java.util.Optional
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -133,6 +129,9 @@ class PlayerActivity :
 
     // Tracks lifecycle-induced togglePause() from onPause() so onResumeWithViews() can reverse it. Prevents isPaused from leaking across background/resume cycles and breaking playWhenReady on next load.
     internal var wasToggledPausedByLifecycle = false
+
+    @Inject
+    lateinit var browseTransferCoordinator: com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 
     internal lateinit var fileOperationsHandler: FileOperationsHandler
     internal lateinit var playerFileOperationQueue: com.sza.fastmediasorter.ui.player.fileops.PlayerFileOperationQueue
@@ -403,19 +402,15 @@ class PlayerActivity :
 
     @Inject lateinit var castControllerFactory: com.sza.fastmediasorter.core.cast.CastControllerFactory
 
+    @Inject lateinit var activeCastControllerHolder: com.sza.fastmediasorter.core.cast.ActiveCastControllerHolder
+
     @Inject lateinit var vrLaunchPayloadHolder: com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 
     @Inject internal lateinit var dropboxClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.DropboxClient>
 
     @Inject internal lateinit var oneDriveClientLazy: Lazy<com.sza.fastmediasorter.data.cloud.OneDriveRestClient>
 
-    @Inject internal lateinit var fullscreenCommandOverride: Optional<FullscreenCommandOverride>
-
     @Inject internal lateinit var restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy
-
-    @Inject internal lateinit var saveFrameCommandOverride: Optional<SaveFrameCommandOverride>
-
-    @Inject internal lateinit var systemUiCommandOverride: Optional<SystemUiCommandOverride>
 
     // S0459: unified «Send to..» menu manager; accessed by PlayerCommandPanelCallbackImpl.
     @Inject internal lateinit var sendToMenuManager: com.sza.fastmediasorter.ui.share.SendToMenuManager
@@ -622,7 +617,6 @@ class PlayerActivity :
         if (pipOnReadyFired) return
         if (!intent.getBooleanExtra(EXTRA_ENTER_PIP_ON_READY, false)) return
         pipOnReadyFired = true
-        Timber.d("S2230: pip-on-ready requested, entering picture-in-picture")
         Timber.i("PlayerActivity: entering picture-in-picture on playback ready")
         pipManager?.enterPictureInPicture()
     }
@@ -828,18 +822,6 @@ class PlayerActivity :
         )
     }
 
-    /** Let flavor-specific code replace the fullscreen button behavior (e.g., in XR sessions). */
-    internal fun tryHandleFullscreenCommandOverride(): Boolean =
-        fullscreenCommandOverride.orElse(null)?.execute(this, viewModel) == true
-
-    /** VR binds a dedicated Save Frame override for OpenXR rendering. */
-    internal fun tryHandleSaveFrameCommandOverride(): Boolean =
-        saveFrameCommandOverride.orElse(null)?.execute(this) == true
-
-    /** VR maps controller input to this override to show/hide the headset overlay. */
-    internal fun tryHandleSystemUiCommandOverride(): Boolean =
-        systemUiCommandOverride.orElse(null)?.execute(this) == true
-
     internal fun updateCommandAvailability(state: PlayerViewModel.PlayerState) =
         commandPanelController.updateCommandAvailability(state)
 
@@ -886,6 +868,7 @@ class PlayerActivity :
         Toast.makeText(this, getString(R.string.volume_level, (newVolume * 100).toInt()), Toast.LENGTH_SHORT).show()
     }
 
+    @Suppress("MagicNumber")
     internal fun scheduleHideControls() {
         hideControlsHandler.removeCallbacks(hideControlsRunnable)
         // S0819: in non-touch mode (D-pad/gamepad) the controls overlay is the only thing the
@@ -894,7 +877,9 @@ class PlayerActivity :
         if (!binding.root.isInTouchMode) return
         val isAudioFile = viewModel.state.value.currentFile?.type == MediaType.AUDIO
         if (viewModel.state.value.showControls && !viewModel.state.value.isPaused && !isAudioFile) {
-            hideControlsHandler.postDelayed(hideControlsRunnable, VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS)
+            val delayMs = viewModel.settings.value.playerPanelAutoHideSeconds.coerceIn(1, 600) * 1000L
+            Timber.d("S2505: PlayerActivity scheduleHideControls delayMs=$delayMs")
+            hideControlsHandler.postDelayed(hideControlsRunnable, delayMs)
         }
     }
 
@@ -1249,7 +1234,6 @@ class PlayerActivity :
     ) {
         if (!::altEngineFallbackManager.isInitialized || !::deliveryEnableInterceptor.isInitialized) return
         val set = altEngineFallbackManager.pendingInstallSetFor(file) ?: return
-        timber.log.Timber.d("S1971: offering delivery download for alt engine set %s", set)
         deliveryEnableInterceptor.requireInstalled(
             activity = this,
             set = set,
@@ -1414,6 +1398,28 @@ class PlayerActivity :
     override val isAudioServiceActive: Boolean
         get() = isMediaLoaderManagerInitialized && mediaLoaderManager.isServiceAudioActive
 
+    // S2907: route to the player that actually owns the audio path. When the background
+    // AudioPlaybackService is active its MediaController is the live player; otherwise the
+    // ExoPlayer inside VideoPlayerManager. Matches the split PlayerActivityVideoHandle uses
+    // for playback speed.
+    override fun getPlayerVolume(): Float {
+        val player = if (isAudioServiceActive) {
+            audioServiceController?.player
+        } else {
+            _videoPlayerManager?.getPlayer()
+        }
+        return player?.volume ?: 1f
+    }
+
+    override fun setPlayerVolume(volume: Float) {
+        val player = if (isAudioServiceActive) {
+            audioServiceController?.player
+        } else {
+            _videoPlayerManager?.getPlayer()
+        }
+        player?.volume = volume
+    }
+
     override fun showMessage(message: String) = viewModel.showMessage(message)
 
     // Handled internally: PlayerDeleteUndoCoordinator advances the file list or emits FinishActivity.
@@ -1440,7 +1446,6 @@ class PlayerActivity :
     }
 
     companion object {
-        private const val VIDEO_CONTROLS_AUTO_HIDE_DELAY_MS = 15000L
         private const val FMS_PLAYER_READY = "FMS_PLAYER_READY"
         private const val FMS_PLAYER_BACK_NAVIGATION = "FMS_PLAYER_BACK_NAVIGATION"
 

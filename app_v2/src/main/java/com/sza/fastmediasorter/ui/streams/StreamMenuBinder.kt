@@ -18,6 +18,10 @@ object StreamMenuBinder {
 
     private const val ORIGIN_MANUAL = "MANUAL"
 
+    // S1218: the kinds that carry video. RTSP is included so the row is offered and can explain its
+    // own refusal; AUDIO is radio, which strategic §2 puts outside the feature entirely.
+    private val VIDEO_KINDS = setOf("VIDEO", "RTSP")
+
     /**
      * [pinnedRows] is the ordered pinned block, which is what decides whether reordering has anywhere
      * to go - a single pinned channel offers no reorder row (S0938).
@@ -28,6 +32,7 @@ object StreamMenuBinder {
         favoritesEnabled: Boolean,
         isFavorite: Boolean,
         wearSendAvailable: Boolean,
+        vrLaunchAvailable: Boolean = false,
     ) = StreamActionCatalog.Facts(
         isPinned = source.pinned,
         isFavorite = isFavorite,
@@ -36,6 +41,8 @@ object StreamMenuBinder {
         // CATALOG and IMPORTED rows are owned by their sync and must not be hand-edited (S0660 6.4).
         isManualOrigin = source.sourceOrigin == ORIGIN_MANUAL,
         wearSendAvailable = wearSendAvailable,
+        vrLaunchAvailable = vrLaunchAvailable,
+        isVideoKind = source.mediaKind in VIDEO_KINDS,
     )
 
     fun build(

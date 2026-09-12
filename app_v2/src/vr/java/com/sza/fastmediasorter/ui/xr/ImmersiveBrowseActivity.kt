@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.xr
 
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Canvas
@@ -15,6 +16,7 @@ import androidx.annotation.Keep
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.xr.VrLaunchMode
 import com.sza.fastmediasorter.core.xr.VrLaunchPayloadHolder
 import com.sza.fastmediasorter.core.xr.VrMediaType
@@ -28,6 +30,7 @@ import com.sza.fastmediasorter.ui.xr.browse.ImmersiveBrowseInteractionDispatcher
 import com.sza.fastmediasorter.ui.xr.browse.ImmersiveBrowsePlaybackController
 import com.sza.fastmediasorter.ui.xr.browse.ImmersiveThumbnailDecoder
 import com.sza.fastmediasorter.ui.xr.helpers.HudHapticBridge
+import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -45,8 +48,15 @@ import javax.inject.Inject
  */
 @AndroidEntryPoint
 class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
-    @Inject lateinit var runtime: DiagnosticXrRuntime
+    @Inject lateinit var runtimeProvider: Lazy<DiagnosticXrRuntime>
+
+    private val runtime: DiagnosticXrRuntime
+        get() = runtimeProvider.get()
 
     @Inject lateinit var payloadHolder: VrLaunchPayloadHolder
 
@@ -219,6 +229,31 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         }
     }
 
+    /**
+     * S1133: discrete grid steps pushed up from the native input loop while it runs in browse mode.
+     * The event ordinals are the `kInputEventGrid*` constants in `xr_session.cpp`.
+     */
+    @Keep
+    fun onNativeInputEvent(eventType: Int) {
+        runOnUiThread {
+            if (isFinishing || isDestroyed || state != BrowseState.BROWSE) return@runOnUiThread
+            val (dx, dy) = when (eventType) {
+                INPUT_EVENT_GRID_LEFT -> -1 to 0
+                INPUT_EVENT_GRID_RIGHT -> 1 to 0
+                INPUT_EVENT_GRID_UP -> 0 to 1
+                INPUT_EVENT_GRID_DOWN -> 0 to -1
+                else -> return@runOnUiThread
+            }
+            Timber.d("S1133: grid input event $eventType -> dx=$dx dy=$dy")
+            val previousHover = dispatcher.hoveredIndex
+            val resolved = dispatcher.navigate(dx, dy, cells, pageOffset)
+            if (resolved != previousHover) {
+                hapticBridge.triggerHoverFeedback()
+                drawAndPushGrid()
+            }
+        }
+    }
+
     private fun onCellSelected(cell: ImmersiveBrowseCell) {
         hapticBridge.triggerClickFeedback()
         if (cell.isFolder) {
@@ -244,6 +279,7 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
     private fun selectMedia(cell: ImmersiveBrowseCell) {
         val path = cell.filePath ?: return
         state = BrowseState.PLAYBACK
+        runtime.setInputMode(DiagnosticXrRuntime.INPUT_MODE_PLAYER)
         blankGrid()
         if (cell.mediaType == VrMediaType.VIDEO) {
             playbackController.playVideo(toUri(path), cell.label)
@@ -275,6 +311,7 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         state = BrowseState.BROWSE
         // Re-assert the browse quad: playback used the media quad, and the runtime is process-wide.
         runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M, BROWSE_QUAD_OFFSET_Y_M)
+        runtime.setInputMode(DiagnosticXrRuntime.INPUT_MODE_BROWSE)
         drawAndPushGrid()
     }
 
@@ -326,6 +363,10 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         // The XR runtime is a process singleton, so the browser must assert its own HUD quad size or
         // it inherits whatever the previous mode left (the tiny banner) - the "micro-browser" (S1116).
         runtime.setHudQuadSize(BROWSE_QUAD_WIDTH_M, BROWSE_QUAD_HEIGHT_M, BROWSE_QUAD_OFFSET_Y_M)
+        // S1133: the input mode is inherited from the previous mode exactly like the quad size is,
+        // so the browser asserts thumbstick-as-grid here rather than trusting the native default.
+        runtime.setInputMode(DiagnosticXrRuntime.INPUT_MODE_BROWSE)
+        Timber.d("S1133: session ready, input mode asserted browse")
         if (state == BrowseState.BROWSE) drawAndPushGrid()
     }
 
@@ -365,6 +406,12 @@ class ImmersiveBrowseActivity : ComponentActivity(), SurfaceHolder.Callback {
         const val RGBA_BYTES_PER_PIXEL = 4
         const val ALPHA_OFFSET = 3
         const val CELL_THUMB_PX = 384
+
+        // S1133: mirrors kInputEventGrid* in xr_session.cpp - keep both sides in step.
+        const val INPUT_EVENT_GRID_LEFT = 7
+        const val INPUT_EVENT_GRID_RIGHT = 8
+        const val INPUT_EVENT_GRID_UP = 9
+        const val INPUT_EVENT_GRID_DOWN = 10
 
         // S1116: browse HUD quad in metres (2:1). The banner default is 0.30x0.113 m and the player
         // panel is a wide strip since S1228 - the browser needs its own large readable surface, so

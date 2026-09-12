@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.wear.data.repository
 
+import android.content.Context
+import android.net.Uri
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteDao
 import com.sza.fastmediasorter.wear.data.db.VoiceNoteEntity
 import com.sza.fastmediasorter.wear.data.db.toDomain
@@ -7,6 +9,7 @@ import com.sza.fastmediasorter.wear.data.recorder.VoiceNoteFileFactory
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.repository.VoiceNoteRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -24,13 +27,14 @@ import javax.inject.Singleton
 private const val MIN_FREE_BYTES_TO_RECORD = 32L * 1024L * 1024L
 
 /**
- * S1862: the store behind the recorder's note list.
+ * S1862 / S2161: the store behind the recorder's note list.
  *
  * Every method hops to [Dispatchers.IO]; the Flow queries are Room's own, which are already
  * main-safe, and only the mapping to the domain shape runs on the collector.
  */
 @Singleton
 class VoiceNoteRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val dao: VoiceNoteDao,
     private val fileFactory: VoiceNoteFileFactory
 ) : VoiceNoteRepository {
@@ -71,6 +75,31 @@ class VoiceNoteRepositoryImpl @Inject constructor(
         dao.updateDeliveryState(id, state.name)
     }
 
+    override suspend fun updatePublishedAddress(id: Long, publishedAddress: String) = withContext(Dispatchers.IO) {
+        dao.updatePublishedAddress(id, publishedAddress)
+    }
+
+    /**
+     * The file moves first and the index follows, so a process death between the two leaves an index
+     * naming a file that is gone - recoverable by the index rebuilder - rather than a file the index
+     * has already renamed past, which nothing would ever reconcile.
+     *
+     * A name already taken in the directory is refused outright instead of being suffixed: the caller
+     * is renaming one note by hand, and silently landing on a third name would tell it a rename
+     * succeeded that the owner did not ask for.
+     */
+    override suspend fun rename(id: Long, newName: String): VoiceNote? = withContext(Dispatchers.IO) {
+        val entity = dao.getById(id) ?: return@withContext null
+        val source = File(entity.absolutePath)
+        val target = File(source.parentFile, newName)
+        if (!source.exists() || target.exists() || !source.renameTo(target)) {
+            Timber.w("Refusing to rename note %d to %s: the file did not move", id, newName)
+            return@withContext null
+        }
+        dao.updateName(id, target.name, target.absolutePath)
+        dao.getById(id)?.toDomain()
+    }
+
     override suspend fun delete(id: Long) = withContext(Dispatchers.IO) {
         // The row goes only after the file: a row without a file is a broken list entry, while a file
         // without a row is an orphan nobody can reach. If the process dies between the two, the
@@ -91,7 +120,20 @@ class VoiceNoteRepositoryImpl @Inject constructor(
         roomy
     }
 
+    override fun mostRecent(): Flow<VoiceNote?> =
+        dao.observeAll().map { entities -> entities.firstOrNull()?.toDomain() }
+
     private fun deleteFileOf(entity: VoiceNoteEntity) {
+        val published = entity.publishedAddress
+        if (published != null) {
+            try {
+                context.contentResolver.delete(Uri.parse(published), null, null)
+            } catch (e: SecurityException) {
+                Timber.w(e, "VoiceNoteRepositoryImpl: failed to delete published entry %s", published)
+            } catch (e: IllegalArgumentException) {
+                Timber.w(e, "VoiceNoteRepositoryImpl: failed to delete published entry %s", published)
+            }
+        }
         val file = File(entity.absolutePath)
         if (file.exists() && !file.delete()) {
             // Nothing the user can do about it and nothing to roll back - the row still goes, so the

@@ -18,6 +18,13 @@ data class LauncherSignal(
     val icon: LauncherSignalIcon,
     val label: String,
     val detail: String? = null,
+    /**
+     * S2734: the order this signal's own source wants it in, among the signals of the same [kind], lower
+     * first. Declared by the source rather than decided by the strip, because the strip must not learn what
+     * a kind means (S1421 ADR-4). Zero by default, which leaves a source that states no order sorted by
+     * [id] exactly as it was before the field existed.
+     */
+    val rank: Int = 0,
 )
 
 /**

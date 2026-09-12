@@ -124,8 +124,53 @@ class BrowseViewModel @Inject constructor(
                 val result = contentAuthoringUseCases.fileOperationUseCase.execute(operation)
                 return result is com.sza.fastmediasorter.domain.usecase.FileOperationResult.Success
             }
+            override suspend fun enqueueDirectoryUndoTransfer(
+                treePaths: List<String>,
+                destinationParent: String,
+            ): Boolean = directoryUndoTransfer?.invoke(treePaths, destinationParent) ?: false
+
+            override suspend fun deleteDirectoryTrees(treePaths: List<String>): Int =
+                kotlinx.coroutines.withContext(ioDispatcher) {
+                    cleanupUseCases.deleteDirectoriesUseCase.deletePaths(treePaths).getOrDefault(0)
+                }
+
+            override suspend fun confirmDestructiveUndo(treeCount: Int): Boolean {
+                val decision = kotlinx.coroutines.CompletableDeferred<Boolean>()
+                // A confirmation still on screen is superseded rather than left to hang - only one
+                // undo can be in flight, so the older prompt can no longer be answered meaningfully.
+                pendingUndoFolderCopyDecision?.complete(false)
+                pendingUndoFolderCopyDecision = decision
+                sendEvent(BrowseEvent.ShowUndoFolderCopyConfirm(treeCount))
+                return decision.await()
+            }
         }
     )
+
+    /**
+     * S1326: completed by the Activity when the copy-undo confirmation is answered or dismissed.
+     * Left uncompleted it would park the undo coroutine forever, so every exit path answers it -
+     * including Activity destruction via [onDirectoryUndoHostDestroyed].
+     */
+    private var pendingUndoFolderCopyDecision: kotlinx.coroutines.CompletableDeferred<Boolean>? = null
+
+    fun onUndoFolderCopyDecision(confirmed: Boolean) {
+        pendingUndoFolderCopyDecision?.complete(confirmed)
+        pendingUndoFolderCopyDecision = null
+    }
+
+    /**
+     * S1326: set by BrowseManagerInitializer once the Activity-scoped BrowseFileOperationsManager exists.
+     * Held as a function rather than a manager reference - that manager owns an Activity Context and a
+     * LifecycleOwner, and a ViewModel field pointing at either outlives the Activity as a leak.
+     * Unset means the Activity is gone, which reads as "cannot enqueue" rather than as a crash.
+     */
+    var directoryUndoTransfer: (suspend (List<String>, String) -> Boolean)? = null
+
+    /** Drops the Activity-bound hook and answers any confirmation still awaiting an on-screen dialog. */
+    fun onDirectoryUndoHostDestroyed() {
+        directoryUndoTransfer = null
+        onUndoFolderCopyDecision(confirmed = false)
+    }
     
     // File list management
     private val fileListManager = com.sza.fastmediasorter.ui.browse.filelist.BrowseFileListManager(resourceId)

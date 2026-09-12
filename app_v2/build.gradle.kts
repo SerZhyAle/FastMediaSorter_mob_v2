@@ -1,13 +1,19 @@
 import com.android.build.api.variant.BuildConfigField
 import java.io.FileInputStream
 import java.io.File
+import java.time.Duration
 import java.util.Properties
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.artifacts.result.ResolvedComponentResult
+import org.gradle.api.artifacts.result.ResolvedDependencyResult
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
+import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
@@ -201,6 +207,156 @@ abstract class VerifyNoPlatformNamesTask : DefaultTask() {
     }
 }
 
+// S0403: the foss variant is the F-Droid artifact, and F-Droid refuses proprietary libraries. Every
+// other guard in this file judges SOURCE; this one judges the resolved dependency graph, which is
+// where the failure actually happens - a capability flag set to false leaves the SDK on the
+// classpath, so `lite` linked all five cloud SDKs while reporting no cloud support.
+@CacheableTask
+abstract class VerifyNoProprietaryDepsTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val denyListFile: RegularFileProperty
+
+    // The resolved graph root, not a pre-mapped list of strings: a Provider.map lambda written in
+    // build.gradle.kts captures the script object, which the configuration cache cannot store.
+    // ResolvedComponentResult is a supported input type, so the walk happens in the action below.
+    @get:Input
+    abstract val rootComponent: Property<ResolvedComponentResult>
+
+    @get:Input
+    abstract val configurationName: Property<String>
+
+    @get:OutputFile
+    abstract val reportFile: RegularFileProperty
+
+    @TaskAction
+    fun verify() {
+        val prefixes = denyListFile.asFile.get().readLines()
+            .map(String::trim)
+            .filter { it.isNotEmpty() && !it.startsWith("#") }
+
+        val resolved = collectModuleCoordinates(rootComponent.get()).sorted()
+        val violations = resolved.filter { coordinate ->
+            prefixes.any { prefix -> coordinate == prefix || coordinate.startsWith("$prefix:") }
+        }
+
+        val report = reportFile.asFile.get()
+        report.parentFile.mkdirs()
+
+        if (violations.isNotEmpty()) {
+            report.writeText(violations.joinToString(System.lineSeparator()))
+            throw GradleException(
+                buildString {
+                    appendLine(
+                        "Proprietary dependencies on the ${configurationName.get()} classpath - " +
+                            "the F-Droid variant may not link them."
+                    )
+                    appendLine(
+                        "Remove the dependency from the foss variant (declare it per-flavor), or " +
+                            "review and edit app_v2/compliance/proprietary-deps-denylist.txt."
+                    )
+                    appendLine()
+                    violations.forEach { appendLine(it) }
+                }
+            )
+        }
+
+        report.writeText(
+            "OK configuration=${configurationName.get()} components=${resolved.size} " +
+                "prefixes=${prefixes.size}${System.lineSeparator()}"
+        )
+    }
+
+    private fun collectModuleCoordinates(root: ResolvedComponentResult): Set<String> {
+        val coordinates = sortedSetOf<String>()
+        val seen = mutableSetOf<ResolvedComponentResult>()
+
+        fun walk(component: ResolvedComponentResult) {
+            if (!seen.add(component)) return
+            (component.id as? ModuleComponentIdentifier)?.let { id ->
+                coordinates += "${id.group}:${id.module}"
+            }
+            component.dependencies
+                .filterIsInstance<ResolvedDependencyResult>()
+                .forEach { walk(it.selected) }
+        }
+
+        walk(root)
+        return coordinates
+    }
+}
+
+// S2879: the build-time native AARs live in gitignored app_v2/libs/, and Gradle resolves an absent
+// files("libs/..") path to an EMPTY file collection rather than to an error. So a checkout missing
+// one of them configures, compiles and lints without that decoder and says nothing about it -
+// measured 2026-09-10 on the CI logs of 2026-08-23 and 2026-08-24, which fetched only the FFmpeg
+// AAR, ran twenty minutes to a lint verdict, and never mentioned the absent VP9 one. This task
+// turns that silence into a failure for the flavors that declare the AARs; the list is the same
+// manifest the CI fetcher and the publisher read, so a third AAR reaches all three channels at once.
+//
+// Deliberately NOT @CacheableTask, and forced to run on every build by outputs.upToDateWhen { false }
+// at the registration site. Its subject is whether a file exists on THIS disk right now, which is
+// the one thing neither a cache entry nor an up-to-date check can answer: measured 2026-09-10, with
+// only the manifest and the root marker as inputs the task reported UP-TO-DATE after the VP9 AAR was
+// deleted, and a build-cache hit would go further and restore a green report produced on a machine
+// that had the file. The check is two stat calls, so running it always costs nothing worth saving.
+abstract class VerifyPrebuiltNativeAarsTask : DefaultTask() {
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val manifestFile: RegularFileProperty
+
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val projectRootMarker: RegularFileProperty
+
+    @get:Input
+    abstract val variantName: Property<String>
+
+    @get:OutputFile
+    abstract val reportFile: RegularFileProperty
+
+    @TaskAction
+    fun verify() {
+        val projectRoot = projectRootMarker.asFile.get().parentFile.canonicalFile
+        val entries = manifestFile.asFile.get().readLines()
+            .map { it.substringBefore('#').trim() }
+            .filter(String::isNotEmpty)
+
+        // An entry present but zero-length is a truncated download, and it fails much later inside
+        // an opaque Gradle transform - so it is judged here, where the message still names a cause.
+        val missing = entries.filter { entry ->
+            val file = File(projectRoot, entry)
+            !file.isFile || file.length() == 0L
+        }
+
+        val report = reportFile.asFile.get()
+        report.parentFile.mkdirs()
+
+        if (missing.isNotEmpty()) {
+            report.writeText(missing.joinToString(System.lineSeparator()))
+            throw GradleException(
+                buildString {
+                    appendLine(
+                        "Prebuilt native AAR missing or empty - the ${variantName.get()} variant " +
+                            "declares it as a hard dependency, and Gradle would otherwise resolve " +
+                            "it to an empty file collection and build without that decoder."
+                    )
+                    appendLine("Fetch them: bash ./scripts/ci/fetch-prebuilt-libs.sh")
+                    appendLine("List: ${MANIFEST_RELATIVE_PATH}. Roles: delivery/INVENTORY.md.")
+                    appendLine()
+                    missing.forEach { appendLine(it) }
+                }
+            )
+        }
+
+        report.writeText("OK variant=${variantName.get()} entries=${entries.size}${System.lineSeparator()}")
+    }
+
+    companion object {
+        const val MANIFEST_RELATIVE_PATH = "scripts/ci/prebuilt-native-aars.txt"
+    }
+}
+
 plugins {
     id("com.android.application")
     id("com.google.devtools.ksp")
@@ -208,8 +364,39 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+// S1873: the version has three sources, in this order.
+//   1. -Pfms.version* passed on the command line. Always wins (ADR-2): the phone and the watch of
+//      one release are built by two invocations seconds apart and must agree byte for byte, which
+//      only an explicitly shared stamp can guarantee.
+//   2. The in-build stamp, applied when THIS invocation packages an artifact and nobody passed a
+//      property. Covers the paths no wrapper script reaches - a raw gradlew, CI, the IDE Run button.
+//   3. The checked-in constant below. After ADR-4 nothing writes it, so it is a deliberately
+//      non-releasable sentinel and reaching it means a packaging path stamped nothing - which
+//      scripts/quality/assert-artifact-version-fresh.ps1 refuses on the produced artifact.
+// Compile-only work never reaches source 2 and keeps the constant, so its incrementality and its
+// configuration-cache entry are untouched. Gate on the pair of constants:
+// scripts/quality/assert-module-version-parity.ps1.
+apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
+
 val defaultAppVersionCode = 260901214
 val defaultAppVersionName = "2.60.9012.140"
+
+// S2585: single source for the unit-test task ceiling, shared with wear through gradle.properties so
+// the two modules cannot drift apart. Declared here rather than inside testOptions.unitTests.all
+// because that lambda already binds `it` to the Test task, and a nested provider lambda would shadow
+// it. The full rationale - and the measurement that picked 20 - is on the property itself.
+val unitTestTimeoutMinutes: Long =
+    providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
+
+// S2851: how many test worker JVMs run at once, shared with wear through gradle.properties for the
+// same reason the timeout above is. Declared at the top level, not inside testOptions.unitTests.all,
+// because that lambda binds `it` to the Test task and a nested provider lambda would shadow it.
+// The measurement that picked the shipped value is on the property itself.
+val unitTestMaxParallelForks: Int =
+    providers.gradleProperty("fms.unitTestMaxParallelForks").orNull?.toIntOrNull()?.coerceAtLeast(1)
+        ?: 1
+val stampedAppVersionCode = extra.properties["fmsStampedAppVersionCode"] as Int?
+val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -267,9 +454,11 @@ android {
     }
 
     namespace = "com.sza.fastmediasorter"
-    // CRITICAL: Play Store target-API mandate (deadline 2026-08-31, S1149) - Android 16 / API 36.
-    // Compiles against installed base SDK android-36.1; do not downgrade.
-    compileSdk = 36
+    // S2884: compileSdk 37 - the API level AGP 9.2 tops out at, lifting the minCompileSdk=37
+    // ceiling that forced the Glide 5.0.7 and rtsp-server 1.4.1 pins back. API 37 platforms are
+    // minor-qualified (android-37.0 / android-37.1 on the workstation), and AGP resolves the
+    // highest installed 37.x - the same way compileSdk 36 compiled against installed android-36.1.
+    compileSdk = 37
     // NDK r27c required: first NDK release that ships a 16 KB page-size aligned libc++_shared.so
     // (Google Play requirement since Nov 1 2025 for apps targeting Android 15+).
     ndkVersion = "27.2.12479018"
@@ -278,17 +467,17 @@ android {
         applicationId = "com.sza.fastmediasorter"
         // Minimum supported Android 8.0 (API 26). Legacy flavor covers API 23-25.
         minSdk = 26
-        // Keep targetSdk aligned with compileSdk
-        // CRITICAL: Play Store compliance (Android 16 / API 36, S1149); minSdk stays 26/23 - device reach unchanged
+        // targetSdk 36 stays one level behind compileSdk 37 on purpose (S2884): compileSdk is a
+        // compile-time ceiling only, targetSdk is the runtime-behaviour contract the Play mandate
+        // (S1149) governs. minSdk stays 26/23 - device reach unchanged.
         targetSdk = 36
-        // Local fast checks keep these defaults stable so configuration-cache reuse survives
-        // across repeated debug builds. Artifact-oriented helper scripts can override them
-        // via -Pfms.versionCode / -Pfms.versionName when a timestamped package is needed.
+        // Three sources in one order - passed property, in-build stamp when this invocation
+        // packages, checked-in sentinel. See the block above the constants for why each exists.
         // versionName format: Y.YM.MDDH.Hmm (e.g., 2.62.0501.151 for 2026/02/05 01:51)
         // versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
         // Note: YYMMDDHHmm overflows Int32, using first digit of minutes only
-        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
-        versionName = overrideAppVersionName ?: defaultAppVersionName
+        versionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: stampedAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         
@@ -331,6 +520,9 @@ android {
         // The two flavor-and-switch axes are set per variant in androidComponents.onVariants below,
         // beside the manifest injections they mirror, because their value is not a literal.
         buildConfigField("boolean", "DECLARES_BATTERY_OPTIMIZATION", "true")
+        // S2742: reach of the src/vr source set, which is mounted by exactly two flavors
+        // (noLegal and vr) and so cannot be named by any single existing flag row.
+        buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "false")
     }
     
     // Product Flavors: Different app versions for different use cases.
@@ -403,6 +595,7 @@ android {
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
         }
 
         // ===== NO-LEGAL (Sideload-only full build: standard + VR + GPL extractors) =====
@@ -501,6 +694,8 @@ android {
             buildConfigField("boolean", "IS_NO_LEGAL_FLAVOR", "true")
             buildConfigField("boolean", "SUPPORT_LAUNCHER", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "true")  // S1433: Network Monitor program
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
+            buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: mounts src/vr
         }
 
         // ===== LITE (Lightweight, Local Files Only) =====
@@ -532,6 +727,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in lite
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in lite
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // ===== PHOTOS (Images Only, with Cloud Support) =====
@@ -562,6 +758,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")  // No wearable in photos
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in photos
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // ===== LEGACY (Full Features, Android 6.0+) =====
@@ -601,6 +798,7 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "true")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in legacy
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "true")
         }
 
         // ===== VR (Full Features + OpenXR Headset Rendering) =====
@@ -612,6 +810,27 @@ android {
             // Meta Horizon Store (the Store binds the listing identity to applicationId);
             // at that point a dedicated Azure/Google/Dropbox app registration becomes required.
             versionNameSuffix = "-VR"
+            // S0555 Phase 01 steps 01.4/01.5: Meta Horizon Store's own SDK contract, which is not the
+            // Play one. `publish-mobile-manifest` (read 2026-09-10) bands minSdk at 29-34 for Quest 2 /
+            // Pro / 3-family and recommends 32, and requires targetSdk to be EXACTLY 34 for an
+            // immersive app created after 2026-03-01 - a ceiling of 34 is the wide-support reading, not
+            // the one a new submission is held to. defaultConfig's 26 / 36 sit outside both bands.
+            //
+            // This cannot be a BuildConfig gate (Rule 14): an SDK level is a build contract the
+            // packager reads, not a runtime branch. It is also deliberately NOT a change to
+            // defaultConfig - targetSdk 36 there answers the Play mandate (S2884), and `vr` ships to no
+            // Play track, so the two requirements do not collide and neither needs to win.
+            //
+            // minSdk 29, the BOTTOM of Meta's band, not the 32 it recommends. Meta publishes two
+            // tables: a 29-34 range for "a wider array of Android devices" and a separate "recommended"
+            // row at 32 for best feature support. The owner's ruling of 2026-07-07 chose maximum device
+            // reach (all four Quest models), so the range bottom is the value that serves the decision
+            // and 32 is the one that quietly contradicts it - docs/VR_EDITION.md puts Quest 2 at
+            // Android 10, which is API 29, so 32 could make the store build refuse the very device the
+            // four-model list was widened to include. Raising 26 -> 29 removes only Oculus Go and
+            // Quest 1, both named Non-goals in section 2 of the strategic spec.
+            minSdk = 29
+            targetSdk = 34
             // Meta Quest 2/3/Pro use arm64-v8a exclusively; skip 32-bit to halve APK size.
             //
             // S1972: conditional for the same reason as the other flavors, and it has to be. AGP
@@ -678,6 +897,8 @@ android {
             // AAR rebuilt with NDK r27c + -Wl,-z,max-page-size=16384 (LOAD Align=0x4000).
             buildConfigField("boolean", "SUPPORT_CAST", "false") // Horizon OS lacks Google Play Services Cast module
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false") // S1433: no diagnostic program in vr
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
+            buildConfigField("boolean", "SUPPORT_IMMERSIVE_XR", "true")  // S2742: owns src/vr
         }
 
         // ===== FOSS (F-Droid catalogue: zero proprietary dependencies) =====
@@ -721,6 +942,7 @@ android {
             buildConfigField("boolean", "SUPPORT_WEAR_COMPANION", "false")
             buildConfigField("boolean", "SUPPORT_CAST", "false")
             buildConfigField("boolean", "SUPPORT_NETWORK_MONITOR", "false")
+            buildConfigField("boolean", "SUPPORT_BROADCAST_SOURCE", "false")
         }
 
         // S0250: flavor `vrUnlicensed` was archived (2026-05-19). Its role - sideload-only
@@ -752,10 +974,17 @@ android {
         // flavor-scoped. AGP picks up src/test<Flavor>/java by convention (see src/testStandard,
         // src/testNoLegal, src/testVr); only a set shared by SEVERAL flavors needs mounting.
         // S1455: testDocumentsEnabled is the behavioural sibling. Its subject is
-        // OfficeDocumentFamilyCatalog - one FQCN with six per-flavor copies, empty on lite and photos -
-        // so a test of it compiles everywhere and fails only where the catalog is empty, rather than
-        // breaking compilation the way S1450's cases did. These four flavors are exactly where
-        // SUPPORT_DOCUMENTS is on, which matches SUPPORT_STREAMS one for one.
+        // OfficeDocumentFamilyCatalog - one FQCN with a per-flavor copy each - so a test of it
+        // compiles everywhere and fails only where the catalog is empty, rather than breaking
+        // compilation the way S1450's cases did.
+        // S2446: the criterion for this list is a NON-EMPTY catalog, never the SUPPORT_DOCUMENTS
+        // flag. lite, photos and foss declare emptySet()/emptyMap() and stay off it; foss carries
+        // SUPPORT_DOCUMENTS = true and still belongs off, because owner ruling 2026-07-14 gave it
+        // PDF, EPUB and text while promising no Office family. Adding a flavor here by the flag
+        // turns the run red - the test asserts application/msword resolves to MediaFamily.DOCUMENT.
+        // The earlier wording named the flag and claimed the set matched SUPPORT_STREAMS one for
+        // one; that parity was a coincidence of six flavors and foss broke it. Gated by the
+        // capability-keyed rule in scripts/quality/assert-shared-test-flavor-scope.ps1.
         listOf("testStandard", "testNoLegal", "testLegacy", "testVr").forEach { unitTestSet ->
             getByName(unitTestSet) {
                 kotlin.directories.add("src/testStreamingEnabled/java")
@@ -792,9 +1021,11 @@ android {
             kotlin.directories.add("src/testLauncherEnabled/java")
         }
         getByName("testNoLegal") {
+            // S2768: Kotlin does not add this flavor's conventional test directory to the
+            // noLegal variant inputs automatically, unlike the shared mounted test sets below.
+            kotlin.directories.add("src/testNoLegal/java")
             kotlin.directories.add("src/testNetworkMonitor/java")
             kotlin.directories.add("src/testLauncherEnabled/java")
-            kotlin.directories.add("src/testVr/java")
         }
         // lite mounts streamingDisabled AND cloudDisabled - it mounts neither test set, which is
         // exactly what makes its unit tests compilable again.
@@ -837,6 +1068,12 @@ android {
                 // Standard-only edge-gesture overlay controller + its @IntoSet binding, relocated from
                 // src/standard so the overlay can stay disabled independently from the capture suite.
                 kotlin.directories.add("src/standardScreenCapture/java")
+            } else {
+                // S2447: that set also carries the ONLY AccessibilityServiceControl binding standard
+                // has, so turning the overlay off used to leave the unconditional @Inject in
+                // src/main unbound - the same Dagger/MissingBinding lite failed on. Both branches
+                // must supply exactly one binding.
+                kotlin.directories.add("src/screenCaptureDisabled/java")
             }
             if (screenCaptureStandardEnabled && edgeGestureTileStandardEnabled) {
                 // S0672: standard-only QS-tile fallback trigger. Needs BOTH flags because the tile
@@ -851,6 +1088,7 @@ android {
             // S1433: Network Monitor program. Flavors without it mount src/networkMonitorDisabled,
             // which binds the no-op capability contract.
             kotlin.directories.add("src/networkMonitor/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("noLegal") {
             // S0156: noLegal = standard + VR + sideload-only capabilities.
@@ -886,6 +1124,7 @@ android {
             res.directories.add("src/launcherEnabled/res")
             // S1433: Network Monitor program - part of the sideload superset.
             kotlin.directories.add("src/networkMonitor/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("legacy") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -908,6 +1147,9 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSource/java")
         }
         getByName("vr") {
             kotlin.directories.add("src/streamingEnabled/java")
@@ -932,6 +1174,9 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         getByName("photos") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -953,6 +1198,9 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         // S0403: foss subtracts exactly the proprietary nodes. Every "disabled"/"stub" set below is
         // the no-op contract half of a seam whose real half links a Google, Microsoft or Dropbox
@@ -971,6 +1219,9 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             kotlin.directories.add("src/networkMonitorDisabled/java")
             kotlin.directories.add("src/playServicesDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
         getByName("lite") {
             kotlin.directories.add("src/streamingDisabled/java")
@@ -989,6 +1240,10 @@ android {
             kotlin.directories.add("src/launcherDisabled/java")
             // S1433: no Network Monitor program in this flavor - mount the no-op capability contract.
             kotlin.directories.add("src/networkMonitorDisabled/java")
+            // S2447: no screen-capture suite here - mount the no-op AccessibilityServiceControl.
+            // This is the flavor whose hiltJavaCompileLiteDebug failure opened the ticket.
+            kotlin.directories.add("src/screenCaptureDisabled/java")
+            kotlin.directories.add("src/broadcastSourceDisabled/java")
         }
     }
 
@@ -1013,6 +1268,23 @@ android {
                 // natively - exit value 10, no Java-level OOM, truncated suite. Recycling the
                 // worker every 100 classes caps that peak; cost is a few JVM warmups per run.
                 it.forkEvery = 100L
+                // S2851: how many of those workers run at once. Left at Gradle's default of 1 the
+                // suite is strictly serial: measured 2026-09-10 on a 20-processor host, 695 classes
+                // and 5033 tests took 429 s of wall clock against 415.6 s of reported test time, so
+                // 97% of the run is one worker executing tests one after another and only 13.4 s is
+                // Gradle. Each concurrent worker costs another `maxHeapSize` above, which is why the
+                // value is a measurement rather than a core count - the two limits above exist
+                // because this suite has twice been killed by exactly that memory peak.
+                it.maxParallelForks = unitTestMaxParallelForks
+                // S2585: bound the task's WALL CLOCK, next to the two limits that bound the worker's
+                // heap and lifetime. This one is different in kind and the difference matters: it
+                // ends the task, not the worker - Gradle's timeout only interrupts its own
+                // daemon-side thread, and the worker that hung on 2026-09-05 was spinning RUNNABLE
+                // and ignored every interrupt, including kotlinx-coroutines-test's own 60 s runTest
+                // timeout. Its value is that the wrapper stops waiting, reaches its finally,
+                // releases Build.Phone and reaps the worker there. Alone it would leave the worker
+                // holding R.jar; that half lives in scripts/builders/gradle-worker-reaper.ps1.
+                it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
                 // S1657: Gson ships no java.time adapter, so a bare Gson() reflects over java.time's own
                 // private fields. The test JVM enforces modules and refuses that read with
                 // InaccessibleObjectException, which made every serialization test of a model carrying an
@@ -1338,6 +1610,10 @@ android {
         // strings audit sweeps locale parity on every key.
         disable += "NewApi"
         disable += "UnsafeOptInUsageError"
+        // ExperimentalDetector also handles UnsafeExperimentalUsageWarning; with both disabled the
+        // detector is skipped entirely, preventing a K2 restoreSymbolOrThrowIfDisposed crash that
+        // blocks local baseline regeneration (Kotlin 2.2.10 + AGP 9.2.1).
+        disable += "UnsafeExperimentalUsageWarning"
         // False positive: 0dp with layout_weight in LinearLayout or as ConstraintLayout child
         disable += "Suspicious0dp"
         baseline = file("lint-baseline.xml")
@@ -1387,8 +1663,8 @@ val verifyNoPlatformNames = tasks.register<VerifyNoPlatformNamesTask>("verifyNoP
     )
     sourceFiles.from(
         rootProject.layout.projectDirectory.file("docs/FEATURES.md"),
-        rootProject.layout.projectDirectory.file("docs/FEATURES_RU.md"),
-        rootProject.layout.projectDirectory.file("docs/FEATURES_UK.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES-ru.md"),
+        rootProject.layout.projectDirectory.file("docs/FEATURES-uk.md"),
     )
     reportFile.set(layout.buildDirectory.file("reports/compliance/verifyNoPlatformNames.txt"))
 }
@@ -1452,6 +1728,66 @@ androidComponents {
             )
         }
 
+        // S0403: the F-Droid artifact is proved clean per variant, because the runtime classpath is
+        // per variant - there is no single "the foss dependencies" to check once. Only foss carries
+        // the gate: the other six flavors link these coordinates on purpose.
+        if (flavorName == "foss") {
+            val verifyTaskName = "verifyNoProprietaryDeps${variant.name.replaceFirstChar { it.uppercase() }}"
+            val runtimeClasspath = "${variant.name}RuntimeClasspath"
+            val verifyNoProprietaryDeps = tasks.register<VerifyNoProprietaryDepsTask>(verifyTaskName) {
+                group = "verification"
+                description = "Fails the build when the $runtimeClasspath graph links a proprietary coordinate."
+                denyListFile.set(layout.projectDirectory.file("compliance/proprietary-deps-denylist.txt"))
+                configurationName.set(runtimeClasspath)
+                rootComponent.set(
+                    configurations.named(runtimeClasspath)
+                        .flatMap { it.incoming.resolutionResult.rootComponent }
+                )
+                reportFile.set(
+                    layout.buildDirectory.file("reports/compliance/$verifyTaskName.txt")
+                )
+            }
+            // S0403: onVariants runs before AGP registers the pre<Variant>Build anchors, so
+            // tasks.named() here fails configuration with UnknownTaskException. Match by name
+            // through configureEach, which is evaluated when the anchor is actually created.
+            val preBuildTaskName = "pre${variant.name.replaceFirstChar { it.uppercase() }}Build"
+            tasks.configureEach {
+                if (name == preBuildTaskName) {
+                    dependsOn(verifyNoProprietaryDeps)
+                }
+            }
+        }
+
+        // S2879: exactly the flavors that declare files("libs/*.aar") in dependencies below. lite,
+        // photos and foss legitimately build without those AARs, so the check is bound to the
+        // variant rather than to the project - a configuration-time check would refuse them too.
+        val prebuiltNativeAarFlavors = setOf("standard", "noLegal", "legacy", "vr")
+        if (flavorName in prebuiltNativeAarFlavors) {
+            val verifyAarsTaskName = "verifyPrebuiltNativeAars${variant.name.replaceFirstChar { it.uppercase() }}"
+            val verifyPrebuiltNativeAars = tasks.register<VerifyPrebuiltNativeAarsTask>(verifyAarsTaskName) {
+                group = "verification"
+                description = "Fails the build when a declared build-time native AAR is missing or empty."
+                manifestFile.set(
+                    rootProject.layout.projectDirectory.file(
+                        VerifyPrebuiltNativeAarsTask.MANIFEST_RELATIVE_PATH
+                    )
+                )
+                projectRootMarker.set(rootProject.layout.projectDirectory.file("settings.gradle.kts"))
+                variantName.set(variant.name)
+                reportFile.set(layout.buildDirectory.file("reports/compliance/$verifyAarsTaskName.txt"))
+                outputs.upToDateWhen { false }
+            }
+            // S0403: onVariants runs before AGP registers the pre<Variant>Build anchors, so
+            // tasks.named() here fails configuration with UnknownTaskException. Match by name
+            // through configureEach, which is evaluated when the anchor is actually created.
+            val preBuildAnchorName = "pre${variant.name.replaceFirstChar { it.uppercase() }}Build"
+            tasks.configureEach {
+                if (name == preBuildAnchorName) {
+                    dependsOn(verifyPrebuiltNativeAars)
+                }
+            }
+        }
+
         // S0183: noLegal flavor source set sets manifest.srcFile to src/vr/AndroidManifest.xml
         // (VR overlay). That call REPLACES the auto-detected src/noLegal/AndroidManifest.xml,
         // so noLegal-specific manifest entries (e.g. REQUEST_INSTALL_PACKAGES) were silently
@@ -1493,6 +1829,22 @@ androidComponents {
             // S1433: same reason - src/networkMonitor is mounted by directory, so its permission
             // manifest needs its own injection or the Monitor's grants never reach the merge.
             variant.sources.manifests.addStaticManifestFile("src/networkMonitor/AndroidManifest.xml")
+        }
+
+        // S2793: src/broadcastSource is mounted by directory only, so its manifest - which declares
+        // BroadcastCaptureService and the video spike activity - never reached the merge and the
+        // service was undeclared in every shipped APK. startForegroundService then no-ops silently,
+        // which is the whole of the "Live Broadcast does nothing" report. Same class as S0403/S1433.
+        val broadcastFlavors = setOf("standard", "noLegal", "legacy")
+        if (flavorName in broadcastFlavors) {
+            variant.sources.manifests.addStaticManifestFile("src/broadcastSource/AndroidManifest.xml")
+        }
+
+        // S2726: the vr-only permission overlay. It cannot go in src/vr/AndroidManifest.xml - noLegal
+        // mounts that same file via manifest.srcFile and legitimately holds READ_CONTACTS and
+        // READ_PHONE_STATE, so the removals need a file only vr reads.
+        if (flavorName == "vr") {
+            variant.sources.manifests.addStaticManifestFile("src/vrOnly/AndroidManifest.xml")
         }
 
         // S0559: the shared confirmable-capture engine manifest (consent activity + mediaProjection
@@ -1670,241 +2022,304 @@ kotlin {
 dependencies {
     lintChecks(project(":lint-rules"))
     // Core Library Desugaring: java.time.* and other Java 8+ APIs on API 23-25 (legacy flavor)
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     // AndroidX Core
-    implementation("androidx.core:core-ktx:1.13.0")
-    implementation("androidx.appcompat:appcompat:1.7.1")
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
-    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.appcompat)
+    implementation(libs.androidx.constraintlayout)
+    implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.swiperefreshlayout)
+    implementation(libs.androidx.viewpager2)
     
     // Security (EncryptedSharedPreferences for cloud credentials)
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.androidx.security.crypto)
 
     // S0200 - Credential Manager (Google identity binding) + Chrome Custom Tabs.
     // Credential Manager replaces the deprecated Google Sign-In SDK; googleid supplies GetGoogleIdOption.
     // androidx.browser is consumed by Phase 03 CCT routing - added here to keep all S0200 deps colocated.
-    implementation("androidx.credentials:credentials:1.3.0")
+    implementation(libs.androidx.credentials.credentials)
     // S0403: the -play-services-auth provider is the Credential Manager half that pulls GMS in, so
     // it is scoped away from foss. The core artifact above stays global - it is plain androidx and
     // the system Credential Manager works without Play Services.
-    "standardImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
-    "noLegalImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
-    "liteImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
-    "photosImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
-    "legacyImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
-    "vrImplementation"("androidx.credentials:credentials-play-services-auth:1.3.0")
+    "standardImplementation"(libs.androidx.credentials.play.services.auth)
+    "noLegalImplementation"(libs.androidx.credentials.play.services.auth)
+    "liteImplementation"(libs.androidx.credentials.play.services.auth)
+    "photosImplementation"(libs.androidx.credentials.play.services.auth)
+    "legacyImplementation"(libs.androidx.credentials.play.services.auth)
+    "vrImplementation"(libs.androidx.credentials.play.services.auth)
     // S0385: googleid is consumed only by src/cloudEnabled (CredentialManagerGoogleIdentityRepository),
     // which is mounted into every flavor EXCEPT lite (lite mounts cloudDisabled). Scope it per-flavor
     // so the lite APK stops packaging an unused Google-identity dependency.
-    "standardImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "noLegalImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "legacyImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "vrImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    "photosImplementation"("com.google.android.libraries.identity.googleid:googleid:1.1.1")
-    implementation("androidx.browser:browser:1.8.0")
+    "standardImplementation"(libs.google.googleid)
+    "noLegalImplementation"(libs.google.googleid)
+    "legacyImplementation"(libs.google.googleid)
+    "vrImplementation"(libs.google.googleid)
+    "photosImplementation"(libs.google.googleid)
+    implementation(libs.androidx.browser)
 
     // Jetpack Compose
-    val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.material:material-icons-core")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.graphics)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material.icons.core)
     // S0385: material-icons-extended is NOT dead - Icons.Filled.Pause / SkipNext / SkipPrevious
     // (media-control icons in WearSyncSettingsFragment + widget config) live only in the extended
     // set, not in material-icons-core. Removing it breaks compilation. Kept intentionally.
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.activity:activity-compose:1.10.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     
     // Material Design 3
-    implementation("com.google.android.material:material:1.14.0")
+    implementation(libs.google.material)
 
     // Google Play In-App Review (S0135)
     // S0403: Play Core is unavailable on F-Droid, so both artifacts are scoped away from foss. A
     // catalogue install has no Play store page to review and carries every locale in the APK, so
     // neither library has anything to do there. Consumers live behind the src/playServices* seam.
-    "standardImplementation"("com.google.android.play:review-ktx:2.0.2")
-    "noLegalImplementation"("com.google.android.play:review-ktx:2.0.2")
-    "liteImplementation"("com.google.android.play:review-ktx:2.0.2")
-    "photosImplementation"("com.google.android.play:review-ktx:2.0.2")
-    "legacyImplementation"("com.google.android.play:review-ktx:2.0.2")
-    "vrImplementation"("com.google.android.play:review-ktx:2.0.2")
+    "standardImplementation"(libs.google.play.review.ktx)
+    "noLegalImplementation"(libs.google.play.review.ktx)
+    "liteImplementation"(libs.google.play.review.ktx)
+    "photosImplementation"(libs.google.play.review.ktx)
+    "legacyImplementation"(libs.google.play.review.ktx)
+    "vrImplementation"(libs.google.play.review.ktx)
     // Google Play language splits (S1190). Brought back for on-demand locale delivery only - the
     // dynamic-feature module this library once served was deleted with S0423 and stays deleted.
-    "standardImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
-    "noLegalImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
-    "liteImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
-    "photosImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
-    "legacyImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
-    "vrImplementation"("com.google.android.play:feature-delivery-ktx:2.1.0")
+    "standardImplementation"(libs.google.play.feature.delivery.ktx)
+    "noLegalImplementation"(libs.google.play.feature.delivery.ktx)
+    "liteImplementation"(libs.google.play.feature.delivery.ktx)
+    "photosImplementation"(libs.google.play.feature.delivery.ktx)
+    "legacyImplementation"(libs.google.play.feature.delivery.ktx)
+    "vrImplementation"(libs.google.play.feature.delivery.ktx)
 
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-process:2.7.0") // For ProcessLifecycleOwner
-    implementation("androidx.activity:activity-ktx:1.10.1")
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.livedata.ktx)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.process) // For ProcessLifecycleOwner
+    implementation(libs.androidx.activity.ktx)
+    implementation(libs.androidx.fragment.ktx)
     
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.59")
-    ksp("com.google.dagger:hilt-android-compiler:2.59")
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.android.compiler)
     
     // WorkManager - 2.10.x: SystemForegroundService handles Service.onTimeout() for
     // FOREGROUND_SERVICE_TYPE_DATA_SYNC on Android 14+, preventing
     // ForegroundServiceDidNotStopInTimeException fatals (S0709). Keep in sync with work-multiprocess below.
-    implementation("androidx.work:work-runtime-ktx:2.10.1")
+    implementation(libs.androidx.work.runtime.ktx)
 
     // Baseline Profiles runtime installer
-    implementation("androidx.profileinstaller:profileinstaller:1.3.1")
+    implementation(libs.androidx.profileinstaller)
     
     // Hilt WorkManager integration
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    ksp("androidx.hilt:hilt-compiler:1.2.0")
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler)
     
     // Room
-    implementation("androidx.room:room-runtime:2.7.0")
-    implementation("androidx.room:room-ktx:2.7.0")
-    ksp("androidx.room:room-compiler:2.7.0")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
     
     // Paging 3
-    implementation("androidx.paging:paging-runtime-ktx:3.2.1")
+    implementation(libs.androidx.paging.runtime.ktx)
+    
+    // AppFunctions - Android 16+ Assistant Actions (S2920)
+    implementation(libs.androidx.appfunctions)
+    ksp(libs.androidx.appfunctions.compiler)
     
     // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
     // replace an existing file on Windows, so every write after the first one fails (S1449).
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
     
     // DocumentFile for SAF support
-    implementation("androidx.documentfile:documentfile:1.0.1")
+    implementation(libs.androidx.documentfile)
 
     // Print support
-    implementation("androidx.print:print:1.0.0")
+    implementation(libs.androidx.print)
 
     // Kotlin Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.core)
+    // S0403: this artifact pulls play-services-basement and play-services-tasks transitively, which
+    // the F-Droid denylist refuses. Its only consumers are the GMS-backed source sets (castEnabled,
+    // cloudEnabled, cloudSdk, playServicesEnabled, translationMlKit, wearGms) - foss mounts none of
+    // them, so it is declared per-flavor for the six that do.
+    "standardImplementation"(libs.kotlinx.coroutines.play.services)
+    "noLegalImplementation"(libs.kotlinx.coroutines.play.services)
+    "liteImplementation"(libs.kotlinx.coroutines.play.services)
+    "photosImplementation"(libs.kotlinx.coroutines.play.services)
+    "legacyImplementation"(libs.kotlinx.coroutines.play.services)
+    "vrImplementation"(libs.kotlinx.coroutines.play.services)
     
     // ExoPlayer (HLS/DASH re-enabled per-flavor below for S0116; SmoothStreaming stays excluded)
-    implementation("androidx.media3:media3-exoplayer:1.2.1") {
+    implementation(libs.androidx.media3.exoplayer) {
         // Exclude SmoothStreaming - not used by url-download or playback
         exclude(group = "androidx.media3", module = "media3-exoplayer-smoothstreaming")
     }
     // S0116: HLS/DASH offline downloader is wired only into video-supporting market flavors.
     // lite/photos stay without these modules to preserve their APK size budget.
-    "standardImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
-    "standardImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
-    "noLegalImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
-    "noLegalImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
-    "legacyImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
-    "legacyImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
-    "vrImplementation"("androidx.media3:media3-exoplayer-hls:1.2.1")
-    "vrImplementation"("androidx.media3:media3-exoplayer-dash:1.2.1")
+    "standardImplementation"(libs.androidx.media3.exoplayer.hls)
+    "standardImplementation"(libs.androidx.media3.exoplayer.dash)
+    "noLegalImplementation"(libs.androidx.media3.exoplayer.hls)
+    "noLegalImplementation"(libs.androidx.media3.exoplayer.dash)
+    "legacyImplementation"(libs.androidx.media3.exoplayer.hls)
+    "legacyImplementation"(libs.androidx.media3.exoplayer.dash)
+    "vrImplementation"(libs.androidx.media3.exoplayer.hls)
+    "vrImplementation"(libs.androidx.media3.exoplayer.dash)
     // S0565: RTSP playback (rtsp:// internet streams) is wired only into streaming-capable flavors,
     // matching the HLS/DASH flavor split; lite/photos stay RTSP-free to preserve their APK budget.
-    "standardImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
-    "noLegalImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
-    "legacyImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
-    "vrImplementation"("androidx.media3:media3-exoplayer-rtsp:1.2.1")
+    "standardImplementation"(libs.androidx.media3.exoplayer.rtsp)
+    "noLegalImplementation"(libs.androidx.media3.exoplayer.rtsp)
+    "legacyImplementation"(libs.androidx.media3.exoplayer.rtsp)
+    "vrImplementation"(libs.androidx.media3.exoplayer.rtsp)
+    // S2662: RTSP SERVER on the device (broadcast source, pillar B) - the mirror of the media3
+    // client above, which only receives. Restricted to the three flavors that carry
+    // SUPPORT_BROADCAST_SOURCE: a plain implementation() would push the native encoder .so into
+    // lite/photos/vr/foss, which cannot broadcast at all. Owner accepted the JitPack source
+    // 2026-09-06; the repository is already declared for PhotoView in settings.gradle.kts.
+    // S2884: 1.4.3, the newest - un-pinned when the project moved to compileSdk 37 (its AAR
+    // declares minCompileSdk=37, re-measured 2026-09-10; the 1.4.1 pin existed for that alone).
+    // The `whip` sibling module (WebRTC-HTTP publishing) is excluded: nothing here publishes over
+    // WebRTC, and it is the only path that drags BouncyCastle 1.84 in against the 1.75 pin below,
+    // which the version guard rejected on the first resolution attempt (measured 2026-09-06).
+    "standardImplementation"(libs.rtsp.server) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "noLegalImplementation"(libs.rtsp.server) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "legacyImplementation"(libs.rtsp.server) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    // RootEncoder carries the base classes (`Camera2Base`, `ConnectChecker`) that the server type
+    // above extends and exposes, but JitPack generates its POM with every dependency at runtime
+    // scope, so they reach the runtime classpath and not the compile one - the compiler reported
+    // "Cannot access 'Camera2Base' which is a supertype of 'RtspServerCamera2'" until these two were
+    // declared here. Versions match what RTSP-Server 1.4.3 resolves to (library 2.8.1, its POM);
+    // bump them together with it.
+    // S2884: since library 2.8.1 the whip module also arrives through THIS pair (Gradle module
+    // metadata, not the POM) and drags BouncyCastle 1.84 against the 1.75 pin - the same whip
+    // exclusion as the server block above is repeated on every line here.
+    "standardImplementation"(libs.rootencoder.library) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "standardImplementation"(libs.rootencoder.common) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "noLegalImplementation"(libs.rootencoder.library) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "noLegalImplementation"(libs.rootencoder.common) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "legacyImplementation"(libs.rootencoder.library) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
+    "legacyImplementation"(libs.rootencoder.common) {
+        exclude(group = "com.github.pedroSG94.RootEncoder", module = "whip")
+    }
     // S1060: libVLC software decoding of patented codecs + DVD/BD ISO playback. noLegal ONLY -
     // the flavor boundary is the ticket's legal premise (patents/DMCA), so this must never move
     // to implementation(). Ships prebuilt .so per ABI; noLegal abiFilters govern which are packaged.
     // 3.7.5, not the spec's 3.6.0 pin: 3.6.0's libvlc.so is 4 KB-aligned and fails the repo's
     // 16 KB page-alignment rule; 3.7.5 ships 16 KB-aligned .so for arm64-v8a and x86_64 (measured).
-    "noLegalImplementation"("org.videolan.android:libvlc-all:3.7.5")
+    "noLegalImplementation"(libs.libvlc.libvlc.all)
     // S0305: MIDI playback is available only in flavors that support audio.
-    "standardImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
-    "noLegalImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
-    "liteImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
-    "legacyImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
-    "vrImplementation"("androidx.media3:media3-exoplayer-midi:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
-    implementation("androidx.media3:media3-common:1.2.1")
-    implementation("androidx.media3:media3-decoder:1.2.1") // Audio decoders for WAV and other formats
-    implementation("androidx.media3:media3-session:1.2.1") // MediaSession for audio background playback
-    implementation("androidx.media3:media3-effect:1.2.1")  // GlEffect API for SBS stereo crop rendering (Phase 2)
+    "standardImplementation"(libs.androidx.media3.exoplayer.midi)
+    "noLegalImplementation"(libs.androidx.media3.exoplayer.midi)
+    "liteImplementation"(libs.androidx.media3.exoplayer.midi)
+    "legacyImplementation"(libs.androidx.media3.exoplayer.midi)
+    "vrImplementation"(libs.androidx.media3.exoplayer.midi)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.decoder) // Audio decoders for WAV and other formats
+    implementation(libs.androidx.media3.session) // MediaSession for audio background playback
+    // S2876: media3 1.11.0 deleted androidx.media3.exoplayer.MetadataRetriever; the class lives on
+    // in this artifact as androidx.media3.inspector.MetadataRetriever. Not flavor-scoped, because
+    // its one caller (AudioMetadataLoader) sits in src/main and compiles into all seven flavors.
+    implementation(libs.androidx.media3.inspector)
+    implementation(libs.androidx.media3.effect)  // GlEffect API for SBS stereo crop rendering (Phase 2)
     // S1066: post-record re-encode that bakes the in-app digital zoom into the camera MP4 (all flavors -
     // the camera lives in src/main and compiles into every flavor, so the dep cannot be flavor-scoped).
-    implementation("androidx.media3:media3-transformer:1.2.1")
+    implementation(libs.androidx.media3.transformer)
 
     // Image Loading - Glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
-    ksp("com.github.bumptech.glide:ksp:4.16.0")
-    implementation("com.github.bumptech.glide:okhttp3-integration:4.16.0")
+    implementation(libs.glide.glide)
+    ksp(libs.glide.ksp)
+    implementation(libs.glide.okhttp3.integration)
     
     // PhotoView for pinch-to-zoom and rotation support
-    implementation("com.github.chrisbanes:PhotoView:2.3.0")
+    implementation(libs.photoview)
     
     // ExifInterface for image metadata (width, height, camera, GPS, etc.)
-    implementation("androidx.exifinterface:exifinterface:1.3.7")
+    implementation(libs.androidx.exifinterface)
     
     // ML Kit - Translation and Text Recognition (OCR)
     // S0423: ML Kit Translate is bundled in every translation-capable flavor. The on-demand
     // :translate_feature DFM was removed (it shipped empty and broke the release bundle), so no
     // Play Core SplitInstall dependency is needed.
-    "noLegalImplementation"("com.google.mlkit:translate:17.0.3")
-    "noLegalImplementation"("com.google.mlkit:language-id:17.0.6")
-    "vrImplementation"("com.google.mlkit:translate:17.0.3")
-    "vrImplementation"("com.google.mlkit:language-id:17.0.6")
-    "standardImplementation"("com.google.mlkit:translate:17.0.3")
-    "standardImplementation"("com.google.mlkit:language-id:17.0.6")
-    "legacyImplementation"("com.google.mlkit:translate:17.0.3")
-    "legacyImplementation"("com.google.mlkit:language-id:17.0.6")
+    "noLegalImplementation"(libs.mlkit.translate)
+    "noLegalImplementation"(libs.mlkit.language.id)
+    "vrImplementation"(libs.mlkit.translate)
+    "vrImplementation"(libs.mlkit.language.id)
+    "standardImplementation"(libs.mlkit.translate)
+    "standardImplementation"(libs.mlkit.language.id)
+    "legacyImplementation"(libs.mlkit.translate)
+    "legacyImplementation"(libs.mlkit.language.id)
 
     // S0386: com.google.mlkit:text-recognition is completely removed from all builds.
 
-    implementation("androidx.camera:camera-core:1.5.3")
-    implementation("androidx.camera:camera-camera2:1.5.3")
-    implementation("androidx.camera:camera-lifecycle:1.5.3")
-    implementation("androidx.camera:camera-view:1.5.3")
+    implementation(libs.androidx.camera.core)
+    implementation(libs.androidx.camera.camera2)
+    implementation(libs.androidx.camera.lifecycle)
+    implementation(libs.androidx.camera.view)
     // S0545: in-app video recording (unified capture host); replaces external ACTION_VIDEO_CAPTURE.
-    implementation("androidx.camera:camera-video:1.5.3")
+    implementation(libs.androidx.camera.video)
     // S0753: OEM NIGHT extension for the camera night mode (device-gated via ExtensionsManager).
-    implementation("androidx.camera:camera-extensions:1.5.3")
+    implementation(libs.androidx.camera.extensions)
 
     // S0988: pure-JVM QR decoder for the companion-config scan (no native model, no GMS, all flavors).
     // Only the core decoder - NOT zxing-android-embedded, which drags in a legacy camera1 stack.
-    implementation("com.google.zxing:core:3.5.3")
+    implementation(libs.zxing.core)
 
     // Tesseract OCR (Offline, better Cyrillic support)
     // S0386: cz.adaptech:tesseract4android is flavor-specific (compiled only for OCR-supporting flavors)
-    "standardImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+    "standardImplementation"(libs.tesseract.tesseract4android) {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
-    "legacyImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+    "legacyImplementation"(libs.tesseract.tesseract4android) {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
-    "noLegalImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+    "noLegalImplementation"(libs.tesseract.tesseract4android) {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
-    "vrImplementation"("cz.adaptech:tesseract4android:4.8.0") {
+    "vrImplementation"(libs.tesseract.tesseract4android) {
         exclude(group = "cz.adaptech.tesseract4android", module = "tesseract4android-openmp")
     }
     
     // Network - SMB. Pulls org.bouncycastle:bcprov-jdk18on transitively; the version that arrives
     // is asserted at configuration time below (S1496), not forced.
-    implementation("com.hierynomus:smbj:0.12.1")
+    implementation(libs.smbj)
     
     // Network - SFTP (JSch for Android - better KEX support than SSHJ)
-    implementation("com.github.mwiede:jsch:0.2.26")
+    implementation(libs.jsch)
     
     // Network - FTP
-    implementation("commons-net:commons-net:3.10.0")
+    implementation(libs.commons.net)
     
     // Wearable Data Layer - phone-side bridge to Wear OS companion.
     // S0403: consumed only by src/wearGms (WearableDataLayerRepositoryImpl + PhoneWearListenerService),
     // mounted into the Wear-capable flavors only. Scoped per-flavor so the FOSS APK (and non-Wear
     // flavors) never package the proprietary Play Services Wearable SDK. Keep this list in sync with
     // the wearGms sourceSets mounts above.
-    "standardImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
-    "noLegalImplementation"("com.google.android.gms:play-services-wearable:18.1.0")
+    "standardImplementation"(libs.google.gms.play.services.wearable)
+    "noLegalImplementation"(libs.google.gms.play.services.wearable)
     // S1951: legacy dropped - it mounts wearStub, so the SDK was weight with no reachable route,
     // on the one flavor whose whole purpose is old and weak devices (minSdk 23).
 
@@ -1912,44 +2327,53 @@ dependencies {
     // S0403: both are reachable only through src/cloudEnabled, and play-services-auth is proprietary
     // outright. appauth is Apache-2.0 but rides the same OAuth path, so a flavor mounting
     // cloudDisabled has no consumer for either. Keep this list in sync with the cloudEnabled mounts.
-    "standardImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "noLegalImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "liteImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "photosImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "legacyImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "vrImplementation"("com.google.android.gms:play-services-auth:21.0.0")
-    "standardImplementation"("net.openid:appauth:0.11.1")
-    "noLegalImplementation"("net.openid:appauth:0.11.1")
-    "liteImplementation"("net.openid:appauth:0.11.1")
-    "photosImplementation"("net.openid:appauth:0.11.1")
-    "legacyImplementation"("net.openid:appauth:0.11.1")
-    "vrImplementation"("net.openid:appauth:0.11.1")
+    "standardImplementation"(libs.google.gms.play.services.auth)
+    "noLegalImplementation"(libs.google.gms.play.services.auth)
+    "liteImplementation"(libs.google.gms.play.services.auth)
+    "photosImplementation"(libs.google.gms.play.services.auth)
+    "legacyImplementation"(libs.google.gms.play.services.auth)
+    "vrImplementation"(libs.google.gms.play.services.auth)
+    // S2101: Block Store carries the sign-in state across a device migration. Unlike the line above
+    // this list omits `lite`, and deliberately: the only consumer is BlockStoreTransferableSignInStore
+    // in src/cloudEnabled, which `lite` does not mount - it binds the no-op instead - so shipping a
+    // proprietary library there would add weight no code in that flavor can reach.
+    "standardImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "noLegalImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "photosImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "legacyImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "vrImplementation"(libs.google.gms.play.services.auth.blockstore)
+    "standardImplementation"(libs.appauth)
+    "noLegalImplementation"(libs.appauth)
+    "liteImplementation"(libs.appauth)
+    "photosImplementation"(libs.appauth)
+    "legacyImplementation"(libs.appauth)
+    "vrImplementation"(libs.appauth)
 
     // Network - Retrofit for iTunes Search API
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    debugImplementation("com.github.chuckerteam.chucker:library:4.0.0")
-    "benchmarkImplementation"("com.github.chuckerteam.chucker:library-no-op:4.0.0")
-    releaseImplementation("com.github.chuckerteam.chucker:library-no-op:4.0.0")
+    implementation(libs.retrofit.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.okhttp)
+    debugImplementation(libs.chucker.library)
+    "benchmarkImplementation"(libs.chucker.library.no.op)
+    releaseImplementation(libs.chucker.library.no.op)
     
     // Cloud Storage - Dropbox
     // S0403: F-Droid refuses the Dropbox SDK, and cloudDisabled leaves it with no call site anyway.
-    "standardImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    "noLegalImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    "liteImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    "photosImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    "legacyImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
-    "vrImplementation"("com.dropbox.core:dropbox-core-sdk:5.4.5")
+    "standardImplementation"(libs.dropbox.dropbox.core.sdk)
+    "noLegalImplementation"(libs.dropbox.dropbox.core.sdk)
+    "liteImplementation"(libs.dropbox.dropbox.core.sdk)
+    "photosImplementation"(libs.dropbox.dropbox.core.sdk)
+    "legacyImplementation"(libs.dropbox.dropbox.core.sdk)
+    "vrImplementation"(libs.dropbox.dropbox.core.sdk)
 
     // Cloud Storage - OneDrive (REST API + MSAL OAuth)
     // S0403: MSAL is proprietary Microsoft code - same exclusion as the Dropbox SDK above.
-    "standardImplementation"("com.microsoft.identity.client:msal:6.0.1")
-    "noLegalImplementation"("com.microsoft.identity.client:msal:6.0.1")
-    "liteImplementation"("com.microsoft.identity.client:msal:6.0.1")
-    "photosImplementation"("com.microsoft.identity.client:msal:6.0.1")
-    "legacyImplementation"("com.microsoft.identity.client:msal:6.0.1")
-    "vrImplementation"("com.microsoft.identity.client:msal:6.0.1")
+    "standardImplementation"(libs.msal)
+    "noLegalImplementation"(libs.msal)
+    "liteImplementation"(libs.msal)
+    "photosImplementation"(libs.msal)
+    "legacyImplementation"(libs.msal)
+    "vrImplementation"(libs.msal)
 
     // Google Cast SDK + MediaRouter (Chromecast output from player) + NanoHTTPD proxy.
     // S0403: consumed only by src/castEnabled (CastMediaManagerImpl / LocalCastProxyServer). Scoped
@@ -1957,43 +2381,43 @@ dependencies {
     // S1439: vr is off all three lists - it mounts castDisabled, and none of the three has any other
     // consumer in the tree, so leaving them would ship an SDK, a router and an HTTP server for code
     // that is not in the APK. Keep these lists in sync with the castEnabled sourceSets mounts above.
-    "standardImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "noLegalImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "liteImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "photosImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "legacyImplementation"("com.google.android.gms:play-services-cast-framework:21.4.0")
-    "standardImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "noLegalImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "liteImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "photosImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "legacyImplementation"("androidx.mediarouter:mediarouter:1.7.0")
-    "standardImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "noLegalImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "liteImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "photosImplementation"("org.nanohttpd:nanohttpd:2.3.1")
-    "legacyImplementation"("org.nanohttpd:nanohttpd:2.3.1")
+    "standardImplementation"(libs.google.gms.play.services.cast.framework)
+    "noLegalImplementation"(libs.google.gms.play.services.cast.framework)
+    "liteImplementation"(libs.google.gms.play.services.cast.framework)
+    "photosImplementation"(libs.google.gms.play.services.cast.framework)
+    "legacyImplementation"(libs.google.gms.play.services.cast.framework)
+    "standardImplementation"(libs.androidx.mediarouter)
+    "noLegalImplementation"(libs.androidx.mediarouter)
+    "liteImplementation"(libs.androidx.mediarouter)
+    "photosImplementation"(libs.androidx.mediarouter)
+    "legacyImplementation"(libs.androidx.mediarouter)
+    "standardImplementation"(libs.nanohttpd)
+    "noLegalImplementation"(libs.nanohttpd)
+    "liteImplementation"(libs.nanohttpd)
+    "photosImplementation"(libs.nanohttpd)
+    "legacyImplementation"(libs.nanohttpd)
 
     // Logging
-    implementation("com.jakewharton.timber:timber:5.0.1")
-    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+    implementation(libs.timber)
+    debugImplementation(libs.leakcanary.android)
     // Required by LeakCanary for background heap analysis (RemoteListenableWorker)
-    debugImplementation("androidx.work:work-multiprocess:2.10.1") // Keep in sync with work-runtime-ktx (S0709)
+    debugImplementation(libs.androidx.work.multiprocess) // Keep in sync with work-runtime-ktx (S0709)
     
     // Document Support - EPUB
-    implementation("io.documentnode:epub4j-core:4.2") {
+    implementation(libs.epub4j.epub4j.core) {
         exclude(group = "xmlpull", module = "xmlpull")
         exclude(group = "net.sf.kxml", module = "kxml2")
     }
-    implementation("org.jsoup:jsoup:1.17.2")
+    implementation(libs.jsoup)
 
     // Document Support - encrypted ZIP archives
-    implementation("net.lingala.zip4j:zip4j:2.11.5")
+    implementation(libs.zip4j)
     // S0117: GPL extractor is linked only into the sideload-only noLegal flavor.
     // S0175: bumped v0.24.0 -> v0.26.1; no wrapper changes needed (breaking changes in v0.25/v0.26 don't touch our API surface).
-    "noLegalImplementation"("com.github.TeamNewPipe:NewPipeExtractor:v0.26.1")
+    "noLegalImplementation"(libs.newpipe.extractor)
 
     // Markdown Rendering (for .md text files)
-    implementation("io.noties.markwon:core:4.6.2")
+    implementation(libs.markwon.core)
     
     // Document Support - PDF extraction via built-in PdfRenderer (API 21+)
     // No external dependencies needed - metadata extraction removed to avoid conflicts
@@ -2001,23 +2425,51 @@ dependencies {
     // OpenXR loader - vr and noLegal (headset XR rendering).
     // noLegal ships the same arm64-v8a OpenXR slice; non-Quest devices simply never
     // exercise VrPlayerActivity because the graceful fallback fires first.
-    "vrImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
-    "noLegalImplementation"("org.khronos.openxr:openxr_loader_for_android:1.1.48")
+    "vrImplementation"(libs.openxr.loader)
+    "noLegalImplementation"(libs.openxr.loader)
 
-    // SW AV1 decoder (libgav1) - source-only extension, not published on Google Maven.
-    // TODO: build from source (same pipeline as fms-ffmpeg-dts.aar) before enabling.
-    // "standardImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
-    // "legacyImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
-    // "vrImplementation"("androidx.media3:media3-decoder-av1:1.2.1")
+    // SW AV1 decoder (libgav1) - source-only extension. androidx.media3 publishes NO decoder
+    // extension artifact at all (its Google Maven group index lists media3-decoder and nothing
+    // else), so no coordinate for it can resolve at any version. S1126 §3.1 defers it behind VP9.
+    // S2876 removed the matching `androidx-media3-decoder-av1` entry from the version catalog and
+    // the three commented `implementation` lines that referenced it: the catalog entry made the
+    // coordinate look one uncomment away from working, when enabling AV1 in fact starts with
+    // building the extension from source, the same pipeline as fms-vpx.aar below.
 
-    // SW VP9 decoder (libvpx, incl. Profile 2 10-bit HDR) - source-only extension, not on Maven.
-    // TODO: build from source before enabling.
-    // "standardImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
-    // "legacyImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
-    // "vrImplementation"("androidx.media3:media3-decoder-vpx:1.2.1")
+    // ── Custom libvpx VP9 AAR (software video decode backstop) ────────────────────────────────
+    // S1126: software VP9 renderer as the target of media3's decoder fallback. With
+    // EXTENSION_RENDERER_MODE_ON (see PlaybackRenderersFactory) media3 reflectively loads
+    // androidx.media3.decoder.vp9.LibvpxVideoRenderer and appends it AFTER MediaCodecVideoRenderer,
+    // so the platform decoder stays first and libvpx is reached only when it fails or is absent -
+    // a backstop, not the default path. No Kotlin change is needed; the classpath IS the wiring.
+    //
+    // Build script: scripts/builders/build-libvpx-vp9.sh (+ compile-vp9-classes.ps1 for classes.jar)
+    // Built from media3 1.2.1 sources + libvpx v1.8.0, NDK r25c, four ABIs,
+    // -Wl,-z,max-page-size=16384. readelf LOAD Align=0x4000 (16 KB). Play-safe.
+    // S2876 moved the media3 pin to 1.11.0 and left this AAR on its 1.2.1 build, against the
+    // blanket "raising the pin invalidates this AAR" that stood here before. The reason is
+    // measured, not assumed: the AAR carries only the six androidx.media3.decoder.vp9 classes and
+    // inherits SimpleDecoder / DecoderVideoRenderer from the runtime classpath, and a javap
+    // comparison against media3 1.11.0 found every abstract member still implemented, every used
+    // constructor still present, and no new abstract member on either base. What that check cannot
+    // reach is the JNI side - vpxGetFrame and friends touch VideoDecoderOutputBuffer fields by name
+    // from C - so the runtime verdict is a device test, not a build. Full evidence:
+    // PLAN/S2876_media3-1-11-upgrade/research/03__prebuilt-native-aar-compatibility.md.
+    // A device test that shows NoSuchFieldError / UnsatisfiedLinkError or a silent fall back to the
+    // platform decoder means this AAR did need the rebuild - do it from the matching source tree.
+    //
+    // noLegal bundles it like the other three rather than delivering it on demand: VP9 is
+    // royalty-free, and on-demand delivery exists for payloads that cannot be bundled, not for
+    // every native payload - fms-ffmpeg-dts.aar is already bundled into noLegal a few lines below.
+    "standardImplementation"(files("libs/fms-vpx.aar"))
+    "noLegalImplementation"(files("libs/fms-vpx.aar"))
+    "legacyImplementation"(files("libs/fms-vpx.aar"))
+    "vrImplementation"(files("libs/fms-vpx.aar"))
 
     // ── Custom FFmpeg AAR (DTS + APE/WMA/WavPack/TTA/DSD) ─────────────────────────────────────
-    // DTS/extended codec decoder via custom FFmpeg AAR - built from media3 1.2.1 sources.
+    // DTS/extended codec decoder via custom FFmpeg AAR - built from media3 1.2.1 sources, kept on
+    // that build across S2876's move to media3 1.11.0 for the reason recorded above fms-vpx.aar:
+    // the AAR subclasses DecoderAudioRenderer / SimpleDecoder, and both contracts survive the move.
     // Build script: scripts/builders/build-ffmpeg-dts.sh
     // Spec: PLAN/spec_ffmpeg-custom-build-dts.md §7, Phase 3
     //
@@ -2029,23 +2481,23 @@ dependencies {
     "vrImplementation"(files("libs/fms-ffmpeg-dts.aar"))
 
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    testImplementation("androidx.arch.core:core-testing:2.2.0")
-    testImplementation("androidx.test:core:1.6.1")
-    testImplementation("io.mockk:mockk:1.13.9")
-    testImplementation("org.robolectric:robolectric:4.16.1") // For Android framework in JVM tests
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.androidx.arch.core.testing)
+    testImplementation(libs.androidx.test.core)
+    testImplementation(libs.mockk)
+    testImplementation(libs.robolectric) // For Android framework in JVM tests
     
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("com.squareup.leakcanary:leakcanary-android-instrumentation:2.12")
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.leakcanary.android.instrumentation)
     // S0116 Phase 07 step 0: MockWebServer for graceful-degradation instrumentation tests.
-    androidTestImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    androidTestImplementation("com.google.dagger:hilt-android-testing:2.59")
-    androidTestImplementation("androidx.arch.core:core-testing:2.2.0")
-    androidTestImplementation("androidx.room:room-testing:2.7.0")
-    androidTestImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    kspAndroidTest("com.google.dagger:hilt-android-compiler:2.59")
+    androidTestImplementation(libs.okhttp.mockwebserver)
+    androidTestImplementation(libs.dagger.hilt.android.testing)
+    androidTestImplementation(libs.androidx.arch.core.testing)
+    androidTestImplementation(libs.androidx.room.testing)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+    kspAndroidTest(libs.dagger.hilt.android.compiler)
 }
 
 // S1496: BouncyCastle is never declared here - it arrives transitively through SMBJ. Assert the

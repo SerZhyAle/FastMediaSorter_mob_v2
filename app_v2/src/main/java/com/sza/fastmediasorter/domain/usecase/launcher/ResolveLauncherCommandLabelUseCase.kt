@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import androidx.annotation.ColorRes
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.core.graphics.drawable.RoundedBitmapDrawableFactory
@@ -13,6 +14,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherSectionCatalog
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramAccentCatalog
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.launcher.LiveContactDataSource
@@ -65,17 +67,24 @@ class LauncherCommandVisual(
      * because a cell that only speaks a person's name never says what tapping it will do.
      */
     val spokenLabel: String? = null,
+    /**
+     * S2889: the sub-program's identifying tone, set ONLY on the feature branch and null everywhere else.
+     * Its non-nullness is therefore itself the "this glyph takes a tint" signal - no separate boolean exists,
+     * because no other command kind carries a route key to look one up with.
+     */
+    @ColorRes val accentRes: Int? = null,
 ) {
 
     /** A user-set caption over the same icon. */
     fun withLabel(newLabel: String): LauncherCommandVisual =
-        LauncherCommandVisual(newLabel, iconRes, iconDrawable, iconKey, monogramSeed, spokenLabel)
+        LauncherCommandVisual(newLabel, iconRes, iconDrawable, iconKey, monogramSeed, spokenLabel, accentRes)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         val that = other as? LauncherCommandVisual ?: return false
         return label == that.label && iconRes == that.iconRes && iconKey == that.iconKey &&
-            monogramSeed == that.monogramSeed && spokenLabel == that.spokenLabel
+            monogramSeed == that.monogramSeed && spokenLabel == that.spokenLabel &&
+            accentRes == that.accentRes
     }
 
     override fun hashCode(): Int {
@@ -84,6 +93,7 @@ class LauncherCommandVisual(
         result = HASH_MULTIPLIER * result + (iconKey?.hashCode() ?: 0)
         result = HASH_MULTIPLIER * result + (monogramSeed?.hashCode() ?: 0)
         result = HASH_MULTIPLIER * result + (spokenLabel?.hashCode() ?: 0)
+        result = HASH_MULTIPLIER * result + (accentRes ?: 0)
         return result
     }
 
@@ -126,7 +136,8 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
     ): LauncherCommandVisual? =
         withContext(Dispatchers.IO) {
             val targetContext = if (language != null) {
-                LocaleHelper.applyLocale(context, language)
+                Timber.d("S2571: resolving cell label in $language without touching the process locale")
+                LocaleHelper.localizedContext(context, language)
             } else {
                 context
             }
@@ -312,6 +323,10 @@ class ResolveLauncherCommandLabelUseCase @Inject constructor(
         return LauncherCommandVisual(
             label = targetCtx.getString(route.labelRes),
             iconRes = route.iconRes,
+            // S2889: the one branch of the dispatch that has a route key, and so the one that can carry a
+            // tone. Both Feature and FeatureSection land here, so the desktop cell wears the same colour the
+            // programs menu and the quick-launch grid already give this sub-program.
+            accentRes = SubProgramAccentCatalog.accentFor(routeKey),
         )
     }
 

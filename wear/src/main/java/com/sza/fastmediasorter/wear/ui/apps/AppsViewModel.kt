@@ -2,6 +2,8 @@ package com.sza.fastmediasorter.wear.ui.apps
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.catalog.WearAppCatalog
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,11 +22,17 @@ private const val SUBSCRIPTION_TIMEOUT_MS = 5_000L
  */
 @HiltViewModel
 class AppsViewModel @Inject constructor(
-    preferencesRepository: WearPreferencesRepository
+    preferencesRepository: WearPreferencesRepository,
+    capabilities: WearRestrictedCapabilities
 ) : ViewModel() {
 
     val uiState: StateFlow<AppsUiState> = preferencesRepository.viewMode
-        .map { viewMode -> AppsUiState(apps = WearAppCatalog.apps(), viewMode = viewMode) }
+        .map { viewMode ->
+            AppsUiState(
+                apps = WearAppCatalog.apps(capabilities),
+                viewMode = viewMode
+            )
+        }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS),

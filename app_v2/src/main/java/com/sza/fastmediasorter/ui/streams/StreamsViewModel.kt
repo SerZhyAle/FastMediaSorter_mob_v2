@@ -25,8 +25,11 @@ import com.sza.fastmediasorter.domain.usecase.SendStreamToWatchUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.AddStreamSourceUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ClearDownloadedStreamsUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.GetStreamSourceByUrlUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamBroadcastUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamCatalogUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ImportStreamPlaylistUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase
+import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamCollectionsUseCase.StreamCollection
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamPlayOutcomesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.ObserveStreamSourcesUseCase
 import com.sza.fastmediasorter.domain.usecase.streams.PinStreamSourceUseCase
@@ -56,6 +59,7 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -69,7 +73,9 @@ import javax.inject.Inject
  */
 // Pre-existing large state holder (already over the param threshold); S0712 adds the persistent
 // frame store as one more injected dependency. Kept whole - each dep is a distinct stream use case.
-@Suppress("LongParameterList")
+// S2508 pushed this past the 40-function threshold with one screen intent. Splitting a state holder
+// this wide is its own ticket - every function here is one user action on one screen.
+@Suppress("LongParameterList", "TooManyFunctions")
 @HiltViewModel
 class StreamsViewModel @Inject constructor(
     observeStreamSources: ObserveStreamSourcesUseCase,
@@ -77,6 +83,8 @@ class StreamsViewModel @Inject constructor(
     private val updateStreamSource: UpdateStreamSourceUseCase,
     private val importStreamPlaylist: ImportStreamPlaylistUseCase,
     private val importStreamCatalog: ImportStreamCatalogUseCase,
+    // S2508: the listener half of the phone-broadcast pair - a scanned or picked descriptor lands here.
+    private val importStreamBroadcast: ImportStreamBroadcastUseCase,
     private val pinStreamSource: PinStreamSourceUseCase,
     private val unpinStreamSource: UnpinStreamSourceUseCase,
     // S0938: relative reorder of a pinned channel (up / down / to top) within the pinned set.
@@ -114,6 +122,10 @@ class StreamsViewModel @Inject constructor(
     private val mediaCapabilities: MediaCapabilities,
     // S1799: Lazy - the send path is cold until the user actually invokes the command (Rule 18).
     private val sendStreamToWatchUseCase: dagger.Lazy<SendStreamToWatchUseCase>,
+    // S2669: the curated collections delivered with the catalog, as one more pipeline input. The UI's
+    // only door to them (S2103): it also serves the on-demand membership read below, so no UI file
+    // needs the repository or the Room entity behind it.
+    private val observeStreamCollections: ObserveStreamCollectionsUseCase,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(StreamsUiState())
@@ -228,9 +240,13 @@ class StreamsViewModel @Inject constructor(
         // typing four characters produced 21% janky frames, because viewModelScope collects on
         // Dispatchers.Main.immediate and the pass therefore competed with drawing. flowOn moves the
         // transform to the background; onEach and the _state write stay on the collector's context.
-        combine(observeStreamSources(), _filter) { sources, filter ->
+        // S2669: the collection list is a THIRD input, deliberately kept out of cachedFacetsOf below -
+        // that cache keys on the reference identity of the catalog snapshot alone, and feeding it an
+        // unrelated input would disable it on every collection emission over ~20k rows.
+        combine(observeStreamSources(), _filter, observeStreamCollections()) { sources, filter, collections ->
             val filtered = applyFilter(sources, filter, topicLabelProvider::label)
             StreamsUiState(
+                collections = collections,
                 // The only join of the two halves: consumers that need the flat list read this, and the
                 // ones that need the split read `pinned` / `unpinned` instead of partitioning it again.
                 sources = filtered.pinned + filtered.unpinned,
@@ -244,6 +260,7 @@ class StreamsViewModel @Inject constructor(
             .flowOn(defaultDispatcher)
             .onEach { newState ->
                 _state.update { newState.copy(isImporting = it.isImporting, displayMode = it.displayMode) }
+                dropSelectionIfCollectionGone(newState)
             }
             .launchIn(viewModelScope)
     }
@@ -436,6 +453,25 @@ class StreamsViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2508 criterion 4: a descriptor arriving by QR or file becomes an ordinary channel, so the
+     * payload goes straight to the shared import use case and only its verdict reaches the screen.
+     */
+    fun onImportBroadcastDescriptor(payload: String) = viewModelScope.launch {
+        Timber.d("S2508: importing a broadcast descriptor from the streams toolbar")
+        val messageRes = when (importStreamBroadcast(payload)) {
+            ImportStreamBroadcastUseCase.ImportResult.Success -> R.string.broadcast_import_success
+            ImportStreamBroadcastUseCase.ImportResult.Updated -> R.string.broadcast_import_refreshed
+            ImportStreamBroadcastUseCase.ImportResult.Duplicate -> R.string.streams_error_duplicate_url
+            ImportStreamBroadcastUseCase.ImportResult.InvalidUrl -> R.string.streams_error_invalid_url
+            ImportStreamBroadcastUseCase.ImportResult.InvalidDescriptor ->
+                R.string.broadcast_import_malformed
+            ImportStreamBroadcastUseCase.ImportResult.UnsupportedVersion ->
+                R.string.broadcast_import_unsupported_version
+        }
+        _events.send(StreamsEvent.Message(messageRes))
+    }
+
     fun onQueryChanged(query: String) {
         _filter.update { it.copy(query = query) }
         persistSession()
@@ -509,8 +545,44 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun onSort(mode: SortMode) {
-        _filter.update { it.copy(sort = mode) }
+        // S2669: an explicit sort is the user overriding the curator - the collection stays selected,
+        // only its ordering yields.
+        _filter.update { it.copy(sort = mode, collectionOrderApplied = false) }
         persistSession()
+    }
+
+    /**
+     * S2669: select a curated collection, or pass null to return to the whole catalog. The membership
+     * map is read here and only here - once per selection change - so the per-keystroke filter pass
+     * stays a map lookup.
+     */
+    fun onCollectionSelected(collectionId: String?) = viewModelScope.launch {
+        applyCollectionSelection(collectionId)
+    }
+
+    private suspend fun applyCollectionSelection(collectionId: String?) {
+        if (_filter.value.collectionId == collectionId) return
+        Timber.d("S2669: collection selected id=$collectionId")
+        val memberOrder = collectionId
+            ?.let { id -> observeStreamCollections.memberOrder(id) }
+            .orEmpty()
+        _filter.update {
+            it.copy(
+                collectionId = collectionId,
+                collectionMemberOrder = memberOrder,
+                collectionOrderApplied = collectionId != null,
+            )
+        }
+    }
+
+    /**
+     * S2669: a refreshed catalog may no longer carry the selected collection. Leaving the id set would
+     * filter the list against a membership map that can never be repopulated, i.e. show nothing with no
+     * visible chip to clear.
+     */
+    private suspend fun dropSelectionIfCollectionGone(state: StreamsUiState) {
+        val selected = state.filter.collectionId ?: return
+        if (state.collections.none { it.id == selected }) applyCollectionSelection(null)
     }
 
     /** S0675: flip list<->grid display mode, emit it, and persist the new mode for the next screen open. */
@@ -677,12 +749,16 @@ class StreamsViewModel @Inject constructor(
             // so neither side allocates a lowercased copy per catalog row on every keystroke.
             val query = filter.query.trim()
             val matched = sources.filter { source -> matchesFacets(source, filter, query) }
-            val secondary: Comparator<StreamSourceEntity> = when (filter.sort) {
-                SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
-                SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { topicLabel(it.topic) }
-                SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
-                SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
-                SortMode.RECENT -> compareByDescending { it.addedAt }
+            val secondary: Comparator<StreamSourceEntity> = if (filter.collectionOrderApplied) {
+                curatorOrder(filter.collectionMemberOrder)
+            } else {
+                when (filter.sort) {
+                    SortMode.NAME -> compareBy(String.CASE_INSENSITIVE_ORDER) { it.title }
+                    SortMode.TOPIC -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { topicLabel(it.topic) }
+                    SortMode.LANGUAGE -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.language }
+                    SortMode.COUNTRY -> compareBy(nullsLast(String.CASE_INSENSITIVE_ORDER)) { it.country }
+                    SortMode.RECENT -> compareByDescending { it.addedAt }
+                }
             }
             // S0938: pinned rows keep their manual order (the incoming list is already sortIndex-ordered
             // within pinned by the DAO), so the reorder menu commands are visible here; only the unpinned
@@ -693,19 +769,15 @@ class StreamsViewModel @Inject constructor(
 
         /**
          * One row against every active facet, ANDed. Split out of [applyFilter] so each half stays
-         * within the complexity budget: this is the facet logic, [applyFilter] is the ordering.
-         * `query` arrives pre-trimmed but in the user's original case - it is the same for every row,
-         * and each comparison folds case itself rather than allocating a lowercased copy of the row.
+         * within the complexity budget: this is the facet logic, [applyFilter] is the ordering, and
+         * the free-text half lives in [matchesQuery].
          */
         private fun matchesFacets(
             source: StreamSourceEntity,
             filter: StreamsFilter,
             query: String,
         ): Boolean {
-            val queryHit = query.isEmpty() ||
-                source.title.contains(query, ignoreCase = true) ||
-                source.topic?.contains(query, ignoreCase = true) == true ||
-                source.language?.contains(query, ignoreCase = true) == true
+            val queryHit = matchesQuery(source, query)
             val categoryHit = filter.category == null || source.category == filter.category
             val languageHit = filter.language == null ||
                 source.language.tokens().any { it.equals(filter.language, ignoreCase = true) }
@@ -721,8 +793,39 @@ class StreamsViewModel @Inject constructor(
             val topicHit = filter.topic == null || source.topic == filter.topic
             // S0696: pinned-only keeps just the user-pinned rows when the facet is on.
             val pinnedHit = !filter.pinnedOnly || source.pinned
-            return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit && pinnedHit
+            val collectionHit = matchesCollection(source, filter)
+            return queryHit && categoryHit && languageHit && countryHit && mediaHit && topicHit &&
+                pinnedHit && collectionHit
         }
+
+        /**
+         * The free-text half of [matchesFacets], split out for the same reason that function was
+         * split out of `applyFilter`: each half stays within the complexity budget. `query` arrives
+         * pre-trimmed but in the user's original case - it is the same for every row, and each
+         * comparison folds case itself rather than allocating a lowercased copy of the row.
+         */
+        private fun matchesQuery(source: StreamSourceEntity, query: String): Boolean =
+            query.isEmpty() ||
+                source.title.contains(query, ignoreCase = true) ||
+                source.topic?.contains(query, ignoreCase = true) == true ||
+                source.language?.contains(query, ignoreCase = true) == true
+
+        /**
+         * S2669: membership is a map lookup, never a scan. The map was built once when the selection
+         * changed; rebuilding it here would put a membership pass over the whole bank behind every
+         * keystroke, which is the failure the strategic risk table names.
+         */
+        private fun matchesCollection(source: StreamSourceEntity, filter: StreamsFilter): Boolean =
+            filter.collectionId == null || filter.collectionMemberOrder.containsKey(source.url)
+
+        /**
+         * S2669: the curator's reading order, ties broken by name. A row with no entry cannot reach
+         * this comparator while a collection is selected - [matchesCollection] already dropped it - so
+         * the fallback rung only guards a selection cleared between the filter and the sort.
+         */
+        private fun curatorOrder(memberOrder: Map<String, Int>): Comparator<StreamSourceEntity> =
+            compareBy<StreamSourceEntity> { memberOrder[it.url] ?: Int.MAX_VALUE }
+                .thenBy(String.CASE_INSENSITIVE_ORDER) { it.title }
 
         internal fun facetsOf(sources: List<StreamSourceEntity>): StreamsFacets {
             val facets = StreamsFacets(
@@ -762,6 +865,10 @@ class StreamsViewModel @Inject constructor(
         val unpinned: List<StreamSourceEntity> = emptyList(),
         val filter: StreamsFilter = StreamsFilter(),
         val facets: StreamsFacets = StreamsFacets(),
+        // S2669: the delivered curated collections, still carrying their raw locale maps - the display
+        // name depends on the app locale, which is resolved at the presentation edge. The domain model,
+        // not the Room entity, so screens stay decoupled from the schema (S2103).
+        val collections: List<StreamCollection> = emptyList(),
         val isLoading: Boolean = true,
         val isImporting: Boolean = false,
         val displayMode: DisplayMode = DisplayMode.LIST,
@@ -787,6 +894,15 @@ class StreamsViewModel @Inject constructor(
         // S0696: when true, keep only the streams the user personally pinned.
         val pinnedOnly: Boolean = false,
         val sort: SortMode = SortMode.NAME,
+        // S2669: the curated collection the user selected, or null for the whole catalog.
+        val collectionId: String? = null,
+        // S2669: stream url -> the curator's position, for the selected collection only. Carried in the
+        // filter rather than looked up per row because the filter pass walks ~20k rows on every
+        // keystroke; a per-application membership query there is exactly the cost this map avoids.
+        val collectionMemberOrder: Map<String, Int> = emptyMap(),
+        // S2669: true while the collection's own order governs the unpinned half. An explicit sort
+        // clears it, which is how "the user's sort wins over the curator's order" is expressed.
+        val collectionOrderApplied: Boolean = false,
     )
 
     enum class SortMode { NAME, TOPIC, LANGUAGE, COUNTRY, RECENT }

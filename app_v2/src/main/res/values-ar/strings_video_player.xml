@@ -82,4 +82,8 @@
     <string name="video_snapshot_resource_label">مورد لحفظ الإطارات</string>
     <string name="video_snapshot_resource_not_set">غير محدد (يحفظ في مجلد التنزيلات)</string>
     <string name="videos_v">مقاطع الفيديو (V)</string>
+    <string name="playback_control_tab_balance">توازن</string>
+    <string name="playback_control_no_balance">صوت أحادي - لا توجد قنوات للتوازن</string>
+    <string name="playback_control_balance_value">التوازن: %1$s</string>
+    <string name="playback_control_balance_description">التوازن %1$d بالمائة يسار، %2$d بالمائة يمين</string>
 </resources>

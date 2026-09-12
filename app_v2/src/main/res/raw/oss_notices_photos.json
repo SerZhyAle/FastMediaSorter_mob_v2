@@ -76,6 +76,31 @@
     "note": null
   },
   {
+    "coordinate": "androidx.appfunctions:appfunctions",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "AndroidX AppFunctions Core",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
     "coordinate": "androidx.browser:browser",
     "modules": [
       "app_v2"
@@ -937,9 +962,35 @@
     "note": null
   },
   {
-    "coordinate": "androidx.media3:media3-session",
+    "coordinate": "androidx.media3:media3-inspector",
     "modules": [
       "app_v2"
+    ],
+    "name": "AndroidX Media3 Inspector",
+    "spdx": "Apache-2.0",
+    "licenseUrl": "https://www.apache.org/licenses/LICENSE-2.0",
+    "sourceUrl": "https://github.com/androidx/media",
+    "oss": true,
+    "shippedIn": [
+      "foss",
+      "legacy",
+      "lite",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": true,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
+    "coordinate": "androidx.media3:media3-session",
+    "modules": [
+      "app_v2",
+      "wear"
     ],
     "name": "AndroidX Media3 Session",
     "spdx": "Apache-2.0",
@@ -1488,6 +1539,29 @@
     "note": null
   },
   {
+    "coordinate": "com.google.android.gms:play-services-auth-blockstore",
+    "modules": [
+      "app_v2"
+    ],
+    "name": "Google Play services Auth Block Store",
+    "spdx": "Android Software Development Kit License",
+    "licenseUrl": "https://developer.android.com/studio/terms.html",
+    "sourceUrl": "https://developers.google.com/android/guides/setup",
+    "oss": false,
+    "shippedIn": [
+      "legacy",
+      "noLegal",
+      "photos",
+      "standard",
+      "vr"
+    ],
+    "allFlavors": false,
+    "transitive": false,
+    "via": null,
+    "bundled": false,
+    "note": null
+  },
+  {
     "coordinate": "com.google.android.gms:play-services-cast-framework",
     "modules": [
       "app_v2"
@@ -1661,7 +1735,8 @@
   {
     "coordinate": "com.google.zxing:core",
     "modules": [
-      "app_v2"
+      "app_v2",
+      "wear"
     ],
     "name": "ZXing Core",
     "spdx": "Apache-2.0",

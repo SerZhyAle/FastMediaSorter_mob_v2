@@ -6,10 +6,11 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamPlaybackTarget
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
+import com.sza.fastmediasorter.wear.domain.model.normalizeWearStreamUrl
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -26,6 +27,7 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val playbackSetManager: PlaybackSetManager,
     private val usageRepository: WearStreamUsageRepository,
+    private val preferencesRepository: WearPreferencesRepository,
 ) {
 
     /**
@@ -33,13 +35,17 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
      *
      * [siblings] is the list the user was looking at, so paging stays inside it; the phone-initiated
      * path passes nothing and gets a set of one, which is exactly what it asked for.
+     *
+     * S2499: suspending because the home row's record is written here. Three of the four callers were
+     * suspending already; the fourth wraps the tap in its screen's scope. A coroutine scope owned by
+     * this use case was the alternative and was rejected - the use-case layer does not own lifetimes.
      */
-    operator fun invoke(
+    suspend operator fun invoke(
         channel: WearStreamChannel,
         siblings: List<WearStreamChannel> = emptyList(),
     ): WearStreamPlaybackTarget {
         val isVideo = channel.isVideoKind()
-        val mediaFile = channel.toMediaFile(isVideo)
+        val mediaFile = channel.toWearMediaFile(isVideo)
 
         // S2146: counted here rather than in the list's ViewModel, because this is the one point the
         // list entrance and the phone's Data Layer request already share - counting at either
@@ -48,8 +54,15 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         // it partitions pins by, and a station reached over http on one day and https on the next is
         // one station to the owner. Writing the un-folded form here would key a web channel's count to
         // an address the reader never asks for, so every play of it would count into nothing.
-        Timber.d("S2146: counting play of ${channel.name} as ${foldWearStreamIdentity(channel.url)}")
         usageRepository.recordPlay(foldWearStreamIdentity(channel.url))
+
+        // S2499: the home screen's recent row is fed from here for the same reason the play count is -
+        // this is the one point the watch's channel list and the phone's open-channel request share,
+        // so a channel opened from the phone reaches the row without a second writer.
+        // Normalized rather than folded, unlike the count above: the shortcut is reopened by the
+        // launch-target resolver, which finds the channel by the normalized spelling. A folded key
+        // would need a second catalog lookup, which is a second answer to which channel this is.
+        preferencesRepository.setLastUsedStream(normalizeWearStreamUrl(channel.url), channel.name)
 
         selectedMediaManager.selectFile(
             file = mediaFile,
@@ -65,25 +78,30 @@ class PrepareWearStreamPlaybackUseCase @Inject constructor(
         // the user mid-gesture.
         val set = siblings.filter { it.isVideoKind() == isVideo }.ifEmpty { listOf(channel) }
         val startIndex = set.indexOfFirst { it.url == channel.url }.coerceAtLeast(0)
-        playbackSetManager.publish(set.map { it.toMediaFile(isVideo) }, startIndex)
+        playbackSetManager.publish(set.map { it.toWearMediaFile(isVideo) }, startIndex)
 
         return WearStreamPlaybackTarget(fileId = mediaFile.id, isVideo = isVideo)
     }
-
-    private fun WearStreamChannel.toMediaFile(isVideo: Boolean) = WearMediaFile(
-        id = url.hashCode().toLong(),
-        name = name,
-        uri = Uri.parse(url),
-        mimeType = if (isVideo) MIME_VIDEO else MIME_AUDIO,
-        size = 0L,
-        dateModified = 0L,
-    )
-
-    private companion object {
-        const val MIME_VIDEO = "video/*"
-        const val MIME_AUDIO = "audio/*"
-    }
 }
+
+private const val MIME_VIDEO = "video/*"
+private const val MIME_AUDIO = "audio/*"
+
+/**
+ * The one mapping from a channel to the file a player opens.
+ *
+ * At file level rather than private to the use case above, because S2551's ephemeral path needs the
+ * same mapping and this class's own KDoc forbids a second copy - two answers to "which player, and
+ * what is next in the set" drift, and the drift is only ever visible on a watch.
+ */
+internal fun WearStreamChannel.toWearMediaFile(isVideo: Boolean) = WearMediaFile(
+    id = url.hashCode().toLong(),
+    name = name,
+    uri = Uri.parse(url),
+    mimeType = if (isVideo) MIME_VIDEO else MIME_AUDIO,
+    size = 0L,
+    dateModified = 0L,
+)
 
 /**
  * A catalog row carries its kind as free text, so VIDEO and RTSP both mean "the video player". Kept

@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 
 /**
  * S0568 - config-less 1x1 home-screen widget that launches the unified in-app camera (photo/video).
@@ -41,11 +42,6 @@ class CameraLaunchWidgetProvider : AppWidgetProvider() {
             appWidgetId: Int
         ) {
             val views = RemoteViews(context.packageName, R.layout.widget_camera_launch)
-            views.setImageViewResource(
-                R.id.widget_camera_launch_icon,
-                R.drawable.ic_widget_camera_launch_accent
-            )
-
             val intent = Intent(context, CameraLaunchActivity::class.java).apply {
                 action = CameraLaunchActivity.ACTION_LAUNCH
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -60,6 +56,9 @@ class CameraLaunchWidgetProvider : AppWidgetProvider() {
             )
             views.setOnClickPendingIntent(R.id.widget_camera_launch_container, pendingIntent)
 
+            // S2889: the identity glyph takes the sub-program's own tone, resolved in this process
+            // because a theme attr inside a RemoteViews drawable resolves against the launcher's theme.
+            HomeWidgetAccent.applyIconTint(views, R.id.widget_camera_launch_icon, context, "camera_launch")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

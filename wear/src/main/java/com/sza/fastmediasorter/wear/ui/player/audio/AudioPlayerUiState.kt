@@ -1,7 +1,11 @@
 package com.sza.fastmediasorter.wear.ui.player.audio
 
+import com.sza.fastmediasorter.wear.domain.model.MAX_COUNTER_DISPLAY_COUNT
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
+import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
  * UI state for the audio player screen.
@@ -9,7 +13,14 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 data class AudioPlayerUiState(
     val isLoading: Boolean = true,
     val mediaFile: WearMediaFile? = null,
+    val isStream: Boolean = false,
     val isPlaying: Boolean = false,
+    /**
+     * S2849: `playWhenReady` - whether the session still wants to play, which is not the same as
+     * making a sound. It is what the screen-off hold follows, so a rebuffer does not release the
+     * display while a pause does.
+     */
+    val isPlaybackRequested: Boolean = false,
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val error: String? = null,
@@ -23,6 +34,7 @@ data class AudioPlayerUiState(
     val setSize: Int = 0,
     // S1701: playback order of the browsed set, remembered between launches.
     val isShuffleEnabled: Boolean = false,
+    val playbackMode: WearPlaybackMode = WearPlaybackMode.SEQUENTIAL,
     /**
      * S1701: the system media volume, read back after each change rather than counted here.
      *
@@ -44,24 +56,30 @@ data class AudioPlayerUiState(
      * channel actually stopped or disturbed a stream. A reason rather than a message, because the
      * screen owns the wording and the locale.
      */
-    val channelReason: StreamChannelReason? = null
+    val channelReason: StreamChannelReason? = null,
+    val closeScreen: Boolean = false
 ) {
+    /**
+     * S2849: playing holds the display on its own; the screen-off sheet adds a hold only while the
+     * session under it still wants to play. Derived here rather than in the composable.
+     */
+    val holdsDisplay: Boolean
+        get() = isPlaying || WearPlayerDisplayHoldPolicy.holdsDisplay(isDimmed, isPlaybackRequested)
+
     val positionText: String
-        get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
+        get() = if (setSize > 0) {
+            val totalStr = if (setSize > MAX_COUNTER_DISPLAY_COUNT) "###" else setSize.toString()
+            "${setIndex + 1}/$totalStr"
+        } else {
+            ""
+        }
 
     val progress: Float
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
-    
+
     val currentPositionFormatted: String
-        get() = formatTime(currentPositionMs)
-    
+        get() = formatWearDuration(currentPositionMs)
+
     val durationFormatted: String
-        get() = formatTime(durationMs)
-    
-    private fun formatTime(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%d:%02d", minutes, seconds)
-    }
+        get() = formatWearDuration(durationMs)
 }

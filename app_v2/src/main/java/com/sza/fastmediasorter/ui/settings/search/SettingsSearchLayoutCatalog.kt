@@ -29,6 +29,7 @@ object SettingsSearchLayoutCatalog {
         R.layout.fragment_settings_documents,
         R.layout.fragment_settings_other,
         R.layout.fragment_settings_streams,
+        R.layout.fragment_settings_broadcast,
         R.layout.fragment_settings_destinations
     )
 }

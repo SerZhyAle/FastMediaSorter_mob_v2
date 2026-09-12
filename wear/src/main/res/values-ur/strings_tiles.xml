@@ -14,4 +14,8 @@
     <string name="wear_tile_picker_title_stream">سلسلہ منتخب کریں۔</string>
     <string name="wear_tile_picker_empty_resource">کوئی وسائل نہیں ملے۔ گھڑی پر نیٹ ورک کا وسیلہ شامل کریں یا فون سے مطابقت پذیری کریں۔</string>
     <string name="wear_tile_picker_empty_stream">کوئی سلسلہ نہیں ملا۔ فون سے سٹریم یا سنک کیٹلاگ شامل کریں۔</string>
+    <string name="wear_tile_programs_label">پروگرام</string>
+    <string name="wear_tile_sections_label">حصے</string>
+    <string name="wear_tile_targets_title">ٹائل اہداف</string>
+    <string name="wear_tile_targets_none">منتخب نہیں</string>
 </resources>

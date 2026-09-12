@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.core.launcher.LauncherScreenClass
 import com.sza.fastmediasorter.core.launcher.LauncherScreenClassifier
 import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.data.launcher.AppShortcutDataSource
 import com.sza.fastmediasorter.data.local.LocalMediaScanner
@@ -79,8 +80,12 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // resource since deleted) never becomes a permanently-dead tile.
             val lastResourceId = settings.getLastUsedResourceId().takeIf { it > 0L && it in resourceIds }
             val starterResources = starterResourcesFrom(allResources, lastResourceId)
-            val routeAvailableInBuild = routeAvailability.all()
-                .mapValues { (_, availability) -> availability.availableInBuild }
+            // S2382: launchability, not build presence. The resolver answers both halves and this call
+            // used to discard the runtime one, so a first desktop filled with cells for features the user
+            // had never switched on. Behind the already-seeded early exit above, so no existing desktop is
+            // recomposed by the change (strategic ADR-2).
+            val routeLaunchable = routeAvailability.all()
+                .mapValues { (_, availability) -> availability.isLaunchable }
             // Behind the already-seeded early-exit above, so a desktop that will not be seeded never pays
             // for the package-manager probe (strategic §3.2).
             val installedPackages = resolveInstalledPackages(LauncherStarterSets.candidatePackages)
@@ -93,7 +98,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 GmsAvailabilityChecker.Status.UPDATE_REQUIRED -> true
                 GmsAvailabilityChecker.Status.UNAVAILABLE -> false
             }
-            Timber.d("S2015: Seed desktop profile=%s googleServices=%b", profile, googleServicesAvailable)
             // S1613: behind the same early exit, so a desktop that will not be seeded never pays for it.
             val importedShortcuts = appShortcuts.allPinned().map { shortcut ->
                 LauncherStarterSets.StarterItem(
@@ -112,20 +116,27 @@ class SeedLauncherDesktopUseCase @Inject constructor(
             // whatever the table can place by name, cannot come back a second time through this list.
             val thirdPartyApps = queryThirdPartyApps(LauncherStarterSets.candidatePackages)
 
+            // S2735: which system settings entries actually resolve on this device, behind the same
+            // already-seeded early exit as every probe above, so a desktop that will not be seeded never
+            // pays for it. A target that does not resolve is a cell that leads nowhere (strategic §3.2).
+            val resolvableOsShortcuts =
+                OsShortcutCatalog.available(context).mapTo(mutableSetOf()) { it.key }
+            Timber.d("S2735: seed resolved ${resolvableOsShortcuts.size} resolvable system settings entries")
+            Timber.d("S2717: seed resolved ${thirdPartyApps.size} third-party app(s) for the Apps section")
+
             // S2309: read behind the same already-seeded early exit as every other probe above, so a
             // desktop that will not be seeded never pays for it (strategic §3.2).
             val screenClass = deviceScreenClass()
-            Timber.d("S2309: composing starter desktop for %s on %s", profile, screenClass)
-            logCoreResourceProbe(starterResources)
 
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 starterResources,
-                routeAvailableInBuild,
+                routeLaunchable,
                 installedPackages,
                 googleServicesAvailable = googleServicesAvailable,
                 importedShortcuts = importedShortcuts,
                 thirdPartyApps = thirdPartyApps,
+                resolvableOsShortcuts = resolvableOsShortcuts,
                 screenClass = screenClass,
             )
             if (!state.seededPortrait && !state.seededLandscape) {
@@ -188,21 +199,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
     }
 
     /**
-     * S2321 probe: the ids the core-resource group received, so a device log separates "the aggregates
-     * were resolved and seeded" from "the seed never reached them" - the distinction the reported clean
-     * install turned on, since a truncated desktop and an unseeded one look identical on screen.
-     */
-    private fun logCoreResourceProbe(resources: LauncherStarterSets.StarterResources) {
-        Timber.d(
-            "S2321: core resources docs=%s camera=%s allFiles=%s userTail=%d",
-            resources.allDocsId,
-            resources.cameraId,
-            resources.allFilesId,
-            resources.userResourceIds.size,
-        )
-    }
-
-    /**
      * The screen class this device seeds for.
      *
      * Reads the configuration rather than taking it as an argument: the seed already holds the
@@ -253,6 +249,14 @@ class SeedLauncherDesktopUseCase @Inject constructor(
                 screenIndex = placed.screenIndex,
             )
         }
-        desktop.seedIfEmpty(orientation, cells)
+        // S2679: the width this seed laid the cells out at is recorded only when the seed actually
+        // placed them. A `false` means this orientation already carries a desktop, whose width belongs
+        // to the surface that rendered it. Without this the landscape width stayed 0 until the user
+        // rotated the launcher once, and every placement made in between fell back to a constant far
+        // narrower than the desktop the seed had just built.
+        if (desktop.seedIfEmpty(orientation, cells)) {
+            desktop.updateColumns(orientation, columns)
+            Timber.d("S2679: seeded %s at width %d and recorded it", orientation, columns)
+        }
     }
 }

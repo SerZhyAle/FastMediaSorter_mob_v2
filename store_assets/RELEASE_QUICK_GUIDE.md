@@ -26,10 +26,18 @@ a second, media-player-sounding description, and an operator pasting it from her
 listing stopped reading as a file organizer.
 
 ### 3. Assets
-**Location**: `store_assets/`
+**Location**: `play/listing/<locale>/images/` - not `store_assets/`
 
-- ✅ **Feature Graphic** (`feature_graphic.png`)
-- ✅ **Screenshots** (`screenshots/` folder)
+- ✅ **Screenshots** - `play/listing/<locale>/images/phoneScreenshots/<NN>.png`, composed from
+  `play/listing/captions.json` and published by `scripts/release/publish-play-listing.ps1`. The
+  `store_assets/screenshots/` folder this section used to name is a dump of raw device captures, not
+  a listing source, and an operator uploading from it publishes unframed, uncaptioned frames (S2570)
+- ✅ **Feature Graphic** - `play/listing/<locale>/images/featureGraphic.png`, 1024 × 500 px, written
+  by `python scripts/release/compose-feature-graphic.py` and published by the same
+  `publish-play-listing.ps1` run as the screenshots. The composer writes the fastlane copy in the
+  same pass, so Play and IzzyOnDroid carry one artwork (S2597)
+- ✅ **App icon** - `play/listing/en-US/images/icon.png`, 512 × 512 px, the same artwork as
+  `store_assets/icon_512.png`. It is a listing source now, not a hand upload
 - ⚠️ **Video** (`Screen_recording_*.webm`) - Optional, verify format compliance
 
 ### 4. Documentation
@@ -86,7 +94,8 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 ## 📊 Post-Release Monitoring
 
 ### First 24 Hours
-- [ ] Check crash rate in Play Console
+- [ ] Check crash and ANR rates - `..ps1 pv` reads them from the Play Developer Reporting API, records
+      them in `docs/PLAY_PUBLISHING_STATE.md` block 4 and files a Draft ticket on a red band (S2917)
 - [ ] Monitor user reviews
 - [ ] Track installation success rate
 - [ ] Watch for ANR (Application Not Responding) reports
@@ -96,9 +105,9 @@ Open `store_assets/whats_new.txt` and paste into Play Console:
 - [ ] Check reported bugs
 - [ ] Monitor performance metrics
 - [ ] **Technical quality thresholds (enforced from February 2027)** - run section G of
-      `PLAY_CONSOLE_CHECKLIST.md`. The four surfaces and where the figures are recorded are listed
-      there and deliberately not repeated here, so there is one place to update when Play changes
-      the thresholds.
+      `PLAY_CONSOLE_CHECKLIST.md`. Which surfaces a script reads, which are still read by hand, and
+      where the figures are recorded are listed there and deliberately not repeated here, so there
+      is one place to update when Play changes the thresholds.
 - [ ] Plan hotfix if needed
 
 ## 🎯 This Release Fixes

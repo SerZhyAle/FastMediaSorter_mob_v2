@@ -5,8 +5,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.WearCastMediaType
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
 import com.sza.fastmediasorter.wear.domain.model.favoriteSourceId
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMedia
@@ -15,6 +18,7 @@ import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DownloadNetworkFileUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCastManager
 import com.sza.fastmediasorter.wear.ui.player.common.awaitPanelHide
 import com.sza.fastmediasorter.wear.ui.slideshow.ImageSlideshowController
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -41,6 +45,8 @@ class ImageViewerViewModel @Inject constructor(
     private val downloadNetworkFile: DownloadNetworkFileUseCase,
     private val favoritesRepository: WearFavoritesRepository,
     private val toggleFavoriteUseCase: ToggleFavoriteUseCase,
+    val fileOperations: com.sza.fastmediasorter.wear.ui.player.common.PlayerFileOperationsManager,
+    val castManager: PlayerCastManager,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -65,6 +71,33 @@ class ImageViewerViewModel @Inject constructor(
 
     init {
         Timber.d("ImageViewerViewModel initialized with fileId: $fileId")
+
+        castManager.bind(viewModelScope)
+        val currentFileFlow = MutableStateFlow<WearMediaFile?>(null)
+        fileOperations.bind(
+            scope = viewModelScope,
+            currentFile = currentFileFlow,
+            isNetworkSource = { networkSelection != null }
+        )
+        viewModelScope.launch {
+            _uiState.collect { state ->
+                currentFileFlow.value = state.mediaFile
+            }
+        }
+        viewModelScope.launch {
+            fileOperations.operationResult.collect { result ->
+                when (result) {
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Advance -> {
+                        playbackSetManager.moveTo(result.nextFile.id)
+                        loadImageFile()
+                    }
+                    is com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.SetEmpty -> {
+                        _uiState.update { it.copy(closeScreen = true) }
+                    }
+                    com.sza.fastmediasorter.wear.ui.player.common.PlayerOperationResult.Stay, null -> {}
+                }
+            }
+        }
 
         seedScaleMode()
 
@@ -97,7 +130,6 @@ class ImageViewerViewModel @Inject constructor(
     }
 
     fun toggleScaleMode() {
-        Timber.d("S2006: image fit toggled, was=${_uiState.value.scaleMode}")
         val next = _uiState.updateAndGet { current ->
             val mode = if (current.scaleMode == VideoScaleMode.FIT) {
                 VideoScaleMode.CROP_PAN
@@ -109,10 +141,15 @@ class ImageViewerViewModel @Inject constructor(
         viewModelScope.launch { preferencesRepository.setImageScaleMode(next) }
     }
 
+    fun togglePlaybackMode() {
+        val nextMode = _uiState.value.playbackMode.next()
+        val isShuffle = nextMode == WearPlaybackMode.SHUFFLE
+        _uiState.update { it.copy(playbackMode = nextMode, isShuffleEnabled = isShuffle) }
+        viewModelScope.launch { preferencesRepository.setShuffleEnabled(isShuffle) }
+    }
+
     fun toggleShuffle() {
-        Timber.d("S2006: shuffle toggled on image viewer, was=${_uiState.value.isShuffleEnabled}")
-        val enabled = !_uiState.value.isShuffleEnabled
-        viewModelScope.launch { preferencesRepository.setShuffleEnabled(enabled) }
+        togglePlaybackMode()
     }
 
     private fun loadImageFile() {
@@ -228,8 +265,13 @@ class ImageViewerViewModel @Inject constructor(
     fun startSlideshow() {
         Timber.d("Starting slideshow")
         slideshowController?.start()
-        _uiState.update { it.copy(isSlideshowActive = true) }
-        scheduleHideControls()
+        // S2480: the press has to produce a visible result. Starting the controller alone left the
+        // same picture on screen for a whole interval under an unchanged panel, which read as the
+        // button doing nothing - so the next picture comes up at once and the panel goes with it.
+        Timber.d("S2480: slideshow start advances and clears the panel")
+        controlsHideJob?.cancel()
+        _uiState.update { it.copy(isSlideshowActive = true, showControls = false) }
+        navigateToNext()
     }
 
     fun stopSlideshow() {
@@ -237,11 +279,12 @@ class ImageViewerViewModel @Inject constructor(
         slideshowController?.stop()
         _uiState.update { it.copy(isSlideshowActive = false) }
         showControls()
+        // Stopping a slideshow leaves the panel on a countdown, not on screen for good.
+        scheduleHideControls()
     }
 
     /** A tap on the picture is the only way back to a hidden panel, so it toggles rather than reveals. */
     fun onScreenTap() {
-        Timber.d("S2006: image panel toggled, wasVisible=${_uiState.value.showControls}")
         if (_uiState.value.showControls) {
             controlsHideJob?.cancel()
             _uiState.update { it.copy(showControls = false) }
@@ -256,17 +299,27 @@ class ImageViewerViewModel @Inject constructor(
         _uiState.update { it.copy(showControls = true) }
     }
 
+    /**
+     * S2480: the countdown runs whether or not a slideshow does. An image has no playing state, so
+     * having one on screen is itself the active condition - the same reasoning the screen already
+     * applies to keeping the display awake. Tying it to the slideshow left a hand-paged viewer
+     * showing its panel forever, which is what the owner reported.
+     */
+    @Suppress("MagicNumber")
     private fun scheduleHideControls() {
         controlsHideJob?.cancel()
+        Timber.d("S2480: panel hide countdown started")
         controlsHideJob = viewModelScope.launch {
-            if (awaitPanelHide(isActive = _uiState.value.isSlideshowActive)) {
+            val hideDelayMs = preferencesRepository.panelAutoHideSeconds.first().coerceIn(1, 600) * 1000L
+            Timber.d("S2505: ImageViewerViewModel scheduleHideControls delayMillis=$hideDelayMs")
+            if (awaitPanelHide(isActive = true, delayMillis = hideDelayMs)) {
+                Timber.d("S2480: panel hidden by countdown")
                 _uiState.update { it.copy(showControls = false) }
             }
         }
     }
 
     fun toggleSlideshow() {
-        Timber.d("S2006: slideshow toggled from viewer, wasActive=${_uiState.value.isSlideshowActive}")
         if (_uiState.value.isSlideshowActive) {
             stopSlideshow()
         } else {
@@ -278,12 +331,24 @@ class ImageViewerViewModel @Inject constructor(
         val next = playbackSetManager.next() ?: return
         showFile(next)
         syncSlideshowToSet()
+        restartHideCountdownIfShown()
     }
 
     fun navigateToPrevious() {
         val previous = playbackSetManager.previous() ?: return
         showFile(previous)
         syncSlideshowToSet()
+        restartHideCountdownIfShown()
+    }
+
+    /**
+     * S2480: paging is a touch, so it postpones the hide - but only when the panel is already up.
+     * A zone tap on a hidden panel must page without bringing the buttons back over the picture.
+     */
+    private fun restartHideCountdownIfShown() {
+        if (_uiState.value.showControls) {
+            scheduleHideControls()
+        }
     }
 
     /**
@@ -325,6 +390,20 @@ class ImageViewerViewModel @Inject constructor(
         }
     }
 
+    /**
+     * S2531: hands the picture on screen to the phone, which owns the Cast session, or ends the one
+     * already running - the screen shows one entry and the phone's reported state decides which of
+     * the two it is, so the choice is made here rather than in the composable.
+     */
+    fun toggleCast() {
+        if (castManager.castState.value.isCasting) {
+            castManager.stopCasting()
+            return
+        }
+        val file = _uiState.value.mediaFile ?: return
+        castManager.castCurrentFile(file, networkSelection, WearCastMediaType.IMAGE)
+    }
+
     fun toggleFavorite() {
         val selected = selectedMediaManager.getSelectedFileById(fileId)
         val isNetwork = selected?.isNetworkSource == true
@@ -335,22 +414,18 @@ class ImageViewerViewModel @Inject constructor(
         } else {
             _uiState.value.mediaFile?.uri?.toString() ?: return
         }
-        val displayName = _uiState.value.mediaFile?.name ?: filePath.substringAfterLast('/')
+        val mediaFile = _uiState.value.mediaFile
+        val displayName = mediaFile?.displayName ?: filePath.substringAfterLast('/')
         viewModelScope.launch {
             // S1846: marking goes through the use case that also pushes the delta, which is what the audio
             // player already did; this screen used to bypass it and repeat both halves by hand.
-            _isFavorite.value = if (_isFavorite.value) {
-                toggleFavoriteUseCase.toggle(sourceId, filePath, wasFavorite = true)
-            } else {
-                toggleFavoriteUseCase.add(
-                    WearFavoriteRecord(
-                        sourceId = sourceId,
-                        filePath = filePath,
-                        displayName = displayName,
-                        mimeType = _uiState.value.mediaFile?.mimeType
-                    )
-                )
-            }
+            val record = WearFavoriteRecord(
+                sourceId = sourceId,
+                filePath = filePath,
+                displayName = displayName,
+                mimeType = mediaFile?.mimeType
+            )
+            _isFavorite.value = toggleFavoriteUseCase.toggle(record, _isFavorite.value)
         }
     }
 

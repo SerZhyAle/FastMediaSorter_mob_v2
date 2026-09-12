@@ -13,6 +13,7 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.sza.fastmediasorter.databinding.FragmentOpenSourceLicensesBinding
+import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.settings.OpenSourceLicenseAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import org.json.JSONArray
@@ -24,6 +25,8 @@ class OpenSourceLicensesFragment : Fragment() {
 
     private var _binding: FragmentOpenSourceLicensesBinding? = null
     private val binding get() = _binding!!
+
+    private var hiddenSiblings: List<View> = emptyList()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -37,6 +40,10 @@ class OpenSourceLicensesFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // S2899: Hide the activity's underlying content so D-pad focus cannot escape the overlay.
+        hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
+        Timber.d("S2899: OpenSourceLicenses focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
+
         binding.toolbar.setNavigationOnClickListener {
             parentFragmentManager.popBackStack()
         }
@@ -45,6 +52,21 @@ class OpenSourceLicensesFragment : Fragment() {
         binding.noticesList.layoutManager = LinearLayoutManager(requireContext())
         binding.noticesList.adapter = OpenSourceLicenseAdapter(notices, ::openUrl)
         binding.emptyState.visibility = if (notices.isEmpty()) View.VISIBLE else View.GONE
+
+        // S2899: Ensure initial focus on TV / D-pad
+        view.post {
+            if (isAdded && _binding != null) {
+                binding.toolbar.requestFocus()
+                Timber.d("S2899: OpenSourceLicenses initial focus requested")
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (activity?.currentFocus == null) {
+            _binding?.toolbar?.requestFocus()
+        }
     }
 
     private fun loadNotices(): List<OpenSourceLicenseAdapter.Notice> = try {
@@ -91,8 +113,10 @@ class OpenSourceLicensesFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        super.onDestroyView()
+        OverlayFocusTrap.restore(hiddenSiblings)
+        hiddenSiblings = emptyList()
         _binding = null
+        super.onDestroyView()
     }
 
     private companion object {

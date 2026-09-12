@@ -1,27 +1,28 @@
 package com.sza.fastmediasorter.ui.player
 
-import android.os.Bundle
+import androidx.media3.common.C
 import androidx.media3.common.Format
 import com.sza.fastmediasorter.domain.model.StereoMode
-import org.junit.Assume.assumeTrue
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
-import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import kotlin.io.path.createTempDirectory
 
 /**
  * Unit tests for [StereoDetector].
  *
  * Tests cover:
  * 1. Aspect-ratio heuristic - flat SBS / mono and spherical (360° mono/SBS/OU) dimensions
- * 2. Matroska metadata detection - tag values mapped to flat StereoMode
+ * 2. Container stereo tag detection - [C.StereoMode] values mapped to flat StereoMode
  * 3. Metadata priority over aspect ratio
  * 4. Edge cases - invalid dimensions, borderline AR values
  * 5. False-positive guard - common ultra-wide mono content
  * 6. Filename token detection - flat + spherical (360°/VR180/Cylinder) patterns
+ *
+ * S2892 dropped the Robolectric runner S2876 had added: the tag cases needed a real [android.os.Bundle]
+ * only while the detector read the tag out of custom data. `Format.stereoMode` is a plain int, so
+ * these run on the stubbed android.jar again.
  */
 class StereoDetectorTest {
 
@@ -182,71 +183,65 @@ class StereoDetectorTest {
         assertEquals(StereoMode.SBS_FULL, detector.detectFromDimensions(3800, 1000))
     }
 
-    // ── Matroska metadata - mono tag ─────────────────────────────────────
+    // ── Container stereo tag - mono ──────────────────────────────────────
 
     @Test
-    fun `detectFromFormat returns MONO when Matroska tag is 0 (mono)`() {
-        val format = buildFormatWithTag("0", 3840, 1080) // AR would suggest SBS_FULL
+    fun `detectFromFormat returns MONO when container tag is STEREO_MODE_MONO`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_MONO, 3840, 1080) // AR would suggest SBS_FULL
         assertEquals(StereoMode.MONO, detector.detectFromFormat(format))
     }
 
-    // ── Matroska metadata - SBS tags ─────────────────────────────────────
+    // ── Container stereo tag - SBS ───────────────────────────────────────
 
     @Test
-    fun `detectFromFormat returns SBS_FULL when Matroska tag is 1 (SBS left-first)`() {
-        val format = buildFormatWithTag("1", 1920, 1080)
+    fun `detectFromFormat returns SBS_FULL when container tag is STEREO_MODE_LEFT_RIGHT`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_LEFT_RIGHT, 1920, 1080)
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
     }
 
-    @Test
-    fun `detectFromFormat returns SBS_FULL when Matroska tag is 11 (SBS right-first)`() {
-        val format = buildFormatWithTag("11", 1920, 1080)
-        assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
-    }
-
-    // ── Matroska metadata - OU tags ──────────────────────────────────────
+    // ── Container stereo tag - OU ────────────────────────────────────────
 
     @Test
-    fun `detectFromFormat returns OU when Matroska tag is 3 (OU left-eye-top)`() {
-        val format = buildFormatWithTag("3", 1920, 1080)
+    fun `detectFromFormat returns OU when container tag is STEREO_MODE_TOP_BOTTOM`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_TOP_BOTTOM, 1920, 1080)
         assertEquals(StereoMode.OU, detector.detectFromFormat(format))
     }
 
+    /**
+     * S2892: Media3's constants are not the raw EBML numbers. `MatroskaExtractor` maps raw EBML 1
+     * (SBS) to [C.STEREO_MODE_LEFT_RIGHT] = 2 and raw EBML 3 (OU) to [C.STEREO_MODE_TOP_BOTTOM] = 1,
+     * so the two layouts swap numbers on the way in. A detector that compared against raw tag values
+     * would pass every other test in this file and still render SBS content as OU on real files.
+     * These two assertions pin the values themselves, not just the labels.
+     */
     @Test
-    fun `detectFromFormat returns OU when Matroska tag is 2 (OU right-eye-top)`() {
-        val format = buildFormatWithTag("2", 1920, 1080)
-        assertEquals(StereoMode.OU, detector.detectFromFormat(format))
+    fun `container tag values follow Media3 numbering, not raw EBML numbering`() {
+        assertEquals(2, C.STEREO_MODE_LEFT_RIGHT)
+        assertEquals(1, C.STEREO_MODE_TOP_BOTTOM)
+        assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(buildFormatWithStereoMode(2, 1920, 1080)))
+        assertEquals(StereoMode.OU, detector.detectFromFormat(buildFormatWithStereoMode(1, 1920, 1080)))
     }
 
-    // ── Matroska metadata - MVC packed ───────────────────────────────────
+    // ── Container stereo tag priority over AR heuristic ──────────────────
 
     @Test
-    fun `detectFromFormat returns SBS_HALF when Matroska tag is 13 (MVC left-first)`() {
-        val format = buildFormatWithTag("13", 1920, 1080)
-        assertEquals(StereoMode.SBS_HALF, detector.detectFromFormat(format))
-    }
-
-    @Test
-    fun `detectFromFormat returns SBS_HALF when Matroska tag is 14 (MVC right-first)`() {
-        val format = buildFormatWithTag("14", 1920, 1080)
-        assertEquals(StereoMode.SBS_HALF, detector.detectFromFormat(format))
-    }
-
-    // ── Matroska metadata priority over AR heuristic ─────────────────────
-
-    @Test
-    fun `Matroska mono tag overrides SBS aspect ratio`() {
-        val format = buildFormatWithTag("0", 3840, 1080)
+    fun `container mono tag overrides SBS aspect ratio`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_MONO, 3840, 1080)
         assertEquals(StereoMode.MONO, detector.detectFromFormat(format))
     }
 
     @Test
-    fun `Matroska SBS tag overrides mono aspect ratio`() {
-        val format = buildFormatWithTag("1", 1920, 1080)
+    fun `container SBS tag overrides mono aspect ratio`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_LEFT_RIGHT, 1920, 1080)
         assertEquals(StereoMode.SBS_FULL, detector.detectFromFormat(format))
     }
 
-    // ── Missing / unknown tag - fall back to AR ───────────────────────────
+    // ── Missing / unrenderable tag - fall back to AR ─────────────────────
+
+    @Test
+    fun `Format carries NO_VALUE when no stereo mode was set`() {
+        assertEquals(Format.NO_VALUE, buildFormatWithoutTag(1920, 1080).stereoMode)
+    }
 
     @Test
     fun `detectFromFormat falls back to AR when tag absent`() {
@@ -255,10 +250,18 @@ class StereoDetectorTest {
     }
 
     @Test
-    fun `detectFromFormat returns MONO for unrecognised tag value`() {
-        val format = buildFormatWithTag("99", 1920, 1080)
-        // Unknown tag → UNKNOWN from metadata path → fall back to AR → MONO for 1920x1080
+    fun `detectFromFormat falls back to AR for STEREO_MODE_STEREO_MESH`() {
+        // Mesh projection has no renderer mode - UNKNOWN from the tag, then AR → MONO for 1920x1080.
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_STEREO_MESH, 1920, 1080)
         assertEquals(StereoMode.MONO, detector.detectFromFormat(format))
+    }
+
+    @Test
+    fun `detectFromFormat falls back to AR for interleaved MV-HEVC tags`() {
+        val leftPrimary = buildFormatWithStereoMode(C.STEREO_MODE_INTERLEAVED_LEFT_PRIMARY, 1920, 1080)
+        val rightPrimary = buildFormatWithStereoMode(C.STEREO_MODE_INTERLEAVED_RIGHT_PRIMARY, 1920, 1080)
+        assertEquals(StereoMode.MONO, detector.detectFromFormat(leftPrimary))
+        assertEquals(StereoMode.MONO, detector.detectFromFormat(rightPrimary))
     }
 
     @Test
@@ -444,37 +447,78 @@ class StereoDetectorTest {
 
     @Test
     fun `detectForVideo prefers MP4 spatial metadata over filename heuristic`() {
-        val file = createMp4WithSpatialMetadata(
-            filenameSuffix = "_360_sbs",
-            st3dLayout = 1,
-            projectionBox = "equi"
-        )
-        val format = buildFormatWithoutTag(1920, 1080)
+        // Format carries TOP_BOTTOM + equirect (st3d mode 1 + equi). Filename says 360_sbs (SBS),
+        // but the container metadata is authoritative and wins with EQUIRECT_360_OU.
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_TOP_BOTTOM, "equi", 1920, 1080)
 
-        assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectForVideo(file.absolutePath, format))
+        assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectForVideo("sample_360_sbs.mp4", format))
     }
 
     @Test
     fun `detectForVideo reads st3d mode 3 as VR180_FISHEYE_SBS`() {
-        val file = createMp4WithSpatialMetadata(
-            filenameSuffix = "_vr180",
-            st3dLayout = 3,
-            projectionBox = "equi"
-        )
-        val format = buildFormatWithoutTag(7168, 3584)
-        assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectForVideo(file.absolutePath, format))
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_STEREO_MESH, "equi", 7168, 3584)
+        assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectForVideo("sample_vr180.mp4", format))
     }
 
     @Test
-    fun `detectForVideo reads st3d mode 4 as EQUIRECT_360_SBS`() {
-        // mode 4 = right-left reversed SBS - same rendering as left-right SBS
-        val file = createMp4WithSpatialMetadata(
-            filenameSuffix = "_360",
-            st3dLayout = 4,
-            projectionBox = "equi"
-        )
-        val format = buildFormatWithoutTag(7680, 1920)
-        assertEquals(StereoMode.EQUIRECT_360_SBS, detector.detectForVideo(file.absolutePath, format))
+    fun `detectForVideo falls back to filename when st3d mode 4 is discarded by media3`() {
+        // st3d mode 4 (right-left reversed SBS) is discarded by media3, so stereoMode stays
+        // NO_VALUE even though projectionData carries equi. detectFromMp4Format returns UNKNOWN
+        // and the filename source compensates with EQUIRECT_360_SBS.
+        val format = Format.Builder()
+            .setWidth(7680)
+            .setHeight(1920)
+            .setProjectionData(buildProjectionData("equi"))
+            .build()
+        assertEquals(StereoMode.EQUIRECT_360_SBS, detector.detectForVideo("sample_360_sbs.mp4", format))
+    }
+
+    // ── S2893: detectFromMp4Format (Format.stereoMode + Format.projectionData) ─
+
+    @Test
+    fun `detectFromMp4Format returns EQUIRECT_360_SBS for equirect SBS`() {
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_LEFT_RIGHT, "equi", 7680, 1920)
+        assertEquals(StereoMode.EQUIRECT_360_SBS, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns EQUIRECT_360_OU for equirect OU`() {
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_TOP_BOTTOM, "equi", 3840, 3840)
+        assertEquals(StereoMode.EQUIRECT_360_OU, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns EQUIRECT_360_MONO for equirect mono`() {
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_MONO, "equi", 4096, 2048)
+        assertEquals(StereoMode.EQUIRECT_360_MONO, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns VR180_FISHEYE_SBS for equirect mesh layout`() {
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_STEREO_MESH, "equi", 7168, 3584)
+        assertEquals(StereoMode.VR180_FISHEYE_SBS, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns UNKNOWN for cubemap projection`() {
+        val format = buildFormatWithMp4Spatial(C.STEREO_MODE_LEFT_RIGHT, "cbmp", 4096, 2048)
+        assertEquals(StereoMode.UNKNOWN, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns UNKNOWN when projectionData is null`() {
+        val format = buildFormatWithStereoMode(C.STEREO_MODE_LEFT_RIGHT, 7680, 1920)
+        assertEquals(StereoMode.UNKNOWN, detector.detectFromMp4Format(format))
+    }
+
+    @Test
+    fun `detectFromMp4Format returns UNKNOWN when stereoMode is NO_VALUE`() {
+        val format = Format.Builder()
+            .setWidth(7680)
+            .setHeight(1920)
+            .setProjectionData(buildProjectionData("equi"))
+            .build()
+        assertEquals(StereoMode.UNKNOWN, detector.detectFromMp4Format(format))
     }
 
     @Test
@@ -557,24 +601,16 @@ class StereoDetectorTest {
     )
 
     /**
-     * Build a minimal [Format] with a [Bundle] carrying a fake Matroska stereo tag.
-     *
-     * Media3 API exposure differs across versions, so this helper attaches the Bundle
-     * reflectively and skips metadata-specific tests if the current build does not expose
-     * a compatible setter on [Format.Builder].
+     * Build a minimal [Format] carrying the container stereo tag Media3 parsed, expressed in
+     * [C.StereoMode] values. `setStereoMode` is a stable public setter, so this needs no reflection
+     * and no version guard - unlike the custom-data route it replaced (S2892).
      */
-    private fun buildFormatWithTag(tagValue: String, width: Int, height: Int): Format {
-        val bundle = Bundle().apply { putString("stereo_mode", tagValue) }
-        val builder = Format.Builder()
+    private fun buildFormatWithStereoMode(stereoMode: Int, width: Int, height: Int): Format {
+        return Format.Builder()
             .setWidth(width)
             .setHeight(height)
-
-        val setter = builder.javaClass.methods.firstOrNull { method ->
-            method.parameterCount == 1 && method.name == "setCustomData"
-        }
-        assumeTrue("Media3 build does not expose Format.Builder.setCustomData", setter != null)
-        setter!!.invoke(builder, bundle)
-        return builder.build()
+            .setStereoMode(stereoMode)
+            .build()
     }
 
     private fun buildFormatWithoutTag(width: Int, height: Int): Format {
@@ -584,65 +620,32 @@ class StereoDetectorTest {
             .build()
     }
 
-    private fun createMp4WithSpatialMetadata(
-        filenameSuffix: String = "",
-        st3dLayout: Int,
-        projectionBox: String,
-    ): File {
-        val tempDir = createTempDirectory(prefix = "stereo-detector-").toFile()
-        tempDir.deleteOnExit()
-        val file = File(tempDir, "sample${filenameSuffix}.mp4")
-        file.deleteOnExit()
-        file.writeBytes(spatialMp4Bytes(st3dLayout, projectionBox))
-        return file
+    private fun buildFormatWithMp4Spatial(stereoMode: Int, projectionBox: String, width: Int, height: Int): Format {
+        return Format.Builder()
+            .setWidth(width)
+            .setHeight(height)
+            .setStereoMode(stereoMode)
+            .setProjectionData(buildProjectionData(projectionBox))
+            .build()
     }
 
-    private fun spatialMp4Bytes(st3dLayout: Int, projectionBox: String): ByteArray {
-        return box("ftyp", byteArrayOf(0, 0, 0, 0)) +
-            box(
-                "moov",
-                box(
-                    "trak",
-                    box(
-                        "mdia",
-                        box(
-                            "minf",
-                            box(
-                                "stbl",
-                                stsdBox(
-                                    visualSampleEntry(
-                                        "hvc1",
-                                        box("st3d", fullBoxPayload(byteArrayOf(st3dLayout.toByte()))) +
-                                            box(
-                                                "sv3d",
-                                                box(
-                                                    "proj",
-                                                    box(
-                                                        "mshp",
-                                                        box(projectionBox, byteArrayOf(0, 0, 0, 0))
-                                                    )
-                                                )
-                                            )
-                                    )
-                                )
-                            )
-                        )
-                    )
-                )
+    /**
+     * S2893: build a `proj` box matching what media3 copies into [Format.projectionData].
+     * Structure: [size][type="proj"][prhd full-box][projection full-box]. The `prhd` child
+     * carries zero pose; the projection child (`equi`/`cbmp`) carries zero bounds/layout.
+     */
+    private fun buildProjectionData(projectionBox: String): ByteArray {
+        val prhd = box("prhd", fullBoxPayload(ByteArray(12)))
+        val projChild = box(
+            projectionBox,
+            fullBoxPayload(
+                if (projectionBox == "equi") ByteArray(16) else ByteArray(8)
             )
+        )
+        return box("proj", prhd + projChild)
     }
 
     private fun fullBoxPayload(payload: ByteArray): ByteArray = byteArrayOf(0, 0, 0, 0) + payload
-
-    private fun stsdBox(entry: ByteArray): ByteArray = box(
-        "stsd",
-        byteArrayOf(0, 0, 0, 0, 0, 0, 0, 1) + entry
-    )
-
-    private fun visualSampleEntry(type: String, childBoxes: ByteArray): ByteArray = box(
-        type,
-        ByteArray(78) + childBoxes
-    )
 
     private fun box(type: String, payload: ByteArray): ByteArray {
         val buffer = ByteBuffer.allocate(8 + payload.size).order(ByteOrder.BIG_ENDIAN)

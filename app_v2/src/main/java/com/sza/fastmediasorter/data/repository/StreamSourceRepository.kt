@@ -103,6 +103,21 @@ class StreamSourceRepository @Inject constructor(
             dao.pin(id, newSortIndex)
         }
 
+    /**
+     * S2497: pins a channel directly by its folded identityKey when requested by the watch sync.
+     */
+    suspend fun pinByIdentity(identityKey: String) =
+        db.withTransaction {
+            val newSortIndex = (streamUserStateDao.minSortIndex() ?: 0) - 1
+            streamUserStateDao.setPin(
+                identityKey = identityKey,
+                pinned = true,
+                sortIndex = newSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.pinByIdentity(identityKey, newSortIndex)
+        }
+
     /** S0938: snapshot of the pinned set in display order, used to compute a reorder move. */
     suspend fun pinnedSnapshot(): List<StreamSourceEntity> = dao.pinnedSnapshot()
 
@@ -152,12 +167,71 @@ class StreamSourceRepository @Inject constructor(
             dao.unpin(id)
         }
 
+    /**
+     * S2497: unpins a channel directly by its folded identityKey when requested by the watch sync.
+     */
+    suspend fun unpinByIdentity(identityKey: String) =
+        db.withTransaction {
+            val keptSortIndex = streamUserStateDao.stateFor(identityKey)?.sortIndex ?: 0
+            streamUserStateDao.setPin(
+                identityKey = identityKey,
+                pinned = false,
+                sortIndex = keptSortIndex,
+                atMillis = System.currentTimeMillis()
+            )
+            dao.unpinByIdentity(identityKey)
+        }
+
     /** S0660: in-place edit of a MANUAL channel's url/title/mediaKind (pin/sort/origin preserved). */
     suspend fun updateUserFields(id: String, url: String, title: String, mediaKind: String) =
         dao.updateUserFields(id, url, title, mediaKind, StreamChannelIdentity.of(url))
 
     /** S0581: find the stored stream behind a playback URL (null if it is not a saved list entry). */
     suspend fun getByUrl(url: String): StreamSourceEntity? = dao.getByUrl(url)
+
+    /** S2813: the row a broadcasting device already owns, found by the device rather than the address. */
+    suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity? =
+        dao.getBySourceDeviceId(deviceId)
+
+    /** S2868: replace the display title of one row, nothing else. */
+    suspend fun renameSource(id: String, title: String) = dao.updateTitle(id, title)
+
+    /**
+     * S2813: move a broadcast row onto the address its device is using now, keeping everything the user
+     * authored about it.
+     *
+     * The derived identity follows the address, exactly as it does on a manual edit (S1832) - leaving
+     * the old key behind would file the new address under an address it no longer has. That would also
+     * strand the durable `stream_user_state` row, which holds the pin, its position and the last play
+     * outcome, so the state is carried onto the new key inside the same transaction and the old key is
+     * dropped. Without that carry the row would survive the reconnect unpinned, which is the half of
+     * the complaint about "not getting it where I listened before" that a new address alone explains.
+     */
+    suspend fun refreshSourceAddress(id: String, url: String) =
+        db.withTransaction {
+            val previousIdentity = dao.identityOf(id) ?: return@withTransaction
+            val nextIdentity = StreamChannelIdentity.of(url)
+            dao.updateSourceAddress(id, url, nextIdentity)
+            if (nextIdentity == previousIdentity) return@withTransaction
+            val carried = streamUserStateDao.stateFor(previousIdentity) ?: return@withTransaction
+            val now = System.currentTimeMillis()
+            streamUserStateDao.setPin(
+                identityKey = nextIdentity,
+                pinned = carried.pinned,
+                sortIndex = carried.sortIndex,
+                atMillis = now
+            )
+            val outcome = carried.playOutcome
+            if (outcome != null) {
+                streamUserStateDao.setOutcome(
+                    identityKey = nextIdentity,
+                    outcome = outcome,
+                    recordedAt = carried.outcomeAt ?: now,
+                    atMillis = now
+                )
+            }
+            streamUserStateDao.deleteByIdentity(previousIdentity)
+        }
 
     /** S0404: resolve a channel a launcher shortcut pinned by id (null once the user removes it). */
     suspend fun getById(id: String): StreamSourceEntity? = dao.getById(id)

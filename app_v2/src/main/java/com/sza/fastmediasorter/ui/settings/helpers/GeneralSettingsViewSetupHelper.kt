@@ -1,37 +1,32 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
-import android.content.Context
 import android.content.Intent
 import android.view.ContextThemeWrapper
-import android.view.MotionEvent
 import android.view.View
-import android.view.inputmethod.EditorInfo
-import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.textfield.TextInputEditText
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
-import com.sza.fastmediasorter.core.compat.ChromeOsCompat
 import com.sza.fastmediasorter.core.logging.DebugLogMirrorPrefs
 import com.sza.fastmediasorter.core.logging.LoggingHelper
 import com.sza.fastmediasorter.core.util.LanguageSplitInstaller
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.usecase.EnsureAllFilesPredefinedResourceUseCase
 import com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
-import com.sza.fastmediasorter.ui.dialog.SearchableLanguagePickerDialog
-import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.statistics.StatisticsActivity
-import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import kotlin.reflect.KMutableProperty0
 
@@ -57,11 +52,10 @@ class GeneralSettingsViewSetupHelper(
     private val logHelper get() = actionHelpers.logHelper
     private val resetHelper get() = actionHelpers.resetHelper
 
-    private var lastCommittedDefaultUser: String = ""
-    private var lastCommittedDefaultPassword: String = ""
-
+    // S2601: the setup order is observable - every group below installs listeners that read the same
+    // viewModel.settings, so the delegated groups keep the exact positions their inline versions held.
     fun setup() {
-        setupLanguageRow()
+        GeneralSettingsLanguageSetupHelper(hostContext, languageSplitInstaller).setup()
         setupSwitches()
         setupStatisticsRow()
         setupRemoteSources()
@@ -69,39 +63,10 @@ class GeneralSettingsViewSetupHelper(
         setupIconSizeInput()
         setupNetworkParallelism()
         setupCacheSizeInput()
-        setupSyncSection()
-        setupDefaultCredentials()
-        setupLinkButtons()
+        GeneralSettingsSyncSetupHelper(hostContext, isUpdatingSpinner).setup()
+        GeneralSettingsDefaultCredentialsSetupHelper(hostContext).setup()
+        GeneralSettingsLinkButtonsSetupHelper(hostContext).setup()
         setupActionButtons()
-    }
-
-    // S0567: raw Spinner -> SettingsDropdownRow. S1190: -> SettingsSelectionRow, because the interface
-    // language set is now whatever locales_config.xml declares and no longer fits an inline dropdown.
-    private fun setupLanguageRow() {
-        val current = currentLanguageSelectionCode()
-        binding.rowLanguage.setValue(UiLanguagePickerItems.label(fragment.requireContext(), current))
-        // S1214: bound to the view lifecycle, not to the tap - a picker restored after host recreation
-        // must still find a listener. The language in effect is re-read here rather than captured when
-        // the picker opened, because the listener can outlive that moment.
-        fragment.childFragmentManager.setFragmentResultListener(
-            SearchableLanguagePickerDialog.RESULT_KEY,
-            fragment.viewLifecycleOwner
-        ) { _, bundle ->
-            val code = bundle.getString(SearchableLanguagePickerDialog.RESULT_LANGUAGE_CODE)
-                ?: return@setFragmentResultListener
-            if (code != currentLanguageSelectionCode()) {
-                showRestartDialog(code)
-            }
-        }
-        binding.rowLanguage.setOnRowClickListener { showLanguagePicker() }
-    }
-
-    private fun showLanguagePicker() {
-        val manager = fragment.childFragmentManager
-        // A second tap while the picker is already up would stack a duplicate showing the same choice.
-        if (manager.findFragmentByTag(SearchableLanguagePickerDialog.TAG) != null) return
-        SearchableLanguagePickerDialog.newInstanceForUiLanguage(currentLanguageSelectionCode())
-            .show(manager, SearchableLanguagePickerDialog.TAG)
     }
 
     private fun setupSwitches() {
@@ -147,11 +112,32 @@ class GeneralSettingsViewSetupHelper(
             if (current.fileOpsInOverflowMenu == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(fileOpsInOverflowMenu = isChecked))
         }
+        GeneralSettingsBrowseSwipeSetupHelper(hostContext).setup()
         binding.rowDisableAnimations?.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
             val current = viewModel.settings.value
             if (current.disableAnimations == isChecked) return@setOnCheckedChangeListener
             viewModel.updateSettings(current.copy(disableAnimations = isChecked))
+        }
+        // S2536: entries come from app:sdr_entries in the layout, in PowerSavingTrigger declaration
+        // order, so the position IS the ordinal and no parallel lookup table can drift out of step.
+        binding.rowPowerSaving?.setOnItemSelectedListener { position ->
+            if (isUpdatingSpinner.get()) return@setOnItemSelectedListener
+            val trigger = PowerSavingTrigger.entries.getOrNull(position)
+                ?: return@setOnItemSelectedListener
+            val current = viewModel.settings.value
+            if (current.powerSavingTrigger == trigger) return@setOnItemSelectedListener
+            viewModel.updateSettings(current.copy(powerSavingTrigger = trigger))
+        }
+        // S2731: entries come from app:sdr_entries in the layout, in UnitSystem declaration order,
+        // so the position IS the ordinal and no parallel lookup table can drift out of step.
+        binding.rowUnitSystem?.setOnItemSelectedListener { position ->
+            if (isUpdatingSpinner.get()) return@setOnItemSelectedListener
+            val system = UnitSystem.entries.getOrNull(position) ?: return@setOnItemSelectedListener
+            val current = viewModel.settings.value
+            if (current.unitSystem == system) return@setOnItemSelectedListener
+            viewModel.updateSettings(current.copy(unitSystem = system))
+            Timber.d("S2731: unit system selected=%s", system)
         }
         binding.rowCompactElements?.let { row ->
             row.setOnCheckedChangeListener { isChecked ->
@@ -169,7 +155,6 @@ class GeneralSettingsViewSetupHelper(
                         LocaleHelper.markReturnToSettings(fragment.requireContext())
                         LocaleHelper.restartApp(fragment.requireActivity())
                     }
-
                     .setNegativeButton(R.string.cancel) { dialog, _ ->
                         isUpdatingSpinner.set(true)
                         row.setCheckedSilently(current.useCompactElements)
@@ -288,7 +273,9 @@ class GeneralSettingsViewSetupHelper(
         row: SettingsToggleRow,
         enabled: Boolean,
         affectedTypes: List<ResourceType>,
-        transform: (com.sza.fastmediasorter.domain.model.AppSettings) -> com.sza.fastmediasorter.domain.model.AppSettings,
+        transform: (
+            com.sza.fastmediasorter.domain.model.AppSettings
+        ) -> com.sza.fastmediasorter.domain.model.AppSettings,
     ) {
         val current = viewModel.settings.value
         if (enabled || !groupHasResources(affectedTypes)) {
@@ -358,10 +345,18 @@ class GeneralSettingsViewSetupHelper(
 
     private fun setupTooltips() {
         binding.iconHelpDefaultCredentials.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_default_credentials_title, R.string.tooltip_default_credentials_message)
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                fragment.requireContext(),
+                R.string.tooltip_default_credentials_title,
+                R.string.tooltip_default_credentials_message
+            )
         }
         binding.iconHelpGridSize.setOnClickListener {
-            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(fragment.requireContext(), R.string.tooltip_grid_size_title, R.string.tooltip_grid_size_message)
+            com.sza.fastmediasorter.ui.dialog.TooltipDialog.show(
+                fragment.requireContext(),
+                R.string.tooltip_grid_size_title,
+                R.string.tooltip_grid_size_message
+            )
         }
     }
 
@@ -395,16 +390,27 @@ class GeneralSettingsViewSetupHelper(
                 if (viewModel.settings.value.cacheSizeMb != sizeMb) cacheHelper.showCacheSizeRestartDialog(sizeMb)
             } else {
                 binding.actvCacheSizeLimit.text = fragment.getString(R.string.number_format, viewModel.settings.value.cacheSizeMb)
-                Toast.makeText(fragment.requireContext(), fragment.getString(R.string.settings_cache_size_range_error), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    fragment.requireContext(),
+                    fragment.getString(R.string.settings_cache_size_range_error),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }
 
     private fun setupIconSizeInput() {
         val iconSizeOptions = (32..256 step 8).map { it.toString() }.toTypedArray()
-        val iconSizeAdapter = ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, iconSizeOptions)
+        val iconSizeAdapter = ArrayAdapter(
+            fragment.requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            iconSizeOptions
+        )
         binding.etIconSize.setAdapter(iconSizeAdapter)
-        binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
+        binding.etIconSize.setText(
+            fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize),
+            false
+        )
         binding.etIconSize.setOnItemClickListener { _, _, position, _ ->
             if (isUpdatingSpinner.get()) return@setOnItemClickListener
             val size = iconSizeOptions[position].toInt()
@@ -422,200 +428,12 @@ class GeneralSettingsViewSetupHelper(
                         viewModel.updateSettings(current.copy(defaultIconSize = size))
                     }
                 } else {
-                    binding.etIconSize.setText(fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize), false)
+                    binding.etIconSize.setText(
+                        fragment.getString(R.string.number_format, viewModel.settings.value.defaultIconSize),
+                        false
+                    )
                 }
             }
-        }
-    }
-
-    private fun setupSyncSection() {
-        binding.rowEnableBackgroundSync.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableBackgroundSync = isChecked))
-        }
-        binding.rowEnableThumbnailPreload.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(enableThumbnailPreload = isChecked))
-            binding.layoutThumbnailPreloadWifiOnly.visibility = if (isChecked) View.VISIBLE else View.GONE
-        }
-        binding.rowThumbnailPreloadWifiOnly.setOnCheckedChangeListener { isChecked ->
-            if (isUpdatingSpinner.get()) return@setOnCheckedChangeListener
-            viewModel.updateSettings(viewModel.settings.value.copy(thumbnailPreloadWifiOnly = isChecked))
-        }
-        val syncIntervalOptions = arrayOf("5", "15", "60", "120", "300")
-        val syncAdapter = android.widget.ArrayAdapter(fragment.requireContext(), android.R.layout.simple_dropdown_item_1line, syncIntervalOptions)
-        binding.actvSyncInterval?.let { syncIntervalView ->
-            syncIntervalView.setAdapter(syncAdapter)
-            val currentMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-            syncIntervalView.setText(fragment.getString(R.string.number_format, currentMinutes), false)
-            syncIntervalView.setOnItemClickListener { _, _, position, _ ->
-                if (isUpdatingSpinner.get()) return@setOnItemClickListener
-                val minutes = syncIntervalOptions[position].toInt()
-                val hours = (minutes / 60.0).toInt().coerceAtLeast(1)
-                val current = viewModel.settings.value
-                viewModel.updateSettings(current.copy(backgroundSyncIntervalHours = hours))
-            }
-            syncIntervalView.setOnFocusChangeListener { _, hasFocus ->
-                if (!hasFocus && !isUpdatingSpinner.get()) {
-                    val minutes = syncIntervalView.text.toString().toIntOrNull()
-                    if (minutes != null && minutes >= 5) {
-                        val hours = (minutes / 60.0).toInt().coerceAtLeast(1)
-                        viewModel.updateSettings(viewModel.settings.value.copy(backgroundSyncIntervalHours = hours))
-                    } else {
-                        val previousMinutes = viewModel.settings.value.backgroundSyncIntervalHours * 60
-                        syncIntervalView.setText(fragment.getString(R.string.number_format, previousMinutes), false)
-                        Toast.makeText(fragment.requireContext(), R.string.slide_interval_error, Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-        binding.btnSyncNow.setOnClickListener {
-            if (viewModel.manualNetworkSyncState.value.inProgress) viewModel.cancelManualNetworkSync()
-            else viewModel.startManualNetworkSync()
-        }
-    }
-
-    private fun setupDefaultCredentials() {
-        val currentSettings = viewModel.settings.value
-        lastCommittedDefaultUser = currentSettings.defaultUser
-        lastCommittedDefaultPassword = currentSettings.defaultPassword
-
-        // Clear any programmatic filters - these fields accept any character including Cyrillic.
-        binding.etDefaultUser.filters = arrayOf()
-        binding.etDefaultPassword.filters = arrayOf()
-        binding.etDefaultUser.isFocusableInTouchMode = true
-        binding.etDefaultPassword.isFocusableInTouchMode = true
-
-        binding.etDefaultUser.setText(lastCommittedDefaultUser)
-        binding.etDefaultUser.imeOptions = EditorInfo.IME_ACTION_NEXT
-        // No setOnClickListener on til/et - overriding performClick() breaks Chrome OS IME
-        // connection: ARC establishes keyboard routing inside the system click handler, and a
-        // custom listener replaces it.  TextInputLayout already forwards container clicks to the
-        // inner EditText automatically, so no click listeners are needed here.
-        installTapFocusBridge(binding.tilDefaultUser, binding.etDefaultUser)
-        binding.etDefaultUser.setOnEditorActionListener { _, actionId, _ ->
-            if (actionId == binding.etDefaultUser.imeOptions) {
-                commitDefaultUserIfChanged()
-                binding.etDefaultPassword.requestFocus()
-                true
-            } else {
-                false
-            }
-        }
-        binding.etDefaultUser.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) commitDefaultUserIfChanged()
-        }
-
-        binding.etDefaultPassword.setText(lastCommittedDefaultPassword)
-        binding.etDefaultPassword.imeOptions = EditorInfo.IME_ACTION_DONE
-        installTapFocusBridge(binding.tilDefaultPassword, binding.etDefaultPassword)
-        binding.etDefaultPassword.setOnEditorActionListener { view, actionId, _ ->
-            if (actionId == binding.etDefaultPassword.imeOptions) {
-                commitDefaultPasswordIfChanged()
-                view.clearFocus()
-                val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                imm.hideSoftInputFromWindow(view.windowToken, 0)
-                true
-            } else {
-                false
-            }
-        }
-        binding.etDefaultPassword.setOnFocusChangeListener { _, hasFocus ->
-            if (!hasFocus) commitDefaultPasswordIfChanged()
-        }
-    }
-
-    private fun installTapFocusBridge(container: View, editor: TextInputEditText) {
-        val listener = View.OnTouchListener { _, event ->
-            if (event.actionMasked == MotionEvent.ACTION_UP && !editor.hasFocus()) {
-                focusEditorFromTap(editor)
-            }
-            false
-        }
-        container.setOnTouchListener(listener)
-        editor.setOnTouchListener(listener)
-    }
-
-    private fun focusEditorFromTap(editor: TextInputEditText) {
-        editor.requestFocusFromTouch()
-        editor.requestFocus()
-        editor.setSelection(editor.text?.length ?: 0)
-
-        // Non-Chrome OS devices in this screen can miss the editor-focus hand-off after a box tap.
-        // Keep ARC on the native click path and only add explicit IME assist for other devices.
-        if (ChromeOsCompat.isChromeOs(fragment.requireContext())) return
-
-        editor.post {
-            if (!editor.isAttachedToWindow) return@post
-            val imm = fragment.requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-            imm.showSoftInput(editor, InputMethodManager.SHOW_IMPLICIT)
-        }
-    }
-
-    private fun commitDefaultUserIfChanged() {
-        val newUser = binding.etDefaultUser.text.toString()
-        if (lastCommittedDefaultUser == newUser) return
-
-        lastCommittedDefaultUser = newUser
-        val current = viewModel.settings.value
-        // S1666: the secret trigger that imported the bundled credential file is gone with the file. It
-        // guarded the action while the data shipped in every APK regardless - resources now come in only
-        // through the user's own file, which needs no hidden entry point.
-        if (current.defaultUser != newUser) {
-            viewModel.updateSettings(current.copy(defaultUser = newUser))
-        }
-    }
-
-    private fun commitDefaultPasswordIfChanged() {
-        val newPassword = binding.etDefaultPassword.text.toString()
-        if (lastCommittedDefaultPassword == newPassword) return
-
-        lastCommittedDefaultPassword = newPassword
-        val current = viewModel.settings.value
-        if (current.defaultPassword != newPassword) {
-            viewModel.updateSettings(current.copy(defaultPassword = newPassword))
-        }
-    }
-
-    private fun setupLinkButtons() {
-        binding.btnUserGuide.setOnClickListener {
-            openUrl(when (LocaleHelper.getLanguage(fragment.requireContext())) {
-                "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-ru.html"
-                "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/index-uk.html"
-                else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/howto/"
-            }, "No browser found to open documentation")
-        }
-        binding.btnHowToGuides.setOnClickListener {
-            openUrl(when (LocaleHelper.getLanguage(fragment.requireContext())) {
-                "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_RU.html"
-                "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO_UK.html"
-                else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/HOW_TO.html"
-            }, "No browser found to open documentation")
-        }
-        // S0994: PC-side companion publish-folders guide, shown only when companion import is
-        // available (lite/vr hide it).
-        binding.btnCompanionPublishGuide.isVisible = viewModel.isCompanionImportAvailable
-        binding.btnCompanionPublishGuide.setOnClickListener {
-            openUrl(
-                com.sza.fastmediasorter.ui.common.support.SupportIntentFactory.companionPublishGuideUrl(),
-                fragment.getString(R.string.settings_no_browser_for_docs),
-            )
-        }
-        binding.btnOpenWelcome.setOnClickListener {
-            fragment.startActivity(Intent(fragment.requireContext(), WelcomeActivity::class.java))
-        }
-        binding.btnPrivacyPolicy.setOnClickListener {
-            openUrl(when (LocaleHelper.getLanguage(fragment.requireContext())) {
-                "ru" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.ru.html"
-                "uk" -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.uk.html"
-                else -> "https://serzhyale.github.io/FastMediaSorter_mob_v2/docs/PRIVACY_POLICY.html"
-            }, "No browser found to open Privacy Policy")
-        }
-        binding.btnOpenSourceLicenses.setOnClickListener {
-            fragment.parentFragmentManager.beginTransaction()
-                .replace(android.R.id.content, com.sza.fastmediasorter.ui.settings.fragments.OpenSourceLicensesFragment())
-                .addToBackStack(null)
-                .commit()
         }
     }
 
@@ -667,63 +485,11 @@ class GeneralSettingsViewSetupHelper(
                 LoggingHelper.clearDebugMirrorTarget()
             }
         }
-        isUpdatingSpinner.set(true)
-        binding.rowDebugLogMirror.setCheckedSilently(DebugLogMirrorPrefs.isEnabled(context))
-        isUpdatingSpinner.set(false)
-    }
-
-    private fun currentLanguageSelectionCode(): String {
-        return if (LocaleHelper.isFollowingSystemLanguage(fragment.requireContext())) {
-            LocaleHelper.FOLLOW_SYSTEM_LANGUAGE
-        } else {
-            LocaleHelper.resolveSupportedLanguageCode(viewModel.settings.value.language)
-        }
-    }
-
-    private fun showRestartDialog(newLanguageCode: String) {
-        val languageName = UiLanguagePickerItems.label(fragment.requireContext(), newLanguageCode)
-        MaterialAlertDialogBuilder(fragment.requireContext())
-            .setTitle(R.string.restart_app_title)
-            .setMessage(fragment.getString(R.string.restart_app_message, languageName))
-            .setPositiveButton(R.string.restart) { _, _ -> applyLanguageWhenAvailable(newLanguageCode) }
-            // Declining needs no restore: the row keeps showing the language still in effect, because
-            // its value only changes once the observer sees the saved setting.
-            .setNegativeButton(R.string.cancel) { dialog, _ -> dialog.dismiss() }
-            .setCancelable(false)
-            .showBoundTo(fragment)
-    }
-
-    // S1190: an install from Play carries only the locales the device asked for, so a language the
-    // user never had has to arrive before it is applied - applying first restarts into the old strings.
-    private fun applyLanguageWhenAvailable(newLanguageCode: String) {
-        // The sentinel names no split: whatever the system is set to is a locale the install already has.
-        if (newLanguageCode == LocaleHelper.FOLLOW_SYSTEM_LANGUAGE) {
-            applyLanguage(newLanguageCode)
-            return
-        }
         fragment.viewLifecycleOwner.lifecycleScope.launch {
-            when (languageSplitInstaller.ensureLanguage(newLanguageCode)) {
-                is LanguageSplitInstaller.Outcome.Failed -> Toast.makeText(
-                    fragment.requireContext(),
-                    R.string.language_download_failed,
-                    Toast.LENGTH_LONG
-                ).show()
-                else -> applyLanguage(newLanguageCode)
-            }
-        }
-    }
-
-    private fun applyLanguage(newLanguageCode: String) {
-        viewModel.updateSettings(viewModel.settings.value.copy(language = newLanguageCode))
-        LocaleHelper.markReturnToSettings(fragment.requireContext())
-        LocaleHelper.changeLanguage(fragment.requireActivity(), newLanguageCode)
-    }
-
-    private fun openUrl(url: String, notFoundMessage: String) {
-        try {
-            fragment.startActivity(Intent(Intent.ACTION_VIEW).apply { data = android.net.Uri.parse(url) })
-        } catch (e: android.content.ActivityNotFoundException) {
-            Toast.makeText(fragment.requireContext(), notFoundMessage, Toast.LENGTH_SHORT).show()
+            val enabled = withContext(Dispatchers.IO) { DebugLogMirrorPrefs.isEnabled(context) }
+            isUpdatingSpinner.set(true)
+            binding.rowDebugLogMirror.setCheckedSilently(enabled)
+            isUpdatingSpinner.set(false)
         }
     }
 }

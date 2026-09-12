@@ -46,6 +46,8 @@
       1 - -Gate and at least one uncovered id is not in the baseline.
       2 - the gate cannot run: the inventory, the registry, or the guide set is missing.
           Distinct from 1 on purpose - "did not look" is not "found nothing".
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place
+          is held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Gate
     Fail-closed: exit 1 when an uncovered id is not in the baseline.
@@ -76,6 +78,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $inventoryPath = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
 $registryPath = Join-Path $repoRoot 'docs/DOCUMENT_REGISTRY.jsonl'
 $baselinePath = Join-Path $PSScriptRoot 'guide-coverage-baseline.txt'
@@ -138,7 +142,7 @@ foreach ($glob in $registryRecord.paths) {
     $full = Join-Path $repoRoot ($glob -replace '/', [IO.Path]::DirectorySeparatorChar)
     foreach ($file in (Get-ChildItem -Path $full -File -ErrorAction SilentlyContinue)) {
         # The inventory is EN-only; a translated guide would be matched against the wrong vocabulary.
-        if ($file.Name -match '_(RU|UK)\.md$') { continue }
+        if ($file.Name -match '-(ru|uk)\.md$') { continue }
         $guideFiles.Add($file.FullName)
     }
 }
@@ -197,7 +201,12 @@ if ($UpdateBaseline) {
         '# Shrink this file as guides get written. Growing it means a capability shipped undocumented.'
     )
     $body = $uncovered | ForEach-Object { $_.id } | Sort-Object
-    Set-Content -Path $baselinePath -Value ($header + $body) -Encoding utf8NoBOM
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-guide-coverage.ps1 -UpdateBaseline'
+        Set-Content -Path $baselinePath -Value ($header + $body) -Encoding utf8NoBOM
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Output "assert-guide-coverage: baseline rewritten with $($body.Count) id(s)."
     exit 0
 }

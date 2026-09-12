@@ -107,6 +107,22 @@ $results += Invoke-Gate -Name 'assert-guide-coverage.ps1' -ExtraArgs @('-Gate') 
 # would silently drop a module the caller did not ask to drop.
 $results += Invoke-Gate -Name 'assert-splash-brand-sync.ps1'
 
+# S2562: the full thirteen-locale half of the mirrored-strings gate. post-change.ps1 runs it per
+# ticket as -Scope Authored, which compares only the owner-written locales; everything the batch
+# translation produces is compared here instead.
+#
+# It lives in THIS aggregator rather than in assert-release-scope-gates.ps1 because of ordering, not
+# taxonomy. That runner is step 0.4 of /spec-prerelease and this script is step 0.8 - and step 0.8 is
+# where the bulk locale import loop actually runs. Placed at 0.4 the check would judge the tree
+# BEFORE the import writes the missing translations, so a mirrored pair translated on one side only
+# would report as a one-sided declaration there and a genuine text divergence only afterwards, making
+# a green 0.4 verdict something 0.8 could still invalidate. Judged here, the text it compares is the
+# text the release will actually ship.
+#
+# No -Module: the gate reads both module trees itself, by design - the divergence it looks for exists
+# only BETWEEN them, so a single-module run could not detect it at all.
+$results += Invoke-Gate -Name 'assert-wear-mirrored-strings.ps1' -ExtraArgs @('-Gate', '-Scope', 'All')
+
 $unverifiable = @($results | Where-Object { $_.Exit -ne 0 -and $_.Exit -ne 1 })
 $failed = @($results | Where-Object { $_.Exit -eq 1 -and -not $_.Advisory })
 $advisories = @($results | Where-Object { $_.Exit -eq 1 -and $_.Advisory })

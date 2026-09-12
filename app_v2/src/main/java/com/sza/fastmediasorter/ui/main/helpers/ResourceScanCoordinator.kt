@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.ui.main.helpers
 
 import com.sza.fastmediasorter.core.capability.RemoteSourceAvailabilityGate
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -105,6 +106,29 @@ class ResourceScanCoordinator @Inject constructor(
      */
     fun hasAggregateVirtualResources(resources: List<MediaResource>): Boolean {
         return resources.any { VirtualPathUtils.isAggregateVirtualPath(it.path) }
+    }
+
+    /**
+     * S2715: virtual resources are provisioned with fileCount = 0 and nothing ever counted them,
+     * so a fresh install showed "0 files" on every tile until the user opened each one or ran the
+     * explicit rescan - while MediaStore held the media all along. Restricted to virtual paths
+     * with a zero count: remote resources carry a network price, and a non-zero count is already
+     * true. A genuinely empty resource is re-counted on each start, which is one cheap MediaStore
+     * count query and is also what makes the tile appear once media finally exists.
+     */
+    @Suppress("TooGenericExceptionCaught")
+    suspend fun backfillVirtualResourceCounts() {
+        val staleIds = try {
+            resourceRepository.get().getAllResourcesSync()
+                .filter { VirtualPathUtils.isVirtualPath(it.path) && it.fileCount == 0 }
+                .map { it.id }
+        } catch (e: Exception) {
+            e.rethrowIfCancellation()
+            Timber.w(e, "Virtual resource count backfill skipped: resource read failed")
+            return
+        }
+        if (staleIds.isEmpty()) return
+        refreshResourceFileCountsUseCase(staleIds)
     }
 
     /**

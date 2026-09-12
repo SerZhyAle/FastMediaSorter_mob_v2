@@ -2,25 +2,26 @@ package com.sza.fastmediasorter.data.repository
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.data.datasource.DeviceProfileLocalDataSource
+import com.sza.fastmediasorter.data.model.DetectionConfidence
+import com.sza.fastmediasorter.data.model.DetectorSignal
 import com.sza.fastmediasorter.data.model.DeviceProfile
 import com.sza.fastmediasorter.data.model.DeviceProfileSource
 import com.sza.fastmediasorter.data.model.DeviceProfileType
-import com.sza.fastmediasorter.data.model.DetectionConfidence
-import com.sza.fastmediasorter.data.model.DetectorSignal
 import com.sza.fastmediasorter.domain.detector.DeviceProfileDetector
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
-import dagger.hilt.android.qualifiers.ApplicationContext
-import timber.log.Timber
 
 /**
  * Real implementation of device profile repository.
@@ -33,7 +34,8 @@ import timber.log.Timber
 class RealDeviceProfileRepository @Inject constructor(
     private val detector: DeviceProfileDetector,
     private val localDataSource: DeviceProfileLocalDataSource,
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    @param:ApplicationScope private val applicationScope: CoroutineScope
 ) : DeviceProfileRepository {
 
     // S1153: lazy so getSharedPreferences (which loads+parses the XML off disk on first call) does
@@ -53,29 +55,43 @@ class RealDeviceProfileRepository @Inject constructor(
     }
 
     /**
-     * One-shot first-run bootstrap. Runs entirely on Dispatchers.IO so the SharedPreferences
-     * reads and the Room write never touch the construction (possibly main) thread - this avoids
-     * a StrictMode disk-read violation when this @Singleton is first injected on the main thread.
+     * One-shot first-run bootstrap. Runs on the injected application scope, whose dispatcher is IO,
+     * so the SharedPreferences reads and the Room write never touch the construction (possibly main)
+     * thread - this avoids a StrictMode disk-read violation when this @Singleton is first injected on
+     * the main thread.
+     *
+     * S2746: the scope is injected rather than built here. A scope constructed inside the class is
+     * held by nobody, so nothing can cancel it or wait for it, and under unit test its coroutine
+     * outlived the test body on the real IO pool - a throw from it then reached the global handler,
+     * where kotlinx-coroutines-test's ExceptionCollector stashed it and charged it to the next
+     * unrelated runTest on that worker.
      */
+    @Suppress("TooGenericExceptionCaught")
     private fun initializeMigrationIfNeeded() {
-        CoroutineScope(Dispatchers.IO).launch {
-            if (prefs.getBoolean("device_profile_initialized", false)) return@launch
+        applicationScope.launch {
+            try {
+                if (prefs.getBoolean("device_profile_initialized", false)) return@launch
 
-            if (welcomePrefs.getBoolean("welcome_completed", false)) {
-                // Existing install: migrate to "Other" without applying any preset.
-                val profile = DeviceProfile(
-                    type = DeviceProfileType.OTHER,
-                    source = DeviceProfileSource.MIGRATION_EXISTING,
-                    confidence = DetectionConfidence.NONE,
-                    presetVersion = 0,
-                    appliedAtInstallTime = false,
-                    lastModified = System.currentTimeMillis()
-                )
-                saveProfile(profile)
-                Timber.i("Existing install migrated to OTHER device profile, no preset applied")
+                if (welcomePrefs.getBoolean("welcome_completed", false)) {
+                    // Existing install: migrate to "Other" without applying any preset.
+                    val profile = DeviceProfile(
+                        type = DeviceProfileType.OTHER,
+                        source = DeviceProfileSource.MIGRATION_EXISTING,
+                        confidence = DetectionConfidence.NONE,
+                        presetVersion = 0,
+                        appliedAtInstallTime = false,
+                        lastModified = System.currentTimeMillis()
+                    )
+                    saveProfile(profile)
+                    Timber.i("Existing install migrated to OTHER device profile, no preset applied")
+                }
+                // Fresh install: profile will be set by the Welcome detector/selector.
+                prefs.edit().putBoolean("device_profile_initialized", true).apply()
+            } catch (e: Exception) {
+                // The initialized flag stays unwritten, so the next launch runs this bootstrap again.
+                e.rethrowIfCancellation()
+                Timber.w(e, "First-run device profile bootstrap failed, retrying on next launch")
             }
-            // Fresh install: profile will be set by the Welcome detector/selector.
-            prefs.edit().putBoolean("device_profile_initialized", true).apply()
         }
     }
 

@@ -28,6 +28,18 @@ sealed interface WearFileOperation {
      * surface the copy came from.
      */
     data class OpenOnPhone(val token: String) : WearFileOperation
+
+    /**
+     * Hand the file to one of the «Send to..» receivers the phone published.
+     *
+     * [receiverId] is the same string the phone persists for that receiver's own toggle, so the watch
+     * never invents an address and a receiver switched off there cannot be asked for here.
+     *
+     * Which side actually serves it is not part of the request: strategic 5.3 makes that an answer on
+     * the receiver's declaration, so one operation covers both branches and the menu keeps one word
+     * for both.
+     */
+    data class SendToReceiver(val receiverId: String) : WearFileOperation
 }
 
 /**
@@ -39,7 +51,8 @@ enum class WearFileOperationKind {
     MOVE_TO_PHONE,
     DELETE,
     RENAME,
-    OPEN_ON_PHONE
+    OPEN_ON_PHONE,
+    SEND_TO_RECEIVER
 }
 
 /** The kind this request belongs to, so a caller never re-derives the mapping. */
@@ -49,4 +62,5 @@ fun WearFileOperation.kind(): WearFileOperationKind = when (this) {
     WearFileOperation.Delete -> WearFileOperationKind.DELETE
     is WearFileOperation.Rename -> WearFileOperationKind.RENAME
     is WearFileOperation.OpenOnPhone -> WearFileOperationKind.OPEN_ON_PHONE
+    is WearFileOperation.SendToReceiver -> WearFileOperationKind.SEND_TO_RECEIVER
 }

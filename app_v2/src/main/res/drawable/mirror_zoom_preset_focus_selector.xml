@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1924: background of one zoom preset in the mirror's bottom-start row.
+
+  Every state carries an OPAQUE body (owner's 2026-09-06 device run): these controls sit on the glow
+  field, and a transparent preset left four digits floating on white with nothing to read them against.
+
+  The selected state differs by an inverted body AND a thick outline, not by colour alone - strategic
+  3.2 requires the active preset to stay distinguishable for a reader who cannot separate the two
+  colours. The host additionally puts the selected label in bold, so the cue survives greyscale.
+
+  Focus is a separate cue from selection and must not collapse into it (Rule 16): the row is reachable
+  by D-pad and keyboard, where "which preset is active" and "which preset am I about to press" are two
+  different questions. The focus ring is @color/focus_indicator at 3dp - the project-wide focus colour,
+  one dp thicker than the selected outline so the two states stay apart when they coincide.
+
+  Fixed colours, never theme attributes: the field underneath is white or black by the backlight, not by
+  the theme, so a theme-derived colour resolves to white under values-night and disappears - the same
+  failure this ticket's audit already fixed once for the control tint.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_focused="true" android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mirror_zoom_preset_body_active" />
+            <stroke
+                android:width="3dp"
+                android:color="@color/focus_indicator" />
+            <corners android:radius="@dimen/card_corner_radius" />
+        </shape>
+    </item>
+
+    <item android:state_focused="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mirror_zoom_preset_body" />
+            <stroke
+                android:width="3dp"
+                android:color="@color/focus_indicator" />
+            <corners android:radius="@dimen/card_corner_radius" />
+        </shape>
+    </item>
+
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mirror_zoom_preset_body_active" />
+            <stroke
+                android:width="2dp"
+                android:color="@color/mirror_zoom_preset_body" />
+            <corners android:radius="@dimen/card_corner_radius" />
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/mirror_zoom_preset_body" />
+            <stroke
+                android:width="1dp"
+                android:color="@color/mirror_zoom_preset_body_active" />
+            <corners android:radius="@dimen/card_corner_radius" />
+        </shape>
+    </item>
+
+</selector>

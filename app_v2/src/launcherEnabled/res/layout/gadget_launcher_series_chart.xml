@@ -3,6 +3,7 @@
      chart shows distance on it. Sized by the desktop grid like every gadget, so nothing here sets a
      fixed height. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -18,7 +19,7 @@
             android:layout_weight="3"
             android:orientation="vertical">
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetChartValue"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -27,20 +28,23 @@
                 android:autoSizeTextType="uniform"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/launcherDesktopText"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="64 km/h" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetChartSecondary"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="12.4 km"
                 tools:visibility="visible" />
 
@@ -50,7 +54,7 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetChartEmpty"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -59,9 +63,10 @@
                 android:gravity="center"
                 android:maxLines="3"
                 android:text="@string/launcher_gadget_chart_empty"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:visibility="visible" />
 
         </LinearLayout>
@@ -76,7 +81,7 @@
             android:minHeight="48dp"
             android:minWidth="48dp"
             android:text="@string/launcher_gadget_chart_reset"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textColor="?attr/launcherDesktopTextSecondary" />
 
     </LinearLayout>
 

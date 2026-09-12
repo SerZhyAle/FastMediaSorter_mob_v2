@@ -8,8 +8,12 @@
     unchanged, never merely that the exit code is non-zero.
 
     Isolation: every case runs against a disposable plan folder the suite builds and destroys,
-    PLAN/S9991_plan-tick-probe/. The id comes from the fixed reserved block, never from
+    PLAN/S9991_plan-tick-probe/, and a disposable compact file PLAN/S9992_plan-tick-compact-probe.md
+    for the embedded-phase cases (S2666). Both ids come from the fixed reserved block, never from
     next-id.ps1, and no catalog row is ever inserted - the tool under test reads plan files only.
+
+    The compact cases skip by name while the resolved harness predates the canon edit, because only
+    the owner can deploy the plugin and a red suite would block every session that cannot fix it.
 
 .EXIT CODES
     0 - every case passed.
@@ -38,8 +42,14 @@ $fixture = Join-Path $root 'PLAN\S9991_plan-tick-probe'
 $phaseFile = Join-Path $fixture 'PHASE_01__probe.md'
 $indexFile = Join-Path $fixture 'INDEX.md'
 
+# S2666: the compact layout keeps its phases inside the strategic file, so its fixture is one file
+# and no folder at all - a compact ticket has no INDEX.md by construction. Two phases, because the
+# failure this shape invites is a tick in one phase rewriting the other one's counter and header.
+$compactFile = Join-Path $root 'PLAN\S9992_plan-tick-compact-probe.md'
+
 $failures = New-Object System.Collections.Generic.List[string]
 $cases = 0
+$skipped = 0
 
 function Assert-That {
     param(
@@ -91,6 +101,48 @@ function Reset-Fixture {
     [IO.File]::WriteAllText($indexFile, $indexBody)
 }
 
+function Reset-CompactFixture {
+    $body = @(
+        '# Strategic spec: S9992 - compact probe', '',
+        '**Ticket:** S9992',
+        # A strategic header carrying its own **Status:** line, because the phase-header rule must
+        # not reach outside the phase block and rewrite the ticket's lifecycle status.
+        '**Status:** In Progress', '',
+        '## 1. Problem', '',
+        'The tool used to resolve a tactical folder only.', '',
+        '---', '',
+        '# Phase 01 - First', '',
+        '**Status:** ⬜ Not started',
+        '**Steps done:** 0 / 2',
+        '**Started:** -',
+        '**Completed:** -', '',
+        '## Steps', '',
+        '### Step 01.1 - a', '', '**Status:** `[ ]` not done', '', '---', '',
+        '### Step 01.2 - b', '', '**Status:** `[ ]` not done', '', '---', '',
+        '## Phase Done Criteria', '',
+        '- [ ] Compact gate ticked', '',
+        '---', '',
+        '# Phase 02 - Second', '',
+        '**Status:** ⬜ Not started',
+        '**Steps done:** 0 / 1',
+        '**Started:** -',
+        '**Completed:** -', '',
+        '## Steps', '',
+        '### Step 02.1 - c', '', '**Status:** `[ ]` not done', ''
+    ) -join "`n"
+    [IO.File]::WriteAllText($compactFile, $body, (New-Object System.Text.UTF8Encoding($false)))
+}
+
+function Get-CompactPhaseBlock {
+    param([Parameter(Mandatory)][string]$Heading)
+    $text = [IO.File]::ReadAllText($compactFile)
+    $start = $text.IndexOf($Heading)
+    if ($start -lt 0) { return '' }
+    $next = $text.IndexOf("`n# ", $start + $Heading.Length)
+    if ($next -lt 0) { return $text.Substring($start) }
+    return $text.Substring($start, $next - $start)
+}
+
 function Invoke-Tick {
     param([string[]]$Arguments)
     $previous = $ErrorActionPreference
@@ -103,6 +155,32 @@ function Invoke-Tick {
     }
     return [PSCustomObject]@{ exitCode = $code; text = ($captured | Out-String).Trim() }
 }
+
+# S2666: the local plan-tick.ps1 is a generated forwarder, so the SUBJECT of the compact cases is
+# the shipped harness, and between the canon edit and the owner's deploy those are different files.
+# A suite that went red in the meantime would hand every neighbouring session a failure no session
+# running it can fix, so the compact cases skip by name instead (S2577, S2578, S2581 met this first).
+# The candidate order mirrors the FORWARDER's, not Get-SzaHarnessScript's answer alone: that helper
+# returns the plugin-cache path whether or not the file is there, while a forwarder whose cache
+# probe misses falls through to the canon checkout - a suite that skips work it could have done is
+# the same defect as one that passes without looking.
+. (Join-Path $root 'scripts/spec_catalog/_status-sets.ps1')
+$tickSourcePath = ''
+$tickCandidates = @()
+if ($env:SZA_HARNESS_ROOT) { $tickCandidates += (Join-Path $env:SZA_HARNESS_ROOT 'spec_catalog\plan-tick.ps1') }
+try { $tickCandidates += (Get-SzaHarnessScript 'spec_catalog/plan-tick.ps1') } catch { }
+try {
+    . (Join-Path $root 'scripts/utils/project-paths.ps1')
+    $canonRoot = Get-CanonRoot
+    if ($canonRoot) { $tickCandidates += (Join-Path $canonRoot 'tools\harness\spec_catalog\plan-tick.ps1') }
+} catch { }
+foreach ($candidatePath in $tickCandidates) {
+    if ($candidatePath -and (Test-Path -LiteralPath $candidatePath)) { $tickSourcePath = $candidatePath; break }
+}
+# A CLI's functions never enter the caller's scope, so Get-Command would answer "absent" whatever is
+# deployed. Read the very file the CLI below will run instead.
+$compactCapable = $tickSourcePath -and
+    (([IO.File]::ReadAllText($tickSourcePath)).IndexOf('Resolve-PhaseSurface', [StringComparison]::Ordinal) -ge 0)
 
 try {
     # ---- case A: one call rewrites exactly the listed markers -----------------
@@ -212,7 +290,58 @@ try {
     Assert-That -Case 'H' -What 'reopening drops the header back' -Condition ($headerReopened -match '\*\*Status:\*\* 🚧 In Progress')
     Assert-That -Case 'H' -What 'completion date withdrawn with it' -Condition ($headerReopened -match '\*\*Completed:\*\* -')
     $cases++
+
+    # ---- compact layout (S2666) ----------------------------------------------
+    if (-not $compactCapable) {
+        Write-Host "  SKIP S2666 compact shape (4 cases) - the resolved harness has no compact phase resolution" -ForegroundColor DarkGray
+        $skipped = 4
+    } else {
+        # ---- case I: a phase embedded in the strategic file ticks ------------
+        Write-Host 'case I - a compact phase ticks like a phase file' -ForegroundColor Cyan
+        Reset-CompactFixture
+        $phase02Before = Get-CompactPhaseBlock -Heading '# Phase 02 - Second'
+        $caseI = Invoke-Tick -Arguments @('-Id', 'S9992', '-Phase', '01', '-Steps', '1', '-State', 'Done')
+        $phase01 = Get-CompactPhaseBlock -Heading '# Phase 01 - First'
+        Assert-That -Case 'I' -What 'exit 0' -Condition ($caseI.exitCode -eq 0) -Detail $caseI.text
+        Assert-That -Case 'I' -What 'marker flipped' -Condition ($phase01 -match '(?s)Step 01\.1.*?\*\*Status:\*\* `\[x\]` done')
+        Assert-That -Case 'I' -What 'counter recomputed' -Condition ($phase01 -match '\*\*Steps done:\*\* 1 / 2') -Detail $phase01
+        Assert-That -Case 'I' -What 'phase header follows its steps' -Condition ($phase01 -match '\*\*Status:\*\* 🚧 In Progress')
+        Assert-That -Case 'I' -What 'started date filled' -Condition ($phase01 -notmatch '\*\*Started:\*\* -')
+        Assert-That -Case 'I' -What 'step log appended' -Condition ($phase01 -match 'state set to done for S9992 step 01\.1')
+        $cases++
+
+        # ---- case J: the sibling phase is not touched -------------------------
+        Write-Host 'case J - a tick in one phase leaves the other byte-identical' -ForegroundColor Cyan
+        Assert-That -Case 'J' -What 'phase 02 unchanged' -Condition ((Get-CompactPhaseBlock -Heading '# Phase 02 - Second') -eq $phase02Before)
+        Assert-That -Case 'J' -What 'the ticket status line is not a phase header' -Condition (([IO.File]::ReadAllText($compactFile)) -match '\*\*Status:\*\* In Progress')
+        $j = Invoke-Tick -Arguments @('-Id', 'S9992', '-Phase', '02', '-Steps', '1', '-State', 'Done')
+        $phase01After = Get-CompactPhaseBlock -Heading '# Phase 01 - First'
+        $phase02After = Get-CompactPhaseBlock -Heading '# Phase 02 - Second'
+        Assert-That -Case 'J' -What 'second phase ticks too' -Condition ($j.exitCode -eq 0 -and $phase02After -match '\*\*Steps done:\*\* 1 / 1') -Detail $j.text
+        Assert-That -Case 'J' -What 'second phase reads done' -Condition ($phase02After -match '\*\*Status:\*\* ✅ Done')
+        Assert-That -Case 'J' -What 'first phase counter survives' -Condition ($phase01After -match '\*\*Steps done:\*\* 1 / 2') -Detail $phase01After
+        $cases++
+
+        # ---- case K: -Checkbox reaches the compact phase's own gates ----------
+        Write-Host 'case K - a compact phase gate is reachable by fragment' -ForegroundColor Cyan
+        Reset-CompactFixture
+        $k = Invoke-Tick -Arguments @('-Id', 'S9992', '-Phase', '01', '-Checkbox', 'Compact gate', '-State', 'Done')
+        $ticked = @([IO.File]::ReadAllLines($compactFile) | Where-Object { $_ -match '^\s*-\s*\[x\]' })
+        Assert-That -Case 'K' -What 'exit 0' -Condition ($k.exitCode -eq 0) -Detail $k.text
+        Assert-That -Case 'K' -What 'exactly one bullet ticked' -Condition ($ticked.Count -eq 1) -Detail "$($ticked.Count)"
+        $cases++
+
+        # ---- case L: -Target Index says the layout has no index ---------------
+        Write-Host 'case L - the index form refuses by name, not by matching nothing' -ForegroundColor Cyan
+        $before = [IO.File]::ReadAllText($compactFile)
+        $l = Invoke-Tick -Arguments @('-Id', 'S9992', '-Checkbox', 'Compact gate', '-Target', 'Index', '-State', 'Done')
+        Assert-That -Case 'L' -What 'exit 2' -Condition ($l.exitCode -eq 2) -Detail "exit=$($l.exitCode)"
+        Assert-That -Case 'L' -What 'names INDEX.md and the phase form' -Condition ($l.text -match 'INDEX\.md' -and $l.text -match '-Target Phase') -Detail $l.text
+        Assert-That -Case 'L' -What 'file byte-identical' -Condition (([IO.File]::ReadAllText($compactFile)) -eq $before)
+        $cases++
+    }
 } finally {
+    if ([IO.File]::Exists($compactFile)) { [IO.File]::Delete($compactFile) }
     if ([IO.Directory]::Exists($fixture)) { [IO.Directory]::Delete($fixture, $true) }
     if ([IO.Directory]::Exists($fixture)) {
         $failures.Add('teardown - the probe plan folder survived deletion')
@@ -226,5 +355,6 @@ if ($failures.Count -gt 0) {
     exit 1
 }
 
-Write-Host "plan-tick.tests: PASS - $cases cases passed (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header)." -ForegroundColor Green
+$skipNote = if ($skipped -gt 0) { ", $skipped case(s) skipped" } else { '' }
+Write-Host "plan-tick.tests: PASS - $cases cases passed$skipNote (A batch, B counters, C reversal, D unknown step, E divergence, F checkbox, G trace, H phase header, I compact tick, J compact isolation, K compact checkbox, L compact index refusal)." -ForegroundColor Green
 exit 0

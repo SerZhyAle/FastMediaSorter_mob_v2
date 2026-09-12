@@ -3,7 +3,11 @@ package com.sza.fastmediasorter.identity.di
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
+import com.sza.fastmediasorter.identity.BlockStoreGateway
+import com.sza.fastmediasorter.identity.BlockStoreTransferableSignInStore
 import com.sza.fastmediasorter.identity.CredentialManagerGoogleIdentityRepository
+import com.sza.fastmediasorter.identity.GmsBlockStoreGateway
 import dagger.Binds
 import dagger.Module
 import dagger.Provides
@@ -30,6 +34,18 @@ abstract class IdentityModule {
     abstract fun bindGoogleIdentityRepository(
         impl: CredentialManagerGoogleIdentityRepository
     ): GoogleIdentityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransferableSignInStore(
+        impl: BlockStoreTransferableSignInStore
+    ): TransferableSignInStore
+
+    @Binds
+    @Singleton
+    abstract fun bindBlockStoreGateway(
+        impl: GmsBlockStoreGateway
+    ): BlockStoreGateway
 
     companion object {
         @Provides

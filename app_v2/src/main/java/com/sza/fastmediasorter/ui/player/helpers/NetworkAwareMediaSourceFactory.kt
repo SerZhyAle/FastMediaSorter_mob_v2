@@ -9,6 +9,7 @@ import androidx.media3.exoplayer.drm.DrmSessionManagerProvider
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
+import com.sza.fastmediasorter.core.playback.ListenRecordingSinkHolder
 import com.sza.fastmediasorter.data.cloud.DropboxClient
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.cloud.OneDriveRestClient
@@ -45,7 +46,8 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
     private val ftpClient: FtpClient,
     private val googleDriveClient: GoogleDriveRestClient,
     private val oneDriveClient: OneDriveRestClient,
-    private val dropboxClient: DropboxClient
+    private val dropboxClient: DropboxClient,
+    private val listenRecordingSinkHolder: ListenRecordingSinkHolder,
 ) : MediaSource.Factory {
 
     private val defaultFactory = DefaultMediaSourceFactory(context)
@@ -123,7 +125,14 @@ class NetworkAwareMediaSourceFactory @Inject constructor(
             // across http<->https surfaces as a fatal "Response code: 301" source error. Note the
             // shared factory also forces `Icy-MetaData: 0` - in-band track metadata is deliberately
             // OFF on every consumer, not enabled here (see StreamDataSourceFactoryProvider, S1142).
-            "http", "https" -> StreamDataSourceFactoryProvider.create(context)
+            // S2881: the watch's listening address is an ordinary http one, so a recording session
+            // hands its sink in here. Asked only while a session is armed, and answered per address,
+            // so radio played from this same branch is never written to a file.
+            "http", "https" -> if (listenRecordingSinkHolder.isArmed()) {
+                StreamDataSourceFactoryProvider.create(context, listenRecordingSinkHolder::openSinkFor)
+            } else {
+                StreamDataSourceFactoryProvider.create(context)
+            }
             else -> null
         }
     }

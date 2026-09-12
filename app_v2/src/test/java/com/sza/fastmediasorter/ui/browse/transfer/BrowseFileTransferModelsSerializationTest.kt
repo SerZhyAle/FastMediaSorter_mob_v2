@@ -71,6 +71,7 @@ class BrowseFileTransferModelsSerializationTest {
             destinationName = "Backup",
             overwriteFiles = true,
             sources = listOf(BrowseFileTransferSource("/dcim/a.jpg", "a.jpg", 100L, false)),
+            isUndo = true,
         )
         assertEquals(request, gson.fromJson(gson.toJson(request), BrowseFileTransferRequest::class.java))
     }
@@ -152,8 +153,52 @@ class BrowseFileTransferModelsSerializationTest {
             undoSourceFiles = listOf("/a", "/b"),
             undoDestinationFolder = "/dst",
             undoCopiedFiles = listOf("/dst/a"),
+            undoSourceDirectories = listOf("/src/tree"),
+            undoCopiedDirectories = listOf("/dst/tree"),
+            undoTimestamp = 1_700_000_000_000L,
         )
         assertEquals(payload, gson.fromJson(gson.toJson(payload), BrowseFileTransferTerminalPayload::class.java))
+    }
+
+    @Test
+    fun `legacy terminal payload without folder keys reads as empty`() {
+        val legacyJson = """
+            {"kind":"success","workId":"w-1","operationType":"MOVE","undoSourceFiles":["/a"],
+             "undoDestinationFolder":"/dst","undoCopiedFiles":["/dst/a"]}
+        """.trimIndent()
+
+        val decoded = Gson().fromJson(legacyJson, BrowseFileTransferTerminalPayload::class.java)
+        val event = decoded.toEvent()
+
+        assertTrue(event is BrowseFileTransferTerminalEvent.Success)
+        val undo = requireNotNull((event as BrowseFileTransferTerminalEvent.Success).undoOperation)
+        assertEquals(emptyList<String>(), undo.sourceDirectories)
+        assertEquals(emptyList<String>(), undo.copiedDirectories)
+    }
+
+    @Test
+    fun `terminal payload keeps the recorded completion time across a replay`() {
+        val recordedAt = 1_700_000_000_000L
+        // A folders-only record as the worker writes it: Gson emits the empty file lists as [], so the
+        // blob still passes the intactness check at the read boundary.
+        val gson = Gson()
+        val onDisk = gson.toJson(
+            BrowseFileTransferTerminalPayload(
+                kind = "success",
+                workId = "w-1",
+                operationType = FileOperationType.MOVE,
+                undoSourceDirectories = listOf("/src/tree"),
+                undoCopiedDirectories = listOf("/dst/tree"),
+                undoTimestamp = recordedAt,
+            ),
+        )
+
+        val decoded = gson.fromJson(onDisk, BrowseFileTransferTerminalPayload::class.java)
+
+        assertTrue("a folders-only payload must survive the read boundary", decoded.isStructurallyIntact())
+        val undo = requireNotNull((decoded.toEvent() as BrowseFileTransferTerminalEvent.Success).undoOperation)
+        assertEquals(recordedAt, undo.timestamp)
+        assertEquals(listOf("/dst/tree"), undo.copiedDirectories)
     }
 
     // S1638: the annotation guard above pins the wire format, but it cannot stop a blob written by a build

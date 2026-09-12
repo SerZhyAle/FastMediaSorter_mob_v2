@@ -74,7 +74,6 @@ internal object LauncherSignalIconBinder {
      */
     internal fun applicationGlyph(drawable: Drawable): Drawable {
         if (drawable is AdaptiveIconDrawable) {
-            Timber.d("S2244: rendering adaptive notification foreground")
             return drawable.foreground
         }
         return drawable

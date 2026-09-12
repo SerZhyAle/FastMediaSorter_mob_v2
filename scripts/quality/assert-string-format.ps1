@@ -17,6 +17,13 @@
 
     Baseline lives in `scripts/quality/assert-string-format-baseline.txt` as finding ids. New ids
     fail the gate; fewer ids can be ratcheted down with `-UpdateBaseline`.
+
+.NOTES
+    Exit codes (CLAUDE.md Rule 7):
+      0 - pass: no finding outside the baseline, a report/list run, or a completed baseline write.
+      1 - fail: a finding is not in the baseline, or -UpdateBaseline was asked to RAISE it.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding(DefaultParameterSetName = 'Report')]
 param(
@@ -31,6 +38,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/android-string-format.ps1')
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $resRoot = Join-Path $repoRoot "$Module/src/$SourceSet/res"
@@ -122,27 +130,34 @@ if ($List) {
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Update') {
-    if (-not (Test-Path $baselineFile)) {
-        Set-Content -LiteralPath $baselineFile -Value $currentIds
-        Write-Host "string-format baseline SEEDED: $($currentIds.Count)"
-        exit 0
-    }
+    # One scope over both branches: they are mutually exclusive writes to the same file, and the
+    # seed branch's `exit 0` still runs the finally before the process terminates.
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-string-format.ps1 -UpdateBaseline'
+        if (-not (Test-Path $baselineFile)) {
+            Set-Content -LiteralPath $baselineFile -Value $currentIds
+            Write-Host "string-format baseline SEEDED: $($currentIds.Count)"
+            exit 0
+        }
 
-    $baselineIds = @((Get-Content -LiteralPath $baselineFile -ErrorAction SilentlyContinue) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
-    $additions = @($currentIds | Where-Object { $baselineIds -notcontains $_ })
+        $baselineIds = @((Get-Content -LiteralPath $baselineFile -ErrorAction SilentlyContinue) | Where-Object { -not [string]::IsNullOrWhiteSpace($_) })
+        $additions = @($currentIds | Where-Object { $baselineIds -notcontains $_ })
 
-    if ($additions.Count -gt 0) {
-        Write-Error "Refusing to RAISE baseline. New string-format findings were introduced - fix them instead."
-        exit 1
-    }
+        if ($additions.Count -gt 0) {
+            Write-Error "Refusing to RAISE baseline. New string-format findings were introduced - fix them instead."
+            exit 1
+        }
 
-    if ($currentIds.Count -lt $baselineIds.Count -or (@($baselineIds | Where-Object { $currentIds -notcontains $_ }).Count -gt 0)) {
-        Set-Content -LiteralPath $baselineFile -Value $currentIds
-        Write-Host "string-format baseline ratcheted DOWN: $($baselineIds.Count) -> $($currentIds.Count)"
+        if ($currentIds.Count -lt $baselineIds.Count -or (@($baselineIds | Where-Object { $currentIds -notcontains $_ }).Count -gt 0)) {
+            Set-Content -LiteralPath $baselineFile -Value $currentIds
+            Write-Host "string-format baseline ratcheted DOWN: $($baselineIds.Count) -> $($currentIds.Count)"
+        }
+        else {
+            Write-Host "string-format baseline unchanged ($($baselineIds.Count))"
+        }
     }
-    else {
-        Write-Host "string-format baseline unchanged ($($baselineIds.Count))"
-    }
+    finally { Exit-CodeLockScope -Scope $scope }
     exit 0
 }
 

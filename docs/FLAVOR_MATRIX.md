@@ -24,6 +24,7 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `IS_NO_LEGAL_FLAVOR` | [-]* | [+] | [-]* | [-]* | [-]* | [-]* | [-]* |
 | `SUPPORT_LAUNCHER` | [+] | [+] | [-]* | [-]* | [-]* | [-]* | [-]* |
 | `DECLARES_BATTERY_OPTIMIZATION` | [+]* | [+]* | [+]* | [+]* | [+]* | [+]* | [+]* |
+| `SUPPORT_IMMERSIVE_XR` | [-]* | [+] | [-]* | [-]* | [-]* | [+] | [-]* |
 | `SUPPORT_VIDEO` | [+] | [+] | [+] | [-] | [+] | [+] | [+] |
 | `SUPPORT_AUDIO` | [+] | [+] | [+] | [-] | [+] | [+] | [+] |
 | `SUPPORT_STREAMS` | [+] | [+] | [-] | [-] | [+] | [+] | [-] |
@@ -42,8 +43,9 @@ Regenerate with `pwsh -NoProfile -File scripts/docs/generate-flavor-matrix.ps1`.
 | `SUPPORT_WEAR_COMPANION` | [+] | [+] | [-] | [-] | [-] | [-] | [-] |
 | `SUPPORT_CAST` | [+] | [+] | [+] | [+] | [+] | [-] | [-] |
 | `SUPPORT_NETWORK_MONITOR` | [+] | [+] | [-] | [-] | [-] | [-] | [-] |
+| `SUPPORT_BROADCAST_SOURCE` | [+] | [+] | [-] | [-] | [+] | [-] | [-] |
 | `VR_UI_COMPOSITION_LAYER_ENABLED` | n/a | [+] | n/a | n/a | n/a | [-] | n/a |
-| `minSdk` | 26 | 26 | 26 | 26 | 23 | 26 | 23 |
+| `minSdk` | 26 | 26 | 26 | 26 | 23 | 29 | 23 |
 
 ## How the app reads this
 

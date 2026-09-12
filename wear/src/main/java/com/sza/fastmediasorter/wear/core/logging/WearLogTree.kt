@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.core.logging
 
 import android.util.Log
+import com.sza.fastmediasorter.wear.BuildConfig
 import timber.log.Timber
 import java.time.Instant
 import java.time.ZoneId
@@ -25,6 +26,17 @@ class WearLogTree(private val minPriority: Int) : Timber.Tree() {
         val head = "$stamp $level ${tag ?: NO_TAG} $masked"
         val line = if (t == null) head else "$head\n${WearSecretMasker.sanitize(Log.getStackTraceString(t))}"
         WearLogBuffer.append(line)
+
+        // S2560: In release builds (where Timber.DebugTree is not planted), output WARN and ERROR
+        // to logcat so diagnostics are visible in adb logcat without needing a full debug build.
+        if (!BuildConfig.DEBUG && priority >= Log.WARN) {
+            val logcatTag = tag ?: "FastMediaSorterWear"
+            if (t == null) {
+                Log.println(priority, logcatTag, masked)
+            } else {
+                Log.println(priority, logcatTag, "$masked\n${Log.getStackTraceString(t)}")
+            }
+        }
     }
 
     private fun levelLabel(priority: Int): String = when (priority) {

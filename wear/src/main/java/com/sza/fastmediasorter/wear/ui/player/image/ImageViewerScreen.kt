@@ -4,44 +4,60 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitHorizontalTouchSlopOrCancellation
+import androidx.compose.foundation.gestures.calculatePan
+import androidx.compose.foundation.gestures.calculateZoom
 import androidx.compose.foundation.gestures.horizontalDrag
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AspectRatio
+import androidx.compose.material.icons.filled.Cast
+import androidx.compose.material.icons.filled.CastConnected
 import androidx.compose.material.icons.filled.CropFree
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.positionChanged
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -50,16 +66,27 @@ import coil.compose.AsyncImage
 import coil.compose.AsyncImagePainter
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
+import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.model.displayName
+import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
+import com.sza.fastmediasorter.wear.ui.common.WearAction
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearIsCompactScreen
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.player.common.PRIMARY_ROW_COLUMNS
 import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandButton
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerCommandGrid
+import com.sza.fastmediasorter.wear.ui.player.common.PlayerOverflowMenu
+import com.sza.fastmediasorter.wear.ui.player.common.playerMenuAction
+import com.sza.fastmediasorter.wear.ui.player.common.playerPrimaryRowColumns
+import com.sza.fastmediasorter.wear.ui.player.common.secondaryRowColumns
 import timber.log.Timber
 
 /** The scrim behind the panel, dark enough to read white text over any picture. */
 private const val OVERLAY_SCRIM_ALPHA = 0.6f
 
-private val FAVORITE_ROW_TOP_PADDING = 4.dp
 private val ERROR_GLYPH_SIZE = 48.dp
 
 private const val SWIPE_THRESHOLD = 100f
@@ -71,23 +98,50 @@ private const val SWIPE_THRESHOLD = 100f
 // leftward travel entirely.
 private const val DISMISS_BAND_FRACTION = 0.36f
 
+// S2480, the owner's zones: a tap in the outer thirds pages, a tap in the middle band shows or
+// hides the panel. Paging by tap is what makes the swipe optional - on a 480 px round screen the
+// swipe competes with the platform dismiss gesture, so it cannot be the only way to page.
+private const val TAP_ZONE_PREVIOUS_END_FRACTION = 0.3f
+private const val TAP_ZONE_NEXT_START_FRACTION = 0.7f
+
+/** Neutral zoom, and also the floor: a cropped picture never shrinks inside its frame. */
+private const val IMAGE_ZOOM_MIN = 1f
+private const val IMAGE_ZOOM_MAX = 4f
+
 /**
  * Image viewer screen for Wear OS.
  * Displays images with swipe navigation between photos.
  */
 @Composable
 fun ImageViewerScreen(
-    viewModel: ImageViewerViewModel = hiltViewModel()
+    viewModel: ImageViewerViewModel = hiltViewModel(),
+    onBack: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val isFavorite by viewModel.isFavorite.collectAsState()
+    val castState by viewModel.castManager.castState.collectAsStateWithLifecycle()
+    val isCasting = castState.isCasting
 
-    Timber.d("ImageViewerScreen composing, index: ${uiState.currentIndex}")
+    var showActions by remember { mutableStateOf(false) }
+    var showDeleteConfirm by remember { mutableStateOf(false) }
+    var showReceivers by remember { mutableStateOf(false) }
 
-    // An image has no playing state, so having one on screen is itself the active condition.
-    KeepScreenOnEffect(enabled = uiState.mediaFile != null)
+    LaunchedEffect(uiState.closeScreen) {
+        if (uiState.closeScreen) {
+            onBack()
+        }
+    }
 
-    WearScreenScaffold(contentPadding = PaddingValues(0.dp)) {
+    // S2850: a running slideshow is the only thing this screen does by itself, so it is the only
+    // thing that earns the display. A picture the wearer stopped on is left to the watch's own
+    // display timeout, like every other still screen - holding it for an open file meant an arm
+    // dropped over an open photo lit the watch until the battery went.
+    KeepScreenOnEffect(enabled = uiState.isSlideshowActive)
+
+    WearScreenScaffold(
+        showTimeText = uiState.showControls,
+        contentPadding = PaddingValues(0.dp)
+    ) {
         when {
             uiState.error != null -> {
                 ErrorContent(message = uiState.error!!)
@@ -100,30 +154,70 @@ fun ImageViewerScreen(
                     uiState = uiState,
                     isFavorite = isFavorite,
                     actions = ImageViewerActions(
+                        onBack = onBack,
                         onSwipeLeft = viewModel::navigateToNext,
                         onSwipeRight = viewModel::navigateToPrevious,
                         onToggleSlideshow = viewModel::toggleSlideshow,
                         onToggleFavorite = viewModel::toggleFavorite,
-                        onToggleShuffle = viewModel::toggleShuffle,
+                        onTogglePlaybackMode = viewModel::togglePlaybackMode,
                         onToggleScaleMode = viewModel::toggleScaleMode,
-                        onScreenTap = viewModel::onScreenTap
+                        onScreenTap = viewModel::onScreenTap,
+                        onFileOperations = { showActions = true },
+                        onToggleCast = viewModel::toggleCast,
+                        isCasting = isCasting
                     )
                 )
             }
         }
     }
+
+    com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogsHost(
+        operations = viewModel.fileOperations,
+        visibilities = com.sza.fastmediasorter.wear.ui.player.common.PlayerDialogVisibilities(
+            showActions = showActions,
+            showDeleteConfirm = showDeleteConfirm,
+            showReceivers = showReceivers,
+            onActionsVisibilityChange = { showActions = it },
+            onDeleteVisibilityChange = { showDeleteConfirm = it },
+            onReceiversVisibilityChange = { showReceivers = it }
+        ),
+        currentFileName = uiState.mediaFile?.name
+    )
+
+    com.sza.fastmediasorter.wear.ui.player.common.PlayerCastMessage(viewModel.castManager)
 }
 
 /** The image viewer's callbacks, bundled the way the audio and video players already bundle theirs. */
 private data class ImageViewerActions(
+    val onBack: () -> Unit,
     val onSwipeLeft: () -> Unit,
     val onSwipeRight: () -> Unit,
     val onToggleSlideshow: () -> Unit,
     val onToggleFavorite: () -> Unit,
-    val onToggleShuffle: () -> Unit,
+    val onTogglePlaybackMode: () -> Unit,
     val onToggleScaleMode: () -> Unit,
-    val onScreenTap: () -> Unit
+    val onScreenTap: () -> Unit,
+    val onFileOperations: () -> Unit,
+    val onToggleCast: () -> Unit,
+    /** The phone's reported session, which decides only the wording of the one cast entry (S2531). */
+    val isCasting: Boolean
 )
+
+/**
+ * Sends a tap to one of three outcomes by where it landed across the width.
+ *
+ * `onSwipeRight` is this screen's name for "previous" and `onSwipeLeft` for "next", kept from when
+ * the swipe was the only way to page. A zone tap deliberately never reveals the panel: the user who
+ * taps the edge asked for the next picture, not for a row of buttons over it.
+ */
+private fun dispatchZoneTap(xFraction: Float, actions: ImageViewerActions) {
+    Timber.d("S2480: zone tap at fraction $xFraction")
+    when {
+        xFraction <= TAP_ZONE_PREVIOUS_END_FRACTION -> actions.onSwipeRight()
+        xFraction >= TAP_ZONE_NEXT_START_FRACTION -> actions.onSwipeLeft()
+        else -> actions.onScreenTap()
+    }
+}
 
 @Composable
 private fun ImageViewerContent(
@@ -149,9 +243,14 @@ private fun ImageViewerContent(
                             dragOffset += overSlop
                         }
                     }
-                    // A lift that never crossed the horizontal slop is a tap, not a page turn.
-                    if (slop == null && !leaveToPlatform) {
-                        actions.onScreenTap()
+                    // A lift that never crossed the horizontal slop is a tap, not a page turn - but
+                    // only when no panel button took it first. S2480, measured on the watch: the
+                    // Play button sits in the middle band, so its press reached this node as well
+                    // and turned the panel straight back on, undoing the hide the command had just
+                    // performed. A button consumes the down in the main pass, which travels child
+                    // to parent, so the consumption is already visible here.
+                    if (slop == null && !leaveToPlatform && !down.isConsumed) {
+                        dispatchZoneTap(down.position.x / size.width.toFloat(), actions)
                     }
                     if (slop != null && !leaveToPlatform) {
                         horizontalDrag(slop.id) { change ->
@@ -166,28 +265,24 @@ private fun ImageViewerContent(
                 }
             }
     ) {
-        // Image
-        var isImageLoading by remember { mutableFloatStateOf(1f) }
+        var isImageLoading by remember { mutableStateOf(true) }
+        var isImageError by remember(uiState.mediaFile?.uri) { mutableStateOf(false) }
+        // Held outside the panel: the panel is dismissed by a tap on the picture, and a menu hosted
+        // inside it would take the wearer's half-made choice with it.
+        var showMenu by rememberSaveable { mutableStateOf(false) }
 
-        AsyncImage(
-            model = uiState.mediaFile?.uri,
-            contentDescription = uiState.mediaFile?.name,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
-                ContentScale.Crop
-            } else {
-                ContentScale.Fit
-            },
-            onState = { state ->
-                isImageLoading = when (state) {
-                    is AsyncImagePainter.State.Loading -> 1f
-                    else -> 0f
-                }
-            }
-        )
+        if (isImageError) {
+            ErrorContent(message = stringResource(R.string.wear_state_error))
+        } else {
+            ZoomableImage(
+                uiState = uiState,
+                onLoadingChange = { isImageLoading = it },
+                onError = { isImageError = true }
+            )
+        }
 
         // Loading indicator while image loads
-        if (isImageLoading > 0f) {
+        if (isImageLoading && !isImageError) {
             CircularProgressIndicator(
                 modifier = Modifier
                     .size(32.dp)
@@ -199,12 +294,112 @@ private fun ImageViewerContent(
             ImageBottomPanel(
                 uiState = uiState,
                 isFavorite = isFavorite,
-                onToggleFavorite = actions.onToggleFavorite,
-                onToggleSlideshow = actions.onToggleSlideshow,
-                onToggleShuffle = actions.onToggleShuffle,
-                onToggleScaleMode = actions.onToggleScaleMode,
+                actions = actions,
+                onOpenMenu = { showMenu = true },
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
+        }
+
+        if (showMenu) {
+            Timber.d("S2531: image viewer overflow menu opened")
+            PlayerOverflowMenu(
+                actions = imageMenuActions(
+                    uiState = uiState,
+                    isFavorite = isFavorite,
+                    actions = actions,
+                    onDismiss = { showMenu = false }
+                ),
+                onDismiss = { showMenu = false }
+            )
+        }
+    }
+}
+
+/**
+ * The picture itself, pinchable and pannable while it is cropped.
+ *
+ * S2480: zoom and offset are remembered against the file and the mode, so both reset when either
+ * changes - an enlargement is a look at the current frame, never a viewing mode the next picture
+ * inherits.
+ */
+@Composable
+private fun ZoomableImage(
+    uiState: ImageViewerUiState,
+    onLoadingChange: (Boolean) -> Unit,
+    onError: () -> Unit
+) {
+    val cropMode = uiState.scaleMode == VideoScaleMode.CROP_PAN
+    val fileId = uiState.mediaFile?.id
+    var zoom by remember { mutableFloatStateOf(IMAGE_ZOOM_MIN) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    // The reset is an effect rather than a key on the remembers above: the gesture node below is
+    // created once and captures these state objects once, so a keyed remember would hand it a dead
+    // object after the first page turn and zoom would stop responding from the second picture on.
+    LaunchedEffect(fileId, cropMode) {
+        zoom = IMAGE_ZOOM_MIN
+        offset = Offset.Zero
+    }
+
+    AsyncImage(
+        model = uiState.mediaFile?.uri,
+        contentDescription = uiState.mediaFile?.name,
+        modifier = Modifier
+            .fillMaxSize()
+            .cropTransformGestures(enabled = cropMode, currentZoom = { zoom }) { zoomChange, pan ->
+                val next = (zoom * zoomChange).coerceIn(IMAGE_ZOOM_MIN, IMAGE_ZOOM_MAX)
+                zoom = next
+                offset = if (next <= IMAGE_ZOOM_MIN) Offset.Zero else offset + pan
+            }
+            .graphicsLayer {
+                scaleX = zoom
+                scaleY = zoom
+                translationX = offset.x
+                translationY = offset.y
+            },
+        contentScale = if (cropMode) ContentScale.Crop else ContentScale.Fit,
+        onState = { state ->
+            onLoadingChange(state is AsyncImagePainter.State.Loading)
+            if (state is AsyncImagePainter.State.Error) {
+                Timber.w(state.result.throwable, "AsyncImage failed to load image: %s", uiState.mediaFile?.uri)
+                onError()
+            }
+        }
+    )
+}
+
+/**
+ * Pinch to zoom and drag to pan, alive only while the picture is cropped.
+ *
+ * Written out rather than delegated to `detectTransformGestures`, which consumes a one-finger drag
+ * the moment it passes slop and would take the page-turn swipe with it. Here a single pointer is
+ * consumed only once the picture is actually enlarged; at neutral zoom nothing is consumed, so the
+ * screen's own tap and swipe node keeps paging exactly as it does in fit mode. A press that never
+ * moves is never consumed either, which leaves the tap zones working over a zoomed picture.
+ */
+private fun Modifier.cropTransformGestures(
+    enabled: Boolean,
+    currentZoom: () -> Float,
+    onTransform: (zoomChange: Float, pan: Offset) -> Unit
+): Modifier = if (!enabled) {
+    this
+} else {
+    pointerInput(Unit) {
+        awaitEachGesture {
+            awaitFirstDown(requireUnconsumed = false)
+            do {
+                val event = awaitPointerEvent()
+                val multiTouch = event.changes.size > 1
+                if (multiTouch || currentZoom() > IMAGE_ZOOM_MIN) {
+                    Timber.d("S2480: crop transform, pointers ${event.changes.size}, zoom ${currentZoom()}")
+                    onTransform(event.calculateZoom(), event.calculatePan())
+                    event.changes.forEach { change ->
+                        if (change.positionChanged()) {
+                            change.consume()
+                        }
+                    }
+                }
+            } while (event.changes.any { it.pressed })
         }
     }
 }
@@ -214,19 +409,17 @@ private fun ImageViewerContent(
  *
  * Extracted from the content composable in S2006 - once the panel became conditional the caller
  * crossed detekt's LongMethod ceiling, and a panel that can be hidden is its own thing anyway.
+ * Takes the actions bundle rather than one callback per command, which S2472's back command pushed
+ * past detekt's parameter ceiling - the bundle is the reason the bundle exists.
  */
 @Composable
 private fun ImageBottomPanel(
     uiState: ImageViewerUiState,
     isFavorite: Boolean,
-    onToggleFavorite: () -> Unit,
-    onToggleSlideshow: () -> Unit,
-    onToggleShuffle: () -> Unit,
-    onToggleScaleMode: () -> Unit,
+    actions: ImageViewerActions,
+    onOpenMenu: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
-
     Column(
         modifier = modifier
             .fillMaxWidth()
@@ -238,38 +431,12 @@ private fun ImageBottomPanel(
     ) {
         // File name
         Text(
-            text = uiState.mediaFile?.name ?: "",
+            text = uiState.mediaFile?.displayName ?: "",
             style = MaterialTheme.typography.caption2,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             color = Color.White
         )
-
-        // Navigation info
-        if (uiState.totalCount > 1) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // The arrows stay outside the resource: they are decoration, and a translator
-                // handed "← Prev" has to guess whether the glyph is part of the word.
-                Text(
-                    text = "← " + stringResource(R.string.previous),
-                    style = MaterialTheme.typography.caption3,
-                    color = Color.Gray
-                )
-                Text(
-                    text = uiState.positionText,
-                    style = MaterialTheme.typography.caption3,
-                    color = Color.White
-                )
-                Text(
-                    text = stringResource(R.string.next) + " →",
-                    style = MaterialTheme.typography.caption3,
-                    color = Color.Gray
-                )
-            }
-        }
 
         // Slideshow indicator
         if (uiState.isSlideshowActive) {
@@ -283,70 +450,228 @@ private fun ImageBottomPanel(
 
         ImageCommandRow(
             uiState = uiState,
-            onToggleSlideshow = onToggleSlideshow,
-            onToggleShuffle = onToggleShuffle,
-            onToggleScaleMode = onToggleScaleMode
+            onPrevious = actions.onSwipeRight,
+            onNext = actions.onSwipeLeft,
+            onToggleSlideshow = actions.onToggleSlideshow,
+            onTogglePlaybackMode = actions.onTogglePlaybackMode
+        )
+
+        ImageSecondaryRow(
+            isFavorite = isFavorite,
+            onBack = actions.onBack,
+            onToggleFavorite = actions.onToggleFavorite,
+            onFileOperations = actions.onFileOperations,
+            onOpenMenu = onOpenMenu
+        )
+
+        // S2476: Position counter rendered on its own line under control buttons, matching audio player
+        if (uiState.positionText.isNotEmpty()) {
+            Text(
+                text = uiState.positionText,
+                style = MaterialTheme.typography.caption3,
+                color = Color.Gray,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp)
+            )
+        }
+    }
+}
+
+/**
+ * Row 1: previous, the slideshow toggle, next.
+ *
+ * S2766: three commands, matching the other two players - the slideshow toggle is this screen's
+ * play/pause, and the traversal mode is not a primary command, so it moved to the player menu.
+ *
+ * S2803: the ORIGINAL view restores the row of four the pre-S2766 tree drew - previous, slideshow,
+ * traversal mode, next. STORE keeps the three.
+ */
+@Composable
+private fun ImageCommandRow(
+    uiState: ImageViewerUiState,
+    onPrevious: () -> Unit,
+    onNext: () -> Unit,
+    onToggleSlideshow: () -> Unit,
+    onTogglePlaybackMode: () -> Unit
+) {
+    Timber.d("S2529: ImageViewerScreen ImageCommandRow composed, slideshowActive=${uiState.isSlideshowActive}")
+    val slideshowDesc = stringResource(
+        if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
+    )
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: image primary restored=%b columns=%s", restored, playerPrimaryRowColumns())
+    val playbackModeIcon = when (uiState.playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeDesc = stringResource(
+        when (uiState.playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
+    )
+
+    PlayerCommandGrid(columns = playerPrimaryRowColumns()) { targetSize ->
+        PlayerCommandButton(
+            onClick = onPrevious,
+            icon = Icons.Filled.SkipPrevious,
+            contentDescription = stringResource(R.string.previous),
+            size = targetSize
         )
 
         PlayerCommandButton(
-            onClick = onToggleFavorite,
-            icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-            contentDescription = favoriteDesc,
-            modifier = Modifier.padding(top = FAVORITE_ROW_TOP_PADDING),
-            checked = isFavorite
+            onClick = onToggleSlideshow,
+            icon = if (uiState.isSlideshowActive) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+            contentDescription = slideshowDesc,
+            size = targetSize,
+            checked = true,
+            iconTint = colorResource(ContentTypeCatalog.tintFor(WearContentType.IMAGE))
+        )
+
+        if (restored) {
+            PlayerCommandButton(
+                onClick = onTogglePlaybackMode,
+                icon = playbackModeIcon,
+                contentDescription = playbackModeDesc,
+                size = targetSize,
+                checked = uiState.playbackMode != WearPlaybackMode.SEQUENTIAL
+            )
+        }
+
+        PlayerCommandButton(
+            onClick = onNext,
+            icon = Icons.Filled.SkipNext,
+            contentDescription = stringResource(R.string.next),
+            size = targetSize
         )
     }
 }
 
-/** The image viewer's own command row: slideshow, traversal order and fit, in that order. */
+/**
+ * Row 2: back, the favourite where a third slot exists, and the menu button.
+ *
+ * S2766: the same two-or-three composition the other players draw. The scale mode left the row for
+ * the menu. This screen shows no playing position, so it takes no progress ring.
+ *
+ * S2803: the ORIGINAL view restores back, favourite and file operations. S2531: the cast entry lives
+ * in the overflow menu, so the restored row keeps a menu button where it held scale mode - scale mode
+ * moved to the menu.
+ */
 @Composable
-private fun ImageCommandRow(
-    uiState: ImageViewerUiState,
-    onToggleSlideshow: () -> Unit,
-    onToggleShuffle: () -> Unit,
-    onToggleScaleMode: () -> Unit
+private fun ImageSecondaryRow(
+    isFavorite: Boolean,
+    onBack: () -> Unit,
+    onToggleFavorite: () -> Unit,
+    onFileOperations: () -> Unit,
+    onOpenMenu: () -> Unit
 ) {
-    val slideshowDesc = stringResource(
-        if (uiState.isSlideshowActive) R.string.wear_slideshow_stop else R.string.wear_slideshow_start
+    val favoriteDesc = stringResource(R.string.wear_toggle_favorite)
+    val menuDesc = stringResource(R.string.wear_file_op_actions)
+    val restored = playerPrimaryRowColumns() != PRIMARY_ROW_COLUMNS
+    Timber.d("S2803: image secondary restored=%b columns=%s", restored, secondaryRowColumns())
+
+    PlayerCommandGrid(columns = secondaryRowColumns()) { targetSize ->
+        PlayerCommandButton(
+            onClick = onBack,
+            icon = Icons.AutoMirrored.Filled.ArrowBack,
+            contentDescription = stringResource(R.string.wear_navigate_back),
+            size = targetSize
+        )
+
+        if (restored || !wearIsCompactScreen()) {
+            PlayerCommandButton(
+                onClick = onToggleFavorite,
+                icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                contentDescription = favoriteDesc,
+                size = targetSize,
+                checked = isFavorite
+            )
+        }
+
+        if (restored) {
+            PlayerCommandButton(
+                onClick = onFileOperations,
+                icon = Icons.Default.MoreVert,
+                contentDescription = menuDesc,
+                size = targetSize
+            )
+        }
+
+        PlayerCommandButton(
+            onClick = onOpenMenu,
+            icon = Icons.Default.MoreVert,
+            contentDescription = menuDesc,
+            size = targetSize
+        )
+    }
+}
+
+/**
+ * Everything the image viewer's rows shed, in one list.
+ *
+ * S2766: the traversal mode and the scale mode, plus the favourite below the breakpoint where the
+ * row has no slot for it, and the file operations as their own entry opening the existing dialog.
+ */
+@Composable
+private fun imageMenuActions(
+    uiState: ImageViewerUiState,
+    isFavorite: Boolean,
+    actions: ImageViewerActions,
+    onDismiss: () -> Unit
+): List<WearAction> {
+    val playbackModeIcon = when (uiState.playbackMode) {
+        WearPlaybackMode.SEQUENTIAL -> Icons.AutoMirrored.Filled.Sort
+        WearPlaybackMode.SHUFFLE -> Icons.Filled.Shuffle
+        WearPlaybackMode.LOOP -> Icons.Filled.Repeat
+    }
+    val playbackModeLabel = stringResource(
+        when (uiState.playbackMode) {
+            WearPlaybackMode.SEQUENTIAL -> R.string.wear_playback_mode_sequential
+            WearPlaybackMode.SHUFFLE -> R.string.wear_playback_mode_shuffle
+            WearPlaybackMode.LOOP -> R.string.wear_playback_mode_loop
+        }
     )
-    val shuffleDesc = stringResource(
-        if (uiState.isShuffleEnabled) R.string.wear_shuffle_on else R.string.wear_shuffle_off
+    val favoriteLabel = stringResource(R.string.wear_toggle_favorite)
+    val scaleLabel = stringResource(R.string.wear_scale_mode)
+    val fileActionsLabel = stringResource(R.string.wear_player_file_actions)
+    // S2531: the wording carries the state, not a colour - strategic §3.2 accessibility.
+    val castLabel = stringResource(
+        if (actions.isCasting) R.string.wear_cast_stop else R.string.wear_cast_send
     )
-    // The same two glyphs the video player uses for the same choice, mapped the same way round.
+    val castIcon = if (actions.isCasting) Icons.Filled.CastConnected else Icons.Filled.Cast
     val scaleIcon = if (uiState.scaleMode == VideoScaleMode.CROP_PAN) {
         Icons.Filled.AspectRatio
     } else {
         Icons.Filled.CropFree
     }
+    val showFavorite = wearIsCompactScreen()
 
-    Row(
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        PlayerCommandButton(
-            onClick = onToggleSlideshow,
-            icon = if (uiState.isSlideshowActive) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-            contentDescription = slideshowDesc,
-            checked = uiState.isSlideshowActive
+    return buildList {
+        add(
+            playerMenuAction(
+                playbackModeLabel,
+                playbackModeIcon,
+                onDismiss,
+                actions.onTogglePlaybackMode
+            )
         )
-
-        PlayerCommandButton(
-            onClick = onToggleShuffle,
-            // Shape as well as tint - the accessibility constraint asks for two signals.
-            icon = if (uiState.isShuffleEnabled) {
-                Icons.Filled.Shuffle
-            } else {
-                Icons.AutoMirrored.Filled.ArrowForward
-            },
-            contentDescription = shuffleDesc,
-            checked = uiState.isShuffleEnabled
-        )
-
-        PlayerCommandButton(
-            onClick = onToggleScaleMode,
-            icon = scaleIcon,
-            contentDescription = stringResource(R.string.wear_scale_mode),
-            checked = uiState.scaleMode == VideoScaleMode.CROP_PAN
+        if (showFavorite) {
+            val icon = if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder
+            add(playerMenuAction(favoriteLabel, icon, onDismiss, actions.onToggleFavorite))
+        }
+        add(playerMenuAction(scaleLabel, scaleIcon, onDismiss, actions.onToggleScaleMode))
+        add(playerMenuAction(castLabel, castIcon, onDismiss, actions.onToggleCast))
+        add(
+            playerMenuAction(
+                fileActionsLabel,
+                Icons.AutoMirrored.Filled.List,
+                onDismiss,
+                actions.onFileOperations
+            )
         )
     }
 }

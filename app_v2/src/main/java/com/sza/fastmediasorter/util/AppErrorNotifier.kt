@@ -45,6 +45,7 @@ object AppErrorNotifier {
         screenName: String? = null,
         showDetailedErrors: Boolean = false
     ) {
+        Timber.d("S2394: AppErrorNotifier.show entry severity=$severity")
         // DEBUG_ONLY suppressed in release builds
         if (severity == ErrorSeverity.DEBUG_ONLY && !BuildConfig.DEBUG) {
             Timber.d("AppErrorNotifier: suppressed DEBUG_ONLY in release build")
@@ -89,6 +90,15 @@ object AppErrorNotifier {
 
         // Auto-dismiss after target duration
         Handler(Looper.getMainLooper()).postDelayed({ snackbar.dismiss() }, durationMs)
+
+        // S2394: the only trace a shown error surface leaves in logcat. Maestro logs plain Toasts
+        // but never a Snackbar, so without this line the pre-release audit cannot see this path at
+        // all. Level carries the severity, so the audit classifies red vs amber without parsing text.
+        val logLine = "AppErrorNotifier: shown [$severity]${screenName?.let { " ($it)" } ?: ""}: $message"
+        when (severity) {
+            ErrorSeverity.CRITICAL -> Timber.e(logLine)
+            ErrorSeverity.DEBUG_ONLY -> Timber.w(logLine)
+        }
 
         snackbar.show()
     }

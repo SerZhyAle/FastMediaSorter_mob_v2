@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2792. One audio track of the picker list: title on top, artist and duration below. The
+     foreground ripple doubles as the visible D-pad focus affordance (Rule 16). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="@dimen/touch_target_min_height"
+    android:orientation="vertical"
+    android:paddingVertical="@dimen/margin_small">
+
+    <TextView
+        android:id="@+id/textMusicTrackTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurface"
+        android:textSize="@dimen/text_size_normal" />
+
+    <TextView
+        android:id="@+id/textMusicTrackSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="?attr/colorOnSurfaceVariant"
+        android:textSize="@dimen/text_size_small" />
+</LinearLayout>

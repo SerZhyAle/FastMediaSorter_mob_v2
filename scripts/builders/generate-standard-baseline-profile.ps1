@@ -17,7 +17,7 @@ $projectRoot = Resolve-Path "$PSScriptRoot\..\.."
 Set-Location $projectRoot
 
 $gradleCommand = New-Object System.Collections.Generic.List[string]
-$null = $gradleCommand.Add(":benchmark:collectNonMinifiedReleaseBaselineProfile")
+$null = $gradleCommand.Add(":benchmark:collectNonMinifiedBenchmarkBaselineProfile")
 $null = $gradleCommand.Add("-Pchaquopy.enabled=false")
 
 if ($GradleArgs) {

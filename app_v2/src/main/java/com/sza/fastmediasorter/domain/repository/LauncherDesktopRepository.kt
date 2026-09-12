@@ -114,16 +114,28 @@ interface LauncherDesktopRepository {
      * rectangles were already free of every other cell by the standing invariant. That invariant is what
      * all of this protects: **cells never overlap**, at any point, so no rendering or hit-test has to
      * cope with two cells claiming one square.
+     *
+     * S2599: [colIndex] is seated before any of the three outcomes is decided - a wide cell dropped near
+     * the right edge lands at the last column its own width fits in, which is where the renderer draws it
+     * either way. Unseated, the overlap lookup asked about a rectangle that runs off the grid, found it
+     * free, and the cell was drawn one column to the left on top of its neighbour. [columns] belongs to
+     * the screen currently rendering the desktop, not to the stored desktop, the same contract
+     * [addCellInFirstFreeSlot] documents.
      */
-    suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int): Boolean
+    suspend fun moveCell(id: Long, rowIndex: Int, colIndex: Int, columns: Int): Boolean
 
     /**
      * Changes a cell's footprint at its current anchor, but only onto free space: the new
      * `spanW x spanH` must not overlap another cell (the cell's own current squares are excluded, so
      * growth into them is allowed). Returns whether it resized. Same no-overlap invariant as [moveCell];
      * the caller (the resize gesture) reverts to the last valid size when this returns false.
+     *
+     * S2599: [spanW] is capped at the distance from the cell's own anchor to the right edge of a
+     * [columns]-wide grid. The anchor does not move - the resize handle grows the cell rightwards from a
+     * fixed corner - so a width that would run off the grid is narrowed rather than seated elsewhere. A
+     * cap that lands back on the current size returns false, exactly as an unchanged size does.
      */
-    suspend fun resizeCell(id: Long, spanW: Int, spanH: Int): Boolean
+    suspend fun resizeCell(id: Long, spanW: Int, spanH: Int, columns: Int): Boolean
 
     /**
      * Repoints a cell at new content without moving or resizing it. Geometry is untouched, so the

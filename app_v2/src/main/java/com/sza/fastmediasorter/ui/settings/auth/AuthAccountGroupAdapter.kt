@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.auth
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -9,9 +10,11 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.repository.AuthAccountDomain
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
+import dagger.hilt.android.EntryPointAccessors
+import java.time.Instant
 
 class AuthAccountGroupAdapter(
     private val onAddAccount: (host: String, loginUrl: String) -> Unit,
@@ -92,13 +95,12 @@ class AuthAccountGroupAdapter(
                     account.cookieCount,
                     account.cookieCount,
                 )
-                val savedAtLocal = account.savedAt.atZone(ZoneId.systemDefault())
-                val metaText = StringBuilder("$cookieText | ${DATE_FMT.format(savedAtLocal)}")
+                val metaText = StringBuilder("$cookieText | ${formatDate(context, account.savedAt)}")
                 val lastUsedText = account.lastUsedAt
                     ?.let {
                         context.getString(
                             R.string.s0157_last_used_fmt,
-                            DATE_FMT.format(it.atZone(ZoneId.systemDefault())),
+                            formatDate(context, it),
                         )
                     }
                     ?: context.getString(R.string.s0157_last_used_never)
@@ -120,7 +122,21 @@ class AuthAccountGroupAdapter(
         const val TYPE_HEADER = 0
         const val TYPE_ACCOUNT = 1
 
-        val DATE_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+        // S2795: an adapter is built by hand, not by Hilt, so it reaches the format seam the way the
+        // project's other out-of-graph surfaces do. The system itself is read per bind, which is what
+        // makes a switched setting show on the next one.
+        @Volatile
+        private var cachedSeam: UnitSystemEntryPoint? = null
+
+        private fun seam(context: Context): UnitSystemEntryPoint = cachedSeam ?: EntryPointAccessors
+            .fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+            .also { cachedSeam = it }
+
+        private fun formatDate(context: Context, moment: Instant): String {
+            val entryPoint = seam(context)
+            return entryPoint.quantityFormatter()
+                .format(Quantity.Date(moment.toEpochMilli()), entryPoint.unitSystemProvider().value)
+        }
 
         val DIFF = object : DiffUtil.ItemCallback<Item>() {
             override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean = when {

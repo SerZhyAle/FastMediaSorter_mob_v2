@@ -12,4 +12,8 @@
          «Send to..» covers Share), but CommandPanelController still maps the enum to the live
          btnShareCmd standalone-host view, so the id must exist independent of the player menu XML. -->
     <item name="menu_share" type="id" />
+    <!-- S2686: tag key holding a desktop cell root's LauncherCellKind, so LauncherCellViewBinder can
+         return a torn-down root to the pool of its own kind. Carried on the view because a SHORTCUT
+         root and a SECTION root are both MaterialCardView and cannot be told apart by class. -->
+    <item name="launcher_cell_kind_tag" type="id" />
 </resources>

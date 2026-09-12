@@ -4,6 +4,9 @@ import com.sza.fastmediasorter.domain.usecase.PushWearSettingsUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.domain.usecase.SendPlaybackCommandUseCase
 import com.sza.fastmediasorter.domain.usecase.SendResourcesToWatchUseCase
+import com.sza.fastmediasorter.domain.usecase.StartWatchListeningUseCase
+import com.sza.fastmediasorter.domain.usecase.StopWatchListeningUseCase
+import com.sza.fastmediasorter.domain.usecase.SyncWithWatchUseCase
 import javax.inject.Inject
 
 /**
@@ -19,5 +22,13 @@ class WearOutboundUseCases @Inject constructor(
     val sendResources: SendResourcesToWatchUseCase,
     val pushSettings: PushWearSettingsUseCase,
     val sendPlaybackCommand: SendPlaybackCommandUseCase,
-    val pushStreamPins: PushWearStreamPinsUseCase
+    val pushStreamPins: PushWearStreamPinsUseCase,
+    // S2484: the unified exchange composes the two legs above rather than adding a third, so it
+    // belongs to the same group; joining it here also keeps WearSyncViewModel off the constructor
+    // ceiling this holder was created to stay under.
+    val syncEverything: SyncWithWatchUseCase,
+    // S2550: the listen pair shares this group's direction and its failure mode - an unreachable
+    // watch - and joining it here is what keeps the view model off the ceiling above.
+    val startListening: StartWatchListeningUseCase,
+    val stopListening: StopWatchListeningUseCase
 )

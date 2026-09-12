@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.data.cloud.UnifiedCloudAuthManager
 import com.sza.fastmediasorter.databinding.ActivityAddResourceBinding
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePinManager
+import com.sza.fastmediasorter.ui.addresource.helpers.CreatedResourcePlacementManager
 import com.sza.fastmediasorter.ui.common.input.FocusDirection
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -70,6 +71,8 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject lateinit var createdResourcePinManager: CreatedResourcePinManager
+
+    @Inject lateinit var createdResourcePlacementManager: CreatedResourcePlacementManager
 
     private lateinit var connectionManager: AddResourceConnectionManager
     private lateinit var scanManager: AddResourceScanManager
@@ -262,7 +265,6 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
             showCloudStorageOptions()
         }
         binding.cardStream.setOnClickListener {
-            Timber.d("S2085: cardStream clicked -> opening ResourceEditor for HTTP_STREAM")
             com.sza.fastmediasorter.utils.UserActionLogger.logButtonClick("StreamCard", "AddResource")
             startActivity(
                 com.sza.fastmediasorter.ui.resourceeditor.ResourceEditorActivity.createAddIntent(
@@ -500,23 +502,30 @@ class AddResourceActivity : BaseActivity<ActivityAddResourceBinding>() {
     }
 
     /**
-     * S1423: closes the screen, pinning a shortcut first when the caller asked for one. `finish()`
-     * runs after the await, never before - finishing cancels `lifecycleScope` and would drop the
-     * pin request. Silence on a null message is deliberate: the resource-added toast has already
-     * fired and the shortcut appearing is the confirmation.
+     * S1423/S2859: closes the screen when the caller asked for a home-screen handoff. The S2859
+     * desktop placement runs first - the created resources land in the launcher's Resources
+     * section - and the S1423 system pin is requested only on a foreign home screen, where the
+     * section tile cannot reach (strategic ADR-2). `finish()` runs after the awaited work, never
+     * before - finishing cancels `lifecycleScope` and would drop it. Silence when no pin was
+     * requested is deliberate: the resource-added toast has already fired and the tile appearing
+     * is the confirmation.
      */
     private fun routeResourcesAdded(createdResourceIds: List<Long>) {
+        Timber.d("S2859: add-flow success, pin=%b, ids=%d", pinShortcutOnCreate, createdResourceIds.size)
         if (!pinShortcutOnCreate) {
             finish()
             return
         }
         lifecycleScope.launch {
-            val message = createdResourcePinManager.pinCreatedResources(
-                context = this@AddResourceActivity,
-                resourceIds = createdResourceIds
-            )
-            if (message != null) {
-                Toast.makeText(this@AddResourceActivity, message, Toast.LENGTH_LONG).show()
+            createdResourcePlacementManager.placeLauncherTiles(createdResourceIds)
+            if (createdResourcePlacementManager.shouldRequestSystemPin()) {
+                val message = createdResourcePinManager.pinCreatedResources(
+                    context = this@AddResourceActivity,
+                    resourceIds = createdResourceIds
+                )
+                if (message != null) {
+                    Toast.makeText(this@AddResourceActivity, message, Toast.LENGTH_LONG).show()
+                }
             }
             finish()
         }

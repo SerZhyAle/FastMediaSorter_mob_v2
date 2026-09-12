@@ -1,0 +1,4 @@
+09-02 17:20:01.100  1523  1580 I ActivityManager: Start proc 22101:com.sza.fastmediasorter.debug/u0a151 for activity {com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.MainActivity}
+09-02 17:21:23.278 22229 22229 D Maestro : Toast received with Слайд-шоу включено с интервалом 10 секунд
+09-02 17:21:44.512 22229 22229 D Maestro : Toast received with Не получилось скопировать файлы.
+09-02 17:21:49.003 22101 22101 E AppErrorNotifier: AppErrorNotifier: shown [CRITICAL] (Browse): Сбой подключения

@@ -69,10 +69,10 @@
 #>
 [CmdletBinding()]
 param(
-    # The S1476 axes (iptvcam..xiph) are opt-in only: they are not in the default set, so a routine
-    # collection run keeps its current cost and shape.
+    # The S1476 axes (iptvcam..xiph, language) are opt-in only: they are not in the default set, so a
+    # routine collection run keeps its current cost and shape.
     [ValidateSet('official', 'livetv', 'genres', 'geo', 'webcam',
-        'iptvcam', 'tfl', 'webradiodb', 'radioparadise', 'akc', 'lautfm', 'xiph')]
+        'iptvcam', 'tfl', 'webradiodb', 'radioparadise', 'akc', 'lautfm', 'xiph', 'language')]
     [string[]]$Axis = @('official', 'livetv', 'genres', 'geo', 'webcam'),
 
     # How many laut.fm station images to pull into the artwork cache during an ingest. 0 = none.
@@ -117,6 +117,10 @@ param(
     # the atlas on unreachable homepages while retaining a stable 32 px icon for reachable domains.
     [switch]$FaviconS2Only,
     [string]$AtlasPath = 'delivery/stream-catalog/favicon-atlas.png',
+    # S2669: rebuild delivery/stream-catalog/collections.json from the two curator sources and
+    # validate it against the bank. -Publish implies this, so a publish never ships a stale artifact.
+    [switch]$BuildCollections,
+    [string]$CollectionsPath = 'delivery/stream-catalog/collections.json',
     [int]$FaviconTimeoutSec = 8,
     [int]$FaviconThrottle = 16,
     # Raw artwork cache. The fetch keeps the BEST (largest) image a station's site offers - usually an
@@ -147,6 +151,12 @@ param(
     # Normalize category, topic, language and country on an existing catalog. Unlike discovery this is
     # a reviewable metadata-only rewrite: it creates a move report and never runs network collection.
     [switch]$NormalizeFacets,
+
+    # S2645: repair the `name` column on an existing catalog and collapse rows that fold to one channel
+    # identity. Same shape as -NormalizeFacets - a reviewable rewrite with move reports, a backup and no
+    # network. It is the only supported way past the publish-time name gate, and it never drops a named
+    # row: an uninformative name is rebuilt from the row's own host instead.
+    [switch]$NormalizeNames,
 
     # S1154 PHASE_06 channel-preview atlas. Captures one frame per VIDEO channel with ffmpeg, packs the
     # frames into the 240x135 / 34-column sheet the app's ChannelPreviewAtlasSlicer expects, and writes
@@ -270,6 +280,13 @@ param(
         'JP', 'KR', 'BR', 'MX', 'IN', 'AR', 'TR', 'ZA', 'NG', 'PL', 'SE', 'ID', 'TH', 'EG', 'SA'
     ),
 
+    # radio-browser languages (exact match) for the opt-in 'language' axis. radio-browser knows 646
+    # languages; this is the set the catalog is thinnest in, not an attempt to sweep all of them.
+    [string[]]$GeoLanguages = @(
+        'hindi', 'bengali', 'urdu', 'tamil', 'telugu', 'vietnamese', 'thai', 'indonesian',
+        'swahili', 'amharic', 'persian', 'greek', 'hebrew', 'czech', 'hungarian', 'romanian'
+    ),
+
     # iptv-org categories to harvest for the Live TV axis.
     [string[]]$LiveTvCategories = @(
         'news', 'documentary', 'movies', 'sports', 'kids', 'music', 'science', 'general'
@@ -311,11 +328,18 @@ $Schema = @(
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Probes.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Discovery.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Artwork.ps1')
+. (Join-Path $PSScriptRoot 'modules/StreamPublisher.Collections.ps1')
 . (Join-Path $PSScriptRoot 'modules/StreamPublisher.Delivery.ps1')
 
 # Must follow the dot-sources: Normalize-PruneStatuses is defined in StreamPublisher.Common.ps1, and
 # calling it above them aborted every run of this script under ErrorActionPreference='Stop'.
 $PruneStatuses = Normalize-PruneStatuses -Statuses $PruneStatuses
+
+if ($BuildCollections -and -not $Publish) {
+    Build-StreamCollections -CsvPath $ExistingCsv -OutPath $CollectionsPath | Out-Null
+    Assert-StreamCollections -CollectionsPath $CollectionsPath -CsvPath $ExistingCsv | Out-Null
+    return
+}
 
 if (Invoke-PublisherModeDispatch) { return }
 $all = [System.Collections.Generic.List[object]]::new()
@@ -347,6 +371,15 @@ if ($Axis -contains 'geo') {
     $r = Get-IptvCandidates -axis 'geo' -categories @() -countries $GeoCountries
     Write-Host ("    iptv-org geo: {0} channels" -f $r.Count)
     $r | ForEach-Object { $all.Add($_) }
+}
+
+if ($Axis -contains 'language') {
+    Write-Host '* radio-browser by language ..' -ForegroundColor Yellow
+    foreach ($lang in $GeoLanguages) {
+        $r = Get-RadioBrowserStations -axis 'language' -kind 'language' -key $lang -topicHint 'General'
+        Write-Host ("    {0,-12} {1,3} stations" -f $lang, $r.Count)
+        $r | ForEach-Object { $all.Add($_) }
+    }
 }
 
 if ($Axis -contains 'livetv') {

@@ -54,6 +54,16 @@ class DrawingTargetPolicyTest {
     }
 
     @Test
+    fun `canCreateDrawing rejects non-writable local folder`() {
+        val resource = imageResource(
+            path = "/storage/emulated/0/Pictures",
+            isWritable = false
+        )
+
+        assertFalse(DrawingTargetPolicy.canCreateDrawing(resource))
+    }
+
+    @Test
     fun `canCreateDrawing allows normal local image folder`() {
         val resource = imageResource(path = "/storage/emulated/0/Pictures")
 
@@ -62,13 +72,15 @@ class DrawingTargetPolicyTest {
 
     private fun imageResource(
         path: String,
-        isReadOnly: Boolean = false
+        isReadOnly: Boolean = false,
+        isWritable: Boolean = true
     ): MediaResource = MediaResource(
         id = 1L,
         name = "Images",
         path = path,
         type = ResourceType.LOCAL,
         supportedMediaTypes = setOf(MediaType.IMAGE),
+        isWritable = isWritable,
         isReadOnly = isReadOnly
     )
 }

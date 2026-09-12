@@ -38,7 +38,14 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 
 | Target | Wall clock | Verdict |
 | --- | ---: | --- |
-| `a.ps1 fg` (fast static gates, 45 gates concurrent since S2451) | 32 s | foreground |
+| `a.ps1 fg` (fast static gates, 62 gates concurrent since S2451) | 47 s | foreground |
+<!-- S2612 moved this measurement out of CLAUDE.md Rule 6, which was at its always-loaded ceiling.
+     `fg` is the one target that ever crossed the 120 s threshold: 45 gates running one at a time
+     reached 142.8 s and were preempted into the background twice, delivering the verdict the way
+     Rule 26 forbids. S2451 made the children concurrent - 117 s -> 32 s, same gates, same verdicts -
+     so the margin is real again, but it is now bounded by the slowest single gate rather than by
+     the batch's size. -->
+
 | `assert-detekt.ps1 -Module app_v2` | 20.3 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <1 file>` | 2.1 s | foreground |
 | `detekt-scoped.ps1 -ChangedFiles <2 files>` | 3.3 s | foreground |
@@ -51,6 +58,14 @@ Measured on this host, 2026-08-01, warm daemon, configuration cache reused:
 | `a.ps1 d` / `dav` / `r` / `fu` | not measured | background |
 | `a.ps1 fam` (S2306, migration tests ON a device) | not measured | background |
 | `a.ps1 fwm` (S2355, wear migration tests ON a device) | not measured | background |
+
+**Every row above is the run alone, on an empty queue** (S2606), and it stays that way (S2612). A `Build.*` domain is exclusive, so a target's wall clock is what it costs once it already holds the domain; the wait in front of it is in no number here and can dwarf them. Measured 2026-09-06 over 1327 fast checks, a short-mode run's queue wait was p50 1 s but **p90 58 s** - four times the 14.1 s the `fk` row records - with a worst case of 2996 s, and 155 of 975 short runs spent longer queueing than working (34 112 s against 4213 s).
+
+**The classification is not adjusted for contention, because contention is not a property of a target** - the same `fk` is 14 s alone and 14 s behind a 40-minute suite, and folding a queue into the row would make the number unreadable as either. The queue is handled where it happens instead. Since S2612 a **short-class** check that finds its build domain busy takes its place in the queue, prints who is in front and the `wait-for-lock-turn.ps1` command that resumes it, and **exits 4** - the same answer `enter-code-lock.ps1` already gives for a busy code domain, closing the asymmetry that hid this: a busy code domain sent the agent to wait in the background while a busy build domain made `Enter-BuildLockOrExit` block in-process, so a foreground call simply sat there until the 120 s timeout killed it with no verdict at all. The wait budget is **60 s**, below the 88-105 s a short target can actually survive once its own 14-32 s of work is counted. It cost about twelve runs per three days a background-wait turn and stopped roughly eighty-two from returning nothing: 94 of 975 short runs waited past 60 s, 82 past 90 s, 66 past 120 s.
+
+Long-class targets still block - they are backgrounded anyway, so they have no window to lose. To block through on a short one, pass `-BlockThrough` or set `FMS_LOCK_BLOCK=1`; the unattended queue runner is **not** an exception, since its `claude -p` children run checks through the same 120 s tool. `post-change.ps1` reports a queued gate as its exit 2 "could not verify", never as exit 1.
+
+Read the queue before blaming a slow target - `lock-status.ps1 -Name Build.Phone -Queue` for the present second, `measure-build-lock-wait.ps1` for the history, which since S2612 buckets short-class waits by threshold, marks the operative budget and counts refusals separately. Since S2580 the holder's reason names its mode and hold class, so a wait is legible rather than anonymous.
 
 `fam` is the only target here that needs a connected device, and it is the only one that executes a Room
 migration anywhere outside a user's phone. `fa` compiles the same source set and runs nothing, so a green
@@ -178,7 +193,11 @@ S2103 then added four layer-import rules to `assert-source-gates`, measured 2026
 
 S2451 then found the batch **past** the threshold, and the `fg` row above is the only one in the table not dated 2026-08-01: it is a fresh 2026-09-03 measurement. The growth the two paragraphs above track by the gate had continued unrecorded - 45 gates summing 142.8 s on 2026-09-03, and two consecutive foreground runs preempted into the background, which is the delivery Rule 26 exists to forbid. The cause was the schedule rather than the size: the children ran in a strict `foreach`, so the batch cost the sum of 45 independent read-only scans plus 45 interpreter starts, on a host with 20 logical cores of which one was busy. Running them concurrently measured **117 s -> 32 s** in one session on one tree (`-Sequential` preserves the old path and is what produced the 117 s), with the same 45 gates and the same verdicts. Rescoping the expensive gates to release scope under Rule 33 was considered and rejected: those gates judge exactly what the operator changed, so it would have paid coverage for a scheduling defect.
 
-The batch is now bounded below by its slowest single gate, `assert-source-gates` at 32 s - raising the concurrency further buys nothing. If `fg` approaches the threshold again, that gate's own cost is the next lever, not the schedule.
+The batch is now bounded below by its slowest single gate, `assert-source-gates` at 38.5 s - raising the concurrency further buys nothing. If `fg` approaches the threshold again, that gate's own cost is the next lever, not the schedule.
+
+S2935 re-measured the row on 2026-09-11 and the sentence above still points the right way, but the gap it implies is spent. Two paired runs on an unloaded host read 46.3 s and 46.8 s; the same runs put `assert-source-gates` at 38.5 s, and the 61 gates' medians sum to 381.7 s, which over a throttle of 12 is a queue floor of 31.8 s. So the slowest gate is still the binding bound - 40.6 s against 31.8 s on the 14-day medians - but the two bounds now sit **1.28x** apart where S2451 left them 2.7x apart (11.9 s of queue against 32 s of slowest gate). One more expensive gate and the batch's SIZE takes the critical path back, at which point the lever moves from that one gate's cost to the throttle and the gate count together. The batch also sits 8 s above its own slowest gate, which is a long gate starting late in the queue rather than work anyone is doing. Read against the telemetry the S2453 gate judges - 189 `(batch)` records in 14 days, median 58.2 s, p90 102.0 s - the row keeps the quiet-host convention this table's header promises, the same call made on 2026-08-09 when a 46.1 s run under contention was rejected as a measurement of contention rather than of the batch.
+
+The gate count in that row is no longer hand-held: `assert-gate-count-prose.ps1` (S2935) reads the live `$gates` table out of `assert-fast-gates.ps1` by AST and fails when the row disagrees. It was written because the count had gone fifteen revisions stale in silence - every ticket that adds a gate moves it, and none of them read this row.
 
 S2453 then closed the loop that let this row go ~7x stale in silence: `scripts/quality/assert-gate-timing-claims.ps1` reads the figure out of the live table row and compares it against the same journal the gates already write, `temp/metrics/gate-executions.jsonl`. Both batch runners now add one record per run under the gate name `(batch)` - their own wall clock, which is what a row here claims and what the concurrent children's summed `elapsedMs` stopped being at S2451. The rules, each taken from the journal's own spread rather than chosen: the **median** over a **14-day** window, a floor of **5** executions before any verdict, fatal past **2x** the documented figure, and fatal on its own when the median crosses the 120 s threshold while the row still says `foreground` - that last case being the one this table exists to answer. A figure the target beat by more than half is advisory: the prose is pessimistic, which misleads more cheaply. A reworded row exits 2 rather than green, because an anchor that no longer matches means the check did not look. An absent journal is not a finding: it lives under `temp/`, which Rule 1 makes disposable, so a fresh clone and the release worktree have none and say `no telemetry` out loud. The claims themselves - the document, the anchor and the telemetry key, never a copy of the number - are `scripts/quality/gate-timing-claims.json`; the gate runs in release scope from `assert-release-scope-gates.ps1`. **So a row in this table is now load-bearing:** re-measure before editing one, because the next release reads it back.
 
@@ -219,7 +238,7 @@ pwsh -NoProfile -File scripts/builders/check-standard-fast.ps1 -Mode Code -Build
 .\a.ps1 fw
 .\a.ps1 fwr
 .\a.ps1 fwu
-.\gradlew.bat :wear:assembleDebug   # wear packaging proof only - fw/fwr/fwu cover the rest
+.\a.ps1 wd                           # wear packaging proof (assembleStandardDebug) - fw/fwr/fwu cover the rest
 .\a.ps1 adb install -Flavor standard
 .\a.ps1 adb launch
 .\a.ps1 adb log -Tail 400 -Grep "FATAL|ANR|Sxxxx"
@@ -400,10 +419,12 @@ Use:
 .\a.ps1 fwu                         # unit tests under wear/src/test
 .\a.ps1 faw                         # instrumented tests compile under wear/src/androidTest (S2355)
 .\a.ps1 fwm                         # Room migration tests run on connected watch (S2355)
-.\gradlew.bat :wear:assembleDebug   # only when packaging proof is the point
+.\a.ps1 wd                          # only when packaging proof is the point (assembleStandardDebug)
 ```
 
 **Never prove a wear change with `fk`/`fr`/`fc`/`fu` (S1807).** Those four check `app_v2` and exit 0 without compiling a single watch file, so the green they print is a verdict about the other module. Every fast check prints the module it checked in its own banner - read that line before quoting the exit code as proof.
+
+**Exit 2 saying the build output is HELD is not your change (S2584).** A hung Gradle test worker can outlive the run that spawned it and keep that variant's `R.jar` open; every mode except `Code` starts by rewriting it, so the run cannot even begin. The check now probes the file, refuses with **exit 2** - "could not verify", never exit 1 - and prints the holder's pid, start time and CPU. Read it as "nothing was proven either way" and do not go looking for a defect in the code: two sessions on 2026-09-05 lost time editing working code over the raw `IOException: Couldn't delete .. R.jar` this replaces. `Build.Phone` will report FREE throughout and is not lying - it tracks the wrapper pid, while the holder is a worker outside the mechanism. **`fk` / `fkn` / `fw` still return a real verdict during such an incident**, because a Kotlin-only compile never rewrites the jar - they are the fallback while it lasts. Killing the holder is the owner's call (Rule 35); the reaper is `scripts/utils/agent-watchdog.ps1`.
 
 Escalate only if the change also affects shared code used by `app_v2/`.
 
@@ -492,7 +513,7 @@ Move upward only when needed:
 | Packaging/install concern | `.\a.ps1 d` | device-specific behavior matters |
 | Wear-only Kotlin edit | `.\a.ps1 fw` | resources or tests also changed |
 | Wear-only resource/manifest edit | `.\a.ps1 fwr` | Kotlin also changed |
-| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `:wear:assembleDebug` |
+| Wear-only logic change with tests | `.\a.ps1 fwu` | packaging proof needed - then `.\a.ps1 wd` |
 | Wear-only instrumented test edit | `.\a.ps1 faw` | execution on watch needed - then `.\a.ps1 fwm` |
 | Flavor-visible resources / flavor source sets | `.\a.ps1 fc -Flavor <name>` per affected flavor | packaging proof needed on that flavor |
 
@@ -503,7 +524,7 @@ Avoid these habits:
 - running `.\a.ps1 d` for every Kotlin change
 - running `clean` to "be safe" in normal loops
 - using `dav` during normal development
-- jumping to the full unit suite before a targeted test
+- jumping to the full unit suite before a targeted test. This line carried no price until S2851 measured one, and unpriced it did not hold: on 2026-09-10 several sessions ran the whole suite to check their own edit. It is 695 classes and 5033 tests, 429 s of wall clock (415.6 s of that test execution, 13.4 s Gradle), and it holds `Build.Phone` for the whole 429 s while siblings queue - two of them waited 11 minutes each, one of those to run a single filtered class. The same proof, filtered to the classes the change touches, measured 20 s.
 - using standard fast checks for `noLegal` tasks
 - proving a `wear/` change with `fk`/`fr`/`fc`/`fu` - they check `app_v2` and pass without touching the watch module (S1807)
 - wiping all Gradle caches before trying targeted KAPT recovery

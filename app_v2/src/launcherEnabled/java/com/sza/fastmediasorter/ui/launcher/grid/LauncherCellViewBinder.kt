@@ -8,10 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.FrameLayout
 import androidx.annotation.StringRes
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
+import androidx.core.widget.ImageViewCompat
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -35,6 +37,14 @@ import kotlin.math.roundToInt
  * changes when the user edits it, so the DiffUtil/ListAdapter machinery this replaced existed to serve
  * RecyclerView, not the user. Do not "restore" diffing here - it would buy nothing and reintroduce the
  * stale-bind problem that killed the RecyclerView renderer (ADR-9).
+ *
+ * S2686: [rootPool] hands the torn-down render's roots to the next one, which is a view pool and not a
+ * step back toward diffing - nothing is compared, nothing is updated in place, and the tree is still
+ * rebuilt whole. What keeps it clear of the stale-bind problem is that a pooled root is a blank: it is
+ * re-bound in full, listeners included, so it can carry nothing from the cell it drew before. That
+ * matters most where it is least visible - the edit-mode callbacks capture their [LauncherCellUi] and
+ * delete or move a row by `cell.id`, and a rotation swaps the whole id set, so a root left with its
+ * previous listeners would edit the orientation the user just left.
  */
 class LauncherCellViewBinder(
     private val onCellClick: (LauncherCellUi) -> Unit,
@@ -58,6 +68,18 @@ class LauncherCellViewBinder(
     var gadgetBinder: ((LauncherCellUi, FrameLayout) -> Unit)? = null
 
     /**
+     * S2686: asks the host whether a pooled container still holds the right gadget for this cell, and
+     * re-points it at the cell if so. `true` keeps the live gadget view across the rebind; `false` sends
+     * the pooled root back to the inflater.
+     *
+     * The host decides because it is the only side that knows what the view was built from: a gadget is
+     * a registry key AND a resolved parameter, and the parameter is read per bind from the saved weather
+     * place and the cell's own config row. Matching on the cell's `target` alone here would keep showing
+     * the previous city after the user picked a new one.
+     */
+    var gadgetRebinder: ((LauncherCellUi, FrameLayout) -> Boolean)? = null
+
+    /**
      * S1428: everything the rendered tree is a pure function of, in one named type.
      *
      * It replaced a `Triple` plus a loose `lastRows` field: `Triple` holds exactly three values, so the
@@ -75,6 +97,15 @@ class LauncherCellViewBinder(
     )
 
     private var lastKey: RenderKey? = null
+
+    /**
+     * S2686: the roots of the render being torn down, offered back to the next one instead of a fresh
+     * `LayoutInflater` pass. Keyed by kind and nothing finer on purpose - a root is a blank, not a cell:
+     * whichever one comes out is re-bound in full, so it cannot carry anything from the cell it drew
+     * before. That is also what keeps this inside ADR-9 rather than diffing under another name - no list
+     * is compared, no subtree is updated in place, and the tree is still rebuilt whole every time.
+     */
+    private val rootPool = mutableMapOf<LauncherCellKind, ArrayDeque<View>>()
 
     /**
      * Rebuilds the desktop. Cheap to call repeatedly by design: the rendered tree is a pure function of
@@ -104,25 +135,45 @@ class LauncherCellViewBinder(
         // at the guard is also what keeps a toggle made while editing from rebuilding an identical tree.
         val foldedSections = if (editMode) emptySet() else collapsedSections
         val plan = LauncherGridGeometry.renderPlan(cells, foldedSections, columns)
-        val rows = rowsToShow(plan, editMode, viewportRows)
+        val occupied = LauncherGridGeometry.rowsForRendered(plan)
+        val rows = rowsToShow(occupied, editMode, viewportRows)
+        // S2660: edit mode scrolls into its spare rows on purpose, so there the content IS the whole
+        // grid; at rest only the occupied rows may size the canvas, or the viewport floor below turns
+        // its rounding remainder into scroll travel over empty space.
+        val contentRows = if (editMode) rows else occupied
+        Timber.d("S2660: bind occupied=$occupied rows=$rows contentRows=$contentRows edit=$editMode")
         // The row count joins the guard rather than [viewportRows] itself: a viewport that changed
         // without changing how many rows are drawn - a few pixels of inset, a rotation on a square
         // screen - must not tear down every gadget for an identical render.
         val key = RenderKey(cells, columns, editMode, rows, foldedSections, gadgetBackdropAlpha)
         if (lastKey == key) return
+        // S2686: read before [lastKey] is overwritten - the pool is only safe between two resting
+        // renders, and it is the OUTGOING render's mode that says whether its roots carry edit-mode
+        // decorations. [decorateForEdit] adds the scrim, the badge and the handle as children and
+        // removes none of them, so a root that passed through it twice would carry two of each.
+        val pooledFromRest = lastKey?.editMode == false && !editMode
         lastKey = key
+        harvestRoots(container, pooledFromRest)
         container.removeAllViews()
         container.columns = columns
         container.rows = rows
+        container.contentRows = contentRows
         val inflater = LayoutInflater.from(container.context)
+        var reusedRoots = 0
         plan.forEach { rendered ->
             val item = rendered.item
-            val view = when (item.cell.kind) {
-                LauncherCellKind.SHORTCUT -> bindShortcut(inflater, container, item, gadgetBackdropAlpha)
-                LauncherCellKind.GADGET -> bindGadget(inflater, container, item)
+            val kind = item.cell.kind
+            // S2686: a blank of the right kind, pooled or freshly inflated - the binders below cannot
+            // tell the two apart, because each one rewrites every visual and every listener it owns.
+            val pooledRoot = takeRoot(item)
+            if (pooledRoot != null) reusedRoots++
+            val root = pooledRoot ?: inflateRoot(inflater, container, kind)
+            val view = when (kind) {
+                LauncherCellKind.SHORTCUT -> bindShortcut(root, container, item, gadgetBackdropAlpha)
+                LauncherCellKind.GADGET -> bindGadget(root, item, reused = pooledRoot != null)
                 LauncherCellKind.SECTION ->
                     bindSection(
-                        inflater,
+                        root,
                         container,
                         item,
                         item.cell.target in foldedSections,
@@ -149,6 +200,69 @@ class LauncherCellViewBinder(
             )
         }
         if (editMode) addEmptySlots(inflater, container, plan, columns)
+        Timber.d("S2686: rebind cells=${plan.size} reused=$reusedRoots inflated=${plan.size - reusedRoots}")
+        // S2686: a desktop that shrank leaves blanks nobody took. Dropping them here rather than at the
+        // next harvest is what keeps this a hand-off between two renders instead of a cache that outlives
+        // the desktop it was filled from.
+        rootPool.clear()
+    }
+
+    /**
+     * S2686: moves the outgoing render's cell roots into [rootPool], or empties it when the pair of
+     * renders is not one the pool may cross (see the call site).
+     *
+     * A child carrying no kind tag is skipped rather than pooled: those are the empty slots of an edit
+     * render, which are not cells and are never handed to a cell binder.
+     */
+    private fun harvestRoots(container: LauncherDesktopLayout, pooled: Boolean) {
+        rootPool.clear()
+        if (!pooled) return
+        for (index in 0 until container.childCount) {
+            val child = container.getChildAt(index)
+            val kind = child.getTag(R.id.launcher_cell_kind_tag) as? LauncherCellKind ?: continue
+            rootPool.getOrPut(kind) { ArrayDeque() }.addLast(child)
+        }
+    }
+
+    /**
+     * S2686: a blank for [item] from the outgoing render, or null when the pool has none the cell can
+     * take.
+     *
+     * A GADGET root passes through [gadgetRebinder] first, because its content is the host's and only
+     * the host can say whether the container still matches. A refusal drops the root rather than
+     * emptying it: the caller then inflates, which is exactly the path a fresh gadget already takes.
+     */
+    private fun takeRoot(item: LauncherCellUi): View? {
+        val pool = rootPool[item.cell.kind]
+        if (pool == null || item.cell.kind != LauncherCellKind.GADGET) return pool?.removeFirstOrNull()
+        // The whole pool is offered rather than only its head: a rotation reorders the desktop, so the
+        // first gadget root out is rarely the one this cell wants, and popping blindly would throw away
+        // a live gadget view that the very next cell was about to reclaim.
+        val match = pool.firstOrNull { acceptsGadget(item, it) }
+        if (match != null) pool.remove(match)
+        return match
+    }
+
+    /** S2686: whether the host will keep [root]'s gadget for [item]; re-points the gadget when it will. */
+    private fun acceptsGadget(item: LauncherCellUi, root: View): Boolean {
+        val gadgetContainer = ItemLauncherCellGadgetBinding.bind(root).gadgetContainer
+        return gadgetRebinder?.invoke(item, gadgetContainer) == true
+    }
+
+    /** S2686: a fresh root, tagged so [harvestRoots] can return it to the pool of its own kind. */
+    private fun inflateRoot(
+        inflater: LayoutInflater,
+        container: LauncherDesktopLayout,
+        kind: LauncherCellKind,
+    ): View {
+        val layoutRes = when (kind) {
+            LauncherCellKind.SHORTCUT -> R.layout.item_launcher_cell_shortcut
+            LauncherCellKind.GADGET -> R.layout.item_launcher_cell_gadget
+            LauncherCellKind.SECTION -> R.layout.item_launcher_section_header
+        }
+        val root = inflater.inflate(layoutRes, container, false)
+        root.setTag(R.id.launcher_cell_kind_tag, kind)
+        return root
     }
 
     /**
@@ -214,16 +328,18 @@ class LauncherCellViewBinder(
      * (S1288). The two rules are a maximum rather than a sum: on a desktop already taller than the
      * screen the spare rows win and the behaviour is what it always was.
      *
-     * At rest it is exactly as tall as its content: empty squares are an editing affordance, not part
-     * of the desktop, so [viewportRows] is deliberately ignored outside edit mode.
+     * S2387: at rest, the canvas spans at least [viewportRows] so long-press and slot targeting work
+     * anywhere on visible desktop space below all shortcuts, while empty slot affordances remain edit-only.
+     *
+     * S2660: what this returns addresses touches, it does not size the canvas. The height comes from
+     * LauncherDesktopLayout.contentRows, which at rest is [occupied] alone.
      */
     private fun rowsToShow(
-        plan: List<LauncherGridGeometry.RenderedCell>,
+        occupied: Int,
         editMode: Boolean,
         viewportRows: Int,
     ): Int {
-        val occupied = LauncherGridGeometry.rowsForRendered(plan)
-        if (!editMode) return occupied
+        if (!editMode) return maxOf(occupied, viewportRows)
         return maxOf(occupied + SPARE_EDIT_ROWS, viewportRows)
     }
 
@@ -295,7 +411,6 @@ class LauncherCellViewBinder(
         // above it, and since the strip itself is not clickable, every touch that misses the button
         // still falls through to the scrim and keeps the cell's edit tap and drag.
         val scrimIndex = if (item.cell.kind == LauncherCellKind.SECTION) {
-            Timber.d("S2305: section edit scrim placed below the header strip")
             0
         } else {
             view.childCount
@@ -339,12 +454,12 @@ class LauncherCellViewBinder(
     }
 
     private fun bindShortcut(
-        inflater: LayoutInflater,
+        root: View,
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
         backdropAlpha: Float,
     ): android.view.View {
-        val binding = ItemLauncherCellShortcutBinding.inflate(inflater, container, false)
+        val binding = ItemLauncherCellShortcutBinding.bind(root)
         applyShortcutLayoutScaling(binding, container)
         val visual = item.visual
         // S1173: the dim goes on the icon and the caption, never on the root. With no card behind them
@@ -366,6 +481,15 @@ class LauncherCellViewBinder(
                 binding.cellIcon.setImageResource(visual.iconRes ?: R.drawable.ic_launcher_mode)
             }
         }
+        // S2889: written on EVERY path, not only where an accent exists. The binder pools and rebinds cell
+        // roots, so a pooled root that carried a sub-program's tone last render would keep it under whatever
+        // app icon, contact photo or stream favicon lands in it next - a colour on something that is not a
+        // sub-program at all. Clearing is the half that makes the tint safe, not an optimisation.
+        Timber.d("S2889: launcher cell '${visual?.label}' accent=${visual?.accentRes}")
+        ImageViewCompat.setImageTintList(
+            binding.cellIcon,
+            visual?.accentRes?.let { ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, it)) },
+        )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item)
         applyBackdropAlpha(binding.cellLabel, backdropAlpha)
@@ -435,12 +559,14 @@ class LauncherCellViewBinder(
     }
 
     private fun bindGadget(
-        inflater: LayoutInflater,
-        container: LauncherDesktopLayout,
+        root: View,
         item: LauncherCellUi,
+        reused: Boolean,
     ): android.view.View {
-        val binding = ItemLauncherCellGadgetBinding.inflate(inflater, container, false)
-        gadgetBinder?.invoke(item, binding.gadgetContainer)
+        val binding = ItemLauncherCellGadgetBinding.bind(root)
+        // S2686: a reused container already holds its gadget, and [gadgetBinder] appends rather than
+        // replaces - calling it again would stack a second copy of the gadget on top of the first.
+        if (!reused) gadgetBinder?.invoke(item, binding.gadgetContainer)
         return binding.root
     }
 
@@ -451,18 +577,17 @@ class LauncherCellViewBinder(
      * than an exception inside it that ADR-2 forbids.
      */
     private fun bindSection(
-        inflater: LayoutInflater,
+        root: View,
         container: LauncherDesktopLayout,
         item: LauncherCellUi,
         collapsed: Boolean,
         editMode: Boolean,
         backdropAlpha: Float,
     ): android.view.View {
-        val binding = ItemLauncherSectionHeaderBinding.inflate(inflater, container, false)
+        val binding = ItemLauncherSectionHeaderBinding.bind(root)
         val title = item.visual?.label
             ?: container.context.getString(R.string.launcher_home_cell_unavailable)
         binding.sectionTitle.text = title
-        Timber.d("S2284: outlined section title bound")
         // S1664: set, never animated. [bind] rebuilds every cell view on each emission, so there is no
         // previous chevron to turn - it is inflated fresh and simply arrives already at its state. An
         // animation here would play on a view the user has not seen yet, on every unrelated rebind.

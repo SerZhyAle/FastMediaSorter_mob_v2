@@ -1,10 +1,16 @@
 package com.sza.fastmediasorter.wear.domain.model
 
 /**
- * S1708: The two halves of a downloaded catalog archive - the CSV text and the optional favicon
- * sprite atlas - handed from the ZIP reader to the import step.
+ * S1708/S2669: the halves of a downloaded catalog archive - the CSV text, the optional favicon
+ * sprite atlas, and the optional curated-collections payload - handed from the ZIP reader to the
+ * import step. `collectionsJson` is null when the archive carried no such entry, which leaves the
+ * stored collections untouched rather than clearing them.
  */
-internal data class CatalogPayload(val csv: String, val atlasPng: ByteArray?)
+internal data class CatalogPayload(
+    val csv: String,
+    val atlasPng: ByteArray?,
+    val collectionsJson: String? = null
+)
 
 /**
  * S1708: Outcome of one curated stream-catalog import on Wear OS.

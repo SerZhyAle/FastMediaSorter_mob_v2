@@ -10,18 +10,20 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.widget.PopupMenu
-import androidx.core.content.pm.PackageInfoCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.DefaultItemAnimator
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.UnifiedFileCache
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
+import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
+import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
@@ -30,6 +32,7 @@ import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.core.ui.UiState
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.core.util.StoragePermissionRule
 import com.sza.fastmediasorter.data.network.SmbClient
@@ -38,6 +41,7 @@ import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
+import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -53,6 +57,8 @@ import com.sza.fastmediasorter.ui.common.input.InputHelpFirstRunHint
 import com.sza.fastmediasorter.ui.common.input.UiSurface
 import com.sza.fastmediasorter.ui.icon.ResourceIconComposer
 import com.sza.fastmediasorter.ui.main.helpers.KeyboardNavigationHandler
+import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastManager
+import com.sza.fastmediasorter.ui.main.helpers.MainBroadcastMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCameraCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
@@ -74,6 +80,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
+import com.sza.fastmediasorter.ui.main.helpers.MainStartWindowRedirectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
@@ -82,6 +89,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainVoiceCaptureManager
 import com.sza.fastmediasorter.ui.main.helpers.MainWearCompanionMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourcePasswordManager
 import com.sza.fastmediasorter.ui.main.helpers.ResourceVrCinemaLaunchManager
+import com.sza.fastmediasorter.ui.main.helpers.StartupBrandFrameManager
 import com.sza.fastmediasorter.ui.main.helpers.StartupNoticeManager
 import com.sza.fastmediasorter.ui.main.helpers.StreamsPanelMenuActions
 import com.sza.fastmediasorter.ui.main.helpers.VersionOverlayManager
@@ -94,7 +102,6 @@ import com.sza.fastmediasorter.ui.share.ShareDownloadResultBus
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeActivity
 import com.sza.fastmediasorter.ui.welcome.WelcomeViewModel
-import com.sza.fastmediasorter.util.getPackageInfoCompat
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import com.sza.fastmediasorter.utils.setOnClickListenerDebounced
@@ -133,8 +140,16 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var linkDownloadManager: MainLinkDownloadManager
     private lateinit var exitButtonManager: MainExitButtonManager
     private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
+
+    // S2673: route-availability probe for the programs menu, built by the helper factory so this
+    // Activity declares no domain dependency of its own (CLAUDE.md Rule 3).
+    private val subProgramAvailability: (String) -> Boolean by lazy {
+        mainHelperFactory.createSubProgramAvailabilityProbe { latestSettings }
+    }
     private lateinit var screenRecordingMenuManager: MainScreenRecordingMenuManager
     private lateinit var screenRecordingManager: MainScreenRecordingManager
+    private lateinit var broadcastMenuManager: MainBroadcastMenuManager
+    private lateinit var broadcastManager: MainBroadcastManager
     private lateinit var programsPanelManager: MainProgramsPanelManager
     private lateinit var streamsPanelManager: MainStreamsPanelManager
     private lateinit var collapsedChipsPlacement: MainCollapsedChipsPlacementManager
@@ -160,6 +175,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var startupFullyDrawnReported = false
     private var startupAprilFoolsPrankChecked = false
     private var isCalculatorEnabled = false
+    private var isStopwatchEnabled = false
 
     // S1285: last cell-size step handed to the layout chrome. The settings collector below compares
     // against it, because that collector re-fires for every unrelated setting and rebuilding the
@@ -169,6 +185,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private var isNetworkMonitorEnabled = false
     private var isSystemInfoEnabled = false
     private var isFrontFlashlightEnabled = false
+    private var isWaterFlashlightEnabled = false
     private var isWearCompanionEnabled = false
     private var isEmbeddedGameEnabled = false
     private var isCameraOcrEnabled = false
@@ -246,13 +263,42 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     @Inject
     lateinit var networkMonitorContract: NetworkMonitorContract
 
+    @Inject
+    lateinit var launcherModeContract: LauncherModeContract
+
+    @Inject
+    lateinit var launcherStartWindowManager: LauncherStartWindowManager
+
+    @Inject
+    lateinit var launcherRoleManager: LauncherRoleManager
+
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
     lateinit var resourceVrCinemaLaunchManager: ResourceVrCinemaLaunchManager
 
+    // S2508: broadcast permission launchers - registered pre-STARTED
+    private val broadcastRecordAudioLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (::broadcastManager.isInitialized) {
+            broadcastManager.onPermissionResult(android.Manifest.permission.RECORD_AUDIO, granted)
+        }
+    }
+
+    private val broadcastPostNotificationsLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (::broadcastManager.isInitialized) {
+            broadcastManager.onPermissionResult(android.Manifest.permission.POST_NOTIFICATIONS, granted)
+        }
+    }
+
     // S0774: empty except on standard (fms.screenCapture=on) + noLegal; gates the screen-recording scenario.
     @Inject
     lateinit var screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>
+
+    @Inject
+    lateinit var broadcastSourceController: BroadcastSourceController
 
     @Inject
     lateinit var screenRecordingStateController: ScreenRecordingStateController
@@ -360,10 +406,36 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         routeToSettingsIfRequested(intent)
 
         // If restart was triggered from SettingsActivity, return user there
-        if (!returnToSettingsRequested && LocaleHelper.consumeReturnToSettings(this)) {
+        val returningToSettings = !returnToSettingsRequested && LocaleHelper.consumeReturnToSettings(this)
+        if (returningToSettings) {
             startActivity(Intent(this, SettingsActivity::class.java))
             finish()
-            return
+        }
+
+        // S2811: the one place that answers "which window does a cold start open". It is evaluated after
+        // every redirect above, so onboarding and the system returns keep their destinations, and before
+        // the brand frame below, which a finishing instance must not schedule. The settings return shares
+        // this exit rather than owning one of its own - onCreate's return budget is spent (detekt
+        // ReturnCount), and annotating the function would unbaseline two findings by changing its
+        // detekt signature.
+        val startWindowRedirect = MainStartWindowRedirectManager(
+            contract = launcherModeContract,
+            startWindowManager = launcherStartWindowManager,
+            isResumingAudio = {
+                AudioPlaybackService.isRunning && AudioPlaybackService.currentResourceId > 0L
+            },
+            isHomeRoleHeld = { launcherRoleManager.isHomeRoleHeld() },
+        )
+        val redirected = returningToSettings ||
+            startWindowRedirect.redirectIfRequested(this, intent, savedInstanceState, returnToSettingsRequested)
+        if (redirected) return
+
+        // S2556: the startup brand frame, placed here for the same reason as the notices below -
+        // after every early-return redirect, so the welcome path and the settings return never carry
+        // a frame the user did not ask for a cold start of. savedInstanceState gates it to a real
+        // cold start rather than a process restore.
+        if (savedInstanceState == null && !returnToSettingsRequested) {
+            StartupBrandFrameManager.attach(this)
         }
 
         // S1153: defer the disk-reading startup notices (S0731 DB-reset, S0490 crash prompt) off the
@@ -539,7 +611,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             this,
             object : androidx.activity.OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    Timber.d("S2097: root Back at main home - moveTaskToBack instead of finish")
                     moveTaskToBack(true)
                 }
             }
@@ -784,25 +855,17 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun getMainWindowDropdownMenuItemCount(): Int =
         programsMenuCoordinator.itemCount(currentProgramsMenuGate())
 
-    // S0774: resolve the runtime flags + media capabilities into the coordinator's gate snapshot. The
-    // flags are mutated by the settings collector, so this is recomputed on every menu build.
+    // S0774: resolve the runtime flags + media capabilities into the coordinator's gate snapshot.
+    // S2673: only the three items the sub-program registry does not govern are named here; every
+    // sub-program is answered by the route-availability chain, so this activity holds no mapping from
+    // a route key to a boolean.
     private fun currentProgramsMenuGate() = MainProgramsMenuCoordinator.ProgramsMenuGate(
         streams = capabilityAvailability.isStreamsAvailable() && isStreamsEnabled,
         // S0962 (VR Cinema, Pillar 1): visible only on an XR device with the VR-3D master toggle on; the
         // launch manager mirrors that runtime state (same gate as the file/resource context-menu items).
         vrCinema = resourceVrCinemaLaunchManager.isAvailable,
-        quickVoice = isQuickVoiceEnabled && mediaCapabilities.supportsMicRecording,
-        quickCamera = (isQuickPhotoEnabled && mediaCapabilities.supportsImages) ||
-            (isQuickVideoEnabled && mediaCapabilities.supportsVideo),
-        calculator = isCalculatorEnabled,
-        networkMonitor = isNetworkMonitorEnabled,
-        cameraOcr = isCameraOcrEnabled,
-        linkDownload = isLinkDownloadEnabled,
-        miniGame = isEmbeddedGameEnabled,
-        screenRecording = isScreenRecordingEnabled,
-        systemInfo = isSystemInfoEnabled,
-        wearCompanion = isWearCompanionEnabled,
-        frontFlashlight = isFrontFlashlightEnabled,
+        broadcast = broadcastSourceController.isAvailable,
+        isSubProgramAvailable = subProgramAvailability,
     )
 
     private fun showMainWindowDropdownMenu() {
@@ -892,6 +955,20 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         screenRecordingMenuManager = MainScreenRecordingMenuManager(
             onScreenRecording = { screenRecordingManager.start() },
         )
+        broadcastManager = mainHelperFactory.createBroadcastManager(
+            activity = this,
+            controller = broadcastSourceController,
+            requestRecordAudioPermission = {
+                broadcastRecordAudioLauncher.launch(android.Manifest.permission.RECORD_AUDIO)
+            },
+            requestPostNotificationsPermission = {
+                broadcastPostNotificationsLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+            },
+        )
+        broadcastManager.bind(this)
+        broadcastMenuManager = MainBroadcastMenuManager(
+            onBroadcast = { broadcastManager.startBroadcast() },
+        )
         // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
         // before the coordinator/menu-actions below, which delegate to it.
         panelItemActions = mainHelperFactory.createPanelItemActionsManager(
@@ -908,6 +985,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             quickCaptureMenuManager = quickCaptureMenuManager,
             linkDownloadMenuManager = linkDownloadMenuManager,
             screenRecordingMenuManager = screenRecordingMenuManager,
+            broadcastMenuManager = broadcastMenuManager,
             hostActions = MainProgramsMenuCoordinator.ProgramsHostActions(
                 isNewWindowAvailable = { panelItemActions.isNewWindowAvailable() },
                 launchInNewWindow = { intent -> panelItemActions.launchInNewWindow(intent) },
@@ -1264,11 +1342,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private fun applyAppSettingsToUi(settings: AppSettings) {
         latestSettings = settings // S0770: keep the freshest snapshot for the panel item menus.
         val calculatorEnabledChanged = isCalculatorEnabled != settings.enableCalculator
+        val stopwatchEnabledChanged = isStopwatchEnabled != settings.enableStopwatch
         val networkMonitorNowEnabled =
             settings.enableNetworkMonitor && networkMonitorContract.isAvailableInBuild
         val networkMonitorEnabledChanged = isNetworkMonitorEnabled != networkMonitorNowEnabled
         val systemInfoEnabledChanged = isSystemInfoEnabled != settings.enableSystemInfo
         val frontFlashlightEnabledChanged = isFrontFlashlightEnabled != settings.frontFlashlightEnabled
+        val waterFlashlightEnabledChanged = isWaterFlashlightEnabled != settings.waterFlashlightEnabled
         // S1735 (ADR-1): the setting AND the build's watch bridge. The setting alone would offer the
         // companion where no bridge exists; the capability alone would deny the user the switch.
         val wearCompanionNowEnabled =
@@ -1293,9 +1373,11 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             settings.screenRecordingEnabled && screenVideoRecordingControllers.isNotEmpty()
         val screenRecordingEnabledChanged = isScreenRecordingEnabled != screenRecordingNowEnabled
         isCalculatorEnabled = settings.enableCalculator
+        isStopwatchEnabled = settings.enableStopwatch
         isNetworkMonitorEnabled = networkMonitorNowEnabled
         isSystemInfoEnabled = settings.enableSystemInfo
         isFrontFlashlightEnabled = settings.frontFlashlightEnabled
+        isWaterFlashlightEnabled = settings.waterFlashlightEnabled
         isWearCompanionEnabled = wearCompanionNowEnabled
         isEmbeddedGameEnabled = settings.embeddedGameEnabled
         isCameraOcrEnabled = settings.cameraOcrTranslationEnabled
@@ -1312,11 +1394,15 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         layoutChrome.setCommandEligible(R.id.btnFavorites, settings.enableFavorites)
         resourceAdapter.setUseCompactElements(settings.useCompactElements)
         resourceAdapter.setOverflowModeEnabled(settings.resourceOpsInOverflowMenu) // S0160
-        Timber.d("S2209: disableAnimations=%s applied to resource list", settings.disableAnimations)
-        if (settings.disableAnimations) {
+        // S2536: through the policy, not the raw setting. This was the last draw-side consumer still
+        // reading the flag directly, which stopped mattering only while the two could not disagree -
+        // a power-saving level now says "no animation" with the user's own switch still off.
+        if (AnimationPolicy.isAnimationAllowed) {
+            if (binding.rvResources.itemAnimator == null) {
+                binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
+            }
+        } else {
             binding.rvResources.itemAnimator = null
-        } else if (binding.rvResources.itemAnimator == null) {
-            binding.rvResources.itemAnimator = androidx.recyclerview.widget.DefaultItemAnimator()
         }
         // S0727: apply the persisted allowSeparateWindow preference off-Main here (OR runtime
         // capability), replacing the removed runBlocking read in setupViews.
@@ -1342,9 +1428,9 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0755/S0756: any menu-affecting gate OR a panel/streams toggle change rebuilds the panels
         // (the programs panel mirrors the menu) and refreshes the three-dots button visibility.
         val panelInputsChanged = listOf(
-            calculatorEnabledChanged, embeddedGameEnabledChanged, cameraOcrEnabledChanged,
-            networkMonitorEnabledChanged, systemInfoEnabledChanged, frontFlashlightEnabledChanged,
-            wearCompanionEnabledChanged,
+            calculatorEnabledChanged, stopwatchEnabledChanged, embeddedGameEnabledChanged,
+            cameraOcrEnabledChanged, networkMonitorEnabledChanged, systemInfoEnabledChanged,
+            frontFlashlightEnabledChanged, waterFlashlightEnabledChanged, wearCompanionEnabledChanged,
             quickVoiceEnabledChanged, quickVideoEnabledChanged, quickPhotoEnabledChanged,
             linkDownloadEnabledChanged, streamsEnabledChanged, programsPanelChanged, streamsPanelChanged,
             screenRecordingEnabledChanged,

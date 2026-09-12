@@ -126,6 +126,13 @@ constrained field is one entry there, not a new code path.
 The CSV may be edited in a spreadsheet (Excel / Google Sheets) and saved quoted (`"value"`) or plain;
 the loader (`DeviceProfilePresetCsvDataSource`) parses both.
 
+**A settings reset re-applies the profile (S2664).** `resetToDefaults` writes the factory defaults
+and stops there, so a reset used to turn a car head unit back into an unprofiled device while the
+profile picker still said "car head unit". `ResetSettingsToProfileDefaultsUseCase` now runs the
+stored profile's preset immediately after the reset, through the applier's settings-only half -
+the bookkeeping half records that a preset was applied AT INSTALL TIME, which a reset is not.
+Profile `Other` carries no preset and is left at the factory defaults.
+
 State/credential fields (e.g. `defaultUser`, `defaultPassword`, `lastUsedResourceId`) are
 deliberately NOT handled by the applier - even if present in the CSV they are skipped, so a profile
 apply never wipes credentials or session state. Section 6 is where that intent is declared.
@@ -161,14 +168,32 @@ Provisional minimalist vector icon set, wired into the shared picker
 **File:** `docs/settings/device-profile-nonpresettable.json`. Developer tooling data, read only by
 `scripts/check_device_profile_presets.ps1` - it is not packaged into the APK.
 
-A record is `{ "field": "<AppSettings field name>", "reason": "<why a profile may never set it>" }`.
-The reason is mandatory and is what a future reader gets instead of guessing.
+A record is `{ "field": "<AppSettings field name>", "reason": "<why the field is where it is>" }`.
+The reason is mandatory in both arrays and is what a future reader gets instead of guessing.
 
-**The rule a new setting must satisfy:** every `AppSettings` field has *either* a row in the CSV
-matrix *or* an entry in this registry. Until one of the two exists the coverage gate fails, and with
-it `.\a.ps1 fg` and `scripts/post-change.ps1`. A registered field that nevertheless carries a value
-in the CSV is also an error - the registry promises that value can never take effect, so authoring
-one would be silent data loss.
+**The file holds two arrays, and they are not interchangeable (S1538).**
+
+- `fields` - a profile may **never** set this one. It needs no CSV row, and carrying a value in the
+  CSV is an error, because the entry promises the value can never take effect.
+- `reviewed` - the field was examined and needs no override *today*. It stays presettable, **keeps
+  its CSV row and its applier branch**, and a value added later is legitimate rather than an error.
+
+**The rule a new setting must satisfy:** every `AppSettings` field carries a decision - a value in
+at least one profile column, a `fields` entry, or a `reviewed` entry. Until one of the three exists
+the coverage gate fails, and with it `.\a.ps1 fg` and `scripts/post-change.ps1`.
+
+**Only `fields` excuses a field from owning a row.** Writing an entry into `reviewed` when `fields`
+was meant leaves the field absent from the CSV while the `Non-presettable fields` counter does not
+move, so the mistake used to be visible only as a number that stayed put. Since S2574 the checker
+reports that case under its own label - `reviewed fields MISSING their CSV row` - instead of filing
+it with the genuinely forgotten fields.
+
+**A `fields` entry and a CSV row are mutually exclusive, and S2664 made the CSV agree.** The entry
+promises the value can never take effect, so a row carrying one is dead data that reads as a
+promise to the next person who opens the spreadsheet. S2664 deleted the 42 such rows that had
+accumulated - the CSV went from 256 data rows to 214 - so every remaining row is a field a profile
+may actually set. The registry itself did not grow: no field was moved into `fields` by that
+ticket, and the two arrays still hold 78 and 73 entries, each with its reason.
 
 **The registry does not replace the applier's `else -> skip(..)` branch.** The applier is the
 runtime safety net: it is what actually refuses to write a credential or a session-state field when
@@ -180,10 +205,11 @@ Broad categories currently registered: credentials, install-local pointers (reso
 paths), consent flags, session and migration state, one-shot hints, and the locale-derived
 translation languages.
 
-## 7. The launcher desktop is not a preset (S2309)
+## 7. The launcher desktop is not a preset (S2309, S2385)
 
 The starter desktop the launcher seeds - which sections exist, in which order, how many items each
-holds and how many screens they fill - is **not** driven by the CSV matrix and will not be.
+holds and how many screens they fill, **and which cells land in them** - is **not** driven by the CSV
+matrix and will not be.
 
 It has a second axis the CSV cannot express: the device's screen class. A profile says what belongs
 on the device; the screen class says how much of it reaches the first screen, and it is derived from
@@ -195,8 +221,17 @@ Adding layout columns to the CSV would also mean one column per section per scre
 grid nobody can read and a coverage gate nobody can satisfy - and the CSV's promise is that every
 row is one `AppSettings` field, which a section order is not.
 
+The desktop's **contents** stay out for a second reason (S2385, ADR-1). This CSV's contract is that an
+empty cell means "do not override", which is unambiguous for a scalar option and not for a list: an
+empty cell would stop being distinguishable from a deliberately empty list, and the same eleven
+columns would carry a value whose meaning depended on the row's type. Contents also depend on things
+no `option -> profile` grid holds - which packages are installed, which resource ids resolved, which
+routes the build shipped - so the profile column could not decide them alone even if the shape fitted.
+
 Where the rules actually live, for a reader who came here looking for them:
 
+- `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterSets.kt` - what each
+  profile's desktop is made of, the signature cell it opens its widget group with among it.
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherStarterLayoutRules.kt` - the
   section order, the per-section item budget and the screen count, per profile and screen class.
 - `app_v2/src/main/java/com/sza/fastmediasorter/core/launcher/LauncherScreenClassifier.kt` - how a

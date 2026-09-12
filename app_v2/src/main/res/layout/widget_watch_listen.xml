@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2881: one widget, two separately tappable zones - plain listen and listen with recording -
+     plus a state caption the session owner pushes. The active state differs by the caption text
+     and by a swapped icon, never by a tint alone (strategic 3.2). Icon colours stay baked into the
+     drawables because RemoteViews cannot toggle a static tint per state (S0349 lesson). -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_watch_listen_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="@dimen/padding_tiny">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:id="@+id/widget_watch_listen_listen_zone"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/watch_listen_content_description"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/widget_watch_listen_listen_icon"
+                android:layout_width="@dimen/widget_icon_size_large"
+                android:layout_height="@dimen/widget_icon_size_large"
+                android:src="@drawable/ic_watch"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/widget_watch_listen_listen_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:shadowColor="@color/black"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="@string/watch_listen_label"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size_11sp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/widget_watch_listen_record_zone"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/watch_listen_record_content_description"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/widget_watch_listen_record_icon"
+                android:layout_width="@dimen/widget_icon_size_large"
+                android:layout_height="@dimen/widget_icon_size_large"
+                android:src="@drawable/ic_microphone"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/widget_watch_listen_record_label"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/margin_tiny"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="2"
+                android:shadowColor="@color/black"
+                android:shadowDx="0"
+                android:shadowDy="1"
+                android:shadowRadius="3"
+                android:text="@string/watch_listen_record_label"
+                android:textColor="@color/white"
+                android:textSize="@dimen/text_size_11sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_watch_listen_state"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="1"
+        android:shadowColor="@color/black"
+        android:shadowDx="0"
+        android:shadowDy="1"
+        android:shadowRadius="3"
+        android:text="@string/watch_listen_state_idle"
+        android:textColor="@color/white"
+        android:textSize="@dimen/text_size_11sp" />
+</LinearLayout>

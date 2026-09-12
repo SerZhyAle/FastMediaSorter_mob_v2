@@ -212,7 +212,6 @@ class ToolsSectionViewModel @Inject constructor(
     }
 
     private fun beginOperation(operation: ToolsOperation) {
-        Timber.d("S2347: tools operation started as typed state: %s", operation)
         activeJob?.cancel()
         _uiState.update {
             it.copy(

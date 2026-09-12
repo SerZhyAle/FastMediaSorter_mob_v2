@@ -74,7 +74,6 @@ class LauncherStreamActionManager(
             // S2247: one step from the channel's menu to a desktop window; the placement answers
             // asynchronously, so the result toast is spoken from the callback, not here.
             StreamMenuAction.ADD_DESKTOP_WINDOW -> {
-                Timber.d("S2247: menu add desktop window for %s", source.title)
                 placeDesktopWindow(source.identityKey, source.mediaKind) { placed ->
                     val message = if (placed) {
                         R.string.launcher_stream_desktop_window_added

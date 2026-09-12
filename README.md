@@ -4,7 +4,7 @@
 ![Android](https://img.shields.io/badge/Platform-Android-green?style=flat-square&logo=android)
 ![License](https://img.shields.io/badge/License-Apache_2.0-blue?style=flat-square&logo=apache)
 
-**📖 Other Languages:** [🇷🇺 Русский](docs/README_RU.md) | [🇺🇦 Українська](docs/README_UK.md)
+**📖 Other Languages:** [🇷🇺 Русский](docs/README-ru.md) | [🇺🇦 Українська](docs/README-uk.md)
 
 **📦 Download:** [<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" alt="Get it on IzzyOnDroid" height="56">](https://apt.izzysoft.de/fdroid/index/apk/com.sza.fastmediasorter)
 
@@ -58,13 +58,13 @@ FastMediaSorter is an all-in-one media browser, viewer, player, and organizer. O
 
 > *Honesty notes: the calculator and archiver are basic (evaluate-from-text / ZIP extraction), not full replacements. Settings backup covers the app's own setup, not full-device backup. The VR player is VR-edition only.*
 
-## What's New in v2.60.9021.951 (September 2026)
+## What's New in v2.60.9121.346 (September 2026)
 
 **New:**
-Reconnect a folder through the system chooser, honest wording when a connection cannot reach documents, camera shooting modes with tap-to-focus, a watch that browses its own storage and carries tiles, two-way watch settings sync, live map / world clock / YouTube desktop gadgets, launcher paging and edge gestures, picture-in-picture from every host, host ping and hop-by-hop traceroute, grouped and translated stream rubrics, a resource list that remembers its filter and sort.
+A built-in stopwatch with a home-screen widget, a mirror program, a water flashlight on phone and watch, a camera flashlight tile in the notification shade, live broadcast of the phone or watch microphone over Wi-Fi, listening to the paired watch, watch content on a TV, mono audio and stereo balance presets, a playback control dialog with volume and subtitles, swipe actions on a file row, folder transfer undo, one unit system across the app, a desktop that can start the app and carries its own screens and settings, curated stream collections and an audio-stream visualizer, live channels in the VR player, a watch that carries tiles, a now-playing row, a stopwatch, text documents and network folder walks on its own, watch colour schemes set from the phone, resource edits and deletes that reach both devices, paged paired-phone browsing from the watch, sunrise / sunset / dew point and multi-city weather gadgets, a charging-aware battery tray, a desktop that locks itself, automatic app-function and package shortcuts, assistant-callable app functions, D-pad and TV navigation across dialogs, permissions and system info, automatic power saving, 124 more settings in backup, cloud sources that survive a new device, a standalone system information report, an F-Droid edition.
 
 **Fixed:**
-Document previews on a folder connected through the system chooser, the search overlay hiding under the status bar, stale file counts after an operation, the reconnect dialog lost on rotation, an empty stream catalog showing nothing, cancelled watch playback logged as an error, the watch database reset on upgrade, launcher shortcut import and alignment.
+Interface language changes not applying everywhere, screens reading only the first device language, a crash when clearing a text field, a stream catalog of nameless entries, a plain-HTTP stream hanging instead of reporting, VP9 video without a hardware decoder, the player top bar hidden under the status bar on Android 8, backup restore starting from stale defaults, a watch database reset across module upgrades, voice notes lost to a watch database failure, wide desktop cells overhanging the grid, incomplete rows falling off the round watch display, watch lists starting below the top edge, a watch network resource offering no browse category without saying why, app-function shortcuts ignoring their toggles, the watch calculator clear button out of reach, an unticked resource staying on the watch, watch sync failing against an older phone, statistics rows clipping their numbers, watch toggle captions breaking mid-word.
 
 [Full release notes →](docs/WHATS_NEW.md)
 
@@ -107,7 +107,7 @@ Features include:
 
 ## Product Flavors 🎯
 
-FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets (Standard, Lite, Photos, Legacy) plus two headset and sideload builds, VR and noLegal. The exact capability grid is generated from the build in [FLAVOR_MATRIX.md](docs/FLAVOR_MATRIX.md):
+FastMediaSorter v2 ships **seven flavors** - five for everyday phones and tablets (Standard, Lite, Photos, Legacy, FOSS) plus two headset and sideload builds, VR and noLegal. The exact capability grid is generated from the build in [FLAVOR_MATRIX.md](docs/FLAVOR_MATRIX.md):
 
 | Flavor | Description | Features |
 |--------|-------------|----------|
@@ -115,6 +115,7 @@ FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets 
 | **Lite** | Lightweight daily-use version | Local files only - video, audio and images; no network sources, cloud, documents or Streams |
 | **Photos** | Image-centric version | Images only, with network sources and cloud; no video and no audio |
 | **Legacy** | Compatibility-focused version | Same feature set as Standard, built for older Android devices (API 23-25) |
+| **FOSS** | F-Droid catalogue build | No proprietary SDKs: local media, documents, EPUB and SMB/FTP/SFTP; no cloud, no Streams, no OCR, no translation, no Cast and no Wear OS companion |
 | **VR** | Store-clean headset build | Full media set for headsets; no Google Cast and no Wear OS companion |
 | **noLegal** | Sideload build | Everything in Standard plus the OpenXR immersive player and sideload-only extras |
 
@@ -124,6 +125,7 @@ FastMediaSorter v2 ships **six flavors** - four for everyday phones and tablets 
 - **Lite**: Prefer this if you want a lighter package and simpler setup
 - **Photos**: Prefer this for photo-first workflows
 - **Legacy**: Choose this for older Android devices (API 23-25)
+- **FOSS**: Choose this from the F-Droid catalogue when you want a build free of proprietary SDKs
 - **VR**: Choose this for an XR headset - the store build without Cast and Wear support
 - **noLegal**: Sideload only - pick it when you need the OpenXR immersive player
 
@@ -291,7 +293,7 @@ The following files should be treated as the authoritative sources for user-faci
 - [Complete Feature List](docs/FEATURES.md)
 - [Documentation Map](docs/DOCS_MAP.md)
 - [Product History](docs/PRODUCT_HISTORY.md)
-- [Downloads (EN)](docs/DOWNLOADS_EN.md)
+- [Downloads (EN)](docs/DOWNLOADS.md)
 - [How-To Guides](docs/HOW_TO.md)
 - [Program Limitations](docs/LIMITATIONS.md)
 - [Quick Start Guide](docs/QUICK_START.md)
@@ -307,28 +309,28 @@ Detailed guides are available in multiple languages:
 - [FAQ](docs/FAQ.md)
 - [Troubleshooting](docs/TROUBLESHOOTING.md)
 - [Program Limitations](docs/LIMITATIONS.md)
-- [Downloads Guide](docs/DOWNLOADS_EN.md)
+- [Downloads Guide](docs/DOWNLOADS.md)
 - [Complete Feature List](docs/FEATURES.md)
 
 **🇷🇺 Русский:**
 
-- [История продукта](docs/PRODUCT_HISTORY_RU.md)
-- [Руководства](docs/HOW_TO_RU.md)
-- [Быстрый Старт](docs/QUICK_START_RU.md)
-- [FAQ](docs/FAQ_RU.md)
-- [Устранение неполадок](docs/TROUBLESHOOTING_RU.md)
-- [Ограничения программы](docs/LIMITATIONS_RU.md)
-- [Скачивание сборок](docs/DOWNLOADS_RU.md)
+- [История продукта](docs/PRODUCT_HISTORY-ru.md)
+- [Руководства](docs/HOW_TO-ru.md)
+- [Быстрый Старт](docs/QUICK_START-ru.md)
+- [FAQ](docs/FAQ-ru.md)
+- [Устранение неполадок](docs/TROUBLESHOOTING-ru.md)
+- [Ограничения программы](docs/LIMITATIONS-ru.md)
+- [Скачивание сборок](docs/DOWNLOADS-ru.md)
 
 **🇺🇦 Українська:**
 
-- [Історія продукту](docs/PRODUCT_HISTORY_UK.md)
-- [Посібники](docs/HOW_TO_UK.md)
-- [Швидкий Старт](docs/QUICK_START_UK.md)
-- [FAQ](docs/FAQ_UK.md)
-- [Вирішення проблем](docs/TROUBLESHOOTING_UK.md)
-- [Обмеження програми](docs/LIMITATIONS_UK.md)
-- [Завантаження збірок](docs/DOWNLOADS_UK.md)
+- [Історія продукту](docs/PRODUCT_HISTORY-uk.md)
+- [Посібники](docs/HOW_TO-uk.md)
+- [Швидкий Старт](docs/QUICK_START-uk.md)
+- [FAQ](docs/FAQ-uk.md)
+- [Вирішення проблем](docs/TROUBLESHOOTING-uk.md)
+- [Обмеження програми](docs/LIMITATIONS-uk.md)
+- [Завантаження збірок](docs/DOWNLOADS-uk.md)
 
 **Technical / Developer Docs:**
 

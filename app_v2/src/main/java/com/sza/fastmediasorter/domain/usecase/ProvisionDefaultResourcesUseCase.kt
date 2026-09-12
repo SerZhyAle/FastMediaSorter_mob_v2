@@ -15,8 +15,11 @@ import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import timber.log.Timber
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Creates predefined virtual resources on first app launch.
@@ -25,9 +28,18 @@ import javax.inject.Inject
  * (e.g. interrupted by viewModelScope cancellation during WelcomeActivity) is
  * completed on the next call instead of being silently skipped.
  *
- * displayOrder follows the canonical slot positions (0–5) so that resources
+ * S2634: that per-path check reads ONE snapshot and then decides up to six inserts against it, so
+ * two passes overlapping in time both see an empty table and both write all six records - measured
+ * on a first run as six virtual resources rendered twice. Three callers can start a pass
+ * (`MainViewModel.init`, [com.sza.fastmediasorter.domain.usecase.launcher.SeedLauncherDesktopUseCase],
+ * [com.sza.fastmediasorter.domain.usecase.launcher.SyncEnabledResourceTilesUseCase]), so the class is
+ * `@Singleton` and the whole pass runs under one mutex: a per-injection-point instance would each get
+ * a lock of its own and serialise nothing.
+ *
+ * displayOrder follows the canonical slot positions (0-5) so that resources
  * created in a repair pass land in the same order as a fresh install.
  */
+@Singleton
 class ProvisionDefaultResourcesUseCase @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val resourceRepository: ResourceRepository,
@@ -35,11 +47,20 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase,
     private val mediaCapabilities: MediaCapabilities
 ) {
+    private val provisionLock = Mutex()
+
     /**
      * Returns true if at least one predefined resource was provisioned; false if all already exist.
      */
-    suspend operator fun invoke(): Boolean {
-        val existingPaths = resourceRepository.getAllResources().first().map { it.path }.toSet()
+    suspend operator fun invoke(): Boolean = provisionLock.withLock { provisionUnderLock() }
+
+    // The two suppressions carry debt this ticket did not create: the detekt baseline held both
+    // findings under the old name `invoke`, and moving the same body behind the lock renamed it.
+    @Suppress("CyclomaticComplexMethod", "LongMethod")
+    private suspend fun provisionUnderLock(): Boolean {
+        val existing = resourceRepository.getAllResources().first()
+        collapseDuplicatePredefinedResources(existing)
+        val existingPaths = existing.map { it.path }.toSet()
         val settings = settingsRepository.getSettings().first()
 
         // Slot counter - increments for every predefined resource slot (created or skipped),
@@ -170,6 +191,27 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
         return true
     }
 
+    /**
+     * Deletes the extra records an overlapping pass left behind, keeping the lowest id per path.
+     *
+     * S2634: the lock above closes the window from now on, but an install that already ran the race
+     * carries the duplicates forever - nothing else ever removes them, and the user sees every
+     * aggregate twice on the main screen. Two records under one `virtual://` path are always a
+     * defect: the add-resource surface refuses that path by name (`virtual_resource_already_added`),
+     * so no user can have created the second one. The lowest id is the one the launcher's own
+     * `firstOrNull { it.path == .. }` already resolves to, so a seeded desktop keeps pointing at the
+     * record that survives.
+     */
+    private suspend fun collapseDuplicatePredefinedResources(existing: List<MediaResource>) {
+        val byPath = existing.filter { it.path in PREDEFINED_VIRTUAL_PATHS }.groupBy { it.path }
+        for ((path, records) in byPath) {
+            if (records.size > 1) {
+                records.sortedBy { it.id }.drop(1).forEach { resourceRepository.deleteResource(it.id) }
+                Timber.w("Removed %d duplicate record(s) of predefined resource %s", records.size - 1, path)
+            }
+        }
+    }
+
     private suspend fun createVirtualResource(
         name: String,
         comment: String? = null,
@@ -203,5 +245,17 @@ class ProvisionDefaultResourcesUseCase @Inject constructor(
             iconId = resolveResourceIconUseCase(path = path, profile = profile, type = ResourceType.LOCAL)
         )
         resourceRepository.addResource(resource)
+    }
+
+    private companion object {
+        /** The six slots this use case owns; the collapse pass must not judge any other path. */
+        val PREDEFINED_VIRTUAL_PATHS = setOf(
+            LocalMediaScanner.VIRTUAL_PATH_RECENT,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_AUDIO,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_VIDEO,
+            LocalMediaScanner.VIRTUAL_PATH_CAMERA_PHOTOS,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_IMAGES,
+            LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS
+        )
     }
 }

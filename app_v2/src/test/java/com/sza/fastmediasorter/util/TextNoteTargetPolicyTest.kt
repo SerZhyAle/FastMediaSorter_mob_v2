@@ -34,6 +34,16 @@ class TextNoteTargetPolicyTest {
     }
 
     @Test
+    fun `canCreateTextNote rejects non-writable local folder`() {
+        val resource = docsResource(
+            path = "/storage/emulated/0/Documents",
+            isWritable = false
+        )
+
+        assertFalse(TextNoteTargetPolicy.canCreateTextNote(resource))
+    }
+
+    @Test
     fun `canCreateTextNote rejects non-document resources`() {
         val resource = MediaResource(
             id = 1L,
@@ -48,13 +58,15 @@ class TextNoteTargetPolicyTest {
 
     private fun docsResource(
         path: String,
-        isReadOnly: Boolean = false
+        isReadOnly: Boolean = false,
+        isWritable: Boolean = true
     ): MediaResource = MediaResource(
         id = 1L,
         name = "Docs",
         path = path,
         type = ResourceType.LOCAL,
         supportedMediaTypes = setOf(MediaType.TEXT, MediaType.PDF, MediaType.EPUB),
+        isWritable = isWritable,
         isReadOnly = isReadOnly
     )
 }

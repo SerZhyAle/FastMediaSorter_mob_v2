@@ -1,0 +1,24 @@
+# maestro-requires: watch
+appId: com.sza.fastmediasorter.debug
+---
+# S2548: proves a row that starts off the glass is REACHABLE. Reach is the half the flow language
+# can express; turning the bezel is not, and its counterpart is scripts/devtest/adb.ps1 rotary,
+# called by the runner around this flow. See maestro/wear/README.md.
+- launchApp:
+    clearState: false
+- scrollUntilVisible:
+    element:
+      id: "wear_settings_entry"
+    direction: DOWN
+- tapOn:
+    id: "wear_settings_entry"
+- scrollUntilVisible:
+    element:
+      id: "wear_settings_row_settings_about"
+    direction: DOWN
+- tapOn:
+    id: "wear_settings_row_settings_about"
+- assertVisible:
+    id: "wear_about_web_portal"
+- pressKey: Back
+- pressKey: Back

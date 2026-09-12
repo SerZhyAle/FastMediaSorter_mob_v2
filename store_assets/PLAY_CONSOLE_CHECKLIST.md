@@ -14,8 +14,8 @@ retype the texts into the Console.
 
 The boxes below are per locale and the publisher pushes all of them in one edit, so tick each line
 once the Console shows the set complete. Ten of the thirteen carry text only and inherit their
-graphics from the default language, which is why section C still lists screenshots for three locales
-and not for thirteen.
+graphics from the default language, which is why section C is about the locales that carry an
+`images/` folder and not about all thirteen.
 
 - [ ] Title updated - source: `play/listing/<locale>/title.txt`
 - [ ] Short description updated - source: `play/listing/<locale>/short_description.txt`
@@ -33,12 +33,39 @@ and not for thirteen.
 
 ## C. Graphics
 
-- [ ] App icon uploaded: `store_assets/icon_512.png` (512 × 512 px)
-- [ ] Feature graphic uploaded: `store_assets/feature_graphic_1024x500.png` (1024 × 500 px)
-- [ ] 6 screenshots uploaded for EN locale (slots 1-6 per `design_brief.md` sequence)
-- [ ] 6 screenshots uploaded for RU locale
-- [ ] 6 screenshots uploaded for UK locale
-- [ ] Screenshot slot 1 shows sorting-in-action (NOT the Settings screen)
+Screenshots are not uploaded by hand any more than the texts of section A are retyped.
+`publish-play-listing.ps1 -Mode commit` pushes everything under `play/listing/<locale>/images/`
+through `edits().images()`, deleting the live set of each type first. Which screens fill the set, in
+what order, and what each caption says is `play/listing/captions.json` - count nothing by hand and
+compare against that file, never against a number written here.
+
+- [ ] Screenshot set published for every locale that carries an `images/` folder - source:
+      `play/listing/<locale>/images/`, one frame per slot in `captions.json`, in slot order. The
+      locales without that folder inherit the graphics of the default language, exactly as section A
+      describes for the ten text-only languages
+- [ ] Composed set is complete before publishing: a compose run made after capturing a single screen
+      writes `01.png` and leaves a set of one, and publishing then replaces the whole live set with
+      it. Refresh the WHOLE set rather than one frame - `compose-play-screenshots.py --only
+      <slot-id>` exists for the case where that is impossible, and the next bullet is why it is the
+      exception and not the habit (S2398, narrowed by S2573)
+- [ ] Composed set is one shape: the caption is added above the frame, so a slot composed since
+      S2573 is taller than a slot composed before it, and an `--only` refresh mixes the two in one
+      carousel. The run says so - read its `WARNING:` block, which names every sibling that
+      disagrees. The set on disk still carries the pre-S2573 shape and its landscape frames spend
+      23% of their height on the caption, over the 20% Google allows a tagline; recomposing it whole
+      is S2602
+- [ ] App icon published from the listing tree, not by hand: `play/listing/en-US/images/icon.png`,
+      512 × 512 px, the same artwork as `store_assets/icon_512.png` and the fastlane copy. Until
+      S2597 this line named `store_assets/` and the publisher read a path no locale carried, so the
+      upload it describes never happened on any run
+- [ ] Feature graphic published from the listing tree: `play/listing/<locale>/images/featureGraphic.png`,
+      1024 × 500 px, written by `python scripts/release/compose-feature-graphic.py` for `en-US`,
+      `ru-RU` and `uk-UA`; the other ten locales inherit `en-US`. The same run writes the fastlane
+      copy, so Play and IzzyOnDroid carry one artwork
+- [ ] Neither single image is missing or split in two. `scripts/quality/assert-play-listing-graphics.ps1`
+      answers both questions and runs in release scope from `assert-release-scope-gates.ps1`. It
+      exists because the publisher cannot: an image whose file is absent is skipped and the run
+      still exits 0, which is how the feature graphic went months with no source in the repository
 
 ## C2. Wear OS form factor (S1707)
 
@@ -138,16 +165,31 @@ shared anywhere.** Every row below is unchecked, and the file above holds the ev
 ## G. Technical quality thresholds - February 2027 (S2100)
 
 Play enforces memory, bitmap and DEX thresholds from February 2027; exceeding one costs Play
-visibility and restricts publishing. All four surfaces below read **only after a bundle upload** -
-no local check substitutes for them, which is why they are an operator step and not a build gate.
+visibility and restricts publishing. None of these surfaces can be read before real users run the
+published build, which is why they are an operator step and not a build gate. Since S2917 two of
+them are measured by a script and only two are still read by hand.
 
-- [ ] Android vitals → **Dynamic memory metrics** - record the percentiles per RAM bucket
-- [ ] Crashes and ANRs → **out-of-memory filter** - record OS kills for low memory
+- [ ] Run `.\a.ps1 pv` - reads the dynamic memory, bitmap memory and low-memory-kill figures (with
+      crash and ANR rates) from the Play Developer Reporting API and writes them into
+      `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.2 and `docs/PLAY_PUBLISHING_STATE.md` block 4.
+      Nothing to copy by hand. An exit 2 naming an activation URL or a permission is the one-time
+      owner setup in `scripts/release/README.md` (`watch-play-vitals.ps1`).
 - [ ] Bundle upload → **DEX code optimization insights** - record the achieved optimization %
 - [ ] **Proactive alerts** - note which fired, if any: unoptimized bitmaps, weak DEX optimization,
       limited split-bundle usage
-- [ ] Copy every figure above into `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3, with the date
-      and the release it came from. Numbers left in the console are numbers the next ticket
+- [ ] Copy the two figures above into `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.3, with the
+      date and the release they came from. Numbers left in the console are numbers the next ticket
       re-gathers from zero - and S1157 is blocked waiting on the DEX percentage specifically.
+
+Two things not to go looking for (S2449 - both settled before the upload, neither needs re-deriving):
+
+- **There is no Wear breakdown under the memory surfaces, and its absence is correct.** Google scopes
+  both memory metrics to mobile and tablet form factors, so the watch is not judged by these
+  thresholds at all - and `:wear` ships its own bundle to `wear:production` rather than riding inside
+  the phone bundle. Quotes and read date: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 1.4.
+- **A fired "limited split-bundle usage" alert is recorded, not acted on.** This project declares no
+  feature module and its configuration splits are already on by AGP default, so no delivery change
+  exists that would satisfy such an alert. Note whether it fired and move on: that observation is the
+  whole of S2449's residual. Detail: `dev/PLAY_QUALITY_THRESHOLDS_2027.md` section 3.1.
 
 ## Checklist completed by: ___________________  Date: ___________

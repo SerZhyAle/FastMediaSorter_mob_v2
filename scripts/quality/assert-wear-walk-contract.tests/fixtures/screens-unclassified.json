@@ -1,0 +1,7 @@
+{
+  "_comment": ["Fixture: BetaScreen is in neither list, which the coverage rule must report."],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": []
+}

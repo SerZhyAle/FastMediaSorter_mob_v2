@@ -39,15 +39,27 @@
     fast. Run with -Gate from post-change.ps1; the switch is cosmetic so the call
     site reads intentionally.
 
-    -RegenerateInventory (S1402) runs the same export test in generate mode under
-    BUILD.LOCK and rewrites docs/icons/icon-inventory.json, then exits without
-    running checks 1-5: it is the fix the freshness failure names, and before it
-    existed the only route was a bare gradlew call, which takes no lock (Rule 23).
+    -RegenerateInventory (S1402) runs the same export test in generate mode and
+    rewrites docs/icons/icon-inventory.json, then exits without running checks
+    1-5: it is the fix the freshness failure names, and before it existed the only
+    route was a bare gradlew call, which takes no lock at all (Rule 23).
+
+    That branch holds TWO domains, and for two different resources (S2615). The
+    gradle run takes Build.Phone, as it always did. The rewrite lands in docs/,
+    which the domain table assigns to Code.Scripts - a domain this script did not
+    take until S2615, so a sibling correctly queued for docs/ by enter-code-lock.ps1
+    was overwritten by this regeneration walking past the queue. The code domain is
+    taken AFTER the build one because acquisition follows the domains' declared rank
+    (Build.Phone 1, Code.Scripts 5) and the reverse direction is refused outright.
+    Checks 1-5 take neither: they write nothing, and .\a.ps1 fg runs its gate
+    children concurrently.
 
     Exit codes:
       0 - every enforced check passed, or the inventory was regenerated.
       1 - a check failed.
       2 - regeneration could not run (gradle returned non-zero).
+      4 - Code.Scripts is held by another session: nothing was written, the place in
+          the queue is held, wait for the turn in the background and rerun.
 #>
 param(
     [switch] $Gate,
@@ -59,12 +71,13 @@ param(
 
 $ErrorActionPreference = 'Stop'
 . (Join-Path $RepoRoot "scripts/utils/agent-lock.ps1")
+. (Join-Path $RepoRoot "scripts/utils/code-lock-scope.ps1")
 . (Join-Path $RepoRoot "scripts/utils/process-timeout.ps1")
 
 $invPath = Join-Path $RepoRoot 'docs/icons/icon-inventory.json'
 $svgDir  = Join-Path $RepoRoot 'docs/icons/svg'
 $renderer = Join-Path $RepoRoot 'scripts/docs/render-icon-legend.ps1'
-$legendFiles = [ordered]@{ en = 'ICON_LEGEND.md'; ru = 'ICON_LEGEND_RU.md'; uk = 'ICON_LEGEND_UK.md' }
+$legendFiles = [ordered]@{ en = 'ICON_LEGEND.md'; ru = 'ICON_LEGEND-ru.md'; uk = 'ICON_LEGEND-uk.md' }
 $resBase = Join-Path $RepoRoot 'app_v2/src/main/res'
 $layoutDir = Join-Path $resBase 'layout'
 $drawableDirs = @(Get-ChildItem -Path $resBase -Directory | Where-Object { $_.Name -like 'drawable*' })
@@ -311,15 +324,25 @@ if ($RegenerateInventory) {
     # run it, so the only route was a bare gradlew call - which Rule 23 forbids because it takes no
     # BUILD.LOCK. The regeneration belongs to the gate that detects the staleness.
     Enter-BuildLockOrExit -Reason "assert-icon-inventory-sync.ps1 (IconInventoryExportTest, generate mode)" -Domain Build.Phone
+    $codeScope = $null
     Push-Location $RepoRoot
     try {
+        # S2615: the test writes $invPath, so the write needs that path's code domain as well as the
+        # build one. Inside this try because `exit 4` still runs a finally - a refusal here must not
+        # walk out of the script holding Build.Phone.
+        $codeScope = Enter-CodeLockOrExit -Path @($invPath) `
+            -Reason "assert-icon-inventory-sync.ps1 -RegenerateInventory (rewrites docs/icons/icon-inventory.json)"
         $run = Invoke-ProcessWithTimeout -FilePath $gradlew -WorkingDirectory $RepoRoot `
             -ArgumentList @(':app_v2:testStandardDebugUnitTest', '--tests', '*IconInventoryExportTest', '-Dicon.inventory.generate=true') `
             -TimeoutSeconds $TimeoutSeconds
         $genExit = if ($run.TimedOut) { 2 } else { $run.ExitCode }
         $timedOut = $run.TimedOut
     }
-    finally { Pop-Location; Exit-AgentLock -Name 'Build' -Domains @('Build.Phone') }
+    finally {
+        Pop-Location
+        Exit-CodeLockScope -Scope $codeScope
+        Exit-AgentLock -Name 'Build' -Domains @('Build.Phone')
+    }
     if ($timedOut) {
         Write-Error "assert-icon-inventory-sync: regeneration run timed out after ${TimeoutSeconds}s (exit 2)" -ErrorAction Continue
         exit 2

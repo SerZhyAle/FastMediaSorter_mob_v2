@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.domain.files
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -43,7 +44,8 @@ private val LOCAL_OPERATIONS = setOf(
  */
 class WearFileCapabilityPolicy @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val mediaStoreConsent: WearMediaStoreConsent
+    private val mediaStoreConsent: WearMediaStoreConsent,
+    private val sendToReceivers: WearSendToReceiversRepository
 ) {
 
     /**
@@ -92,16 +94,34 @@ class WearFileCapabilityPolicy @Inject constructor(
      */
     fun allowedOperations(storageClass: WearFileStorageClass): Set<WearFileOperationKind> =
         when (storageClass) {
-            WearFileStorageClass.APP_OWNED -> LOCAL_OPERATIONS
+            WearFileStorageClass.APP_OWNED -> LOCAL_OPERATIONS + sendToReceiver()
             // Everything a watch file allows, plus the one thing only this class can be asked: the
             // phone still holds the original, so it alone can be opened there.
-            WearFileStorageClass.PHONE_COPY -> LOCAL_OPERATIONS + WearFileOperationKind.OPEN_ON_PHONE
+            WearFileStorageClass.PHONE_COPY ->
+                LOCAL_OPERATIONS + WearFileOperationKind.OPEN_ON_PHONE + sendToReceiver()
             WearFileStorageClass.MEDIA_STORE -> if (mediaStoreConsent.isAvailable()) {
-                LOCAL_OPERATIONS
+                LOCAL_OPERATIONS + sendToReceiver()
             } else {
-                setOf(WearFileOperationKind.SEND_TO_PHONE)
+                // Sending is a read, so it survives the consent this branch lacks: the confirmation
+                // withheld here guards writing to someone else's row, and handing the bytes to a
+                // receiver changes nothing on the watch.
+                setOf(WearFileOperationKind.SEND_TO_PHONE) + sendToReceiver()
             }
             WearFileStorageClass.NETWORK -> emptySet()
+        }
+
+    /**
+     * The «Send to..» entry, present only while this watch actually holds receivers to offer.
+     *
+     * An empty list is the same offer-that-ends-in-a-refusal ADR-3 forbids: the entry would open a
+     * dialog with nothing in it. The list is the phone's answer cached here, so it is empty both
+     * before the first push and after the owner switched the last receiver off there.
+     */
+    private fun sendToReceiver(): Set<WearFileOperationKind> =
+        if (sendToReceivers.observe().value.isEmpty()) {
+            emptySet()
+        } else {
+            setOf(WearFileOperationKind.SEND_TO_RECEIVER)
         }
 
     /**

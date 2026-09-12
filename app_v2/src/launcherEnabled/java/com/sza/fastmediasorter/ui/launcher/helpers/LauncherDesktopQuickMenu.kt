@@ -5,7 +5,6 @@ import android.widget.ListPopupWindow
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.sza.fastmediasorter.R
-import timber.log.Timber
 
 /**
  * S1466: the four desktop entry points the quick menu spends, passed as one value.
@@ -31,15 +30,19 @@ class LauncherDesktopActions(
  * [LauncherCellActionMenuManager] does: a long press on the desktop and a long press on a cell are one
  * gesture to the user, so they may not produce two different-looking lists.
  *
- * The four actions are the owner's, fixed in strategic 3.3 in this order, and this class only shows
- * them - whether the gesture is allowed to open a menu at all is the caller's decision (strategic 2.4
- * keeps the locked desktop a silent refusal, and that guard belongs where the gesture is read).
+ * The first four actions are the owner's, fixed in S1466 strategic 3.3 in this order, and this class only
+ * shows them - whether the gesture is allowed to open a menu at all is the caller's decision, and that
+ * guard belongs where the gesture is read.
+ *
+ * S2397 appends the lock action fifth rather than inserting it, so the four positions the owner fixed do
+ * not shift under a user who already knows them.
  */
 class LauncherDesktopQuickMenu(
     private val onAddItem: () -> Unit,
     private val onEditDesktop: () -> Unit,
     private val onWallpaper: () -> Unit,
     private val onLauncherSettings: () -> Unit,
+    private val onLockChanges: () -> Unit,
 ) {
 
     private var window: ListPopupWindow? = null
@@ -75,6 +78,11 @@ class LauncherDesktopQuickMenu(
                 label = context.getString(R.string.launcher_menu_launcher_settings),
                 iconRes = R.drawable.ic_settings,
                 onSelected = onLauncherSettings,
+            ),
+            LauncherAppMenuRow.Action(
+                label = context.getString(R.string.launcher_quick_menu_lock_changes),
+                iconRes = R.drawable.ic_lock,
+                onSelected = onLockChanges,
             ),
         )
         val adapter = LauncherAppShortcutAdapter(context, rows)
@@ -114,7 +122,6 @@ class LauncherDesktopQuickMenu(
         val spaceBelowPx = anchor.height - bottomSafePx - yPx
         val spaceAbovePx = yPx - topSafePx
         val opensAbove = spaceBelowPx < menuHeightPx + POPUP_GAP_PX && spaceAbovePx > spaceBelowPx
-        Timber.d("S2181: quick menu opensAbove=$opensAbove spaceBelowPx=$spaceBelowPx menuHeightPx=$menuHeightPx")
         // ListPopupWindow measures its drop from the anchor's bottom edge, and the anchor here is the
         // whole desktop canvas - so the press position is that height minus where the finger landed.
         return if (opensAbove) {

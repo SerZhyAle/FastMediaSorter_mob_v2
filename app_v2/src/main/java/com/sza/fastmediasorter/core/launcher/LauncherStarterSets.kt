@@ -4,6 +4,8 @@ import com.sza.fastmediasorter.core.launcher.LauncherStarterLayoutRules.StarterS
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -27,63 +29,38 @@ object LauncherStarterSets {
      */
     const val OWN_APP_TOKEN = "__self__"
 
-    // Gadget target keys are duplicated from LauncherGadgetRegistry, which lives in src/launcherEnabled
-    // and therefore cannot be imported here. Kept in sync by LauncherStarterSetsParityTest (testStandard),
-    // which fails if these drift from the registry's KEY_* consts or the gadgets' default spans.
-    private const val GADGET_CLOCK = "clock"
-    private const val GADGET_PLAYLIST = "playlist"
-    private const val GADGET_STREAMS = "streams"
-    private const val GADGET_FOLDER_PREVIEW = "folder_preview"
-
-    // S1560: the tiles the per-profile grid adds, under the same duplication contract as the four above.
-    private const val GADGET_WEATHER = "weather"
-    private const val GADGET_SPEED = "speed"
-
-    // S1747: the compass replaced altitude and satellites in the seed. Both gadgets still exist and stay
-    // addable by hand - the owner's objection was that a bare satellite count says nothing to a user and
-    // that altitude is a thing one adds deliberately, not something a fresh desktop should decide for them.
-    private const val GADGET_COMPASS = "compass"
-    private const val GADGET_AUDIO_NOW_PLAYING = "audio_now_playing"
-
-    // S1566: same duplication contract again - the web search field every profile opens with.
-    private const val GADGET_SEARCH = "search"
-
-    // S1886: the S1754 media-window family, one window per profile. These are the closest keys the
-    // launcher can actually render to the system-desktop widgets the request named - the launcher hosts
-    // gadgets, not AppWidgets, so RandomPhotoFrame and its siblings are unreachable from a seed.
-    private const val GADGET_MEDIA_IMAGE_WINDOW = "media_image_window"
-    private const val GADGET_MEDIA_AUDIO_WINDOW = "media_audio_window"
-    private const val GADGET_MEDIA_VIDEO_WINDOW = "media_video_window"
-    private const val GADGET_MEDIA_DOCUMENT_WINDOW = "media_document_window"
-
-    // S1886: the headset seeds charge rather than a media window - a window decides nothing there.
-    private const val GADGET_BATTERY = "battery"
-
-    // S2241: Google Maps interactive live frame gadget
-    private const val GADGET_GOOGLE_MAPS_LIVE = "google_maps_live"
+    // S2672: short local names for the keys this table emits, each an alias of the one place the
+    // literal is written. A `const val` initialised from another `const val` is resolved at compile
+    // time, so these cannot drift from the policy the way fifteen hand-typed literals drifted from
+    // the registry - and the call sites below stay readable.
+    private const val GADGET_CLOCK = LauncherGadgetSeedPolicy.KEY_CLOCK
+    private const val GADGET_PLAYLIST = LauncherGadgetSeedPolicy.KEY_PLAYLIST
+    private const val GADGET_STREAMS = LauncherGadgetSeedPolicy.KEY_STREAMS
+    private const val GADGET_FOLDER_PREVIEW = LauncherGadgetSeedPolicy.KEY_FOLDER_PREVIEW
+    private const val GADGET_WEATHER = LauncherGadgetSeedPolicy.KEY_WEATHER
+    private const val GADGET_SPEED = LauncherGadgetSeedPolicy.KEY_SPEED
+    private const val GADGET_COMPASS = LauncherGadgetSeedPolicy.KEY_COMPASS
+    private const val GADGET_AUDIO_NOW_PLAYING = LauncherGadgetSeedPolicy.KEY_AUDIO_NOW_PLAYING
+    private const val GADGET_SEARCH = LauncherGadgetSeedPolicy.KEY_SEARCH
+    private const val GADGET_MEDIA_IMAGE_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_IMAGE_WINDOW
+    private const val GADGET_MEDIA_AUDIO_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_AUDIO_WINDOW
+    private const val GADGET_MEDIA_VIDEO_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_VIDEO_WINDOW
+    private const val GADGET_MEDIA_DOCUMENT_WINDOW = LauncherGadgetSeedPolicy.KEY_MEDIA_DOCUMENT_WINDOW
+    private const val GADGET_BATTERY = LauncherGadgetSeedPolicy.KEY_BATTERY
+    private const val GADGET_GOOGLE_MAPS_LIVE = LauncherGadgetSeedPolicy.KEY_GOOGLE_MAPS_LIVE
+    private const val GADGET_TRANSLATOR = LauncherGadgetSeedPolicy.KEY_TRANSLATOR
+    private const val GADGET_STORAGE = LauncherGadgetSeedPolicy.KEY_STORAGE
 
     /**
-     * Every gadget key this table can emit. Public because the parity test cannot reach the private
-     * consts above, and a hand-written list over there is what let the previous four-key guard fall
-     * behind the table it was meant to guard.
+     * Every gadget key this table can emit, derived from [LauncherGadgetSeedPolicy] rather than listed
+     * a second time here.
+     *
+     * S2672: the keys used to be fifteen private consts in this file, which meant the set of gadgets the
+     * seed emits and the set the registry declares had no common home - twenty registry keys drifted out
+     * of every profile with no recorded decision. The policy is that home now; this property stays
+     * public because the parity test needs it to prove the two spellings still agree.
      */
-    val gadgetKeys: Set<String> = setOf(
-        GADGET_CLOCK,
-        GADGET_PLAYLIST,
-        GADGET_STREAMS,
-        GADGET_FOLDER_PREVIEW,
-        GADGET_WEATHER,
-        GADGET_SPEED,
-        GADGET_COMPASS,
-        GADGET_AUDIO_NOW_PLAYING,
-        GADGET_SEARCH,
-        GADGET_MEDIA_IMAGE_WINDOW,
-        GADGET_MEDIA_AUDIO_WINDOW,
-        GADGET_MEDIA_VIDEO_WINDOW,
-        GADGET_MEDIA_DOCUMENT_WINDOW,
-        GADGET_BATTERY,
-        GADGET_GOOGLE_MAPS_LIVE,
-    )
+    val gadgetKeys: Set<String> = LauncherGadgetSeedPolicy.seededKeys
 
     // S1560: third-party targets this table may seed. A cell is placed only when its package is present,
     // so an absent app leaves no icon behind rather than a dead one (strategic §5.1.3).
@@ -148,27 +125,6 @@ object LauncherStarterSets {
     // S1560: the rows of the approved grid that cut across profiles, one set each. Membership tests
     // rather than eleven near-identical `when` branches: the owner reads the grid row-wise, and a row
     // that lives in one place cannot disagree with itself.
-    private val WIFI_PROFILES = setOf(
-        DeviceProfileType.CAR_HEAD_UNIT,
-        DeviceProfileType.AUDIO_PLAYER,
-        DeviceProfileType.TV_MEDIA_BOX,
-        DeviceProfileType.MEDIA_PLAYER,
-        DeviceProfileType.VIDEO_PLAYER,
-        DeviceProfileType.PHOTO_FRAME,
-        DeviceProfileType.VR_HEADSET,
-        DeviceProfileType.OTHER,
-    )
-
-    private val BLUETOOTH_PROFILES = setOf(
-        DeviceProfileType.CAR_HEAD_UNIT,
-        DeviceProfileType.AUDIO_PLAYER,
-        DeviceProfileType.TV_MEDIA_BOX,
-        DeviceProfileType.MEDIA_PLAYER,
-        DeviceProfileType.VIDEO_PLAYER,
-        DeviceProfileType.VR_HEADSET,
-        DeviceProfileType.OTHER,
-    )
-
     private val NOW_PLAYING_PROFILES = setOf(
         DeviceProfileType.CAR_HEAD_UNIT,
         DeviceProfileType.AUDIO_PLAYER,
@@ -194,6 +150,22 @@ object LauncherStarterSets {
     private val MAPS_PROFILES = setOf(
         DeviceProfileType.CAR_HEAD_UNIT,
         DeviceProfileType.PERSONAL_SMARTPHONE,
+    )
+
+    /** S2682: the three profiles where a person reads text off the screen and may need a word rendered. */
+    private val TRANSLATOR_PROFILES = setOf(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.HOME_TABLET,
+        DeviceProfileType.EBOOK_READER,
+    )
+
+    /**
+     * S2682: the two profiles the sorting is done from, where free space is the quantity that runs out
+     * while files are copied and moved.
+     */
+    private val STORAGE_PROFILES = setOf(
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.HOME_TABLET,
     )
 
     private const val SPAN_WIDE = 2
@@ -269,34 +241,47 @@ object LauncherStarterSets {
      * seeded set rather than the whole catalogue is what keeps Chrome, YouTube and Maps on a device with
      * no Play Services, where the Google section is not seeded at all.
      *
+     * S2385: the profile's signature cell is a third owner under that same contract, and it resolves
+     * ahead of both app sections - see [profileSignatureOrNull].
+     *
      * S2015: [thirdPartyApps] are the device's own installed applications, resolved by the caller
      * (`QueryThirdPartyAppsUseCase`) because this table has no Context and must stay pure data. They
      * close the Android-apps section, which otherwise holds only Wi-Fi, Bluetooth and a dialer once the
      * Google catalogue is subtracted out of it.
+     *
+     * S2735: [resolvableOsShortcuts] is the same arrangement for the settings section - which system
+     * targets actually resolve is a device fact, and this table has no Context to ask. It defaults to
+     * the whole catalogue so a caller without a probe still composes a deterministic desktop.
      */
     @Suppress("LongParameterList") // one data table, and every argument is a distinct seed input
     fun itemsFor(
         profile: DeviceProfileType,
         resources: StarterResources,
-        routeAvailableInBuild: Map<String, Boolean>,
+        routeLaunchable: Map<String, Boolean>,
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean = false,
         importedShortcuts: List<StarterItem> = emptyList(),
         thirdPartyApps: List<String> = emptyList(),
+        resolvableOsShortcuts: Set<String> = allOsShortcutKeys,
         screenClass: LauncherScreenClass,
     ): List<StarterItem> {
         val rule = LauncherStarterLayoutRules.ruleFor(screenClass)
         val groups = contentGroups(
             profile = profile,
             resources = resources,
-            routeAvailableInBuild = routeAvailableInBuild,
+            routeLaunchable = routeLaunchable,
             installedPackages = installedPackages,
             googleServicesAvailable = googleServicesAvailable,
             importedShortcuts = importedShortcuts,
             thirdPartyApps = thirdPartyApps,
+            resolvableOsShortcuts = resolvableOsShortcuts,
         )
         return unsectionedTop(profile) + emitGroups(groups, rule)
     }
+
+    /** Every key [OsShortcutCatalog] declares - the default when no device probe was run. */
+    private val allOsShortcutKeys: Set<String> =
+        OsShortcutCatalog.all().mapTo(mutableSetOf()) { it.key }
 
     /**
      * The unsectioned head of every desktop, ahead of the first header and always on screen 0.
@@ -320,28 +305,40 @@ object LauncherStarterSets {
     private fun contentGroups(
         profile: DeviceProfileType,
         resources: StarterResources,
-        routeAvailableInBuild: Map<String, Boolean>,
+        routeLaunchable: Map<String, Boolean>,
         installedPackages: Set<String>,
         googleServicesAvailable: Boolean,
         importedShortcuts: List<StarterItem>,
         thirdPartyApps: List<String>,
+        resolvableOsShortcuts: Set<String>,
     ): Map<StarterSectionGroup, List<StarterItem>> {
-        val streamsAvailable = routeAvailableInBuild[InternalRouteCatalog.KEY_STREAMS] == true
+        val streamsAvailable = routeLaunchable[InternalRouteCatalog.KEY_STREAMS] == true
+
+        // S2385: the profile group is resolved first because its signature cell may be an application,
+        // and every later owner of that package is defined by what the earlier ones already took.
+        val profileGroup = profileGadgetGroup(profile, resources, streamsAvailable, installedPackages)
+        val profileOwned = profileGroup.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
 
         // S2015: the Google membership is resolved before the Android-apps group is built, never after,
         // because that group subtracts it (see the itemsFor KDoc and strategic ADR-1).
         val googleOwned = googleSectionPackages(googleServicesAvailable, installedPackages)
 
         return mapOf(
-            StarterSectionGroup.PROFILE_GADGETS to profileGadgetGroup(profile, resources, streamsAvailable),
+            StarterSectionGroup.PROFILE_GADGETS to profileGroup,
             StarterSectionGroup.CORE_RESOURCES to coreResources(resources),
             StarterSectionGroup.RESOURCES to userResources(resources) + importedShortcuts,
-            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeAvailableInBuild),
+            StarterSectionGroup.APP_FUNCTIONS to commonFeatures(routeLaunchable),
             StarterSectionGroup.LAUNCHER_ACTIONS to launcherActionGroup(profile),
+            StarterSectionGroup.SETTINGS_ENTRIES to settingsEntryGroup(),
+            StarterSectionGroup.SYSTEM_SETTINGS to systemSettingsGroup(resolvableOsShortcuts),
             StarterSectionGroup.ANDROID_APPS to
-                androidAppsSection(profile, installedPackages, googleOwned, thirdPartyApps),
-            StarterSectionGroup.GOOGLE_APPS to googleOwned.map { shortcut(LauncherCellCommand.App(it)) },
-            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeAvailableInBuild),
+                androidAppsSection(profile, installedPackages, profileOwned + googleOwned, thirdPartyApps),
+            // S2385: the exclusion the Apps section gets is the UNION, while this group loses only what
+            // the profile took. Handing the Apps section the shrunk set instead would drop the profile's
+            // package out of the Google section and straight back into commonThirdPartyApps below it.
+            StarterSectionGroup.GOOGLE_APPS to
+                (googleOwned - profileOwned).map { shortcut(LauncherCellCommand.App(it)) },
+            StarterSectionGroup.UTILITY_WIDGETS to utilityWidgetGroup(routeLaunchable),
             StarterSectionGroup.MEDIA_WINDOWS to mediaWindowGroup(resources),
             StarterSectionGroup.STREAMS to streamGroup(streamsAvailable),
         )
@@ -417,7 +414,9 @@ object LauncherStarterSets {
         profile: DeviceProfileType,
         resources: StarterResources,
         streamsAvailable: Boolean,
+        installedPackages: Set<String>,
     ): List<StarterItem> = buildList {
+        profileSignatureOrNull(profile, installedPackages)?.let(::add)
         addAll(profileGadgets(profile, resources, streamsAvailable))
         if (profile in LOCATION_TILE_PROFILES) {
             add(gadget(GADGET_COMPASS))
@@ -427,6 +426,12 @@ object LauncherStarterSets {
         }
         if (profile in NOW_PLAYING_PROFILES) {
             add(gadget(GADGET_AUDIO_NOW_PLAYING))
+        }
+        if (profile in TRANSLATOR_PROFILES) {
+            add(gadget(GADGET_TRANSLATOR))
+        }
+        if (profile in STORAGE_PROFILES) {
+            add(gadget(GADGET_STORAGE))
         }
         mediaWindowOrNull(profile, resources)?.let(::add)
     }
@@ -443,13 +448,47 @@ object LauncherStarterSets {
         addAll(commonTail())
     }
 
+    /**
+     * S2735: the entries into settings the app itself owns - its own settings, the launcher's settings
+     * and the root of the Android settings.
+     *
+     * The Android root sits with them rather than with the quick entries below because it is the answer
+     * to "the entry I want is not on this desktop", which is the one entry that must survive whatever
+     * the budget does to the rest.
+     */
+    private fun settingsEntryGroup(): List<StarterItem> = listOf(
+        shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_APP_SETTINGS)),
+        shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_LAUNCHER_SETTINGS)),
+        shortcut(LauncherCellCommand.LauncherAction(LauncherActionCatalog.KEY_EDIT_DESKTOP)),
+        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS)),
+    )
+
+    /**
+     * S2735: the quick entries into the Android system settings, in catalogue order.
+     *
+     * The order is [OsShortcutCatalog]'s own, which is already curated by how often a target is reached
+     * for, so the budget cuts where the common entries end rather than at an arbitrary count. A key the
+     * caller did not report as resolvable is dropped here rather than rendered: strategic §3.2 forbids a
+     * cell that leads nowhere, and a target that does not resolve is exactly that.
+     */
+    private fun systemSettingsGroup(resolvableOsShortcuts: Set<String>): List<StarterItem> =
+        OsShortcutCatalog.all()
+            .filter { it.key != OsShortcutCatalog.KEY_SETTINGS && it.key in resolvableOsShortcuts }
+            .map { shortcut(LauncherCellCommand.OsShortcut(it.key)) }
+
+    /**
+     * S2749: the subprogram routes this group owns. [commonFeatures] skips them, so a route the utility
+     * section curates is not also seeded as a plain entry in the App Functions grid.
+     */
+    private val utilityWidgetRoutes = setOf(InternalRouteCatalog.KEY_GAME, InternalRouteCatalog.KEY_NETWORK_MONITOR)
+
     /** S2251: the utility tiles - a game, the speed readout and the network monitor. */
-    private fun utilityWidgetGroup(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
-        if (routeAvailableInBuild[InternalRouteCatalog.KEY_GAME] == true) {
+    private fun utilityWidgetGroup(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
+        if (routeLaunchable[InternalRouteCatalog.KEY_GAME] == true) {
             add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_GAME)))
         }
         add(gadget(GADGET_SPEED))
-        if (routeAvailableInBuild[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
+        if (routeLaunchable[InternalRouteCatalog.KEY_NETWORK_MONITOR] == true) {
             add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_NETWORK_MONITOR)))
         }
     }
@@ -468,34 +507,37 @@ object LauncherStarterSets {
     }
 
     /**
-     * S2015: the Android-apps section, with every package the Google section already owns filtered out.
+     * S2015: the Android-apps section, with every package an earlier section already owns filtered out.
      * [thirdPartyApps] close it, minus anything the fixed rules above already placed - the caller's list
      * is resolved against the whole device and the starter table's own candidates may appear in it.
+     *
+     * S2385: [alreadySeeded] is the union of the Google membership and the profile's signature cell, so
+     * the name no longer says "google" - two sections ahead of this one can own a package now.
      */
     private fun androidAppsSection(
         profile: DeviceProfileType,
         installedPackages: Set<String>,
-        googleOwned: Set<String>,
+        alreadySeeded: Set<String>,
         thirdPartyApps: List<String>,
     ): List<StarterItem> {
         val fixed = buildList {
             if (profile == DeviceProfileType.CAR_HEAD_UNIT) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, alreadySeeded)?.let(::add)
                 firstInstalled(FM_RADIO_CANDIDATES, installedPackages)?.let(::add)
             } else if (profile in MAPS_PROFILES) {
-                appIfInstalled(PACKAGE_MAPS, installedPackages, googleOwned)?.let(::add)
+                appIfInstalled(PACKAGE_MAPS, installedPackages, alreadySeeded)?.let(::add)
             }
-            if (profile in WIFI_PROFILES) {
-                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_WIFI)))
-            }
-            if (profile in BLUETOOTH_PROFILES) {
-                add(shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_BLUETOOTH)))
-            }
-            addAll(commonThirdPartyApps(installedPackages, googleOwned))
+            // S2735: the Wi-Fi and Bluetooth rows of the S1560 profile grid used to live here because
+            // there was nowhere else on the desktop to reach a system setting from. The settings
+            // section now seeds both from OsShortcutCatalog on every profile, so keeping these rows
+            // seeded the same target twice - the section, then this one - on the eight profiles the
+            // grid named. Removed rather than filtered out of the section: the grid promised those
+            // profiles a way to Wi-Fi, and every profile has one now.
+            addAll(commonThirdPartyApps(installedPackages, alreadySeeded))
         }
         val alreadyPlaced = fixed.mapNotNullTo(mutableSetOf()) { appPackageOrNull(it.target) }
         return fixed + thirdPartyApps
-            .filterNot { it in alreadyPlaced || it in googleOwned }
+            .filterNot { it in alreadyPlaced || it in alreadySeeded }
             .map { shortcut(LauncherCellCommand.App(it)) }
     }
 
@@ -563,28 +605,23 @@ object LauncherStarterSets {
     private fun userResources(resources: StarterResources): List<StarterItem> =
         resources.userResourceIds.map { resourceShortcut(it, LauncherResourceMode.BROWSE) }
 
-    // S2019: every toggleable program the "Programs and scenarios" strip (MainProgramsMenuCoordinator)
-    // also offers, in that strip's order - App Launch Panel (no on/off state) and VR Cinema (no static
-    // InternalRouteCatalog route, needs a resource-picker dialog) are the strip's only two exclusions.
-    // Gated on build presence only: a compiled-but-runtime-disabled feature keeps its cell, which routes
-    // to its own setting.
-    private fun commonFeatures(routeAvailableInBuild: Map<String, Boolean>): List<StarterItem> = buildList {
-        val paddingKeys = listOf(
-            InternalRouteCatalog.KEY_STREAMS,
-            InternalRouteCatalog.KEY_QUICK_CAMERA,
-            InternalRouteCatalog.KEY_QUICK_VOICE,
-            InternalRouteCatalog.KEY_CALCULATOR,
-            InternalRouteCatalog.KEY_NETWORK_MONITOR,
-            InternalRouteCatalog.KEY_OCR,
-            InternalRouteCatalog.KEY_SCREEN_RECORDING,
-            InternalRouteCatalog.KEY_LINK_DOWNLOAD,
-            InternalRouteCatalog.KEY_GAME,
-            InternalRouteCatalog.KEY_SYSTEM_INFO,
-            InternalRouteCatalog.KEY_WEAR_COMPANION,
-        )
-        paddingKeys.forEach { key ->
-            if (routeAvailableInBuild[key] == true) add(shortcut(LauncherCellCommand.Feature(key)))
+    // Every registered launcher shortcut is seeded in registry order. App Launch Panel has no on/off
+    // state and VR Cinema has no static route, so neither declares the launcher-shortcut surface.
+    // S2382: gated on launchability, not on build presence. A compiled-but-disabled feature used to hold
+    // a cell that routed to its own setting; the reactive shortcut sync (S2330) now adds the cell the
+    // moment the feature becomes launchable, so a first seed no longer has to carry it in advance.
+    // S2749: a route [utilityWidgetRoutes] curates is dropped here, the way systemSettingsGroup drops the
+    // key settingsEntryGroup holds - the curated section is where the ticket that placed it declared it,
+    // and both groups reach the same seed, so keeping it in this one seeded the cell twice.
+    private fun commonFeatures(routeLaunchable: Map<String, Boolean>): List<StarterItem> = buildList {
+        if (routeLaunchable[InternalRouteCatalog.KEY_STREAMS] == true) {
+            add(shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_STREAMS)))
         }
+        addAll(SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).mapNotNull { entry ->
+            entry.routeKey
+                .takeIf { routeLaunchable[it] == true && it !in utilityWidgetRoutes }
+                ?.let { shortcut(LauncherCellCommand.Feature(it)) }
+        })
     }
 
     /**
@@ -645,6 +682,43 @@ object LauncherStarterSets {
             DeviceProfileType.CAR_HEAD_UNIT,
             DeviceProfileType.OTHER -> null
         }
+
+    /**
+     * S2385: the one cell that makes a fresh desktop recognisable as the device it belongs to, seeded at
+     * the HEAD of the profile's widget group (strategic ADR-2). The group is budgeted and scales down to
+     * three items on a compact screen, so a signature added to the tail would be the first thing cut.
+     *
+     * Exhaustive over [DeviceProfileType] like [mediaWindowOrNull] beside it: a new profile must name its
+     * signature or an explicit null rather than inherit a silent default. Nine of the eleven return null
+     * because [profileGadgets] already gives them a group nothing else has - the frame its photos, the
+     * box its streams, the reader its documents.
+     *
+     * The head unit is the exception the ticket opened on: it carried a Maps *icon* in the apps section
+     * while the live frame gadget shipped in the same build and was seeded nowhere. The tablet is the
+     * other: its group held one image window and nothing said "tablet", so YouTube moves out of the row
+     * every profile shares and into the group only this profile has.
+     */
+    private fun profileSignatureOrNull(
+        profile: DeviceProfileType,
+        installedPackages: Set<String>,
+    ): StarterItem? = when (profile) {
+        DeviceProfileType.CAR_HEAD_UNIT -> StarterItem(
+            LauncherCellKind.GADGET,
+            GADGET_GOOGLE_MAPS_LIVE,
+            spanW = SPAN_WIDE,
+            spanH = SPAN_WIDE,
+        )
+        DeviceProfileType.HOME_TABLET -> appIfInstalled(PACKAGE_YOUTUBE, installedPackages)
+        DeviceProfileType.PERSONAL_SMARTPHONE,
+        DeviceProfileType.AUDIO_PLAYER,
+        DeviceProfileType.MEDIA_PLAYER,
+        DeviceProfileType.VIDEO_PLAYER,
+        DeviceProfileType.TV_MEDIA_BOX,
+        DeviceProfileType.PHOTO_FRAME,
+        DeviceProfileType.EBOOK_READER,
+        DeviceProfileType.VR_HEADSET,
+        DeviceProfileType.OTHER -> null
+    }
 
     /**
      * Lays [items] row-major over an occupancy grid of [columns] columns: each item takes the first
@@ -740,16 +814,40 @@ object LauncherStarterSets {
      * S1428: the launcher actions lead the set under their own header, reversing the ordering S1402
      * chose (strategic §3.1.1, §6.5). S1560: black_screen remains in this action section only for
      * [BLACK_SCREEN_PROFILES] (strategic §6.4).
+     *
+     * S2791: the settings actions and Edit desktop are excluded here and seeded by [settingsEntryGroup]. The
+     * catalogue itself is untouched - the Start menu still lists all six in its own order.
+     *
+     * S3001: the Add-resource action is excluded here too. It belongs in the Resources section, not the
+     * App Functions section, and [PlaceAddResourceTileUseCase] places it there once the seed has built the
+     * section header. Seeding it here let that backfill's dedup see the target as already present and skip
+     * the Resources-section placement, so the tile stayed under the App Functions header.
      */
     private fun launcherActions(profile: DeviceProfileType, screenIndex: Int = 0): List<StarterItem> =
         LauncherActionCatalog.all
+            .filter { it.key !in SETTINGS_ACTION_KEYS }
+            .filter { it.key !in BACKFILLED_ACTION_KEYS }
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
             .map { shortcut(LauncherCellCommand.LauncherAction(it.key), screenIndex = screenIndex) }
+
+    private val SETTINGS_ACTION_KEYS = setOf(
+        LauncherActionCatalog.KEY_APP_SETTINGS,
+        LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
+        LauncherActionCatalog.KEY_EDIT_DESKTOP,
+    )
+
+    /**
+     * S3001: actions placed by their own backfill into a section other than App Functions, so the seed
+     * must not pre-place them here and let the dedup in [PlaceLauncherShortcutTilesUseCase] skip the
+     * backfill's section-targeted placement.
+     */
+    private val BACKFILLED_ACTION_KEYS = setOf(
+        LauncherActionCatalog.KEY_CREATE_RESOURCE,
+    )
 
     /** The utilities every profile closes with, below the second header. */
     private fun commonTail(screenIndex: Int = 0): List<StarterItem> = listOf(
         shortcut(LauncherCellCommand.Feature(InternalRouteCatalog.KEY_FAVORITES), screenIndex = screenIndex),
-        shortcut(LauncherCellCommand.OsShortcut(OsShortcutCatalog.KEY_SETTINGS), screenIndex = screenIndex),
         shortcut(LauncherCellCommand.App(OWN_APP_TOKEN), screenIndex = screenIndex),
     )
 

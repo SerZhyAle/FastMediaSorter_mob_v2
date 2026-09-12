@@ -189,13 +189,24 @@ else {
     if ($matched.Count -eq 0) {
         Exit-Fetch -Message "versionName $VersionName is not retained. Run -List to see what is." -Code 1
     }
-    # Version names are derived from a timestamp and are unique in practice, but a
-    # duplicate must not be resolved by silently picking one.
-    if ($matched.Count -gt 1) {
-        Exit-Fetch -Message ("versionName $VersionName matches several retained releases " +
-            "($(($matched | ForEach-Object { $_.VersionCode }) -join ', ')). Re-run with -VersionCode.") -Code 2
+
+    # S2722: one release occupies several archive directories - the phone and the
+    # watch stamp the same versionName but each artifact is filed under its own
+    # versionCode. So the variant, not the name, is what picks between them; before
+    # this the operator holding a wear crash report and nothing but a versionName
+    # got "matches several retained releases" and no way forward.
+    $holding = @($matched | Where-Object { @($_.Variants | ForEach-Object { $_.variant }) -contains $Variant })
+    if ($holding.Count -eq 0) {
+        $held = (@($matched | ForEach-Object { $_.Variants } | ForEach-Object { $_.variant }) | Sort-Object -Unique) -join ', '
+        Exit-Fetch -Message "versionName $VersionName is retained but holds no '$Variant' payload. It holds: $held." -Code 1
     }
-    $target = $matched[0]
+    # Version names are derived from a timestamp and are unique per artifact, but a
+    # duplicate must not be resolved by silently picking one.
+    if ($holding.Count -gt 1) {
+        Exit-Fetch -Message ("versionName $VersionName matches several retained releases holding '$Variant' " +
+            "($(($holding | ForEach-Object { $_.VersionCode }) -join ', ')). Re-run with -VersionCode.") -Code 2
+    }
+    $target = $holding[0]
 }
 
 $record = $target.Variants | Where-Object { $_.variant -eq $Variant } | Select-Object -First 1

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  S1924: one zoom preset of the mirror. Inflated once per entry in MirrorZoomManager's preset list
+  rather than written out four times, so strategic 5.3 holds - a fifth preset costs no layout edit.
+
+  The colour here is the unselected pairing only; MirrorZoomManager inverts body and label on the active
+  preset, so neither value may be read as the row's final colour.
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="@dimen/mirror_zoom_preset_size"
+    android:layout_height="@dimen/mirror_zoom_preset_size"
+    android:layout_marginEnd="@dimen/margin_small"
+    android:background="@drawable/mirror_zoom_preset_focus_selector"
+    android:clickable="true"
+    android:focusable="true"
+    android:gravity="center"
+    android:textColor="@color/mirror_zoom_preset_body_active"
+    android:textSize="@dimen/text_size_small" />

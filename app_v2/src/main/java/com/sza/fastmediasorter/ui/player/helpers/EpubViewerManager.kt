@@ -6,8 +6,8 @@ import android.webkit.JavascriptInterface
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
@@ -1050,7 +1050,7 @@ class EpubViewerManager(
     /** Returns a [DocumentSelectionActionModeCallback] wired to this manager's JS selection bridge and translation handler. WebView does not support [android.widget.TextView.setCustomSelectionActionModeCallback]. The hosting Activity should override [android.app.Activity.startActionMode] and wrap the incoming callback with this one to inject "Translate" / "Search in Google" items into the WebView floating text-selection ActionMode. */
     fun getSelectionActionModeCallback(): DocumentSelectionActionModeCallback =
         DocumentSelectionActionModeCallback(
-            showTranslate   = BuildConfig.ENABLE_TRANSLATION,
+            showTranslate   = CapabilityAvailabilityAccessor.isTranslationAvailable(root.context),
             getSelectedText = { selectionBridge.lastSelectedText },
             onTranslate     = translationHelper::handleTranslateSelection,
             onSearchGoogle  = { openGoogleSearch(root.context, it) },

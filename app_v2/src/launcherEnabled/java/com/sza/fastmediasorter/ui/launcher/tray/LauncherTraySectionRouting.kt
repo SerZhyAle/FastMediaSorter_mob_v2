@@ -20,6 +20,9 @@ object LauncherTraySectionRouting {
         LauncherTrayIndicator.BLUETOOTH ->
             NetworkMonitorSection.Bluetooth.key to OsShortcutCatalog.KEY_BLUETOOTH
 
+        LauncherTrayIndicator.TETHERING ->
+            NetworkMonitorSection.Wifi.key to OsShortcutCatalog.KEY_TETHERING
+
         LauncherTrayIndicator.SIM1, LauncherTrayIndicator.SIM2,
         LauncherTrayIndicator.SPEED_RX, LauncherTrayIndicator.SPEED_TX ->
             NetworkMonitorSection.Mobile.key to OsShortcutCatalog.KEY_WIRELESS
@@ -32,4 +35,16 @@ object LauncherTraySectionRouting {
 
         else -> "" to ""
     }
+
+    /**
+     * S2027: whether [indicator]'s tap skips the in-app Monitor and opens the system screen from
+     * [routeFor]'s second element directly.
+     *
+     * True only for tethering, and for the reason the Monitor exists at all: every other tray indicator
+     * reports something the Monitor itself explains, while the app cannot switch tethering on any API
+     * level it ships to (strategic ADR-2), so routing it inward costs the user a second tap to reach the
+     * only screen that can act on it.
+     */
+    fun opensSystemScreenDirectly(indicator: LauncherTrayIndicator): Boolean =
+        indicator == LauncherTrayIndicator.TETHERING
 }

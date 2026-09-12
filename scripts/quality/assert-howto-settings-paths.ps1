@@ -248,11 +248,11 @@ function Scan-File([string] $relPath, [string] $loc) {
 # above (system-path skip + bare-tab prose prefix) keeps prose false-positives out.
 # -IncludeNarrative is retained as a no-op so existing invocations do not break.
 $fileGroups = [System.Collections.ArrayList]@(
-    @{ name = 'HOW_TO';          parity = $true;  files = @{ en = 'docs/HOW_TO.md';           ru = 'docs/HOW_TO_RU.md';           uk = 'docs/HOW_TO_UK.md' } }
-    @{ name = 'README';          parity = $false; files = @{ en = 'docs/README.md';           ru = 'docs/README_RU.md';           uk = 'docs/README_UK.md' } }
-    @{ name = 'QUICK_START';     parity = $false; files = @{ en = 'docs/QUICK_START.md';      ru = 'docs/QUICK_START_RU.md';      uk = 'docs/QUICK_START_UK.md' } }
-    @{ name = 'FAQ';             parity = $false; files = @{ en = 'docs/FAQ.md';              ru = 'docs/FAQ_RU.md';              uk = 'docs/FAQ_UK.md' } }
-    @{ name = 'TROUBLESHOOTING'; parity = $false; files = @{ en = 'docs/TROUBLESHOOTING.md';  ru = 'docs/TROUBLESHOOTING_RU.md';  uk = 'docs/TROUBLESHOOTING_UK.md' } }
+    @{ name = 'HOW_TO';          parity = $true;  files = @{ en = 'docs/HOW_TO.md';           ru = 'docs/HOW_TO-ru.md';           uk = 'docs/HOW_TO-uk.md' } }
+    @{ name = 'README';          parity = $false; files = @{ en = 'docs/README.md';           ru = 'docs/README-ru.md';           uk = 'docs/README-uk.md' } }
+    @{ name = 'QUICK_START';     parity = $false; files = @{ en = 'docs/QUICK_START.md';      ru = 'docs/QUICK_START-ru.md';      uk = 'docs/QUICK_START-uk.md' } }
+    @{ name = 'FAQ';             parity = $false; files = @{ en = 'docs/FAQ.md';              ru = 'docs/FAQ-ru.md';              uk = 'docs/FAQ-uk.md' } }
+    @{ name = 'TROUBLESHOOTING'; parity = $false; files = @{ en = 'docs/TROUBLESHOOTING.md';  ru = 'docs/TROUBLESHOOTING-ru.md';  uk = 'docs/TROUBLESHOOTING-uk.md' } }
 )
 
 # --- scan every group ---------------------------------------------------------

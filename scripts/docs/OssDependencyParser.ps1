@@ -119,6 +119,11 @@ function Get-OssDependencies {
     <#
         .SYNOPSIS
             Every Maven coordinate declared in a module's dependencies block.
+
+    .DESCRIPTION
+        S2875: supports both inline "group:artifact:version" coordinates and
+        version-catalog accessors (libs.xxx.yyy). The accessor is resolved to
+        group:artifact by reading gradle/libs.versions.toml.
     #>
     [CmdletBinding()]
     param(
@@ -133,15 +138,32 @@ function Get-OssDependencies {
     }
     if (-not $Flavors) { $Flavors = Get-OssFlavorNames }
 
+    # S2875: build a lookup from accessor -> (group, artifact) by reading the version catalog.
+    $catalogLookup = @{}
+    $tomlPath = Join-Path $RepoRoot 'gradle/libs.versions.toml'
+    if (Test-Path -LiteralPath $tomlPath) {
+        $tomlText = Get-Content -LiteralPath $tomlPath -Raw
+        $rxLib = '([a-z0-9][a-z0-9-]*)\s*=\s*\{\s*(?:group\s*=\s*"([^"]+)"\s*,\s*name\s*=\s*"([^"]+)"|module\s*=\s*"([^"]+):([^"]+)")'
+        foreach ($m in [regex]::Matches($tomlText, $rxLib, [System.Text.RegularExpressions.RegexOptions]::Multiline)) {
+            $alias = $m.Groups[1].Value
+            $accessor = 'libs.' + ($alias -replace '-', '.')
+            if ($m.Groups[2].Success) {
+                $catalogLookup[$accessor] = @{ Group = $m.Groups[2].Value; Artifact = $m.Groups[3].Value }
+            } else {
+                $catalogLookup[$accessor] = @{ Group = $m.Groups[4].Value; Artifact = $m.Groups[5].Value }
+            }
+        }
+    }
+
     $lines = Get-Content -LiteralPath $GradleFile
     $inBlock = $false
     $depth = 0
     $found = $false
     $results = [System.Collections.Generic.List[object]]::new()
 
-    # A declaration is a configuration call on its own line; the argument must be a direct
-    # string literal, which is exactly what excludes project(), files() and a bare variable.
-    $rxDeclaration = '^\s*(?:"(?<q>[A-Za-z][A-Za-z0-9_]*)"|(?<b>[A-Za-z][A-Za-z0-9_]*))\s*\(\s*"(?<coord>[^"]+)"'
+    # A declaration is a configuration call on its own line; the argument is either a direct
+    # string literal ("group:artifact:version") or a version-catalog accessor (libs.xxx.yyy).
+    $rxDeclaration = '^\s*(?:"(?<q>[A-Za-z][A-Za-z0-9_]*)"|(?<b>[A-Za-z][A-Za-z0-9_]*))\s*\(\s*(?:"(?<coord>[^"]+)"|(?<libs>libs\.[a-zA-Z0-9.]+))'
 
     foreach ($raw in $lines) {
         $line = $raw -replace '//.*$', ''
@@ -160,24 +182,42 @@ function Get-OssDependencies {
 
         if ($line -match $rxDeclaration) {
             $configuration = if ($Matches['q']) { $Matches['q'] } else { $Matches['b'] }
-            $coordinate = $Matches['coord']
 
-            # platform() and project() never reach here - their argument is not the first
-            # literal after the configuration's own paren - but a BOM assigned inline would.
-            if ($configuration -ne 'platform') {
-                $parts = $coordinate.Split(':')
-                if ($parts.Count -lt 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or [string]::IsNullOrWhiteSpace($parts[1])) {
-                    Write-Error "unparsable coordinate in ${GradleFile}: $coordinate" -ErrorAction Continue
-                    exit 2
+            # S2875: resolve libs.* accessor via the version catalog, or use the inline coordinate.
+            if ($Matches['libs']) {
+                $accessor = $Matches['libs']
+                if ($catalogLookup.ContainsKey($accessor)) {
+                    $entry = $catalogLookup[$accessor]
+                    $results.Add([pscustomobject]@{
+                        Group         = $entry.Group
+                        Artifact      = $entry.Artifact
+                        Version       = ''
+                        Configuration = $configuration
+                        Module        = $Module
+                        Shipping      = (Test-OssShippingConfiguration -Configuration $configuration -Flavors $Flavors)
+                    })
                 }
-                $results.Add([pscustomobject]@{
-                    Group         = $parts[0]
-                    Artifact      = $parts[1]
-                    Version       = if ($parts.Count -ge 3) { $parts[2] } else { '' }
-                    Configuration = $configuration
-                    Module        = $Module
-                    Shipping      = (Test-OssShippingConfiguration -Configuration $configuration -Flavors $Flavors)
-                })
+                # Unknown accessor: skip silently (might be a BOM or project reference)
+            } else {
+                $coordinate = $Matches['coord']
+
+                # platform() and project() never reach here - their argument is not the first
+                # literal after the configuration's own paren - but a BOM assigned inline would.
+                if ($configuration -ne 'platform') {
+                    $parts = $coordinate.Split(':')
+                    if ($parts.Count -lt 2 -or [string]::IsNullOrWhiteSpace($parts[0]) -or [string]::IsNullOrWhiteSpace($parts[1])) {
+                        Write-Error "unparsable coordinate in ${GradleFile}: $coordinate" -ErrorAction Continue
+                        exit 2
+                    }
+                    $results.Add([pscustomobject]@{
+                        Group         = $parts[0]
+                        Artifact      = $parts[1]
+                        Version       = if ($parts.Count -ge 3) { $parts[2] } else { '' }
+                        Configuration = $configuration
+                        Module        = $Module
+                        Shipping      = (Test-OssShippingConfiguration -Configuration $configuration -Flavors $Flavors)
+                    })
+                }
             }
         }
 

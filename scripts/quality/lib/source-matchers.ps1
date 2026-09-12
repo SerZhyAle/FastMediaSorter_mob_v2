@@ -251,6 +251,23 @@ function Find-WindowInsetsLines([string]$Text) {
     return $hits
 }
 
+$script:WearListStartRx = [regex]'\b(?:ScalingLazyColumn|rememberScalingLazyListState)\s*\('
+
+function Measure-WearListStartText([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return 0 }
+    return $script:WearListStartRx.Matches($Text).Count
+}
+
+function Find-WearListStartLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $lines = $Text -split "`r?`n"
+    $hits = @()
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($script:WearListStartRx.IsMatch($lines[$i])) { $hits += ($i + 1) }
+    }
+    return $hits
+}
+
 # S1363: a broad `catch (e: Exception)` in coroutine code also catches CancellationException.
 # Cancelling a job then reads as a failure: it is logged at error level, converted into a
 # domain failure result, and never rethrown, so the parent job believes the child completed
@@ -550,7 +567,16 @@ function Measure-LoneResourceBackslashes([string]$Text) {
 # S2250: a policy check can be hoisted or expressed as an early return, so a lexical gate cannot
 # reliably prove that an individual animator consulted it. Count the animation vocabulary instead:
 # adding any new primitive makes the review explicit, while the baseline never hides that growth.
-$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b'
+#
+# S2536: the vocabulary above is entirely NAMED animation APIs, and that is what the rule could not
+# see. A hand-rolled per-frame loop - withFrameNanos advancing a clock and invalidating - is not one
+# of them, so the largest animation in the watch module, measured at about 1.5 cores while playing,
+# scored zero hits from a gate whose whole job is finding animation. The watch baseline of 2 came
+# entirely from one already-gated call elsewhere. The gap was in the mechanism rather than in any one
+# ticket's attention, so the fix is the pattern: withFrameNanos for the hand-rolled loop,
+# rememberInfiniteTransition for the Compose form of an endless animator, and animateContentSize for
+# the layout animation that declares itself in a modifier rather than at a call site.
+$script:UnpolicedAnimationRx = [regex]'\boverridePendingTransition\b|\boverrideActivityTransition\b|\bbeginDelayedTransition\b|\bLayoutTransition\b|\bsetPageTransformer\b|\bObjectAnimator\b|\bValueAnimator\b|\bAnimatorSet\b|\bAnimationUtils\.loadAnimation\b|\bwithCrossFade\s*\(\s*(?!0(?:\.0+)?(?:[fFdD])?\s*[,)])|\bAnimatedVisibility\b|\bwithFrameNanos\b|\brememberInfiniteTransition\b|\banimateContentSize\b'
 
 function Find-UnpolicedAnimationLines([string]$Text) {
     if ([string]::IsNullOrEmpty($Text)) { return @() }
@@ -567,6 +593,38 @@ function Find-UnpolicedAnimationLines([string]$Text) {
 function Measure-UnpolicedAnimationText([string]$Text) {
     if ([string]::IsNullOrEmpty($Text)) { return 0 }
     return $script:UnpolicedAnimationRx.Matches($Text).Count
+}
+
+# S2748: a CoroutineScope built in a test source set on anything other than the test's own
+# scheduler. Such a scope is not a child of `runTest`, so nothing joins it and its coroutine can
+# outlive the test body on a real dispatcher - the path by which an exception reaches the global
+# ExceptionCollector and is charged to the next unrelated test on the worker (S2746).
+# Lexical by necessity: the link between a field scope and the `@After` that should join it cannot
+# be established by a regex, so the rule counts CONSTRUCTIONS and the ratchet stops growth. The
+# nine sites S2748 fixed stay counted - their cure is the teardown, not the construction.
+$script:TestUnjoinedScopeRx = [regex]'\bCoroutineScope\s*\('
+# Case-insensitive: a scheduler-bound scope reaches the dispatcher through a rule field as often as
+# through the type name (`CoroutineScope(dispatcherRule.testDispatcher)`), and both are correct.
+$script:TestScopeAllowRx = [regex]'(?i)testdispatcher|testscheduler|testscope'
+
+function Find-TestUnjoinedScopeLines([string]$Text) {
+    if ([string]::IsNullOrEmpty($Text)) { return @() }
+    $hits = @()
+    $lines = $Text -split "`r?`n"
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = $lines[$i]
+        if ($script:TestScopeAllowRx.IsMatch($line)) { continue }
+        foreach ($match in $script:TestUnjoinedScopeRx.Matches($line)) {
+            $hits += ($i + 1)
+        }
+    }
+    return $hits
+}
+
+function Measure-TestUnjoinedScopeText([string]$Text) {
+    # @() around the call: a helper returning one line number unrolls to a bare int, and an empty
+    # result to $null - both of which have no usable .Count here.
+    return @(Find-TestUnjoinedScopeLines $Text).Count
 }
 
 # S2328: the caption/value split - a label that takes the row's free width while its value sits at
@@ -779,7 +837,13 @@ function Get-SourceRules {
         # all - is never judged by this dimension.
         (New-RegexRule -Name 'compose-island' `
                 -Pattern ([regex]'setContent\s*\{') `
-                -FailMessage 'new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. Removing an island lowers this baseline; raising it is a boundary decision, not a build fix.'),
+                -FailMessage ('new Compose island in app_v2 (CLAUDE.md Rule 32). app_v2 is View-based: build the screen in XML + ViewBinding. ' +
+                    'Removing an island lowers this baseline; raising it is a boundary decision, not a build fix. ' +
+                    'Why this is a gate and not taste (S2517 moved this off the always-loaded rules page): 404169 of app_v2''s lines are View, ' +
+                    'and the sixth island appeared five days after an audit counted five, with nobody having decided to grow the set (S1694). ' +
+                    'Islands leave OPPORTUNISTICALLY, when another ticket reaches them, never as a campaign. Removing Compose from ' +
+                    'app_v2/build.gradle.kts altogether has one precondition recorded in docs/ARCHITECTURE.md: Icons.Default.Pause / SkipNext / ' +
+                    'SkipPrevious exist only in the extended icon set and must become vector drawables first (S0385).')),
         # S1693: growth stop for findViewById, not a placement rule. Whether one call is legitimate
         # (custom View, adapter, runtime-resolved layout, documented host-neutral helper) or legacy
         # is NOT lexically decidable - both shapes look identical - so this rule counts growth only.
@@ -831,6 +895,31 @@ function Get-SourceRules {
                 -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.domain\.repository\.') `
                 -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/ui/.*ViewModel\.kt$' `
                 -FailMessage 'ViewModel imports a repository directly, skipping the UseCase layer (S2103). Put the operation in a VerbNounUseCase and inject that instead. The baseline falls when a call moves into a UseCase; it is never raised.'),
+        # S2751: the same layer arrow read in the OTHER direction. The five rules above all catch an
+        # upper layer reaching DOWN past its neighbour; none of them can see a lower layer reaching UP,
+        # so a use case importing a screen type produced no red exit and appeared silently - measured
+        # 2026-09-08, six such imports in two watch use cases, none of which any gate had ever reported.
+        #
+        # THREE rules rather than one, on the S2103 reasoning above: a new edge in one module-and-layer
+        # pair must not be payable by deleting an unrelated edge in another. Baselines seeded at the
+        # measured 0 / 2 / 8 after the two watch use cases were unpicked. The watch data-layer entry is
+        # recorded rather than unpicked on purpose (strategic S2751 §6): its one offender writes into a
+        # Compose snapshot-state holder, and moving that holder down would drag the Compose runtime into
+        # the domain - a worse violation than the one it removes, and its own decision to make.
+        (New-RegexRule -Name 'wear-domain-imports-ui' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.wear\.ui\.') `
+                -Roots @('wear/src/main') `
+                -PathFilter 'wear/src/main/java/com/sza/fastmediasorter/wear/domain/' `
+                -FailMessage 'watch domain code imports a screen type (S2751), inverting UI -> ViewModel -> UseCase -> Repository -> DataSource. Answer with a domain value and let the navigation or tile branch map it to a route or a glyph; move a table that returns domain records into domain/catalog. This baseline is 0 and is never raised.'),
+        (New-RegexRule -Name 'wear-data-imports-ui' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.wear\.ui\.') `
+                -Roots @('wear/src/main') `
+                -PathFilter 'wear/src/main/java/com/sza/fastmediasorter/wear/data/' `
+                -FailMessage 'watch data code imports a screen type (S2751), inverting the layer arrow. Publish the value the screens need from the data layer and let the UI mirror it into its own state holder; the baseline records the power-policy writer that predates this rule and falls when it moves.'),
+        (New-RegexRule -Name 'domain-imports-ui' `
+                -Pattern ([regex]'(?m)^import com\.sza\.fastmediasorter\.ui\.') `
+                -PathFilter 'app_v2/src/main/java/com/sza/fastmediasorter/domain/' `
+                -FailMessage 'phone domain code imports a screen type (S2751), inverting the layer arrow. Answer with a domain value and let the UI map it; an Activity class named in a use case belongs behind a navigation contract. Growth stop only - no campaign over the existing sites is scheduled, and the baseline falls when one moves.'),
         (New-RegexRule -Name 'empty-catch' `
                 -Pattern ([regex]'catch\s*\([^)]*\)\s*\{\s*(?:(?://[^\r\n]*)|(?:/\*[\s\S]*?\*/))?\s*\}') `
                 -FailMessage 'new empty catch block introduced. Recover, use a safe default, or log at the correct level.'),
@@ -1069,6 +1158,22 @@ function Get-SourceRules {
             LocateInText = { param($t) Find-UnpolicedAnimationLines $t }
             FailMessage  = 'new animation primitive in Wear (S2250). Re-judge the site and consult VideoPlayerUiState.animationsDisabled before creating it.'
         },
+        # S2748: the test source sets of BOTH modules share one entry, unlike the phone/wear split
+        # above. That split exists because a shipped-code regression in one module must not hide
+        # behind a cleanup in the other; here the subject is a test-authoring habit that travels
+        # with whoever writes the test, and the wear side contributes two sites, so a second
+        # baseline would carry more bookkeeping than signal.
+        [pscustomobject]@{
+            Name         = 'test-unjoined-scope'
+            Extensions   = @('.kt')
+            Roots        = @('app_v2/src/test', 'wear/src/test')
+            PathFilter   = '^(?:app_v2|wear)/src/test/'
+            Baseline     = 'test-unjoined-scope-baseline.txt'
+            ExcludeNames = @()
+            CountInText  = { param($t) Measure-TestUnjoinedScopeText $t }
+            LocateInText = { param($t) Find-TestUnjoinedScopeLines $t }
+            FailMessage  = 'new CoroutineScope in a test source set that is not on the test scheduler (S2748). Build it as CoroutineScope(UnconfinedTestDispatcher(testScheduler)) inside runTest, or join it in @After with runBlocking { scope.coroutineContext.job.cancelAndJoin() } - a scope neither joined nor scheduler-bound outlives the test body and charges its exception to an unrelated test (S2746).'
+        },
         [pscustomobject]@{
             Name         = 'activity-logic'
             Extensions   = @('.kt')
@@ -1281,6 +1386,21 @@ function Get-SourceRules {
             CountInText  = { param($t) Measure-InlineDeliveryBlockText $t }
             LocateInText = { param($t) Find-InlineDeliveryBlockLines $t }
             FailMessage  = 'a build path resolving a delivery sink or the archiver itself instead of calling the one script that holds the delivery block. Repeating it means the next change to delivery is either made 26 times or diverges - which is how the watch shipped while its Drive copy stayed a month stale and looked current (S1707). Call scripts/utils/publish-artifact.ps1 with -Path and -Name; it covers both sinks, takes several artifacts for one archive, and skips a sink it cannot reach without failing the build. Use -NoZip / -NoCommander for a path that legitimately delivers less (S2332).'
+        },
+        # S2466: direct ScalingLazyColumn or rememberScalingLazyListState in the wear module.
+        # WearListColumn and rememberWearListState enforce consistent round-screen top-edge
+        # placement (initialCenterItemIndex = 0, autoCentering = null) and content padding
+        # across all wear screens, dialogs, sheets, and overlays.
+        [pscustomobject]@{
+            Name         = 'wear-list-start'
+            Extensions   = @('.kt')
+            Roots        = @('wear/src/main')
+            PathFilter   = '^wear/src/main/'
+            Baseline     = 'wear-list-start-baseline.txt'
+            ExcludeNames = @('WearListColumn.kt')
+            CountInText  = { param($t) Measure-WearListStartText $t }
+            LocateInText = { param($t) Find-WearListStartLines $t }
+            FailMessage  = 'direct ScalingLazyColumn or rememberScalingLazyListState in wear module. Use WearListColumn and rememberWearListState to enforce consistent round-screen top-edge placement and content padding (S2466).'
         }
     )
 }

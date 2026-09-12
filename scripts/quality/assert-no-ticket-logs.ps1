@@ -98,6 +98,18 @@ $idRx = [regex]'(?<![A-Za-z0-9])S(?<num>\d{4})(?![0-9A-Za-z])'
 # Probe form: Timber.d("Sxxxx: ..) - the string may sit on a later line, so the
 # span is matched from its start and \s spans newlines.
 $probeRx = Get-TimberProbeFormRegex
+# S2934: the probe-line-shape predicate, judged against the trimmed physical opener line. It used to
+# be a literal spelled out at the point of use here, which made this file the ONLY home of the
+# sentence "a probe owns its line" - so check-probe-present.ps1, which admits the probe in the first
+# place, could not ask it and the violation surfaced later, on someone else's project-wide run
+# (S1621, the same split S2324 closed for the presence half).
+#
+# Read straight from the profile rather than through a Get-Timber* accessor like its two neighbours
+# above, deliberately: this gate runs against the RESOLVED harness, which is the plugin cache, so a
+# new accessor function would be undefined here until a deploy no project session performs, while an
+# unknown key in .sza-profile.json is carried into the merged tree by Merge-SzaProfileNode and reads
+# correctly today.
+$ownLineRx = [regex]([string](Get-SzaProfileValue 'probes.ownLineRegex'))
 
 $findings = [System.Collections.Generic.List[object]]::new()
 # Ids for which a probe call actually exists in source, whatever its status. A stale probe counts
@@ -139,6 +151,30 @@ foreach ($root in $scanRoots) {
                     [void]$probeIds.Add('S' + $pm.Groups['num'].Value)
                     if ($blockNeedUserTest.Contains('S' + $pm.Groups['num'].Value)) {
                         $allowed = $true
+                    }
+
+                    # probe-line-shape (owner ruling 2026-09-02): a probe must be one statement alone
+                    # on its line. A probe is removed in BULK - 176 files in one sweep at the release
+                    # of 2.60.9021.951 - and bulk removal is only safe when dropping the line drops
+                    # exactly the probe. It was not: `}.also { Timber.d("S2354: ..") }` was also the
+                    # closing brace of a `when` and `).also { .. }` closed an argument list, so the
+                    # sweep broke the build hundreds of lines away with `Unresolved reference 'gcd'`.
+                    # Judged on the physical opener line, which is what a line-wise sweep sees.
+                    $lineEnd = $content.IndexOf("`n", $m.Index)
+                    if ($lineEnd -lt 0) { $lineEnd = $content.Length }
+                    $wholeLine = $content.Substring($lineStart, $lineEnd - $lineStart).TrimEnd("`r").Trim()
+                    $isOwnLine = $ownLineRx.IsMatch($wholeLine)
+                    if (-not $isOwnLine) {
+                        $rel = $file.FullName.Substring($repoRoot.Length).TrimStart('\', '/')
+                        $findings.Add([pscustomobject]@{
+                            File   = ($rel -replace '\\', '/')
+                            Line   = $lineNo
+                            Level  = "Timber.$level"
+                            Ticket = 'S' + $pm.Groups['num'].Value
+                            Reason = 'probe shares its line with code, or wraps across lines - a bulk delete cannot drop it safely'
+                            Text   = $wholeLine
+                        })
+                        $allowed = $true   # already reported here; do not report it twice below
                     }
                 }
             }
@@ -215,6 +251,31 @@ if (-not $Quiet -and $actual -gt 0) {
     Write-Host ''
 }
 
+# S2517: the incident behind the probe-line-shape rule is printed HERE rather than carried on the
+# always-loaded rules page, because it is needed exactly when the rule has just been broken and on
+# no other request. Printed only when that rule is the one that fired.
+if (-not $Quiet -and ($findings | Where-Object { $_.Reason -like 'probe shares its line*' })) {
+    Write-Host @'
+Why a probe must own its line, whole (owner ruling 2026-09-02):
+
+  A probe is removed in BULK - 176 files in one sweep at the release of 2.60.9021.951 - and a bulk
+  delete is only safe when dropping the line drops exactly the probe and nothing else. It did not:
+  `}.also { Timber.d("S2354: ..") }` was ALSO the closing brace of a `when`, and `).also { .. }`
+  closed an argument list. Removing those lines broke the build with `Unresolved reference 'gcd'`
+  several hundred lines away from anything the sweep had aimed at.
+
+  Forbidden shapes, all measured that day:
+    }.also { Timber.d(..) }            - the line is also a block terminator
+    ).also { Timber.d(..) }            - the line also closes an argument list
+    if (cond) Timber.d(..)             - the line also carries the condition
+    LaunchedEffect(x) { Timber.d(..) } - the line also opens the effect
+    any Timber.d( whose arguments continue on the next line
+
+  Correct shape: one Timber.d("Sxxxx: ..") statement, alone on its own line, ending in `)`.
+
+'@
+}
+
 if (-not $Quiet -and $scoped -and $outOfScope.Count -gt 0) {
     # Reported, never hidden: a finding outside the changed set is still real, it just is not this
     # caller's to fix. Silently dropping it would make the scoped run read as "the tree is clean".
@@ -235,6 +296,15 @@ if (-not $Quiet -and $missingProbe.Count -gt 0) {
 
 Write-Host ("assert-no-ticket-logs: expected: 0 | actual: {0} forbidden log id(s), {1} missing probe(s)  (BlockNeedUserTest: {2}, probes in source: {3}, excused: {4})" -f
     $actual, $missingProbe.Count, $blockNeedUserTest.Count, $probeIds.Count, $excused.Count)
+
+# S2639: the two modes differ by contract - default audits and exits 0, -Gate is fail-closed - and a
+# reader who ran this standalone saw nine findings answered by a zero and filed it as a broken gate.
+# The contract is right; what was missing is the sentence saying which mode just spoke.
+if (-not $Gate -and -not $Quiet -and ($actual -gt 0 -or $missingProbe.Count -gt 0)) {
+    Write-Host ''
+    Write-Host '  Audit mode (no -Gate): the findings above are REPORTED and this run exits 0.'
+    Write-Host '  Re-run with -Gate for the fail-closed verdict - that is how a.ps1 fg invokes it.'
+}
 
 if ($Gate -and $actual -gt 0) { exit 1 }
 # S1912: a missing probe is fatal on a project-wide run - the release path and assert-fast-gates.ps1

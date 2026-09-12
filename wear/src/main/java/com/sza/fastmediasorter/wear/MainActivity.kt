@@ -12,23 +12,34 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -42,32 +53,71 @@ import androidx.wear.compose.navigation.composable
 import androidx.wear.compose.navigation.rememberSwipeDismissableNavController
 import com.sza.fastmediasorter.wear.core.notification.WearOpenOnWatchNotifier
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.core.util.WearUnitDateTimeFormatter
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
+import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
+import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
+import com.sza.fastmediasorter.wear.domain.model.WearNetworkFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.readWearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.usecase.ObserveWearGeometryModeUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareVoiceNotePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearFilePlaybackUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearNetworkFilePlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearBackgroundUseCase
-import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchRouteUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.ResolveWearLaunchAddressUseCase
 import com.sza.fastmediasorter.wear.ui.apps.AppsScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.BloodPressureScreen
+import com.sza.fastmediasorter.wear.ui.apps.bloodpressure.history.BloodPressureHistoryScreen
+import com.sza.fastmediasorter.wear.ui.apps.bodysensor.BodySensorScreen
+import com.sza.fastmediasorter.wear.ui.apps.bodysensor.history.HeartRateHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
+import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
+import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.history.MotionHistoryScreen
+import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
+import com.sza.fastmediasorter.wear.ui.apps.tourist.TouristScreen
+import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
+import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastQrScreen
+import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastScreen
 import com.sza.fastmediasorter.wear.ui.browse.BrowseScreen
 import com.sza.fastmediasorter.wear.ui.common.KeepScreenOnEffect
-import com.sza.fastmediasorter.wear.ui.common.WearAppBackground
+import com.sza.fastmediasorter.wear.ui.common.LocalWearDateTimeFormatter
+import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
+import com.sza.fastmediasorter.wear.ui.common.LocalWearListPositions
+import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.LocalWearSectionExpansion
+import com.sza.fastmediasorter.wear.ui.common.LocalWearUnitSystem
+import com.sza.fastmediasorter.wear.ui.common.LocalWearWallpaperState
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearListPositionStore
+import com.sza.fastmediasorter.wear.ui.common.WearRotaryFocusStack
+import com.sza.fastmediasorter.wear.ui.common.WearSectionExpansionStore
+import com.sza.fastmediasorter.wear.ui.common.WearWallpaperState
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.favourites.FavouritesScreen
 import com.sza.fastmediasorter.wear.ui.folder.WearFolderWalkScreen
 import com.sza.fastmediasorter.wear.ui.home.HomeScreen
 import com.sza.fastmediasorter.wear.ui.home.LocalHomeScreen
 import com.sza.fastmediasorter.wear.ui.home.PhoneHomeScreen
+import com.sza.fastmediasorter.wear.ui.navigation.WearLaunchRoutes
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.ui.network.AddNetworkSourceScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourceMediaTypeScreen
@@ -76,7 +126,9 @@ import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
+import com.sza.fastmediasorter.wear.ui.phonecamera.PhoneCameraScreen
 import com.sza.fastmediasorter.wear.ui.player.audio.AudioPlayerScreen
+import com.sza.fastmediasorter.wear.ui.player.document.DocumentViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.image.ImageViewerScreen
 import com.sza.fastmediasorter.wear.ui.player.unsupported.UnsupportedFileScreen
 import com.sza.fastmediasorter.wear.ui.player.video.VideoPlayerScreen
@@ -87,7 +139,9 @@ import com.sza.fastmediasorter.wear.ui.settings.ScreenSettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SettingsRoutes
 import com.sza.fastmediasorter.wear.ui.settings.SettingsScreen
 import com.sza.fastmediasorter.wear.ui.settings.SlideshowSettingsScreen
+import com.sza.fastmediasorter.wear.ui.settings.TileTargetsSettingsScreen
 import com.sza.fastmediasorter.wear.ui.streams.StreamsScreen
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
 import com.sza.fastmediasorter.wear.ui.tile.TileTargetPickerScreen
 import com.sza.fastmediasorter.wear.ui.voicenote.VoiceNoteListScreen
@@ -111,6 +165,13 @@ data class WearHostUseCases(
     val prepareStreamPlayback: PrepareWearStreamPlaybackUseCase,
     val prepareFilePlayback: PrepareWearFilePlaybackUseCase,
     val resolveBackground: ResolveWearBackgroundUseCase,
+    val prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
+    val prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase,
+    // S2773: the screen geometry in force. Travels here rather than as a parameter of its own for the
+    // same reason as the rest: the navigation host is the only thing that needs it.
+    val observeGeometryMode: ObserveWearGeometryModeUseCase,
+    // S2995: restricted capabilities for build flavor routing
+    val capabilities: WearRestrictedCapabilities,
 )
 
 /**
@@ -121,7 +182,7 @@ data class WearHostUseCases(
  * repeated at every level between the Activity and the navigation host.
  */
 data class WearLaunchEntry(
-    val resolveRoute: ResolveWearLaunchRouteUseCase,
+    val resolveAddress: ResolveWearLaunchAddressUseCase,
     val pendingTarget: StateFlow<WearLaunchTarget?>,
     /** Takes the target it handled, so a newer one that arrived mid-resolution is not cleared unhandled. */
     val onHandled: (WearLaunchTarget) -> Unit,
@@ -130,11 +191,24 @@ data class WearLaunchEntry(
 /** S2201: the sentinel the player view models already treat as "no file was named". */
 private const val UNRESOLVED_FILE_ID = -1L
 
+/** S2161: the recorder writes one container only, so the route builder is told it rather than guessing. */
+private const val VOICE_NOTE_MIME_TYPE = "audio/mp4"
+
 /** The three player routes: each covers the whole window, so the shared background is not drawn behind them. */
 private val PLAYER_ROUTES = setOf(
     WearRoutes.AUDIO_PLAYER_PATTERN,
     WearRoutes.VIDEO_PLAYER_PATTERN,
     WearRoutes.IMAGE_VIEWER_PATTERN
+)
+
+private val SETTINGS_ROUTES = setOf(
+    WearRoutes.SETTINGS,
+    SettingsRoutes.MEDIA_TYPES,
+    SettingsRoutes.SLIDESHOW,
+    SettingsRoutes.SCREEN,
+    SettingsRoutes.OTHER,
+    SettingsRoutes.TILE_TARGETS,
+    SettingsRoutes.ABOUT
 )
 
 @AndroidEntryPoint
@@ -152,16 +226,38 @@ class MainActivity : ComponentActivity() {
     // S1884: the same arrangement for a file the phone delivered rather than a channel it named.
     @Inject lateinit var prepareFilePlayback: PrepareWearFilePlaybackUseCase
 
+    @Inject lateinit var prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase
+
+    // S2161: a voice note is addressed either by its published MediaStore row or by its private file,
+    // and only this use case knows which - the recorder and note screens hand it the note and navigate.
+    @Inject lateinit var prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
+
     // S1955: a tile names its target in the launch intent, and resolving it reads the stores.
-    @Inject lateinit var resolveLaunchRoute: ResolveWearLaunchRouteUseCase
+    @Inject lateinit var resolveLaunchAddress: ResolveWearLaunchAddressUseCase
 
     // S2000: injected here and handed down for the same reason the two playback use cases are -
     // the navigation host is the one place that sits above every screen the background shows behind.
     @Inject lateinit var resolveBackground: ResolveWearBackgroundUseCase
 
+    @Inject lateinit var observeGeometryMode: ObserveWearGeometryModeUseCase
+
+    @Inject lateinit var capabilities: WearRestrictedCapabilities
+
     // S1961: the pending-open notification is this app's own, so it is this app that puts it away
     // once the user is here and no longer needs it.
     @Inject lateinit var openOnWatchNotifier: WearOpenOnWatchNotifier
+
+    // S2543: list positions outlive the screens that produced them, so the store is held by the process
+    // and handed to composition here - a screen popped off the back stack takes its own state with it.
+    @Inject lateinit var listPositions: WearListPositionStore
+
+    // S2806: which groups of a grouped report were open survives the screen for the same reason its
+    // scroll anchor does - the screen is destroyed by navigation, the process is not.
+    @Inject lateinit var sectionExpansion: WearSectionExpansionStore
+
+    // S2795: handed to composition here for the same reason the two stores above are - every screen
+    // that shows a time needs it, and the pattern cache is worth nothing if each screen builds its own.
+    @Inject lateinit var dateTimeFormatter: WearUnitDateTimeFormatter
 
     /**
      * S1955: what this launch asked to open, until the navigation host has opened it.
@@ -179,6 +275,7 @@ class MainActivity : ComponentActivity() {
         logAppInfo()
 
         Timber.d("MainActivity created")
+        Timber.d("S2913: wear compose stack initialized")
 
         // Only on a genuine start: a recreation re-delivers the same intent, and the module's
         // configChanges does not cover a locale, font-scale or density change, so re-reading it here
@@ -191,26 +288,49 @@ class MainActivity : ComponentActivity() {
         val hasPermissions = hasMediaPermissions()
 
         setContent {
-            AskNotificationPermissionEffect(
-                alreadyAsked = preferencesRepository.notificationPermissionAsked,
-                onAsked = { lifecycleScope.launch { preferencesRepository.setNotificationPermissionAsked(true) } }
-            )
-            WearApp(
-                initialHasPermissions = hasPermissions,
-                keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
-                isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
-                appLanguage = preferencesRepository.appLanguage,
-                hostUseCases = WearHostUseCases(
-                    prepareStreamPlayback = prepareStreamPlayback,
-                    prepareFilePlayback = prepareFilePlayback,
-                    resolveBackground = resolveBackground
-                ),
-                launchEntry = WearLaunchEntry(
-                    resolveRoute = resolveLaunchRoute,
-                    pendingTarget = pendingLaunchTarget,
-                    onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+            // S2763: one rotary stack for the whole watch UI. It has to span the screen and everything
+            // drawn over it - dialogs, the action cloud - or each side would believe it owns the crown.
+            val rotaryFocus = remember { WearRotaryFocusStack() }
+            // S2795: collected above every screen, because the measurement system decides the clock
+            // format on surfaces that share nothing else - the brand frame, a history list, the
+            // flashlight's clock. A push from the phone lands here and recomposes all of them.
+            val units by preferencesRepository.unitSystem
+                .collectAsStateWithLifecycle(initialValue = UnitSystem.DEFAULT)
+            CompositionLocalProvider(
+                LocalWearUnitSystem provides units,
+                LocalWearListPositions provides listPositions,
+                LocalWearSectionExpansion provides sectionExpansion,
+                LocalWearRotaryFocusStack provides rotaryFocus,
+                LocalWearDateTimeFormatter provides dateTimeFormatter
+            ) {
+                AskNotificationPermissionEffect(
+                    alreadyAsked = preferencesRepository.notificationPermissionAsked,
+                    onAsked = {
+                        lifecycleScope.launch { preferencesRepository.setNotificationPermissionAsked(true) }
+                    }
                 )
-            )
+                WearApp(
+                    initialHasPermissions = hasPermissions,
+                    keepScreenAwakeOutsidePlayers = preferencesRepository.keepScreenAwakeOutsidePlayers,
+                    isAutoRotationEnabled = preferencesRepository.isAutoRotationEnabled,
+                    appLanguage = preferencesRepository.appLanguage,
+                    colorScheme = preferencesRepository.colorScheme,
+                    hostUseCases = WearHostUseCases(
+                        prepareStreamPlayback = prepareStreamPlayback,
+                        prepareFilePlayback = prepareFilePlayback,
+                        resolveBackground = resolveBackground,
+                        prepareVoiceNotePlayback = prepareVoiceNotePlayback,
+                        prepareNetworkFilePlayback = prepareNetworkFilePlayback,
+                        observeGeometryMode = observeGeometryMode,
+                        capabilities = capabilities,
+                    ),
+                    launchEntry = WearLaunchEntry(
+                        resolveAddress = resolveLaunchAddress,
+                        pendingTarget = pendingLaunchTarget,
+                        onHandled = { handled -> pendingLaunchTarget.compareAndSet(handled, null) }
+                    )
+                )
+            }
         }
     }
 
@@ -224,7 +344,6 @@ class MainActivity : ComponentActivity() {
     override fun onStart() {
         super.onStart()
 
-        Timber.d("S1961: MainActivity onStart cancelling pending open notification")
         openOnWatchNotifier.cancel()
     }
 
@@ -306,13 +425,20 @@ fun WearApp(
     keepScreenAwakeOutsidePlayers: Flow<Boolean>,
     isAutoRotationEnabled: Flow<Boolean>,
     appLanguage: Flow<String?>,
+    colorScheme: Flow<WearColorScheme>,
     // S1944: passed down rather than resolved in the composable, so the one instance the Activity
     // injects is the one both entrances to a player use.
     hostUseCases: WearHostUseCases,
     // S1955: read-only here and cleared through the callback, so the one writer stays the Activity.
     launchEntry: WearLaunchEntry
 ) {
-    WearAppTheme {
+    // S2522: the default here is shown only until DataStore answers, and nothing themed is drawn in
+    // that window - WearApp opens on the brand frame, which outlives the read. So no synchronous
+    // preference mirror is needed, unlike the phone, whose night mode must be set before an Activity
+    // inflates. If the brand frame is ever removed, a light-scheme owner would see one dark frame at
+    // cold start, and the fix at that point is a synchronous mirror, not a different initial value.
+    val scheme by colorScheme.collectAsStateWithLifecycle(initialValue = WearColorScheme.DEFAULT)
+    WearAppTheme(scheme = scheme) {
         AutoLocaleEffect(appLanguage = appLanguage)
         AutoRotationEffect(isAutoRotationEnabled = isAutoRotationEnabled)
         val keepAwake by keepScreenAwakeOutsidePlayers.collectAsStateWithLifecycle(initialValue = false)
@@ -421,6 +547,7 @@ private fun AskNotificationPermissionEffect(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MainNavigation(
     hostUseCases: WearHostUseCases,
@@ -452,88 +579,197 @@ fun MainNavigation(
         initialValue = WearBackground.BrandedAnimation
     )
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        WearAppBackground(
+    val showWallpaper = showsWallpaper(currentRoute)
+    val isResumed = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) && currentRoute !in PLAYER_ROUTES
+    Timber.d("S2475: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
+    Timber.d("S2542: wallpaper scope route=%s show=%b bg=%s", currentRoute, showWallpaper, background)
+
+    // S2773: the geometry in force, published beside the wallpaper state because the shape helpers
+    // every screen already calls read it from here. The initial value is the reviewed view, so the one
+    // frame drawn before DataStore answers is never the shape Play rejected.
+    val geometryMode by hostUseCases.observeGeometryMode().collectAsStateWithLifecycle(
+        initialValue = WearGeometryMode.STORE
+    )
+
+    Timber.d("S2773: geometry mode published to the screen tree = %s", geometryMode)
+
+    CompositionLocalProvider(
+        LocalWearWallpaperState provides WearWallpaperState(
             background = background,
-            running = lifecycleState.isAtLeast(Lifecycle.State.RESUMED) &&
-                currentRoute !in PLAYER_ROUTES
-        )
-        SwipeDismissableNavHost(
-            navController = navController,
-            startDestination = WearRoutes.HOME,
+            showsWallpaper = showWallpaper,
+            isResumed = isResumed
+        ),
+        LocalWearGeometryMode provides geometryMode
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
         ) {
-            composable(WearRoutes.HOME) {
-                HomeScreen(navController = navController)
-            }
-
-            browseRoutes(navController = navController)
-
-            localFolderRoutes(navController, hostUseCases.prepareFilePlayback)
-
-            miniAppRoutes(navController = navController)
-
-            tileRoutes(navController = navController)
-
-            // Add network source screen
-            composable(WearRoutes.ADD_NETWORK_SOURCE) {
-                AddNetworkSourceScreen(navController = navController)
-            }
-
-            // Backward-compatible alias for old route name
-            composable(WearRoutes.ADD_SMB_ALIAS) {
-                AddNetworkSourceScreen(navController = navController)
-            }
-
-            // Sync transfer animation (shown while receiving data from phone)
-            composable(WearRoutes.SYNC_TRANSFER) {
-                SyncTransferScreen(navController = navController)
-            }
-
-            // Sync result screen (shown after successful sync)
-            composable(
-                route = WearRoutes.SYNC_RESULT_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_ADDED) { type = NavType.IntType },
-                    navArgument(WearRoutes.ARG_UPDATED) { type = NavType.IntType }
-                )
-            ) { backStackEntry ->
-                val added = backStackEntry.arguments?.getInt(WearRoutes.ARG_ADDED) ?: 0
-                val updated = backStackEntry.arguments?.getInt(WearRoutes.ARG_UPDATED) ?: 0
-                SyncResultScreen(navController = navController, added = added, updated = updated)
-            }
-
-            // Audio player screen
-            composable(
-                route = WearRoutes.AUDIO_PLAYER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
-                )
+            SwipeDismissableNavHost(
+                navController = navController,
+                startDestination = WearRoutes.HOME,
+                // S2548: declared once for the whole graph - a testTag anywhere below reaches the
+                // UiAutomator tree as a resource-id only through this opt-in.
+                modifier = Modifier
+                    .testTag(WearTestTags.WEAR_NAV_ROOT)
+                    .semantics { testTagsAsResourceId = true },
             ) {
-                AudioPlayerScreen()
-            }
+                composable(WearRoutes.HOME) {
+                    HomeScreen(navController = navController)
+                }
 
-            // Video player screen
-            composable(
-                route = WearRoutes.VIDEO_PLAYER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+                browseRoutes(navController = navController)
+
+                localFolderRoutes(
+                    navController,
+                    hostUseCases.prepareFilePlayback,
+                    hostUseCases.prepareNetworkFilePlayback
                 )
-            ) {
-                VideoPlayerScreen()
-            }
 
-            // Image viewer screen
-            composable(
-                route = WearRoutes.IMAGE_VIEWER_PATTERN,
-                arguments = listOf(
-                    navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+                miniAppRoutes(
+                    navController = navController,
+                    prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback,
+                    capabilities = hostUseCases.capabilities,
                 )
-            ) {
-                ImageViewerScreen()
+
+                tileRoutes(navController = navController)
+
+                syncRoutes(navController = navController)
+
+                playerRoutes(navController = navController)
+
+                settingsRoutes(navController = navController)
             }
 
-            settingsRoutes(navController = navController)
+            // S2472: the universal back affordance, drawn above the host.
+            WearNavBackAffordanceHost(currentRoute = currentRoute, navController = navController)
         }
+    }
+}
+
+@Composable
+private fun BoxScope.WearNavBackAffordanceHost(
+    currentRoute: String?,
+    navController: NavHostController
+) {
+    if (showsNavBackAffordance(currentRoute)) {
+        val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+        WearBackAffordance(
+            role = WearBackAffordanceRole.Back,
+            onClick = {
+                if (backDispatcher != null) {
+                    backDispatcher.onBackPressed()
+                } else {
+                    navController.popBackStack()
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = wearBackAffordanceInset())
+        )
+    }
+}
+
+/**
+ * S2472: which routes draw the shared back arrow. The players get their back command inside their
+ * own control cluster (it must hide with those controls), home gets the close/minimize role, and
+ * the game board and calculator are surfaces whose every pixel is the interaction itself - an edge
+ * control there steals the gesture the screen exists for.
+ */
+private fun showsNavBackAffordance(route: String?): Boolean =
+    route != null &&
+        route != WearRoutes.HOME &&
+        route !in PLAYER_ROUTES &&
+        route != WearRoutes.GAME &&
+        route != WearRoutes.CALCULATOR &&
+        // S2825: the same reason as the calculator - the stopwatch's regions reach the screen edge,
+        // and an arrow drawn over one of them takes a tap meant for a participant.
+        route != WearRoutes.STOPWATCH &&
+        // S2516: the back arrow is a touch target, and this screen exists to have none - drawing it
+        // would hand a wet wrist the exit the program is built to withhold.
+        route != WearRoutes.WATER_FLASHLIGHT
+
+private fun showsWallpaper(route: String?): Boolean =
+    route != null && route !in SETTINGS_ROUTES && route !in PLAYER_ROUTES
+
+private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
+    composable(WearRoutes.ADD_NETWORK_SOURCE) {
+        AddNetworkSourceScreen(navController = navController)
+    }
+    composable(WearRoutes.ADD_SMB_ALIAS) {
+        AddNetworkSourceScreen(navController = navController)
+    }
+    composable(WearRoutes.SYNC_TRANSFER) {
+        SyncTransferScreen(navController = navController)
+    }
+    composable(
+        route = WearRoutes.SYNC_RESULT_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_ADDED) { type = NavType.IntType },
+            navArgument(WearRoutes.ARG_UPDATED) { type = NavType.IntType }
+        )
+    ) { backStackEntry ->
+        val added = backStackEntry.arguments?.getInt(WearRoutes.ARG_ADDED) ?: 0
+        val updated = backStackEntry.arguments?.getInt(WearRoutes.ARG_UPDATED) ?: 0
+        SyncResultScreen(navController = navController, added = added, updated = updated)
+    }
+}
+
+/**
+ * S2161: the three playback destinations, lifted out of [MainNavigation] for the same reason S1944
+ * lifted the settings block - the host sat at detekt's length ceiling and this ticket adds a line to
+ * it. All three take the same single file-id argument; S2472 additionally hands each player the
+ * back action, so the controller travels in here with them.
+ *
+ * S2532: the document reader joins them, on the same argument and the same back action. It is
+ * deliberately absent from [PLAYER_ROUTES] all the same - that set names the screens that cover the
+ * whole window, and the reader is a scrolling list like every other one, so it keeps the shared
+ * wallpaper and the shared back affordance.
+ */
+private fun NavGraphBuilder.playerRoutes(navController: NavHostController) {
+    composable(
+        route = WearRoutes.AUDIO_PLAYER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        AudioPlayerScreen(onBack = {
+            navController.popBackStack()
+        })
+    }
+
+    composable(
+        route = WearRoutes.VIDEO_PLAYER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        VideoPlayerScreen(onBack = {
+            navController.popBackStack()
+        })
+    }
+
+    composable(
+        route = WearRoutes.IMAGE_VIEWER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        ImageViewerScreen(onBack = {
+            navController.popBackStack()
+        })
+    }
+
+    composable(
+        route = WearRoutes.DOCUMENT_VIEWER_PATTERN,
+        arguments = listOf(
+            navArgument(WearRoutes.ARG_FILE_ID) { type = NavType.LongType }
+        )
+    ) {
+        DocumentViewerScreen(onBack = {
+            navController.popBackStack()
+        })
     }
 }
 
@@ -566,6 +802,10 @@ private fun NavGraphBuilder.settingsRoutes(navController: NavHostController) {
 
     composable(SettingsRoutes.OTHER) {
         OtherSettingsScreen()
+    }
+
+    composable(SettingsRoutes.TILE_TARGETS) {
+        TileTargetsSettingsScreen(navController = navController)
     }
 
     composable(SettingsRoutes.ABOUT) {
@@ -623,7 +863,7 @@ private fun OpenFileOnWatchEffect(
             WatchFileOpenEvents.requestFlow.collect { request ->
 
                 val target = prepareFilePlayback(request)
-                navController.navigate(playerRouteFor(target.fileId, target.mimeType))
+                navController.navigate(playerRouteFor(target.fileId, target.mimeType, fileName = request.path))
                 // Confirm only after navigating, so the phone's "opened" is a report, not a promise.
                 WatchFileOpenEvents.openedFlow.emit(request.path)
             }
@@ -650,11 +890,11 @@ private fun OpenLaunchTargetEffect(
     LaunchedEffect(navController) {
         lifecycleOwner.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
             launchEntry.pendingTarget.filterNotNull().collect { target ->
-                when (val route = launchEntry.resolveRoute(target)) {
+                when (val address = launchEntry.resolveAddress(target)) {
                     // The whole path is otherwise silent: a deleted resource, a channel dropped from the
                     // catalog and an ordinary launch all look identical from outside the process.
                     null -> Timber.w("Launch target no longer resolves, staying put: %s", target)
-                    else -> navigateGuarded(navController, route)
+                    else -> navigateGuarded(navController, WearLaunchRoutes.routeFor(address))
                 }
                 // Cleared even when nothing resolved, so the jump cannot be replayed.
                 launchEntry.onHandled(target)
@@ -683,7 +923,11 @@ private fun navigateGuarded(navController: NavHostController, route: String) {
  * [settingsRoutes] - the host was over detekt's length ceiling and this ticket adds a line to it.
  * The group is coherent on its own: everything reachable from the Apps list, and nothing else.
  */
-private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
+private fun NavGraphBuilder.miniAppRoutes(
+    navController: NavHostController,
+    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
+    capabilities: WearRestrictedCapabilities,
+) {
     composable(WearRoutes.APPS) {
         AppsScreen(navController = navController)
     }
@@ -695,22 +939,51 @@ private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
         CalculatorScreen(onLeave = { navController.popBackStack() })
     }
 
+    composable(WearRoutes.STOPWATCH) {
+        // S2825: holding the menu control leaves the stopwatch, the calculator's gesture.
+        WearStopwatchScreen(onLeave = { navController.popBackStack() })
+    }
+
     composable(WearRoutes.NETWORK_MONITOR) {
-        NetworkMonitorScreen()
+        NetworkMonitorScreen(
+            onNavigateToSection = { sectionKey ->
+                navController.navigate(WearRoutes.networkMonitorSection(sectionKey))
+            }
+        )
+    }
+
+    composable(WearRoutes.NETWORK_MONITOR_SECTION_PATTERN) { backStackEntry ->
+        val sectionKey = backStackEntry.arguments?.getString(WearRoutes.ARG_NETMON_SECTION)
+        NetworkMonitorDetailScreen(sectionKey = sectionKey.orEmpty())
     }
 
     composable(WearRoutes.GAME) {
         GameScreen(navController = navController)
     }
 
+    // S2516: leaving is the host's word here too, the way the calculator already has it - the screen
+    // knows only that some hardware input arrived, never what to navigate to.
+    composable(WearRoutes.WATER_FLASHLIGHT) {
+        WaterFlashlightScreen(onLeave = { navController.popBackStack() })
+    }
+
+    composable(WearRoutes.GAME_RULES) {
+        GameRulesScreen()
+    }
+
     // S1862: the recorder is a program of this list, and its note list is reached only from it -
     // so both live in this group rather than growing a fourth one for one feature.
     composable(WearRoutes.VOICE_RECORDER) {
-        VoiceRecorderScreen(navController = navController)
+        VoiceRecorderScreen(
+            navController = navController,
+            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+        )
     }
 
     composable(WearRoutes.VOICE_NOTES) {
-        VoiceNoteListScreen()
+        VoiceNoteListScreen(
+            onPlayNote = { note -> navigateToVoiceNote(navController, note, prepareVoiceNotePlayback) }
+        )
     }
 
     // S2008: moved here from [settingsRoutes]. The screen configures nothing - it reports what this
@@ -719,8 +992,85 @@ private fun NavGraphBuilder.miniAppRoutes(navController: NavHostController) {
         SystemInfoScreen()
     }
 
-    composable(WearRoutes.UNSUPPORTED_FILE) {
-        UnsupportedFileScreen()
+    // S3007: Tourist telemetry and navigation dashboard
+    composable(WearRoutes.TOURIST) {
+        TouristScreen()
+    }
+
+    healthAndHardwareAppRoutes(navController, capabilities)
+}
+
+/**
+ * Health sensors, broadcast and auxiliary hardware program routes.
+ */
+private fun NavGraphBuilder.healthAndHardwareAppRoutes(
+    navController: NavHostController,
+    capabilities: WearRestrictedCapabilities,
+) {
+    if (capabilities.offersHealthFeatures) {
+        // S2458: a live session rather than a report, so the destination owns nothing - leaving the
+        // composition is what unregisters the sensors, through the repository's own awaitClose.
+        composable(WearRoutes.MOTION_MONITOR) {
+            MotionMonitorScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.MOTION_HISTORY) }
+            )
+        }
+
+        composable(WearRoutes.MOTION_HISTORY) {
+            MotionHistoryScreen()
+        }
+
+        // S2809: registered in noLegal flavor when offersHealthFeatures is true.
+        composable(WearRoutes.BLOOD_PRESSURE) {
+            BloodPressureScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
+            )
+        }
+
+        composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {
+            BloodPressureHistoryScreen()
+        }
+    }
+
+    if (capabilities.offersBodySensorDiagnostics) {
+        // S2457: registered in noLegal flavor when offersBodySensorDiagnostics is true.
+        composable(WearRoutes.BODY_SENSOR) {
+            BodySensorScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.HEART_RATE_HISTORY) }
+            )
+        }
+
+        composable(WearRoutes.HEART_RATE_HISTORY) {
+            HeartRateHistoryScreen()
+        }
+    }
+
+    // S2509: reached from the Home section and from this list alike - one route, two entrances, as
+    // the owner ruled. Going back from here does not stop the broadcast: the session belongs to the
+    // foreground service, and its notification carries the same stop action.
+    composable(WearRoutes.BROADCAST) {
+        WearBroadcastScreen(onShowQr = { navController.navigate(WearRoutes.BROADCAST_QR) })
+    }
+
+    composable(WearRoutes.BROADCAST_QR) {
+        WearBroadcastQrScreen()
+    }
+
+    // S2551: leaving this screen DOES end the session, unlike the broadcast above - the camera runs
+    // on the phone with no surface here to stop it from, so the screen's own lifetime is the
+    // session's (strategic criterion 3).
+    composable(WearRoutes.PHONE_CAMERA) {
+        PhoneCameraScreen(
+            onWatch = { target -> navController.navigate(WearRoutes.videoPlayer(target.fileId)) }
+        )
+    }
+
+    composable(
+        route = WearRoutes.UNSUPPORTED_FILE,
+        arguments = listOf(navArgument(WearRoutes.ARG_DOCUMENT_FORMAT) { type = NavType.StringType })
+    ) { entry ->
+        val token = entry.arguments?.getString(WearRoutes.ARG_DOCUMENT_FORMAT)
+        UnsupportedFileScreen(format = WearDocumentFormat.fromToken(token))
     }
 }
 
@@ -833,7 +1183,8 @@ private fun NavGraphBuilder.browseRoutes(navController: NavHostController) {
  */
 private fun NavGraphBuilder.localFolderRoutes(
     navController: NavHostController,
-    prepareFilePlayback: PrepareWearFilePlaybackUseCase
+    prepareFilePlayback: PrepareWearFilePlaybackUseCase,
+    prepareNetworkFilePlayback: PrepareWearNetworkFilePlaybackUseCase
 ) {
     composable(
         route = WearRoutes.LOCAL_FOLDER_PATTERN,
@@ -842,13 +1193,41 @@ private fun NavGraphBuilder.localFolderRoutes(
                 type = NavType.StringType
                 nullable = true
                 defaultValue = null
+            },
+            // S2694: absent for the local walk, which wants the default header.
+            navArgument(WearRoutes.ARG_FOLDER_TITLE) {
+                type = NavType.StringType
+                nullable = true
+                defaultValue = null
             }
         )
-    ) {
+    ) { entry ->
+        // The walk's entrance decides which half of the walk this is, and it does not change as the
+        // wearer descends: a network walk holds only network rows, a local one only local rows. The
+        // level's own address is the screen's private state, so the route argument is the one place
+        // the host can read it from.
+        val walkSourceId = (
+            WearFolderAddress.parse(entry.arguments?.getString(WearRoutes.ARG_FOLDER_TOKEN))
+                as? WearFolderAddress.NetworkLevel
+            )?.sourceId
         WearFolderWalkScreen(
-            onOpenFile = { uri, mimeType ->
-                val route = playerRouteFor(localFileIdFor(uri, mimeType, prepareFilePlayback), mimeType)
-                navController.navigate(route)
+            onOpenFile = { row ->
+                val uri = row.uri ?: return@WearFolderWalkScreen
+                val fileId = if (walkSourceId == null) {
+                    localFileIdFor(uri, row.mimeType, prepareFilePlayback)
+                } else {
+                    prepareNetworkFilePlayback(
+                        WearNetworkFileOpenRequest(
+                            sourceId = walkSourceId,
+                            uri = uri,
+                            name = row.name,
+                            mimeType = row.mimeType,
+                            sizeBytes = row.sizeBytes,
+                            dateModifiedEpochSeconds = row.dateModifiedEpochSeconds
+                        )
+                    ).fileId
+                }
+                navController.navigate(playerRouteFor(fileId, row.mimeType, fileName = row.name))
             },
             onExit = { navController.popBackStack() }
         )
@@ -877,6 +1256,24 @@ private fun localFileIdFor(
     } else {
         uri.lastPathSegment?.toLongOrNull() ?: UNRESOLVED_FILE_ID
     }
+}
+
+/**
+ * S2161: opens a voice note in the watch's existing audio player.
+ *
+ * The same [playerRouteFor] the folder walk uses, so the watch keeps one way of opening one file
+ * (strategic section 5.5) rather than growing a second route for the recorder. A note the use case
+ * cannot address - no published row and no readable private file - navigates nowhere, because the
+ * players read an unresolved id as "nothing was selected" and would show an empty player instead of
+ * saying anything.
+ */
+private fun navigateToVoiceNote(
+    navController: NavHostController,
+    note: VoiceNote,
+    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
+) {
+    val fileId = prepareVoiceNotePlayback(note) ?: return
+    navController.navigate(playerRouteFor(fileId, VOICE_NOTE_MIME_TYPE))
 }
 
 /**

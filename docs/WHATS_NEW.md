@@ -6,7 +6,70 @@ permalink: /docs/WHATS_NEW.html
 
 # What's New in FastMediaSorter v2
 
-**Current release: 2.60.9021.951** (September 2026)
+**Current release: 2.60.9121.346** (September 2026)
+
+> Changes since version 2.60.9021.951
+
+---
+
+## What's New
+
+- **Stopwatch** - a built-in stopwatch with a multi-participant screen and a home-screen widget.
+- **Mirror** - the front camera as a mirror, one tap from the programs menu.
+- **Water flashlight** - a light no wet touch can switch off, on the phone and on the watch.
+- **Camera flashlight in the notification shade** - one tile, no app to open.
+- **Live broadcast** - send the phone or watch microphone over Wi-Fi, with its own settings section.
+- **Listen to the paired watch** - live audio from the watch, recorded on the phone if you want.
+- **Show watch content on a TV** - pictures and video from the watch on the big screen.
+- **Mono audio and stereo balance** - fold both channels into one, or pick a balance preset.
+- **Playback control dialog** - volume and subtitle track without leaving the screen.
+- **Swipe a file row** - run an action you chose by swiping a row left or right in Browse.
+- **Folder transfer undo** - a whole folder copy or move can be taken back.
+- **One unit system everywhere** - metric or imperial decides every quantity, and survives a backup.
+- **The desktop can start the app** - its own screens list, settings section and start-window choice.
+- **Curated stream collections** - ready-made sets of channels, and a music visualizer for audio streams.
+- **Live channels in the VR player** - a stream opens straight into the immersive player.
+- **The watch stands on its own** - tiles for programs and sections, a now-playing home row, background audio, a voice recorder, a stopwatch, text documents, motion and environmental sensors, and folder walks over a network resource.
+- **The watch looks like the phone** - colour schemes set from the phone, matching accent colours, wallpapers, and tap zones with pinch zoom in the image viewer.
+- **Resources stay in step across devices** - an edit or a delete on either device reaches the other.
+- **Browse the paired phone from the watch** - paged lists, thumbnails and no duplicated resources.
+- **Desktop gadgets grow** - sunrise, sunset and dew point, several cities on the weather gadget, a Wi-Fi hotspot indicator, a network speed readout and a charging-aware battery tray.
+- **The desktop locks itself** - lock it from the desktop, or let an idle screen do it.
+- **Automatic shortcuts** - app functions and installed packages seed the desktop and follow their toggles.
+- **Assistant actions** - app functions the system assistant can call by name.
+- **TV and D-pad navigation** - dialogs, permissions and system information walk with a remote.
+- **Power saving that explains itself** - an automatic mode on phone and watch, and an honest message when a battery threshold cannot work.
+- **Backup carries 124 more settings** - every screenshot gesture and the launcher readout included.
+- **Cloud sources survive a new device** - a move keeps you signed in.
+- **System information report** - a standalone report you can save and send.
+- **F-Droid edition** - a fully open-source build for the F-Droid catalogue.
+
+## What's Fixed
+
+- Changing the interface language now applies everywhere and sticks after a restart.
+- Every screen follows the device language list, not only its first entry.
+- Clearing a text field by tapping its cross no longer crashes the screen.
+- The stream catalog no longer opens on a screen of nameless entries.
+- A stream that cannot be read over plain HTTP now says so instead of hanging.
+- VP9 video plays on devices with no hardware decoder for it.
+- The player top bar no longer hides under the status bar on Android 8.
+- Backup restore and legacy import now start from the fresh-install defaults.
+- A watch database upgrade across modules no longer resets the watch.
+- Voice notes survive a watch database failure.
+- Wide desktop cells seat inside the grid instead of overhanging it.
+- Incomplete rows on the round watch display are centred instead of falling off the glass.
+- Watch lists start at the top edge, so the first row is reachable.
+- A watch network resource says why it offers no browse category.
+- App-function shortcuts appear and disappear with their toggles.
+- The calculator clear button on the watch sits where it can be hit.
+- Unticking a resource now removes it from the watch.
+- Watch sync works with an older phone instead of failing.
+- Statistics rows no longer clip the numbers they show.
+- Watch toggle captions no longer break in the middle of a word.
+
+---
+
+## Previous Release: 2.60.9021.951 (September 2026)
 
 > Changes since version 2.60.8241.708
 

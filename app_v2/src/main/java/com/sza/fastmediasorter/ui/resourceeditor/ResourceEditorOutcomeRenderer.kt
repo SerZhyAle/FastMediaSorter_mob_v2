@@ -3,12 +3,15 @@ package com.sza.fastmediasorter.ui.resourceeditor
 import android.content.Context
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.databinding.FragmentResourceEditorBinding
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.model.ResourceConnectionStatus
 import com.sza.fastmediasorter.domain.model.ResourceConnectionTestResult
 import com.sza.fastmediasorter.domain.model.ResourceEditorMode
 import com.sza.fastmediasorter.domain.model.ResourceErrorCode
 import com.sza.fastmediasorter.domain.model.ResourceType
+import dagger.hilt.android.EntryPointAccessors
 
 /**
  * Renders the read-only output sections of the resource editor: connection-test result strip,
@@ -22,6 +25,13 @@ class ResourceEditorOutcomeRenderer(
     private val getMode: () -> ResourceEditorMode,
     private val getCurrentResourceType: () -> ResourceType
 ) {
+
+    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
+    // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
+    // the next time the statistics card is rendered.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
 
     fun renderConnectionResult(result: ResourceConnectionTestResult?) {
         result ?: return
@@ -89,19 +99,17 @@ class ResourceEditorOutcomeRenderer(
         if (!show) return
         statistics!! // Smart-cast: `show` already established non-null
 
-        val dateFormat = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm", java.util.Locale.getDefault())
-
         val fileCountText = context.getString(R.string.label_file_count, statistics.fileCount)
         val subfolderCountText = context.getString(R.string.label_subfolder_count, statistics.subfolderCount)
         binding.tvStatFileCount.text = "$fileCountText    $subfolderCountText"
         binding.tvStatSubfolderCount.isVisible = false
         binding.tvStatCreatedDate.text = context.getString(
             R.string.label_created_date,
-            statistics.createdDate?.let { dateFormat.format(java.util.Date(it)) } ?: context.getString(R.string.label_never)
+            statistics.createdDate?.let(::formatDateTime) ?: context.getString(R.string.label_never)
         )
         binding.tvStatLastBrowseDate.text = context.getString(
             R.string.label_last_browse_date,
-            statistics.lastBrowseDate?.let { dateFormat.format(java.util.Date(it)) } ?: context.getString(R.string.label_never)
+            statistics.lastBrowseDate?.let(::formatDateTime) ?: context.getString(R.string.label_never)
         )
 
         val isNetwork = getCurrentResourceType() != ResourceType.LOCAL
@@ -109,7 +117,7 @@ class ResourceEditorOutcomeRenderer(
         if (isNetwork) {
             binding.tvStatLastSyncDate.text = context.getString(
                 R.string.label_last_sync_date,
-                statistics.lastSyncDate?.let { dateFormat.format(java.util.Date(it)) } ?: context.getString(R.string.label_never)
+                statistics.lastSyncDate?.let(::formatDateTime) ?: context.getString(R.string.label_never)
             )
         }
 
@@ -123,4 +131,7 @@ class ResourceEditorOutcomeRenderer(
             binding.tvStatWriteSpeed.text = context.getString(R.string.label_write_speed, statistics.writeSpeedMbps)
         }
     }
+
+    private fun formatDateTime(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.DateTime(timestamp), unitSeam.unitSystemProvider().value)
 }

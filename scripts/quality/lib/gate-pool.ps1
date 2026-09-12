@@ -23,12 +23,20 @@
     Dot-source it, then use Start-PooledGate / Invoke-GateChild / Stop-GatePool. The caller must
     define $pwsh (the interpreter to launch) before the first call.
 
-    Exit codes: none - this file defines functions and returns nothing.
+    Exit codes: none - this file defines functions and returns nothing. Invoke-GateChild does set
+    $LASTEXITCODE for its caller, and adds one code of its own to whatever the child returned:
+    2 when the join exceeded $script:GatePoolJoinTimeoutSeconds and the gate was stopped unjudged.
 #>
 
 $script:GatePool = @{}
 $script:PooledElapsedMs = $null
 $script:GatePoolEnabled = $null -ne (Get-Command Start-ThreadJob -ErrorAction SilentlyContinue)
+# S2538: the join gets a ceiling because the child already has one and the join did not. Every
+# gradle-backed gate bounds its own work (Invoke-ProcessWithTimeout, 600 s) and its own lock wait
+# (900 s), so a child cannot exceed roughly 1500 s - yet a closure was journalled waiting 34 711 s
+# here, an order of magnitude past anything the child can produce. 1800 s clears the child's own
+# worst case with room to spare, so a healthy run never reaches it.
+$script:GatePoolJoinTimeoutSeconds = 1800
 
 function Get-GatePoolKey([string[]]$Argv) { return ($Argv -join [char]1) }
 
@@ -57,7 +65,20 @@ function Invoke-GateChild {
     $job = $script:GatePool[$key]
     if ($job) {
         $script:GatePool.Remove($key)
-        $r = Receive-Job -Job $job -Wait -AutoRemoveJob
+        # Receive-Job carries no -Timeout on pwsh 7, so the bounded form is Wait-Job first. A job
+        # that outlives the ceiling is stopped and reported as exit 2 - the closure did not verify
+        # this gate, and saying PASS or FAIL would both be claims it did not earn.
+        $finished = Wait-Job -Job $job -Timeout $script:GatePoolJoinTimeoutSeconds
+        if (-not $finished) {
+            Write-Host ("gate-pool: CANNOT VERIFY - joining '{0}' exceeded {1}s; the gate was stopped unjudged." -f `
+                    ($argv -join ' '), $script:GatePoolJoinTimeoutSeconds) -ForegroundColor Yellow
+            try { Stop-Job -Job $job -ErrorAction SilentlyContinue } catch { }
+            try { Remove-Job -Job $job -Force -ErrorAction SilentlyContinue } catch { }
+            $script:PooledElapsedMs = [int]($script:GatePoolJoinTimeoutSeconds * 1000)
+            $global:LASTEXITCODE = 2
+            return
+        }
+        $r = Receive-Job -Job $job -AutoRemoveJob -Wait
         if ($r -and -not [string]::IsNullOrWhiteSpace($r.Output)) { Write-Host ($r.Output.TrimEnd()) }
         # A caller's own stopwatch would record how long the WAIT took, not what the gate cost, and
         # scripts/quality/measure-gate-frequency.ps1 reads that number to rank the gates. The child
@@ -72,6 +93,10 @@ function Invoke-GateChild {
 # $null unless the step just run came out of the pool. Cleared by Reset-PooledElapsedMs.
 function Get-PooledElapsedMs { return $script:PooledElapsedMs }
 function Reset-PooledElapsedMs { $script:PooledElapsedMs = $null }
+# S2538: for a caller that runs its own thread job outside this pool - detekt is the one - and so
+# owns the same problem: its wrapper's stopwatch measures the join, and only the child knows what
+# the work cost.
+function Set-PooledElapsedMs([int]$ElapsedMs) { $script:PooledElapsedMs = $ElapsedMs }
 
 # A gate whose call site was never reached - the run ended early - still owns a running child.
 function Stop-GatePool {

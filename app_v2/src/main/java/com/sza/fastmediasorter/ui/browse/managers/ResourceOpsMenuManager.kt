@@ -21,6 +21,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.model.ResourceType
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.duplicates.DuplicatesActivity
@@ -30,6 +31,7 @@ import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import com.sza.fastmediasorter.util.VirtualPathUtils
 import com.sza.fastmediasorter.util.showBoundToHost
 import dagger.hilt.android.qualifiers.ActivityContext
+import timber.log.Timber
 import javax.inject.Inject
 
 class ResourceOpsMenuManager @Inject constructor(
@@ -74,12 +76,13 @@ class ResourceOpsMenuManager @Inject constructor(
         popup.menu.findItem(R.id.action_overflow_play_random)?.isVisible = isOverflowed(R.id.btnPlayRandom)
         popup.menu.findItem(R.id.action_overflow_mic)?.isVisible = isOverflowed(R.id.btnMicRecord)
 
-        // Hide "Create folder" if the resource doesn't support subfolder navigation, is read-only,
-        // or is a virtual resource (e.g. "All Video", "Recent") that has no real path to write to.
+        // Hide "Create folder" if the resource doesn't support subfolder navigation, does not accept
+        // writes, or is a virtual resource (e.g. "All Video", "Recent") with no real path to write to.
+        // S2594: writability from the shared policy resolver, which folder creation is covered by.
         val resource = viewModel.state.value.resource
         val canCreateFolder = resource != null
                 && resource.showSubfoldersAsItems
-                && !resource.isReadOnly
+                && resource.allowsWriteOperations()
                 && !VirtualPathUtils.isVirtualPath(resource.path)
         popup.menu.findItem(R.id.action_create_folder)?.isVisible =
             canCreateFolder && isOverflowed(R.id.btnCreateFolder)
@@ -107,13 +110,15 @@ class ResourceOpsMenuManager @Inject constructor(
             isScheduleEnabled && onAutomateSource != null
 
         // Show "Add to Sort List" only when:
-        // 1. Resource is not read-only
+        // 1. Resource accepts writes - S2594: via the shared policy resolver, the same question the
+        //    add-resource screen already answers with it, so a stream is not offered as a recipient
         // 2. Resource is not yet a destination
         // 3. Resource is not a virtual/predefined resource (no target folder)
         // 4. Recipients limit not reached (see GetDestinationsUseCase.isDestinationsFull)
-        popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible =
-            resource != null && !resource.isReadOnly && !resource.isDestination &&
-            !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
+        val canAddToReceivers = resource != null && resource.allowsWriteOperations() &&
+            !resource.isDestination && !VirtualPathUtils.isVirtualPath(resource.path) && !isDestinationsFull
+        popup.menu.findItem(R.id.action_add_to_receivers)?.isVisible = canAddToReceivers
+        Timber.d("S2594: resource menu canCreateFolder=$canCreateFolder canAddToReceivers=$canAddToReceivers")
 
         popup.menu.findItem(R.id.action_camera_capture)?.isVisible = isCameraVisible && onCameraCapture != null
         popup.menu.findItem(R.id.action_video_capture)?.isVisible = isVideoVisible && onVideoCapture != null

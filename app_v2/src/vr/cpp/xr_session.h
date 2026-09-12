@@ -118,6 +118,17 @@ void xr_session_set_hud_quad_distance(float distanceMeters);
 // acting as the ray click, and the press that summons is consumed rather than dispatched.
 void xr_session_set_hud_visible(bool visible);
 
+// S1133: thumbstick semantics are contextual. In player mode the X axis seeks (grip modifier turns
+// it back into prev/next) and the Y axis accumulates zoom; in browse mode both axes emit discrete
+// grid-step callbacks and the zoom accumulator is skipped. Only the Activity knows which surface is
+// on screen, so the mode is pushed down from Kotlin rather than inferred here.
+constexpr int kXrInputModePlayer = 0;
+constexpr int kXrInputModeBrowse = 1;
+
+// S1133: set the input mode. Thread-safe; an unknown value is ignored. The native runtime is a
+// process singleton, so a caller asserts its mode on every entry instead of trusting the default.
+void xr_session_set_input_mode(int mode);
+
 // Stage 5: blocking frame loop. Returns Ok when the loop exits cleanly (user requested exit
 // or runtime asked the session to stop), or an error code if the loop aborted on a hard
 // failure. The render thread should call this once per session.

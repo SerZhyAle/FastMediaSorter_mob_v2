@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.core.menu.StreamMenuAction
 import com.sza.fastmediasorter.data.local.db.StreamSourceEntity
 import com.sza.fastmediasorter.databinding.ItemStreamGridCellBinding
 import com.sza.fastmediasorter.domain.usecase.streams.RecordStreamPlayOutcomeUseCase
+import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -70,6 +71,9 @@ class StreamGridAdapter(
     // provider so the menu reflects the current Wear Companion setting without an adapter rebuild.
     private val onSendToWatch: (StreamSourceEntity) -> Unit = {},
     private val onOpenOnWatch: (StreamSourceEntity) -> Unit = {},
+    // S1218: immersive entry for a video channel; the availability probe is the host's XR mirror.
+    private val onOpenInVr: (StreamSourceEntity) -> Unit = {},
+    private val vrLaunchAvailable: () -> Boolean = { false },
     private val wearSendAvailable: () -> Boolean = { false },
     private val frameProvider: (url: String) -> Bitmap?,
     private val requestCapture: (url: String) -> Unit,
@@ -201,6 +205,10 @@ class StreamGridAdapter(
                 // the media-kind icon so every tile is always identifiable; the async favicon/atlas
                 // paths below overwrite it when they resolve.
                 showKindPlaceholder(source.mediaKind)
+                // S2650: the flag is the terminal tier, so it is painted up front and every tier that
+                // resolves a real picture overwrites it. Waiting for the async chain to miss instead
+                // would leave the tile grey for the duration of the decode.
+                showCountryFlagFallback(source.country)
                 binding.root.contentDescription = context.getString(R.string.streams_grid_no_frame_cd, source.title)
                 if (isCaptureableVideo(source)) {
                     // S1154: try the atlas preview first (VIDEO only); it falls through to the favicon
@@ -269,8 +277,22 @@ class StreamGridAdapter(
             }
         }
 
+        /**
+         * S2650: mirror of [StreamSourceAdapter.showCountryFlagFallback] - the tile's last tier before
+         * the media-kind glyph. A channel with no country, or one the formatter maps to no flag, keeps
+         * that glyph, exactly as the list row keeps an empty slot.
+         */
+        private fun showCountryFlagFallback(country: String?) {
+            val code = country?.trim()?.takeIf { it.isNotBlank() } ?: return
+            if (!LanguageFlagFormatter.applyCountryFlagGlyph(binding.tvTileFlag, code)) return
+            Timber.d("S2650: grid tile showing flag fallback for country code=%s", code)
+            binding.ivFrame.setImageDrawable(null)
+            binding.tvTileFlag.isVisible = true
+        }
+
         /** Full-bleed artwork: a captured frame or an atlas preview tile. */
         private fun showArtwork(bitmap: Bitmap) {
+            binding.tvTileFlag.isVisible = false
             binding.ivFrame.setPadding(0, 0, 0, 0)
             binding.ivFrame.scaleType = android.widget.ImageView.ScaleType.CENTER_CROP
             ImageViewCompat.setImageTintList(binding.ivFrame, null)
@@ -282,6 +304,7 @@ class StreamGridAdapter(
          * upscaling it edge to edge turned every icon into a blurry smear.
          */
         private fun showIcon(bitmap: Bitmap) {
+            binding.tvTileFlag.isVisible = false
             val view = binding.ivFrame
             val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_placeholder_padding)
             view.setPadding(pad, pad, pad, pad)
@@ -296,6 +319,7 @@ class StreamGridAdapter(
          * keeps it off the cell edges - unlike a captured frame, a logo is not meant to bleed.
          */
         private fun showLogo(bitmap: Bitmap) {
+            binding.tvTileFlag.isVisible = false
             val view = binding.ivFrame
             val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_logo_padding)
             view.setPadding(pad, pad, pad, pad)
@@ -306,6 +330,7 @@ class StreamGridAdapter(
 
         /** Last-resort tile content: the media-kind glyph, tinted for the current theme. */
         private fun showKindPlaceholder(mediaKind: String) {
+            binding.tvTileFlag.isVisible = false
             val view = binding.ivFrame
             val pad = view.resources.getDimensionPixelSize(R.dimen.stream_grid_placeholder_padding)
             view.setPadding(pad, pad, pad, pad)
@@ -419,6 +444,7 @@ class StreamGridAdapter(
             favoritesEnabled(),
             isFavorite(source),
             wearSendAvailable(),
+            vrLaunchAvailable(),
         )
         StreamMenuBinder.build(menu, source, pinnedRows, facts, canRun)
     }
@@ -444,6 +470,7 @@ class StreamGridAdapter(
             StreamMenuAction.EDIT -> onEdit(source)
             StreamMenuAction.SEND_TO_WATCH -> onSendToWatch(source)
             StreamMenuAction.OPEN_ON_WATCH -> onOpenOnWatch(source)
+            StreamMenuAction.OPEN_IN_VR -> onOpenInVr(source)
             StreamMenuAction.ABOUT_CHANNEL -> onAboutChannel(source)
             StreamMenuAction.SHARE_LINK -> onShareLink(source)
             StreamMenuAction.REMOVE -> onRemove(source)

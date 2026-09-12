@@ -8,11 +8,17 @@
     SupportedMediaSection contributions parsed from the
     *SettingsSearchAvailabilityModule.kt source sets, then emits one Markdown
     reference per locale:
-      - published: docs/SETTINGS_REFERENCE.md / _RU.md / _UK.md (standard family)
+      - published: docs/SETTINGS_REFERENCE.md / -ru.md / -uk.md (standard family)
       - noLegal:   docs/SETTINGS_REFERENCE_noLegal.md (all-inclusive, gitignored)
     Output is deterministic (fixed section order, manifest order within a
     section, LF newlines, UTF-8 no BOM) so the Phase 04 gate can re-render and
     byte-diff to detect drift. Generated artifact - never hand-edited.
+
+    Exit codes:
+      0 - the four reference pages were written.
+      4 - Code.Scripts is held by another session: nothing was written, the place
+          in the queue is held, wait for the turn and rerun. Reachable only when
+          rendering into docs/ - see the -OutDir note below.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path,
@@ -20,7 +26,17 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 if (-not $OutDir) { $OutDir = Join-Path $RepoRoot 'docs' }
+
+# S2615: -OutDir decides whether this run rewrites the shared render target or only produces a
+# throwaway copy of it. Into docs/ it takes that tree's code domain. Into anywhere else - which is
+# what assert-settings-doc-sync.ps1 stage 4 does, rendering to temp/ to byte-diff - it must take
+# NOTHING: that call runs inside the deliberately concurrent .\a.ps1 fg battery, and the scratch
+# path is unknown to the domain table, so handing it over would fail closed to EVERY code domain
+# and serialise phone and wear edits behind a documentation check.
+$writesRenderTarget = ([System.IO.Path]::GetFullPath($OutDir).TrimEnd('\', '/') -ieq
+    [System.IO.Path]::GetFullPath((Join-Path $RepoRoot 'docs')).TrimEnd('\', '/'))
 
 $manifestPath = Join-Path $RepoRoot 'docs/settings/settings-manifest.json'
 $annotPath    = Join-Path $RepoRoot 'docs/settings/settings-annotations.json'
@@ -164,11 +180,25 @@ function Write-Doc([string] $path, [string] $content) {
     Write-Host "rendered -> $path"
 }
 
-# Published (standard family) EN/RU/UK
-Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE.md')    (Render-Doc 'en' $publishedFlavors $false 'SETTINGS_REFERENCE')
-Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_RU.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE_RU')
-Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_UK.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE_UK')
-# noLegal all-inclusive (gitignored)
-Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_noLegal.md') (Render-Doc 'en' @('noLegal') $true 'SETTINGS_REFERENCE_noLegal')
+$referencePages = @('SETTINGS_REFERENCE.md', 'SETTINGS_REFERENCE-ru.md', 'SETTINGS_REFERENCE-uk.md',
+    'SETTINGS_REFERENCE_noLegal.md')
+$codeScope = $null
+try {
+    if ($writesRenderTarget) {
+        # The FILES, never the directory holding them: the domain table matches an anchored prefix
+        # ('^docs/'), so the bare directory 'docs' matches no rule at all and takes the fail-closed
+        # branch that returns EVERY code domain. Measured 2026-09-06 - passing $OutDir here made a
+        # reference render queue behind a sibling's Code.Phone and exit 4 with the docs tree free.
+        $codeScope = Enter-CodeLockOrExit -Reason 'render-settings-reference.ps1 (docs/SETTINGS_REFERENCE*.md)' `
+            -Path @($referencePages | ForEach-Object { Join-Path $OutDir $_ })
+    }
+    # Published (standard family) EN/RU/UK
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE.md')    (Render-Doc 'en' $publishedFlavors $false 'SETTINGS_REFERENCE')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-ru.md') (Render-Doc 'ru' $publishedFlavors $false 'SETTINGS_REFERENCE_RU')
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE-uk.md') (Render-Doc 'uk' $publishedFlavors $false 'SETTINGS_REFERENCE_UK')
+    # noLegal all-inclusive (gitignored)
+    Write-Doc (Join-Path $OutDir 'SETTINGS_REFERENCE_noLegal.md') (Render-Doc 'en' @('noLegal') $true 'SETTINGS_REFERENCE_noLegal')
+}
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 exit 0

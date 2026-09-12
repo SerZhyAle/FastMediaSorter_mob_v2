@@ -11,6 +11,7 @@
      and LauncherDesktopLayout measures the cell exactly, so the layout itself never sees an
      orientation. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -31,7 +32,7 @@
         android:orientation="vertical"
         android:padding="@dimen/padding_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetPhotoFrameTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -40,9 +41,10 @@
             android:textColor="@color/white"
             android:textSize="13sp"
             android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="@string/widget_random_photo_frame_empty_title" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetPhotoFrameSubtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -51,6 +53,7 @@
             android:maxLines="2"
             android:textColor="@color/white"
             android:textSize="11sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="@string/widget_random_photo_frame_empty_subtitle" />
 
     </LinearLayout>

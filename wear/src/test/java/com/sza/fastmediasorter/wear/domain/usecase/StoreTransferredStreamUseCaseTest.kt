@@ -20,7 +20,8 @@ class StoreTransferredStreamUseCaseTest {
 
     private class FakeRepository(
         initial: List<WearStreamChannel> = emptyList(),
-        var failOnUpsert: Boolean = false
+        var failOnUpsert: Boolean = false,
+        var throwCancellation: Boolean = false
     ) : WearStreamChannelRepository {
         val channels = initial.toMutableList()
 
@@ -34,6 +35,7 @@ class StoreTransferredStreamUseCaseTest {
         override suspend fun clear() = channels.clear()
 
         override suspend fun upsertChannel(channel: WearStreamChannel): Boolean {
+            if (throwCancellation) throw kotlinx.coroutines.CancellationException("Job cancelled")
             check(!failOnUpsert) { "store broken" }
             val index = channels.indexOfFirst { it.url == channel.url }
             return if (index < 0) {
@@ -139,5 +141,13 @@ class StoreTransferredStreamUseCaseTest {
     fun `success ack carries no message`() = runBlocking {
         val ack = useCase(FakeRepository())(payload()).ack
         assertNull(ack.message)
+    }
+
+    @Test(expected = kotlinx.coroutines.CancellationException::class)
+    fun `cancellation exception is rethrown rather than converted to error ack`() {
+        runBlocking {
+            val repository = FakeRepository(throwCancellation = true)
+            useCase(repository)(payload())
+        }
     }
 }

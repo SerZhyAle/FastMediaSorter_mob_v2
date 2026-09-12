@@ -7,8 +7,8 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.core.view.isVisible
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
 import com.sza.fastmediasorter.domain.model.MediaFile
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
@@ -375,7 +375,7 @@ class TextViewerManager(
         // Extend the native selection ActionMode with "Translate" and "Search in Google"
         safeViews.tvTextContent.customSelectionActionModeCallback =
             DocumentSelectionActionModeCallback(
-                showTranslate = BuildConfig.ENABLE_TRANSLATION,
+                showTranslate = CapabilityAvailabilityAccessor.isTranslationAvailable(context),
                 getSelectedText = {
                     val start = safeViews.tvTextContent.selectionStart.coerceAtLeast(0)
                     val end = safeViews.tvTextContent.selectionEnd.coerceAtLeast(0)

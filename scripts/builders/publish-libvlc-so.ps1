@@ -12,7 +12,7 @@
 # The assets are versioned in the file NAME (arm64-v8a-libvlc-v1.so) and are
 # never deleted - an already-released app keeps fetching the revision it pins.
 # A rebuilt payload uploads a NEW revision, it does not clobber this one. That is
-# the opposite of publish-ffmpeg-dts-aar.ps1, whose asset is build-time only.
+# the opposite of publish-prebuilt-native-aar.ps1, whose assets are build-time only.
 #
 # Usage (from project root):
 #   pwsh -NoProfile -File scripts/builders/publish-libvlc-so.ps1 -WhatIf

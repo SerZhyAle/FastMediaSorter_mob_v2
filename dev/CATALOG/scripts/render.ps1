@@ -36,16 +36,8 @@ $total = $records.Count
 $byLayer = $records | Group-Object -Property layer | Sort-Object Name
 $now = (Get-Date -Format 'yyyy-MM-dd HH:mm')
 
-$candidateRoots = @(
-    "$Module/src/main/java",
-    "$Module/src/vr/java",
-    "$Module/src/noLegal/java",
-    "$Module/src/streamingEnabled/java",
-    "$Module/src/ocrEnabled/java",
-    "$Module/src/ocrDisabled/java",
-    "$Module/src/screenCapture/java",
-    "$Module/src/screenCapturePlay/java"
-)
+. (Join-Path $PSScriptRoot '_source-roots.ps1')
+$candidateRoots = Get-CatalogSourceRoots -Module $Module -Root $Root -Relative
 
 $sourceLinkCache = @{}
 

@@ -79,9 +79,8 @@ $protectedFiles = @(
     'current.log', 'stream-catalog-liveness.csv', 'stream-catalog.zip', '.gitignore'
 )
 $protectedFiles += @($lockDomainNames | ForEach-Object { "$($_.ToUpper()).LOCK" })
-# Live logcat sinks the log tooling appends to, plus the out-of-band your-turn markers a waiting
-# session polls for - archiving one converts a granted turn into a wait that never ends.
-$protectedFilePatterns = @('fastmediasorter_*.log', '*.TURN-*.json')
+# Live logcat sinks the log tooling appends to. Turn markers (S2405) are swept by agent-lock.ps1.
+$protectedFilePatterns = @('fastmediasorter_*.log')
 
 Write-Host 'Reading spec catalog..'
 $specs = & $selectCli -Format json | ConvertFrom-Json

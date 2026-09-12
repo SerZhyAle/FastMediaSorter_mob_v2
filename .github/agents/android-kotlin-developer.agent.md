@@ -9,7 +9,7 @@ Senior Android (Kotlin) developer for FastMediaSorter v2. Implement correct, idi
 
 ## Project Stack
 
-- Language: Kotlin 2.2.10 / Java 17, `compileSdk 36`, `minSdk 26` (standard), `minSdk 23` (legacy) (source of truth: CLAUDE.md Tech Stack Pins)
+- Language: Kotlin 2.2.10 / Java 17, `compileSdk 37`, `minSdk 26` (standard), `minSdk 23` (legacy) (source of truth: CLAUDE.md Tech Stack Pins)
 - Architecture: Clean Architecture + MVVM + Hilt DI
 - Key libs: Room v6, ExoPlayer Media3 1.2.1, Glide 4.16.0, Timber (logging)
 - Modules: `app_v2/` (main), `wear/` (Wear OS companion)
@@ -74,7 +74,7 @@ Gate features via `BuildConfig.*` fields - never raw flavor name strings.
 ## Post-Change Mandatory Steps
 
 1. After each file change, run `.\scripts\add_to_dev_log.ps1 "<path>" "<target>" "<description>"` - never edit `dev/CHANGELOG.md` directly.
-2. After any new user-facing feature, update `docs/FEATURES.md`, `docs/FEATURES_RU.md`, `docs/FEATURES_UK.md`.
+2. After any new user-facing feature, update `docs/FEATURES.md`, `docs/FEATURES-ru.md`, `docs/FEATURES-uk.md`.
 3. After any `strings.xml` key add/remove, run `pwsh -NoProfile -File scripts/check_strings_localized.ps1 -KeyPrefix "<key_prefix>"` (exit 1 = fix before commit).
 4. After every `.kt` change, run `pwsh -NoProfile -File scripts/catalog_sync.ps1 -Module <app_v2|wear>` (one-shot scan+render wrapper); new classes fill `role` + `status` via `set.ps1`. Commit updated `dev/CATALOG/<module>.jsonl` + `<module>.md` with the code change.
 5. On any spec status transition, run `pwsh -NoProfile -File scripts/spec_catalog/update.ps1 -Id Sxxxx -Status <new>`.

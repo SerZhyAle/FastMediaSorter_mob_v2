@@ -1,8 +1,11 @@
 package com.sza.fastmediasorter.wear.ui.settings
 
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
 /**
@@ -20,6 +23,9 @@ data class SettingsUiState(
     // Slideshow
     val isSlideshowEnabled: Boolean = false,
     val slideshowIntervalSeconds: Int = 5,
+
+    /** S2505: player panel auto-hide duration in seconds. */
+    val panelAutoHideSeconds: Int = 15,
     
     // Album art
     val downloadAlbumArt: Boolean = false,
@@ -35,6 +41,9 @@ data class SettingsUiState(
 
     /** S1781: the three players hold the screen unconditionally, so this covers every other screen. */
     val keepScreenAwakeOutsidePlayers: Boolean = false,
+    val backgroundPlaybackEnabled: Boolean = false,
+    /** S2166: the notification permission was refused, so the setting stayed off and says why. */
+    val backgroundPlaybackNeedsNotifications: Boolean = false,
 
     /** S1718: watch screen auto-rotation preference. Default: false (forbidden per owner decision 2026-08-16). */
     val isAutoRotationEnabled: Boolean = false,
@@ -44,6 +53,8 @@ data class SettingsUiState(
 
     /** S2209: disable visual transition and decorative animations across the Wear OS app. */
     val isAnimationsDisabled: Boolean = false,
+    /** S2536: the charge at which this watch quietens itself. Judged locally, never sent as a verdict. */
+    val powerSavingTrigger: PowerSavingTrigger = PowerSavingTrigger.DEFAULT,
 
     /** S1862: who decides that a finished voice note leaves the watch. Ships automatic (§6 item 1). */
     val voiceNoteSendPolicy: VoiceNoteSendPolicy = VoiceNoteSendPolicy.AUTOMATIC,
@@ -53,6 +64,13 @@ data class SettingsUiState(
      * sides; the picture it selects stays a phone-side choice, because picking one means a gallery.
      */
     val backgroundMode: WearBackgroundMode = WearBackgroundMode.BRANDED_ANIMATION,
+
+    /** S2522: the scheme the interface is drawn in. The default reproduces today's appearance. */
+    val colorScheme: WearColorScheme = WearColorScheme.DEFAULT,
+    /** S2773: the screen geometry in force, resolved from the stored choice and the build variant. */
+    val geometryMode: WearGeometryMode = WearGeometryMode.STORE,
+    /** S2773: false in the published variant, where the switch is deliberately withheld (ADR-3). */
+    val offersGeometryModeSwitch: Boolean = false,
 
     /** S2093: epoch-millis the two sides last agreed, or 0 when they never have. */
     val lastSyncedAtEpochMillis: Long = 0L,

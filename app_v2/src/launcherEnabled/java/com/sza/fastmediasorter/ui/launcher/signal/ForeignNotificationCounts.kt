@@ -5,6 +5,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,6 +39,19 @@ class ForeignNotificationCounts @Inject constructor(
     private val keysByPackage = mutableMapOf<String, MutableSet<String>>()
 
     /**
+     * S2734: when each package last gained a notification, as a monotonic sequence number. Published order
+     * is this map read from the highest number down, which is what puts a fresh notification at the left
+     * edge of the strip. A number rather than a clock: the row needs only the relative order, and a wall
+     * clock that steps backwards would reorder chips for no reason the user can see.
+     *
+     * Guarded by the same monitor as [keysByPackage] - the two are written together on every callback and a
+     * reader that saw one without the other would order a set it is not looking at.
+     */
+    private val orderByPackage = mutableMapOf<String, Long>()
+
+    private var sequence = 0L
+
+    /**
      * S1465 ADR-4: the capability's own switch, independent of the system grant. Guarded by the same monitor
      * as the map because a callback arriving while the user is switching the feature off must either be
      * recorded before the clear or dropped after it - never land in a map that was just emptied.
@@ -46,7 +60,10 @@ class ForeignNotificationCounts @Inject constructor(
 
     private val mutableCounts = MutableStateFlow<Map<String, Int>>(emptyMap())
 
-    /** Per-package pending counts, empty while nothing is posted or the capability is off. */
+    /**
+     * Per-package pending counts, empty while nothing is posted or the capability is off. Ordered from the
+     * package that most recently gained a notification to the one that gained it longest ago (S2734).
+     */
     val counts: StateFlow<Map<String, Int>> = mutableCounts.asStateFlow()
 
     /**
@@ -79,7 +96,19 @@ class ForeignNotificationCounts @Inject constructor(
         if (isGroupSummary || isOwnPackage(packageName)) {
             return
         }
-        mutate { if (isEnabled) it.getOrPut(packageName) { mutableSetOf() }.add(key) else false }
+        mutate { keys ->
+            if (!isEnabled) {
+                return@mutate false
+            }
+            val added = keys.getOrPut(packageName) { mutableSetOf() }.add(key)
+            // Only a genuinely new key moves the package to the front. The system re-posts an existing
+            // notification to update it - a download refreshing its progress once a second - and that must
+            // not keep dragging the same chip back to the left edge.
+            if (added) {
+                orderByPackage[packageName] = ++sequence
+            }
+            added
+        }
     }
 
     /**
@@ -97,6 +126,7 @@ class ForeignNotificationCounts @Inject constructor(
             isEnabled = enabled
             if (!enabled && keysByPackage.isNotEmpty()) {
                 keysByPackage.clear()
+                orderByPackage.clear()
                 publish()
             }
         }
@@ -108,6 +138,9 @@ class ForeignNotificationCounts @Inject constructor(
             val removed = remaining.remove(key)
             if (remaining.isEmpty()) {
                 keys.remove(packageName)
+                // A package with no notifications left owns no position either, so its next notification
+                // arrives as a fresh one and takes the left edge.
+                orderByPackage.remove(packageName)
             }
             removed
         }
@@ -126,8 +159,12 @@ class ForeignNotificationCounts @Inject constructor(
             .forEach { rebuilt.getOrPut(it.packageName) { mutableSetOf() }.add(it.key) }
         synchronized(keysByPackage) {
             keysByPackage.clear()
+            orderByPackage.clear()
             if (isEnabled) {
                 keysByPackage.putAll(rebuilt)
+                // The system hands the active set over oldest first, so re-numbering in that order is the
+                // best recency the listener can recover; nothing older is knowable after a reconnect.
+                rebuilt.keys.forEach { orderByPackage[it] = ++sequence }
             }
             publish()
         }
@@ -138,6 +175,7 @@ class ForeignNotificationCounts @Inject constructor(
         mutate { keys ->
             val had = keys.isNotEmpty()
             keys.clear()
+            orderByPackage.clear()
             had
         }
     }
@@ -157,8 +195,15 @@ class ForeignNotificationCounts @Inject constructor(
         }
     }
 
+    /**
+     * S2734: published newest package first, in a map whose iteration order is part of its meaning - the
+     * signal source turns that order into each chip's rank, and the strip lays the ranks out left to right.
+     */
     private fun publish() {
-        mutableCounts.value = keysByPackage.mapValues { (_, keys) -> keys.size }
+        Timber.d("S2734: notification order ${keysByPackage.keys.sortedByDescending { orderByPackage[it] ?: 0L }}")
+        mutableCounts.value = keysByPackage.entries
+            .sortedByDescending { (packageName, _) -> orderByPackage[packageName] ?: 0L }
+            .associateTo(LinkedHashMap()) { (packageName, keys) -> packageName to keys.size }
     }
 
     /** One posted notification, reduced to the two facts this class is allowed to know about it. */

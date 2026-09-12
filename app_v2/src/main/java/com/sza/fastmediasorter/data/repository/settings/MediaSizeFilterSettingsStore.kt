@@ -29,7 +29,7 @@ object MediaSizeFilterSettingsStore {
     fun read(preferences: Preferences): Values = Values(
         imageSizeMin = preferences[KEY_IMAGE_SIZE_MIN] ?: 1024L,
         imageSizeMax = preferences[KEY_IMAGE_SIZE_MAX] ?: 10485760L,
-        videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: 102400L, // 100KB in bytes
+        videoSizeMin = preferences[KEY_VIDEO_SIZE_MIN] ?: AppSettings.DEFAULT_VIDEO_SIZE_MIN,
         videoSizeMax = preferences[KEY_VIDEO_SIZE_MAX] ?: 107374182400L,
     )
 

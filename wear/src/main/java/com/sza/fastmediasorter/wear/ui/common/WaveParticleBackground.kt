@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
@@ -47,7 +46,7 @@ private const val PARTICLE_COUNT_MAX = 20
 private const val WAVE_STEP_PX = 20f
 private const val WAVE_STEP_JITTER_MIN = 0.8f
 private const val WAVE_STEP_JITTER_SPAN = 0.4f
-private const val WAVE_STROKE_PX = 3f
+private const val WAVE_STROKE_PX = 5f
 private const val WAVE_AMPLITUDE_MIN = 0.28f
 private const val WAVE_AMPLITUDE_MAX = 0.48f
 private const val WAVE_LANE_SPACING_FRACTION = 0.038f
@@ -61,7 +60,9 @@ private const val WAVE_HUE_STEP_MIN = 8f
 private const val WAVE_HUE_STEP_SPAN = 12f
 private const val WAVE_SATURATION = 0.80f
 private const val WAVE_LIGHTNESS = 0.65f
-private const val WAVE_ALPHA = 0.44f
+
+// S2544 took 30 % off the original 0.70f; S2729 takes a further 20 % off what that left.
+private const val WAVE_ALPHA = 0.39f
 
 private const val PARTICLE_RADIUS_MIN = 1f
 private const val PARTICLE_RADIUS_MAX = 6f
@@ -70,7 +71,7 @@ private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
 private const val PARTICLE_RANDOM_SPREAD = 0.28f
 private const val PARTICLE_SATURATION = 0.90f
 private const val PARTICLE_LIGHTNESS = 0.70f
-private const val PARTICLE_ALPHA = 0.70f
+private const val PARTICLE_ALPHA = 0.48f
 private const val COUNTER_DRIFT_CHANCE = 0.18f
 private const val COUNTER_DRIFT_SIGN = -0.35f
 
@@ -98,12 +99,22 @@ private const val HALF = 0.5f
  * @param running drives the frame loop. False cancels it and draws nothing - on a watch this
  * animation is the most expensive thing on the screen, so it must stop rather than keep drawing
  * while nobody is looking at it.
+ * @param intent what this instance's motion is FOR, which decides how strong a power level has to be
+ * before it stops. The default is [AnimationIntent.AMBIENT] because the audio player was the first
+ * caller; the backdrop drawn behind every other screen passes [AnimationIntent.DECORATIVE].
  */
 @Composable
 fun WaveParticleBackground(
     modifier: Modifier = Modifier,
-    running: Boolean
+    running: Boolean,
+    intent: AnimationIntent = AnimationIntent.AMBIENT
 ) {
+    // Read in composition, not in the frame loop: the policy level is snapshot state, so a recovered
+    // charge recomposes this and the loop below restarts on its own. Reading it inside the loop would
+    // leave a frozen backdrop frozen until the screen was re-entered - and a frozen loop has no next
+    // iteration in which to read anything.
+    val animating = running && WearPowerPolicy.mayAnimate(intent)
+    timber.log.Timber.d("S2536: wear backdrop animating=$animating level=${WearPowerPolicy.level}")
     BoxWithConstraints(modifier = modifier) {
         val density = LocalDensity.current
         val widthPx = with(density) { maxWidth.toPx() }.toInt().coerceAtLeast(1)
@@ -123,13 +134,13 @@ fun WaveParticleBackground(
         val screenSize = remember(widthPx, heightPx) { IntSize(widthPx, heightPx) }
         val wavePath = remember { Path() }
         val session = remember(buffer) {
-            WaveParticleSession(bufferWidth.toFloat(), bufferHeight.toFloat(), RENDER_SCALE)
+            WaveParticleSession(bufferWidth.toFloat(), bufferHeight.toFloat(), RENDER_SCALE).apply {
+                reroll()
+            }
         }
 
-        LaunchedEffect(session, running) {
-            if (!running) return@LaunchedEffect
-            Timber.d("S2206: WaveParticleBackground running with TIME_INCREMENT=$TIME_INCREMENT")
-            session.reroll()
+        LaunchedEffect(session, animating) {
+            if (!animating) return@LaunchedEffect
             var lastFrameNanos = 0L
             while (true) {
                 withFrameNanos { frameNanos ->
@@ -146,9 +157,14 @@ fun WaveParticleBackground(
             modifier = Modifier
                 .fillMaxSize()
                 .drawBehind {
-                    if (!running) return@drawBehind
-                    bufferScope.draw(this, layoutDirection, bufferCanvas, bufferSize) {
-                        drawFrame(session, wavePath)
+                    // A frozen instance still lays down its first frame, because resetPending is true
+                    // until one is drawn - so the buffer blitted below holds a real static frame
+                    // rather than black. S1277 settled that fork on the phone: a black rectangle
+                    // reads as a broken screen, a still frame reads as a still frame.
+                    if (session.resetPending || animating) {
+                        bufferScope.draw(this, layoutDirection, bufferCanvas, bufferSize) {
+                            drawFrame(session, wavePath)
+                        }
                     }
                     drawImage(image = buffer, dstSize = screenSize)
                 }

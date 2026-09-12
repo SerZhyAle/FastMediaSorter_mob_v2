@@ -80,4 +80,8 @@
     <string name="video_snapshot_resource_label">फ़्रेम सहेजने के लिए संसाधन</string>
     <string name="video_snapshot_resource_not_set">चयनित नहीं (डाउनलोड में सहेजा जाता है)</string>
     <string name="videos_v">वीडियो (V)</string>
+    <string name="playback_control_tab_balance">संतुलन</string>
+    <string name="playback_control_no_balance">मोनो ऑडियो - संतुलित करने के लिए कोई चैनल नहीं</string>
+    <string name="playback_control_balance_value">संतुलन: %1$s</string>
+    <string name="playback_control_balance_description">संतुलन %1$d प्रतिशत बाएं, %2$d प्रतिशत दाएं</string>
 </resources>

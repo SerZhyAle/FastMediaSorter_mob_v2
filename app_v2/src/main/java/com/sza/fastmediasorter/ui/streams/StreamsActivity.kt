@@ -42,7 +42,9 @@ import com.sza.fastmediasorter.ui.player.helpers.AudioExitAction
 import com.sza.fastmediasorter.ui.player.helpers.AudioExitBehaviorResolver
 import com.sza.fastmediasorter.ui.player.helpers.AudioServiceController
 import com.sza.fastmediasorter.ui.player.helpers.BackgroundAudioExitDialog
+import com.sza.fastmediasorter.ui.player.standalone.AudioStandaloneActivity
 import com.sza.fastmediasorter.ui.streams.helpers.StreamAtlasPromptManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamBroadcastImportManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamFrameSnapshotManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamGridModeManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamHealthProbeManager
@@ -52,6 +54,7 @@ import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamInlineAudioViews
 import com.sza.fastmediasorter.ui.streams.helpers.StreamScrollButtonManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamShortcutPinManager
+import com.sza.fastmediasorter.ui.streams.helpers.StreamsCollectionStripManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsCommandLabelManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsControlsPlacementManager
 import com.sza.fastmediasorter.ui.streams.helpers.StreamsFilterDialogManager
@@ -105,6 +108,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     // (CLAUDE.md Rule 14). Reading the build flag here instead is what the rule forbids in shared code.
     @Inject
     lateinit var capabilityAvailability: com.sza.fastmediasorter.core.capability.CapabilityAvailability
+
+    // S1218: owns the "Open in VR" row's availability and its launch. Activity-scoped, so its XR
+    // detection mirror rides this screen's lifecycle.
+    @Inject
+    lateinit var streamVrLaunchManager: com.sza.fastmediasorter.ui.streams.helpers.StreamVrLaunchManager
 
     // S0675: in-memory TTL cache of captured live-stream frames, shared between the snapshot engine
     // (writer) and the grid adapter (reader).
@@ -172,6 +180,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.CHANNEL_PREVIEW_ATLAS,
             R.string.streams_atlas_prompt_message,
+            R.string.streams_atlas_prompt_title,
             artworkManifest,
             ::reloadAtlasPreviews,
         )
@@ -185,8 +194,49 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             lifecycleScope,
             DeliverableSet.STREAM_LOGO_ATLAS,
             R.string.streams_logo_prompt_message,
+            R.string.streams_logo_prompt_title,
             artworkManifest,
             ::reloadLogoTiles,
+        )
+    }
+
+    // S2508: the descriptor may arrive as a scanned QR payload or as a picked file; both launchers
+    // must exist before the host reaches STARTED, so they are registered here rather than on demand.
+    private val broadcastQrScanLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode != android.app.Activity.RESULT_OK) return@registerForActivityResult
+        result.data
+            ?.getStringExtra(
+                com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity.EXTRA_PAYLOAD
+            )
+            ?.let { payload -> viewModel.onImportBroadcastDescriptor(payload) }
+    }
+
+    // A descriptor file carries no registered MIME type, so the picker has to accept any document.
+    private val broadcastDescriptorPickerLauncher = registerForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        val payload = uri?.let { broadcastImportManager.readDescriptorFile(it) }
+        if (payload == null) {
+            if (uri != null) {
+                Toast.makeText(this, R.string.broadcast_import_malformed, Toast.LENGTH_LONG).show()
+            }
+        } else {
+            viewModel.onImportBroadcastDescriptor(payload)
+        }
+    }
+
+    private val broadcastImportManager: StreamBroadcastImportManager by lazy {
+        StreamBroadcastImportManager(
+            activity = this,
+            onScanQrRequested = {
+                broadcastQrScanLauncher.launch(
+                    com.sza.fastmediasorter.ui.companionimport.qr.CompanionQrScanActivity
+                        .createIntent(this)
+                )
+            },
+            onPickFileRequested = { broadcastDescriptorPickerLauncher.launch(arrayOf("*/*")) },
         )
     }
 
@@ -216,6 +266,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
         onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+        vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
         wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
@@ -240,6 +292,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         isFavorite = { viewModel.isFavoriteChannel(it) },
         onSendToWatch = { viewModel.sendStreamToWatch(it) },
         onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+        onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+        vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
         wearSendAvailable = { viewModel.isWearSendAvailable },
         faviconResolver = { url -> faviconCoords[url] },
         faviconTileLoader = { index -> faviconSlicer.tileFor(index) },
@@ -280,6 +334,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
             onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+            vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
             wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = snapshotManager::request,
@@ -323,6 +379,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             isFavorite = { viewModel.isFavoriteChannel(it) },
             onSendToWatch = { viewModel.sendStreamToWatch(it) },
             onOpenOnWatch = { viewModel.sendStreamToWatch(it, openNow = true) },
+            onOpenInVr = { streamVrLaunchManager.launch(it.url, it.title) },
+            vrLaunchAvailable = { streamVrLaunchManager.isAvailable },
             wearSendAvailable = { viewModel.isWearSendAvailable },
             frameProvider = streamFrameCache::get,
             requestCapture = pinnedSnapshotManager::request,
@@ -343,6 +401,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private lateinit var sectionsManager: StreamsSectionsManager
 
     private lateinit var controlsPlacement: StreamsControlsPlacementManager
+    private lateinit var collectionStrip: StreamsCollectionStripManager
 
     private lateinit var commandLabels: StreamsCommandLabelManager
 
@@ -528,6 +587,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         // must stay on the toolbar - a per-item listener would survive the first rotation as a
         // present but inert command.
         binding.toolbar.setOnMenuItemClickListener { item ->
+            Timber.d("S2898: toolbar menu item clicked: ${item.title}")
             when (item.itemId) {
                 R.id.action_stream_add -> {
                     showSourceDialog(isImport = false)
@@ -541,6 +601,11 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                 R.id.action_stream_import_url -> {
                     cancelHealthProbe()
                     showSourceDialog(isImport = true)
+                    true
+                }
+                R.id.action_stream_import_broadcast -> {
+                    cancelHealthProbe()
+                    broadcastImportManager.showImportChoice()
                     true
                 }
                 R.id.action_stream_display_toggle -> {
@@ -590,6 +655,18 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             },
         )
         mediaKindTrigger.bind()
+
+        // S2669: the curated-collection strip. The manager owns every decision about the strip; the
+        // Activity only forwards the tap to the ViewModel.
+        collectionStrip = StreamsCollectionStripManager(
+            strip = binding.streamCollectionsStrip,
+            chipGroup = binding.streamCollectionsChips,
+            announcementTarget = binding.streamsMainHeader,
+            onCollectionSelected = { collectionId ->
+                cancelHealthProbe()
+                viewModel.onCollectionSelected(collectionId)
+            },
+        )
     }
 
     private fun setupOrientationPlacement() {
@@ -599,6 +676,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             searchField = binding.tilSearch,
             onOrientationApplied = { landscape ->
                 mediaKindTrigger.render(latestState.filter.mediaKind, landscape)
+                updateCatalogBannerFocus(catalogBanner?.isVisible == true)
             },
         )
         // S1473: the two pinned commands take text labels in landscape, which forces a menu rebuild
@@ -715,6 +793,9 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private suspend fun reloadAtlasPreviews() {
         atlasSlicer.invalidate()
         atlasPreviewCoords = channelPreviewAtlasStore.coords()
+        // S2650: the coverage line used to be emitted only on screen setup and catalog refresh, so a log
+        // taken right after a consented download could not say how much the payload actually covered.
+        logStreamArtworkState()
         repaintArtworkRows()
     }
 
@@ -722,6 +803,7 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
     private suspend fun reloadLogoTiles() {
         logoSlicer.invalidate()
         logoAtlasCoords = streamLogoAtlasStore.coords()
+        logStreamArtworkState()
         repaintArtworkRows()
     }
 
@@ -821,6 +903,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             }
             binding.emptyStateView.isVisible = state.isEmpty
             latestState = state
+            // S2669: the strip decides its own visibility and selection from the delivered set.
+            collectionStrip.render(state.collections, state.filter.collectionId, state.sources.size)
             updateFilterIndicator(state.filter)
             // S1473: renders from the shared filter state, so a change made in the filter dialog
             // repaints the inline icons on the same emission.
@@ -855,6 +939,8 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
                     ).show()
                 }
                 is StreamsViewModel.StreamsEvent.CatalogUpdated -> {
+                    // S2896: dismiss the refresh suggestion banner if it was showing.
+                    hideCatalogBanner()
                     // S0668: the catalog import just rewrote the favicon atlas + coords - refresh them.
                     onCatalogRefreshed()
                     Toast.makeText(
@@ -894,16 +980,69 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
      * imported one, and a scripted device run missed the Snackbar twice before catching it. The banner
      * stays until it is taken or closed, so the timeout can no longer decide whether a user ever gets a
      * channel list. Inflated on first use only (Rule 18) - the policy may never raise it.
+     *
+     * S2896: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls below.
      */
     private fun showCatalogRefreshSuggestion() {
         val banner = catalogBanner ?: binding.stubCatalogBanner.inflate().also { catalogBanner = it }
         banner.isVisible = true
+        updateCatalogBannerFocus(bannerVisible = true)
         banner.findViewById<View>(R.id.btnCatalogBannerAction)?.setOnClickListener {
-            banner.isVisible = false
+            hideCatalogBanner()
             viewModel.onImportCatalog()
         }
         banner.findViewById<View>(R.id.btnCatalogBannerDismiss)?.setOnClickListener {
-            banner.isVisible = false
+            hideCatalogBanner()
+        }
+    }
+
+    private fun hideCatalogBanner() {
+        catalogBanner?.isVisible = false
+        updateCatalogBannerFocus(bannerVisible = false)
+    }
+
+    /**
+     * S2896/S2991: dynamic D-pad focus routing ensures banner buttons are reachable via D-pad up from controls
+     * and content (empty list / section headers) below, and that down from banner targets content in landscape.
+     */
+    private fun updateCatalogBannerFocus(bannerVisible: Boolean) {
+        Timber.d("S2991: updateCatalogBannerFocus bannerVisible=$bannerVisible")
+        val upTargetId = if (bannerVisible) R.id.btnCatalogBannerAction else R.id.toolbar
+        val sortUpTargetId = if (bannerVisible) R.id.btnCatalogBannerDismiss else R.id.toolbar
+        binding.etSearch.nextFocusUpId = upTargetId
+        binding.btnMediaKindVideo.nextFocusUpId = upTargetId
+        binding.btnMediaKindAudio.nextFocusUpId = upTargetId
+        binding.btnFilter.nextFocusUpId = upTargetId
+        binding.btnSort.nextFocusUpId = sortUpTargetId
+
+        binding.btnEmptyAddUrl.nextFocusUpId = if (bannerVisible) upTargetId else R.id.etSearch
+        binding.streamsPinnedHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.btnFilter
+        binding.streamsMainHeader.nextFocusUpId = if (bannerVisible) upTargetId else R.id.streamsPinnedHeader
+
+        val banner = catalogBanner
+        if (bannerVisible && banner != null) {
+            val isLandscape =
+                resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE
+            val downTargetId = if (binding.emptyStateView.isVisible) {
+                R.id.btnEmptyAddUrl
+            } else if (binding.streamsPinnedSection.isVisible) {
+                R.id.streamsPinnedHeader
+            } else {
+                R.id.rvStreams
+            }
+            val actionBtn = banner.findViewById<View>(R.id.btnCatalogBannerAction)
+            val dismissBtn = banner.findViewById<View>(R.id.btnCatalogBannerDismiss)
+            if (isLandscape) {
+                actionBtn?.nextFocusUpId = R.id.etSearch
+                dismissBtn?.nextFocusUpId = R.id.btnSort
+                actionBtn?.nextFocusDownId = downTargetId
+                dismissBtn?.nextFocusDownId = downTargetId
+            } else {
+                actionBtn?.nextFocusUpId = R.id.toolbar
+                dismissBtn?.nextFocusUpId = R.id.toolbar
+                actionBtn?.nextFocusDownId = R.id.btnFilter
+                dismissBtn?.nextFocusDownId = R.id.btnSort
+            }
         }
     }
 
@@ -1004,10 +1143,31 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
             // both of which funnel through onPlay.
             !viewModel.hasNetworkForStream ->
                 Toast.makeText(this, R.string.streams_error_no_network, Toast.LENGTH_SHORT).show()
-            source.mediaKind == "AUDIO" ->
-                inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+            source.mediaKind == "AUDIO" -> {
+                if (viewModel.settings.value.streamsVisualizeAsMusic) {
+                    launchVisualizerStream(source)
+                } else {
+                    inlineAudio.play(source, useBackgroundService = isBackgroundAudioEnabled())
+                }
+            }
             else -> launchFullscreenStream(source)
         }
+    }
+
+    private fun launchVisualizerStream(source: StreamSourceEntity) {
+        // S1143: opening the full-screen visualizer player stops the inline audio engine
+        // and clears the now playing row indicator so ownership is passed completely.
+        inlineAudio.stop()
+        clearStreamResume()
+        Timber.i("StreamsActivity: launching visualizer audio stream - %s", source.url)
+        streamPlayerLauncher.launch(
+            AudioStandaloneActivity.createStreamIntent(
+                context = this,
+                channelId = source.id,
+                url = source.url,
+                displayName = source.title,
+            )
+        )
     }
 
     private fun launchFullscreenStream(source: StreamSourceEntity) {

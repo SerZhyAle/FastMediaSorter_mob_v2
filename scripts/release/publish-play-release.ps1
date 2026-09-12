@@ -20,8 +20,8 @@
     Supply the watch bundle to publish the Wear OS form factor (S1707).
 
 .PARAMETER VersionCode
-    The versionCode carried by -Aab. Only needed with -Aab: without it the script reads
-    app_v2/build.gradle.kts, which describes the phone artifact and not this one.
+    The versionCode carried by -Aab. Only needed with -Aab: without it the script reads the phone
+    bundle's own AGP output-metadata.json, which describes that artifact and not this one.
 
 .PARAMETER NotesVersionCode
     Read the fastlane changelogs filed under this versionCode instead of the artifact's own.

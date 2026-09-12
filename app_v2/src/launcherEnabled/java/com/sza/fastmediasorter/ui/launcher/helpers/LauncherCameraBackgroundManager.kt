@@ -59,7 +59,6 @@ class LauncherCameraBackgroundManager(
         if (requestedCameraId == cameraId) return
         requestedCameraId = cameraId
         startJob?.cancel()
-        Timber.d("S2076: launcher camera backdrop start requested for lens $cameraId")
         startJob = lifecycleOwner.lifecycleScope.launch {
             try {
                 val context = previewView.context
@@ -86,7 +85,6 @@ class LauncherCameraBackgroundManager(
 
     /** Releases the camera. Symmetric with [start]; safe to call when nothing is bound. */
     fun stop() {
-        Timber.d("S2076: launcher camera backdrop released, bound=${cameraProvider != null}")
         startJob?.cancel()
         startJob = null
         requestedCameraId = null

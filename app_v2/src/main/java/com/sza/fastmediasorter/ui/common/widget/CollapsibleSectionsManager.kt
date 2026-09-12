@@ -9,7 +9,6 @@ import androidx.core.view.isVisible
 import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.data.local.preferences.CollapsibleSectionStore
 import com.sza.fastmediasorter.data.local.preferences.SharedPreferencesCollapsibleSectionStore
-import timber.log.Timber
 
 /**
  * Single orchestrator for collapsible groups across the app.
@@ -60,8 +59,6 @@ class CollapsibleSectionsManager(
             (container.parent as? ViewGroup)?.let { parent ->
                 if (AnimationPolicy.isAnimationAllowed) {
                     TransitionManager.beginDelayedTransition(parent, buildBodyTransition())
-                } else {
-                    Timber.d("S2250: section transition skipped")
                 }
             }
             container.isVisible = isExpanded

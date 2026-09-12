@@ -1,8 +1,10 @@
 package com.sza.fastmediasorter.wear.ui.player.common
 
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -12,6 +14,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.rotary.onRotaryScrollEvent
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
+import com.sza.fastmediasorter.wear.ui.common.LocalWearRotaryFocusStack
 import kotlinx.coroutines.launch
 import timber.log.Timber
 
@@ -30,6 +33,7 @@ fun Modifier.rotaryAction(
     onScroll: (Float) -> Unit
 ): Modifier = this
     .onRotaryScrollEvent { event ->
+        Timber.d("S2838: rotary event reached the app, verticalScrollPixels=${event.verticalScrollPixels}")
         onScroll(event.verticalScrollPixels)
         true
     }
@@ -39,12 +43,29 @@ fun Modifier.rotaryAction(
 /**
  * Rotary events are delivered to the focused composable only, and nothing on a watch grants focus by
  * touch, so a screen that never asks for it receives no rotation at all.
+ *
+ * Asking once is not enough where consumers overlap (S2763). The request is therefore keyed on being the
+ * newest live consumer in [LocalWearRotaryFocusStack]: a dialog or an action cloud opening over a list
+ * takes the crown while it is there, and closing it makes the list top again, which re-fires the request
+ * below. With no stack provided the condition is constant and this behaves exactly as it did before.
  */
 @Composable
 fun rememberRotaryFocus(): FocusRequester {
     val focusRequester = remember { FocusRequester() }
-    LaunchedEffect(focusRequester) {
-        focusRequester.requestFocus()
+    val stack = LocalWearRotaryFocusStack.current
+    val token = remember { Any() }
+
+    DisposableEffect(stack, token) {
+        stack?.push(token)
+        onDispose { stack?.remove(token) }
+    }
+
+    val owned = stack == null || stack.isTop(token)
+    LaunchedEffect(owned) {
+        Timber.d("S2838: rotary focus effect, owned=$owned stack=${stack != null}")
+        if (owned) {
+            focusRequester.requestFocus()
+        }
     }
     return focusRequester
 }
@@ -73,8 +94,19 @@ fun Modifier.rotaryActionScroll(listState: ScalingLazyListState): Modifier {
     val focusRequester = rememberRotaryFocus()
     val coroutineScope = rememberCoroutineScope()
     return this.rotaryAction(focusRequester) { delta ->
-        Timber.d("S2049: rotary scroll delta=$delta")
         coroutineScope.launch { listState.scrollBy(delta) }
+    }
+}
+
+/**
+ * Rotary scroll overload for a plain [ScrollState] container, such as an inscribed square scroll box.
+ */
+@Composable
+fun Modifier.rotaryActionScroll(scrollState: ScrollState): Modifier {
+    val focusRequester = rememberRotaryFocus()
+    val coroutineScope = rememberCoroutineScope()
+    return this.rotaryAction(focusRequester) { delta ->
+        coroutineScope.launch { scrollState.scrollBy(delta) }
     }
 }
 

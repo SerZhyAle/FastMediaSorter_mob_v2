@@ -8,14 +8,19 @@ package com.sza.fastmediasorter.wear.ui.network
  * remove the capability, so the screen, its ViewModel and every already-saved source stay exactly as they
  * are - only the way in disappears from a store build.
  *
- * A predicate over a passed-in flag rather than a direct `BuildConfig.DEBUG` read, because a build constant
- * read inside a composable is the same answer in every test run, and the direction that must never regress
- * is the one a debug test cannot otherwise reach.
+ * A predicate over a passed-in flag rather than a direct build-constant read, because a constant read inside
+ * a composable is the same answer in every test run, and the direction that must never regress is the one a
+ * debug test cannot otherwise reach.
+ *
+ * S2486 changed WHICH flag arrives here. It used to be `BuildConfig.DEBUG`, which answers "is this a debug
+ * build" - but the question the ruling asks is "does this build go through the store", and the two disagreed
+ * in both rows that mattered: the sideload release hid the path the owner needed, while the store debug build
+ * showed it. The flag is now the `noLegal`-vs-`standard` answer carried by `WearRestrictedCapabilities`.
  */
 
 object NetworkSourceEntry {
 
-    fun isOffered(isDebugBuild: Boolean): Boolean {
-        return isDebugBuild
+    fun isOffered(offersCredentialEntry: Boolean): Boolean {
+        return offersCredentialEntry
     }
 }

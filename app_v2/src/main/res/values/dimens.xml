@@ -66,9 +66,15 @@
          keep inline stream audio alive, so it re-reads them in onConfigurationChanged. -->
     <dimen name="streams_list_side_padding">0dp</dimen>
     <dimen name="streams_mini_control_min_height">56dp</dimen>
+    <!-- S2669: curated-collection chip strip paddings - aligns the strip's chips with the control row
+         text above it, with a smaller bottom gap so the list header follows closely. -->
+    <dimen name="streams_collections_strip_side_padding">12dp</dimen>
+    <dimen name="streams_collections_strip_bottom_padding">4dp</dimen>
     <!-- S1173: default contour width for OutlinedTextView/OutlinedImageView. Sized for large overlay
          labels; small captions must override it or the contour swallows the glyph. -->
     <dimen name="outline_text_stroke_width">2dp</dimen>
+    <!-- Proportional contour: 7% of the text size reads at 12sp and still at 96sp. -->
+    <item name="outline_text_stroke_scale" format="float" type="dimen">0.07</item>
 
     <!-- UI Elements -->
     <!-- Material's minimum touch target. A row whose own height is wrap_content (switch, radio,
@@ -101,6 +107,10 @@
     <!-- Destination buttons in Copy/Move dialogs -->
     <dimen name="destination_button_min_height">56dp</dimen>
     <dimen name="destination_border_width">1dp</dimen>
+
+    <!-- S2556: the app's own startup brand frame, held for one beat after the platform splash. -->
+    <dimen name="splash_frame_padding">16dp</dimen>
+    <dimen name="splash_clock_text_size">32sp</dimen>
 
     <!-- Welcome screen -->
     <dimen name="welcome_button_text_size">14sp</dimen>
@@ -148,6 +158,9 @@
     <dimen name="resource_path_text_size">12sp</dimen>
     <dimen name="resource_badge_size">24dp</dimen>
     <dimen name="resource_indicator_text_size">14sp</dimen>
+    <!-- Wear resource picker: a group header is a label row, not a tappable target, so it sits
+         below touch_target_min_height on purpose - the row it heads carries that height. -->
+    <dimen name="wear_resource_group_header_min_height">44dp</dimen>
 
     <!-- Main Activity -->
     <dimen name="main_recycler_margin">8dp</dimen>
@@ -413,6 +426,8 @@
     <dimen name="item_icon_size_small">24dp</dimen>
     <dimen name="item_icon_size_tiny">16dp</dimen>
     <dimen name="widget_icon_size_large">40dp</dimen>
+    <dimen name="widget_stopwatch_toggle_size">48dp</dimen>
+    <dimen name="widget_stopwatch_reading_text_size">22sp</dimen>
     <dimen name="item_network_icon_size">36dp</dimen>
     <dimen name="item_thumbnail_size">120dp</dimen>
     <dimen name="item_grid_thumbnail_size">150dp</dimen>
@@ -810,6 +825,7 @@
     <dimen name="device_storage_padding_vertical">0dp</dimen>
 
     <!-- Playback control sliders (S0619) -->
+    <dimen name="playback_section_tab_min_height">56dp</dimen>
     <dimen name="playback_slider_track_height">12dp</dimen>
     <dimen name="playback_slider_thumb_size">28dp</dimen>
     <dimen name="playback_slider_min_height">48dp</dimen>
@@ -866,4 +882,67 @@
     <dimen name="main_cmd_bar_separator_width">@dimen/dimension_zero</dimen>
     <dimen name="main_tab_strip_leading_anchor">@dimen/dimension_zero</dimen>
 
+    <!-- S1924: how much of the mirror's white field shows around the preview. A dimen rather than a
+         literal margin because strategic 5.3 keeps the field a parameter, and the risk table calls out
+         that a field too wide eats the preview on a narrow screen. Halved from 48dp on the owner's
+         2026-09-06 device run: in portrait the field lands on the long sides of the frame, where 48dp
+         cost more of the face than it returned in light. -->
+    <dimen name="mirror_glow_field_width">24dp</dimen>
+
+    <!-- S2847: enlarged from control_button_size (48dp) to 64dp so mirror corner buttons are
+         visible with colored borders. No sw320dp override: 64dp fits on every screen. -->
+    <dimen name="mirror_control_button_size">64dp</dimen>
+
+    <!-- S2847: zoom presets are four in a row, so they use a smaller size than the corner buttons
+         to fit on narrow screens. 72dp is 1.5x the original 48dp. -->
+    <dimen name="mirror_zoom_preset_size">72dp</dimen>
+
+    <!-- S1411: the stopwatch reading auto-sizes between these two bounds instead of carrying one size
+         per participant count, because the same region layout is drawn full-screen, half-screen and
+         quarter-screen and only the band edges of the reading change its width. -->
+    <dimen name="stopwatch_reading_text_size_min">20sp</dimen>
+    <dimen name="stopwatch_reading_text_size_max">96sp</dimen>
+    <dimen name="stopwatch_reading_text_size_step">2sp</dimen>
+
+    <dimen name="broadcast_share_qr_size">280dp</dimen>
+
+    <!-- S2730: the wallpaper screen's preview of the chosen image. Shorter in landscape, where the
+         screen splits into two columns and the whole block has half the height to spend. -->
+    <dimen name="launcher_wallpaper_preview_height">140dp</dimen>
+
+    <!-- S2778: the water flashlight is read at arm's length, through water, so its two lines carry
+         their own sizes - twice the shared large and small they used to borrow. -->
+    <dimen name="water_flashlight_clock_text_size">36sp</dimen>
+    <dimen name="water_flashlight_hint_text_size">28sp</dimen>
+
+    <!-- S2777: the front flashlight is operated at arm's length with the screen glaring, so its
+         controls carry their own sizes instead of borrowing the shared button and text scales. The
+         five bar heights rise in one step each and are what makes the chosen level readable without
+         colour. -->
+    <dimen name="front_flashlight_clock_text_size">28sp</dimen>
+    <dimen name="front_flashlight_control_size">96dp</dimen>
+    <dimen name="front_flashlight_control_padding">24dp</dimen>
+    <dimen name="front_flashlight_level_bar_width">12dp</dimen>
+    <dimen name="front_flashlight_level_bar_height_1">16dp</dimen>
+    <dimen name="front_flashlight_level_bar_height_2">28dp</dimen>
+    <dimen name="front_flashlight_level_bar_height_3">40dp</dimen>
+    <dimen name="front_flashlight_level_bar_height_4">52dp</dimen>
+    <dimen name="front_flashlight_level_bar_height_5">64dp</dimen>
+    <!-- Tourist Dashboard Dimensions -->
+    <dimen name="tourist_card_corner_radius">16dp</dimen>
+    <dimen name="tourist_secondary_card_corner_radius">12dp</dimen>
+    <dimen name="tourist_card_elevation">4dp</dimen>
+    <dimen name="tourist_secondary_card_elevation">2dp</dimen>
+    <dimen name="tourist_card_stroke_width">1.5dp</dimen>
+    <dimen name="tourist_secondary_card_stroke_width">1dp</dimen>
+    <dimen name="tourist_hero_icon_size">28dp</dimen>
+    <dimen name="tourist_hero_icon_size_land">24dp</dimen>
+    <dimen name="tourist_tile_icon_size">20dp</dimen>
+    <dimen name="tourist_tile_padding">10dp</dimen>
+    <dimen name="tourist_compass_rose_size">120dp</dimen>
+    <dimen name="tourist_compass_rose_size_land">140dp</dimen>
+    <dimen name="tourist_primary_text_size">56sp</dimen>
+    <dimen name="tourist_primary_text_size_land">64sp</dimen>
+    <dimen name="tourist_coords_text_size">36sp</dimen>
+    <dimen name="tourist_coords_text_size_land">32sp</dimen>
 </resources>

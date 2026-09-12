@@ -33,8 +33,10 @@
     and delete them. So the analysed set is widened to every .kt under the module that shares a name
     with a named file, and the comparison is then honest on both sides.
 
-    Takes no BUILD lock: no gradle process is involved. The caller owns the code-domain lock for the
-    sources it autocorrected (CLAUDE.md Rule 23).
+    Takes no BUILD lock: no gradle process is involved. Under -Apply it takes the baseline's OWN
+    code domain (S2635). This header used to declare instead that the caller owned that lock - a
+    convention nothing checked and no caller obeyed, so the operational baseline was rewritten
+    unserialised.
 
 .PARAMETER Module
     app_v2 or wear. Selects config/detekt/baseline-<module>.xml and the source tree scanned for
@@ -65,6 +67,8 @@
           absent or outside the module, a wrapped <ID> line in a baseline, or the analyser produced
           no baseline. Never reported as 0: "could not check" and "checked and found nothing" are
           different facts, and collapsing them certifies unchecked work.
+      4 - the target's code domain is held by another session, so nothing was written. The queue
+          place is held - wait for the turn in the background and rerun (S2635).
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/prune-detekt-baseline.ps1 -Module app_v2 -Files "app_v2/src/main/java/com/sza/fastmediasorter/core/util/LocaleHelper.kt"
@@ -98,6 +102,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 function Exit-CannotVerify([string]$Message) {
     Write-Error "prune-detekt-baseline: CANNOT VERIFY - $Message" -ErrorAction Continue
@@ -301,17 +306,27 @@ if (-not $Apply) {
 # Line-indexed deletion, so every surviving line is copied verbatim - element order, indentation and
 # escaping all stay exactly as detekt wrote them.
 $deadIndex = [System.Collections.Generic.HashSet[int]]::new([int[]]@($dead | ForEach-Object { $_.Index }))
-$original = [System.IO.File]::ReadAllLines($BaselinePath)
-$kept = [System.Collections.Generic.List[string]]::new()
-for ($i = 0; $i -lt $original.Length; $i++) {
-    if ($deadIndex.Contains($i)) { continue }
-    $kept.Add($original[$i])
-}
 
-# The file detekt writes is LF-terminated with no BOM and ends in a newline; reproduce that rather
-# than letting the platform default turn a prune into a whole-file diff.
-$text = ($kept -join "`n") + "`n"
-[System.IO.File]::WriteAllText($BaselinePath, $text, [System.Text.UTF8Encoding]::new($false))
+# The re-read is inside the lock with the write, not before it: the deletion is indexed by LINE
+# NUMBER, so a sibling that rewrote the baseline between the read and the write would have every
+# surviving index point at a different entry.
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path $BaselinePath `
+        -Reason "prune-detekt-baseline.ps1 -Apply ($Module baseline)"
+    $original = [System.IO.File]::ReadAllLines($BaselinePath)
+    $kept = [System.Collections.Generic.List[string]]::new()
+    for ($i = 0; $i -lt $original.Length; $i++) {
+        if ($deadIndex.Contains($i)) { continue }
+        $kept.Add($original[$i])
+    }
+
+    # The file detekt writes is LF-terminated with no BOM and ends in a newline; reproduce that
+    # rather than letting the platform default turn a prune into a whole-file diff.
+    $text = ($kept -join "`n") + "`n"
+    [System.IO.File]::WriteAllText($BaselinePath, $text, [System.Text.UTF8Encoding]::new($false))
+}
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host ("prune-detekt-baseline: PRUNED [{0}] - removed {1} dead entr(ies) - {2}." -f $scope, $dead.Count, $byRule) -ForegroundColor Green
 Write-Host ("prune-detekt-baseline: reason - {0}" -f $Reason)

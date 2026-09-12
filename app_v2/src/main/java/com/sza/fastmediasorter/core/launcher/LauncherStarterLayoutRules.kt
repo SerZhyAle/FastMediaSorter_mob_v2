@@ -52,6 +52,16 @@ object LauncherStarterLayoutRules {
         RESOURCES(LauncherCellCommand.SECTION_RESOURCES),
         APP_FUNCTIONS(LauncherCellCommand.SECTION_APP_FUNCTIONS),
         LAUNCHER_ACTIONS(LauncherCellCommand.SECTION_APP_FUNCTIONS),
+
+        /**
+         * S2735: the entries into the app's own settings - the third same-key pairing in this enum, for
+         * the reason [LAUNCHER_ACTIONS] gives. A budget that shortened this group would not produce a
+         * smaller settings section, it would produce a desktop with no way into the settings.
+         */
+        SETTINGS_ENTRIES(LauncherCellCommand.SECTION_SETTINGS),
+
+        /** S2735: the quick entries into the Android system settings, which a budget may shorten. */
+        SYSTEM_SETTINGS(LauncherCellCommand.SECTION_SETTINGS),
         ANDROID_APPS(LauncherCellCommand.SECTION_ANDROID_APPS),
         GOOGLE_APPS(LauncherCellCommand.SECTION_GOOGLE),
         UTILITY_WIDGETS(LauncherCellCommand.SECTION_WIDGETS),
@@ -77,21 +87,29 @@ object LauncherStarterLayoutRules {
 
     private const val DEFAULT_SCREEN_COUNT = 2
 
-    // Seven groups on screen 0 - through GOOGLE_APPS - which is the set the desktop carried before S2309
+    // Nine groups on screen 0 - through GOOGLE_APPS - which is the set the desktop carried before S2309
     // on the medium-wide class every adjustment below is stated relative to. S2321 raised it from six
     // with the CORE_RESOURCES split: the cut counts entries of sectionOrder, so a new entry ahead of
     // GOOGLE_APPS would otherwise push that group off screen 0 and turn a capacity fix into a redesign.
-    private const val DEFAULT_FIRST_SCREEN_SECTIONS = 7
+    // S2735 raised it from seven for the same reason, by the two entries of the settings section.
+    private const val DEFAULT_FIRST_SCREEN_SECTIONS = 9
 
     // Budgets of the base rule. Named because a bare number in a map literal says nothing about which
     // group it caps, and because detekt reads every one of them as a magic number.
     private const val BUDGET_GADGETS = 6
     private const val BUDGET_RESOURCES = 8
 
-    // Above the eleven feature tiles a fully equipped standard build offers, so the medium class trims
-    // nothing that exists today and only a compact screen shortens the row.
-    private const val BUDGET_APP_FUNCTIONS = 12
-    private const val BUDGET_ANDROID_APPS = 12
+    // Covers every launcher-shortcut entry in the registry on a medium screen. Compact screens retain
+    // their existing proportional limit because the section is an open list.
+    private const val BUDGET_APP_FUNCTIONS = 22
+    // S2717: the owner's ceiling is 25 app cells on the roomiest grid. The size scaling below turns
+    // this base into 11 compact / 18 medium / 25 expanded, so the number is stated once and the screen
+    // class still decides how much of it a device gets.
+    private const val BUDGET_ANDROID_APPS = 18
+    // S2735: the leading entries of OsShortcutCatalog on a medium screen. The catalog is already ordered
+    // by how often a phone user reaches for the target, so the cut is where the common ones end rather
+    // than an arbitrary count - and the size scaling below shortens it to five on a compact screen.
+    private const val BUDGET_SYSTEM_SETTINGS = 8
     private const val BUDGET_GOOGLE_APPS = 10
     private const val BUDGET_UTILITY_WIDGETS = 4
     private const val BUDGET_MEDIA_WINDOWS = 3
@@ -242,6 +260,8 @@ object LauncherStarterLayoutRules {
             StarterSectionGroup.RESOURCES,
             StarterSectionGroup.APP_FUNCTIONS,
             StarterSectionGroup.LAUNCHER_ACTIONS,
+            StarterSectionGroup.SETTINGS_ENTRIES,
+            StarterSectionGroup.SYSTEM_SETTINGS,
             StarterSectionGroup.ANDROID_APPS,
             StarterSectionGroup.GOOGLE_APPS,
             StarterSectionGroup.UTILITY_WIDGETS,
@@ -261,11 +281,15 @@ object LauncherStarterLayoutRules {
      * S2321: [StarterSectionGroup.CORE_RESOURCES] is unbounded for the same reason. Under the single
      * budgeted resources group it had, the compact scale of [BUDGET_RESOURCES] cut the list at four and
      * dropped "All documents", the camera and "All files" off every phone.
+     *
+     * S2735: [StarterSectionGroup.SETTINGS_ENTRIES] joins them. The section's whole purpose is to be
+     * where the settings are found, and a compact screen is not a reason to seed it without them.
      */
     private fun defaultBudget(): Map<StarterSectionGroup, Int> = mapOf(
         StarterSectionGroup.PROFILE_GADGETS to BUDGET_GADGETS,
         StarterSectionGroup.RESOURCES to BUDGET_RESOURCES,
         StarterSectionGroup.APP_FUNCTIONS to BUDGET_APP_FUNCTIONS,
+        StarterSectionGroup.SYSTEM_SETTINGS to BUDGET_SYSTEM_SETTINGS,
         StarterSectionGroup.ANDROID_APPS to BUDGET_ANDROID_APPS,
         StarterSectionGroup.GOOGLE_APPS to BUDGET_GOOGLE_APPS,
         StarterSectionGroup.UTILITY_WIDGETS to BUDGET_UTILITY_WIDGETS,

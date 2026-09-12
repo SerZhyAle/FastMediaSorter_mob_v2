@@ -33,7 +33,10 @@
 
 .NOTES
   Exit codes: 0 ok; 1 stale (-Check drift or missing cheatsheet); 2 not found;
-  3 ambiguous name.
+  3 ambiguous name; 4 -Generate only: Code.Scripts is held by another session, so
+  the cheatsheet was not rewritten - the place in the queue is held, wait for the
+  turn and rerun (S2615). -Check, -List and a lookup take no lock: -Check is what
+  the gate battery runs, and locking there would serialise it.
 #>
 [CmdletBinding()]
 param(
@@ -155,20 +158,71 @@ function Get-ExitCodeLines {
 
 . (Join-Path $PSScriptRoot 'script-help-text.ps1')
 
+function Resolve-SignatureSource {
+    <#
+    .SYNOPSIS
+        The file whose SIGNATURE describes a path: the shipped harness script when the local file
+        is a generated forwarder (S2402), the local file otherwise.
+    .DESCRIPTION
+        A forwarder carries no param block and a synopsis about itself, so parsing it would answer
+        "(no param block)" for 74 scripts - which is precisely the re-reading this cheatsheet exists
+        to prevent. The target is read out of the forwarder's own resolution rather than guessed:
+        the harness-relative path it names, under the first root that has it.
+    #>
+    param([Parameter(Mandatory)][string] $Path)
+    $body = Get-Content -LiteralPath $Path -Raw -ErrorAction SilentlyContinue
+    if (-not $body -or $body -notmatch 'Forwarder to the canon-shipped harness script ([^\s]+)') { return $Path }
+    $harnessRel = $Matches[1]
+    $candidates = @()
+    if ($env:SZA_HARNESS_ROOT) { $candidates += $env:SZA_HARNESS_ROOT }
+    $cache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
+    if (Test-Path -LiteralPath $cache) {
+        $candidates += @(Get-ChildItem -LiteralPath $cache -Directory -ErrorAction SilentlyContinue |
+            ForEach-Object {
+                $v = $null
+                [void][version]::TryParse($_.Name, [ref]$v)
+                [pscustomobject]@{ Path = $_.FullName; Version = $v }
+            } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
+                            @{ Expression = { $_.Version }; Descending = $true } |
+            ForEach-Object { Join-Path $_.Path 'tools\harness' })
+    }
+    # S2452: the checkout default is held by project-paths.ps1 alone. The dot-source sits inside
+    # this function, so the resolver's own names stay local to it and reach no caller. A resolver
+    # that is absent or throws costs nothing here - the two candidates above are the ones that
+    # resolve in practice, and a miss falls through to returning the forwarder's own path.
+    $checkout = $env:SZA_CANON_ROOT
+    if (-not $checkout) {
+        $resolver = Join-Path $PSScriptRoot 'project-paths.ps1'
+        if (Test-Path -LiteralPath $resolver) {
+            try { . $resolver; $checkout = Get-CanonRoot } catch { $checkout = $null }
+        }
+    }
+    if ($checkout) { $candidates += (Join-Path $checkout 'tools\harness') }
+    foreach ($c in $candidates) {
+        $p = Join-Path $c $harnessRel
+        if (Test-Path -LiteralPath $p) { return $p }
+    }
+    # The harness is not installed: describing the forwarder is honest, and its own text says so.
+    return $Path
+}
+
 function Get-Signature {
     param([System.IO.FileInfo] $File, [string] $RepoRoot)
     $errs = $null
-    $ast = [System.Management.Automation.Language.Parser]::ParseFile($File.FullName, [ref]$null, [ref]$errs)
+    # The path stays this repository's - that is what a caller types - while the signature comes
+    # from whatever actually implements it.
+    $source = Resolve-SignatureSource -Path $File.FullName
+    $ast = [System.Management.Automation.Language.Parser]::ParseFile($source, [ref]$null, [ref]$errs)
     $rel = $File.FullName.Substring($RepoRoot.Length).TrimStart('\','/') -replace '\\','/'
     # GetHelpContent() returns nothing when a #requires line sits above the help block, and this
     # repository puts #requires on line 1 by convention - so the parser alone reported a synopsis
     # for zero of 371 scripts (S1872). Get-ScriptSynopsis tries the parser first, then reads the
     # leading comment block literally.
-    $synopsis = Get-ScriptSynopsis -Path $File.FullName -Ast $ast
+    $synopsis = Get-ScriptSynopsis -Path $source -Ast $ast
     $params = Get-ParamInfo -ParamBlock $ast.ParamBlock
     [pscustomobject]@{
         Rel = $rel; Synopsis = $synopsis; Params = $params
-        Exits = (Get-ExitCodeLines -Path $File.FullName)
+        Exits = (Get-ExitCodeLines -Path $source)
         ParseError = [bool]($errs -and $errs.Count)
     }
 }
@@ -233,9 +287,18 @@ if ($List) {
 
 if ($Generate) {
     $outPath = Join-Path $Root 'docs\SCRIPT_CHEATSHEET.md'
-    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    [System.IO.File]::WriteAllText($outPath, (Build-CheatsheetText -Files $allFiles -RepoRoot $Root), $utf8NoBom)
-    Write-Host ("Wrote {0} ({1} scripts)" -f ($outPath.Substring($Root.Length).TrimStart('\','/')), @($allFiles).Count) -ForegroundColor Green
+    # S2615: assert-script-cheatsheet-sync.ps1 names this command in its refusal, so an agent runs
+    # it without deciding to - which is exactly when a rewrite of a shared render target must be
+    # ordered against the sibling that is editing docs/ by hand.
+    . (Join-Path $PSScriptRoot 'code-lock-scope.ps1')
+    $codeScope = $null
+    try {
+        $codeScope = Enter-CodeLockOrExit -Path @($outPath) -Reason 'help.ps1 -Generate (docs/SCRIPT_CHEATSHEET.md)'
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+        [System.IO.File]::WriteAllText($outPath, (Build-CheatsheetText -Files $allFiles -RepoRoot $Root), $utf8NoBom)
+        Write-Host ("Wrote {0} ({1} scripts)" -f ($outPath.Substring($Root.Length).TrimStart('\','/')), @($allFiles).Count) -ForegroundColor Green
+    }
+    finally { Exit-CodeLockScope -Scope $codeScope }
     exit 0
 }
 

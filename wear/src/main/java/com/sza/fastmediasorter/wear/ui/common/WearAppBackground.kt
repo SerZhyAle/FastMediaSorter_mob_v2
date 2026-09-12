@@ -13,20 +13,20 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import com.sza.fastmediasorter.wear.domain.model.WearBackground
-
-/**
- * Constant by design (S2000, strategic 3.3.9): the watch draws light content, so a scrim that varied
- * with the chosen picture would make contrast a property of the owner's photo rather than a
- * guarantee. Matched to the value already tuned for arbitrary album art on the audio player, which
- * is the same worst case - a bright, uncontrolled image under white text.
- */
-private const val SCRIM_ALPHA = 0.47f
+import com.sza.fastmediasorter.wear.ui.theme.WearAppTheme
+import timber.log.Timber
 
 /**
  * S2000: the one layer drawn behind every screen of the watch app.
  *
  * Takes the resolved answer rather than the stored mode, so the fallback from a missing frame is
  * decided once in ResolveWearBackgroundUseCase instead of here.
+ *
+ * S2864: the scrim stays the one contrast mechanism, but over a delivered photo its amount follows
+ * the frame's own measured luminance - [WearWallpaperScrimPolicy]. The fixed amount this file drew
+ * before could not carry S2000's contrast guarantee across an arbitrary photo, and the white frame
+ * that washed the home captions out proved it; branded wallpapers keep the tuned floor, because
+ * their brightness is fixed at build time (S2544, S2729).
  */
 @Composable
 fun WearAppBackground(
@@ -34,24 +34,59 @@ fun WearAppBackground(
     running: Boolean,
     modifier: Modifier = Modifier
 ) {
+    Timber.d("S2544: dimmer wallpaper applied bg=%s running=%b", background, running)
+    Timber.d("S2729: second-pass dimmer applied bg=%s running=%b", background, running)
+    // S2522: under a light scheme the content is dark, so the veil that has to sit between it and an
+    // arbitrary photo is the light one. Only the side flips - S2864 moved the amount into the scrim
+    // policy, which sizes it off the photo's own luminance.
+    val opposing = if (WearAppTheme.colors.isLight) Color.White else Color.Black
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(Color.Black)
+            .background(opposing)
     ) {
         when (background) {
-            is WearBackground.BrandedAnimation -> WaveParticleBackground(
-                modifier = Modifier.fillMaxSize(),
-                running = running
-            )
+            is WearBackground.BrandedAnimation -> {
+                WaveParticleBackground(
+                    modifier = Modifier.fillMaxSize(),
+                    running = running,
+                    intent = AnimationIntent.DECORATIVE
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(opposing.copy(alpha = WearWallpaperScrimPolicy.FLOOR_ALPHA))
+                )
+            }
 
-            is WearBackground.Image -> DeliveredFrame(image = background)
+            is WearBackground.BrandedStill -> {
+                WaveParticleBackground(
+                    modifier = Modifier.fillMaxSize(),
+                    running = false,
+                    intent = AnimationIntent.DECORATIVE
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(opposing.copy(alpha = WearWallpaperScrimPolicy.FLOOR_ALPHA))
+                )
+            }
+
+            is WearBackground.Image -> {
+                val measured = DeliveredFrame(image = background)
+                val scrimAlpha =
+                    WearWallpaperScrimPolicy.alphaFor(measured, isLightScrim = WearAppTheme.colors.isLight)
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(opposing.copy(alpha = scrimAlpha))
+                )
+            }
+
+            is WearBackground.None -> {
+                // Plain screen background: the outer Box is already filled with the opposing side.
+            }
         }
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = SCRIM_ALPHA))
-        )
     }
 }
 
@@ -59,20 +94,27 @@ fun WearAppBackground(
  * Keyed on the path so a redelivery under the reserved name is picked up while a recomposition on the
  * same path costs nothing - decoding per frame would put a file read on every draw.
  *
- * A frame that fails to decode draws nothing and leaves the black fill of the enclosing box showing,
- * which is the "black is what shows before a background is ready" case, not a third background.
+ * Returns the frame's measured luminance beside drawing it: S2864 sizes the scrim over the photo from
+ * this one measurement, so it is taken where the decode already happens and nowhere else.
+ *
+ * A frame that fails to decode draws nothing and leaves the opposing fill of the enclosing box
+ * showing, which is the "black is what shows before a background is ready" case, not a third
+ * background - and answers null, which the scrim policy reads as the floor.
  */
 @Composable
-private fun DeliveredFrame(image: WearBackground.Image) {
-    val frame: ImageBitmap? = remember(image.file.path) {
-        BitmapFactory.decodeFile(image.file.path)?.asImageBitmap()
+private fun DeliveredFrame(image: WearBackground.Image): Float? {
+    val frame: Pair<ImageBitmap, Float>? = remember(image.file.path, image.lastModified) {
+        val bitmap = BitmapFactory.decodeFile(image.file.path)
+        Timber.d("S2541: DeliveredFrame path=%s stamp=%d ok=%b", image.file.path, image.lastModified, bitmap != null)
+        bitmap?.let { it.asImageBitmap() to WearWallpaperScrimPolicy.averageLuminance(it) }
     }
     if (frame != null) {
         Image(
-            bitmap = frame,
+            bitmap = frame.first,
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
     }
+    return frame?.second
 }

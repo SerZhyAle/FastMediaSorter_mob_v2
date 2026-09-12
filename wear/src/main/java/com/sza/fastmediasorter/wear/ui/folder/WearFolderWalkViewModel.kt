@@ -6,14 +6,18 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
 import com.sza.fastmediasorter.wear.domain.model.WearFolderEntry
-import com.sza.fastmediasorter.wear.domain.repository.WearLocalFolderRepository
+import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.WearFolderLevelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.ui.common.ScreenTitle
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -43,6 +47,8 @@ sealed interface WearFolderWalkUiState {
     ) : WearFolderWalkUiState
 }
 
+private const val SUBSCRIPTION_TIMEOUT_MS = 5000L
+
 /**
  * S2201: holds the position of the walk over the watch's own storage.
  *
@@ -53,9 +59,13 @@ sealed interface WearFolderWalkUiState {
  */
 @HiltViewModel
 class WearFolderWalkViewModel @Inject constructor(
-    private val repository: WearLocalFolderRepository,
+    private val repository: WearFolderLevelRepository,
+    preferencesRepository: WearPreferencesRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
+
+    val fileListViewMode: StateFlow<WearViewMode> = preferencesRepository.fileListViewMode
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(SUBSCRIPTION_TIMEOUT_MS), WearViewMode.LIST)
 
     /**
      * Where the walk starts, from the route argument.
@@ -67,6 +77,16 @@ class WearFolderWalkViewModel @Inject constructor(
     private val startAddress: WearFolderAddress =
         WearFolderAddress.parse(savedStateHandle.get<String>(WearRoutes.ARG_FOLDER_TOKEN))
             ?: WearFolderAddress.Root
+
+    /**
+     * What to call the entrance, from the route argument (S2694).
+     *
+     * A network walk enters at a share's base path, and the fallback below names the tile that opens
+     * the watch's own storage - a header that would tell the wearer they are somewhere they are not.
+     * Absent for the local walk, which has no name of its own to offer and wants that fallback.
+     */
+    private val entranceTitle: String? =
+        savedStateHandle.get<String>(WearRoutes.ARG_FOLDER_TITLE)?.takeIf { it.isNotBlank() }
 
     /** The folders descended into below [startAddress], deepest last. Empty means standing on it. */
     private val trail = ArrayDeque<FolderLevel>()
@@ -132,7 +152,6 @@ class WearFolderWalkViewModel @Inject constructor(
     private fun load(offset: Int) {
         loadJob?.cancel()
         val address = trail.lastOrNull()?.address ?: startAddress
-        Timber.d("S2201: walk level depth=${trail.size} offset=$offset")
         if (offset == FIRST_OFFSET) {
             entries = emptyList()
             nextOffset = null
@@ -159,6 +178,7 @@ class WearFolderWalkViewModel @Inject constructor(
     private fun stateFor(): WearFolderWalkUiState {
         val title = trail.lastOrNull()
             ?.let { ScreenTitle.Text(it.name) }
+            ?: entranceTitle?.let { ScreenTitle.Text(it) }
             // The entrance has no folder name of its own, so it takes the word the tile that opens
             // the walk is labelled with rather than a second name for the same place.
             ?: ScreenTitle.Resource(R.string.wear_phone_browse)

@@ -76,7 +76,7 @@ class NetworkFileDownloader(
                     networkPath.startsWith("sftp://") && sftpClient != null -> downloadFromSftp(networkPath, cacheFile)
                     networkPath.startsWith("ftp://") && ftpClient != null -> downloadFromFtp(networkPath, cacheFile)
                     else -> {
-                        Timber.e("No client available for $networkPath")
+                        Timber.w("NetworkFileDownloader: No client available for $networkPath")
                         null
                     }
                 }

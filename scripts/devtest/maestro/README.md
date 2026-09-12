@@ -3,8 +3,8 @@
 Maestro YAML flows drive per-tap UI automation **out of the LLM loop**. Maestro matches
 elements by id/text natively, so a flow runs at native speed and costs ~0 LLM tokens - the
 agent only reads the compact pass/fail verdict. This is the execution engine for the stable,
-re-tested subset of the `/spec-sweep` device-test backlog; mobile-mcp stays for exploratory
-and one-off tickets.
+re-tested subset of the `/spec-sweep` device-test backlog; Maestro's own MCP server
+(`maestro mcp`, registered in `.mcp.json`) drives the exploratory and one-off tickets.
 
 Strategic spec: `PLAN/S0420_maestro-device-test-flows.md`.
 
@@ -83,8 +83,8 @@ read it only on a non-zero exit.
 
 ## Authoring a flow
 
-1. Drive the scenario once manually (or via mobile-mcp) and capture stable element handles
-   with `mobile_list_elements_on_screen` - prefer the Android resource-id entry name
+1. Drive the scenario once manually (or through the Maestro MCP server) and capture stable
+   element handles with `mcp__maestro__inspect_screen` - prefer the Android resource-id entry name
    (`id: "btnNext"` matches `...:id/btnNext`) or visible text. Avoid coordinates.
 2. Copy `_template.yaml` to `<Sxxxx>.yaml`, set `appId` to `com.sza.fastmediasorter.debug`,
    and script the steps with `launchApp`, `tapOn`, `assertVisible`, `inputText`,

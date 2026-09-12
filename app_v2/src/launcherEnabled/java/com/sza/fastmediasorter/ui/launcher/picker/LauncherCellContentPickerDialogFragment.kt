@@ -26,6 +26,7 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import dagger.hilt.android.AndroidEntryPoint
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -105,9 +106,25 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
     /**
      * S1413: the gadget list is a catalogue and reads better as a grid; the category list above it is a
      * short menu of eight kinds, and gridding a menu only makes it harder to scan (strategic §2).
+     *
+     * S2906: gadget labels run longer than app/resource names ("Живой фрейм Google Calendar" = 26 chars
+     * in ru), so the gadget grid needs a wider minimum cell than the 160dp default from S1095. With 200dp
+     * the 560dp-capped dialog stays at 2 columns instead of jumping to 3, keeping every label visible.
      */
-    private fun currentColumnCount(): Int =
-        if (gadgetMode || actionMode) SearchableOptionPickerWindow.columnsFor(resources.displayMetrics) else 1
+    private fun currentColumnCount(): Int {
+        val columns = when {
+            gadgetMode -> SearchableOptionPickerWindow.columnsFor(
+                resources.displayMetrics,
+                minCellDp = MIN_GADGET_CELL_DP,
+            )
+            actionMode -> SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
+            else -> 1
+        }
+        if (gadgetMode) {
+            Timber.d("S2906: gadget picker columns=$columns")
+        }
+        return columns
+    }
 
     /**
      * S1413: the launcher host absorbs rotation through android:configChanges, so this dialog is never
@@ -260,6 +277,10 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
 
     companion object {
         const val TAG = "LauncherCellContentPicker"
+
+        /** S2906: minimum cell width in dp for the gadget grid; higher than the 160dp default to avoid
+         *  truncating longer gadget labels at 3 columns. */
+        private const val MIN_GADGET_CELL_DP = 200f
 
         // A distinct tag for the gadget-list re-open, so findFragmentByTag does not see the just-dismissed
         // category dialog (its transaction commits asynchronously) and skip showing the second level.

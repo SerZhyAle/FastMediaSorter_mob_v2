@@ -25,6 +25,13 @@
       -Gate            Exit 1 if current > baseline (fail-closed on growth).
       -UpdateBaseline  Ratchet DOWN only (also seeds the file when missing).
       -List            Print every offending file:line.
+
+.NOTES
+    Exit codes (CLAUDE.md Rule 7):
+      0 - pass: at or below baseline, a report/list run, or a completed baseline write.
+      1 - fail: the count rose above the baseline, or -UpdateBaseline was asked to RAISE it.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding(DefaultParameterSetName = 'Report')]
 param(
@@ -37,6 +44,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $scanRoots = @(
     (Join-Path $repoRoot 'app_v2/src/main/res/layout'),
     (Join-Path $repoRoot 'app_v2/src/main/res/layout-land'),
@@ -127,23 +136,30 @@ if ($List) {
 }
 
 if ($PSCmdlet.ParameterSetName -eq 'Update') {
-    if (-not (Test-Path $baselineFile)) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "dialog-cancel-style baseline SEEDED: $current"
-        exit 0
+    # One scope over both branches: they are mutually exclusive writes to the same file, and the
+    # seed branch's `exit 0` still runs the finally before the process terminates.
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselineFile -Reason 'assert-dialog-cancel-style.ps1 -UpdateBaseline'
+        if (-not (Test-Path $baselineFile)) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "dialog-cancel-style baseline SEEDED: $current"
+            exit 0
+        }
+        $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
+        if ($current -lt $baseline) {
+            Set-Content -LiteralPath $baselineFile -Value "$current"
+            Write-Host "dialog-cancel-style baseline ratcheted DOWN: $baseline -> $current"
+        }
+        elseif ($current -eq $baseline) {
+            Write-Host "dialog-cancel-style baseline unchanged ($baseline)"
+        }
+        else {
+            Write-Error "Refusing to RAISE baseline ($baseline -> $current). Apply style=`"$cancelStyle`" to the cancel button - see docs/ARCHITECTURE.md `"Button Taxonomy`"."
+            exit 1
+        }
     }
-    $baseline = [int]((Get-Content -LiteralPath $baselineFile -Raw).Trim())
-    if ($current -lt $baseline) {
-        Set-Content -LiteralPath $baselineFile -Value "$current"
-        Write-Host "dialog-cancel-style baseline ratcheted DOWN: $baseline -> $current"
-    }
-    elseif ($current -eq $baseline) {
-        Write-Host "dialog-cancel-style baseline unchanged ($baseline)"
-    }
-    else {
-        Write-Error "Refusing to RAISE baseline ($baseline -> $current). Apply style=`"$cancelStyle`" to the cancel button - see docs/ARCHITECTURE.md `"Button Taxonomy`"."
-        exit 1
-    }
+    finally { Exit-CodeLockScope -Scope $scope }
     exit 0
 }
 

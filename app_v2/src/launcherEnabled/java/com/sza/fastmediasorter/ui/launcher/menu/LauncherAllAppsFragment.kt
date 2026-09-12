@@ -11,6 +11,7 @@ import android.view.Menu
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewTreeObserver
 import androidx.appcompat.widget.PopupMenu
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
@@ -28,6 +29,7 @@ import com.sza.fastmediasorter.databinding.FragmentLauncherAllAppsBinding
 import com.sza.fastmediasorter.domain.model.LauncherAllAppsSwipeDirection
 import com.sza.fastmediasorter.domain.model.launcher.InstalledApp
 import com.sza.fastmediasorter.domain.model.launcher.InstalledAppSortOrder
+import com.sza.fastmediasorter.domain.model.launcher.LauncherAllAppsPreviewGeometry
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherGridGeometry
@@ -83,6 +85,12 @@ class LauncherAllAppsFragment : DialogFragment() {
     private var latestApps: List<InstalledApp> = emptyList()
     private val expandedGroupKeys = mutableSetOf<String>()
 
+    /** S2736: resolved from the laid-out grid; the floor is what the block occupied before it was measured. */
+    private var previewRows = LauncherAllAppsPreviewGeometry.MIN_PREVIEW_ROWS
+    private var letterGroupCount = 0
+    private var singleAppGroupCount = 0
+    private var previewRowsObserver: ViewTreeObserver.OnGlobalLayoutListener? = null
+
     private val appsAdapter = LauncherAppGridAdapter(
         onAppClick = { app ->
             homeViewModel.run(LauncherCellCommand.App(app.id))
@@ -135,6 +143,7 @@ class LauncherAllAppsFragment : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setUpGrid()
+        attachPreviewRowMeasurement()
         attachSwipeGestures()
         binding.allAppsHome.setOnClickListener { dismiss() }
         ContextCompat.registerReceiver(
@@ -160,6 +169,8 @@ class LauncherAllAppsFragment : DialogFragment() {
         requireContext().unregisterReceiver(systemDialogsReceiver)
         swipeTouchListener?.let { binding.allAppsGrid.removeOnItemTouchListener(it) }
         swipeTouchListener = null
+        previewRowsObserver?.let { binding.allAppsGrid.viewTreeObserver.removeOnGlobalLayoutListener(it) }
+        previewRowsObserver = null
         swipeActionHandler = null
         _binding = null
     }
@@ -219,7 +230,6 @@ class LauncherAllAppsFragment : DialogFragment() {
             LauncherAllAppsGestureManager.DesktopSwipeDirection.LEFT -> LauncherAllAppsSwipeDirection.LEFT
             LauncherAllAppsGestureManager.DesktopSwipeDirection.RIGHT -> LauncherAllAppsSwipeDirection.RIGHT
         }
-        Timber.d("S2304: all apps swipe recognized direction=%s", slot)
         val settings = viewModel.appSettings.value
         viewLifecycleOwner.lifecycleScope.launch {
             handler.handle(slot.actionOf(settings), slot.payloadOf(settings))
@@ -242,7 +252,43 @@ class LauncherAllAppsFragment : DialogFragment() {
         val layoutManager = binding.allAppsGrid.layoutManager as GridLayoutManager
         layoutManager.spanCount = spanCount
         layoutManager.spanSizeLookup = appsAdapter.getSpanSizeLookup(spanCount)
-        appsAdapter.submitGroups(groupManager.groupApps(latestApps, spanCount, expandedGroupKeys))
+        val groups = groupManager.groupApps(latestApps, spanCount, expandedGroupKeys, previewRows)
+        letterGroupCount = groups.count { !it.isPreview }
+        singleAppGroupCount = groups.count { it.isSingleApp }
+        Timber.d("S2740: rendered %d single-app group(s)", singleAppGroupCount)
+        appsAdapter.submitGroups(groups)
+    }
+
+    /**
+     * S2736: the preview block takes the height the letter tiles leave free, and that height is only
+     * known once the grid has laid out - the app cell follows the font scale, so no dimension resource
+     * describes it. The list is rebuilt only when the resolved count actually changes, which is what
+     * stops the recalculation from feeding itself a fresh layout pass forever.
+     */
+    private fun attachPreviewRowMeasurement() {
+        val observer = ViewTreeObserver.OnGlobalLayoutListener { recalculatePreviewRows() }
+        previewRowsObserver = observer
+        binding.allAppsGrid.viewTreeObserver.addOnGlobalLayoutListener(observer)
+    }
+
+    private fun recalculatePreviewRows() {
+        val grid = _binding?.allAppsGrid ?: return
+        val heights = appsAdapter.measureRowHeights(grid)
+        val resolved = LauncherAllAppsPreviewGeometry.previewRows(
+            viewportPx = grid.height - grid.paddingTop - grid.paddingBottom,
+            previewHeaderPx = heights.previewHeaderPx,
+            appRowPx = heights.appCellPx,
+            letterTilePx = heights.letterTilePx,
+            letterGroups = letterGroupCount,
+            singleAppGroups = singleAppGroupCount,
+            columns = desktopColumns(),
+        )
+        if (resolved == previewRows) return
+        Timber.d("S2736: preview rows resolved to %d (was %d)", resolved, previewRows)
+        previewRows = resolved
+        // Posted, not immediate: this runs inside a layout traversal, and RecyclerView refuses an
+        // adapter change while it is computing one.
+        grid.post { if (_binding != null) renderGroups() }
     }
 
     private fun toggleGroup(key: String) {

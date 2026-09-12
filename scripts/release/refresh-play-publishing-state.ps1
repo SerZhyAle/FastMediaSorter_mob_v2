@@ -55,6 +55,9 @@ $tracksReader = Join-Path $PSScriptRoot 'read-play-tracks.ps1'
 $serveReader = Join-Path $PSScriptRoot 'read-play-public-serve.ps1'
 $pwshExe = [Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
 
+# Shared with watch-play-vitals.ps1 (S2917), so both writers treat the bytes around a block alike.
+. (Join-Path $PSScriptRoot 'lib\marked-region.ps1')
+
 foreach ($required in @($docPath, $tracksReader, $serveReader)) {
     if (-not (Test-Path -LiteralPath $required)) {
         $msg = "refresh-play-publishing-state: required file not found - $required"
@@ -139,27 +142,12 @@ function Build-TracksBlock {
     return $rows
 }
 
-function Set-MarkedRegion {
-    param([string] $Text, [string] $Marker, [string[]] $Body, [string] $Eol)
-    $begin = "<!-- s2272:measured:$Marker`:begin -->"
-    $end = "<!-- s2272:measured:$Marker`:end -->"
-    $beginIndex = $Text.IndexOf($begin)
-    $endIndex = $Text.IndexOf($end)
-    if ($beginIndex -lt 0 -or $endIndex -lt 0 -or $endIndex -lt $beginIndex) {
-        return $null
-    }
-    $head = $Text.Substring(0, $beginIndex + $begin.Length)
-    $tail = $Text.Substring($endIndex)
-    $middle = $Eol + $Eol + ($Body -join $Eol) + $Eol + $Eol
-    return $head + $middle + $tail
-}
-
 $updatedContent = $content
 $refreshed = @()
 $skipped = @()
 
 if ($serve.Ok) {
-    $next = Set-MarkedRegion -Text $updatedContent -Marker 'public-serve' -Body (Build-ServeBlock -Reader $serve) -Eol $newLine
+    $next = Set-MarkedRegion -Text $updatedContent -Begin '<!-- s2272:measured:public-serve:begin -->' -End '<!-- s2272:measured:public-serve:end -->' -Body (Build-ServeBlock -Reader $serve) -Eol $newLine
     if ($null -eq $next) {
         $msg = 'refresh-play-publishing-state: the public-serve marker pair is missing from the document.'
         Write-Error $msg -ErrorAction Continue
@@ -173,7 +161,7 @@ if ($serve.Ok) {
 
 if ($tracks.Ok) {
     $body = Build-TracksBlock -Reader $tracks -Stamp $measuredUtc
-    $next = Set-MarkedRegion -Text $updatedContent -Marker 'tracks' -Body $body -Eol $newLine
+    $next = Set-MarkedRegion -Text $updatedContent -Begin '<!-- s2272:measured:tracks:begin -->' -End '<!-- s2272:measured:tracks:end -->' -Body $body -Eol $newLine
     if ($null -eq $next) {
         $msg = 'refresh-play-publishing-state: the tracks marker pair is missing from the document.'
         Write-Error $msg -ErrorAction Continue

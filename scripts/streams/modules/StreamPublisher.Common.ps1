@@ -187,8 +187,18 @@ function Get-CanonicalTopic {
 # Grouping values are a producer contract: the Android filter matches these ids directly, so each source
 # must converge before a candidate reaches a CSV write. Categories and countries preserve an unknown value
 # for review; topics intentionally keep their existing closed-set fallback of General.
+# Rubrics that make a row a camera. Assigning the category from the RUBRIC rather than from the
+# collecting source is what lets one rule cover both new candidates and the rows already shipped:
+# the published CSV has no 'source' column, so a source-keyed rule could never reach them (S1476).
+$script:CameraTopics = @('Webcam', 'Traffic cams')
+
 function Get-CanonicalCategory {
-    param([string]$Category)
+    param([string]$Category, [string]$Topic)
+    # The camera test runs on the CANONICAL topic, not the raw one, so this does not depend on whether
+    # the caller has already folded the topic - Normalize-CatalogFacetRows normalizes category first.
+    if ($PSBoundParameters.ContainsKey('Topic') -and -not [string]::IsNullOrWhiteSpace($Topic)) {
+        if ((Get-CanonicalTopic $Topic) -in $script:CameraTopics) { return 'Webcam' }
+    }
     $normalized = ($Category ?? '').Trim().ToLowerInvariant() -replace '\s+', ' '
     switch ($normalized) {
         { $_ -in @('radio', 'radio (somafm)', 'somafm') } { return 'Radio' }
@@ -197,6 +207,7 @@ function Get-CanonicalCategory {
             return 'On-demand video'
         }
         { $_ -in @('test', 'test stream', 'test streams') } { return 'Test streams' }
+        { $_ -in @('webcam', 'webcams', 'cam', 'cams') } { return 'Webcam' }
         default { return $Category.Trim() }
     }
 }
@@ -284,5 +295,267 @@ function Normalize-PruneStatuses([string[]]$Statuses) {
         ForEach-Object { $_ -split ',' } |
         ForEach-Object { $_.Trim() } |
         Where-Object { $_ })
+}
+
+# S2645: the name column is the only facet copied from the upstream directory untouched, and the four
+# functions below are the repair rules the -NormalizeNames mode applies to it. They are pure - no IO, no
+# network - so the mode that rewrites a shipped bank can be reasoned about from its tests alone.
+#
+# The rules NEVER drop a row. The bank's inclusion policy is every live channel, and the last mass
+# removal cost 1 321 live stations along with the pins filed against them (S1830, S1832); a nameless row
+# therefore has a name derived for it rather than being deleted.
+
+# Two decoding passes cover the double-encoded names measured in the bank (`102 FM L&amp;#039;Originale`
+# needs two), and the ceiling exists so a station whose real name contains the literal text of an entity
+# cannot be rewritten indefinitely.
+$script:CatalogNameDecodePasses = 3
+
+# Anchored at the start only, and it requires a digit: `- 0 N - Blues on Radio` is a serialised encoder
+# slot, while `- NEUERSCHEINUNGEN - Radio Charts` is a real station name that begins with a dash.
+$script:CatalogNameMachinePrefix = '^\s*-\s*\d+\s*\p{L}?\s*-\s+'
+
+# S2651: words whose accented letter arrived already destroyed, as the Unicode replacement character
+# U+FFFD. Measured 2026-09-06: all 31 affected rows come from the Xiph YP directory, and its own bytes
+# carry `EF BF BD` where the letter belongs, so no re-read of the source returns it - the only cure is
+# knowing the word. The key is the broken word lower-cased, the value the word as the station writes it.
+#
+# Restore ONLY the letter that stands at the replacement character. `A<U+FFFD>UCAR` becomes `Açucar`,
+# not `Açúcar`: the second accent was already missing upstream, and adding it would make this table a
+# renamer of stations rather than a repair of one lost byte.
+$script:CatalogNameAccentRepairs = @{
+    "r$([char]0xFFFD)di$([char]0xFFFD)" = 'Rádió'      # Hungarian - Roxy, Danubius, Youventus
+    "r$([char]0xFFFD)dio"              = 'Rádio'       # Portuguese
+    "li$([char]0xFFFD)ge"              = 'Liège'
+    "ni$([char]0xFFFD)vre"             = 'Nièvre'
+    "m$([char]0xFFFD)ditation"         = 'Méditation'
+    "t$([char]0xFFFD)moignage"         = 'Témoignage'
+    "chr$([char]0xFFFD)tienne"         = 'Chrétienne'
+    "pr$([char]0xFFFD)dication"        = 'Prédication'
+    "$([char]0xFFFD)vangile"           = 'Évangile'
+    "uni$([char]0xFFFD)n"              = 'Unión'
+    "conexi$([char]0xFFFD)n"           = 'Conexión'
+    "$([char]0xFFFD)xitos"             = 'Éxitos'
+    "rumi$([char]0xFFFD)ahui"          = 'Rumiñahui'
+    "tulc$([char]0xFFFD)n"             = 'Tulcán'
+    "fayc$([char]0xFFFD)n"             = 'Faycán'
+    "l$([char]0xFFFD)beck"             = 'Lübeck'
+    "p$([char]0xFFFD)o"                = 'Pão'
+    "a$([char]0xFFFD)ucar"             = 'Açucar'
+    "avar$([char]0xFFFD)"              = 'Avaré'
+}
+
+# Restore the accented letters of one name through the table above, word by word. A word the table does
+# not know is returned untouched, so the row keeps its replacement character and the publish gate refuses
+# the bank instead of this function inventing a letter.
+function Repair-CatalogAccents {
+    param([string]$Name)
+    $value = [string]$Name
+    if ($value.IndexOf([char]0xFFFD) -lt 0) { return $value }
+    # Split on the separators only, keeping them, so punctuation and spacing survive the rebuild. U+FFFD
+    # counts as part of the word: it is a symbol, not a letter, so a plain letter-or-digit split would cut
+    # `R<U+FFFD>di<U+FFFD>` into four pieces and no table key would ever match.
+    $parts = [regex]::Split($value, "([^\p{L}\p{N}$([char]0xFFFD)]+)")
+    for ($i = 0; $i -lt $parts.Count; $i++) {
+        $word = $parts[$i]
+        if ($word.IndexOf([char]0xFFFD) -lt 0) { continue }
+        $key = $word.ToLowerInvariant()
+        if (-not $script:CatalogNameAccentRepairs.ContainsKey($key)) { continue }
+        $fixed = [string]$script:CatalogNameAccentRepairs[$key]
+        # An all-caps source word keeps its case: `<U+FFFD>XITOS 89.7 FM` is written that way by the
+        # station. A word with no cased letter besides the lost one cannot say, and takes the table value.
+        $cased = @($word.ToCharArray() | Where-Object { [char]::IsLetter($_) -and $_ -ne [char]0xFFFD })
+        if ($cased.Count -gt 0 -and -not ($cased | Where-Object { [char]::IsLower($_) })) {
+            $fixed = $fixed.ToUpperInvariant()
+        }
+        $parts[$i] = $fixed
+    }
+    return ($parts -join '')
+}
+
+# Trailing separators only. Leading punctuation is deliberately absent: `.977 Country`,
+# `#joint radio Blues Rock` and `_Funky Corner Radio (USA)` are the stations' own names, and trimming
+# them would be this repair inventing a defect of its own.
+$script:CatalogNameTrailingSeparators = ' -_|,;:'
+
+# Names the encoder wrote because the broadcaster never set one, lower-cased with runs of whitespace
+# already collapsed. Every entry is measured in the published bank, not guessed: the counts behind the
+# top of this list are in the S2645 strategic spec section 5. Grows as new encoder defaults surface.
+$script:CatalogNamePlaceholders = @(
+    'online radio',
+    'онлайн радио',
+    'unspecified name',
+    'default stream',
+    'orban opticodec-pc encoder',
+    'this is my server name',
+    'my station name',
+    'my radio',
+    'mb studio',
+    'mbstudio',
+    'mbstudiocloud',
+    'mb recaster',
+    'radioboss stream',
+    'radiocaster stream',
+    'instreamer',
+    'stream',
+    'streaming',
+    'no name',
+    'noname',
+    'unknown',
+    'untitled',
+    'new station',
+    'server 1',
+    'testserver 1',
+    'test',
+    'test stream',
+    'radio',
+    '(null)',
+    'null'
+)
+
+# Repair one catalog name. Returns the input unchanged when no rule applies.
+function Repair-CatalogName {
+    param([string]$Name)
+    $value = [string]$Name
+    if ([string]::IsNullOrWhiteSpace($value)) { return '' }
+    for ($pass = 0; $pass -lt $script:CatalogNameDecodePasses; $pass++) {
+        $decoded = [System.Net.WebUtility]::HtmlDecode($value)
+        if ($decoded -ceq $value) { break }
+        $value = $decoded
+    }
+    $value = Repair-CatalogAccents -Name $value
+    $value = $value -replace $script:CatalogNameMachinePrefix, ''
+    $value = ($value -replace '\s+', ' ').Trim()
+    return $value.TrimEnd($script:CatalogNameTrailingSeparators.ToCharArray()).Trim()
+}
+
+# The token an uninformative name is rebuilt from: the host, plus the port when the row carries a
+# non-default one.
+#
+# The port is in here because of a measurement, not for completeness. Shared streaming hosts give every
+# tenant the same hostname and a port of its own, so a host-only token leaves the wall standing: over the
+# 1 622 uninformative rows of the 2026-09-06 bank, a bare host still left 1 099 rows sharing a name
+# (67 of them reading `Online Radio (hoth.alonhosting.com)`), while host-and-port left 83. Appending the
+# mount path as well reaches 0, and is deliberately not done - it puts `/stream` in front of the user in
+# every one of those names to settle 83 rows out of 19 149.
+function Get-CatalogNameFromUrl {
+    param([string]$Url)
+    $trimmed = ([string]$Url).Trim()
+    if ($trimmed -notmatch '^(?<scheme>[A-Za-z][A-Za-z0-9+.\-]*)://(?<authority>[^/?#]*)') {
+        return ''
+    }
+    $scheme = $Matches['scheme'].ToLowerInvariant()
+    $authority = $Matches['authority']
+    $at = $authority.LastIndexOf('@')
+    if ($at -ge 0) { $authority = $authority.Substring($at + 1) }
+    if (-not $authority) { return '' }
+
+    $hostPart = $authority
+    $port = ''
+    $colon = $authority.LastIndexOf(':')
+    if ($colon -ge 0 -and $authority.Substring($colon + 1) -match '^\d+$') {
+        $hostPart = $authority.Substring(0, $colon)
+        $port = $authority.Substring($colon + 1)
+    }
+    if (-not $hostPart) { return '' }
+
+    $defaultPort = switch ($scheme) {
+        'http' { '80' }
+        'https' { '443' }
+        'rtsp' { '554' }
+        default { '' }
+    }
+    $suffix = if ($port -and $port -ne $defaultPort) { ':' + $port } else { '' }
+    return $hostPart.ToLowerInvariant() + $suffix
+}
+
+# The subset of the placeholders that is REPLACED by the token rather than keeping its words in front of
+# it. The test is what the existing name is about: a value that names the encoder software, the server, or
+# simply asserts there is no name tells the user nothing a host already tells them better, so carrying it
+# through only lengthens the result - `Orban Opticodec-PC Encoder (stream.valenzuelasistemas.net.ar:8000)`
+# is 66 characters that say less than its last 37.
+#
+# What stays OUT of this list, and is therefore kept and suffixed: the values that describe the MEDIUM -
+# `Online Radio`, `Radio`, `stream`. In a bank holding radio, live TV and webcams side by side, "this one
+# is a radio" is a real signal, and it is the broadcaster's own word for the channel.
+$script:CatalogNameNullTokens = @(
+    '(null)',
+    'null',
+    'no name',
+    'noname',
+    'unknown',
+    'untitled',
+    'unspecified name',
+    'new station',
+    'my station name',
+    'my radio',
+    'this is my server name',
+    'server 1',
+    'testserver 1',
+    'test',
+    'test stream',
+    'default stream',
+    'orban opticodec-pc encoder',
+    'mb studio',
+    'mbstudio',
+    'mbstudiocloud',
+    'mb recaster',
+    'radioboss stream',
+    'radiocaster stream',
+    'instreamer'
+)
+
+# True when the name tells the user nothing: no letter and no digit at all, or a known encoder default.
+function Test-CatalogNameUninformative {
+    param([string]$Name)
+    $value = ([string]$Name).Trim()
+    if (-not $value) { return $true }
+    if ($value -notmatch '[\p{L}\p{N}]') { return $true }
+    $folded = ($value.ToLowerInvariant() -replace '\s+', ' ')
+    return $script:CatalogNamePlaceholders -contains $folded
+}
+
+# True when nothing in the name is worth carrying into the repaired one.
+function Test-CatalogNameDiscardable {
+    param([string]$Name)
+    $value = ([string]$Name).Trim()
+    if (-not $value) { return $true }
+    if ($value -notmatch '[\p{L}\p{N}]') { return $true }
+    $folded = ($value.ToLowerInvariant() -replace '\s+', ' ')
+    return $script:CatalogNameNullTokens -contains $folded
+}
+
+# Name the repair that fired, so the move report reads rule by rule. A restored accent gets its own label
+# rather than joining the general `repair` count: it rewrites a letter the user reads, which is a class the
+# owner reviews on its own (S2651).
+function Get-CatalogNameRepairRule {
+    param([string]$Original, [string]$Repaired)
+    if ($Repaired -ceq ([string]$Original)) { return '' }
+    if (([string]$Original).IndexOf([char]0xFFFD) -ge 0 -and $Repaired.IndexOf([char]0xFFFD) -lt 0) {
+        return 'repair-accent'
+    }
+    return 'repair'
+}
+
+# Resolve the final name for one catalog row: repair it, then rebuild it from the row's host when the
+# result still says nothing. Returns the name and the rule that produced it ('' when nothing fired), so
+# the caller's move report can be read rule by rule instead of row by row.
+function Resolve-CatalogName {
+    param([string]$Name, [string]$Url)
+    $repaired = Repair-CatalogName -Name $Name
+    if (-not (Test-CatalogNameUninformative -Name $repaired)) {
+        $rule = Get-CatalogNameRepairRule -Original $Name -Repaired $repaired
+        return [pscustomobject]@{ Name = $repaired; Rule = $rule }
+    }
+    $token = Get-CatalogNameFromUrl -Url $Url
+    # No host to build from: leave the row exactly as it arrived. The publish gate then refuses the bank
+    # and names the row, which is the honest outcome - inventing a name here would hide the real defect.
+    if (-not $token) {
+        $rule = Get-CatalogNameRepairRule -Original $Name -Repaired $repaired
+        return [pscustomobject]@{ Name = $repaired; Rule = $rule }
+    }
+    if (Test-CatalogNameDiscardable -Name $repaired) {
+        return [pscustomobject]@{ Name = $token; Rule = 'derive-replace' }
+    }
+    return [pscustomobject]@{ Name = ('{0} ({1})' -f $repaired, $token); Rule = 'derive-suffix' }
 }
 

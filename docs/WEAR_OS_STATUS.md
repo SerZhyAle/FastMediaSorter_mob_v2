@@ -271,7 +271,8 @@ Everything below was measured or watched on the owner's Galaxy Watch 7, not infe
 | Screen-off mode | audio | A button blanks the screen and any touch restores it. With Background playback enabled, audio files and streams also continue after the app is minimized or the display times out; notification controls remain available. Video and slideshows still pause when their host stops. |
 | Clock | all three players | HH:MM at top centre, from the Wear scaffold, in every state except the blanked screen. |
 | Localization | browse, all three players | Titles and player literals come from resources in EN/RU/UK. The list title used to stay English under a Russian interface. |
-| Touch targets | all three players | Every control is 48.dp, the Wear OS minimum. Wear Compose 1.2.1 has no way to enlarge a press target without enlarging the button. |
+| Command composition | all three players | The players carry two command-row views on top of the 225 dp compositions. Under the STORE geometry mode (the default of the `standard` build, and the only view there - S2773's ADR-3 keeps the toggle out of the shipped build) the rows are the reviewed ones: three primary commands and two or three secondary at 225 dp, everything displaced opening from a player menu behind the "more" button (S2766). Under the ORIGINAL geometry mode (the default of `noLegal`, switchable in Settings > Screen) both rows restore four commands each - the composition the tree drew before the Play edits: audio primary previous/play-pause/playback-mode/next, secondary back/favourite/pin-or-file-operations/screen-off; video and image per their pre-S2766 rows - with cells computed from the 148 dp band at the glyph floor, so the glass may cut the outer edges, which is the owner's recorded decision (S2803). |
+| Touch targets | all three players | Every command box is at least 48 dp on both sides in the STORE compositions. Four commands never could be: 48 dp each needs 204 dp of row against a 192 dp diameter, which is why S2273 first made the cell divide the width it actually has and why S2766 then cut the row to three. Measured on emulator-5556, audio player, boxes read off the `Button` nodes: at 192 dp the primary row is 48.5 x 48.5 dp and the secondary 56.0 x 56.0; at 227 dp the primary row is 58.1 x 58.1 dp and the secondary 49.8-51.0 x 48.0. `clip-check` CLEAN at both. The video player and the image viewer draw the same rows from the same shared grid and are not separately measured yet. The ORIGINAL view intentionally drops below that floor: four cells at the 32 dp glyph floor fit the band the glass actually holds, and the sub-48 dp target is the owner's accepted price for the restored view (S2803, strategic 3.2). |
 
 Known cost, tracked separately as S1709: the audio player burns about 70% of a core while playing
 with a static screen, more than the animation costs. Stopping the position updates was tried and
@@ -284,7 +285,10 @@ measured - it changed nothing, so the recomposition is not the cause.
 - FTP/SFTP support
 - Image editing
 - OCR and translation
-- Documents (PDF/EPUB)
+- PDF, EPUB and office documents. Plain text documents are **not** excluded - S2532 added an on-watch
+  reader for them: a text file opens on the watch, scrolls by finger and by bezel, remembers where it
+  was left and which font size was chosen, and shows a truncation notice past the in-memory cap.
+  A format the watch does not render still reaches the refusal screen, which now names it.
 
 ---
 
@@ -487,14 +491,44 @@ storage class, meaning "the phone still holds the original of this".
 
 ## 🎮 Apps: the mini-programs section (S1710)
 
-The watch home screen carries an **Apps** section holding five self-contained programs, each usable
+The watch home screen carries an **Apps** section holding eleven self-contained programs, each usable
 with the phone out of range: a **calculator**, a **network monitor**, a **mini-game**, a **voice
-recorder** and **system information**.
+recorder**, **system information**, a **water flashlight**, a **motion monitor**, a **heart-rate
+check**, **blood pressure** (S2809), an audio **broadcast** (S2509) and a **stopwatch** (S2825). Ten of
+them appear in every edition; the heart-rate check appears in `noLegal` alone.
 
 - The list is data, not navigation: `ui/apps/WearAppCatalog.kt` is what a program is added to. A new
-  program registers a catalog record and its own route; the Apps screen itself does not change.
+  program registers a catalog record and its own route; the Apps screen itself does not change. **Four**
+  further `when` expressions are exhaustive on an id and will refuse to compile until the new program is
+  answered in each: `WearAppIconCatalog`, `WearAppAccentCatalog`, `destinationFor` in
+  `domain/model/WearDestinationId.kt` - the one that puts the program on the Programs tile - and
+  `routeOf` inside `domain/usecase/ResolveWearLaunchRouteUseCase.kt`, which is keyed on
+  `WearDestinationId` rather than on `WearAppId` and is therefore the one a reader counting "catalogs"
+  misses. S2457 found it the way it is meant to be found: the build failed.
 - Routes registered: `WearRoutes.CALCULATOR`, `WearRoutes.NETWORK_MONITOR`, `WearRoutes.GAME`,
-  `WearRoutes.VOICE_RECORDER`, `WearRoutes.SYSTEM_INFO`.
+  `WearRoutes.VOICE_RECORDER`, `WearRoutes.SYSTEM_INFO`, `WearRoutes.WATER_FLASHLIGHT`,
+  `WearRoutes.MOTION_MONITOR`, `WearRoutes.BODY_SENSOR`, `WearRoutes.BLOOD_PRESSURE`,
+  `WearRoutes.BROADCAST`, `WearRoutes.STOPWATCH`.
+- **Heart-rate check** (S2457) is the only program whose ROW the build can withhold. `WearAppCatalog
+  .apps(offersBodySensorDiagnostics)` reads the answer from `WearRestrictedCapabilities`, so `standard`
+  never lists it: Play reviews both heart-rate permissions against six admitted use cases and a media
+  sorter matches none, so the way in is withheld rather than the absence explained. The route stays
+  registered in both flavors anyway - a Programs-tile shortcut must not become a dead tap, and reaching
+  the screen in `standard` prints the withheld-capability sentence. One foreground reading through the
+  public Health Services `MeasureClient`, never a Samsung raw type; the session is bound to
+  `viewModelScope` and its `awaitClose` unregisters the callback, so leaving the screen ends it. The two
+  permissions live in `wear/src/noLegal/AndroidManifest.xml` and split at API 36 -
+  `BODY_SENSORS` capped at `maxSdkVersion="35"`, `health.READ_HEART_RATE` above it - and the choice is
+  made in ONE place, `domain/bodysensor/HeartRatePermission.kt`, because the screen requests a permission
+  while the data source checks one and a split decision would pin the screen on `PERMISSION_DENIED`.
+- **Motion monitor** (S2458) reads live sensors, which no other program here does. Accelerometer,
+  gyroscope and rotation vector need no permission and are present in both flavors. Step counter and
+  step detector need `ACTIVITY_RECOGNITION`, which lives in `wear/src/noLegal/AndroidManifest.xml`
+  alone - the module's first flavor manifest - because the phone edition that declared it was rejected
+  by Play against the Health apps questionnaire and S1614 is still blocked on that answer. Availability
+  is resolved from the app's own MERGED manifest by `data/motion/WearActivityRecognitionState.kt`, never
+  from a flavor check, which Rule 14 bans in shared code. `fwr` cannot see the noLegal manifest - use
+  `fwrn`, whose merged output is the only place the permission's presence can be read.
 - **Network monitor** measures THIS watch, not the phone. `sectionsFor(capabilities)` in
   `domain/netmonitor/WearNetworkSection.kt` drops the sections whose hardware the watch lacks, so a
   watch without mobile data never shows an empty mobile page. Sampling runs only while the screen
@@ -559,8 +593,14 @@ recorder** and **system information**.
   Since S2165 the content is selected by one criterion - a fact the watch's own settings screens do not
   show - and the screen is assembled from contributors rather than from one interface with a property
   per fact: `domain/systeminfo/WearSystemInfoContributor.kt` declares the seam, `WearSystemInfoOrder`
-  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`. Three
-  consequences worth knowing before editing it:
+  holds the section order, and `di/WearSystemInfoModule.kt` declares the set with `@Multibinds`.
+  Since S2806 the screen opens with every section CLOSED, each heading carrying the number of lines it
+  holds back, and a closed section contributes no list items at all - the rows are left out of the list
+  rather than hidden, because a ScalingLazyColumn counts items and a hidden row would still be a crown
+  notch to scroll past. What is open, and where the list stood, survives leaving the screen:
+  `ui/common/WearSectionExpansionStore.kt` holds the first for the life of the process, exactly as
+  `WearListPositionStore` (S2543) holds the second, and both are handed to composition by `MainActivity`.
+  Three consequences worth knowing before editing it:
   - **A section that cannot be filled says why instead of disappearing**, on the S2130/S1584 pattern and
     matching the form S2156 settled for the network monitor. A single missing *field* still just
     vanishes.
@@ -582,15 +622,22 @@ recorder** and **system information**.
 
 ---
 
-## 🧩 Wear OS Tiles (S1955)
+## 🧩 Wear OS Tiles (S1955, S2511)
 
-The `:wear` module exposes five external components to the Wear OS platform:
+The `:wear` module exposes these external components to the Wear OS platform:
 1. `MainActivity` (launcher & addressable entry point)
 2. `WatchWearListenerService` (Data Layer phone companion listener)
 3. `VoiceRecordingService` (microphone session service)
-4. `WearResourceTileService`, `WearStreamTileService`, `WearFavouritesTileService` (Tile Providers)
+4. `WearResourceTileService`, `WearStreamTileService`, `WearFavouritesTileService` (Tile Providers - pinned content)
+5. `WearProgramsTileService`, `WearSectionsTileService` (Tile Providers - shortcut grids)
 
 `MainActivity` is an addressable entry point using a launch-target contract (`WearLaunchTarget`) shared with S1944, S1884, and S1961. Tiles construct ProtoLayout `AndroidActivity` launch intents with `WearLaunchTarget` key-value extras to open assigned resources, streams, or the favourites list directly upon user tap.
+
+**Two roles, not one (S2511).** The first three tiles each pin **one unit of content**, chosen by the user through `TileTargetPickerScreen` and stored per kind in DataStore; they therefore have an unassigned state and a target that can go missing. The last two pin **nothing**: they draw a `MultiButtonLayout` grid built from the same ordered catalogs the screens use - `WearAppCatalog` for the mini-programs, `HomeSectionCatalog` for the home sections - so adding a tile to the carousel is itself the act of pinning. `WearTileKind.carriesAssignableTarget` is the single place that classification lives; a kind that answers `false` owns no preference key and never reaches the target picker.
+
+A grid button names a `WearDestinationId`, never a navigation route: `MainActivity` is exported, so a raw route from outside would let any app on the watch open an arbitrary internal screen. An unknown id reads as "no target was named" and lands on the ordinary launch.
+
+`BaseWearTileService` publishes one ProtoLayout `ImageResource` per glyph the current content draws, under a version derived from that id set. Both halves matter: while the resource set was empty no tile could render an image at all, and under the previous constant version the renderer cached by that string, so a changed icon set was never re-fetched.
 
 ---
 
@@ -626,8 +673,9 @@ not exist for the phone at all.
   settings stay watch-only by decision (auto rotation, voice note policy) and the background picture
   stays a phone choice; each is a registry entry with its reason written down.
 - Three settings the watch has always had were missing from the published settings reference and are now
-  in it. `scripts/quality/assert-wear-settings-parity.ps1` runs in `scripts/post-change.ps1`, so a
-  setting added to one side and not the other fails the closure and names the missing side.
+  in it. `scripts/quality/assert-wear-settings-parity.ps1` carries 13 checks running in `scripts/post-change.ps1`
+  and `.\a.ps1 fg` (checks 1-10 settings registry & payloads, check 11 `WearSyncLeg`, check 12 `WearSettingOwnership`,
+  check 13 `WearSettingsFieldIssue`), so a setting added to one side and not the other fails the closure and names the missing side.
 - That gate checks a setting **exists** on both sides; `scripts/quality/assert-wear-mirrored-strings.ps1`
   checks its label still **reads** the same. The two modules ship no shared resource artifact, so every
   label the owner sees on both sides exists twice, and before this gate editing one copy left no trace on
@@ -639,6 +687,12 @@ not exist for the phone at all.
   (`wear_setting_background_mode`). The gate is summoned by a changed `strings.xml` under either module,
   and a key that appears in both modules without being classified fails it, so the list cannot age in
   silence.
+- **Wire Vocabulary Parity (S2642)**: `scripts/quality/assert-wear-wire-vocabulary-parity.ps1` extends this
+  protection to all eight phone-watch wire vocabularies outside the settings channel (events in `WearDataLayerPaths`,
+  the transfer ack companion outcomes in `WearStreamTransferPayload` and `WearFileTransfer` / `WearFileTransferMetadata`,
+  `WearPlaybackCommand`, `WearOpenOnPhoneOutcome`, `WearPhoneResourceRequestKind`, `WearPhoneResourceResponseStatus`).
+  It verifies `Mirrored` vocabularies as maps/sets, enforces safety checks on `LocalOnly` local-only types,
+  and performs auto-discovery to refuse any new mirrored enum introduced without declaration.
 
 ---
 
@@ -718,6 +772,7 @@ single sync button both legs run in one action, and which leg ran first decided 
 - **Local Playback**: Audio, Video, Image viewing with round-screen scaffold (S1678) and edge swipe dismissal (S1705).
 - **Network Storage**: SMB, FTP, SFTP streaming and browsing.
 - **Companion Sync**: Network source and configuration sync over the Wearable Data Layer (S1681), settings in both directions since S2093.
+- **Watch Microphone Listening**: The phone can ask its paired watch to serve live microphone audio over the local Wi-Fi network after the wearer confirms on the watch; the watch keeps its microphone indicator visible throughout the session (S2550).
 - **Play Store Compliance**: Credential entry hidden on store release builds (WO-P6 / S1707), listing text localized in EN/RU/UK with Wear OS keyword.
 
 ---
@@ -732,4 +787,4 @@ single sync button both legs run in one action, and which leg ran first decided 
 
 ---
 
-**Note**: This status document reflects code and artifact verification as of 2026-08-17. All listed features are implemented and tested in the codebase.
+**Note**: This status document reflects code and artifact verification as of 2026-08-17, with the document-reader scope corrected on 2026-09-08 (S2532). All listed features are implemented and tested in the codebase.

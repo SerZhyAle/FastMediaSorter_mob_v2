@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.settings.search
 
+import android.content.Context
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
@@ -8,6 +9,7 @@ import com.sza.fastmediasorter.core.screencapture.MenuScreenshotLauncher
 import com.sza.fastmediasorter.core.screencapture.ScreenGestureOverlayController
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.ui.settings.SettingsSearchIndex
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -35,6 +37,7 @@ import javax.inject.Singleton
  */
 @Singleton
 class SettingsSearchCapabilityGate @Inject constructor(
+    @param:ApplicationContext private val appContext: Context,
     private val screenGestureControllers: Set<@JvmSuppressWildcards ScreenGestureOverlayController>,
     private val menuScreenshotLaunchers: Set<@JvmSuppressWildcards MenuScreenshotLauncher>,
     private val mediaCapabilities: MediaCapabilities,
@@ -86,9 +89,9 @@ class SettingsSearchCapabilityGate @Inject constructor(
         "spinnerTranslationSourceLanguage",
         "spinnerTranslationTargetLanguage",
         "rowOcrFontSize",
-        "rowOcrFontFamily" -> capabilityAvailability.isTranslationAvailable()
+        "rowOcrFontFamily" -> capabilityAvailability.isTranslationAvailable(appContext)
         // Downloadable extensions - GeneralSettingsFragment.
-        "btnDownloadableExtensions" -> capabilityAvailability.isExtensionsScreenAvailable()
+        "btnDownloadableExtensions" -> capabilityAvailability.isExtensionsScreenAvailable(appContext)
         // S1051: btnOpenAccessibilitySettings now lives in the always-available System-apps group
         // (relocated out of the edge-gesture dialog, S1035). The owning fragment hides it unless the
         // silent-capture capability is present, so mirror that per-row here to avoid a dead search hit.

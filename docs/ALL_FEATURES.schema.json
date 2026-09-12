@@ -14,8 +14,41 @@
     },
     "area": {
       "type": "string",
-      "$comment": "Functional area / module, e.g. 'Video Player', 'OCR & Translation'.",
-      "minLength": 1
+      "$comment": "Functional area of the capability, from a CLOSED list. S2842 closed it: the field had been a free string and had accumulated 91 distinct values across 1059 records, among them near-duplicates differing only in case and spelling ('Wear' / 'wear-os' / 'Wear OS' / 'Wear OS UI'), so any count of 'how many capabilities do we have in area X' split into twin groups and needed hand-merging before it could be read. The enum below is the vocabulary, and it is the ONLY one: scripts/quality/assert-allfeatures-sync.ps1 reads this array and refuses a record whose area is not in it, which is also why nothing else in the repository restates the list - a restated grid goes stale silently (S1392). The list was derived by grouping the values already in use rather than invented, so every entry is either a value with a double-digit record count or the centre of a group of near-duplicates. Widening it is a one-line edit HERE and nowhere else, and it is the right move when a genuinely new subject arrives; folding a new capability into 'General' to avoid the edit is what produced the 91 values in the first place. Narrowing it is not: two areas merge only by migrating the records that carry them, because a value left in the ledger with no enum entry fails the gate for whoever runs it next. 'Media Player' is deliberately not a duplicate of 'Video Player' and 'Audio Player' - it holds the records that do not state which medium they are about, and splitting them would mean judging each record's text, which the S2842 migration explicitly did not do.",
+      "enum": [
+        "Audio Player",
+        "Camera",
+        "Destinations",
+        "Diagnostics",
+        "Documents",
+        "Drawing & Annotations",
+        "Extensions & On-demand",
+        "File Operations",
+        "General",
+        "Image & GIF Viewer",
+        "Launcher",
+        "Localization",
+        "Main Screen",
+        "Media Browsing",
+        "Media Player",
+        "Network & Cloud",
+        "OCR & Translation",
+        "Permissions",
+        "Programs & Tools",
+        "Screen Capture",
+        "Settings & Navigation",
+        "Setup & Onboarding",
+        "Sharing",
+        "Slideshow",
+        "Sources & Storage",
+        "Streams",
+        "Text Editor",
+        "Usage Statistics",
+        "Video Player",
+        "VR & OpenXR",
+        "Wear OS",
+        "Widgets"
+      ]
     },
     "name": {
       "type": "string",
@@ -29,7 +62,7 @@
     },
     "flavors": {
       "type": "array",
-      "$comment": "Build variants where the capability is available. S1934 fixes how the set is derived: from the build system, never from the build the change happened to be tested on - the flag's row in docs/FLAVOR_MATRIX.md when the capability sits behind a gate, and the full set when nothing gates it, because a capability nothing narrows cannot be narrower than the app. A set that is neither the full set nor equal to some flag's row claims a reach the build system does not produce; validate.ps1 counts those against a ratchet baseline rather than refusing each one, since 242 records predate the rule. A capability living entirely in the wear module carries the full set: the watch app is its own installation and no phone build excludes it, so any narrower set here asserts a PHONE exclusion the build does not have. A watch capability that does need the phone bridge is gated by SUPPORT_WEAR_COMPANION instead. Since S2090 the wear module has a flavor dimension of its own, and a capability present in only one of ITS variants says so in 'wearFlavors' - this field stays about the phone either way.",
+      "$comment": "Build variants where the capability is available. S1934 fixes how the set is derived: from the build system, never from the build the change happened to be tested on - the flag's row in docs/FLAVOR_MATRIX.md when the capability sits behind a gate, and the full set when nothing gates it, because a capability nothing narrows cannot be narrower than the app. A set that is neither the full set nor equal to some flag's row claims a reach the build system does not produce; validate.ps1 counts those against a ratchet baseline rather than refusing each one, since 242 records predate the rule. A capability living entirely in the wear module carries the full set: the watch app is its own installation and no phone build excludes it, so any narrower set here asserts a PHONE exclusion the build does not have. A watch capability that does need the phone bridge is gated by SUPPORT_WEAR_COMPANION instead. Since S2090 the wear module has a flavor dimension of its own, and a capability present in only one of ITS variants says so in 'wearFlavors' - this field stays about the phone either way. S2933 turned the two sentences above from description into enforcement for watch records: the ratchet's 'explained' test is a set comparison against EVERY flag's row, so a set equal to some unrelated flag's row passed silently - two records claimed the SUPPORT_CAST row while describing phone-to-watch settings sync. scripts/quality/assert-allfeatures-sync.ps1 now refuses a record whose subject is declared in scripts/quality/allfeatures-subject-reach.json and whose set is neither that subject's flag row nor the full set. It keys off the SET rather than the 'gate' field because close-and-log.ps1 is a canon facade with no -FeatGate parameter, so a record written through the sanctioned closure path cannot carry a gate at all; closing the general class needs that parameter first (S2937).",
       "minItems": 1,
       "uniqueItems": true,
       "items": {

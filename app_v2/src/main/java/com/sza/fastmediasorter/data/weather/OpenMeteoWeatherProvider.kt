@@ -14,6 +14,7 @@ import org.json.JSONException
 import org.json.JSONObject
 import timber.log.Timber
 import java.io.IOException
+import java.time.LocalTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -33,6 +34,9 @@ class OpenMeteoWeatherProvider @Inject constructor(
                 .addQueryParameter(PARAM_LATITUDE, location.latitude.toString())
                 .addQueryParameter(PARAM_LONGITUDE, location.longitude.toString())
                 .addQueryParameter(PARAM_CURRENT, CURRENT_FIELDS)
+                // S1907: sunrise and sunset ride the SAME forecast call as the current block - a second
+                // request for them would double the provider's free-tier budget for one desktop.
+                .addQueryParameter(PARAM_DAILY, DAILY_FIELDS)
                 .addQueryParameter(PARAM_TEMPERATURE_UNIT, unit.apiValue())
                 .addQueryParameter(PARAM_TIMEZONE, TIMEZONE_AUTO)
                 .build()
@@ -68,11 +72,13 @@ class OpenMeteoWeatherProvider @Inject constructor(
     }
 
     private fun parseCurrent(json: String, location: WeatherLocation, unit: WeatherUnit): WeatherSnapshot? = try {
-        val current = JSONObject(json).optJSONObject(KEY_CURRENT)
+        val root = JSONObject(json)
+        val current = root.optJSONObject(KEY_CURRENT)
         if (current == null || !current.has(KEY_TEMPERATURE)) {
             Timber.i("Open-Meteo current weather has no reading for %s", location.label)
             null
         } else {
+            val daily = root.optJSONObject(KEY_DAILY)
             WeatherSnapshot(
                 location = location,
                 temperature = current.getDouble(KEY_TEMPERATURE),
@@ -80,11 +86,27 @@ class OpenMeteoWeatherProvider @Inject constructor(
                 condition = WeatherCondition.fromWmoCode(current.optInt(KEY_WEATHER_CODE, UNKNOWN_CODE)),
                 isDay = current.optInt(KEY_IS_DAY, 1) == 1,
                 observedAtMs = System.currentTimeMillis(),
+                // S1907: individually optional, like weather_code and is_day above - one field the
+                // provider omitted this cycle must not cost the temperature the whole card is built on.
+                dewPoint = current.optDouble(KEY_DEW_POINT, Double.NaN).takeIf { !it.isNaN() },
+                sunrise = daily.todayLocalTime(KEY_SUNRISE),
+                sunset = daily.todayLocalTime(KEY_SUNSET),
             )
         }
     } catch (e: JSONException) {
         Timber.w(e, "Open-Meteo current weather malformed")
         null
+    }
+
+    /**
+     * S1907: today's value from a `daily` array, which is index 0 because the response starts at today.
+     * `timezone=auto` is on the request, so the stamp is the requested place's own wall-clock time and
+     * only the part after the ISO `T` matters - the date belongs to that place, not to the device.
+     */
+    private fun JSONObject?.todayLocalTime(field: String): LocalTime? {
+        val stamp = this?.optJSONArray(field)?.optString(0).orEmpty()
+        val time = stamp.substringAfter(ISO_TIME_SEPARATOR, "").takeIf { it.isNotBlank() } ?: return null
+        return runCatching { LocalTime.parse(time) }.getOrNull()
     }
 
     private fun parsePlaces(json: String): List<WeatherLocation> = try {
@@ -122,6 +144,7 @@ class OpenMeteoWeatherProvider @Inject constructor(
         const val PARAM_LATITUDE = "latitude"
         const val PARAM_LONGITUDE = "longitude"
         const val PARAM_CURRENT = "current"
+        const val PARAM_DAILY = "daily"
         const val PARAM_TEMPERATURE_UNIT = "temperature_unit"
         const val PARAM_TIMEZONE = "timezone"
         const val PARAM_NAME = "name"
@@ -129,8 +152,10 @@ class OpenMeteoWeatherProvider @Inject constructor(
         const val PARAM_LANGUAGE = "language"
         const val PARAM_FORMAT = "format"
 
-        const val CURRENT_FIELDS = "temperature_2m,weather_code,is_day"
+        const val CURRENT_FIELDS = "temperature_2m,weather_code,is_day,dew_point_2m"
+        const val DAILY_FIELDS = "sunrise,sunset"
         const val TIMEZONE_AUTO = "auto"
+        const val ISO_TIME_SEPARATOR = "T"
         const val FORMAT_JSON = "json"
         const val UNIT_CELSIUS = "celsius"
         const val UNIT_FAHRENHEIT = "fahrenheit"
@@ -139,9 +164,13 @@ class OpenMeteoWeatherProvider @Inject constructor(
         const val LABEL_SEPARATOR = ", "
 
         const val KEY_CURRENT = "current"
+        const val KEY_DAILY = "daily"
         const val KEY_TEMPERATURE = "temperature_2m"
         const val KEY_WEATHER_CODE = "weather_code"
         const val KEY_IS_DAY = "is_day"
+        const val KEY_DEW_POINT = "dew_point_2m"
+        const val KEY_SUNRISE = "sunrise"
+        const val KEY_SUNSET = "sunset"
         const val KEY_RESULTS = "results"
         const val KEY_NAME = "name"
         const val KEY_LATITUDE = "latitude"

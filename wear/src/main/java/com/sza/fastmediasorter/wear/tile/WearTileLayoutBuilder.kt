@@ -1,30 +1,35 @@
 package com.sza.fastmediasorter.wear.tile
 
 import android.content.Context
-import android.content.Intent
 import androidx.wear.protolayout.ActionBuilders
 import androidx.wear.protolayout.DeviceParametersBuilders
 import androidx.wear.protolayout.DimensionBuilders
 import androidx.wear.protolayout.LayoutElementBuilders
 import androidx.wear.protolayout.ModifiersBuilders
+import androidx.wear.protolayout.material.Button
 import androidx.wear.protolayout.material.CompactChip
 import androidx.wear.protolayout.material.Text
 import androidx.wear.protolayout.material.Typography
+import androidx.wear.protolayout.material.layouts.MultiButtonLayout
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.model.WearLaunchExtra
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchTarget
 import com.sza.fastmediasorter.wear.domain.model.WearTileContent
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
-import com.sza.fastmediasorter.wear.domain.model.writeTo
+import com.sza.fastmediasorter.wear.domain.model.extras
 import dagger.hilt.android.qualifiers.ApplicationContext
+import timber.log.Timber
 import javax.inject.Inject
-
-private const val MAX_FAVOURITES_PREVIEW_ENTRIES = 3
 
 /**
  * S1955: Builds ProtoLayout element trees for Wear OS tiles based on [WearTileContent].
  *
  * Checks `deviceParameters.rendererSchemaVersion` to avoid drawing elements that require a higher
  * schema version than the watch's renderer supports.
+ *
+ * S2589: every decision this used to take on its own now comes from `WearTileLayoutPlan`; what is left here
+ * is the drawing, which no JVM test can reach. The dispatch below stays an exhaustive `when` over the sealed
+ * content type with no `else`, so a sixth state fails compilation rather than drawing nothing.
  */
 class WearTileLayoutBuilder @Inject constructor(
     @ApplicationContext private val context: Context
@@ -45,6 +50,7 @@ class WearTileLayoutBuilder @Inject constructor(
                 deviceParameters = deviceParameters
             )
             WearTileContent.FavouritesEmpty -> buildFavouritesEmptyLayout()
+            is WearTileContent.Shortcuts -> buildShortcutsLayout(content)
         }
 
         return LayoutElementBuilders.Layout.Builder()
@@ -72,15 +78,13 @@ class WearTileLayoutBuilder @Inject constructor(
             )
         }
 
-        if (content.entries.isNotEmpty()) {
-            content.entries.take(MAX_FAVOURITES_PREVIEW_ENTRIES).forEach { entry ->
-                columnBuilder.addContent(
-                    Text.Builder(context, entry)
-                        .setTypography(Typography.TYPOGRAPHY_CAPTION1)
-                        .setMaxLines(1)
-                        .build()
-                )
-            }
+        planAssignedPreview(content.entries).forEach { entry ->
+            columnBuilder.addContent(
+                Text.Builder(context, entry)
+                    .setTypography(Typography.TYPOGRAPHY_CAPTION1)
+                    .setMaxLines(1)
+                    .build()
+            )
         }
 
         val launchAction = buildLaunchAction(content.launchTarget)
@@ -102,16 +106,46 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
+    /** S2511: a grid of icon buttons, one per shortcut, cut to what the grid holds by `planShortcutGrid`. */
+    private fun buildShortcutsLayout(
+        content: WearTileContent.Shortcuts
+    ): LayoutElementBuilders.LayoutElement {
+        val plan = planShortcutGrid(content.entries, overflow = overflowShortcut(context))
+        if (plan.dropped > 0) {
+            Timber.w(
+                "Shortcut tile holds %d entries, %d cells - the last %d are behind the overflow cell",
+                content.entries.size,
+                plan.shown.size,
+                plan.dropped
+            )
+        }
+
+        val layoutBuilder = MultiButtonLayout.Builder()
+        plan.shown.forEach { shortcut ->
+            val clickable = ModifiersBuilders.Clickable.Builder()
+                .setOnClick(buildLaunchAction(shortcut.launchTarget))
+                .setId(shortcut.launchTarget.clickId())
+                .build()
+            layoutBuilder.addButtonContent(
+                Button.Builder(context, clickable)
+                    .setIconContent(tileImageResourceId(tileShortcutIconFor(shortcut.destinationId)))
+                    .setContentDescription(shortcut.contentDescription)
+                    .build()
+            )
+        }
+
+        return LayoutElementBuilders.Box.Builder()
+            .addContent(layoutBuilder.build())
+            .setHeight(DimensionBuilders.expand())
+            .setWidth(DimensionBuilders.expand())
+            .build()
+    }
+
     private fun buildUnassignedLayout(
         kind: WearTileKind,
         deviceParameters: DeviceParametersBuilders.DeviceParameters
     ): LayoutElementBuilders.LayoutElement {
-        val labelRes = when (kind) {
-            WearTileKind.RESOURCE -> R.string.wear_tile_unassigned_resource
-            WearTileKind.STREAM -> R.string.wear_tile_unassigned_stream
-            WearTileKind.FAVOURITES -> R.string.wear_tile_favourites_empty
-        }
-        val labelText = context.getString(labelRes)
+        val labelText = context.getString(unassignedLabelRes(kind))
         val pickText = context.getString(R.string.wear_tile_pick_action)
 
         val launchTarget = WearLaunchTarget.Pick(kind)
@@ -201,22 +235,29 @@ class WearTileLayoutBuilder @Inject constructor(
             .build()
     }
 
+    /**
+     * S2511: every extra crosses, not only the string ones.
+     *
+     * This mapping is the tile's whole transport, and it used to be built by writing the target into a
+     * throwaway `Intent` and reading the values back out untyped - which answered `String` for some fields
+     * and `Any?` for the rest, so everything that was not a `String` was dropped. A resource address carries
+     * a numeric port, so the port never arrived, the completeness test in `readWearLaunchTarget` failed, and
+     * the tap read as a plain launch: the resource tile opened the home screen instead of the pinned
+     * resource. The round-trip test did not catch it because it exercises a real `Intent`, where an `Int`
+     * passes; only this ProtoLayout hop dropped it. Reading the declared shape leaves no unrecognised case.
+     */
     private fun buildLaunchAction(target: WearLaunchTarget): ActionBuilders.LaunchAction {
-        val dummyIntent = Intent().also { target.writeTo(it) }
         val activityBuilder = ActionBuilders.AndroidActivity.Builder()
             .setPackageName(context.packageName)
             .setClassName("com.sza.fastmediasorter.wear.MainActivity")
 
-        dummyIntent.extras?.let { bundle ->
-            for (key in bundle.keySet()) {
-                val value = bundle.get(key)
-                if (value is String) {
-                    activityBuilder.addKeyToExtraMapping(
-                        key,
-                        ActionBuilders.stringExtra(value)
-                    )
-                }
+        val extras = target.extras()
+        extras.forEach { (key, extra) ->
+            val value = when (extra) {
+                is WearLaunchExtra.Text -> ActionBuilders.stringExtra(extra.value)
+                is WearLaunchExtra.Number -> ActionBuilders.intExtra(extra.value)
             }
+            activityBuilder.addKeyToExtraMapping(key, value)
         }
 
         return ActionBuilders.LaunchAction.Builder()

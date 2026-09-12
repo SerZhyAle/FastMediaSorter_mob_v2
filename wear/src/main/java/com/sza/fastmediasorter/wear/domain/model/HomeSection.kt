@@ -5,11 +5,26 @@ import androidx.annotation.StringRes
 /** Sections of the watch home screen, declared in the fixed order the owner specified. */
 enum class HomeSectionId {
     LAST_USED_RESOURCE,
+
+    /** S2499: a recently played channel, which wears the streams glyph rather than the history one. */
+    LAST_USED_STREAM,
     RESOURCES,
     PHONE,
     LOCAL,
     STREAMS,
     APPS,
+
+    /** S2509: the watch's own broadcast, which the owner asked to reach from Home as well as Programs. */
+    BROADCAST,
+
+    /**
+     * S2551: watching the paired phone's camera on the wrist.
+     *
+     * Distinct from [BROADCAST], which goes the other way - that row opens the watch's own
+     * microphone for the phone to listen to. One label over two opposite directions would leave the
+     * owner to guess which device is the source.
+     */
+    PHONE_CAMERA,
     FAVOURITES
 }
 
@@ -19,13 +34,25 @@ enum class HomeSectionId {
  * [dynamicLabel] wins over [labelRes] for the last-used resource, which is shown under its own name
  * rather than a generic caption. [iconId] does the same for the glyph, and only the last-used
  * entries ever carry one - every other section keeps the fixed glyph its id names.
+ *
+ * S2499: a section carries either a [route] it can be navigated to as it stands, or a [targetRef] that
+ * has to be resolved into one first - never neither. Only the last-used row ever takes the second form,
+ * and only for a channel: a player address contains a number handed out by playback preparation, which
+ * has not run on a cold start, so it cannot be built ahead of the tap.
+ *
+ * S2751: [route] belongs to the dynamic last-used rows alone, which are built in the screen's own layer
+ * and so may carry a navigation address. A catalogued section leaves it null and is addressed by its
+ * [id]; a navigation string on a record the domain hands out is what put the route table below the
+ * screens in the first place.
  */
 data class HomeSection(
     val id: HomeSectionId,
     @StringRes val labelRes: Int,
-    val route: String,
+    val route: String? = null,
     val dynamicLabel: String? = null,
-    val iconId: String? = null
+    val iconId: String? = null,
+    val faviconIndex: Int? = null,
+    val targetRef: WearTileTargetRef? = null
 )
 
 /**

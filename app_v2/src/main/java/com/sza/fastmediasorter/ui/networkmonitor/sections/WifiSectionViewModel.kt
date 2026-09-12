@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.networkmonitor.sections
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.core.di.IoDispatcher
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
 import com.sza.fastmediasorter.domain.model.networkmonitor.MonitorSection
 import com.sza.fastmediasorter.domain.model.networkmonitor.NetworkMonitorSnapshot
@@ -53,6 +54,7 @@ data class WifiSectionUiState(
     val downstreamKbps: Int?,
     val upstreamKbps: Int?,
     val signal: MonitorSection<SignalSeries>,
+    val hotspot: HotspotState = HotspotState.UNKNOWN,
 ) {
     companion object {
 
@@ -63,6 +65,7 @@ data class WifiSectionUiState(
             downstreamKbps = null,
             upstreamKbps = null,
             signal = emptySignalWindow(),
+            hotspot = HotspotState.UNKNOWN,
         )
     }
 }
@@ -169,5 +172,6 @@ private fun NetworkMonitorSnapshot.toUiState(signal: MonitorSection<SignalSeries
         downstreamKbps = activeWifi?.downstreamKbps,
         upstreamKbps = activeWifi?.upstreamKbps,
         signal = signal,
+        hotspot = hotspot,
     )
 }

@@ -1,53 +1,53 @@
 package com.sza.fastmediasorter.wear.ui.home
 
+import android.graphics.Bitmap
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.AutoCenteringParams
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
-import androidx.wear.compose.material.Chip
-import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
-import androidx.wear.compose.material.LocalContentColor
 import androidx.wear.compose.material.PositionIndicator
-import androidx.wear.compose.material.Text
-import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.model.HomeSection
 import com.sza.fastmediasorter.wear.domain.model.HomeSectionId
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
-import com.sza.fastmediasorter.wear.ui.common.WearListMetrics
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_UNTITLED_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
+import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberCloseAppAction
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.common.rememberMinimizeAppAction
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import com.sza.fastmediasorter.wear.ui.common.wearBackAffordanceInset
 import com.sza.fastmediasorter.wear.ui.icon.WearResourceIconRegistry
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import kotlinx.coroutines.launch
 import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
@@ -59,13 +59,18 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     Timber.d("HomeScreen composing")
-    Timber.d("S2003: home - no app-name header, opens centred on the first navigation tile")
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState(initialCenterItemIndex = 0)
+    val isBackgroundPlaybackActive by viewModel.isBackgroundPlaybackActive.collectAsStateWithLifecycle()
+    val nowPlaying by viewModel.nowPlaying.collectAsStateWithLifecycle()
+    // No title item here, so the second data row is item 1 (S2466).
+    val listState =
+        rememberWearListState(initialCenterItemIndex = WEAR_LIST_UNTITLED_ANCHOR, positionKey = WearRoutes.HOME)
     // Resolved here rather than inside the item slot: a slot is not the screen's remember scope, so
     // the action would be rebuilt every time the bar scrolls back into composition.
     val closeApp = rememberCloseAppAction()
+    val minimizeApp = rememberMinimizeAppAction()
+    val shortcutClickScope = rememberCoroutineScope()
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -76,58 +81,105 @@ fun HomeScreen(
         // name - a narrow round watch cannot give three columns a 48 dp target (strategic ADR-2).
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(uiState.viewMode, maxWidth.value.toInt())
-            ScalingLazyColumn(
+            WearListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets(),
-                scalingParams = WearGridScalingParams,
-                // One setting written twice: the state index says where to open, this says which
-                // index may reach the centre at all. AutoCenteringParams defaults to 1 and pads
-                // nothing below it, so setting the state alone leaves the request unhonoured.
-                //
-                // Top space is owned by autoCentering, but not exclusively: wearScreenInsets()
-                // is a uniform inset on a round display, so its top share stacks on top of the
-                // centring padding. Whether that stack is visible is a round-display measurement
-                // (S2003 §3.3), so no number is guessed here - the device pass settles it.
-                autoCentering = AutoCenteringParams(itemIndex = 0)
+                state = listState
             ) {
+                // S2524: the first thing on the screen while sound is playing, because the problem
+                // this solves is that there was nowhere to arrive at. It is its own item and never
+                // enters the chunked grid below: a row that appears and disappears inside that grid
+                // would move every section cell each time the sound started (strategic ADR-1).
+                nowPlaying?.let { playing ->
+                    item {
+                        HomeNowPlayingRow(
+                            nowPlaying = playing,
+                            onOpen = { fileId -> navController.navigate(WearRoutes.audioPlayer(fileId)) },
+                            onStop = viewModel::stopBackgroundPlayback
+                        )
+                    }
+                }
+
+                // S2499: a shortcut is resolved before it is navigated to - a channel has no address
+                // until playback preparation has run. A target that stopped resolving between the
+                // draw and the tap leaves the screen where it is, which the ViewModel logs.
                 lastUsedItems(
                     shortcuts = uiState.lastUsedResources,
                     columns = columns,
-                    onSectionClick = { section -> navController.navigate(section.route) }
+                    getFaviconTile = viewModel::getFaviconTile,
+                    onSectionClick = { section ->
+                        shortcutClickScope.launch {
+                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
+                        }
+                    }
                 )
 
                 sectionItems(
                     sections = uiState.sections,
                     columns = columns,
-                    onSectionClick = { section -> navController.navigate(section.route) }
+                    getFaviconTile = viewModel::getFaviconTile,
+                    // S2751: the predefined rows resolve through the same path the shortcut row
+                    // above uses. A catalogued section carries no address of its own any more - it is
+                    // addressed by its id, and one resolution path keeps the two entrances identical.
+                    onSectionClick = { section ->
+                        shortcutClickScope.launch {
+                            viewModel.resolveShortcutRoute(section)?.let(navController::navigate)
+                        }
+                    }
                 )
 
                 item {
                     HomeCommandBar(
-                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) },
-                        onCloseClick = closeApp
+                        onSettingsClick = { navController.navigate(WearRoutes.SETTINGS) }
                     )
                 }
             }
         }
+        // S2472: the home affordance, in the same left-middle band every other screen draws it in.
+        // The cross and the chevron are one control, not two: which face it wears follows the live
+        // playback state, and each face carries its own action - close stops the sound, minimize
+        // keeps it - so the sign can never promise what the tap does not do.
+        //
+        // Declared AFTER the list, and that order is the whole of whether it works: siblings of a Box
+        // are hit-tested back to front, so the full-size scrolling column declared after this control
+        // takes every pointer over it and the cross is drawn but dead - the state the owner reported
+        // on 2026-09-04, where the node was not even in the uiautomator tree. The host's own arrow
+        // sits after the NavHost for the same reason, which is why Back worked while Close did not.
+        WearBackAffordance(
+            role = if (isBackgroundPlaybackActive) {
+                WearBackAffordanceRole.Minimize
+            } else {
+                WearBackAffordanceRole.Close
+            },
+            onClick = {
+                if (isBackgroundPlaybackActive) minimizeApp() else closeApp()
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = wearBackAffordanceInset())
+        )
     }
 }
 
 private fun ScalingLazyListScope.sectionItems(
     sections: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(sections) { section ->
-            HomeSectionChip(section = section, onClick = { onSectionClick(section) })
+            HomeSectionChip(
+                section = section,
+                getFaviconTile = getFaviconTile,
+                onClick = { onSectionClick(section) }
+            )
         }
     } else {
         items(sections.chunked(columns)) { rowSections ->
             HomeSectionRow(
                 sections = rowSections,
                 columns = columns,
+                getFaviconTile = getFaviconTile,
                 onSectionClick = onSectionClick
             )
         }
@@ -145,11 +197,16 @@ private fun ScalingLazyListScope.sectionItems(
 private fun ScalingLazyListScope.lastUsedItems(
     shortcuts: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(shortcuts) { section ->
-            HomeSectionChip(section = section, onClick = { onSectionClick(section) })
+            HomeSectionChip(
+                section = section,
+                getFaviconTile = getFaviconTile,
+                onClick = { onSectionClick(section) }
+            )
         }
     } else {
         item {
@@ -158,6 +215,7 @@ private fun ScalingLazyListScope.lastUsedItems(
                 // requested column count on a narrow round display (strategic ADR-2).
                 sections = shortcuts.take(columns),
                 columns = columns,
+                getFaviconTile = getFaviconTile,
                 onSectionClick = onSectionClick
             )
         }
@@ -167,27 +225,32 @@ private fun ScalingLazyListScope.lastUsedItems(
 @Composable
 private fun HomeSectionChip(
     section: HomeSection,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val faviconBitmap by produceState<Bitmap?>(initialValue = null, section.faviconIndex) {
+        value = getFaviconTile(section.faviconIndex)
+    }
+    val thumbnail = faviconBitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
     val glyph = glyphFor(section)
-    Chip(
+    SingleColumnTileCell(
+        thumbnail = thumbnail,
+        caption = label,
         onClick = onClick,
-        label = { Text(text = label) },
-        icon = {
+        modifier = Modifier.testTag(WearTestTags.homeSection(section.id)),
+        fallback = { glyphModifier ->
             Icon(
                 painter = painterResource(glyph.painterRes),
-                contentDescription = label,
-                modifier = Modifier.size(WearListMetrics.LeadingIconNormal),
-                tint = if (glyph.ownsItsColour) Color.Unspecified else LocalContentColor.current
+                contentDescription = null,
+                modifier = glyphModifier,
+                tint = if (glyph.ownsItsColour) {
+                    Color.Unspecified
+                } else {
+                    sectionTint(contentTypeFor(section.id))
+                }
             )
-        },
-        // A section announces its own name - the dynamic resource name where it has one - so the
-        // reading never degrades to a position in the list.
-        modifier = Modifier
-            .fillMaxWidth()
-            .semantics { contentDescription = label },
-        colors = ChipDefaults.primaryChipColors()
+        }
     )
 }
 
@@ -203,21 +266,21 @@ private fun HomeSectionChip(
 private fun HomeSectionRow(
     sections: List<HomeSection>,
     columns: Int,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onSectionClick: (HomeSection) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+    com.sza.fastmediasorter.wear.ui.common.CenteredGridRow(
+        columns = columns,
+        itemCount = sections.size,
+        gap = GRID_GAP
     ) {
         sections.forEach { section ->
             HomeSectionCell(
                 section = section,
                 modifier = Modifier.weight(1f),
+                getFaviconTile = getFaviconTile,
                 onClick = { onSectionClick(section) }
             )
-        }
-        repeat(columns - sections.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
@@ -226,14 +289,19 @@ private fun HomeSectionRow(
 private fun HomeSectionCell(
     section: HomeSection,
     modifier: Modifier,
+    getFaviconTile: suspend (Int?) -> Bitmap?,
     onClick: () -> Unit
 ) {
     val label = section.dynamicLabel ?: stringResource(section.labelRes)
+    val faviconBitmap by produceState<Bitmap?>(initialValue = null, section.faviconIndex) {
+        value = getFaviconTile(section.faviconIndex)
+    }
+    val thumbnail = faviconBitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
     ThumbnailCell(
-        thumbnail = WearThumbnail.Unavailable,
+        thumbnail = thumbnail,
         caption = label,
         onClick = onClick,
-        modifier = modifier
+        modifier = modifier.testTag(WearTestTags.homeSection(section.id))
     ) { glyphModifier ->
         val glyph = glyphFor(section)
         Icon(
@@ -295,31 +363,22 @@ private fun sectionTint(type: WearContentType?): Color =
  */
 private fun contentTypeFor(id: HomeSectionId): WearContentType? = when (id) {
     HomeSectionId.FAVOURITES -> null
-    HomeSectionId.STREAMS -> WearContentType.STREAM
+    // S2499: a recent channel is a channel, so it takes the same tone the Streams section does.
+    HomeSectionId.STREAMS,
+    HomeSectionId.LAST_USED_STREAM -> WearContentType.STREAM
     HomeSectionId.LAST_USED_RESOURCE,
     HomeSectionId.RESOURCES,
     HomeSectionId.PHONE,
     HomeSectionId.LOCAL,
+    // S2509: OTHER rather than STREAM. This row is a program of this app, not a channel registered
+    // in it - giving it the stream tone would say the watch has a channel to play.
+    HomeSectionId.BROADCAST,
+    // S2551: OTHER for the same reason as the row above. What this one opens IS a stream, but it is
+    // one that exists only while the session does - giving it the stream tone would place it beside
+    // the registered channels, which is exactly what the ticket's non-goal keeps it out of.
+    HomeSectionId.PHONE_CAMERA,
     HomeSectionId.APPS -> WearContentType.OTHER
 }
 
-/**
- * Icons stay here rather than on the section model so the domain layer carries no Compose types.
- *
- * These are the phone's own vectors, copied into this module: one entity wears one glyph across both
- * apps, and `docs/ICON_LEGEND.md` is the table that decides which (owner instruction 2026-08-18).
- */
 @DrawableRes
-private fun iconFor(id: HomeSectionId): Int = when (id) {
-    HomeSectionId.LAST_USED_RESOURCE -> R.drawable.ic_history
-    HomeSectionId.FAVOURITES -> R.drawable.ic_resource_favorites
-    // ic_resource is the phone's canonical umbrella glyph for "a source registered in this app",
-    // which is what this section lists. ic_wifi described the transport, not the entity (S1952).
-    HomeSectionId.RESOURCES -> R.drawable.ic_resource
-    HomeSectionId.PHONE -> R.drawable.ic_profile_personal_smartphone
-    // Local means the watch's own storage, so it takes the phone's glyph for the watch - the phone's
-    // "local storage" icon is a smartphone and would have been indistinguishable from PHONE above.
-    HomeSectionId.LOCAL -> R.drawable.ic_watch
-    HomeSectionId.STREAMS -> R.drawable.ic_cast
-    HomeSectionId.APPS -> R.drawable.ic_apps
-}
+private fun iconFor(id: HomeSectionId): Int = HomeSectionIconCatalog.iconFor(id)

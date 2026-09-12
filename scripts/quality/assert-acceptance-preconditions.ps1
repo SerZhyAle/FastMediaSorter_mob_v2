@@ -40,6 +40,8 @@
       0 - clean, or violations reported in audit mode.
       1 - `-Gate` found a criterion outside the baseline that names no precondition.
       2 - the spec corpus or the baseline cannot be read.
+      4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
+          held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding()]
 param(
@@ -53,6 +55,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
+
 $planRoot = Join-Path $repoRoot 'PLAN'
 $baselinePath = Join-Path $PSScriptRoot 'acceptance-precondition-baseline.txt'
 
@@ -167,7 +171,12 @@ if ($UpdateBaseline) {
         '# survives without naming the state that must exist first. Entries leave this list when the',
         '# criterion is reworded; nothing is added except by a deliberate -UpdateBaseline run.'
     )
-    Set-Content -LiteralPath $baselinePath -Value ($header + (@($violations) | ForEach-Object { $_.Key })) -Encoding utf8
+    $scope = $null
+    try {
+        $scope = Enter-CodeLockOrExit -Path $baselinePath -Reason 'assert-acceptance-preconditions.ps1 -UpdateBaseline'
+        Set-Content -LiteralPath $baselinePath -Value ($header + (@($violations) | ForEach-Object { $_.Key })) -Encoding utf8
+    }
+    finally { Exit-CodeLockScope -Scope $scope }
     Write-Host "assert-acceptance-preconditions: baseline rewritten with $(@($violations).Count) entry(ies)."
     exit 0
 }

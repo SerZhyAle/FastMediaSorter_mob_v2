@@ -163,6 +163,9 @@ class BrowseLoadingAuxManager(
      * failures.
      */
     private fun companionConnectGuidance(resource: MediaResource, e: Throwable): String? {
+        if (resource.type == ResourceType.WEAR_WATCH) {
+            return context.getString(R.string.paired_watch_not_connected)
+        }
         val msg = e.message.orEmpty()
         val isConnectivity = msg.contains("timeout", ignoreCase = true) ||
             msg.contains("timed out", ignoreCase = true) ||

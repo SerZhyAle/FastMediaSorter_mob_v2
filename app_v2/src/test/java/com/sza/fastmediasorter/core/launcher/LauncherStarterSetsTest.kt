@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.core.launcher
 import com.sza.fastmediasorter.core.launcher.LauncherStarterSets.StarterResources
 import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.LauncherActionCatalog
+import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramCatalog
+import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.data.model.DeviceProfileType
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
@@ -32,34 +35,71 @@ class LauncherStarterSetsTest {
     private val mediumWide =
         LauncherScreenClass(LauncherScreenClass.Size.MEDIUM, LauncherScreenClass.Shape.WIDE)
 
-    private val allPaddingAvailable = mapOf(
-        InternalRouteCatalog.KEY_STREAMS to true,
-        InternalRouteCatalog.KEY_QUICK_CAMERA to true,
-        InternalRouteCatalog.KEY_QUICK_VOICE to true,
-        InternalRouteCatalog.KEY_CALCULATOR to true,
-        InternalRouteCatalog.KEY_NETWORK_MONITOR to true,
-        InternalRouteCatalog.KEY_OCR to true,
-        InternalRouteCatalog.KEY_SCREEN_RECORDING to true,
-        InternalRouteCatalog.KEY_LINK_DOWNLOAD to true,
-        InternalRouteCatalog.KEY_GAME to true,
-        InternalRouteCatalog.KEY_SYSTEM_INFO to true,
-        InternalRouteCatalog.KEY_WEAR_COMPANION to true,
-    )
+    private val allPaddingLaunchable =
+        SubProgramCatalog
+            .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+            .associate { it.routeKey to true } + (InternalRouteCatalog.KEY_STREAMS to true)
 
     /** The utilities every profile closes with, below the second header. */
-    private val commonTail = listOf("fn:favorites", "os:settings", "app:__self__")
+    private val commonTail = listOf("fn:favorites", "app:__self__")
 
-    /** The launcher actions a profile seeds, in catalogue order. */
+    /** S2749: the routes the utility widget section owns, and therefore the App Functions grid does not. */
+    private val utilityRouteTargets =
+        listOf("fn:${InternalRouteCatalog.KEY_GAME}", "fn:${InternalRouteCatalog.KEY_NETWORK_MONITOR}")
+
+    /**
+     * S2735: the launcher actions a profile seeds, in catalogue order.
+     *
+     * The three settings actions are excluded because they moved to the settings section - see
+     * [settingsSection]. S3001: the Add-resource action is excluded because it is placed by its own
+     * backfill ([PlaceAddResourceTileUseCase]) into the Resources section, not seeded here under the
+     * App Functions header.
+     */
     private fun actionTargets(profile: DeviceProfileType): List<String> =
         LauncherActionCatalog.all
+            .filter { it.key !in settingsActionKeys }
+            .filter { it.key !in backfilledActionKeys }
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
             .map { "act:${it.key}" }
+
+    private val settingsActionKeys = setOf(
+        LauncherActionCatalog.KEY_APP_SETTINGS,
+        LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
+        LauncherActionCatalog.KEY_EDIT_DESKTOP,
+    )
+
+    private val backfilledActionKeys = setOf(
+        LauncherActionCatalog.KEY_CREATE_RESOURCE,
+    )
+
+    /**
+     * S2836: the entries `settingsEntryGroup` seeds, in its order, declared once.
+     *
+     * Two cases below assert the settings section as a whole list while being about the `os:` budget only,
+     * so they pick this run up incidentally - spelled out per case, it went stale the moment Edit desktop
+     * joined the group and the suite failed twice.
+     */
+    private val settingsEntryTargets =
+        listOf("act:app_settings", "act:launcher_settings", "act:edit_desktop", "os:settings")
+
+    /**
+     * S2735: the whole settings section as it is seeded on [mediumWide] - its header, the three entries
+     * into the app's own settings and Edit desktop, then the budgeted Android quick entries in catalogue order.
+     */
+    private fun settingsSection(budget: Int = SYSTEM_SETTINGS_BUDGET_MEDIUM): List<String> =
+        listOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS)) +
+            settingsEntryTargets +
+            systemSettingsTargets(budget)
+
+    private fun systemSettingsTargets(budget: Int = SYSTEM_SETTINGS_BUDGET_MEDIUM): List<String> =
+        OsShortcutCatalog.all()
+            .filter { it.key != OsShortcutCatalog.KEY_SETTINGS }
+            .take(budget)
+            .map { "os:${it.key}" }
 
     private val columnCounts = listOf(3, 4, 6, 12)
 
     private data class ProfileGrid(
-        val wifi: Boolean = false,
-        val bluetooth: Boolean = false,
         val nowPlaying: Boolean = false,
         val blackScreen: Boolean = false,
         val locationTiles: Boolean = false,
@@ -69,8 +109,6 @@ class LauncherStarterSetsTest {
 
     private val profileGrid = mapOf(
         DeviceProfileType.CAR_HEAD_UNIT to ProfileGrid(
-            wifi = true,
-            bluetooth = true,
             nowPlaying = true,
             blackScreen = true,
             locationTiles = true,
@@ -79,24 +117,14 @@ class LauncherStarterSetsTest {
         ),
         DeviceProfileType.PERSONAL_SMARTPHONE to ProfileGrid(locationTiles = true, maps = true),
         DeviceProfileType.HOME_TABLET to ProfileGrid(),
-        DeviceProfileType.AUDIO_PLAYER to ProfileGrid(
-            wifi = true,
-            bluetooth = true,
-            nowPlaying = true,
-            blackScreen = true,
-        ),
-        DeviceProfileType.TV_MEDIA_BOX to ProfileGrid(
-            wifi = true,
-            bluetooth = true,
-            nowPlaying = true,
-            blackScreen = true,
-        ),
-        DeviceProfileType.MEDIA_PLAYER to ProfileGrid(wifi = true, bluetooth = true, nowPlaying = true),
-        DeviceProfileType.VIDEO_PLAYER to ProfileGrid(wifi = true, bluetooth = true, nowPlaying = true),
-        DeviceProfileType.PHOTO_FRAME to ProfileGrid(wifi = true, blackScreen = true),
+        DeviceProfileType.AUDIO_PLAYER to ProfileGrid(nowPlaying = true, blackScreen = true),
+        DeviceProfileType.TV_MEDIA_BOX to ProfileGrid(nowPlaying = true, blackScreen = true),
+        DeviceProfileType.MEDIA_PLAYER to ProfileGrid(nowPlaying = true),
+        DeviceProfileType.VIDEO_PLAYER to ProfileGrid(nowPlaying = true),
+        DeviceProfileType.PHOTO_FRAME to ProfileGrid(blackScreen = true),
         DeviceProfileType.EBOOK_READER to ProfileGrid(),
-        DeviceProfileType.VR_HEADSET to ProfileGrid(wifi = true, bluetooth = true),
-        DeviceProfileType.OTHER to ProfileGrid(wifi = true, bluetooth = true),
+        DeviceProfileType.VR_HEADSET to ProfileGrid(),
+        DeviceProfileType.OTHER to ProfileGrid(),
     )
 
     // ── itemsFor ────────
@@ -115,7 +143,7 @@ class LauncherStarterSetsTest {
             listOf("clock", "search", "weather", "sec:app_functions") +
                 actionTargets(DeviceProfileType.OTHER) +
                 commonTail +
-                listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
+                settingsSection(),
             items.map { it.target },
         )
         assertEquals(LauncherCellKind.GADGET, items.first().kind)
@@ -127,7 +155,7 @@ class LauncherStarterSetsTest {
             .itemsFor(
                 DeviceProfileType.PERSONAL_SMARTPHONE,
                 StarterResources(recentId = 1),
-                allPaddingAvailable,
+                allPaddingLaunchable,
                 emptySet(),
                 screenClass = mediumWide,
             )
@@ -135,11 +163,126 @@ class LauncherStarterSetsTest {
             .map { it.target }
         val widgetsHeaderIndex = targets.indexOf("sec:widgets")
         val actionsHeaderIndex = targets.indexOf("sec:app_functions")
-        val actions = targets.filter { it.startsWith("act:") }
-        assertEquals(LauncherActionCatalog.all.size - 1, actions.size)
+        val settingsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
+        // S2735: the two settings actions moved to the settings section, so the app-functions run is
+        // the catalogue minus them, minus the profile-gated black screen, and minus the S3001 backfilled
+        // Add-resource action (placed by PlaceAddResourceTileUseCase into the Resources section).
+        val actions = targets.subList(actionsHeaderIndex, settingsHeaderIndex).filter { it.startsWith("act:") }
+        assertEquals(
+            LauncherActionCatalog.all.size - settingsActionKeys.size - backfilledActionKeys.size - 1,
+            actions.size,
+        )
+        // S3001: the Add-resource tile must not be seeded under the App Functions header - the backfill
+        // owns its placement into the Resources section, and a seed copy here would let its dedup skip it.
+        assertFalse("act:${LauncherActionCatalog.KEY_CREATE_RESOURCE}" in actions)
         assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
-        val actionsStart = actionsHeaderIndex + allPaddingAvailable.size + 1
+        // S2749: minus the routes the utility section owns, which this grid no longer repeats.
+        val actionsStart = actionsHeaderIndex +
+            SubProgramCatalog.forSurface(SubProgramSurface.LAUNCHER_SHORTCUT).size -
+            utilityRouteTargets.size + 1
         assertEquals(actions, targets.subList(actionsStart, actionsStart + actions.size))
+    }
+
+    // ── S2735: the settings section ────────
+
+    @Test
+    fun `the settings section holds no app function and the app-functions section holds no settings entry`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingLaunchable,
+            emptySet(),
+            screenClass = mediumWide,
+        ).filter { it.screenIndex == 0 }.map { it.target }
+        val functionsStart = targets.indexOf("sec:app_functions")
+        val settingsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
+        assertTrue("settings header must follow the app-functions header", functionsStart < settingsStart)
+        val functionsSection = targets.subList(functionsStart, settingsStart)
+        assertTrue(
+            "an entry into settings is still seeded under the app-functions header: $functionsSection",
+            functionsSection.none { it.startsWith("os:") || it in settingsActionKeys.map { key -> "act:$key" } },
+        )
+        // S2735: bounded by the next header rather than by "sec:android_apps" - with no package
+        // installed that group is empty now, and emitGroups prints no header for an empty group.
+        val settingsSection = targets.drop(settingsStart + 1).takeWhile { !it.startsWith("sec:") }
+        assertTrue(
+            "a subprogram tile leaked into the settings section: $settingsSection",
+            settingsSection.none { it.startsWith("fn:") },
+        )
+    }
+
+    @Test
+    fun `the compact budget shortens the android quick entries and never the entries into settings`() {
+        val compact = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.WIDE)
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingLaunchable,
+            emptySet(),
+            screenClass = compact,
+        ).map { it.target }
+        val settingsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
+        val section = targets.drop(settingsStart + 1).takeWhile { !it.startsWith("sec:") }
+        assertEquals(
+            settingsEntryTargets + systemSettingsTargets(SYSTEM_SETTINGS_BUDGET_COMPACT),
+            section,
+        )
+    }
+
+    @Test
+    fun `an unresolvable system target is never seeded`() {
+        val resolvable = setOf(OsShortcutCatalog.KEY_SETTINGS, OsShortcutCatalog.KEY_WIFI)
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingLaunchable,
+            emptySet(),
+            resolvableOsShortcuts = resolvable,
+            screenClass = mediumWide,
+        ).map { it.target }
+        val settingsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
+        val section = targets.drop(settingsStart + 1).takeWhile { !it.startsWith("sec:") }
+        assertEquals(
+            settingsEntryTargets + "os:wifi",
+            section,
+        )
+    }
+
+    @Test
+    fun `no profile seeds the same shortcut twice`() {
+        // A gadget may legitimately repeat - the audio profile seeds two stream slots - but a shortcut
+        // addresses one destination, so a second copy of one is a duplicate cell and nothing else.
+        val shortcutPrefixes = listOf("os:", "act:", "app:", "fn:")
+        DeviceProfileType.entries.forEach { profile ->
+            val twice = LauncherStarterSets.itemsFor(
+                profile,
+                StarterResources(recentId = 1, allAudioId = 7),
+                allPaddingLaunchable,
+                setOf(LauncherStarterSets.PACKAGE_MAPS, FM_RADIO_PACKAGE),
+                screenClass = mediumWide,
+            ).map { it.target }
+                .filter { target -> shortcutPrefixes.any { target.startsWith(it) } }
+                .groupingBy { it }.eachCount()
+                .filterValues { it > 1 }
+            assertTrue("$profile seeds a shortcut more than once: $twice", twice.isEmpty())
+        }
+    }
+
+    @Test
+    fun `the utility routes leave the app-functions section without leaving the desktop`() {
+        // S2749 drops both routes from the App Functions grid, so this is what proves the deduplication
+        // moved the cell rather than removing it.
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.PERSONAL_SMARTPHONE,
+            StarterResources(recentId = 1),
+            allPaddingLaunchable,
+            emptySet(),
+            screenClass = mediumWide,
+        ).map { it.target }
+        assertTrue("desktop: $targets", targets.containsAll(utilityRouteTargets))
+        val functionsStart = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_APP_FUNCTIONS))
+        val section = targets.drop(functionsStart + 1).takeWhile { !it.startsWith("sec:") }
+        assertTrue("app-functions section: $section", section.none { it in utilityRouteTargets })
     }
 
     @Test
@@ -156,7 +299,7 @@ class LauncherStarterSetsTest {
     }
 
     @Test
-    fun `mainstream profile seeds the full resource and padding set`() {
+    fun `mainstream profile seeds every launchable registry shortcut`() {
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(
@@ -167,27 +310,26 @@ class LauncherStarterSetsTest {
                 allDocsId = 5,
                 cameraId = 6,
             ),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "compass",
+                // S2682: the phone's widgets group gained the translator and the storage readout.
+                "sec:widgets", "compass", "translator", "storage",
                 "sec:resources",
                 "res:1:BROWSE", "res:2:BROWSE", "res:3:BROWSE",
                 "res:4:BROWSE", "res:5:BROWSE", "res:6:BROWSE",
-                // S1913: listed rather than folded into sectionTail(), which has no padding cells by
-                // construction. This assertion is named "and padding set" and is called with
-                // allPaddingAvailable, so commonFeatures emits every key - the helper silently dropped
-                // them when the flat tail was refactored away, which is what made this test red.
                 "sec:app_functions",
-                "fn:streams", "fn:quick_camera", "fn:quick_voice",
-                "fn:calculator", "fn:network_monitor", "fn:ocr",
-                // S2019: the five programs the seed used to leave out of the App-functions section.
-                "fn:screen_recording", "fn:link_download", "fn:game", "fn:system_info", "fn:wear_companion",
-            ) + actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail,
+            ) +
+                SubProgramCatalog
+                    .forSurface(SubProgramSurface.LAUNCHER_SHORTCUT)
+                    .map { "fn:${it.routeKey}" }
+                    // S2749: the game and the network monitor are seeded by the utility section instead.
+                    .filterNot { it in utilityRouteTargets } +
+                actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) + commonTail + settingsSection(),
             items.map { it.target },
         )
     }
@@ -197,21 +339,50 @@ class LauncherStarterSetsTest {
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
-            mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only calculator compiled in
+            mapOf(InternalRouteCatalog.KEY_CALCULATOR to true), // only the calculator is launchable
             emptySet(),
             screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }
         assertEquals(
             listOf(
                 "clock", "search", "weather",
-                "sec:widgets", "compass",
+                "sec:widgets", "compass", "translator", "storage",
                 "sec:resources", "res:1:BROWSE",
                 "sec:app_functions", "fn:calculator",
             ) +
                 actionTargets(DeviceProfileType.PERSONAL_SMARTPHONE) +
-                commonTail,
+                commonTail +
+                settingsSection(),
             items.map { it.target },
         )
+    }
+
+    /**
+     * S2382: `utilityWidgetGroup` reads the map separately from `commonFeatures`, so the case above proves
+     * nothing about it. The car profile is used because its layout rule is the one that emits the group.
+     *
+     * Coverage limit, stated rather than implied: now that this parameter means "launchable", this file
+     * cannot tell "not compiled" from "compiled but switched off" - both arrive here as `false`, and the
+     * distinction lives one layer up in `SeedLauncherDesktopUseCase`, which no unit test covers. That use
+     * case takes ten collaborators and calls a `GmsAvailabilityChecker` object method on a `Context`, so
+     * the harness would cost more than the single expression it would guard. What holds the call site
+     * instead is the parameter name, which a future edit would have to contradict in words to break.
+     */
+    @Test
+    fun `utility widgets are skipped when their feature is not launchable`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.CAR_HEAD_UNIT,
+            StarterResources(),
+            allPaddingLaunchable + mapOf(
+                InternalRouteCatalog.KEY_GAME to false,
+                InternalRouteCatalog.KEY_NETWORK_MONITOR to false,
+            ),
+            emptySet(),
+            screenClass = mediumWide,
+        ).map { it.target }
+        assertFalse("a disabled game keeps no widget cell", "fn:game" in targets)
+        assertFalse("a disabled network monitor keeps no widget cell", "fn:network_monitor" in targets)
+        assertTrue("the speed gadget carries no feature gate", "speed" in targets)
     }
 
     @Test
@@ -237,7 +408,7 @@ class LauncherStarterSetsTest {
             ) +
                 actionTargets(DeviceProfileType.PHOTO_FRAME) +
                 commonTail +
-                listOf("sec:android_apps", "os:wifi"),
+                settingsSection(),
             items.map { it.target },
         )
     }
@@ -260,7 +431,7 @@ class LauncherStarterSetsTest {
             ) +
                 actionTargets(DeviceProfileType.PHOTO_FRAME) +
                 commonTail +
-                listOf("sec:android_apps", "os:wifi"),
+                settingsSection(),
             items.map { it.target },
         )
     }
@@ -279,11 +450,11 @@ class LauncherStarterSetsTest {
                 "clock", "search",
                 "sec:widgets", "playlist:7", "streams", "audio_now_playing", "media_audio_window:7",
                 "sec:resources", "res:7:BROWSE",
-                "sec:app_functions", "fn:streams",
+                "sec:app_functions",
             ) +
                 actionTargets(DeviceProfileType.AUDIO_PLAYER) +
                 commonTail +
-                listOf("sec:android_apps", "os:wifi", "os:bluetooth"),
+                settingsSection(),
             withStreams.map { it.target },
         )
         val withoutStreams = LauncherStarterSets.itemsFor(
@@ -301,7 +472,7 @@ class LauncherStarterSetsTest {
     fun `no third-party app cell is seeded when nothing is installed`() {
         DeviceProfileType.entries.forEach { profile ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, emptySet(), screenClass = mediumWide)
+                .itemsFor(profile, StarterResources(), allPaddingLaunchable, emptySet(), screenClass = mediumWide)
                 .map { it.target }
             LauncherStarterSets.candidatePackages.forEach { candidate ->
                 assertFalse("$profile seeded $candidate blind", targets.contains("app:$candidate"))
@@ -314,7 +485,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
             screenClass = mediumWide,
         ).map { it.target }
@@ -328,14 +499,14 @@ class LauncherStarterSetsTest {
         val car = LauncherStarterSets.itemsFor(
             DeviceProfileType.CAR_HEAD_UNIT,
             StarterResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             installed,
             screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
         val smartphone = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             installed,
             screenClass = mediumWide,
         ).filter { it.screenIndex == 0 }.map { it.target }.toSet()
@@ -351,12 +522,15 @@ class LauncherStarterSetsTest {
         assertEquals(DeviceProfileType.entries.toSet(), profileGrid.keys)
         profileGrid.forEach { (profile, expected) ->
             val targets = LauncherStarterSets
-                .itemsFor(profile, StarterResources(), allPaddingAvailable, installed, screenClass = mediumWide)
+                .itemsFor(profile, StarterResources(), allPaddingLaunchable, installed, screenClass = mediumWide)
                 .filter { it.screenIndex == 0 }
                 .map { it.target }.toSet()
             assertEquals("$profile weather", profile != DeviceProfileType.AUDIO_PLAYER, "weather" in targets)
-            assertEquals("$profile Wi-Fi", expected.wifi, "os:wifi" in targets)
-            assertEquals("$profile Bluetooth", expected.bluetooth, "os:bluetooth" in targets)
+            // S2735: Wi-Fi and Bluetooth stopped being grid rows - the settings section reaches every
+            // profile, so the question is no longer which profiles get them but that neither is seeded
+            // twice, which is what the Android-apps fixed rows did until this ticket.
+            assertTrue("$profile Wi-Fi", "os:wifi" in targets)
+            assertTrue("$profile Bluetooth", "os:bluetooth" in targets)
             assertEquals("$profile now-playing", expected.nowPlaying, "audio_now_playing" in targets)
             assertEquals("$profile black screen", expected.blackScreen, "act:black_screen" in targets)
             // S1747: the compass is the only location tile a fresh desktop seeds; altitude and
@@ -384,19 +558,89 @@ class LauncherStarterSetsTest {
     }
 
     /** Targets between the widgets header and the next section header; empty when the group is absent. */
-    private fun widgetTargets(profile: DeviceProfileType): List<String> {
+    private fun widgetTargets(
+        profile: DeviceProfileType,
+        installed: Set<String> = emptySet(),
+        screenClass: LauncherScreenClass = mediumWide,
+    ): List<String> {
         val res = StarterResources(allImagesId = 9, allDocsId = 9, lastResourceId = 9)
         val targets = LauncherStarterSets.itemsFor(
             profile,
             res,
             emptyMap(),
-            emptySet(),
-            screenClass = mediumWide,
+            installed,
+            screenClass = screenClass,
         ).map { it.target }
         val start = targets.indexOf("sec:widgets")
         if (start < 0) return emptyList()
         val rest = targets.drop(start + 1)
         return rest.take(rest.indexOfFirst { it.startsWith("sec:") }.takeIf { it >= 0 } ?: rest.size)
+    }
+
+    // ── S2385: the profile signature cell ────────
+
+    @Test
+    fun `the live map is the head units signature and reaches no other profile`() {
+        // The gadget shipped with S2241 and was seeded by nothing until this ticket, so the assertion
+        // that the other ten never get it is what keeps it a signature rather than a new default tile.
+        assertEquals(GOOGLE_MAPS_LIVE, widgetTargets(DeviceProfileType.CAR_HEAD_UNIT).first())
+        DeviceProfileType.entries
+            .filterNot { it == DeviceProfileType.CAR_HEAD_UNIT }
+            .forEach { profile ->
+                assertFalse(
+                    "$profile got the head unit's live map",
+                    GOOGLE_MAPS_LIVE in widgetTargets(profile, LauncherStarterSets.candidatePackages),
+                )
+            }
+    }
+
+    @Test
+    fun `youtube heads the tablet widgets group and sits on the desktop exactly once`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.HOME_TABLET,
+            fullResources(),
+            allPaddingLaunchable,
+            LauncherStarterSets.candidatePackages,
+            googleServicesAvailable = true,
+            thirdPartyApps = listOf(LauncherStarterSets.PACKAGE_YOUTUBE, "com.whatsapp"),
+            screenClass = mediumWide,
+        ).map { it.target }
+
+        val youtube = "app:${LauncherStarterSets.PACKAGE_YOUTUBE}"
+        // S2015's defect, one owner further along: the profile group, the Google section and the
+        // Android-apps section can each claim the package, and all three run on this device.
+        assertEquals("YouTube seeded more than once", 1, targets.count { it == youtube })
+        val tabletWidgets =
+            widgetTargets(DeviceProfileType.HOME_TABLET, setOf(LauncherStarterSets.PACKAGE_YOUTUBE))
+        assertEquals(youtube, tabletWidgets.first())
+    }
+
+    @Test
+    fun `the tablet seeds no youtube cell at all when the package is absent`() {
+        val targets = LauncherStarterSets.itemsFor(
+            DeviceProfileType.HOME_TABLET,
+            fullResources(),
+            allPaddingLaunchable,
+            emptySet(),
+            googleServicesAvailable = true,
+            screenClass = mediumWide,
+        ).map { it.target }
+        assertFalse(
+            "an uninstalled signature must leave no cell, not a dead one",
+            targets.contains("app:${LauncherStarterSets.PACKAGE_YOUTUBE}"),
+        )
+    }
+
+    @Test
+    fun `both signatures survive the compact budget that cuts the group to three`() {
+        // Strategic ADR-2: the group scales to three items on a compact screen, so a signature seeded
+        // at the tail would be the first cell cut - which is the one cell the ticket exists to seed.
+        val compact = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED)
+        val car = widgetTargets(DeviceProfileType.CAR_HEAD_UNIT, LauncherStarterSets.candidatePackages, compact)
+        val tablet = widgetTargets(DeviceProfileType.HOME_TABLET, LauncherStarterSets.candidatePackages, compact)
+        assertTrue("the compact budget did not bite", car.size <= COMPACT_GADGET_BUDGET)
+        assertTrue("car lost its live map to the budget", GOOGLE_MAPS_LIVE in car)
+        assertTrue("tablet lost YouTube to the budget", "app:${LauncherStarterSets.PACKAGE_YOUTUBE}" in tablet)
     }
 
     // ── place (the overlap invariant) ────────
@@ -423,7 +667,7 @@ class LauncherStarterSetsTest {
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             screenClass = mediumWide,
         )
@@ -449,7 +693,7 @@ class LauncherStarterSetsTest {
         val items = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             importedShortcuts = imported,
             screenClass = mediumWide,
@@ -471,7 +715,7 @@ class LauncherStarterSetsTest {
             val items = LauncherStarterSets.itemsFor(
                 profile,
                 StarterResources(recentId = 1, allAudioId = 2, allImagesId = 3, allVideoId = 4, allDocsId = 5),
-                allPaddingAvailable,
+                allPaddingLaunchable,
                 emptySet(),
                 screenClass = mediumWide,
             )
@@ -491,7 +735,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             importedShortcuts = imported,
             screenClass = mediumWide,
@@ -513,7 +757,7 @@ class LauncherStarterSetsTest {
     ): List<LauncherStarterSets.StarterItem> = LauncherStarterSets.itemsFor(
         DeviceProfileType.PERSONAL_SMARTPHONE,
         StarterResources(recentId = 1),
-        allPaddingAvailable,
+        allPaddingLaunchable,
         installed,
         googleServicesAvailable = googleServicesAvailable,
         screenClass = mediumWide,
@@ -603,7 +847,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             LauncherStarterSets.candidatePackages,
             googleServicesAvailable = true,
             thirdPartyApps = thirdParty,
@@ -627,7 +871,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE),
             thirdPartyApps = listOf(LauncherStarterSets.PACKAGE_YOUTUBE, "com.whatsapp"),
             screenClass = mediumWide,
@@ -660,7 +904,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             StarterResources(recentId = 1),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf("com.android.vending"),
             googleServicesAvailable = true,
             importedShortcuts = imported,
@@ -774,7 +1018,7 @@ class LauncherStarterSetsTest {
                 allDocsId = 5,
                 cameraId = 6,
             ),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(
                 LauncherStarterSets.PACKAGE_YOUTUBE,
                 LauncherStarterSets.PACKAGE_YOUTUBE_MUSIC,
@@ -846,7 +1090,7 @@ class LauncherStarterSetsTest {
             allDocsId = 5,
             cameraId = 6,
         ),
-        allPaddingAvailable,
+        allPaddingLaunchable,
         setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
         screenClass = mediumWide,
     )
@@ -886,14 +1130,14 @@ class LauncherStarterSetsTest {
         val compact = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             fullResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
             screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
         ).count { it.screenIndex == 0 }
         val expanded = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             fullResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
             screenClass = LauncherScreenClass(LauncherScreenClass.Size.EXPANDED, LauncherScreenClass.Shape.BALANCED),
         ).count { it.screenIndex == 0 }
@@ -910,7 +1154,7 @@ class LauncherStarterSetsTest {
         val headers = LauncherStarterSets.itemsFor(
             profile,
             fullResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_MAPS),
             screenClass = screenClass,
         ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
@@ -939,7 +1183,7 @@ class LauncherStarterSetsTest {
                     val items = LauncherStarterSets.itemsFor(
                         profile,
                         fullResources(),
-                        allPaddingAvailable,
+                        allPaddingLaunchable,
                         setOf(LauncherStarterSets.PACKAGE_MAPS),
                         screenClass = screenClass,
                     )
@@ -1004,7 +1248,7 @@ class LauncherStarterSetsTest {
                     val headers = LauncherStarterSets.itemsFor(
                         profile,
                         fullResources(),
-                        allPaddingAvailable,
+                        allPaddingLaunchable,
                         setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
                         screenClass = LauncherScreenClass(size, shape),
                     ).filter { it.target.startsWith(LauncherCellCommand.PREFIX_SECTION) }
@@ -1029,7 +1273,7 @@ class LauncherStarterSetsTest {
             val targets = LauncherStarterSets.itemsFor(
                 DeviceProfileType.PERSONAL_SMARTPHONE,
                 fullResources(),
-                allPaddingAvailable,
+                allPaddingLaunchable,
                 emptySet(),
                 screenClass = screenClass,
             ).map { it.target }
@@ -1053,7 +1297,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             fullResources().copy(userResourceIds = userIds),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             screenClass = screenClass,
         ).map { it.target }
@@ -1071,7 +1315,7 @@ class LauncherStarterSetsTest {
         val targets = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             fullResources().copy(userResourceIds = listOf(USER_RESOURCE_FIRST_ID)),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             emptySet(),
             screenClass = LauncherScreenClass(LauncherScreenClass.Size.COMPACT, LauncherScreenClass.Shape.ELONGATED),
         ).map { it.target }
@@ -1085,7 +1329,7 @@ class LauncherStarterSetsTest {
         val screenZero = LauncherStarterSets.itemsFor(
             DeviceProfileType.PERSONAL_SMARTPHONE,
             fullResources(),
-            allPaddingAvailable,
+            allPaddingLaunchable,
             setOf(LauncherStarterSets.PACKAGE_YOUTUBE, LauncherStarterSets.PACKAGE_MAPS),
             googleServicesAvailable = true,
             screenClass = mediumWide,
@@ -1114,6 +1358,19 @@ class LauncherStarterSetsTest {
     private companion object {
         const val FM_RADIO_PACKAGE = "com.android.fmradio"
         const val MIN_COLUMNS = 3
+
+        // S2385: the head unit's signature cell. A literal rather than the const, which is private -
+        // the parity test is what ties this string to LauncherGadgetRegistry.KEY_GOOGLE_MAPS_LIVE.
+        const val GOOGLE_MAPS_LIVE = "google_maps_live"
+
+        /** BUDGET_GADGETS scaled by the compact size adjustment - 6 at 60 percent. */
+        const val COMPACT_GADGET_BUDGET = 3
+
+        /** S2735: BUDGET_SYSTEM_SETTINGS unscaled - what the medium size adjustment leaves. */
+        const val SYSTEM_SETTINGS_BUDGET_MEDIUM = 8
+
+        /** S2735: the same budget at the compact size adjustment - 8 at 60 percent. */
+        const val SYSTEM_SETTINGS_BUDGET_COMPACT = 4
 
         // S2321: the three aggregates a compact screen used to drop, named so the assertions read as
         // the symptom rather than as three bare numbers.

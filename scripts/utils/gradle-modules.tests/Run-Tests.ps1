@@ -77,6 +77,38 @@ Assert-BuildTypes -Name 'watchface' -Expected @('Debug', 'Release')
 Assert-BuildTypes -Name 'benchmark' -Expected @('NonMinifiedRelease', 'BenchmarkRelease')
 Assert-BuildTypes -Name 'lint-rules' -Expected @()
 
+# 2c. Device module (S2611) - the translation between a GRADLE module name and the vocabulary
+# scripts/devtest/device-ready.ps1 selects an attached device with. Every caller of that probe holds
+# the former and the probe takes the latter, and a caller that guessed the form factor instead of
+# translating is the S2600 incident: a watch-sourced verdict landed in a phone ticket's spec.
+function Assert-DeviceModule {
+    param([string]$Name, [string]$Expected)
+    $actual = Get-GradleModuleDeviceModule -Name $Name
+    if ($actual -ne $Expected) {
+        throw "DeviceModule [$Name]: expected '$Expected', got '$actual'."
+    }
+}
+Assert-DeviceModule -Name 'app_v2' -Expected 'app_v2'
+Assert-DeviceModule -Name 'wear' -Expected 'wear'
+# The row BuildDomain cannot produce: :watchface takes every build domain ($null) and still installs
+# only on a watch. The two fields answer opposite questions, which is why one is not derived from the other.
+Assert-DeviceModule -Name 'watchface' -Expected 'wear'
+Assert-DeviceModule -Name 'benchmark' -Expected 'app_v2'
+
+# The two refusals stay distinct: "installs nowhere" and "never heard of it" lead to different fixes.
+foreach ($case in @(
+        @{ Name = 'lint-rules'; Match = 'reaches no device' },
+        @{ Name = 'no-such-module'; Match = 'Unknown Gradle module' })) {
+    $refusal = $null
+    try { Get-GradleModuleDeviceModule -Name $case.Name } catch { $refusal = $_.Exception.Message }
+    if (-not $refusal) {
+        throw "DeviceModule [$($case.Name)]: expected a refusal, got an answer."
+    }
+    if ($refusal -notmatch $case.Match) {
+        throw "DeviceModule [$($case.Name)]: refusal did not mention '$($case.Match)' - got: $refusal"
+    }
+}
+
 foreach ($pair in @(
         @{ Module = 'app_v2'; Default = 'Debug' },
         @{ Module = 'wear'; Default = 'Debug' },

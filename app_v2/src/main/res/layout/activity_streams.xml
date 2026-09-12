@@ -17,11 +17,13 @@
             android:layout_width="match_parent"
             android:layout_height="?actionBarSize"
             android:background="?attr/colorPrimary"
+            android:theme="@style/ThemeOverlay.FastMediaSorter.Toolbar.Primary"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="?attr/colorOnPrimary"
             app:menu="@menu/menu_streams"
             app:title="@string/streams_title"
             app:titleTextColor="?attr/colorOnPrimary">
+
 
             <!-- S0940: in-landscape host for the relocated search/filter/sort control group.
                  Empty and gone in portrait; StreamsControlsPlacementManager reparents the
@@ -76,7 +78,7 @@
                 app:endIconTint="?attr/colorControlNormal"
                 app:hintEnabled="false">
 
-                <com.google.android.material.textfield.TextInputEditText
+                <com.sza.fastmediasorter.ui.common.widget.SafeSelectionTextInputEditText
                     android:id="@+id/etSearch"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -155,6 +157,31 @@
                 android:nextFocusDown="@id/rvStreams"
                 android:contentDescription="@string/streams_sort" />
         </LinearLayout>
+
+        <!-- S2669: curated-collection strip. Stays in the content column in BOTH orientations -
+             StreamsControlsPlacementManager reparents only streamControls, so in landscape this
+             becomes the topmost content row, directly under the toolbar. Gone until the catalog
+             actually delivered collections, so an archive without them leaves the screen unchanged. -->
+        <HorizontalScrollView
+            android:id="@+id/streamCollectionsStrip"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="@dimen/streams_collections_strip_side_padding"
+            android:paddingEnd="@dimen/streams_collections_strip_side_padding"
+            android:paddingBottom="@dimen/streams_collections_strip_bottom_padding"
+            android:scrollbars="none"
+            android:visibility="gone"
+            android:contentDescription="@string/streams_collection_strip_description">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/streamCollectionsChips"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true"
+                app:selectionRequired="true" />
+
+        </HorizontalScrollView>
 
         <!-- S1141: pinned-channels section - shown by StreamsSectionsManager only when >=1 pinned. -->
         <LinearLayout

@@ -14,4 +14,17 @@
         <item>15.0</item>
         <item>70.0</item>
     </array>
+
+    <!-- S2786: preset auto-hide durations offered beside the free-entry field. Bare numerals, so nothing to translate. -->
+    <string-array name="player_panel_auto_hide_seconds_entries" translatable="false">
+        <item>3</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+        <item>30</item>
+        <item>45</item>
+        <item>60</item>
+        <item>120</item>
+    </string-array>
 </resources>

@@ -37,6 +37,7 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
         request: LauncherApps.PinItemRequest,
         orientation: LauncherOrientation,
         addedAt: Long,
+        screenIndex: Int = 0,
     ): Boolean = withContext(Dispatchers.IO) {
         val shortcut = dataSource.acceptPinRequest(request) ?: return@withContext false
         val state = desktopRepository.state()
@@ -48,6 +49,7 @@ class AcceptPinnedShortcutUseCase @Inject constructor(
         val cell = LauncherCell(
             id = 0,
             orientation = orientation,
+            screenIndex = screenIndex,
             // Ignored: addCellInFirstFreeSlot scans for the anchor and overwrites both.
             rowIndex = 0,
             colIndex = 0,

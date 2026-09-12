@@ -21,6 +21,16 @@
                 <action android:name="com.sza.fastmediasorter.debug.CAMERA_TEST_OPEN" />
             </intent-filter>
         </receiver>
+        <!-- S2380: sets a colour theme on the running process for the host-side UI sweep. Exported
+             for CAMERA_TEST_OPEN's reason - the sender is `adb shell am broadcast`, which is another
+             uid, and a non-exported receiver is skipped for it. Debug only. -->
+        <receiver
+            android:name=".core.debug.ThemeTestReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.sza.fastmediasorter.debug.THEME_TEST_SET" />
+            </intent-filter>
+        </receiver>
 
     </application>
 

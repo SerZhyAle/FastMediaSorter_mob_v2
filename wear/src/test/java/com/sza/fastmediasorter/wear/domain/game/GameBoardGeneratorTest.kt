@@ -47,4 +47,40 @@ class GameBoardGeneratorTest {
 
         assertNull(exhausted.createInitialState(GameLevelConfig(seed = 1L)))
     }
+
+    @Test
+    fun `round standard 12x11 board generates with void corners intact and actors on floor`() {
+        val config = GameLevelConfig(
+            width = GameBoard.ROUND_STANDARD_WIDTH,
+            height = GameBoard.ROUND_STANDARD_HEIGHT,
+            seed = 101L
+        )
+
+        val state = generator.createInitialState(config)
+        assertNotNull(state)
+        requireNotNull(state)
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 0)))
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 1)))
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 10)))
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 11)))
+        assertTrue(state.board.isFloor(state.player.position))
+        assertTrue(state.enemies.all { state.board.isFloor(it.position) })
+    }
+
+    @Test
+    fun `round compact 10x9 board generates with void corners intact and actors on floor`() {
+        val config = GameLevelConfig(
+            width = GameBoard.ROUND_COMPACT_WIDTH,
+            height = GameBoard.ROUND_COMPACT_HEIGHT,
+            seed = 202L
+        )
+
+        val state = generator.createInitialState(config)
+        assertNotNull(state)
+        requireNotNull(state)
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 0)))
+        assertEquals(GameCell.VOID, state.board.cellAt(GamePosition(0, 9)))
+        assertTrue(state.board.isFloor(state.player.position))
+        assertTrue(state.enemies.all { state.board.isFloor(it.position) })
+    }
 }

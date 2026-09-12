@@ -19,16 +19,20 @@ Status: active S0551 capability-regression suite.
 - `features/settings/` - settings search empty-state (negative half) and search-to-section navigation (positive half, S1612).
 - `features/statistics/` - usage dashboard opens from its opt-in-gated settings row (S1612).
 - `features/text/` - `.txt` renders in the dedicated text viewer, asserted on the text views rather than the generic player container (S1612).
-- `features/launcher/` - launcher mode controls, launcher settings dialog round-trip, and collapsible section navigation (S2263).
+- `features/launcher/` - launcher mode controls, launcher settings dialog round-trip, and collapsible section navigation (S2263). The last two need the `ROLE_HOME` system role and declare it with `# maestro-requires: home-role`; on a physical device they are skipped unless `-AllowHomeRoleGrant` is passed (S2720).
 - `features/player/` - video, image, audio lyrics, documents, resume, info dialog.
 - `features/slideshow/` - slideshow start/stop regression.
 - `features/edge/` - no-extension and large-video edge cases, back-from-every-screen.
+- `wear/` - the watch tree (S2548): home navigation, local playback, settings persistence, rotary reach. Run `-Suite wear` with the watch's `-DeviceId`; a watch suite aimed at a non-watch target is refused with exit 5, because both debug builds share one application id. Flow steps address project-owned nodes by `WearTestTags` resource-id, never by a caption.
 - `_shared/` - reusable permission/navigation fragments.
 
 `-Suite all` is the emulator-default suite. It excludes device-only file-operation flows until
 `Ops/src` and `Ops/dst` are registered as writable operation resources on the target device.
 It also excludes the `features/resource/` flows (need All-Files access granted for the debug
-package on API 30+); run those with an explicit `-Suite features\resource`.
+package on API 30+); run those with an explicit `-Suite features\resource`. Grant that access with
+`scripts/devtest/grant-all-files-access.ps1`, and only on a build declaring the permission - S2012
+left it in `noLegal` alone, and on the standard debug build a raw `appops set` succeeds while
+changing nothing (S2713).
 Network/cloud flows are deferred from the active suite because they require external reachability.
 
 ## Run Examples
@@ -37,4 +41,9 @@ Network/cloud flows are deferred from the active suite because they require exte
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite all -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite features\player -Json
 pwsh -NoProfile -File maestro/run-tests.ps1 -Suite smoke -DeviceId emulator-5554
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite launcher_home_smoke.yaml
+pwsh -NoProfile -File maestro/run-tests.ps1 -Suite launcher_home_smoke.yaml -ListFlows
 ```
+
+A single flow may be named by its bare file name - the category is not required, and a wrong one
+is ignored. `-ListFlows` resolves the selection and exits without a device.

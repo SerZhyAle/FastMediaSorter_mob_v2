@@ -8,7 +8,6 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.databinding.DialogLauncherSettingsBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensEnumerationManager
 import com.sza.fastmediasorter.ui.cameracapture.helpers.CameraLensLabelFormatter
@@ -19,44 +18,48 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 
-/** Owns the wallpaper row and its camera-specific recovery flow. */
+/**
+ * S1101/S2076: owns the wallpaper source flows - the image pick, the CAMERA grant and the lens picker.
+ *
+ * S2730 detached it from any one binding. It used to also own the wallpaper dropdown inside the launcher
+ * settings dialog, which made it unusable from the wallpaper screen that replaced that dropdown; the modes
+ * offered by a surface are now that surface's business and only the source flows are shared, because they
+ * are the part that costs a permission, a picker dialog and a camera enumeration.
+ *
+ * [onSelectionAbandoned] fires whenever a flow ends without a choice - a cancelled pick, a refused grant,
+ * a device that lists no lens - so the caller can put its own control back on the stored mode. Without it
+ * a surface would be left showing a mode the settings never received.
+ */
 class LauncherWallpaperSettingsManager(
     private val host: DialogFragment,
-    private val binding: DialogLauncherSettingsBinding,
     private val hasCamera: () -> Boolean,
-    private val currentSettings: () -> AppSettings,
-    private val isUpdating: () -> Boolean,
-    private val applyMode: (String) -> Unit,
     private val launchImagePicker: () -> Unit,
     private val requestCameraPermission: () -> Unit,
     private val applyCameraLens: (lensId: String, isInstantPhoto: Boolean) -> Unit,
+    private val onSelectionAbandoned: () -> Unit,
 ) {
-    private val offeredModes: List<String> by lazy {
+    /** The modes this device can actually offer - the camera pair is dropped without camera hardware. */
+    val offeredModes: List<String> by lazy {
         AppSettings.LAUNCHER_WALLPAPER_MODES.filter { mode ->
             mode !in CAMERA_MODES || hasCamera()
         }
     }
 
-    fun setupRow() {
-        binding.rowLauncherWallpaper.setEntries(offeredModes.map { host.getText(labelOf(it)) })
-        binding.rowLauncherWallpaper.setOnItemSelectedListener { index ->
-            if (isUpdating()) return@setOnItemSelectedListener
-            when (val mode = offeredModes.getOrElse(index) { AppSettings.LAUNCHER_WALLPAPER_BRANDED }) {
-                AppSettings.LAUNCHER_WALLPAPER_IMAGE -> launchImagePicker()
-                AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraSelection(false)
-                AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> beginCameraSelection(true)
-                else -> applyMode(mode)
-            }
+    /** Starts whatever the chosen mode needs before it can be stored; other modes need nothing. */
+    fun beginSourceSelection(mode: String) {
+        when (mode) {
+            AppSettings.LAUNCHER_WALLPAPER_IMAGE -> launchImagePicker()
+            AppSettings.LAUNCHER_WALLPAPER_CAMERA -> beginCameraSelection(false)
+            AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> beginCameraSelection(true)
+            else -> Unit
         }
     }
 
-    fun render(settings: AppSettings) {
-        val index = offeredModes.indexOf(settings.launcherWallpaperMode).coerceAtLeast(0)
-        binding.rowLauncherWallpaper.setSelection(index)
-    }
+    /** True when [mode] cannot be applied until a source is chosen. */
+    fun needsSource(mode: String): Boolean = mode in SOURCE_MODES
 
     fun onCameraPermissionResult(granted: Boolean) {
-        if (granted) showCameraLensPicker() else render(currentSettings())
+        if (granted) showCameraLensPicker() else onSelectionAbandoned()
     }
 
     private fun beginCameraSelection(isInstantPhoto: Boolean) {
@@ -79,7 +82,7 @@ class LauncherWallpaperSettingsManager(
                 }
             }
             if (entries.isEmpty()) {
-                render(currentSettings())
+                onSelectionAbandoned()
                 return@launch
             }
             val labels = entries.map { CameraLensLabelFormatter().label(context, it, entries) }.toTypedArray()
@@ -91,26 +94,39 @@ class LauncherWallpaperSettingsManager(
                 .setPositiveButton(R.string.ok) { _, _ ->
                     entries.getOrNull(chosen)?.let { applyCameraLens(it.id, isInstantPhoto) }
                 }
-                .setNegativeButton(R.string.cancel) { _, _ -> render(currentSettings()) }
-                .setOnCancelListener { render(currentSettings()) }
+                .setNegativeButton(R.string.cancel) { _, _ -> onSelectionAbandoned() }
+                .setOnCancelListener { onSelectionAbandoned() }
                 .create()
                 .showBoundTo(host.viewLifecycleOwner)
         }
     }
 
-    private fun labelOf(mode: String): Int = when (mode) {
-        AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> R.string.launcher_settings_wallpaper_static_stripes
-        AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_settings_wallpaper_none
-        AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_settings_wallpaper_image
-        AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_settings_wallpaper_camera
-        AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> R.string.launcher_wallpaper_mode_instant_photo
-        else -> R.string.launcher_settings_wallpaper_branded
-    }
+    companion object {
+        /** The label a surface shows for a mode token. */
+        fun labelOf(mode: String): Int = when (mode) {
+            AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> R.string.launcher_settings_wallpaper_static_stripes
+            AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_settings_wallpaper_none
+            AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_settings_wallpaper_image
+            AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_settings_wallpaper_camera
+            AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> R.string.launcher_wallpaper_mode_instant_photo
+            else -> R.string.launcher_settings_wallpaper_branded
+        }
 
-    private companion object {
-        val CAMERA_MODES = setOf(
+        /** S2730: the sentence that says what a mode does, shown beside its label on the wallpaper screen. */
+        fun descriptionOf(mode: String): Int = when (mode) {
+            AppSettings.LAUNCHER_WALLPAPER_STATIC_STRIPES -> R.string.launcher_wallpaper_desc_static_stripes
+            AppSettings.LAUNCHER_WALLPAPER_NONE -> R.string.launcher_wallpaper_desc_none
+            AppSettings.LAUNCHER_WALLPAPER_IMAGE -> R.string.launcher_wallpaper_desc_image
+            AppSettings.LAUNCHER_WALLPAPER_CAMERA -> R.string.launcher_wallpaper_desc_camera
+            AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO -> R.string.launcher_wallpaper_desc_instant_photo
+            else -> R.string.launcher_wallpaper_desc_branded
+        }
+
+        private val CAMERA_MODES = setOf(
             AppSettings.LAUNCHER_WALLPAPER_CAMERA,
             AppSettings.LAUNCHER_WALLPAPER_INSTANT_PHOTO,
         )
+
+        private val SOURCE_MODES = CAMERA_MODES + AppSettings.LAUNCHER_WALLPAPER_IMAGE
     }
 }

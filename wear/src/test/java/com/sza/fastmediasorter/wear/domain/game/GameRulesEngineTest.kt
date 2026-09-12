@@ -155,6 +155,50 @@ class GameRulesEngineTest {
         assertEquals(0, result.state.stats.turns)
     }
 
+    @Test
+    fun `moving into a VOID cell is rejected as OUT_OF_BOUNDS`() {
+        val state = stateOf(
+            rows = arrayOf(
+                " ..",
+                "...",
+                "..."
+            ),
+            player = GamePosition(0, 1),
+            kryvavitsa = GamePosition(2, 2)
+        )
+
+        val result = engine.applyMove(state, GameDirection.LEFT)
+
+        assertEquals(GamePosition(0, 1), result.state.player.position)
+        assertTrue(
+            result.events.contains(
+                GameEvent.PlayerBlocked(GameMoveRejectReason.OUT_OF_BOUNDS, GamePosition(0, 0))
+            )
+        )
+    }
+
+    @Test
+    fun `pushing a wall into a VOID cell is rejected as WALL_AT_BOARD_EDGE`() {
+        val state = stateOf(
+            rows = arrayOf(
+                " #.",
+                ".#.",
+                "..."
+            ),
+            player = GamePosition(1, 1),
+            kryvavitsa = GamePosition(2, 2)
+        )
+
+        val result = engine.applyMove(state, GameDirection.UP)
+
+        assertEquals(GamePosition(1, 1), result.state.player.position)
+        assertTrue(
+            result.events.contains(
+                GameEvent.PlayerBlocked(GameMoveRejectReason.WALL_AT_BOARD_EDGE, GamePosition(0, 1))
+            )
+        )
+    }
+
     private fun stateOf(
         rows: Array<String>,
         player: GamePosition,

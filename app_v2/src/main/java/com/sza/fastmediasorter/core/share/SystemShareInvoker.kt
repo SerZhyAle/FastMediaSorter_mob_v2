@@ -5,6 +5,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
 import timber.log.Timber
 
 /**
@@ -40,6 +41,10 @@ object SystemShareInvoker {
             intent.setPackage(preferredPackage)
             startSafely(context, intent)
         } else {
+            if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
+                Timber.d("S2902: SystemShareInvoker: no activity handles share intent for type=${intent.type}")
+                return false
+            }
             val chooser = Intent.createChooser(intent, chooserTitle)
             if (context !is android.app.Activity) {
                 chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
@@ -79,6 +84,11 @@ object SystemShareInvoker {
             val targeted = Intent(intent).setPackage(preferredPackage)
             if (startSafely(context, targeted)) return true
             Timber.i("SystemShareInvoker: $preferredPackage unavailable, falling back to chooser")
+        }
+
+        if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
+            Timber.d("S2902: SystemShareInvoker: no activity handles file share intent for mime=$mime")
+            return false
         }
 
         val chooser = Intent.createChooser(intent, chooserTitle)

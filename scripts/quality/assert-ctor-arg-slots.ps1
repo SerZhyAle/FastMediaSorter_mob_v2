@@ -33,6 +33,18 @@
     Headroom, in properties, below which a class is reported as approaching the ceiling. Default 20 -
     roughly a quarter's worth of growth at this repository's observed rate of one field per ticket.
 
+.PARAMETER ChangedFiles
+    S2537. The changed set, as ONE comma-joined argument (`pwsh -File` binds a [string[]] parameter
+    to its first element only, which is why every consumer in this repo comma-splits - S1184). A
+    constructor can only cross the ceiling through a changed Kotlin file, so a scoped run measures
+    exactly those and skips the rest of the tree. An unscoped run keeps the strict project-wide
+    verdict, which is what assert-fast-gates.ps1 and a release run get.
+
+    Why it exists: measured over the gate journal for 2026-08-24..2026-09-04, this gate cost a 5.1 s
+    median on each of 344 closures and found nothing in any of them, because it walked both source
+    trees every time. Its sibling assert-listener-symmetry.ps1 costs 12.4 s over the tree and 0.69 s
+    over a changed set - the same twentyfold difference this parameter buys here.
+
 .PARAMETER Quiet
     Suppress per-run progress lines; the verdict line and any offending rows still print. This is
     what assert-fast-gates.ps1 passes when it runs the gate as part of the batch.
@@ -49,7 +61,8 @@
 param(
     [switch]$Gate,
     [int]$WarnAt = 20,
-    [switch]$Quiet
+    [switch]$Quiet,
+    [string]$ChangedFiles
 )
 
 $ErrorActionPreference = 'Stop'
@@ -112,29 +125,51 @@ if ($roots.Count -eq 0) {
     exit 2
 }
 
+# S2537: resolve the named files directly rather than walking both trees to discard all but a few.
+$changedSet = @()
+foreach ($entry in @($ChangedFiles)) {
+    $changedSet += @($entry -split ',' | ForEach-Object { $_.Trim().Replace('\', '/') } | Where-Object { $_ })
+}
+$scoped = $changedSet.Count -gt 0
+$filesToMeasure = if ($scoped) {
+    @($changedSet |
+        Where-Object { $_ -like '*.kt' } |
+        ForEach-Object { Join-Path $repoRoot $_ } |
+        Where-Object { Test-Path -LiteralPath $_ } |
+        ForEach-Object { Get-Item -LiteralPath $_ })
+}
+else {
+    @(foreach ($root in $roots) { Get-ChildItem -LiteralPath $root -Recurse -Filter '*.kt' -File })
+}
+
+if ($scoped -and $filesToMeasure.Count -eq 0) {
+    if (-not $Quiet) {
+        Write-Host "assert-ctor-arg-slots: PASS (scoped to the changed set - no Kotlin file in it)." -ForegroundColor Green
+    }
+    exit 0
+}
+
 $measured = @()
-foreach ($root in $roots) {
-    foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -Filter '*.kt' -File) {
-        # @() matters: Get-Content returns a bare string for a one-line file and $null for an empty
-        # one, and both break the [string[]] parameter below.
-        $lines = @(Get-Content -LiteralPath $file.FullName)
-        if ($lines.Count -eq 0) { continue }
-        for ($i = 0; $i -lt $lines.Count; $i++) {
-            if ($lines[$i] -notmatch '^(?:internal |private |public |abstract |sealed |open )*(data )?class\s+(\w+)[^(]*\($') {
-                continue
-            }
-            $isData = [bool]$Matches[1]
-            $className = $Matches[2]
-            $result = Measure-PrimaryConstructor -Lines $lines -DeclarationIndex $i -IsDataClass $isData
-            if ($null -eq $result) { continue }
-            $measured += [pscustomobject]@{
-                Class = $className
-                File = $file.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
-                Params = $result.Params
-                WorstSlots = $result.WorstSlots
-                Headroom = $result.Headroom
-                Kind = $result.Kind
-            }
+foreach ($file in $filesToMeasure) {
+    # @() matters: Get-Content returns a bare string for a one-line file and $null for an empty
+    # one, and both break the [string[]] parameter below.
+    $lines = @(Get-Content -LiteralPath $file.FullName)
+    if ($lines.Count -eq 0) { continue }
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        if ($lines[$i] -notmatch '^(?:internal |private |public |abstract |sealed |open )*(data )?class\s+(\w+)[^(]*\($') {
+            continue
+        }
+        $isData = [bool]$Matches[1]
+        $className = $Matches[2]
+        $result = Measure-PrimaryConstructor -Lines $lines -DeclarationIndex $i -IsDataClass $isData
+        if ($null -eq $result) { continue }
+        $measured += [pscustomobject]@{
+            Class = $className
+            File = $file.FullName.Substring($repoRoot.Length + 1).Replace('\', '/')
+            Params = $result.Params
+            WorstSlots = $result.WorstSlots
+            Headroom = $result.Headroom
+            Kind = $result.Kind
         }
     }
 }

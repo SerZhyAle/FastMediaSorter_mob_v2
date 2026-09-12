@@ -30,7 +30,6 @@ import com.sza.fastmediasorter.ui.dialog.UiLanguagePickerItems
 import com.sza.fastmediasorter.ui.welcome.holders.FunctionalityPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.PermissionsPageViewHolder
 import com.sza.fastmediasorter.ui.welcome.holders.ProfilesPageViewHolder
-import timber.log.Timber
 
 class WelcomePagerAdapter(
     private val pages: List<WelcomePage>,
@@ -295,7 +294,6 @@ private fun animateEntrance(view: View, delayMs: Long) {
         view.clearAnimation()
         view.alpha = 1f
         view.translationY = 0f
-        Timber.d("S2250: welcome entrance skipped")
         return
     }
     val anim = AnimationUtils.loadAnimation(view.context, R.anim.welcome_fade_slide_up)

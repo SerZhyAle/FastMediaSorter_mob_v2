@@ -27,8 +27,8 @@ class LauncherSettingsStoreTest {
     fun `absent keys resolve to the documented defaults`() {
         val values = LauncherSettingsStore.read(mutablePreferencesOf())
 
-        // S2320: dense is the shipped grid density; literal for the same reason as the alpha below.
-        assertEquals(1.25f, values.densityFactor, 0.0f)
+        // S2903: sparse is the shipped grid density; read off the constant so the next default move stays one-file.
+        assertEquals(AppSettings.DEFAULT_LAUNCHER_DENSITY_FACTOR, values.densityFactor, 0.0f)
         assertTrue(values.taskbarShowRecents)
         assertTrue(values.trayShowBattery)
         // S2017: the tray clock is the one taskbar exception - off by default, duplicates the top bar clock.
@@ -41,7 +41,9 @@ class LauncherSettingsStoreTest {
         assertTrue(values.desktopDoubleTapLockEnabled)
         assertFalse(values.allAppsSortDescending)
         assertEquals("", values.wallpaperImagePath)
-        assertEquals(0, values.screenBlackoutTimeoutSeconds)
+        // S2384: idle screen-off ships on at 30 seconds. Pinned as a literal for the same reason the
+        // backdrop alpha below is - reading the constant the store reads would pin nothing.
+        assertEquals(30, values.screenBlackoutTimeoutSeconds)
         // S2320: the shared launcher backdrop starts at 25% opacity, so a fresh install reads its
         // surfaces as plates over the wallpaper. Pinned as a literal - reading the constant the store
         // itself reads would compare it with itself and pin nothing.
@@ -51,6 +53,8 @@ class LauncherSettingsStoreTest {
         // S2213: no saved place yet is the state a fresh install is in, and the branch a device pass is
         // least likely to reach - the tester has picked a city before he thinks to test this.
         assertEquals("", values.weatherLastLocation)
+        // S2223: dynamic palette by default.
+        assertEquals(AppSettings.ANIMATION_PALETTE_DYNAMIC, values.animationPalette)
     }
 
     @Test
@@ -234,6 +238,7 @@ class LauncherSettingsStoreTest {
                 screenBlackoutTimeoutSeconds = 45,
                 widgetBackdropAlpha = 0.25f,
                 weatherLastLocation = "50.45,30.52,Kyiv",
+                animationPalette = AppSettings.ANIMATION_PALETTE_GREEN,
             ),
         )
 
@@ -275,6 +280,18 @@ class LauncherSettingsStoreTest {
         assertEquals(settings.launcherWallpaperMode, values.wallpaperMode)
         assertEquals(settings.allAppsSortOrder, values.allAppsSortOrder)
         assertEquals(settings.launcherWeatherLastLocation, values.weatherLastLocation)
+        assertEquals(settings.launcherAnimationPalette, values.animationPalette)
+    }
+
+    @Test
+    fun `an unknown animation palette token falls back to DYNAMIC`() {
+        val prefs = mutablePreferencesOf()
+        LauncherSettingsStore.write(
+            prefs,
+            AppSettings(launcher = LauncherSettings(animationPalette = "UNKNOWN_PALETTE"))
+        )
+
+        assertEquals(AppSettings.ANIMATION_PALETTE_DYNAMIC, LauncherSettingsStore.read(prefs).animationPalette)
     }
 
     // S2300: `read` answers with the launcher group itself, so these mirror the production direction

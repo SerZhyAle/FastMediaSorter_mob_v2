@@ -48,7 +48,6 @@ object AppUpdateNoticeManager {
                             Toast.LENGTH_LONG
                         ).show()
                     }
-                    Timber.d("S2270: update notice delivered to host (%s)", activity.javaClass.simpleName)
                 }
             } catch (e: CancellationException) {
                 throw e

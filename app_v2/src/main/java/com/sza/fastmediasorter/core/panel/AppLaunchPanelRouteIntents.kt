@@ -10,14 +10,18 @@ import com.sza.fastmediasorter.ui.calculator.CalculatorActivity
 import com.sza.fastmediasorter.ui.cameraocr.CameraOcrTranslateActivity
 import com.sza.fastmediasorter.ui.flashlight.FlashlightToggleActivity
 import com.sza.fastmediasorter.ui.flashlight.FrontFlashlightActivity
+import com.sza.fastmediasorter.ui.flashlight.WaterFlashlightActivity
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.ui.mirror.MirrorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorActivity
 import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import com.sza.fastmediasorter.ui.networkmonitor.putNetworkMonitorLauncherOrigin
 import com.sza.fastmediasorter.ui.player.standalone.PhotoVideoStandaloneActivity
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
+import com.sza.fastmediasorter.ui.stopwatch.StopwatchActivity
 import com.sza.fastmediasorter.ui.streams.StreamsActivity
 import com.sza.fastmediasorter.ui.systeminfo.SystemInfoActivity
+import com.sza.fastmediasorter.ui.tourist.TouristInfoActivity
 import com.sza.fastmediasorter.ui.wear.WearCompanionActivity
 import com.sza.fastmediasorter.widget.CameraLaunchActivity
 import com.sza.fastmediasorter.widget.CameraQuickCaptureActivity
@@ -32,6 +36,7 @@ import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
  * home-screen widgets already use (strategic S0663 ADR-1) - no new navigation is introduced here.
  * Every intent gets [Intent.FLAG_ACTIVITY_NEW_TASK], matching the existing panel launch path.
  */
+@Suppress("TooManyFunctions") // S2997: one builder per route; grows with each sub-program
 object AppLaunchPanelRouteIntents {
 
     // S1103: a launcher cell that opens the quick-access panel overlay itself.
@@ -44,6 +49,15 @@ object AppLaunchPanelRouteIntents {
     // S1856: the calculator's own toggle lives on the Operations tab, next to the network monitor's
     // and the flashlight's - a disabled route opens its setting instead of dead-launching.
     fun calculatorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
+    fun stopwatch(context: Context): Intent = StopwatchActivity.createIntent(context).withPanelFlags()
+
+    // S1411 ADR-5: the stopwatch's switch sits on the Operations tab beside the calculator's, so a
+    // disabled route opens that tab exactly as the calculator's does.
+    fun stopwatchSettings(context: Context): Intent =
         Intent(context, SettingsActivity::class.java)
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
@@ -73,6 +87,17 @@ object AppLaunchPanelRouteIntents {
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .withPanelFlags()
 
+    // S2922: Tourist dashboard subprogram.
+    fun touristInfo(context: Context): Intent =
+        TouristInfoActivity.createIntent(context).withPanelFlags()
+
+    // S2997: the tourist toggle sits on the Operations tab beside the others, so a disabled route opens
+    // that tab exactly as the calculator's does.
+    fun touristSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
     // S1883: the same host window the settings button and the programs entry open, so all four
     // surfaces are one behaviour rather than several that resemble each other.
     fun wearCompanion(context: Context): Intent =
@@ -85,6 +110,10 @@ object AppLaunchPanelRouteIntents {
             .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
             .putExtra(SettingsActivity.EXTRA_EXPAND_SECTION, SettingsActivity.SECTION_WEAR)
             .withPanelFlags()
+
+    // S2881: the two watch-listen routes are absent from this object on purpose. The object sits at
+    // detekt's TooManyFunctions ceiling, and the trampoline's own createIntent already carries the
+    // NEW_TASK flag - so the catalog's route rows build their intent straight from the activity.
 
     fun game(context: Context): Intent =
         GameLaunchIntents.game(context).withPanelFlags()
@@ -132,9 +161,23 @@ object AppLaunchPanelRouteIntents {
     fun physicalFlashlight(context: Context): Intent =
         Intent(context, FlashlightToggleActivity::class.java).withPanelFlags()
 
+    // S2516: the water flashlight shares the front flashlight's settings tab, so its settings intent
+    // is that one - both switches live in the same operations section.
+    fun waterFlashlight(context: Context): Intent =
+        WaterFlashlightActivity.createIntent(context).withPanelFlags()
+
     // S2211: black screen as an autonomous sub-program.
     fun blackScreen(context: Context): Intent =
         Intent(context, com.sza.fastmediasorter.ui.blackscreen.BlackScreenActivity::class.java).withPanelFlags()
+
+    // S1924: the mirror is our own Activity, like the front flashlight - no widget trampoline reused.
+    fun mirror(context: Context): Intent =
+        MirrorActivity.createIntent(context).withPanelFlags()
+
+    fun mirrorSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
 
     // S0978: reuse the same standalone camera/photo trampolines the left-edge gesture dispatcher uses
     // (PhotoCaptureLaunchActivity auto-captures then routes; CameraLaunchActivity.videoIntent opens the

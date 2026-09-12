@@ -148,7 +148,8 @@ if (-not $resolvedApk -or -not (Test-Path $resolvedApk)) {
 $deviceReady = Join-Path $repoRoot 'scripts/devtest/device-ready.ps1'
 $deviceOnline = $false
 if (Test-Path $deviceReady) {
-    & pwsh -NoProfile -File $deviceReady -Package $pkg -Json *> $null
+    # S2611: -Module app_v2 - the artifact under smoke is the standardRelease APK of the phone.
+    & pwsh -NoProfile -File $deviceReady -Package $pkg -Module app_v2 -Json *> $null
     $deviceOnline = ($LASTEXITCODE -eq 0)
 } else {
     $adbDevices = (& adb devices 2>$null) | Select-Object -Skip 1 | Where-Object { $_ -match '\sdevice$' }

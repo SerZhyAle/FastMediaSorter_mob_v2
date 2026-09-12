@@ -14,16 +14,22 @@
       versionName      Y.YM.MDDH.Hmm   - identical for app_v2 and wear, byte for byte. It is the
                                          string the user reads on the device and the string a
                                          support log carries.
-      AppVersionCode   yyMMddHH + the first minute digit (9 digits).
-      WearVersionCode  yyMMddHH (8 digits), i.e. floor(AppVersionCode / 10).
+      AppVersionCode   yyMMddHH * 10 + floor(minute / 10)      - last digit 0..5, 9 digits.
+      WearVersionCode  yyMMddHH * 10 + 6 + floor(minute / 15)  - last digit 6..9, 9 digits.
 
     The two codes MUST differ: both modules publish under one applicationId (S1681), and Play
-    refuses a release whose artifacts repeat a versionCode. The derivation above is the
-    documented relationship that assert-module-version-parity.ps1 enforces on the checked-in
-    constants.
+    refuses a release whose artifacts repeat a versionCode. They differ by a PARTITION of the last
+    digit rather than by an arithmetic relation between them (S2721): the phone owns 0..5, the
+    watch owns 6..9, so the two can never collide whether they come from one joint stamp or from
+    the watch's own independent release cadence, where no phone code exists to derive from.
+
+    Both codes are full 9-digit date-time values of the same magnitude. The watch used to carry the
+    bare 8-digit yyMMddHH, ten times smaller than the phone's code under one applicationId, so a
+    fresh watch build read as older than a phone build from months earlier - and its hour
+    resolution allowed only one watch release per hour.
 
     Worked example - 2026-08-21 03:12 local:
-      VersionName 2.60.8210.312, AppVersionCode 260821031, WearVersionCode 26082103.
+      VersionName 2.60.8210.312, AppVersionCode 260821031, WearVersionCode 260821036.
 
     Exit codes: none. This file defines functions and returns nothing; it is dot-sourced, never
     invoked as a script.
@@ -51,8 +57,10 @@ function Get-BuildVersionStamp {
     $mm = $Now.ToString('mm')
 
     $stamp = $Now.ToString('yyMMddHH')
-    $wearCode = [int]$stamp
     $appCode = [int]($stamp + $mm.Substring(0, 1))
+    # 6.. rather than 0..: the separator digit is a partition, not an offset, so the watch code is
+    # clear of every phone code of the same hour without knowing what that phone code is (S2721).
+    $wearCode = [int]$stamp * 10 + 6 + [int][math]::Floor([int]$mm / 15)
     $versionName = '{0}.{1}{2}.{3}{4}{5}.{6}{7}' -f `
         $yy.Substring(0, 1), $yy.Substring(1, 1), $mon.Substring(0, 1), `
         $mon.Substring(1, 1), $dd, $hh.Substring(0, 1), $hh.Substring(1, 1), $mm
@@ -61,6 +69,51 @@ function Get-BuildVersionStamp {
         VersionName     = $versionName
         AppVersionCode  = $appCode
         WearVersionCode = $wearCode
+    }
+}
+
+function Get-ArtifactVersion {
+    <#
+    .SYNOPSIS
+        Read the versionName and versionCode a build actually packaged, from the AGP
+        output-metadata.json beside the artifact.
+    .DESCRIPTION
+        The successor to reading a version back out of build.gradle.kts. After S1873 ADR-4 nothing
+        writes those constants, so a consumer that still read them would report the sentinel as the
+        version it just built. The metadata is written by the build that produced the artifact, so
+        it cannot disagree with it.
+
+        $null means "no metadata to read" - absent file, unreadable JSON, or no elements. That is a
+        different answer from "the version is wrong", and a caller that collapses the two reports
+        "did not look" as "looked and found nothing".
+    .PARAMETER Dir
+        Directory holding output-metadata.json - an AGP output directory such as
+        app_v2/build/outputs/bundle/standardRelease.
+    .OUTPUTS
+        PSCustomObject with VersionName [string], VersionCode [int], MetadataPath [string]; or $null.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)] [string] $Dir
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Dir)) { return $null }
+    $metadataPath = Join-Path $Dir 'output-metadata.json'
+    if (-not (Test-Path -LiteralPath $metadataPath)) { return $null }
+
+    try { $metadata = Get-Content -LiteralPath $metadataPath -Raw | ConvertFrom-Json }
+    catch { return $null }
+
+    # Any element answers: AGP gives every ABI slice of one build the same versionCode and
+    # versionName (S1972 §6.2), and this function judges the version, not a particular file.
+    $element = @($metadata.elements) | Select-Object -First 1
+    if (-not $element) { return $null }
+    if ([string]::IsNullOrWhiteSpace([string]$element.versionName)) { return $null }
+
+    [pscustomobject]@{
+        VersionName  = [string]$element.versionName
+        VersionCode  = [int]$element.versionCode
+        MetadataPath = $metadataPath
     }
 }
 

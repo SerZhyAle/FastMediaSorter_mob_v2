@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import androidx.core.content.FileProvider
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import timber.log.Timber
 import java.io.File
 
@@ -43,10 +44,14 @@ class PrintShareFallbackManager(
                 putExtra(Intent.EXTRA_SUBJECT, displayName)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            val chooser = Intent.createChooser(
-                sendIntent,
-                chooserTitle ?: activity.getString(R.string.print_share_chooser_title)
-            ).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            // S2930: the caller is PrintDispatchActivity, which must NOT wrap its own context -
+            // createConfigurationContext on it makes One UI reject PrintManager.print(). So the title
+            // is read through a throwaway localized context instead of the activity's.
+            val title = chooserTitle ?: LocaleHelper
+                .localizedContext(activity, LocaleHelper.getLanguage(activity))
+                .getString(R.string.print_share_chooser_title)
+            val chooser = Intent.createChooser(sendIntent, title)
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             activity.startActivity(chooser)
             true
         } catch (e: Exception) {

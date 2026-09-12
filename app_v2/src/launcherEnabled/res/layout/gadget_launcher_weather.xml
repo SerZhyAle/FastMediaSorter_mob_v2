@@ -2,6 +2,7 @@
 <!-- S0426: the weather gadget. Sized by the desktop grid like every gadget, so nothing here sets a
      fixed height - the temperature autosizes into whatever the cell hands it. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -20,7 +21,7 @@
             android:adjustViewBounds="true"
             android:contentDescription="@null"
             android:maxWidth="48dp"
-            android:tint="?attr/colorOnSurface"
+            android:tint="?attr/launcherDesktopText"
             tools:ignore="UseAppTint"
             tools:src="@drawable/ic_weather_partly_cloudy" />
 
@@ -32,7 +33,7 @@
 
             <!-- S1587: shown only while the card carries no reading. A first-run phone has no place
                  chosen yet, so the card would otherwise be an unlabelled instruction. -->
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherCaption"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -40,12 +41,13 @@
                 android:importantForAccessibility="no"
                 android:maxLines="1"
                 android:text="@string/launcher_gadget_weather"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:visibility="visible" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherTemperature"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
@@ -56,30 +58,47 @@
                 android:ellipsize="end"
                 android:gravity="center_vertical"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurface"
+                android:textColor="?attr/launcherDesktopText"
                 android:textStyle="bold"
+                app:otv_outlineScale="@dimen/outline_text_stroke_scale"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="UnusedAttribute"
                 tools:text="+21°" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherPlace"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="12sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Kyiv" />
 
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+                android:id="@+id/gadgetWeatherUpdatedAt"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/launcherDesktopTextSecondary"
+                android:textSize="10sp"
+                android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+                tools:text="Updated 14:30"
+                tools:visibility="visible" />
+
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetWeatherMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:ellipsize="end"
                 android:maxLines="2"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
                 android:visibility="gone"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:text="Weather is unavailable right now"
                 tools:visibility="visible" />
 

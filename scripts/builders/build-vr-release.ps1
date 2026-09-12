@@ -4,17 +4,25 @@
     Build the FastMediaSorter VR release APK using the current release version.
 
 .DESCRIPTION
-    This script intentionally does not bump versionCode or versionName.
-    Run it after build-aab-release.ps1 / .\a.ps1 r in the release worktree so
-    the VR GitHub Store asset uses the same version as the standard release.
+    Stamps the build clock into the APK unless the caller pins a version. Pass
+    -VersionName/-VersionCode from the release orchestrator so the VR GitHub Store asset carries
+    the same version as the rest of that release spectrum (S1873).
 
 .PARAMETER DryRun
-    Validate paths and print the current version without invoking Gradle.
+    Validate paths and print the resolved version without invoking Gradle.
+
+.PARAMETER VersionName
+    Pin the published versionName instead of stamping the clock. Requires -VersionCode.
+
+.PARAMETER VersionCode
+    Pin the published versionCode instead of stamping the clock. Requires -VersionName.
 #>
 
 [CmdletBinding()]
 param(
-    [switch] $DryRun
+    [switch] $DryRun,
+    [string] $VersionName,
+    [int]    $VersionCode
 )
 
 $ErrorActionPreference = "Stop"
@@ -26,30 +34,28 @@ try {
 
 $projectRoot = Resolve-Path "$PSScriptRoot\..\..\"
 $gradlew = Join-Path $projectRoot "gradlew.bat"
-$buildGradlePath = Join-Path $projectRoot "app_v2\build.gradle.kts"
+# S1873: the version this script used to read out of app_v2/build.gradle.kts had no writer left
+# after ADR-4, so reusing it would have shipped the sentinel. -VersionName/-VersionCode carry the
+# release orchestrator's single shared stamp; without them the invocation clock applies, which is
+# correct for a standalone VR build and is what every other builder now does.
+. "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 
-if (-not (Test-Path -LiteralPath $buildGradlePath)) {
-    throw "build.gradle.kts not found at $buildGradlePath"
+if ([string]::IsNullOrWhiteSpace($VersionName) -ne ($VersionCode -le 0)) {
+    throw "Pass both -VersionName and -VersionCode together, or omit both to stamp from the clock."
 }
 
-$buildContent = Get-Content -LiteralPath $buildGradlePath -Raw
-# (?i): version lives in `defaultAppVersionName`/`defaultAppVersionCode` (capital V); match case-insensitively.
-$versionNameMatch = [regex]::Match($buildContent, '(?i)versionName\s*=\s*"([^"]+)"')
-$versionCodeMatch = [regex]::Match($buildContent, '(?i)versionCode\s*=\s*(\d+)')
-
-if (-not $versionNameMatch.Success) {
-    throw "Could not parse versionName from $buildGradlePath"
+if ([string]::IsNullOrWhiteSpace($VersionName)) {
+    $stamp = Get-BuildVersionStamp
+    $versionName = $stamp.VersionName
+    $versionCode = $stamp.AppVersionCode
 }
-if (-not $versionCodeMatch.Success) {
-    throw "Could not parse versionCode from $buildGradlePath"
+else {
+    $versionName = $VersionName.Trim()
+    $versionCode = $VersionCode
 }
-
-$versionName = $versionNameMatch.Groups[1].Value
-$versionCode = $versionCodeMatch.Groups[1].Value
 
 Write-Host "Building VR release APK..." -ForegroundColor Cyan
 Write-Host "Version: $versionName (code: $versionCode)" -ForegroundColor Green
-Write-Host "Version bump: skipped (uses current standard release version)" -ForegroundColor Yellow
 
 if ($DryRun) {
     Write-Host "Dry-run complete: Gradle invocation skipped." -ForegroundColor Cyan
@@ -59,7 +65,7 @@ if ($DryRun) {
 Push-Location $projectRoot
 try {
     Write-Host "Running: gradlew assembleVrRelease" -ForegroundColor Yellow
-    & $gradlew :app_v2:assembleVrRelease "-Pchaquopy.enabled=false" --configuration-cache
+    & $gradlew :app_v2:assembleVrRelease "-Pfms.versionCode=$versionCode" "-Pfms.versionName=$versionName" "-Pchaquopy.enabled=false" --configuration-cache
     $buildExit = $LASTEXITCODE
 }
 finally {

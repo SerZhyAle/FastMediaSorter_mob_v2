@@ -1,9 +1,13 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import android.content.Intent
 import com.sza.fastmediasorter.wear.data.files.WearMediaFileStager
 import com.sza.fastmediasorter.wear.data.files.WearMediaStoreFileWriter
+import com.sza.fastmediasorter.wear.data.files.WearSendToLauncher
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
 import com.sza.fastmediasorter.wear.domain.files.WearFileNameConflictResolver
+import com.sza.fastmediasorter.wear.domain.files.WearSendToReachability
 import com.sza.fastmediasorter.wear.domain.model.WEAR_FILE_TRANSFER_MAX_BYTES
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
@@ -13,6 +17,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearOpenOnPhoneRequest
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
 import com.sza.fastmediasorter.wear.domain.model.kind
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
@@ -21,9 +26,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
+
+/** What a file with no declared type is offered as, so a receiver accepting anything still sees it. */
+private const val ANY_MIME_TYPE = "*/*"
 
 /**
  * Runs one requested operation over a selection, one file at a time, reporting each separately.
@@ -37,7 +44,10 @@ class PerformWearFileOperationUseCase @Inject constructor(
     private val senderRepository: WearFileSenderRepository,
     private val openOnPhoneRepository: WearOpenOnPhoneRepository,
     private val stager: WearMediaFileStager,
-    private val mediaStoreWriter: WearMediaStoreFileWriter
+    private val mediaStoreWriter: WearMediaStoreFileWriter,
+    private val sendToReceivers: WearSendToReceiversRepository,
+    private val reachability: WearSendToReachability,
+    private val sendToLauncher: WearSendToLauncher
 ) {
 
     operator fun invoke(
@@ -65,7 +75,112 @@ class PerformWearFileOperationUseCase @Inject constructor(
             WearFileOperation.Delete -> deleteLocal(file, storageClass)
             is WearFileOperation.Rename -> renameLocal(file, operation.newName, storageClass)
             is WearFileOperation.OpenOnPhone -> openOnPhone(file, operation.token)
+            is WearFileOperation.SendToReceiver -> sendToReceiver(file, operation.receiverId)
         }
+    }
+
+    /**
+     * S2142: hands the file to one receiver, on whichever side actually serves it.
+     *
+     * The fork is read off the receiver's own declaration and then re-checked here, because
+     * `servedOnWatch` is the phone's claim about a class of device and [WearSendToReachability] is
+     * this watch's answer about itself - a receiver the phone marked may still have no handler
+     * installed here, and firing at one would end in the refusal ADR-3 forbids.
+     *
+     * An id no published receiver carries is refused rather than guessed: the list this came from is
+     * the phone's, and it can be replaced between the menu opening and the tap landing.
+     */
+    private suspend fun sendToReceiver(file: WearMediaFile, receiverId: String): WearFileOperationResult {
+        val entry = sendToReceivers.observe().value.firstOrNull { it.id == receiverId }
+            ?: return WearFileOperationResult(file.name, WearFileOperationOutcome.REFUSED_UNSUPPORTED)
+        val sendIntent = WearSendToReachability.sendIntentFor(file.mimeType ?: ANY_MIME_TYPE)
+        return if (reachability.isServedHere(entry, sendIntent)) {
+            sendHere(file, entry, sendIntent)
+        } else {
+            sendThroughPhone(file, entry)
+        }
+    }
+
+    /**
+     * The watch branch: the file is staged to a readable copy and handed to a local receiver.
+     *
+     * Staged for the same reason the phone branch stages - a MediaStore row has no path a provider
+     * can serve - and discarded afterwards on either outcome, so an abandoned send leaves no copy.
+     */
+    private suspend fun sendHere(
+        file: WearMediaFile,
+        entry: WearSendToReceiverEntry,
+        sendIntent: Intent
+    ): WearFileOperationResult {
+        val staged = stager.stage(file)
+            ?: return WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED)
+        return try {
+            val launched = sendToLauncher.launch(staged, sendIntent)
+            WearFileOperationResult(
+                fileName = file.name,
+                outcome = if (launched) {
+                    WearFileOperationOutcome.SUCCEEDED
+                } else {
+                    WearFileOperationOutcome.FAILED
+                },
+                destination = entry.title
+            )
+        } finally {
+            stager.discard(staged, file)
+        }
+    }
+
+    /**
+     * The phone branch: the file crosses the bridge carrying the receiver it is meant for.
+     *
+     * The errand rides on the transfer's own announcement rather than on a second message, so the
+     * phone cannot receive the bytes without also knowing what they are for - a file that arrived
+     * with its errand lost would be filed away silently while the watch reported it on its way.
+     *
+     * The size is refused here, before the channel opens, for the same reason
+     * [sendToPhone] refuses it: telling the owner afterwards costs a whole transfer first.
+     */
+    private suspend fun sendThroughPhone(
+        file: WearMediaFile,
+        entry: WearSendToReceiverEntry
+    ): WearFileOperationResult {
+        val refusal = preflightRefusal(file)
+        if (refusal != null) {
+            return WearFileOperationResult(file.name, refusal, destination = entry.title)
+        }
+        val staged = stager.stage(file)
+        return if (staged == null) {
+            WearFileOperationResult(file.name, WearFileOperationOutcome.FAILED, destination = entry.title)
+        } else {
+            try {
+                val result = senderRepository.sendFile(staged, sendToReceiverId = entry.id)
+                WearFileOperationResult(
+                    fileName = file.name,
+                    outcome = result.outcome.toOperationOutcome(),
+                    // The receiver's own name, not the phone folder the transfer landed in: what the
+                    // owner asked for was the receiver, and the folder is an implementation detail of
+                    // the errand they never chose.
+                    destination = entry.title
+                )
+            } finally {
+                stager.discard(staged, file)
+            }
+        }
+    }
+
+    /**
+     * The two answers the phone branch can give before a single byte is copied, or `null` to proceed.
+     *
+     * Both are asked here rather than inline for one reason each. The size is refused before the
+     * channel opens for [sendToPhone]'s reason: telling the owner afterwards costs a whole transfer
+     * first. The reachability is asked before the copy is staged so an out-of-reach phone is the
+     * answer to the tap rather than the end of a transfer that never started (strategic 11
+     * criterion 9).
+     */
+    private suspend fun preflightRefusal(file: WearMediaFile): WearFileOperationOutcome? = when {
+        file.size > WEAR_FILE_TRANSFER_MAX_BYTES -> WearFileOperationOutcome.REFUSED_TOO_LARGE
+        !senderRepository.isPhoneReachable() -> WearFileOperationOutcome.PHONE_UNREACHABLE
+        else -> null
     }
 
     /**
@@ -73,7 +188,6 @@ class PerformWearFileOperationUseCase @Inject constructor(
      * from, so the request carries its address and the answer says what the phone did with it.
      */
     private suspend fun openOnPhone(file: WearMediaFile, token: String): WearFileOperationResult {
-        Timber.d("S2004: watch asks the phone to open %s", file.name)
         val outcome = openOnPhoneRepository.requestOpen(
             WearOpenOnPhoneRequest(token = token, displayName = file.name)
         )
@@ -248,6 +362,9 @@ private fun WearFileSendOutcome.toOperationOutcome(): WearFileOperationOutcome =
     WearFileSendOutcome.UNCONFIRMED -> WearFileOperationOutcome.UNCONFIRMED
     WearFileSendOutcome.TOO_LARGE -> WearFileOperationOutcome.REFUSED_TOO_LARGE
     WearFileSendOutcome.PHONE_UNREACHABLE -> WearFileOperationOutcome.PHONE_UNREACHABLE
+    WearFileSendOutcome.AWAITING_PHONE_ACTION -> WearFileOperationOutcome.AWAITING_PHONE_ACTION
+    WearFileSendOutcome.PHONE_NOTIFICATIONS_OFF ->
+        WearFileOperationOutcome.REFUSED_PHONE_NOTIFICATIONS_OFF
     WearFileSendOutcome.FAILED -> WearFileOperationOutcome.FAILED
 }
 

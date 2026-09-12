@@ -9,10 +9,10 @@ import kotlinx.coroutines.CoroutineScope
 /**
  * S2358: hands the process-lifetime [ApplicationScope] to code that sits outside the Hilt graph.
  *
- * `ScrollableTextDialog` is an object and takes no constructor injection, yet the file write it starts
- * has to finish whether or not the dialog that started it is still open. [StreamQualityMemoryEntryPoint]
- * already exposes the same scope, but only beside its own use cases, so borrowing it here would attach
- * an unrelated subject to that entry point.
+ * S2360: consolidated canonical entry point for [ApplicationScope] across the codebase, accessed via
+ * `Context.applicationScope()`. Incidental scope exposures in domain and widget entry points
+ * ([StreamQualityMemoryEntryPoint], `NetworkMonitorWidgetRefreshEntryPoint`) were removed in favor of
+ * resolving the application scope solely through this entry point.
  */
 @EntryPoint
 @InstallIn(SingletonComponent::class)

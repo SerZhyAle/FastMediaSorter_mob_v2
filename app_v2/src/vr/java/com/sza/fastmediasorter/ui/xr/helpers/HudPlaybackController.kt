@@ -12,6 +12,14 @@ class HudPlaybackController(
 ) {
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    /**
+     * S1218 (ADR-2): set while the session plays a live source. Seeking and neighbour navigation are
+     * refused here rather than only hidden in the renderer - the thumbstick and the HUD bar both
+     * arrive through this class, so hiding a control that still answered its binding would repeat
+     * exactly the defect S1278 recorded.
+     */
+    var liveMode: Boolean = false
+
     /** S1239: position and duration read together, so a bar built from them cannot show a mix. */
     data class PlaybackPosition(val positionMs: Long, val durationMs: Long)
 
@@ -79,6 +87,7 @@ class HudPlaybackController(
      * the player somewhere arbitrary.
      */
     private fun seekResolved(resolve: (ExoPlayer, Long) -> Long) {
+        if (liveMode) return
         mainHandler.post {
             val player = exoPlayer ?: return@post
             val duration = player.duration
@@ -90,12 +99,14 @@ class HudPlaybackController(
     }
 
     fun next() {
+        if (liveMode) return
         mainHandler.post {
             onNext()
         }
     }
 
     fun prev() {
+        if (liveMode) return
         mainHandler.post {
             onPrev()
         }

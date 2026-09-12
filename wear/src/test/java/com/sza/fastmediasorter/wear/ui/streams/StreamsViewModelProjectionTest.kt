@@ -2,17 +2,17 @@ package com.sza.fastmediasorter.wear.ui.streams
 
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.PlaybackSetManager
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
-import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +30,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
@@ -59,6 +60,17 @@ class StreamsViewModelProjectionTest {
         // No wait: the chosen value must be readable the moment it is set, or the dialog would close
         // onto a row still showing the previous choice while the catalogue is projected.
         assertEquals(StreamSortOrder.NAME_ASC, viewModel.uiState.value.sortOrder)
+    }
+
+    @Test
+    fun `initial state remains loading until the first projection completes`() = runBlocking {
+        val viewModel = buildViewModel()
+
+        assertTrue(viewModel.uiState.value.isLoading)
+
+        delay(SETTLE_MS)
+
+        assertEquals(false, viewModel.uiState.value.isLoading)
     }
 
     @Test
@@ -126,10 +138,15 @@ class StreamsViewModelProjectionTest {
         every { preferences.streamsSelectedLanguage } returns flowOf(null)
         val atlasStore = mockk<WearFaviconAtlasStore>(relaxed = true)
         every { atlasStore.atlasFile() } returns null
-        val favorites = mockk<WearFavoritesRepository>(relaxed = true)
-        coEvery { favorites.getFavorites() } returns emptyList()
+        val streamPinsRepository = mockk<WearStreamPinsRepository>(relaxed = true)
+        every { streamPinsRepository.observeWatchPins() } returns MutableStateFlow(emptySet())
+        every { streamPinsRepository.getWatchPins() } returns emptySet()
         val phonePins = mockk<WearPhonePinsRepository>()
         every { phonePins.observe() } returns MutableStateFlow(emptySet())
+        // S2669: stubbed rather than left relaxed - the view model collects this flow, and a relaxed
+        // mock answers a Flow-returning call with null.
+        val collections = mockk<WearStreamCollectionRepository>(relaxed = true)
+        every { collections.observeCollections() } returns flowOf(emptyList())
         return StreamsViewModel(
             repository = repository,
             importCatalogUseCase = mockk<ImportWearStreamCatalogUseCase>(relaxed = true),
@@ -139,10 +156,12 @@ class StreamsViewModelProjectionTest {
                 selectedMediaManager = mockk<SelectedMediaManager>(relaxed = true),
                 playbackSetManager = mockk<PlaybackSetManager>(relaxed = true),
                 usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+                preferencesRepository = mockk<WearPreferencesRepository>(relaxed = true),
             ),
-            favoritesRepository = favorites,
+            streamPinsRepository = streamPinsRepository,
             phonePinsRepository = phonePins,
             usageRepository = mockk<WearStreamUsageRepository>(relaxed = true),
+            collectionRepository = collections,
         )
     }
 

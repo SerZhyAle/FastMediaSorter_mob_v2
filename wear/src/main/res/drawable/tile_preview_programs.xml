@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2511: a 2x2 grid of cells, standing for the tile's several mini-program shortcuts. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <path
+        android:fillColor="@color/tile_preview_bg"
+        android:pathData="M100,0 A100,100 0 1,1 99.9,0 Z" />
+    <path
+        android:fillColor="@color/tile_preview_accent"
+        android:pathData="M62,62 h30 v30 h-30 Z" />
+    <path
+        android:fillColor="@color/tile_preview_accent"
+        android:pathData="M108,62 h30 v30 h-30 Z" />
+    <path
+        android:fillColor="@color/tile_preview_accent"
+        android:pathData="M62,108 h30 v30 h-30 Z" />
+    <path
+        android:fillColor="@color/tile_preview_accent"
+        android:pathData="M108,108 h30 v30 h-30 Z" />
+</vector>

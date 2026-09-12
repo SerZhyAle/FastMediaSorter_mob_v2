@@ -133,7 +133,10 @@ function Invoke-DebugBuild {
     . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
     if ($script:AutoVersion) {
         $stamp = Get-BuildVersionStamp
-        $versionCodeInt = $stamp.AppVersionCode
+        # -Task is a parameter, so this script can be aimed at the watch. Both modules publish under
+        # one applicationId (S1681) and Play refuses a release repeating a versionCode, so the width
+        # follows the module the task names rather than being fixed at the phone's nine digits.
+        $versionCodeInt = if ($script:Task -match '(?i):wear:') { $stamp.WearVersionCode } else { $stamp.AppVersionCode }
         $versionName = $stamp.VersionName
         $versionOverrideArgs = @(
             "-Pfms.versionCode=$versionCodeInt",
@@ -183,7 +186,7 @@ function Invoke-DebugBuild {
     if ($versionOverrideArgs.Count -gt 0) {
         $gradleArgs += $versionOverrideArgs
     }
-    if ($script:GradleArgs.Count -gt 0) {
+    if ($script:GradleArgs -and $script:GradleArgs.Count -gt 0) {
         $gradleArgs += $script:GradleArgs
     }
 

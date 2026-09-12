@@ -121,6 +121,12 @@ class LauncherGadgetRegistry @Inject constructor(
         const val KEY_YOUTUBE = "youtube"
         const val KEY_YOUTUBE_MUSIC = "youtube_music"
 
+        // S2032: one YouTube channel, shown and played inside its own cell. Same contract as every key
+        // here - it is what a placed cell's `target` column stores, so it is never renamed - and
+        // deliberately not [KEY_YOUTUBE]: that key belongs to the shipped button cell, and sharing it
+        // would retarget every YouTube cell already on a desktop.
+        const val KEY_YOUTUBE_CHANNEL_WINDOW = "youtube_channel_window"
+
         // S1754: the media window family - one resource, played or read inside its own desktop cell.
         // Same contract as every key above: this is what a cell's `target` column stores, so it is
         // never renamed.
@@ -137,6 +143,11 @@ class LauncherGadgetRegistry @Inject constructor(
         // stored `target`, so it is never renamed. Deliberately not [KEY_CLOCK]: that cell shows the
         // system zone by contract, and reusing its key would retarget every clock already placed.
         const val KEY_WORLD_CLOCK = "world_clock"
+
+        // S1907: today's sunrise, sunset and dew point for one place. Same contract - the key is the
+        // stored `target`, so it is never renamed - and deliberately not [KEY_WEATHER]: that cell shows
+        // current conditions, and sharing its key would retarget every weather cell already placed.
+        const val KEY_SUN_DEWPOINT = "sun_dewpoint"
 
         // S1930: the two home-screen widgets whose cell owns a configured instance. Same contract as
         // every key above - this is what a cell's `target` column stores, so it is never renamed - and

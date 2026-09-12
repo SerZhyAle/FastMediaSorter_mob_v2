@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.domain.usecase.launcher
 
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.core.panel.SubProgramSurface
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
@@ -34,6 +35,7 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
     private val desktop: LauncherDesktopRepository,
     private val resolveRouteAvailability: ResolvePanelRouteAvailabilityUseCase,
     private val syncBaseline: LauncherShortcutSyncRepository,
+    private val resolveColumns: ResolveLauncherColumnsUseCase,
 ) {
     /**
      * S2330: the launchable subset of the registry's launcher-shortcut surface, as route keys.
@@ -56,27 +58,57 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         val baseline = syncBaseline.syncedRoutes()
 
         if (baseline == null) {
-            Timber.d("S2330: first sync pass, adopting %d route(s) and placing nothing", launchable.size)
             // First run on this install: adopt what is launchable now without placing anything. The
             // desktop this finds was composed by the starter set alone, and an update is not the
             // moment to hand the user eight cells he did not ask for (strategic 5.1).
+            //
+            // S2664: this stays a plain adoption even now that the opposite direction exists. Turning it
+            // into a reconciliation would rewrite a desktop the user already accepted on the first launch
+            // after an update, which strategic ADR-2 keeps refusing. What the starter set missed is still
+            // frozen here - the seed is deliberately unchanged, because the App-functions budget holds
+            // twelve of the registry's twenty-two and which twelve is an owner decision.
             syncBaseline.setSyncedRoutes(launchable)
-            return
+        } else {
+            val newlyLaunchable = launchable - baseline
+            val noLongerLaunchable = baseline - launchable
+            Timber.d("S2664: shortcut sync - %d gained, %d lost", newlyLaunchable.size, noLongerLaunchable.size)
+            if (newlyLaunchable.isNotEmpty()) placeCellsFor(newlyLaunchable)
+            if (noLongerLaunchable.isNotEmpty()) removeCellsFor(noLongerLaunchable)
+            // S2664, ADR-1: the launchable set replaces the baseline instead of joining it. The union was
+            // there so a route that stopped being launchable stayed accounted for and its return could not
+            // restore a cell the user had deleted on purpose; the owner ruling of 2026-09-06 reverses that -
+            // a shortcut's presence follows its toggle whatever the reason the cell was gone. Restoring the
+            // union would restore that refusal, so read ADR-1 before treating this line as a defect.
+            syncBaseline.setSyncedRoutes(launchable)
         }
 
-        val newlyLaunchable = launchable - baseline
-        Timber.d(
-            "S2330: sync pass launchable=%d baseline=%d newly=%d",
-            launchable.size,
-            baseline.size,
-            newlyLaunchable.size,
-        )
-        if (newlyLaunchable.isEmpty()) return
+        backfillStopwatchShortcut(launchable)
+    }
 
-        placeCellsFor(newlyLaunchable)
-        // Union, never a replacement: a route that stopped being launchable stays accounted for, or
-        // re-enabling it later would restore a cell the user deleted on purpose (strategic 5.2).
-        syncBaseline.setSyncedRoutes(baseline + launchable)
+    private suspend fun backfillStopwatchShortcut(launchable: Set<String>) {
+        if (
+            syncBaseline.isStopwatchShortcutBackfilled() ||
+            InternalRouteCatalog.KEY_STOPWATCH !in launchable
+        ) {
+            return
+        }
+        Timber.d("S2791: backfilling Stopwatch desktop shortcut")
+        placeCellsFor(setOf(InternalRouteCatalog.KEY_STOPWATCH))
+        syncBaseline.setStopwatchShortcutBackfilled()
+    }
+
+    /**
+     * Takes the shortcut away when its program is switched off, in both orientations. Removing nothing
+     * is correct: the user may have deleted the cell himself, and a desktop that never carried it is
+     * already in the state this is asking for.
+     */
+    private suspend fun removeCellsFor(routeKeys: Set<String>) {
+        val targets = routeKeys.mapTo(mutableSetOf()) { LauncherCellCommand.Feature(it).encode() }
+        for (orientation in listOf(LauncherOrientation.PORTRAIT, LauncherOrientation.LANDSCAPE)) {
+            desktop.observeCells(orientation).first()
+                .filter { it.target in targets }
+                .forEach { desktop.removeCell(it.id) }
+        }
     }
 
     private suspend fun placeCellsFor(routeKeys: Set<String>) {
@@ -88,8 +120,8 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
         val targets = routeKeys.map { LauncherCellCommand.Feature(it).encode() }
         val now = System.currentTimeMillis()
 
-        for ((orientation, cols) in orientations) {
-            val columns = if (cols > 0) cols else FALLBACK_DESKTOP_COLUMNS
+        for ((orientation, storedColumns) in orientations) {
+            val columns = resolveColumns(orientation, storedColumns)
             val existingCells = desktop.observeCells(orientation).first()
             val existingTargets = existingCells.mapTo(mutableSetOf()) { it.target }
 
@@ -107,14 +139,16 @@ class SyncEnabledToolShortcutsUseCase @Inject constructor(
                         labelOverride = null,
                         addedAt = now,
                     )
-                    desktop.addCellInFirstFreeSlot(cell, columns)
+                    val placed =
+                        desktop.addCellInSection(cell, columns, LauncherCellCommand.SECTION_APP_FUNCTIONS)
+                    if (placed == null) {
+                        // This orientation carries no App-functions header, and creating one would be a
+                        // placement decision with a label this caller does not own - so the shortcut still
+                        // reaches the desktop by the grid-wide path rather than being dropped.
+                        desktop.addCellInFirstFreeSlot(cell, columns)
+                    }
                 }
             }
         }
-    }
-
-    private companion object {
-        /** Used when the desktop has not stored a column count yet, so the first placement still lands. */
-        const val FALLBACK_DESKTOP_COLUMNS = 4
     }
 }

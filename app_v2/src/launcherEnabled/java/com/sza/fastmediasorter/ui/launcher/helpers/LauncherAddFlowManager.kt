@@ -32,6 +32,7 @@ import com.sza.fastmediasorter.ui.launcher.picker.LauncherScheduledOpPickerDialo
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherSectionNameDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherStreamPickerDialogFragment
 import com.sza.fastmediasorter.ui.launcher.picker.LauncherWeatherLocationDialogFragment
+import com.sza.fastmediasorter.ui.launcher.picker.LauncherYouTubeChannelDialogFragment
 import com.sza.fastmediasorter.widget.LauncherWidgetToken
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorIndicator
 import timber.log.Timber
@@ -47,6 +48,7 @@ import timber.log.Timber
  * (which gadget, which indicator, which world-clock cell) still lives here on purpose - see §1
  * Non-goal in S2060 for why that risk is not this ticket's scope.
  */
+@Suppress("LongParameterList")
 class LauncherAddFlowManager(
     // S1906: the shared searchable picker takes its title as a String, so whoever opens it supplies the
     // resolved text - every other picker here is a fragment that reads its own strings.
@@ -58,6 +60,7 @@ class LauncherAddFlowManager(
     private val contactPickManager: LauncherContactPickManager,
     private val sensorPermissionManager: LauncherSensorPermissionManager,
     private val currentColumns: () -> Int,
+    private val currentScreenIndex: () -> Int = { 0 },
     private val hostActions: LauncherAddFlowHostActions,
 ) {
 
@@ -122,7 +125,6 @@ class LauncherAddFlowManager(
             val mediaKind = bundle.getString(LauncherStreamPickerDialogFragment.RESULT_STREAM_MEDIA_KIND)
                 .orEmpty()
             val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
-            Timber.d("S2031: place stream window kind=$mediaKind span=${spanW}x$spanH")
             placeGadget(
                 gadgetKey = LauncherGadgetRegistry.KEY_STREAM_WINDOW,
                 param = identityKey,
@@ -141,7 +143,9 @@ class LauncherAddFlowManager(
         }
         registerResourceListeners()
         registerWeatherLocationListener()
+        registerSunDewpointLocationListener()
         registerWorldClockZoneListener()
+        registerYouTubeChannelListener()
         registerNetworkIndicatorListeners()
         registerSectionNameListener()
         // Taskbar pin flow is separate from the desktop add-flow: no grid coordinate, its own key so an
@@ -226,6 +230,18 @@ class LauncherAddFlowManager(
     fun openWeatherLocationPicker(cellId: Long) {
         openPicker(
             LauncherWeatherLocationDialogFragment.newInstance(REQ_WEATHER_LOCATION, cellId),
+            LauncherWeatherLocationDialogFragment.TAG,
+        )
+    }
+
+    /**
+     * S1907: re-points an existing sun/dew-point cell. The weather dialog unmodified - it returns a
+     * plain encoded place and does not care which gadget asked - on its own request key, so a place
+     * answered here never completes a weather cell instead.
+     */
+    fun openSunDewpointLocationPicker(cellId: Long) {
+        openPicker(
+            LauncherWeatherLocationDialogFragment.newInstance(REQ_SUN_DEWPOINT_LOCATION, cellId),
             LauncherWeatherLocationDialogFragment.TAG,
         )
     }
@@ -348,11 +364,25 @@ class LauncherAddFlowManager(
                 LauncherWeatherLocationDialogFragment.TAG,
             )
 
+            // S1907: same shape and the same picker - its param is a place too - but its own request
+            // key, so the answer completes this cell rather than the weather one.
+            gadgetKey == LauncherGadgetRegistry.KEY_SUN_DEWPOINT -> openPicker(
+                LauncherWeatherLocationDialogFragment.newInstance(REQ_SUN_DEWPOINT_LOCATION),
+                LauncherWeatherLocationDialogFragment.TAG,
+            )
+
             // S2031: same shape once more - the stream window's param is a channel identity, so it asks
             // the channel picker on its own key and is placed when the kind has decided its footprint.
             gadgetKey == LauncherGadgetRegistry.KEY_STREAM_WINDOW -> openPicker(
                 LauncherStreamPickerDialogFragment.newInstance(REQ_STREAM_WINDOW),
                 LauncherStreamPickerDialogFragment.TAG,
+            )
+
+            // S2032: same shape as the stream window above - the param is a channel, so it asks the
+            // channel dialog on its own key and is placed only once that channel resolved.
+            gadgetKey == LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW -> openPicker(
+                LauncherYouTubeChannelDialogFragment.newInstance(REQ_YOUTUBE_CHANNEL),
+                LauncherYouTubeChannelDialogFragment.TAG,
             )
 
             // S1906: same shape once more - the world clock's param is a time zone, so it asks the zone
@@ -393,7 +423,6 @@ class LauncherAddFlowManager(
      */
     private fun configureThenPlace(gadgetKey: String) {
         val token = LauncherWidgetToken.mint(context)
-        Timber.d("S1930: configure %s with token %d", gadgetKey, token)
         val intent = ConfigurableWidgetCatalog.configIntent(context, gadgetKey, token) ?: return
         // In saved state, not a field here: the configuration screen is a separate Activity, which is
         // exactly when the OS may kill this one (S2060, S2099).
@@ -411,7 +440,6 @@ class LauncherAddFlowManager(
      */
     fun onWidgetConfigured(configured: Boolean) {
         val (gadgetKey, token) = viewModel.pendingConfiguredWidget ?: return
-        Timber.d("S1930: configured=%b for %s token %d", configured, gadgetKey, token)
         viewModel.pendingConfiguredWidget = null
         if (!configured) {
             ConfigurableWidgetCatalog.clearInstance(context, gadgetKey, token)
@@ -432,13 +460,13 @@ class LauncherAddFlowManager(
         onResult: (Boolean) -> Unit,
     ) {
         val (spanW, spanH) = StreamWindow.spanFor(mediaKind)
-        Timber.d("S2247: menu place stream window kind=%s span=%dx%d", mediaKind, spanW, spanH)
         viewModel.addCellInFirstFreeSlot(
             columns = currentColumns(),
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_STREAM_WINDOW, identityKey),
             spanW = spanW,
             spanH = spanH,
+            screenIndex = currentScreenIndex(),
             onPlaced = onResult,
         )
     }
@@ -497,6 +525,7 @@ class LauncherAddFlowManager(
         labelOverride: String? = null,
     ) {
         val (row, col) = viewModel.pendingSlot
+        val screenIndex = currentScreenIndex()
         if (row == NO_SLOT) {
             viewModel.addCellInFirstFreeSlot(
                 columns = currentColumns(),
@@ -506,6 +535,7 @@ class LauncherAddFlowManager(
                 spanH = spanH,
                 rememberFileListResourceId = rememberFileListResourceId,
                 labelOverride = labelOverride,
+                screenIndex = screenIndex,
             )
         } else {
             viewModel.addCell(
@@ -522,6 +552,7 @@ class LauncherAddFlowManager(
                 // S1772: the pointed-at path needs the grid width too - it is what decides whether a
                 // footprint can ever be seated, and the width belongs to the screen, not to the desktop.
                 columns = currentColumns(),
+                screenIndex = screenIndex,
             )
         }
     }
@@ -581,9 +612,36 @@ class LauncherAddFlowManager(
             if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
                 placeWeatherGadget(encoded)
             } else {
+                viewModel.saveWeatherCellLocation(cellId, encoded)
                 viewModel.updateCellTarget(
                     cellId,
                     gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encoded),
+                )
+            }
+        }
+    }
+
+    /**
+     * S1907: the weather listener's shape without its two weather-specific writes. This gadget keeps its
+     * place in the cell's own `target` and nowhere else (research/01 §2), so it neither writes the
+     * `launcher_cell_config` row [saveWeatherCellLocation][LauncherHomeViewModel.saveWeatherCellLocation]
+     * keeps for the weather reset path, nor moves the global last-picked place - a city chosen for a sun
+     * cell must not silently retarget the weather cell beside it.
+     */
+    private fun registerSunDewpointLocationListener() {
+        fragmentManager.setFragmentResultListener(REQ_SUN_DEWPOINT_LOCATION, lifecycleOwner) { _, bundle ->
+            val encoded = bundle.getString(LauncherWeatherLocationDialogFragment.RESULT_LOCATION)
+                ?: return@setFragmentResultListener
+            val cellId = bundle.getLong(
+                LauncherWeatherLocationDialogFragment.RESULT_CELL_ID,
+                LauncherWeatherLocationDialogFragment.NO_CELL_ID,
+            )
+            if (cellId == LauncherWeatherLocationDialogFragment.NO_CELL_ID) {
+                placeSunDewpointGadget(encoded)
+            } else {
+                viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_SUN_DEWPOINT, encoded),
                 )
             }
         }
@@ -636,12 +694,62 @@ class LauncherAddFlowManager(
         }
     }
 
+    /**
+     * S2032: the weather listener's shape without its two weather-specific writes. The channel lives in
+     * the cell's own `target` and nowhere else (strategic §3.2 forbids a schema change), so there is no
+     * config row to keep and no global last-picked value to move.
+     */
+    private fun registerYouTubeChannelListener() {
+        fragmentManager.setFragmentResultListener(REQ_YOUTUBE_CHANNEL, lifecycleOwner) { _, bundle ->
+            val encoded = bundle.getString(LauncherYouTubeChannelDialogFragment.RESULT_CHANNEL)
+                ?: return@setFragmentResultListener
+            val cellId = bundle.getLong(
+                LauncherYouTubeChannelDialogFragment.RESULT_CELL_ID,
+                LauncherYouTubeChannelDialogFragment.NO_CELL_ID,
+            )
+            if (cellId == LauncherYouTubeChannelDialogFragment.NO_CELL_ID) {
+                placeYouTubeChannelWindowGadget(encoded)
+            } else {
+                viewModel.updateCellTarget(
+                    cellId,
+                    gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW, encoded),
+                )
+            }
+        }
+    }
+
+    /** S2032: same reason as [placeWeatherGadget] - the channel rides the target, not a resource id. */
+    private fun placeYouTubeChannelWindowGadget(encodedChannel: String) {
+        val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW) ?: return
+        Timber.d("S2032: placing channel window ${gadget.defaultSpanW}x${gadget.defaultSpanH}")
+        placeAtPendingSlot(
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(
+                LauncherGadgetRegistry.KEY_YOUTUBE_CHANNEL_WINDOW,
+                encodedChannel,
+            ),
+            spanW = gadget.defaultSpanW,
+            spanH = gadget.defaultSpanH,
+        )
+    }
+
     /** The weather gadget carries its place in the target, so it bypasses [placeGadget]'s resource id. */
     private fun placeWeatherGadget(encodedLocation: String) {
         val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_WEATHER) ?: return
         placeAtPendingSlot(
             kind = LauncherCellKind.GADGET,
             target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_WEATHER, encodedLocation),
+            spanW = gadget.defaultSpanW,
+            spanH = gadget.defaultSpanH,
+        )
+    }
+
+    /** S1907: same reason as [placeWeatherGadget] - the place rides the target, not a resource id. */
+    private fun placeSunDewpointGadget(encodedLocation: String) {
+        val gadget = gadgetRegistry.byKey(LauncherGadgetRegistry.KEY_SUN_DEWPOINT) ?: return
+        placeAtPendingSlot(
+            kind = LauncherCellKind.GADGET,
+            target = gadgetRegistry.encodeTarget(LauncherGadgetRegistry.KEY_SUN_DEWPOINT, encodedLocation),
             spanW = gadget.defaultSpanW,
             spanH = gadget.defaultSpanH,
         )
@@ -656,7 +764,6 @@ class LauncherAddFlowManager(
         // S2107: the far end of the contact chain. The slot is logged with it because pendingSlot
         // defaults to (0, 0) rather than to NO_SLOT, so a lost coordinate places the cell top-left
         // instead of nowhere - and from the tapped square that is indistinguishable from no cell at all.
-        Timber.d("S2107: addShortcut kind=${command::class.simpleName} slot=${viewModel.pendingSlot}")
         placeAtPendingSlot(
             kind = LauncherCellKind.SHORTCUT,
             target = command.encode(),
@@ -677,6 +784,14 @@ class LauncherAddFlowManager(
         const val REQ_PIN_APP = "launcher_pin_app"
         const val REQ_WEATHER_LOCATION = "launcher_weather_location"
         const val REQ_SECTION_NAME = "launcher_section_name"
+
+        // S2032: the YouTube channel window's own key - a channel confirmed for this cell must never
+        // complete a different pending gadget.
+        const val REQ_YOUTUBE_CHANNEL = "launcher_youtube_channel"
+
+        // S1907: the weather place picker serves two gadgets now, so each owns a request key - one
+        // shared key would let a place picked for either cell complete whichever asked last.
+        const val REQ_SUN_DEWPOINT_LOCATION = "launcher_sun_dewpoint_location"
 
         // S1440: two keys - the network cell's second question reuses the shared resource picker, and a
         // pick answered on REQ_RESOURCE_GADGET would complete some other gadget instead.

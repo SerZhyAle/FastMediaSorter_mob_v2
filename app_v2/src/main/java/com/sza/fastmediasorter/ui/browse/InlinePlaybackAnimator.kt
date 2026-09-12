@@ -5,7 +5,6 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import android.widget.ImageView
 import com.sza.fastmediasorter.core.util.AnimationPolicy
-import timber.log.Timber
 
 /**
  * Animates a playback indicator image - the inline-play button in MediaFileAdapter list items, and
@@ -47,7 +46,6 @@ class InlinePlaybackAnimator(
     fun startNote() {
         if (!AnimationPolicy.isAnimationAllowed) {
             stopNote()
-            Timber.d("S2250: inline note animation skipped")
             return
         }
         if (noteAnimator?.isRunning == true) return
@@ -82,7 +80,6 @@ class InlinePlaybackAnimator(
     fun startDownload() {
         if (!AnimationPolicy.isAnimationAllowed) {
             stopDownload()
-            Timber.d("S2250: inline download animation skipped")
             return
         }
         if (downloadAnimator?.isRunning == true) return

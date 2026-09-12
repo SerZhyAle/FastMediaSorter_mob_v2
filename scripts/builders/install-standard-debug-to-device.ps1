@@ -33,6 +33,32 @@ $packageName = 'com.sza.fastmediasorter.debug'
 Write-Host "Standard APK installer - DEBUG" -ForegroundColor Cyan
 Write-Host "Launch policy: install only - DO NOT auto-launch" -ForegroundColor Magenta
 
+# Confirm device presence and resolve target device.
+Write-Host "`nChecking for connected device..." -ForegroundColor Cyan
+$devicesRaw = & $adb devices
+$connected = @($devicesRaw | Select-String -Pattern '\tdevice$')
+if ($connected.Count -eq 0) {
+    Write-Host "Error: no device connected via ADB." -ForegroundColor Red
+    Write-Host "Connect a phone/tablet via USB (Developer Mode + USB debugging)." -ForegroundColor Gray
+    exit 1
+}
+if ($connected.Count -gt 1 -and -not $DeviceId) {
+    $serials = @($connected | ForEach-Object { ($_ -split '\s+')[0] })
+    $nonWatch = @($serials | Where-Object {
+        $chars = (& $adb -s $_ shell getprop ro.build.characteristics 2>$null) -join ''
+        $chars -notmatch 'watch'
+    })
+    if ($nonWatch.Count -eq 1) {
+        $DeviceId = $nonWatch[0]
+        Write-Host "Selected $DeviceId (only online phone/tablet/VR device; watch ignored)." -ForegroundColor Gray
+    }
+    else {
+        Write-Host "Error: $($connected.Count) devices connected and no -DeviceId given." -ForegroundColor Red
+        Write-Host "Pass -DeviceId <serial> (or export ANDROID_SERIAL); `adb devices` lists them." -ForegroundColor Gray
+        exit 1
+    }
+}
+
 # Resolve APK path.
 if (-not $ApkPath) {
     $apkDir = Join-Path $projectRoot "app_v2\build\outputs\apk\standard\$variant"
@@ -56,21 +82,6 @@ if (-not $ApkPath -or -not (Test-Path -Path $ApkPath)) {
 
 $apkSizeMb = [math]::Round((Get-Item $ApkPath).Length / 1MB, 1)
 Write-Host "APK: $ApkPath ($apkSizeMb MB)" -ForegroundColor Green
-
-# Confirm device presence.
-Write-Host "`nChecking for connected device..." -ForegroundColor Cyan
-$devicesRaw = & $adb devices
-$connected = @($devicesRaw | Select-String -Pattern '\tdevice$')
-if ($connected.Count -eq 0) {
-    Write-Host "Error: no device connected via ADB." -ForegroundColor Red
-    Write-Host "Connect a phone/tablet via USB (Developer Mode + USB debugging)." -ForegroundColor Gray
-    exit 1
-}
-if ($connected.Count -gt 1 -and -not $DeviceId) {
-    Write-Host "Error: $($connected.Count) devices connected and no -DeviceId given." -ForegroundColor Red
-    Write-Host "Pass -DeviceId <serial> (or export ANDROID_SERIAL); `adb devices` lists them." -ForegroundColor Gray
-    exit 1
-}
 
 # -r: replace existing, -d: downgrade allowed (handy for debug iterations).
 $target = if ($DeviceId) { "device $DeviceId" } else { 'the only connected device' }

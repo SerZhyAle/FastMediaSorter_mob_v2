@@ -33,6 +33,24 @@
                 <data android:host="*" android:pathPrefix="/fms/transfer_file" android:scheme="wear" />
             </intent-filter>
         </service>
+
+        <!-- S2142: the tap target of the «Send to..» notification posted for a file the watch sent
+             here as an errand. Declared in this overlay rather than in the main manifest because the
+             errand only exists where the watch companion does - the same flavors this service does. -->
+        <activity android:name=".ui.share.WearSendToDispatcherActivity" android:excludeFromRecents="true" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" />
+
+        <!-- S2881: the listen-to-the-watch widget - one widget, two buttons (plain listen, listen
+             with recording), state pushed by the session owner's renderer. Declared in this overlay
+             rather than the main manifest because the call only exists where the watch bridge does:
+             flavors that mount wearStub never merge this receiver, so their widget pickers never
+             offer a widget that could not work (strategic 11.7). -->
+        <receiver android:name=".widget.WatchListenWidgetProvider" android:exported="true" android:label="@string/watch_listen_widget_label" android:icon="@drawable/ic_watch">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_watch_listen_info" />
+        </receiver>
+
     </application>
 
 </manifest>

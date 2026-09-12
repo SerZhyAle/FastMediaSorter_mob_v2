@@ -3,6 +3,7 @@
      height. No layout-land counterpart, for the same reason as gadget_launcher_weather.xml: a gadget
      cell is measured by the desktop grid, not by the orientation. -->
 <merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:parentTag="android.widget.FrameLayout">
 
@@ -36,39 +37,42 @@
         android:orientation="vertical"
         android:padding="@dimen/margin_small">
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetMapLabel"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textSize="12sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="49.8397, 24.0297" />
 
         <!-- Never colour alone: the offline and no-permission states must read as words for anyone
              who cannot tell a dimmed tile from a fresh one. -->
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetMapMessage"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Location permission is off"
             tools:visibility="visible" />
 
         <!-- The tile licence obliges us to name the source; it is part of the gadget, not a debug label. -->
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetMapAttribution"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="9sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="© OpenStreetMap contributors" />
 
     </LinearLayout>

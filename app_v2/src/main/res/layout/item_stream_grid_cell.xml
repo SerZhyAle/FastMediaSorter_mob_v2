@@ -26,6 +26,24 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintDimensionRatio="H,16:9" />
 
+    <!-- S2650: terminal artwork fallback, mirroring the list row's leading-slot flag (S0785). A channel
+         with no frame, no preview tile, no logo and no favicon used to render as the media-kind glyph,
+         identical to every other uncovered channel; its country flag tells the tiles apart. Drawn over
+         ivFrame because that is the tile's picture slot, and shown only when the glyph resolves. -->
+    <TextView
+        android:id="@+id/tvTileFlag"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:gravity="center"
+        android:maxLines="1"
+        android:textSize="40sp"
+        android:visibility="gone"
+        android:contentDescription="@null"
+        app:layout_constraintTop_toTopOf="@id/ivFrame"
+        app:layout_constraintBottom_toBottomOf="@id/ivFrame"
+        app:layout_constraintStart_toStartOf="@id/ivFrame"
+        app:layout_constraintEnd_toEndOf="@id/ivFrame" />
+
     <!-- S0701: the title starts after the bottom-left status dot so the dot never overlaps the first
          characters of the channel name; it still fills the rest of the tile width. -->
     <TextView

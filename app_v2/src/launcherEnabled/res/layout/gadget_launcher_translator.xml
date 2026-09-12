@@ -30,7 +30,7 @@
 
             <!-- S2237: the pair caption is itself the control - tapping it opens the program's
                  translation settings, where both languages and the engine are configured. -->
-            <TextView
+            <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
                 android:id="@+id/gadgetTranslatorDirection"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -41,8 +41,9 @@
                 android:focusable="true"
                 android:foreground="@drawable/focus_button_background"
                 android:maxLines="1"
-                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopTextSecondary"
                 android:textSize="11sp"
+                app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
                 tools:ignore="SelectableText"
                 tools:text="auto to ru" />
 
@@ -83,8 +84,8 @@
                 android:importantForAutofill="no"
                 android:inputType="textMultiLine|textNoSuggestions"
                 android:maxLines="2"
-                android:textColor="?attr/colorOnSurface"
-                android:textColorHint="?attr/colorOnSurfaceVariant"
+                android:textColor="?attr/launcherDesktopText"
+                android:textColorHint="?attr/launcherDesktopTextSecondary"
                 android:textSize="14sp" />
 
             <!-- The clipboard is read here and nowhere else: an explicit tap is the whole reason this
@@ -102,9 +103,25 @@
                 app:tint="?attr/colorControlNormal"
                 tools:ignore="MissingPrefix" />
 
+            <!-- S2732: the only reachable trigger for typed text. A multi-line input never delivers
+                 IME_ACTION_DONE - TextView forces IME_FLAG_NO_ENTER_ACTION on it - so the editor
+                 action alone left everything typed here untranslatable. -->
+            <ImageButton
+                android:id="@+id/gadgetTranslatorTranslate"
+                android:layout_width="@dimen/launcher_gadget_action_size"
+                android:layout_height="@dimen/launcher_gadget_action_size"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/launcher_translator_translate"
+                android:focusable="true"
+                android:foreground="@drawable/focus_button_background"
+                android:padding="6dp"
+                android:src="@drawable/ic_translate"
+                app:tint="?attr/colorControlNormal"
+                tools:ignore="MissingPrefix" />
+
         </LinearLayout>
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetTranslatorResult"
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -112,20 +129,22 @@
             android:ellipsize="end"
             android:paddingTop="@dimen/margin_tiny"
             android:scrollbars="vertical"
-            android:textColor="?attr/colorOnSurface"
+            android:textColor="?attr/launcherDesktopText"
             android:textIsSelectable="true"
             android:textSize="13sp"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Перевод появится здесь" />
 
-        <TextView
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
             android:id="@+id/gadgetTranslatorState"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
             android:maxLines="2"
-            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textColor="?attr/launcherDesktopTextSecondary"
             android:textSize="11sp"
             android:visibility="gone"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
             tools:text="Language pack is not downloaded yet."
             tools:visibility="visible" />
 

@@ -1,0 +1,4 @@
+WINDOW MANAGER DISPLAY CONTENTS (dumpsys window)
+  Display 0 "default" ...
+
+  mCurrentFocus=Window{5d6e7f8 u0 com.samsung.android.systemui/com.samsung.android.systemui.power.SecPowerUI}

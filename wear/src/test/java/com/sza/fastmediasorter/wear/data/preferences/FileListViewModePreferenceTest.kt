@@ -18,8 +18,8 @@ class FileListViewModePreferenceTest {
     @Test
     fun `the file list and the navigation screens address different stored keys`() {
         assertNotEquals(
-            WearPreferencesRepositoryImpl.PreferencesKeys.VIEW_MODE.name,
-            WearPreferencesRepositoryImpl.PreferencesKeys.FILE_LIST_VIEW_MODE.name
+            WearPreferenceKeys.VIEW_MODE.name,
+            WearPreferenceKeys.FILE_LIST_VIEW_MODE.name
         )
     }
 

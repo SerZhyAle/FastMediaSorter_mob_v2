@@ -63,8 +63,11 @@ $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $tempDir = Join-Path $root 'temp'
 if (-not (Test-Path -LiteralPath $tempDir)) { New-Item -ItemType Directory -Path $tempDir -Force | Out-Null }
 
-$sessionId = $env:CLAUDE_CODE_SESSION_ID
-if ([string]::IsNullOrWhiteSpace($sessionId)) { $sessionId = "pid-$PID" }
+# S2408: one identity chain for every coordination file, including this marker's name. The leaf
+# identity library is dot-sourced directly rather than through agent-lock.ps1 - this script takes
+# no lock and needs none of it.
+. "$PSScriptRoot\agent-identity.ps1"
+$sessionId = Get-AgentIdentityId
 if ([string]::IsNullOrWhiteSpace($MarkerPath)) {
     $MarkerPath = Join-Path $tempDir "SPEC-DO.WORK-$sessionId.json"
 }

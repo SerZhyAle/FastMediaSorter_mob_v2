@@ -17,7 +17,9 @@ class CreateDirectoryUseCaseTest {
     private val handler = mockk<UnifiedFileOperationHandler>()
     private lateinit var useCase: CreateDirectoryUseCase
 
-    private val resource = createMediaResource(isReadOnly = false)
+    // S2625 routes this boundary through allowsWriteOperations(), which for LOCAL also demands the
+    // probed isWritable - clearing isReadOnly alone no longer reaches validation or the handler.
+    private val resource = createMediaResource(isReadOnly = false, isWritable = true)
 
     @Before
     fun setup() {
@@ -28,6 +30,16 @@ class CreateDirectoryUseCaseTest {
     @Test
     fun `read-only resource fails without delegating`() = runTest {
         val result = useCase(createMediaResource(isReadOnly = true), "/p", "dir")
+
+        assertTrue(result.isFailure)
+        coVerify(exactly = 0) { handler.executeCreateDirectory(any()) }
+    }
+
+    @Test
+    fun `local resource without probed write access fails without delegating`() = runTest {
+        val notProbed = createMediaResource(isReadOnly = false, isWritable = false)
+
+        val result = useCase(notProbed, "/p", "dir")
 
         assertTrue(result.isFailure)
         coVerify(exactly = 0) { handler.executeCreateDirectory(any()) }

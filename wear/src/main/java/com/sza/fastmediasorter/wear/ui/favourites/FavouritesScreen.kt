@@ -2,12 +2,12 @@ package com.sza.fastmediasorter.wear.ui.favourites
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.InsertDriveFile
 import androidx.compose.material.icons.filled.Audiotrack
@@ -27,11 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
-import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
@@ -42,20 +39,23 @@ import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
-import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.ui.browse.FileDeleteConfirmDialog
 import com.sza.fastmediasorter.wear.ui.common.CellCaption
-import com.sza.fastmediasorter.wear.ui.common.LongPressChip
+import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
+import com.sza.fastmediasorter.wear.ui.common.ReceiverListDialog
+import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
 import com.sza.fastmediasorter.wear.ui.common.WearFileActionsDialog
-import com.sza.fastmediasorter.wear.ui.common.WearGridScalingParams
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.WearStateBlock
 import com.sza.fastmediasorter.wear.ui.common.WearStateKind
 import com.sza.fastmediasorter.wear.ui.common.playerRouteFor
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import com.sza.fastmediasorter.wear.ui.common.rememberWearRenameInput
-import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
+import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 
@@ -79,13 +79,16 @@ fun FavouritesScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val viewMode by viewModel.fileListViewMode.collectAsStateWithLifecycle()
-    val listState = rememberScalingLazyListState()
+    val thumbnails by viewModel.thumbnails.collectAsStateWithLifecycle()
+    val listState = rememberWearListState(positionKey = WearRoutes.FAVOURITES)
+    val stateScrollState = rememberScrollState()
     val openRequest by viewModel.openRequest.collectAsStateWithLifecycle()
 
     // Which menu is open is view state: a rotation that dropped it costs nothing, while a ViewModel
     // that carried it would replay it.
     var actionRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
     var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    var sendToRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val renameRecord = remember { mutableStateOf<WearFavoriteRecord?>(null) }
     val requestRename = rememberWearRenameInput { newName ->
         renameRecord.value?.let { viewModel.runOperation(it, WearFileOperation.Rename(newName)) }
@@ -104,7 +107,15 @@ fun FavouritesScreen(
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
         scrollState = listState,
-        positionIndicator = { PositionIndicator(listState) }
+        // S2754: the empty branch scrolls on its own state, so the indicator follows it there rather
+        // than staying on a list that is not the thing under the wearer's finger.
+        positionIndicator = {
+            if (state is FavouritesUiState.Empty) {
+                PositionIndicator(stateScrollState)
+            } else {
+                PositionIndicator(listState)
+            }
+        }
     ) {
         when (val current = state) {
             // Loading keeps its plain centred line: it is not one of the state block's three kinds,
@@ -123,31 +134,93 @@ fun FavouritesScreen(
             is FavouritesUiState.Empty -> WearStateBlock(
                 kind = WearStateKind.EMPTY,
                 message = stringResource(R.string.wear_favourites_empty),
-                onBack = { navController.popBackStack() }
+                onBack = { navController.popBackStack() },
+                scrollState = stateScrollState
             )
 
-            is FavouritesUiState.Content -> FavouritesList(
-                unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable,
-                records = current.records,
-                listState = listState,
-                viewMode = viewMode,
-                onOpen = viewModel::open,
-                onUnmark = viewModel::unmark,
-                onLongPress = { record -> actionRecord = record }
+            is FavouritesUiState.Content -> {
+                val unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
+                    WearListColumn(modifier = Modifier.fillMaxSize(), state = listState) {
+                        favouritesHeader(unopenableNotice = openRequest is FavouriteOpenRequest.Unopenable)
+                        recordItems(
+                            records = current.records,
+                            columns = columns,
+                            thumbnails = thumbnails,
+                            onRequestThumbnail = viewModel::requestThumbnail,
+                            onOpen = viewModel::open,
+                            onUnmark = viewModel::unmark,
+                            onLongPress = { record -> actionRecord = record }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    FavouriteDialogs(
+        viewModel = viewModel,
+        actionRecord = actionRecord,
+        onCloseAction = { actionRecord = null },
+        onRenameRequested = { record ->
+            renameRecord.value = record
+            requestRename(record.displayName)
+        }
+    )
+}
+
+private fun ScalingLazyListScope.favouritesHeader(unopenableNotice: Boolean) {
+    item {
+        Text(
+            text = stringResource(R.string.wear_section_favourites),
+            style = MaterialTheme.typography.title3,
+            modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp),
+            textAlign = TextAlign.Center
+        )
+    }
+    if (unopenableNotice) {
+        item {
+            Text(
+                text = stringResource(R.string.wear_favourites_unopenable),
+                style = MaterialTheme.typography.caption2,
+                color = MaterialTheme.colors.error,
+                modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                textAlign = TextAlign.Center
             )
         }
     }
+}
+
+@Composable
+private fun FavouriteDialogs(
+    viewModel: FavouritesViewModel,
+    actionRecord: WearFavoriteRecord?,
+    onCloseAction: () -> Unit,
+    onRenameRequested: (WearFavoriteRecord) -> Unit
+) {
+    var deleteRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
+    var sendToRecord by remember { mutableStateOf<WearFavoriteRecord?>(null) }
 
     actionRecord?.let { record ->
         FavouriteActionsMenu(
             record = record,
             viewModel = viewModel,
-            onClose = { actionRecord = null },
+            onClose = onCloseAction,
             onDelete = { deleteRecord = record },
-            onRename = {
-                renameRecord.value = record
-                requestRename()
-            }
+            onRename = { onRenameRequested(record) },
+            onSendTo = { sendToRecord = record }
+        )
+    }
+
+    sendToRecord?.let { record ->
+        ReceiverListDialog(
+            receivers = remember(record.identity) { viewModel.sendToReceiversFor(record) },
+            onPick = { entry ->
+                sendToRecord = null
+                viewModel.runOperation(record, WearFileOperation.SendToReceiver(entry.id))
+            },
+            onDismiss = { sendToRecord = null }
         )
     }
 
@@ -175,7 +248,8 @@ private fun FavouriteActionsMenu(
     viewModel: FavouritesViewModel,
     onClose: () -> Unit,
     onDelete: () -> Unit,
-    onRename: () -> Unit
+    onRename: () -> Unit,
+    onSendTo: () -> Unit
 ) {
     // Classifying a path canonicalises it, which touches the filesystem - asked once per pressed row
     // rather than on every recomposition the open dialog causes.
@@ -194,6 +268,7 @@ private fun FavouriteActionsMenu(
                 WearFileOperationKind.MOVE_TO_PHONE ->
                     viewModel.runOperation(record, WearFileOperation.MoveToPhone)
                 WearFileOperationKind.OPEN_ON_PHONE -> viewModel.reportOpenOnPhoneUnavailable()
+                WearFileOperationKind.SEND_TO_RECEIVER -> onSendTo()
             }
         },
         onDismiss = onClose,
@@ -204,74 +279,22 @@ private fun FavouriteActionsMenu(
     )
 }
 
-@Composable
-private fun FavouritesList(
-    unopenableNotice: Boolean,
-    records: List<WearFavoriteRecord>,
-    listState: ScalingLazyListState,
-    viewMode: WearViewMode,
-    onOpen: (WearFavoriteRecord) -> Unit,
-    onUnmark: (WearFavoriteRecord) -> Unit,
-    onLongPress: (WearFavoriteRecord) -> Unit
-) {
-    // The column count comes from the width this composable actually gets, exactly as both other file
-    // lists decide it - the geometry question has one answer in this app, not three.
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-        val columns = GridColumnFit.columnsFor(viewMode, maxWidth.value.toInt())
-        ScalingLazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            state = listState,
-            contentPadding = wearScreenInsets(),
-            scalingParams = WearGridScalingParams
-        ) {
-            item {
-                Text(
-                    text = stringResource(R.string.wear_section_favourites),
-                    style = MaterialTheme.typography.title3,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 12.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-
-            if (unopenableNotice) {
-                item {
-                    Text(
-                        text = stringResource(R.string.wear_favourites_unopenable),
-                        style = MaterialTheme.typography.caption2,
-                        color = MaterialTheme.colors.error,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            recordItems(
-                records = records,
-                columns = columns,
-                onOpen = onOpen,
-                onUnmark = onUnmark,
-                onLongPress = onLongPress
-            )
-        }
-    }
-}
-
 /** One column keeps the chip; more than one draws the cell both other watch file lists use. */
 private fun ScalingLazyListScope.recordItems(
     records: List<WearFavoriteRecord>,
     columns: Int,
+    thumbnails: Map<String, WearThumbnail>,
+    onRequestThumbnail: (WearFavoriteRecord) -> Unit,
     onOpen: (WearFavoriteRecord) -> Unit,
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
     if (columns == SINGLE_COLUMN) {
         items(records) { record ->
+            onRequestThumbnail(record)
             FavouriteChip(
                 record = record,
+                thumbnail = thumbnails[record.identity] ?: WearThumbnail.Unavailable,
                 onOpen = onOpen,
                 onUnmark = onUnmark,
                 onLongPress = onLongPress
@@ -279,13 +302,15 @@ private fun ScalingLazyListScope.recordItems(
         }
     } else {
         items(records.chunked(columns)) { rowRecords ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
+            CenteredGridRow(
+                columns = columns,
+                itemCount = rowRecords.size,
+                gap = GRID_GAP
             ) {
                 rowRecords.forEach { record ->
+                    onRequestThumbnail(record)
                     ThumbnailCell(
-                        thumbnail = WearThumbnail.Unavailable,
+                        thumbnail = thumbnails[record.identity] ?: WearThumbnail.Unavailable,
                         caption = record.displayName,
                         onClick = { onOpen(record) },
                         modifier = Modifier.weight(1f),
@@ -302,9 +327,6 @@ private fun ScalingLazyListScope.recordItems(
                         )
                     }
                 }
-                repeat(columns - rowRecords.size) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
             }
         }
     }
@@ -313,32 +335,47 @@ private fun ScalingLazyListScope.recordItems(
 @Composable
 private fun FavouriteChip(
     record: WearFavoriteRecord,
+    thumbnail: WearThumbnail,
     onOpen: (WearFavoriteRecord) -> Unit,
     onUnmark: (WearFavoriteRecord) -> Unit,
     onLongPress: (WearFavoriteRecord) -> Unit
 ) {
-    LongPressChip(
-        onClick = { onOpen(record) },
-        onLongClick = { onLongPress(record) },
-        label = { Text(text = record.displayName) },
-        secondaryLabel = if (record.mimeType == null) {
-            { Text(text = stringResource(R.string.wear_favourites_unopenable)) }
-        } else {
-            null
-        },
-        icon = {
-            Icon(
-                imageVector = record.icon(),
-                contentDescription = null
-            )
-        },
-        modifier = Modifier.fillMaxWidth()
-    )
-    Chip(
-        onClick = { onUnmark(record) },
-        label = { Text(text = stringResource(R.string.wear_favourites_unmark)) },
-        modifier = Modifier.fillMaxWidth()
-    )
+    Timber.d("S2526: FavouriteChip composed for %s", record.displayName)
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        SingleColumnTileCell(
+            thumbnail = thumbnail,
+            caption = record.displayName,
+            onClick = { onOpen(record) },
+            onLongClick = { onLongPress(record) },
+            secondaryText = if (record.mimeType == null) {
+                stringResource(R.string.wear_favourites_unopenable)
+            } else {
+                null
+            },
+            fallback = { glyphModifier ->
+                Icon(
+                    imageVector = record.icon(),
+                    contentDescription = null,
+                    modifier = glyphModifier,
+                    tint = MaterialTheme.colors.onSurfaceVariant
+                )
+            }
+        )
+        Chip(
+            onClick = { onUnmark(record) },
+            label = {
+                Text(
+                    text = stringResource(R.string.wear_favourites_unmark),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
     // The chip stays where it was: the single-column layout already reached unmarking in one tap,
     // and moving it into the menu would have cost that layout a tap to fix the grid's problem.
 }

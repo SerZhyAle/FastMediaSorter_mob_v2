@@ -79,8 +79,6 @@
     <string name="delete_by_size_warning_no_trash">Увага: кошик не підтримується для цього ресурсу. Видалення буде безповоротним!</string>
     <string name="delete_confirmation">Видалити файли?</string>
     <string name="delete_failed">Не вдалося видалити файли.</string>
-    <string name="delete_file_confirmation">Видалити файл %1$s з %2$s?</string>
-    <string name="delete_files_confirmation">Видалити %1$d файлів з %2$s?</string>
     <string name="delete_folder_confirm">Видалити папку «%1$s» та весь її вміст? Скасувати не можна.</string>
     <string name="delete_n_files_from_network_title">Видалити %d файлів з мережі?</string>
     <string name="delete_n_folders_confirm">Видалити %1$d папок та весь їхній вміст? Скасувати не можна.</string>
@@ -139,4 +137,11 @@
     <string name="browse_row_folder_checkbox">Папка %1$s, вибрати</string>
     <string name="browse_row_file_checkbox">Файл %1$s, вибрати</string>
     <string name="browse_transfer_folders_included">Папок включено: %1$d</string>
+    <string name="undo_folder_move_started">Переносимо папки назад..</string>
+    <string name="undo_folder_copy_confirm_title">Скасувати копіювання папок?</string>
+    <string name="undo_folder_copy_confirm_message">Копії в папці призначення буде видалено разом з усім, що з\'явилося в них відтоді. Вихідні папки залишаться на місці.</string>
+    <string name="undo_folder_copy_confirm_action">Видалити копії</string>
+    <string name="undo_folder_copy_done">Копії видалено.</string>
+    <string name="undo_mixed_move_started">Переносимо папки назад, відновлюємо файлів: %1$d..</string>
+    <string name="undo_mixed_copy_done">Копії видалено: файлів %1$d, папок %2$d.</string>
 </resources>

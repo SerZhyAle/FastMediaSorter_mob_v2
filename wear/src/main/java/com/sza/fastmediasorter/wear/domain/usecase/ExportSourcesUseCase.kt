@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
 import android.content.Context
-import android.os.Build
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
 import com.sza.fastmediasorter.wear.data.wear.WearDataLayerPaths
@@ -18,7 +17,8 @@ import javax.inject.Inject
 class ExportSourcesUseCase @Inject constructor(
     private val networkSourceRepository: NetworkSourceRepository,
     @ApplicationContext private val context: Context,
-    private val gson: Gson
+    private val gson: Gson,
+    private val getWatchDisplayName: GetWatchDisplayNameUseCase
 ) {
 
     private val envelopeCodec = WearEventEnvelopeCodec()
@@ -38,17 +38,34 @@ class ExportSourcesUseCase @Inject constructor(
                 basePath = source.basePath,
                 domain = source.domain,
                 sshPrivateKey = source.sshPrivateKey,
-                hostKeyFingerprint = source.hostKeyFingerprint
+                hostKeyFingerprint = source.hostKeyFingerprint,
+                iconId = source.iconId,
+                supportedMediaTypes = source.supportedMediaTypes,
+                allFiles = source.allFiles,
+                // S2502: without this the phone leg would carry no edit time and the exchange would
+                // rank records in one direction only, which is the asymmetry the ticket removes.
+                lastEditedAt = source.lastEditedAt
             )
         }
+        // S2502: one reading for both, so the payload's own send time and the envelope's cannot drift
+        // apart and describe two different moments for one exchange.
+        val sentAt = System.currentTimeMillis()
+        Timber.d("S2502: watch export leg built ${payloads.size} record(s) with sentAt=$sentAt")
         val payload = WearSourcesExportPayload(
             sources = payloads,
-            watchName = Build.MODEL
+            // S2868: the phone renders this in its sources-import card, so it reads the same human name
+            // the phone's settings row and the imported broadcast row do.
+            watchName = getWatchDisplayName(),
+            sentAt = sentAt,
+            // S2507: the deletions this watch made. Without them the phone cannot tell a resource the
+            // user removed here from one it has never seen, and hands the removed one straight back.
+            tombstones = networkSourceRepository.getTombstones()
         )
+        Timber.d("S2507: watch export leg carries ${payload.tombstones.orEmpty().size} tombstone(s)")
         val envelopeBytes = envelopeCodec.encode(
             WearEventEnvelope(
                 eventType = WearDataLayerPaths.EVENT_SOURCES_EXPORT,
-                sentAt = System.currentTimeMillis(),
+                sentAt = sentAt,
                 data = gson.toJson(payload).toByteArray()
             )
         )

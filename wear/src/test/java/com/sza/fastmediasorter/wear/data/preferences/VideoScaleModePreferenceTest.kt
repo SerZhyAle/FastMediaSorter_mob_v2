@@ -30,10 +30,10 @@ class VideoScaleModePreferenceTest {
 
     @Test
     fun `the scale mode does not share a stored key with any other preference`() {
-        val scaleKey = WearPreferencesRepositoryImpl.PreferencesKeys.VIDEO_SCALE_MODE.name
+        val scaleKey = WearPreferenceKeys.VIDEO_SCALE_MODE.name
         val neighbours = listOf(
-            WearPreferencesRepositoryImpl.PreferencesKeys.VIEW_MODE.name,
-            WearPreferencesRepositoryImpl.PreferencesKeys.FILE_LIST_VIEW_MODE.name
+            WearPreferenceKeys.VIEW_MODE.name,
+            WearPreferenceKeys.FILE_LIST_VIEW_MODE.name
         )
         assertFalse(scaleKey in neighbours)
     }

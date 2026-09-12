@@ -1,6 +1,7 @@
 
 import java.io.FileInputStream
 import java.io.File
+import java.time.Duration
 import java.util.Properties
 import org.gradle.api.GradleException
 
@@ -14,12 +15,43 @@ plugins {
 // Versioning is one system across both modules, stamped together by
 // scripts/release/build-release-spectrum.ps1 from a single timestamp:
 //   versionName  Y.YM.MDDH.Hmm  - byte-identical to app_v2, the watch and the phone ship one version.
-//   versionCode  yyMMddHH (8 digits) - app_v2 appends the first minute digit and gets 9. The two
-//     codes MUST differ: both modules publish under the same applicationId (S1681), and Play refuses
-//     a release whose artifacts repeat a versionCode. Wear = app_v2 code without its last digit.
+//   versionCode  yyMMddHH * 10 + 6 + floor(minute / 15) (9 digits) - app_v2 uses the same 8-digit
+//     prefix with floor(minute / 10) instead, so the phone owns last digits 0..5 and the watch owns
+//     6..9. The two codes MUST differ: both modules publish under the same applicationId (S1681),
+//     and Play refuses a release whose artifacts repeat a versionCode. The separator digit is a
+//     partition, not an offset (S2721): the watch derives its code from the build instant alone,
+//     which is what its independent release cadence requires.
 // Gate: scripts/quality/assert-module-version-parity.ps1.
-val defaultAppVersionCode = 26082701
-val defaultAppVersionName = "2.60.8270.111"
+//
+// S1873: the version has three sources, in this order.
+//   1. -Pfms.version* passed on the command line. Always wins (ADR-2) - it is the only way the two
+//      modules of one release, built by two invocations seconds apart, agree byte for byte.
+//   2. The in-build stamp, applied when THIS invocation packages an artifact and nobody passed a
+//      property. Covers the paths no wrapper script reaches.
+//   3. The checked-in constant below, which after ADR-4 has no writer and is a deliberately
+//      non-releasable sentinel.
+// The watch takes its separator digit from the shared derivation, so the two modules still differ
+// by exactly the documented rule rather than by two independently written formulas.
+apply(from = rootProject.file("gradle/build-version-stamp.gradle.kts"))
+
+val defaultAppVersionCode = 260901218
+val defaultAppVersionName = "2.60.9012.140"
+
+// S2585: single source for the unit-test task ceiling, shared with app_v2 through gradle.properties.
+// Declared at the top level because testOptions.unitTests.all binds `it` to the Test task, which a
+// nested provider lambda would shadow. Rationale and the measurement behind 20: the property itself.
+val unitTestTimeoutMinutes: Long =
+    providers.gradleProperty("fms.unitTestTimeoutMinutes").orNull?.toLongOrNull() ?: 20L
+
+// S2851: the same fork count app_v2 reads, from the same gradle.properties value, so the two modules
+// cannot drift apart. This module's suite measures 55 s serially and is not what the property was
+// introduced for; it honours the value so that a host-wide budget stays one number, and so that a
+// future watch suite does not have to rediscover the setting.
+val unitTestMaxParallelForks: Int =
+    providers.gradleProperty("fms.unitTestMaxParallelForks").orNull?.toIntOrNull()?.coerceAtLeast(1)
+        ?: 1
+val stampedAppVersionCode = extra.properties["fmsStampedWearVersionCode"] as Int?
+val stampedAppVersionName = extra.properties["fmsStampedVersionName"] as String?
 val overrideAppVersionCode = providers.gradleProperty("fms.versionCode").orNull?.let { raw ->
     raw.toIntOrNull() ?: throw GradleException("Invalid -Pfms.versionCode value: '$raw'")
 }
@@ -46,8 +78,10 @@ android {
     }
 
     namespace = "com.sza.fastmediasorter.wear"
-    // CRITICAL: Do not change - required for latest Wear OS features
-    compileSdk = 36
+    // S2884: compileSdk 37 - moved together with app_v2 (strategic 3.2 forbids a split between
+    // the two modules), and kept current so Wear OS 7 features stay compilable. AGP resolves the
+    // highest installed 37.x platform (android-37.0 / android-37.1 on the workstation).
+    compileSdk = 37
 
     defaultConfig {
         // S1681: MUST stay identical to app_v2's applicationId. Play Services routes Data Layer
@@ -62,11 +96,10 @@ android {
         minSdk = 28  // Wear OS 2.0+ support
         // CRITICAL: Do not change - required for Wear OS Play Store compliance
         targetSdk = 36
-        // Version is kept in sync with app_v2 by build-with-version.ps1 / release scripts
-        // via -Pfms.versionCode and -Pfms.versionName properties.
-        // Default values provide stable configuration cache in local builds.
-        versionCode = overrideAppVersionCode ?: defaultAppVersionCode
-        versionName = overrideAppVersionName ?: defaultAppVersionName
+        // Three sources in one order - passed property, in-build stamp when this invocation
+        // packages, checked-in sentinel. See the block above the constants for why each exists.
+        versionCode = overrideAppVersionCode ?: stampedAppVersionCode ?: defaultAppVersionCode
+        versionName = overrideAppVersionName ?: stampedAppVersionName ?: defaultAppVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -121,10 +154,21 @@ android {
 
     // S2090: the watch gets the same two-variant split the phone has had for years. Until this block
     // existed there was nowhere to put a capability Play refuses on a watch, so the only available
-    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013. The dimension
-    // is deliberately empty of source sets: no class and no manifest overlay lives under
-    // wear/src/noLegal yet, and the first Play-blocked capability creates both. See
-    // dev/FLAVOR_DEVELOPMENT_RULES.md for the shape that capability must take.
+    // answer was to delete it - which is what happened to ACCESS_FINE_LOCATION in S2013.
+    //
+    // Both flavor source sets now carry code. S2165 filled wear/src/noLegal with the extended
+    // system-information contributor, and S2486 added wear/src/standard alongside it: a two-sided
+    // @Binds contract has no implementation unless BOTH flavors declare one, so the withholding answer
+    // is a real class in its own set rather than a default in src/main, which would diverge silently
+    // from the flavor that overrides it. wear/src/noLegal/AndroidManifest.xml now exists too, created
+    // the day a capability first needed a permission and merged by convention exactly as the paragraph
+    // below predicted; S2457 and S2458 both reached that day at once, so it carries two unrelated
+    // permission families - body sensors and activity recognition - and any third sibling ADDS to it
+    // rather than rewriting it. wear/src/standard still has no manifest, and that absence is the
+    // feature: it is what keeps the Play-distributed edition clear of the permissions whose review
+    // left S1614 blocked.
+    // See dev/FLAVOR_DEVELOPMENT_RULES.md Rule 8 for the shape a new capability must take, and note
+    // that the ban on placeholder content in these sets still stands.
     flavorDimensions += listOf("version")
 
     productFlavors {
@@ -160,6 +204,16 @@ android {
         buildConfig = true
     }
 
+    sourceSets {
+        // S2355: expose the exported Room schemas as androidTest assets so MigrationTestHelper can
+        // load <db-fqcn>/<version>.json from the device at runtime. Mirrors what app_v2 does under
+        // S1009 - without the mount the helper finds no schema and the test fails for a reason
+        // unrelated to any migration, which is indistinguishable from the defect it exists to catch.
+        getByName("androidTest") {
+            assets.directories.add("schemas")
+        }
+    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -173,6 +227,26 @@ android {
             // once already, which is the whole reason this ticket exists.
             excludes += "org/bouncycastle/pqc/crypto/picnic/**"
             excludes += "org/bouncycastle/x509/CertPathReviewerMessages_de.properties"
+        }
+    }
+
+    testOptions {
+        unitTests {
+            // S2437: without this, every android.jar stub throws "not mocked" instead of returning a
+            // default, so VoiceNotePublisher.mimeTypeOf blew up on MimeTypeMap.getSingleton() and took
+            // three tests with it. app_v2 has carried the flag since its first test; this module never
+            // declared testOptions at all. isIncludeAndroidResources stays off deliberately - it is a
+            // Robolectric requirement, and this module has no Robolectric.
+            isReturnDefaultValues = true
+            all {
+                // S2585: the same ceiling app_v2 carries, from the same gradle.properties value, so
+                // the two modules cannot drift to two different numbers. This module has never hung,
+                // but the mechanism is not module-specific: any test spinning without checking the
+                // interrupt flag holds its task open, and a held task holds Build.Wear. The timeout
+                // ends the task so the wrapper reaches its finally and reaps the worker there.
+                it.timeout.set(Duration.ofMinutes(unitTestTimeoutMinutes))
+                it.maxParallelForks = unitTestMaxParallelForks
+            }
         }
     }
 }
@@ -191,113 +265,157 @@ kotlin {
 
 dependencies {
     lintChecks(project(":lint-rules"))
-    // Wear OS Compose - Using compatible BOM version for wear-compose 1.2.1
-    // compose-bom 2024.02.00 includes compose-animation-core 1.6.x compatible with wear-compose 1.2.x
-    val wearComposeBom = platform("androidx.compose:compose-bom:2024.02.00")
+    // S2913: Wear OS Compose - Using compatible BOM version for wear-compose 1.4.1
+    // compose-bom 2024.12.01 includes Compose UI 1.7.6 compatible with wear-compose 1.4.x
+    val wearComposeBom = platform(libs.androidx.compose.bom)
     implementation(wearComposeBom)
     
     // Wear OS Compose libraries - pinned to compatible versions
-    implementation("androidx.wear.compose:compose-material:1.2.1")
-    implementation("androidx.wear.compose:compose-foundation:1.2.1")
-    implementation("androidx.wear.compose:compose-navigation:1.2.1")
+    implementation(libs.androidx.wear.compose.material)
+    implementation(libs.androidx.wear.compose.foundation)
+    implementation(libs.androidx.wear.compose.navigation)
     
     // Hilt Navigation Compose (for hiltViewModel)
-    implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
+    implementation(libs.androidx.hilt.navigation.compose)
     
     // Compose UI basics
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    debugImplementation("androidx.compose.ui:ui-tooling")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.material.icons.core)
+    implementation(libs.androidx.compose.material.icons.extended)
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
     
     // Activity Compose
-    implementation("androidx.activity:activity-compose:1.10.1")
+    implementation(libs.androidx.activity.compose)
     
     // Lifecycle
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     
     // Wear OS essentials
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    implementation("androidx.wear:wear:1.3.0")
-    implementation("androidx.wear:wear-input:1.1.0")
+    implementation(libs.google.gms.play.services.wearable)
+    implementation(libs.androidx.wear.wear)
+    implementation(libs.androidx.wear.input)
+
+    // S2496: RemoteActivityHelper - hands an ACTION_VIEW to the Wear OS companion so a link opens on
+    // the paired phone. It ships in this artifact alone; androidx.wear:wear above does not carry it.
+    // The -ktx artifact is what awaits its ListenableFuture: hand-rolling that bridge over
+    // addListener leaves the future uncancelled when the calling scope dies.
+    implementation(libs.androidx.wear.remote.interactions)
+    implementation(libs.androidx.concurrent.futures.ktx)
 
     // S1955: tiles for the system carousel. The tile service and its layout library split at 1.2 and are
     // both maintained; both declare minSdk 23, so neither moves this module's floor of 28.
-    implementation("androidx.wear.tiles:tiles:1.6.2")
-    implementation("androidx.wear.protolayout:protolayout:1.4.2")
-    implementation("androidx.wear.protolayout:protolayout-material:1.4.2")
-    implementation("androidx.wear.protolayout:protolayout-expression:1.4.2")
+    implementation(libs.androidx.wear.tiles)
+    implementation(libs.androidx.protolayout.protolayout)
+    implementation(libs.androidx.protolayout.material)
+    implementation(libs.androidx.protolayout.expression)
 
     // S2047: watch face complication data sources. watch-face APIs are deprecated at 1.3.0 while complication APIs are not.
-    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.3.0")
+    implementation(libs.androidx.watchface.complications.data.source.ktx)
+
+    // S2457: Health Services, for a single foreground heart-rate reading. Three things about this line
+    // are deliberate and none of them is style.
+    //   1. noLegalImplementation, not implementation. Play reviews both heart-rate permissions against six
+    //      admitted use cases and a media sorter matches none, so the capability ships in the sideload
+    //      flavor alone - and the library has no business in the standard artifact, where no permission
+    //      exists to use it. This also keeps point 2 out of the standard manifest.
+    //   2. The library declares minSdk 30 against this module's floor of 28, so the noLegal manifest
+    //      carries a tools:overrideLibrary entry and the data source guards on SDK_INT at runtime.
+    //      Raising the floor is not available: minSdk 28 is pinned above as a support commitment.
+    //   3. The version is an RC because the Health Services line has never shipped a stable release -
+    //      1.0.0 stopped at beta02 and the maintained branch is 1.1.0-rc02.
+    // Quoted, not the accessor form: Kotlin DSL generates type-safe accessors for the base
+    // configurations only, never for a product flavor's, so `noLegalImplementation(..)` is an
+    // unresolved reference that fails SCRIPT COMPILATION - which breaks configuration for every
+    // module, so detekt and every post-change closure in the repository died before running a
+    // single check. app_v2 has used the quoted form for its six flavors since it gained them.
+    "noLegalImplementation"(libs.androidx.health.services.client)
     
     // Accompanist Permissions (for runtime permission handling)
-    implementation("com.google.accompanist:accompanist-permissions:0.34.0")
+    implementation(libs.accompanist.permissions)
     
     // Media3 for audio playback and streaming (S1708)
-    implementation("androidx.media3:media3-exoplayer:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-hls:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-dash:1.2.1")
-    implementation("androidx.media3:media3-exoplayer-rtsp:1.2.1")
-    implementation("androidx.media3:media3-ui:1.2.1")
-    implementation("androidx.media3:media3-common:1.2.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.exoplayer.rtsp)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.common)
+    implementation(libs.androidx.media3.session)
     
     // Coil for image loading (Compose-friendly)
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.coil.compose)
     
     // Hilt Dependency Injection
-    implementation("com.google.dagger:hilt-android:2.59")
-    ksp("com.google.dagger:hilt-android-compiler:2.59")
+    implementation(libs.dagger.hilt.android)
+    ksp(libs.dagger.hilt.android.compiler)
 
     // Room - voice-note store (S1862). Version is deliberately kept equal to app_v2 and pinned in
     // docs/TECH_STACK.md; check-doc-vs-gradle.ps1 reads that pin. KSP is already applied above, so
     // this adds a processor, not a plugin.
-    implementation("androidx.room:room-runtime:2.7.0")
-    implementation("androidx.room:room-ktx:2.7.0")
-    ksp("androidx.room:room-compiler:2.7.0")
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.ktx)
+    ksp(libs.androidx.room.compiler)
 
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
+    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.play.services)
     
     // DataStore for settings - kept in lockstep with app_v2 (S1449); 1.0.0 cannot rewrite its
     // own file on Windows, and two versions of one library across modules is a future trap.
-    implementation("androidx.datastore:datastore-preferences:1.1.7")
+    implementation(libs.androidx.datastore.preferences)
     
     // Retrofit for album art API
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation(libs.retrofit.retrofit)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.okhttp)
+
+    // S2509: declared outright rather than taken from converter-gson above. The broadcast descriptor
+    // is a cross-module wire contract, and a transitive version that a Retrofit bump could change or
+    // drop is not something a contract may rest on.
+    implementation(libs.gson)
+
+    // S2509: QR presentation of the broadcast descriptor. Core decoder only, exactly as app_v2 takes
+    // it - the android-embedded artifact drags in a legacy camera1 stack the watch has no use for.
+    implementation(libs.zxing.core)
     
     // SMB client for network storage
-    implementation("com.hierynomus:smbj:0.12.1")
+    implementation(libs.smbj)
 
     // FTP client (S0111 Phase 04)
-    implementation("commons-net:commons-net:3.10.0")
+    implementation(libs.commons.net)
 
     // SFTP client - JSch (lighter than SSHJ, no BouncyCastle conflict with SMBJ) (S0111 Phase 04).
     // Version is deliberately kept equal to app_v2 and enforced by check-doc-vs-gradle.ps1 (S1496).
-    implementation("com.github.mwiede:jsch:0.2.26")
+    implementation(libs.jsch)
     
     // Encrypted storage for credentials
-    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    implementation(libs.androidx.security.crypto)
     
     // Logging
-    implementation("com.jakewharton.timber:timber:5.0.1")
+    implementation(libs.timber)
     
     // Testing
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
     // S1697: the watch ViewModels sit on Data Layer clients that need an Android Context to build,
     // so a state test can only exist here with a mocking library. Same version as app_v2.
-    testImplementation("io.mockk:mockk:1.13.9")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
+    testImplementation(libs.mockk)
+    androidTestImplementation(libs.androidx.test.ext.junit)
+    androidTestImplementation(libs.androidx.espresso.core)
+    // S2355: the BOM has to be on the androidTest classpath too, or the versionless coordinate
+    // below has no version source and the configuration fails to resolve. It went unnoticed
+    // because until this ticket no target ever resolved the watch's instrumented classpath -
+    // which is the exact shape of miss the ticket exists to remove.
+    androidTestImplementation(wearComposeBom)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    // S2355: MigrationTestHelper - the class that performs on a device the same schema comparison
+    // Room performs on update - ships in room-testing and nowhere else. Version kept equal to the
+    // room-runtime pin above and to app_v2, so both modules test against the same Room runtime.
+    androidTestImplementation(libs.androidx.room.testing)
 }
 
 ksp {

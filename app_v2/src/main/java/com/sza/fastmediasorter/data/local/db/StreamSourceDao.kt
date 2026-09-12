@@ -82,6 +82,33 @@ interface StreamSourceDao {
     suspend fun getByIdentity(identityKey: String): StreamSourceEntity?
 
     /**
+     * S2813: the row a broadcasting device already owns, whatever address it is carrying today.
+     *
+     * The device index is not unique, so this takes the most recently added of any duplicates. A
+     * duplicate can only arise from a database edited by hand or restored from a backup written before
+     * the column existed; picking one is still a better answer than failing the import.
+     */
+    @Query(
+        "SELECT * FROM stream_sources WHERE sourceDeviceId = :deviceId " +
+            "ORDER BY addedAt DESC LIMIT 1"
+    )
+    suspend fun getBySourceDeviceId(deviceId: String): StreamSourceEntity?
+
+    /**
+     * S2813: moves a row onto the address its device is broadcasting on now.
+     *
+     * Unlike [updateUserFields] this touches neither the title nor the origin and is not restricted to
+     * MANUAL rows: the address is the device's property and the title may be the user's, and the user's
+     * rename must survive a reconnect.
+     */
+    @Query("UPDATE stream_sources SET url = :url, identityKey = :identityKey WHERE id = :id")
+    suspend fun updateSourceAddress(id: String, url: String, identityKey: String)
+
+    /** S2868: title-only write; the caller decides whether the stored title may be replaced at all. */
+    @Query("UPDATE stream_sources SET title = :title WHERE id = :id")
+    suspend fun updateTitle(id: String, title: String)
+
+    /**
      * S1832: repaint the pin projection on the catalog rows from the durable user state, in one
      * statement. Called at the end of a merge, so a channel that just returned to the bank as a brand new
      * row picks the pin and the position back up.
@@ -129,9 +156,17 @@ interface StreamSourceDao {
     @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE id = :id")
     suspend fun pin(id: String, newSortIndex: Int)
 
+    /** S2497: pin by channel identityKey when syncing from watch. */
+    @Query("UPDATE stream_sources SET pinned = 1, sortIndex = :newSortIndex WHERE identityKey = :identityKey")
+    suspend fun pinByIdentity(identityKey: String, newSortIndex: Int)
+
     /** S0770: drop a channel's pin so it leaves the main-window streams panel; the catalog row stays. */
     @Query("UPDATE stream_sources SET pinned = 0 WHERE id = :id")
     suspend fun unpin(id: String)
+
+    /** S2497: unpin by channel identityKey when syncing from watch. */
+    @Query("UPDATE stream_sources SET pinned = 0 WHERE identityKey = :identityKey")
+    suspend fun unpinByIdentity(identityKey: String)
 
     /**
      * S0660: in-place edit of a user channel. Scoped to MANUAL rows so a CATALOG/IMPORTED row can

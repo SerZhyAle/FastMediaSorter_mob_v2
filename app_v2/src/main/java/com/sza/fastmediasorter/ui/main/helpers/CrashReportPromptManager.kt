@@ -53,7 +53,6 @@ class CrashReportPromptManager(private val activity: Activity) {
         // activity has nowhere to receive the intent. Packaging and reading run off the main thread
         // explicitly, because a lifecycle scope dispatches to Main.
         activity.launchBoundToHost {
-            Timber.d("S2358: prompt crash-report send started on the host lifecycle")
             val (zipUri, body) = withContext(Dispatchers.IO) {
                 val uri = LogExportHelper.buildLogsZipUri(activity)
                 uri to buildString {

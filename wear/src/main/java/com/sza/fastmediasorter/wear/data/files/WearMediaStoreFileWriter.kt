@@ -48,6 +48,20 @@ class WearMediaStoreFileWriter @Inject constructor(
     }
 
     /**
+     * S2626: rewrites the row's displayed title, leaving its file name alone.
+     *
+     * It goes through [attempt] rather than calling the resolver directly for the reason spelled out
+     * there: the caller is a background pass with no `catch` of its own, so an escaping resolver
+     * exception would take the app down instead of the one row it could not write.
+     */
+    fun retitle(uri: Uri, title: String): Result = attempt(uri, consent::writeRequest) {
+        val values = ContentValues().apply {
+            put(MediaStore.Audio.Media.TITLE, title)
+        }
+        context.contentResolver.update(uri, values, null, null) > 0
+    }
+
+    /**
      * A refusal is not a failure: it is the one outcome that becomes a success once the owner
      * answers, so it is reported apart from the row that could not be written for any other reason.
      *

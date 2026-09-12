@@ -28,8 +28,12 @@ class WearIncomingFileRegistry @Inject constructor() {
     }
 
     /**
-     * The declared size for [fileName], or 0 when it arrived undeclared. Consumed on read, so a
-     * declaration that never grew a channel does not answer for the next file of the same name.
+     * The whole declaration for [fileName], or null when it arrived undeclared. Consumed on read, so
+     * a declaration that never grew a channel does not answer for the next file of the same name.
+     *
+     * S2142: the declaration rather than the size alone - it now also carries the receiver the watch
+     * is asking this phone to hand the file to, and reading the size out here would drop that errand
+     * on the floor while the transfer went on looking perfectly normal.
      */
-    fun takeDeclaredSize(fileName: String): Long = declarations.remove(fileName)?.size ?: 0L
+    fun take(fileName: String): WearFileTransferMetadata? = declarations.remove(fileName)
 }

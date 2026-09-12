@@ -36,9 +36,12 @@ import com.sza.fastmediasorter.data.input.InputBindingEntity
         InstalledAppEntity::class,
         LauncherLaunchStatsEntity::class,
         SensorSeriesPointEntity::class,
-        NetworkMeasurementEntity::class
+        NetworkMeasurementEntity::class,
+        LauncherCellConfigEntity::class,
+        StreamCollectionEntity::class,
+        StreamCollectionMemberEntity::class
     ],
-    version = 54,
+    version = 58,
     // Export the schema JSON (committed under app_v2/schemas/) so future migrations can be
     // validated and the schema diff is reviewable. Arms the migration-test guard (S0731).
     exportSchema = true
@@ -62,6 +65,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun streamSourceDao(): StreamSourceDao
     abstract fun streamQualityMemoryDao(): StreamQualityMemoryDao
     abstract fun streamUserStateDao(): StreamUserStateDao
+    abstract fun streamCollectionDao(): StreamCollectionDao
     abstract fun appLaunchPanelTileDao(): AppLaunchPanelTileDao
     abstract fun launcherCellDao(): LauncherCellDao
     abstract fun launcherJournalDao(): LauncherJournalDao
@@ -71,6 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun launcherLaunchStatsDao(): LauncherLaunchStatsDao
     abstract fun sensorSeriesDao(): SensorSeriesDao
     abstract fun networkMeasurementDao(): NetworkMeasurementDao
+    abstract fun launcherCellConfigDao(): LauncherCellConfigDao
 
     companion object {
         /**

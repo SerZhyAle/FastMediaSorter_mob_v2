@@ -47,6 +47,16 @@ object PermissionManifestExemptions {
             "Foreground-service type for the transfer worker; granted with the service, not by the user.",
         "android.permission.FOREGROUND_SERVICE_MICROPHONE" to
             "Foreground-service type for recording; the user decision is RECORD_AUDIO, which has its own row.",
+        "android.permission.EXPAND_STATUS_BAR" to
+            "Normal permission, granted at install; there is no dialog and no system screen to send the user " +
+            "to. S2386 declared it for the launcher shade gesture, and DeviceActionHandler consumes it by " +
+            "reflecting expandNotificationsPanel / expandSettingsPanel on the statusbar service.",
+        "android.permission.REQUEST_DELETE_PACKAGES" to
+            "Normal permission, granted at install; there is no dialog and no system screen to send the user " +
+            "to. S2576 declared it in src/launcherEnabled so the launcher's app-action uninstall row can hand " +
+            "ACTION_DELETE to the system uninstaller; an app targeting API 28 or later must hold it or that " +
+            "screen closes without showing its confirmation. The decision stays the user's, but it is made on " +
+            "the system uninstaller's own screen, not on a row of ours.",
         "android.permission.FOREGROUND_SERVICE_SPECIAL_USE" to
             "Foreground-service type for the overlay host; the user decision is SYSTEM_ALERT_WINDOW, which has " +
             "its own row.",

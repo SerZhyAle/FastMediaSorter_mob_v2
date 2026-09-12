@@ -7,7 +7,17 @@
     hands the device back to the previous launcher.
 
     No <queries> here - the MAIN/LAUNCHER visibility declaration the app registry needs already lives in
-    the main manifest (S0623).
+    the main manifest (S0623). S2576 confirmed no <queries> entry is needed for the uninstall row either:
+    com.google.android.packageinstaller sits in the platform's forceQueryable set, so it is visible to
+    every app with nothing declared (measured with `dumpsys package queries`, Android 15).
+
+    S2576 added REQUEST_DELETE_PACKAGES below. The app-action menu's uninstall row hands ACTION_DELETE to
+    the system uninstaller, and an app targeting API 28 or later must hold this permission for that screen
+    to show its confirmation - without it the screen closes on its own, so the menu entry looks dead while
+    startActivity reports success and nothing is logged. It lives here rather than in src/noLegal because
+    it is a normal permission with no Play review surface, unlike the REQUEST_INSTALL_PACKAGES that S0183
+    had to confine to the sideload flavor; this source set is mounted by exactly the flavors that ship the
+    launcher, which is the only feature that offers the row.
 
     S1415 added READ_PHONE_STATE below. It is requested at run time, and only when the tray is about to
     show a SIM indicator; a refusal simply leaves both SIM slots absent (strategic §7). No <uses-feature>
@@ -39,6 +49,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES" />
 
     <application>
         <!--
@@ -63,6 +74,19 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
+
+        <!--
+            S2811: the same desktop presentation as the app's own start window. No HOME intent-filter,
+            so this component never makes the app a home-screen candidate; no taskAffinity override and
+            no excludeFromRecents, so a user who never enabled home mode keeps the app in Recents.
+        -->
+        <activity
+            android:name="com.sza.fastmediasorter.ui.launcher.LauncherStartWindowActivity"
+            android:configChanges="orientation|screenSize|screenLayout|keyboardHidden"
+            android:enabled="true"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:stateNotNeeded="true" />
 
         <activity
             android:name="com.sza.fastmediasorter.ui.launcher.pin.LauncherPinRequestActivity"

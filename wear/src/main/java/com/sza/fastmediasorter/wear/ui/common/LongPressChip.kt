@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -67,8 +67,11 @@ fun LongPressChip(
     val secondaryColor = colors.secondaryContentColor(enabled = true).value
     val iconColor = colors.iconColor(enabled = true).value
     Row(
+        // S2755: a minimum, not a fixed height. The row lives in a scrolling list that can absorb a
+        // taller label, and pinning the height cropped the text the moment the font scale outgrew it.
+        verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .height(CHIP_HEIGHT)
+            .heightIn(min = CHIP_HEIGHT)
             .clip(MaterialTheme.shapes.small)
             .width(IntrinsicSize.Max)
             .paint(painter = background, contentScale = ContentScale.Crop)

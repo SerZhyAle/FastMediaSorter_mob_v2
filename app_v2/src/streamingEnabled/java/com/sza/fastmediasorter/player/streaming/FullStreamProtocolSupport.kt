@@ -27,5 +27,6 @@ class FullStreamProtocolSupport @Inject constructor() : StreamProtocolSupport {
         // and the iteration-1 baseline (UDP/multicast are deferred best-effort).
         RtspMediaSource.Factory()
             .setForceUseRtpTcp(true)
+            .setSocketFactory(SdpSessionNameSocketFactory())
             .createMediaSource(MediaItem.fromUri(uri))
 }

@@ -5,7 +5,7 @@
 
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:paddingBottom="@dimen/settings_fragment_padding" android:clipToPadding="false">
 
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -95,7 +95,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- SAFETY & CONFIRMATION SECTION (moved from General) -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -168,7 +168,7 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -206,13 +206,33 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- GROUP: Send file to.. (S0452/S2390) - per-target toggles added dynamically from ShareTargetRegistry; card hidden while the registry is empty -->
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardSendCommands" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
+
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+
+                <com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
+                    android:id="@+id/headerSendCommands"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    app:csh_icon="@drawable/ic_share"
+                    app:csh_showHelp="false"
+                    app:csh_title="@string/settings_send_commands_group" />
+
+                <!-- S0999: horizontal host for N weighted column children (built in OperationsSendCommandsManager).
+                     Orientation is reset per-config in Kotlin: vertical for the single-column fallback. -->
+                <LinearLayout android:id="@+id/containerSendCommands" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:paddingStart="@dimen/margin_small" android:paddingEnd="@dimen/margin_small" android:paddingBottom="@dimen/margin_small" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
         <!-- Scheduled Operations Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <LinearLayout
@@ -338,7 +358,7 @@
 
 
         <!-- GROUP: Behaviour (collapsible) - primary player, shared files, resume on next launch -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardBehaviour" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -394,7 +414,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Photography (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -509,7 +529,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Video recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -600,7 +620,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Voice recorder (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -693,7 +713,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Screen recording (S0882) - split from former Other features (S0318). -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -770,7 +790,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Wear OS (S1883) - the watch half of the app in one place. The card carries its own id because the whole card is hidden in builds without the watch bridge: hiding only the header and the container, the way the Scheduled group does, would leave an empty elevated card on screen. Portrait: single column. -->
-        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:id="@+id/cardWear" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -791,6 +811,15 @@
                         app:str_icon="@drawable/ic_watch"
                         app:str_title="@string/settings_enable_wear_companion"
                         app:str_subtitle="@string/settings_enable_wear_companion_summary" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowSuppressWearMediaTakeover"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="@dimen/margin_small"
+                        app:str_icon="@drawable/ic_watch"
+                        app:str_title="@string/settings_suppress_wear_media_takeover"
+                        app:str_subtitle="@string/settings_suppress_wear_media_takeover_summary" />
 
                     <TextView
                         android:id="@+id/textWearGroupDescription"
@@ -824,7 +853,7 @@
         </com.google.android.material.card.MaterialCardView>
 
         <!-- GROUP: Additional programs and scenarios (S0649) - moved from Other features: camera OCR translation (+ nested recognition only), calculator, mini-game. Portrait: single column. -->
-        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="2dp" app:contentPadding="0dp">
+        <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginHorizontal="@dimen/margin_small" app:cardCornerRadius="@dimen/card_corner_radius" app:cardElevation="@dimen/card_elevation" app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
 
@@ -871,6 +900,27 @@
                         app:str_helpMessage="@string/tooltip_calculator_message" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableStopwatch"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_stopwatch"
+                        app:str_title="@string/stopwatch_title"
+                        app:str_subtitle="@string/setting_stopwatch_desc"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/tooltip_stopwatch_title"
+                        app:str_helpMessage="@string/tooltip_stopwatch_message" />
+
+                    <!-- S1411 ADR-5: the tool's own options are reachable from here as well as from
+                         its gear button, which is what its doc-scope host key records. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
+                        android:id="@+id/rowOpenStopwatchSettings"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:ssr_showChevron="true"
+                        app:ssr_subtitle="@string/setting_stopwatch_settings_desc"
+                        app:ssr_title="@string/stopwatch_settings_title" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowEnableNetworkMonitor"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -885,6 +935,14 @@
                         app:str_icon="@drawable/ic_info"
                         app:str_title="@string/settings_enable_system_info"
                         app:str_subtitle="@string/settings_enable_system_info_summary" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableTourist"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_tourist"
+                        app:str_title="@string/tourist_info_title"
+                        app:str_subtitle="@string/setting_enable_tourist_desc" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowEmbeddedGame"
@@ -908,6 +966,42 @@
                         app:str_helpTitle="@string/front_flashlight_help_title"
                         app:str_helpMessage="@string/front_flashlight_help_message" />
 
+                    <!-- S2516: directly under the front flashlight - the two are the same kind of light
+                         and differ only in what a touch does, so the owner reads them as a pair. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowWaterFlashlight"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_water_flashlight"
+                        app:str_title="@string/water_flashlight_settings_toggle_title"
+                        app:str_subtitle="@string/water_flashlight_settings_toggle_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/water_flashlight_help_title"
+                        app:str_helpMessage="@string/water_flashlight_help_message" />
+
+                    <!-- S2776: with the lights, because it switches one of them on - the camera flash -
+                         from the notification shade instead of from a screen in this app. -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowFlashlightShortcut"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_camera_flash_on"
+                        app:str_title="@string/flashlight_shortcut_settings_toggle_title"
+                        app:str_subtitle="@string/flashlight_shortcut_settings_toggle_subtitle"
+                        app:str_showHelp="true"
+                        app:str_helpTitle="@string/flashlight_shortcut_help_title"
+                        app:str_helpMessage="@string/flashlight_shortcut_help_message" />
+
+                    <!-- S1924: the mirror sits beside the flashlight because the two are the same kind
+                         of sub-program and the owner reads them as a pair (strategic 3.3). -->
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowMirror"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_mirror"
+                        app:str_title="@string/mirror_settings_row_title"
+                        app:str_subtitle="@string/mirror_settings_row_summary" />
+
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
@@ -919,7 +1013,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1140,7 +1234,7 @@
             android:layout_height="wrap_content"
             android:layout_marginHorizontal="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
@@ -1173,7 +1267,7 @@
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnOpenEdgeGestureConfig"
                         style="@style/Widget.FastMediaSorter.SettingsButton.Outlined"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="@dimen/margin_small"
                         android:clickable="true"
@@ -1196,7 +1290,7 @@
             android:layout_marginHorizontal="@dimen/margin_small"
             android:layout_marginTop="@dimen/margin_small"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="2dp"
+            app:cardElevation="@dimen/card_elevation"
             app:contentPadding="0dp">
 
             <com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow

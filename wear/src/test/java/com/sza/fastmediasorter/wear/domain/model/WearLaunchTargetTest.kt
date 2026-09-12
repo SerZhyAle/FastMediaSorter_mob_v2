@@ -68,6 +68,41 @@ class WearLaunchTargetTest {
     }
 
     @Test
+    fun `every destination survives the round trip`() {
+        // Enumerated rather than sampled: a destination that does not survive is unreachable from a tile,
+        // and the failure is silent - the app opens its home screen exactly as it does for a plain launch.
+        WearDestinationId.entries.forEach { id ->
+            val shape = WearLaunchTarget.Destination(id)
+            assertEquals("$id must read back as itself", shape, roundTrip(shape))
+        }
+    }
+
+    @Test
+    fun `a destination this build does not have reads back nothing`() {
+        val written = mutableMapOf<String, Any?>()
+        WearLaunchTarget.Destination(WearDestinationId.CALCULATOR).writeTo(intentBackedBy(written))
+        val renamed = written.mapValues { (_, value) ->
+            if (value == WearDestinationId.CALCULATOR.name) "PROGRAM_FROM_A_LATER_BUILD" else value
+        }.toMutableMap()
+
+        assertNull(
+            "an unknown destination must land on the ordinary launch, not on one the caller picked",
+            readWearLaunchTarget(intentBackedBy(renamed))
+        )
+    }
+
+    @Test
+    fun `the launch extras of a resource carry its numeric port`() {
+        // S2511: the tile does not launch through an Intent - it maps these extras by their declared type.
+        // While the port was reachable only by an untyped read it was dropped on that hop, the address then
+        // failed its completeness test, and a pinned resource opened the home screen.
+        val numbers = WearLaunchTarget.Open(resourceRef).extras().values
+            .filterIsInstance<WearLaunchExtra.Number>()
+
+        assertEquals(listOf(WearLaunchExtra.Number(resourceRef.port)), numbers)
+    }
+
+    @Test
     fun `a resource ref with no share name still survives the round trip`() {
         // shareName is null on every non-SMB resource, so its absence is data rather than a missing field.
         val shape = WearLaunchTarget.Open(resourceRef.copy(shareName = null))

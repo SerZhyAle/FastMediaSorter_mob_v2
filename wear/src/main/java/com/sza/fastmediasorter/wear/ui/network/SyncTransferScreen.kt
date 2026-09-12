@@ -22,6 +22,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
 import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import kotlinx.coroutines.flow.merge
 
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.merge
  *
  * @param phoneName Optional name of the sending phone (populated from WearSyncPayload).
  */
+
 @Composable
 fun SyncTransferScreen(
     navController: NavController,
@@ -54,7 +56,7 @@ fun SyncTransferScreen(
                 strokeWidth = 4.dp
             )
             Column(
-                modifier = Modifier.padding(horizontal = 16.dp),
+                modifier = Modifier.padding(wearScreenInsets()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Spacer(Modifier.height(96.dp))

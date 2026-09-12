@@ -2,12 +2,16 @@ package com.sza.fastmediasorter.wear.data.thumbnail
 
 import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.os.Build
+import android.util.Base64
 import android.util.LruCache
 import android.util.Size
 import com.sza.fastmediasorter.wear.data.network.ftp.FtpDataSource
 import com.sza.fastmediasorter.wear.data.network.sftp.SftpDataSource
 import com.sza.fastmediasorter.wear.data.network.smb.SmbDataSource
+import com.sza.fastmediasorter.wear.data.wear.PhoneResourceClient
+import com.sza.fastmediasorter.wear.data.wear.PhoneResourceOutcome
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.NetworkSourceType
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
@@ -16,6 +20,7 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository
 import com.sza.fastmediasorter.wear.util.NetworkUriParser
 import com.sza.fastmediasorter.wear.util.WearThumbnailBudget
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -23,9 +28,12 @@ import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.IOException
 import java.io.InputStream
+import javax.inject.Inject
+import javax.inject.Singleton
 
 private const val IMAGE_PREFIX = "image/"
 private const val VIDEO_PREFIX = "video/"
+private const val AUDIO_PREFIX = "audio/"
 
 /**
  * Obtains a cell picture for either origin the watch can show.
@@ -35,20 +43,23 @@ private const val VIDEO_PREFIX = "video/"
  * The cache holds the definite-absence answer as well as bitmaps, which is what stops a folder of
  * documents from reopening a connection on every scroll back.
  */
-class WearThumbnailRepositoryImpl(
-    private val context: Context,
+@Singleton
+class WearThumbnailRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val networkSourceRepository: NetworkSourceRepository,
     private val smbDataSource: SmbDataSource,
     private val ftpDataSource: FtpDataSource,
     private val sftpDataSource: SftpDataSource,
-    private val previewReader: EmbeddedPreviewReader
+    private val previewReader: EmbeddedPreviewReader,
+    private val phoneResourceClient: PhoneResourceClient,
+    private val audioCoverArtReader: AudioCoverArtReader
 ) : WearThumbnailRepository {
 
     private val cache = LruCache<String, WearThumbnail>(WearThumbnailBudget.MAX_CACHED_THUMBNAILS)
     private val networkTurn = Mutex()
 
     override suspend fun thumbnailFor(file: WearMediaFile, sourceId: String?): WearThumbnail {
-        if (!canCarryPreview(file.mimeType, isNetwork = sourceId != null)) {
+        if (!canCarryPreview(file.mimeType)) {
             return WearThumbnail.Unavailable
         }
         val key = cacheKey(file, sourceId)
@@ -58,24 +69,46 @@ class WearThumbnailRepositoryImpl(
 
     /**
      * Asking the type first is what keeps the budget honest: a document never opens a connection.
-     * A video frame is reachable only where the system storage already holds one, because the
-     * watch reads just the head of a network file and a video keeps no preview there.
+     * Image and video previews are supported for local, network and phone-served items.
      */
-    private fun canCarryPreview(mimeType: String?, isNetwork: Boolean): Boolean {
+    private fun canCarryPreview(mimeType: String?): Boolean {
         val type = mimeType ?: return false
-        return type.startsWith(IMAGE_PREFIX) || (!isNetwork && type.startsWith(VIDEO_PREFIX))
+        return type.startsWith(IMAGE_PREFIX) ||
+            type.startsWith(VIDEO_PREFIX) ||
+            type.startsWith(AUDIO_PREFIX)
     }
 
     private fun cacheKey(file: WearMediaFile, sourceId: String?): String =
         "${sourceId ?: "local"}|${file.uri}"
 
     private suspend fun load(file: WearMediaFile, sourceId: String?): WearThumbnail {
+        Timber.d("S2489: Wear fetching thumbnail for %s (sourceId=%s)", file.name, sourceId)
+        val isAudio = file.mimeType?.startsWith(AUDIO_PREFIX) == true
         val bitmap = if (sourceId == null) {
-            localThumbnail(file)
+            // Local audio uses MediaMetadataRetriever for reliable embedded art extraction;
+            // ContentResolver.loadThumbnail() handles images and videos but audio support is
+            // inconsistent across devices and Wear OS versions.
+            if (isAudio) audioCoverArtReader.read(file.uri) else localThumbnail(file)
         } else {
             networkTurn.withLock { networkThumbnail(file, sourceId) }
-        }
+        } ?: phoneResourceThumbnail(file)
+
         return bitmap?.let { WearThumbnail.Ready(it) } ?: WearThumbnail.Unavailable
+    }
+
+    private suspend fun phoneResourceThumbnail(file: WearMediaFile): Bitmap? {
+        val itemToken = file.uri.toString()
+        val outcome = phoneResourceClient.requestThumbnail(itemToken)
+        if (outcome is PhoneResourceOutcome.Page) {
+            val base64 = outcome.page.items.orEmpty().firstOrNull()?.thumbnailBase64
+            if (!base64.isNullOrEmpty()) {
+                return runCatching {
+                    val bytes = Base64.decode(base64, Base64.NO_WRAP)
+                    BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+                }.getOrNull()
+            }
+        }
+        return null
     }
 
     private suspend fun localThumbnail(file: WearMediaFile): Bitmap? = withContext(Dispatchers.IO) {
@@ -113,7 +146,6 @@ class WearThumbnailRepositoryImpl(
             NetworkSourceType.SMB -> smbStream(source, path)
             NetworkSourceType.FTP -> ftpDataSource.getFileStream(source, path).getOrNull()
             NetworkSourceType.SFTP -> sftpDataSource.getFileStream(source, path).getOrNull()
-            NetworkSourceType.GOOGLE_DRIVE -> null
         }
 
     private suspend fun smbStream(source: NetworkSource, path: String): InputStream? {

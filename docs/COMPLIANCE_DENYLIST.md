@@ -6,7 +6,7 @@ This document defines the S0286 build-time guard for market flavors and the publ
 
 - The task name is `verifyNoPlatformNames`.
 - It runs from `app_v2/build.gradle.kts` and is wired into `preBuild`.
-- It scans `app_v2/src/main`, `src/legacy`, `src/lite`, `src/photos`, `src/vr`, plus `docs/FEATURES.md`, `docs/FEATURES_RU.md`, and `docs/FEATURES_UK.md`.
+- It scans `app_v2/src/main`, `src/legacy`, `src/lite`, `src/photos`, `src/vr`, plus `docs/FEATURES.md`, `docs/FEATURES-ru.md`, and `docs/FEATURES-uk.md`.
 - It does not scan `app_v2/src/noLegal` or `docs/FEATURES_noLegal*.md`.
 
 ## Source Files

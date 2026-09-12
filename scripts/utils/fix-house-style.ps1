@@ -10,7 +10,7 @@
     Every rule comes from scripts/quality/lib/house-text-style.ps1; nothing is declared here.
 
     The yo rule is language-bound, so by default it is applied only to a Russian locale directory
-    and to a _RU documentation file. Naming it in -Rules overrides that and applies it everywhere.
+    and to a -ru documentation file. Naming it in -Rules overrides that and applies it everywhere.
 
 .PARAMETER Area
     Prose (markdown), ResourceValue (string resources), or Both. Default Both.
@@ -34,6 +34,8 @@
       0 - nothing needed changing, or -Apply completed and every file was written.
       1 - unusable input: an explicit -Path does not exist, or a file could not be written.
       3 - dry run only: changes are pending. Re-run with -Apply to write them.
+      4 - the target's code domain is held by another session, so nothing was written. The queue
+          place is held - wait for the turn in the background and rerun (S2635).
 #>
 [CmdletBinding()]
 param(
@@ -45,6 +47,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $repoRoot 'scripts/quality/lib/house-text-style.ps1')
@@ -98,7 +101,7 @@ function Resolve-Targets {
 function Get-RulesForFile {
     param([System.IO.FileInfo]$File, [string]$ForArea)
     if ($Rules) { return $Rules }
-    $isRussian = if ($ForArea -eq 'Prose') { $File.Name -match '_RU\.md$' } else { $File.Directory.Name -match '^values-ru\b' }
+    $isRussian = if ($ForArea -eq 'Prose') { $File.Name -match '-ru\.md$' } else { $File.Directory.Name -match '^values-ru\b' }
     if ($isRussian) { return @('ellipsis', 'long-dash', 'yo') }
     return @('ellipsis', 'long-dash')
 }
@@ -149,13 +152,29 @@ function Write-FileReport {
 }
 
 $areas = if ($Area -eq 'Both') { @('Prose', 'ResourceValue') } else { @($Area) }
-foreach ($a in $areas) {
-    $targets = Resolve-Targets -ForArea $a
-    Write-Host ("fix-house-style: {0} - {1} file(s) scanned" -f $a, $targets.Count)
-    foreach ($f in $targets) {
-        if ($a -eq 'Prose') { Invoke-ProseFile -File $f } else { Invoke-ResourceFile -File $f }
+# Resolved before the first write, because the acquisition needs the whole target set at once: it
+# spans docs/, app_v2 and wear, and taking those three domains one file at a time is exactly the
+# AB-BA shape canonical ordering exists to rule out. Scanned, not pending - which file actually
+# changes is known only after it has been read, and by then the write is already due.
+$plan = @($areas | ForEach-Object {
+        [pscustomobject]@{ Area = $_; Targets = (Resolve-Targets -ForArea $_) }
+    })
+
+$codeScope = $null
+try {
+    if ($Apply) {
+        $allTargets = @($plan | ForEach-Object { $_.Targets } | ForEach-Object { $_.FullName })
+        $codeScope = Enter-CodeLockOrExit -Path $allTargets `
+            -Reason 'fix-house-style.ps1 -Apply (prose + string resources)'
+    }
+    foreach ($p in $plan) {
+        Write-Host ("fix-house-style: {0} - {1} file(s) scanned" -f $p.Area, $p.Targets.Count)
+        foreach ($f in $p.Targets) {
+            if ($p.Area -eq 'Prose') { Invoke-ProseFile -File $f } else { Invoke-ResourceFile -File $f }
+        }
     }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 if ($changedFiles -eq 0) {
     Write-Host 'fix-house-style: clean - nothing to change.'

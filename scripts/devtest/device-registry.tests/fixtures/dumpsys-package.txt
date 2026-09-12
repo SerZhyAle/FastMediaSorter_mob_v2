@@ -1,0 +1,11 @@
+Package [com.sza.fastmediasorter.debug] (8a9b0c1):
+  userId=10112
+  pkgFlags=[ HAS_CODE ALLOW_CLEAR_USER_DATA ]
+  versionCode=999 minSdk=26 targetSdk=36
+  versionName=9.9.9-stub
+  firstInstallTime=2026-09-10 10:00:00
+  lastUpdateTime=2026-09-10 10:00:00
+  signatures=PackageSignatures{a1b2 version:2}
+  installerPackageName=com.android.packageinstaller
+  grantedPermissions:
+    android.permission.INTERNET

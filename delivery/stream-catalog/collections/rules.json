@@ -1,0 +1,210 @@
+[
+  {
+    "id": "tv-europe",
+    "order": 10,
+    "names": {
+      "en": "Television of Europe",
+      "ru": "Телевидение Европы",
+      "uk": "Телебачення Європи"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["AT", "BE", "BG", "CH", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GB", "GR", "HR", "HU", "IE", "IS", "IT", "LT", "LU", "LV", "MD", "NL", "NO", "PL", "PT", "RO", "RS", "SE", "SI", "SK", "UA"]
+    }
+  },
+  {
+    "id": "tv-asia",
+    "order": 20,
+    "names": {
+      "en": "Television of Asia",
+      "ru": "Телевидение Азии",
+      "uk": "Телебачення Азії"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["AE", "BD", "CN", "HK", "ID", "IL", "IN", "IQ", "IR", "JO", "JP", "KG", "KH", "KR", "KW", "KZ", "LB", "LK", "MM", "MY", "NP", "PH", "PK", "QA", "SA", "SG", "SY", "TH", "TJ", "TR", "TW", "UZ", "VN"]
+    }
+  },
+  {
+    "id": "tv-latin-america",
+    "order": 30,
+    "names": {
+      "en": "Television of Latin America",
+      "ru": "Телевидение Латинской Америки",
+      "uk": "Телебачення Латинської Америки"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["AR", "BO", "BR", "CL", "CO", "CR", "CU", "DO", "EC", "GT", "HN", "MX", "NI", "PA", "PE", "PY", "SV", "UY", "VE"]
+    }
+  },
+  {
+    "id": "tv-africa",
+    "order": 40,
+    "names": {
+      "en": "Television of Africa",
+      "ru": "Телевидение Африки",
+      "uk": "Телебачення Африки"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["AO", "BF", "BI", "BJ", "BW", "CD", "CG", "CI", "CM", "CV", "DJ", "DZ", "EG", "ER", "ET", "GA", "GH", "GM", "GN", "GQ", "KE", "KM", "LR", "LS", "LY", "MA", "MG", "ML", "MR", "MU", "MW", "MZ", "NA", "NE", "NG", "RW", "SC", "SD", "SL", "SN", "SO", "SS", "ST", "SZ", "TD", "TG", "TN", "TZ", "UG", "ZA", "ZM", "ZW"]
+    }
+  },
+  {
+    "id": "tv-north-america",
+    "order": 50,
+    "names": {
+      "en": "Television of North America",
+      "ru": "Телевидение Северной Америки",
+      "uk": "Телебачення Північної Америки"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["CA", "US"]
+    }
+  },
+  {
+    "id": "radio-former-ussr",
+    "order": 60,
+    "names": {
+      "en": "Radio of the former USSR",
+      "ru": "Радиостанции бывшего СССР",
+      "uk": "Радіостанції колишнього СРСР"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["AM", "AZ", "BY", "EE", "GE", "KG", "KZ", "LT", "LV", "MD", "RU", "TJ", "TM", "UA", "UZ"]
+    }
+  },
+  {
+    "id": "radio-africa",
+    "order": 70,
+    "names": {
+      "en": "Radio of Africa",
+      "ru": "Радиостанции Африки",
+      "uk": "Радіостанції Африки"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["AO", "BF", "BI", "BJ", "BW", "CD", "CG", "CI", "CM", "CV", "DJ", "DZ", "EG", "ER", "ET", "GA", "GH", "GM", "GN", "GQ", "KE", "KM", "LR", "LS", "LY", "MA", "MG", "ML", "MR", "MU", "MW", "MZ", "NA", "NE", "NG", "RW", "SC", "SD", "SL", "SN", "SO", "SS", "ST", "SZ", "TD", "TG", "TN", "TZ", "UG", "ZA", "ZM", "ZW"]
+    }
+  },
+  {
+    "id": "tv-ru",
+    "order": 100,
+    "names": {
+      "en": "Russian TV",
+      "ru": "TV России",
+      "uk": "Телебачення Росії"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["RU"]
+    }
+  },
+  {
+    "id": "tv-gb",
+    "order": 110,
+    "names": {
+      "en": "TV of the United Kingdom",
+      "ru": "TV Великобритании",
+      "uk": "Телебачення Великої Британії"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["GB"]
+    }
+  },
+  {
+    "id": "tv-us",
+    "order": 120,
+    "names": {
+      "en": "TV of the United States",
+      "ru": "TV США",
+      "uk": "Телебачення США"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["US"]
+    }
+  },
+  {
+    "id": "tv-in",
+    "order": 130,
+    "names": {
+      "en": "TV of India",
+      "ru": "TV Индии",
+      "uk": "Телебачення Індії"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["IN"]
+    }
+  },
+  {
+    "id": "tv-br",
+    "order": 140,
+    "names": {
+      "en": "TV of Brazil",
+      "ru": "TV Бразилии",
+      "uk": "Телебачення Бразилії"
+    },
+    "rule": {
+      "category": ["Live TV"],
+      "country": ["BR"]
+    }
+  },
+  {
+    "id": "radio-de",
+    "order": 200,
+    "names": {
+      "en": "Radio of Germany",
+      "ru": "Радиостанции Германии",
+      "uk": "Радіостанції Німеччини"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["DE"]
+    }
+  },
+  {
+    "id": "radio-us",
+    "order": 210,
+    "names": {
+      "en": "Radio of the United States",
+      "ru": "Радиостанции США",
+      "uk": "Радіостанції США"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["US"]
+    }
+  },
+  {
+    "id": "radio-gb",
+    "order": 220,
+    "names": {
+      "en": "Radio of the United Kingdom",
+      "ru": "Радиостанции Великобритании",
+      "uk": "Радіостанції Великої Британії"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["GB"]
+    }
+  },
+  {
+    "id": "radio-fr",
+    "order": 230,
+    "names": {
+      "en": "Radio of France",
+      "ru": "Радиостанции Франции",
+      "uk": "Радіостанції Франції"
+    },
+    "rule": {
+      "category": ["Radio"],
+      "country": ["FR"]
+    }
+  }
+]

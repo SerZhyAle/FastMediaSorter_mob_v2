@@ -16,6 +16,7 @@
     "IS_NO_LEGAL_FLAVOR",
     "SUPPORT_LAUNCHER",
     "DECLARES_BATTERY_OPTIMIZATION",
+    "SUPPORT_IMMERSIVE_XR",
     "SUPPORT_VIDEO",
     "SUPPORT_AUDIO",
     "SUPPORT_STREAMS",
@@ -34,6 +35,7 @@
     "SUPPORT_WEAR_COMPANION",
     "SUPPORT_CAST",
     "SUPPORT_NETWORK_MONITOR",
+    "SUPPORT_BROADCAST_SOURCE",
     "VR_UI_COMPOSITION_LAYER_ENABLED"
   ],
   "minSdk": {
@@ -42,19 +44,21 @@
     "lite": 26,
     "photos": 26,
     "legacy": 23,
-    "vr": 26,
+    "vr": 29,
     "foss": 23
   },
   "defaults": {
     "IS_NO_LEGAL_FLAVOR": false,
     "SUPPORT_LAUNCHER": false,
-    "DECLARES_BATTERY_OPTIMIZATION": true
+    "DECLARES_BATTERY_OPTIMIZATION": true,
+    "SUPPORT_IMMERSIVE_XR": false
   },
   "matrix": {
     "standard": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": true,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": false,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -73,12 +77,14 @@
       "SUPPORT_WEAR_COMPANION": true,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": true,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "noLegal": {
       "IS_NO_LEGAL_FLAVOR": true,
       "SUPPORT_LAUNCHER": true,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -97,12 +103,14 @@
       "SUPPORT_WEAR_COMPANION": true,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": true,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": true
     },
     "lite": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": false,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": false,
@@ -121,12 +129,14 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "photos": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": false,
       "SUPPORT_VIDEO": false,
       "SUPPORT_AUDIO": false,
       "SUPPORT_STREAMS": false,
@@ -145,12 +155,14 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "legacy": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": false,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -169,12 +181,14 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": true,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": true,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     },
     "vr": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": true,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": true,
@@ -193,12 +207,14 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": false,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": false
     },
     "foss": {
       "IS_NO_LEGAL_FLAVOR": false,
       "SUPPORT_LAUNCHER": false,
       "DECLARES_BATTERY_OPTIMIZATION": true,
+      "SUPPORT_IMMERSIVE_XR": false,
       "SUPPORT_VIDEO": true,
       "SUPPORT_AUDIO": true,
       "SUPPORT_STREAMS": false,
@@ -217,6 +233,7 @@
       "SUPPORT_WEAR_COMPANION": false,
       "SUPPORT_CAST": false,
       "SUPPORT_NETWORK_MONITOR": false,
+      "SUPPORT_BROADCAST_SOURCE": false,
       "VR_UI_COMPOSITION_LAYER_ENABLED": null
     }
   },
@@ -225,6 +242,7 @@
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "flavor",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -243,12 +261,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "noLegal": {
       "IS_NO_LEGAL_FLAVOR": "flavor",
       "SUPPORT_LAUNCHER": "flavor",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "flavor",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -267,12 +287,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "flavor"
     },
     "lite": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -291,12 +313,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "photos": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -315,12 +339,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "legacy": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -339,12 +365,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     },
     "vr": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "flavor",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -363,12 +391,14 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "flavor"
     },
     "foss": {
       "IS_NO_LEGAL_FLAVOR": "defaultConfig",
       "SUPPORT_LAUNCHER": "defaultConfig",
       "DECLARES_BATTERY_OPTIMIZATION": "defaultConfig",
+      "SUPPORT_IMMERSIVE_XR": "defaultConfig",
       "SUPPORT_VIDEO": "flavor",
       "SUPPORT_AUDIO": "flavor",
       "SUPPORT_STREAMS": "flavor",
@@ -387,6 +417,7 @@
       "SUPPORT_WEAR_COMPANION": "flavor",
       "SUPPORT_CAST": "flavor",
       "SUPPORT_NETWORK_MONITOR": "flavor",
+      "SUPPORT_BROADCAST_SOURCE": "flavor",
       "VR_UI_COMPOSITION_LAYER_ENABLED": "absent"
     }
   }

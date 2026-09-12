@@ -17,7 +17,6 @@ import com.sza.fastmediasorter.ui.networkmonitor.NetworkMonitorSection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
-import timber.log.Timber
 
 /**
  * S1178: one technical status cell on the desktop - network, battery, storage or resources.
@@ -69,7 +68,6 @@ private class TechnicalGadgetView(
     private val formatter = TechnicalGadgetFormatter(context)
 
     init {
-        Timber.d("S2062: technical gadget tile key=$key iconTintable=$iconTintable")
         // S2062: same tint the picker row applies for the same drawable - this is the live desktop tile,
         // the one other place besides the picker that draws a gadget's iconRes.
         binding.gadgetTechnicalIcon.imageTintList = if (iconTintable) {
@@ -97,7 +95,6 @@ private class TechnicalGadgetView(
                 InternalRouteCatalog.KEY_SYSTEM_INFO to ""
             else -> InternalRouteCatalog.KEY_SYSTEM_INFO to ""
         }
-        Timber.d("S2238: technical gadget key=%s routes to %s", key, routeKey)
         host.run(
             LauncherCellCommand.FeatureSection(
                 routeKey = routeKey,

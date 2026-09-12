@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2881: two buttons side by side need two cells of width at the smallest allocation; the state
+     caption needs the height of one. updatePeriodMillis stays 0 - the session owner pushes state. -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="110dp"
+    android:minHeight="40dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="0"
+    android:initialLayout="@layout/widget_watch_listen"
+    android:description="@string/watch_listen_widget_description"
+    android:resizeMode="none"
+    android:widgetCategory="home_screen"
+    android:theme="@style/Widget.FastMediaSorter"
+    android:previewImage="@drawable/ic_watch" />

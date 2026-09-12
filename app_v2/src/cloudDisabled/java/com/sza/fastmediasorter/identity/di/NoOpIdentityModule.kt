@@ -1,7 +1,9 @@
 package com.sza.fastmediasorter.identity.di
 
 import com.sza.fastmediasorter.domain.identity.GoogleIdentityRepository
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInStore
 import com.sza.fastmediasorter.identity.NoOpGoogleIdentityRepository
+import com.sza.fastmediasorter.identity.NoOpTransferableSignInStore
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -25,4 +27,10 @@ abstract class NoOpIdentityModule {
     abstract fun bindGoogleIdentityRepository(
         impl: NoOpGoogleIdentityRepository
     ): GoogleIdentityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindTransferableSignInStore(
+        impl: NoOpTransferableSignInStore
+    ): TransferableSignInStore
 }

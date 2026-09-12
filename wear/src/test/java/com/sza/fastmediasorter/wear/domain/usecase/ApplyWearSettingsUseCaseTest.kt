@@ -3,14 +3,24 @@ package com.sza.fastmediasorter.wear.domain.usecase
 import android.content.Context
 import com.sza.fastmediasorter.wear.core.util.WearLanguageCatalog
 import com.sza.fastmediasorter.wear.domain.browse.BrowseSortOrder
+import com.sza.fastmediasorter.wear.domain.documents.DocumentFontSize
+import com.sza.fastmediasorter.wear.domain.documents.DocumentReadingAnchor
+import com.sza.fastmediasorter.wear.domain.model.LastUsedKind
 import com.sza.fastmediasorter.wear.domain.model.LastUsedResource
+import com.sza.fastmediasorter.wear.domain.model.PowerSavingTrigger
+import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendPolicy
 import com.sza.fastmediasorter.wear.domain.model.WearBackgroundMode
+import com.sza.fastmediasorter.wear.domain.model.WearColorScheme
 import com.sza.fastmediasorter.wear.domain.model.WearContentType
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayload
+import com.sza.fastmediasorter.wear.domain.model.WearSettingsPayloadDecoder
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.domain.repository.FakeVoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import dagger.Lazy
 import io.mockk.mockk
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,6 +36,11 @@ private const val EARLY_EDIT = 1_000_000L
 private const val LATE_EDIT = 2_000_000L
 private const val CLOCK_SKEW = 5_000_000L
 private const val EXCHANGE_AT = 9_000_000L
+
+// S2462: an interval the watch holds and one the phone pushes, kept apart so the assertion can tell
+// which side won rather than matching a shared default.
+private const val LOCAL_INTERVAL = 23
+private const val PUSHED_INTERVAL = 41
 
 class ApplyWearSettingsUseCaseTest {
 
@@ -48,10 +63,18 @@ class ApplyWearSettingsUseCaseTest {
         WearLanguageCatalog.overrideDeclarationForTest(null)
     }
 
+    /**
+     * S2511: the Streams switch travels through its own use case now, because moving it also invalidates
+     * the sections tile. The refresh half is mocked: it hands the request to the platform's tile updater,
+     * which no JVM test can answer, and this test is about what the payload persists.
+     */
+    private fun streamsWriter(repository: WearPreferencesRepository) =
+        SetStreamsSectionEnabledUseCase(repository, mockk(relaxed = true))
+
     @Test
     fun `invoke persists every payload field`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
         val payload = WearSettingsPayload(
             audioEnabled = false,
             videoEnabled = true,
@@ -77,7 +100,7 @@ class ApplyWearSettingsUseCaseTest {
             viewModeValue = WearViewMode.GRID_2
             keepScreenAwakeValue = true
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         // An older phone serialises no key for either field, which Gson reads back as null.
         useCase(payloadWithoutNewFields())
@@ -89,7 +112,7 @@ class ApplyWearSettingsUseCaseTest {
     @Test
     fun `a payload carrying the new fields applies them`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(
             payloadWithoutNewFields().copy(
@@ -103,11 +126,31 @@ class ApplyWearSettingsUseCaseTest {
     }
 
     @Test
+    fun `a payload carrying background playback applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(backgroundPlaybackEnabled = true))
+
+        assertEquals(true, repository.backgroundPlaybackValue)
+    }
+
+    @Test
+    fun `a payload omitting background playback leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply { backgroundPlaybackValue = true }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields())
+
+        assertEquals(true, repository.backgroundPlaybackValue)
+    }
+
+    @Test
     fun `a payload omitting the file-list view leaves the watch value alone`() = runTest {
         val repository = FakeWearPreferencesRepository().apply {
             fileListViewModeValue = WearViewMode.GRID_3
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         // A phone that predates S1730 serialises no key at all, which Gson reads back as null.
         useCase(payloadWithoutNewFields())
@@ -118,7 +161,7 @@ class ApplyWearSettingsUseCaseTest {
     @Test
     fun `a payload carrying the file-list view applies it`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields().copy(fileListViewMode = WearViewMode.GRID_2.name))
 
@@ -128,7 +171,7 @@ class ApplyWearSettingsUseCaseTest {
     @Test
     fun `the two view settings are written independently`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(
             payloadWithoutNewFields().copy(
@@ -144,7 +187,7 @@ class ApplyWearSettingsUseCaseTest {
     @Test
     fun `supported appLanguage is resolved and persisted`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields().copy(appLanguage = "ru-RU"))
 
@@ -156,7 +199,7 @@ class ApplyWearSettingsUseCaseTest {
         val repository = FakeWearPreferencesRepository().apply {
             appLanguageValue = "uk"
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         // S1814 ADR-2: a tag the watch does not declare is dropped silently, never reset to a default.
         useCase(payloadWithoutNewFields().copy(appLanguage = "ja"))
@@ -169,7 +212,7 @@ class ApplyWearSettingsUseCaseTest {
         val repository = FakeWearPreferencesRepository().apply {
             appLanguageValue = "uk"
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         // German is the defect this ticket fixes: translated strings shipped, declaration refused them.
         useCase(payloadWithoutNewFields().copy(appLanguage = "de-DE"))
@@ -182,7 +225,7 @@ class ApplyWearSettingsUseCaseTest {
         val repository = FakeWearPreferencesRepository().apply {
             appLanguageValue = "uk"
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields().copy(appLanguage = null))
 
@@ -190,9 +233,32 @@ class ApplyWearSettingsUseCaseTest {
     }
 
     @Test
+    fun `a payload carrying unitSystem applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(unitSystem = "IMPERIAL"))
+
+        assertEquals(UnitSystem.IMPERIAL, repository.unitSystemValue)
+    }
+
+    @Test
+    fun `null unitSystem in payload leaves watch value untouched`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            unitSystemValue = UnitSystem.IMPERIAL
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        // S1781: absence must not change the stored value - the S2093 gate reads it as "not sent".
+        useCase(payloadWithoutNewFields().copy(unitSystem = null))
+
+        assertEquals(UnitSystem.IMPERIAL, repository.unitSystemValue)
+    }
+
+    @Test
     fun `a payload carrying the background mode applies it`() = runTest {
         val repository = FakeWearPreferencesRepository()
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields().copy(backgroundMode = WearBackgroundMode.IMAGE.name))
 
@@ -204,11 +270,57 @@ class ApplyWearSettingsUseCaseTest {
         val repository = FakeWearPreferencesRepository().apply {
             backgroundModeValue = WearBackgroundMode.IMAGE
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields())
 
         assertEquals(WearBackgroundMode.IMAGE, repository.backgroundModeValue)
+    }
+
+    @Test
+    fun `a payload carrying the colour scheme applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(colorScheme = WearColorScheme.LIGHT_BLUE.name))
+
+        assertEquals(WearColorScheme.LIGHT_BLUE, repository.colorSchemeValue)
+    }
+
+    @Test
+    fun `a payload omitting the colour scheme leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            colorSchemeValue = WearColorScheme.LIGHT_RED
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields())
+
+        assertEquals(WearColorScheme.LIGHT_RED, repository.colorSchemeValue)
+    }
+
+    // S2522 ADR-2: the watch has no AUTO member, so the phone's own AUTO must land on a drawable
+    // scheme rather than throw - DARK, which is what AUTO resolves to on a Wear OS device anyway.
+    @Test
+    fun `a payload carrying the phone's AUTO scheme resolves to the default`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            colorSchemeValue = WearColorScheme.LIGHT_GREEN
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(colorScheme = "AUTO"))
+
+        assertEquals(WearColorScheme.DEFAULT, repository.colorSchemeValue)
+    }
+
+    @Test
+    fun `a payload carrying panelAutoHideSeconds applies it`() = runTest {
+        val repository = FakeWearPreferencesRepository()
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(payloadWithoutNewFields().copy(panelAutoHideSeconds = 30))
+
+        assertEquals(30, repository.panelAutoHideSecondsValue)
     }
 
     @Test
@@ -225,7 +337,7 @@ class ApplyWearSettingsUseCaseTest {
             viewModeValue = WearViewMode.LIST
             settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(payloadWithoutNewFields().copy(viewMode = WearViewMode.GRID_3.name))
 
@@ -238,7 +350,7 @@ class ApplyWearSettingsUseCaseTest {
             viewModeValue = WearViewMode.LIST
             settingTimestampsValue = mapOf("viewMode" to EARLY_EDIT)
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(
             payloadWithoutNewFields().copy(
@@ -259,7 +371,7 @@ class ApplyWearSettingsUseCaseTest {
             viewModeValue = WearViewMode.GRID_2
             settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         useCase(
             payloadWithoutNewFields().copy(
@@ -279,7 +391,7 @@ class ApplyWearSettingsUseCaseTest {
             viewModeValue = WearViewMode.LIST
             settingTimestampsValue = mapOf("viewMode" to LATE_EDIT)
         }
-        val useCase = ApplyWearSettingsUseCase(context, repository)
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
 
         // The sender's clock is a full skew behind, so its genuinely later edit reads as the earlier
         // number. Correcting by sentAt against the arrival time is what stops the watch from winning.
@@ -295,6 +407,71 @@ class ApplyWearSettingsUseCaseTest {
         assertEquals(WearViewMode.GRID_3, repository.viewModeValue)
     }
 
+    // S2462: mirrors the phone's pair of cases in
+    // app_v2/src/test/java/com/sza/fastmediasorter/domain/usecase/MergeWearSettingsReportUseCaseTest.kt.
+    // The six fields that predate nullability cannot express "the phone did not send this" - Gson
+    // fabricates false for an absent key - so absence arrives beside the payload as the set of keys
+    // that really came. Both halves are needed: absent must keep the local value, and a genuinely sent
+    // false must still apply, or the fix would trade a silent overwrite for a silently ignored setting.
+    @Test
+    fun `a field the phone never sent leaves the watch value alone`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            audioEnabled = true
+            videoEnabled = true
+            imagesEnabled = true
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(
+            allOffPayload(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - setOf("audioEnabled", "videoEnabled")
+        )
+
+        assertEquals(true, repository.audioEnabled)
+        assertEquals(true, repository.videoEnabled)
+        assertEquals(false, repository.imagesEnabled)
+    }
+
+    @Test
+    fun `a field the phone really sent as false is still applied`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply { audioEnabled = true }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(allOffPayload(), null, EXCHANGE_AT, WearSettingsPayloadDecoder.CONTRACT_FIELDS)
+
+        assertEquals(false, repository.audioEnabled)
+    }
+
+    @Test
+    fun `a mistyped interval leaves that field alone and applies the rest of the push`() = runTest {
+        val repository = FakeWearPreferencesRepository().apply {
+            slideshowIntervalSecondsValue = LOCAL_INTERVAL
+            audioEnabled = true
+        }
+        val useCase = ApplyWearSettingsUseCase(context, repository, titleRefresh(), streamsWriter(repository))
+
+        useCase(
+            allOffPayload(),
+            null,
+            EXCHANGE_AT,
+            WearSettingsPayloadDecoder.CONTRACT_FIELDS - "slideshowIntervalSeconds"
+        )
+
+        assertEquals(LOCAL_INTERVAL, repository.slideshowIntervalSecondsValue)
+        assertEquals(false, repository.audioEnabled)
+    }
+
+    private fun allOffPayload() = WearSettingsPayload(
+        audioEnabled = false,
+        videoEnabled = false,
+        imagesEnabled = false,
+        slideshowEnabled = false,
+        slideshowIntervalSeconds = PUSHED_INTERVAL,
+        downloadAlbumArt = false
+    )
+
     private fun payloadWithoutNewFields() = WearSettingsPayload(
         audioEnabled = true,
         videoEnabled = true,
@@ -305,7 +482,23 @@ class ApplyWearSettingsUseCaseTest {
     )
 }
 
-private class FakeWearPreferencesRepository : WearPreferencesRepository {
+/**
+ * S2626: applying a language now also refreshes the stored voice-note titles. These tests are about
+ * the merge, so the pass gets an empty note index and a rewrite that always agrees - it walks nothing
+ * and the assertions below stay about the settings.
+ */
+private fun titleRefresh() = Lazy {
+    RefreshVoiceNoteTitlesUseCase(
+        noteRepository = FakeVoiceNoteRepository(),
+        readTag = { null },
+        writeTag = { },
+        retitle = { _, _ -> true }
+    )
+}
+
+// S2511: internal rather than file-private since SetStreamsSectionEnabledUseCaseTest needs the same fake -
+// a second hand-written implementation of this repository would drift from this one field by field.
+internal class FakeWearPreferencesRepository : WearPreferencesRepository {
     var audioEnabled = true
     var videoEnabled = true
     var imagesEnabled = true
@@ -316,7 +509,9 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var shuffleEnabledValue = false
     var viewModeValue = WearViewMode.LIST
     var backgroundModeValue = WearBackgroundMode.BRANDED_ANIMATION
+    var colorSchemeValue = WearColorScheme.DEFAULT
     var keepScreenAwakeValue = false
+    var backgroundPlaybackValue = false
     var fileListViewModeValue = WearViewMode.LIST
     var videoScaleModeValue = VideoScaleMode.FIT
     var imageScaleModeValue = VideoScaleMode.FIT
@@ -324,6 +519,8 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var streamsSectionEnabledValue = true
     var calculatorHistoryValue: List<String> = emptyList()
     var calculatorMemoryValue: String? = null
+    var stopwatchParticipantCountValue: Int = 1
+    var stopwatchLastResultValue: String? = null
     var autoRotationEnabledValue = false
     var appLanguageValue: String? = null
     var gameStateValue: String? = null
@@ -334,6 +531,9 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     var browseContentTypesValue: Set<WearContentType> = emptySet()
     var browseSortOrderValue: BrowseSortOrder = BrowseSortOrder.DEFAULT
     var animationsDisabledValue = false
+    var powerSavingTriggerValue = PowerSavingTrigger.DEFAULT
+    var panelAutoHideSecondsValue = 15
+    var unitSystemValue = UnitSystem.DEFAULT
 
     override val isAudioEnabled: Flow<Boolean> = MutableStateFlow(audioEnabled)
     override val isVideoEnabled: Flow<Boolean> = MutableStateFlow(videoEnabled)
@@ -341,27 +541,45 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val isDocumentsEnabled: Flow<Boolean> = MutableStateFlow(documentsEnabled)
     override val isSlideshowEnabled: Flow<Boolean> = MutableStateFlow(slideshowEnabled)
     override val slideshowIntervalSeconds: Flow<Int> = MutableStateFlow(slideshowIntervalSecondsValue)
+    override val panelAutoHideSeconds: Flow<Int> = MutableStateFlow(panelAutoHideSecondsValue)
     override val downloadAlbumArt: Flow<Boolean> = MutableStateFlow(downloadAlbumArtValue)
     override val isShuffleEnabled: Flow<Boolean> = MutableStateFlow(shuffleEnabledValue)
     override val viewMode: Flow<WearViewMode> = MutableStateFlow(viewModeValue)
     override val backgroundMode: Flow<WearBackgroundMode> = MutableStateFlow(backgroundModeValue)
+    override val colorScheme: Flow<WearColorScheme> = MutableStateFlow(colorSchemeValue)
     override val fileListViewMode: Flow<WearViewMode> = MutableStateFlow(fileListViewModeValue)
     override val videoScaleMode: Flow<VideoScaleMode> = MutableStateFlow(videoScaleModeValue)
     override val imageScaleMode: Flow<VideoScaleMode> = MutableStateFlow(imageScaleModeValue)
     override val keepScreenAwakeOutsidePlayers: Flow<Boolean> = MutableStateFlow(keepScreenAwakeValue)
+    override val backgroundPlaybackEnabled: Flow<Boolean> = MutableStateFlow(backgroundPlaybackValue)
     override val lastUsedResources: Flow<List<LastUsedResource>> = MutableStateFlow(lastUsedResourcesValue)
     override val streamsSectionEnabled: Flow<Boolean> = MutableStateFlow(streamsSectionEnabledValue)
     override val calculatorHistory: Flow<List<String>> = MutableStateFlow(calculatorHistoryValue)
     override val calculatorMemory: Flow<String?> = MutableStateFlow(calculatorMemoryValue)
     override val isAutoRotationEnabled: Flow<Boolean> = MutableStateFlow(autoRotationEnabledValue)
     override val appLanguage: Flow<String?> = MutableStateFlow(appLanguageValue)
+    override val unitSystem: Flow<UnitSystem> = MutableStateFlow(unitSystemValue)
     override val gameState: Flow<String?> = MutableStateFlow(gameStateValue)
+    override val stopwatchParticipantCount: Flow<Int> = MutableStateFlow(stopwatchParticipantCountValue)
+    override val stopwatchLastResult: Flow<String?> = MutableStateFlow(stopwatchLastResultValue)
     override val voiceNoteSendPolicy: Flow<VoiceNoteSendPolicy> = MutableStateFlow(voiceNoteSendPolicyValue)
     override val notificationPermissionAsked: Flow<Boolean> =
         MutableStateFlow(notificationPermissionAskedValue)
 
     // Like the refine state below: part of the contract, never read by ApplyWearSettingsUseCase.
     override val isAnimationsDisabled: Flow<Boolean> = MutableStateFlow(animationsDisabledValue)
+
+    // S2773: the watch decides its own geometry, so this never travels over the settings channel the
+    // subject of this file carries - the member exists because the interface declares it. Null is the
+    // honest value: it means the user has made no choice, which is the state a fresh fake is in.
+    override val storedGeometryMode: Flow<WearGeometryMode?> = MutableStateFlow(null)
+
+    override suspend fun setGeometryMode(mode: WearGeometryMode) = Unit
+
+    // S2536: read back by the assertions below, which is why the setter records it rather than
+    // discarding it like the contract-only members further down.
+    override val powerSavingTrigger: Flow<PowerSavingTrigger> =
+        MutableStateFlow(powerSavingTriggerValue)
 
     // S2199: browse-list refine state. Not part of the settings exchange this test exercises, so the
     // fake only has to satisfy the contract - the values are never read by ApplyWearSettingsUseCase.
@@ -375,8 +593,22 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
     override val streamsSelectedTopic: Flow<String?> = MutableStateFlow(null)
     override val streamsSelectedLanguage: Flow<String?> = MutableStateFlow(null)
 
+    // S2532: the reader's font size and per-document anchors. Not part of the settings exchange this
+    // file exercises - the members exist because the interface declares them.
+    override val documentFontSize: Flow<DocumentFontSize> = MutableStateFlow(DocumentFontSize.MEDIUM)
+
+    override suspend fun setDocumentFontSize(size: DocumentFontSize) = Unit
+
+    override suspend fun readingPositionFor(key: String, sizeBytes: Long): DocumentReadingAnchor? = null
+
+    override suspend fun setReadingPosition(key: String, sizeBytes: Long, index: Int, offset: Int) = Unit
+
     override suspend fun setAnimationsDisabled(disabled: Boolean) {
         animationsDisabledValue = disabled
+    }
+
+    override suspend fun setPowerSavingTrigger(trigger: PowerSavingTrigger) {
+        powerSavingTriggerValue = trigger
     }
 
     override suspend fun setBrowseContentTypes(types: Set<WearContentType>) {
@@ -401,6 +633,14 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setGameState(value: String?) {
         gameStateValue = value
+    }
+
+    override suspend fun setStopwatchParticipantCount(count: Int) {
+        stopwatchParticipantCountValue = count
+    }
+
+    override suspend fun setStopwatchLastResult(value: String?) {
+        stopwatchLastResultValue = value
     }
 
     override suspend fun setVoiceNoteSendPolicy(policy: VoiceNoteSendPolicy) {
@@ -435,6 +675,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         backgroundModeValue = mode
     }
 
+    override suspend fun setColorScheme(scheme: WearColorScheme) {
+        colorSchemeValue = scheme
+    }
+
     override suspend fun setDownloadAlbumArt(enabled: Boolean) {
         downloadAlbumArtValue = enabled
     }
@@ -463,9 +707,23 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
         keepScreenAwakeValue = enabled
     }
 
+    override suspend fun setBackgroundPlaybackEnabled(enabled: Boolean) {
+        backgroundPlaybackValue = enabled
+    }
+
+    override suspend fun setPanelAutoHideSeconds(seconds: Int) {
+        panelAutoHideSecondsValue = seconds
+    }
+
     override suspend fun setLastUsedResource(id: String, name: String) {
         lastUsedResourcesValue = listOf(LastUsedResource(id, name)) +
             lastUsedResourcesValue.filterNot { it.id == id }
+    }
+
+    override suspend fun setLastUsedStream(normalizedUrl: String, name: String) {
+        val entry = LastUsedResource(normalizedUrl, name, LastUsedKind.STREAM)
+        lastUsedResourcesValue = listOf(entry) +
+            lastUsedResourcesValue.filterNot { it.kind == LastUsedKind.STREAM && it.id == normalizedUrl }
     }
 
     override suspend fun clearLastUsedResource() {
@@ -490,6 +748,10 @@ private class FakeWearPreferencesRepository : WearPreferencesRepository {
 
     override suspend fun setAppLanguage(languageCode: String?) {
         appLanguageValue = languageCode
+    }
+
+    override suspend fun setUnitSystem(system: UnitSystem) {
+        unitSystemValue = system
     }
 
     // S2093: read through a getter, unlike the flows above - the merge reads the stamps back, so a test

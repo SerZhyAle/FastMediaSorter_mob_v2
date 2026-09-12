@@ -11,7 +11,7 @@ import org.junit.Test
 class NetworkMonitorIndicatorTest {
 
     @Test
-    fun `the catalogue holds exactly the eight indicators the spec names`() {
+    fun `the catalogue holds exactly the nine indicators the spec names`() {
         assertEquals(EXPECTED_COUNT, NetworkMonitorIndicator.entries.size)
     }
 
@@ -42,6 +42,6 @@ class NetworkMonitorIndicatorTest {
     }
 
     private companion object {
-        const val EXPECTED_COUNT = 8
+        const val EXPECTED_COUNT = 9
     }
 }

@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.xr.VrMediaSectionContract
@@ -37,6 +38,10 @@ class MediaSettingsFragment : BaseSettingsFragment() {
     @Inject lateinit var mediaCapabilities: MediaCapabilities
 
     @Inject lateinit var capabilityAvailability: CapabilityAvailability
+
+    // S2817: gates the Broadcast settings section the same way the menu item is gated - no BuildConfig
+    // flavor guard in main, the no-op controller reports isAvailable = false.
+    @Inject lateinit var broadcastSourceController: BroadcastSourceController
 
     private var _binding: FragmentSettingsMediaContainerBinding? = null
     private val binding get() = _binding!!
@@ -137,6 +142,9 @@ class MediaSettingsFragment : BaseSettingsFragment() {
                 { OtherMediaSettingsFragment() }),
             MediaChildSection(binding.headerStreams, binding.containerStreams, "media__streams", false, "media_streams",
                 if (capabilityAvailability.isStreamsAvailable()) ({ StreamsSettingsFragment() }) else null),
+            // S2817: Broadcast section - immediately after Streams, gated by the same seam as the menu item.
+            MediaChildSection(binding.headerBroadcast, binding.containerBroadcast, "media__broadcast", false, "media_broadcast",
+                if (broadcastSourceController.isAvailable) ({ BroadcastSettingsFragment() }) else null),
         )
     }
 

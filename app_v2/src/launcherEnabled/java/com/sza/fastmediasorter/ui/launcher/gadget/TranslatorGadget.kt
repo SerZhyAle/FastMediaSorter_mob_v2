@@ -11,6 +11,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.databinding.GadgetLauncherTranslatorBinding
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.dialog.TranslationSettingsDialog
@@ -76,6 +77,14 @@ enum class TranslatorState {
 
     /** A translation is on screen. */
     TRANSLATED,
+
+    /**
+     * The engine is working on the current input.
+     *
+     * Set by the view directly and never returned by [decideTranslatorState]: the other five describe an
+     * outcome the engine has already produced, this one describes that there is no outcome yet.
+     */
+    IN_PROGRESS,
 }
 
 /**
@@ -83,6 +92,11 @@ enum class TranslatorState {
  *
  * Extracted because the states are the promise this cell makes to the user (strategic §2 goal 4), and a
  * promise that can only be checked by hand on a device is one that quietly stops holding.
+ *
+ * S2988: a delivered translation outranks every flag except an empty input. [modelMissing] is a latch set
+ * by the download prompt and cleared only by the next call, so the very call that downloads the pack and
+ * then succeeds still carries it - and ranking it first captioned a visible translation with "the pack is
+ * still downloading". The translation is a fact on screen; the flags predict that there is none yet.
  */
 fun decideTranslatorState(
     input: String,
@@ -91,10 +105,10 @@ fun decideTranslatorState(
     failed: Boolean,
 ): TranslatorState = when {
     input.isBlank() -> TranslatorState.EMPTY_INPUT
+    translated != null -> TranslatorState.TRANSLATED
     modelMissing -> TranslatorState.MODEL_MISSING
     failed -> TranslatorState.FAILED
-    translated == null -> TranslatorState.PAIR_UNAVAILABLE
-    else -> TranslatorState.TRANSLATED
+    else -> TranslatorState.PAIR_UNAVAILABLE
 }
 
 /**
@@ -143,6 +157,13 @@ private class TranslatorGadgetView(
             val pasted = clipboardText()
             binding.gadgetTranslatorInput.setText(pasted)
             translate(pasted)
+        }
+        // S2732: the editor action above never arrives on a multi-line input - TextView forces
+        // IME_FLAG_NO_ENTER_ACTION there, so the keyboard offers a newline and no action at all. This
+        // button is what makes typed text translatable; the listener stays for hardware keyboards.
+        binding.gadgetTranslatorTranslate.setOnClickListener {
+            Timber.d("S2732: translator cell translate button tapped")
+            translate(binding.gadgetTranslatorInput.text?.toString().orEmpty())
         }
         binding.gadgetTranslatorSwap.setOnClickListener { swapDirection() }
         binding.gadgetTranslatorDirection.setOnClickListener { openLanguageSettings() }
@@ -198,7 +219,6 @@ private class TranslatorGadgetView(
      * drops the session swap, so what the user just saved is what runs next.
      */
     private fun openLanguageSettings() {
-        Timber.d("S2237: language settings requested")
         val owner = findViewTreeLifecycleOwner() ?: return
         TranslationSettingsDialog.show(
             context = context,
@@ -222,29 +242,41 @@ private class TranslatorGadgetView(
      * the expensive part of this cell and strategic §3.2 caps it at explicit use.
      */
     private fun translate(text: String) {
+        // S1625: the cell reaches the ML Kit engine directly, so it needs the licence gate of its own -
+        // every other translation surface asks the contract and this one asked nothing at all.
+        if (!CapabilityAvailabilityAccessor.isTranslationAvailable(context)) {
+            binding.gadgetTranslatorState.setText(R.string.translation_unavailable_device_licence)
+            binding.gadgetTranslatorState.isVisible = true
+            return
+        }
         if (text.isBlank()) {
             renderState(TranslatorState.EMPTY_INPUT)
             return
         }
-        val activeScope = scope ?: return
-        modelMissing = false
-        failed = false
-        activeScope.launch {
-            val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
-            val (source, target) = effectivePair()
-            Timber.d("S2237: translate pair %s to %s", source, target)
-            showPair(source, target)
-            val translated = runCatching { engine.translate(text, source, target) }
-                .onFailure {
-                    failed = true
-                    Timber.w("Translator cell: engine refused (%s)", it.javaClass.simpleName)
+        scope?.let { activeScope ->
+            modelMissing = false
+            failed = false
+            // The engine checks the language pack before it translates, which is seconds on a cold cell.
+            // Without this line that wait is indistinguishable from a cell that ignored the tap.
+            renderState(TranslatorState.IN_PROGRESS)
+            activeScope.launch {
+                val engine = facade ?: facadeFactory.get().create(this@TranslatorGadgetView).also { facade = it }
+                val (source, target) = effectivePair()
+                showPair(source, target)
+                val translated = runCatching { engine.translate(text, source, target) }
+                    .onFailure {
+                        failed = true
+                        Timber.w("Translator cell: engine refused (%s)", it.javaClass.simpleName)
+                    }
+                    .getOrNull()
+                if (translated != null) {
+                    binding.gadgetTranslatorResult.text = translated
                 }
-                .getOrNull()
-            if (translated != null) {
-                binding.gadgetTranslatorResult.text = translated
+                Timber.d("S2988: state translated=%s modelMissing=%s", translated != null, modelMissing)
+                val state = decideTranslatorState(text, translated, modelMissing, failed)
+                Timber.d("S2732: translator cell state after engine call: %s", state)
+                renderState(state)
             }
-            val state = decideTranslatorState(text, translated, modelMissing, failed)
-            renderState(state)
         }
     }
 
@@ -253,7 +285,6 @@ private class TranslatorGadgetView(
      * of what was typed, and blanking it would punish a mis-tap.
      */
     private fun swapDirection() {
-        Timber.d("S2237: swap requested")
         val activeScope = scope ?: return
         activeScope.launch {
             val (source, target) = effectivePair()
@@ -275,6 +306,7 @@ private class TranslatorGadgetView(
             TranslatorState.PAIR_UNAVAILABLE -> R.string.launcher_translator_unavailable
             TranslatorState.FAILED -> R.string.launcher_translator_unavailable
             TranslatorState.TRANSLATED -> R.string.launcher_translator_attribution
+            TranslatorState.IN_PROGRESS -> R.string.launcher_translator_in_progress
         }
         binding.gadgetTranslatorState.setText(message)
         binding.gadgetTranslatorState.isVisible = true

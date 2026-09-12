@@ -308,7 +308,6 @@ class PlayerViewModel @Inject constructor(
             return false
         }
         val gone = outcome == com.sza.fastmediasorter.domain.usecase.MediaLoadFailureOutcome.GONE
-        Timber.d("S2151: media load failure recognised, gone=$gone")
         sendEvent(PlayerEvent.ShowMediaUnavailable(fileName = fileName, gone = gone))
         return true
     }

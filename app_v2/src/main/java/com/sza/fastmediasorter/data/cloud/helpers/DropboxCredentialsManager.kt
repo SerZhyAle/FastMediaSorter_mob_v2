@@ -4,7 +4,14 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.sza.fastmediasorter.core.di.ApplicationScope
+import com.sza.fastmediasorter.data.identity.transfer.TransferableSignInWriter
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInProviderKeys
+import com.sza.fastmediasorter.domain.identity.transfer.TransferableSignInRecord
+import dagger.Lazy
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -24,7 +31,9 @@ import javax.inject.Singleton
  */
 @Singleton
 class DropboxCredentialsManager @Inject constructor(
-    @param:ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context,
+    @param:ApplicationScope private val appScope: CoroutineScope,
+    private val transferWriter: Lazy<TransferableSignInWriter>
 ) {
     companion object {
         private const val PREFS_NAME = "dropbox_credentials"
@@ -64,11 +73,11 @@ class DropboxCredentialsManager @Inject constructor(
             edit.apply()
             Timber.d("Dropbox credentials saved (account: ${accountEmail ?: "unknown"})")
         }
+        publishTransferableSecret(credentialsJson, accountEmail)
     }
 
     /** Load credentials, preferring the per-account key when [accountEmail] is given. */
     fun loadStoredCredentials(accountEmail: String? = null): String? {
-        Timber.d("S2115: dropbox credential load via manager, account=${accountEmail ?: "none"}")
         purgeLegacyPlaintextCredentials()
         return guardStorage("load", null) {
             val perAccount = if (accountEmail.isNullOrEmpty()) {
@@ -80,12 +89,48 @@ class DropboxCredentialsManager @Inject constructor(
         }
     }
 
-    /** Clear the legacy single-account credential entry. */
-    fun clearStoredCredentials() {
+    /** Clear stored credentials (legacy single-account key and per-account entry/all per-account entries). */
+    fun clearStoredCredentials(accountEmail: String? = null) {
         purgeLegacyPlaintextCredentials()
         guardStorage("clear", Unit) {
-            prefs.edit().remove(KEY_CREDENTIALS).apply()
-            Timber.d("Dropbox credentials cleared")
+            val editor = prefs.edit().remove(KEY_CREDENTIALS)
+            if (!accountEmail.isNullOrEmpty()) {
+                editor.remove("$KEY_CREDENTIALS_PREFIX$accountEmail")
+            } else {
+                prefs.all.keys
+                    .filter { it.startsWith(KEY_CREDENTIALS_PREFIX) }
+                    .forEach { editor.remove(it) }
+            }
+            editor.apply()
+            Timber.d("S2455: Dropbox credentials cleared (account: ${accountEmail ?: "all"})")
+        }
+        forgetTransferableSecret()
+    }
+
+    /**
+     * Mirror the credential into the transferable record so it survives a migration (S2101).
+     *
+     * Fire and forget by design: the transfer write is best-effort and must never affect the
+     * credential save the user just completed, so it neither blocks that save nor reports a failure
+     * back to it. [TransferableSignInWriter] merges, leaving the other providers' entries intact.
+     */
+    private fun publishTransferableSecret(credentialsJson: String, accountEmail: String?) {
+        appScope.launch {
+            transferWriter.get().putEntry(
+                TransferableSignInProviderKeys.DROPBOX,
+                TransferableSignInRecord.Kind.SECRET,
+                mapOf(
+                    TransferredCredentialPayload.EMAIL to accountEmail.orEmpty(),
+                    TransferredCredentialPayload.CREDENTIALS to credentialsJson
+                )
+            )
+        }
+    }
+
+    /** Drop this provider's transferable entry on sign-out; fire and forget for the same reason. */
+    private fun forgetTransferableSecret() {
+        appScope.launch {
+            transferWriter.get().removeEntry(TransferableSignInProviderKeys.DROPBOX)
         }
     }
 

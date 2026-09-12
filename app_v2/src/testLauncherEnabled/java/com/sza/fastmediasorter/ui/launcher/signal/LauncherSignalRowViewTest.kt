@@ -1,6 +1,8 @@
 package com.sza.fastmediasorter.ui.launcher.signal
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
@@ -31,6 +33,50 @@ class LauncherSignalRowViewTest {
     @Test
     fun `a zero-capacity start side sends everything to the end`() {
         assertEquals(0, allocateStartGroupCount(chipCount = 4, startCapacity = 0, endCapacity = 5))
+    }
+
+    @Test
+    fun `a wide row sharing the band with the status bar is bounded at five chips plus the counter`() {
+        assertEquals(6, signalSlots(capacity = 12, topStatusBarMode = true))
+    }
+
+    @Test
+    fun `a row exactly at the bound is left alone`() {
+        assertEquals(6, signalSlots(capacity = 6, topStatusBarMode = true))
+    }
+
+    @Test
+    fun `a narrow row keeps the width it measured`() {
+        // The ceiling must never raise a capacity: three chips fit, and five would overlap.
+        assertEquals(3, signalSlots(capacity = 3, topStatusBarMode = true))
+        assertEquals(3, signalSlots(capacity = 3, topStatusBarMode = false))
+    }
+
+    @Test
+    fun `a wide row owning the whole band is bounded at eleven chips plus the counter`() {
+        // S2790: eleven chips and the counter slot are what make the button read "12+".
+        assertEquals(12, signalSlots(capacity = 12, topStatusBarMode = false))
+    }
+
+    @Test
+    fun `a row wider than the second ceiling is still bounded by it`() {
+        assertEquals(12, signalSlots(capacity = 20, topStatusBarMode = false))
+    }
+
+    @Test
+    fun `a wider start side keeps the single group`() {
+        assertTrue(keepsStartSide(startSpan = 400, endSpan = 120))
+    }
+
+    @Test
+    fun `a wider end side takes the single group`() {
+        assertFalse(keepsStartSide(startSpan = 120, endSpan = 400))
+    }
+
+    @Test
+    fun `equal spans keep the single group at the left edge`() {
+        // S2734 criterion 4 put the newest chip at the left edge; a tie must not move it across the cutout.
+        assertTrue(keepsStartSide(startSpan = 240, endSpan = 240))
     }
 
     @Test

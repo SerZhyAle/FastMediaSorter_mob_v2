@@ -9,7 +9,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.job
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -51,7 +53,9 @@ class LauncherShortcutSyncRepositoryImplTest {
 
     @After
     fun tearDown() {
-        scope.cancel()
+        // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
+        // returns, so an unfinished DataStore flush would meet a deleted file.
+        runBlocking { scope.coroutineContext.job.cancelAndJoin() }
     }
 
     @Test
@@ -93,5 +97,64 @@ class LauncherShortcutSyncRepositoryImplTest {
         repository.setSyncedRoutes(setOf("route.game"))
 
         assertEquals(setOf("route.game"), repository.syncedRoutes())
+    }
+
+    @Test
+    fun `a resource baseline that was never written returns null`() = runTest {
+        assertNull(repository.syncedResourcePaths())
+    }
+
+    @Test
+    fun `a populated resource baseline reads back unchanged`() = runTest {
+        val paths = setOf("virtual://all_audio", "virtual://all_video")
+
+        repository.setSyncedResourcePaths(paths)
+
+        assertEquals(paths, repository.syncedResourcePaths())
+    }
+
+    @Test
+    fun `clearing the resource baseline returns it to absent and not to empty`() = runTest {
+        repository.setSyncedResourcePaths(setOf("virtual://all_audio"))
+
+        repository.clearSyncedResourcePaths()
+
+        assertNull(repository.syncedResourcePaths())
+    }
+
+    // S2564: one DataStore, two keys - a clear of either baseline must leave the other one standing,
+    // or the launcher reset and the two sync passes would silently undo each other's bookkeeping.
+    @Test
+    fun `the two baselines are stored independently of each other`() = runTest {
+        repository.setSyncedRoutes(setOf("route.calculator"))
+        repository.setSyncedResourcePaths(setOf("virtual://all_audio"))
+
+        repository.clearSyncedRoutes()
+
+        assertNull(repository.syncedRoutes())
+        assertEquals(setOf("virtual://all_audio"), repository.syncedResourcePaths())
+    }
+
+    // S2859: the Add-resource tile flag follows the S2791 once-per-install contract - unset reads
+    // false, set reads true, and the launcher reset returns it to unset.
+    @Test
+    fun `an Add-resource tile flag that was never written reads false`() = runTest {
+        assertEquals(false, repository.isResourcesAddTileBackfilled())
+    }
+
+    @Test
+    fun `a set Add-resource tile flag reads back true`() = runTest {
+        repository.setResourcesAddTileBackfilled()
+
+        assertEquals(true, repository.isResourcesAddTileBackfilled())
+    }
+
+    @Test
+    fun `clearing the Add-resource tile flag returns it to unset`() = runTest {
+        repository.setResourcesAddTileBackfilled()
+
+        repository.clearResourcesAddTileBackfilled()
+
+        assertEquals(false, repository.isResourcesAddTileBackfilled())
     }
 }

@@ -82,4 +82,8 @@
     <string name="video_snapshot_resource_label">Risorsa per salvare i frame</string>
     <string name="video_snapshot_resource_not_set">Non selezionato (salva nella cartella Download)</string>
     <string name="videos_v">Video (V)</string>
+    <string name="playback_control_tab_balance">Bilanciamento</string>
+    <string name="playback_control_no_balance">Audio mono - nessun canale da bilanciare</string>
+    <string name="playback_control_balance_value">Bilanciamento: %1$s</string>
+    <string name="playback_control_balance_description">Bilanciamento %1$d percento a sinistra, %2$d percento a destra</string>
 </resources>

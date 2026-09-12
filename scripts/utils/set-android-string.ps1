@@ -454,15 +454,16 @@ function Remove-KeyFromLocales([string]$Key) {
         }
     }
     if ($removed -and -not $DryRun) {
-        $fps = Get-LocaleSourceFingerprints
         $escKey = [regex]::Escape($Key)
-        foreach ($loc in $fps.Keys) {
-            $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
-            foreach ($mid in $matchingIds) {
-                Remove-LocaleSourceFingerprint -Fingerprints $fps -Identity $mid -Locale $loc
+        Edit-LocaleSourceFingerprints -Mutate {
+            param($fps)
+            foreach ($loc in $fps.Keys) {
+                $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
+                foreach ($mid in $matchingIds) {
+                    Remove-LocaleSourceFingerprint -Fingerprints $fps -Identity $mid -Locale $loc
+                }
             }
-        }
-        Save-LocaleSourceFingerprints -Fingerprints $fps
+        } | Out-Null
     }
     return $removed
 }
@@ -562,9 +563,10 @@ function Invoke-Set {
             $enDecoded = ConvertFrom-XmlText $enHit.Raw
             $enHash = Get-EnglishStringFingerprint $enDecoded
             $unitId = Get-LocaleUnitId -Module $Module -Set main -File $enHit.File.Name -Key $Key
-            $fps = Get-LocaleSourceFingerprints
-            Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $Locale -Identity $unitId -Hash $enHash
-            Save-LocaleSourceFingerprints -Fingerprints $fps
+            Edit-LocaleSourceFingerprints -Mutate {
+                param($fps)
+                Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $Locale -Identity $unitId -Hash $enHash
+            } | Out-Null
         }
     }
 }
@@ -651,12 +653,13 @@ function Move-OneKey([string]$key, [string]$targetFile) {
     # --- commit ---
     foreach ($path in $writes.Keys) { Save-File $path $writes[$path] }
 
-    $fps = Get-LocaleSourceFingerprints
     $oldBase = [System.IO.Path]::GetFileName($plan[0].Source)
     $oldUnit = Get-LocaleUnitId -Module $Module -Set main -File $oldBase -Key $key
     $newUnit = Get-LocaleUnitId -Module $Module -Set main -File $targetFile -Key $key
-    Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $oldUnit -NewIdentity $newUnit
-    Save-LocaleSourceFingerprints -Fingerprints $fps
+    Edit-LocaleSourceFingerprints -Mutate {
+        param($fps)
+        Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $oldUnit -NewIdentity $newUnit
+    } | Out-Null
 
     Write-Host "  [ok]  moved '$key' -> $targetFile (EN/RU/UK)" -ForegroundColor Green
     return $true
@@ -796,11 +799,12 @@ switch ($Action) {
         if (-not $DryRun -and $suppliedOptional.Count -gt 0) {
             $enHash = Get-EnglishStringFingerprint $En
             $unitId = Get-LocaleUnitId -Module $Module -Set main -File $File -Key $Key
-            $fps = Get-LocaleSourceFingerprints
-            foreach ($loc in $suppliedOptional) {
-                Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $loc.Code -Identity $unitId -Hash $enHash
-            }
-            Save-LocaleSourceFingerprints -Fingerprints $fps
+            Edit-LocaleSourceFingerprints -Mutate {
+                param($fps)
+                foreach ($loc in $suppliedOptional) {
+                    Update-LocaleSourceFingerprint -Fingerprints $fps -Locale $loc.Code -Identity $unitId -Hash $enHash
+                }
+            } | Out-Null
         }
         # S1627: name the locales this call left empty. The silence was the gap - the parameter for
         # them already existed, so a key reached the release in three languages without anything
@@ -923,16 +927,17 @@ switch ($Action) {
             }
         }
         if ($renamed -and -not $DryRun) {
-            $fps = Get-LocaleSourceFingerprints
             $escKey = [regex]::Escape($Key)
-            foreach ($loc in $fps.Keys) {
-                $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
-                foreach ($mid in $matchingIds) {
-                    $newId = [regex]::Replace($mid, "\|$escKey($|\|)", "|$NewKey`$1")
-                    Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $mid -NewIdentity $newId
+            Edit-LocaleSourceFingerprints -Mutate {
+                param($fps)
+                foreach ($loc in $fps.Keys) {
+                    $matchingIds = @($fps[$loc].Keys | Where-Object { $_ -match "\|$escKey($|\|)" })
+                    foreach ($mid in $matchingIds) {
+                        $newId = [regex]::Replace($mid, "\|$escKey($|\|)", "|$NewKey`$1")
+                        Rename-LocaleSourceFingerprint -Fingerprints $fps -OldIdentity $mid -NewIdentity $newId
+                    }
                 }
-            }
-            Save-LocaleSourceFingerprints -Fingerprints $fps
+            } | Out-Null
         }
         if (-not $renamed) { Write-Host "Key '$Key' not found in any locale." -ForegroundColor Yellow }
         exit 0

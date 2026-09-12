@@ -1,0 +1,10 @@
+{
+  "_comment": [
+    "S2621 fixture for -ChangedFiles. AlphaScreen is walked and BetaScreen is classified nowhere,",
+    "so this list carries exactly one divergence and it is attributable to src-scoped/Beta.kt."
+  ],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": []
+}

@@ -31,66 +31,70 @@ class WearTileAssignmentRepositoryImpl @Inject constructor(
         val STREAM_ASSIGNMENT = stringPreferencesKey("wear_tile_assignment_stream")
     }
 
-    override suspend fun assignmentFor(kind: WearTileKind): WearTileTargetRef? {
-        if (kind == WearTileKind.FAVOURITES) {
-            return WearTileTargetRef.Favourites
-        }
-        val key = if (kind == WearTileKind.RESOURCE) {
-            PreferencesKeys.RESOURCE_ASSIGNMENT
-        } else {
-            PreferencesKeys.STREAM_ASSIGNMENT
-        }
+    /**
+     * The store key of [kind], or null when the kind carries no target at all.
+     *
+     * S2511: null is not "nothing has been chosen yet" - it is "there is nothing here to choose". The two
+     * shortcut grids draw a fixed catalog, so they own no key, and `FAVOURITES` addresses the whole list.
+     * Before this the key was picked by an `if RESOURCE else STREAM`, under which any further kind would
+     * have silently read and written the stream's assignment.
+     */
+    private fun keyFor(kind: WearTileKind) = when (kind) {
+        WearTileKind.RESOURCE -> PreferencesKeys.RESOURCE_ASSIGNMENT
+        WearTileKind.STREAM -> PreferencesKeys.STREAM_ASSIGNMENT
+        WearTileKind.FAVOURITES, WearTileKind.PROGRAMS, WearTileKind.SECTIONS -> null
+    }
+
+    override suspend fun assignmentFor(kind: WearTileKind): WearTileTargetRef? = when (kind) {
+        WearTileKind.FAVOURITES -> WearTileTargetRef.Favourites
+        else -> keyFor(kind)?.let { key -> readAssignment(kind, key) }
+    }
+
+    private suspend fun readAssignment(
+        kind: WearTileKind,
+        key: Preferences.Key<String>
+    ): WearTileTargetRef? {
         val json = context.tileAssignmentDataStore.data.map { prefs -> prefs[key] }.firstOrNull()
-        val result: WearTileTargetRef? = if (json == null) {
-            null
-        } else {
+        return json?.let {
             runCatching {
                 when (kind) {
-                    WearTileKind.RESOURCE -> {
-                        val resourceTarget: WearTileTargetRef.Resource = gson.fromJson(
-                            json,
-                            WearTileTargetRef.Resource::class.java
-                        )
-                        resourceTarget
-                    }
-                    WearTileKind.STREAM -> {
-                        val streamTarget: WearTileTargetRef.Stream = gson.fromJson(
-                            json,
-                            WearTileTargetRef.Stream::class.java
-                        )
-                        streamTarget
-                    }
-                    WearTileKind.FAVOURITES -> WearTileTargetRef.Favourites
+                    WearTileKind.RESOURCE -> gson.fromJson(it, WearTileTargetRef.Resource::class.java)
+                    WearTileKind.STREAM -> gson.fromJson(it, WearTileTargetRef.Stream::class.java)
+                    // Unreachable - a kind with no key never gets here. Named rather than sent to an else
+                    // so a future kind still has to be classified.
+                    WearTileKind.FAVOURITES,
+                    WearTileKind.PROGRAMS,
+                    WearTileKind.SECTIONS -> null
                 }
             }.getOrNull()
         }
-        return result
     }
 
     override suspend fun assign(kind: WearTileKind, ref: WearTileTargetRef) {
-        if (kind == WearTileKind.FAVOURITES || ref is WearTileTargetRef.Favourites) {
-            return
-        }
-        val key = if (kind == WearTileKind.RESOURCE) {
-            PreferencesKeys.RESOURCE_ASSIGNMENT
-        } else {
-            PreferencesKeys.STREAM_ASSIGNMENT
-        }
-        val json = when (ref) {
-            is WearTileTargetRef.Resource -> {
-                val resourceTarget: WearTileTargetRef.Resource = ref
-                gson.toJson(resourceTarget)
-            }
-            is WearTileTargetRef.Stream -> {
-                val streamTarget: WearTileTargetRef.Stream = ref
-                gson.toJson(streamTarget)
-            }
-            WearTileTargetRef.Favourites -> ""
-        }
-        if (json.isEmpty()) return
-
+        val key = keyFor(kind) ?: return
+        val json = jsonFor(ref) ?: return
         context.tileAssignmentDataStore.edit { prefs ->
             prefs[key] = json
         }
+    }
+
+    /**
+     * Null for the favourites list, which is addressed as a whole and so has nothing to serialize.
+     *
+     * The named locals are not ceremony: `assert-gson-persistence-contract.ps1` resolves the serialized
+     * type at each `toJson` call site statically, and a smart-cast sealed-interface receiver reads to it as
+     * an unresolvable type - which is how it fails, since a model it cannot name is a model it cannot check
+     * for a keep rule.
+     */
+    private fun jsonFor(ref: WearTileTargetRef): String? = when (ref) {
+        is WearTileTargetRef.Resource -> {
+            val resourceTarget: WearTileTargetRef.Resource = ref
+            gson.toJson(resourceTarget)
+        }
+        is WearTileTargetRef.Stream -> {
+            val streamTarget: WearTileTargetRef.Stream = ref
+            gson.toJson(streamTarget)
+        }
+        WearTileTargetRef.Favourites -> null
     }
 }

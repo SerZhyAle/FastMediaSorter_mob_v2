@@ -12,6 +12,7 @@ import androidx.activity.result.IntentSenderRequest
 import androidx.core.view.isVisible
 import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.sza.fastmediasorter.BuildConfig
@@ -34,6 +35,8 @@ import com.sza.fastmediasorter.data.transfer.CloudFileHandle
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.databinding.ActivityBrowseBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.BrowseSwipeAction
+import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
 import com.sza.fastmediasorter.domain.model.DisplayMode
 import com.sza.fastmediasorter.domain.model.FileFilter
 import com.sza.fastmediasorter.domain.model.FileOperationType
@@ -44,14 +47,18 @@ import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.domain.model.ResourceType
 import com.sza.fastmediasorter.domain.model.SortMode
 import com.sza.fastmediasorter.domain.model.UndoOperation
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.usecase.FileOperationUseCase
 import com.sza.fastmediasorter.domain.usecase.GetDestinationsUseCase
 import com.sza.fastmediasorter.ui.browse.BrowseActivity
+import com.sza.fastmediasorter.ui.browse.BrowseState
 import com.sza.fastmediasorter.ui.browse.BrowseViewModel
 import com.sza.fastmediasorter.ui.browse.MediaFileAdapter
-import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileDragTouchCallback
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuActions
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseFileRowTouchCallback
+import com.sza.fastmediasorter.ui.browse.helpers.BrowseSwipeActionResolver
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferCoordinator
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
@@ -116,6 +123,9 @@ class BrowseManagerInitializer(
     private val passthroughProvider: BrowsePassthroughCaptureProvider? = flavorHooks.passthroughProvider
     private val binaryFileMenuActions: Set<BrowseBinaryFileMenuAction> = flavorHooks.binaryFileMenuActions
     private val browseApkTileBadgeBinder: BrowseApkTileBadgeBinder = hostManagers.browseApkTileBadgeBinder
+
+    // S2533: pure decision logic, no Android types - constructed here rather than injected.
+    private val browseSwipeActionResolver = BrowseSwipeActionResolver()
     private val reviewRequestManager = hostManagers.reviewRequestManager
     private val browseTransferCoordinator: BrowseFileTransferCoordinator = hostManagers.browseTransferCoordinator
     private val restrictedTreeTargetPolicy: RestrictedTreeTargetPolicy = domainServices.restrictedTreeTargetPolicy
@@ -405,6 +415,12 @@ class BrowseManagerInitializer(
         )
         binding.tvTransferIndicator.setOnClickListener { fileOperationsManager.reattachTransferDialog() }
 
+        // S1326: the undo path runs in the ViewModel but the transfer coordinator is Activity-scoped.
+        // A function closes that gap without the ViewModel holding the Activity-bound manager itself.
+        viewModel.directoryUndoTransfer = { treePaths, destinationParent ->
+            fileOperationsManager.enqueueDirectoryUndoTransfer(treePaths, destinationParent)
+        }
+
         folderPickerHandler = BrowseFolderPickerHandler(
             activity = activity,
             coroutineScope = lifecycleScope,
@@ -473,7 +489,7 @@ class BrowseManagerInitializer(
             shouldShowEmptyProvider = { viewModel.fileListUiState.value === UiState.Empty }
         )
 
-        setupDragToReorder()
+        setupRowTouchHandling()
 
         dragSelectManager = BrowseDragSelectManager(
             recyclerView = binding.rvMediaFiles,
@@ -620,7 +636,6 @@ class BrowseManagerInitializer(
         val resource = viewModel.state.value.resource ?: return null
         return when {
             LimitedStorageReach.isReachLimited(activity, resource) -> {
-                Timber.d("S2369: filter dialog narrowed to the reachable types for ${resource.path}")
                 LimitedStorageReach.narrowToReachable(resource.supportedMediaTypes)
             }
             else -> resource.supportedMediaTypes
@@ -648,43 +663,60 @@ class BrowseManagerInitializer(
         } else {
             settings
         }
+        // S1019/S2566: resolve through the shared write-policy helper, never `isReadOnly` alone.
+        // The bare flag drops the probe half, so an unwritable local/cloud folder and every
+        // stream offered move/rename/delete here while the row's own buttons, already resolved
+        // through the helper, correctly hid them.
+        val canWrite = currentState.resource?.allowsWriteOperations() == true
+        Timber.d("S2566: row menu canWrite=$canWrite type=${currentState.resource?.type}")
         browseFileOverflowMenuManager.showFor(
             anchor = anchor,
             menuContext = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuContext(
                 file = file,
                 siblings = currentState.mediaFiles,
                 appSettings = effectiveSettings,
-                isWritable = currentState.resource?.isReadOnly == false,
+                isWritable = canWrite,
                 hasDestinations = latestHasDestinations,
                 isGridMode = mediaFileAdapter.isInGridMode,
             ),
-            actions = com.sza.fastmediasorter.ui.browse.helpers.BrowseFileMenuActions(
-                onCopy = { f -> showCopyDialog(setOf(f.path)) },
-                onMove = { f -> showMoveDialog(setOf(f.path)) },
-                onRename = { f -> showRenameDialog(setOf(f.path)) },
-                onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
-                onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
-                    { f -> viewModel.moveFileUp(f) }
-                } else null,
-                onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
-                    { f -> viewModel.moveFileDown(f) }
-                } else null,
-                onExtractArchive = { f -> viewModel.prepareExtraction(f) },
-                onFavorite = { f -> viewModel.toggleFavorite(f) },
-                onSendTo = { f ->
-                    val resource = viewModel.state.value.resource
-                    if (resource != null) {
-                        fileOperationsManager.sendFilesToMenu(listOf(f), resource, effectiveSettings)
-                    }
-                },
-                onInfo = { f -> showFileInfoDialog(f) },
-                onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
-                onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
-                onOpenInPlayer = { f -> viewModel.openFile(f) },
-                onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) },
-            ),
+            actions = buildFileMenuActions(currentState, effectiveSettings),
         )
     }
+
+    /**
+     * S2533: the row's callback set, built outside the function that shows the menu so the swipe
+     * gesture can invoke the same named callback the matching menu item invokes (ADR-1) - the delete
+     * confirmation and the «Send to..» receiver menu stay single-sourced.
+     */
+    private fun buildFileMenuActions(
+        currentState: BrowseState,
+        effectiveSettings: AppSettings,
+    ): BrowseFileMenuActions =
+        BrowseFileMenuActions(
+            onCopy = { f -> showCopyDialog(setOf(f.path)) },
+            onMove = { f -> showMoveDialog(setOf(f.path)) },
+            onRename = { f -> showRenameDialog(setOf(f.path)) },
+            onDelete = { f -> showDeleteConfirmation(setOf(f.path)) },
+            onMoveUp = if (currentState.sortMode == SortMode.MANUAL) {
+                { f -> viewModel.moveFileUp(f) }
+            } else null,
+            onMoveDown = if (currentState.sortMode == SortMode.MANUAL) {
+                { f -> viewModel.moveFileDown(f) }
+            } else null,
+            onExtractArchive = { f -> viewModel.prepareExtraction(f) },
+            onFavorite = { f -> viewModel.toggleFavorite(f) },
+            onSendTo = { f ->
+                val resource = viewModel.state.value.resource
+                if (resource != null) {
+                    fileOperationsManager.sendFilesToMenu(listOf(f), resource, effectiveSettings)
+                }
+            },
+            onInfo = { f -> showFileInfoDialog(f) },
+            onDrawOverlay = { f -> launchPlayerWithDrawOverlay(f) },
+            onSearchYoutubeMusic = { f -> searchYoutubeMusicForFile(f) },
+            onOpenInPlayer = { f -> viewModel.openFile(f) },
+            onOpenInNewWindow = { f -> eventHandler.openPlayerInNewWindow(f) },
+        )
 
     /**
      * S0293: re-render the file adapter rows so any `allowSeparateWindow`-gated UI picks up the
@@ -754,16 +786,68 @@ class BrowseManagerInitializer(
         })
     }
 
-    private fun setupDragToReorder() {
-        val callback = BrowseFileDragTouchCallback(
+    private fun setupRowTouchHandling() {
+        val callback = BrowseFileRowTouchCallback(
             adapter = mediaFileAdapter,
-            onDragComplete = { orderedPaths -> viewModel.saveManualOrder(orderedPaths) }
+            onDragComplete = { orderedPaths -> viewModel.saveManualOrder(orderedPaths) },
+            fileAt = { position -> mediaFileAdapter.currentList.getOrNull(position) },
+            resolveSwipe = { file, direction -> resolveRowSwipe(file, direction) },
+            onSwipeAction = { file, action -> dispatchRowSwipe(file, action) },
         )
         val touchHelper = ItemTouchHelper(callback).also { it.attachToRecyclerView(binding.rvMediaFiles) }
         mediaFileAdapter.setDragStartListener(object : MediaFileAdapter.DragStartListener {
             override fun onStartDrag(viewHolder: RecyclerView.ViewHolder) { touchHelper.startDrag(viewHolder) }
         })
         updateDragHandleVisibility(viewModel.state.value.sortMode)
+    }
+
+    /**
+     * S2533: the layout question is asked of the live layout manager rather than of `DisplayMode`,
+     * because a LIST resource is laid out multi-column on wide screens, tablets and TV, where drag
+     * already owns all four directions (ADR-3). The test is the manager's type and not its span,
+     * because [BrowseFileRowTouchCallback] hands drag all four directions under any
+     * `GridLayoutManager` - a one-column grid included, which GRID mode reaches on a narrow phone.
+     */
+    private fun resolveRowSwipe(
+        file: MediaFile,
+        direction: BrowseSwipeDirection,
+    ): BrowseSwipeAction? {
+        val settings = latestSettings ?: return null
+        val state = viewModel.state.value
+        val resolved = browseSwipeActionResolver.resolve(
+            file = file,
+            direction = direction,
+            settings = settings,
+            resource = state.resource,
+            hasDestinations = latestHasDestinations,
+            isHorizontalAxisFree = binding.rvMediaFiles.layoutManager !is GridLayoutManager,
+            isSelectionActive = state.selectedFiles.isNotEmpty(),
+        )
+        return resolved
+    }
+
+    /** ADR-1: the gesture runs the row menu's own callback, never a second path to the operation. */
+    private fun dispatchRowSwipe(
+        file: MediaFile,
+        action: BrowseSwipeAction,
+    ) {
+        val settings = latestSettings ?: return
+        Timber.d("S2533: row swipe fired ${action.name} on ${file.name}")
+        val actions = buildFileMenuActions(viewModel.state.value, settings)
+        when (action) {
+            BrowseSwipeAction.COPY -> actions.onCopy(file)
+            BrowseSwipeAction.MOVE -> actions.onMove(file)
+            BrowseSwipeAction.RENAME -> actions.onRename(file)
+            BrowseSwipeAction.DELETE -> actions.onDelete(file)
+            BrowseSwipeAction.FAVORITE -> actions.onFavorite?.invoke(file)
+            BrowseSwipeAction.SEND_TO -> actions.onSendTo?.invoke(file)
+            BrowseSwipeAction.INFO -> actions.onInfo?.invoke(file)
+            BrowseSwipeAction.OPEN_IN_PLAYER ->
+                actions.onOpenInPlayer?.invoke(file)
+            BrowseSwipeAction.EXTRACT_ARCHIVE ->
+                actions.onExtractArchive?.invoke(file)
+            BrowseSwipeAction.NONE -> Unit
+        }
     }
 
     fun updateSortButton(sortMode: SortMode) {

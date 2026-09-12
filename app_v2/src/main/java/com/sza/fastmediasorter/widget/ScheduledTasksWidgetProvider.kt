@@ -6,10 +6,11 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.text.format.DateFormat
 import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.data.local.db.AppDatabase
+import com.sza.fastmediasorter.domain.model.Quantity
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.ui.settings.SettingsActivity
@@ -25,7 +26,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import timber.log.Timber
-import java.util.Date
 
 /**
  * Widget provider for Scheduled Tasks (S0353).
@@ -150,7 +150,17 @@ class ScheduledTasksWidgetProvider : AppWidgetProvider() {
 
             val lastAt = lastRunAt
             if (lastAt != null) {
-                val formattedTime = DateFormat.getTimeFormat(context).format(Date(lastAt))
+                // S2795: resolved here, on every refresh, and never held in a field - a widget carries no
+                // settings subscription, so a formatter cached across updates would keep drawing the
+                // clock length the user has already switched away from.
+                val unitSeam = EntryPointAccessors.fromApplication(
+                    context.applicationContext,
+                    UnitSystemEntryPoint::class.java
+                )
+                val formattedTime = unitSeam.quantityFormatter().format(
+                    Quantity.Instant(lastAt),
+                    unitSeam.unitSystemProvider().value,
+                )
                 val statusText = if (lastRunStatus == "OK") {
                     context.getString(R.string.widget_scheduled_last_ok, formattedTime)
                 } else {

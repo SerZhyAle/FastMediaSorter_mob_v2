@@ -70,6 +70,14 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         return started
     }
 
+    /**
+     * S2392: the route's own settings screen, null when it declares none. Exposed from here because
+     * this is already the one place that turns a route key into an intent - [launchFeature] below
+     * opens the very same screen when the route is compiled in but switched off.
+     */
+    fun settingsIntentFor(routeKey: String): Intent? =
+        InternalRouteCatalog.byKey(routeKey)?.settingsIntent?.invoke(context)
+
     private suspend fun launchFeature(routeKey: String): Boolean {
         val route = InternalRouteCatalog.byKey(routeKey) ?: return false
         val availability = resolveRouteAvailability(routeKey)
@@ -283,7 +291,6 @@ class ExecuteLauncherCommandUseCase @Inject constructor(
         if (intent.component?.packageName == context.packageName) {
             intent.addFlags(Intent.FLAG_ACTIVITY_MULTIPLE_TASK)
         }
-        Timber.d("S2215: startIntent target=%s flags=0x%x", intent.component ?: intent.action, intent.flags)
         return runCatching {
             context.startActivity(intent)
             true

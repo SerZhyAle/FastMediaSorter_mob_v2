@@ -51,6 +51,34 @@ class LocalDestinationClassifierTest {
     }
 
     @Test
+    fun `video in DCIM Camera maps to VIDEO public collection`() {
+        // S1924: the mirror writes its recordings beside its photos, and MediaStore refuses a
+        // video/mp4 insert into the images collection - the folder alone must not decide the kind.
+        val path = "$externalRoot/DCIM/Camera/video_260906_224712.mp4"
+
+        val result = classifier.classify(path)
+
+        assertTrue(result is LocalDestinationCategory.PublicCollection)
+        val pub = result as LocalDestinationCategory.PublicCollection
+        assertEquals(LocalDestinationCategory.PublicCollection.Kind.VIDEO, pub.collection)
+        assertEquals("DCIM/Camera/", pub.relativePath)
+        assertEquals("video/mp4", pub.mimeType)
+    }
+
+    @Test
+    fun `photo in DCIM Camera still maps to IMAGES public collection`() {
+        val path = "$externalRoot/DCIM/Camera/photo_260906_224305.jpg"
+
+        val result = classifier.classify(path)
+
+        assertTrue(result is LocalDestinationCategory.PublicCollection)
+        val pub = result as LocalDestinationCategory.PublicCollection
+        assertEquals(LocalDestinationCategory.PublicCollection.Kind.IMAGES, pub.collection)
+        assertEquals("DCIM/Camera/", pub.relativePath)
+        assertEquals("image/jpeg", pub.mimeType)
+    }
+
+    @Test
     fun `download root maps to DOWNLOADS public collection`() {
         val path = "$externalRoot/Download/doc.pdf"
 

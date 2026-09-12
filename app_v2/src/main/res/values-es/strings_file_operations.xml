@@ -77,8 +77,6 @@
     <string name="delete_by_size_warning_no_trash">Advertencia: la papelera no es compatible con este recurso. ¡La eliminación será permanente!</string>
     <string name="delete_confirmation">¿Eliminar archivos?</string>
     <string name="delete_failed">No se pudieron eliminar los archivos.</string>
-    <string name="delete_file_confirmation">¿Eliminar %1$s de %2$s?</string>
-    <string name="delete_files_confirmation">¿Eliminar los archivos %1$d de %2$s?</string>
     <string name="delete_folder_confirm">¿Eliminar la carpeta \"%1$s\" y todo su contenido? Esta acción es irreversible.</string>
     <string name="delete_n_files_from_network_title">¿Eliminar %d archivos de la red?</string>
     <string name="delete_n_folders_confirm">¿Eliminar las carpetas %1$d y todo su contenido? Esta acción es irreversible.</string>
@@ -137,4 +135,11 @@
     <string name="browse_row_folder_checkbox">Carpeta %1$s, seleccione</string>
     <string name="browse_row_file_checkbox">Archivo %1$s, seleccione</string>
     <string name="browse_transfer_folders_included">Carpetas incluidas: %1$d</string>
+    <string name="undo_folder_move_started">Moviendo las carpetas de vuelta..</string>
+    <string name="undo_folder_copy_confirm_title">¿Deshacer la copia de la carpeta?</string>
+    <string name="undo_folder_copy_confirm_message">Las copias en el destino se eliminarán, incluido todo lo que se haya añadido a ellas desde entonces. Las carpetas originales permanecen donde están.</string>
+    <string name="undo_folder_copy_confirm_action">Eliminar las copias</string>
+    <string name="undo_folder_copy_done">Copias eliminadas.</string>
+    <string name="undo_mixed_move_started">Moviendo las carpetas de vuelta, restaurando %1$d archivos..</string>
+    <string name="undo_mixed_copy_done">Copias eliminadas: %1$d archivos, %2$d carpetas.</string>
 </resources>

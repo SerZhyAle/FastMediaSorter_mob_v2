@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.data.local.db.DeviceProfileDao
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.FileMetadataCacheDao
 import com.sza.fastmediasorter.data.local.db.InstalledAppDao
+import com.sza.fastmediasorter.data.local.db.LauncherCellConfigDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
 import com.sza.fastmediasorter.data.local.db.LauncherJournalDao
 import com.sza.fastmediasorter.data.local.db.LauncherLaunchStatsDao
@@ -39,6 +40,10 @@ import com.sza.fastmediasorter.data.local.db.MIGRATION_50_51
 import com.sza.fastmediasorter.data.local.db.MIGRATION_51_52
 import com.sza.fastmediasorter.data.local.db.MIGRATION_52_53
 import com.sza.fastmediasorter.data.local.db.MIGRATION_53_54
+import com.sza.fastmediasorter.data.local.db.MIGRATION_54_55
+import com.sza.fastmediasorter.data.local.db.MIGRATION_55_56
+import com.sza.fastmediasorter.data.local.db.MIGRATION_56_57
+import com.sza.fastmediasorter.data.local.db.MIGRATION_57_58
 import com.sza.fastmediasorter.data.local.db.NetworkCredentialsDao
 import com.sza.fastmediasorter.data.local.db.NetworkMeasurementDao
 import com.sza.fastmediasorter.data.local.db.PendingRevocationDao
@@ -47,6 +52,7 @@ import com.sza.fastmediasorter.data.local.db.ResourceDao
 import com.sza.fastmediasorter.data.local.db.ScheduledOperationDao
 import com.sza.fastmediasorter.data.local.db.SensorSeriesDao
 import com.sza.fastmediasorter.data.local.db.StereoFormatOverrideDao
+import com.sza.fastmediasorter.data.local.db.StreamCollectionDao
 import com.sza.fastmediasorter.data.local.db.StreamQualityMemoryDao
 import com.sza.fastmediasorter.data.local.db.StreamSourceDao
 import com.sza.fastmediasorter.data.local.db.StreamUserStateDao
@@ -63,7 +69,7 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
-    
+
     private const val DB_NAME = "fastmediasorter_v2.db"
 
     @Provides
@@ -143,20 +149,24 @@ object DatabaseModule {
                 MIGRATION_50_51,
                 MIGRATION_51_52,
                 MIGRATION_52_53,
-                MIGRATION_53_54
+                MIGRATION_53_54,
+                MIGRATION_54_55,
+                MIGRATION_55_56,
+                MIGRATION_56_57,
+                MIGRATION_57_58
             )
             // No fallbackToDestructiveMigration: a missing/failed migration now throws and is routed
             // through provideAppDatabase's recovery (backup + reset + user notice), not a silent
             // Room-internal table drop (S0731).
             .build()
     }
-    
+
     @Provides
     @Singleton
     fun provideResourceDao(database: AppDatabase): ResourceDao {
         return database.resourceDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideNetworkCredentialsDao(database: AppDatabase): NetworkCredentialsDao {
@@ -186,19 +196,25 @@ object DatabaseModule {
     fun provideStreamUserStateDao(database: AppDatabase): StreamUserStateDao {
         return database.streamUserStateDao()
     }
-    
+
+    @Provides
+    @Singleton
+    fun provideStreamCollectionDao(database: AppDatabase): StreamCollectionDao {
+        return database.streamCollectionDao()
+    }
+
     @Provides
     @Singleton
     fun providePlaybackPositionDao(database: AppDatabase): PlaybackPositionDao {
         return database.playbackPositionDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideThumbnailCacheDao(database: AppDatabase): ThumbnailCacheDao {
         return database.thumbnailCacheDao()
     }
-    
+
     @Provides
     @Singleton
     fun provideCachedFileListDao(database: AppDatabase): CachedFileListDao {
@@ -231,7 +247,9 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideDuplicateHashCacheDao(database: AppDatabase): com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao {
+    fun provideDuplicateHashCacheDao(
+        database: AppDatabase
+    ): com.sza.fastmediasorter.data.local.db.DuplicateHashCacheDao {
         return database.duplicateHashCacheDao()
     }
 
@@ -305,5 +323,11 @@ object DatabaseModule {
     @Singleton
     fun provideNetworkMeasurementDao(database: AppDatabase): NetworkMeasurementDao {
         return database.networkMeasurementDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLauncherCellConfigDao(database: AppDatabase): LauncherCellConfigDao {
+        return database.launcherCellConfigDao()
     }
 }

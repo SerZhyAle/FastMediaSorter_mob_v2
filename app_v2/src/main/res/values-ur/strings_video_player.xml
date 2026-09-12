@@ -82,4 +82,8 @@
     <string name="video_snapshot_resource_label">فریموں کو محفوظ کرنے کا وسیلہ</string>
     <string name="video_snapshot_resource_not_set">منتخب نہیں (ڈاؤن لوڈز میں محفوظ کرتا ہے)</string>
     <string name="videos_v">ویڈیوز (V)</string>
+    <string name="playback_control_tab_balance">توازن</string>
+    <string name="playback_control_no_balance">مونو آڈیو - توازن کے لیے کوئی چینل نہیں</string>
+    <string name="playback_control_balance_value">توازن: %1$s</string>
+    <string name="playback_control_balance_description">توازن %1$d فیصد بائیں، %2$d فیصد دائیں</string>
 </resources>

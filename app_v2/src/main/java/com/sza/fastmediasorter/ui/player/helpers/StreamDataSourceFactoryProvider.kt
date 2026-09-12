@@ -10,6 +10,7 @@ import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.HttpDataSource
 import com.sza.fastmediasorter.BuildConfig
+import java.io.OutputStream
 
 /**
  * Builds the streaming HTTP [DataSource.Factory] for internet stream playback.
@@ -24,14 +25,22 @@ import com.sza.fastmediasorter.BuildConfig
 @UnstableApi
 internal object StreamDataSourceFactoryProvider {
 
-    fun create(context: Context): DataSource.Factory {
+    /**
+     * @param openSink S2881: when given, every byte read is also copied into the stream it returns.
+     * It is asked per address and answers null for anything it is not recording, so the callers that
+     * omit it keep the exact source they had - the tee is not merely inert for them, it is not built.
+     */
+    fun create(context: Context, openSink: ((Uri) -> OutputStream?)? = null): DataSource.Factory {
         val httpFactory = DefaultHttpDataSource.Factory()
             .setUserAgent("FastMediaSorter/${BuildConfig.VERSION_NAME} (Android)")
             .setAllowCrossProtocolRedirects(true)
             .setConnectTimeoutMs(CONNECT_TIMEOUT_MS)
             .setReadTimeoutMs(READ_TIMEOUT_MS)
             .setKeepPostFor302Redirects(false)
-        val authAwareFactory = DataSource.Factory { RadioHttpDataSource(httpFactory.createDataSource()) }
+        val authAwareFactory = DataSource.Factory {
+            val http = RadioHttpDataSource(httpFactory.createDataSource())
+            if (openSink == null) http else ListenRecordingTeeDataSource(http, openSink)
+        }
         return DefaultDataSource.Factory(context, authAwareFactory)
     }
 

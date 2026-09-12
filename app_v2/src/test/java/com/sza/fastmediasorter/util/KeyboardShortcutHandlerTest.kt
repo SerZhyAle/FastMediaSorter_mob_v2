@@ -163,6 +163,14 @@ class KeyboardShortcutHandlerTest {
     }
 
     @Test
+    fun `dialog D-pad arrows return null for native framework traversal (S2894)`() {
+        assertNull(parse(UiSurface.DIALOG, KeyEvent.KEYCODE_DPAD_UP))
+        assertNull(parse(UiSurface.DIALOG, KeyEvent.KEYCODE_DPAD_DOWN))
+        assertNull(parse(UiSurface.DIALOG, KeyEvent.KEYCODE_DPAD_LEFT))
+        assertNull(parse(UiSurface.DIALOG, KeyEvent.KEYCODE_DPAD_RIGHT))
+    }
+
+    @Test
     fun `navigation Home maps to FIRST`() {
         assertEquals(
             InputAction.MoveFocus(FocusDirection.FIRST),

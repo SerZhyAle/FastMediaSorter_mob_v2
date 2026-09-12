@@ -45,6 +45,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private var expanded = false
     private var titleText: CharSequence = ""
+    private var summaryText: CharSequence? = null
     private var helpTitleText: CharSequence? = null
     private var helpMessageText: CharSequence? = null
     private var expandContentDescriptionText: CharSequence? = null
@@ -103,6 +104,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
      * Summary visibility is independent of the expanded state - the caller decides when to populate it.
      */
     fun setSummary(text: CharSequence?) {
+        summaryText = text
         if (text.isNullOrBlank()) {
             summaryView.text = ""
             summaryView.visibility = View.GONE
@@ -110,6 +112,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             summaryView.text = text
             summaryView.visibility = View.VISIBLE
         }
+        updateHeaderContentDescription()
     }
 
     /**
@@ -329,7 +332,7 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
 
     private fun updateHeaderContentDescription() {
         if (virtual) {
-            headerRow.contentDescription = titleView.text
+            headerRow.contentDescription = withSummary(titleView.text)
             return
         }
         val baseDescription = if (expanded) {
@@ -342,13 +345,21 @@ class CollapsibleSectionHeader @JvmOverloads constructor(
             else R.string.collapsible_section_state_collapsed,
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            headerRow.contentDescription = baseDescription
+            headerRow.contentDescription = withSummary(baseDescription)
             ViewCompat.setStateDescription(headerRow, stateText)
         } else {
             // setStateDescription is not announced by TalkBack below API 30, so fold the state into contentDescription.
-            headerRow.contentDescription = "$baseDescription, $stateText"
+            headerRow.contentDescription = withSummary("$baseDescription, $stateText")
         }
     }
+
+    /**
+     * S2865: the summary text view carries `importantForAccessibility=no`, so folding it into the
+     * header description here is the only way a screen reader announces it - beside the title,
+     * never as an orphan node of its own.
+     */
+    private fun withSummary(base: CharSequence): CharSequence =
+        if (summaryText.isNullOrBlank()) base else "$base, $summaryText"
 
     private fun syncHelpVisibility() {
         if (!hasHelpPayload()) {

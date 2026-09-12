@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.core.logging.CorrelationContext
 import com.sza.fastmediasorter.core.logging.StructuredLogger
+import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import kotlinx.coroutines.withContext
@@ -21,6 +22,7 @@ class UpdateResourceUseCase @Inject constructor(
             StructuredLogger.i("SUCCESS update resource")
             Result.success(Unit)
         } catch (e: Exception) {
+            e.rethrowIfCancellation()
             StructuredLogger.e(e, "FAILURE update resource")
             Result.failure(e)
         }
@@ -35,6 +37,7 @@ class UpdateResourceUseCase @Inject constructor(
         repository.updateLastViewedFile(resourceId, path)
         Result.success(Unit)
     } catch (e: Exception) {
+        e.rethrowIfCancellation()
         StructuredLogger.e(e, "FAILURE update lastViewedFile")
         Result.failure(e)
     }
@@ -44,6 +47,7 @@ class UpdateResourceUseCase @Inject constructor(
         repository.updateLastScrollPosition(resourceId, position)
         Result.success(Unit)
     } catch (e: Exception) {
+        e.rethrowIfCancellation()
         StructuredLogger.e(e, "FAILURE update lastScrollPosition")
         Result.failure(e)
     }

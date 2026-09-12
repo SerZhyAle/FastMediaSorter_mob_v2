@@ -64,6 +64,14 @@
         android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE"
         android:minSdkVersion="34" />
     <!--
+        S2166: background playback. FOREGROUND_SERVICE_MEDIA_PLAYBACK is the API 34 split of
+        FOREGROUND_SERVICE and is requested only there; below 34 the untyped permission alone is
+        what the platform checks.
+    -->
+    <uses-permission
+        android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+        android:minSdkVersion="34" />
+    <!--
         S1862: on API 33+ a foreground service notification is NOT exempt from POST_NOTIFICATIONS -
         without it the recording notification is silently never shown, so the watch listens with
         nothing on screen to say so. The service keeps running when it is denied, which is why the
@@ -73,6 +81,13 @@
         android:name="android.permission.POST_NOTIFICATIONS"
         android:minSdkVersion="33" />
 
+    <!--
+        S2941: lets the listen-request notification open ListenRequestActivity automatically via
+        setFullScreenIntent, putting the app in the foreground so the microphone FGS can start without
+        a tap. CATEGORY_CALL on the notification qualifies for this permission on Android 14+.
+    -->
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
+
 
    <application
         android:name=".FastMediaSorterWearApp"
@@ -80,6 +95,7 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
+        android:networkSecurityConfig="@xml/network_security_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.DeviceDefault">
@@ -104,6 +120,19 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- S2550 ADR-6 / S2941: the window the listening-request notification opens, now also
+             automatically via setFullScreenIntent. Not exported - only this process may raise it, and
+             only the notification (full-screen intent or tap) reaches it. Starting the microphone
+             service from a window the user opened or that full-screen intent brought to the foreground
+             is the one platform exemption that lifts both the API 31 and the API 34 background-start
+             barriers (strategic §6.1). -->
+        <activity
+            android:name=".ui.listen.ListenRequestActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:configChanges="orientation|screenSize|screenLayout|smallestScreenSize|keyboardHidden"
+            android:theme="@style/Theme.FastMediaSorterWear" />
+
         <!-- Wearable Data Layer - receives resource push from the phone companion -->
         <service
             android:name=".data.wear.WatchWearListenerService"
@@ -152,6 +181,16 @@
             android:exported="false"
             android:foregroundServiceType="microphone" />
 
+        <!-- S2166: owner of the playback session; started by the player screen, never bound to it. -->
+        <service
+            android:name=".service.WearPlaybackService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback">
+            <intent-filter>
+                <action android:name="androidx.media3.session.MediaSessionService" />
+            </intent-filter>
+        </service>
+
         <!-- S1955: Wear OS Tile Service for Network Resource tile -->
         <service
             android:name=".tile.WearResourceTileService"
@@ -192,6 +231,34 @@
             <meta-data
                 android:name="androidx.wear.tiles.PREVIEW"
                 android:resource="@drawable/tile_preview_favourites" />
+        </service>
+
+        <!-- S2511: Wear OS Tile Service for the mini-programs shortcut grid -->
+        <service
+            android:name=".tile.WearProgramsTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_programs_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_programs" />
+        </service>
+
+        <!-- S2511: Wear OS Tile Service for the home-sections shortcut grid -->
+        <service
+            android:name=".tile.WearSectionsTileService"
+            android:exported="true"
+            android:label="@string/wear_tile_sections_label"
+            android:permission="com.google.android.wearable.permission.BIND_TILE_PROVIDER">
+            <intent-filter>
+                <action android:name="androidx.wear.tiles.action.BIND_TILE_PROVIDER" />
+            </intent-filter>
+            <meta-data
+                android:name="androidx.wear.tiles.PREVIEW"
+                android:resource="@drawable/tile_preview_sections" />
         </service>
 
         <!-- S2047: Wear OS Complication Provider for Last Used Resource -->
@@ -247,5 +314,22 @@
                 android:name="android.support.wearable.complications.UPDATE_PERIOD_SECONDS"
                 android:value="300" />
         </service>
+
+        <!--
+            S2142: hands one file to a «Send to..» receiver this watch serves itself.
+
+            A receiver is another application, so it is given a content URI it can read rather than a
+            path it cannot. The watch had no provider at all before this ticket - nothing here ever
+            handed a file to a third party, only to the paired phone over the data layer.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/send_to_paths" />
+        </provider>
     </application>
 </manifest>

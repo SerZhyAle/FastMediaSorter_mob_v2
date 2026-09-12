@@ -96,7 +96,6 @@ class FileOperationDestinationDialog(
 
     private fun setupUI() {
         binding.apply {
-            Timber.d("S1994: destination file count=${sourceFiles.size}")
             // Set message based on operation type
             val fileCountText = when (operationType) {
                 FileOperationType.COPY -> context.resources.getQuantityString(

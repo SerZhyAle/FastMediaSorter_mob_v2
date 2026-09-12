@@ -5,6 +5,7 @@ import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.testing.fakes.FakeResourceRepository
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -36,12 +37,46 @@ class UpdateResourceUseCaseTest {
         assertEquals("write failed", result.exceptionOrNull()?.message)
     }
 
+    @Test
+    fun `cancellation is rethrown instead of becoming a failure result`() = runTest {
+        // S3005: CancellationException is a plain Exception, so the generic catch used to log it as
+        // "FAILURE update resource" at error level and hand the caller a domain failure - a normal
+        // Browse teardown read as a defect, and a parent cancellation that never propagated.
+        val repo = mockk<ResourceRepository>()
+        coEvery { repo.updateResource(any()) } throws CancellationException("scope cancelled")
+        val useCase = UpdateResourceUseCase(repo)
+
+        val outcome = runCatching { useCase(createMediaResource(id = 1L)) }
+
+        assertTrue(
+            "CancellationException must be rethrown, not wrapped in Result.failure",
+            outcome.exceptionOrNull() is CancellationException
+        )
+    }
+
+    @Test
+    fun `cancellation is rethrown from the targeted scroll write`() = runTest {
+        // S3005: saveScrollPosition fires on every onPause - the exact moment the scope is cancelled.
+        val repo = mockk<ResourceRepository>()
+        coEvery { repo.updateLastScrollPosition(any(), any()) } throws CancellationException("scope cancelled")
+        val useCase = UpdateResourceUseCase(repo)
+
+        val outcome = runCatching { useCase.saveScrollPosition(1L, 17) }
+
+        assertTrue(
+            "CancellationException must be rethrown, not wrapped in Result.failure",
+            outcome.exceptionOrNull() is CancellationException
+        )
+    }
+
     // S1001: targeted writes must not clobber statistics columns of the same row.
 
     @Test
     fun `saveScrollPosition updates only the scroll column`() = runTest {
         val repo = FakeResourceRepository()
-        repo.setResources(listOf(createMediaResource(id = 1L, name = "res").copy(fileCount = 42, lastBrowseDate = 123L)))
+        repo.setResources(
+            listOf(createMediaResource(id = 1L, name = "res").copy(fileCount = 42, lastBrowseDate = 123L))
+        )
         val useCase = UpdateResourceUseCase(repo)
 
         val result = useCase.saveScrollPosition(1L, 17)
@@ -56,7 +91,9 @@ class UpdateResourceUseCaseTest {
     @Test
     fun `saveLastViewedFile updates only the last viewed column`() = runTest {
         val repo = FakeResourceRepository()
-        repo.setResources(listOf(createMediaResource(id = 1L, name = "res").copy(fileCount = 42, lastBrowseDate = 123L)))
+        repo.setResources(
+            listOf(createMediaResource(id = 1L, name = "res").copy(fileCount = 42, lastBrowseDate = 123L))
+        )
         val useCase = UpdateResourceUseCase(repo)
 
         val result = useCase.saveLastViewedFile(1L, "/a/b.jpg")

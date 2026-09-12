@@ -107,7 +107,7 @@ class DestinationButtonsManager(
                 }
                 val availableWidthDp = availableWidthPx / density
 
-                // Calculate button distribution per specification (V2_Specification_RU.md lines 357-370)
+                // Calculate button distribution per specification (V2_Specification-ru.md lines 357-370)
                 // Standard: max 5 buttons per row for maxRecipients <= 10
                 // Extended: max 10 buttons per row when maxRecipients > 10 (user explicitly increased limit)
                 val distribution = if (maxRecipients > 10) {

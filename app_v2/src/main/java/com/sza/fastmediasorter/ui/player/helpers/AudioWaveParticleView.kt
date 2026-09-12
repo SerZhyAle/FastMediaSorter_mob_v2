@@ -9,16 +9,20 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
 import android.os.Build
 import android.provider.Settings
 import android.util.AttributeSet
 import android.util.TypedValue
 import android.view.View
 import android.view.animation.LinearInterpolator
+import com.sza.fastmediasorter.core.util.AnimationIntent
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import timber.log.Timber
 import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.hypot
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -50,26 +54,58 @@ class AudioWaveParticleView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : View(context, attrs, defStyleAttr) {
 
+    /** S2223: selectable animation color palettes. */
+    enum class AnimationColorPalette(val key: String) {
+        DYNAMIC(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_DYNAMIC),
+        GREEN(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_GREEN),
+        PINK(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_PINK),
+        BLUE(com.sza.fastmediasorter.domain.model.AppSettings.ANIMATION_PALETTE_BLUE);
+
+        companion object {
+            fun fromKeyOrDefault(key: String?): AnimationColorPalette =
+                entries.firstOrNull { it.key.equals(key, ignoreCase = true) } ?: DYNAMIC
+        }
+    }
+
+    /** Selected color palette for procedural waves and particles. */
+    var palette: AnimationColorPalette = AnimationColorPalette.DYNAMIC
+
     companion object {
         // Must match the speed of the HTML canvas version: time += 0.002 per animation frame.
         // ValueAnimator fires ~60fps; 0.002 per tick gives ~0.12/s drift.
         private const val TIME_INCREMENT = 0.002f
 
         // Randomization ranges - normal devices
-        private const val WAVE_COUNT_MIN    = 5
-        private const val WAVE_COUNT_MAX    = 12
-        private const val STEP_PX_BASE      = 20f   // ±20 % → 16..24 px
-        private const val STROKE_MIN        = 3f
-        private const val STROKE_MAX        = 6f
-        private const val AMPLITUDE_MIN     = 0.28f // fraction of view height
-        private const val AMPLITUDE_MAX     = 0.48f
-        private const val PARTICLE_MIN      = 15
-        private const val PARTICLE_MAX      = 55
-        private const val PARTICLE_R_MIN    = 1f    // px
-        private const val PARTICLE_R_MAX    = 6f    // px
-        private const val SPEED_MULT_MIN    = 0.5f
-        private const val SPEED_MULT_MAX    = 1.5f
-        private const val HUE_SPREAD_DEG    = 108f  // ±30 % of 360°
+        private const val WAVE_COUNT_MIN = 5
+        private const val WAVE_COUNT_MAX = 12
+        private const val STEP_PX_BASE = 20f // ±20 % → 16..24 px
+        private const val STROKE_MIN = 3f
+        private const val STROKE_MAX = 6f
+        private const val AMPLITUDE_MIN = 0.28f // fraction of view height
+        private const val AMPLITUDE_MAX = 0.48f
+        private const val PARTICLE_MIN = 15
+        private const val PARTICLE_MAX = 55
+        private const val PARTICLE_R_MIN = 1f // px
+        private const val PARTICLE_R_MAX = 6f // px
+        private const val SPEED_MULT_MIN = 0.5f
+        private const val SPEED_MULT_MAX = 1.5f
+        private const val HUE_SPREAD_DEG = 108f // ±30 % of 360°
+        private const val PALETTE_WAVE_STEP_MIN = 2f
+        private const val PALETTE_WAVE_STEP_RANGE = 4f
+        private const val PALETTE_PARTICLE_SPREAD_DEG = 30f
+
+        private const val GREEN_HUE_BASE_MIN = 95f
+        private const val GREEN_HUE_BASE_RANGE = 35f
+        private const val GREEN_PARTICLE_HUE_BASE = 115f
+
+        private const val PINK_HUE_BASE_MIN = 305f
+        private const val PINK_HUE_BASE_RANGE = 30f
+        private const val PINK_PARTICLE_HUE_BASE = 320f
+
+        private const val BLUE_HUE_BASE_MIN = 200f
+        private const val BLUE_HUE_BASE_RANGE = 30f
+        private const val BLUE_PARTICLE_HUE_BASE = 215f
+
         private const val STARTUP_RAMP_FRAMES = 36
         private const val WAVE_LANE_SPACING_FRACTION = 0.038f
         private const val PARTICLE_DIRECTIONAL_BIAS = 0.42f
@@ -77,10 +113,10 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val COUNTER_DRIFT_CHANCE = 0.18f
 
         // Reduced limits for low-RAM / weak devices
-        private const val WAVE_COUNT_MIN_LOW    = 3
-        private const val WAVE_COUNT_MAX_LOW    = 6
-        private const val PARTICLE_MIN_LOW      = 6
-        private const val PARTICLE_MAX_LOW      = 18
+        private const val WAVE_COUNT_MIN_LOW = 3
+        private const val WAVE_COUNT_MAX_LOW = 6
+        private const val PARTICLE_MIN_LOW = 6
+        private const val PARTICLE_MAX_LOW = 18
 
         // S1277: the look is accumulated, not drawn in one pass - each tick lays a translucent
         // overlay and draws over it, and the first STARTUP_RAMP_FRAMES ticks ramp amplitude and
@@ -101,6 +137,17 @@ class AudioWaveParticleView @JvmOverloads constructor(
         private const val WAVE_LIGHTNESS_LIGHT = 0.35f
         private const val PARTICLE_LIGHTNESS_DARK = 0.70f
         private const val PARTICLE_LIGHTNESS_LIGHT = 0.30f
+
+        // Fully opaque blit - the default, and the scale [backdropIntensity] is expressed against.
+        private const val BLIT_ALPHA_OPAQUE = 255f
+
+        // S2730: the bounds the two tuning scales are clamped to here, so a caller that reads a stored
+        // value cannot drive the renderer outside what it was measured at. The settings layer names the
+        // same bounds for its sliders; this clamp is the renderer's own last word.
+        private const val SPEED_SCALE_MIN = 0.25f
+        private const val SPEED_SCALE_MAX = 2f
+        private const val DENSITY_SCALE_MIN = 0f
+        private const val DENSITY_SCALE_MAX = 1f
     }
 
     /**
@@ -165,6 +212,9 @@ class AudioWaveParticleView @JvmOverloads constructor(
     /** Actual particle count this session (15..55). */
     private var particleCountCurrent = 55
 
+    /** S2730: the count the session rolled, before [particleDensityScale] is applied to it. */
+    private var particleCountBase = 55
+
     /** Randomized flow direction for the full playback session in degrees. */
     private var waveDirectionAngleDeg = 0f
 
@@ -215,6 +265,58 @@ class AudioWaveParticleView @JvmOverloads constructor(
     // Full-opacity blit: copy off-screen buffer to the real canvas each frame.
     private val blitPaint = Paint()
 
+    /**
+     * S2729: visible strength of the finished frame, 0f..1f, applied to the single blit in [onDraw].
+     * That blit is the one output path both the animated and the static wallpaper end on, so one lever
+     * dims both and adds no drawing pass; the weakened frame blends towards the host's own background
+     * colour rather than towards grey.
+     *
+     * It is per instance rather than a companion constant because three surfaces share this class -
+     * the launcher backdrop, the player's audio visualizer and the welcome screen - and only the
+     * backdrop is meant to fade. A constant would have taken the visualizer down with it.
+     */
+    var backdropIntensity: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(0f, 1f)
+            field = clamped
+            blitPaint.alpha = (clamped * BLIT_ALPHA_OPAQUE).toInt()
+            invalidate()
+        }
+
+    /**
+     * S2730: multiplier on the per-frame time advance, 1f being the shipped speed.
+     *
+     * Per instance for [backdropIntensity]'s reason - three surfaces share this class and only the
+     * launcher backdrop is user-tunable - and defaulting to 1f so a consumer that never assigns it
+     * animates exactly as before.
+     */
+    var animationSpeedScale: Float = 1f
+        set(value) {
+            field = value.coerceIn(SPEED_SCALE_MIN, SPEED_SCALE_MAX)
+        }
+
+    /**
+     * S2730: multiplier on the seeded particle count, 1f being the count the session rolled.
+     *
+     * Scaling the rolled count rather than the roll's bounds keeps the per-session variety the class
+     * is built around: at 1f the frame is byte-identical to the pre-S2730 one, and 0f draws the waves
+     * with no particles at all.
+     */
+    var particleDensityScale: Float = 1f
+        set(value) {
+            val clamped = value.coerceIn(DENSITY_SCALE_MIN, DENSITY_SCALE_MAX)
+            if (clamped == field) return
+            field = clamped
+            particleCountCurrent = scaledParticleCount()
+            if (width <= 0 || height <= 0) return
+            initParticles(width, height)
+            // A frozen frame - the static wallpaper mode, or an animation the power policy stopped - has
+            // no tick left in which to notice the new particle set, and onDraw only blits the buffer the
+            // ticks accumulated. Without this rebuild the slider would appear dead in exactly the two
+            // states a user is most likely to be looking at while tuning it.
+            if (animator.isRunning) invalidate() else renderStaticFrame()
+        }
+
     private val wavePath = Path()
 
     // Drives time increments and invalidation; actual animation value is unused.
@@ -223,7 +325,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         repeatCount = ValueAnimator.INFINITE
         interpolator = LinearInterpolator()
         addUpdateListener {
-            time += TIME_INCREMENT
+            advanceTime()
             tick()
             invalidate()
         }
@@ -234,9 +336,25 @@ class AudioWaveParticleView @JvmOverloads constructor(
     override fun onSizeChanged(w: Int, h: Int, oldW: Int, oldH: Int) {
         super.onSizeChanged(w, h, oldW, oldH)
         if (w <= 0 || h <= 0) return
-        offBitmap?.recycle()
-        offBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        offCanvas = Canvas(offBitmap!!).also { it.drawColor(bufferFillColor) }
+        // S2678: the outgoing buffer is carried into the new one, stretched to the new size, before
+        // anything draws on top. The trail this view shows is accumulated - each tick lays a
+        // semi-transparent overlay over the frames before it - so a buffer that starts as flat fill
+        // has no trail to show, and the single pass a resize can afford cannot rebuild one. Copying
+        // keeps the look continuous across a rotation at the cost of one bitmap blit.
+        val previousBitmap = offBitmap
+        val resized = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val resizedCanvas = Canvas(resized).also { it.drawColor(bufferFillColor) }
+        if (previousBitmap != null && !previousBitmap.isRecycled) {
+            resizedCanvas.drawBitmap(
+                previousBitmap,
+                Rect(0, 0, previousBitmap.width, previousBitmap.height),
+                Rect(0, 0, w, h),
+                null,
+            )
+        }
+        previousBitmap?.recycle()
+        offBitmap = resized
+        offCanvas = resizedCanvas
         initParticles(w, h)
         if (pendingStaticFrame) {
             pendingStaticFrame = false
@@ -253,7 +371,17 @@ class AudioWaveParticleView @JvmOverloads constructor(
         // S1277: with system animations off the animator ends without ever firing its update
         // listener, so nothing would repaint the buffer this method just blacked out and the view
         // stays pure black for the rest of the session. Draw the frame here instead.
-        if (animatorsDisabled()) renderStaticFrame()
+        //
+        // S2678: the full ramp belongs to the FIRST sizing only. Its 36 passes exist to raise the
+        // amplitude from zero to a settled frame, and after that [startupFrameCount] is already at
+        // its ceiling - so on a resize the same 36 passes redraw a full-amplitude frame 36 times to
+        // land on the one a single pass produces. Measured on a Galaxy S21+ with animations off,
+        // that cost 470 ms of the 483 ms layout the rotation spent, because this runs inside
+        // onSizeChanged and onSizeChanged runs inside the layout pass.
+        if (animatorsDisabled()) {
+            if (oldW == 0 && oldH == 0) renderStaticFrame() else renderResizedFrame()
+        }
+        Timber.d("S2678: onSizeChanged ${w}x$h from ${oldW}x$oldH animatorsOff=${animatorsDisabled()}")
     }
 
     /**
@@ -275,11 +403,25 @@ class AudioWaveParticleView @JvmOverloads constructor(
             ) == 0f
         }
 
+    /**
+     * Repaints the buffer a resize just blacked out, at the amplitude the view already reached.
+     *
+     * One pass, not [STATIC_FRAME_PASSES]: the ramp those passes drive is already finished by the
+     * time a resize arrives, so repeating it changes nothing about the frame and only costs the
+     * layout pass it runs inside (S2678).
+     */
+    private fun renderResizedFrame() {
+        wavePaint.strokeWidth = waveStrokeWidth
+        advanceTime()
+        tick()
+        invalidate()
+    }
+
     /** Builds one complete frame without the animator, then shows it. See [STATIC_FRAME_PASSES]. */
     private fun renderStaticFrame() {
         wavePaint.strokeWidth = waveStrokeWidth
         repeat(STATIC_FRAME_PASSES) {
-            time += TIME_INCREMENT
+            advanceTime()
             tick()
         }
         invalidate()
@@ -292,18 +434,38 @@ class AudioWaveParticleView @JvmOverloads constructor(
     private fun randomizeParams() {
         val waveMin = if (isLowRam) WAVE_COUNT_MIN_LOW else WAVE_COUNT_MIN
         val waveMax = if (isLowRam) WAVE_COUNT_MAX_LOW else WAVE_COUNT_MAX
-        val pMin    = if (isLowRam) PARTICLE_MIN_LOW   else PARTICLE_MIN
-        val pMax    = if (isLowRam) PARTICLE_MAX_LOW   else PARTICLE_MAX
+        val pMin = if (isLowRam) PARTICLE_MIN_LOW else PARTICLE_MIN
+        val pMax = if (isLowRam) PARTICLE_MAX_LOW else PARTICLE_MAX
 
-        waveCount         = Random.nextInt(waveMin, waveMax + 1)
-        stepPx            = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f)   // ±20 %
-        waveStrokeWidth   = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
-        baseWaveHue       = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
-        waveHueStep       = 8f + Random.nextFloat() * 12f                        // 8..20°
-        waveAmplitude     = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
+        waveCount = Random.nextInt(waveMin, waveMax + 1)
+        stepPx = STEP_PX_BASE * (0.8f + Random.nextFloat() * 0.4f) // ±20 %
+        waveStrokeWidth = STROKE_MIN + Random.nextFloat() * (STROKE_MAX - STROKE_MIN)
+        when (palette) {
+            AnimationColorPalette.DYNAMIC -> {
+                baseWaveHue = (Random.nextFloat() * 360f - HUE_SPREAD_DEG / 2f + 360f) % 360f
+                waveHueStep = 8f + Random.nextFloat() * 12f // 8..20°
+                particleHueBase = Random.nextFloat() * 360f
+            }
+            AnimationColorPalette.GREEN -> {
+                baseWaveHue = GREEN_HUE_BASE_MIN + Random.nextFloat() * GREEN_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = GREEN_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+            AnimationColorPalette.PINK -> {
+                baseWaveHue = PINK_HUE_BASE_MIN + Random.nextFloat() * PINK_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = PINK_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+            AnimationColorPalette.BLUE -> {
+                baseWaveHue = BLUE_HUE_BASE_MIN + Random.nextFloat() * BLUE_HUE_BASE_RANGE
+                waveHueStep = PALETTE_WAVE_STEP_MIN + Random.nextFloat() * PALETTE_WAVE_STEP_RANGE
+                particleHueBase = BLUE_PARTICLE_HUE_BASE + (Random.nextFloat() - 0.5f) * PALETTE_PARTICLE_SPREAD_DEG
+            }
+        }
+        waveAmplitude = AMPLITUDE_MIN + Random.nextFloat() * (AMPLITUDE_MAX - AMPLITUDE_MIN)
         particleSpeedMult = SPEED_MULT_MIN + Random.nextFloat() * (SPEED_MULT_MAX - SPEED_MULT_MIN)
-        particleHueBase   = Random.nextFloat() * 360f
-        particleCountCurrent = Random.nextInt(pMin, pMax + 1)
+        particleCountBase = Random.nextInt(pMin, pMax + 1)
+        particleCountCurrent = scaledParticleCount()
         waveDirectionAngleDeg = Random.nextFloat() * 360f
 
         val angleRad = Math.toRadians(waveDirectionAngleDeg.toDouble())
@@ -313,20 +475,34 @@ class AudioWaveParticleView @JvmOverloads constructor(
         waveNormalY = waveDirX
     }
 
+    /** S2730: one tick of the shared clock, scaled by [animationSpeedScale]. */
+    private fun advanceTime() {
+        time += TIME_INCREMENT * animationSpeedScale
+    }
+
+    /** S2730: the rolled particle count after [particleDensityScale], never above the roll. */
+    private fun scaledParticleCount(): Int =
+        (particleCountBase * particleDensityScale).roundToInt().coerceIn(0, particleCountBase)
+
     private fun initParticles(w: Int, h: Int) {
         particles.clear()
+        val particleSpread = if (palette == AnimationColorPalette.DYNAMIC) {
+            HUE_SPREAD_DEG
+        } else {
+            PALETTE_PARTICLE_SPREAD_DEG
+        }
         repeat(particleCountCurrent) {
             val directionalSpeed = (0.12f + Random.nextFloat() * PARTICLE_DIRECTIONAL_BIAS) * particleSpeedMult
             val driftSign = if (Random.nextFloat() < COUNTER_DRIFT_CHANCE) -0.35f else 1f
             val directionalVx = waveDirX * directionalSpeed * driftSign
             val directionalVy = waveDirY * directionalSpeed * driftSign
             particles += Particle(
-                x      = Random.nextFloat() * w,
-                y      = Random.nextFloat() * h,
+                x = Random.nextFloat() * w,
+                y = Random.nextFloat() * h,
                 radius = PARTICLE_R_MIN + Random.nextFloat() * (PARTICLE_R_MAX - PARTICLE_R_MIN),
-                vx     = directionalVx + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
-                vy     = directionalVy + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
-                hue    = (particleHueBase + (Random.nextFloat() - 0.5f) * HUE_SPREAD_DEG + 360f) % 360f
+                vx = directionalVx + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
+                vy = directionalVy + (Random.nextFloat() - 0.5f) * PARTICLE_RANDOM_SPREAD * particleSpeedMult,
+                hue = (particleHueBase + (Random.nextFloat() - 0.5f) * particleSpread + 360f) % 360f
             )
         }
     }
@@ -335,7 +511,13 @@ class AudioWaveParticleView @JvmOverloads constructor(
         offBitmap?.let { canvas.drawBitmap(it, 0f, 0f, blitPaint) }
     }
 
+    override fun onAttachedToWindow() {
+        super.onAttachedToWindow()
+        AnimationPolicy.addLevelListener(policyListener)
+    }
+
     override fun onDetachedFromWindow() {
+        AnimationPolicy.removeLevelListener(policyListener)
         super.onDetachedFromWindow()
         animator.cancel()
         offBitmap?.recycle()
@@ -345,7 +527,53 @@ class AudioWaveParticleView @JvmOverloads constructor(
 
     // ──────────────────── Public API ────────────────────
 
+    /**
+     * S2536: what this instance's motion is FOR. The audio player leaves the default; the launcher
+     * desktop sets [AnimationIntent.DECORATIVE], which is what lets one class be both the visualizer
+     * that survives the cosmetic switch and the wallpaper that does not.
+     */
+    var intent: AnimationIntent = AnimationIntent.AMBIENT
+
+    /** True while the policy, not the host, is what is holding the animation still. */
+    private var frozenByPolicy = false
+
+    // Fires on the settings collector's thread, so the work is posted to the view's own thread.
+    private val policyListener: () -> Unit = { post { refreshPolicy() } }
+
+    /**
+     * S2536: re-asks the policy after the level moved. Without this a backdrop frozen at ten percent
+     * would stay frozen after the charge recovered until the view was recreated - a paused animator
+     * has no draw pass left in which to notice the change on its own.
+     */
+    fun refreshPolicy() {
+        Timber.d("S2536: visualizer refresh intent=$intent level=${AnimationPolicy.level}")
+        if (AnimationPolicy.mayAnimate(intent)) {
+            if (frozenByPolicy) startAnimation()
+        } else {
+            freezeForPolicy()
+        }
+    }
+
+    /**
+     * Pauses rather than cancels when a session is already running, so the buffer keeps the frame it
+     * had and the view reads as a still image instead of going black (S1277).
+     */
+    private fun freezeForPolicy() {
+        if (frozenByPolicy) return
+        frozenByPolicy = true
+        if (animator.isRunning) pauseAnimation() else renderFreshStaticFrame()
+    }
+
     fun startAnimation() {
+        if (!AnimationPolicy.mayAnimate(intent)) {
+            freezeForPolicy()
+            return
+        }
+        frozenByPolicy = false
+        beginAnimatorSession()
+    }
+
+    private fun beginAnimatorSession() {
         when {
             animator.isPaused -> {
                 pendingStaticFrame = false
@@ -367,7 +595,6 @@ class AudioWaveParticleView @JvmOverloads constructor(
                 pendingStart = false
                 initParticles(w, h)
                 wavePaint.strokeWidth = waveStrokeWidth
-                Timber.d("S2206: AudioWaveParticleView startAnimation with TIME_INCREMENT=$TIME_INCREMENT")
                 animator.start()
                 // S1277: covers the ordering where the host starts the animation after layout -
                 // onSizeChanged already painted its frame with the previous session's palette,
@@ -431,7 +658,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val centerX = w * 0.5f + waveDirX * centerDrift
         val centerY = h * 0.5f + waveDirY * centerDrift
         val laneSpacing = minOf(w, h) * WAVE_LANE_SPACING_FRACTION
-        val waveAlpha = 0.28f + 0.16f * startupGain
+        val waveAlpha = (0.28f + 0.16f * startupGain) * 0.70f
 
         // Sine-wave paths are sampled in a rotated coordinate space so each fresh start
         // can travel in any direction while keeping the draw cost close to the old version.
@@ -467,7 +694,7 @@ class AudioWaveParticleView @JvmOverloads constructor(
             if (p.x < 0f || p.x > w) p.vx = -p.vx
             if (p.y < 0f || p.y > h) p.vy = -p.vy
             particlePaint.color =
-                hslToArgb(p.hue, 0.90f, particleLightness, 0.38f + 0.32f * startupGain)
+                hslToArgb(p.hue, 0.90f, particleLightness, (0.38f + 0.32f * startupGain) * 0.70f)
             oc.drawCircle(p.x, p.y, p.radius, particlePaint)
         }
     }
@@ -493,12 +720,12 @@ class AudioWaveParticleView @JvmOverloads constructor(
         val x = c * (1f - abs((h / 60f) % 2f - 1f))
         val m = l - c / 2f
         val (r, g, b) = when {
-            h < 60f  -> Triple(c + m, x + m, m)
+            h < 60f -> Triple(c + m, x + m, m)
             h < 120f -> Triple(x + m, c + m, m)
-            h < 180f -> Triple(m,     c + m, x + m)
-            h < 240f -> Triple(m,     x + m, c + m)
-            h < 300f -> Triple(x + m, m,     c + m)
-            else     -> Triple(c + m, m,     x + m)
+            h < 180f -> Triple(m, c + m, x + m)
+            h < 240f -> Triple(m, x + m, c + m)
+            h < 300f -> Triple(x + m, m, c + m)
+            else -> Triple(c + m, m, x + m)
         }
         return Color.argb(
             (a * 255f).toInt(),

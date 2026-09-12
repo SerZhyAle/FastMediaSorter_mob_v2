@@ -2,12 +2,13 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.util.rethrowIfCancellation
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -41,9 +42,15 @@ class TranslationButtonManager(
     private val lifecycleOwner: LifecycleOwner,
     private val binding: ActivityPlayerUnifiedBinding,
     private val settingsRepository: SettingsRepository,
+    private val capabilityAvailability: CapabilityAvailability,
     private val callback: TranslationButtonCallback
 ) {
     private val safeViews = PlayerBindingSafeViews(binding)
+
+    private companion object {
+        /** Alpha that reads as "present but not usable", matching the inactive-button alpha below. */
+        const val DISABLED_BUTTON_ALPHA = 0.3f
+    }
 
     /**
      * S1549: re-point every accessor at a re-inflated hierarchy. This manager is constructed once
@@ -75,15 +82,15 @@ class TranslationButtonManager(
      * - TranslationManager (image translation)
      * - TranslationOverlayView (Google Lens style blocks)
      * 
-     * Note: Skips initialization if ENABLE_TRANSLATION=false in BuildConfig.
+     * Note: Skips initialization when translation is unavailable in this build or on this device.
      */
     fun setupTranslationDefaults() {
-        // Guard: Skip translation setup if not supported by this flavor
-        if (!BuildConfig.ENABLE_TRANSLATION) {
-            Timber.d("TranslationButtonManager: Translation not available (ENABLE_TRANSLATION=false)")
+        // Guard: skip translation setup where the capability is off, for either reason.
+        if (!capabilityAvailability.isTranslationAvailable(context)) {
+            Timber.d("TranslationButtonManager: translation not available - skipping defaults")
             return
         }
-        
+
         lifecycleOwner.lifecycleScope.launch {
             val settings = settingsRepository.getSettings().first()
             
@@ -122,19 +129,22 @@ class TranslationButtonManager(
      * Setup translation button icons with language badges.
      * Starts a coroutine that observes settings changes and updates all translation button icons.
      * 
-     * Note: Skips setup if ENABLE_TRANSLATION=false in BuildConfig.
+     * The two off states differ on purpose (S1625). A build that never shipped translation hides the
+     * buttons, because the feature does not exist there and an explanation would describe nothing. A
+     * device class the ML Kit licence forbids keeps them visible but disabled with the reason, so a
+     * user who knows the feature exists is not left hunting for a control that silently vanished.
      */
     fun setupTranslationButtonIcons() {
-        // Guard: Skip translation button setup if not supported by this flavor
-        if (!BuildConfig.ENABLE_TRANSLATION) {
-            Timber.d("TranslationButtonManager: Translation buttons not available (ENABLE_TRANSLATION=false)")
-            safeViews.btnTranslatePdfCmd.isVisible = false
-            safeViews.btnTranslateEpubCmd.isVisible = false
-            safeViews.btnTranslateImageCmd.isVisible = false
-            safeViews.btnTranslateImage.isVisible = false
+        val support = capabilityAvailability.translationSupport(context)
+        if (support is CapabilityAvailability.TranslationSupport.Unsupported) {
+            if (support.reason == CapabilityAvailability.TranslationUnavailableReason.NOT_COMPILED_IN) {
+                hideTranslationButtons()
+            } else {
+                showTranslationButtonsUnlicensed()
+            }
             return
         }
-        
+
         Timber.d("TranslationButtonManager: setupTranslationButtonIcons() CALLED")
         lifecycleOwner.collectOnLifecycle(settingsRepository.getSettings()) { settings ->
             Timber.d("TranslationButtonManager: Lifecycle STARTED, collecting settings")
@@ -172,6 +182,37 @@ class TranslationButtonManager(
         }
     }
 
+    private fun translationButtons() = listOf(
+        safeViews.btnTranslatePdfCmd,
+        safeViews.btnTranslateEpubCmd,
+        safeViews.btnTranslateImageCmd,
+        safeViews.btnTranslateImage,
+    )
+
+    private fun hideTranslationButtons() {
+        Timber.d("TranslationButtonManager: translation not compiled into this build - buttons hidden")
+        translationButtons().forEach { it.isVisible = false }
+    }
+
+    /**
+     * The action stays discoverable and says why it cannot run. The reason is put on the content
+     * description as well as the toast, so it reaches TalkBack rather than being carried by the
+     * dimmed appearance alone.
+     */
+    private fun showTranslationButtonsUnlicensed() {
+        val reason = context.getString(R.string.translation_unavailable_device_licence)
+        Timber.i("TranslationButtonManager: translation not licensed for this device class - buttons disabled")
+        translationButtons().forEach { button ->
+            button.isVisible = true
+            // Deliberately NOT isEnabled = false: a disabled view swallows the tap, and the tap is the
+            // only moment the explanation can be delivered. The button reads as unavailable through
+            // the dimmed alpha and says why through its content description and the toast.
+            button.alpha = DISABLED_BUTTON_ALPHA
+            button.contentDescription = reason
+            button.setOnClickListener { Toast.makeText(context, reason, Toast.LENGTH_LONG).show() }
+        }
+    }
+
     
     /**
      * Show translation settings dialog.
@@ -181,12 +222,20 @@ class TranslationButtonManager(
      * - Font size (AUTO, SMALL, MEDIUM, LARGE)
      * - Font family (MONOSPACE, SANS_SERIF, SERIF)
      * 
-     * Note: Does nothing if ENABLE_TRANSLATION=false in BuildConfig.
+     * Silent where the build has no translation at all; explains itself where only the device class
+     * is the obstacle, since that surface was reachable a moment ago on the user's other device.
      */
     fun showTranslationSettingsDialog() {
-        // Guard: skip when this flavor has no translation capability.
-        if (!BuildConfig.ENABLE_TRANSLATION) {
-            Timber.d("TranslationButtonManager: Translation settings not available (ENABLE_TRANSLATION=false)")
+        val support = capabilityAvailability.translationSupport(context)
+        if (support is CapabilityAvailability.TranslationSupport.Unsupported) {
+            if (support.reason == CapabilityAvailability.TranslationUnavailableReason.DEVICE_CLASS_NOT_LICENSED) {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.translation_unavailable_device_licence),
+                    Toast.LENGTH_LONG,
+                ).show()
+            }
+            Timber.d("TranslationButtonManager: translation settings unavailable - %s", support.reason)
             return
         }
         // S0410: the dialog itself is binding-free (TranslationSettingsDialog). The in-app player

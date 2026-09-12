@@ -2,6 +2,18 @@
 # Version format: Y.YM.MDDH.Hmm (e.g., 2.51.2161.854 for 2025/12/16 18:54)
 # versionCode format: YYMMDDHHm (e.g., 260205015 for 2026/02/05 01:51)
 # Using first digit of minutes only to fit Int32.MaxValue (2147483647)
+#
+# Exit codes:
+#   0 - build succeeded
+#   1 - build failed, or -VersionName was passed without -VersionCode (or the reverse)
+
+param(
+    # S1873: an orchestrator that already resolved a stamp passes it in, so the artifact and
+    # whatever the caller names after it (a git tag, a changelog file) cannot drift apart. Omitted,
+    # this script stamps from its own clock exactly as before.
+    [string]$VersionName,
+    [int]$VersionCode
+)
 
 $ErrorActionPreference = "Stop"
 
@@ -66,7 +78,12 @@ function Invoke-VersionedBuild {
         [switch]$NoDaemon
     )
 
-    $gradleArgs = @("assembleStandardDebug", "-Pchaquopy.enabled=false", "--configuration-cache")
+    $gradleArgs = @(
+        "assembleStandardDebug",
+        "-Pfms.versionCode=$script:versionCodeInt",
+        "-Pfms.versionName=$script:versionName",
+        "-Pchaquopy.enabled=false",
+        "--configuration-cache")
     if ($DisableBuildCache) {
         $gradleArgs += "--no-build-cache"
         $gradleArgs += "--rerun-tasks"
@@ -96,73 +113,30 @@ function Invoke-VersionedBuild {
 #   YM = last digit of year + first digit of month (2025/12 -> 51)
 #   MDDH = second digit of month + day + first digit of hour (12/16/18 -> 2161)
 #   Hmm = second digit of hour + minutes (18:54 -> 854)
-$now = Get-Date
-$year = $now.Year
-$month = $now.Month
-$day = $now.Day
-$hour = $now.Hour
-$minute = $now.Minute
-
-$firstYearDigit = [int]($year.ToString()[0].ToString())
-$lastYearDigit = [int]($year.ToString()[-1].ToString())
-$firstMonthDigit = [int]($month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($month.ToString("00")[1].ToString())
-$dayStr = $day.ToString("00")
-$firstHourDigit = [int]($hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($hour.ToString("00")[1].ToString())
-$minuteStr = $minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-# YYMMDDHHm format (9 digits): year(2) + month(2) + day(2) + hour(2) + minute_first_digit(1)
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCodeInt = [Convert]::ToInt32($versionCodeStr)  # YYMMDDHHm format (9 digits, fits in Int)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+# S1873: one formula for the whole repository, and it travels as a build property. This script used
+# to rewrite both build.gradle.kts files in place and leave a .backup beside one of them; ADR-4
+# retired that mechanism, because a rewritten constant cannot be told apart from historical residue
+# and the mutation forced the release flow to revert two files after every run.
+. "$PSScriptRoot\..\scripts\utils\build-version-stamp.ps1"
+if ($PSBoundParameters.ContainsKey('VersionName') -ne $PSBoundParameters.ContainsKey('VersionCode')) {
+    Write-Error "build-with-version: pass -VersionName and -VersionCode together or neither - half a stamp would put one version in the artifact and another in whatever the caller names after it."
+    exit 1
+}
+if ($VersionName) {
+    $versionCodeInt = $VersionCode
+    $versionName = $VersionName
+    Write-Host "Version supplied by caller (S1873): the artifact and the caller's tag share one stamp." -ForegroundColor DarkGray
+} else {
+    $stamp = Get-BuildVersionStamp
+    $versionCodeInt = $stamp.AppVersionCode
+    $versionName = $stamp.VersionName
+}
 
 Write-Host "==================================" -ForegroundColor Cyan
 Write-Host "Building with version:" -ForegroundColor Cyan
-Write-Host "  versionCode: $versionCodeInt (MMddHHmm)" -ForegroundColor Green
+Write-Host "  versionCode: $versionCodeInt (yyMMddHHm)" -ForegroundColor Green
 Write-Host "  versionName: $versionName (Y.YM.MDDH.Hmm)" -ForegroundColor Green
 Write-Host "==================================" -ForegroundColor Cyan
-
-# Path to build.gradle.kts
-$buildGradlePath = "app_v2\build.gradle.kts"
-
-# Read current file
-$content = Get-Content $buildGradlePath -Raw
-
-# Backup original file
-$backupPath = "$buildGradlePath.backup"
-Copy-Item $buildGradlePath $backupPath -Force
-Write-Host "Backup created: $backupPath" -ForegroundColor Yellow
-
-# Replace versionCode
-$content = $content -replace '(versionCode\s*=\s*)\d+', "`${1}$versionCodeInt"
-
-# Replace versionName
-$oldVersionMatch = [regex]::Match($content, '(versionName\s*=\s*)"([^"]*)"')
-if ($oldVersionMatch.Success) {
-    $oldVersion = $oldVersionMatch.Groups[2].Value
-    Write-Host "Current versionName: $oldVersion" -ForegroundColor Yellow
-}
-$content = $content -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-Write-Host "Updated versionName to: $versionName" -ForegroundColor Green
-
-# Write updated content
-Set-Content $buildGradlePath $content -NoNewline
-
-Write-Host "[RCS] Updated build.gradle.kts with version: $versionName" -ForegroundColor Green
-
-# Also update wear/build.gradle.kts to keep versions in sync
-# Wear uses 8-digit versionCode (yyMMddHH, no minute digit)
-$wearVersionCode = [Convert]::ToInt32($now.ToString("yyMMddHH"))
-$wearBuildGradlePath = "wear\build.gradle.kts"
-$wearContent = Get-Content $wearBuildGradlePath -Raw
-
-$wearContent = $wearContent -replace '(versionCode\s*=\s*)\d+', "`${1}$wearVersionCode"
-$wearContent = $wearContent -replace '(versionName\s*=\s*)"[^"]*"', "`${1}`"$versionName`""
-
-Set-Content $wearBuildGradlePath $wearContent -NoNewline
-Write-Host "[RCS] Updated wear/build.gradle.kts with version: $versionName (code: $wearVersionCode)" -ForegroundColor Green
 
 # Run gradle build
 Write-Host "`nStarting Gradle build..." -ForegroundColor Cyan
@@ -211,10 +185,6 @@ if ($buildResult.ExitCode -eq 0) {
     Write-Host "BUILD SUCCESSFUL" -ForegroundColor Green
     Write-Host "Version: $versionName" -ForegroundColor Green
     Write-Host "==================================" -ForegroundColor Green
-    
-    # Keep the new version
-    Remove-Item $backupPath -Force
-    Write-Host "Version committed to build.gradle.kts" -ForegroundColor Green
     
     # ==========================================
     # COPY APK TO DISTRIBUTION FOLDER
@@ -288,10 +258,8 @@ else {
     Write-Host "BUILD FAILED" -ForegroundColor Red
     Write-Host "Version: $versionName" -ForegroundColor Green
     Write-Host "==================================" -ForegroundColor Red
-    
-    # Restore backup
-    Move-Item $backupPath $buildGradlePath -Force
-    Write-Host "build.gradle.kts restored from backup" -ForegroundColor Yellow
+    # Nothing to restore: S1873 made the version a build property, so a failed run leaves the
+    # working tree exactly as it found it.
     exit 1
 }
 

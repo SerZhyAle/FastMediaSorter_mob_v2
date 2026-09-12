@@ -11,8 +11,14 @@
 
      S2023: the four glyph slots are LauncherTrayIconView, which carries the click, focus and foreground
      itself and adds room for an overlay badge and a corner mark inside the same 18dp square. The battery
-     stays a TextView - it already carried text before any of this. -->
+     stays a TextView - it already carried text before any of this.
+
+     S2027: the hotspot slot goes immediately before the network glyph, not after Bluetooth - strategic
+     §5.1 pillar 3 and acceptance criterion 3 both place it next to the network. This order must stay in
+     step with LauncherTrayIndicator, whose declaration order is the same render order. -->
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/trayIndicators"
     android:layout_width="wrap_content"
@@ -44,7 +50,7 @@
         android:visibility="gone"
         tools:visibility="visible" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/traySpeedRx"
         android:clickable="true"
         android:focusable="true"
@@ -52,13 +58,14 @@
         android:layout_width="@dimen/launcher_tray_speed_slot_width"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?attr/launcherDesktopText"
         android:textSize="@dimen/launcher_tray_speed_text_size"
         android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="↓ 1.2 MB/s"
         tools:visibility="visible" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/traySpeedTx"
         android:clickable="true"
         android:focusable="true"
@@ -66,10 +73,19 @@
         android:layout_width="@dimen/launcher_tray_speed_slot_width"
         android:layout_height="wrap_content"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?attr/launcherDesktopText"
         android:textSize="@dimen/launcher_tray_speed_text_size"
         android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="↑ 256 KB/s"
+        tools:visibility="visible" />
+
+    <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
+        android:id="@+id/trayHotspot"
+        android:layout_width="@dimen/launcher_tray_icon_size"
+        android:layout_height="@dimen/launcher_tray_icon_size"
+        android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing"
+        android:visibility="gone"
         tools:visibility="visible" />
 
     <com.sza.fastmediasorter.ui.launcher.tray.LauncherTrayIconView
@@ -78,7 +94,7 @@
         android:layout_height="@dimen/launcher_tray_icon_size"
         android:layout_marginEnd="@dimen/launcher_taskbar_item_spacing" />
 
-    <TextView
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
         android:id="@+id/trayBatteryLevel"
         android:clickable="true"
         android:focusable="true"
@@ -90,8 +106,9 @@
         android:paddingTop="1dp"
         android:paddingEnd="4dp"
         android:paddingBottom="1dp"
-        android:textColor="?attr/colorOnSurface"
+        android:textColor="?attr/launcherDesktopText"
         android:textSize="@dimen/launcher_tray_speed_text_size"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
         tools:text="86" />
 
 </LinearLayout>

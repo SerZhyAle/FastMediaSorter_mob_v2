@@ -76,8 +76,6 @@
     <string name="delete_by_size_warning_no_trash">সতর্কীকরণ: এই রিসোর্সের জন্য ট্র্যাশ সমর্থিত নয়। মুছে ফেলা হলে তা স্থায়ী হবে!</string>
     <string name="delete_confirmation">ফাইলগুলো মুছে ফেলবেন?</string>
     <string name="delete_failed">ফাইলগুলো মুছে ফেলা যায়নি।</string>
-    <string name="delete_file_confirmation">%2$s থেকে %1$s মুছে ফেলবেন?</string>
-    <string name="delete_files_confirmation">%2$s থেকে %1$d ফাইলগুলো মুছে ফেলবেন?</string>
     <string name="delete_folder_confirm">\"%1$s\" ফোল্ডার এবং এর ভেতরের সবকিছু মুছে ফেলতে চান? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>
     <string name="delete_n_files_from_network_title">নেটওয়ার্ক থেকে %d টি ফাইল মুছে ফেলবেন?</string>
     <string name="delete_n_folders_confirm">%1$d ফোল্ডারগুলো এবং এর ভেতরের সবকিছু মুছে ফেলবেন? এটি আর পূর্বাবস্থায় ফেরানো যাবে না।</string>
@@ -136,4 +134,11 @@
     <string name="browse_row_folder_checkbox">ফোল্ডার %1$s, নির্বাচন করুন</string>
     <string name="browse_row_file_checkbox">ফাইল %1$s, নির্বাচন করুন</string>
     <string name="browse_transfer_folders_included">অন্তর্ভুক্ত ফোল্ডারসমূহ: %1$d</string>
+    <string name="undo_folder_move_started">ফোল্ডারগুলি ফিরিয়ে নেওয়া হচ্ছে..</string>
+    <string name="undo_folder_copy_confirm_title">ফোল্ডার কপি বাতিল করবেন?</string>
+    <string name="undo_folder_copy_confirm_message">গন্তব্যের কপিগুলি মুছে ফেলা হবে, তারপর থেকে তাতে যোগ করা সবকিছু সহ। মূল ফোল্ডারগুলি নিজের জায়গাতেই থাকবে।</string>
+    <string name="undo_folder_copy_confirm_action">কপিগুলি মুছুন</string>
+    <string name="undo_folder_copy_done">কপিগুলি মুছে ফেলা হয়েছে।</string>
+    <string name="undo_mixed_move_started">ফোল্ডারগুলি ফিরিয়ে নেওয়া হচ্ছে, %1$d ফাইল পুনরুদ্ধার করা হচ্ছে..</string>
+    <string name="undo_mixed_copy_done">কপি মুছে ফেলা হয়েছে: %1$d ফাইল, %2$d ফোল্ডার।</string>
 </resources>

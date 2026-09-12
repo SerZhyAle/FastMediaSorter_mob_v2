@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.data.network.ftp
 
+import com.sza.fastmediasorter.wear.data.network.WearEndpointResolver
 import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +18,13 @@ import javax.inject.Inject
  * was unfinished wiring, not a decision. The test now connects the same way that listing does, so a
  * green result predicts browsing rather than merely asserting reachability.
  */
-class FtpConnectionTest @Inject constructor() {
+class FtpConnectionTest @Inject constructor(
+    private val endpointResolver: WearEndpointResolver
+) {
 
-    suspend fun testFtp(source: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
+    suspend fun testFtp(sourceIn: NetworkSource): Result<Boolean> = withContext(Dispatchers.IO) {
+        // S2488: same endpoint choice as browsing, so the test cannot answer differently.
+        val source = endpointResolver.resolve(sourceIn)
         val client = FTPClient()
         // Bound the test specifically: a listing may wait on the client's own defaults, but a test
         // the user is watching must come back.

@@ -2,14 +2,20 @@ package com.sza.fastmediasorter.wear.ui.apps.game
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.game.GameBoard
 import com.sza.fastmediasorter.wear.domain.game.GameBoardGenerator
 import com.sza.fastmediasorter.wear.domain.game.GameDifficulty
 import com.sza.fastmediasorter.wear.domain.game.GameDirection
+import com.sza.fastmediasorter.wear.domain.game.GameEnemyType
+import com.sza.fastmediasorter.wear.domain.game.GameEvent
 import com.sza.fastmediasorter.wear.domain.game.GameLevelConfig
 import com.sza.fastmediasorter.wear.domain.game.GameLevelState
+import com.sza.fastmediasorter.wear.domain.game.GamePosition
 import com.sza.fastmediasorter.wear.domain.game.GameRulesEngine
+import com.sza.fastmediasorter.wear.domain.game.GameSeedSource
 import com.sza.fastmediasorter.wear.domain.game.GameStateSnapshot
 import com.sza.fastmediasorter.wear.domain.game.GameStatus
+import com.sza.fastmediasorter.wear.domain.game.GameTurnResult
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -35,11 +41,33 @@ class GameViewModel @Inject constructor(
 
     private val engine = GameRulesEngine()
 
+    private val seedSource = GameSeedSource()
+
+    private var boardWidth = GameBoard.ROUND_STANDARD_WIDTH
+    private var boardHeight = GameBoard.ROUND_STANDARD_HEIGHT
+
     private val _uiState = MutableStateFlow(GameUiState())
     val uiState: StateFlow<GameUiState> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch { restoreOrStart() }
+    }
+
+    /**
+     * S2558: configure board geometry based on screen shape and dimensions.
+     */
+    fun configureScreen(isRound: Boolean, screenShorterEdgeDp: Int) {
+        val (w, h) = when {
+            !isRound -> SQUARE_BOARD_SIDE to SQUARE_BOARD_SIDE
+            screenShorterEdgeDp <= COMPACT_SCREEN_THRESHOLD_DP -> {
+                GameBoard.ROUND_COMPACT_WIDTH to GameBoard.ROUND_COMPACT_HEIGHT
+            }
+            else -> {
+                GameBoard.ROUND_STANDARD_WIDTH to GameBoard.ROUND_STANDARD_HEIGHT
+            }
+        }
+        boardWidth = w
+        boardHeight = h
     }
 
     fun move(direction: GameDirection) {
@@ -48,7 +76,8 @@ class GameViewModel @Inject constructor(
         if (!result.accepted) {
             return
         }
-        publish(result.state)
+        val (type, position) = captureFrom(result)
+        publish(result.state, type, position)
     }
 
     /**
@@ -77,39 +106,110 @@ class GameViewModel @Inject constructor(
         publish(next)
     }
 
+    /**
+     * Spend a turn without moving, so the enemies step and the player does not.
+     *
+     * The engine already prices this exactly as the phone does; the watch simply had no way to ask
+     * for it until the in-play menu existed (S2158).
+     */
+    fun skipTurn() {
+        val current = _uiState.value.level ?: return
+        Timber.d("S2158: skip turn requested at turn %d", current.stats.turns)
+        val result = engine.applySkipTurn(current)
+        if (!result.accepted) {
+            return
+        }
+        val (type, position) = captureFrom(result)
+        publish(result.state, type, position)
+    }
+
+    /**
+     * Start the current level again from a level still being played, at the engine's restart price.
+     *
+     * Guarded on [GameStatus.PLAYING] rather than on the menu being open: a level that has already
+     * ended is restarted or advanced by [restart], and letting both paths reach a finished level
+     * would charge the restart penalty on top of an outcome the player already paid for.
+     */
+    fun restartLevelNow() {
+        val current = _uiState.value.level
+        if (current == null || current.status != GameStatus.PLAYING) {
+            return
+        }
+        Timber.d("S2158: voluntary restart of level %d at score %d", current.config.levelNumber, current.stats.score)
+        val generated = generate(current.config.levelNumber)
+        if (generated != null) {
+            publish(engine.restartLevelVoluntarily(current, generated))
+        }
+    }
+
+    /**
+     * S2350: reset the game to level 1 and clear statistics in one tap from the in-game menu.
+     */
+    fun startNewGame() {
+        val currentLevel = _uiState.value.level?.config?.levelNumber ?: FIRST_LEVEL_NUMBER
+        Timber.d("S2350: starting new game from level %d", currentLevel)
+        val generated = generate(FIRST_LEVEL_NUMBER) ?: return
+        publish(generated)
+    }
+
     private suspend fun restoreOrStart() {
         val stored = preferencesRepository.gameState.first()
         val restored = GameStateSnapshot.fromStorage(stored)?.toLevelState()
         if (restored != null) {
+            Timber.d("S2553: resumed saved game at level %d turn %d", restored.config.levelNumber, restored.stats.turns)
             _uiState.value = GameUiState(restored, restored.stats, restored.status)
             return
         }
+        Timber.d("S2553: no readable save, starting a fresh game")
         // An absent or unreadable save is a first run, never an error the player has to see.
         val generated = generate(FIRST_LEVEL_NUMBER) ?: return
         publish(generated)
     }
 
-    private fun publish(state: GameLevelState) {
-        _uiState.value = GameUiState(state, state.stats, state.status)
+    private fun publish(
+        state: GameLevelState,
+        capturedBy: GameEnemyType? = null,
+        capturedByPosition: GamePosition? = null
+    ) {
+        _uiState.value = GameUiState(state, state.stats, state.status, capturedBy, capturedByPosition)
         viewModelScope.launch {
             preferencesRepository.setGameState(GameStateSnapshot.fromLevelState(state).toStorage())
         }
     }
 
     /**
-     * A level's seed is derived from its number, so the same level is always the same board - that is
-     * what makes replaying a lost level a second try rather than a different game.
+     * Extracts the killer's type and position from a turn result's [GameEvent.PlayerCaptured] event.
+     *
+     * Returns null for both when no capture happened this turn, so [publish] clears the fields on every
+     * non-capturing move rather than leaving a stale killer from a previous game-over.
+     */
+    private fun captureFrom(result: GameTurnResult): Pair<GameEnemyType?, GamePosition?> {
+        val capture = result.events.filterIsInstance<GameEvent.PlayerCaptured>().firstOrNull()
+            ?: return null to null
+        val killer = result.state.enemies.firstOrNull { it.id == capture.enemyId }
+        Timber.d("S2804: captured by %s at %s", capture.type, killer?.position)
+        return capture.type to killer?.position
+    }
+
+    /**
+     * A seed is drawn fresh for every generated board, so no two boards repeat (S2494).
+     *
+     * The seed used to be derived from the level number, which made every entry into level 1 the same
+     * board and every restart the same second try. The phone draws a new seed both on advancing and
+     * on either restart, and the watch is brought to that behaviour. A restored save does not pass
+     * through here at all - it carries the seed it was written with, so returning to an interrupted
+     * game returns the board the player left.
      */
     private fun generate(levelNumber: Int): GameLevelState? {
         val config = GameLevelConfig(
             levelNumber = levelNumber,
             difficulty = difficultyFor(levelNumber),
-            width = BOARD_SIDE,
-            height = BOARD_SIDE,
+            width = boardWidth,
+            height = boardHeight,
             shadowCount = shadowCountFor(levelNumber),
-            seed = levelNumber.toLong() * LEVEL_SEED_STEP
+            seed = seedSource.nextSeed(levelNumber)
         )
-        Timber.d("S2008: level $levelNumber shadows ${config.shadowCount} band ${config.difficulty}")
+        Timber.d("S2494: level %d seed %d (%dx%d)", levelNumber, config.seed, boardWidth, boardHeight)
         val generated = generator.createInitialState(config)
         if (generated == null) {
             Timber.w("game: level %d could not be generated, board left unchanged", levelNumber)
@@ -147,13 +247,13 @@ class GameViewModel @Inject constructor(
     private companion object {
         const val FIRST_LEVEL_NUMBER = 1
 
-        /** Small enough that every cell stays readable on a watch, above the generator's minimum. */
-        const val BOARD_SIDE = 9
+        const val SQUARE_BOARD_SIDE = 9
+        const val COMPACT_SCREEN_THRESHOLD_DP = 192
+
         const val SHADOW_COUNT_BASE = 2
         const val SHADOW_COUNT_MAX = 5
         const val LEVELS_PER_SHADOW = 3
         const val NORMAL_FROM_LEVEL = 4
         const val HARD_FROM_LEVEL = 10
-        const val LEVEL_SEED_STEP = 7919L
     }
 }

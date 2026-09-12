@@ -14,7 +14,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withTimeoutOrNull
-import timber.log.Timber
 
 /**
  * S1428: which launcher desktop sections are folded shut, and the tap that folds them (strategic §6.8).
@@ -86,7 +85,6 @@ class LauncherSectionCollapseManager(
             .filter { visibility.isCollapsed(currentOrientation, it.screenIndex, it.target) }
             .map { it.target }
             .toSet()
-        Timber.d("S2317: folded targets on the drawn desktop: %s", folded)
         return folded
     }
 
@@ -98,7 +96,6 @@ class LauncherSectionCollapseManager(
         if (cell.kind != LauncherCellKind.SECTION) return
         val currentOrientation = orientation.value
         val nowExpanded = visibility.isCollapsed(currentOrientation, cell.screenIndex, cell.target)
-        Timber.d("S2317: toggle section %s on screen %d -> expanded=%s", cell.target, cell.screenIndex, nowExpanded)
         visibility.setExpanded(currentOrientation, cell.screenIndex, cell.target, nowExpanded)
         revision.value += 1
     }

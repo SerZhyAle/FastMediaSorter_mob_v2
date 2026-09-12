@@ -34,8 +34,7 @@ appId: com.sza.fastmediasorter.debug
 - scrollUntilVisible:
     element:
       id: "com.sza.fastmediasorter.debug:id/headerInterface"
-    visibilityPercentage: 100
-    centerElement: true
+    visibilityPercentage: 30
     timeout: 8000
 # S1043: the Interface section may already be expanded from an earlier settings flow in the suite
 # (screen_tour / settings_search). An unconditional tap on the header would then COLLAPSE it and hide

@@ -27,6 +27,8 @@ build/
 bin/
 gen/
 out/
+# S2918: dependency trees are restored from the tracked lock file with `npm install`, never versioned.
+node_modules/
 # Note: a broad `release/` rule was removed (collateral damage -
 # it excluded `app_v2/src/release/` source set and `scripts/release/`
 # tooling from the repo, which silently broke release builds on main).
@@ -278,13 +280,18 @@ dev/CATALOG/wear.md
 
 # noLegal private feature inventory (sideload-only, not for public repo - S0156 §6.9)
 docs/FEATURES_noLegal.md
-docs/FEATURES_noLegal_RU.md
-docs/FEATURES_noLegal_UK.md
+docs/FEATURES_noLegal-ru.md
+docs/FEATURES_noLegal-uk.md
 docs/ALL_FEATURES_noLegal.jsonl
 docs/SETTINGS_REFERENCE_noLegal.md
 
 # Agent continuity layer artifacts (S0268)
 dev/agent-continuity/
+
+# Device fleet roster carries real serials, model numbers and which watch pairs with which
+# personal phone - not for the public repo. The path stays real and referenced from every rule
+# and skill (CLAUDE.md Rule 35); only its tracking in git is withheld.
+docs/DEVICE_FLEET.md
 
 # Secrets and signing material - pre-empt the leak, never catch it afterwards.
 *.pfx

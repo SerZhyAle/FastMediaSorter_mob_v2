@@ -7,7 +7,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.launcher.widget.GoogleCalendarLiveFrameView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.awaitCancellation
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -49,7 +48,6 @@ private class GoogleCalendarLiveFrameGadgetView(
     }
 
     override suspend fun CoroutineScope.onActive() {
-        Timber.d("S2285: GoogleCalendarLiveFrameGadget active loop started")
         liveFrameView.onResume()
         try {
             awaitCancellation()

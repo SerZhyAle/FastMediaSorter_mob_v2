@@ -2,36 +2,20 @@ appId: com.sza.fastmediasorter.debug
 ---
 # Test: Launcher home mode controls smoke test.
 # Description: Verifies Launcher Mode toggle and Launcher Settings entry points in General Settings.
+#
+# No home role needed: this flow asserts that both controls are PRESENT, never that the settings row
+# is active, so it passes with launcher mode off. That is why it carries no `maestro-requires` marker
+# while its two neighbours do.
 
 - launchApp
 - runFlow: ../../_shared/permissions.yaml
 - runFlow: ../../_shared/go_home.yaml
 
-# Open Settings
-- tapOn:
-    id: "com.sza.fastmediasorter.debug:id/btnSettings"
-- runFlow: ../../_shared/dismiss_settings_dialogs.yaml
+- runFlow: ../../_shared/settings_open_interface.yaml
 
 # Verify General Settings title
-- extendedWaitUntil:
-    visible:
-      id: "com.sza.fastmediasorter.debug:id/titleText"
-    timeout: 10000
-
-# Scroll to Interface section header and expand if collapsed
-- scrollUntilVisible:
-    element:
-      id: "com.sza.fastmediasorter.debug:id/headerInterface"
-    timeout: 15000
-
-- runFlow:
-    when:
-      notVisible:
-        id: "com.sza.fastmediasorter.debug:id/rowLauncherModeEnabled"
-    commands:
-      - tapOn:
-          id: "com.sza.fastmediasorter.debug:id/headerInterface"
-      - waitForAnimationToEnd
+- assertVisible:
+    id: "com.sza.fastmediasorter.debug:id/titleText"
 
 # Assert presence of launcher toggle
 - assertVisible:
@@ -39,6 +23,7 @@ appId: com.sza.fastmediasorter.debug
 
 # Scroll down to launcher settings row
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       id: "com.sza.fastmediasorter.debug:id/rowLauncherSettings"
     timeout: 10000

@@ -121,6 +121,28 @@ Assert-That 'assert-fast-gates does not hand this gate a changed set' `
     ($awareBlock -notmatch 'assert-no-ticket-logs') `
     'the batch is the release path: if it scopes this gate, both halves stop being project-wide there'
 
+# --- Case 7: the probe-line-shape predicate (S2934) ---------------------------------------------
+# The gate used to spell this predicate out at its point of use, which made this file the only home
+# of the sentence "a probe owns its line" - so check-probe-present.ps1, which admits the probe in the
+# first place, could not ask it (S1621). It now reads the profile key both gates read, and this case
+# pins what that key means: the correct shape passes, and every shape the 2026-09-02 sweep broke the
+# build on fails. Without it the key could be loosened to `.` and no suite would notice.
+. (Join-Path $repoRoot 'scripts/quality/lib/blockneedusertest-probes.ps1')
+$ownLineRx = [regex]([string](Get-SzaProfileValue 'probes.ownLineRegex'))
+$shapeCases = @(
+    @{ Line = 'Timber.d("S9001: ran")'; Own = $true },
+    @{ Line = 'timber.log.Timber.d("S9001: ran")'; Own = $true },
+    @{ Line = '}.also { Timber.d("S9001: ran") }'; Own = $false },
+    @{ Line = ').also { Timber.d("S9001: ran") }'; Own = $false },
+    @{ Line = 'if (cond) Timber.d("S9001: ran")'; Own = $false },
+    @{ Line = 'LaunchedEffect(x) { Timber.d("S9001: ran") }'; Own = $false },
+    @{ Line = 'Timber.d('; Own = $false }
+)
+$shapeWrong = @($shapeCases | Where-Object { $ownLineRx.IsMatch($_.Line) -ne $_.Own } | ForEach-Object { $_.Line })
+Assert-That 'the probe-line-shape predicate accepts only a probe alone on its line' `
+    ($shapeWrong.Count -eq 0) `
+    ("misjudged: " + ($shapeWrong -join ' | '))
+
 Write-Host ("`nassert-no-ticket-logs.tests: {0} passed, {1} failed" -f $script:pass, $script:fail)
 if ($script:fail -gt 0) { exit 1 }
 exit 0

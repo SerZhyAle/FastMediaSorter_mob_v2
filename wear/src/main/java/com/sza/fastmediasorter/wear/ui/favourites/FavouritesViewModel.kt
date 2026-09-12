@@ -3,7 +3,9 @@ package com.sza.fastmediasorter.wear.ui.favourites
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.data.repository.WearSendToReceiversRepository
 import com.sza.fastmediasorter.wear.domain.files.WearFileCapabilityPolicy
+import com.sza.fastmediasorter.wear.domain.files.WearSendToReceiverFilter
 import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_LOCAL
 import com.sza.fastmediasorter.wear.domain.model.WearFavoriteRecord
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperation
@@ -11,6 +13,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearFileOperationKind
 import com.sza.fastmediasorter.wear.domain.model.WearFileOperationOutcome
 import com.sza.fastmediasorter.wear.domain.model.WearFileStorageClass
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearSendToReceiverEntry
+import com.sza.fastmediasorter.wear.domain.model.WearThumbnail
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 import com.sza.fastmediasorter.wear.domain.repository.SelectedMediaManager
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
@@ -18,15 +22,20 @@ import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.PerformWearFileOperationUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.ToggleFavoriteUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 private const val VIEW_MODE_SUBSCRIPTION_MS = 5_000L
+private const val MAX_IN_FLIGHT_THUMBNAILS = 3
+private const val MAX_CACHED_THUMBNAILS = 50
 
 /** S1846: what came of a tap on a favourite row. */
 sealed interface FavouriteOpenRequest {
@@ -63,11 +72,45 @@ class FavouritesViewModel @Inject constructor(
     private val selectedMediaManager: SelectedMediaManager,
     private val capabilityPolicy: WearFileCapabilityPolicy,
     private val performFileOperation: PerformWearFileOperationUseCase,
+    private val sendToReceiversRepository: WearSendToReceiversRepository,
+    private val thumbnailRepository: com.sza.fastmediasorter.wear.domain.repository.WearThumbnailRepository,
     preferencesRepository: WearPreferencesRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<FavouritesUiState>(FavouritesUiState.Loading)
     val uiState: StateFlow<FavouritesUiState> = _uiState.asStateFlow()
+
+    private val _thumbnails = MutableStateFlow<Map<String, WearThumbnail>>(emptyMap())
+    val thumbnails: StateFlow<Map<String, WearThumbnail>> = _thumbnails.asStateFlow()
+
+    private val inFlightThumbnails = mutableSetOf<String>()
+
+    fun requestThumbnail(record: WearFavoriteRecord) {
+        val key = record.identity
+        if (key.isEmpty() || _thumbnails.value.containsKey(key) || inFlightThumbnails.contains(key)) {
+            return
+        }
+        if (inFlightThumbnails.size >= MAX_IN_FLIGHT_THUMBNAILS) return
+
+        inFlightThumbnails.add(key)
+        _thumbnails.update { current -> current + (key to WearThumbnail.Loading) }
+
+        viewModelScope.launch {
+            try {
+                Timber.d("S2489: FavouritesViewModel requesting thumbnail for %s", record.displayName)
+                val mediaFile = record.toMediaFile()
+                val sourceId = record.sourceId.takeIf { it != SOURCE_ID_LOCAL }
+                val thumbnail = thumbnailRepository.thumbnailFor(mediaFile, sourceId)
+                _thumbnails.update { current ->
+                    val next = current + (key to thumbnail)
+                    val excess = next.size - MAX_CACHED_THUMBNAILS
+                    if (excess <= 0) next else next.entries.drop(excess).associate { it.key to it.value }
+                }
+            } finally {
+                inFlightThumbnails.remove(key)
+            }
+        }
+    }
 
     /**
      * The row the user just asked to open, consumed once by the screen.
@@ -77,6 +120,9 @@ class FavouritesViewModel @Inject constructor(
      */
     private val _openRequest = MutableStateFlow<FavouriteOpenRequest?>(null)
     val openRequest: StateFlow<FavouriteOpenRequest?> = _openRequest.asStateFlow()
+
+    /** The run in flight, kept only so a second press cannot start a parallel one (S2142). */
+    private var operationJob: Job? = null
 
     /** What the last file operation came to, or null when there is nothing to report. */
     private val _operationNotice = MutableStateFlow<WearFileOperationOutcome?>(null)
@@ -164,9 +210,31 @@ class FavouritesViewModel @Inject constructor(
     /** The file the action menu acts on - the same one the player is handed. */
     fun actionTargetFor(record: WearFavoriteRecord): WearMediaFile = record.toMediaFile()
 
-    /** Runs [operation] over [record]'s file and reports what came of it. */
+    /**
+     * S2142: the receivers [record] may be handed to, through the filter every surface shares.
+     *
+     * Per record rather than one list for the screen: the type filter is a property of the file, so
+     * a screen-wide list would offer the wrong receivers for whichever row was pressed.
+     */
+    fun sendToReceiversFor(record: WearFavoriteRecord): List<WearSendToReceiverEntry> =
+        WearSendToReceiverFilter.apply(
+            sendToReceiversRepository.observe().value,
+            listOf(record.toMediaFile())
+        )
+
+    /**
+     * Runs [operation] over [record]'s file and reports what came of it.
+     *
+     * S2142: a second press while the first run is still going is ignored, not queued behind it and
+     * not allowed to start beside it. A send through the phone crosses the bridge in its middle, so
+     * a second run of the same operation is how one file reaches a receiver twice.
+     */
     fun runOperation(record: WearFavoriteRecord, operation: WearFileOperation) {
-        viewModelScope.launch {
+        if (operationJob?.isActive == true) {
+            Timber.i("Wear file operation ignored: a run is already in progress")
+            return
+        }
+        operationJob = viewModelScope.launch {
             performFileOperation(listOf(record.toMediaFile()), operation, record.isNetwork())
                 .collect { result -> _operationNotice.value = result.outcome }
         }

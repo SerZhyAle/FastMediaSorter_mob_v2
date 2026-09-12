@@ -10,6 +10,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -24,6 +25,7 @@ import com.sza.fastmediasorter.domain.usecase.BuildPermissionRowsUseCase
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
+import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -50,6 +52,8 @@ class PermissionsManagementFragment : Fragment() {
     @Inject lateinit var grantIntentFactory: PermissionGrantIntentFactory
 
     private lateinit var adapter: PermissionRowAdapter
+
+    private var hiddenSiblings: List<View> = emptyList()
 
     // True while a "Grant all" run is walking the user through every denied permission. A run is:
     // 1) one requestMultiplePermissions() dialog for the regular permissions, then
@@ -94,7 +98,12 @@ class PermissionsManagementFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Timber.d("S2178: permissions screen laid out, action divider above the list")
+
+        // S2899: The fragment replaces android.R.id.content but the activity's original contentView
+        // stays as a non-fragment sibling and remains focusable, so D-pad focus escapes the overlay.
+        // Hide the siblings so directional focus search stays inside this fragment.
+        hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
+        Timber.d("S2899: PermissionsManagement focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.
@@ -155,6 +164,19 @@ class PermissionsManagementFragment : Fragment() {
 
         refreshAdapter()
         updateGrantAllVisibility()
+
+        // S2899: Ensure initial focus is assigned on TV / D-pad when entering the fragment.
+        view.post {
+            if (isAdded && this.view != null) {
+                requestInitialFocus()
+            }
+        }
+    }
+
+    override fun onDestroyView() {
+        OverlayFocusTrap.restore(hiddenSiblings)
+        hiddenSiblings = emptyList()
+        super.onDestroyView()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -167,6 +189,23 @@ class PermissionsManagementFragment : Fragment() {
         super.onResume()
         refreshAdapter()
         updateGrantAllVisibility()
+        if (activity?.currentFocus == null) {
+            requestInitialFocus()
+        }
+    }
+
+    private fun requestInitialFocus() {
+        val root = view ?: return
+        val grantAllBtn = root.findViewById<Button>(R.id.btn_grant_all)
+        val openSettingsBtn = root.findViewById<Button>(R.id.btn_open_system_settings)
+        val toolbar = root.findViewById<MaterialToolbar>(R.id.toolbar)
+        val target = when {
+            grantAllBtn?.isVisible == true -> grantAllBtn
+            openSettingsBtn?.isVisible == true -> openSettingsBtn
+            else -> toolbar
+        }
+        target?.requestFocus()
+        Timber.d("S2899: PermissionsManagement initial focus requested on ${target?.javaClass?.simpleName}")
     }
 
     private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))
@@ -202,7 +241,9 @@ class PermissionsManagementFragment : Fragment() {
             shownSpecialInRun += entry.manifestName
             launchSpecialGrantSettings(entry)
         } else {
-            Timber.d("PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)")
+            Timber.d(
+                "PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)"
+            )
             grantAllInProgress = false
             shownSpecialInRun.clear()
         }
@@ -220,8 +261,10 @@ class PermissionsManagementFragment : Fragment() {
     }
 
     private fun openAppSettings() {
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", requireContext().packageName, null)
-        })
+        startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+        )
     }
 }

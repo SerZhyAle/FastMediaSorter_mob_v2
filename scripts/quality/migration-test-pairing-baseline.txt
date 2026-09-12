@@ -1,10 +1,14 @@
-# S1844 - Room migrations accepted as untested debt, one "<module>:NNToMM" token per line.
+# S1844 - Room migrations accepted as untested debt, one "<database>:NNToMM" token per line.
 #
-# S2355 added the module prefix. Without it a frozen row of one module suppresses a live finding
-# carrying the same hop number in another - and the hop numbers of two databases collide from the
-# start, because every database begins at 1. An unprefixed line is NOT read by the gate: a line
-# hand-added in the old format suppresses nothing rather than silently meaning whichever module the
-# reader assumed.
+# S2355 added the prefix. Without it a frozen row of one database suppresses a live finding carrying
+# the same hop number in another - and the hop numbers of two databases collide from the start,
+# because every database begins at 1. An unprefixed line is NOT read by the gate: a line hand-added
+# in the old format suppresses nothing rather than silently meaning whichever database the reader
+# assumed.
+#
+# S2829 made that prefix name a DATABASE rather than a module - `wear-voice-note`, not `wear` - once
+# the watch grew three of them. A pre-S2829 `wear:` line names nothing and suppresses nothing; there
+# has never been one.
 #
 # Every line below predates the testing habit and has already shipped; their SQL is history on users'
 # devices. A migration added from now on needs its test - do not add a line here for one.
@@ -20,3 +24,37 @@ app_v2:39To40
 app_v2:40To41
 app_v2:41To42
 app_v2:42To43
+
+# S2832 2026-09-10: hops declared inside AppDatabase.kt (the aggregate), shipped long before the
+# instrumented-test habit and surfaced only when discovery started reading aggregates through
+# Get-RoomMigrationSource (S2830's shared source). Frozen as known debt - not skipped work.
+app_v2:1To18
+app_v2:2To3
+app_v2:3To4
+app_v2:4To5
+app_v2:5To6
+app_v2:6To7
+app_v2:7To8
+app_v2:8To9
+app_v2:9To10
+app_v2:10To11
+app_v2:11To12
+app_v2:12To13
+app_v2:13To14
+app_v2:14To15
+app_v2:15To16
+app_v2:16To17
+app_v2:17To18
+app_v2:18To19
+app_v2:19To20
+app_v2:20To21
+app_v2:21To22
+app_v2:22To23
+app_v2:23To24
+app_v2:24To25
+app_v2:25To26
+app_v2:26To27
+app_v2:27To28
+app_v2:28To29
+app_v2:29To30
+app_v2:30To31

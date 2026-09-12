@@ -81,6 +81,7 @@ class EdgeGestureConfigDialogFragment : DialogFragment(), EdgeGestureConfigManag
 
     private val gestureActionPickerManager by lazy {
         ScreenshotGestureActionPickerManager(
+            requireContext().applicationContext,
             capabilityAvailability,
             screenRecordingAvailable = screenVideoRecordingControllers.isNotEmpty(),
             systemActionsAvailable = gestureAccessibilityActions.isNotEmpty(),

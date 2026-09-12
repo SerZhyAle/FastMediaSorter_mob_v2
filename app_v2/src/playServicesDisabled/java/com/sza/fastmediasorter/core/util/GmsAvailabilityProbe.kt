@@ -20,6 +20,10 @@ internal object GmsAvailabilityProbe {
 
     const val IS_SUPPORTED: Boolean = false
 
-    fun evaluate(context: Context, minApkVersion: Int): GmsAvailabilityChecker.Status =
-        GmsAvailabilityChecker.Status.UNAVAILABLE
+    // Both parameters are the signature the `playServicesEnabled` twin under the same FQCN needs;
+    // this build answers without consulting either, and dropping them would break that twin.
+    @Suppress("UnusedParameter")
+    fun evaluate(context: Context, minApkVersion: Int): GmsAvailabilityChecker.Status {
+        return GmsAvailabilityChecker.Status.UNAVAILABLE
+    }
 }

@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.debug
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -26,6 +27,10 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 class DebugActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     private lateinit var tvLogContent: TextView
     private lateinit var spinnerLevel: Spinner

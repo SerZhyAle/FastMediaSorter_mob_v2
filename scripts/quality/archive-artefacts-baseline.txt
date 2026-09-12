@@ -1,0 +1,173 @@
+# archive-artefacts-baseline - records whose spec file is gone for good (S2592).
+#
+# Read by scripts/quality/assert-archive-artefacts.ps1. A record listed here is a KNOWN
+# loss, not a pending repair: the text is not on disk and not in git history, so nothing
+# recovers it. Every dangling record NOT listed here fails the gate.
+#
+# Three reasons put a record here.
+#   never-committed - archived on 2026-08-24 between the last commit and the untracking
+#                     commit of 22:47:54 ("Stop tracking the local PLAN workspace and
+#                     archives"), which deleted the working copies of PLAN/archive/. The
+#                     eleven-day window when the directory was tracked (S1620, 2026-08-13)
+#                     returned 5967 files; these were never in a commit at all.
+#   no-artefact     - archive.ps1 archived the record while its spec file was already
+#                     absent, kept the original PLAN/ path and exited 0. The file never
+#                     reached PLAN/archive/ and never existed in history.
+#   orphan-record   - the record never had a spec file at all: it was inserted and the .md
+#                     was never written, so nothing was lost because nothing existed. S2549
+#                     disposed of two such records by hand through archive.ps1, which took
+#                     them silently. S2617 closed that hole: archive.ps1 now refuses a
+#                     missing artefact and names delete.ps1 as the honest disposal for a
+#                     record with no text to archive.
+#
+# Format: <id>  <file>  <reason>
+# Do not add a line to silence a fresh failure - a fresh failure means a file was lost
+# today and may still be recoverable.
+
+S0001  PLAN/S0001_spec-catalog.md  no-artefact
+S0005  PLAN/S0005_vr-auto-immersive-setting.md  no-artefact
+S0010  PLAN/S0010_vr-panel-swapchain-availability.md  no-artefact
+S0011  PLAN/S0011_vr-photo-capture-reliability.md  no-artefact
+S0013  PLAN/S0013_vr-stereo-projection-mapping.md  no-artefact
+S0198  PLAN/archive/S0198_nolegal-newpipe-potoken-provider.md  never-committed
+S0278  PLAN/S0278_drift_checker_wear_coverage.md  no-artefact
+S0279  PLAN/S0279_drift_checker_pr_gate_wiring.md  no-artefact
+S0627  PLAN/S0627_stream-collector-legality-gate.md  no-artefact
+S0643  PLAN/archive/S0643_cloud-thumbnail-runblocking-token-stall.md  never-committed
+S0745  PLAN/archive/S0745_drive-token-authorization-api-any-account.md  never-committed
+S0746  PLAN/archive/S0746_drive-token-mint-alias-account-authorizationclient.md  never-committed
+S1020  PLAN/S1020_bugfix-extension-install-hang.md  no-artefact
+S1060  PLAN/archive/S1060_nolegal-libvlc-universal-codec-iso.md  never-committed
+S1177  PLAN/archive/S1177_launcher-google-app-widgets.md  never-committed
+S1198  PLAN/archive/S1198_streamsactivity-detekt-debt.md  never-committed
+S1269  PLAN/archive/S1269_browse-manager-initializer-constructor-growth.md  never-committed
+S1271  PLAN/archive/S1271_vr-settings-hud-panel.md  never-committed
+S1285  PLAN/archive/S1285_resource-grid-cell-size-setting.md  never-committed
+S1311  PLAN/archive/S1311_browseloadingmanager-detekt-debt.md  never-committed
+S1312  PLAN/S1312_queue-selftest.md  no-artefact
+S1430  PLAN/archive/S1430_launcher-draggable-scroll-thumb.md  never-committed
+S1440  PLAN/archive/S1440_network-monitor-widgets.md  never-committed
+S1465  PLAN/archive/S1465_launcher-foreign-notifications-listener.md  never-committed
+S1466  PLAN/archive/S1466_launcher-desktop-longpress-quick-menu.md  never-committed
+S1519  PLAN/archive/S1519_add-resource-layout-eager-inflate.md  never-committed
+S1541  PLAN/archive/S1541_launcherhomeactivity-detekt-debt.md  never-committed
+S1549  PLAN/archive/S1549_dead-layout-land-under-configchanges.md  never-committed
+S1554  PLAN/archive/S1554_wear-ftp-test-stub-with-library-present.md  never-committed
+S1555  PLAN/archive/S1555_wear-sftp-accepts-any-host-key.md  never-committed
+S1556  PLAN/archive/S1556_wear-browse-ignores-source-basepath.md  never-committed
+S1643  PLAN/archive/S1643_launcher-taskbar-placement-setting.md  never-committed
+S1644  PLAN/archive/S1644_launcher-google-apps-starter-section.md  never-committed
+S1645  PLAN/archive/S1645_launcher-collapsed-section-packing.md  never-committed
+S1649  PLAN/archive/S1649_orphaned-credentials-never-purged.md  never-committed
+S1666  PLAN/archive/S1666_sza-resources-credentials-ship-inside-every-apk.md  never-committed
+S1678  PLAN/archive/S1678_wear-ui-round-display-clipping.md  never-committed
+S1683  PLAN/archive/S1683_wear-player-controls-and-paging.md  never-committed
+S1686  PLAN/archive/S1686_bugfix-apk-install-error-opaque.md  never-committed
+S1687  PLAN/archive/S1687_bugfix-wear-network-playback-always-smb.md  never-committed
+S1688  PLAN/archive/S1688_bugfix-wear-ftp-listing-name-mojibake.md  never-committed
+S1689  PLAN/archive/S1689_wear-albumart-repository-dead-wiring.md  never-committed
+S1690  PLAN/archive/S1690_wear-network-browse-ignores-media-type.md  never-committed
+S1691  PLAN/archive/S1691_bottomsheet-primary-action-offscreen-landscape.md  never-committed
+S1697  PLAN/archive/S1697_wear-host-phone-resources.md  never-committed
+S1701  PLAN/archive/S1701_wear-audio-player-controls.md  never-committed
+S1704  PLAN/archive/S1704_bugfix-overlay-plate-colour-sampled-from-wrong-bitmap.md  never-committed
+S1705  PLAN/archive/S1705_bugfix-wear-image-viewer-no-dismiss.md  never-committed
+S1706  PLAN/archive/S1706_wear-phone-startup-splash.md  never-committed
+S1707  PLAN/archive/S1707_publish-wear-app-play-store.md  never-committed
+S1708  PLAN/archive/S1708_wear-streaming-support.md  never-committed
+S1709  PLAN/archive/S1709_bugfix-wear-audio-player-cpu-cost.md  never-committed
+S1710  PLAN/archive/S1710_wear-mini-apps-suite.md  never-committed
+S1711  PLAN/archive/S1711_ocr-word-level-geometry.md  never-committed
+S1713  PLAN/archive/S1713_ocr-plate-opaque-backing.md  never-committed
+S1715  PLAN/archive/S1715_ocr-engine-configuration.md  never-committed
+S1718  PLAN/archive/S1718_wear-auto-rotation-setting.md  never-committed
+S1719  PLAN/archive/S1719_calculator-gestures-long-press-landscape.md  never-committed
+S1721  PLAN/archive/S1721_wear-mainactivity-recreated-on-rotation.md  never-committed
+S1724  PLAN/archive/S1724_wear-settings-subscreen-grouping.md  never-committed
+S1728  PLAN/archive/S1728_wear-streaming-via-phone-network.md  never-committed
+S1730  PLAN/archive/S1730_wear-resource-grid-view.md  never-committed
+S1733  PLAN/archive/S1733_wear-system-information.md  never-committed
+S1734  PLAN/archive/S1734_wear-source-import-collapses-folders-on-one-share.md  never-committed
+S1735  PLAN/archive/S1735_wear-companion-program-visibility.md  never-committed
+S1743  PLAN/archive/S1743_launcher-section-header-single-row.md  never-committed
+S1744  PLAN/archive/S1744_launcher-default-section-naming.md  never-committed
+S1747  PLAN/archive/S1747_launcher-default-widgets-set-revision.md  never-committed
+S1753  PLAN/archive/S1753_bugfix-launcher-compass-altitude-wrong.md  never-committed
+S1754  PLAN/archive/S1754_launcher-media-window-widgets.md  never-committed
+S1767  PLAN/archive/S1767_launcher-status-indicators-tappable.md  never-committed
+S1771  PLAN/archive/S1771_launcher-start-menu-edit-desktop-rename.md  never-committed
+S1772  PLAN/archive/S1772_launcher-widget-placement-auto-push-and-feedback.md  never-committed
+S1776  PLAN/archive/S1776_deprecated-media3-and-auth-api-migrations.md  never-committed
+S1780  PLAN/archive/S1780_clear-all-internet-downloaded-broadcasts.md  never-committed
+S1784  PLAN/archive/S1784_settings-screen-not-flag-secure.md  never-committed
+S1796  PLAN/archive/S1796_front-flashlight-subprogram.md  never-committed
+S1799  PLAN/archive/S1799_wear-transfer-single-stream-from-phone.md  never-committed
+S1802  PLAN/archive/S1802_wear-about-send-logs-email.md  never-committed
+S1814  PLAN/archive/S1814_wear-ui-language-follows-phone.md  never-committed
+S1822  PLAN/archive/S1822_bugfix-browse-filter-taps-hit-unfiltered-list.md  never-committed
+S1829  PLAN/archive/S1829_bugfix-wear-network-source-music-only.md  never-committed
+S1833  PLAN/archive/S1833_bugfix-wear-test-only-on-add-form.md  never-committed
+S1836  PLAN/archive/S1836_wear-last-used-resource-shortcut.md  never-committed
+S1837  PLAN/archive/S1837_bugfix-wear-track-end-does-not-advance.md  never-committed
+S1838  PLAN/archive/S1838_wear-video-end-does-not-advance.md  never-committed
+S1839  PLAN/archive/S1839_wear-wait-for-finish-setting-dead.md  never-committed
+S1848  PLAN/archive/S1848_bugfix-wear-route-args-unencoded.md  never-committed
+S1853  PLAN/archive/S1853_network-monitor-section-improvements.md  never-committed
+S1854  PLAN/archive/S1854_bugfix-wear-browse-retry-hardcoded.md  never-committed
+S1856  PLAN/archive/S1856_calculator-panel-route-ignores-its-setting.md  never-committed
+S1860  PLAN/archive/S1860_bugfix-wear-bridge-service-dies-mid-request.md  never-committed
+S1861  PLAN/archive/S1861_wear-watch-resource-transfer.md  never-committed
+S1865  PLAN/archive/S1865_wear-audio-black-screen-button-row.md  never-committed
+S1866  PLAN/archive/S1866_wear-music-player-artwork-and-track-info.md  never-committed
+S1867  PLAN/archive/S1867_wear-video-player-linear-progress-and-controls.md  never-committed
+S1868  PLAN/archive/S1868_wear-settings-buttons-column-grid.md  never-committed
+S1869  PLAN/archive/S1869_wear-phone-media-lists-and-recents.md  never-committed
+S1870  PLAN/archive/S1870_wear-video-crop-pan-mode.md  never-committed
+S1877  PLAN/archive/S1877_wear-phone-browser-breadcrumb.md  never-committed
+S1879  PLAN/archive/S1879_adb-tap-by-resource-id.md  never-committed
+S1881  PLAN/archive/S1881_nolegal-accessibility-quick-toggle.md  never-committed
+S1882  PLAN/archive/S1882_unified-capture-filenames.md  never-committed
+S1883  PLAN/archive/S1883_wear-companion-settings-group.md  never-committed
+S1885  PLAN/archive/S1885_wear-companion-paired-watch-status.md  never-committed
+S1886  PLAN/archive/S1886_launcher-reset-icon-density-prompt.md  never-committed
+S1887  PLAN/archive/S1887_launcher-power-actions-privilege-gap.md  never-committed
+S1888  PLAN/archive/S1888_bugfix-wear-network-thumbnail-passes-uri-as-path.md  never-committed
+S1889  PLAN/archive/S1889_bugfix-cloud-scanner-swallows-cancellation.md  never-committed
+S1891  PLAN/archive/S1891_pending-file-rename-forces-full-browse-reload.md  never-committed
+S1892  PLAN/archive/S1892_debug-log-dominated-by-two-repeating-lines.md  never-committed
+S1893  PLAN/archive/S1893_wear-envelope-bytearray-encoding.md  never-committed
+S1895  PLAN/archive/S1895_bugfix-launcher-start-dark-contrast.md  never-committed
+S1897  PLAN/archive/S1897_wear-open-virtual-resource-item.md  never-committed
+S1898  PLAN/archive/S1898_wear-silent-transfer-failure.md  never-committed
+S1900  PLAN/archive/S1900_wear-calculator-last-operation-quick-button.md  never-committed
+S1903  PLAN/archive/S1903_screen-off-dims-button-backlight.md  never-committed
+S1904  PLAN/archive/S1904_bugfix-launcher-gadget-backdrop-alpha-not-applied.md  never-committed
+S1908  PLAN/archive/S1908_launcher-active-signals-grid-dismiss.md  never-committed
+S1911  PLAN/archive/S1911_bugfix-runcatching-swallows-cancellation.md  never-committed
+S1912  PLAN/archive/S1912_bugfix-ticket-log-audit-blocks-parallel-sessions.md  never-committed
+S1916  PLAN/archive/S1916_home-screen-stream-widget.md  never-committed
+S1917  PLAN/archive/S1917_bugfix-shortcut-toast-hides-dialog.md  never-committed
+S1918  PLAN/archive/S1918_personal-phone-profile-streams-default.md  never-committed
+S1920  PLAN/archive/S1920_hotfix-camera-ocr-frame-crop-mismatch.md  never-committed
+S1921  PLAN/archive/S1921_crop-action-bar-confirm-invisible.md  never-committed
+S1923  PLAN/archive/S1923_camera-ocr-hangs-after-capture-on-full-res-decode.md  never-committed
+S1940  PLAN/archive/S1940_wear-home-favourites-entrance.md  never-committed
+S1942  PLAN/archive/S1942_wear-calculator-operation-indicator-grid.md  never-committed
+S1944  PLAN/archive/S1944_wear-open-stream-on-watch.md  never-committed
+S1946  PLAN/archive/S1946_bugfix-wear-streams-search-not-filtering.md  never-committed
+S1950  PLAN/archive/S1950_bugfix-wear-phone-media-not-opening.md  never-committed
+S1951  PLAN/archive/S1951_bugfix-legacy-companion-applicationid-mismatch.md  never-committed
+S1952  PLAN/archive/S1952_wear-resources-section-icons.md  never-committed
+S1953  PLAN/archive/S1953_bugfix-wear-resources-items-not-clickable.md  never-committed
+S1957  PLAN/archive/S1957_camera-tap-to-focus-ignores-soft-zoom.md  never-committed
+S1960  PLAN/archive/S1960_standaloneviewmanager-detekt-debt.md  never-committed
+S1963  PLAN/archive/S1963_playeractivity-over-the-loc-ceiling.md  never-committed
+S1965  PLAN/archive/S1965_wear-calculator-keys-below-touch-minimum.md  never-committed
+S1970  PLAN/archive/S1970_wear-rectangular-cells-no-circles.md  never-committed
+S1974  PLAN/archive/S1974_wear-home-last-resources-fill-first-row.md  never-committed
+S1987  PLAN/archive/S1987_camera-lens-switch-swallows-presses.md  never-committed
+S1988  PLAN/archive/S1988_camera-preview-and-capture-see-different-fields.md  never-committed
+S1990  PLAN/archive/S1990_wear-icon-colors-no-outline.md  never-committed
+S1999  PLAN/archive/S1999_wear-testing-feedback-inbox.md  never-committed
+S2383  PLAN/S2383_launcher-onboarding-back-navigation.md  orphan-record
+S2504  PLAN/S2504_wear-ux-audit-walkthrough.md  orphan-record

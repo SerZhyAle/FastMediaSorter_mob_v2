@@ -4,8 +4,9 @@ import android.view.View
 import android.widget.ListPopupWindow
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import timber.log.Timber
 
-/** Context actions for an installed app pinned to the launcher taskbar. */
+/** Context actions for a command pinned to the launcher taskbar. */
 class LauncherTaskbarPinnedAppMenuManager(
     private val launchCommand: (LauncherCellCommand) -> Unit,
     private val unpin: (position: Int) -> Unit,
@@ -14,8 +15,9 @@ class LauncherTaskbarPinnedAppMenuManager(
     private var window: ListPopupWindow? = null
 
     /** Keeps the two taskbar-specific actions separate from the fuller all-apps menu. */
-    fun show(anchor: View, command: LauncherCellCommand.App, position: Int): Boolean {
+    fun show(anchor: View, command: LauncherCellCommand, position: Int): Boolean {
         if (!anchor.isAttachedToWindow || position < 0) return false
+        Timber.d("S1901: show pinned taskbar menu for %s at %d", command, position)
         dismiss()
         val context = anchor.context
         val rows = listOf(

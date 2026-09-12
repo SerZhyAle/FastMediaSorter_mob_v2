@@ -1,11 +1,13 @@
 package com.sza.fastmediasorter.ui.settings.fragments
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.activityViewModels
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.sza.fastmediasorter.R
@@ -50,6 +52,17 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         // S1148: opt-in resilient radio buffering profile (start-up cushion + silent reconnects).
         bindSwitch(binding.rowSmartBuffering) { isChecked ->
             viewModel.updateSettings(viewModel.settings.value.copy(streamsSmartBuffering = isChecked))
+        }
+        // S1143: ON routes an audio channel to the full-screen visualizer player instead of the inline row.
+        bindSwitch(binding.rowVisualizeAsMusic) { isChecked ->
+            viewModel.updateSettings(viewModel.settings.value.copy(streamsVisualizeAsMusic = isChecked))
+        }
+
+        // S2787: second entry point to the app-wide PiP flag, mirroring PlaybackSettingsFragment.
+        // Same API 31+ gate as the original row; the shared settings Flow keeps the two copies in sync.
+        binding.layoutStreamsPip.isVisible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        bindSwitch(binding.rowStreamsEnablePip) { isChecked ->
+            viewModel.updateSettings(viewModel.settings.value.copy(enablePictureInPicture = isChecked))
         }
 
         // S0659: dropdown entries follow each enum's declaration order so the chosen index maps back to
@@ -119,6 +132,8 @@ class StreamsSettingsFragment : BaseSettingsFragment() {
         collectOnLifecycle(viewModel.settings) { settings: AppSettings ->
             setSwitchChecked(binding.rowEnableStreams, settings.enableStreams)
             setSwitchChecked(binding.rowSmartBuffering, settings.streamsSmartBuffering)
+            setSwitchChecked(binding.rowVisualizeAsMusic, settings.streamsVisualizeAsMusic)
+            setSwitchChecked(binding.rowStreamsEnablePip, settings.enablePictureInPicture)
             withSettingsUpdate {
                 setDropdownSelection(binding.rowDefaultSort, settings.streamsDefaultSort.ordinal)
                 setDropdownSelection(binding.rowDefaultMediaFilter, settings.streamsDefaultMediaFilter.ordinal)

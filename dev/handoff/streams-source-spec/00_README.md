@@ -4,8 +4,8 @@ Source-of-truth documentation of the FastMediaSorter **Android** app's internet-
 subsystem, written as a handoff spec so the **FastMediaSorter for Windows** app can reimplement the same
 feature and **reuse the same stream bank and favicon atlas**.
 
-- **What this describes**: the implemented Android system - its delivery format, data model, catalog format,
-  favicon atlas, browse screen, player routing, entry points, and offline build/publish pipeline.
+- **What this describes**: the implemented Android phone and Wear OS system - its delivery format, data model,
+  catalog format, favicon atlas, browse screen, player routing, entry points, and offline build/publish pipeline.
 - **What this does NOT do**: prescribe a Windows design. How the feature is built on Windows is out of
   scope. Facts that a reuse **must match** to stay compatible with the shared bank are marked **[CONTRACT]**
   in each file; Android-internal implementation is marked *(impl detail)*.
@@ -165,6 +165,9 @@ To stay compatible with the shared bank, a reimplementation must:
 7. (If regenerating the bank) keep `streams.csv` as ZIP entry 0, cap the atlas at 30 MB (current
    `-MaxAtlasBytes` default), and never publish a CSV with `favicon_index` values without a matching atlas
    (the S0925 hazard - see `08`).
+8. For a portable producer or consumer, follow the **Producer conformance** and **Consumer conformance**
+   rules in `01_delivery_contract.md` §6.1. Phone-to-watch transfer is a separate Android Data Layer
+   input, not an alternative catalog publication format.
 
 ---
 

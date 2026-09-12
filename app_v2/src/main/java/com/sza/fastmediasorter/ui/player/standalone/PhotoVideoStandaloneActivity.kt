@@ -71,6 +71,7 @@ import com.sza.fastmediasorter.ui.player.print.PrintDispatchActivity
 import com.sza.fastmediasorter.util.showBoundTo
 import com.sza.fastmediasorter.utils.UserActionLogger
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.Lazy
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -321,7 +322,7 @@ class PhotoVideoStandaloneActivity :
 
     // S0393 wave-C: OCR the displayed image and show extracted text in a scrollable, copyable dialog.
     private fun ocrCurrentImage() {
-        if (!capabilityAvailability.isTranslationAvailable()) return
+        if (!capabilityAvailability.isTranslationAvailable(this)) return
         val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
             Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
             return
@@ -346,7 +347,7 @@ class PhotoVideoStandaloneActivity :
 
     // S0393 wave-C: OCR + translate the displayed image, show the translation in a dialog.
     private fun translateCurrentImage() {
-        if (!capabilityAvailability.isTranslationAvailable()) return
+        if (!capabilityAvailability.isTranslationAvailable(this)) return
         val bitmap = binding.photoView.drawable?.toBitmap() ?: run {
             Toast.makeText(this, R.string.ocr_extract_image_failed, Toast.LENGTH_SHORT).show()
             return
@@ -605,11 +606,17 @@ class PhotoVideoStandaloneActivity :
         // Pad the command panel for status/caption bar (top) + nav bar (left/right in landscape)
         // so its buttons stay inside the system-bar safe area (Rule 18).
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val top = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(nav.left, cutout.left)
+            val rightPadding = maxOf(nav.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
             insets
         }
         // S0610: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves
@@ -640,7 +647,10 @@ class PhotoVideoStandaloneActivity :
     private fun updateFullscreenExitButtonVisibility() {
         val isVideoFullscreen = !binding.topCommandPanel.isVisible &&
             viewModel.state.value.mediaType == MediaType.VIDEO
-        btnFullscreenExit.isVisible = isVideoFullscreen && pipManager?.isInPipMode != true
+        val isVideoControllerVisible = binding.playerView.isControllerFullyVisible
+        val shouldBeVisible = isVideoFullscreen && isVideoControllerVisible && pipManager?.isInPipMode != true
+        btnFullscreenExit.isVisible = shouldBeVisible
+        Timber.d("S2895: standalone exit fs=$isVideoFullscreen ctrl=$isVideoControllerVisible vis=$shouldBeVisible")
     }
 
     private fun setupBackPressHandler() {
@@ -715,11 +725,11 @@ class PhotoVideoStandaloneActivity :
             // The item stays in the shared menu (other hosts reference it), so hide it explicitly.
             popup.menu.findItem(R.id.menu_google_lens).isVisible = false
             popup.menu.findItem(R.id.menu_ocr_image).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             popup.menu.findItem(R.id.menu_translate_image).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             popup.menu.findItem(R.id.menu_image_text_settings).isVisible =
-                hasBitmap && capabilityAvailability.isTranslationAvailable()
+                hasBitmap && capabilityAvailability.isTranslationAvailable(this)
             // S0610: print is now a receiver of the unified «Send to..» menu (btnShareCmd), so the
             // isolated overflow print item is dropped for this host to keep a single invocation point.
             popup.menu.findItem(R.id.menu_print).isVisible = false
@@ -1148,7 +1158,6 @@ class PhotoVideoStandaloneActivity :
             wasFullscreenBeforePip = false
         }
         updateFullscreenExitButtonVisibility()
-        Timber.d("S2026: standalone PiP=$isInPictureInPictureMode, panel=${binding.topCommandPanel.isVisible}")
     }
 
     // S0393: reapply window insets after rotation (configChanges handles orientation here, so the
@@ -1173,6 +1182,9 @@ class PhotoVideoStandaloneActivity :
                 override fun isVrEntryAvailable(): Boolean =
                     vrCinemaLaunchManager.isAvailable &&
                         viewModel.state.value.mediaType == MediaType.VIDEO
+                override fun onControllerVisibilityChanged(visibility: Int) {
+                    updateFullscreenExitButtonVisibility()
+                }
             }
         )
         controlsManager.setupVideoControls()
@@ -1280,7 +1292,6 @@ class PhotoVideoStandaloneActivity :
         val isInPip = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && isInPictureInPictureMode
         val release = Build.VERSION.SDK_INT >= Build.VERSION_CODES.N && !isInPip
         videoReleasedOnStop = release
-        Timber.d("S2174: standalone onStop pip=$isInPip releaseVideo=$release")
         if (release) viewManager.onStopVideo()
     }
 
@@ -1290,7 +1301,6 @@ class PhotoVideoStandaloneActivity :
         // S2174: rebuild only what onStop() actually tore down. An unconditional show() re-created the
         // player under an already-visible PiP window whenever the OS dispatched a stop/start pair
         // across the PiP transition, losing the frame on the rebuild.
-        Timber.d("S2174: standalone onStart rebuildVideo=$videoReleasedOnStop")
         if (!videoReleasedOnStop) return
         videoReleasedOnStop = false
         if (viewModel.state.value.mediaType == MediaType.VIDEO) {
@@ -1393,6 +1403,13 @@ class PhotoVideoStandaloneActivity :
     }
 
     override val isAudioServiceActive: Boolean = false
+
+    // S2907: player volume for the playback-control dialog.
+    override fun getPlayerVolume(): Float = viewManager.getExoPlayer()?.volume ?: 1f
+
+    override fun setPlayerVolume(volume: Float) {
+        viewManager.getExoPlayer()?.volume = volume
+    }
 
     override fun showMessage(message: String) = viewModel.showMessage(message)
 

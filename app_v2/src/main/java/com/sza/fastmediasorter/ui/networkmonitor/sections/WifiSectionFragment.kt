@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.OsShortcutCatalog
 import com.sza.fastmediasorter.databinding.FragmentNetworkMonitorWifiBinding
 import com.sza.fastmediasorter.databinding.ViewNetworkMonitorLinkDetailsBinding
+import com.sza.fastmediasorter.domain.model.network.HotspotState
 import com.sza.fastmediasorter.domain.model.networkmonitor.ActiveLink
 import com.sza.fastmediasorter.domain.model.networkmonitor.SectionAvailability
 import com.sza.fastmediasorter.domain.model.networkmonitor.WifiEntry
@@ -76,6 +77,9 @@ class WifiSectionFragment : Fragment() {
         binding.wifiSectionHeading.setOnClickListener {
             requireContext().startSystemSurfaceFor(OsShortcutCatalog.KEY_WIFI)
         }
+        binding.wifiHotspotRow.setOnClickListener {
+            requireContext().startSystemSurfaceFor(OsShortcutCatalog.KEY_TETHERING)
+        }
         collectOnLifecycle(viewModel.uiState) { render(it) }
         collectOnLifecycle(viewModel.radio) { radioBinder?.render(it) }
         collectOnLifecycle(viewModel.radioOutcome) { radioBinder?.apply(it) }
@@ -116,6 +120,21 @@ class WifiSectionFragment : Fragment() {
             getString(R.string.network_monitor_value_mbps, it)
         } ?: unknown()
         binding.wifiStandardValue.text = entry?.standard ?: unknown()
+        renderHotspot(state.hotspot)
+    }
+
+    private fun renderHotspot(hotspot: HotspotState) {
+        val visible = hotspot != HotspotState.UNKNOWN
+        binding.wifiHotspotRow.isVisible = visible
+        if (!visible) return
+
+        val text = when (hotspot) {
+            HotspotState.ENABLED -> getString(R.string.widget_network_monitor_indicator_hotspot_enabled)
+            HotspotState.DISABLED -> getString(R.string.widget_network_monitor_indicator_hotspot_disabled)
+            HotspotState.UNKNOWN -> getString(R.string.widget_network_monitor_indicator_hotspot_unknown)
+        }
+        binding.wifiHotspotValue.text = text
+        binding.wifiHotspotRow.contentDescription = text
     }
 
     /**

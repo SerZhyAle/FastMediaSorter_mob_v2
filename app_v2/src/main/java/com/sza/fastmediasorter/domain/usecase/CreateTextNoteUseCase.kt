@@ -2,12 +2,14 @@ package com.sza.fastmediasorter.domain.usecase
 
 import com.sza.fastmediasorter.data.transfer.UnifiedFileOperationHandler
 import com.sza.fastmediasorter.domain.model.MediaResource
+import com.sza.fastmediasorter.domain.model.allowsWriteOperations
 import com.sza.fastmediasorter.domain.stats.EditKind
 import com.sza.fastmediasorter.domain.stats.StatsEvent
 import com.sza.fastmediasorter.domain.stats.StatsSink
 import com.sza.fastmediasorter.util.TextNoteTargetPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -42,8 +44,10 @@ class CreateTextNoteUseCase @Inject constructor(
         fileName: String,
         content: String = ""
     ): Result<String> = withContext(Dispatchers.IO) {
-        if (resource.isReadOnly) {
-            return@withContext Result.failure(Exception("Resource is read-only"))
+        Timber.d("S2625: create-note type=${resource.type} allowsWrite=${resource.allowsWriteOperations()}")
+        // S2625: the user flag alone misses the probe for LOCAL/CLOUD and never refuses a stream.
+        if (!resource.allowsWriteOperations()) {
+            return@withContext Result.failure(Exception("Resource does not allow write operations"))
         }
 
         val trimmedName = fileName.trim()

@@ -23,6 +23,7 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEven
 import com.sza.fastmediasorter.ui.browse.transfer.transferOverallPercent
 import com.sza.fastmediasorter.ui.dialog.FileOperationDestinationDialog
 import com.sza.fastmediasorter.ui.dialog.FileOperationProgressDialog
+import com.sza.fastmediasorter.util.directoryLandingPath
 import com.sza.fastmediasorter.util.showBoundToHost
 import com.sza.fastmediasorter.utils.SafHelper
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -624,6 +625,72 @@ class BrowseFileOperationsManager(
 
     fun requestTransferDialogReattach() {
         reattachExistingTransfer()
+    }
+
+    /**
+     * S1326: register an undo record for folders transferred through the picked-destination path,
+     * which runs outside the worker and so produced no record of its own.
+     *
+     * [sourcePaths] must contain only folders that fully succeeded; the landing paths are derived with
+     * [directoryLandingPath], the same rule the transfer itself used.
+     */
+    fun saveDirectoryUndoRecord(
+        operationType: FileOperationType,
+        sourcePaths: List<String>,
+        destinationParent: String,
+    ) {
+        if (sourcePaths.isEmpty()) return
+        callbacks.saveUndoOperation(
+            UndoOperation(
+                type = operationType,
+                sourceFiles = emptyList(),
+                destinationFolder = destinationParent,
+                copiedFiles = null,
+                sourceDirectories = sourcePaths,
+                copiedDirectories = sourcePaths.map { directoryLandingPath(it, destinationParent) },
+            ),
+        )
+    }
+
+    /**
+     * S1326: carry [treePaths] back into [destinationParent] as a normal foreground transfer.
+     *
+     * Built directly rather than through [buildTransferRequest], which expects the `MediaFile` objects a
+     * moved tree no longer has. Returns the enqueue verdict instead of routing through
+     * [startBackgroundTransfer], which is fire-and-forget: the caller keeps the undo record when the
+     * worker refuses, so the user can press undo again once the running transfer finishes.
+     *
+     * No `refuseUnsafeDirectoryOperation` pre-check is needed. The tree sits under the forward
+     * destination and travels to its original parent, so SAME_LOCATION cannot fire, and
+     * DESTINATION_INSIDE_SOURCE could only fire for a nesting the forward operation already refused.
+     */
+    suspend fun enqueueDirectoryUndoTransfer(treePaths: List<String>, destinationParent: String): Boolean {
+        Timber.d("S1326: undo ride-back requested for ${treePaths.size} tree(s) into $destinationParent")
+        val resource = callbacks.getCurrentResource()
+        if (treePaths.isEmpty() || resource == null) return false
+        val request = BrowseFileTransferRequest(
+            operationType = FileOperationType.MOVE,
+            sourceResourceId = resource.id,
+            sourceResourceName = resource.name,
+            sourceCredentialsId = resource.credentialsId,
+            currentBrowsePath = destinationParent,
+            destinationPath = destinationParent,
+            destinationName = destinationParent.trimEnd('/').substringAfterLast('/'),
+            overwriteFiles = false,
+            sources = treePaths.map { path ->
+                BrowseFileTransferSource(
+                    path = path,
+                    displayName = path.trimEnd('/').substringAfterLast('/'),
+                    size = 0L,
+                    isDirectory = true,
+                )
+            },
+            isUndo = true,
+        )
+        return when (browseTransferCoordinator.enqueueIfIdle(request)) {
+            is BrowseFileTransferCoordinator.EnqueueResult.ActiveAlreadyRunning -> false
+            is BrowseFileTransferCoordinator.EnqueueResult.Enqueued -> true
+        }
     }
 
     private fun startBackgroundTransfer(request: BrowseFileTransferRequest) {

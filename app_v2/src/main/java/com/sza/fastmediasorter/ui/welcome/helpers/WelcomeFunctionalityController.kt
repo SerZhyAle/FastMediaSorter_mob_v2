@@ -278,7 +278,7 @@ class WelcomeFunctionalityController @Inject constructor(
     // Show the translation row on all flavors where translation is supported.
     // Standard and legacy flavors can use the Google Play DFM or fall back to the GitHub mirror.
     private fun isTranslationVisible(): Boolean =
-        capabilityAvailability.isTranslationAvailable()
+        capabilityAvailability.isTranslationAvailable(context)
 
     // S0575: enabling Streams commits the master flag immediately; the source-catalog fetch is offered
     // but optional - a refusal or failure leaves the feature ON (manual sources still work) and never
@@ -291,7 +291,7 @@ class WelcomeFunctionalityController @Inject constructor(
 
     private fun bindElementsButton(binding: PageWelcomeFunctionalityBinding, owner: LifecycleOwner) {
         val button = binding.btnElements
-        if (!capabilityAvailability.isExtensionsScreenAvailable()) {
+        if (!capabilityAvailability.isExtensionsScreenAvailable(context)) {
             button.visibility = View.GONE
             return
         }

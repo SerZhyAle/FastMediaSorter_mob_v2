@@ -20,27 +20,27 @@ FastMediaSorter now includes a Wear OS companion app for browsing and playing me
 
 ### Via PowerShell (Recommended)
 
-Run the build scripts from the project root:
+Run the build scripts or `a.ps1` shortcuts from the project root:
 
 ```powershell
-# Debug build (fastest, no version bump)
-.\scripts\builders\build-wear-debug.PS1
+# Debug build (fastest, standard flavor)
+.\scripts\builders\build-wear-debug.PS1   # or .\a.ps1 wd
 
-# Release build (optimized, requires keystore)
+# Release build (optimized, standard flavor)
 .\scripts\builders\build-wear-release.PS1
 ```
 
-### Via Gradle CLI
+### Via Gradle CLI (under Build.Wear lock)
 
 ```powershell
-# Debug build
-.\gradlew.bat :wear:assembleDebug
+# Debug build (standard flavor)
+.\gradlew.bat :wear:assembleStandardDebug
 
-# Release build
-.\gradlew.bat :wear:assembleRelease
+# Release build (standard flavor)
+.\gradlew.bat :wear:assembleStandardRelease
 
 # Both main app and wear
-.\gradlew.bat assemble
+.\gradlew.bat assembleStandardDebug
 ```
 
 ### Via Android Studio
@@ -292,13 +292,17 @@ Timber.e(exception, "Error message")
 ### Run Unit Tests
 
 ```powershell
-.\gradlew.bat :wear:testDebugUnitTest
+# Via launcher (recommended)
+.\a.ps1 fwu
+
+# Or via Gradle directly (under Build.Wear lock)
+.\gradlew.bat :wear:testStandardDebugUnitTest
 ```
 
 ### Run Instrumented Tests
 
 ```powershell
-.\gradlew.bat :wear:connectedAndroidTest
+.\gradlew.bat :wear:connectedStandardDebugAndroidTest
 ```
 
 ## Building Release APK
@@ -311,7 +315,11 @@ Timber.e(exception, "Error message")
 ### Build Release APK
 
 ```powershell
-.\gradlew.bat :wear:assembleRelease
+# Via build script
+.\scripts\builders\build-wear-release.PS1
+
+# Or via Gradle directly (under Build.Wear lock)
+.\gradlew.bat :wear:assembleStandardRelease
 ```
 
 APK will be available at: `wear/build/outputs/apk/standard/release/wear-standard-release.apk` - the watch module carries `standard` and `noLegal` flavors since S2090, and `standard` is what ships.
@@ -320,12 +328,12 @@ APK will be available at: `wear/build/outputs/apk/standard/release/wear-standard
 
 **Note**: Wear OS app requires separate listing on Google Play Store
 
-1. **Generate Release APK** (see above)
+1. **Generate Release APK / AAB** (see above, or `build-wear-release.PS1 -Artifact Both`)
 2. **Sign APK** (automatic if keystore configured)
 3. **Upload to Google Play Console**
    - Create new app
    - Select category: "Wearables"
-   - Upload APK
+   - Upload APK / AAB
    - Fill metadata (screenshots, description)
    - Submit for review
 
@@ -333,11 +341,14 @@ APK will be available at: `wear/build/outputs/apk/standard/release/wear-standard
 
 | Command | Action |
 |---------|--------|
+| `.\a.ps1 wd` | Build Wear OS debug APK (standard) |
+| `.\a.ps1 fw` | Fast Kotlin compile check (standard) |
+| `.\a.ps1 fwr` | Fast resources/manifest check (standard) |
+| `.\a.ps1 fwu` | Fast unit test suite (wear module) |
 | `.\scripts\builders\build-wear-debug.PS1` | Build debug APK |
 | `.\scripts\builders\build-wear-release.PS1` | Build release APK |
 | `.\gradlew.bat :wear:clean` | Clean build outputs |
 | `.\gradlew.bat :wear:dependencies` | Show dependency tree |
-| `.\gradlew.bat :wear:lint` | Run lint checks |
 
 ## Support & Documentation
 

@@ -9,6 +9,7 @@ import android.widget.RemoteViews
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.di.MediaCapabilitiesEntryPoint
 import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 import dagger.hilt.android.EntryPointAccessors
 
 /**
@@ -56,6 +57,9 @@ class CameraPhotosWidgetProvider : AppWidgetProvider() {
                 views.setOnClickPendingIntent(R.id.widget_camera_photos_container, pendingIntent)
             }
 
+            // S2889: the identity glyph takes the sub-program's own tone, resolved in this process
+            // because a theme attr inside a RemoteViews drawable resolves against the launcher's theme.
+            HomeWidgetAccent.applyIconTint(views, R.id.widget_camera_photos_icon, context, "camera_photos")
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
     }

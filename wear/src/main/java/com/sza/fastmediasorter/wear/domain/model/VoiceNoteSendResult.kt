@@ -47,5 +47,10 @@ fun WearFileSendOutcome.toVoiceNoteSendResult(): VoiceNoteSendResult = when (thi
     WearFileSendOutcome.PHONE_UNREACHABLE -> VoiceNoteSendResult.PhoneUnreachable
     WearFileSendOutcome.TOO_LARGE -> VoiceNoteSendResult.TooLarge
     WearFileSendOutcome.NO_DESTINATION,
+    // S2142: both are answers to an errand a voice note never carries - it is sent to be filed, not
+    // handed to a receiver - so reaching either here means the phone answered something this route
+    // did not ask, which is a transport fault rather than a state the note screen can word.
+    WearFileSendOutcome.AWAITING_PHONE_ACTION,
+    WearFileSendOutcome.PHONE_NOTIFICATIONS_OFF,
     WearFileSendOutcome.FAILED -> VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.TRANSPORT_FAILED)
 }

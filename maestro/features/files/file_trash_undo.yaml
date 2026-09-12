@@ -14,6 +14,7 @@ appId: com.sza.fastmediasorter.debug
     text: "Локальные"
     index: 0
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "Загрузки"
     timeout: 10000
@@ -25,6 +26,7 @@ appId: com.sza.fastmediasorter.debug
     timeout: 15000
 
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "ops_delete_soft.png"
     timeout: 10000
@@ -46,6 +48,7 @@ appId: com.sza.fastmediasorter.debug
     text: "ops_delete_soft.png"
 
 - scrollUntilVisible:
+    visibilityPercentage: 30
     element:
       text: "ops_undo_me.png"
     timeout: 10000

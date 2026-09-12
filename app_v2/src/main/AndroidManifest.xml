@@ -299,6 +299,12 @@
              recreate through CalculatorInputManager.saveTo/restoreFrom. -->
         <activity android:name=".ui.calculator.CalculatorActivity" android:exported="false" android:label="@string/calculator_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
+        <!-- S1411: no orientation|screenSize - portrait and landscape place the same four region ids
+             differently, so the rotation must reach the layout. The measurement does not ride the
+             recreate in a Bundle; it lives in StopwatchViewModel and is derived from elapsedRealtime
+             marks, which is what ADR-8 buys. -->
+        <activity android:name=".ui.stopwatch.StopwatchActivity" android:exported="false" android:label="@string/stopwatch_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S1796: no orientation|screenSize in configChanges - the glow layout is orientation-agnostic,
              but absorbing the change would keep stale insets on the corner controls after a rotation. -->
         <!-- S1733: a transparent host for the system-information report, so a launcher cell or a panel
@@ -309,12 +315,31 @@
         <activity android:name=".ui.flashlight.FrontFlashlightActivity" android:exported="false" android:label="@string/front_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
         <activity android:name=".ui.flashlight.FlashlightToggleActivity" android:exported="false" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" android:theme="@style/Theme.FastMediaSorter.Transparent" />
 
+        <!-- S2516: the water flashlight - the same family, but a screen no touch can close. -->
+        <activity android:name=".ui.flashlight.WaterFlashlightActivity" android:exported="false" android:label="@string/water_flashlight_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
         <!-- S2211: autonomous Black Screen application surface -->
         <activity android:name=".ui.blackscreen.BlackScreenActivity" android:exported="false" android:label="@string/launcher_action_black_screen" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S1924: the mirror sub-program. Declared with the route in Phase 02 so the registered
+             destination resolves; Phase 03 fills the screen behind it. -->
+        <activity android:name=".ui.mirror.MirrorActivity" android:exported="false" android:label="@string/mirror_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S2508: Live Broadcast share activity (QR code barcode display + file export) -->
+        <activity android:name=".ui.broadcast.BroadcastShareActivity" android:exported="false" android:label="@string/broadcast_share_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S2818: broadcast entry confirmation - the screen the shortcut, QS tile and widget open.
+             No intent filter: surfaces launch it by explicit component. No orientation|screenSize in
+             configChanges - the screen has a layout-land variant (see S1433 note above). -->
+        <activity android:name=".ui.broadcast.BroadcastEntryActivity" android:exported="false" android:label="@string/broadcast_entry_title" android:configChanges="keyboardHidden" />
 
         <!-- S1433: no orientation|screenSize in configChanges on purpose - the Summary screen has a
              layout-land variant, and an Activity that absorbs the configuration change never re-inflates it. -->
         <activity android:name=".ui.networkmonitor.NetworkMonitorActivity" android:exported="false" android:label="@string/network_monitor_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
+
+        <!-- S2922: Tourist dashboard sub-program - real-time telemetry and navigation tiles.
+             No orientation|screenSize in configChanges so rotation inflates layout-land variant. -->
+        <activity android:name=".ui.tourist.TouristInfoActivity" android:exported="false" android:label="@string/tourist_info_title" android:configChanges="keyboardHidden" android:parentActivityName=".ui.main.MainActivity" />
 
         <activity android:name=".ui.cameraocr.CameraOcrTranslateActivity" android:exported="false" android:label="@string/setting_camera_ocr_translation_title" android:configChanges="orientation|screenSize|keyboardHidden" android:parentActivityName=".ui.main.MainActivity" android:theme="@style/Theme.FastMediaSorter" />
         <!-- S0754: portrait-locked host; overlay controls rotate by sensor while the layout stays fixed. -->
@@ -353,6 +378,12 @@
              GMS service needs the overlay, because only it references Play Services types that must not
              reach a flavor without them. -->
         <activity android:name=".ui.wear.WearCompanionActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.NoActionBar" android:excludeFromRecents="true" />
+
+        <!-- S2881: listen-to-the-watch trampoline, the same transparent no-UI shape as the quick
+             recorder and the stream player - the programs menu, the quick-access panel, the launcher
+             shortcuts and the widget all target it, and it draws nothing itself. The surfaces gate it
+             by availability, so on flavors without the watch bridge it is simply never launched. -->
+        <activity android:name=".ui.wear.WatchListenLaunchActivity" android:exported="false" android:theme="@style/Theme.FastMediaSorter.Transparent" android:excludeFromRecents="true" android:taskAffinity="" android:noHistory="true" />
 
         <activity android:name=".ui.addresource.AddResourceActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden" />
 
@@ -528,12 +559,17 @@
         </receiver>
 
         <!-- S1401: keeps the installed-app cache in step with installs, removals and locale changes.
-             Exported because the sender is the system; the package broadcasts are exempt from the
-             implicit-broadcast restrictions, so a manifest receiver still fires with the app stopped. -->
+             Exported because the sender is the system.
+             S2739: PACKAGE_FULLY_REMOVED is the only package broadcast exempt from the Android 8.0
+             implicit-broadcast restrictions, so on minSdk 26 it is the only one a manifest receiver
+             ever gets; the other three are kept for the legacy flavor (API 23).
+             S2745: from API 26 up, ADDED / REPLACED / REMOVED arrive through the runtime registration
+             in InstalledAppsChangeWatcher, which the restriction does not apply to. -->
         <receiver android:name=".core.apps.InstalledAppsChangeReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.PACKAGE_ADDED" />
                 <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <action android:name="android.intent.action.PACKAGE_FULLY_REMOVED" />
                 <action android:name="android.intent.action.PACKAGE_REPLACED" />
                 <data android:scheme="package" />
             </intent-filter>
@@ -652,12 +688,31 @@
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_calculator_info" />
         </receiver>
 
+        <!-- Stopwatch Widget -->
+        <receiver android:name=".widget.StopwatchWidgetProvider" android:exported="true" android:label="@string/widget_stopwatch_label" android:icon="@drawable/ic_widget_stopwatch_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <!-- S1411: the elapsed-realtime clock restarts at a reboot, so a running cell must be
+                     re-drawn once; nothing else would, updatePeriodMillis being 0 by design. -->
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_stopwatch_info" />
+        </receiver>
+
         <!-- Front Flashlight Widget -->
         <receiver android:name=".widget.FrontFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_front_flashlight_label" android:icon="@drawable/ic_widget_front_flashlight_accent">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_front_flashlight_info" />
+        </receiver>
+
+        <!-- S2516: Water Flashlight Widget -->
+        <receiver android:name=".widget.WaterFlashlightWidgetProvider" android:exported="true" android:label="@string/widget_water_flashlight_label" android:icon="@drawable/ic_widget_water_flashlight_accent">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_water_flashlight_info" />
         </receiver>
 
         <!-- Camera OCR Translate Widget -->
@@ -689,6 +744,15 @@
 
         <!-- Scheduled file operations: reschedule on device boot -->
         <receiver android:name=".worker.ScheduledOperationsBootReceiver" android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- S2776: the shade shortcut for the camera flashlight - the tap target, and the boot
+             re-post, because a notification does not survive a reboot. -->
+        <receiver android:name=".core.notification.FlashlightShortcutReceiver" android:exported="false" />
+        <receiver android:name=".core.notification.FlashlightShortcutBootReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
@@ -999,6 +1063,16 @@
              on devices with outdated Google Play Services. DataTransport falls back to
              AlarmManagerSchedulerBroadcastReceiver which does not block the main thread. -->
         <service android:name="com.google.android.datatransport.runtime.scheduling.jobscheduling.JobInfoSchedulerService" tools:node="remove" />
+
+        <!-- Android 16+ Assistant Actions (S2920) -->
+        <service
+            android:name=".core.assistant.MediaAssistantAppFunctionService"
+            android:exported="true"
+            android:permission="android.permission.BIND_APP_FUNCTION_SERVICE">
+            <intent-filter>
+                <action android:name="android.app.appfunctions.AppFunctionService" />
+            </intent-filter>
+        </service>
 
     </application>
 

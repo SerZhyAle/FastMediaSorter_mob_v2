@@ -113,6 +113,11 @@ $stubDefaults = @{
     FMS_STUB_RADIUS   = '0'
     FMS_STUB_SECURE   = '0'
     FMS_STUB_WATCH    = '0'
+    FMS_STUB_FONT_SCALE = ''
+    # S2855: the install verb's recording hook reads the version back through dumpsys. A case that
+    # names a body here makes the stub answer it verbatim; the empty default keeps the passthrough.
+    # Lives in this table so Invoke-Verb resets it for every case like the rest of the stub input.
+    FMS_STUB_DUMPSYS_PACKAGE = ''
 }
 
 # Run one verb through the real adb.ps1 and bring back the process exit code plus the parsed object.
@@ -200,6 +205,16 @@ if (Assert-Envelope $r 'devices' $true 0) {
     Assert-Equal 'Pixel 7'       $r.json.data[0].model 'devices -Json: data[0].model'
 }
 
+# An mDNS service name may carry a space: a watch advertised by a second adb server comes back as
+# "adb-<serial>-xxxx (2)._adb-tls-connect._tcp". Get-OnlineDevices split on whitespace until
+# 2026-09-09 and dropped that row silently, so `install -Module wear` saw only the phone.
+$spacedId = 'adb-RFGL1148CRZ-2fv3Pn (2)._adb-tls-connect._tcp'
+$r = Invoke-Verb @('devices') -Stub @{ FMS_STUB_DEVICES = $spacedId } -NoOutDir
+if (Assert-Envelope $r 'devices' $true 0) {
+    Assert-Equal 1          $r.json.data.Count 'devices -Json: an id containing a space is not dropped'
+    Assert-Equal $spacedId  $r.json.data[0].id 'devices -Json: the spaced id survives whole'
+}
+
 $r = Invoke-Verb @('props')
 if (Assert-Envelope $r 'props' $true 0) {
     Assert-DataFields $r 'props' @('id', 'model', 'android', 'sdk', 'density', 'size')
@@ -216,6 +231,23 @@ $r = Invoke-Verb @('launch')
 if (Assert-Envelope $r 'launch' $true 0) {
     Assert-DataFields $r 'launch' @('id', 'package', 'component')
     Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity' $r.json.data.component 'launch -Json: data.component'
+}
+
+# ---- launch on a watch device (S2992) ----
+# Select-Device's own -Module disambiguation only runs among SEVERAL online devices, so a lone
+# watch and no -Module used to fall through to the 'app_v2' default and send `am start` at a
+# component the wear build does not have. `launch` now reads the SELECTED device's own
+# characteristics when -Module was not named, and an explicit -Module still works when it agrees.
+$launchWatchStub = @{ FMS_STUB_WATCH = '1' }
+
+$r = Invoke-Verb @('launch') -Stub $launchWatchStub
+if (Assert-Envelope $r 'launch' $true 0) {
+    Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity' $r.json.data.component 'launch -Json: a lone watch with no -Module resolves the wear component'
+}
+
+$r = Invoke-Verb @('launch', '-Module', 'wear') -Stub $launchWatchStub
+if (Assert-Envelope $r 'launch' $true 0) {
+    Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity' $r.json.data.component 'launch -Json: an explicit -Module wear matching the device still resolves the wear component'
 }
 
 $r = Invoke-Verb @('stop')
@@ -326,6 +358,68 @@ if (Assert-Envelope $r 'clip-check' $false 9) {
     Assert-True ([string]::IsNullOrEmpty($r.json.reason) -eq $false) 'clip-check -Json: reason names the defect' $r.json.reason
 }
 
+# ---- font-scale: the read, the write, and the refusal that protects a real device ----
+# A large font is a Play review criterion (S2755), so this verb exists to MEASURE. Its refusal is the
+# interesting half: the same call that is routine on an emulator changes a personal device's system
+# setting, and which devices may be changed at all is docs/DEVICE_FLEET.md, never this script.
+
+$r = Invoke-Verb @('font-scale')
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-DataFields $r 'font-scale' @('id', 'scale')
+    Assert-Equal 1.0 $r.json.data.scale 'font-scale -Json: an untouched device answers null and is reported as the 1.0 default'
+}
+
+$r = Invoke-Verb @('font-scale') -Stub @{ FMS_STUB_FONT_SCALE = '1.3' }
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-Equal 1.3 $r.json.data.scale 'font-scale -Json: a device carrying a value reports that value'
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3')
+if (Assert-Envelope $r 'font-scale' $true 0) {
+    Assert-DataFields $r 'font-scale' @('id', 'scale', 'previous', 'written')
+    Assert-Equal 1.3 $r.json.data.written 'font-scale -Json: the value asked for is reported as written'
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3') -Stub @{ FMS_STUB_DEVICES = 'RFCR110NBQJ' }
+if (Assert-Envelope $r 'font-scale' $false 11) {
+    Assert-True ($r.json.reason -like '*DEVICE_FLEET*') 'font-scale: the refusal sends the caller to the fleet roster' $r.json.reason
+}
+
+$r = Invoke-Verb @('font-scale', '-Scale', '1.3', '-Yes') -Stub @{ FMS_STUB_DEVICES = 'RFCR110NBQJ' }
+Assert-Envelope $r 'font-scale' $true 0 | Out-Null
+
+# ---- clip-check -Strict: the frame criterion, separate from the off-glass one ----
+
+# The recorded dump was named "clean" under the off-glass criterion, and it carries two CLIPPED
+# nodes. That is the whole point of the strict mode: the same frame passes one criterion and fails
+# the other, and Play applies the stricter one.
+$r = Invoke-Verb @('clip-check', '-Strict') -Stub ($watchStub + @{ FMS_STUB_TREE = $treeClean })
+if (Assert-Envelope $r 'clip-check' $false 10) {
+    Assert-Equal $true $r.json.data.strict 'clip-check -Strict -Json: the mode is recorded in the payload'
+    Assert-Equal 0 $r.json.data.offGlass 'clip-check -Strict -Json: strict does not invent an off-glass node'
+    Assert-True ($r.json.data.frameCut -gt 0) 'clip-check -Strict -Json: the frame-cut nodes are counted' $r.json.data.frameCut
+}
+
+$r = Invoke-Verb @('clip-check') -Stub ($watchStub + @{ FMS_STUB_TREE = $treeClean })
+Assert-Equal 0 $r.exit 'clip-check without -Strict: the same dump still passes the off-glass criterion'
+
+# ---- rotary (S2548) ----
+# Driven from here because it needs $watchStub. Both halves matter, and the refusal more than the turn:
+# both modules publish under one applicationId, so a bezel aimed at a phone would be silent, not red.
+
+$r = Invoke-Verb @('rotary', '-Axis', '1.5', '-Repeat', '2') -Stub $watchStub
+if (Assert-Envelope $r 'rotary' $true 0) {
+    Assert-Equal 1.5 $r.json.data.axis   'rotary -Json: data.axis is the caller value'
+    Assert-Equal 2   $r.json.data.repeat 'rotary -Json: data.repeat'
+}
+
+$r = Invoke-Verb @('rotary', '-Axis', '1.0')
+Assert-Equal 12 $r.exit 'rotary on a device that is not a watch: process exit 12'
+Assert-Equal $false $r.json.ok 'rotary on a device that is not a watch: ok is false'
+
+$r = Invoke-Verb @('rotary') -Stub $watchStub
+Assert-Equal 1 $r.exit 'rotary without -Axis: process exit 1'
+
 # ---- verbs that write, install or remove ----
 
 $r = Invoke-Verb @('install', '-Apk', $fakeApk)
@@ -388,6 +482,68 @@ if ($null -ne $r.json) {
 }
 Assert-Failure (Invoke-Verb @('tap-id', '-ResourceId', 'nothingMatchesThis', '-Exact')) 'tap-id' 8 'tap-id with no matching node'
 Assert-Failure (Invoke-Verb @('tap-label', '-Label', 'nothingMatchesThis', '-Exact')) 'tap-label' 8 'tap-label with no matching node'
+
+# ---- launch refuses an EXPLICIT -Module that conflicts with the device (S2992) ----
+# Mirrors install's own guard (S1681/S2043): a NAMED -Module that disagrees with the device is
+# refused rather than sent to `am start`, where it would fail anyway but without saying why.
+Assert-Failure (Invoke-Verb @('launch', '-Module', 'wear')) 'launch' 1 'launch -Module wear on a device with no watch characteristics'
+Assert-Failure (Invoke-Verb @('launch', '-Module', 'app_v2') -Stub @{ FMS_STUB_WATCH = '1' }) 'launch' 1 'launch -Module app_v2 explicitly named on a watch device'
+
+Write-Host ""
+Write-Host "== install records the registry mark (S2855) ==" -ForegroundColor Cyan
+# The install verb's recording hook must turn one successful install into a registry record whose
+# values come from the device's own dumpsys answer, stamped with the entry point. The stub answers
+# dumpsys from FMS_STUB_DUMPSYS_PACKAGE with a lastUpdateTime of NOW, because the hook's freshness
+# guard must read a package THIS install touched. The device serial is a test serial so the record
+# lands beside the real park under a name the finally block removes.
+$registryStore = Join-Path $repoRoot 'temp/DEVICE.REGISTRY'
+$testSerial = 'test-registry-emulator'
+$testRecord = Join-Path $registryStore "$testSerial.json"
+$recordApk = Join-Path $runDir 'record-case.apk'
+Set-Content -LiteralPath $recordApk -Value 'not a real apk - the stub accepts any install -r -d' -Encoding UTF8
+# One stamp, captured once: the stale variant is derived from the fresh body by a literal replace,
+# so the only difference between the two cases is the lastUpdateTime the hook judges.
+$recordStamp = [DateTime]::Now.ToString('yyyy-MM-dd HH:mm:ss')
+$dumpsysBody = @"
+Package [com.sza.fastmediasorter.debug] (abcd):
+  versionCode=4242 minSdk=26 targetSdk=36
+  versionName=2.60.9100.999
+  lastUpdateTime=$recordStamp
+"@
+try {
+    $r = Invoke-Verb @('install', '-Apk', $recordApk) -Stub @{
+        FMS_STUB_DEVICES            = $testSerial
+        FMS_STUB_DUMPSYS_PACKAGE    = $dumpsysBody
+    }
+    if (Assert-Envelope $r 'install' $true 0) {
+        if (Test-Path -LiteralPath $testRecord) {
+            $record = Get-Content -LiteralPath $testRecord -Raw | ConvertFrom-Json
+            Assert-Equal 'com.sza.fastmediasorter.debug' $record.lastInstall.package 'recorded package'
+            Assert-Equal '2.60.9100.999'                 $record.lastInstall.versionName 'recorded versionName'
+            Assert-Equal 'debug'                         $record.lastInstall.buildType 'recorded buildType'
+            Assert-Equal 'adb.ps1 install'               $record.lastInstall.recordedBy 'recorded entry point'
+            Assert-Equal 'record-case.apk'               $record.lastInstall.artifact 'recorded artifact name'
+        }
+        else {
+            Assert-Equal 'a record on disk' 'absent' 'the install wrote no registry record'
+        }
+    }
+
+    # A dumpsys answer about a package this install did NOT touch (an old lastUpdateTime) must not
+    # produce a record - a pre-existing install is not a fact about this verb's work.
+    Remove-Item -LiteralPath $testRecord -Force -ErrorAction SilentlyContinue
+    $staleBody = $dumpsysBody.Replace($recordStamp, '2020-01-01 00:00:00')
+    $r = Invoke-Verb @('install', '-Apk', $recordApk) -Stub @{
+        FMS_STUB_DEVICES         = $testSerial
+        FMS_STUB_DUMPSYS_PACKAGE = $staleBody
+    }
+    if (Assert-Envelope $r 'install' $true 0) {
+        Assert-True (-not (Test-Path -LiteralPath $testRecord)) 'a stale lastUpdateTime produced a record - the freshness guard failed'
+    }
+}
+finally {
+    Remove-Item -LiteralPath $testRecord -Force -ErrorAction SilentlyContinue
+}
 
 Write-Host ""
 Write-Host "== coverage ratchet ==" -ForegroundColor Cyan

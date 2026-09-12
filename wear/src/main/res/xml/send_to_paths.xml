@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S2142: the roots a «Send to..» receiver may be handed a file from.
+
+    Only the directories this app writes itself are listed. A MediaStore row reaches a receiver by its
+    own content URI and never through here, so widening these paths would grant reach the feature does
+    not need.
+-->
+<paths>
+    <cache-path name="wear_send_to_cache" path="." />
+    <files-path name="wear_send_to_files" path="." />
+    <external-files-path name="wear_send_to_external" path="." />
+</paths>

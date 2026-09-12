@@ -4,9 +4,11 @@ import android.app.Application
 import android.util.Log
 import com.sza.fastmediasorter.wear.core.logging.WearLogTree
 import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
+import com.sza.fastmediasorter.wear.data.power.WearPowerStateObserver
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.usecase.DrainPendingVoiceNotesUseCase
+import com.sza.fastmediasorter.wear.domain.usecase.RefreshVoiceNoteTitlesUseCase
 import dagger.Lazy
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
@@ -32,6 +34,18 @@ class FastMediaSorterWearApp : Application() {
     @Inject lateinit var drainPendingVoiceNotesUseCase: Lazy<DrainPendingVoiceNotesUseCase>
 
     /**
+     * S2626: Lazy for the same reason - it reads the note index, and on the usual start the language
+     * has not changed, so it must not be a reason to open that database during process start.
+     */
+    @Inject lateinit var refreshVoiceNoteTitlesUseCase: Lazy<RefreshVoiceNoteTitlesUseCase>
+
+    /**
+     * S2536: folds the watch's own charge, the system saver and the synced trigger into one policy
+     * level. Its battery observation starts with the first started activity, not with the process.
+     */
+    @Inject lateinit var powerStateObserver: WearPowerStateObserver
+
+    /**
      * Outlives every screen by construction: the drain must finish even if the user closes the app
      * while it is running. Never cancelled - an Application has no end short of the process ending.
      */
@@ -50,11 +64,17 @@ class FastMediaSorterWearApp : Application() {
             Timber.plant(Timber.DebugTree())
         }
 
+        registerActivityLifecycleCallbacks(powerStateObserver)
+
         // S1814: apply persisted app language on startup
-        CoroutineScope(Dispatchers.Main.immediate).launch {
+        applicationScope.launch(Dispatchers.Main.immediate) {
             try {
                 preferencesRepository.appLanguage.firstOrNull()?.let { lang ->
                     WearLocaleManager.applyLocale(this@FastMediaSorterWearApp, lang)
+                    // S2626: repairs titles a build that predates the refresh pass left in an
+                    // abandoned language. Exits without touching the note index once they match.
+                    Timber.d("S2626: startup locale $lang applied, refreshing note titles")
+                    refreshVoiceNoteTitlesUseCase.get().invoke(lang)
                 }
             } catch (e: CancellationException) {
                 throw e

@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.content.res.Resources
 import android.view.View
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
 import com.sza.fastmediasorter.ui.launcher.LauncherHomeViewModel
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
@@ -32,12 +33,23 @@ class LauncherDesktopGeometryManager(
      * Rotation and density changes re-resolve the column count and re-place every cell. Rebinding IS
      * the re-layout here, so there is no bound state that can go stale behind a changed column count -
      * the trap the RecyclerView renderer had, where requestLayout() never re-ran a bind (ADR-9).
+     *
+     * S2685: the render is skipped while the cells on hand belong to the orientation just left.
+     * [LauncherHomeViewModel.cells] is the orientation flat-mapped onto a repository query, so right
+     * after [LauncherHomeViewModel.setOrientation] the resolved list is still the previous
+     * orientation's seating - rendering it now tears down every cell view, reinflates the lot at the
+     * new column count, and draws a frame whose seating belongs to the other orientation, only to be
+     * replaced when the query answers. Skipping cannot strand the desktop at the old geometry: a real
+     * orientation change re-runs the query, its cells carry the new orientation and so cannot equal
+     * the previous list, and the collector on that emission renders.
      */
     fun applyGridGeometry() {
         val orientation = currentOrientation()
         val columns = currentColumns()
         viewModel.setOrientation(orientation)
-        renderDesktop()
+        if (cellsMatchOrientation(viewModel.cells.value, orientation)) {
+            renderDesktop()
+        }
         viewModel.persistColumns(orientation, columns)
     }
 
@@ -140,5 +152,21 @@ class LauncherDesktopGeometryManager(
         }
         lastOrientation = now
         return true
+    }
+
+    companion object {
+        /**
+         * S2685: whether [cells] were resolved for [orientation]. The first cell answers for the whole
+         * list because the desktop is resolved one orientation at a time, so a resolved list is
+         * homogeneous by construction. An empty list names no orientation and inflates nothing, so it
+         * matches anything rather than blocking the render that would draw an empty desktop.
+         */
+        fun cellsMatchOrientation(
+            cells: List<LauncherCellUi>,
+            orientation: LauncherOrientation,
+        ): Boolean {
+            val first = cells.firstOrNull() ?: return true
+            return first.cell.orientation == orientation
+        }
     }
 }

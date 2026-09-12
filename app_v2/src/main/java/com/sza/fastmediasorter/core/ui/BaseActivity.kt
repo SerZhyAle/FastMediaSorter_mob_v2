@@ -25,8 +25,10 @@ import com.sza.fastmediasorter.core.input.GamepadNavigationTranslator
 import com.sza.fastmediasorter.core.input.TvKeyRouter
 import com.sza.fastmediasorter.core.input.TvNavAction
 import com.sza.fastmediasorter.core.theme.ColorThemePrefs
+import com.sza.fastmediasorter.core.util.AnimationPolicy
 import com.sza.fastmediasorter.core.util.GmsAvailabilityChecker
 import com.sza.fastmediasorter.core.util.LocaleHelper
+import com.sza.fastmediasorter.core.util.PowerPolicyLevel
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.ui.common.ActivityMouseDispatchHelper
 import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationBarAttachManager
@@ -34,7 +36,6 @@ import com.sza.fastmediasorter.ui.common.backgroundop.BackgroundOperationTrackMa
 import com.sza.fastmediasorter.ui.common.input.FocusTargetResolver
 import com.sza.fastmediasorter.ui.common.input.InputHelpDialogFragment
 import com.sza.fastmediasorter.ui.common.input.UiSurface
-import com.sza.fastmediasorter.ui.player.helpers.PlayerLayoutModePrefs
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import kotlinx.coroutines.flow.Flow
 import timber.log.Timber
@@ -147,17 +148,18 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
         _binding = getViewBinding()
         setContentView(binding.root)
-        
+
         // Apply keep screen awake from the cached decision, then keep it in sync with settings.
         applyKeepScreenAwake()
         collectOnLifecycle(appSettings) { settings ->
             keepScreenAwakeDecision = keepScreenAwakeFor(settings)
+            Timber.d("S2536: keepScreenAwake=$keepScreenAwakeDecision level=${AnimationPolicy.level}")
             applyKeepScreenAwake()
             // S1045: drive the secure flag from the same settings stream (initial + reactive apply).
             lastSecureFlagSettings = settings
             applySecureFlagIfEnabled(settings)
         }
-        
+
         // Defer heavy initialization to allow first frame to render quickly
         val onCreateT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
         binding.root.post {
@@ -167,7 +169,9 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
             if (_binding == null || isDestroyed) return@post
             if (BuildConfig.DEBUG) {
                 val waitMs = SystemClock.uptimeMillis() - onCreateT0
-                Timber.d("BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)")
+                Timber.d(
+                    "BaseActivity.setupViews[${this::class.simpleName}]: START (waited ${waitMs}ms for first frame)"
+                )
             }
             val setupT0 = if (BuildConfig.DEBUG) SystemClock.uptimeMillis() else 0L
             setupViews()
@@ -220,6 +224,12 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // S2536: recompute rather than re-apply the cached answer. The power level can move while
+        // this activity is stopped and the settings collector does not re-emit for it, so a screen
+        // resumed after the charge recovered would otherwise keep the standing-down decision until
+        // the next unrelated settings change. Re-running the override chain also keeps each player
+        // host's own answer authoritative.
+        lastSecureFlagSettings?.let { keepScreenAwakeDecision = keepScreenAwakeFor(it) }
         // Reapply wake lock in case it was cleared by system
         applyKeepScreenAwake()
         // S1045: some OEMs clear window flags on background - re-apply from the last settings snapshot.
@@ -254,7 +264,13 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     // S0438: keep-screen-on decision is settings-driven. Default applies the global preventSleep;
     // player hosts override to also honour the dependent keepScreenOnPlayer setting.
-    protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean = settings.preventSleep
+    //
+    // S2536: the GLOBAL hold stands down in the power-saving level. It is on by default, so it is the
+    // app's largest always-on-screen cost and outweighs every decorative animator combined. The
+    // player hosts' override is deliberately not gated here: dropping the hold mid-video would blank
+    // the screen during playback, which is a functional break rather than an economy.
+    protected open fun keepScreenAwakeFor(settings: AppSettings): Boolean =
+        settings.preventSleep && AnimationPolicy.level != PowerPolicyLevel.SAVING
 
     // Cached decision so onCreate/onResume can re-apply the flag synchronously between settings emissions.
     private var keepScreenAwakeDecision: Boolean = true
@@ -271,7 +287,7 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
      * Called when the device configuration changes (e.g., screen rotation).
      * Override this method in subclasses to handle layout recalculations
      * when the screen orientation changes.
-     * 
+     *
      * This is used to support rotation on phones - when width > height,
      * we treat it as landscape mode (same as tablet native mode).
      */
@@ -281,8 +297,10 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
 
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
-        Timber.d("onConfigurationChanged: ${this::class.simpleName}, orientation=${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "LANDSCAPE" else "PORTRAIT"}, screenWidthDp=${newConfig.screenWidthDp}")
-        
+        Timber.d(
+            "onConfigurationChanged: ${this::class.simpleName}, orientation=${if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) "LANDSCAPE" else "PORTRAIT"}, screenWidthDp=${newConfig.screenWidthDp}"
+        )
+
         // Notify subclasses to handle layout changes after rotation.
         // Guard the same destroyed-before-post race as onCreate(): the runnable must not
         // reach a subclass that dereferences a cleared binding.
@@ -388,18 +406,27 @@ abstract class BaseActivity<VB : ViewBinding> : AppCompatActivity() {
         // Persistent guard: show snackbar at most once per installation.
         if (GmsAvailabilityChecker.isWarningSeen(this)) return
         GmsAvailabilityChecker.markWarningSeen(this)
-        val msgRes = if (GmsAvailabilityChecker.needsUpdate)
+        val msgRes = if (GmsAvailabilityChecker.needsUpdate) {
             R.string.gms_update_required
-        else
+        } else {
             R.string.gms_unavailable
+        }
         Snackbar.make(binding.root, msgRes, Snackbar.LENGTH_INDEFINITE)
             .setAction(R.string.gms_update_action) {
                 try {
-                    startActivity(Intent(Intent.ACTION_VIEW,
-                        Uri.parse("market://details?id=com.google.android.gms")))
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("market://details?id=com.google.android.gms")
+                        )
+                    )
                 } catch (e: Exception) {
-                    startActivity(Intent(Intent.ACTION_VIEW,
-                        Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")))
+                    startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            Uri.parse("https://play.google.com/store/apps/details?id=com.google.android.gms")
+                        )
+                    )
                 }
             }
             .show()

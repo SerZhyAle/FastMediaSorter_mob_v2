@@ -103,9 +103,8 @@ class TranslationOverlayViewTest {
     }
 
     /**
-     * S2064: `sampleBackgroundColor` is the only path `setTranslatedBlocks` uses to populate
-     * `backgroundColor`, so a reduced alpha there defeats the opaque default regardless of it -
-     * this was the actual defect, not the sampled colour itself.
+     * S2064 & S1714: `samplePlateColors` populates both `backgroundColor` and `textColor`
+     * with opaque median colors and sets fully opaque alpha.
      */
     @Test
     fun `sampled background stays fully opaque regardless of the source pixel`() {
@@ -118,6 +117,19 @@ class TranslationOverlayViewTest {
         view.setTranslatedBlocks(listOf(translatedBlock))
 
         assertEquals(255, Color.alpha(translatedBlock.backgroundColor))
+        assertEquals(255, Color.alpha(translatedBlock.textColor))
+    }
+
+    /** S1714: ocrRectToSource correctly maps and clamps OCR bounding rects to source coordinates. */
+    @Test
+    fun `ocr rect maps to source rect proportionally`() {
+        val view = newView()
+        view.setOriginalImageSize(100, 100)
+        val source = bitmap(200, 200)
+        view.setSourceBitmap(source)
+
+        val mapped = view.ocrRectToSource(Rect(10, 20, 50, 60), source)
+        assertEquals(Rect(20, 40, 100, 120), mapped)
     }
 
     private fun block(boxHeight: Int, typeSizePx: Int?): TranslationOverlayView.TranslatedBlock =

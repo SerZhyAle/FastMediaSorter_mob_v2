@@ -59,4 +59,6 @@
     <dimen name="main_cmd_text_size">16sp</dimen>
     <dimen name="main_cmd_bar_separator_width">2dp</dimen>
     <dimen name="main_tab_strip_leading_anchor">@dimen/main_top_panel_leading_anchor</dimen>
+    <dimen name="broadcast_share_qr_size">220dp</dimen>
+    <dimen name="launcher_wallpaper_preview_height">120dp</dimen>
 </resources>

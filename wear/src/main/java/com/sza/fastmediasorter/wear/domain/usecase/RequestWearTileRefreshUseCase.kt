@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.wear.tiles.TileService
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.tile.WearFavouritesTileService
+import com.sza.fastmediasorter.wear.tile.WearProgramsTileService
 import com.sza.fastmediasorter.wear.tile.WearResourceTileService
+import com.sza.fastmediasorter.wear.tile.WearSectionsTileService
 import com.sza.fastmediasorter.wear.tile.WearStreamTileService
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -23,6 +25,8 @@ class RequestWearTileRefreshUseCase @Inject constructor(
             WearTileKind.RESOURCE -> WearResourceTileService::class.java
             WearTileKind.STREAM -> WearStreamTileService::class.java
             WearTileKind.FAVOURITES -> WearFavouritesTileService::class.java
+            WearTileKind.PROGRAMS -> WearProgramsTileService::class.java
+            WearTileKind.SECTIONS -> WearSectionsTileService::class.java
         }
         TileService.getUpdater(context).requestUpdate(serviceClass)
     }

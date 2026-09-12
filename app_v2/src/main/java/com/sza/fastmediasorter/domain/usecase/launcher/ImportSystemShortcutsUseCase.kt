@@ -27,6 +27,7 @@ import javax.inject.Inject
 class ImportSystemShortcutsUseCase @Inject constructor(
     private val installedAppsRepository: InstalledAppsRepository,
     private val desktopRepository: LauncherDesktopRepository,
+    private val resolveColumns: ResolveLauncherColumnsUseCase,
 ) {
     suspend operator fun invoke(): Boolean = withContext(Dispatchers.IO) {
         runCatching {
@@ -34,10 +35,8 @@ class ImportSystemShortcutsUseCase @Inject constructor(
             if (apps.isEmpty()) return@runCatching false
 
             val state = desktopRepository.state()
-            val portraitCols =
-                if (state.columnsPortrait > 0) state.columnsPortrait else DEFAULT_PORTRAIT_COLUMNS
-            val landscapeCols =
-                if (state.columnsLandscape > 0) state.columnsLandscape else DEFAULT_LANDSCAPE_COLUMNS
+            val portraitCols = resolveColumns(LauncherOrientation.PORTRAIT, state.columnsPortrait)
+            val landscapeCols = resolveColumns(LauncherOrientation.LANDSCAPE, state.columnsLandscape)
 
             // The cache is deliberately stored unordered - ordering is the consumer's business, and this
             // consumer never stated one, which is why the desktop filled up in enumeration order.
@@ -127,10 +126,5 @@ class ImportSystemShortcutsUseCase @Inject constructor(
             ),
             columns,
         )
-    }
-
-    private companion object {
-        const val DEFAULT_PORTRAIT_COLUMNS = 4
-        const val DEFAULT_LANDSCAPE_COLUMNS = 6
     }
 }

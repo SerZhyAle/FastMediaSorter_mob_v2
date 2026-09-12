@@ -50,12 +50,16 @@ class LauncherEditModeManager(
         desktop.setOnDragListener(dragListener)
         // S1466: the gesture opens the quick menu; entering edit mode is now one of its items (ADR-1).
         // The listener sits on the container, so a press that lands on a cell or an interactive gadget is
-        // consumed by that child first and never reaches here. While the desktop is locked, or edit mode is
-        // already on, the gesture stays the silent no-op it has been since S1090.
+        // consumed by that child first and never reaches here. While edit mode is already on, the gesture
+        // stays the silent no-op it has been since S1090.
+        // S2397: the locked desktop no longer stays silent - it answers with a toast, so the gesture is
+        // handled and must not fall through to a second responder after the answer is already on screen.
         desktop.setOnLongClickListener {
-            val locked = viewModel.desktopLocked.value
-            val editing = viewModel.editMode.value
-            if (locked || editing) return@setOnLongClickListener false
+            if (viewModel.desktopLocked.value) {
+                viewModel.onLockedDesktopLongPress()
+                return@setOnLongClickListener true
+            }
+            if (viewModel.editMode.value) return@setOnLongClickListener false
             showQuickMenu()
             true
         }
@@ -97,8 +101,7 @@ class LauncherEditModeManager(
             // list the projection runs against, so the two directions cannot disagree about a fold.
             LauncherGridGeometry.storedSlotFor(it, cells, viewModel.sections.collapsedTargetsFor(cells))
         }
-        Timber.d("S2318: quick-menu activeScreen=%d cellCount=%d", screenIndex, cells.size)
-        Timber.d("S2033: showQuickMenu slot=%s", slot)
+        Timber.d("S2387: showQuickMenu slot=$slot lastPress=(${desktop.lastPressX}, ${desktop.lastPressY})")
         // Each gesture builds a fresh menu, so the popup's own replace-on-show guard never sees the
         // previous instance - closing it here is what keeps two modal windows off the desktop.
         quickMenu?.dismiss()
@@ -109,6 +112,7 @@ class LauncherEditModeManager(
             onEditDesktop = { viewModel.setEditMode(true) },
             onWallpaper = actions.wallpaper,
             onLauncherSettings = actions.launcherSettings,
+            onLockChanges = { viewModel.setDesktopLocked(true) },
         ).also {
             it.show(desktop, desktop.lastPressX.toInt(), desktop.lastPressY.toInt())
         }
@@ -159,7 +163,7 @@ class LauncherEditModeManager(
                 stopAutoScroll()
                 val id = event.localState as? Long ?: return@OnDragListener false
                 val target = desktop.cellAt(event.x, event.y)
-                viewModel.moveCell(id, target.row, target.col)
+                viewModel.moveCell(id, target.row, target.col, desktop.columns)
                 true
             }
             // ENDED fires even when the drag was cancelled or released outside the container, so it is

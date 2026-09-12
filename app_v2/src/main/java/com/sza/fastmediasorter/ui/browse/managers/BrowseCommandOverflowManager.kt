@@ -108,9 +108,9 @@ class BrowseCommandOverflowManager(
         overflowedIds.clear()
         overflowedIds.addAll(allocation.overflowIds)
 
-        if (overflowedIds != previous) {
-            onOverflowChanged?.invoke()
-        }
+        // S2989: always invoke onOverflowChanged so restitchBrowseControlChain runs after every
+        // partition pass, keeping D-pad nextFocusLeft/nextFocusRight IDs in sync with button visibilities.
+        onOverflowChanged?.invoke()
     }
 
     private fun measuredWidthOf(view: View): Int {

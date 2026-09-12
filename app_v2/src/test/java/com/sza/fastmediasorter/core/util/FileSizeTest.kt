@@ -56,6 +56,18 @@ class FileSizeTest {
         assertEquals("${R.string.unit_size_bytes}|10 239", formatFileSize(context, 10239L))
     }
 
+    /**
+     * S2598: `setUp` pins `Locale.US`, which is the one setting where the separator the formatter emits and
+     * the comma the old code replaced happened to be the same character - so nothing here observed the
+     * defect. Germany groups with a period and is the cheapest counter-example among the declared set.
+     */
+    @Test
+    fun `a locale that groups with a period still renders spaces`() {
+        Locale.setDefault(Locale.GERMANY)
+
+        assertEquals("${R.string.unit_size_bytes}|1 234", formatFileSize(context, 1234L))
+    }
+
     @Test
     fun `the exact-bytes ceiling is the first kilobyte-rendered size`() {
         assertEquals("${R.string.unit_size_kb}|10.00", formatFileSize(context, 10240L))

@@ -1,0 +1,14 @@
+{
+  "_comment": [
+    "S2723 fixture for the deletion channel. This pre-edit copy classifies BetaScreen as excluded;",
+    "screens-scoped.json does not, so reading the two together says the edit DELETED that record. A",
+    "deleted record leaves no trace in any .kt, which is why record ownership has to look at the",
+    "pre-edit copy rather than at the presented sources."
+  ],
+  "screens": [
+    { "id": "alpha", "name": "Alpha", "expect": "Hello", "screen": "AlphaScreen", "expectRes": "good_marker" }
+  ],
+  "excluded": [
+    { "screen": "BetaScreen", "reason": "not-a-destination", "note": "Removed by the edit under test." }
+  ]
+}

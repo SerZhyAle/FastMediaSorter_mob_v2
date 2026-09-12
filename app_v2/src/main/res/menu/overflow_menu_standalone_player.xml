@@ -165,5 +165,18 @@
         android:title="@string/cd_playback_speed"
         app:showAsAction="never" />
 
+    <!-- S1143: About channel info dialog (stream mode) -->
+    <item
+        android:id="@+id/menu_stream_about"
+        android:icon="@drawable/ic_info"
+        android:title="@string/stream_info_menu_title"
+        app:showAsAction="never" />
+
+    <!-- S1143: Share channel link (stream mode) -->
+    <item
+        android:id="@+id/menu_stream_share"
+        android:icon="@drawable/ic_share"
+        android:title="@string/share"
+        app:showAsAction="never" />
 
 </menu>

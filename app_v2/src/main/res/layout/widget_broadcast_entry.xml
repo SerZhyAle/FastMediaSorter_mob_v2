@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2818: broadcast entry widget layout - icon + label, the whole container is the tap target.
+     Landscape variant absent - not needed: single gravity-centered column scales in both orientations. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widget_broadcast_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:contentDescription="@string/widget_broadcast_label"
+    android:padding="@dimen/padding_tiny"
+    android:gravity="center">
+
+    <ImageView
+        android:id="@+id/widget_broadcast_icon"
+        android:layout_width="@dimen/widget_icon_size_large"
+        android:layout_height="@dimen/widget_icon_size_large"
+        android:src="@drawable/ic_display"
+        android:contentDescription="@string/widget_broadcast_label" />
+
+    <TextView
+        android:id="@+id/widget_broadcast_label"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/margin_tiny"
+        android:ellipsize="end"
+        android:gravity="center"
+        android:maxLines="2"
+        android:text="@string/widget_broadcast_label" />
+</LinearLayout>

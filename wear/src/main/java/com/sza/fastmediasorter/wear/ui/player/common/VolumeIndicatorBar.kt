@@ -2,14 +2,18 @@ package com.sza.fastmediasorter.wear.ui.player.common
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -24,6 +28,10 @@ import com.sza.fastmediasorter.wear.R
 private val VOLUME_BAR_HEIGHT = 4.dp
 private val VOLUME_BAR_VERTICAL_PADDING = 6.dp
 private const val VOLUME_BAR_CORNER_PERCENT = 50
+private const val SIDE_BAR_HEIGHT_FRACTION = 0.4f
+private val SIDE_BAR_EDGE_PADDING = 4.dp
+private const val RESTING_ALPHA = 0.45f
+private val SIDE_BAR_WIDTH = 4.dp
 
 /**
  * S2140: the current media volume, drawn and never changed here.
@@ -73,6 +81,65 @@ internal fun VolumeIndicatorBar(
                     .height(VOLUME_BAR_HEIGHT)
                     .clip(shape)
                     .background(MaterialTheme.colors.primary)
+            )
+        }
+    }
+}
+
+/**
+ * S2477: vertical side bar for volume on Wear OS screens, pinned to one edge of the screen.
+ * Replaces the list-item volume header to keep file lists uncluttered on round watch displays.
+ *
+ * S2802: [atStartEdge] and [isChanging] both default to what this drew before it had them, so a
+ * screen that keeps the transient right-hand bar needs no change. On a screen where the bar is
+ * permanent, [isChanging] is what still tells a bezel step apart from rest - the bar is dimmed
+ * while nothing is being adjusted rather than removed.
+ *
+ * Declared on [BoxScope] because the edge has to be chosen with `align` and nothing else can do it:
+ * the bar wraps its own 4 dp width, so a `contentAlignment` set inside it aligns nothing horizontally,
+ * and a wrap-width child with no alignment is placed by the parent Box at the start edge - which is
+ * how Browse drew its right-hand bar on the left on a Galaxy Watch 7 (device run 2026-09-11). Filling
+ * the width instead would lay a merged-semantics node across the whole screen.
+ */
+@Composable
+internal fun BoxScope.VolumeIndicatorSideBar(
+    level: Int,
+    max: Int,
+    modifier: Modifier = Modifier,
+    atStartEdge: Boolean = false,
+    isChanging: Boolean = true
+) {
+    val readout = stringResource(R.string.wear_audio_volume_level, level, max)
+    val filled = if (max > 0) (level.toFloat() / max).coerceIn(0f, 1f) else 0f
+    val shape = RoundedCornerShape(percent = VOLUME_BAR_CORNER_PERCENT)
+    val emphasis = if (isChanging) 1f else RESTING_ALPHA
+
+    Box(
+        modifier = modifier
+            .align(if (atStartEdge) Alignment.CenterStart else Alignment.CenterEnd)
+            .fillMaxHeight()
+            .padding(
+                start = if (atStartEdge) SIDE_BAR_EDGE_PADDING else 0.dp,
+                end = if (atStartEdge) 0.dp else SIDE_BAR_EDGE_PADDING
+            )
+            .alpha(emphasis)
+            .semantics(mergeDescendants = true) { contentDescription = readout },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .width(SIDE_BAR_WIDTH)
+                .fillMaxHeight(SIDE_BAR_HEIGHT_FRACTION)
+                .clip(shape)
+                .background(Color.DarkGray.copy(alpha = 0.6f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(filled)
+                    .clip(shape)
+                    .background(MaterialTheme.colors.primary)
+                    .align(Alignment.BottomCenter)
             )
         }
     }

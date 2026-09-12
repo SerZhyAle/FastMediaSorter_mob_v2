@@ -34,6 +34,14 @@ class GetPairedWatchStatusUseCaseTest {
     }
 
     @Test
+    fun `the model code in parentheses is not part of the name shown to the user`() = runTest {
+        // S2868: the bridge renders the node as "Galaxy Watch7 (8CRZ)", and the parenthetical is a
+        // diagnostics tail the settings row keeps out of the label.
+        coEvery { repository.getConnectedNodes() } returns listOf(WearNode("node-1", "Galaxy Watch7 (8CRZ)"))
+        assertEquals(PairedWatchStatus.Connected("Galaxy Watch7"), getStatus())
+    }
+
+    @Test
     fun `the first node wins when several answer`() = runTest {
         coEvery { repository.getConnectedNodes() } returns listOf(
             WearNode("node-1", "Watch A"),

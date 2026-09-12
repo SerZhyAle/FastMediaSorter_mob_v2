@@ -3,25 +3,18 @@ package com.sza.fastmediasorter.ui.xr.helpers
 import android.os.Handler
 
 /**
- * S1232: an idle countdown for the immersive HUD strip. **Nothing constructs this class - it is
- * staged, not live**, and S1281 corrected this KDoc after it was found describing behaviour the
- * app no longer has.
- *
- * What it would do if wired: arm when the strip becomes visible, and fire [onCollapse] after
- * [TIMEOUT_MS] of no ray interaction, with any hover or click pushing the deadline back - the way
+ * S1232 / S1281: the idle countdown for the immersive HUD strip, live since S1281 wired it into
+ * `DiagnosticXrActivity`. It arms when the strip becomes visible and fires [onCollapse] after
+ * [TIMEOUT_MS] of no ray interaction; any hover or click pushes the deadline back, the way
  * `FilenameOverlayAutoHideManager` extends its own deadline in the flat player. The timeout matches
  * that manager's `TIMEOUT_DEFAULT_MS`. The flat player's bottom control panel is NOT a precedent
  * here: it has no auto-hide at all and toggles only on tap (`PlayerViewModel.toggleControls`).
  *
- * What is no longer true: there is no collapsed state and no restore pill. S1232 deleted the pill -
- * the owner rejected it as an obstruction in the middle of the view - and replaced it with a HIDE
- * button plus a controller-button summon, so hidden now means fully hidden and the way back is a
- * button press rather than a target to aim at. [onCollapse] therefore has no defined meaning until
- * a caller decides what "hidden" is for it.
- *
- * Why it survives unwired: automatic disappearance is an explicit non-goal of S1232, which kept
- * this as the shape a later answer would take if the headset verdict ever asked for the strip to
- * get out of the way by itself. S1281 owns that decision - wire it or delete it.
+ * [onCollapse] means exactly what the HIDE button means - `DiagnosticXrActivity.hideHudStrip`, the
+ * single hide path both share. There is no collapsed state and no restore pill: S1232 deleted the
+ * pill as an obstruction in the middle of the view, so hidden is fully hidden and the controller
+ * summon is the only way back. A second flavour of hidden would need a second way back, which is
+ * why the countdown reuses the button's action instead of introducing one.
  */
 class HudAutoHideController(
     private val handler: Handler,

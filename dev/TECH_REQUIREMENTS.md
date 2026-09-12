@@ -14,7 +14,7 @@
 | Java target          | 17                             | `jvmTarget = "17"`                              |
 | Android Gradle Plugin| 9.2.1                          | AGP, pinned in root `build.gradle.kts`          |
 | Gradle               | 9.4.1                          | Wrapper in `gradle/wrapper/` (AGP 9.x)          |
-| compileSdk           | 36                             | Android 16 (Baklava)                            |
+| compileSdk           | 37                             | Android 17 (S2884; targetSdk stays 36)          |
 | targetSdk            | 36                             | Required for Play Store compliance (S1149)      |
 | minSdk (standard)    | 26                             | Android 8.0 (Oreo)                              |
 | minSdk (legacy)      | 23                             | Android 6.0 (Marshmallow) - covers API 23-25    |
@@ -74,7 +74,7 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `compose-bom`                   | 2024.02.00 | BOM for Compose dependencies       |
+| `compose-bom`                   | 2024.12.01 | BOM for Compose dependencies       |
 | `compose-ui`                    | (BOM)      | Core Compose UI                    |
 | `compose-material3`            | (BOM)      | Material 3 components              |
 | `compose-material-icons`       | (BOM)      | Icon sets (core + extended)        |
@@ -86,9 +86,9 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `wear-compose-material`        | 1.2.1      | Wear OS Material Compose           |
-| `wear-compose-foundation`      | 1.2.1      | Wear OS Compose Foundation         |
-| `wear-compose-navigation`      | 1.2.1      | Wear OS Compose Navigation         |
+| `wear-compose-material`        | 1.4.1      | Wear OS Material Compose           |
+| `wear-compose-foundation`      | 1.4.1      | Wear OS Compose Foundation         |
+| `wear-compose-navigation`      | 1.4.1      | Wear OS Compose Navigation         |
 | `play-services-wearable`       | 18.1.0     | Phone↔Watch communication          |
 | `wear`                          | 1.3.0      | Wear OS essentials                 |
 | `wear-input`                    | 1.1.0      | System remote text and voice input |
@@ -129,7 +129,7 @@
 | `room-compiler`                | 2.7.0      | Room annotation processor          |
 | `datastore-preferences`        | 1.1.7      | Key-value preferences store        |
 | `paging-runtime-ktx`           | 3.2.1      | Paging 3 library                   |
-| Room DB version                  | 54         | Current schema version (see AppDatabase.kt) |
+| Room DB version                  | 58         | Current schema version (see AppDatabase.kt) |
 
 ### 4.7 Media Playback
 
@@ -145,9 +145,9 @@
 
 | Library                          | Version    | Purpose                            |
 |:---------------------------------|:-----------|:-----------------------------------|
-| `glide`                         | 4.16.0     | Image loading (app_v2)             |
-| `glide-ksp`                    | 4.16.0     | Glide annotation processor - the KSP artifact, not `glide-compiler` |
-| `glide-okhttp3-integration`    | 4.16.0     | OkHttp transport for Glide         |
+| `glide`                         | 5.0.9      | Image loading (app_v2)             |
+| `glide-ksp`                    | 5.0.9      | Glide annotation processor - the KSP artifact, not `glide-compiler` |
+| `glide-okhttp3-integration`    | 5.0.9      | OkHttp transport for Glide         |
 | `camera-core` / `camera-camera2` / `camera-lifecycle` / `camera-view` | 1.5.3 | In-app CameraX preview and JPEG capture |
 | `PhotoView`                     | 2.3.0      | Pinch-to-zoom & rotation           |
 | `fastscroll`                    | 1.3.0      | Interactive RecyclerView scrollbar  |
@@ -359,30 +359,42 @@
 
 ### Quick Reference
 
+All Gradle-backed builds and checks should be run via `.\a.ps1` to acquire Rule 23 agent locks (`Build.Phone` / `Build.Wear`).
+
 ```powershell
-# Debug APK (standard)
-.\gradlew.bat assembleStandardDebug
+# Debug APK (standard) - via launcher
+.\a.ps1 d
 
-# Release APK (standard)
-.\gradlew.bat assembleStandardRelease
+# Release AAB (for Google Play)
+.\a.ps1 r
 
-# AAB (for Google Play)
-.\gradlew.bat bundleStandardRelease
+# Fast Kotlin compile check
+.\a.ps1 fk
 
-# All flavors debug
-.\gradlew.bat assembleDebug
+# Unit tests (app_v2)
+.\a.ps1 fu
 
-# Unit tests
-.\gradlew.bat testStandardDebugUnitTest
+# Lint + typo check
+.\a.ps1 ch
 
-# Lint check
-.\gradlew.bat lintStandardDebug
+# Wear OS debug APK (standard)
+.\a.ps1 wd
 
-# Wear OS debug
-.\gradlew.bat :wear:assembleDebug
+# Wear OS compile / unit checks
+.\a.ps1 fw
+.\a.ps1 fwu
 
-# Build with auto-version
-.\dev\build-with-version.ps1
+# Build with timestamped version override
+.\a.ps1 dav
+
+# Direct Gradle commands (for reference, under agent lock)
+# .\gradlew.bat :app_v2:assembleStandardDebug
+# .\gradlew.bat :app_v2:assembleStandardRelease
+# .\gradlew.bat :app_v2:bundleStandardRelease
+# .\gradlew.bat :app_v2:testStandardDebugUnitTest
+# .\gradlew.bat :wear:assembleStandardDebug
+# .\gradlew.bat :wear:assembleStandardRelease
+# .\gradlew.bat :wear:testStandardDebugUnitTest
 ```
 
 ### Output Paths
@@ -441,7 +453,7 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 
 | Aspect                  | Value                 | Notes                                           |
 |:------------------------|:----------------------|:------------------------------------------------|
-| Room DB version        | 54                    | Current schema in `AppDatabase`                |
+| Room DB version        | 58                    | Current schema in `AppDatabase`                |
 | Number of entities     | 27                    | Current `@Database(entities = ..)` set         |
 | Migrations             | 52 migrations         | Registered in DatabaseModule; through v53      |
 
@@ -456,7 +468,7 @@ Detailed live complexity snapshot is maintained in `dev/PRODUCT_COMPLEXITY_ASSES
 | Gradle 9.4.1                       | Required by AGP 9.x; JDK 17/21                              |
 | Hilt 2.59                          | Current stable; processed by KSP since S1338 phase 10       |
 | Media3 1.2.1 (not 1.3+)           | 1.3+ requires API adjustments not yet validated             |
-| Glide 4.16.0                       | Latest stable; 5.x requires migration                      |
+| Glide 5.0.9 (un-pinned, S2884)     | No API migration from 4.16; 5.0.7 pin retired when the project moved to compileSdk 37 |
 | SMBJ 0.12.1                        | Last version before breaking BC changes in 0.13            |
 | Compose BOM 2024.02.00             | Matched to Wear Compose 1.2.1 compatibility                |
 

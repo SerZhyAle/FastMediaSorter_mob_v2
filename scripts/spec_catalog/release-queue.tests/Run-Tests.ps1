@@ -6,11 +6,16 @@ $queuePath = Join-Path $repoRoot 'PLAN\RELEASE_QUEUE.md'
 # S1698: the subject ticket and its package are read from the live queue, never hardcoded. The
 # original pair (S1183, release 32) shipped, `-List -Release $fixtureRelease` went empty, and the lease case
 # failed for a reason that had nothing to do with leases - a test that expires on every release.
-$subjectLine = @(& pwsh -NoProfile -File $queueScript -List | Where-Object { $_ -match '^\s*(\d+|--)\s+S\d{4}_' })[0]
-if (-not $subjectLine) { throw 'PLAN/RELEASE_QUEUE.md holds no ticket line to test against.' }
-if ($subjectLine -notmatch '^\s*(\d+|--)\s+(S(\d{4}))_') { throw "Unparsable queue line: $subjectLine" }
-$fixtureRelease = $Matches[1]
-$fixtureId = $Matches[2]
+# S2852: -List prints the package as a section heading, so the subject's package is the last
+# heading seen above its row rather than a column on it.
+$listing = @(& pwsh -NoProfile -File $queueScript -List)
+$fixtureRelease = $null
+$fixtureId = $null
+foreach ($listed in $listing) {
+    if ($listed -match '^\s*(\d+|--)\s*$') { $fixtureRelease = $Matches[1]; continue }
+    if ($listed -match '^\s*(S(\d{4}))_' -and $fixtureRelease) { $fixtureId = $Matches[1]; break }
+}
+if (-not $fixtureId) { throw 'PLAN/RELEASE_QUEUE.md holds no ticket line to test against.' }
 $fixtureSessionId = "s1518-release-queue-test-$PID"
 $fixtureDirectory = Join-Path $repoRoot 'temp\S1518'
 $fixturePath = Join-Path $fixtureDirectory "release-queue-lease-fixture-$PID.json"
@@ -25,10 +30,13 @@ function Assert-Condition {
 }
 
 function New-MarkedQueueFixture {
-    # One-line release file in temp/, so the round trip is exercised without touching PLAN/.
+    # A two-line release file in temp/, so the round trip is exercised without touching PLAN/.
+    # The prose line is load-bearing: with a one-line fixture that line IS the ticket line, so
+    # `$parsed.Count -eq 1` counts lines in the file rather than parsed tickets and passes even
+    # when the ticket filter never filtered anything (S2420).
     param([Parameter(Mandatory)][string] $Line)
     $path = Join-Path $fixtureDirectory "release-queue-marked-$PID.md"
-    [System.IO.File]::WriteAllLines($path, @($Line))
+    [System.IO.File]::WriteAllLines($path, @('# sandbox marked queue', '40', $Line))
     return $path
 }
 
@@ -76,10 +84,18 @@ try {
     # read as part of the status column and drifts the whole file against the catalog. A stale
     # marker (no live lease behind it) must disappear on the next write, since that is the whole
     # "the process died, the ticket is free again" signal.
-    $markedLine = (Format-ReleaseQueueLine -Release '40' -Ticket 'S9004_delta' -Changed '2026-08-01' -Status 'In Progress') +
+    $markedLine = (Format-ReleaseQueueLine -Ticket 'S9004_delta' -Changed '26-08-01 09:00' -Status 'In Progress') +
         '   [taken 15:42, /spec-all, be08adb0]'
-    $parsed = @(Read-ReleaseFile -Path (New-MarkedQueueFixture -Line $markedLine)) |
-        Where-Object { $_.Kind -eq 'ticket' }
+    # Read-ReleaseFile returns through `return ,` against unrolling, so a BARE call piped straight
+    # into a filter hands that filter the whole List as ONE object - `$_.Kind` then unrolls over
+    # the members, the comparison against a non-empty array is always true, and the filter passes
+    # everything through unfiltered. Measured 2026-09-03 (S2420, temp/S2420/repro4.ps1): moving the
+    # `@(..)` from the call onto the pipeline does NOT fix it either, because the pipeline still
+    # enumerates only the outer wrapper. What fixes it is the assignment below - an assignment
+    # unrolls the `,` wrapper, leaving the List, and piping a List enumerates its members. The
+    # `@(..)` on the filtered result stays: it is what protects `.Count` from $null on no match.
+    $parsedLines = Read-ReleaseFile -Path (New-MarkedQueueFixture -Line $markedLine)
+    $parsed = @($parsedLines | Where-Object { $_.Kind -eq 'ticket' })
     Assert-Condition ($parsed.Count -eq 1) 'A marked ticket line stopped parsing as a ticket.'
     Assert-Condition ($parsed[0].Status -eq 'In Progress') "Marker leaked into the status column: $($parsed[0].Status)"
     Assert-Condition ($parsed[0].Id -eq 'S9004') 'Marked line parsed the wrong id.'
@@ -95,17 +111,21 @@ try {
         '',
         'current-next-release: 40',
         '',
-        'rel  ticket                                                         changed     status',
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9001_alpha' -Changed '2026-08-01' -Status 'Draft'),
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9001_alpha' -Changed '2026-08-01' -Status 'Draft'),
-        (Format-ReleaseQueueLine -Release '41' -Ticket 'S9003_gamma' -Changed '2026-08-01' -Status 'Draft')
+        'ticket                                                         changed         status',
+        '40',
+        (Format-ReleaseQueueLine -Ticket 'S9001_alpha' -Changed '26-08-01 09:00' -Status 'Draft'),
+        (Format-ReleaseQueueLine -Ticket 'S9001_alpha' -Changed '26-08-01 09:00' -Status 'Draft'),
+        '41',
+        (Format-ReleaseQueueLine -Ticket 'S9003_gamma' -Changed '26-08-01 09:00' -Status 'Draft')
     )
     $sandboxReady = @(
         '# sandbox ready',
         '',
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9002_beta' -Changed '2026-08-02' -Status 'Verified'),
-        (Format-ReleaseQueueLine -Release '40' -Ticket 'S9002_beta' -Changed '2026-08-02' -Status 'Verified'),
-        (Format-ReleaseQueueLine -Release '41' -Ticket 'S9003_gamma' -Changed '2026-08-02' -Status 'Verified')
+        '40',
+        (Format-ReleaseQueueLine -Ticket 'S9002_beta' -Changed '26-08-02 09:00' -Status 'Verified'),
+        (Format-ReleaseQueueLine -Ticket 'S9002_beta' -Changed '26-08-02 09:00' -Status 'Verified'),
+        '41',
+        (Format-ReleaseQueueLine -Ticket 'S9003_gamma' -Changed '26-08-02 09:00' -Status 'Verified')
     )
     [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $sandboxQueue)
     [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, $sandboxReady)
@@ -122,7 +142,7 @@ try {
     $readyAfter = @(Get-Content -LiteralPath $script:ReleaseReadyPath)
     $countIn = {
         param($lines, $id)
-        @($lines | Where-Object { $_ -match "\s$id`_" }).Count
+        @($lines | Where-Object { $_ -match "^$id`_" }).Count
     }
 
     Assert-Condition ((& $countIn $queueAfter 'S9001') -eq 1) 'Duplicate queue line survived reconcile.'
@@ -133,11 +153,117 @@ try {
     Assert-Condition ((Get-ReleaseQueueDuplicatesDropped) -eq 3) 'Dropped-duplicate count is wrong.'
     # The owner's package assignment and prose survive the repair.
     Assert-Condition (($queueAfter -join "`n") -match 'current-next-release: 40') 'Reconcile ate a verbatim line.'
-    Assert-Condition (@($queueAfter | Where-Object { $_ -match '^40\s+S9001_alpha\s' }).Count -eq 1) 'Reconcile rewrote the rel column.'
+    # S2852: the package is the heading above the row, so "the assignment survived" is asserted on
+    # the section a row sits under, not on a column. A row re-homed into another package is exactly
+    # the failure the rel-column assertion used to catch, and it is now invisible on the row itself.
+    $sectionOf = {
+        param($lines, $id)
+        $seen = $null
+        foreach ($l in $lines) {
+            if ($l -match '^\s*(\d+|--)\s*$') { $seen = $Matches[1]; continue }
+            if ($l -match "^$id`_") { return $seen }
+        }
+        return $null
+    }
+    Assert-Condition ((& $sectionOf $queueAfter 'S9001') -eq '40') 'Reconcile moved a ticket out of its package section.'
+    Assert-Condition ((& $sectionOf $readyAfter 'S9003') -eq '41') 'A ticket crossing to the ready file lost its package.'
+    Assert-Condition (@($queueAfter | Where-Object { $_ -match '^S9001_alpha\s+\d{2}-\d{2}-\d{2} \d{2}:\d{2}\s' }).Count -eq 1) 'The changed column lost its minute precision.'
 
     # Idempotent: a second pass over the repaired files finds nothing left to drop.
     Sync-ReleaseQueue -Records ([object[]]$records)
     Assert-Condition ((Get-ReleaseQueueDuplicatesDropped) -eq 0) 'Second reconcile still reported duplicates.'
+
+    # ── S2921: where a brand-new row lands ──────────────────────────────────────────────────
+    # Two placements, one root cause. A package ends with an owner-gated boundary ticket that is
+    # its release line, and the writer used to append every new row BELOW it - the heading above
+    # the row then said one package while the owner reads everything under that line as the next.
+    # A package holding a heading but no rows yet was indistinguishable from a package the file
+    # does not carry at all, so its first row went to the very END of the file and grew a SECOND
+    # heading with the same number.
+    #
+    # Hermetic in both directions: the release paths point at the sandbox as above, and
+    # $script:SpecsDirPath does too, so the owner-gate predicate reads spec bodies this test wrote
+    # rather than live tickets. Keying the case on the real boundary ticket would have expired it
+    # at the next release, which is the trap the S1698 fixture above already names.
+    if (-not (Get-Command Find-ReleaseBlockInsertIndex -ErrorAction SilentlyContinue)) {
+        Write-Output 'release-queue tests: SKIP S2921 placement - the resolved harness predates the fix (claude plugin update sza@sza-unified-rules).'
+    } else {
+        $priorSpecsDir = $script:SpecsDirPath
+        try {
+            $script:SpecsDirPath = $sandbox
+            Clear-OwnerGateCache
+            # The marker phrase is the owner directive itself, not a test token: the predicate has
+            # to match what a real boundary spec says, or the case passes on a shape nothing writes.
+            [System.IO.File]::WriteAllLines((Join-Path $sandbox 'S9101_ordinary.md'), @('# ordinary ticket'))
+            [System.IO.File]::WriteAllLines((Join-Path $sandbox 'S9102_boundary.md'),
+                @('# boundary ticket', '', '**Автоматическая передача отключена** - запускает владелец.'))
+
+            $placementQueue = @(
+                '# sandbox queue',
+                '',
+                'current-next-release: 50',
+                '',
+                '50',
+                '# the open package',
+                (Format-ReleaseQueueLine -Ticket 'S9101_ordinary' -Changed '26-08-01 09:00' -Status 'Draft'),
+                (Format-ReleaseQueueLine -Ticket 'S9102_boundary' -Changed '26-08-01 09:00' -Status 'Draft'),
+                '',
+                '51',
+                '# the next package',
+                (Format-ReleaseQueueLine -Ticket 'S9103_later' -Changed '26-08-01 09:00' -Status 'Draft')
+            )
+            [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $placementQueue)
+            [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, @('# sandbox ready', '', '50'))
+
+            $placementRecords = @(
+                [pscustomobject]@{ id = 'S9101'; status = 'Draft'; file = 'PLAN/S9101_ordinary.md'; updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9102'; status = 'Draft'; file = 'PLAN/S9102_boundary.md'; updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9103'; status = 'Draft'; file = 'PLAN/S9103_later.md';    updated = '2026-08-01 10:00' },
+                [pscustomobject]@{ id = 'S9104'; status = 'Draft'; file = 'PLAN/S9104_fresh.md';    updated = '2026-09-11 10:00' }
+            )
+            Sync-ReleaseQueue -Records ([object[]]$placementRecords)
+            $placed = @(Get-Content -LiteralPath $script:ReleaseQueuePath)
+
+            $indexOf = {
+                param($lines, $id)
+                for ($i = 0; $i -lt $lines.Count; $i++) { if ($lines[$i] -match "^$id`_") { return $i } }
+                return -1
+            }
+            $freshAt = & $indexOf $placed 'S9104'
+            Assert-Condition ($freshAt -ge 0) 'The new ticket did not reach the queue at all.'
+            Assert-Condition ((& $sectionOf $placed 'S9104') -eq '50') 'The new ticket landed outside the open package.'
+            Assert-Condition ($freshAt -lt (& $indexOf $placed 'S9102')) 'The new ticket landed below the package boundary row.'
+            Assert-Condition ($freshAt -gt (& $indexOf $placed 'S9101')) 'The new ticket jumped above work the owner already ordered.'
+            Assert-Condition (@($placed | Where-Object { $_ -match '^\s*50\s*$' }).Count -eq 1) 'The reconcile grew a second heading for the open package.'
+
+            # The same placement with the open package holding a heading and no rows: the row goes
+            # inside that block, not past the end of the file.
+            $emptyQueue = @(
+                '# sandbox queue',
+                '',
+                'current-next-release: 50',
+                '',
+                '50',
+                '# the open package - no rows yet',
+                '',
+                '51',
+                (Format-ReleaseQueueLine -Ticket 'S9103_later' -Changed '26-08-01 09:00' -Status 'Draft')
+            )
+            [System.IO.File]::WriteAllLines($script:ReleaseQueuePath, $emptyQueue)
+            [System.IO.File]::WriteAllLines($script:ReleaseReadyPath, @('# sandbox ready', '', '50'))
+            Sync-ReleaseQueue -Records ([object[]]@(
+                    [pscustomobject]@{ id = 'S9103'; status = 'Draft'; file = 'PLAN/S9103_later.md'; updated = '2026-08-01 10:00' },
+                    [pscustomobject]@{ id = 'S9104'; status = 'Draft'; file = 'PLAN/S9104_fresh.md'; updated = '2026-09-11 10:00' }
+                ))
+            $emptyAfter = @(Get-Content -LiteralPath $script:ReleaseQueuePath)
+            Assert-Condition ((& $sectionOf $emptyAfter 'S9104') -eq '50') 'A row added to an empty package left its block.'
+            Assert-Condition ((& $indexOf $emptyAfter 'S9104') -lt (& $indexOf $emptyAfter 'S9103')) 'A row added to an empty package landed past the next package.'
+            Assert-Condition (@($emptyAfter | Where-Object { $_ -match '^\s*50\s*$' }).Count -eq 1) 'An empty package gained a second heading.'
+        } finally {
+            $script:SpecsDirPath = $priorSpecsDir
+            Clear-OwnerGateCache
+        }
+    }
 
     Write-Output 'release-queue tests: PASS'
 }

@@ -7,7 +7,9 @@
     A Maestro flow is green only when it PROVES the behaviour happened. Three
     authoring mistakes make a flow green while proving nothing, which is how the
     earlier generation of flows became fictitious. This gate rejects all three,
-    statically, before a flow ever reaches a device.
+    statically, before a flow ever reaches a device. A fourth (S2396) does the
+    opposite - it makes a flow RED while nothing is wrong - and is judged here
+    because it lives in the same files and the same convention text.
 
     Authoritative convention text: maestro/WRITING_TESTS.md, "Oracle convention".
     This script encodes exactly those rules and must not drift from them.
@@ -23,6 +25,14 @@
                             the step silently never fires.
       3. coordinate-tap   - a `point:` selector. It proves nothing about which
                             element was hit and breaks on the next layout change.
+      4. scroll-visibility - a `scrollUntilVisible` block with no
+                            `visibilityPercentage`, or one above 60. Maestro
+                            defaults that parameter to 100, which an element
+                            sitting last in a scroll container can never reach:
+                            the container runs out of scroll first and the step
+                            times out with the element drawn whole on screen.
+                            Measured 2026-09-02 (S2396) as the cause of two of
+                            three suite failures that day.
 
     Scanned: maestro/ and scripts/devtest/maestro/, *.yaml and *.yml.
 
@@ -97,6 +107,38 @@ $optionalLine    = '^\s*optional\s*:\s*true\s*$'
 $regexSelector   = '^\s*(id|text)\s*:\s*"[^"]*\.\*'
 $pointSelector   = '^\s*point\s*:'
 
+# Rule 4 (S2396). A scrollUntilVisible block spans from its opener to the next line indented at or
+# left of the opener's dash, so the parameter is read per block and not per file: one flow may hold
+# a compliant block and a bare one, and a file-wide search would call that file clean.
+$scrollOpener      = '^(\s*)-\s*scrollUntilVisible\s*:'
+$visibilityLine    = '^\s*visibilityPercentage\s*:\s*(\d+)\s*$'
+$maxVisibilityPct  = 60
+
+function Get-LineIndent {
+    param([string]$Line)
+    if ($Line -match '^(\s*)') { return $Matches[1].Length }
+    return 0
+}
+
+# Verdict on one finished scrollUntilVisible block. Returns zero or one finding.
+function Get-ScrollFinding {
+    param([hashtable]$Block, [string]$Rel)
+    if (-not $Block) { return @() }
+    if ($null -eq $Block.Percent) {
+        return @([pscustomobject]@{
+            File = $Rel; Line = $Block.Line; Rule = 'scroll-visibility'
+            Text = 'scrollUntilVisible with no visibilityPercentage (Maestro defaults it to 100)'
+        })
+    }
+    if ($Block.Percent -gt $maxVisibilityPct) {
+        return @([pscustomobject]@{
+            File = $Rel; Line = $Block.PercentLine; Rule = 'scroll-visibility'
+            Text = ("visibilityPercentage {0} exceeds the {1} ceiling" -f $Block.Percent, $maxVisibilityPct)
+        })
+    }
+    return @()
+}
+
 $findings = [System.Collections.Generic.List[object]]::new()
 $scanned = 0
 
@@ -117,6 +159,7 @@ foreach ($root in $scanRoots) {
 
         $scanned++
         $lastOpenerWasAssertion = $false
+        $scrollBlock = $null
 
         for ($i = 0; $i -lt $lines.Count; $i++) {
             $line = $lines[$i]
@@ -124,6 +167,20 @@ foreach ($root in $scanRoots) {
 
             # Comments carry the convention text itself - never a violation.
             if ($line -match '^\s*#') { continue }
+
+            if ($scrollBlock -and $line.Trim() -ne '' -and (Get-LineIndent $line) -le $scrollBlock.Indent) {
+                foreach ($f in (Get-ScrollFinding -Block $scrollBlock -Rel $rel)) { $findings.Add($f) }
+                $scrollBlock = $null
+            }
+
+            if ($scrollBlock -and $line -match $visibilityLine) {
+                $scrollBlock.Percent = [int]$Matches[1]
+                $scrollBlock.PercentLine = $lineNo
+            }
+
+            if ($line -match $scrollOpener) {
+                $scrollBlock = @{ Indent = $Matches[1].Length; Line = $lineNo; Percent = $null; PercentLine = $lineNo }
+            }
 
             if ($line -match $anyOpener) {
                 $lastOpenerWasAssertion = $line -match $assertionOpener
@@ -150,6 +207,9 @@ foreach ($root in $scanRoots) {
                 })
             }
         }
+
+        # A block that runs to the last line of the file is closed by end of file, not by a dedent.
+        foreach ($f in (Get-ScrollFinding -Block $scrollBlock -Rel $rel)) { $findings.Add($f) }
     }
 }
 

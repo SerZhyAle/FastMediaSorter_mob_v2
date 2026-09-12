@@ -52,11 +52,160 @@ Describe 'StreamPublisher.Common' {
         (Get-CanonicalCountry 'Future country') | Should Be 'Future country'
     }
 
+    It 'assigns the Webcam category from the rubric, not from the collecting source' {
+        # The published CSV carries no source column, so the rubric is the only signal that reaches the
+        # rows already shipped - these are the exact shapes the webcam collectors and TfL emit (S1476).
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'Webcam') | Should Be 'Webcam'
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'Traffic cams') | Should Be 'Webcam'
+        # The rubric is canonicalized first, so a raw source topic lands in the camera set too.
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'outdoor') | Should Be 'Webcam'
+        # A non-camera rubric leaves the category alone.
+        (Get-CanonicalCategory -Category 'Live TV' -Topic 'News') | Should Be 'Live TV'
+        (Get-CanonicalCategory -Category 'Radio' -Topic 'Jazz & Blues') | Should Be 'Radio'
+        # Omitting the topic keeps the pre-S1476 behaviour for every caller that has none.
+        (Get-CanonicalCategory 'Radio (SomaFM)') | Should Be 'Radio'
+        (Get-CanonicalCategory -Category 'Live TV' -Topic '') | Should Be 'Live TV'
+        # A source that already names the category converges on the same spelling.
+        (Get-CanonicalCategory 'webcams') | Should Be 'Webcam'
+    }
+
     It 'normalizes comma-separated prune statuses' {
         $statuses = @(Normalize-PruneStatuses @('dead, unknown', 'geo', ''))
         $statuses.Count | Should Be 3
         $statuses[0] | Should Be 'dead'
         $statuses[1] | Should Be 'unknown'
         $statuses[2] | Should Be 'geo'
+    }
+
+    It 'decodes HTML entities in a catalog name, including the double-encoded form' {
+        (Repair-CatalogName 'Rust &amp; Roses Country') | Should Be 'Rust & Roses Country'
+        (Repair-CatalogName '102 FM L&amp;#039;Originale') | Should Be "102 FM L'Originale"
+        (Repair-CatalogName '&Rho;&Alpha;&Delta;&Iota;&Omicron; &Alpha;&Rho;&Gamma;&Omega;') |
+            Should Be ([char]0x03A1 + [char]0x0391 + [char]0x0394 + [char]0x0399 + [char]0x039F + ' ' +
+                       [char]0x0391 + [char]0x03A1 + [char]0x0393 + [char]0x03A9)
+    }
+
+    It 'strips the serialised encoder-slot prefix but keeps a real leading dash' {
+        (Repair-CatalogName '- 0 N - Blues on Radio') | Should Be 'Blues on Radio'
+        (Repair-CatalogName '- 0 N - Deutsch Rap on Radio') | Should Be 'Deutsch Rap on Radio'
+        (Repair-CatalogName '- NEUERSCHEINUNGEN - Radio Charts') | Should Be '- NEUERSCHEINUNGEN - Radio Charts'
+    }
+
+    It 'leaves leading punctuation that belongs to the station name' {
+        (Repair-CatalogName '.977 Country') | Should Be '.977 Country'
+        (Repair-CatalogName '#joint radio Blues Rock') | Should Be '#joint radio Blues Rock'
+        (Repair-CatalogName '_Funky Corner Radio (USA)') | Should Be '_Funky Corner Radio (USA)'
+    }
+
+    It 'collapses whitespace and trims trailing separators' {
+        (Repair-CatalogName "  Jazz   Lounge  Radio  -  ") | Should Be 'Jazz Lounge Radio'
+        (Repair-CatalogName 'Radio F.M.') | Should Be 'Radio F.M.'
+        (Repair-CatalogName '') | Should Be ''
+    }
+
+    It 'recognises a name that tells the user nothing' {
+        (Test-CatalogNameUninformative '(null)') | Should Be $true
+        (Test-CatalogNameUninformative '-') | Should Be $true
+        (Test-CatalogNameUninformative '   ') | Should Be $true
+        (Test-CatalogNameUninformative 'Online Radio') | Should Be $true
+        (Test-CatalogNameUninformative 'ONLINE  RADIO') | Should Be $true
+        (Test-CatalogNameUninformative 'no name') | Should Be $true
+        (Test-CatalogNameUninformative 'Orban Opticodec-PC Encoder') | Should Be $true
+    }
+
+    It 'keeps a real station name informative' {
+        (Test-CatalogNameUninformative 'Blues on Radio') | Should Be $false
+        (Test-CatalogNameUninformative '.977 Country') | Should Be $false
+        (Test-CatalogNameUninformative 'Radio Paradise') | Should Be $false
+    }
+
+    It 'discards a name that only names the software or the server' {
+        (Test-CatalogNameDiscardable 'Orban Opticodec-PC Encoder') | Should Be $true
+        (Test-CatalogNameDiscardable 'MB STUDIO') | Should Be $true
+        (Test-CatalogNameDiscardable 'RadioBOSS Stream') | Should Be $true
+        (Test-CatalogNameDiscardable 'This is my server name') | Should Be $true
+        (Test-CatalogNameDiscardable 'Unspecified name') | Should Be $true
+        (Test-CatalogNameDiscardable '(null)') | Should Be $true
+    }
+
+    It 'keeps a name that describes the medium, because the bank mixes radio, TV and webcams' {
+        (Test-CatalogNameDiscardable 'Online Radio') | Should Be $false
+        (Test-CatalogNameDiscardable 'Radio') | Should Be $false
+        (Test-CatalogNameDiscardable 'stream') | Should Be $false
+        (Test-CatalogNameDiscardable 'Blues on Radio') | Should Be $false
+    }
+
+    It 'shapes the final name by what the old one was about' {
+        (Resolve-CatalogName -Name 'Online Radio' -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'Online Radio (a.test:8000)'
+        (Resolve-CatalogName -Name 'Orban Opticodec-PC Encoder' -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'a.test:8000'
+        (Resolve-CatalogName -Name '(null)' -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'a.test:8000'
+        (Resolve-CatalogName -Name 'Radio Paradise' -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'Radio Paradise'
+        (Resolve-CatalogName -Name 'Rust &amp; Roses' -Url 'http://a.test:8000/s').Rule |
+            Should BeExactly 'repair'
+    }
+
+    It 'restores an accented letter the upstream directory destroyed' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "Roxy R${fffd}di${fffd}") | Should BeExactly 'Roxy Rádió'
+        (Repair-CatalogName "Radio L${fffd}beck") | Should BeExactly 'Radio Lübeck'
+        (Repair-CatalogName "RCF Li${fffd}ge") | Should BeExactly 'RCF Liège'
+        (Repair-CatalogName "R${fffd}dio Paulista FM - 99.5 FM - Avar${fffd} / SP") |
+            Should BeExactly 'Rádio Paulista FM - 99.5 FM - Avaré / SP'
+    }
+
+    It 'keeps the case the station wrote, and only the lost letter' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "${fffd}XITOS 89.7 FM") | Should BeExactly 'ÉXITOS 89.7 FM'
+        (Repair-CatalogName "ECOS DE RUMI${fffd}AHUI 88 9 FM") | Should BeExactly 'ECOS DE RUMIÑAHUI 88 9 FM'
+        # The second accent was already missing upstream; restoring it too would rename the station.
+        (Repair-CatalogName "FM P${fffd}O DE A${fffd}UCAR") | Should BeExactly 'FM PÃO DE AÇUCAR'
+    }
+
+    It 'leaves a broken word the table does not know, so the publish gate refuses the bank' {
+        $fffd = [char]0xFFFD
+        (Repair-CatalogName "Radio Zzz${fffd}qqq") | Should BeExactly "Radio Zzz${fffd}qqq"
+        (Repair-CatalogName 'Radio Paradise') | Should BeExactly 'Radio Paradise'
+    }
+
+    It 'reports a restored accent under its own rule' {
+        $fffd = [char]0xFFFD
+        (Resolve-CatalogName -Name "RCF Ni${fffd}vre" -Url 'http://a.test:8000/s').Rule |
+            Should BeExactly 'repair-accent'
+        (Resolve-CatalogName -Name "RCF Ni${fffd}vre" -Url 'http://a.test:8000/s').Name |
+            Should BeExactly 'RCF Nièvre'
+        (Resolve-CatalogName -Name "Radio Zzz${fffd}qqq" -Url 'http://a.test:8000/s').Rule |
+            Should BeExactly ''
+    }
+
+    It 'leaves a nameless row alone when its url yields no token, so the publish gate can name it' {
+        $r = Resolve-CatalogName -Name '(null)' -Url 'not a url'
+        $r.Name | Should BeExactly '(null)'
+        $r.Rule | Should BeExactly ''
+    }
+
+    It 'derives the distinguishing host token from a catalog url' {
+        # The port stays: on a shared streaming host it is the only thing that tells two tenants apart.
+        (Get-CatalogNameFromUrl 'http://quincy.torontocast.com:2150/stream') | Should BeExactly 'quincy.torontocast.com:2150'
+        # BeExactly: Pester 3's Be is case-insensitive and would pass on a token that was never lowered.
+        (Get-CatalogNameFromUrl 'https://Example.Test/live.m3u8') | Should BeExactly 'example.test'
+        (Get-CatalogNameFromUrl 'not a url') | Should BeExactly ''
+    }
+
+    It 'drops a default port from the token but keeps every other one' {
+        (Get-CatalogNameFromUrl 'http://example.test:80/live') | Should BeExactly 'example.test'
+        (Get-CatalogNameFromUrl 'https://example.test:443/live') | Should BeExactly 'example.test'
+        (Get-CatalogNameFromUrl 'rtsp://example.test:554/live') | Should BeExactly 'example.test'
+        (Get-CatalogNameFromUrl 'http://example.test:8000/live') | Should BeExactly 'example.test:8000'
+    }
+
+    It 'tells two tenants of one shared streaming host apart' {
+        $a = Get-CatalogNameFromUrl 'http://hoth.alonhosting.com:3410/stream'
+        $b = Get-CatalogNameFromUrl 'http://hoth.alonhosting.com:3910/stream'
+        $a | Should BeExactly 'hoth.alonhosting.com:3410'
+        $a | Should Not BeExactly $b
     }
 }

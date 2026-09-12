@@ -18,6 +18,12 @@ enum class LauncherCellKind {
     SECTION,
 }
 
+/** Identifies whether a cell belongs to the user or to a reversible system-driven flow. */
+enum class LauncherCellOrigin {
+    USER,
+    AUTO_INSTALL,
+}
+
 /**
  * S0404: one item the user placed on the launcher desktop. A shortcut occupies a single grid cell;
  * a gadget spans [spanW] x [spanH] cells. Portrait and landscape hold separate rows, so arranging
@@ -36,4 +42,5 @@ data class LauncherCell(
     val labelOverride: String?,
     val addedAt: Long,
     val screenIndex: Int = 0,
+    val origin: LauncherCellOrigin = LauncherCellOrigin.USER,
 )

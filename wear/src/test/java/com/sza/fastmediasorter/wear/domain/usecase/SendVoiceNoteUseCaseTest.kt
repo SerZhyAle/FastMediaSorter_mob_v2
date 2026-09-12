@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import android.net.Uri
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteDeliveryState
 import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendFailureReason
@@ -7,9 +8,15 @@ import com.sza.fastmediasorter.wear.domain.model.VoiceNoteSendResult
 import com.sza.fastmediasorter.wear.domain.model.WearFileSendOutcome
 import com.sza.fastmediasorter.wear.domain.repository.FakeVoiceNoteRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFileSenderRepository
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.mockkStatic
+import io.mockk.unmockkStatic
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
@@ -25,10 +32,37 @@ class SendVoiceNoteUseCaseTest {
     @get:Rule
     val temporaryFolder: TemporaryFolder = TemporaryFolder()
 
+    @Before
+    fun setUp() {
+        mockkStatic(Uri::class)
+        every { Uri.parse(any()) } returns mockk(relaxed = true)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkStatic(Uri::class)
+    }
+
     private class FakeFileSender(private val outcome: WearFileSendOutcome) : WearFileSenderRepository {
         var sentFiles: MutableList<File> = mutableListOf()
-        override suspend fun sendFile(file: File): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
+        var sentUris: MutableList<Triple<android.net.Uri, String, Long>> = mutableListOf()
+
+        override suspend fun sendFile(
+            file: File,
+            sendToReceiverId: String?
+        ): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
             sentFiles += file
+            return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(outcome)
+        }
+
+        override suspend fun isPhoneReachable(): Boolean = true
+
+        override suspend fun sendUri(
+            uri: android.net.Uri,
+            displayName: String,
+            sizeBytes: Long
+        ): com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult {
+            sentUris += Triple(uri, displayName, sizeBytes)
             return com.sza.fastmediasorter.wear.domain.repository.WearFileSendResult(outcome)
         }
     }
@@ -100,12 +134,27 @@ class SendVoiceNoteUseCaseTest {
     }
 
     @Test
-    fun `an id addressing no note reports NOTE_MISSING without opening the bridge`() {
-        runBlocking {
-            val sender = FakeFileSender(WearFileSendOutcome.SENT)
-            val result = SendVoiceNoteUseCase(FakeVoiceNoteRepository(), sender)(404L)
-            assertEquals(VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.NOTE_MISSING), result)
-            assertTrue("a missing note still opened a channel", sender.sentFiles.isEmpty())
-        }
+    fun `an id addressing no note reports NOTE_MISSING without opening the bridge`() = runBlocking {
+        val sender = FakeFileSender(WearFileSendOutcome.SENT)
+        val result = SendVoiceNoteUseCase(FakeVoiceNoteRepository(), sender)(404L)
+        assertEquals(VoiceNoteSendResult.Failed(VoiceNoteSendFailureReason.NOTE_MISSING), result)
+        assertTrue("a missing note still opened a channel", sender.sentFiles.isEmpty())
+    }
+
+    @Test
+    fun `a note with publishedAddress sends via sendUri instead of sendFile`() = runBlocking {
+        val file = noteFile()
+        val note = noteOf(file).copy(publishedAddress = "content://media/external/audio/media/100")
+        val repository = FakeVoiceNoteRepository(listOf(note))
+        val sender = FakeFileSender(WearFileSendOutcome.SENT)
+
+        val result = SendVoiceNoteUseCase(repository, sender)(1L)
+
+        assertEquals(VoiceNoteSendResult.Sent, result)
+        assertTrue("sendFile should not have been called", sender.sentFiles.isEmpty())
+        assertEquals(1, sender.sentUris.size)
+        assertEquals(note.fileName, sender.sentUris.first().second)
+        assertEquals(note.sizeBytes, sender.sentUris.first().third)
+        assertEquals(listOf(1L to VoiceNoteDeliveryState.SENT), repository.stateWrites)
     }
 }

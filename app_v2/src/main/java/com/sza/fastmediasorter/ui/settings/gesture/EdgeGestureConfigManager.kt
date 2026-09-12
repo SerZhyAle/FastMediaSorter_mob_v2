@@ -261,7 +261,6 @@ class EdgeGestureConfigManager(
         action: ScreenshotGestureAction = viewModel.settings.value.screenshotGestureAction(zone, direction),
     ) {
         val kind = GestureTargetKind.of(action)
-        Timber.d("S2265: edge target picker %s/%s kind=%s", zone, direction, kind)
         when (kind) {
             GestureTargetKind.APP -> appSlotHost.showAppPicker(zone, direction)
             GestureTargetKind.URL -> promptUrl(zone, direction)

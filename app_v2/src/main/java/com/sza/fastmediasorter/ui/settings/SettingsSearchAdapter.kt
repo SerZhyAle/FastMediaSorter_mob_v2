@@ -52,6 +52,10 @@ class SettingsSearchAdapter(
                 "video" -> binding.root.context.getString(R.string.settings_category_video)
                 "audio" -> binding.root.context.getString(R.string.settings_category_audio)
                 "documents" -> binding.root.context.getString(R.string.settings_category_documents)
+                // S2787: the Streams rows fell through to "other" and were labelled with a foreign
+                // section. Since the PiP toggle now appears twice under one title, this label is the
+                // only thing telling the two results apart.
+                "streams" -> binding.root.context.getString(R.string.settings_streams_section)
                 else -> binding.root.context.getString(R.string.settings_category_other)
             }
         }

@@ -17,11 +17,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okio.FileSystem
 import okio.Path.Companion.toOkioPath
@@ -80,7 +82,9 @@ class SettingsRepositoryImplTest {
 
     @After
     fun tearDown() {
-        realStoreScope.cancel()
+        // S2748: join, not just cancel - TemporaryFolder deletes the directory after @After
+        // returns, so an unfinished DataStore flush would meet a deleted file.
+        runBlocking { realStoreScope.coroutineContext.job.cancelAndJoin() }
     }
 
     @Before
@@ -180,6 +184,27 @@ class SettingsRepositoryImplTest {
         assertFalse(
             "saved false must load back as false",
             realRepo.getSettings().first().secureSensitiveScreens
+        )
+    }
+
+    @Test
+    fun `persistent audio defaults true and round-trips false through DataStore`() = runTest {
+        val realRepo = SettingsRepositoryImpl(
+            RuntimeEnvironment.getApplication(),
+            realDataStore("s2428_settings.preferences_pb")
+        )
+
+        assertTrue(
+            "unset key must keep persistent audio enabled by default (S2247)",
+            realRepo.getSettings().first().enablePersistentAudioPlayback
+        )
+
+        val current = realRepo.getSettings().first()
+        realRepo.updateSettings(current.copy(enablePersistentAudioPlayback = false))
+
+        assertFalse(
+            "saved false must remain the user's explicit opt-out",
+            realRepo.getSettings().first().enablePersistentAudioPlayback
         )
     }
 

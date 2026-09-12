@@ -25,7 +25,6 @@ class LocalQuickVerifier @Inject constructor(
     override suspend fun missingFiles(resourceId: Long, paths: List<String>): List<String> =
         withContext(Dispatchers.IO) {
             try {
-                Timber.d("S2373: LocalQuickVerifier probing %d paths for resource=%d", paths.size, resourceId)
                 paths.filter { path -> !fileExists(path) }
             } catch (e: Exception) {
                 Timber.w(e, "QuickVerifier(LOCAL): probe error for resource=%d, returning no-op", resourceId)
@@ -48,4 +47,3 @@ class LocalQuickVerifier @Inject constructor(
         }
     }
 }
-

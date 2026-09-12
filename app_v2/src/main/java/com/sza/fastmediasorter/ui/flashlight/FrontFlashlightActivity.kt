@@ -3,37 +3,65 @@ package com.sza.fastmediasorter.ui.flashlight
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
-import android.text.format.DateFormat
 import android.view.GestureDetector
 import android.view.KeyEvent
 import android.view.MotionEvent
+import android.view.View
 import androidx.activity.viewModels
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updatePadding
+import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityFrontFlashlightBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
+import com.sza.fastmediasorter.domain.model.Quantity
+import com.sza.fastmediasorter.domain.unit.UnitSystemProvider
 import com.sza.fastmediasorter.ui.dialog.ColorPickerDialog
+import com.sza.fastmediasorter.ui.flashlight.helpers.FrontFlashlightBrightnessManager
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
-import java.util.Date
+import javax.inject.Inject
 import kotlin.math.abs
 
 /**
  * The front flashlight: the whole window becomes the light source (strategic S1796). Only the window's
  * own brightness is touched, never the device setting - see ADR-2, a program that raised the system
  * brightness would leave the device on maximum after it closed.
+ *
+ * Brightness is one of five steps (S2777). The visible strip and the vertical swipe drive the same
+ * step index, so what is highlighted is always what the window is lit at.
  */
 @AndroidEntryPoint
 class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
 
     private val viewModel: FrontFlashlightViewModel by viewModels()
 
+    @Inject
+    lateinit var quantityFormatter: QuantityFormatter
+
+    @Inject
+    lateinit var unitSystemProvider: UnitSystemProvider
+
     private lateinit var gestureDetector: GestureDetector
 
-    private var brightness: Float = MAX_BRIGHTNESS
+    private val brightnessManager = FrontFlashlightBrightnessManager()
+
+    private val brightnessCells: List<View> by lazy {
+        listOf(
+            binding.brightnessLevel1,
+            binding.brightnessLevel2,
+            binding.brightnessLevel3,
+            binding.brightnessLevel4,
+            binding.brightnessLevel5,
+        )
+    }
+
+    // Travel carried between scroll events, so a slow drag still adds up to a whole step instead of
+    // being rounded away event by event.
+    private var scrollTravel: Float = 0f
 
     // Re-posted at each minute boundary rather than on a fixed tick, so the displayed minute changes
     // when it actually changes and the screen is not woken 60 times for one visible update.
@@ -50,20 +78,26 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        brightness = savedInstanceState?.getFloat(STATE_BRIGHTNESS, MAX_BRIGHTNESS) ?: MAX_BRIGHTNESS
-        applyBrightness()
+        savedInstanceState?.let {
+            brightnessManager.setLevel(it.getInt(STATE_BRIGHTNESS_LEVEL, brightnessManager.currentLevel))
+        }
+        // Window only: BaseActivity defers setupViews() to a post{}, so the strip does not exist yet.
+        applyWindowBrightness()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putFloat(STATE_BRIGHTNESS, brightness)
+        outState.putInt(STATE_BRIGHTNESS_LEVEL, brightnessManager.currentLevel)
     }
 
     override fun setupViews() {
-        Timber.d("flashlight opened, brightness=$brightness")
+        Timber.d("flashlight opened, brightness level=${brightnessManager.currentLevel}")
         applyControlInsets()
         gestureDetector = GestureDetector(this, FlashlightGestures())
         binding.btnColor.setOnClickListener { openColorPicker() }
+        bindBrightnessCells()
+        refreshBrightnessSelection()
+        Timber.d("S2777: controls bound, brightness steps=${brightnessManager.levelCount}")
         supportFragmentManager.setFragmentResultListener(COLOR_REQUEST_KEY, this) { _, result ->
             val picked = result.getInt(ColorPickerDialog.RESULT_COLOR, currentGlowColor())
             Timber.d("glow colour picked %08X", picked)
@@ -76,6 +110,9 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
         collectOnLifecycle(viewModel.glowColor) { color ->
             binding.flashlightRoot.setBackgroundColor(color)
         }
+        // The clock only redraws at a minute boundary, so a measurement system switched while the lamp
+        // is on screen would otherwise keep the old clock length for up to a minute (S2795).
+        collectOnLifecycle(unitSystemProvider.current) { renderClock() }
     }
 
     override fun onDestroy() {
@@ -106,8 +143,32 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
         }
     }
 
+    private fun bindBrightnessCells() {
+        brightnessCells.forEachIndexed { index, cell ->
+            cell.contentDescription =
+                getString(R.string.front_flashlight_brightness_level, index + 1, brightnessManager.levelCount)
+            cell.setOnClickListener {
+                brightnessManager.setLevel(index)
+                Timber.d("brightness step tapped -> ${brightnessManager.currentLevel}")
+                applyBrightness()
+            }
+        }
+    }
+
+    private fun applyWindowBrightness() {
+        Timber.d("S2777: brightness level=${brightnessManager.currentLevel}")
+        window.attributes = window.attributes.apply { screenBrightness = brightnessManager.currentBrightness() }
+    }
+
+    private fun refreshBrightnessSelection() {
+        brightnessCells.forEachIndexed { index, cell ->
+            cell.isSelected = index == brightnessManager.currentLevel
+        }
+    }
+
     private fun applyBrightness() {
-        window.attributes = window.attributes.apply { screenBrightness = brightness }
+        applyWindowBrightness()
+        refreshBrightnessSelection()
     }
 
     private fun currentGlowColor(): Int = viewModel.glowColor.value
@@ -122,8 +183,19 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
             .show(supportFragmentManager, ColorPickerDialog.TAG)
     }
 
+    /**
+     * The app's measurement system decides the clock length, not the device's 12/24 switch (S2795):
+     * the lamp's clock must read the same as every other time in the program.
+     */
+    private fun renderClock() {
+        binding.tvClock.text = quantityFormatter.format(
+            Quantity.Instant(System.currentTimeMillis()),
+            unitSystemProvider.value,
+        )
+    }
+
     private fun showTimeAndScheduleNext() {
-        binding.tvClock.text = DateFormat.getTimeFormat(this).format(Date())
+        renderClock()
         binding.tvClock.postDelayed(clockTick, millisUntilNextMinute())
     }
 
@@ -132,7 +204,10 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
 
     private inner class FlashlightGestures : GestureDetector.SimpleOnGestureListener() {
 
-        override fun onDown(e: MotionEvent): Boolean = true
+        override fun onDown(e: MotionEvent): Boolean {
+            scrollTravel = 0f
+            return true
+        }
 
         override fun onSingleTapUp(e: MotionEvent): Boolean {
             finish()
@@ -140,8 +215,8 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
         }
 
         /**
-         * A full sweep of the window height covers the whole range, so the control is the same
-         * distance on any screen. Horizontal drags are ignored rather than diluted into the value.
+         * A full sweep of the window height still spans the whole range, now as whole steps rather
+         * than a continuous value. Horizontal drags are ignored rather than diluted into the value.
          */
         override fun onScroll(
             e1: MotionEvent?,
@@ -151,9 +226,15 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
         ): Boolean {
             val height = binding.flashlightRoot.height
             if (height <= 0 || abs(distanceY) <= abs(distanceX)) return false
-            brightness = (brightness + distanceY / height).coerceIn(MIN_BRIGHTNESS, MAX_BRIGHTNESS)
-            Timber.d("brightness gesture -> $brightness")
-            applyBrightness()
+            scrollTravel += distanceY
+            val stepTravel = height.toFloat() / (brightnessManager.levelCount - 1)
+            val steps = (scrollTravel / stepTravel).toInt()
+            if (steps != 0) {
+                scrollTravel -= steps * stepTravel
+                brightnessManager.shiftLevels(steps)
+                Timber.d("brightness gesture -> level ${brightnessManager.currentLevel}")
+                applyBrightness()
+            }
             return true
         }
     }
@@ -163,11 +244,7 @@ class FrontFlashlightActivity : BaseActivity<ActivityFrontFlashlightBinding>() {
 
         private const val COLOR_REQUEST_KEY = "front_flashlight_color_result"
         private const val SUBJECT_GLOW = "front_flashlight_glow"
-        private const val STATE_BRIGHTNESS = "state_brightness"
-        private const val MAX_BRIGHTNESS = 1.0f
-
-        // Never fully dark: a black screen reads as a crash, not as the dimmest setting of a lamp.
-        private const val MIN_BRIGHTNESS = 0.05f
+        private const val STATE_BRIGHTNESS_LEVEL = "state_brightness_level"
         private const val MINUTE_MS = 60_000L
     }
 }

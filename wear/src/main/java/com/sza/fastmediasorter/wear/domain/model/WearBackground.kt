@@ -13,5 +13,9 @@ sealed interface WearBackground {
 
     data object BrandedAnimation : WearBackground
 
-    data class Image(val file: File) : WearBackground
+    data object BrandedStill : WearBackground
+
+    data class Image(val file: File, val lastModified: Long = file.lastModified()) : WearBackground
+
+    data object None : WearBackground
 }

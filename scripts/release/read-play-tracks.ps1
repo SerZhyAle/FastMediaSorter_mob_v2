@@ -14,9 +14,10 @@
     the store", which otherwise means opening the Console.
 
     -RequireWearCodeBelow turns the second read into an assertion. The wear campaign derives its
-    versionCode from the clock as yyMMddHH, which is unique against every phone code by digit
-    count and against every prior wear code by monotonicity - except for two watch releases
-    inside one hour, which is the one case a rule cannot exclude and a check can (S2081).
+    versionCode from the clock through Get-BuildVersionStamp, which is unique against every phone
+    code by the last-digit partition - the phone owns 0..5, the watch owns 6..9 (S2721) - and
+    against every prior wear code by monotonicity, except for two watch releases inside one
+    15-minute block, which is the one case a rule cannot exclude and a check can (S2081).
 
 .PARAMETER Json
     Emit the Python half's JSON object unchanged, for a caller that parses it. Default output is

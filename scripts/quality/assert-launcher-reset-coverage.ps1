@@ -32,11 +32,22 @@
     milliseconds and runs inside `post-change.ps1` on every change, which is the only cadence at which
     it would have caught the case it was written for.
 
+    S2824 gave it -ChangedFiles for the reason recorded in lib/fixed-input-scope.ps1. This gate has
+    no trigger in post-change.ps1, so unlike its two siblings it runs on EVERY closure in the repo,
+    which makes it the widest-exposed of the three even though it is the quietest: measured
+    2026-09-10 over temp/metrics/gate-executions.jsonl it failed 7 of 2487 runs. A violation between
+    two files the caller never opened is now reported and not charged.
+
 .PARAMETER Gate
     Gate framing: exit 1 on any violation, print a one-line verdict.
 
 .PARAMETER Quiet
     Suppress the informational counters. Violations are always printed.
+
+.PARAMETER ChangedFiles
+    Repo-relative paths of the files the caller changed, comma-joined. Supplying it lets the gate
+    decline to charge a violation when neither LauncherSettings.kt nor ResetLauncherToDefaultsUseCase.kt
+    is among them. Omit it - as the release path does - and every violation stays fatal.
 
 .NOTES
     Exit codes (CLAUDE.md Rule 7 / S1070 contract):
@@ -44,6 +55,9 @@
       1  FAIL - the reset no longer assigns the group wholesale, a preserved field is not excused, an
          excused field is not preserved, or either side names a field LauncherSettings does not declare.
       2  CANNOT VERIFY - a source file is missing, or no field could be parsed at all.
+      3  NOT CHARGED (S2824) - a violation was found, but neither declared input file is in
+         -ChangedFiles, so it is not attributable to this run. The violation is printed. Distinct
+         from 1 because the caller cannot fix it and from 0 because something IS wrong in the tree.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-launcher-reset-coverage.ps1 -Gate
@@ -51,11 +65,17 @@
 [CmdletBinding()]
 param(
     [switch]$Gate,
-    [switch]$Quiet
+    [switch]$Quiet,
+    # S1184/S1340: `pwsh -File` binds only the first element of a [string[]] and rejects the rest as
+    # positional args, so callers comma-join and Expand-ChangedFiles splits it back.
+    [string[]]$ChangedFiles
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+
+# S2824: the chargeability test, shared with the other two fixed-input gates.
+. (Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1')
 
 $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 $groupFile = Join-Path $repoRoot 'app_v2/src/main/java/com/sza/fastmediasorter/domain/model/launcher/LauncherSettings.kt'
@@ -175,8 +195,15 @@ if ($stale.Count -gt 0) {
 }
 
 if ($unexcusedPreserved.Count -gt 0 -or $droppedExcusal.Count -gt 0 -or $stale.Count -gt 0 -or $undeclaredParameter.Count -gt 0) {
-    Write-Error ('assert-launcher-reset-coverage: FAIL - {0} unexcused preserved field(s), {1} dropped excusal(s), {2} stale name(s), {3} undeclared parameter assignment(s).' -f
-        $unexcusedPreserved.Count, $droppedExcusal.Count, $stale.Count, $undeclaredParameter.Count) -ErrorAction Continue
+    $summary = ('assert-launcher-reset-coverage: FAIL - {0} unexcused preserved field(s), {1} dropped excusal(s), {2} stale name(s), {3} undeclared parameter assignment(s).' -f
+        $unexcusedPreserved.Count, $droppedExcusal.Count, $stale.Count, $undeclaredParameter.Count)
+    # S2824: the two files above are the whole input set - a violation between them belongs to
+    # whoever is editing them, and this gate runs on every closure in the repo.
+    if (-not (Test-FixedInputsChargeable -ChangedFiles $ChangedFiles -InputPaths @($groupFile, $resetFile))) {
+        Write-NotChargedVerdict -GateName 'assert-launcher-reset-coverage' -Findings @($summary)
+        exit 3
+    }
+    Write-Error $summary -ErrorAction Continue
     exit 1
 }
 

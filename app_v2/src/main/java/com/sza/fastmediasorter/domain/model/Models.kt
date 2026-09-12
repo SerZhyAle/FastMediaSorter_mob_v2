@@ -24,6 +24,18 @@ enum class ResourceType {
 
     val isNetworkResource: Boolean
         get() = this in listOf(SMB, SFTP, FTP, CLOUD)
+
+    companion object {
+        /**
+         * S2641: the constant names this app may put into a watch-bound source payload. The watch
+         * parses them back in `ImportNetworkSourcesUseCase.parseType`, which is the other half of the
+         * agreement - it has no client for anything outside this set, and an unparsed name is dropped
+         * at import with no message the owner ever sees. The two halves are compared by
+         * `scripts/quality/assert-wear-wire-vocabulary-parity.ps1`, so widening this set without
+         * adding the matching branch there fails that gate instead of losing a source on the watch.
+         */
+        val WATCH_TRANSFERABLE: Set<ResourceType> = setOf(SMB, FTP, SFTP)
+    }
 }
 
 /**
@@ -92,21 +104,21 @@ enum class MediaType {
  * Sort mode enum matching specification
  */
 enum class SortMode {
-    RANDOM,          // Random order (useful for slideshows) - first in sort menu
+    RANDOM, // Random order (useful for slideshows) - first in sort menu
     NAME_ASC,
     NAME_DESC,
     DATE_ASC,
     DATE_DESC,
     SIZE_ASC,
     SIZE_DESC,
-    MANUAL,          // Manual ordering by displayOrder - placed after SIZE per UX requirement
+    MANUAL, // Manual ordering by displayOrder - placed after SIZE per UX requirement
     ARTIST_ASC,
     ARTIST_DESC,
     TITLE_ASC,
     TITLE_DESC,
     DURATION_ASC,
     DURATION_DESC,
-    TYPE_ASC,        // Placed below DURATION per UX requirement
+    TYPE_ASC, // Placed below DURATION per UX requirement
     TYPE_DESC,
     DATE_TAKEN_ASC,
     DATE_TAKEN_DESC,
@@ -125,12 +137,12 @@ enum class DisplayMode {
  * The selected profile is persisted in the resource entity for informational purposes.
  */
 enum class ResourceProfile {
-    NONE,          // No preset - manual configuration
+    NONE, // No preset - manual configuration
     AUDIO_LIBRARY, // Audio only + rememberFileList recommended
     VIDEO_LIBRARY, // Video + Audio
     PHOTO_STORAGE, // Image + GIF
-    DOCUMENTS,     // Text + PDF + EPUB + Office documents
-    ALL_FILES      // allFiles flag enabled (show everything)
+    DOCUMENTS, // Text + PDF + EPUB + Office documents
+    ALL_FILES // allFiles flag enabled (show everything)
 }
 
 /**
@@ -181,7 +193,7 @@ data class FileFilter(
     val mediaTypes: Set<MediaType>? = null
 ) {
     fun isEmpty(): Boolean = nameContains.isNullOrBlank() && minDate == null && maxDate == null && minSizeMb == null && maxSizeMb == null && mediaTypes == null
-    
+
     /**
      * Count active filter criteria for badge display
      */
@@ -253,7 +265,7 @@ data class MediaResource(
     val accessPin: String? = null, // PIN code to access the resource (null = no PIN protection)
     val comment: String? = null, // User comment for the resource
     val profile: ResourceProfile = ResourceProfile.NONE, // Quick-setup profile (preset applied during creation)
-    
+
     // Network speed test results
     val readSpeedMbps: Double? = null,
     val writeSpeedMbps: Double? = null,
@@ -271,7 +283,7 @@ data class MediaResource(
     fun isAudioOnly(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.AUDIO)
     }
-    
+
     fun isOnlyImage(): Boolean {
         return !allFiles && supportedMediaTypes.size == 1 && supportedMediaTypes.contains(MediaType.IMAGE)
     }
@@ -418,5 +430,12 @@ data class UndoOperation(
     val destinationFolder: String? = null, // For COPY/MOVE operations
     val copiedFiles: List<String>? = null, // Destination paths for copied/moved files
     val oldNames: List<Pair<String, String>>? = null, // (currentPathAfterRename, originalDisplayName) for RENAME
-    val timestamp: Long = System.currentTimeMillis()
+    val timestamp: Long = System.currentTimeMillis(),
+    /**
+     * S1326: original parent-relative paths of whole folders moved or copied, index-aligned with
+     * [copiedDirectories].
+     */
+    val sourceDirectories: List<String> = emptyList(),
+    /** S1326: where each entry of [sourceDirectories] landed, same index. */
+    val copiedDirectories: List<String> = emptyList()
 )

@@ -38,7 +38,10 @@
 .PARAMETER WalkResults
   S1984. `walk.json` written by wear-prerelease-walk.ps1. Present: each declared screen is listed and
   a `manual` screen - one nothing could be decided about - blocks the PASS without counting as a
-  failure. Absent: the phone sweep, unchanged.
+  failure. S2767: an `unreachable` screen - one the walk never opened - is counted and reported on
+  its own line and blocks the PASS exactly as a `failed` one does. S2782: a screen's `shapeExit` is
+  read too, split by lib/clip-shape-outcome.ps1 into `offGlass`, which fails the walk beside
+  `failed`, and `shapeUnchecked`, which blocks it beside `manual`. Absent: the phone sweep, unchanged.
 
 .PARAMETER Json
   Emit a single JSON verdict object instead of human-readable lines.
@@ -63,6 +66,11 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 $SearchLog = Join-Path $PSScriptRoot '..\utils\search-log.ps1'
+
+# S2782. Only the walk half uses it, and the walk half is skipped on the phone sweep - but it is
+# sourced unconditionally because a missing library must fail here, at load, rather than at the one
+# line that reads a shape and only on the watch.
+. (Join-Path $PSScriptRoot 'lib/clip-shape-outcome.ps1')
 
 if (-not (Test-Path $LogFile))   { if ($Json) { '{"pass":false,"error":"log file not found"}' } else { Write-Host 'log file not found' }; exit 2 }
 if (-not (Test-Path $SearchLog)) { if ($Json) { '{"pass":false,"error":"search-log.ps1 not found"}' } else { Write-Host 'search-log.ps1 not found' }; exit 2 }
@@ -193,7 +201,21 @@ $perfBreakdown = [ordered]@{ pass = [bool]$perfPass; failures = $perfFailures; a
 
 # maestro: every suite flow in MaestroResults must have pass=true. Missing file = no suite data
 # supplied this run (neutral/pass); a present file with any failing flow = FAIL.
+#
+# Except a flow whose status is execError (S2396): that is the transport between Maestro and the
+# device dropping - maestro.android.AdbSocket throwing out of the run - and it says nothing about
+# the app, so counting it as a content defect makes the release verdict depend on which run the
+# operator happened to look at. It is reported on its own line instead of being swallowed: an
+# infrastructure failure means the suite did not finish judging that flow, which the reader must
+# see. A flow object with no status field is a pre-S2396 JSON and keeps the old behaviour.
+#
+# And except a flow whose status is skip (S2720): the runner never ran it, because a precondition it
+# declares - today the ROLE_HOME system role, which docs/DEVICE_FLEET.md forbids on some handsets -
+# could not be established on this device. That is a gap in coverage, not a defect in the app, so it
+# gets its own line for the reader instead of a red verdict; the reason travels in the JSON.
 $maestroFailures = @()
+$maestroInfra = @()
+$maestroSkipped = @()
 $maestroTotal = 0
 $maestroPass = $true
 if ($MaestroResults -and (Test-Path $MaestroResults)) {
@@ -201,13 +223,21 @@ if ($MaestroResults -and (Test-Path $MaestroResults)) {
     $flows = @($suite.flows)
     $maestroTotal = $flows.Count
     foreach ($flow in $flows) {
-        if (-not $flow.pass) {
+        if ($flow.pass) { continue }
+        $status = if ($flow.PSObject.Properties.Name -contains 'status') { "$($flow.status)" } else { 'fail' }
+        if ($status -eq 'execError') {
+            $maestroInfra += "$($flow.flow)"
+        } elseif ($status -eq 'skip') {
+            $reason = if ($flow.PSObject.Properties.Name -contains 'skipReason' -and $flow.skipReason) { " - $($flow.skipReason)" } else { '' }
+            $maestroSkipped += "$($flow.flow)$reason"
+        } else {
             $maestroPass = $false
             $maestroFailures += "$($flow.flow)"
         }
     }
 }
-$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures }
+$maestroBreakdown = [ordered]@{ pass = [bool]$maestroPass; total = $maestroTotal; failures = $maestroFailures
+                                infra = $maestroInfra; skipped = $maestroSkipped }
 
 # screenshot: evidence only. A present ScreensDir reports the number of captured screenshots
 # but does not contribute to PASS/FAIL.
@@ -244,6 +274,7 @@ if ($ArtifactManifest) {
 # pass - nothing was decided about it - so it blocks the PASS instead of being counted either way.
 $walkBreakdown = $null
 $manualOpen = 0
+$shapeUncheckedOpen = 0
 if ($WalkResults) {
     if (-not (Test-Path $WalkResults)) {
         if ($Json) { '{"pass":false,"error":"walk results not found"}' } else { Write-Host 'walk results not found' }
@@ -256,21 +287,51 @@ if ($WalkResults) {
     }
     $walkScreens = @($walk.screens)
     $manualOpen = @($walkScreens | Where-Object { $_.outcome -eq 'manual' }).Count
+
+    # S2782. The shape verdict is per screen and it was read by nothing here: a walk carrying an
+    # OFF-GLASS finding printed `VERDICT PASS - walk=True` and exited 0, because the walk half was
+    # built from `outcome` alone and an OFF-GLASS screen's outcome is `observed`. Reproduced
+    # 2026-09-09 on a synthetic walk.json; live on package 36, whose Play rejection two days earlier
+    # named content behind the round glass - the one thing WO-V16 exists to catch before submission.
+    #
+    # Counted from the screen rows rather than from `walk.counts`, which is the same source every
+    # other number on this line comes from. Two counters of one quantity drift (the S1621 rule), and
+    # a walk.json written before S2782 carries no `shapeUnchecked` in `counts` at all while its rows
+    # still carry the exit codes to derive it from.
+    $shapeClasses = @($walkScreens | ForEach-Object { Get-ClipShapeClass $_.shapeExit })
+    $shapeUncheckedOpen = @($shapeClasses | Where-Object { $_ -eq 'unchecked' }).Count
+
     $walkBreakdown = [ordered]@{
-        observed = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
-        failed   = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
-        manual   = $manualOpen
-        screens  = @($walkScreens | ForEach-Object { [ordered]@{ id = $_.id; outcome = $_.outcome; detail = $_.detail } })
+        observed    = @($walkScreens | Where-Object { $_.outcome -eq 'observed' }).Count
+        failed      = @($walkScreens | Where-Object { $_.outcome -eq 'failed' }).Count
+        # S2767: reported apart from `failed` and weighed the same. A screen the walk never opened
+        # was judged against no Play requirement at all, so counting it as a pass would be the green
+        # verdict about the unseen; counting it as a product failure sent two rebuilds after a defect
+        # that did not exist. It is neither, and now it says so.
+        unreachable = @($walkScreens | Where-Object { $_.outcome -eq 'unreachable' }).Count
+        manual      = $manualOpen
+        # A WO-V16 violation: the screen opened and showed what it should, and part of it cannot fit
+        # on the glass at any scroll position. That is a defect, so it joins `failed` below.
+        offGlass    = @($shapeClasses | Where-Object { $_ -eq 'finding' }).Count
+        # clip-check's own wrapper failed, so the glass was never judged on that screen. Blocks the
+        # PASS the way `manual` does, and for the same reason: nothing was decided.
+        shapeUnchecked = $shapeUncheckedOpen
+        coverage    = $walk.coverage
+        screens     = @($walkScreens | ForEach-Object {
+            [ordered]@{ id = $_.id; outcome = $_.outcome; shape = (Get-ClipShapeClass $_.shapeExit); detail = $_.detail }
+        })
     }
 }
 
-$walkPass = (-not $walkBreakdown) -or ($walkBreakdown.failed -eq 0)
+$walkPass = (-not $walkBreakdown) -or (($walkBreakdown.failed -eq 0) -and ($walkBreakdown.unreachable -eq 0) -and ($walkBreakdown.offGlass -eq 0))
+# What nothing decided, from either cause. Neither is a defect and both refuse the PASS.
+$undecidedOpen = $manualOpen + $shapeUncheckedOpen
 $pass = $logPass -and $perfPass -and $maestroPass -and $walkPass
 
 # ---------- emit verdict (step 04.3) ----------
 $verdict = [ordered]@{
-    pass      = [bool]($pass -and $manualOpen -eq 0)
-    blocked   = [bool]($pass -and $manualOpen -gt 0)
+    pass      = [bool]($pass -and $undecidedOpen -eq 0)
+    blocked   = [bool]($pass -and $undecidedOpen -gt 0)
     breakdown = [ordered]@{
         log        = $logBreakdown
         perf       = $perfBreakdown
@@ -285,12 +346,40 @@ if ($Json) { $verdict | ConvertTo-Json -Depth 6 -Compress }
 else {
     if ($artifactLine) { Write-Host $artifactLine -ForegroundColor Cyan }
     if ($walkBreakdown) {
-        foreach ($s in $walkBreakdown.screens) { Write-Host ("  screen {0,-24} {1}{2}" -f $s.id, $s.outcome, $(if ($s.detail) { " - $($s.detail)" } else { '' })) }
+        foreach ($s in $walkBreakdown.screens) {
+            # S2782: the shape rides on the same line as the outcome. An OFF-GLASS screen's outcome
+            # is `observed`, so a reader of the old line saw a clean screen and had to open walk.json
+            # to learn otherwise - which is how a WO-V16 violation reached a release report unread.
+            $shapeNote = switch ($s.shape) { 'finding' { ' OFF-GLASS' } 'unchecked' { ' shape-unchecked' } default { '' } }
+            Write-Host ("  screen {0,-24} {1}{2}{3}" -f $s.id, $s.outcome, $shapeNote, $(if ($s.detail) { " - $($s.detail)" } else { '' }))
+        }
+        # S2547: what the run OPENED, printed beside what it decided. A PASS used to be silent about
+        # its own scope, so a reader could not tell a walk of the whole app from a walk of half of it.
+        if ($walkBreakdown.coverage) {
+            Write-Host ("  coverage {0} screen(s) walked, {1} excluded with a recorded reason" -f `
+                $walkBreakdown.coverage.walked, $walkBreakdown.coverage.excluded) -ForegroundColor Cyan
+        }
     }
-    $word = if (-not $pass) { 'FAIL' } elseif ($manualOpen -gt 0) { 'BLOCKED - manual observation open' } else { 'PASS' }
+    $word = if (-not $pass) { 'FAIL' }
+            elseif ($manualOpen -gt 0) { 'BLOCKED - manual observation open' }
+            elseif ($shapeUncheckedOpen -gt 0) { 'BLOCKED - a screen shape was never checked' }
+            else { 'PASS' }
     Write-Host ("VERDICT {0} - log={1} perf={2} maestro={3} walk={4} screenshots={5}" -f $word, $logPass, $perfPass, $maestroPass, $walkPass, $screenshotCount)
+    if ($walkBreakdown -and $walkBreakdown.offGlass -gt 0) {
+        Write-Host ("  walk OFF-GLASS on {0} screen(s) - WO-V16 violation, blocks the release" -f $walkBreakdown.offGlass)
+    }
+    if ($shapeUncheckedOpen -gt 0) {
+        Write-Host ("  walk shape unchecked on {0} screen(s) (clip-check could not run, glass never judged): not a defect and not a pass" -f $shapeUncheckedOpen)
+    }
+    if ($maestroInfra.Count -gt 0) {
+        Write-Host ("  maestro infra (not counted as a defect, flow not judged): {0}" -f ($maestroInfra -join ', '))
+    }
+    foreach ($skippedFlow in $maestroSkipped) {
+        Write-Host ("  maestro skipped (precondition not established, flow not run): {0}" -f $skippedFlow)
+    }
 }
 
 # A run with nothing broken but something unobserved is not a pass: strategic S1984 criterion 6
-# refuses a PASS while a step a machine could not run is still open.
-exit $(if ($pass -and $manualOpen -eq 0) { 0 } else { 1 })
+# refuses a PASS while a step a machine could not run is still open. S2782 puts a screen whose shape
+# could not be checked in that same class - the run did not judge the glass there either.
+exit $(if ($pass -and $undecidedOpen -eq 0) { 0 } else { 1 })

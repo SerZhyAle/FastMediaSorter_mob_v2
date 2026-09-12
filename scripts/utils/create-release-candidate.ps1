@@ -11,7 +11,10 @@
 param(
     [switch]$SkipBuild,   # Skip the actual Gradle build (for testing the script)
     [switch]$Push,        # Push git tag to remote after creating
-    [string]$Flavor = "standard"  # Which flavor to use for release AAB
+    # The underlying build is assembleStandardDebug and always has been, so any other value would be
+    # accepted and then ignored - a flag that reports a flavor the artifact does not carry.
+    [ValidateSet('standard')]
+    [string]$Flavor = "standard"
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,21 +27,11 @@ Write-Host "==========================================" -ForegroundColor Cyan
 Write-Host " FastMediaSorter - Release Candidate" -ForegroundColor Cyan
 Write-Host "==========================================" -ForegroundColor Cyan
 
-# Step 1: Generate version (reuse existing logic from build-with-version.ps1)
-$now = Get-Date
-$firstYearDigit = [int]($now.Year.ToString()[0].ToString())
-$lastYearDigit  = [int]($now.Year.ToString()[-1].ToString())
-$firstMonthDigit  = [int]($now.Month.ToString("00")[0].ToString())
-$secondMonthDigit = [int]($now.Month.ToString("00")[1].ToString())
-$dayStr = $now.Day.ToString("00")
-$firstHourDigit  = [int]($now.Hour.ToString("00")[0].ToString())
-$secondHourDigit = [int]($now.Hour.ToString("00")[1].ToString())
-$minuteStr = $now.Minute.ToString("00")
-$firstMinuteDigit = [int]($minuteStr[0].ToString())
-
-$versionCodeStr = $now.ToString("yyMMddHH") + $firstMinuteDigit.ToString()
-$versionCode = [Convert]::ToInt32($versionCodeStr)
-$versionName = "$firstYearDigit.$lastYearDigit$firstMonthDigit.$secondMonthDigit$dayStr$firstHourDigit.$secondHourDigit$minuteStr"
+# Step 1: Generate version - S1873, one formula for the whole repository.
+. "$PSScriptRoot\build-version-stamp.ps1"
+$stamp = Get-BuildVersionStamp
+$versionCode = $stamp.AppVersionCode
+$versionName = $stamp.VersionName
 
 Write-Host ""
 Write-Host "Version Name : $versionName" -ForegroundColor Green
@@ -56,11 +49,12 @@ if ($gitStatus) {
 
 # Step 3: Build Release (unless skipped)
 if (-not $SkipBuild) {
-    Write-Host "Building $Flavor release..." -ForegroundColor Cyan
-    $flavorCapitalized = $Flavor.Substring(0,1).ToUpper() + $Flavor.Substring(1)
+    Write-Host "Building standard debug for RC $versionName.." -ForegroundColor Cyan
 
-    # Run the version-bumping build script
-    & "$repoRoot\dev\build-with-version.ps1"
+    # S1873: hand the stamp resolved above to the build, rather than letting the build resolve its
+    # own. The two calls are separated by a confirmation prompt and a full gradle run, so two clocks
+    # would put one version in the APK and a different one in the rc/ tag naming it.
+    & "$repoRoot\dev\build-with-version.ps1" -VersionName $versionName -VersionCode $versionCode
     if ($LASTEXITCODE -ne 0) {
         Write-Error "Release build failed!"
         exit 1

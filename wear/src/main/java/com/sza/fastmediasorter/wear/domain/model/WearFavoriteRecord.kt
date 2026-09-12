@@ -50,10 +50,13 @@ data class WearFavoriteRecord(
                 return null
             }
             val path = key.substring(separator + 1)
+            val rawName = path.substringAfterLast('/').ifBlank { path }
+            val dot = rawName.lastIndexOf('.')
+            val displayName = if (dot > 0) rawName.substring(0, dot) else rawName
             return WearFavoriteRecord(
                 sourceId = key.substring(0, separator),
                 filePath = path,
-                displayName = path.substringAfterLast('/').ifBlank { path }
+                displayName = displayName
             )
         }
     }
@@ -108,6 +111,9 @@ const val SOURCE_ID_NETWORK = "network"
 
 /** A direct stream keyed by its normalized address instead of a volatile catalog row id. */
 const val SOURCE_ID_STREAM = "stream"
+
+/** A locally recorded voice note, selected for playback outside a browsed MediaStore set. */
+const val SOURCE_ID_VOICE_NOTE = "voice_note"
 
 /** A stream is presentation-distinct but shares the existing favourite identity and storage. */
 const val FAVORITE_ITEM_KIND_STREAM = "stream"

@@ -23,6 +23,7 @@ import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.github.chrisbanes.photoview.OnSingleFlingListener
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
@@ -479,10 +480,10 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
     private fun updateEpubTranslatorVisibility() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         val epubActive = safeViews.epubWebViewOrNull?.isVisible == true
-        binding.btnTranslateEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable() &&
+        binding.btnTranslateEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable(this) &&
             cachedTranslationEnabled && isLandscape && epubActive
         // S0393 wave-C: EPUB OCR button (ML-Kit-gated like translation).
-        binding.btnOcrEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable() && epubActive
+        binding.btnOcrEpubCmd.isVisible = capabilityAvailability.isTranslationAvailable(this) && epubActive
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
@@ -497,11 +498,17 @@ class DocumentStandaloneActivity : BaseActivity<ActivityStandaloneDocumentBindin
         // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
         com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val top = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(nav.left, cutout.left)
+            val rightPadding = maxOf(nav.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
             insets
         }
         // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar bottom inset

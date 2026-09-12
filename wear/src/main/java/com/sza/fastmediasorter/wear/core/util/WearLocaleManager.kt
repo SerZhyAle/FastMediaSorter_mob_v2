@@ -36,7 +36,6 @@ object WearLocaleManager {
         val resolvedTag = resolveSupportedTag(context, languageTag) ?: return
 
         Timber.d("WearLocaleManager: applying locale tag '%s'", resolvedTag)
-        Timber.d("S2054: '%s' resolved from %d declared", resolvedTag, WearLanguageCatalog.supportedTags(context).size)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             try {

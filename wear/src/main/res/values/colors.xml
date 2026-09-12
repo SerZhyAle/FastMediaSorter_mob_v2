@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- S1706: the watch splash reuses the phone's sampled launcher-icon blues so both surfaces
-         show the same brand colour; the generator emits these names into the brand drawable.
-         The watch composition is the logo alone - the wordmark and slogan colours the phone
-         declares have no consumer here. -->
-    <color name="splash_logo_gradient_start">#FF98CFF1</color>
-    <color name="splash_logo_gradient_end">#FF0B82EB</color>
     <color name="tile_preview_bg">#FF202124</color>
     <color name="tile_preview_accent">#FF0B82EB</color>
 
@@ -34,17 +28,50 @@
          .Colors declares no isLight and defaults background to black - so the watch has one surface
          and a split would resolve a choice that does not exist, at the risk of handing the watch the
          dark member of each pair against a black background. -->
-    <color name="color_media_music">#FF80CBC4</color>
-    <color name="color_media_video">#FFCE93D8</color>
-    <color name="color_media_image">#FF90CAF9</color>
-    <color name="color_media_docs">#FFFFCC80</color>
-    <color name="color_media_other">#FFB0BEC5</color>
+    <color name="color_media_music">#FF4B7A74</color>
+    <color name="color_media_video">#FF80608C</color>
+    <color name="color_media_image">#FF51789A</color>
+    <color name="color_media_docs">#FF9A7445</color>
+    <color name="color_media_other">#FF77848A</color>
 
     <!-- S2003 ADR-4: the only two tones in this set with no phone-side source - neither folder nor
          stream is a content type in any of the phone's four schemes. They are defined here, not
          inherited, and are marked so a later consolidation reads them as original rather than as
          drift. Green and red were chosen for being unoccupied and furthest from the five above;
          grey and teal were rejected because "other" and music already hold them. -->
-    <color name="color_media_folder">#FFA5D6A7</color>
-    <color name="color_media_stream">#FFEF9A9A</color>
+    <color name="color_media_folder">#FF628467</color>
+    <color name="color_media_stream">#FF9A5A5A</color>
+
+    <!-- S2510: per-mini-program accent palette, the watch half. The eight names repeat
+         app_v2/src/main/res/values/colors.xml exactly - that name match is the whole contract, since
+         the two modules share no source. The values do not: the watch screen is dark and may carry a
+         user photo under a fixed scrim, where a tone picked for a light phone surface either glares
+         or disappears (S2510 ADR-4). These are the desaturated members the color_media_* set above
+         already uses here, for the same reason and against the same background.
+         No values-night, for the reason S2003 ADR-6 states above: Wear Compose ships one palette. -->
+    <color name="color_program_accent_red">#FF9A5A5A</color>
+    <color name="color_program_accent_orange">#FF9A7445</color>
+    <color name="color_program_accent_amber">#FF9A8A45</color>
+    <color name="color_program_accent_green">#FF628467</color>
+    <color name="color_program_accent_teal">#FF4B7A74</color>
+    <color name="color_program_accent_blue">#FF51789A</color>
+    <color name="color_program_accent_indigo">#FF5A6096</color>
+    <color name="color_program_accent_purple">#FF80608C</color>
+    <!-- S2509: the ninth name, and the first one the phone does not declare. The eight above are a
+         name-for-name contract with app_v2 because each of those programs exists on both devices;
+         the broadcast is a watch-only program (see the watch-only canonical-key baseline), so its
+         tone has no phone counterpart to agree with. Desaturated like its neighbours, and distinct
+         from the teal the Network Monitor holds - the accent test forbids a repeat because the whole
+         list fits one watch screen at once. -->
+    <color name="color_program_accent_cyan">#FF4A7E8C</color>
+    <!-- S2809: the tenth name, for blood pressure. Watch-only like the cyan above, and
+         distinct from every other tone so no two adjacent rows on the Apps list look alike. -->
+    <color name="color_program_accent_pink">#FF9A5A7A</color>
+    <!-- S2825: the eleventh name, for the stopwatch. The phone gives that program orange because it
+         sits beside the calculator there, but on the watch the calculator already holds orange and the
+         accent test forbids a repeat - so this is the one tone whose value the two devices disagree on
+         by necessity rather than by choice. Brown, desaturated like its neighbours. -->
+    <color name="color_program_accent_brown">#FF8C6F5A</color>
+    <!-- S3007: the twelfth name, for Tourist dashboard. Emerald/lime green, distinct from game green. -->
+    <color name="color_program_accent_emerald">#FF4E8D62</color>
 </resources>

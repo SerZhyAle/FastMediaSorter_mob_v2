@@ -1,0 +1,5 @@
+POWER MANAGER (dumpsys power)
+
+Power Manager State:
+  mWakefulness=Dreaming
+  mIsPowered=true

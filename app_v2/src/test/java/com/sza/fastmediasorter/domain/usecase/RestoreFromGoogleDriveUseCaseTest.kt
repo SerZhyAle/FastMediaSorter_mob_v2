@@ -2,28 +2,30 @@ package com.sza.fastmediasorter.domain.usecase
 
 import android.content.Context
 import androidx.room.withTransaction
+import com.google.gson.GsonBuilder
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import com.sza.fastmediasorter.data.cloud.CloudFile
 import com.sza.fastmediasorter.data.cloud.CloudResult
 import com.sza.fastmediasorter.data.cloud.GoogleDriveRestClient
 import com.sza.fastmediasorter.data.local.db.AppDatabase
 import com.sza.fastmediasorter.data.local.db.FavoritesDao
 import com.sza.fastmediasorter.data.local.db.LauncherCellDao
+import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.AuthSessionRepository
 import com.sza.fastmediasorter.domain.repository.NetworkCredentialsRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
 import com.sza.fastmediasorter.domain.repository.ScheduledOperationRepository
-import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.testing.createAppSettings
 import com.sza.fastmediasorter.testing.createMediaResource
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
-import com.google.gson.GsonBuilder
 import io.mockk.Runs
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.just
 import io.mockk.mockk
+import io.mockk.mockkObject
 import io.mockk.mockkStatic
 import io.mockk.slot
 import kotlinx.coroutines.flow.flowOf
@@ -64,6 +66,12 @@ class RestoreFromGoogleDriveUseCaseTest {
         // RoomDatabase receiver and arg 1 is the transaction block - run the block so the Room sections
         // execute against the mocked repositories (S0732).
         mockkStatic("androidx.room.RoomDatabaseKt")
+        // S2571: the restore now applies the backup's interface language through LocaleHelper, whose
+        // real getLanguage goes through StrictMode - null-stubbed in a plain JVM test, so it must be
+        // mocked here. Returning the language the payload carries keeps every case below a no-op.
+        mockkObject(LocaleHelper)
+        every { LocaleHelper.getLanguage(any()) } returns "en"
+        every { LocaleHelper.saveLanguage(any(), any()) } just Runs
         coEvery { db.withTransaction(any<suspend () -> Any?>()) } answers {
             runBlocking { secondArg<suspend () -> Any?>().invoke() }
         }
@@ -72,8 +80,14 @@ class RestoreFromGoogleDriveUseCaseTest {
         // S0406: Restore now delegates to the shared applier; build a real one from mocked repos
         // so the behavioral assertions below still exercise the merge logic.
         val applyUseCase = ApplyBackupPayloadUseCase(
-            context, db, settingsRepository, resourceRepository, scheduledRepo,
-            credentialsRepository, authSessionRepository, workManagerScheduler,
+            context,
+            db,
+            settingsRepository,
+            resourceRepository,
+            scheduledRepo,
+            credentialsRepository,
+            authSessionRepository,
+            workManagerScheduler,
         )
         useCase = RestoreFromGoogleDriveUseCase(context, driveClient, applyUseCase)
         every { settingsRepository.getSettings() } returns flowOf(createAppSettings())

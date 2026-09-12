@@ -14,4 +14,8 @@
     <string name="wear_tile_picker_title_stream">Selecione o fluxo</string>
     <string name="wear_tile_picker_empty_resource">Nenhum recurso encontrado. Adicione um recurso de rede no relógio ou sincronize do telefone.</string>
     <string name="wear_tile_picker_empty_stream">Nenhum fluxo encontrado. Adicione um stream ou sincronize o catálogo do telefone.</string>
+    <string name="wear_tile_programs_label">Programas</string>
+    <string name="wear_tile_sections_label">Secções</string>
+    <string name="wear_tile_targets_title">Alvos do bloco</string>
+    <string name="wear_tile_targets_none">Não selecionado</string>
 </resources>

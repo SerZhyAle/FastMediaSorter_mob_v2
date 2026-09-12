@@ -44,7 +44,6 @@ class LauncherAppActionMenuManager(
 
     /** Opens the action menu for [packageName] anchored to [anchor]. */
     fun show(anchor: View, packageName: String, desktopCellId: Long? = null) {
-        Timber.d("S2316: app action menu desktopCellId=%s", desktopCellId)
         // A second long press must replace the first request, not stack a second window on top of it.
         dismiss()
         pendingQuery = scope.launch {
@@ -96,6 +95,7 @@ class LauncherAppActionMenuManager(
         }
         uninstallIntent(packageName)?.let { intent ->
             rows += action(anchor, R.string.launcher_app_action_uninstall, R.drawable.ic_delete) {
+                Timber.d("S2576: uninstall row fired for %s", packageName)
                 startSystemIntent(anchor, intent)
             }
         }

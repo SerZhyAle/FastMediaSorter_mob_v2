@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.common
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
@@ -52,7 +49,8 @@ data class WearChoiceGridFit(
  * for `GRID_2` / `GRID_3`.
  *
  * A `ScalingLazyListScope` extension rather than a dialog of its own (strategic 5.1): the caller keeps
- * its own `ScalingLazyColumn`, title item, [wearScreenInsets] and [WearGridScalingParams], so an
+ * its own `ScalingLazyColumn`, title item, [wearScreenInsets] and [WearGridScalingParams] (mandatory
+ * for round screen grid corner clearance, S2344), so an
  * existing dialog gains columns instead of being replaced by a second one. Owns no state - [selected]
  * and [gridFit] arrive from the caller's own state and [onSelected] is how a pick leaves; the caller's
  * `ScalingLazyListState` is untouched here because the initial working row has to be decided before
@@ -113,7 +111,8 @@ private fun WearChoiceListChip(
 ) {
     Chip(
         onClick = onClick,
-        label = { Text(text = label, maxLines = GRID_LABEL_MAX_LINES, overflow = TextOverflow.Ellipsis) },
+        // A full-width chip wraps its label; only the narrow grid cell below caps to one line (S2473).
+        label = { Text(text = label) },
         icon = if (isSelected) {
             {
                 Icon(
@@ -144,10 +143,7 @@ private fun <T> WearChoiceGridRow(
     onSelected: (T) -> Unit,
     unselectedColors: ChipColors?
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(GRID_GAP)
-    ) {
+    CenteredGridRow(columns = columns, itemCount = options.size, gap = GRID_GAP) {
         options.forEach { option ->
             val isSelected = option == selected
             Chip(
@@ -172,13 +168,12 @@ private fun <T> WearChoiceGridRow(
                 },
                 modifier = Modifier
                     .weight(1f)
-                    .height(GRID_CELL_HEIGHT)
+                    // S2755: a minimum, so a label the font scale grew pushes the row taller inside
+                    // the scrolling list instead of being cropped by a pinned cell.
+                    .heightIn(min = GRID_CELL_HEIGHT)
                     .semantics { this.selected = isSelected },
                 colors = chipColorsFor(isSelected, unselectedColors)
             )
-        }
-        repeat(columns - options.size) {
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

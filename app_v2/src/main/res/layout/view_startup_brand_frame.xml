@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    S2556: the phone's own startup brand frame, laid over the main screen for one beat after the
+    platform starting window hands over. Same background colour and same brand asset as that window,
+    so the two read as one splash rather than two - the platform one is built from theme attributes
+    and cannot render live text, which is the whole reason the clock lives here instead.
+
+    No res/layout-land counterpart on purpose: the composition is a single centred column and is
+    identical in both orientations. The image carries a weight instead of a fixed size so a short
+    landscape window shrinks it rather than pushing the time off screen.
+
+    clickable without focusable: the root is a scrim that swallows taps aimed at the main screen
+    underneath during the beat, not a control anyone activates - taking D-pad focus would hand the
+    user a focus target that disappears from under them 700 ms later. The id is what puts it on the
+    scrim whitelist in scripts/quality/assert-focus-highlight.ps1, so it is not dead weight.
+-->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/startup_brand_frame"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/splash_background"
+    android:clickable="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="@dimen/splash_frame_padding">
+
+        <!-- centerInside, not fitCenter: the asset is authored at 288dp for the splash icon slot and
+             must not be blown up past it on a tablet, only shrunk when the window is too short. -->
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_splash_app_brand"
+            android:contentDescription="@null"
+            android:importantForAccessibility="no" />
+
+        <!-- TextClock owns the ticking: it registers its own time and time-zone receivers, which is
+             exactly the lifecycle wiring a hand-rolled ticker in the host would have to reproduce and
+             keep correct. Which of the two formats it ticks with is set in code from the app's unit
+             system (S2795) - declaring both here would hand that choice back to the device. -->
+        <TextClock
+            android:id="@+id/startup_brand_clock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/splash_content"
+            android:textSize="@dimen/splash_clock_text_size"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+</FrameLayout>

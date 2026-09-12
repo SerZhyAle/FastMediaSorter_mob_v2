@@ -24,6 +24,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.Player
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.core.capability.CapabilityAvailabilityAccessor
 import com.sza.fastmediasorter.core.ui.BaseActivity
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.AppSettings
@@ -61,6 +62,7 @@ import com.sza.fastmediasorter.ui.player.standalone.StandaloneFileOpsCallbacks
 import com.sza.fastmediasorter.ui.player.standalone.StandaloneHostFactory
 import com.sza.fastmediasorter.ui.player.standalone.applyStandaloneOverflowIcons
 import com.sza.fastmediasorter.utils.collectOnLifecycle
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -657,14 +659,22 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
         // Mirror PlayerActivity: opt out of auto-fit, handle insets manually
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) + nav bar (left/right in landscape).
-        // statusBars() returns 0 in Chrome OS windowed mode; captionBar() carries the actual title-bar height.
+        // topCommandPanel: pad for status bar (top) + caption bar (Chrome OS window title) +
+        // display cutout + nav bar (left/right in landscape).
+        // Uses getStatusBarHeightSafe fallback for OEM Android 8 car screens where statusBars() inset reports 0.
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val topInsets = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val navBar = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(navBar.left, topInsets.top, navBar.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(navBar.left, cutout.left)
+            val rightPadding = maxOf(navBar.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
+            timber.log.Timber.d("S2908: Standalone topCommandPanel insets applied top=$topPadding")
             insets
         }
         binding.topCommandPanel.post { binding.topCommandPanel.requestApplyInsets() }
@@ -1049,7 +1059,8 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     private fun updateEpubTranslatorVisibility() {
         val isLandscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         binding.btnTranslateEpubCmd.isVisible =
-            BuildConfig.ENABLE_TRANSLATION && cachedTranslationEnabled && isLandscape && viewManager.isEpubActive()
+            CapabilityAvailabilityAccessor.isTranslationAvailable(this) && cachedTranslationEnabled &&
+            isLandscape && viewManager.isEpubActive()
     }
 
     /** Keeps [cachedTranslationEnabled] and [cached3dVrEnabled] in sync with the app settings stream. */
@@ -1116,6 +1127,14 @@ class StandalonePlayerActivity : BaseActivity<ActivityPlayerUnifiedBinding>(), P
     }
 
     override val isAudioServiceActive: Boolean = false
+
+    // S2907: standalone always uses the ExoPlayer from StandaloneViewManager directly.
+    override fun getPlayerVolume(): Float =
+        if (::viewManager.isInitialized) viewManager.getExoPlayer()?.volume ?: 1f else 1f
+
+    override fun setPlayerVolume(volume: Float) {
+        if (::viewManager.isInitialized) viewManager.getExoPlayer()?.volume = volume
+    }
 
     override fun showMessage(message: String) = viewModel.showMessage(message)
 

@@ -93,7 +93,6 @@ class ResourceSpeedSectionViewModel @Inject constructor(
             ThroughputMode.Resource(current.selectedResourceId)
         }
 
-        Timber.d("S2347: resource speed test started as typed state: %s", mode)
         activeJob?.cancel()
         _uiState.update {
             it.copy(
@@ -137,7 +136,6 @@ class ResourceSpeedSectionViewModel @Inject constructor(
     private fun onThroughputState(state: ThroughputState) {
         when (state) {
             ThroughputState.MeteredNetwork -> _uiState.update {
-                Timber.d("S2348: metered refusal reached the section state, raising warning and result")
                 it.copy(
                     isRunning = false,
                     isMeteredWarning = true,

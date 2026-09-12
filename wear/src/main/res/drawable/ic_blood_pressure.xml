@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2809: a droplet shape for blood pressure, distinct from the heart icon of the body sensor. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M12,2C12,2 6,8 6,14C6,17.31 8.69,20 12,20C15.31,20 18,17.31 18,14C18,8 12,2 12,2zM12,18C9.79,18 8,16.21 8,14C8,11 12,6 12,6C12,6 16,11 16,14C16,16.21 14.21,18 12,18z" />
+</vector>

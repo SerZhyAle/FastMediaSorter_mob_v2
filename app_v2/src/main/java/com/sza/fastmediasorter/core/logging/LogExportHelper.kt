@@ -6,15 +6,16 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
-import java.io.BufferedOutputStream
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.debug.StrictModeHelper
+import com.sza.fastmediasorter.util.queryIntentActivitiesCompat
+import timber.log.Timber
+import java.io.BufferedOutputStream
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import timber.log.Timber
 
 /**
  * Utility to package and export application logs for debugging.
@@ -133,6 +134,11 @@ object LogExportHelper {
                 putExtra(Intent.EXTRA_STREAM, uri)
                 putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.export_logs_subject))
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            if (context.packageManager.queryIntentActivitiesCompat(intent, 0).isEmpty()) {
+                Timber.d("S2902: LogExportHelper: no app can handle log sharing")
+                return ExportResult.Error(context.getString(R.string.export_logs_no_share_target))
             }
 
             val chooser = Intent.createChooser(intent, context.getString(R.string.title_export_logs_chooser))

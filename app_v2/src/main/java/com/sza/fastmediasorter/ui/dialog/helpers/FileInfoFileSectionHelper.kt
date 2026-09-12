@@ -1,23 +1,31 @@
 package com.sza.fastmediasorter.ui.dialog.helpers
 
 import android.content.Context
-import android.text.format.DateFormat
 import android.view.View
 import androidx.core.view.isVisible
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.clipboard.copyTextToClipboard
+import com.sza.fastmediasorter.core.di.UnitSystemEntryPoint
 import com.sza.fastmediasorter.core.util.MediaFilePathDescriptor
 import com.sza.fastmediasorter.core.util.MimeTypeResolver
 import com.sza.fastmediasorter.core.util.formatFileSize
 import com.sza.fastmediasorter.databinding.DialogFileInfoBinding
 import com.sza.fastmediasorter.domain.model.MediaFile
+import com.sza.fastmediasorter.domain.model.Quantity
+import dagger.hilt.android.EntryPointAccessors
 import timber.log.Timber
-import java.util.Date
 
 class FileInfoFileSectionHelper(
     private val context: Context,
     private val binding: DialogFileInfoBinding
 ) {
+
+    // S2795: built by hand rather than by Hilt, so it reaches the format seam the way the project's
+    // other out-of-graph surfaces do. The system itself is read per call, so a switched setting shows
+    // the next time the section is rendered.
+    private val unitSeam: UnitSystemEntryPoint by lazy {
+        EntryPointAccessors.fromApplication(context.applicationContext, UnitSystemEntryPoint::class.java)
+    }
 
     fun render(file: MediaFile, lastModifiedMs: Long?, isReadOnly: Boolean, isHidden: Boolean) {
         try {
@@ -25,7 +33,6 @@ class FileInfoFileSectionHelper(
 
             binding.tvFileName.text = context.getString(R.string.file_name_label, file.name)
             val sizeText = formatFileSize(context, file.size)
-            Timber.d("S2351: file info size rendered as '$sizeText'")
             binding.tvFileSize.text = context.getString(R.string.file_size_label, sizeText)
             binding.tvFileDate.text = context.getString(R.string.file_date_label, formatDate(file.createdDate))
             binding.tvFileType.text = context.getString(R.string.file_type_label, file.type.name)
@@ -98,10 +105,6 @@ class FileInfoFileSectionHelper(
         }
     }
 
-    private fun formatDate(timestamp: Long): String {
-        val date = Date(timestamp)
-        val dateFormat = DateFormat.getDateFormat(context)
-        val timeFormat = DateFormat.getTimeFormat(context)
-        return "${dateFormat.format(date)} ${timeFormat.format(date)}"
-    }
+    private fun formatDate(timestamp: Long): String =
+        unitSeam.quantityFormatter().format(Quantity.DateTime(timestamp), unitSeam.unitSystemProvider().value)
 }

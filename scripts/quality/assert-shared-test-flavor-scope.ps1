@@ -48,8 +48,9 @@
 .EXIT CODES
     0 - no violation (or violations found without -Gate).
     1 - at least one violation, and -Gate was passed.
-    2 - could not verify: the build file is unreadable, or its mount map carries a line this gate
-        could not attribute to a source set. "Did not look" is not "looked and found nothing".
+    2 - could not verify: the build file is unreadable, its mount map carries a line this gate
+        could not attribute to a source set, or a capability catalog has no copy visible to a
+        flavor. "Did not look" is not "looked and found nothing".
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-shared-test-flavor-scope.ps1
@@ -329,6 +330,64 @@ if ($mirrorIssues.Count -gt 0) {
         exit 1
     }
     Write-Host $mirrorWhy
+}
+
+# Third rule: a capability-keyed test set has no main source-set sibling to mirror. Its mount list
+# instead follows the non-empty catalog visible to each flavor. An absent catalog is unverifiable:
+# it must not be treated as an intentionally empty capability.
+$capabilityCatalogRules = @{
+    testDocumentsEnabled = 'com.sza.fastmediasorter.data.common.OfficeDocumentFamilyCatalog'
+}
+$capabilityIssues = [System.Collections.Generic.List[object]]::new()
+foreach ($testSet in $capabilityCatalogRules.Keys) {
+    $testRoot = Join-Path $RepoRoot "$Module/src/$testSet"
+    if (-not $map.TestSetMounts.Contains($testSet) -and -not (Test-Path -LiteralPath $testRoot)) { continue }
+
+    $fqcn = $capabilityCatalogRules[$testSet]
+    $relativeCatalogPath = ($fqcn -replace '\.', '/') + '.kt'
+    $expectedFlavors = [System.Collections.Generic.List[string]]::new()
+    foreach ($flavor in $map.FlavorNames) {
+        $catalogFiles = @($map.Flavors[$flavor] | ForEach-Object {
+                $candidate = Join-Path $RepoRoot "$Module/src/$_/java/$relativeCatalogPath"
+                if (Test-Path -LiteralPath $candidate) { $candidate }
+            })
+        if ($catalogFiles.Count -eq 0) {
+            Write-Error "assert-shared-test-flavor-scope: $fqcn has no copy visible to flavor $flavor." -ErrorAction Continue
+            exit 2
+        }
+        if ($catalogFiles.Count -gt 1) {
+            Write-Error "assert-shared-test-flavor-scope: $fqcn has multiple copies visible to flavor $flavor." -ErrorAction Continue
+            exit 2
+        }
+
+        $catalog = Get-Content -LiteralPath $catalogFiles[0] -Raw
+        $isEmpty = $catalog -match 'emptySet\(\)' -and $catalog -match 'emptyMap\(\)'
+        if (-not $isEmpty) { $expectedFlavors.Add($flavor) }
+    }
+
+    $actualFlavors = @(Get-TestSetFlavors $testSet | Sort-Object)
+    $expected = @($expectedFlavors | Sort-Object)
+    if (($expected -join ',') -ne ($actualFlavors -join ',')) {
+        $capabilityIssues.Add([pscustomobject]@{
+                TestSet = $testSet; Fqcn = $fqcn; ExpectedFlavors = $expected; ActualFlavors = $actualFlavors
+            })
+    }
+}
+
+if ($capabilityIssues.Count -gt 0) {
+    Write-Host 'assert-shared-test-flavor-scope: FAIL - capability-keyed test-set mount drift.' -ForegroundColor Red
+    foreach ($issue in $capabilityIssues) {
+        Write-Host "    src/$($issue.TestSet) catalog: $($issue.Fqcn)"
+        Write-Host "        mounted into: $($issue.ActualFlavors -join ', ')"
+        Write-Host "        non-empty catalog flavors: $($issue.ExpectedFlavors -join ', ')"
+    }
+    $capabilityWhy = 'assert-shared-test-flavor-scope: mount each capability-keyed test set into exactly the flavors ' +
+    'whose visible catalog is non-empty.'
+    if ($Gate) {
+        Write-Error $capabilityWhy -ErrorAction Continue
+        exit 1
+    }
+    Write-Host $capabilityWhy
 }
 
 if ($violations.Count -gt 0) {

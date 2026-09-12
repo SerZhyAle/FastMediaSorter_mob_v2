@@ -92,4 +92,54 @@ class LauncherHomeViewModelSeedTest {
             viewModel.wallpaper.value,
         )
     }
+
+    @Test
+    fun `addCell uses activeScreenIndex when no screenIndex explicit`() {
+        val desktopRepository = mockk<com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository>(
+            relaxed = true
+        )
+        val desktopDependencies = mockk<com.sza.fastmediasorter.ui.launcher.LauncherDesktopDependencies>(relaxed = true)
+        every { desktopDependencies.desktopRepository } returns desktopRepository
+
+        val settingsRepository = mockk<SettingsRepository>()
+        every { settingsRepository.getSettings() } returns MutableSharedFlow<AppSettings>()
+
+        val viewModel = LauncherHomeViewModel(
+            visibility = mockk(relaxed = true),
+            desktopDependencies = desktopDependencies,
+            taskbarDependencies = mockk(relaxed = true),
+            shortcutDependencies = mockk(relaxed = true),
+            cellMenuDependencies = mockk(relaxed = true),
+            executeCommand = mockk(relaxed = true),
+            settingsRepository = settingsRepository,
+            observeStreams = mockk(relaxed = true),
+            executeScheduledOperation = mockk(relaxed = true),
+            isCameraWallpaperAvailable = mockk(relaxed = true),
+            savedStateHandle = SavedStateHandle(),
+            resolveRouteAvailability = mockk(relaxed = true),
+        )
+
+        viewModel.setActiveScreenIndex(1)
+        assertEquals(1, viewModel.activeScreenIndex.value)
+
+        val cellSlot = io.mockk.slot<com.sza.fastmediasorter.domain.model.launcher.LauncherCell>()
+        io.mockk.coEvery {
+            desktopRepository.addCell(capture(cellSlot), any())
+        } returns com.sza.fastmediasorter.domain.model.launcher.LauncherCellPlacement.Placed(1L)
+
+        viewModel.addCell(
+            rowIndex = 0,
+            colIndex = 0,
+            draft = com.sza.fastmediasorter.domain.model.launcher.LauncherCellDraft(
+                kind = com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind.SHORTCUT,
+                target = "app:test",
+                spanW = 1,
+                spanH = 1,
+            ),
+            columns = 4,
+        )
+
+        dispatcherRule.testDispatcher.scheduler.advanceUntilIdle()
+        assertEquals(1, cellSlot.captured.screenIndex)
+    }
 }

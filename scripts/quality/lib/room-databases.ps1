@@ -26,8 +26,28 @@
     sandbox resolves against itself:
 
       Module               the Gradle module, matching scripts/utils/gradle-modules.ps1.
-      Key                  short stable token used in baseline keys and gate output.
+      Key                  short stable token used in baseline keys and gate output. It identifies a
+                           DATABASE, not a module: the watch runs three of them, so a row keyed by
+                           its module would make every verdict about the watch ambiguous (S2829).
       MigrationDir         where Migration<N>To<M>.kt and the @Database class live.
+      DatabaseClassFile    the @Database class's file name, inside MigrationDir. Named rather than
+                           discovered: a directory may hold several databases (S2829 - the watch's
+                           `data/db` now holds three), and scanning it for the annotation made the
+                           consumer refuse a state this registry already describes exactly.
+      MigrationFilePrefix  the file-name prefix that identifies THIS database's migrations inside a
+                           directory it may share with others (S2829). A consumer matches
+                           `^<prefix><N>To<M>.kt` and nothing else, so the watch's three databases
+                           cannot claim each other's hops. The incumbent of a directory keeps the
+                           plain `Migration` prefix; a database that moves in afterwards carries its
+                           own, because the anchored match makes the two sets disjoint.
+      MigrationAggregateFiles
+                           file names inside MigrationDir that declare this database's migrations as
+                           `Migration(N, M)` objects rather than as one file per hop (S2830). A hop
+                           declared there has no address in a file name, so the name-only search
+                           found nothing and its consumer reported "no migration yet" - the SAME
+                           sentence it prints for a database that genuinely has none. May be empty;
+                           a listed file that does not exist is not a registry error, because a row
+                           outlives the release that removes its last aggregate declaration.
       SchemaDir            the exported schema JSON directory Room validates against.
       RegistrationFile     the file where migrations are registered on the Room builder.
       AndroidTestDir       where the instrumented migration tests live.
@@ -73,29 +93,73 @@ if ($MyInvocation.InvocationName -ne '.') {
 # prints them in the same sequence regardless of which file the caller changed.
 $Script:RoomDatabaseTable = @(
     [pscustomobject]@{
-        Module            = 'app_v2'
-        Key               = 'app_v2'
-        MigrationDir      = 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db'
-        SchemaDir         = 'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase'
-        RegistrationFile  = 'app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt'
-        AndroidTestDir    = 'app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db'
-        TestPackage       = 'com.sza.fastmediasorter.data.local.db'
-        ChainTestFile     = 'AppDatabaseMigrationChainTest.kt'
-        ChainTestConstant = 'CURRENT_SCHEMA'
+        Module              = 'app_v2'
+        Key                 = 'app_v2'
+        MigrationDir        = 'app_v2/src/main/java/com/sza/fastmediasorter/data/local/db'
+        DatabaseClassFile   = 'AppDatabase.kt'
+        MigrationFilePrefix = 'Migration'
+        # S2830: the phone carries an aggregate of its own. AppDatabase.kt's companion object declares
+        # MIGRATION_1_18 .. MIGRATION_30_31 - 26 hops the name-only search never read. Nothing is lost
+        # by that today, because the oldest exported schema is 36.json and every one of those hops
+        # would be skipped as "no exported schema"; the loss starts the day a hop is added there
+        # instead of in a new Migration<N>To<M>.kt, which is exactly what nothing could notice.
+        MigrationAggregateFiles = @('AppDatabase.kt')
+        SchemaDir           = 'app_v2/schemas/com.sza.fastmediasorter.data.local.db.AppDatabase'
+        RegistrationFile    = 'app_v2/src/main/java/com/sza/fastmediasorter/core/di/DatabaseModule.kt'
+        AndroidTestDir      = 'app_v2/src/androidTest/java/com/sza/fastmediasorter/data/local/db'
+        TestPackage         = 'com.sza.fastmediasorter.data.local.db'
+        ChainTestFile       = 'AppDatabaseMigrationChainTest.kt'
+        ChainTestConstant   = 'CURRENT_SCHEMA'
     }
     # S1862 gave the watch its own Room database and its own exported schema; S2355 brought it under
     # the same tooling. Note the path segment is `data/db`, not `data/local/db` - that one difference
     # is why the phone-shaped path fragments in post-change.ps1 never matched it.
+    #
+    # S2829: the watch runs THREE databases out of that one directory, and all three export a schema.
+    # They share MigrationDir and RegistrationFile because that is where they really live; what keeps
+    # their verdicts apart is Key, DatabaseClassFile, SchemaDir and MigrationFilePrefix. The voice-note
+    # database was there first and keeps the plain `Migration` prefix.
     [pscustomobject]@{
-        Module            = 'wear'
-        Key               = 'wear'
-        MigrationDir      = 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
-        SchemaDir         = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase'
-        RegistrationFile  = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
-        AndroidTestDir    = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
-        TestPackage       = 'com.sza.fastmediasorter.wear.data.db'
-        ChainTestFile     = 'WearVoiceNoteDatabaseMigrationChainTest.kt'
-        ChainTestConstant = 'CURRENT_SCHEMA'
+        Module              = 'wear'
+        Key                 = 'wear-voice-note'
+        MigrationDir        = 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
+        DatabaseClassFile   = 'WearVoiceNoteDatabase.kt'
+        MigrationFilePrefix = 'Migration'
+        MigrationAggregateFiles = @('WearVoiceNoteMigrations.kt')
+        SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearVoiceNoteDatabase'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
+        TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
+        ChainTestFile       = 'WearVoiceNoteDatabaseMigrationChainTest.kt'
+        ChainTestConstant   = 'CURRENT_SCHEMA'
+    }
+    [pscustomobject]@{
+        Module              = 'wear'
+        Key                 = 'wear-heart-rate'
+        MigrationDir        = 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
+        DatabaseClassFile   = 'WearHeartRateDatabase.kt'
+        MigrationFilePrefix = 'HeartRateMigration'
+        MigrationAggregateFiles = @()
+        SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearHeartRateDatabase'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
+        TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
+        ChainTestFile       = 'WearHeartRateDatabaseMigrationChainTest.kt'
+        ChainTestConstant   = 'CURRENT_SCHEMA'
+    }
+    [pscustomobject]@{
+        Module              = 'wear'
+        Key                 = 'wear-blood-pressure'
+        MigrationDir        = 'wear/src/main/java/com/sza/fastmediasorter/wear/data/db'
+        DatabaseClassFile   = 'WearBloodPressureDatabase.kt'
+        MigrationFilePrefix = 'BloodPressureMigration'
+        MigrationAggregateFiles = @()
+        SchemaDir           = 'wear/schemas/com.sza.fastmediasorter.wear.data.db.WearBloodPressureDatabase'
+        RegistrationFile    = 'wear/src/main/java/com/sza/fastmediasorter/wear/di/WearAppModule.kt'
+        AndroidTestDir      = 'wear/src/androidTest/java/com/sza/fastmediasorter/wear/data/db'
+        TestPackage         = 'com.sza.fastmediasorter.wear.data.db'
+        ChainTestFile       = 'WearBloodPressureDatabaseMigrationChainTest.kt'
+        ChainTestConstant   = 'CURRENT_SCHEMA'
     }
 )
 
@@ -126,6 +190,10 @@ function Get-RoomDatabaseRegistry {
             Module            = $row.Module
             Key               = $row.Key
             MigrationDir      = Join-Path $RepoRoot $row.MigrationDir
+            DatabaseClassPath = Join-Path $RepoRoot (Join-Path $row.MigrationDir $row.DatabaseClassFile)
+            DatabaseClassFile = $row.DatabaseClassFile
+            MigrationFilePrefix = $row.MigrationFilePrefix
+            MigrationAggregateFiles = @($row.MigrationAggregateFiles)
             SchemaDir         = Join-Path $RepoRoot $row.SchemaDir
             RegistrationFile  = Join-Path $RepoRoot $row.RegistrationFile
             AndroidTestDir    = Join-Path $RepoRoot $row.AndroidTestDir
@@ -133,10 +201,171 @@ function Get-RoomDatabaseRegistry {
             ChainTestFile     = $row.ChainTestFile
             ChainTestConstant = $row.ChainTestConstant
             RelativePaths     = [pscustomobject]@{
-                MigrationDir     = $row.MigrationDir
+                MigrationDir      = $row.MigrationDir
+                DatabaseClassPath = "$($row.MigrationDir)/$($row.DatabaseClassFile)"
                 SchemaDir        = $row.SchemaDir
                 RegistrationFile = $row.RegistrationFile
                 AndroidTestDir   = $row.AndroidTestDir
+            }
+        }
+    }
+}
+
+function Get-RoomMigrationFileNamePattern {
+    <#
+    .SYNOPSIS
+        The anchored pattern that identifies one database's per-hop migration files.
+    .DESCRIPTION
+        Written once so the discovery function and the claim test below cannot disagree about which
+        file belongs to which database (the S1621 rule).
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$Prefix)
+
+    return '^' + [regex]::Escape($Prefix) + '(\d+)To(\d+)$'
+}
+
+function Get-RoomMigrationHopBody {
+    <#
+    .SYNOPSIS
+        The brace-balanced body that follows a `Migration(N, M)` match, or '' when it does not close.
+    .DESCRIPTION
+        S2830. An aggregate file holds several hops, and each hop's SQL must be attributed to the hop
+        that executes it: handing the whole file to a caller comparing against version M's schema
+        would judge every OTHER hop's statements against it too, inventing findings the runtime does
+        not have. Scanning to the matching brace rather than to the first one is what makes that safe
+        for real Kotlin - a migrate() body carries nested lambdas, `use { }` blocks and string
+        templates, all of which open braces of their own.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)][string]$Text,
+        [Parameter(Mandatory)][int]$StartIndex
+    )
+
+    $open = $Text.IndexOf('{', $StartIndex)
+    if ($open -lt 0) { return '' }
+
+    $depth = 0
+    for ($i = $open; $i -lt $Text.Length; $i++) {
+        $ch = $Text[$i]
+        if ($ch -eq '{') { $depth++ }
+        elseif ($ch -eq '}') {
+            $depth--
+            if ($depth -eq 0) { return $Text.Substring($open, $i - $open + 1) }
+        }
+    }
+    return ''
+}
+
+function Get-RoomMigrationSource {
+    <#
+    .SYNOPSIS
+        Every migration hop a database really declares, with the Kotlin text whose SQL belongs to it.
+    .DESCRIPTION
+        S2830. Discovery used to be a directory listing, so a hop declared inside an aggregate file
+        was invisible and its consumer printed the sentence it prints for a database with no
+        migration at all. Two origins are read now:
+
+          file       Migration<N>To<M>.kt, matched on the row's own prefix so databases sharing a
+                     directory cannot claim each other's hops (S2829). Text is the whole file.
+          aggregate  a `Migration(N, M)` object inside a file the row NAMES in MigrationAggregateFiles.
+                     Text is that hop's brace-balanced body alone.
+
+        Kotlin string concatenation is joined here rather than in each consumer, so a caller always
+        receives text in which a SQL statement split across source lines is already one statement.
+    .PARAMETER Database
+        One row from Get-RoomDatabaseRegistry, with its paths already resolved.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][object]$Database)
+
+    $joinConcatenation = { param([string]$t) $t -replace '"\s*\+\s*\r?\n?\s*"', '' }
+    $hops = [System.Collections.Generic.List[object]]::new()
+
+    $filePattern = Get-RoomMigrationFileNamePattern -Prefix $Database.MigrationFilePrefix
+    if (Test-Path $Database.MigrationDir) {
+        foreach ($file in @(Get-ChildItem -Path $Database.MigrationDir -Filter "$($Database.MigrationFilePrefix)*.kt" -File)) {
+            if ($file.BaseName -notmatch $filePattern) { continue }
+            $hops.Add([pscustomobject]@{
+                    From       = [int]$Matches[1]
+                    To         = [int]$Matches[2]
+                    Token      = "$([int]$Matches[1])To$([int]$Matches[2])"
+                    SourceFile = $file.Name
+                    Origin     = 'file'
+                    Text       = & $joinConcatenation (Get-Content $file.FullName -Raw)
+                })
+        }
+    }
+
+    foreach ($aggregateName in @($Database.MigrationAggregateFiles)) {
+        $aggregatePath = Join-Path $Database.MigrationDir $aggregateName
+        if (-not (Test-Path $aggregatePath)) { continue }
+        $aggregateText = Get-Content $aggregatePath -Raw
+        foreach ($m in [regex]::Matches($aggregateText, 'Migration\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)')) {
+            $from = [int]$m.Groups[1].Value
+            $to = [int]$m.Groups[2].Value
+            $body = Get-RoomMigrationHopBody -Text $aggregateText -StartIndex ($m.Index + $m.Length)
+            $hops.Add([pscustomobject]@{
+                    From       = $from
+                    To         = $to
+                    Token      = "$($from)To$($to)"
+                    SourceFile = $aggregateName
+                    Origin     = 'aggregate'
+                    Text       = & $joinConcatenation $body
+                })
+        }
+    }
+
+    return @($hops | Sort-Object From, To)
+}
+
+function Get-RoomUnclaimedMigrationDeclaration {
+    <#
+    .SYNOPSIS
+        One finding per `Migration(N, M)` declaration no registry row reads.
+    .DESCRIPTION
+        S2830 goal 2: "this database has no migration" and "this database has migrations nobody
+        found" must stop being the same output. Reading the aggregate files the registry names fixes
+        the one file that was measured; only a check over declarations the registry did NOT expect
+        keeps it fixed, because the next aggregate reproduces the whole ticket in silence otherwise.
+
+        A file is claimed when its name matches some row's `^<prefix><N>To<M>$` pattern or is listed
+        in some row's MigrationAggregateFiles. Claim is judged across ALL rows sharing that
+        directory, never row by row: the watch's three databases live in one directory, so a file
+        belonging to a neighbour is claimed, not unclaimed.
+    .PARAMETER RepoRoot
+        Repository root the relative paths resolve against.
+    #>
+    [CmdletBinding()]
+    param([Parameter(Mandatory)][string]$RepoRoot)
+
+    $rows = @(Get-RoomDatabaseRegistry -RepoRoot $RepoRoot)
+    foreach ($dir in @($rows | Group-Object MigrationDir)) {
+        if (-not (Test-Path $dir.Name)) { continue }
+        $claimedNames = @($dir.Group | ForEach-Object { $_.MigrationAggregateFiles })
+        $patterns = @($dir.Group | ForEach-Object { Get-RoomMigrationFileNamePattern -Prefix $_.MigrationFilePrefix })
+
+        foreach ($file in @(Get-ChildItem -Path $dir.Name -Filter '*.kt' -File)) {
+            if ($claimedNames -contains $file.Name) { continue }
+            $claimedByName = $false
+            foreach ($pattern in $patterns) {
+                if ($file.BaseName -match $pattern) { $claimedByName = $true; break }
+            }
+            if ($claimedByName) { continue }
+
+            $text = Get-Content $file.FullName -Raw
+            foreach ($m in [regex]::Matches($text, 'Migration\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)')) {
+                $from = [int]$m.Groups[1].Value
+                $to = [int]$m.Groups[2].Value
+                [pscustomobject]@{
+                    Module     = $dir.Group[0].Module
+                    Key        = $dir.Group[0].Key
+                    SourceFile = $file.Name
+                    From       = $from
+                    To         = $to
+                    Message    = "$($file.Name) declares Migration($from, $to) but no registry row reads it - its file name matches no database's migration prefix and no row lists it in MigrationAggregateFiles, so its SQL is compared against no exported schema"
+                }
             }
         }
     }
@@ -149,7 +378,9 @@ function Test-RoomDatabaseRegistry {
     .DESCRIPTION
         Mandatory means MigrationDir's parent structure is irrelevant - only SchemaDir and
         RegistrationFile must exist, plus MigrationDir itself, because those three are what makes a
-        row describe a real database. AndroidTestDir and ChainTestFile are deliberately NOT checked:
+        row describe a real database. DatabaseClassFile is deliberately NOT among them (S2829): only
+        the conformance gate reads the class, the pairing gate never opens it, and requiring it here
+        would make a row unusable for the consumer that does not need it. AndroidTestDir and ChainTestFile are deliberately NOT checked:
         a module with an exported schema, no migration and no instrumented test yet is a legitimate
         state (the wear row at database version 1), and refusing it would make the gate unusable
         until somebody else's ticket writes the first migration - the deferred activation this
@@ -172,9 +403,10 @@ function Test-RoomDatabaseRegistry {
             if (-not (Test-Path $check.Path)) {
                 [pscustomobject]@{
                     Module  = $row.Module
+                    Key     = $row.Key
                     Field   = $check.Name
                     Path    = $check.Relative
-                    Message = "$($row.Module): registry $($check.Name) does not exist - $($check.Relative)"
+                    Message = "$($row.Key): registry $($check.Name) does not exist - $($check.Relative)"
                 }
             }
         }

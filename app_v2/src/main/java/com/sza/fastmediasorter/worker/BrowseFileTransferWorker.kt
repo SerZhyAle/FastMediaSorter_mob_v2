@@ -38,6 +38,8 @@ import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferSource
 import com.sza.fastmediasorter.ui.browse.transfer.BrowseFileTransferTerminalEvent
 import com.sza.fastmediasorter.ui.browse.transfer.toPayload
 import com.sza.fastmediasorter.ui.browse.transfer.transferBytePercentOrNull
+import com.sza.fastmediasorter.ui.main.MainActivity
+import com.sza.fastmediasorter.util.directoryLandingPath
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
@@ -76,34 +78,42 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     }
 
     override suspend fun doWork(): Result {
-        val request = requestStore.readActiveRequest() ?: run {
-            Timber.e("BrowseFileTransferWorker: no active request stored")
-            return Result.failure()
-        }
+        Timber.d("S1224: BrowseFileTransferWorker.doWork started")
         ensureChannel()
+        var overallResult = Result.success()
 
-        return try {
-            runTransfer(request)
-        } catch (cancelled: kotlinx.coroutines.CancellationException) {
-            withContext(NonCancellable) {
-                val event = BrowseFileTransferTerminalEvent.Cancelled(
-                    workId = id.toString(),
-                    operationType = request.operationType,
-                )
-                persistAndPublish(event)
+        while (true) {
+            val request = requestStore.pollNextRequest() ?: break
+            Timber.d("S1224: worker processing ${request.operationType} (${request.sources.size} items)")
+            val stepResult = try {
+                runTransfer(request)
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                withContext(NonCancellable) {
+                    val event = BrowseFileTransferTerminalEvent.Cancelled(
+                        workId = id.toString(),
+                        operationType = request.operationType,
+                    )
+                    persistAndPublish(event)
+                }
+                throw cancelled
+            } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
+                // S1021: backstop - a Throwable that escapes runTransfer/executeInternal despite
+                // their own catches would otherwise vanish into WorkManager's internal (non-Timber)
+                // failure logging, invisible to the app's own log file.
+                Timber.e(t, "BrowseFileTransferWorker.doWork caught unexpected Throwable")
+                Result.failure()
+            } finally {
+                transferProgressReporter.clear(id.toString())
+                requestStore.clearActiveRequest()
+                withContext(NonCancellable) { purgeStagedSources(request) }
             }
-            throw cancelled
-        } catch (@Suppress("TooGenericExceptionCaught") t: Throwable) {
-            // S1021: backstop - a Throwable that escapes runTransfer/executeInternal despite
-            // their own catches would otherwise vanish into WorkManager's internal (non-Timber)
-            // failure logging, invisible to the app's own log file.
-            Timber.e(t, "BrowseFileTransferWorker.doWork caught unexpected Throwable")
-            Result.failure()
-        } finally {
-            transferProgressReporter.clear(id.toString())
-            requestStore.clearActiveRequest()
-            withContext(NonCancellable) { purgeStagedSources(request) }
+
+            if (stepResult is Result.Failure) {
+                overallResult = stepResult
+            }
         }
+
+        return overallResult
     }
 
     /**
@@ -255,10 +265,6 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             refreshResourceFileCountsUseCase(
                 listOfNotNull(request.sourceResourceId, request.destinationResourceId),
             )
-            Timber.d(
-                "S1995: refreshed resource counts after interactive transfer, processed=%d",
-                processedCount,
-            )
         }
     }
 
@@ -275,26 +281,36 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         operationType = request.operationType,
                         processedCount = fileResult.processedCount + dirOutcome.succeededCount,
                         failedCount = dirOutcome.failedCount,
-                        details = dirOutcome.details,
-                        undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths),
+                        details = mergeErrorDetails(dirOutcome.errors),
+                        undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
                     )
                 } else {
                     BrowseFileTransferTerminalEvent.Success(
                         workId = id.toString(),
                         operationType = request.operationType,
                         processedCount = fileResult.processedCount + dirOutcome.succeededCount,
-                        undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths),
+                        undoOperation = buildUndoOperation(request, fileResult.copiedFilePaths, dirOutcome),
                     )
                 }
             }
-            is FileOperationResult.PartialSuccess -> BrowseFileTransferTerminalEvent.PartialSuccess(
-                workId = id.toString(),
-                operationType = request.operationType,
-                processedCount = fileResult.processedCount,
-                failedCount = fileResult.failedCount,
-                details = fileResult.errors.take(MAX_ERROR_DETAILS).joinToString("\n").ifBlank { null },
-                undoOperation = null,
-            )
+            is FileOperationResult.PartialSuccess -> {
+                // S2586: the walk is gated on the destination being writable, not on the file half
+                // succeeding - a partial write proves the destination reachable, and the branches where
+                // it truly is not (Failure, AuthenticationRequired, PermissionRequired) are separate.
+                val dirOutcome = runDirectoryOperations(request)
+                Timber.d("S2586: partial half, dirs ok=%d fail=%d", dirOutcome.succeededCount, dirOutcome.failedCount)
+                BrowseFileTransferTerminalEvent.PartialSuccess(
+                    workId = id.toString(),
+                    operationType = request.operationType,
+                    processedCount = fileResult.processedCount + dirOutcome.succeededCount,
+                    failedCount = fileResult.failedCount + dirOutcome.failedCount,
+                    details = mergeErrorDetails(fileResult.errors, dirOutcome.errors),
+                    // FileOperationResult.PartialSuccess carries deletedPaths, not copiedFilePaths, so the
+                    // file half has nothing to reverse; undoing the folders alone would be the partial undo
+                    // S1326 refuses to build.
+                    undoOperation = null,
+                )
+            }
             is FileOperationResult.Failure -> BrowseFileTransferTerminalEvent.Failure(
                 workId = id.toString(),
                 operationType = request.operationType,
@@ -329,6 +345,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         var succeeded = 0
         var entriesProcessed = 0
         val errors = mutableListOf<String>()
+        val succeededSources = mutableListOf<String>()
         val job = currentCoroutineContext()[Job]
         directorySources.forEach { source ->
             currentCoroutineContext().ensureActive()
@@ -350,6 +367,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             }
             result.onSuccess { count ->
                 succeeded += if (request.operationType == FileOperationType.DELETE) count else 1
+                succeededSources += source.path
             }
                 .onFailure { errors += directoryFailureText(it, source.displayName) }
         }
@@ -357,9 +375,21 @@ class BrowseFileTransferWorker @AssistedInject constructor(
             succeededCount = succeeded,
             failedCount = errors.size,
             entriesProcessed = entriesProcessed,
-            details = errors.take(MAX_ERROR_DETAILS).joinToString("\n").ifBlank { null },
+            errors = errors,
+            succeededSources = succeededSources,
         ).also { directoryOutcome = it }
     }
+
+    /**
+     * S2586: caps the merged error text once, over every source list together, so a merge of two halves
+     * honours [MAX_ERROR_DETAILS] instead of doubling it.
+     */
+    private fun mergeErrorDetails(vararg errorLists: List<String>): String? =
+        errorLists.asSequence()
+            .flatten()
+            .take(MAX_ERROR_DETAILS)
+            .joinToString("\n")
+            .ifBlank { null }
 
     /**
      * S1325: a refusal carries a reason the user can act on, so it is translated here instead of
@@ -423,20 +453,41 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         }
     }
 
+    /**
+     * S1326: a reverse transfer registers no record of its own - otherwise undoing an undo would bounce
+     * the tree indefinitely - and a batch in which any folder failed offers no folder undo at all,
+     * because a half-moved tree cannot be put back by reversing the whole request.
+     */
     private fun buildUndoOperation(
         request: BrowseFileTransferRequest,
         copiedFilePaths: List<String>,
+        outcome: DirectoryOutcome,
     ): UndoOperation? {
+        if (request.isUndo) return null
         val fileSources = request.sources.filterNot { it.isDirectory }
-        if (fileSources.isEmpty() || copiedFilePaths.isEmpty()) return null
-        return UndoOperation(
-            type = request.operationType,
-            sourceFiles = fileSources.map { it.path },
-            destinationFolder = request.destinationPath,
-            copiedFiles = copiedFilePaths,
-            oldNames = null,
-            timestamp = System.currentTimeMillis(),
-        )
+        val hasFiles = fileSources.isNotEmpty() && copiedFilePaths.isNotEmpty()
+        val undoableDirectories = when {
+            outcome.failedCount > 0 -> emptyList()
+            request.operationType != FileOperationType.COPY &&
+                request.operationType != FileOperationType.MOVE -> emptyList()
+            else -> outcome.succeededSources
+        }
+        return if (hasFiles || undoableDirectories.isNotEmpty()) {
+            UndoOperation(
+                type = request.operationType,
+                sourceFiles = if (hasFiles) fileSources.map { it.path } else emptyList(),
+                destinationFolder = request.destinationPath,
+                copiedFiles = if (hasFiles) copiedFilePaths else null,
+                oldNames = null,
+                timestamp = System.currentTimeMillis(),
+                sourceDirectories = undoableDirectories,
+                copiedDirectories = undoableDirectories.map {
+                    directoryLandingPath(it, request.destinationPath)
+                },
+            )
+        } else {
+            null
+        }
     }
 
     private suspend fun persistAndPublish(event: BrowseFileTransferTerminalEvent) {
@@ -537,17 +588,25 @@ class BrowseFileTransferWorker @AssistedInject constructor(
     /**
      * S1325: a mixed selection reports both halves. The file count alone read as if the folders had
      * been skipped, which is the state the user could not distinguish from a silent failure.
+     *
+     * S2586: the PartialSuccess notification also carries the merged error details (file names and
+     * reasons) so the user learns which entry failed without reopening the app - matching the Failure
+     * branch, which already puts its reason in BigTextStyle.
      */
-    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String) {
+    private fun applyResultText(builder: NotificationCompat.Builder, fileText: String, errorDetails: String? = null) {
         val folders = directoryOutcome.succeededCount
-        if (folders <= 0) {
-            builder.setContentText(fileText)
-            return
+        val parts = mutableListOf(fileText)
+        if (folders > 0) {
+            parts += context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
         }
-        val combined = fileText + "\n" +
-            context.getString(R.string.browse_transfer_notif_text_folders_done, folders)
+        if (!errorDetails.isNullOrBlank()) {
+            parts += errorDetails
+        }
+        val combined = parts.joinToString("\n")
         builder.setContentText(combined)
-        builder.setStyle(NotificationCompat.BigTextStyle().bigText(combined))
+        if (parts.size > 1) {
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(combined))
+        }
     }
 
     private fun postResultNotification(
@@ -578,6 +637,7 @@ class BrowseFileTransferWorker @AssistedInject constructor(
                         event.failedCount,
                         event.processedCount + event.failedCount,
                     ),
+                    event.details,
                 )
             }
             is BrowseFileTransferTerminalEvent.AuthenticationRequired -> {
@@ -615,17 +675,28 @@ class BrowseFileTransferWorker @AssistedInject constructor(
 
     private fun buildBrowsePendingIntent(request: BrowseFileTransferRequest?): PendingIntent? {
         request ?: return null
-        val intent = BrowseActivity.createIntent(
-            context = context,
-            resourceId = request.sourceResourceId,
-            skipAvailabilityCheck = false,
-        ).apply {
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(BrowseActivity.EXTRA_REATTACH_TRANSFER, true)
+        val intent = if (request.sourceResourceId <= 0L) {
+            Intent(context, MainActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        } else {
+            BrowseActivity.createIntent(
+                context = context,
+                resourceId = request.sourceResourceId,
+                skipAvailabilityCheck = false,
+            ).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(BrowseActivity.EXTRA_REATTACH_TRANSFER, true)
+            }
+        }
+        val requestCode = if (request.sourceResourceId <= 0L) {
+            0
+        } else {
+            Math.floorMod(request.sourceResourceId.toInt(), REQUEST_CODE_MODULO)
         }
         return PendingIntent.getActivity(
             context,
-            Math.floorMod(request.sourceResourceId.toInt(), REQUEST_CODE_MODULO),
+            requestCode,
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -684,7 +755,14 @@ class BrowseFileTransferWorker @AssistedInject constructor(
         val failedCount: Int = 0,
         /** Entries written inside the folders - reported so a cancelled walk can say how far it got. */
         val entriesProcessed: Int = 0,
-        val details: String? = null,
+        /**
+         * S2586: kept as the raw list, not as joined text - the PartialSuccess branch merges the file
+         * half's errors with these, and two texts each already capped at [MAX_ERROR_DETAILS] cannot be
+         * merged without either exceeding the cap or dropping one half.
+         */
+        val errors: List<String> = emptyList(),
+        /** S1326: source paths of the folders that fully succeeded, for the undo record. */
+        val succeededSources: List<String> = emptyList(),
     )
 
     companion object {

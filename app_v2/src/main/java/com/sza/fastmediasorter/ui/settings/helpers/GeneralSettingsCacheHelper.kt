@@ -73,7 +73,6 @@ class GeneralSettingsCacheHelper(
                 val audioMetaCacheDir = java.io.File(fragment.requireContext().filesDir, AudioMetadataCacheRepository.CACHE_DIR_NAME)
                 val totalSize = calculateDirectorySize(cacheDir) + calculateDirectorySize(audioMetaCacheDir)
                 val formattedSize = formatFileSize(fragment.requireContext(), totalSize)
-                Timber.d("S2351: settings cache size rendered as '$formattedSize'")
                 val audioMetaCacheSize = audioMetadataCacheRepository.getCacheSize()
                 withContext(Dispatchers.Main) {
                     binding.tvCacheSize.text = fragment.getString(R.string.cache_size_format, formattedSize)
@@ -95,18 +94,36 @@ class GeneralSettingsCacheHelper(
     }
 
     fun autoCalculateCacheSize() {
-        val optimalSizeMb = calculateOptimalCacheSizeUseCase()
-        val storageInfo = calculateOptimalCacheSizeUseCase.getStorageInfo()
-        MaterialAlertDialogBuilder(fragment.requireContext())
-            .setTitle(R.string.auto_calculate_cache_title)
-            .setMessage(fragment.getString(R.string.auto_calculate_cache_message, optimalSizeMb, storageInfo))
-            .setPositiveButton(R.string.apply) { _, _ ->
-                val current = viewModel.settings.value
-                if (current.cacheSizeMb != optimalSizeMb) showCacheSizeRestartDialog(optimalSizeMb, isUserModified = false)
-                else Toast.makeText(fragment.requireContext(), R.string.cache_size_already_optimal, Toast.LENGTH_SHORT).show()
+        fragment.viewLifecycleOwner.lifecycleScope.launch {
+            Timber.d("S2659: calculating optimal cache size from settings")
+            val storageInfo = withContext(Dispatchers.IO) {
+                val optimalSizeMb = calculateOptimalCacheSizeUseCase()
+                optimalSizeMb to calculateOptimalCacheSizeUseCase.getStorageInfo()
             }
-            .setNegativeButton(android.R.string.cancel, null)
-            .showBoundTo(fragment)
+            val (optimalSizeMb, description) = storageInfo
+            val message = fragment.getString(
+                R.string.auto_calculate_cache_message,
+                optimalSizeMb,
+                description,
+            )
+            MaterialAlertDialogBuilder(fragment.requireContext())
+                .setTitle(R.string.auto_calculate_cache_title)
+                .setMessage(message)
+                .setPositiveButton(R.string.apply) { _, _ ->
+                    val current = viewModel.settings.value
+                    if (current.cacheSizeMb != optimalSizeMb) {
+                        showCacheSizeRestartDialog(optimalSizeMb, isUserModified = false)
+                    } else {
+                        Toast.makeText(
+                            fragment.requireContext(),
+                            R.string.cache_size_already_optimal,
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }
+                .setNegativeButton(android.R.string.cancel, null)
+                .showBoundTo(fragment)
+        }
     }
 
     fun clearCache() {

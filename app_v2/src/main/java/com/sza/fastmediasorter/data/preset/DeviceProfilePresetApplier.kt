@@ -5,6 +5,9 @@ import com.sza.fastmediasorter.core.compat.MultiWindowCapabilityDetector
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.BackgroundAudioExitBehavior
+import com.sza.fastmediasorter.domain.model.BrowseSwipeAction
+import com.sza.fastmediasorter.domain.model.BrowseSwipeDirection
+import com.sza.fastmediasorter.domain.model.PowerSavingTrigger
 import com.sza.fastmediasorter.domain.model.PrefetchCacheMultiplier
 import com.sza.fastmediasorter.domain.model.ResourceGridCellSize
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
@@ -15,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -45,13 +49,27 @@ class DeviceProfilePresetApplier @Inject constructor(
             "resourceGridCellSize" ->
                 runCatching { ResourceGridCellSize.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(resourceGridCellSize = it) } ?: skip(field, raw, settings)
+            "unitSystem" ->
+                runCatching { UnitSystem.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(unitSystem = it) } ?: skip(field, raw, settings)
             "resourceOpsInOverflowMenu" -> settings.copy(resourceOpsInOverflowMenu = raw.toBool())
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
             "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
+            "enableStopwatch" -> settings.copy(enableStopwatch = raw.toBool())
+            "enableTourist" -> settings.copy(enableTourist = raw.toBool())
+            "flashlightShortcutNotificationEnabled" ->
+                settings.copy(flashlightShortcutNotificationEnabled = raw.toBool())
+            "suppressWearMediaTakeover" -> settings.copy(suppressWearMediaTakeover = raw.toBool())
+            "streamsVisualizeAsMusic" -> settings.copy(streamsVisualizeAsMusic = raw.toBool())
+            "launcherShowScreenNumber" -> settings.withLauncher { copy(showScreenNumber = raw.toBool()) }
+            "stopwatchMusicEnabled" -> settings.copy(stopwatchMusicEnabled = raw.toBool())
+            "stopwatchVolumeKeysControl" -> settings.copy(stopwatchVolumeKeysControl = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
             "frontFlashlightEnabled" -> settings.copy(frontFlashlightEnabled = raw.toBool())
+            "waterFlashlightEnabled" -> settings.copy(waterFlashlightEnabled = raw.toBool())
+            "mirrorEnabled" -> settings.copy(mirrorEnabled = raw.toBool())
             "enableNetworkMonitor" -> settings.copy(enableNetworkMonitor = raw.toBool())
             "enableSystemInfo" -> settings.copy(enableSystemInfo = raw.toBool())
             "enableWearCompanion" -> settings.copy(enableWearCompanion = raw.toBool())
@@ -178,6 +196,10 @@ class DeviceProfilePresetApplier @Inject constructor(
             "backgroundSyncIntervalHours" -> raw.toIntOrSkip(field) { settings.copy(backgroundSyncIntervalHours = it) } ?: settings
             "slideshowInterval" -> raw.toIntOrSkip(field) { settings.copy(slideshowInterval = it) } ?: settings
             "defaultIconSize" -> raw.toIntOrSkip(field) { settings.copy(defaultIconSize = it) } ?: settings
+            "stopwatchParticipantCount" ->
+                raw.toIntOrSkip(field) { settings.copy(stopwatchParticipantCount = it) } ?: settings
+            "playerPanelAutoHideSeconds" ->
+                raw.toIntOrSkip(field) { settings.copy(playerPanelAutoHideSeconds = it) } ?: settings
             "maxRecipients" -> raw.toIntOrSkip(field) { settings.copy(maxRecipients = it) } ?: settings
             "streamingCacheTtlDays" -> raw.toIntOrSkip(field) { settings.copy(streamingCacheTtlDays = it) } ?: settings
             "epubHorizontalMargin" -> raw.toIntOrSkip(field) { settings.copy(epubHorizontalMargin = it) } ?: settings
@@ -228,6 +250,17 @@ class DeviceProfilePresetApplier @Inject constructor(
             "backgroundAudioExitBehavior" ->
                 runCatching { BackgroundAudioExitBehavior.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(backgroundAudioExitBehavior = it) } ?: skip(field, raw, settings)
+            "powerSavingTrigger" ->
+                runCatching { PowerSavingTrigger.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(powerSavingTrigger = it) } ?: skip(field, raw, settings)
+            // S2533 forbids touching the two swipe fields outside BrowseSwipeDirection, so the slot
+            // does the write and this branch only names which slot the cell belongs to.
+            "browseSwipeLeftAction" ->
+                runCatching { BrowseSwipeAction.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { BrowseSwipeDirection.LEFT.withAction(settings, it) } ?: skip(field, raw, settings)
+            "browseSwipeRightAction" ->
+                runCatching { BrowseSwipeAction.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { BrowseSwipeDirection.RIGHT.withAction(settings, it) } ?: skip(field, raw, settings)
             "streamsDefaultSort" ->
                 runCatching { StreamDefaultSort.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(streamsDefaultSort = it) } ?: skip(field, raw, settings)
@@ -369,6 +402,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "launcherTrayShowBluetooth" -> applyLauncherField(field, raw, settings) { s ->
                 s.withLauncher { copy(trayShowBluetooth = raw.toBool()) }
             }
+            "launcherTrayShowTethering" -> applyLauncherField(field, raw, settings) { s ->
+                s.withLauncher { copy(trayShowTethering = raw.toBool()) }
+            }
             "launcherTrayShowSim1" -> applyLauncherField(field, raw, settings) { s ->
                 s.withLauncher { copy(trayShowSim1 = raw.toBool()) }
             }
@@ -399,6 +435,21 @@ class DeviceProfilePresetApplier @Inject constructor(
                     1.0f
                 )?.let { s.withLauncher { copy(widgetBackdropAlpha = it) } }
             }
+            "launcherWallpaperIntensity" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperIntensity(it) }
+                    ?.let { s.withLauncher { copy(wallpaperIntensity = it) } }
+            }
+            "launcherWallpaperAnimationSpeed" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperAnimationSpeed(it) }
+                    ?.let { s.withLauncher { copy(wallpaperAnimationSpeed = it) } }
+            }
+            "launcherWallpaperParticleDensity" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperParticleDensity(it) }
+                    ?.let { s.withLauncher { copy(wallpaperParticleDensity = it) } }
+            }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───
             "enabledShareTargets" -> settings.copy(enabledShareTargets = raw.toStringSet())
@@ -418,7 +469,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "paddleOcrModel" -> settings.copy(paddleOcrModel = raw.trim())
             "vrRenderingMode" -> settings.copy(vrRenderingMode = raw.trim())
             "linkDownloadMaxResolution" -> settings.copy(linkDownloadMaxResolution = raw.trim())
-            "language" -> settings.copy(language = raw.trim())
+            // S2571: no "language" branch. LocaleHelper owns the interface language, and applying it
+            // means saveLanguage, which restarts the activity stack - unacceptable mid-onboarding,
+            // where a profile is applied. The field is registered non-presettable, so it lands in skip().
             "translationSourceLanguage" -> settings.copy(translationSourceLanguage = raw.trim())
             "translationTargetLanguage" -> settings.copy(translationTargetLanguage = raw.trim())
             "videoSnapshotFormat" -> settings.copy(videoSnapshotFormat = raw.trim())

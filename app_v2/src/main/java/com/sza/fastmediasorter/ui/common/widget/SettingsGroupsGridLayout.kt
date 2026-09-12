@@ -2,8 +2,11 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.util.AttributeSet
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
+import androidx.core.view.GravityCompat
 import com.sza.fastmediasorter.R
 
 /**
@@ -105,8 +108,10 @@ class SettingsGroupsGridLayout @JvmOverloads constructor(
 
     private fun placeFullSpan(child: View, top: Int, contentWidth: Int): Int {
         val params = child.layoutParams as MarginLayoutParams
-        measureChildToWidth(child, contentWidth - params.leftMargin - params.rightMargin)
-        placements.add(Placement(child, paddingLeft + params.leftMargin, top + params.topMargin))
+        val available = contentWidth - params.leftMargin - params.rightMargin
+        measureChildToWidth(child, available)
+        val left = paddingLeft + params.leftMargin + horizontalOffset(child, params, available)
+        placements.add(Placement(child, left, top + params.topMargin))
         return top + params.topMargin + child.measuredHeight + params.bottomMargin
     }
 
@@ -134,8 +139,10 @@ class SettingsGroupsGridLayout @JvmOverloads constructor(
                 if (row < columnSizes[column]) {
                     val child = visibleChildren[columnStarts[column] + row]
                     val params = child.layoutParams as MarginLayoutParams
-                    measureChildToWidth(child, columnWidths[column] - params.leftMargin - params.rightMargin)
-                    placements.add(Placement(child, left + params.leftMargin, rowTop + params.topMargin))
+                    val available = columnWidths[column] - params.leftMargin - params.rightMargin
+                    measureChildToWidth(child, available)
+                    val childLeft = left + params.leftMargin + horizontalOffset(child, params, available)
+                    placements.add(Placement(child, childLeft, rowTop + params.topMargin))
                     val outerHeight = params.topMargin + child.measuredHeight + params.bottomMargin
                     if (outerHeight > rowHeight) rowHeight = outerHeight
                 }
@@ -159,11 +166,39 @@ class SettingsGroupsGridLayout @JvmOverloads constructor(
         return sizes
     }
 
+    /**
+     * Honours the child's own `layout_width` (S2789). A group card asks for the full column and is
+     * measured EXACTLY as before; a child that asked to wrap - the section reset buttons and the
+     * default-app launchers - is measured AT_MOST, so it ends up as wide as its own label instead of
+     * being stretched across the tab.
+     */
     private fun measureChildToWidth(child: View, availableWidth: Int) {
+        val widthMode = if (child.layoutParams.width == LayoutParams.WRAP_CONTENT) {
+            MeasureSpec.AT_MOST
+        } else {
+            MeasureSpec.EXACTLY
+        }
         child.measure(
-            MeasureSpec.makeMeasureSpec(availableWidth.coerceAtLeast(0), MeasureSpec.EXACTLY),
+            MeasureSpec.makeMeasureSpec(availableWidth.coerceAtLeast(0), widthMode),
             MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
         )
+    }
+
+    /**
+     * Where a wrapped child sits in the slack it left. The children were moved here out of a vertical
+     * LinearLayout, so their `android:layout_gravity` survives on their LayoutParams and stays the
+     * single place a tab layout states whether a narrow button belongs at the start, centre or end.
+     */
+    private fun horizontalOffset(child: View, params: MarginLayoutParams, availableWidth: Int): Int {
+        val slack = availableWidth - child.measuredWidth
+        if (slack <= 0) return 0
+        val gravity = (params as? LinearLayout.LayoutParams)?.gravity ?: Gravity.NO_GRAVITY
+        val absolute = GravityCompat.getAbsoluteGravity(gravity, layoutDirection)
+        return when (absolute and Gravity.HORIZONTAL_GRAVITY_MASK) {
+            Gravity.CENTER_HORIZONTAL -> slack / 2
+            Gravity.RIGHT -> slack
+            else -> 0
+        }
     }
 
     /** A child spans every column unless it is a group card whose header is collapsed. */

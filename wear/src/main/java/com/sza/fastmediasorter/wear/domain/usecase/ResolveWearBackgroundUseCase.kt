@@ -11,7 +11,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 import java.io.File
 import javax.inject.Inject
 
@@ -34,9 +33,10 @@ class ResolveWearBackgroundUseCase @Inject constructor(
     private suspend fun resolve(mode: WearBackgroundMode): WearBackground {
         val resolved = when (mode) {
             WearBackgroundMode.BRANDED_ANIMATION -> WearBackground.BrandedAnimation
+            WearBackgroundMode.BRANDED_STILL -> WearBackground.BrandedStill
             WearBackgroundMode.IMAGE -> deliveredFrame() ?: WearBackground.BrandedAnimation
+            WearBackgroundMode.NONE -> WearBackground.None
         }
-        Timber.d("S2000: watch background mode=%s resolved=%s", mode, resolved::class.simpleName)
         return resolved
     }
 
@@ -46,6 +46,6 @@ class ResolveWearBackgroundUseCase @Inject constructor(
      */
     private suspend fun deliveredFrame(): WearBackground.Image? = withContext(Dispatchers.IO) {
         val frame = File(incomingFilesDirectory(context), WearDataLayerPaths.BACKGROUND_IMAGE_FILE_NAME)
-        if (frame.canRead() && frame.length() > 0L) WearBackground.Image(frame) else null
+        if (frame.canRead() && frame.length() > 0L) WearBackground.Image(frame, frame.lastModified()) else null
     }
 }

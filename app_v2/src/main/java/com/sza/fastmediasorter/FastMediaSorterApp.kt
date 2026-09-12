@@ -3,6 +3,7 @@ package com.sza.fastmediasorter
 import android.app.Application
 import android.content.ComponentCallbacks2
 import android.content.Context
+import android.os.Build
 import android.os.StrictMode
 import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.DefaultLifecycleObserver
@@ -14,9 +15,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import com.bumptech.glide.Glide
 import com.google.android.material.color.DynamicColors
+import com.sza.fastmediasorter.core.apps.InstalledAppsChangeWatcher
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
 import com.sza.fastmediasorter.core.cache.TranslationCacheManager
 import com.sza.fastmediasorter.core.debug.DebugToolsBridge
+import com.sza.fastmediasorter.core.debug.StrictModeViolationFilter
 import com.sza.fastmediasorter.core.init.AppStartupInitializer
 import com.sza.fastmediasorter.core.init.FirstFrameSignal
 import com.sza.fastmediasorter.core.logging.LoggingHelper
@@ -31,6 +34,7 @@ import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.network.glide.NetworkFileDataFetcher
 import com.sza.fastmediasorter.domain.model.SensitiveSetting
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.domain.usecase.PushWearSendToReceiversUseCase
 import com.sza.fastmediasorter.domain.usecase.PushWearStreamPinsUseCase
 import com.sza.fastmediasorter.worker.DeferredStartupWorker
 import com.sza.fastmediasorter.worker.WorkManagerScheduler
@@ -38,17 +42,21 @@ import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.util.Locale
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
+/**
+ * S2750: open for exactly one subclass, the Robolectric test application in `src/test`, which grants
+ * the synthetic `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` before this class registers its receivers.
+ * Nothing in production extends it, and no behaviour here depends on the modifier.
+ */
 @HiltAndroidApp
-class FastMediaSorterApp : Application(), Configuration.Provider {
+open class FastMediaSorterApp : Application(), Configuration.Provider {
 
     companion object {
         // Static context for Glide ModelLoader factory (needed for Hilt EntryPoint access)
@@ -78,6 +86,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var settingsRepository: dagger.Lazy<SettingsRepository>
 
+    /** S2776: starts the collector that keeps the flashlight shade shortcut level with its setting. */
+    @Inject
+    lateinit var flashlightShortcutCoordinator:
+        dagger.Lazy<com.sza.fastmediasorter.core.notification.FlashlightShortcutCoordinator>
+
     @Inject
     lateinit var playbackPositionRepository: dagger.Lazy<com.sza.fastmediasorter.domain.repository.PlaybackPositionRepository>
 
@@ -99,6 +112,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     /** S0200 Phase 05: run-once legacy auth-state wipe. Injected via Hilt; called from onCreate. */
     @Inject
     lateinit var s0200AuthStateWipe: dagger.Lazy<com.sza.fastmediasorter.data.migration.S0200AuthStateWipe>
+
+    /** S2101: restores sign-in state carried over from a previous device. Called off the main thread. */
+    @Inject
+    lateinit var restoreTransferredSignIn:
+        dagger.Lazy<com.sza.fastmediasorter.domain.identity.transfer.RestoreTransferredSignInUseCase>
 
     /** S0386 Phase 13: run-once de-bundle upgrade reconciliation (force-OFF un-installed toggles). */
     @Inject
@@ -146,6 +164,18 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     @Inject
     lateinit var pushWearStreamPins: dagger.Lazy<PushWearStreamPinsUseCase>
 
+    // S2142: publishes the «Send to..» receiver list to the watch for the life of the process.
+    // Beside the S2149 publisher above and started from the same place for the same reason: the
+    // receiver toggles live on a settings screen that must not have to know a watch exists.
+    @Inject
+    lateinit var pushWearSendToReceivers: dagger.Lazy<PushWearSendToReceiversUseCase>
+
+    // S2745: package installs and updates reach a runtime receiver only, so this registration is what
+    // keeps the all-apps list, the quick-launch panel and the desktop from going stale. Field-injected
+    // here for the S2149 reason above - AppStartupInitializer's constructor sits at detekt's ceiling.
+    @Inject
+    lateinit var installedAppsChangeWatcher: InstalledAppsChangeWatcher
+
     @Inject
     lateinit var screenGestureOverlayStartupCoordinator: dagger.Lazy<ScreenGestureOverlayStartupCoordinator>
 
@@ -165,6 +195,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
     @Inject
     lateinit var appKeepScreenAwakeManager: com.sza.fastmediasorter.core.ui.AppKeepScreenAwakeManager
+
+    // S2536: folds the charge, the system saver and the user's trigger into one policy level.
+    // Lazy because its own battery observation starts with the first started activity, not with the
+    // process - resolving it eagerly here would build it before anything can be animating.
+    @Inject
+    lateinit var powerStateObserver: dagger.Lazy<com.sza.fastmediasorter.core.power.PowerStateObserver>
 
     // Application-scoped coroutine for background initialization
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
@@ -204,15 +240,25 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             }
         }
 
-        // S2250: the only subscription to the disable-animations flag in the process. Every
-        // animation site reads AnimationPolicy synchronously instead of carrying its own wiring,
-        // so this collector is what makes that read cheap enough for a draw path. Started here
-        // rather than behind firstFrameSignal because the first screen's own transition asks.
+        // S2250 / S2536: the only subscription that reaches AnimationPolicy in the process. Every
+        // animation site reads the policy synchronously instead of carrying its own wiring, so this
+        // collector is what makes that read cheap enough for a draw path. Started here rather than
+        // behind firstFrameSignal because the first screen's own transition asks.
+        //
+        // S2536 moved the source from the raw setting to PowerStateObserver, which already folds the
+        // setting together with the charge and the system saver. There is deliberately only one
+        // writer: two collectors racing for the same field would have no rule about which wins.
         applicationScope.launch(Dispatchers.IO) {
-            settingsRepository.get().getSettings()
-                .map { it.disableAnimations }
-                .distinctUntilChanged()
-                .collect { disabled -> AnimationPolicy.update(disabled) }
+            // No distinctUntilChanged: a StateFlow already conflates, and applying it here is a
+            // deprecated no-op. AnimationPolicy.update ignores a repeat of the current level anyway,
+            // which is what keeps the listeners below from firing on every battery tick.
+            powerStateObserver.get().level.collect { level -> AnimationPolicy.update(level) }
+        }
+
+        // S2776: the shade shortcut for the camera flashlight follows one setting, and this is where
+        // its collector starts. Off the main thread because the first read opens the settings store.
+        applicationScope.launch(Dispatchers.IO) {
+            flashlightShortcutCoordinator.get().start()
         }
 
         // S0213 Pillar C: connect the release-safe degradation signal to MemoryEnduranceTracker so
@@ -257,6 +303,7 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // S0439: apply the program-wide screen-rotation policy to every non-self-managed activity.
         registerActivityLifecycleCallbacks(appOrientationManager)
         registerActivityLifecycleCallbacks(appKeepScreenAwakeManager)
+        registerActivityLifecycleCallbacks(powerStateObserver.get())
         // S0943: decorate the focused view in-place with the D-pad/TV focus outline on every Activity
         // window (opt-out via FocusDecorationExcluded); one controller per window, hidden in touch mode.
         registerActivityLifecycleCallbacks(
@@ -295,6 +342,10 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         // the shared first-frame/deferred-worker gate so cold start stays off the critical path.
         startupInitializer.get().initialize()
 
+        // S2745: one registerReceiver call, on the eager path because an install that happens before
+        // it lands stays invisible until the next start.
+        installedAppsChangeWatcher.start()
+
         // S2149: the watch raises phone-pinned streams, which only works while the phone republishes
         // the set as it changes. Started from here rather than from a screen because pinning happens
         // on several screens and none of them should have to know a watch exists. Dereferenced inside
@@ -305,12 +356,30 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
                 .onFailure { Timber.e(it, "Wear stream-pins publisher not started") }
         }
 
+        // S2142: the watch offers the receivers the owner switched on here, which only works while
+        // the phone republishes the list as those toggles change. Started here rather than from the
+        // settings screen for the reason above it, and dereferenced inside the coroutine so a phone
+        // with no watch paired never builds the Data Layer graph on the main thread at startup.
+        applicationScope.launch {
+            runCatching { pushWearSendToReceivers.get().observeAndPush(applicationScope) }
+                .onFailure { Timber.e(it, "Wear send-to receivers publisher not started") }
+        }
+
         // S1650: build Glide off the main thread. Deliberately NOT gated on firstFrameSignal, unlike
         // every launch below it - the first image load can happen on the very first screen, and that
         // load is exactly what this warm-up has to beat. It waits internally for the cache-size mirror
         // write started by initialize() above.
         applicationScope.launch(Dispatchers.IO) {
             startupInitializer.get().warmGlide()
+        }
+
+        // S2627: translate the persisted folder names to the current language. Ungated for the same
+        // reason as the warm-up above: the resource list IS the first screen, so a pass that waited
+        // for the first frame would be racing the very thing it has to correct. It ran from the
+        // thirty-second DeferredStartupWorker until this ticket, which is why a language switch left
+        // the list in the previous language until long after the user had read it.
+        applicationScope.launch(Dispatchers.IO) {
+            startupInitializer.get().renameVirtualResources()
         }
 
         applicationScope.launch(Dispatchers.IO) {
@@ -327,6 +396,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
         applicationScope.launch(Dispatchers.IO) {
             firstFrameSignal.await(timeoutMs = 60_000)
             s0200AuthStateWipe.get().runIfNeeded()
+            // S2101: restore sign-in state carried from a previous device. Sequenced AFTER the wipe
+            // inside the same coroutine rather than launched beside it, deliberately - the wipe
+            // clears the primary binding, so on a first launch that is both an upgrade and a
+            // migration, a concurrent restore would race it and lose about half the time. Off the
+            // main thread and behind firstFrameSignal, so it costs the first frame nothing.
+            restoreTransferredSignIn.get().invoke()
         }
 
         // S0386 Phase 13: reconcile OCR/translation toggles after the de-bundle upgrade - run once,
@@ -440,16 +515,28 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
 
         // Configure StrictMode to detect issues while allowing necessary startup operations
         // Note: Early initialization (attachBaseContext, onCreate) wrapped in StrictModeHelper
-        StrictMode.setThreadPolicy(
-            StrictMode.ThreadPolicy.Builder()
-                .detectDiskReads()
-                .detectDiskWrites()
-                .detectNetwork()
-                // Use penaltyLog() instead of penaltyDeath() to log violations without crashing
-                // This allows development to continue while identifying real issues
-                .penaltyLog()
-                .build()
-        )
+        val threadPolicy = StrictMode.ThreadPolicy.Builder()
+            .detectDiskReads()
+            .detectDiskWrites()
+            .detectNetwork()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            // S2670: report violations through Timber so the platform's own (Samsung's Toast/Knox
+            // disk reads, attributed to this app by Binder propagation) can be dropped before they
+            // bury this app's. The listener runs on its own thread, which carries no policy, so
+            // logging a violation cannot trigger another one.
+            threadPolicy.penaltyListener(Executors.newSingleThreadExecutor()) { violation ->
+                if (!StrictModeViolationFilter.isPlatformNoise(violation)) {
+                    Timber.w(violation, "StrictMode thread policy violation")
+                }
+            }
+        } else {
+            // Below API 28 there is no listener to filter with; log everything rather than nothing.
+            // penaltyLog() over penaltyDeath() keeps development going while real issues surface.
+            threadPolicy.penaltyLog()
+        }
+
+        StrictMode.setThreadPolicy(threadPolicy.build())
 
             StrictMode.setVmPolicy(
                 StrictMode.VmPolicy.Builder()
@@ -514,8 +601,11 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
     
     /**
      * Handle system memory pressure events.
-     * Clear image cache ONLY on critical memory pressure to preserve thumbnails.
-     * Large cache is intentional for Browse workflow - don't clear on background.
+     * Foreground levels trim progressively; every level meaning "UI not visible" releases bitmap
+     * memory, because Google Play's February 2027 quality thresholds judge bitmaps that stay
+     * resident in background and cached states (S2100).
+     * The image DISK cache is never touched here - it sits outside those metrics and dropping it
+     * only costs reopening time.
      */
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
@@ -571,11 +661,12 @@ class FastMediaSorterApp : Application(), Configuration.Provider {
             ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN,
             ComponentCallbacks2.TRIM_MEMORY_BACKGROUND,
             ComponentCallbacks2.TRIM_MEMORY_MODERATE -> {
-                // App is in background - trim to release LRU bitmaps, preserve hot items.
-                if (level == ComponentCallbacks2.TRIM_MEMORY_UI_HIDDEN) {
-                    Timber.d("App backgrounded: level=$level($levelName), mem=$memInfo, trimming Glide")
-                    Glide.get(this).trimMemory(level)
-                }
+                // Every level here means the UI is not visible, so each one must release bitmap
+                // memory: Play's 2027 thresholds judge bitmaps resident in background and cached
+                // states. Disk cache is deliberately untouched - it is outside those metrics and
+                // dropping it only costs reopening time (S2100, strategic ADR-3).
+                Timber.d("S2100: App backgrounded level=$level($levelName), mem=$memInfo, trimming Glide")
+                Glide.get(this).trimMemory(level)
             }
         }
     }

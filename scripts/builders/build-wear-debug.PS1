@@ -1,7 +1,8 @@
 # Quick debug build script for Wear OS
-# Version format: Y.YM.MDDH.Hmm - byte-identical to app_v2. The watch versionCode is yyMMddHH
-# (8 digits); app_v2 appends the first minute digit and gets 9, so the two never collide under the
-# shared applicationId (S1681). A release stamps both modules from one timestamp via
+# Version format: Y.YM.MDDH.Hmm - byte-identical to app_v2. Both versionCodes are nine digits of
+# yyMMddHH plus a separator digit the phone and the watch partition between them - phone 0..5,
+# watch 6..9 (S2721) - so the two never collide under the shared applicationId (S1681). A release
+# stamps both modules from one timestamp via
 # scripts/release/build-release-spectrum.ps1; this script stamps only its own debug artifact.
 
 param(
@@ -17,7 +18,12 @@ param(
     # S2090: which watch variant to build. 'standard' mirrors what ships and stays the default;
     # 'noLegal' is the sideload variant.
     [ValidateSet('standard', 'noLegal')]
-    [string]$Flavor = 'standard'
+    [string]$Flavor = 'standard',
+
+    # Installs the exact APK just built through the watch-aware ADB wrapper. A caller must select
+    # the watch with -DeviceId when more than one online device exists.
+    [switch]$Install,
+    [string]$DeviceId
 )
 
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
@@ -34,10 +40,10 @@ Write-Host "Building Wear OS debug APK [$Flavor].." -ForegroundColor Cyan
 $gradleArgs = @(":wear:assemble${taskFlavor}Debug", "--configuration-cache")
 . "$PSScriptRoot\..\utils\build-version-stamp.ps1"
 if ($AutoVersion) {
-    # 8 digits, deliberately one shorter than app_v2's 9: the documented derivation is
-    # wear = floor(app / 10), and Play refuses two artifacts repeating a versionCode under one
-    # applicationId. assert-module-version-parity.ps1 guards the checked-in pair; this override is
-    # per-invocation and invisible to it.
+    # Taken from the shared derivation, never written out here: Play refuses two artifacts
+    # repeating a versionCode under one applicationId, and the watch's separator digit is what
+    # keeps it clear of every phone code. assert-module-version-parity.ps1 guards the checked-in
+    # pair; this override is per-invocation and invisible to it.
     $stamp = Get-BuildVersionStamp
     $versionCodeInt = $stamp.WearVersionCode
     $versionName = $stamp.VersionName
@@ -78,6 +84,15 @@ if (-not $apkPath -or -not (Test-Path -Path $apkPath)) {
 }
 
 Write-Host "APK location: $apkPath" -ForegroundColor Cyan
+
+if ($Install) {
+    $adbCli = Join-Path $PSScriptRoot '..\devtest\adb.ps1'
+    & $adbCli install -Module wear -Flavor $Flavor -Apk $apkPath -DeviceId $DeviceId
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Wear APK install failed. Build artifact remains at: $apkPath" -ForegroundColor Red
+        exit $LASTEXITCODE
+    }
+}
 
 if (!(Test-Path -Path $downloadsDir)) {
     New-Item -ItemType Directory -Path $downloadsDir | Out-Null

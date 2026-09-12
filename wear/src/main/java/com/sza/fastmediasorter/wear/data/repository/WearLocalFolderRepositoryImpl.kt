@@ -57,7 +57,6 @@ class WearLocalFolderRepositoryImpl(
     override suspend fun listLevel(address: WearFolderAddress, offset: Int): Result<WearFolderPage> =
         withContext(Dispatchers.IO) {
             try {
-                Timber.d("S2201: listing ${address::class.simpleName} offset=$offset")
                 Result.success(window(entriesOf(address), offset))
             } catch (e: CancellationException) {
                 // A cancelled walk is the caller leaving the screen, not a level that failed to read.
@@ -75,6 +74,11 @@ class WearLocalFolderRepositoryImpl(
         is WearFolderAddress.Root -> rootEntries()
         is WearFolderAddress.AppOwned -> appOwnedEntries(address.path)
         is WearFolderAddress.MediaStoreFolder -> mediaStoreEntries(address.relativePath)
+        // S2694: a network level belongs to the network repository, and the dispatcher never routes
+        // one here. Refused loudly rather than returned empty: an empty level reads as "the share is
+        // empty" on screen, which is a wrong answer, while this is a wiring fault and says so.
+        is WearFolderAddress.NetworkLevel ->
+            throw IllegalArgumentException("Network level reached the local folder repository")
     }
 
     /**

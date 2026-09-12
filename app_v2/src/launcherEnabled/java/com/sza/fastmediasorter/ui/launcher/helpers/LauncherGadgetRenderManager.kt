@@ -17,26 +17,38 @@ import com.sza.fastmediasorter.ui.launcher.gadget.LauncherTimeZoneCatalog
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherWeatherParamFallback
 import com.sza.fastmediasorter.ui.launcher.grid.LauncherCellViewBinder
 import timber.log.Timber
+import java.util.WeakHashMap
 
 /**
  * S1541: builds the view for a gadget cell - registry lookup, the gadget's own view, and the
  * fallback shown for a key the registry does not know - extracted from the activity.
  *
  * Re-pointing a cell is a picker, which belongs to the add-flow, so it arrives as
- * [onWeatherReconfigure] / [onWorldClockReconfigure] rather than as a dependency on that role:
- * rendering must not need the picker chain to exist.
+ * [onWeatherReconfigure] / [onWorldClockReconfigure] / [onSunDewpointReconfigure] rather than as a
+ * dependency on that role: rendering must not need the picker chain to exist.
  */
 class LauncherGadgetRenderManager(
     private val gadgetRegistry: LauncherGadgetRegistry,
     private val gadgetHost: LauncherGadgetHost,
     private val onWeatherReconfigure: (cellId: Long) -> Unit,
     private val onWorldClockReconfigure: (cellId: Long) -> Unit,
+    private val onSunDewpointReconfigure: (cellId: Long) -> Unit,
     // S2213: read per bind rather than captured once - a place picked after this manager was built must
     // be visible to the next bind, otherwise the fix would appear to work only after a restart. No
     // default on purpose: a construction site that forgot this would still compile and would silently
     // stop substituting, which is the failure this ticket exists to remove.
     private val savedWeatherLocation: () -> String?,
+    private val cellConfigLocation: (cellId: Long) -> String? = { null },
 ) {
+
+    /** S2686: what a bound container was built from, so [rebindGadget] can tell a match from a stale hit. */
+    private data class BoundGadget(val key: String, val param: String?)
+
+    /**
+     * S2686: weak keys, so a cell root the binder dropped takes its record - and its gadget view - with
+     * it instead of being held alive by this map.
+     */
+    private val boundGadgets = WeakHashMap<FrameLayout, BoundGadget>()
 
     /**
      * A GADGET cell's `target` is a registry key, not a command, so a key we do not know is the only
@@ -44,6 +56,8 @@ class LauncherGadgetRenderManager(
      * so the shortcut's unavailable path cannot double as this one.
      */
     fun bindGadget(cellUi: LauncherCellUi, container: FrameLayout) {
+        Timber.d("S2539: LauncherGadgetRenderManager bindGadget with theme text")
+        boundGadgets.remove(container)
         val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
         val gadget = decoded?.first?.let { gadgetRegistry.byKey(it) }
         if (gadget == null) {
@@ -53,10 +67,12 @@ class LauncherGadgetRenderManager(
         // S2213: resolved once and fed to both call sites below - wireReconfigure decides from the same
         // param whether the cell still needs its "tap to configure" listener, so substituting in only one
         // of the two would show the city while still treating the cell as unconfigured.
-        val param = LauncherWeatherParamFallback.resolve(decoded.first, decoded.second, savedWeatherLocation())
-        if (param != decoded.second) {
-            Timber.d("S2213: weather cell without its own place took the saved one")
-        }
+        val param = LauncherWeatherParamFallback.resolve(
+            key = decoded.first,
+            param = decoded.second,
+            savedLocation = savedWeatherLocation(),
+            cellConfigLocation = cellConfigLocation(cellUi.cell.id),
+        )
         // A gadget that cannot build its view degrades to a named failed-gadget tile (S2208). Without
         // this, the exception escapes into the HOME activity's render pass, and because
         // the system restarts HOME immediately the desktop crash-loops the device with no way in to
@@ -64,7 +80,6 @@ class LauncherGadgetRenderManager(
         val view = runCatching { gadget.createView(container, gadgetHost, param) }
             .onFailure {
                 Timber.e(it, "Gadget ${decoded.first} failed to build its view; cell degraded")
-                Timber.d("S2208: ${decoded.first} view creation failed")
             }
             .getOrNull()
         if (view == null) {
@@ -79,6 +94,38 @@ class LauncherGadgetRenderManager(
         }
         wireReconfigure(decoded.first, param, cellUi.cell.id, view)
         container.addView(view)
+        // S2686: recorded only on the path that produced a real gadget view. The two degraded tiles above
+        // return without recording, so a later render rebuilds them instead of preserving a failure.
+        boundGadgets[container] = BoundGadget(decoded.first, param)
+    }
+
+    /**
+     * S2686: answers whether [container] - a cell root the desktop binder kept from the render it is
+     * tearing down - still holds the right gadget for [cellUi], and re-points it at that cell when it
+     * does. `false` sends the binder back to inflating a fresh cell.
+     *
+     * The comparison includes the resolved parameter, not just the registry key, because the parameter
+     * is read per bind from the saved weather place and the cell's config row: a container matched on
+     * the key alone would keep drawing the previous city after the user picked a new one.
+     *
+     * Re-running [wireReconfigure] is not housekeeping. Its callbacks carry the cell id, and portrait and
+     * landscape are separate rows with separate ids, so a container kept across a rotation with its old
+     * id would re-point the cell of the orientation the user just left.
+     */
+    fun rebindGadget(cellUi: LauncherCellUi, container: FrameLayout): Boolean {
+        val bound = boundGadgets[container]
+        val decoded = gadgetRegistry.decodeTarget(cellUi.cell.target)
+        val view = container.getChildAt(0)
+        if (bound == null || decoded == null || view == null) return false
+        val param = LauncherWeatherParamFallback.resolve(
+            key = decoded.first,
+            param = decoded.second,
+            savedLocation = savedWeatherLocation(),
+            cellConfigLocation = cellConfigLocation(cellUi.cell.id),
+        )
+        val matches = bound.key == decoded.first && bound.param == param
+        if (matches) wireReconfigure(decoded.first, param, cellUi.cell.id, view)
+        return matches
     }
 
     /**
@@ -100,6 +147,9 @@ class LauncherGadgetRenderManager(
             // param the renderer cannot ask for on its own.
             LauncherGadgetRegistry.KEY_WORLD_CLOCK ->
                 onWorldClockReconfigure to (LauncherTimeZoneCatalog.zoneOrNull(param) != null)
+            // S1907: the identical codec as weather above, so the identical "is it configured" test.
+            LauncherGadgetRegistry.KEY_SUN_DEWPOINT ->
+                onSunDewpointReconfigure to (WeatherLocation.decode(param) != null)
             else -> return
         }
         view.setOnLongClickListener {

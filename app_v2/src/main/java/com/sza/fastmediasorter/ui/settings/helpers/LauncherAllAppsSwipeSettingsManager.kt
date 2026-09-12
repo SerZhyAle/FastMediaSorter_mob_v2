@@ -12,7 +12,6 @@ import com.sza.fastmediasorter.domain.usecase.panel.QueryLaunchableAppsUseCase
 import com.sza.fastmediasorter.ui.applaunchpanel.edit.AppPickerDialogFragment
 import com.sza.fastmediasorter.ui.common.widget.SettingsSelectionRow
 import kotlinx.coroutines.launch
-import timber.log.Timber
 
 /**
  * S2304: owns the All apps panel swipe row family while the dialog remains its lifecycle host.
@@ -96,7 +95,6 @@ class LauncherAllAppsSwipeSettingsManager(
         action: LauncherAllAppsSwipeAction,
     ) {
         val kind = targetKindOf(action)
-        Timber.d("S2304: all apps swipe target flow %s kind=%s", direction, kind)
         when (kind) {
             GestureTargetKind.APP -> {
                 setPendingDirection(direction)

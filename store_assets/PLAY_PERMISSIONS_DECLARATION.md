@@ -112,6 +112,12 @@ and `/sdcard/Archive/Books`, all three added as resources (the two destinations 
 reuse `c:\Common\test_media`: its PDFs are real signed documents naming a real person, and one of
 them reached an earlier take before it was caught.
 
+Do not hand-roll the synthetic files either - the fixtures written for that take lived in `temp/` and
+did not survive it, which is why the store screenshot sets had to be shot from scratch (S2602). The
+generator is now a tracked script: `scripts/release/seed-store-shot-media.ps1` builds images, audio,
+video, a PDF and an EPUB from arithmetic and pushes them to a device root of their own. Use it for
+any material an outside reviewer will see.
+
 ---
 
 ## What the previous, rejected submission said

@@ -1,0 +1,22 @@
+# maestro-requires: watch
+# maestro-requires: seeded-content
+appId: com.sza.fastmediasorter.debug
+---
+# S2548: the path the declared screen walk cannot observe - a file actually plays. Declared as
+# needing seeded media, so a bare emulator reports it as skip with that reason instead of failing
+# about a stand rather than about the app.
+- launchApp:
+    clearState: false
+- tapOn:
+    id: "wear_home_section_local"
+- assertVisible:
+    id: "wear_category_music"
+- tapOn:
+    id: "wear_category_music"
+- tapOn:
+    point: "50%,45%"
+- assertVisible:
+    id: "wear_nav_root"
+- pressKey: Back
+- pressKey: Back
+- pressKey: Back

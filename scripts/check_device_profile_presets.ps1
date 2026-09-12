@@ -14,7 +14,10 @@
 
     Rules:
 
-      1. Every AppSettings field has either a CSV row or a registry entry.
+      1. Every AppSettings field has either a CSV row or a `fields` entry. Only `fields` exempts a
+         field from owning a row; a `reviewed` field keeps its row, so one absent from the CSV is
+         reported under its own label naming the misfiled entry rather than as a forgotten field
+         (S2574).
       2. A registered non-presettable field carries no value in any profile column - the registry
          promises the value can never take effect, so authoring one is a silent data loss.
       3. Every registry entry names a field that still exists on AppSettings.
@@ -181,6 +184,15 @@ $allowedValues = @{
     'streamsDefaultAudioLanguage' = @('DEFAULT', 'ENGLISH', 'RUSSIAN', 'UKRAINIAN')
     'streamsDefaultSubtitleLanguage' = @('DEFAULT', 'ENGLISH', 'RUSSIAN', 'UKRAINIAN')
     'launcherWallpaperMode'       = @('BRANDED', 'NONE', 'IMAGE')
+    # S2536 PowerSavingTrigger. DEFAULT is a companion alias rather than a constant, so valueOf
+    # rejects it and the applier would skip the cell - list only the real entries.
+    'powerSavingTrigger'          = @('OFF', 'ALWAYS', 'BELOW_10', 'BELOW_15', 'BELOW_20', 'BELOW_30')
+    # S2533 BrowseSwipeAction, one list for both slots - the direction decides which field is
+    # written, never which actions are legal.
+    'browseSwipeLeftAction'       = @('NONE', 'OPEN_IN_PLAYER', 'SEND_TO', 'INFO', 'FAVORITE',
+        'COPY', 'MOVE', 'RENAME', 'EXTRACT_ARCHIVE', 'DELETE')
+    'browseSwipeRightAction'      = @('NONE', 'OPEN_IN_PLAYER', 'SEND_TO', 'INFO', 'FAVORITE',
+        'COPY', 'MOVE', 'RENAME', 'EXTRACT_ARCHIVE', 'DELETE')
     # AppSettings.LAUNCHER_DENSITY_OPTIONS - the launcher settings row resolves the stored value by
     # indexOf(), so an off-list factor leaves the row showing nothing.
     'launcherDensityFactor'       = @('0.75', '1.0', '1.25', '1.5')
@@ -210,6 +222,12 @@ $valueRules = @{
         Description = 'must be 0..48 on the 4 px slider step'
         Test        = { param($v) ($v -match '^\d+$') -and ([int]$v -le 48) -and ((([int]$v) % 4) -eq 0) }
     }
+    # AppSettings.playerPanelAutoHideSeconds declares 1-600. Zero would read as "never hide" and
+    # the panel row cannot express it, so the cell would be stored and then ignored.
+    'playerPanelAutoHideSeconds' = @{
+        Description = 'must be 1..600 seconds'
+        Test        = { param($v) ($v -match '^\d+$') -and ([int]$v -ge 1) -and ([int]$v -le 600) }
+    }
 }
 
 $valueViolations = @()
@@ -230,7 +248,13 @@ foreach ($row in $csvRows) {
 }
 
 # --- Coverage rules -------------------------------------------------------------------------
-$missingRows = $appFields | Where-Object { $_ -notin $csvFields -and $_ -notin $registryFields }
+# S2574: a field absent from the CSV splits by WHY it is absent. Only `fields` exempts a field from
+# rule 1 - a `reviewed` field stays presettable and still owes its row - so an entry written into the
+# wrong array leaves the field here while the "Non-presettable fields" counter does not move, and the
+# operator can only infer the cause from a number that stayed put. Naming it is the whole fix.
+$missingFromCsv = @($appFields | Where-Object { $_ -notin $csvFields -and $_ -notin $registryFields })
+$missingRows = @($missingFromCsv | Where-Object { $_ -notin $reviewedFields })
+$reviewedWithoutRow = @($missingFromCsv | Where-Object { $_ -in $reviewedFields })
 $staleRows = $csvFields | Where-Object { $_ -notin $appFields }
 $missingColumns = $enumValues | Where-Object { $_ -notin $csvProfileEnums }
 $unknownColumns = $csvProfileColumns | Where-Object { (ColToEnum $_) -notin $enumValues }
@@ -289,6 +313,8 @@ function Report($label, $items) {
     }
 }
 Report 'AppSettings fields MISSING from CSV rows' $missingRows
+Report ('reviewed fields MISSING their CSV row - a reviewed field stays presettable and keeps its ' +
+    'row; move it to "fields" if it must never be preset') $reviewedWithoutRow
 Report 'CSV rows with NO matching AppSettings field' $staleRows
 Report 'DeviceProfileTypes MISSING a CSV column' $missingColumns
 Report 'CSV columns with NO matching DeviceProfileType' $unknownColumns
@@ -304,7 +330,7 @@ Report 'CSV rows CARRYING A VALUE with no applier branch' $valuedRowsWithoutBran
 Report 'cells outside the range their Settings screen accepts' $valueViolations
 Report "cells in the 'Other' column, which must stay empty" $otherColumnViolations
 
-$hasMissing = ($missingRows.Count + $missingColumns.Count) -gt 0
+$hasMissing = ($missingRows.Count + $reviewedWithoutRow.Count + $missingColumns.Count) -gt 0
 $hasStale = ($staleRows.Count + $unknownColumns.Count + $staleRegistry.Count) -gt 0
 $hasRegistryConflict = ($registryNoReason.Count + $registeredWithValue.Count +
     $staleReviewed.Count + $reviewedNoReason.Count + $reviewedAndRegistered.Count) -gt 0
@@ -352,7 +378,9 @@ $rebuilt = foreach ($row in $csvRows) {
     }
     [pscustomobject]$ordered
 }
-foreach ($field in $missingRows) {
+# S2574: a reviewed field owes a row exactly as an undecided one does, so -AddMissing appends both.
+$rowsToAdd = @($missingRows) + @($reviewedWithoutRow)
+foreach ($field in $rowsToAdd) {
     $ordered = [ordered]@{}
     foreach ($c in $allColumns) { $ordered[$c] = if ($c -eq 'option') { $field } else { '' } }
     $rebuilt += [pscustomobject]$ordered
@@ -363,6 +391,6 @@ foreach ($field in $missingRows) {
 # appended ones in a whole-file diff. Strategic 3.2 freezes the matrix format.
 $rebuilt | Export-Csv -Path $csvPath -NoTypeInformation -Encoding utf8NoBOM -UseQuotes Always
 Write-Output ''
-Write-Output "Added $($missingRows.Count) row(s) and $($missingColumns.Count) column(s) to $csvPath (empty cells)."
+Write-Output "Added $($rowsToAdd.Count) row(s) and $($missingColumns.Count) column(s) to $csvPath (empty cells)."
 Write-Output 'Review and fill the new cells, then rebuild.'
 exit 0

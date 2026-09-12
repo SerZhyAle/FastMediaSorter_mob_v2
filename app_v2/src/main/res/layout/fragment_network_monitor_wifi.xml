@@ -124,6 +124,23 @@
                             style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
                             tools:text="Wi-Fi 6" />
                     </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/wifiHotspotRow"
+                        style="@style/Widget.FastMediaSorter.NetworkMonitor.Row"
+                        android:background="?attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowLabel"
+                            android:text="@string/widget_network_monitor_indicator_hotspot_state" />
+
+                        <TextView
+                            android:id="@+id/wifiHotspotValue"
+                            style="@style/Widget.FastMediaSorter.NetworkMonitor.RowValue"
+                            tools:text="Hotspot: Off" />
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>

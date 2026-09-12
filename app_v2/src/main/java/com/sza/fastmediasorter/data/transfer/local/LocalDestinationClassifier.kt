@@ -52,7 +52,7 @@ open class LocalDestinationClassifier @Inject constructor() {
         }
 
         val firstSegment = segments.first()
-        val kind = matchPublicCollectionKind(firstSegment)
+        val kind = matchPublicCollectionKind(firstSegment, mimeType)
             ?: return NonPublic(
                 absolutePath = absolutePath,
                 displayName = displayName,
@@ -70,7 +70,15 @@ open class LocalDestinationClassifier @Inject constructor() {
         )
     }
 
-    private fun matchPublicCollectionKind(segment: String): PublicCollection.Kind? = when (segment) {
+    /**
+     * S1924: the folder alone cannot decide the collection. DCIM and Pictures legitimately hold video
+     * - every device camera writes its recordings beside its photos - and MediaStore refuses a
+     * video insert into the images collection outright ("MIME type video/mp4 cannot be inserted
+     * into content://media/external/images/media"), which is how the mirror's video capture failed on
+     * a real phone while its photo capture succeeded. So the two picture folders ask the MIME type;
+     * every other folder is single-kind and does not.
+     */
+    private fun matchPublicCollectionKind(segment: String, mimeType: String?): PublicCollection.Kind? = when (segment) {
         Environment.DIRECTORY_MUSIC,
         Environment.DIRECTORY_PODCASTS,
         getAudiobooksDirectoryName(),
@@ -80,7 +88,12 @@ open class LocalDestinationClassifier @Inject constructor() {
         Environment.DIRECTORY_ALARMS -> PublicCollection.Kind.AUDIO
         Environment.DIRECTORY_MOVIES -> PublicCollection.Kind.VIDEO
         Environment.DIRECTORY_PICTURES,
-        Environment.DIRECTORY_DCIM -> PublicCollection.Kind.IMAGES
+        Environment.DIRECTORY_DCIM ->
+            if (mimeType?.startsWith("video/") == true) {
+                PublicCollection.Kind.VIDEO
+            } else {
+                PublicCollection.Kind.IMAGES
+            }
         Environment.DIRECTORY_DOWNLOADS -> PublicCollection.Kind.DOWNLOADS
         else -> null
     }

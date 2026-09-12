@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.wear.domain.model.NetworkSource
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearTileKind
 import com.sza.fastmediasorter.wear.domain.model.WearTileTargetRef
+import com.sza.fastmediasorter.wear.domain.model.carriesAssignableTarget
 import com.sza.fastmediasorter.wear.domain.model.streamTargetRef
 import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
@@ -58,7 +59,9 @@ class TileTargetPickerViewModel @Inject constructor(
     val doneEvent: SharedFlow<Unit> = _doneEvent.asSharedFlow()
 
     init {
-        if (kind == WearTileKind.FAVOURITES) {
+        // S2511: keyed on the kind's own answer rather than on a list of kinds, so a kind added later is
+        // classified once, beside the enum, instead of in every screen that branches on it.
+        if (!kind.carriesAssignableTarget) {
             viewModelScope.launch {
                 _doneEvent.emit(Unit)
             }
@@ -77,7 +80,10 @@ class TileTargetPickerViewModel @Inject constructor(
                 WearTileKind.STREAM -> {
                     wearStreamChannelRepository.getAllChannels().map { PickerRow.StreamRow(it) }
                 }
-                WearTileKind.FAVOURITES -> emptyList()
+                // Unreachable - the init above sends every kind with no assignable target straight out.
+                WearTileKind.FAVOURITES,
+                WearTileKind.PROGRAMS,
+                WearTileKind.SECTIONS -> emptyList()
             }
             _uiState.value = TileTargetPickerUiState(
                 kind = kind,

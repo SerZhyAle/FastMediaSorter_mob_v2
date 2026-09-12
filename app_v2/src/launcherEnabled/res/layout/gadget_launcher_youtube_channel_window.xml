@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2032: one YouTube channel, on the desktop.
+
+     Stopped face by default: the channel's name over the cover of its latest upload, plus one control.
+     The player stub stays uninflated until the user presses play, so a desktop full of these cells holds
+     no web view at all (strategic §3.2). Nothing here is a hex colour.
+
+     Orientation-neutral, so no layout-land counterpart: the launcher measures a cell exactly, which is
+     why no launcher cell in the project has one (strategic §3.4). -->
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:parentTag="android.widget.FrameLayout">
+
+    <ImageView
+        android:id="@+id/youTubeChannelPoster"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="@dimen/margin_small">
+
+        <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+            android:id="@+id/youTubeChannelTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:minHeight="28dp"
+            android:textColor="?attr/launcherDesktopText"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+            tools:text="Sample Channel" />
+
+        <Space
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <!-- focus_button_background goes in FOREGROUND, never background: as background it replaces
+             ImageButton's ripple with a selector that has no state_pressed, so taps stop giving
+             feedback. Same reason gadget_launcher_stream_window.xml states. -->
+        <ImageButton
+            android:id="@+id/youTubeChannelPlay"
+            android:layout_width="@dimen/launcher_gadget_action_size"
+            android:layout_height="@dimen/launcher_gadget_action_size"
+            android:layout_gravity="center_horizontal"
+            android:background="@android:color/transparent"
+            android:contentDescription="@string/launcher_youtube_channel_window_play"
+            android:focusable="true"
+            android:foreground="@drawable/focus_button_background"
+            android:padding="6dp"
+            android:src="@drawable/ic_play"
+            app:tint="?attr/colorControlNormal"
+            tools:ignore="MissingPrefix" />
+
+    </LinearLayout>
+
+    <!-- The stub names no layout here: it is assigned in code, which is the only place that knows the
+         device can host the embedded player at all. -->
+    <ViewStub
+        android:id="@+id/youTubeChannelPlayerStub"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.sza.fastmediasorter.ui.common.widget.OutlinedTextView
+        android:id="@+id/youTubeChannelMessage"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:maxLines="2"
+        android:padding="@dimen/margin_small"
+        android:textColor="?attr/launcherDesktopTextSecondary"
+        android:textSize="12sp"
+        android:visibility="gone"
+        app:otv_outlineWidth="@dimen/launcher_cell_outline_width"
+        tools:text="Could not read the channel"
+        tools:visibility="visible" />
+
+</merge>

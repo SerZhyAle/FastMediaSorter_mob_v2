@@ -16,9 +16,15 @@ import org.junit.Test
  */
 class BrowseCategoryPresentationTest {
 
+    /**
+     * S2495: read from the LOCAL origin, not the phone. The phone offers seven of the eight tokens -
+     * voice notes belong to the watch's own store alone - so a guard keyed off the phone's list would
+     * have silently stopped covering the very entry that was just added, which is the drift this test
+     * exists to make impossible. The widest origin is the only safe source for a completeness check.
+     */
     private val wholeVocabulary: List<WearBrowseCategory>
         get() = BrowseCategoryCatalog.categoriesFor(
-            WearCategoryOrigin.PHONE,
+            WearCategoryOrigin.LOCAL,
             WearContentType.entries.toSet()
         )
 
@@ -69,6 +75,24 @@ class BrowseCategoryPresentationTest {
             "recents draws the same glyph as all, so the time filter is indistinguishable",
             BrowseCategoryPresentation.glyphFor(all),
             BrowseCategoryPresentation.glyphFor(recents)
+        )
+    }
+
+    /**
+     * S2495: voice notes is the third entry carrying [WearContentType.OTHER], so without its own
+     * override it would be drawn with the same glyph as "all" and as the recorder's own store would be
+     * indistinguishable from a flat listing of everything.
+     */
+    @Test
+    fun `voice notes keeps its own glyph rather than the one its content type carries`() {
+        val voiceNotes = categoryFor(BrowseCategoryCatalog.TOKEN_VOICE_NOTES)
+        val all = categoryFor(BrowseCategoryCatalog.TOKEN_ALL)
+
+        assertEquals(voiceNotes.type, all.type)
+        assertNotEquals(
+            "voice notes draws the same glyph as all, so the recorder's store is unrecognisable",
+            BrowseCategoryPresentation.glyphFor(all),
+            BrowseCategoryPresentation.glyphFor(voiceNotes)
         )
     }
 

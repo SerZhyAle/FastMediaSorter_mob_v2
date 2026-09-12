@@ -11,6 +11,7 @@ import com.sza.fastmediasorter.wear.domain.repository.NetworkSourceRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearNowPlayingRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
@@ -27,15 +28,21 @@ class LoadWearComplicationContentUseCaseTest {
     private val mockNetworkSourceRepository: NetworkSourceRepository = mockk()
     private val mockFavoritesRepository: WearFavoritesRepository = mockk()
     private val mockNowPlayingRepository: WearNowPlayingRepository = mockk()
+    private val mockStreamChannelRepository: WearStreamChannelRepository = mockk()
 
     private lateinit var resolveLastUsedResourceUseCase: ResolveLastUsedResourceUseCase
     private lateinit var useCase: LoadWearComplicationContentUseCase
 
     @Before
     fun setUp() {
+        // S2499: the resolver reads the channel store too. Empty here, so every case in this file keeps
+        // describing a watch with no channels rather than one whose channel store was never asked.
+        every { mockStreamChannelRepository.observeChannels() } returns flowOf(emptyList())
+
         resolveLastUsedResourceUseCase = ResolveLastUsedResourceUseCase(
             mockPrefsRepository,
-            mockNetworkSourceRepository
+            mockNetworkSourceRepository,
+            mockStreamChannelRepository
         )
 
         useCase = LoadWearComplicationContentUseCase(

@@ -119,10 +119,7 @@ class StartVrPlaybackUseCaseImpl @Inject constructor(
         }
         return when (request.mediaType) {
             VrMediaType.IMAGE -> null
-            VrMediaType.VIDEO -> {
-                val isLocal = uri.startsWith("file://") || uri.startsWith("/")
-                if (isLocal) null else VrLaunchUnavailableReason.InvalidUri
-            }
+            VrMediaType.VIDEO -> validateVideoLaunchUri(uri, request.sourceKind)
             VrMediaType.GIF -> VrLaunchUnavailableReason.NotYetSupported
         }
     }

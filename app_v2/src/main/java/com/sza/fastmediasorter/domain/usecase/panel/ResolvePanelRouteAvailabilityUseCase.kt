@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -30,6 +31,16 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
     private val networkMonitorContract: NetworkMonitorContract,
     private val screenVideoRecordingControllers: Set<@JvmSuppressWildcards ScreenVideoRecordingController>,
 ) {
+
+    /**
+     * S1924: probed once and held - the hardware cannot appear while the process runs, and the chain
+     * is asked for every route on every panel composition. A missing feature and a failed query are
+     * the same answer here, which is why the wrapper defaults to false rather than propagating.
+     */
+    private val hasFrontCamera: Boolean by lazy {
+        runCatching { context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FRONT) }
+            .getOrDefault(false)
+    }
 
     /**
      * [availableInBuild] - feature is compiled into this flavor. [enabledAtRuntime] - a runtime
@@ -67,6 +78,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
      * sub-program missing from a surface reads exactly like one the build switched off. The
      * completeness test needs the two apart to assert anything at all.
      */
+    @Suppress("CyclomaticComplexMethod") // S2997: one when-branch per route; complexity tracks route count
     fun resolveOrNull(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
@@ -78,6 +90,10 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             InternalRouteCatalog.KEY_CALCULATOR -> {
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableCalculator)
             }
+            // S1411 §6.5: universal across flavors, like the calculator above - only the user's switch
+            // gates it, so the compile-time axis stays unconditionally open.
+            InternalRouteCatalog.KEY_STOPWATCH ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableStopwatch)
             InternalRouteCatalog.KEY_NETWORK_MONITOR ->
                 Availability(
                     availableInBuild = networkMonitorContract.isAvailableInBuild,
@@ -88,23 +104,42 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
             // S1733: the same pair the game uses - compiled into every flavor, gated only by its switch.
             InternalRouteCatalog.KEY_SYSTEM_INFO ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
+            // S2922: Tourist dashboard sub-program - universal across flavors.
+            InternalRouteCatalog.KEY_TOURIST_INFO ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist).also {
+                    Timber.d("S2997: tourist route availability=%s", it)
+                }
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
-            InternalRouteCatalog.KEY_WEAR_COMPANION ->
+            // S2881: the two listen calls are that bridge in action, so they answer with the same pair -
+            // absent where the bridge is not compiled in, off where the owner switched it off.
+            InternalRouteCatalog.KEY_WEAR_COMPANION,
+            InternalRouteCatalog.KEY_WATCH_LISTEN,
+            InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD ->
                 Availability(
                     availableInBuild = mediaCapabilities.supportsWearCompanion,
                     enabledAtRuntime = settings.enableWearCompanion,
                 )
-            InternalRouteCatalog.KEY_OCR -> Availability(capability.isOcrAvailable(context), enabledAtRuntime = true)
+            // S2673: the runtime axis was a literal `true`, so a panel tile and a desktop cell kept
+            // opening the translator with its switch off - the S1856 calculator defect, repeated. The
+            // registry entry for this key disables itself through the same field.
+            InternalRouteCatalog.KEY_OCR ->
+                Availability(
+                    availableInBuild = capability.isOcrAvailable(context),
+                    enabledAtRuntime = settings.cameraOcrTranslationEnabled,
+                )
             InternalRouteCatalog.KEY_STREAMS -> Availability(capability.isStreamsAvailable(), enabledAtRuntime = true)
             InternalRouteCatalog.KEY_FAVORITES ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableFavorites)
             // Photo only, not video: the panel tile has no per-instance capture-mode config, so it
             // always resolves to the widget's default (photo) capture mode - see AppLaunchPanelRouteIntents.
+            // S2673: the video half was missing, so a build that records video but shows no photos
+            // reported this route dead while the programs menu offered it. Both halves are factored
+            // into isQuickCaptureEnabled to keep this chain under detekt's cyclomatic ceiling.
             InternalRouteCatalog.KEY_QUICK_CAMERA ->
                 Availability(
-                    availableInBuild = mediaCapabilities.supportsImages,
-                    enabledAtRuntime = !settings.disableCameraCapture,
+                    availableInBuild = mediaCapabilities.supportsImages || mediaCapabilities.supportsVideo,
+                    enabledAtRuntime = isQuickCaptureEnabled(settings),
                 )
             InternalRouteCatalog.KEY_QUICK_VOICE ->
                 Availability(
@@ -118,6 +153,27 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_LINK_DOWNLOAD ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.linkAutoDownloadEnabled)
+            // S1924: compiled into every flavor - the camera is gated by a setting, never by a flavor
+            // flag, so there is no capability to read here. The three runtime conditions are factored
+            // out to keep this chain under detekt's cyclomatic ceiling, which S1883 already reached.
+            InternalRouteCatalog.KEY_MIRROR ->
+                Availability(availableInBuild = true, enabledAtRuntime = isMirrorEnabled(settings))
+            else -> resolveLightRoute(routeKey, settings) ?: resolveCaptureRoute(routeKey, settings)
+        }
+
+    /**
+     * S2516: the light family - both flashlights, the water flashlight and the black screen - resolved
+     * apart from the chain above.
+     *
+     * They moved out because adding the water flashlight took that chain to detekt's cyclomatic
+     * ceiling, which S1883 had already reached and S1924 had already stepped back from once. The family
+     * is the natural seam: each of these four routes paints its own window and none of them reads a
+     * capability except the physical torch, which needs the hardware.
+     *
+     * Null when [routeKey] is not one of them, so the caller falls through to its own next branch.
+     */
+    private fun resolveLightRoute(routeKey: String, settings: AppSettings): Availability? =
+        when (routeKey) {
             // S1796: the flashlight needs no capability - it only paints its own window - so the pair
             // is the same shape the embedded game uses: always built in, gated by the user's toggle.
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT ->
@@ -127,11 +183,31 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                     availableInBuild = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_FLASH),
                     enabledAtRuntime = true,
                 )
+            // S2516: deliberately NOT gated on a camera flash, unlike the entry above. Half of this
+            // program is the lit screen, which every device has; on a phone without a flash it is still
+            // a light and still a lock, and the torch call degrades to a logged no-op.
+            InternalRouteCatalog.KEY_WATER_FLASHLIGHT ->
+                Availability(availableInBuild = true, enabledAtRuntime = settings.waterFlashlightEnabled)
             // S2211: black screen needs no special capability - always available in build and runtime.
             InternalRouteCatalog.KEY_BLACK_SCREEN ->
                 Availability(availableInBuild = true, enabledAtRuntime = true)
-            else -> resolveCaptureRoute(routeKey, settings)
+            else -> null
         }
+
+    /**
+     * S2673: the quick-capture route is one program with two capture modes, so either mode being
+     * both supported and switched on keeps it alive - the pair the programs menu has always used.
+     */
+    private fun isQuickCaptureEnabled(settings: AppSettings): Boolean =
+        (mediaCapabilities.supportsImages && !settings.disableCameraCapture) ||
+            (mediaCapabilities.supportsVideo && !settings.disableVideoCapture)
+
+    /**
+     * S1924: the mirror needs its own switch on, the global camera switch not off, and a front lens
+     * to point at - strategic §3.2 and §6.3. Any one of the three missing makes the route dead.
+     */
+    private fun isMirrorEnabled(settings: AppSettings): Boolean =
+        settings.mirrorEnabled && !settings.disableCameraCapture && hasFrontCamera
 
     /**
      * S0978: the four capture routes - two photo shortcuts, the OCR-translate variant and the video one.
@@ -155,7 +231,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_TAKE_PHOTO_OCR_TRANSLATE ->
                 Availability(
-                    availableInBuild = mediaCapabilities.supportsImages && capability.isTranslationAvailable(),
+                    availableInBuild = mediaCapabilities.supportsImages && capability.isTranslationAvailable(context),
                     enabledAtRuntime = !settings.disableCameraCapture,
                 )
             InternalRouteCatalog.KEY_START_VIDEO_RECORDING ->

@@ -41,6 +41,8 @@
       0  outputs written, or -Check found them current
       1  -Check found drift (regenerate without -Check)
       2  cannot verify - source directory missing, or it holds no ico_*.xml at all
+      4  the target's code domain is held by another session, so nothing was written. The queue
+         place is held - wait for the turn in the background and rerun (S2635).
 #>
 
 [CmdletBinding()]
@@ -50,6 +52,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $sourceDir = Join-Path $repoRoot 'app_v2/src/main/res/drawable'
@@ -156,23 +159,38 @@ if ($Check) {
     exit 1
 }
 
-if (-not (Test-Path $targetDrawableDir)) {
-    New-Item -ItemType Directory -Path $targetDrawableDir -Force | Out-Null
-}
-$registryDir = Split-Path -Parent $targetRegistry
-if (-not (Test-Path $registryDir)) {
-    New-Item -ItemType Directory -Path $registryDir -Force | Out-Null
-}
+# The deletions count as writes: a stale copy removed without the domain is a resource file
+# vanishing from under a concurrent wear build.
+$writeTargets = @(
+    @($entries | ForEach-Object { Join-Path $targetDrawableDir "$($_.Resource).xml" })
+    @($existingCopies | Where-Object { $expectedNames -notcontains $_.Name } | ForEach-Object { $_.FullName })
+    $targetRegistry
+)
 
-foreach ($stale in $existingCopies | Where-Object { $expectedNames -notcontains $_.Name }) {
-    Remove-Item -LiteralPath $stale.FullName -Force
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path $writeTargets `
+        -Reason 'generate-wear-resource-icons.ps1 (wear drawables + WearResourceIconRegistry.kt)'
+
+    if (-not (Test-Path $targetDrawableDir)) {
+        New-Item -ItemType Directory -Path $targetDrawableDir -Force | Out-Null
+    }
+    $registryDir = Split-Path -Parent $targetRegistry
+    if (-not (Test-Path $registryDir)) {
+        New-Item -ItemType Directory -Path $registryDir -Force | Out-Null
+    }
+
+    foreach ($stale in $existingCopies | Where-Object { $expectedNames -notcontains $_.Name }) {
+        Remove-Item -LiteralPath $stale.FullName -Force
+    }
+    foreach ($entry in $entries) {
+        Copy-Item -LiteralPath $entry.Path -Destination (Join-Path $targetDrawableDir "$($entry.Resource).xml") -Force
+    }
+    # -NoNewline: the builder already ends every line, so Set-Content would add a trailing blank
+    # line that -Check would then read back as permanent drift.
+    Set-Content -LiteralPath $targetRegistry -Value $expectedRegistry -Encoding utf8 -NoNewline
 }
-foreach ($entry in $entries) {
-    Copy-Item -LiteralPath $entry.Path -Destination (Join-Path $targetDrawableDir "$($entry.Resource).xml") -Force
-}
-# -NoNewline: the builder already ends every line, so Set-Content would add a trailing blank
-# line that -Check would then read back as permanent drift.
-Set-Content -LiteralPath $targetRegistry -Value $expectedRegistry -Encoding utf8 -NoNewline
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host "generate-wear-resource-icons: wrote $($entries.Count) icon(s) and WearResourceIconRegistry.kt."
 exit 0

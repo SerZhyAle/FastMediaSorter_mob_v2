@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.utils.getStatusBarHeightSafe
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.share.SharePrintHost
@@ -266,7 +267,7 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
     // (copy is universal; translate is flavor-gated). Were present-but-gone (dead-weight) before.
     private fun setupTextActionButtons() {
         binding.btnCopyTextCmd.isVisible = true
-        binding.btnTranslateTextCmd.isVisible = capabilityAvailability.isTranslationAvailable()
+        binding.btnTranslateTextCmd.isVisible = capabilityAvailability.isTranslationAvailable(this)
         binding.btnSearchTextCmd.isVisible = true
         binding.btnSearchTextCmd.setOnClickListener { showTextSearchDialog() }
     }
@@ -351,11 +352,17 @@ class TextStandaloneActivity : BaseActivity<ActivityStandaloneTextBinding>(), Sh
         // S0920: keep the OS status bar visible on the dark player chrome (see StandaloneSystemBars).
         com.sza.fastmediasorter.ui.player.helpers.StandaloneSystemBars.showStatusBarWithLightIcons(this)
         ViewCompat.setOnApplyWindowInsetsListener(binding.topCommandPanel) { view, insets ->
-            val top = insets.getInsets(
-                WindowInsetsCompat.Type.statusBars() or WindowInsetsCompat.Type.captionBar()
-            )
+            val statusBarTop = insets.getStatusBarHeightSafe(view.resources)
+            val captionTop = insets.getInsets(WindowInsetsCompat.Type.captionBar()).top
+            val cutoutTop = insets.getInsets(WindowInsetsCompat.Type.displayCutout()).top
+            val topPadding = maxOf(statusBarTop, captionTop, cutoutTop)
+
             val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
-            view.setPadding(nav.left, top.top, nav.right, view.paddingBottom)
+            val cutout = insets.getInsets(WindowInsetsCompat.Type.displayCutout())
+            val leftPadding = maxOf(nav.left, cutout.left)
+            val rightPadding = maxOf(nav.right, cutout.right)
+
+            view.setPadding(leftPadding, topPadding, rightPadding, view.paddingBottom)
             insets
         }
         // S0612: the Copy/Move panels container is the bottom-most child, so the nav-bar inset moves

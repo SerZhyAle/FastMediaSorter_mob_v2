@@ -1,0 +1,76 @@
+# Registry of scripts that WRITE a path owned by a Code.* lock domain (S2635).
+#
+# Why this file exists. A script that rewrites a file the domain table assigns to Code.Phone,
+# Code.Wear or Code.Scripts must take that domain first, or two sessions writing the same
+# generated artifact are not separated by anything. S2615 built the mechanism
+# (scripts/utils/code-lock-scope.ps1) and adopted it in eleven render-target generators; S2635
+# adopted the rest and added this registry, because the open question S2615 left behind was how a
+# NEW writer is stopped from silently bypassing the domain again. The registry is the answer's
+# first half; scripts/quality/assert-code-domain-writers.ps1 is the second.
+#
+# Format, one record per line:   <repo-relative script path> | <class> | <domain(s)> | <what it writes>
+#
+# CLASS is the distinction S2635 measured, and it decides what a busy domain costs:
+#   A  writes from INSIDE the concurrent .\a.ps1 fg battery, on a branch whose verdict is already
+#      computed. Takes the domain LAZILY at the write and uses Enter-CodeLockOrSkip, so a busy
+#      domain skips the bookkeeping and keeps the verdict. Skipping costs one run of staleness.
+#   B  writes on an explicit switch, run by hand in the foreground. Uses Enter-CodeLockOrExit, so
+#      a busy domain is exit 4. Skipping here would be work left undone.
+#
+# The test that assigns the class: if NOT writing is work left undone -> B; if not writing costs
+# only staleness a later run repairs -> A.
+#
+# Adding a writer? Add the line AND the lock, in the same change. The gate checks both.
+
+# --- Class A: writes from inside the gate battery -----------------------------------------
+scripts/quality/assert-source-gates.ps1 | A | Code.Scripts | ~24 scripts/quality/<rule>-baseline.txt, incl. the switch-less auto-ratchet (S1338)
+
+# --- Class B: render-target generators adopted by S2615 -----------------------------------
+scripts/quality/assert-icon-inventory-sync.ps1 | B | Code.Scripts | docs/icons/icon-inventory.json
+scripts/quality/reindex-settings.ps1 | B | Code.Scripts | docs/settings/settings-manifest.json
+scripts/docs/render-settings-reference.ps1 | B | Code.Scripts | docs/SETTINGS_REFERENCE*.md
+scripts/docs/render-icon-legend.ps1 | B | Code.Scripts | docs/ICON_LEGEND*.md
+scripts/docs/export-icon-svgs.ps1 | B | Code.Scripts | docs/icons/svg/*
+scripts/docs/export-doc-icon-pngs.ps1 | B | Code.Scripts | docs/icons/doc/*
+scripts/docs/apply-doc-icons.ps1 | B | Code.Scripts | docs/howto/index*.md, docs/DOCS_MAP.md, root index*.html
+scripts/docs/generate-flavor-matrix.ps1 | B | Code.Scripts | docs/FLAVOR_MATRIX.md, docs/flavors/flavor-matrix.json
+scripts/docs/generate-oss-notices.ps1 | B | Code.Phone, Code.Scripts | docs/legal/*, docs/OPEN_SOURCE*.md, app_v2 res/raw/oss_notices_*.json
+scripts/quality/generate-toolchain-pins.ps1 | B | Code.Scripts | managed blocks in CLAUDE.md and docs/TECH_STACK.md
+scripts/utils/help.ps1 | B | Code.Scripts | docs/SCRIPT_CHEATSHEET.md
+scripts/utils/normalize-all-features-areas.ps1 | B | Code.Scripts | docs/ALL_FEATURES*.jsonl
+scripts/utils/repoint-doc-locale-references.ps1 | B | Code.Scripts | localized documentation references under Scripts scope
+
+# --- Class B: ratchet-baseline writers (S2635 phase 02) -----------------------------------
+scripts/quality/assert-memory-budget.ps1 | B | Code.Scripts | scripts/quality/memory-budget-baseline.txt
+scripts/quality/assert-focus-highlight.ps1 | B | Code.Scripts | scripts/quality/focus-highlight-baseline.txt
+scripts/quality/assert-always-loaded-budget.ps1 | B | Code.Scripts | scripts/quality/always-loaded-budget-baseline.txt
+scripts/quality/assert-migration-schema-conformance.ps1 | B | Code.Scripts | scripts/quality/migration-schema-conformance-baseline.txt
+scripts/quality/assert-migration-test-pairing.ps1 | B | Code.Scripts | scripts/quality/migration-test-pairing-baseline.txt
+scripts/quality/assert-dialog-cancel-style.ps1 | B | Code.Scripts | scripts/quality/dialog-cancel-style-baseline.txt
+scripts/quality/assert-guide-coverage.ps1 | B | Code.Scripts | scripts/quality/guide-coverage-baseline.txt
+scripts/quality/assert-listener-symmetry.ps1 | B | Code.Scripts | scripts/quality/listener-symmetry-baseline.txt
+scripts/quality/assert-unreferenced-strings.ps1 | B | Code.Scripts | scripts/quality/assert-unreferenced-strings-baseline.txt
+scripts/quality/assert-rtl-layout-attrs.ps1 | B | Code.Scripts | scripts/quality/rtl-layout-attrs-baseline.txt
+scripts/quality/assert-tactical-step-form.ps1 | B | Code.Scripts | scripts/quality/tactical-step-form-baseline.txt
+scripts/quality/assert-string-format.ps1 | B | Code.Scripts | scripts/quality/assert-string-format-baseline.txt
+scripts/quality/assert-allfeatures-sync.ps1 | B | Code.Scripts | scripts/quality/allfeatures-sync-baseline.txt
+scripts/quality/assert-wear-walk-contract.ps1 | B | Code.Scripts | scripts/quality/wear-walk-contract-baseline.txt
+scripts/quality/assert-bridge-scenario-coverage.ps1 | B | Code.Scripts | scripts/quality/bridge-scenario-coverage-baseline.txt
+scripts/quality/assert-acceptance-preconditions.ps1 | B | Code.Scripts | scripts/quality/acceptance-precondition-baseline.txt
+
+# --- Class B: detekt baselines and editors (S2635 phase 03) -------------------------------
+scripts/quality/split-detekt-baseline.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>-format.xml, -signal.xml
+scripts/quality/prune-detekt-baseline.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>.xml
+scripts/quality/assert-detekt-baseline-absorption.ps1 | B | Code.Phone, Code.Wear | config/detekt/baseline-<module>.ids
+scripts/quality/migrate-locale-fingerprints-module.ps1 | B | Code.Scripts | scripts/quality/locale-source-fingerprints.json, locale-untranslated-baseline.txt
+scripts/utils/fix-house-style.ps1 | B | Code.Phone, Code.Wear, Code.Scripts | docs/ prose and app_v2/wear strings*.xml
+scripts/wear/generate-wear-resource-icons.ps1 | B | Code.Wear | wear res/drawable/ico_*.xml and the registry .kt
+scripts/release/gen_fastlane_changelog.ps1 | B | Code.Scripts | fastlane/metadata/android/<locale>/changelogs/*.txt
+scripts/utils/install-sza-forwarders.ps1 | B | Code.Scripts | every path in scripts/utils/sza-forwarders.manifest.txt
+scripts/streams/modules/StreamPublisher.Collections.ps1 | B | Code.Scripts | delivery/stream-catalog/collections.json (Build-StreamCollections; lock on the write only, so the %TEMP% writes of the contract suite stay domain-free)
+
+# --- Class B: this registry's own gate -----------------------------------------------------
+# Class B and not A although it runs inside the fg battery: it writes ONLY under -UpdateBaseline
+# and never auto-ratchets in gate mode, so its gate run has no write to skip.
+scripts/quality/assert-code-domain-writers.ps1 | B | Code.Scripts | scripts/quality/code-domain-writers-baseline.txt
+</content>

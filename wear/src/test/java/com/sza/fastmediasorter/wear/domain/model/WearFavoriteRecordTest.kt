@@ -19,7 +19,7 @@ class WearFavoriteRecordTest {
 
         assertEquals("local", record?.sourceId)
         assertEquals("/storage/emulated/0/Music/Song.mp3", record?.filePath)
-        assertEquals("Song.mp3", record?.displayName)
+        assertEquals("Song", record?.displayName)
         assertNull("a legacy key never knew the kind", record?.mimeType)
     }
 
@@ -29,7 +29,7 @@ class WearFavoriteRecordTest {
 
         assertEquals("nas-1", record?.sourceId)
         assertEquals("smb://host/share/Album: Live/track.flac", record?.filePath)
-        assertEquals("track.flac", record?.displayName)
+        assertEquals("track", record?.displayName)
     }
 
     @Test
@@ -45,7 +45,7 @@ class WearFavoriteRecordTest {
 
         val merged = mergeFavorites(listOf(record), setOf("local:/a/old.mp3"))
 
-        assertEquals(listOf("new.mp3", "old.mp3"), merged.map { it.displayName })
+        assertEquals(listOf("new.mp3", "old"), merged.map { it.displayName })
     }
 
     @Test

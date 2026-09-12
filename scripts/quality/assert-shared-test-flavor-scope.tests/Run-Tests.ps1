@@ -129,6 +129,21 @@ $mirrorOkGradle = $mirrorDriftGradle -replace '(?m)^        getByName\("testLite
             kotlin.directories.add("src/testSharedOne/java")
 '@
 
+$capabilityGradle = @'
+android {
+    productFlavors {
+        create("standard") { dimension = "version" }
+        create("lite") { dimension = "version" }
+    }
+
+    sourceSets {
+        getByName("standard") { kotlin.directories.add("src/standard/java") }
+        getByName("lite") { kotlin.directories.add("src/lite/java") }
+        getByName("testStandard") { kotlin.directories.add("src/testDocumentsEnabled/java") }
+    }
+}
+'@
+
 # testShared exists on disk and carries a test class; testMissing is mounted and never created.
 $denominatorGradle = @'
 android {
@@ -272,8 +287,40 @@ try {
     & $pwshExe -NoProfile -File $gateScript -Gate -Quiet -RepoRoot $okRoot | Out-Null
     $okExit = $LASTEXITCODE
     Assert-That 'M2 test set with no main counterpart directory is exempt' `
-    ($okExit -eq 0) `
+        ($okExit -eq 0) `
         "expected exit 0 with testCapability present and unmirrored, got $okExit"
+
+    Write-Host ''
+    Write-Host 'Capability catalog: test-set mount list against visible non-empty catalogs' -ForegroundColor Yellow
+
+    $capabilityDirs = @('main/java', 'test/java', 'testDocumentsEnabled/java', 'standard/java/com/sza/fastmediasorter/data/common', 'lite/java/com/sza/fastmediasorter/data/common')
+    $capabilityRoot = New-FixtureRepo -Gradle $capabilityGradle -Suffix 'capability' -SourceDirs $capabilityDirs
+    $fixtures += $capabilityRoot
+    $catalogRelativePath = 'app_v2/src/{0}/java/com/sza/fastmediasorter/data/common/OfficeDocumentFamilyCatalog.kt'
+    $nonEmptyCatalog = "package com.sza.fastmediasorter.data.common`n`nobject OfficeDocumentFamilyCatalog { val entries = setOf('doc') }"
+    $emptyCatalog = "package com.sza.fastmediasorter.data.common`n`nobject OfficeDocumentFamilyCatalog { val entries = emptySet(); val aliases = emptyMap() }"
+    Set-Content -LiteralPath ($catalogRelativePath -f 'standard' | ForEach-Object { Join-Path $capabilityRoot $_ }) -Value $nonEmptyCatalog -Encoding UTF8
+    Set-Content -LiteralPath ($catalogRelativePath -f 'lite' | ForEach-Object { Join-Path $capabilityRoot $_ }) -Value $nonEmptyCatalog -Encoding UTF8
+
+    & $pwshExe -NoProfile -File $gateScript -Gate -Quiet -RepoRoot $capabilityRoot 2>&1 | Out-Null
+    $capabilityDriftExit = $LASTEXITCODE
+    Assert-That 'C1 non-empty catalog without a matching test mount fails' `
+        ($capabilityDriftExit -eq 1) `
+        "expected exit 1 when lite has a non-empty catalog but no test mount, got $capabilityDriftExit"
+
+    Set-Content -LiteralPath ($catalogRelativePath -f 'lite' | ForEach-Object { Join-Path $capabilityRoot $_ }) -Value $emptyCatalog -Encoding UTF8
+    & $pwshExe -NoProfile -File $gateScript -Gate -Quiet -RepoRoot $capabilityRoot 2>&1 | Out-Null
+    $capabilityEmptyExit = $LASTEXITCODE
+    Assert-That 'C2 empty catalog without a test mount passes' `
+        ($capabilityEmptyExit -eq 0) `
+        "expected exit 0 when lite catalog is empty and unmounted, got $capabilityEmptyExit"
+
+    Remove-Item -LiteralPath ($catalogRelativePath -f 'lite' | ForEach-Object { Join-Path $capabilityRoot $_ }) -Force
+    & $pwshExe -NoProfile -File $gateScript -Gate -Quiet -RepoRoot $capabilityRoot 2>&1 | Out-Null
+    $capabilityMissingExit = $LASTEXITCODE
+    Assert-That 'C3 missing catalog copy exits could-not-verify' `
+        ($capabilityMissingExit -eq 2) `
+        "expected exit 2 when lite has no catalog copy, got $capabilityMissingExit"
 
     Write-Host ''
     Write-Host 'Completeness: denominator over the effective source roots' -ForegroundColor Yellow

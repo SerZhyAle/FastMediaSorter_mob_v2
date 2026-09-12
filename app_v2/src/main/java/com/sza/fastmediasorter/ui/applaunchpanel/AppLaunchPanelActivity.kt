@@ -1,9 +1,11 @@
 package com.sza.fastmediasorter.ui.applaunchpanel
 
+import android.content.Context
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
+import com.sza.fastmediasorter.core.util.LocaleHelper
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -13,6 +15,10 @@ import dagger.hilt.android.AndroidEntryPoint
  */
 @AndroidEntryPoint
 class AppLaunchPanelActivity : AppCompatActivity() {
+    // S2930: BaseActivity is generic over a ViewBinding, so the locale wrapper is applied directly here.
+    override fun attachBaseContext(newBase: Context) {
+        super.attachBaseContext(LocaleHelper.applyLocale(newBase))
+    }
 
     private val panelLifecycleCallbacks = object : FragmentManager.FragmentLifecycleCallbacks() {
         override fun onFragmentDetached(fm: FragmentManager, f: Fragment) {

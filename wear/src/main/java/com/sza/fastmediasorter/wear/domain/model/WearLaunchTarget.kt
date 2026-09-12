@@ -24,24 +24,66 @@ sealed interface WearLaunchTarget {
 
     /** Open the app where a target for [kind] is chosen, because the tile has none yet. */
     data class Pick(val kind: WearTileKind) : WearLaunchTarget
+
+    /**
+     * S2511: open a named destination of the app - a home section or a mini-program.
+     *
+     * Distinct from [Open] because a shortcut grid pins nothing: there is no stored assignment to look up
+     * and no target that can go missing, so the id alone is the whole address.
+     */
+    data class Destination(val id: WearDestinationId) : WearLaunchTarget
+}
+
+/**
+ * S2511: one extra of the wire format, carrying its own type.
+ *
+ * An `Intent` erases the type of what was put into it, and the only way back is a deprecated untyped read
+ * that answers `Any?`. A tile does not launch through an `Intent` at all - it hands the platform a key-to-
+ * value mapping built per type - so the tile builder used to reconstruct those types by inspecting a
+ * throwaway `Intent`, and dropped every value it did not recognise as a `String`. The resource port is an
+ * `Int`; it was the value that got dropped, which is why a pinned resource opened the home screen. Naming
+ * the type here makes both consumers read the same declared shape instead of guessing at one.
+ */
+sealed interface WearLaunchExtra {
+    data class Text(val value: String) : WearLaunchExtra
+    data class Number(val value: Int) : WearLaunchExtra
+}
+
+/**
+ * The full wire form of [this], in the shape [readWearLaunchTarget] reads back.
+ *
+ * A null-valued field is omitted rather than written as a null, because both readers ask for it with a
+ * getter that answers null for "absent" anyway - so the two spellings are the same answer.
+ */
+fun WearLaunchTarget.extras(): Map<String, WearLaunchExtra> = buildMap {
+    when (this@extras) {
+        is WearLaunchTarget.Pick -> {
+            put(EXTRA_MODE, WearLaunchExtra.Text(MODE_PICK))
+            put(EXTRA_KIND, WearLaunchExtra.Text(kind.name))
+        }
+        is WearLaunchTarget.Open -> {
+            put(EXTRA_MODE, WearLaunchExtra.Text(MODE_OPEN))
+            put(EXTRA_KIND, WearLaunchExtra.Text(ref.kind().name))
+            putAll(ref.extras())
+        }
+        is WearLaunchTarget.File -> {
+            put(EXTRA_MODE, WearLaunchExtra.Text(MODE_FILE))
+            put(EXTRA_FILE_PATH, WearLaunchExtra.Text(path))
+            put(EXTRA_FILE_MIME_TYPE, WearLaunchExtra.Text(mimeType))
+        }
+        is WearLaunchTarget.Destination -> {
+            put(EXTRA_MODE, WearLaunchExtra.Text(MODE_DESTINATION))
+            put(EXTRA_DESTINATION, WearLaunchExtra.Text(id.name))
+        }
+    }
 }
 
 /** Writes [this] into [intent] in the shape [readWearLaunchTarget] reads back. */
 fun WearLaunchTarget.writeTo(intent: Intent) {
-    when (this) {
-        is WearLaunchTarget.Pick -> {
-            intent.putExtra(EXTRA_MODE, MODE_PICK)
-            intent.putExtra(EXTRA_KIND, kind.name)
-        }
-        is WearLaunchTarget.Open -> {
-            intent.putExtra(EXTRA_MODE, MODE_OPEN)
-            intent.putExtra(EXTRA_KIND, ref.kind().name)
-            ref.writeInto(intent)
-        }
-        is WearLaunchTarget.File -> {
-            intent.putExtra(EXTRA_MODE, MODE_FILE)
-            intent.putExtra(EXTRA_FILE_PATH, path)
-            intent.putExtra(EXTRA_FILE_MIME_TYPE, mimeType)
+    extras().forEach { (key, extra) ->
+        when (extra) {
+            is WearLaunchExtra.Text -> intent.putExtra(key, extra.value)
+            is WearLaunchExtra.Number -> intent.putExtra(key, extra.value)
         }
     }
 }
@@ -57,10 +99,17 @@ fun readWearLaunchTarget(intent: Intent): WearLaunchTarget? {
     val mode = intent.getStringExtra(EXTRA_MODE)
     return when {
         mode == MODE_FILE -> intent.readFileTarget()
+        mode == MODE_DESTINATION -> intent.readDestinationTarget()
         mode == null -> null
         else -> readTileTarget(mode, intent)
     }
 }
+
+/** An unrecognised name is a target this build does not have, which is the same answer as none at all. */
+private fun Intent.readDestinationTarget(): WearLaunchTarget.Destination? =
+    getStringExtra(EXTRA_DESTINATION)
+        ?.let { name -> WearDestinationId.entries.firstOrNull { it.name == name } }
+        ?.let(WearLaunchTarget::Destination)
 
 private fun readTileTarget(mode: String, intent: Intent): WearLaunchTarget? {
     val kind = intent.getStringExtra(EXTRA_KIND)?.let(::tileKindOrNull) ?: return null
@@ -83,17 +132,17 @@ private fun WearTileTargetRef.kind(): WearTileKind = when (this) {
     WearTileTargetRef.Favourites -> WearTileKind.FAVOURITES
 }
 
-private fun WearTileTargetRef.writeInto(intent: Intent) {
-    when (this) {
+private fun WearTileTargetRef.extras(): Map<String, WearLaunchExtra> = buildMap {
+    when (this@extras) {
         WearTileTargetRef.Favourites -> Unit
-        is WearTileTargetRef.Stream -> intent.putExtra(EXTRA_STREAM_URL, normalizedUrl)
+        is WearTileTargetRef.Stream -> put(EXTRA_STREAM_URL, WearLaunchExtra.Text(normalizedUrl))
         is WearTileTargetRef.Resource -> {
-            intent.putExtra(EXTRA_RESOURCE_ID, id)
-            intent.putExtra(EXTRA_RESOURCE_TYPE, type.name)
-            intent.putExtra(EXTRA_RESOURCE_SERVER, server)
-            intent.putExtra(EXTRA_RESOURCE_PORT, port)
-            intent.putExtra(EXTRA_RESOURCE_SHARE_NAME, shareName)
-            intent.putExtra(EXTRA_RESOURCE_BASE_PATH, basePath)
+            put(EXTRA_RESOURCE_ID, WearLaunchExtra.Text(id))
+            put(EXTRA_RESOURCE_TYPE, WearLaunchExtra.Text(type.name))
+            put(EXTRA_RESOURCE_SERVER, WearLaunchExtra.Text(server))
+            put(EXTRA_RESOURCE_PORT, WearLaunchExtra.Number(port))
+            shareName?.let { put(EXTRA_RESOURCE_SHARE_NAME, WearLaunchExtra.Text(it)) }
+            put(EXTRA_RESOURCE_BASE_PATH, WearLaunchExtra.Text(basePath))
         }
     }
 }
@@ -102,6 +151,9 @@ private fun Intent.readRef(kind: WearTileKind): WearTileTargetRef? = when (kind)
     WearTileKind.FAVOURITES -> WearTileTargetRef.Favourites
     WearTileKind.STREAM -> getStringExtra(EXTRA_STREAM_URL)?.let(WearTileTargetRef::Stream)
     WearTileKind.RESOURCE -> readResourceRef()
+    // S2511: a shortcut grid pins nothing, so it never writes an Open target and cannot be read back as
+    // one. An intent claiming otherwise was not written by this app, and null sends it to a plain launch.
+    WearTileKind.PROGRAMS, WearTileKind.SECTIONS -> null
 }
 
 private fun Intent.readResourceRef(): WearTileTargetRef.Resource? {
@@ -135,6 +187,7 @@ private const val PREFIX = "com.sza.fastmediasorter.wear.launch."
 
 private const val EXTRA_MODE = PREFIX + "mode"
 private const val EXTRA_KIND = PREFIX + "kind"
+private const val EXTRA_DESTINATION = PREFIX + "destination"
 private const val EXTRA_STREAM_URL = PREFIX + "stream_url"
 private const val EXTRA_FILE_PATH = PREFIX + "file_path"
 private const val EXTRA_FILE_MIME_TYPE = PREFIX + "file_mime_type"
@@ -148,6 +201,7 @@ private const val EXTRA_RESOURCE_BASE_PATH = PREFIX + "resource_base_path"
 private const val MODE_OPEN = "open"
 private const val MODE_PICK = "pick"
 private const val MODE_FILE = "file"
+private const val MODE_DESTINATION = "destination"
 
 /** No port is valid, so this stands for "the extra was never written". */
 private const val PORT_ABSENT = -1

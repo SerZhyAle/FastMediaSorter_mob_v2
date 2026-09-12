@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2032: the embedded player face, inflated into the cell's stub on the first press of play and never
+     before it (strategic §2 goal 3). The service's own embed is what runs inside, keeping its
+     advertising and its controls (strategic §6.2). -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/youTubeChannelPlayerFace"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <WebView
+        android:id="@+id/youTubeChannelWebView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</FrameLayout>

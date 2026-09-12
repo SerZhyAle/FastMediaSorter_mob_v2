@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.launcher.helpers
 import android.view.View
 import android.widget.ListPopupWindow
 import com.sza.fastmediasorter.R
+import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -26,6 +27,12 @@ class LauncherCellActionMenuManager(
     private val scope: CoroutineScope,
     private val resourceRows: suspend (resourceId: Long) -> List<LauncherAppMenuRow>,
     private val streamRows: suspend (streamId: String) -> List<LauncherAppMenuRow>,
+    // S2392: the App Functions cell joins as the third kind this renderer serves. It needs the cell id
+    // as well as the command, because its last row removes the cell rather than acting on the target.
+    private val featureRows: suspend (
+        command: LauncherCellCommand.Feature,
+        cellId: Long,
+    ) -> List<LauncherAppMenuRow> = { _, _ -> emptyList() },
 ) {
 
     private var window: ListPopupWindow? = null
@@ -39,6 +46,11 @@ class LauncherCellActionMenuManager(
     /** Opens the action menu for the channel behind [streamId], anchored to [anchor]. */
     fun showForStream(anchor: View, streamId: String) {
         show(anchor) { streamRows(streamId) }
+    }
+
+    /** S2392: opens the action menu for the App Functions cell [cellId], anchored to [anchor]. */
+    fun showForFeature(anchor: View, command: LauncherCellCommand.Feature, cellId: Long) {
+        show(anchor) { featureRows(command, cellId) }
     }
 
     /** Closes any open popup; hosts call this on their teardown edge. */

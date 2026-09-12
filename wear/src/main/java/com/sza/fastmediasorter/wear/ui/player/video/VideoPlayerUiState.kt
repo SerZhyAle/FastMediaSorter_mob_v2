@@ -3,6 +3,9 @@ package com.sza.fastmediasorter.wear.ui.player.video
 import com.sza.fastmediasorter.wear.domain.model.StreamChannelReason
 import com.sza.fastmediasorter.wear.domain.model.VideoScaleMode
 import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
+import com.sza.fastmediasorter.wear.domain.model.WearPlaybackMode
+import com.sza.fastmediasorter.wear.domain.playback.WearPlayerDisplayHoldPolicy
+import com.sza.fastmediasorter.wear.util.formatWearDuration
 
 /**
  * UI state for the video player screen.
@@ -10,11 +13,22 @@ import com.sza.fastmediasorter.wear.domain.model.WearMediaFile
 data class VideoPlayerUiState(
     val isLoading: Boolean = true,
     val mediaFile: WearMediaFile? = null,
+    val isStream: Boolean = false,
     val isPlaying: Boolean = false,
+    /**
+     * S2849: `playWhenReady` - whether the session still wants to play, which is not the same as
+     * making a sound. It is what the screen-off hold follows, so a rebuffer does not release the
+     * display while a pause does.
+     */
+    val isPlaybackRequested: Boolean = false,
     val currentPositionMs: Long = 0,
     val durationMs: Long = 0,
     val showControls: Boolean = true,
+    // S2815: the screen-off mode the audio player has carried since S1683. It is screen state and
+    // nothing else - playback does not know about it, which is the whole point of the mode.
+    val isDimmed: Boolean = false,
     val isShuffleEnabled: Boolean = false,
+    val playbackMode: WearPlaybackMode = WearPlaybackMode.SEQUENTIAL,
     val showBatteryWarning: Boolean = false,
     val error: String? = null,
     // S1683: position inside the browsed set. Paging wraps around, so without a visible marker an
@@ -29,6 +43,11 @@ data class VideoPlayerUiState(
      * "pinned" means, because the list orders by the same mark rather than by a second store.
      */
     val isFavorite: Boolean = false,
+    /**
+     * S2497: whether the open stream carries the pin mark (Pin icon).
+     */
+    val isPinned: Boolean = false,
+    val closeScreen: Boolean = false,
     /**
      * S1728: why the network channel affected this stream, or null for "say nothing".
      *
@@ -52,6 +71,13 @@ data class VideoPlayerUiState(
      */
     val animationsDisabled: Boolean = false
 ) {
+    /**
+     * S2849: the screen-off sheet holds the watch display only while the session under it still
+     * wants to play. Derived here rather than in the composable, which owns no rules.
+     */
+    val holdsDisplay: Boolean
+        get() = WearPlayerDisplayHoldPolicy.holdsDisplay(isDimmed, isPlaybackRequested)
+
     val positionText: String
         get() = if (setSize > 0) "${setIndex + 1}/$setSize" else ""
 
@@ -63,15 +89,8 @@ data class VideoPlayerUiState(
         get() = if (durationMs > 0) currentPositionMs.toFloat() / durationMs else 0f
 
     val currentPositionFormatted: String
-        get() = formatTime(currentPositionMs)
+        get() = formatWearDuration(currentPositionMs)
 
     val durationFormatted: String
-        get() = formatTime(durationMs)
-
-    private fun formatTime(ms: Long): String {
-        val totalSeconds = ms / 1000
-        val minutes = totalSeconds / 60
-        val seconds = totalSeconds % 60
-        return String.format("%d:%02d", minutes, seconds)
-    }
+        get() = formatWearDuration(durationMs)
 }

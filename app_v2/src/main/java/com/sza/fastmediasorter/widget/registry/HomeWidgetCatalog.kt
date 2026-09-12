@@ -21,10 +21,14 @@ import com.sza.fastmediasorter.widget.QuickAudioRecorderWidgetProvider
 import com.sza.fastmediasorter.widget.RandomMusicWidgetProvider
 import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
+import com.sza.fastmediasorter.widget.StopwatchWidgetProvider
 import com.sza.fastmediasorter.widget.StreamLaunchWidgetProvider
+import com.sza.fastmediasorter.widget.WatchListenWidgetProvider
+import com.sza.fastmediasorter.widget.WaterFlashlightWidgetProvider
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.first
+import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -58,6 +62,23 @@ class HomeWidgetCatalog @Inject constructor(
             // variant (#4F46E5) is the one the system shows on the home screen, so the row matches it.
             iconRes = R.drawable.ic_widget_calculator_accent,
             descriptionRes = R.string.widget_calculator_description,
+            // S2613: S1856 ruled that a disabled sub-program must stop opening from a panel tile and a
+            // desktop cell; the picker is that same surface one step earlier, so offering a placement
+            // for a program the rest of the application treats as off belongs to the same defect.
+            settingGate = { it.enableCalculator },
+        ),
+        HomeWidgetEntry(
+            providerClass = StopwatchWidgetProvider::class.java,
+            gadgetKey = "stopwatch",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_stopwatch_label,
+            // S1165: the picker dialog is light, so the row shows the accent-filled variant the system
+            // also draws on the home screen, not the white-filled glyph the stopwatch screen uses.
+            iconRes = R.drawable.ic_widget_stopwatch_accent,
+            descriptionRes = R.string.widget_stopwatch_description,
+            // S2613: the same gate as the calculator above, which S1411 phase 08 modelled this entry on.
+            settingGate = { it.enableStopwatch },
         ),
         HomeWidgetEntry(
             providerClass = CameraOcrTranslateWidgetProvider::class.java,
@@ -181,6 +202,18 @@ class HomeWidgetCatalog @Inject constructor(
             iconRes = R.drawable.ic_widget_quick_audio_recorder,
             descriptionRes = R.string.widget_quick_audio_recorder_description,
         ),
+        // S2881: the in-app picker gate mirrors the merged-manifest one - the receiver lives in the
+        // wearGms overlay, and the setting gate hides it where the owner switched the companion off.
+        HomeWidgetEntry(
+            providerClass = WatchListenWidgetProvider::class.java,
+            gadgetKey = "watch_listen",
+            gadgetSpanW = 2,
+            gadgetSpanH = 1,
+            labelRes = R.string.watch_listen_widget_label,
+            iconRes = R.drawable.ic_watch_listen,
+            descriptionRes = R.string.watch_listen_widget_description,
+            settingGate = { it.enableWearCompanion },
+        ),
         HomeWidgetEntry(
             providerClass = FavoritesWidgetProvider::class.java,
             gadgetKey = "favorites",
@@ -210,6 +243,16 @@ class HomeWidgetCatalog @Inject constructor(
             iconRes = R.drawable.ic_widget_front_flashlight_accent,
             descriptionRes = R.string.widget_front_flashlight_description,
             settingGate = { it.frontFlashlightEnabled },
+        ),
+        HomeWidgetEntry(
+            providerClass = WaterFlashlightWidgetProvider::class.java,
+            gadgetKey = "water_flashlight",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_water_flashlight_label,
+            iconRes = R.drawable.ic_widget_water_flashlight_accent,
+            descriptionRes = R.string.widget_water_flashlight_description,
+            settingGate = { it.waterFlashlightEnabled },
         ),
         HomeWidgetEntry(
             // S1916: removed via manifest tools:node="remove" in lite/photos (SUPPORT_STREAMS=false);
@@ -264,10 +307,12 @@ class HomeWidgetCatalog @Inject constructor(
             .map { it.provider.className }
             .toSet()
         val settings = settingsRepository.getSettings().first()
-        return allEntries.filter { entry ->
+        val available = allEntries.filter { entry ->
             entry.providerClass.name in installed &&
                 (entry.settingGate?.invoke(settings) ?: true)
         }.sortedBy { registryOrder[it.gadgetKey] ?: WIDGET_ONLY_ORDER }
+        Timber.d("S2613: picker offers ${available.map { it.gadgetKey }}")
+        return available
     }
 
     /**

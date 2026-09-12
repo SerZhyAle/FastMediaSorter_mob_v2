@@ -164,7 +164,7 @@ class HudCanvasRenderer {
 
     var isPlaying = true
     var volume = 1.0f // 0.0 to 1.0
-    var depth = 0.5f  // 0.0 to 1.0
+    var depth = 0.5f // 0.0 to 1.0
     var currentFilename = "Loading.."
     var fps = 0.0f
 
@@ -192,6 +192,24 @@ class HudCanvasRenderer {
         set(value) {
             field = value
             relayout()
+        }
+
+    /**
+     * S1218 (ADR-2): false while a live source plays - it has no neighbouring item, so PREV and NEXT
+     * are neither painted nor hittable. The rects are emptied rather than merely skipped in [render],
+     * because the dispatcher hit-tests these same instances (see the note on the track rects above)
+     * and a button that answers a ray it does not draw is the S1278 defect in the other direction.
+     */
+    var transportNavVisible = true
+        set(value) {
+            field = value
+            if (value) {
+                prevRect.set(transportButtonRect(0))
+                nextRect.set(transportButtonRect(2))
+            } else {
+                prevRect.setEmpty()
+                nextRect.setEmpty()
+            }
         }
     var prevLabel = "PREV"
     var playLabel = "PLAY"
@@ -262,7 +280,6 @@ class HudCanvasRenderer {
         // that fits, so clamping at zero is the only guard still needed: negative free would
         // otherwise stack the blocks backwards.
         val gap = (free / (blocks.size + 1)).coerceAtLeast(0f)
-        val lastRight = ROW_AREA_LEFT + totalWidth + gap * blocks.size
         var cursor = ROW_AREA_LEFT + gap
         for (block in blocks) {
             block.place(cursor)
@@ -286,9 +303,13 @@ class HudCanvasRenderer {
             drawSeekBar(canvas)
         }
 
-        drawButton(canvas, prevRect, prevLabel, accentPaint)
+        if (transportNavVisible) {
+            drawButton(canvas, prevRect, prevLabel, accentPaint)
+        }
         drawButton(canvas, playPauseRect, if (isPlaying) pauseLabel else playLabel, accentPaint)
-        drawButton(canvas, nextRect, nextLabel, accentPaint)
+        if (transportNavVisible) {
+            drawButton(canvas, nextRect, nextLabel, accentPaint)
+        }
 
         // S1238: absent rows are not painted - one track is not a choice, mono has no depth.
         if (audioRowEnabled) {

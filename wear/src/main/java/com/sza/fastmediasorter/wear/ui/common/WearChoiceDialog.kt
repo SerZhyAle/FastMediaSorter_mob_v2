@@ -7,9 +7,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.foundation.lazy.ScalingLazyColumn
-import androidx.wear.compose.foundation.lazy.rememberScalingLazyListState
 import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
@@ -28,6 +27,7 @@ private val CHOICE_DIALOG_TITLE_GAP = 8.dp
  * without needing a word this component would then have to be handed in every language.
  */
 @Composable
+@Suppress("LongParameterList")
 fun <T> WearChoiceDialog(
     title: String,
     options: List<T>,
@@ -42,17 +42,16 @@ fun <T> WearChoiceDialog(
         showDialog = true,
         onDismissRequest = onDismiss
     ) {
-        val listState = rememberScalingLazyListState()
+        val listState = rememberWearDialogListState()
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val gridFit = WearChoiceGridFit(
                 viewMode = viewMode,
                 availableWidthDp = maxWidth.value.toInt(),
                 fixedEnumeration = fixedEnumeration
             )
-            ScalingLazyColumn(
+            WearDialogListColumn(
                 modifier = Modifier.fillMaxSize(),
-                state = listState,
-                contentPadding = wearScreenInsets()
+                state = listState
             ) {
                 item {
                     Text(
@@ -74,6 +73,8 @@ fun <T> WearChoiceDialog(
                     gridFit = gridFit
                 )
             }
+            // S2754: a dialog has no Scaffold to hand the indicator to, so it draws its own.
+            PositionIndicator(listState)
         }
     }
 }

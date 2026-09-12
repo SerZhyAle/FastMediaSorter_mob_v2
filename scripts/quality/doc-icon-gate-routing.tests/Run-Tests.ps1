@@ -16,7 +16,7 @@ foreach ($path in @(
     'index-ru.html',
     'docs/howto/index-uk.md',
     'docs/DOCS_MAP.md',
-    'docs/SETTINGS_REFERENCE_RU.md'
+    'docs/SETTINGS_REFERENCE-ru.md'
 )) {
     if (-not (Test-DocIconGateRoute -ChangedFiles @($path))) {
         throw "Expected icon-gate route for $path."

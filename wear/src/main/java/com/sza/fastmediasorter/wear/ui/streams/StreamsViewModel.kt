@@ -5,14 +5,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.data.repository.WearFaviconAtlasStore
 import com.sza.fastmediasorter.wear.data.repository.WearPhonePinsRepository
+import com.sza.fastmediasorter.wear.data.repository.WearStreamPinsRepository
 import com.sza.fastmediasorter.wear.domain.model.CatalogImportResult
-import com.sza.fastmediasorter.wear.domain.model.SOURCE_ID_STREAM
 import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
+import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearStreamUsage
 import com.sza.fastmediasorter.wear.domain.model.foldWearStreamIdentity
-import com.sza.fastmediasorter.wear.domain.repository.WearFavoritesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearPreferencesRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamChannelRepository
+import com.sza.fastmediasorter.wear.domain.repository.WearStreamCollectionRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearStreamUsageRepository
 import com.sza.fastmediasorter.wear.domain.usecase.ImportWearStreamCatalogUseCase
 import com.sza.fastmediasorter.wear.domain.usecase.PrepareWearStreamPlaybackUseCase
@@ -42,7 +43,7 @@ import javax.inject.Inject
 private const val PROJECTION_INPUT_PAUSE_MS = 150L
 
 /**
- * S1708/S1871: ViewModel for the Wear OS streams list screen.
+ * S1708/S1871/S2497: ViewModel for the Wear OS streams list screen.
  */
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @HiltViewModel
@@ -52,9 +53,11 @@ class StreamsViewModel @Inject constructor(
     private val faviconAtlasStore: WearFaviconAtlasStore,
     private val preferencesRepository: WearPreferencesRepository,
     private val preparePlayback: PrepareWearStreamPlaybackUseCase,
-    private val favoritesRepository: WearFavoritesRepository,
+    private val streamPinsRepository: WearStreamPinsRepository,
     private val phonePinsRepository: WearPhonePinsRepository,
-    private val usageRepository: WearStreamUsageRepository
+    private val usageRepository: WearStreamUsageRepository,
+    // S2669: the curated collections delivered with the catalog, as one more picker input.
+    private val collectionRepository: WearStreamCollectionRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(StreamsUiState())
@@ -90,9 +93,7 @@ class StreamsViewModel @Inject constructor(
                     withContext(Dispatchers.Default) { computeDisplayChannels(inputs) }
                 }
                 .collect { display ->
-                    Timber.d("S2146: projection sorted by ${projectionInputs.value.sortOrder} - ${display.size} rows")
-                    Timber.d("S2149: projection ready - ${display.size} rows off the drawing thread")
-                    _uiState.update { it.copy(displayChannels = display) }
+                    _uiState.update { it.copy(displayChannels = display, isLoading = false) }
                 }
         }
 
@@ -106,6 +107,30 @@ class StreamsViewModel @Inject constructor(
             }
         }
 
+        // S2497: watch-authored pins are observed reactively from the watch pins repository.
+        viewModelScope.launch {
+            streamPinsRepository.observeWatchPins().collect { identities ->
+                _uiState.update { it.copy(pinnedStreamIds = identities) }
+                projectionInputs.update { it.copy(pinnedIdentities = identities) }
+            }
+        }
+
+        // S2669: the delivered collections arrive on their own schedule (the archive entry is
+        // optional), so they are collected rather than read once. A refresh that no longer carries
+        // the selected collection clears the selection here: leaving the id set would filter the
+        // list against a membership set that can never be repopulated, i.e. show nothing with no
+        // picker row to clear it.
+        viewModelScope.launch {
+            collectionRepository.observeCollections().collect { collections ->
+                val selected = _uiState.value.selectedCollectionId
+                    ?.takeIf { id -> collections.any { it.id == id } }
+                _uiState.update { it.copy(availableCollections = collections, selectedCollectionId = selected) }
+                projectionInputs.update {
+                    it.copy(selectedCollectionMemberUrls = memberUrlsOf(selected, collections))
+                }
+            }
+        }
+
         // S2146: the stored selection is applied BEFORE the catalogue is observed, never beside it.
         // The two started in parallel would race, and the loser is visible: a catalogue that arrives
         // first is projected with the default order and then reshuffles under the wearer's eyes.
@@ -113,6 +138,11 @@ class StreamsViewModel @Inject constructor(
             restoreStoredSelection()
             observeCatalog()
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        faviconSlicer.releaseNow()
     }
 
     /**
@@ -152,7 +182,6 @@ class StreamsViewModel @Inject constructor(
         val topic = stored.topic
         val language = stored.language
 
-        Timber.d("S2146: restored selection sort=$sortOrder kind=$filterKind topic=$topic lang=$language")
         _uiState.update {
             it.copy(
                 sortOrder = sortOrder,
@@ -210,7 +239,6 @@ class StreamsViewModel @Inject constructor(
      * have hidden the second read from the next reader of the resume path.
      */
     fun refreshPinsAndUsage() {
-        Timber.d("S1954: streams screen re-reading pinned marks and play counts")
         viewModelScope.launch {
             val pinned = loadPinnedStreamIds()
             val usage = usageRepository.usageByIdentity()
@@ -246,18 +274,70 @@ class StreamsViewModel @Inject constructor(
     }
 
     fun setSelectedTopic(topic: String?) {
-        Timber.d("S1947: setSelectedTopic topic=$topic")
         _uiState.update { it.copy(selectedTopic = topic, showFilterDialog = false) }
         projectionInputs.update { it.copy(selectedTopic = topic) }
         viewModelScope.launch { preferencesRepository.setStreamsSelectedTopic(topic) }
     }
 
     fun setSelectedLanguage(language: String?) {
-        Timber.d("S1947: setSelectedLanguage language=$language")
         _uiState.update { it.copy(selectedLanguage = language, showFilterDialog = false) }
         projectionInputs.update { it.copy(selectedLanguage = language) }
         viewModelScope.launch { preferencesRepository.setStreamsSelectedLanguage(language) }
     }
+
+    /**
+     * S2669: select a curated collection, or pass null to return to the whole catalogue. The
+     * membership set is read here and only here - once per selection change - so the projection's
+     * filter stays a set lookup per row rather than a walk over a collection's members.
+     */
+    fun setSelectedCollection(collectionId: String?) {
+        _uiState.update { it.copy(selectedCollectionId = collectionId, showFilterDialog = false) }
+        val memberUrls = memberUrlsOf(collectionId, _uiState.value.availableCollections)
+        projectionInputs.update { it.copy(selectedCollectionMemberUrls = memberUrls) }
+    }
+
+    /**
+     * S2820: drop every narrowing at once - the one action the filtered-empty screen offers.
+     *
+     * The search query goes with the filters because in that state the query chip lives inside the
+     * list the state block replaced, so leaving the query on would keep the screen empty and give the
+     * wearer no second way out (strategic §3.3). Persistence writes exactly what the four selection
+     * setters write, so criterion 3 holds across a restart; the collection is deliberately absent from
+     * that list, matching [setSelectedCollection], which persists nothing either.
+     */
+    fun clearNarrowing() {
+        Timber.d("S2820: clearNarrowing from filtered-empty state")
+        _uiState.update {
+            it.copy(
+                searchQuery = "",
+                filterKind = StreamFilterKind.ALL,
+                selectedTopic = null,
+                selectedLanguage = null,
+                selectedCollectionId = null,
+                showFilterDialog = false,
+                searchInputUnavailable = false
+            )
+        }
+        projectionInputs.update {
+            it.copy(
+                query = "",
+                filterKind = StreamFilterKind.ALL,
+                selectedTopic = null,
+                selectedLanguage = null,
+                selectedCollectionMemberUrls = emptySet()
+            )
+        }
+        viewModelScope.launch {
+            preferencesRepository.setStreamsFilterKindName(StreamFilterKind.ALL.name)
+            preferencesRepository.setStreamsSelectedTopic(null)
+            preferencesRepository.setStreamsSelectedLanguage(null)
+        }
+    }
+
+    private fun memberUrlsOf(collectionId: String?, collections: List<WearStreamCollection>): Set<String> =
+        collectionId
+            ?.let { id -> collections.firstOrNull { it.id == id }?.memberUrls?.toSet() }
+            .orEmpty()
 
     fun setSortOrder(order: StreamSortOrder) {
         _uiState.update { it.copy(sortOrder = order, showSortDialog = false) }
@@ -321,7 +401,7 @@ class StreamsViewModel @Inject constructor(
      * both entrances must share one answer. The list still supplies what it was showing, which is
      * what keeps paging inside the user's current view.
      */
-    fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
+    suspend fun prepareStreamPlayback(channel: WearStreamChannel): StreamPlaybackTarget {
         val target = preparePlayback(channel, _uiState.value.displayChannels)
         return StreamPlaybackTarget(fileId = target.fileId, isVideo = target.isVideo)
     }
@@ -332,20 +412,10 @@ class StreamsViewModel @Inject constructor(
     )
 
     /**
-     * S1954: the marked channels, as the normalized addresses the projection compares against.
-     *
-     * Only stream favourites are taken: the same store holds file marks, whose `filePath` is a path
-     * and would never match an address anyway, but filtering by source id says so on purpose.
-     *
-     * S2039: the stored path is normalized on the way out, because it is stored in whatever spelling
-     * the writer used - an earlier build wrote the raw catalogue address. Comparing the raw form here
-     * is what made a marked station silently never pin.
+     * S2497: the watch-pinned channels, as the folded identities the projection compares against.
      */
-    private suspend fun loadPinnedStreamIds(): Set<String> =
-        favoritesRepository.getFavorites()
-            .filter { it.sourceId == SOURCE_ID_STREAM }
-            .mapTo(mutableSetOf()) { foldWearStreamIdentity(it.filePath) }
-            .also { Timber.d("S2039: streams list pinned identities $it") }
+    private fun loadPinnedStreamIds(): Set<String> =
+        streamPinsRepository.getWatchPins()
 }
 
 /**
@@ -365,6 +435,11 @@ internal data class ProjectionInputs(
     val selectedLanguage: String? = null,
     val pinnedIdentities: Set<String> = emptySet(),
     val phonePinnedIdentities: Set<String> = emptySet(),
+    /**
+     * S2669: the selected curated collection's member urls, carried in as a ready set. Empty means
+     * no collection is selected and the filter contributes nothing.
+     */
+    val selectedCollectionMemberUrls: Set<String> = emptySet(),
     /**
      * S2146: the play counter, read once per catalogue emission and carried in as a ready map. A row
      * that looked its own count up would turn scrolling nineteen thousand rows into a store read per
@@ -485,6 +560,11 @@ private fun List<WearStreamChannel>.sortedByUsage(
         .thenBy { it.name }
 ).map { it.channel }
 
+/** Pin ranks, ascending: the lower the rank the earlier the channel sits in the finished list. */
+private const val WATCH_PIN_RANK = 0
+private const val PHONE_PIN_RANK = 1
+private const val UNPINNED_RANK = 2
+
 internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamChannel> {
     val query = inputs.query
     val selectedTopic = inputs.selectedTopic
@@ -519,18 +599,30 @@ internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamCh
         }
     }
 
+    // S2669: the curated collection is one more narrowing condition beside the facets, not a
+    // separate mode - search, kind, topic and language all keep applying inside it.
+    if (inputs.selectedCollectionMemberUrls.isNotEmpty()) {
+        result = result.filter { it.url in inputs.selectedCollectionMemberUrls }
+    }
+
     result = sortChannels(result, inputs.sortOrder, inputs.usageByIdentity)
 
     if (inputs.pinnedIdentities.isEmpty() && inputs.phonePinnedIdentities.isEmpty()) {
         return result
     }
-    // S1954: partition last and by address, not row id. Pinning is a second ordering key applied over
-    // whatever the filter and sort already decided, so both groups keep the order chosen above, and a
-    // catalogue re-import that renumbers every row leaves the marks where they were.
-    // S2149: the top group is the union of the two sources - marks made on this watch and pins that
-    // arrived from the phone. They stay separate sets up to here so the phone can withdraw only its
-    // own, and a channel named by both still appears once because a partition yields each row once.
-    val topGroup = inputs.pinnedIdentities + inputs.phonePinnedIdentities
-    val (pinned, unpinned) = result.partition { foldWearStreamIdentity(it.url) in topGroup }
-    return pinned + unpinned
+    // S1954: rank last and by address, not row id, so a catalogue re-import that renumbers every row
+    // leaves the marks where they were.
+    // S2149: the two sources stay separate sets up to here, so the phone can withdraw only its own.
+    // S2514: rank rather than partition against their union. A union carries no order, and the owner
+    // reads the sources as different in weight - a mark made on this watch outranks a pin that arrived
+    // from the phone. sortedBy is stable, so the filter and sort above still order each group, and a
+    // channel named by both sources is ranked once, in the watch group.
+    return result.sortedBy { channel ->
+        val identity = foldWearStreamIdentity(channel.url)
+        when {
+            identity in inputs.pinnedIdentities -> WATCH_PIN_RANK
+            identity in inputs.phonePinnedIdentities -> PHONE_PIN_RANK
+            else -> UNPINNED_RANK
+        }
+    }
 }

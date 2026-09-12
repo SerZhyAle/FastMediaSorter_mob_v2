@@ -26,22 +26,35 @@ class DeleteDirectoriesUseCase @Inject constructor(
     suspend operator fun invoke(
         directories: List<MediaFile>,
         progressCallback: ((Int, Int, String) -> Unit)? = null
+    ): Result<Int> = deletePaths(directories.map { it.path }, progressCallback)
+
+    /**
+     * S1326: the path-only entry point. An undo record holds paths, and the copied trees it names exist
+     * in no [MediaFile] list, so they cannot reach the overload above. Declared as a named method rather
+     * than a second `invoke` overload - `List<MediaFile>` and `List<String>` erase to the same JVM
+     * signature and the compiler rejects the clash.
+     *
+     * @return Result<Int> - total number of entries deleted across all directories.
+     */
+    suspend fun deletePaths(
+        paths: List<String>,
+        progressCallback: ((Int, Int, String) -> Unit)? = null
     ): Result<Int> {
-        if (directories.isEmpty()) return Result.success(0)
+        if (paths.isEmpty()) return Result.success(0)
 
         var totalDeleted = 0
         val errors = mutableListOf<String>()
 
-        for (dir in directories) {
-            Timber.d("DeleteDirectoriesUseCase: deleting directory ${dir.path}")
-            val result = fileOperationHandler.executeDeleteDirectory(dir.path, progressCallback)
+        for (path in paths) {
+            Timber.d("DeleteDirectoriesUseCase: deleting directory $path")
+            val result = fileOperationHandler.executeDeleteDirectory(path, progressCallback)
             result
                 .onSuccess { count ->
                     totalDeleted += count
-                    Timber.d("DeleteDirectoriesUseCase: deleted $count entries from ${dir.name}")
+                    Timber.d("DeleteDirectoriesUseCase: deleted $count entries from $path")
                 }
                 .onFailure { e ->
-                    val msg = "Failed to delete '${dir.name}': ${e.message}"
+                    val msg = "Failed to delete '$path': ${e.message}"
                     Timber.e(e, "DeleteDirectoriesUseCase: $msg")
                     errors.add(msg)
                 }

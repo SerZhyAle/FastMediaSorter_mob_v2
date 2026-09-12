@@ -36,7 +36,16 @@ data class WearFileTransferMetadata(
      * it always did.
      */
     @SerializedName("openNow")
-    val openNow: Boolean = false
+    val openNow: Boolean = false,
+    /**
+     * S2142: the receiver this file is meant for, when the watch cannot serve that receiver itself.
+     *
+     * Null is the shipped S1861 meaning - sort the file into permanent storage and nothing else - so
+     * a transfer announced by an older build keeps behaving as it always did. The id is the same
+     * string the phone stores in its own receiver switches, which is why nothing has to be mapped.
+     */
+    @SerializedName("sendToReceiverId")
+    val sendToReceiverId: String? = null
 )
 
 /**
@@ -107,6 +116,25 @@ enum class WearFileSendOutcome {
     UNCONFIRMED,
     TOO_LARGE,
     PHONE_UNREACHABLE,
+
+    /**
+     * S2142: the phone holds the file and has offered the owner the «Send to..» action on it.
+     *
+     * Deliberately not [SENT]: at this point no receiver has been handed anything, and the last step
+     * is a tap on the phone. Reporting it as sent would claim an external application received the
+     * file, which strategic 6 question 5 settles as the one thing the watch may not say.
+     */
+    AWAITING_PHONE_ACTION,
+
+    /**
+     * S2142: the phone took the file but could not offer the action - its notifications are off.
+     *
+     * Apart from [PHONE_UNREACHABLE] for the reason the open-on-phone route already keeps them
+     * apart: the phone answered, so telling the owner to bring it closer sends them after the wrong
+     * fix.
+     */
+    PHONE_NOTIFICATIONS_OFF,
+
     FAILED
 }
 
@@ -125,6 +153,12 @@ data class WearFileReceiveAck(
         const val OUTCOME_NO_DESTINATION = "NO_DESTINATION"
         const val OUTCOME_TOO_LARGE = "TOO_LARGE"
         const val OUTCOME_FAILED = "FAILED"
+
+        /** S2142: the file is on the phone and the «Send to..» action is waiting for a tap there. */
+        const val OUTCOME_AWAITING_SEND_TO = "AWAITING_SEND_TO"
+
+        /** S2142: the errand arrived, but the phone may post no notification to offer it with. */
+        const val OUTCOME_NOTIFICATIONS_OFF = "NOTIFICATIONS_OFF"
     }
 }
 

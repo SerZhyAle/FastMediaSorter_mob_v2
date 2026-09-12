@@ -29,6 +29,9 @@
         <item name="launcherStartRowGroup2">@color/launcher_start_row_group2</item>
         <item name="launcherStartRowGroup3">@color/launcher_start_row_group3</item>
         <item name="launcherStartRowGroup4">@color/launcher_start_row_group4</item>
+        <!-- S2539: launcher desktop foregrounds following the theme. -->
+        <item name="launcherDesktopText">@color/black</item>
+        <item name="launcherDesktopTextSecondary">#FF655E6A</item>
         <item name="colorOnSurfaceVariant">#FF655E6A</item>
         <item name="android:textColorSecondary">#FF655E6A</item>
         <item name="colorOutline">#FF6F6875</item>
@@ -70,6 +73,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_green_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_green_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_green_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_green_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_green_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_green_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_green_primary_container</item>
@@ -81,6 +85,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkGreen theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_green_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_green_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkBlue" parent="">
@@ -99,6 +106,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_blue_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_blue_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_blue_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_blue_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_blue_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_blue_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_blue_primary_container</item>
@@ -110,6 +118,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkBlue theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_blue_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_blue_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.DarkRed" parent="">
@@ -128,6 +139,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_dark_red_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_dark_red_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_dark_red_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_dark_red_on_surface_variant</item>
         <item name="colorOutline">@color/theme_dark_red_outline</item>
         <item name="colorOutlineVariant">@color/theme_dark_red_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_dark_red_primary_container</item>
@@ -139,6 +151,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the DarkRed theme. -->
+        <item name="launcherDesktopText">@color/theme_dark_red_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_dark_red_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightGreen" parent="">
@@ -157,6 +172,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_green_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_green_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_green_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_green_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_green_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_green_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_green_primary_container</item>
@@ -168,6 +184,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightGreen theme. -->
+        <item name="launcherDesktopText">@color/theme_light_green_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_green_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightBlue" parent="">
@@ -186,6 +205,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_blue_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_blue_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_blue_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_blue_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_blue_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_blue_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_blue_primary_container</item>
@@ -197,6 +217,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightBlue theme. -->
+        <item name="launcherDesktopText">@color/theme_light_blue_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_blue_on_surface_variant</item>
     </style>
 
     <style name="ThemeOverlay.FastMediaSorter.LightRed" parent="">
@@ -215,6 +238,7 @@
         <item name="colorSurfaceContainerHighest">@color/theme_light_red_surface_container_highest</item>
         <item name="colorSurfaceVariant">@color/theme_light_red_surface_variant</item>
         <item name="colorOnSurfaceVariant">@color/theme_light_red_on_surface_variant</item>
+        <item name="android:textColorSecondary">@color/theme_light_red_on_surface_variant</item>
         <item name="colorOutline">@color/theme_light_red_outline</item>
         <item name="colorOutlineVariant">@color/theme_light_red_outline_variant</item>
         <item name="colorPrimaryContainer">@color/theme_light_red_primary_container</item>
@@ -226,6 +250,9 @@
         <item name="colorSecondary">@color/teal_700</item>
         <item name="colorTertiary">@color/m3_tertiary</item>
         <item name="colorError">@color/m3_error</item>
+        <!-- S2539: launcher desktop foregrounds following the LightRed theme. -->
+        <item name="launcherDesktopText">@color/theme_light_red_primary</item>
+        <item name="launcherDesktopTextSecondary">@color/theme_light_red_on_surface_variant</item>
     </style>
 
     <!-- Pre-35 transparent bars. enableEdgeToEdge() sets these at runtime, but release R8 strips
@@ -351,6 +378,8 @@
          S0573: minHeight is bound directly to @dimen, not through ?attr/dialogActionButtonMinHeight, because
          MaterialButton inflation under transparent/dynamic dialog hosts proved that attr chain can fail at runtime. -->
     <style name="Widget.FastMediaSorter.Button.DialogConfirm" parent="Widget.FastMediaSorter.Button.Filled">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <!-- S0611: confirm_button_* (day/night) keeps the OK button >= 4.5:1; success_color stays for status indicators. -->
         <item name="backgroundTint">@color/confirm_button_bg</item>
         <item name="android:textColor">@color/confirm_button_on</item>
@@ -360,6 +389,8 @@
     </style>
 
     <style name="Widget.FastMediaSorter.Button.DialogDestructive" parent="Widget.FastMediaSorter.Button.Filled">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <item name="backgroundTint">@color/delete_button</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:minHeight">@dimen/dialog_action_button_min_height</item>
@@ -368,6 +399,8 @@
 
     <!-- S0684: cancel is a soft-pink tonal fill, deliberately shorter than confirm; saturated red stays reserved for DialogDestructive. -->
     <style name="Widget.FastMediaSorter.Button.DialogCancel" parent="Widget.FastMediaSorter.Button.Tonal">
+        <!-- S2897: focus frame for D-pad/TV navigation; reuses the S0289 focus-button-background selector. -->
+        <item name="android:foreground">@drawable/focus_button_background</item>
         <item name="backgroundTint">@color/cancel_button_bg</item>
         <item name="android:textColor">@color/cancel_button_on</item>
         <item name="android:minHeight">@dimen/dialog_cancel_button_min_height</item>
@@ -399,6 +432,26 @@
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
+
+    <!-- S2898: primary toolbar theme overlay providing high-contrast text color and D-pad focus outlines. -->
+    <style name="Widget.FastMediaSorter.Toolbar.ActionButton" parent="Widget.AppCompat.ActionButton">
+        <item name="android:background">@drawable/toolbar_action_item_focus_selector</item>
+    </style>
+
+    <style name="ThemeOverlay.FastMediaSorter.Toolbar.Primary" parent="ThemeOverlay.Material3.ActionBar">
+        <item name="actionMenuTextColor">?attr/colorOnPrimary</item>
+        <item name="android:textColorPrimary">?attr/colorOnPrimary</item>
+        <item name="actionBarItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:actionBarItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="actionButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
+        <item name="android:actionButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
+        <item name="selectableItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:selectableItemBackground">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="android:selectableItemBackgroundBorderless">@drawable/toolbar_action_item_focus_selector</item>
+        <item name="toolbarNavigationButtonStyle">@style/Widget.FastMediaSorter.Toolbar.ActionButton</item>
+    </style>
+
 
     <style name="Widget.FastMediaSorter.Calculator.Button" parent="Widget.MaterialComponents.Button.OutlinedButton">
         <item name="android:textSize">@dimen/calculator_button_text_size</item>

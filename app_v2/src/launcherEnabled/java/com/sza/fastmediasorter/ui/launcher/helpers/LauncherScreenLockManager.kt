@@ -5,12 +5,18 @@ import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import timber.log.Timber
 
 /**
- * S2268: turns the desktop's "lock" gesture into the best screen lock this build can actually reach.
+ * S2268 / S2384: the launcher's single "turn the screen off" decision point.
+ *
+ * Both ways the desktop can go dark come through here - the double-tap gesture and the inactivity
+ * countdown - so the two cannot drift into different behaviour again, which is the divergence S2384
+ * was opened for. It is also the one place a future system-lock privilege for `standard` would be
+ * added (S1902 owns that decision).
  *
  * The real device lock exists only behind the accessibility seam, which is bound on `noLegal` and only
- * while its service is enabled. Everywhere else the gesture used to do nothing visible, so it degrades to
- * the desktop's own black screen - the same overlay its "Black screen" cell action raises, which is the
- * substitute the owner named (ruling 2026-08-31). An app-private overlay, not a system lock.
+ * while its service is enabled. Everywhere else the screen degrades to the desktop's own black screen -
+ * the same overlay its "Black screen" cell action raises, which is the substitute the owner named
+ * (ruling 2026-08-31). An app-private overlay, not a system lock: the backlight stays on and no system
+ * AOD appears, which is why the caller is told which of the two happened.
  *
  * @param accessibilityActions the flavor seam; empty on every flavor but `noLegal`.
  * @param showBlackScreen raises the launcher's black-screen overlay.
@@ -20,9 +26,17 @@ class LauncherScreenLockManager(
     private val showBlackScreen: () -> Unit,
 ) {
 
-    fun lockScreen() {
+    /** @return true when the device really locked, false when the app-private overlay was raised instead. */
+    fun turnScreenOff(): Boolean {
         val locked = accessibilityActions.any { it.perform(ScreenshotGestureAction.LOCK_SCREEN) }
-        Timber.d("S2268: desktop double tap lock, system lock performed=%s", locked)
         if (!locked) showBlackScreen()
+        // The two outcomes look alike on a screenshot and different to the user, so which one ran is the
+        // first thing any report about this feature needs; the seam count says why it degraded.
+        Timber.d(
+            "LauncherScreenLockManager: screen off requested, systemLock=%b, seams=%d",
+            locked,
+            accessibilityActions.size,
+        )
+        return locked
     }
 }

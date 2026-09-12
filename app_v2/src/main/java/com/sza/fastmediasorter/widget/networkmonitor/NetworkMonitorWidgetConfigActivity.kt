@@ -37,10 +37,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -61,13 +61,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * S1440: asks which of the eight indicators a freshly placed widget should show.
+ * S1440: asks which of the nine indicators a freshly placed widget should show.
  *
  * Strategic 4.4 makes the indicator a per-instance choice, so this screen exists for the same reason
  * the three other configurable widgets have one: the answer is keyed by `EXTRA_APPWIDGET_ID` and
  * cannot live in settings.
  *
- * Binding and routing only (CLAUDE.md Rule 3) - the eight-way table belongs to
+ * Binding and routing only (CLAUDE.md Rule 3) - the nine-way table belongs to
  * [NetworkMonitorIndicator] and the persistence to [NetworkMonitorWidgetIndicatorStore].
  */
 @AndroidEntryPoint

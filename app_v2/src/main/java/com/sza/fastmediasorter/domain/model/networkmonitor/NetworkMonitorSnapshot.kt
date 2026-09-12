@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.domain.model.networkmonitor
 
+import com.sza.fastmediasorter.domain.model.network.HotspotState
+
 /**
  * S1433: one immutable sample of everything the Monitor is allowed to know about the device's networking.
  *
@@ -18,6 +20,7 @@ data class NetworkMonitorSnapshot(
     val sims: MonitorSection<List<SimEntry>>,
     val activeModemCount: Int?,
     val bluetooth: MonitorSection<BluetoothEntry>,
+    val hotspot: HotspotState = HotspotState.UNKNOWN,
     val sampledAtMillis: Long,
 )
 

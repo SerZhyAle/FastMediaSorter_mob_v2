@@ -897,7 +897,7 @@
             </div>
 
             <div class="feature-grid" id="featureExplorerGrid">
-                <!-- Картки генеруються динамічно з FEATURES_UK.md -->
+                <!-- Картки генеруються динамічно з FEATURES-uk.md -->
                 <noscript>
                     <ul class="detail-list">
                         <li>Профілі першого запуску налаштовують поведінку застосунку.</li>
@@ -1218,7 +1218,7 @@
             var activeToggleV3 = 'key'; // 'key', 'all'
             var activeScenarioV4 = 'all';
 
-            // FEATURES_UK.md is curated to one entry per capability; no noise rows to suppress.
+            // FEATURES-uk.md is curated to one entry per capability; no noise rows to suppress.
             var hiddenFeatureTitles = [];
 
             var keyFeatures = [
@@ -1868,7 +1868,7 @@
                 });
             }
 
-            // Завантаження канонічного FEATURES_UK.md
+            // Завантаження канонічного FEATURES-uk.md
             fetch('docs/FEATURES_UK.html')
                 .then(function (r) { return r.text(); })
                 .then(function (text) {

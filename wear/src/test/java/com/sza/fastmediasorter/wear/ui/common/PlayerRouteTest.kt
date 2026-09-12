@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -16,13 +17,25 @@ class PlayerRouteTest {
     private val fileId = 42L
 
     @Test
-    fun `pdf is refused rather than played`() {
-        assertEquals(WearRoutes.UNSUPPORTED_FILE, playerRouteFor(fileId, "application/pdf"))
+    fun `pdf is refused by name of its format`() {
+        assertEquals(
+            WearRoutes.unsupportedFile(WearDocumentFormat.PDF),
+            playerRouteFor(fileId, "application/pdf")
+        )
     }
 
     @Test
-    fun `plain text is refused rather than played`() {
-        assertEquals(WearRoutes.UNSUPPORTED_FILE, playerRouteFor(fileId, "text/plain"))
+    fun `plain text opens the reader rather than the refusal`() {
+        assertEquals(WearRoutes.documentViewer(fileId), playerRouteFor(fileId, "text/plain"))
+    }
+
+    /** S2532: a share reports no mime type, so the name is the only thing that says this is text. */
+    @Test
+    fun `a mime-less text file is read from its name`() {
+        assertEquals(
+            WearRoutes.documentViewer(fileId),
+            playerRouteFor(fileId, mimeType = null, fileName = "notes.txt")
+        )
     }
 
     @Test

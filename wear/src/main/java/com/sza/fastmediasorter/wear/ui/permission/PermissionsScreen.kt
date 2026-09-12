@@ -2,32 +2,33 @@ package com.sza.fastmediasorter.wear.ui.permission
 
 import android.Manifest
 import android.os.Build
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
+import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Icon
+import androidx.wear.compose.material.MaterialTheme
+import androidx.wear.compose.material.PositionIndicator
 import androidx.wear.compose.material.Text
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
+import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
 import timber.log.Timber
 
 /**
@@ -37,7 +38,8 @@ import timber.log.Timber
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun PermissionsScreen(
-    onPermissionsGranted: () -> Unit
+    onPermissionsGranted: () -> Unit,
+    listState: ScalingLazyListState = rememberWearListState(initialCenterItemIndex = WEAR_LIST_NO_ANCHOR)
 ) {
     // Define required permissions based on API level
     val mediaPermissions = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -49,7 +51,7 @@ fun PermissionsScreen(
     } else {
         listOf(Manifest.permission.READ_EXTERNAL_STORAGE)
     }
-    
+
     val permissionsState = rememberMultiplePermissionsState(
         permissions = mediaPermissions,
         onPermissionsResult = { results ->
@@ -60,7 +62,7 @@ fun PermissionsScreen(
             }
         }
     )
-    
+
     // Auto-navigate if already granted
     LaunchedEffect(permissionsState.allPermissionsGranted) {
         if (permissionsState.allPermissionsGranted) {
@@ -68,66 +70,89 @@ fun PermissionsScreen(
             onPermissionsGranted()
         }
     }
-    
-    WearScreenScaffold {
-        Column(
+
+    WearScreenScaffold(
+        contentPadding = PaddingValues(0.dp),
+        scrollState = listState,
+        positionIndicator = { PositionIndicator(listState) }
+    ) {
+        WearListColumn(
             modifier = Modifier.fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            state = listState,
+            centered = true
         ) {
-            Icon(
-                imageVector = Icons.Default.FolderOpen,
-                contentDescription = null,
-                modifier = Modifier.size(48.dp),
-                tint = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = stringResource(R.string.permission_title),
-                fontSize = 16.sp,
-                textAlign = TextAlign.Center,
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(R.string.permission_description),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center,
-                color = Color.Gray
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Chip(
-                onClick = {
+            permissionPromptItems(
+                showRationale = permissionsState.shouldShowRationale,
+                onRequest = {
                     Timber.d("Requesting permissions: $mediaPermissions")
                     permissionsState.launchMultiplePermissionRequest()
-                },
-                modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text(
-                        text = stringResource(R.string.permission_grant_button),
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                },
-                colors = ChipDefaults.primaryChipColors()
+                }
             )
+        }
+    }
+}
 
-            // Show rationale if needed
-            if (permissionsState.shouldShowRationale) {
-                Spacer(modifier = Modifier.height(8.dp))
+/**
+ * The prompt itself, split out of [PermissionsScreen] so that screen stays a state holder.
+ */
+private fun ScalingLazyListScope.permissionPromptItems(
+    showRationale: Boolean,
+    onRequest: () -> Unit
+) {
+    item {
+        Icon(
+            imageVector = Icons.Default.FolderOpen,
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+            tint = MaterialTheme.colors.onBackground
+        )
+    }
+
+    item {
+        Text(
+            text = stringResource(R.string.permission_title),
+            style = MaterialTheme.typography.title3,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onBackground,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    item {
+        Text(
+            text = stringResource(R.string.permission_description),
+            style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center,
+            color = MaterialTheme.colors.onSurfaceVariant,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    item {
+        Chip(
+            onClick = onRequest,
+            modifier = Modifier.fillMaxWidth(),
+            label = {
                 Text(
-                    text = stringResource(R.string.permission_rationale),
-                    fontSize = 10.sp,
+                    text = stringResource(R.string.permission_grant_button),
                     textAlign = TextAlign.Center,
-                    color = Color(0xFFFF9800) // Orange warning color
+                    modifier = Modifier.fillMaxWidth()
                 )
-            }
+            },
+            colors = ChipDefaults.primaryChipColors()
+        )
+    }
+
+    // Show rationale if needed
+    if (showRationale) {
+        item {
+            Text(
+                text = stringResource(R.string.permission_rationale),
+                style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colors.error,
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }

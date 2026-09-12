@@ -34,6 +34,12 @@
       BuildDomain    - the S2109 build-lock domain, or $null for a module that has none. $null means
                        "take every build domain", which is ADR-2's safe direction: over-protected
                        rather than silently unprotected.
+      DeviceModule   - which device this module's artifact runs on, spelled as scripts/devtest/
+                       device-ready.ps1 spells it: 'app_v2' (phone) or 'wear' (watch). $null for a
+                       module that reaches no device. Deliberately NOT derived from BuildDomain
+                       (S2611): :watchface takes every build domain and still installs only on a
+                       watch, so the two fields answer opposite questions - one over-protects a
+                       build, the other picks exactly one device.
       LinksResources - whether the module has Android resources a link check can process. False for
                        a module with no Android plugin at all.
 
@@ -73,6 +79,7 @@ $Script:GradleModuleTable = @(
         Flavors        = @('Standard', 'NoLegal', 'Lite', 'Photos', 'Legacy', 'Vr', 'Foss')
         BuildTypes     = @('Debug', 'Release')
         BuildDomain    = 'Build.Phone'
+        DeviceModule   = 'app_v2'
         LinksResources = $true
     }
     [pscustomobject]@{
@@ -83,6 +90,7 @@ $Script:GradleModuleTable = @(
         Flavors        = @('Standard', 'NoLegal')
         BuildTypes     = @('Debug', 'Release')
         BuildDomain    = 'Build.Wear'
+        DeviceModule   = 'wear'
         LinksResources = $true
     }
     [pscustomobject]@{
@@ -95,6 +103,10 @@ $Script:GradleModuleTable = @(
         BuildTypes     = @('Debug', 'Release')
         # No lock domain of its own. $null resolves to the full build set (ADR-2).
         BuildDomain    = $null
+        # A watch face installs on the watch, so its device is the watch even though its build takes
+        # every domain. BuildDomain cannot answer this - $null there means "over-protect the build",
+        # which is the opposite direction from "pick one device".
+        DeviceModule   = 'wear'
         LinksResources = $true
     }
     [pscustomobject]@{
@@ -109,6 +121,8 @@ $Script:GradleModuleTable = @(
         # conclusion from it - the task name was unbuildable, not the module unlinkable.
         BuildTypes     = @('NonMinifiedRelease', 'BenchmarkRelease')
         BuildDomain    = $null
+        # Self-instrumenting against :app_v2, so it runs on whatever :app_v2 runs on.
+        DeviceModule   = 'app_v2'
         # Measured 2026-08-27: :benchmark:processNonMinifiedReleaseResources exits 0 in 2.4 s
         # (10 actionable tasks) and :benchmark:processNonMinifiedReleaseManifest in 1.4 s, neither
         # needing :app_v2 to build. The module has no res/ directory, but the manifest AGP merges
@@ -126,6 +140,9 @@ $Script:GradleModuleTable = @(
         # than inventing a default (S2123).
         BuildTypes     = @()
         BuildDomain    = $null
+        # No Android plugin means nothing to install, so this module reaches no device at all. $null
+        # is the honest answer and the resolver below refuses on it, the way BuildTypes does.
+        DeviceModule   = $null
         LinksResources = $false
     }
 )
@@ -203,6 +220,32 @@ function Get-GradleModuleBuildTypes {
         throw "Unknown Gradle module '$Name'. Known modules: $((Get-GradleModuleNames) -join ', ')."
     }
     return @($row.BuildTypes)
+}
+
+function Get-GradleModuleDeviceModule {
+    <#
+    .SYNOPSIS
+        The device this module's artifact runs on, spelled as device-ready.ps1 -Module spells it.
+    .DESCRIPTION
+        S2611. scripts/devtest/device-ready.ps1 selects an attached device by form factor and takes
+        the answer as 'app_v2' or 'wear', while its callers carry a GRADLE module name, whose set is
+        wider. This is the one translation between the two vocabularies, held here because S2121
+        made this table the single home of "what is true about a module" - a second copy would drift
+        from it, and a caller that guessed the form factor instead is the S2600 incident.
+
+        A module with no device throws rather than answering 'app_v2', for Get-GradleModuleBuildTypes'
+        reason: "this module installs nowhere" and "this table has never heard of it" lead to
+        different fixes, and a silent phone reads afterwards as a deliberate choice.
+    #>
+    param([Parameter(Mandatory)][string]$Name)
+    $row = Get-GradleModule -Name $Name
+    if (-not $row) {
+        throw "Unknown Gradle module '$Name'. Known modules: $((Get-GradleModuleNames) -join ', ')."
+    }
+    if (-not $row.DeviceModule) {
+        throw "Gradle module '$Name' reaches no device - it declares no Android plugin, so there is nothing to install and no device-ready.ps1 -Module to name."
+    }
+    return [string]$row.DeviceModule
 }
 
 function Get-GradleModuleDefaultBuildType {

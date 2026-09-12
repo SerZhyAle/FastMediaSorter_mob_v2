@@ -6,7 +6,6 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.domain.model.ScreenshotGestureAction
 import com.sza.fastmediasorter.util.showBoundTo
-import timber.log.Timber
 
 /**
  * Builds the per-direction screenshot-gesture action picker and maps actions to labels.
@@ -17,6 +16,9 @@ import timber.log.Timber
  * The fragment owns persistence; this manager only maps and presents.
  */
 class ScreenshotGestureActionPickerManager(
+    // S1625: the translation capability now folds in a device-class licence axis, so deciding whether
+    // an OCR-translate row exists needs a Context the picker did not previously hold.
+    private val appContext: Context,
     private val capabilityAvailability: CapabilityAvailability,
     private val screenRecordingAvailable: Boolean = false,
     // S1038: SYSTEM-group actions run through the noLegal accessibility seam; hidden where it is absent.
@@ -34,7 +36,7 @@ class ScreenshotGestureActionPickerManager(
             ScreenshotGestureActionCatalog.isAvailableOnApi(action) && when (action) {
                 ScreenshotGestureAction.OCR_TRANSLATE,
                 ScreenshotGestureAction.TAKE_PHOTO_OCR_TRANSLATE ->
-                    capabilityAvailability.isTranslationAvailable()
+                    capabilityAvailability.isTranslationAvailable(appContext)
                 ScreenshotGestureAction.START_SCREEN_RECORDING -> screenRecordingAvailable
                 ScreenshotGestureAction.LOCK_SCREEN,
                 ScreenshotGestureAction.TOGGLE_SPLIT_SCREEN,
@@ -71,7 +73,6 @@ class ScreenshotGestureActionPickerManager(
         current: ScreenshotGestureAction,
         onPicked: (ScreenshotGestureAction) -> Unit
     ) {
-        Timber.d("S2256: edge picker opened, launcher route available=%s", launcherRouteAvailable)
         GesturePickerDialog(
             context = context,
             title = context.getString(R.string.setting_screenshot_gesture_action_dialog_title),

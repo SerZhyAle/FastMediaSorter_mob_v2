@@ -30,12 +30,19 @@
     Output is deterministic (fixed attribute order, LF newlines, UTF-8 no BOM,
     single trailing newline) so the Phase 4 drift gate can re-run and byte-diff.
     docs/icons/svg/ is a generated tree - never hand-edited.
+
+    Exit codes:
+      0 - the generated tree is complete and current.
+      1 - the inventory is missing, or a source drawable named by it is absent.
+      4 - Code.Scripts is held by another session: nothing was written or pruned,
+          the place in the queue is held, wait for the turn and rerun.
 #>
 param(
     [string] $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 # S0889: the VectorDrawable -> SVG conversion moved to a shared lib so the doc-icon PNG
 # exporter reuses the exact same path (no drift between the two generated trees).
@@ -59,51 +66,58 @@ $vectorNames = @(@($inventory | Where-Object { $_.assetFormat -eq 'vector' -and 
 $rasterNames = @(@($inventory | Where-Object { $_.assetFormat -eq 'raster' -and $_.public }) |
     ForEach-Object { $_.drawable } | Sort-Object -Unique)
 
-$null = New-Item -ItemType Directory -Force -Path $svgDir
-
 $utf8 = [System.Text.UTF8Encoding]::new($false)
 $expected = New-Object System.Collections.Generic.HashSet[string]
 $skipped  = New-Object System.Collections.Generic.List[string]
 $missing  = New-Object System.Collections.Generic.List[string]
 $emitted  = 0
 $copied   = 0
+$pruned   = 0
 
-foreach ($name in $vectorNames) {
-    $src = Join-Path $drawableDir ($name + '.xml')
-    if (-not (Test-Path -LiteralPath $src)) {
-        $missing.Add($name + ' (vector source: ' + $src + ')')
-        continue
-    }
-    $result = Convert-VectorToSvg $src
-    if ($result.Skip) {
-        Write-Warning ('skip ' + $name + '.xml - ' + $result.Skip)
-        $skipped.Add($name + ' - ' + $result.Skip)
-        continue
-    }
-    [System.IO.File]::WriteAllText((Join-Path $svgDir ($name + '.svg')), $result.Svg, $utf8)
-    [void]$expected.Add($name + '.svg')
-    $emitted++
-}
+# S2615: the emit and the prune are ONE window. A prune outside the lock deletes files a sibling
+# session is regenerating, and a prune is the half of this script that cannot be undone by rerunning.
+$codeScope = $null
+try {
+    $codeScope = Enter-CodeLockOrExit -Path @($svgDir) -Reason 'export-icon-svgs.ps1 (docs/icons/svg)'
+    $null = New-Item -ItemType Directory -Force -Path $svgDir
 
-foreach ($name in $rasterNames) {
-    $src = Join-Path $drawableDir ($name + '.png')
-    if (-not (Test-Path -LiteralPath $src)) {
-        $missing.Add($name + ' (raster source: ' + $src + ')')
-        continue
+    foreach ($name in $vectorNames) {
+        $src = Join-Path $drawableDir ($name + '.xml')
+        if (-not (Test-Path -LiteralPath $src)) {
+            $missing.Add($name + ' (vector source: ' + $src + ')')
+            continue
+        }
+        $result = Convert-VectorToSvg $src
+        if ($result.Skip) {
+            Write-Warning ('skip ' + $name + '.xml - ' + $result.Skip)
+            $skipped.Add($name + ' - ' + $result.Skip)
+            continue
+        }
+        [System.IO.File]::WriteAllText((Join-Path $svgDir ($name + '.svg')), $result.Svg, $utf8)
+        [void]$expected.Add($name + '.svg')
+        $emitted++
     }
-    Copy-Item -LiteralPath $src -Destination (Join-Path $svgDir ($name + '.png')) -Force
-    [void]$expected.Add($name + '.png')
-    $copied++
-}
 
-# Prune assets no longer backed by the inventory (e.g. an icon dropped or made
-# non-public) so the generated tree is exactly the expected set and a re-run is
-# byte-identical.
-$pruned = 0
-Get-ChildItem -LiteralPath $svgDir -File | Where-Object { -not $expected.Contains($_.Name) } | ForEach-Object {
-    Remove-Item -LiteralPath $_.FullName -Force
-    $pruned++
+    foreach ($name in $rasterNames) {
+        $src = Join-Path $drawableDir ($name + '.png')
+        if (-not (Test-Path -LiteralPath $src)) {
+            $missing.Add($name + ' (raster source: ' + $src + ')')
+            continue
+        }
+        Copy-Item -LiteralPath $src -Destination (Join-Path $svgDir ($name + '.png')) -Force
+        [void]$expected.Add($name + '.png')
+        $copied++
+    }
+
+    # Prune assets no longer backed by the inventory (e.g. an icon dropped or made
+    # non-public) so the generated tree is exactly the expected set and a re-run is
+    # byte-identical.
+    Get-ChildItem -LiteralPath $svgDir -File | Where-Object { -not $expected.Contains($_.Name) } | ForEach-Object {
+        Remove-Item -LiteralPath $_.FullName -Force
+        $pruned++
+    }
 }
+finally { Exit-CodeLockScope -Scope $codeScope }
 
 Write-Host ''
 Write-Host 'Icon SVG export complete.'

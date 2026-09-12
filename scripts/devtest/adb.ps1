@@ -16,8 +16,11 @@
     devices              list online devices with model + Android version (no selection needed)
     props                selected device: model, Android release, SDK, density, wm size
     current              focused activity / package on the selected device
-    launch               start the app (debug build: explicit MainActivity, bypasses the
-                         LeakCanary launcher trap)
+    launch               start the app (debug build: explicit component, bypassing the LeakCanary
+                         launcher trap). Resolves the watch's own activity automatically when the
+                         selected device reports watch characteristics and -Module was not given;
+                         an EXPLICIT -Module that conflicts with the device is refused, mirroring
+                         install's guard (S2992)
     stop                 force-stop the app
     logcat-clear         empty the device logcat buffer (alias: log-clear). Touches no app state
     wipe-data            DESTRUCTIVE: pm clear (app data, runtime grants and onboarding gone).
@@ -51,14 +54,21 @@
                          Right where there is no id to aim at - most of Compose on the watch
     clip-check           report content that leaves the physical display shape. The shape is READ
                          FROM THE DEVICE (mRoundedCorners), so a round watch and a rounded-corner
-                         phone use one rule and neither is hardcoded
+                         phone use one rule and neither is hardcoded. -Strict also fails on CLIPPED
+    rotary               turn the watch bezel: -Axis <double> [-Repeat N]. The flow language has no
+                         rotary expression, so a scenario that must reach its target by rotation
+                         calls this around the flow rather than inside it (S2548). Watch only -
+                         refuses on any other form factor rather than sending the event nowhere
+    font-scale           read the device's system font scale, or set it with -Scale <n>. A large
+                         font is a Play review criterion, so this is a measurement tool, not a
+                         convenience: 1.0 restores the platform default
     text                 input text -Text "<string>" (spaces handled)
     key                  input keyevent -Key <name-or-code> (e.g. BACK, 4, KEYCODE_HOME)
     prefs                pull settings.preferences.pb via run-as to temp/scratch/ (debuggable build only)
     pull                 fetch a file off the device: -Remote <path> [-Local <path>] [-Latest].
                          Without -Local the file lands in temp/scratch/ under its own name.
                          -Latest treats -Remote as a directory or glob and takes the newest match
-    push                 send a local file to the device: -Local <path> -Remote <path>
+    push                 send a local file OR directory to the device: -Local <path> -Remote <path>
     shell                arbitrary passthrough: -Cmd "<adb shell command>"
 
   Why pull/push live here rather than in a bare `adb` call (S1578): the wrapper keeps the adb
@@ -125,6 +135,15 @@
         list needs scrolling, or the target simply is not on this screen and the name was guessed
         rather than read off `uidump`
     9 - `clip-check`: at least one node is OFF-GLASS. EDGE and CLIPPED never reach this code
+   10 - `clip-check -Strict`: at least one node is CLIPPED in THIS frame. Separate from 9 because
+        the two answer different questions - 9 is "no scroll position saves it", 10 is "a reviewer
+        photographing this frame sees a cut edge", which is the criterion Play actually applied
+        when it rejected 26090503 on `Watch shapes` a second time
+   11 - `font-scale`: refused to change a physical device's system setting without -Yes. WHICH
+        devices may be changed at all is docs/DEVICE_FLEET.md, never this script
+   12 - `rotary`: the selected device is not a watch, so it has no rotary encoder and NOTHING was
+        sent. Distinct from 3 because "you did not say which device" and "you named one that cannot
+        answer this verb" call for different next moves
 
   Human output: one verdict line per verb (plus the data the verb produces).
   Machine output (with -Json): a single JSON object on stdout, all human noise suppressed.
@@ -159,12 +178,20 @@
   phone-only flavor is refused by name. `install` also refuses when -Module
   disagrees with the selected device's `ro.build.characteristics` (watch vs not) - both modules
   share one applicationId (S1681), so the wrong -Module would otherwise silently replace whichever
-  app is already on that device and still report success (S2043).
+  app is already on that device and still report success (S2043). `launch` carries the same
+  conflict guard for an EXPLICIT -Module (S2992), and - since the common case is one device and no
+  -Module at all - falls back to the SELECTED device's own characteristics rather than the
+  'app_v2' default, so a lone watch launches its own activity with no -Module needed.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 install -Module wear -DeviceId 192.168.1.166:46551
   pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -Module wear -DeviceId 192.168.1.166:46551
   Install the watch release build onto a paired watch and start it by its own component.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -DeviceId 192.168.1.166:46551
+  Launch a paired watch by its own activity with no -Module needed - the device's own
+  characteristics decide; only a NAMED -Module that conflicts with the device is refused (S2992).
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 wipe-data -Yes
@@ -247,6 +274,17 @@ param(
     # Default stays temp/scratch/; point it at temp/Sxxxx/ to file the artifact with its ticket.
     [string]$OutDir,
     [switch]$Json,
+    # clip-check: judge the frame the way a store reviewer does - a node that leaves the glass HERE
+    # fails, even though scrolling could recentre it.
+    [switch]$Strict,
+    # font-scale: the multiplier to write. Omit it to read the current one; 1.0 is the default.
+    [double]$Scale,
+    # rotary: how far the bezel turns per step. Negative scrolls the other way; the platform reads it
+    # as the encoder's axis value, so there is no "one notch" constant to default to.
+    [double]$Axis,
+    # rotary: how many times to repeat the turn. A list is scrolled by repeating a small turn, not by
+    # sending one large axis value - the platform flings on the latter.
+    [int]$Repeat = 1,
     # Confirmation for the one-way verbs (wipe-data, uninstall). This script is called by agents and by
     # other scripts, so an interactive prompt is not available - a required flag is the only gate that can
     # actually fire. It waives the confirmation only: device selection and package resolution still run.
@@ -314,6 +352,10 @@ function Fail {
     exit $Code
 }
 
+# $PSBoundParameters inside a function describes THAT function's arguments, so the script's own
+# binding must be captured here, at top level, while it is still in scope.
+$script:ModuleWasNamed = $PSBoundParameters.ContainsKey('Module')
+
 # ---------- adb discovery (parity with device-ready.ps1) ----------
 # S1341: Find-Adb lives in lib/find-adb.ps1 so spec-prerelease.md and other callers
 # share one discovery order instead of hand-rolling their own hardcoded fallback.
@@ -333,9 +375,16 @@ function Get-OnlineDevices {
     $raw = & $adb devices 2>$null
     if ($LASTEXITCODE -ne 0) { Fail 1 "adb devices returned exit $LASTEXITCODE" }
     $lines = $raw -split "`r?`n" | Where-Object { $_ -and $_ -notmatch '^\s*List of devices' }
+    # Split on the TAB adb actually prints between id and state, never on whitespace: an mDNS
+    # service name can contain a space. When two adb servers advertise the same watch, Android
+    # publishes the second as "adb-<serial>-xxxx (2)._adb-tls-connect._tcp" - splitting that on
+    # the first space put "(2)._adb-tls-connect._tcp<TAB>device" in $parts[1], the state test
+    # failed, and the watch vanished from every verb with no message at all. Measured 2026-09-09:
+    # `. iw` built the wear APK, then refused to install because the only device it could see was
+    # the phone.
     $devs = foreach ($line in $lines) {
-        $parts = ($line -split "\s+", 2) | Where-Object { $_ }
-        if ($parts.Count -ge 2 -and $parts[1] -eq 'device') { $parts[0] }
+        $parts = ($line -split "`t", 2) | Where-Object { $_ }
+        if ($parts.Count -ge 2 -and $parts[1].Trim() -eq 'device') { $parts[0].Trim() }
     }
     return @($devs)
 }
@@ -349,7 +398,53 @@ function Select-Device {
         if ($devs -notcontains $DeviceId) { Fail 2 "device '$DeviceId' is not online (online: $($devs -join ', '))" }
         return $DeviceId
     }
-    if ($devs.Count -gt 1) { Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId" }
+    if ($devs.Count -gt 1) {
+        # A caller that named -Module has already said which KIND of device it means, and the
+        # watch is distinguishable without asking the user: ro.build.characteristics carries
+        # 'watch'. So `install -Module wear` with a phone and a paired watch online resolves to
+        # the watch instead of refusing (a build that succeeded then failed only at the install
+        # step, measured 2026-09-03 on `. iw`). Only an EXPLICIT -Module counts - the parameter
+        # defaults to app_v2, and silently picking the phone for every unqualified verb would
+        # replace a visible refusal with an invisible guess.
+        if ($script:ModuleWasNamed) {
+            $wantWatch = ($Module -eq 'wear')
+            $matched = @($devs | Where-Object { (Test-WatchDevice $_) -eq $wantWatch })
+            if ($matched.Count -eq 1) {
+                Write-Host "Selected $($matched[0]) - the only online device matching -Module $Module." -ForegroundColor Gray
+                return $matched[0]
+            }
+            # Wireless ADB can list the SAME physical device twice: the literal ip:port a user
+            # `adb connect`-ed to, and the mDNS-advertised "adb-<serial>-xxxx._adb-tls-connect._tcp"
+            # service name Android also publishes for it. -Module disambiguation then narrows to two
+            # entries instead of one and still refuses, even though there is only one watch to pick
+            # (measured 2026-09-04: watch online as both 192.168.1.166:39969 and
+            # adb-RFGL1148CRZ-...tcp alongside one unrelated phone). Resolve by the device's own
+            # ro.serialno/ro.boot.serialno: if every matched id reports the same real serial, they are
+            # one device wearing two connection names, and installing to either reaches it - prefer
+            # the literal ip:port form since that is what the user actually typed to connect it.
+            if ($matched.Count -gt 1) {
+                $bySerial = @{}
+                foreach ($id in $matched) {
+                    $serial = ((Invoke-Adb $id @('shell', 'getprop', 'ro.serialno') -AllowFail) -join '').Trim()
+                    if (-not $serial) {
+                        $serial = ((Invoke-Adb $id @('shell', 'getprop', 'ro.boot.serialno') -AllowFail) -join '').Trim()
+                    }
+                    if ($serial) {
+                        if (-not $bySerial.ContainsKey($serial)) { $bySerial[$serial] = @() }
+                        $bySerial[$serial] += $id
+                    }
+                }
+                if ($bySerial.Keys.Count -eq 1) {
+                    $sameDevice = $bySerial.Values | Select-Object -First 1
+                    $preferred = $sameDevice | Where-Object { $_ -notmatch '\._tcp$' -and $_ -notlike 'adb-*' } | Select-Object -First 1
+                    $chosen = if ($preferred) { $preferred } else { $sameDevice[0] }
+                    Write-Host "Selected $chosen - one physical -Module $Module device online under $($sameDevice.Count) connection names ($($sameDevice -join ', '))." -ForegroundColor Gray
+                    return $chosen
+                }
+            }
+        }
+        Fail 3 "multiple online devices ($($devs -join ', ')); pass -DeviceId"
+    }
     return $devs[0]
 }
 
@@ -408,8 +503,28 @@ function Resolve-Package {
     Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
 }
 
+# Resolve which activity component `launch` should start. An EXPLICIT -Module is honoured as
+# stated and refused on a conflict with the device - mirroring `install`'s guard (S1681/S2043),
+# because a caller who named the wrong module needs to be told, not routed around. The common case
+# is one device and no -Module at all though, and Select-Device's own module disambiguation (above)
+# never runs for it - that branch exists only to pick among SEVERAL online devices - so an unnamed
+# -Module used to trust the 'app_v2' default unconditionally and send `am start` at the phone's
+# MainActivity on a watch (S2992): three /spec-sweep agents hit exactly that on 2026-09-11. An
+# unnamed -Module now defers to what the selected device actually reports instead.
 function Resolve-Activity {
-    if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+    param([string]$Id)
+    $isWatchDevice = Test-WatchDevice $Id
+    if ($script:ModuleWasNamed) {
+        if ($isWatchDevice -and $Module -ne 'wear') {
+            Fail 1 "device $Id reports watch characteristics (ro.build.characteristics) but -Module is '$Module' - the phone's MainActivity does not exist in the wear build, since the watch declares its own activity under its own code namespace (S1984) while both modules share one applicationId (S1681). Pass -Module wear, or point -DeviceId at a phone."
+        }
+        if (-not $isWatchDevice -and $Module -eq 'wear') {
+            Fail 1 "device $Id does not report watch characteristics but -Module wear was requested - the wear activity does not exist in the phone build. Point -DeviceId at the paired watch, or drop -Module wear."
+        }
+        if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+        return $MAIN_ACTIVITY
+    }
+    if ($isWatchDevice) { return $WEAR_MAIN_ACTIVITY }
     return $MAIN_ACTIVITY
 }
 
@@ -516,14 +631,14 @@ function Get-DisplayShape {
 switch ($Verb.ToLowerInvariant()) {
 
     'help' {
-        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell' } }
+        if ($Json) { Emit-Ok @{ verbs = 'help,devices,props,current,launch,stop,logcat-clear,wipe-data,install,uninstall,shot,uidump,clip-check,log,tap,tap-id,tap-label,swipe,text,key,prefs,pull,push,shell,font-scale' } }
         Write-Host "adb.ps1 - ad-hoc device swiss-army" -ForegroundColor Cyan
         Write-Host "Usage: pwsh -NoProfile -File scripts/devtest/adb.ps1 <verb> [options]" -ForegroundColor Gray
         Write-Host ""
         Write-Host "  devices    list online devices (model + Android version)" -ForegroundColor White
         Write-Host "  props      selected device props (model, release, sdk, density, size)" -ForegroundColor White
         Write-Host "  current    focused activity / package" -ForegroundColor White
-        Write-Host "  launch     start app (debug: explicit MainActivity)" -ForegroundColor White
+        Write-Host "  launch     start app (debug: explicit component; auto-detects a watch device)" -ForegroundColor White
         Write-Host "  stop       force-stop app" -ForegroundColor White
         Write-Host "  logcat-clear  empty the logcat buffer (alias log-clear) - no app state touched" -ForegroundColor White
         Write-Host "  wipe-data  DESTRUCTIVE pm clear - needs -Yes (data, grants, onboarding gone)" -ForegroundColor Yellow
@@ -534,7 +649,8 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  uidump     dump the UI node tree: labels, ids, bounds, tap points (-Grep regex, -Ids)" -ForegroundColor White
         Write-Host "  tap-id     tap a node by its resource-id: -ResourceId <s> [-Exact] [-Index N] - preferred" -ForegroundColor White
         Write-Host "  tap-label  tap a node by its text/content-desc: -Label <s> [-Exact] [-Index N]" -ForegroundColor White
-        Write-Host "  clip-check report content leaving the display shape (read from the device)" -ForegroundColor White
+        Write-Host "  clip-check report content leaving the display shape (read from the device); -Strict fails on CLIPPED" -ForegroundColor White
+        Write-Host "  font-scale read the system font scale, or set it with -Scale <n> (1.0 = default)" -ForegroundColor White
         Write-Host "  tap        input tap -X <x> -Y <y>" -ForegroundColor White
         Write-Host "  swipe      input swipe -X <x> -Y <y> -X2 <x> -Y2 <y> [-Duration ms]" -ForegroundColor White
         Write-Host "  text       input text -Text <string>" -ForegroundColor White
@@ -607,7 +723,7 @@ switch ($Verb.ToLowerInvariant()) {
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
         # Explicit component avoids the debug LeakCanary launcher pre-empting the app launcher.
-        $activity = Resolve-Activity
+        $activity = Resolve-Activity $id
         Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$activity") | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity" } }
         Write-Host "LAUNCHED $pkg/$activity on $id" -ForegroundColor Green
@@ -701,6 +817,37 @@ switch ($Verb.ToLowerInvariant()) {
             Fail 1 "APK not found (pass -Apk <path>, or $buildHint)"
         }
         Invoke-Adb $id @('install', '-r', '-d', $apkPath) | Out-Null
+        # S2855: record the install mark best-effort. The device that just accepted the artifact is
+        # the exact source of what it now runs, so the version is read back through dumpsys instead
+        # of parsing the APK locally. A candidate only counts when its lastUpdateTime is fresh -
+        # an untouched package that merely answers dumpsys is a pre-existing install, not what this
+        # verb put here, and marking it would write a wrong fact. A recording failure prints one
+        # line and never fails the install: accounting must not break the work it accounts for.
+        try {
+            foreach ($cand in @($DEBUG_PACKAGE, $BASE_PACKAGE)) {
+                $dump = (Invoke-Adb $id @('shell', 'dumpsys', 'package', $cand) -AllowFail) -join "`n"
+                if ($dump -match 'versionName=([^\s]+)') {
+                    $recVersion = $Matches[1]
+                    $recFresh = $true
+                    if ($dump -match 'lastUpdateTime=(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})') {
+                        $recFresh = (((Get-Date) - [datetime]$Matches[1]).TotalMinutes -lt 10)
+                    }
+                    if ($recFresh) {
+                        $regArgs = @('-Verb', 'Record', '-Id', $id, '-Package', $cand,
+                            '-Module', $Module, '-Flavor', $Flavor,
+                            '-BuildType', $(if ($cand -eq $DEBUG_PACKAGE) { 'debug' } else { 'release' }),
+                            '-VersionName', $recVersion, '-Artifact', (Split-Path -Path $apkPath -Leaf),
+                            '-RecordedBy', 'adb.ps1 install')
+                        if ($dump -match 'versionCode=(\d+)') { $regArgs += @('-VersionCode', $Matches[1]) }
+                        & pwsh -NoProfile -File (Join-Path $PSScriptRoot 'device-registry.ps1') @regArgs *> $null
+                    }
+                    break
+                }
+            }
+        }
+        catch {
+            Write-Host "note: install recording failed ($_)" -ForegroundColor DarkYellow
+        }
         if ($Json) { Emit-Ok @{ id = $id; apk = $apkPath } }
         Write-Host "INSTALLED $apkPath on $id" -ForegroundColor Green
         exit 0
@@ -867,6 +1014,26 @@ switch ($Verb.ToLowerInvariant()) {
         exit 0
     }
 
+    'rotary' {
+        $id = Select-Device
+        $script:result.device = $id
+        if (-not $PSBoundParameters.ContainsKey('Axis')) { Fail 1 "rotary needs -Axis <double> (negative turns the other way; optional -Repeat N)" }
+        if ($Repeat -lt 1) { Fail 1 "rotary needs -Repeat >= 1" }
+        # S2548: a rotary encoder is a watch input, and the two modules publish under one applicationId,
+        # so nothing but the form factor can tell this call was aimed at the wrong device.
+        if (-not (Test-WatchDevice -Id $id)) {
+            Fail 12 ("refusing to turn a bezel on $id - ro.build.characteristics does not report a watch. " +
+                "A rotary encoder exists only on a watch; aim the call with -DeviceId <watch serial>")
+        }
+        $written = $Axis.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+        for ($turn = 0; $turn -lt $Repeat; $turn++) {
+            Invoke-Adb $id @('shell', 'input', 'rotaryencoder', 'scroll', $written) | Out-Null
+        }
+        if ($Json) { Emit-Ok @{ id = $id; axis = $Axis; repeat = $Repeat } }
+        Write-Host "ROTARY axis $written x$Repeat on $id" -ForegroundColor Green
+        exit 0
+    }
+
     'uidump' {
         $id = Select-Device
         $script:result.device = $id
@@ -943,6 +1110,37 @@ switch ($Verb.ToLowerInvariant()) {
         exit 0
     }
 
+    'font-scale' {
+        $id = Select-Device
+        $script:result.device = $id
+        # An untouched device has never written the key and answers 'null'; the platform reads that
+        # as the default, so report the number the UI would show rather than the literal - and never
+        # cast the literal, which throws and takes the whole verb down.
+        $readScale = {
+            $raw = ((Invoke-Adb $id @('shell', 'settings', 'get', 'system', 'font_scale') -AllowFail) -join '').Trim()
+            if ([string]::IsNullOrWhiteSpace($raw) -or $raw -eq 'null') { '1.0' } else { $raw }
+        }
+        $current = & $readScale
+        if (-not $PSBoundParameters.ContainsKey('Scale')) {
+            if ($Json) { Emit-Ok @{ id = $id; scale = [double]$current } }
+            Write-Host "FONT SCALE $current on $id" -ForegroundColor Green
+            exit 0
+        }
+        $isEmulator = $id -like 'emulator-*'
+        if (-not $isEmulator -and -not $Yes) {
+            Fail 11 ("refusing to change the system font scale of a physical device without -Yes. " +
+                "Whether THIS device may be changed at all is docs/DEVICE_FLEET.md - read it and match the serial first")
+        }
+        # Invariant culture on purpose: a Russian Windows interpolates 1.3 as "1,3", which the
+        # platform stores verbatim and then reads back as an unusable value.
+        $written = $Scale.ToString([System.Globalization.CultureInfo]::InvariantCulture)
+        Invoke-Adb $id @('shell', 'settings', 'put', 'system', 'font_scale', $written) | Out-Null
+        $now = & $readScale
+        if ($Json) { Emit-Ok @{ id = $id; scale = [double]$now; previous = [double]$current; written = [double]$written } }
+        Write-Host "FONT SCALE $current -> $now on $id" -ForegroundColor Green
+        exit 0
+    }
+
     'clip-check' {
         $id = Select-Device
         $script:result.device = $id
@@ -963,13 +1161,23 @@ switch ($Verb.ToLowerInvariant()) {
             }) | Out-Null
         }
         $offGlass = @($findings | Where-Object { $_.kind -eq 'OFF-GLASS' })
+        # Strict answers the reviewer's question, not the developer's: Play photographs one frame and
+        # calls a box that leaves the glass "cut off", where CLIPPED only means a scroll could save it.
+        $frameCut = @($findings | Where-Object { $_.kind -eq 'CLIPPED' })
         if ($Json) {
             # ToArray(), never @($findings): the array subexpression around a PSObject-wrapped
             # List[object] throws "Argument types do not match" and killed this -Json path (S2079).
-            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count }
-            $script:result.ok = ($offGlass.Count -eq 0)
-            $script:result.exitCode = if ($offGlass.Count -eq 0) { 0 } else { 9 }
-            if ($offGlass.Count -gt 0) { $script:result.reason = "$($offGlass.Count) node(s) off-glass" }
+            $script:result.data = [ordered]@{ id = $id; file = $file; shape = $shape; checked = $judged.Count; findings = $findings.ToArray(); offGlass = $offGlass.Count; frameCut = $frameCut.Count; strict = [bool]$Strict }
+            $script:result.exitCode = 0
+            if ($Strict -and $frameCut.Count -gt 0) {
+                $script:result.exitCode = 10
+                $script:result.reason = "$($frameCut.Count) node(s) cut by the glass in this frame"
+            }
+            if ($offGlass.Count -gt 0) {
+                $script:result.exitCode = 9
+                $script:result.reason = "$($offGlass.Count) node(s) off-glass"
+            }
+            $script:result.ok = ($script:result.exitCode -eq 0)
             $script:result | ConvertTo-Json -Compress -Depth 6
             exit $script:result.exitCode
         }
@@ -985,12 +1193,22 @@ switch ($Verb.ToLowerInvariant()) {
             Write-Host "OK - this display reports no rounded corners, so nothing can leave its glass" -ForegroundColor Cyan
             exit 0
         }
-        if ($offGlass.Count -eq 0) {
-            Write-Host ("CLEAN - {0} leaf node(s) checked, none off-glass ({1} EDGE, {2} CLIPPED are normal scrolling)" -f `
-                $judged.Count, @($findings | Where-Object { $_.kind -eq 'EDGE' }).Count, @($findings | Where-Object { $_.kind -eq 'CLIPPED' }).Count) -ForegroundColor Cyan
+        if ($offGlass.Count -gt 0) {
+            Fail 9 "$($offGlass.Count) node(s) cannot fit on the glass at any scroll position"
+        }
+        if ($Strict -and $frameCut.Count -gt 0) {
+            Fail 10 ("{0} node(s) cut by the glass in this frame: {1}. Scrolling would recentre them, but a store reviewer judges the frame" -f `
+                $frameCut.Count, (($frameCut | ForEach-Object { $_.label }) -join ', '))
+        }
+        $edgeCount = @($findings | Where-Object { $_.kind -eq 'EDGE' }).Count
+        if ($Strict) {
+            Write-Host ("CLEAN (strict) - {0} leaf node(s) checked, none off-glass and none cut in this frame ({1} EDGE)" -f `
+                $judged.Count, $edgeCount) -ForegroundColor Cyan
             exit 0
         }
-        Fail 9 "$($offGlass.Count) node(s) cannot fit on the glass at any scroll position"
+        Write-Host ("CLEAN - {0} leaf node(s) checked, none off-glass ({1} EDGE, {2} CLIPPED are normal scrolling; -Strict judges those too)" -f `
+            $judged.Count, $edgeCount, $frameCut.Count) -ForegroundColor Cyan
+        exit 0
     }
 
     'text' {
@@ -1080,10 +1298,15 @@ switch ($Verb.ToLowerInvariant()) {
         if (-not $Local -or -not $Remote) { Fail 1 "push needs -Local <local path> -Remote <device path>" }
         # Refused here rather than on the device: adb's own error for a missing source reads like a
         # device-side problem and sends the reader looking in the wrong place.
-        if (-not (Test-Path -Path $Local -PathType Leaf)) { Fail 1 "local file '$Local' does not exist" }
+        if (-not (Test-Path -Path $Local)) { Fail 1 "local path '$Local' does not exist" }
+        # A directory is accepted because adb push copies a tree natively; the Leaf-only test this
+        # replaces refused one, which made seeding a media corpus fall back to a raw adb - the exact
+        # call that rewrites /sdcard into a Windows path from a POSIX-style shell (S2602).
+        $isDirectory = Test-Path -Path $Local -PathType Container
         Invoke-Adb $id @('push', $Local, $Remote) | Out-Null
-        if ($Json) { Emit-Ok @{ id = $id; local = $Local; remote = $Remote } }
-        Write-Host "PUSHED $Local -> $Remote on $id" -ForegroundColor Green
+        $kind = if ($isDirectory) { 'directory' } else { 'file' }
+        if ($Json) { Emit-Ok @{ id = $id; local = $Local; remote = $Remote; kind = $kind } }
+        Write-Host "PUSHED $kind $Local -> $Remote on $id" -ForegroundColor Green
         exit 0
     }
 

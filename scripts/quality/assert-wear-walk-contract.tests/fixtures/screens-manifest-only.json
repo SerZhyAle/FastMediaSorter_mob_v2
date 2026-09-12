@@ -1,0 +1,21 @@
+{
+  "_comment": [
+    "Fixture: the value matches, but no composable references the resource."
+  ],
+  "screens": [
+    {
+      "id": "alpha",
+      "name": "Alpha",
+      "expect": "Only In Manifest",
+      "screen": "AlphaScreen",
+      "expectRes": "manifest_only"
+    }
+  ],
+  "excluded": [
+    {
+      "screen": "BetaScreen",
+      "reason": "not-a-destination",
+      "note": "Fixture: nested helper."
+    }
+  ]
+}

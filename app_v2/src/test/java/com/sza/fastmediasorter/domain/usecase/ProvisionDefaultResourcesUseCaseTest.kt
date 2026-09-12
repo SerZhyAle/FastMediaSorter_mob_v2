@@ -16,8 +16,13 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.yield
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -32,6 +37,10 @@ class ProvisionDefaultResourcesUseCaseTest {
     private val resolveResourceIconUseCase: ResolveResourceIconUseCase = ResolveResourceIconUseCase()
 
     private lateinit var useCase: ProvisionDefaultResourcesUseCase
+
+    private companion object {
+        const val DOWNLOADS_PATH = "/storage/emulated/0/Download"
+    }
 
     @Before
     fun setUp() {
@@ -305,6 +314,73 @@ class ProvisionDefaultResourcesUseCaseTest {
         val docsResource = captured.first { it.path == LocalMediaScanner.VIRTUAL_PATH_ALL_DOCS }
         assertEquals(setOf(MediaType.TEXT, MediaType.EPUB, MediaType.OFFICE_DOCUMENT), docsResource.supportedMediaTypes)
     }
+
+    // ── S2634: two passes overlapping in time ─────────────────
+    // The read yields before it answers, so the second pass reaches the snapshot while the first
+    // has decided but not yet written. Without serialisation both passes see an empty table and
+    // both write all six records, which is what put six virtual resources on screen twice.
+
+    @Test
+    fun `two overlapping passes create each predefined resource exactly once`() = runTest {
+        val settings = AppSettings(
+            supportAudio = true, supportVideos = true,
+            supportText = true, supportPdf = true, supportEpub = true
+        )
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
+
+        val stored = mutableListOf<MediaResource>()
+        every { resourceRepository.getAllResources() } answers {
+            // Captured when the READ is issued, delivered after a suspension point: that is what a
+            // real query does, and emitting `stored` at collection time instead would hand the
+            // second pass a snapshot the first pass had already written into - which is exactly the
+            // staleness this test exists to catch.
+            val snapshot = stored.toList()
+            flow {
+                yield()
+                emit(snapshot)
+            }
+        }
+        coEvery { resourceRepository.addResource(any()) } coAnswers {
+            stored += firstArg<MediaResource>()
+            stored.size.toLong()
+        }
+
+        coroutineScope {
+            awaitAll(async { useCase() }, async { useCase() })
+        }
+
+        assertEquals(6, stored.size)
+        assertEquals(6, stored.map { it.path }.toSet().size)
+    }
+
+    // ── S2634: an install that already ran the race heals itself ──
+
+    @Test
+    fun `invoke deletes duplicate predefined records and keeps the lowest id`() = runTest {
+        val settings = AppSettings(
+            supportAudio = true, supportVideos = true,
+            supportText = true, supportPdf = true, supportEpub = true
+        )
+        coEvery { settingsRepository.getSettings() } returns flowOf(settings)
+        val existing = listOf(
+            resourceAt(1L, LocalMediaScanner.VIRTUAL_PATH_RECENT),
+            resourceAt(7L, LocalMediaScanner.VIRTUAL_PATH_RECENT),
+            resourceAt(2L, DOWNLOADS_PATH),
+            resourceAt(8L, DOWNLOADS_PATH)
+        )
+        coEvery { resourceRepository.getAllResources() } returns flowOf(existing)
+        coEvery { resourceRepository.addResource(any()) } returns 1L
+
+        useCase()
+
+        coVerify(exactly = 1) { resourceRepository.deleteResource(7L) }
+        coVerify(exactly = 0) { resourceRepository.deleteResource(1L) }
+        // A repeated non-predefined path is not this use case's to judge - the user may own it.
+        coVerify(exactly = 0) { resourceRepository.deleteResource(8L) }
+    }
+
+    private fun resourceAt(id: Long, path: String) =
+        MediaResource(id = id, name = "Stub", path = path, type = ResourceType.LOCAL)
 
     // ── All resources use LOCAL type and isWritable=false ──────
 

@@ -45,8 +45,48 @@ class RefreshInstalledAppsUseCase @Inject constructor(
     suspend fun refreshIfStale() {
         val current = repository.cachedFormatVersion()
         val fresh = current == INSTALLED_APP_CACHE_FORMAT_VERSION && repository.cachedCount() > 0
-        if (!fresh) {
+        if (fresh) {
+            reconcile()
+        } else {
             refreshAll()
+        }
+    }
+
+    /**
+     * S2745: brings a live cache back in line with the system without rewriting it.
+     *
+     * The broadcast path only covers changes made while the process was alive, so an install done
+     * against a dead process would otherwise never land - nothing rebuilt a non-empty cache. Only the
+     * differences are written: a row whose package and `lastUpdateTime` both match is left alone, so
+     * this costs one enumeration rather than a full sweep of icon files.
+     */
+    suspend fun reconcile() = withContext(Dispatchers.IO) {
+        val packageManager = context.packageManager
+        val resolved = launchableActivities(packageManager)
+            .mapNotNull { info -> info.activityInfo?.packageName?.let { it to info } }
+            .toMap()
+        if (resolved.isEmpty()) {
+            // Same reading as in refreshAll: a query that came back empty, not a device with no apps.
+            // Acting on it would delete every row.
+            Timber.i("Installed-app enumeration returned nothing, skipping reconcile")
+            return@withContext
+        }
+        val cached = repository.observeApps().first()
+        Timber.d("S2745: reconcile cached=%d resolved=%d", cached.size, resolved.size)
+        cached.forEach { app ->
+            if (!resolved.containsKey(app.packageName)) {
+                repository.remove(app.packageName)
+                iconStore.delete(app.packageName)
+            }
+        }
+        val cachedByPackage = cached.associateBy { it.packageName }
+        resolved.forEach { (packageName, resolveInfo) ->
+            val known = cachedByPackage[packageName]
+            val changed = known == null ||
+                known.lastUpdateTime != packageInfoOrNull(packageManager, packageName)?.lastUpdateTime
+            if (changed) {
+                toInstalledApp(packageManager, resolveInfo)?.let { repository.upsert(it) }
+            }
         }
     }
 

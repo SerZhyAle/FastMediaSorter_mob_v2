@@ -20,7 +20,8 @@
     Exit codes:
       0  every assertion passed
       1  at least one assertion failed
-      2  could not verify: parser or fixture missing
+      2  could not verify: parser or fixture missing, or the generator was queued
+         for a code domain held by another session (S2615)
 #>
 [CmdletBinding()]
 param(
@@ -132,7 +133,16 @@ if (-not (Test-Path -LiteralPath $generator)) {
 }
 
 $null = & pwsh -NoProfile -File $generator -Quiet 2>&1
-Assert-That -Name 'generator exits 0 on the current tree' -Condition ($LASTEXITCODE -eq 0) -Detail "got $LASTEXITCODE"
+$firstRun = $LASTEXITCODE
+if ($firstRun -eq 4) {
+    # S2615: the generator now takes Code.Phone + Code.Scripts before it writes, and every case
+    # below drives it in WRITE mode. A sibling session holding either domain is an environment
+    # state, not a defect in the subject - reporting it as a failed assertion would turn another
+    # agent's ordinary lock into a red closure here.
+    Write-Error "oss-notices tests: cannot verify - the generator was queued for a code domain held by another session (exit 4). Rerun when the domain frees." -ErrorAction Continue
+    exit 2
+}
+Assert-That -Name 'generator exits 0 on the current tree' -Condition ($firstRun -eq 0) -Detail "got $firstRun"
 
 $null = & pwsh -NoProfile -File $generator -Check -Quiet 2>&1
 Assert-That -Name 'a freshly generated tree reports no drift' -Condition ($LASTEXITCODE -eq 0) -Detail "got $LASTEXITCODE"
@@ -170,7 +180,7 @@ Assert-That -Name 'the tree is restored after the refusal case' -Condition ((& {
 
 Write-Host 'Generator - rendered pages'
 
-foreach ($page in @('docs/OPEN_SOURCE.md', 'docs/OPEN_SOURCE.ru.md', 'docs/OPEN_SOURCE.uk.md')) {
+foreach ($page in @('docs/OPEN_SOURCE.md', 'docs/OPEN_SOURCE-ru.md', 'docs/OPEN_SOURCE-uk.md')) {
     $full = Join-Path $RepoRoot $page
     Assert-That -Name "$page exists" -Condition (Test-Path -LiteralPath $full)
     $body = Get-Content -LiteralPath $full -Raw

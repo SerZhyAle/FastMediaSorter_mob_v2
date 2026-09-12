@@ -1,5 +1,8 @@
 package com.sza.fastmediasorter.wear.ui.navigation
 
+import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
+import com.sza.fastmediasorter.wear.domain.model.WearFolderAddress
+
 /**
  * Every navigation address of the watch app, declared once.
  *
@@ -47,14 +50,41 @@ object WearRoutes {
     const val CALCULATOR = "calculator"
     const val NETWORK_MONITOR = "network_monitor"
     const val GAME = "game"
+    const val GAME_RULES = "game_rules"
 
     /**
      * S1862: the voice recorder is a mini-program, so [VOICE_RECORDER] carries its `canonicalKey`
      * like the three above. [VOICE_NOTES] is not one - it is the recorder's own note list, reached
      * only from the recorder, so it stays out of the Apps catalog and has no key to match.
+     *
+     * S2579: that key is `quick_voice`, which is how the phone addresses the same program - so this is
+     * the one route whose value does not echo its identifier. The identifier names the screen the watch
+     * opens; the value is the address the phone's registry would resolve, and the two are allowed to
+     * read differently precisely because only the second one is a cross-module contract.
      */
-    const val VOICE_RECORDER = "voice_recorder"
+    const val VOICE_RECORDER = "quick_voice"
     const val VOICE_NOTES = "voice_notes"
+
+    /** S2516: the display used as a light, locked against touch. Carries its `canonicalKey` too. */
+    const val WATER_FLASHLIGHT = "water_flashlight"
+
+    /** S2458: live motion and activity readings. Carries its `canonicalKey` like the programs above. */
+    const val MOTION_MONITOR = "motion_monitor"
+
+    /** S3014: the physical activity measurement history and analytics screen. */
+    const val MOTION_HISTORY = "motion_history"
+
+    /** S2457: the foreground heart-rate diagnostic. Carries its `canonicalKey` like the programs above. */
+    const val BODY_SENSOR = "body_sensor"
+
+    /** S2808: the heart-rate measurement history screen, reached from the body sensor screen. */
+    const val HEART_RATE_HISTORY = "heart_rate_history"
+
+    /** S2809: the blood pressure input screen. Available in both flavors - no permission needed. */
+    const val BLOOD_PRESSURE = "blood_pressure"
+
+    /** S2809: the blood pressure history screen, reached from the blood pressure screen. */
+    const val BLOOD_PRESSURE_HISTORY = "blood_pressure_history"
 
     /**
      * S2008: the watch's own report, relocated from `settings/system_info`. Its value is the program's
@@ -63,8 +93,39 @@ object WearRoutes {
      */
     const val SYSTEM_INFO = "system_info"
 
-    /** S2006: where a file the watch cannot play lands, instead of the audio player. */
-    const val UNSUPPORTED_FILE = "unsupported_file"
+    /**
+     * S2509: the watch's own audio broadcast. Carries its `canonicalKey` like the programs above, and
+     * that key has no phone counterpart on purpose - the phone's broadcast (S2508) is a capability of
+     * the player rather than a launcher program, so it is recorded in the watch-only baseline instead.
+     */
+    const val BROADCAST = "broadcast"
+
+    /**
+     * The barcode view of a live broadcast. A destination of its own rather than a panel inside the
+     * control screen: the owner asked for QR behind a deliberate button, and the round face has no
+     * room to carry a scannable code and a one-tap stop at once.
+     */
+    const val BROADCAST_QR = "broadcast_qr"
+
+    /**
+     * S2551: the control screen for a view of the paired phone's camera.
+     *
+     * Its own address rather than a mode of [BROADCAST]: that screen opens the watch's microphone
+     * for the phone, and this one asks the phone to open its camera for the watch. One route over
+     * two opposite directions would make a pinned shortcut ambiguous about which device it starts.
+     */
+    const val PHONE_CAMERA = "phone_camera"
+
+    /**
+     * S2825: the watch stopwatch. Ships in both watch flavors with no `WearRestrictedCapabilities`
+     * gate - it needs no permission and no hardware the phone half does not already assume.
+     */
+    const val STOPWATCH = "stopwatch"
+
+    /**
+     * S3007: the watch Tourist telemetry and navigation dashboard.
+     */
+    const val TOURIST = "tourist_info"
 
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"
@@ -74,13 +135,24 @@ object WearRoutes {
     const val ARG_FILE_ID = "fileId"
     const val ARG_TILE_KIND = "tileKind"
 
+    /** S2532: which document format was refused, named by [WearDocumentFormat.name]. */
+    const val ARG_DOCUMENT_FORMAT = "documentFormat"
+
     /** S2201: the level of the watch-local folder walk to open, as `WearFolderAddress.asToken` writes it. */
     const val ARG_FOLDER_TOKEN = "folderToken"
+
+    /**
+     * S2694: what the walk's entrance level is called, when the caller knows a better word than the
+     * default. A network walk passes the share's name; the local walk passes nothing.
+     */
+    const val ARG_FOLDER_TITLE = "folderTitle"
+    const val ARG_NETMON_SECTION = "section"
 
     const val BROWSE_PATTERN = "browse/{$ARG_MEDIA_TYPE}"
     const val PHONE_BROWSE_PATTERN = "browse_phone/{$ARG_MEDIA_TYPE}"
     const val BROWSE_SOURCE_PATTERN =
         "browse/{$ARG_MEDIA_TYPE}?$ARG_SOURCE_ID={$ARG_SOURCE_ID}&$ARG_SOURCE_NAME={$ARG_SOURCE_NAME}"
+    const val NETWORK_MONITOR_SECTION_PATTERN = "network_monitor/{$ARG_NETMON_SECTION}"
 
     /**
      * S1829: the media-type step a network source gets between its list and browse.
@@ -96,6 +168,20 @@ object WearRoutes {
     const val AUDIO_PLAYER_PATTERN = "audio_player/{$ARG_FILE_ID}"
     const val VIDEO_PLAYER_PATTERN = "video_player/{$ARG_FILE_ID}"
     const val IMAGE_VIEWER_PATTERN = "image_viewer/{$ARG_FILE_ID}"
+
+    /** S2532: the watch's own reader for a document it renders, the fourth of the content screens. */
+    const val DOCUMENT_VIEWER_PATTERN = "document_viewer/{$ARG_FILE_ID}"
+
+    /**
+     * S2006: where a file the watch cannot play lands, instead of the audio player.
+     *
+     * S2532: it carries the refused format now, so the screen can name it. The identifier stays
+     * [UNSUPPORTED_FILE] rather than gaining a `_PATTERN` suffix because it is the name the
+     * navigation graph declares this destination under, and renaming it would silently orphan that
+     * declaration - the two ends of a route are separate string literals, which is the whole reason
+     * this object exists.
+     */
+    const val UNSUPPORTED_FILE = "unsupported_file/{$ARG_DOCUMENT_FORMAT}"
 
     /**
      * S1955: where a tile of the given kind is pointed at its target.
@@ -113,7 +199,8 @@ object WearRoutes {
      * root, which is exactly what `WearFolderAddress.parse` answers for a blank one. Declaring it
      * mandatory would leave the walk with no address for its first screen.
      */
-    const val LOCAL_FOLDER_PATTERN = "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}"
+    const val LOCAL_FOLDER_PATTERN =
+        "local_folder?$ARG_FOLDER_TOKEN={$ARG_FOLDER_TOKEN}&$ARG_FOLDER_TITLE={$ARG_FOLDER_TITLE}"
 
     fun browse(mediaType: String): String = "browse/$mediaType"
 
@@ -137,6 +224,11 @@ object WearRoutes {
 
     fun imageViewer(fileId: Long): String = "image_viewer/$fileId"
 
+    fun documentViewer(fileId: Long): String = "document_viewer/$fileId"
+
+    /** The refusal, told which format it is refusing. Enum names need no encoding. */
+    fun unsupportedFile(format: WearDocumentFormat): String = "unsupported_file/${format.name}"
+
     fun tileTargetPicker(kind: String): String = "tile_target_picker/${encodeArg(kind)}"
 
     /**
@@ -147,10 +239,26 @@ object WearRoutes {
      * a folder name inside it may legally hold `&`. Concatenated raw, either one misses this
      * pattern and the tap does nothing at all.
      */
-    fun localFolder(token: String): String = "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}"
+    fun localFolder(token: String): String = folderWalk(token, title = "")
 
     /** The walk opened at its entrance, where no level has been chosen yet. */
     fun localFolderRoot(): String = localFolder("")
+
+    /**
+     * S2694: the walk opened on a network source, at [path] inside it.
+     *
+     * [sourceName] titles the entrance, which the local fallback cannot do here - it names the
+     * watch's own storage. Both arguments are encoded for the reason above: the token carries the
+     * share path, and a share or folder name legally holds `&`.
+     */
+    fun networkFolder(sourceId: String, path: String, sourceName: String): String =
+        folderWalk(WearFolderAddress.NetworkLevel(sourceId = sourceId, path = path).asToken(), sourceName)
+
+    private fun folderWalk(token: String, title: String): String =
+        "local_folder?$ARG_FOLDER_TOKEN=${encodeArg(token)}&$ARG_FOLDER_TITLE=${encodeArg(title)}"
+
+    fun networkMonitorSection(sectionKey: String): String =
+        "network_monitor/${encodeArg(sectionKey)}"
 
     /**
      * S1848: percent-encodes one argument value before it is concatenated into a route.

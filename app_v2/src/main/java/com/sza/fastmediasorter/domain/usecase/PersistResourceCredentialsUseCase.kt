@@ -26,7 +26,6 @@ class PersistResourceCredentialsUseCase @Inject constructor(
      * CREATE: delegates to SmbOperationsUseCase, which inserts or updates by that server key.
      */
     suspend operator fun invoke(formData: ResourceFormData): ResourceFormData {
-        Timber.d("S2086: persist entry type=${formData.type} credId=${formData.credentialsId != null}")
         if (formData.type !in NETWORK_TYPES) return formData
         val existingCredentialId = formData.credentialsId
         return if (existingCredentialId == null) {

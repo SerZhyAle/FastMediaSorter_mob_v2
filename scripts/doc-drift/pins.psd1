@@ -138,7 +138,9 @@
             name      = 'compile-sdk'
             gradleKey = 'compile-sdk'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`compileSdk`\s*/\s*`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
+                # S2884: the two values diverged (compileSdk 37, targetSdk 36), so the single
+                # combined line this matcher used to read can no longer state both truthfully.
+                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`compileSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'compileSdk\s*\|\s*(?<v>\d+)' }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }
@@ -150,7 +152,7 @@
             name      = 'target-sdk'
             gradleKey = 'target-sdk'
             docs      = @{
-                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`compileSdk`\s*/\s*`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
+                'docs/TECH_STACK.md'       = @{ required = $true;  matcher = '`targetSdk`:\s*`?(?<v>\d+)`?\s+for both modules' }
                 'dev/TECH_REQUIREMENTS.md' = @{ required = $true;  matcher = 'targetSdk\s*\|\s*(?<v>\d+)' }
                 'CLAUDE.md'                = @{ required = $false; matcher = $null }
             }

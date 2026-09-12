@@ -2,18 +2,22 @@ package com.sza.fastmediasorter.data.weather
 
 import android.content.Context
 import android.content.SharedPreferences
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import com.sza.fastmediasorter.domain.model.weather.WeatherCondition
 import com.sza.fastmediasorter.domain.model.weather.WeatherLocation
 import com.sza.fastmediasorter.domain.model.weather.WeatherSnapshot
 import com.sza.fastmediasorter.domain.model.weather.WeatherUnit
+import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.domain.repository.WeatherRepository
 import com.sza.fastmediasorter.domain.repository.WeatherResult
 import com.sza.fastmediasorter.domain.weather.WeatherProvider
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import java.time.LocalTime
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -27,12 +31,14 @@ import javax.inject.Singleton
  */
 @Singleton
 class WeatherRepositoryImpl @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     private val provider: WeatherProvider,
+    private val settingsRepository: SettingsRepository,
 ) : WeatherRepository {
 
-    private val prefs: SharedPreferences =
+    private val prefs: SharedPreferences by lazy {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
 
     private val cache = mutableMapOf<String, WeatherSnapshot>()
 
@@ -42,23 +48,34 @@ class WeatherRepositoryImpl @Inject constructor(
 
     // Dispatchers.IO, not the caller's context: the gadget calls this from the main thread and both the
     // SharedPreferences mirror and the provider call are blocking work.
-    override suspend fun current(location: WeatherLocation): WeatherResult = withContext(Dispatchers.IO) {
+    override suspend fun current(
+        location: WeatherLocation,
+        forceRefresh: Boolean,
+    ): WeatherResult = withContext(Dispatchers.IO) {
         mutex.withLock {
-            currentLocked(location)
+            currentLocked(location, forceRefresh)
         }
     }
 
     override suspend fun search(query: String): List<WeatherLocation> =
         provider.searchLocations(query, Locale.getDefault().language)
 
-    private suspend fun currentLocked(location: WeatherLocation): WeatherResult {
+    private suspend fun currentLocked(location: WeatherLocation, forceRefresh: Boolean): WeatherResult {
         val key = cacheKey(location)
-        val cached = cache[key] ?: readFromDisk(key, location)?.also { cache[key] = it }
+        // S2716: a reading in the other scale is not shown and not converted - it is refetched, so the
+        // scale the user just picked reaches the desktop on the next gadget tick instead of at the TTL.
+        val requestedUnit = requestedUnit()
+        val cached = (cache[key] ?: readFromDisk(key, location)?.also { cache[key] = it })
+            ?.takeIf { it.unit == requestedUnit }
         val now = System.currentTimeMillis()
-        if (cached != null && now - cached.observedAtMs < TTL_MS) {
-            return WeatherResult.Fresh(cached)
+        if (cached != null) {
+            val ageMs = now - cached.observedAtMs
+            val allowFetch = if (forceRefresh) ageMs >= MANUAL_REFRESH_THROTTLE_MS else ageMs >= TTL_MS
+            if (!allowFetch) {
+                return WeatherResult.Fresh(cached)
+            }
         }
-        val fetched = provider.currentWeather(location, preferredUnit())
+        val fetched = provider.currentWeather(location, requestedUnit)
         return when {
             fetched != null -> {
                 cache[key] = fetched
@@ -75,6 +92,13 @@ class WeatherRepositoryImpl @Inject constructor(
             }
         }
     }
+
+    /** The user's measurement system, resolved per call: the setting may change between two ticks. */
+    private suspend fun requestedUnit(): WeatherUnit =
+        when (settingsRepository.getSettings().first().unitSystem) {
+            UnitSystem.METRIC -> WeatherUnit.CELSIUS
+            UnitSystem.IMPERIAL -> WeatherUnit.FAHRENHEIT
+        }
 
     /** Rounded so a hand-typed coordinate and its geocoded twin share one cache entry. */
     private fun cacheKey(location: WeatherLocation): String = String.format(
@@ -99,8 +123,17 @@ class WeatherRepositoryImpl @Inject constructor(
             condition = condition,
             isDay = prefs.getBoolean(key + SUFFIX_IS_DAY, true),
             observedAtMs = observedAt,
+            // S1907: absent for every entry written before this ticket, so each of the three degrades to
+            // "not available" on its own - a pre-S1907 cache still yields a readable temperature card.
+            dewPoint = prefs.getFloat(key + SUFFIX_DEW_POINT, Float.NaN).takeIf { !it.isNaN() }?.toDouble(),
+            sunrise = readLocalTime(key + SUFFIX_SUNRISE),
+            sunset = readLocalTime(key + SUFFIX_SUNSET),
         )
     }
+
+    /** A stamp this app wrote, so a corrupt one is a bug elsewhere - it degrades, it does not throw. */
+    private fun readLocalTime(prefKey: String): LocalTime? =
+        prefs.getString(prefKey, null)?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
 
     private fun writeToDisk(key: String, snapshot: WeatherSnapshot) {
         prefs.edit()
@@ -109,6 +142,9 @@ class WeatherRepositoryImpl @Inject constructor(
             .putString(key + SUFFIX_UNIT, snapshot.unit.name)
             .putString(key + SUFFIX_CONDITION, snapshot.condition.name)
             .putBoolean(key + SUFFIX_IS_DAY, snapshot.isDay)
+            .putFloat(key + SUFFIX_DEW_POINT, snapshot.dewPoint?.toFloat() ?: Float.NaN)
+            .putString(key + SUFFIX_SUNRISE, snapshot.sunrise?.toString())
+            .putString(key + SUFFIX_SUNSET, snapshot.sunset?.toString())
             .apply()
     }
 
@@ -116,18 +152,18 @@ class WeatherRepositoryImpl @Inject constructor(
     private inline fun <reified T : Enum<T>> enumValueOrNull(name: String): T? =
         enumValues<T>().firstOrNull { it.name == name }
 
-    private fun preferredUnit(): WeatherUnit =
-        if (Locale.getDefault().country in FAHRENHEIT_COUNTRIES) WeatherUnit.FAHRENHEIT else WeatherUnit.CELSIUS
-
     private companion object {
         const val PREFS_NAME = "weather_cache"
         val TTL_MS = TimeUnit.MINUTES.toMillis(20)
+        val MANUAL_REFRESH_THROTTLE_MS = TimeUnit.SECONDS.toMillis(60)
         const val KEY_FORMAT = "%.2f_%.2f"
         const val SUFFIX_TIME = "_time"
         const val SUFFIX_TEMPERATURE = "_temp"
         const val SUFFIX_UNIT = "_unit"
         const val SUFFIX_CONDITION = "_cond"
         const val SUFFIX_IS_DAY = "_day"
-        val FAHRENHEIT_COUNTRIES = setOf("US", "LR", "MM")
+        const val SUFFIX_DEW_POINT = "_dew"
+        const val SUFFIX_SUNRISE = "_sunrise"
+        const val SUFFIX_SUNSET = "_sunset"
     }
 }

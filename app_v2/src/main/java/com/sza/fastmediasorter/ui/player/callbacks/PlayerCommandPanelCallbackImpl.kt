@@ -129,10 +129,6 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onFullscreenClicked() {
-        if (activity.tryHandleFullscreenCommandOverride()) {
-            return
-        }
-
         // PDF page-fullscreen has its own zoomable overlay; the long-press gesture now opens
         // text selection, so the overflow menu_fullscreen is the entry point for PDF fullscreen.
         if (viewModel.state.value.currentFile?.type == MediaType.PDF && activity._pdfViewerManager != null) {
@@ -342,10 +338,6 @@ class PlayerCommandPanelCallbackImpl(
     }
 
     override fun onSaveFrameClicked() {
-        if (activity.tryHandleSaveFrameCommandOverride()) {
-            return
-        }
-
         // PlayerActivity decides the correct capture backend (TextureView on phone/tablet).
         activity.saveCurrentFrame()
     }

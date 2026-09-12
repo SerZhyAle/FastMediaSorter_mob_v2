@@ -184,6 +184,22 @@ Full internals in `04_favicon_atlas.md`; this is the contract summary.
   {"http://chan/a.m3u8": 2, "http://chan/b.mp3": 0}
   ```
 
+### 5.3a `collections.json` - curated collections, optional third entry (S2669) **[CONTRACT]**
+- **Optional.** A ZIP without it is the two-entry archive described above, unchanged. A consumer that
+  ignores the entry keeps working exactly as before; nothing in the bank changed to make room for it.
+- **Entry name is exactly `collections.json`**, appended after the CSV and the atlas, so entry 0 stays
+  `streams.csv` and 5.1 is untouched.
+- **It is JSON and its name deliberately does NOT end in `.csv`.** Per 5.2 a `.csv` entry that is not
+  named `streams.csv` is taken as a FALLBACK bank, so a curated payload carrying that extension would be
+  loaded as the user's catalog whenever the real bank failed to parse. The producer refuses any entry
+  other than the bank whose name ends in `.csv`.
+- **It carries its own `schemaVersion`**, which the bank does not have. That number is the channel for
+  changing the shape of collections later without renegotiating the CSV.
+- Field-by-field description: `03_catalog_format.md` section 8.
+- Producer side: built and validated by `Build-StreamCollections` / `Assert-StreamCollections`
+  (`scripts/streams/modules/StreamPublisher.Collections.ps1`), both called from `Invoke-PublishCatalog`
+  before anything is packed.
+
 ### 5.4 Producer publish guard (S0925) *(producer-side; see 08)*
 - The producer **refuses to publish** a CSV that carries `favicon_index` values without a bundled atlas
   (unless explicitly overridden), because that combination makes the app wipe every user's favicons.
@@ -215,6 +231,32 @@ favors the user row; prune only ever removes catalog-origin rows).
 Provenance model: each stored channel has an origin - `CATALOG` (from this bank), `MANUAL` (user typed a
 URL), or `IMPORTED` (user imported an `.m3u`/`.m3u8` playlist). Only CATALOG rows participate in
 merge/prune and carry `category/topic/language/country`.
+
+### 6.1 Portable origins and cross-project conformance **[CONTRACT]**
+
+The `stream-catalog.zip` archive is the **cross-project publication format**. A producer such as FMS
+for Windows may generate it, and a consumer such as StreamsPlayer may import, show, and route its rows
+without implementing Android code.
+
+- **Catalog origin** is a row received from this ZIP. It is the only origin that the catalog refresh may
+  update or prune.
+- **Local origin** is a channel created from a user-entered address, a playlist, or another local import.
+  A catalog refresh must never overwrite or remove it, including when a later catalog no longer contains
+  its URL.
+- **Phone-transfer origin** is a channel sent from the Android phone to its paired watch. Its JSON message
+  is a Data Layer implementation contract, not a published interchange format. The watch retains a
+  transferred row absent from a later catalog and lets a catalog row with the same URL supersede it.
+
+**Producer conformance.** Emit UTF-8 RFC-4180 `streams.csv` as ZIP entry zero, match the published
+header names, and package the favicon atlas from the same build whenever any row has `favicon_index`.
+Adding columns is allowed; renaming an existing header or publishing CSV indices against another atlas is
+not.
+
+**Consumer conformance.** Match headers by name, drop rows missing `name` or `url`, display available
+metadata, and route playback from `media_kind` with the documented URL fallback. Merge catalog rows by
+URL while preserving local and phone-transfer origins. If this build's atlas is missing, corrupt, or over
+the consumer cap, discard this build's icon indices too and render no icon rather than pairing them with
+an older atlas.
 
 ---
 

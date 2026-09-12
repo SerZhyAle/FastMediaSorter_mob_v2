@@ -32,6 +32,8 @@
          missing/unparseable, or the operational baseline contains a rule name absent from
          config/detekt/rule-categories.txt. Never a PASS: "could not check" is a different fact
          from "checked and found nothing wrong".
+      4  the target's code domain is held by another session, so nothing was written. The queue
+         place is held - wait for the turn in the background and rerun (S2635).
 
 .PARAMETER Module
     app_v2 or wear. Omit to check both.
@@ -71,6 +73,7 @@ param(
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 
@@ -201,8 +204,16 @@ foreach ($m in $modules) {
     }
 
     if ($Update) {
-        Write-ViewFile -Path $formatPath -Ids $formatIds
-        Write-ViewFile -Path $signalPath -Ids $signalIds
+        # Per module, not once for both: app_v2's view files are Code.Phone and wear's are
+        # Code.Wear, so a two-module -Update takes each domain only for as long as it writes it.
+        $codeScope = $null
+        try {
+            $codeScope = Enter-CodeLockOrExit -Path @($formatPath, $signalPath) `
+                -Reason "split-detekt-baseline.ps1 -Update ($m view files)"
+            Write-ViewFile -Path $formatPath -Ids $formatIds
+            Write-ViewFile -Path $signalPath -Ids $signalIds
+        }
+        finally { Exit-CodeLockScope -Scope $codeScope }
         Write-Host ("split-detekt-baseline: [$m] regenerated - format $($formatIds.Count), " +
             "signal $($signalIds.Count) (reason: $Reason).") -ForegroundColor Green
         $report += [pscustomobject]@{ Module = $m; FormatCount = $formatIds.Count; SignalCount = $signalIds.Count; Updated = $true }
