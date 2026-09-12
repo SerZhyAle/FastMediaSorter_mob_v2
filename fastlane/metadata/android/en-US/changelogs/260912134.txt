@@ -1,0 +1,6 @@
+• Stopwatch - a built-in stopwatch with a multi-participant screen and a home-screen widget.
+• Mirror - the front camera as a mirror, one tap from the programs menu.
+• Water flashlight - a light no wet touch can switch off, on the phone and on the watch.
+• Camera flashlight in the notification shade - one tile, no app to open.
+• Live broadcast - send the phone or watch microphone over Wi-Fi, with its own settings section.
+..
