@@ -53,7 +53,7 @@ class WatchListenWidgetProvider : AppWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_watch_listen)
             views.setImageViewResource(
                 R.id.widget_watch_listen_listen_icon,
-                R.drawable.ic_watch,
+                R.drawable.ic_watch_listen,
             )
             // The record button carries the active state in its icon swap - red recorder while the
             // session records, plain microphone otherwise - beside the caption that names it.

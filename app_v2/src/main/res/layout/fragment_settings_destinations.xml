@@ -937,6 +937,14 @@
                         app:str_subtitle="@string/settings_enable_system_info_summary" />
 
                     <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+                        android:id="@+id/rowEnableTourist"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:str_icon="@drawable/ic_tourist"
+                        app:str_title="@string/tourist_info_title"
+                        app:str_subtitle="@string/setting_enable_tourist_desc" />
+
+                    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
                         android:id="@+id/rowEmbeddedGame"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"

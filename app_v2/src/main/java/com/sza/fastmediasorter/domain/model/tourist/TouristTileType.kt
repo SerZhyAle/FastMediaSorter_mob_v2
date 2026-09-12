@@ -12,4 +12,6 @@ enum class TouristTileType {
     STEPS,
     TRIP_DISTANCE,
     SUN_TIME,
+    WEATHER,
+    DEW_POINT,
 }

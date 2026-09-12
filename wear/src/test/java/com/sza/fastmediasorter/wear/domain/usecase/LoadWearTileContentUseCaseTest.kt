@@ -95,7 +95,7 @@ class LoadWearTileContentUseCaseTest {
         val content = useCase(WearTileKind.PROGRAMS) as WearTileContent.Shortcuts
 
         assertEquals(
-            WearAppCatalog.apps(offersBodySensorDiagnostics = true)
+            WearAppCatalog.apps(TileContentFakeCapabilities())
                 .map { WearLaunchTarget.Destination(destinationFor(it.id)) },
             content.entries.map { it.launchTarget }
         )
@@ -266,6 +266,7 @@ private class TileContentFakeCapabilities : WearRestrictedCapabilities {
 
     // S2812: the tile catalog does not read this one; it is answered only because the contract has it.
     override val locksSystemShade: Boolean = false
+    override val offersHealthFeatures: Boolean = true
 }
 
 private class TileContentFakeTileAssignmentRepository : WearTileAssignmentRepository {

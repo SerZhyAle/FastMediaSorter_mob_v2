@@ -76,6 +76,9 @@ data class AppSettings(
     // S1733: system information becomes a program like its neighbours - off until the user asks for it,
     // so an update never changes the composition of the programs panel on its own.
     val enableSystemInfo: Boolean = false,
+    // S2997: the Tourist dashboard is a sub-program like its neighbours - off until the user asks for it,
+    // so an update never changes the composition of the programs panel on its own.
+    val enableTourist: Boolean = false,
     // S1735: the Wear companion becomes a program like its neighbours. Off by default so an update never
     // adds an entry to the programs panel on its own; it is shown at all only where the build carries the
     // watch bridge, which is a separate condition read from MediaCapabilities.

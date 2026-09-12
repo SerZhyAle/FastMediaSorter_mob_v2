@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">Geschätzte verbleibende Zeit</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Dateien werden kopiert..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">Schließen</string>
     <string name="dialog_integration_test_btnCopyLog_text">Log kopieren</string>
@@ -3426,4 +3425,7 @@
     <string name="camera_session_consent_notification_title">Deine Uhr möchte diese Kamera sehen</string>
     <string name="camera_session_consent_notification_text">Erlaube der Uhr, Kamera und Mikrofon dieses Telefons zu sehen.</string>
     <string name="camera_session_consent_allow">Erlauben</string>
+    <string name="tourist_tile_weather">Wetter</string>
+    <string name="tourist_tile_dew_point">Taupunkt</string>
+    <string name="tourist_action_reset_tile">Zurücksetzen</string>
 </resources>

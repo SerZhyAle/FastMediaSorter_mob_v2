@@ -130,8 +130,10 @@ try {
     Assert-That 'E3. it reports both the full and the partial share' (
         $e.Text -match 'fully transparent' -and $e.Text -match 'partially'
     ) $e.Text
-    Assert-That 'E4. the four clean frames beside it are not reported' (
-        $e.Text -match 'FAIL \(1 finding\(s\) over 5 image\(s\)\)'
+    $transparentImageCount = (Get-ChildItem -Path (Join-Path $transparentRoot 'en-US/images/wearScreenshots') -Filter *.png).Count
+    $cleanBesideCount = $transparentImageCount - 1
+    Assert-That "E4. the $cleanBesideCount clean frames beside it are not reported" (
+        $e.Text -match "FAIL \(1 finding\(s\) over $transparentImageCount image\(s\)\)"
     ) $e.Text
 
     # F. an absent root and an empty one are both "could not look".

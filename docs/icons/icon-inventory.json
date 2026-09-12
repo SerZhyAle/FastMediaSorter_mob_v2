@@ -865,9 +865,33 @@
   },
   {
     "surface": "program-nav",
+    "key": "tourist_info",
+    "feature": "tourist_info_title",
+    "drawable": "ic_tourist",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
     "key": "vpn",
     "feature": "app_launch_panel_os_vpn",
     "drawable": "ic_lock",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "watch_listen",
+    "feature": "watch_listen_label",
+    "drawable": "ic_watch_listen",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "program-nav",
+    "key": "watch_listen_record",
+    "feature": "watch_listen_record_label",
+    "drawable": "ic_watch_listen_record",
     "assetFormat": "vector",
     "public": true
   },
@@ -1052,6 +1076,14 @@
     "key": "headerBackgroundAudio",
     "feature": "background_audio_group_title",
     "drawable": "ic_audio",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-header",
+    "key": "headerBroadcast",
+    "feature": "settings_broadcast_section",
+    "drawable": "ic_microphone",
     "assetFormat": "vector",
     "public": true
   },
@@ -1337,6 +1369,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowEnableTourist",
+    "feature": "tourist_info_title",
+    "drawable": "ic_tourist",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowEnableTranslation",
     "feature": "enable_translation",
     "drawable": "ic_translate",
@@ -1348,6 +1388,14 @@
     "key": "rowEnableWearCompanion",
     "feature": "settings_enable_wear_companion",
     "drawable": "ic_watch",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowFlashlightShortcut",
+    "feature": "flashlight_shortcut_settings_toggle_title",
+    "drawable": "ic_camera_flash_on",
     "assetFormat": "vector",
     "public": true
   },
@@ -1371,6 +1419,14 @@
     "surface": "settings-row",
     "key": "rowLauncherModeEnabled",
     "feature": "launcher_settings_enable_title",
+    "drawable": "ic_launcher_mode",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowLauncherStartWindow",
+    "feature": "launcher_start_window_title",
     "drawable": "ic_launcher_mode",
     "assetFormat": "vector",
     "public": true
@@ -1441,6 +1497,14 @@
   },
   {
     "surface": "settings-row",
+    "key": "rowStreamsEnablePip",
+    "feature": "setting_enable_pip",
+    "drawable": "ic_picture_in_picture",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
     "key": "rowSupportAudio",
     "feature": "support_audio_description",
     "drawable": "ic_audio",
@@ -1460,6 +1524,14 @@
     "key": "rowSupportVideos",
     "feature": "support_video_description",
     "drawable": "ic_video",
+    "assetFormat": "vector",
+    "public": true
+  },
+  {
+    "surface": "settings-row",
+    "key": "rowSuppressWearMediaTakeover",
+    "feature": "settings_suppress_wear_media_takeover",
+    "drawable": "ic_watch",
     "assetFormat": "vector",
     "public": true
   },

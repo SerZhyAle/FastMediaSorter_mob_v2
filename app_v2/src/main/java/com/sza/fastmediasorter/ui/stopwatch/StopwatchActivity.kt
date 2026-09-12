@@ -76,7 +76,6 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
         regionBinder.attachListeners()
         binding.btnStopwatchResetAll.setOnClickListener { viewModel.resetAll() }
         binding.btnStopwatchStartAll.setOnClickListener {
-            Timber.d("S2792: start-all pressed, anyRunning=${viewModel.state.value.anyRunning}")
             if (viewModel.state.value.anyRunning) viewModel.stopAll() else viewModel.startAll()
         }
         binding.btnStopwatchResult.setOnClickListener { openResultDialog() }
@@ -162,7 +161,6 @@ class StopwatchActivity : BaseActivity<ActivityStopwatchBinding>() {
         if (!volumeKeysDriveMeasurement || participantId == StopwatchRegionBinder.NO_REGION) {
             return false
         }
-        Timber.d("S2792: volume key drives participant $participantId ($action)")
         return when (action) {
             TvNavAction.VolumeUp -> consume(StopwatchCommand.StartOrLap(participantId))
             TvNavAction.VolumeDown -> consume(StopwatchCommand.Stop(participantId))

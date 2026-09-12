@@ -70,6 +70,7 @@ data class ManualNetworkSyncUiState(
 )
 
 @HiltViewModel
+@Suppress("TooManyFunctions") // S2997: one update method per setting group; grows with each
 class SettingsViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context,
     val settingsRepository: SettingsRepository,
@@ -669,6 +670,7 @@ class SettingsViewModel @Inject constructor(
                 micRecordingAskFilename = defaults.micRecordingAskFilename,
                 showBlackScreenButton = defaults.showBlackScreenButton,
                 enableCalculator = defaults.enableCalculator,
+                enableTourist = defaults.enableTourist,
                 embeddedGameEnabled = defaults.embeddedGameEnabled,
                 // SystemApps group (moved from Player tab)
                 preventSleep = defaults.preventSleep,

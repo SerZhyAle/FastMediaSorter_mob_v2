@@ -423,6 +423,7 @@ class BrowseActivity : BaseActivity<ActivityBrowseBinding>() {
             btn.nextFocusLeftId = prev
             btn.nextFocusRightId = next
         }
+        Timber.d("S2989: toolbar focus chain restitched candidates=%d", candidates.size)
     }
 
     override fun setupViews() {

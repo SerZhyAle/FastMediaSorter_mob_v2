@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- S2881: Watch listen launcher icon - watch with audio waves -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24"
+    android:tint="?attr/colorOnSurface">
+    <!-- Watch body + strap -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M16,12c0,-2.1 -0.91,-3.97 -2.35,-5.2L13,1h-8L4.35,6.8C2.91,8.03 2,9.9 2,12s0.91,3.97 2.35,5.2L5,23h8l0.65,-5.8C15.09,15.97 16,14.1 16,12zM3.8,12c0,-2.87 2.33,-5.2 5.2,-5.2s5.2,2.33 5.2,5.2 -2.33,5.2 -5.2,5.2 -5.2,-2.33 -5.2,-5.2z" />
+    <!-- Clock hands -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M9.5,12V9H8.5v3.5H11.5V11.5z" />
+    <!-- Audio waves / sound output on right side -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M17.5,9.5v5c0.9,-0.6 1.5,-1.6 1.5,-2.5s-0.6,-1.9 -1.5,-2.5zM17.5,6v2.1c2.1,0.9 3.5,3 3.5,5.4s-1.4,4.5 -3.5,5.4V21c3.3,-1 5.5,-4 5.5,-7.5S20.8,7 17.5,6z" />
+</vector>

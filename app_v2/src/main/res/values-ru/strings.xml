@@ -1180,7 +1180,6 @@
     <string name="transfer_eta_desc">Оставшееся время</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копирование файлов..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_integration_test_btnClose_text">Закрыть</string>
     <string name="dialog_integration_test_btnCopyLog_text">Копировать лог</string>
@@ -3952,7 +3951,7 @@
     <string name="wear_listen_record_saved_fallback">Запись сохранена в локальную папку</string>
     <string name="wear_listen_record_failed">Не удалось сохранить запись</string>
     <string name="watch_listen_label">Слушать часы</string>
-    <string name="watch_listen_record_label">Слушать часы с записью</string>
+    <string name="watch_listen_record_label">Запись с часов</string>
     <string name="watch_listen_content_description">Слушать микрофон спаренных часов</string>
     <string name="watch_listen_record_content_description">Слушать микрофон спаренных часов и записывать в файл</string>
     <string name="watch_listen_widget_label">Слушать часы</string>
@@ -3993,4 +3992,19 @@
     <string name="wear_help_screen">Настройте экран часов: режим просмотра, фон, цветовую схему и блокировку отключения.</string>
     <string name="wear_help_other">Другие настройки часов: энергосбережение и длительность авто-скрытия панели плеера.</string>
     <string name="wear_slideshow_custom_value">Ввести своё значение</string>
+    <string name="setting_enable_tourist_desc">Панель навигации и телеметрии: скорость, высота, компас и координаты</string>
+    <string name="tourist_tile_weather">Погода</string>
+    <string name="tourist_tile_dew_point">Точка росы</string>
+    <string name="tourist_action_reset_tile">Сбросить</string>
+    <string name="tourist_detail_speed">Макс: %1$.1f км/ч • Трип: %2$.2f км</string>
+    <string name="tourist_detail_altitude">Высота MSL / GPS</string>
+    <string name="tourist_detail_coordinates">WGS84 • Широта, Долгота</string>
+    <string name="tourist_detail_steps">Счётчик шагов сессии</string>
+    <string name="tourist_detail_trip_distance">Пройденное расстояние</string>
+    <string name="tourist_accuracy_high">Высокая точность</string>
+    <string name="tourist_accuracy_medium">Средняя точность</string>
+    <string name="tourist_accuracy_low">Низкая точность</string>
+    <string name="tourist_accuracy_unreliable">Калибровать компас</string>
+    <string name="tourist_detail_satellites">Спутники: %1$d в фиксе (%2$d видно)</string>
+    <string name="tourist_detail_sun_time">Восход: %1$s • Закат: %2$s</string>
 </resources>

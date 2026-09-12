@@ -137,6 +137,7 @@ object InternalRouteCatalog {
             labelRes = R.string.tourist_info_title,
             iconRes = R.drawable.ic_tourist,
             intent = AppLaunchPanelRouteIntents::touristInfo,
+            settingsIntent = AppLaunchPanelRouteIntents::touristSettings,
         ),
         // S1883: label reused from the button that has always opened the companion, for the same reason
         // system information reuses its settings string - two wordings for one program drift apart.
@@ -155,13 +156,13 @@ object InternalRouteCatalog {
         Route(
             key = KEY_WATCH_LISTEN,
             labelRes = R.string.watch_listen_label,
-            iconRes = R.drawable.ic_watch,
+            iconRes = R.drawable.ic_watch_listen,
             intent = { WatchListenLaunchActivity.createIntent(it, record = false) },
         ),
         Route(
             key = KEY_WATCH_LISTEN_RECORD,
             labelRes = R.string.watch_listen_record_label,
-            iconRes = R.drawable.ic_microphone,
+            iconRes = R.drawable.ic_watch_listen_record,
             intent = { WatchListenLaunchActivity.createIntent(it, record = true) },
         ),
         Route(

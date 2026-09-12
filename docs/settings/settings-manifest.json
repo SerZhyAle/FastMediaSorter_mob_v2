@@ -791,6 +791,16 @@
       "titleUk": "Відомості про систему"
     },
     {
+      "key": "rowEnableTourist",
+      "sectionId": "destinations",
+      "destination": "OPERATIONS",
+      "layout": "fragment_settings_destinations",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Tourist",
+      "titleRu": "Турист",
+      "titleUk": "Турист"
+    },
+    {
       "key": "rowEnableWearCompanion",
       "sectionId": "destinations",
       "destination": "OPERATIONS",

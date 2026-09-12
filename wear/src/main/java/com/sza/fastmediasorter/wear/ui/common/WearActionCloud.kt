@@ -94,6 +94,7 @@ private fun WearActionSquareHost(
         // While the menu is up it owns back, so the system button and TalkBack's back gesture cancel
         // the menu rather than leaving the screen the menu was called from.
         BackHandler {
+            timber.log.Timber.d("S2506: back cancels action menu")
             onDismiss()
         }
     }
@@ -143,12 +144,14 @@ private fun WearActionSquareHost(
 private fun Modifier.cancelOnBackdrop(onDismiss: () -> Unit, cancelLabel: String): Modifier =
     pointerInput(onDismiss) {
         detectTapGestures {
+            timber.log.Timber.d("S2506: backdrop tap cancels action menu")
             onDismiss()
         }
     }
         .pointerInput(onDismiss) {
             detectHorizontalDragGestures(
                 onDragEnd = {
+                    timber.log.Timber.d("S2506: backdrop swipe cancels action menu")
                     onDismiss()
                 }
             ) { change, _ -> change.consume() }

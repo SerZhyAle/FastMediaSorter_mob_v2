@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">预计剩余时间</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">正在复制文件..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">关闭</string>
     <string name="dialog_integration_test_btnCopyLog_text">复制日志</string>
@@ -3422,4 +3421,7 @@
     <string name="camera_session_consent_notification_title">你的手表想查看此摄像头</string>
     <string name="camera_session_consent_notification_text">允许手表查看此手机的摄像头和麦克风.</string>
     <string name="camera_session_consent_allow">允许</string>
+    <string name="tourist_tile_weather">天气</string>
+    <string name="tourist_tile_dew_point">露点</string>
+    <string name="tourist_action_reset_tile">重置</string>
 </resources>

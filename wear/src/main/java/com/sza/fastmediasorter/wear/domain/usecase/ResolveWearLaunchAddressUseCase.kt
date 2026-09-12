@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.wear.domain.usecase
 
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearDestinationId
 import com.sza.fastmediasorter.wear.domain.model.WearFileOpenRequest
 import com.sza.fastmediasorter.wear.domain.model.WearLaunchAddress
@@ -33,6 +34,7 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
     private val streamChannelRepository: WearStreamChannelRepository,
     private val prepareWearStreamPlayback: PrepareWearStreamPlaybackUseCase,
     private val prepareWearFilePlayback: PrepareWearFilePlaybackUseCase,
+    private val capabilities: WearRestrictedCapabilities,
 ) {
 
     suspend operator fun invoke(target: WearLaunchTarget): WearLaunchAddress? {
@@ -48,14 +50,15 @@ class ResolveWearLaunchAddressUseCase @Inject constructor(
     }
 
     /**
-     * S2511: reads nothing, because a destination is a static address.
-     *
-     * The other three targets resolve by consulting a store, which is what makes them able to return null
-     * for "the thing you pinned is gone". A destination cannot go missing, so it always resolves - and it
-     * must, because a shortcut grid is tapped on a watch where the app may never have run.
+     * S2511 / S2995: resolves static destination addresses. Restricted capabilities return null in builds where disabled.
      */
-    private fun screenFor(id: WearDestinationId): WearLaunchAddress.Screen {
-        return WearLaunchAddress.Screen(id)
+    private fun screenFor(id: WearDestinationId): WearLaunchAddress.Screen? {
+        return when (id) {
+            WearDestinationId.BODY_SENSOR -> if (capabilities.offersBodySensorDiagnostics) WearLaunchAddress.Screen(id) else null
+            WearDestinationId.BLOOD_PRESSURE,
+            WearDestinationId.MOTION_MONITOR -> if (capabilities.offersHealthFeatures) WearLaunchAddress.Screen(id) else null
+            else -> WearLaunchAddress.Screen(id)
+        }
     }
 
     private suspend fun resolveOpen(ref: WearTileTargetRef): WearLaunchAddress? = when (ref) {

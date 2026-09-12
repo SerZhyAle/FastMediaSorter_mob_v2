@@ -270,6 +270,7 @@ _Available in: Standard, Legacy, VR_
 | Use scheduled operations | Activates the scheduler so configured operations run automatically at their set times. |
 | Stopwatch | Enables a stopwatch within the app, for one run or several in a row. |
 | System information | Adds System information to the app's program menus and launcher surfaces, so the report is reachable without opening Settings. It is off by default and changes nothing about what the report contains. |
+| Tourist | Adds the Tourist dashboard to the app's program menus and launcher surfaces, so the navigation and telemetry panel is reachable without opening Settings. It is off by default. |
 | Wear Companion | Adds the Wear companion to the app's program menus and panel, so the watch screen is reachable without opening Settings. It is off by default, and it appears at all only in builds that carry the watch bridge. |
 | Flashlight in the notification shade | Keeps a permanent entry in the notification shade that lights the camera flash on a tap and puts it out on the next one; needs permission to show notifications, and is hidden on a device with no flash. |
 | Rotate screen with OS auto-rotate (except player) | When on, every app window except the player follows the OS auto-rotate setting; when off, they rotate by the device sensor regardless of the OS lock. |

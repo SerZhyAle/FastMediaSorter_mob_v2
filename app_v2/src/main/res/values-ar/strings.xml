@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">الوقت المتبقي المقدر</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">جارٍ نسخ الملفات..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">إغلاق</string>
     <string name="dialog_integration_test_btnCopyLog_text">نسخ السجل</string>
@@ -3424,4 +3423,7 @@
     <string name="camera_session_consent_notification_title">تريد ساعتك رؤية هذه الكاميرا</string>
     <string name="camera_session_consent_notification_text">اسمح للساعة برؤية كاميرا وميكروفون هذا الهاتف.</string>
     <string name="camera_session_consent_allow">السماح</string>
+    <string name="tourist_tile_weather">الطقس</string>
+    <string name="tourist_tile_dew_point">نقطة الندى</string>
+    <string name="tourist_action_reset_tile">إعادة ضبط</string>
 </resources>

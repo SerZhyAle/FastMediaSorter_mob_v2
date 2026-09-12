@@ -17,6 +17,8 @@ import dagger.Lazy
 import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
+import com.sza.fastmediasorter.BuildConfig
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -55,14 +57,14 @@ class StepsGadgetTest {
     private val host: LauncherGadgetHost = mockk(relaxed = true)
 
     @Test
-    fun `isAvailable delegates to sensor availability`() {
+    fun `isAvailable delegates to sensor availability and flavor`() {
         val gadget = StepsGadget(
             availability,
             Lazy { observeStepCountUseCase },
             Lazy { settingsRepository },
             Lazy { QuantityFormatter(context) },
         )
-        assertTrue(gadget.isAvailable())
+        assertEquals(BuildConfig.IS_NO_LEGAL_FLAVOR, gadget.isAvailable())
     }
 
     @Test

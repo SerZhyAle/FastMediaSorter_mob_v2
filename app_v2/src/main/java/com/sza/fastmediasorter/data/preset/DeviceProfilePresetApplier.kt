@@ -54,6 +54,7 @@ class DeviceProfilePresetApplier @Inject constructor(
             "showSmallControls" -> settings.copy(showSmallControls = raw.toBool())
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "enableStopwatch" -> settings.copy(enableStopwatch = raw.toBool())
+            "enableTourist" -> settings.copy(enableTourist = raw.toBool())
             "stopwatchMusicEnabled" -> settings.copy(stopwatchMusicEnabled = raw.toBool())
             "stopwatchVolumeKeysControl" -> settings.copy(stopwatchVolumeKeysControl = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())

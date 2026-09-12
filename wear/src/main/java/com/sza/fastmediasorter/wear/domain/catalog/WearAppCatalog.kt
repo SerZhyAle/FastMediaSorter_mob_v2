@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.domain.catalog
 
 import com.sza.fastmediasorter.wear.R
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.model.WearApp
 import com.sza.fastmediasorter.wear.domain.model.WearAppId
 
@@ -11,10 +12,8 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
  * cannot silently reorder the screen. The unavailable filter runs here for the same reason: a program
  * that later hides itself does so without the screen learning a second concept.
  *
- * S2457: [offersBodySensorDiagnostics] is a BUILD-TIME answer, not an observable one - it comes from
- * `WearRestrictedCapabilities`, whose implementation is chosen by the flavor source set and cannot change
- * while the app runs. It is a parameter rather than an injection because this is an `object` and both of
- * its callers are Hilt-constructed, so the answer is cheaper to pass than to reach for.
+ * S2457 / S2995: [capabilities] provides BUILD-TIME answers from `WearRestrictedCapabilities`, whose
+ * implementation is chosen by the flavor source set and cannot change while the app runs.
  *
  * S2751: moved here from the Apps screen's own package. What it returns is domain records, so its place
  * above the layer that consumes them was an accident of the screen having been its first caller; a tile
@@ -22,7 +21,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearAppId
  */
 object WearAppCatalog {
 
-    fun apps(offersBodySensorDiagnostics: Boolean): List<WearApp> = listOf(
+    fun apps(capabilities: WearRestrictedCapabilities): List<WearApp> = listOf(
         WearApp(
             id = WearAppId.CALCULATOR,
             labelRes = R.string.wear_app_calculator
@@ -47,26 +46,23 @@ object WearAppCatalog {
             id = WearAppId.WATER_FLASHLIGHT,
             labelRes = R.string.wear_water_flashlight_app
         ),
-        // S2458: stays listed on every watch. A watch with no step sensor, or an edition without the
-        // permission, is explained inside the program - hiding the row would answer a question the user
-        // has not asked yet and leave the absence unexplained.
+        // S2995: health features (Motion Monitor) withheld from store builds (standard flavor)
         WearApp(
             id = WearAppId.MOTION_MONITOR,
-            labelRes = R.string.wear_motion_monitor_app
+            labelRes = R.string.wear_motion_monitor_app,
+            isAvailable = capabilities.offersHealthFeatures
         ),
-        // S2457: the one row this list withholds rather than explains. The Motion Monitor above stays
-        // listed everywhere because its absence is a property of the WATCH the user can be told about;
-        // this one's absence is a property of the BUILD, and a row that opened only to say "not in this
-        // edition" would advertise a capability the store listing must not claim (ADR-1).
+        // S2457: body sensor diagnostics withheld from store builds
         WearApp(
             id = WearAppId.BODY_SENSOR,
             labelRes = R.string.wear_app_body_sensor,
-            isAvailable = offersBodySensorDiagnostics
+            isAvailable = capabilities.offersBodySensorDiagnostics
         ),
-        // S2809: available in both flavors - manual entry needs no permission or Health Services.
+        // S2995: blood pressure log withheld from store builds (standard flavor)
         WearApp(
             id = WearAppId.BLOOD_PRESSURE,
-            labelRes = R.string.wear_app_blood_pressure
+            labelRes = R.string.wear_app_blood_pressure,
+            isAvailable = capabilities.offersHealthFeatures
         ),
         // S2509: the second of the two equal entrances the owner chose; the first is the Home section.
         // Listed in both flavors - strategic §3.2 rules that the microphone broadcast is not hidden

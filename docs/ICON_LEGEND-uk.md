@@ -63,7 +63,10 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_camera_ocr_translate.svg" alt="ic_camera_ocr_translate" width="24" height="24"> | Зробити фото і OCR-переклад |
 | <img src="icons/svg/ic_camera_send_to.svg" alt="ic_camera_send_to" width="24" height="24"> | Зробити фото і надіслати до.. |
 | <img src="icons/svg/ic_wifi_tethering.svg" alt="ic_wifi_tethering" width="24" height="24"> | Точка доступу |
+| <img src="icons/svg/ic_tourist.svg" alt="ic_tourist" width="24" height="24"> | Турист |
 | <img src="icons/svg/ic_lock.svg" alt="ic_lock" width="24" height="24"> | VPN |
+| <img src="icons/svg/ic_watch_listen.svg" alt="ic_watch_listen" width="24" height="24"> | Слухати годинник |
+| <img src="icons/svg/ic_watch_listen_record.svg" alt="ic_watch_listen_record" width="24" height="24"> | Запис з годинника |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Водний ліхтар |
 | <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-супутник |
 | <img src="icons/svg/ic_wifi.svg" alt="ic_wifi" width="24" height="24"> | Wi-Fi |
@@ -78,6 +81,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Аудіо, обкладинки й фонові візуалізації |
 | <img src="icons/svg/ic_google_account.svg" alt="ic_google_account" width="24" height="24"> | Авторизація й акаунти |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Фонове відтворення аудіо |
+| <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Мовлення |
 | <img src="icons/svg/ic_camera_capture.svg" alt="ic_camera_capture" width="24" height="24"> | Фотографування |
 | <img src="icons/svg/ic_app_logo.svg" alt="ic_app_logo" width="24" height="24"> | Призначення швидкого сортування |
 | <img src="icons/svg/ic_book.svg" alt="ic_book" width="24" height="24"> | Перегляд тексту, PDF, EPUB і Office |
@@ -96,7 +100,7 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_android.svg" alt="ic_android" width="24" height="24"> | Взаємодія з операційною системою |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відео, налаштування програвача |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Відеозйомка |
-| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear OS |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-супутник |
 
 ## Параметри налаштувань
 
@@ -117,11 +121,14 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_stopwatch.svg" alt="ic_stopwatch" width="24" height="24"> | Секундомір |
 | <img src="icons/svg/ic_cast.svg" alt="ic_cast" width="24" height="24"> | Увімкнути трансляції |
 | <img src="icons/svg/ic_info.svg" alt="ic_info" width="24" height="24"> | Відомості про систему |
+| <img src="icons/svg/ic_tourist.svg" alt="ic_tourist" width="24" height="24"> | Турист |
 | <img src="icons/svg/ic_translate.svg" alt="ic_translate" width="24" height="24"> | Увімкнути переклад |
-| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Компаньйон годинника |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Wear-супутник |
+| <img src="icons/svg/ic_camera_flash_on.svg" alt="ic_camera_flash_on" width="24" height="24"> | Ліхтар у шторці сповіщень |
 | <img src="icons/svg/ic_front_flashlight.svg" alt="ic_front_flashlight" width="24" height="24"> | Фронтальний ліхтарик |
 | <img src="icons/svg/ic_gesture.svg" alt="ic_gesture" width="24" height="24"> | Оверлей жестів |
 | <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Лаунчер: зробити застосунок домашнім екраном |
+| <img src="icons/svg/ic_launcher_mode.svg" alt="ic_launcher_mode" width="24" height="24"> | Відкривати робочий стіл під час запуску застосунку |
 | <img src="icons/svg/ic_microphone.svg" alt="ic_microphone" width="24" height="24"> | Увімкнути запис із мікрофона |
 | <img src="icons/svg/ic_mirror.svg" alt="ic_mirror" width="24" height="24"> | Дзеркало |
 | <img src="icons/svg/ic_history.svg" alt="ic_history" width="24" height="24"> | Статистика |
@@ -130,9 +137,11 @@ permalink: /docs/ICON_LEGEND_UK.html
 | <img src="icons/svg/ic_resource_cloud.svg" alt="ic_resource_cloud" width="24" height="24"> | У хмарних ресурсах |
 | <img src="icons/svg/ic_resource_sftp.svg" alt="ic_resource_sftp" width="24" height="24"> | Комп'ютер в інтернеті (S)FTP |
 | <img src="icons/svg/ic_resource_smb.svg" alt="ic_resource_smb" width="24" height="24"> | Локальна мережа (Ethernet) SMB |
+| <img src="icons/svg/ic_picture_in_picture.svg" alt="ic_picture_in_picture" width="24" height="24"> | Увімкнути картинку в картинці |
 | <img src="icons/svg/ic_audio.svg" alt="ic_audio" width="24" height="24"> | Підтримка аудіо |
 | <img src="icons/svg/ic_image.svg" alt="ic_image" width="24" height="24"> | Підтримка статичних зображень |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Підтримка відео |
+| <img src="icons/svg/ic_watch.svg" alt="ic_watch" width="24" height="24"> | Пригнічувати медіа-керування на годиннику |
 | <img src="icons/svg/ic_video.svg" alt="ic_video" width="24" height="24"> | Увімкнути запис відео |
 | <img src="icons/svg/ic_water_flashlight.svg" alt="ic_water_flashlight" width="24" height="24"> | Водний ліхтар |
 

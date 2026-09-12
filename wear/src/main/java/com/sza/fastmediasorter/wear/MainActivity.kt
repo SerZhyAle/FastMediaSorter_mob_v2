@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -54,6 +55,7 @@ import com.sza.fastmediasorter.wear.core.util.WearLocaleManager
 import com.sza.fastmediasorter.wear.core.util.WearUnitDateTimeFormatter
 import com.sza.fastmediasorter.wear.data.wear.WatchFileOpenEvents
 import com.sza.fastmediasorter.wear.data.wear.WatchStreamOpenEvents
+import com.sza.fastmediasorter.wear.domain.capability.WearRestrictedCapabilities
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFormat
 import com.sza.fastmediasorter.wear.domain.model.UnitSystem
 import com.sza.fastmediasorter.wear.domain.model.VoiceNote
@@ -165,6 +167,8 @@ data class WearHostUseCases(
     // S2773: the screen geometry in force. Travels here rather than as a parameter of its own for the
     // same reason as the rest: the navigation host is the only thing that needs it.
     val observeGeometryMode: ObserveWearGeometryModeUseCase,
+    // S2995: restricted capabilities for build flavor routing
+    val capabilities: WearRestrictedCapabilities,
 )
 
 /**
@@ -233,6 +237,8 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var resolveBackground: ResolveWearBackgroundUseCase
 
     @Inject lateinit var observeGeometryMode: ObserveWearGeometryModeUseCase
+
+    @Inject lateinit var capabilities: WearRestrictedCapabilities
 
     // S1961: the pending-open notification is this app's own, so it is this app that puts it away
     // once the user is here and no longer needs it.
@@ -312,7 +318,8 @@ class MainActivity : ComponentActivity() {
                         resolveBackground = resolveBackground,
                         prepareVoiceNotePlayback = prepareVoiceNotePlayback,
                         prepareNetworkFilePlayback = prepareNetworkFilePlayback,
-                        observeGeometryMode = observeGeometryMode
+                        observeGeometryMode = observeGeometryMode,
+                        capabilities = capabilities,
                     ),
                     launchEntry = WearLaunchEntry(
                         resolveAddress = resolveLaunchAddress,
@@ -619,7 +626,8 @@ fun MainNavigation(
 
                 miniAppRoutes(
                     navController = navController,
-                    prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback
+                    prepareVoiceNotePlayback = hostUseCases.prepareVoiceNotePlayback,
+                    capabilities = hostUseCases.capabilities,
                 )
 
                 tileRoutes(navController = navController)
@@ -636,10 +644,15 @@ fun MainNavigation(
             // own different roles for the same control, and the interactive mini-programs are ruled out
             // by the owner, so the decision lives in one named predicate rather than in twenty screens.
             if (showsNavBackAffordance(currentRoute)) {
+                val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
                 WearBackAffordance(
                     role = WearBackAffordanceRole.Back,
                     onClick = {
-                        navController.popBackStack()
+                        if (backDispatcher != null) {
+                            backDispatcher.onBackPressed()
+                        } else {
+                            navController.popBackStack()
+                        }
                     },
                     modifier = Modifier
                         .align(Alignment.CenterStart)
@@ -904,7 +917,8 @@ private fun navigateGuarded(navController: NavHostController, route: String) {
  */
 private fun NavGraphBuilder.miniAppRoutes(
     navController: NavHostController,
-    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase
+    prepareVoiceNotePlayback: PrepareVoiceNotePlaybackUseCase,
+    capabilities: WearRestrictedCapabilities,
 ) {
     composable(WearRoutes.APPS) {
         AppsScreen(navController = navController)
@@ -970,43 +984,46 @@ private fun NavGraphBuilder.miniAppRoutes(
         SystemInfoScreen()
     }
 
-    healthAndHardwareAppRoutes(navController)
+    healthAndHardwareAppRoutes(navController, capabilities)
 }
 
 /**
  * Health sensors, broadcast and auxiliary hardware program routes.
  */
-private fun NavGraphBuilder.healthAndHardwareAppRoutes(navController: NavHostController) {
-    // S2458: a live session rather than a report, so the destination owns nothing - leaving the
-    // composition is what unregisters the sensors, through the repository's own awaitClose.
-    composable(WearRoutes.MOTION_MONITOR) {
-        MotionMonitorScreen()
+private fun NavGraphBuilder.healthAndHardwareAppRoutes(
+    navController: NavHostController,
+    capabilities: WearRestrictedCapabilities,
+) {
+    if (capabilities.offersHealthFeatures) {
+        // S2458: a live session rather than a report, so the destination owns nothing - leaving the
+        // composition is what unregisters the sensors, through the repository's own awaitClose.
+        composable(WearRoutes.MOTION_MONITOR) {
+            MotionMonitorScreen()
+        }
+
+        // S2809: registered in noLegal flavor when offersHealthFeatures is true.
+        composable(WearRoutes.BLOOD_PRESSURE) {
+            BloodPressureScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
+            )
+        }
+
+        composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {
+            BloodPressureHistoryScreen()
+        }
     }
 
-    // S2457: registered in both flavors although the Apps list offers the row in `noLegal` alone. The
-    // route is what a tile shortcut resolves to, and a shortcut saved before an edition change would
-    // otherwise be a dead tap; reaching the screen in `standard` prints the withheld-capability
-    // sentence, which is an answer, and leaving it ends any session through the flow's own awaitClose.
-    composable(WearRoutes.BODY_SENSOR) {
-        BodySensorScreen(
-            onHistoryClick = { navController.navigate(WearRoutes.HEART_RATE_HISTORY) }
-        )
-    }
+    if (capabilities.offersBodySensorDiagnostics) {
+        // S2457: registered in noLegal flavor when offersBodySensorDiagnostics is true.
+        composable(WearRoutes.BODY_SENSOR) {
+            BodySensorScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.HEART_RATE_HISTORY) }
+            )
+        }
 
-    composable(WearRoutes.HEART_RATE_HISTORY) {
-        HeartRateHistoryScreen()
-    }
-
-    // S2809: registered in both flavors. The program needs no permission or Health Services,
-    // so it is offered in standard and noLegal alike, unlike the body sensor above.
-    composable(WearRoutes.BLOOD_PRESSURE) {
-        BloodPressureScreen(
-            onHistoryClick = { navController.navigate(WearRoutes.BLOOD_PRESSURE_HISTORY) }
-        )
-    }
-
-    composable(WearRoutes.BLOOD_PRESSURE_HISTORY) {
-        BloodPressureHistoryScreen()
+        composable(WearRoutes.HEART_RATE_HISTORY) {
+            HeartRateHistoryScreen()
+        }
     }
 
     // S2509: reached from the Home section and from this list alike - one route, two entrances, as

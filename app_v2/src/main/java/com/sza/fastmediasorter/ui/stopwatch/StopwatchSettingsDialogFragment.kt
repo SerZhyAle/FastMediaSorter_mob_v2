@@ -149,7 +149,6 @@ class StopwatchSettingsDialogFragment : DialogFragment() {
      * needs no persistable grant - taking one on a media uri simply fails.
      */
     private fun onTrackChosen(uri: Uri, title: String) {
-        Timber.d("S2792: track chosen via picker, draft updated")
         draft = draft?.copy(stopwatchMusicUri = uri.toString(), stopwatchMusicEnabled = true)
         binding.rowStopwatchTrack.setValue(
             title.ifBlank { uri.lastPathSegment ?: uri.toString() },

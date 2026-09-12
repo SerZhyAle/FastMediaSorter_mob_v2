@@ -10896,6 +10896,18 @@
         {
           "url": "https://moygid.online/radio.mp3",
           "order": 116
+        },
+        {
+          "url": "http://79.111.14.76:8000/celtic",
+          "order": 117
+        },
+        {
+          "url": "http://213.141.131.10:8002/frenchrap",
+          "order": 118
+        },
+        {
+          "url": "https://radio.social.net.ua/live.mp3",
+          "order": 119
         }
       ]
     },
@@ -11767,6 +11779,30 @@
         {
           "url": "https://servidor17-1.brlogic.com:7940/live?source=12124",
           "order": 215
+        },
+        {
+          "url": "http://9090streaming.mobtada.com/9090FMEGYPT",
+          "order": 216
+        },
+        {
+          "url": "https://azuracast-nuremberg.myautodj.com/listen/station_660_1777579648/radio.mp3",
+          "order": 217
+        },
+        {
+          "url": "http://25503.live.streamtheworld.com:3690/FM947AAC_SC",
+          "order": 218
+        },
+        {
+          "url": "http://27743.live.streamtheworld.com:3690/FM947_SC",
+          "order": 219
+        },
+        {
+          "url": "http://28033.live.streamtheworld.com:3690/FM702_SC",
+          "order": 220
+        },
+        {
+          "url": "https://stream.rcast.net/66702",
+          "order": 221
         }
       ]
     },
@@ -27293,6 +27329,22 @@
         {
           "url": "https://0n-gothic.radionetz.de/0n-gothic.aac",
           "order": 2312
+        },
+        {
+          "url": "http://f141.rndfnk.com/ard/rbb/radioeins/live/mp3/128/stream.mp3?cid=01FC1WH12KJ93TCQPDSE2E5PZ9&sid=3JAU8Yh27WVBV6ksmKYFjWerKdr&token=nojPAdLYbngvemvTGYeK-O4UpSvtI8K_Is3GSmpabK0&tvf=N6_FnYg_1BhmMTQxLnJuZGZuay5jb20",
+          "order": 2313
+        },
+        {
+          "url": "http://54-funk-soul-dance.stream.laut.fm/54-funk-soul-dance?pl=pls&t302=2026-09-11_05-46-52&uuid=ffb7dce9-0783-413a-baee-243024670823",
+          "order": 2314
+        },
+        {
+          "url": "http://stream.laut.fm/bluesrockcafe",
+          "order": 2315
+        },
+        {
+          "url": "http://s8-webradio.antenne.de/hits-fuer-kids",
+          "order": 2316
         }
       ]
     },
@@ -28752,6 +28804,18 @@
         {
           "url": "http://wumb.streamguys1.com/wumb919fast",
           "order": 362
+        },
+        {
+          "url": "https://wamu.cdnstream1.com/wamu.mp3",
+          "order": 363
+        },
+        {
+          "url": "https://ice2.somafm.com/bootliquor-320-mp3",
+          "order": 364
+        },
+        {
+          "url": "http://global.citrus3.com:8132/stream",
+          "order": 365
         }
       ]
     },
@@ -29351,6 +29415,10 @@
         {
           "url": "http://live.canstream.co.uk:8000/sourcefm.mp3",
           "order": 147
+        },
+        {
+          "url": "https://my.radiolize.com/radio/8090/radio.mp3",
+          "order": 148
         }
       ]
     },
@@ -29962,6 +30030,14 @@
         {
           "url": "https://stream.radiofrance.fr/fiphiphop/fiphiphop_hifi.m3u8?id=radiofrance",
           "order": 150
+        },
+        {
+          "url": "http://jazzblues.ice.infomaniak.ch/jazzblues-high.mp3",
+          "order": 151
+        },
+        {
+          "url": "http://eu10.fastcast4u.com:8120/",
+          "order": 152
         }
       ]
     }

@@ -58,7 +58,7 @@ class LoadWearTileContentUseCase @Inject constructor(
      * second, divergent answer to "which programs exist and in what order".
      */
     private fun loadProgramsContent(): WearTileContent {
-        val apps = WearAppCatalog.apps(capabilities.offersBodySensorDiagnostics)
+        val apps = WearAppCatalog.apps(capabilities)
         return WearTileContent.Shortcuts(
             apps.map { app ->
                 WearTileShortcut(

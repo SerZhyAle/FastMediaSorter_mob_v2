@@ -928,4 +928,21 @@
     <dimen name="front_flashlight_level_bar_height_3">40dp</dimen>
     <dimen name="front_flashlight_level_bar_height_4">52dp</dimen>
     <dimen name="front_flashlight_level_bar_height_5">64dp</dimen>
+    <!-- Tourist Dashboard Dimensions -->
+    <dimen name="tourist_card_corner_radius">16dp</dimen>
+    <dimen name="tourist_secondary_card_corner_radius">12dp</dimen>
+    <dimen name="tourist_card_elevation">4dp</dimen>
+    <dimen name="tourist_secondary_card_elevation">2dp</dimen>
+    <dimen name="tourist_card_stroke_width">1.5dp</dimen>
+    <dimen name="tourist_secondary_card_stroke_width">1dp</dimen>
+    <dimen name="tourist_hero_icon_size">28dp</dimen>
+    <dimen name="tourist_hero_icon_size_land">24dp</dimen>
+    <dimen name="tourist_tile_icon_size">20dp</dimen>
+    <dimen name="tourist_tile_padding">10dp</dimen>
+    <dimen name="tourist_compass_rose_size">120dp</dimen>
+    <dimen name="tourist_compass_rose_size_land">140dp</dimen>
+    <dimen name="tourist_primary_text_size">56sp</dimen>
+    <dimen name="tourist_primary_text_size_land">64sp</dimen>
+    <dimen name="tourist_coords_text_size">36sp</dimen>
+    <dimen name="tourist_coords_text_size_land">32sp</dimen>
 </resources>

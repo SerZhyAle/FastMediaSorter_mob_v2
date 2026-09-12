@@ -4688,9 +4688,11 @@ scripts/quality/prune-detekt-baseline.tests/Run-Tests.ps1
 ## scripts\quality\remove-ticket-probes.tests
 
 ### Run-Tests.ps1
+Exit codes: 0 all cases passed; 1 a case failed.
 
 ```
 scripts/quality/remove-ticket-probes.tests/Run-Tests.ps1
+  Exit codes: 0 all cases passed; 1 a case failed.
   (no param block)
 ```
 

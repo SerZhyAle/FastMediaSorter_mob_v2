@@ -817,10 +817,16 @@ object LauncherStarterSets {
      *
      * S2791: the settings actions and Edit desktop are excluded here and seeded by [settingsEntryGroup]. The
      * catalogue itself is untouched - the Start menu still lists all six in its own order.
+     *
+     * S3001: the Add-resource action is excluded here too. It belongs in the Resources section, not the
+     * App Functions section, and [PlaceAddResourceTileUseCase] places it there once the seed has built the
+     * section header. Seeding it here let that backfill's dedup see the target as already present and skip
+     * the Resources-section placement, so the tile stayed under the App Functions header.
      */
     private fun launcherActions(profile: DeviceProfileType, screenIndex: Int = 0): List<StarterItem> =
         LauncherActionCatalog.all
             .filter { it.key !in SETTINGS_ACTION_KEYS }
+            .filter { it.key !in BACKFILLED_ACTION_KEYS }
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
             .map { shortcut(LauncherCellCommand.LauncherAction(it.key), screenIndex = screenIndex) }
 
@@ -828,6 +834,15 @@ object LauncherStarterSets {
         LauncherActionCatalog.KEY_APP_SETTINGS,
         LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
         LauncherActionCatalog.KEY_EDIT_DESKTOP,
+    )
+
+    /**
+     * S3001: actions placed by their own backfill into a section other than App Functions, so the seed
+     * must not pre-place them here and let the dedup in [PlaceLauncherShortcutTilesUseCase] skip the
+     * backfill's section-targeted placement.
+     */
+    private val BACKFILLED_ACTION_KEYS = setOf(
+        LauncherActionCatalog.KEY_CREATE_RESOURCE,
     )
 
     /** The utilities every profile closes with, below the second header. */

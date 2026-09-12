@@ -13,6 +13,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -77,6 +78,7 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
      * sub-program missing from a surface reads exactly like one the build switched off. The
      * completeness test needs the two apart to assert anything at all.
      */
+    @Suppress("CyclomaticComplexMethod") // S2997: one when-branch per route; complexity tracks route count
     fun resolveOrNull(routeKey: String, settings: AppSettings): Availability? =
         when (routeKey) {
             // S1103: the quick-access panel exists in every launcher build and has no runtime toggle.
@@ -104,7 +106,9 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 Availability(availableInBuild = true, enabledAtRuntime = settings.enableSystemInfo)
             // S2922: Tourist dashboard sub-program - universal across flavors.
             InternalRouteCatalog.KEY_TOURIST_INFO ->
-                Availability(availableInBuild = true, enabledAtRuntime = true)
+                Availability(availableInBuild = true, enabledAtRuntime = settings.enableTourist).also {
+                    Timber.d("S2997: tourist route availability=%s", it)
+                }
             // S1883: unlike system information, the companion needs the watch bridge, so it declares the
             // same capability-and-switch pair the quick voice route uses rather than a hardcoded true.
             // S2881: the two listen calls are that bridge in action, so they answer with the same pair -

@@ -15,7 +15,6 @@ import com.sza.fastmediasorter.domain.usecase.stopwatch.LoadMusicTracksUseCase
 import com.sza.fastmediasorter.ui.stopwatch.helpers.MusicTrackAdapter
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -59,7 +58,6 @@ class MusicPickerDialogFragment : DialogFragment() {
     private fun loadTracks() {
         lifecycleScope.launch {
             val tracks = loadMusicTracks()
-            Timber.d("S2792: music picker loaded ${tracks.size} track(s)")
             adapter.submitList(tracks)
             binding.textMusicPickerEmpty.isVisible = tracks.isEmpty()
         }

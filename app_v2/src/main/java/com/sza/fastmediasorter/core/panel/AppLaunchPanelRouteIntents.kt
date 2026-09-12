@@ -36,6 +36,7 @@ import com.sza.fastmediasorter.widget.ScreenRecordingLaunchActivity
  * home-screen widgets already use (strategic S0663 ADR-1) - no new navigation is introduced here.
  * Every intent gets [Intent.FLAG_ACTIVITY_NEW_TASK], matching the existing panel launch path.
  */
+@Suppress("TooManyFunctions") // S2997: one builder per route; grows with each sub-program
 object AppLaunchPanelRouteIntents {
 
     // S1103: a launcher cell that opens the quick-access panel overlay itself.
@@ -89,6 +90,13 @@ object AppLaunchPanelRouteIntents {
     // S2922: Tourist dashboard subprogram.
     fun touristInfo(context: Context): Intent =
         TouristInfoActivity.createIntent(context).withPanelFlags()
+
+    // S2997: the tourist toggle sits on the Operations tab beside the others, so a disabled route opens
+    // that tab exactly as the calculator's does.
+    fun touristSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
 
     // S1883: the same host window the settings button and the programs entry open, so all four
     // surfaces are one behaviour rather than several that resemble each other.

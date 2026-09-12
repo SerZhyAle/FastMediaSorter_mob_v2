@@ -233,6 +233,23 @@ if (Assert-Envelope $r 'launch' $true 0) {
     Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.ui.main.MainActivity' $r.json.data.component 'launch -Json: data.component'
 }
 
+# ---- launch on a watch device (S2992) ----
+# Select-Device's own -Module disambiguation only runs among SEVERAL online devices, so a lone
+# watch and no -Module used to fall through to the 'app_v2' default and send `am start` at a
+# component the wear build does not have. `launch` now reads the SELECTED device's own
+# characteristics when -Module was not named, and an explicit -Module still works when it agrees.
+$launchWatchStub = @{ FMS_STUB_WATCH = '1' }
+
+$r = Invoke-Verb @('launch') -Stub $launchWatchStub
+if (Assert-Envelope $r 'launch' $true 0) {
+    Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity' $r.json.data.component 'launch -Json: a lone watch with no -Module resolves the wear component'
+}
+
+$r = Invoke-Verb @('launch', '-Module', 'wear') -Stub $launchWatchStub
+if (Assert-Envelope $r 'launch' $true 0) {
+    Assert-Equal 'com.sza.fastmediasorter.debug/com.sza.fastmediasorter.wear.MainActivity' $r.json.data.component 'launch -Json: an explicit -Module wear matching the device still resolves the wear component'
+}
+
 $r = Invoke-Verb @('stop')
 if (Assert-Envelope $r 'stop' $true 0) { Assert-DataFields $r 'stop' @('id', 'package') }
 
@@ -465,6 +482,12 @@ if ($null -ne $r.json) {
 }
 Assert-Failure (Invoke-Verb @('tap-id', '-ResourceId', 'nothingMatchesThis', '-Exact')) 'tap-id' 8 'tap-id with no matching node'
 Assert-Failure (Invoke-Verb @('tap-label', '-Label', 'nothingMatchesThis', '-Exact')) 'tap-label' 8 'tap-label with no matching node'
+
+# ---- launch refuses an EXPLICIT -Module that conflicts with the device (S2992) ----
+# Mirrors install's own guard (S1681/S2043): a NAMED -Module that disagrees with the device is
+# refused rather than sent to `am start`, where it would fail anyway but without saying why.
+Assert-Failure (Invoke-Verb @('launch', '-Module', 'wear')) 'launch' 1 'launch -Module wear on a device with no watch characteristics'
+Assert-Failure (Invoke-Verb @('launch', '-Module', 'app_v2') -Stub @{ FMS_STUB_WATCH = '1' }) 'launch' 1 'launch -Module app_v2 explicitly named on a watch device'
 
 Write-Host ""
 Write-Host "== install records the registry mark (S2855) ==" -ForegroundColor Cyan

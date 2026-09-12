@@ -1326,7 +1326,6 @@
     <string name="transfer_eta_desc">Estimated time remaining</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Copying files..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">Close</string>
     <string name="dialog_integration_test_btnCopyLog_text">Copy Log</string>
@@ -4010,7 +4009,7 @@
     <string name="wear_listen_record_saved_fallback">Recording saved to the local folder</string>
     <string name="wear_listen_record_failed">Could not save the recording</string>
     <string name="watch_listen_label">Listen to the watch</string>
-    <string name="watch_listen_record_label">Listen to the watch and record</string>
+    <string name="watch_listen_record_label">Record watch audio</string>
     <string name="watch_listen_content_description">Listen to the paired watch\'s microphone</string>
     <string name="watch_listen_record_content_description">Listen to the paired watch\'s microphone and record to a file</string>
     <string name="watch_listen_widget_label">Listen to the watch</string>
@@ -4051,4 +4050,19 @@
     <string name="wear_help_screen">Customize the watch display: view mode, background, color scheme and keep-awake.</string>
     <string name="wear_help_other">Other watch settings: power saving and player panel auto-hide duration.</string>
     <string name="wear_slideshow_custom_value">Enter custom value</string>
+    <string name="setting_enable_tourist_desc">Navigation and telemetry panel with speed, altitude, compass, and coordinates</string>
+    <string name="tourist_tile_weather">Weather</string>
+    <string name="tourist_tile_dew_point">Dew point</string>
+    <string name="tourist_action_reset_tile">Reset</string>
+    <string name="tourist_detail_speed">Max: %1$.1f km/h • Trip: %2$.2f km</string>
+    <string name="tourist_detail_altitude">MSL / GPS Altitude</string>
+    <string name="tourist_detail_coordinates">WGS84 • Lat, Lon</string>
+    <string name="tourist_detail_steps">Session step counter</string>
+    <string name="tourist_detail_trip_distance">Distance traveled during session</string>
+    <string name="tourist_accuracy_high">High accuracy</string>
+    <string name="tourist_accuracy_medium">Medium accuracy</string>
+    <string name="tourist_accuracy_low">Low accuracy</string>
+    <string name="tourist_accuracy_unreliable">Calibrate compass</string>
+    <string name="tourist_detail_satellites">Satellites: %1$d used in fix (%2$d in view)</string>
+    <string name="tourist_detail_sun_time">Sunrise: %1$s • Sunset: %2$s</string>
 </resources>

@@ -1177,7 +1177,6 @@
     <string name="transfer_eta_desc">Час, що залишився</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">Копіювання файлів..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>    <!-- Speed option: no translation needed -->
     <string name="dialog_integration_test_btnClose_text">Закрити</string>
     <string name="dialog_integration_test_btnCopyLog_text">Копіювати лог</string>
@@ -3937,7 +3936,7 @@
     <string name="wear_listen_record_saved_fallback">Запис збережено в локальну теку</string>
     <string name="wear_listen_record_failed">Не вдалося зберегти запис</string>
     <string name="watch_listen_label">Слухати годинник</string>
-    <string name="watch_listen_record_label">Слухати годинник із записом</string>
+    <string name="watch_listen_record_label">Запис з годинника</string>
     <string name="watch_listen_content_description">Слухати мікрофон спарованого годинника</string>
     <string name="watch_listen_record_content_description">Слухати мікрофон спарованого годинника й записувати у файл</string>
     <string name="watch_listen_widget_label">Слухати годинник</string>
@@ -3978,4 +3977,19 @@
     <string name="wear_help_screen">Налаштуйте екран годинника: режим перегляду, фон, кольорову схему та блокування вимкнення.</string>
     <string name="wear_help_other">Інші налаштування годинника: енергозбереження та тривалість авто-приховування панелі плеєра.</string>
     <string name="wear_slideshow_custom_value">Ввести своє значення</string>
+    <string name="setting_enable_tourist_desc">Панель навігації та телеметрії: швидкість, висота, компас і координати</string>
+    <string name="tourist_tile_weather">Погода</string>
+    <string name="tourist_tile_dew_point">Точка роси</string>
+    <string name="tourist_action_reset_tile">Скинути</string>
+    <string name="tourist_detail_speed">Макс: %1$.1f км/год • Трип: %2$.2f км</string>
+    <string name="tourist_detail_altitude">Висота MSL / GPS</string>
+    <string name="tourist_detail_coordinates">WGS84 • Широта, Довгота</string>
+    <string name="tourist_detail_steps">Лічильник кроків сесії</string>
+    <string name="tourist_detail_trip_distance">Пройдена відстань</string>
+    <string name="tourist_accuracy_high">Висока точність</string>
+    <string name="tourist_accuracy_medium">Середня точність</string>
+    <string name="tourist_accuracy_low">Низька точність</string>
+    <string name="tourist_accuracy_unreliable">Калібрувати компас</string>
+    <string name="tourist_detail_satellites">Супутники: %1$d у фіксі (%2$d видно)</string>
+    <string name="tourist_detail_sun_time">Схід: %1$s • Захід: %2$s</string>
 </resources>

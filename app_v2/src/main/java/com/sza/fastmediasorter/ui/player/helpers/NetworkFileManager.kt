@@ -110,6 +110,13 @@ class NetworkFileManager(
             return copyUriToTemp(mediaFile.path, mediaFile.name)
         }
 
+        // Streaming URLs (http://, https://, rtsp://) - played directly, not downloaded as local files
+        if (mediaFile.path.startsWith("http://") || mediaFile.path.startsWith("https://") || mediaFile.path.startsWith("rtsp://")) {
+            Timber.d("S3006: prepareFileForRead rejected stream URL ${mediaFile.path}")
+            Timber.w("NetworkFileManager: Skipping file download for stream URL: ${mediaFile.path}")
+            throw IllegalArgumentException("Unsupported streaming protocol for local file operation: ${mediaFile.path}")
+        }
+
         // Network files - download to temp cache
         return downloadNetworkFileForRead(mediaFile)
     }
@@ -274,6 +281,9 @@ class NetworkFileManager(
                 } else {
                     throw java.io.IOException("Download failed: File not created")
                 }
+            } catch (e: IllegalArgumentException) {
+                Timber.w("NetworkFileManager: Cannot download network file for unsupported protocol: ${mediaFile.path} (${e.message})")
+                throw e
             } catch (e: Exception) {
                 e.errorUnlessCancellation("Error downloading network file")
                 throw e

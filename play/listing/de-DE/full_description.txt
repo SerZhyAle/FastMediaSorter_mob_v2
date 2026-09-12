@@ -34,7 +34,6 @@ Für jeden Bildschirm und jede Eingabe:
 • Vollständige Bedienung per Tastatur, TV-Fernbedienung / D-Pad und Gamepad.
 • Startbildschirm-Widgets - Ressource öffnen, Weiterlesen, Zufallsmusik, Kamerafotos.
 • Schnelleinstellungs-Kachel für Hintergrundaudio. Suche über alle Einstellungen.
-• Wear OS - eine eigenständige Uhren-App: Fotos, Video, Musik, Textdokumente, Internetradio und TV, Favoriten, Datei ans Telefon senden und die Ordner des Telefons durchsehen. Fünf Kacheln und drei Zifferblatt-Komplikationen, dazu Taschenrechner, Netzwerkmonitor, Diktiergerät, Taschenlampe, Bewegungsmonitor, Systeminfo und ein Mini-Spiel. Netzwerkfreigaben werden in der Telefon-App eingerichtet.
 
 Frei, offen und privat - der Quellcode erscheint unter der Apache License 2.0, und lokales, SMB-, FTP- und SFTP-Browsen sowie die Betrachter für Bild, Video, Audio, PDF und EPUB funktionieren vollständig offline, ganz ohne Konto.
 

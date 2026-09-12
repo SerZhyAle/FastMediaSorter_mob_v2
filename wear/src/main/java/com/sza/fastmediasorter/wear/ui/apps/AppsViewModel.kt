@@ -29,7 +29,7 @@ class AppsViewModel @Inject constructor(
     val uiState: StateFlow<AppsUiState> = preferencesRepository.viewMode
         .map { viewMode ->
             AppsUiState(
-                apps = WearAppCatalog.apps(capabilities.offersBodySensorDiagnostics),
+                apps = WearAppCatalog.apps(capabilities),
                 viewMode = viewMode
             )
         }

@@ -44,6 +44,8 @@ object LocaleHelper {
 
     @Volatile private var lastLoggedAppliedLanguage: String? = null
 
+    @Volatile private var lastLoggedS2936Language: String? = null
+
     private val languageRevisionState = MutableStateFlow(0)
 
     /**
@@ -107,12 +109,15 @@ object LocaleHelper {
      * a device reporting a blank language would otherwise bounce between the two functions forever.
      */
     fun detectSystemLanguage(context: Context? = null): String {
-        Timber.d("S2936: detectSystemLanguage hasContext=${context != null} api${Build.VERSION.SDK_INT}")
-        resolveSystemLanguageViaManager(context)?.let { return it }
-        // Locale.setDefault() is overridden by the app locale, so Resources.getSystem() is the
-        // only stable source for the device language while the process is already localized.
-        val systemLang = Resources.getSystem().configuration.locales[0].toLanguageTag()
-        return UiLanguageCatalog.resolveTag(systemLang) ?: DEFAULT_LANGUAGE
+        val resolved = resolveSystemLanguageViaManager(context) ?: run {
+            val systemLang = Resources.getSystem().configuration.locales[0].toLanguageTag()
+            UiLanguageCatalog.resolveTag(systemLang) ?: DEFAULT_LANGUAGE
+        }
+        if (lastLoggedS2936Language != resolved) {
+            lastLoggedS2936Language = resolved
+            Timber.d("S2936: detectSystemLanguage hasContext=${context != null} api${Build.VERSION.SDK_INT} resolved $resolved")
+        }
+        return resolved
     }
 
     private fun resolveSystemLanguageViaManager(context: Context?): String? {
@@ -124,9 +129,7 @@ object LocaleHelper {
             } else {
                 (0 until systemLocales.size()).firstNotNullOfOrNull { i ->
                     val tag = systemLocales[i].toLanguageTag()
-                    UiLanguageCatalog.resolveTag(tag)?.also {
-                        Timber.d("S2936: resolved $it from systemLocales[$i]=$tag")
-                    }
+                    UiLanguageCatalog.resolveTag(tag)
                 }
             }
         } catch (e: Exception) {

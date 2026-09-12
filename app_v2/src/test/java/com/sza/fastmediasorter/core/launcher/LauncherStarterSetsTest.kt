@@ -51,11 +51,14 @@ class LauncherStarterSetsTest {
      * S2735: the launcher actions a profile seeds, in catalogue order.
      *
      * The three settings actions are excluded because they moved to the settings section - see
-     * [settingsSection].
+     * [settingsSection]. S3001: the Add-resource action is excluded because it is placed by its own
+     * backfill ([PlaceAddResourceTileUseCase]) into the Resources section, not seeded here under the
+     * App Functions header.
      */
     private fun actionTargets(profile: DeviceProfileType): List<String> =
         LauncherActionCatalog.all
             .filter { it.key !in settingsActionKeys }
+            .filter { it.key !in backfilledActionKeys }
             .filter { it.key != LauncherActionCatalog.KEY_BLACK_SCREEN || profile in BLACK_SCREEN_PROFILES }
             .map { "act:${it.key}" }
 
@@ -63,6 +66,10 @@ class LauncherStarterSetsTest {
         LauncherActionCatalog.KEY_APP_SETTINGS,
         LauncherActionCatalog.KEY_LAUNCHER_SETTINGS,
         LauncherActionCatalog.KEY_EDIT_DESKTOP,
+    )
+
+    private val backfilledActionKeys = setOf(
+        LauncherActionCatalog.KEY_CREATE_RESOURCE,
     )
 
     /**
@@ -158,9 +165,16 @@ class LauncherStarterSetsTest {
         val actionsHeaderIndex = targets.indexOf("sec:app_functions")
         val settingsHeaderIndex = targets.indexOf(sectionTarget(LauncherCellCommand.SECTION_SETTINGS))
         // S2735: the two settings actions moved to the settings section, so the app-functions run is
-        // the catalogue minus them and minus the profile-gated black screen.
+        // the catalogue minus them, minus the profile-gated black screen, and minus the S3001 backfilled
+        // Add-resource action (placed by PlaceAddResourceTileUseCase into the Resources section).
         val actions = targets.subList(actionsHeaderIndex, settingsHeaderIndex).filter { it.startsWith("act:") }
-        assertEquals(LauncherActionCatalog.all.size - settingsActionKeys.size - 1, actions.size)
+        assertEquals(
+            LauncherActionCatalog.all.size - settingsActionKeys.size - backfilledActionKeys.size - 1,
+            actions.size,
+        )
+        // S3001: the Add-resource tile must not be seeded under the App Functions header - the backfill
+        // owns its placement into the Resources section, and a seed copy here would let its dedup skip it.
+        assertFalse("act:${LauncherActionCatalog.KEY_CREATE_RESOURCE}" in actions)
         assertTrue("widgets header must come first", widgetsHeaderIndex < actionsHeaderIndex)
         // S2749: minus the routes the utility section owns, which this grid no longer repeats.
         val actionsStart = actionsHeaderIndex +

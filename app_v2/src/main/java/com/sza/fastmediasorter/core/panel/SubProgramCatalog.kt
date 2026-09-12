@@ -140,6 +140,7 @@ object SubProgramCatalog {
                 SubProgramSurface.QUICK_ACCESS_PANEL,
                 SubProgramSurface.LAUNCHER_SHORTCUT,
             ),
+            disable = { it.copy(enableTourist = false) },
         ),
         SubProgramEntry(
             routeKey = InternalRouteCatalog.KEY_WEAR_COMPANION,

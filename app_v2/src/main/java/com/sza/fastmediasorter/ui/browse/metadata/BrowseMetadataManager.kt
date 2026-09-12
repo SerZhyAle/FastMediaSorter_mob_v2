@@ -1,5 +1,6 @@
 package com.sza.fastmediasorter.ui.browse.metadata
 
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.domain.model.MediaResource
 import com.sza.fastmediasorter.domain.usecase.UpdateResourceUseCase
 import kotlinx.coroutines.CoroutineDispatcher
@@ -32,6 +33,7 @@ class BrowseMetadataManager(
      * full-entity write built from that state (scroll/lastViewed/sort) clobbers this update.
      */
     suspend fun updateMetadata(resource: MediaResource, actualFileCount: Int, subfolderCount: Int = -1): MediaResource? {
+        Timber.d("S3005: BrowseMetadataManager.updateMetadata entered")
         return withContext(ioDispatcher) {
             try {
                 // S1001: isNetworkResource includes CLOUD - the statistics renderer shows
@@ -65,7 +67,7 @@ class BrowseMetadataManager(
                     null
                 }
             } catch (e: Exception) {
-                Timber.e(e, "BrowseMetadataManager: Exception while updating resource metadata")
+                e.errorUnlessCancellation("BrowseMetadataManager: Exception while updating resource metadata")
                 null
             }
         }

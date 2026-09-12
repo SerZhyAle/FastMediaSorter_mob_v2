@@ -8,6 +8,7 @@ import android.view.View
 import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.format.QuantityFormatter
 import com.sza.fastmediasorter.databinding.GadgetLauncherStepsBinding
@@ -47,7 +48,7 @@ class StepsGadget @Inject constructor(
     override val iconRes: Int = R.drawable.ic_steps
     override val requiresResourceParam: Boolean = false
 
-    override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.STEP_COUNTER)
+    override fun isAvailable(): Boolean = BuildConfig.IS_NO_LEGAL_FLAVOR && availability.isAvailable(SensorCapability.STEP_COUNTER)
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =
         StepsGadgetView(

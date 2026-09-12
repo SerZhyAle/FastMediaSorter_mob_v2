@@ -125,7 +125,7 @@ internal fun Modifier.nonSwallowingClickable(
 ): Modifier = this
     .pointerInput(onClick) {
         awaitEachGesture {
-            val down = awaitFirstDown(pass = PointerEventPass.Main, requireUnconsumed = false)
+            awaitFirstDown(pass = PointerEventPass.Main, requireUnconsumed = false)
             val up = waitForUpOrCancellation(pass = PointerEventPass.Main)
             if (up != null && !up.isConsumed) {
                 up.consume()

@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.browse.managers
 import android.content.Context
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.cache.MediaFilesCacheManager
+import com.sza.fastmediasorter.core.util.errorUnlessCancellation
 import com.sza.fastmediasorter.data.cloud.CloudProvider
 import com.sza.fastmediasorter.data.network.ConnectionThrottleManager
 import com.sza.fastmediasorter.data.repository.CachedFileListRepository
@@ -211,6 +212,7 @@ class BrowseResourceLoadManager(
 
             // Try DB-cached file list (rememberFileList mode)
             if (resource.rememberFileList && !forceRescan && !initialSubfolderMode) {
+                Timber.d("S3005: BrowseResourceLoadManager DB-cache branch entered")
                 try {
                     val dbCache = cachedFileListRepository.getCachedFiles(resource.id)
                     if (!dbCache.isNullOrEmpty()) {
@@ -228,7 +230,7 @@ class BrowseResourceLoadManager(
                         return@launch
                     }
                 } catch (e: Exception) {
-                    Timber.e(e, "BrowseResourceLoadManager.loadResource: DB cache load failed")
+                    e.errorUnlessCancellation("BrowseResourceLoadManager.loadResource: DB cache load failed")
                 }
             }
 

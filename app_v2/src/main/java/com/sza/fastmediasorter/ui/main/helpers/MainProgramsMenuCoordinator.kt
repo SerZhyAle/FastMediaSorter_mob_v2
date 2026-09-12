@@ -367,12 +367,12 @@ class MainProgramsMenuCoordinator(
             InternalRouteCatalog.KEY_WATCH_LISTEN to MenuPresentation(
                 MENU_ITEM_WATCH_LISTEN,
                 R.string.watch_listen_label,
-                R.drawable.ic_watch,
+                R.drawable.ic_watch_listen,
             ),
             InternalRouteCatalog.KEY_WATCH_LISTEN_RECORD to MenuPresentation(
                 MENU_ITEM_WATCH_LISTEN_RECORD,
                 R.string.watch_listen_record_label,
-                R.drawable.ic_microphone,
+                R.drawable.ic_watch_listen_record,
             ),
             InternalRouteCatalog.KEY_FRONT_FLASHLIGHT to MenuPresentation(
                 MENU_ITEM_FRONT_FLASHLIGHT,

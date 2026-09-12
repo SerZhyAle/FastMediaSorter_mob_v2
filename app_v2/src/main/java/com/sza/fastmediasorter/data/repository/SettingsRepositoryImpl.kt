@@ -287,6 +287,10 @@ class SettingsRepositoryImpl @Inject constructor(
         }.getOrDefault(false)
     }
 
+    // S3004: deduplicate probes in hot settings flow to prevent log flooding
+    @Volatile private var lastEmittedS2571Language: String? = null
+    @Volatile private var lastEmittedS2603VideoSizeMin: Long? = null
+
     override fun getSettings(): Flow<AppSettings> {
         return dataStore.data
             .catch { exception ->
@@ -307,7 +311,11 @@ class SettingsRepositoryImpl @Inject constructor(
                 // real locale whenever its write was lost, and re-pinned itself on every later settings
                 // write, so the only user-reachable cure was clearing app data.
                 val language = LocaleHelper.getLanguage(context)
-                Timber.d("S2571: settings emit, language derived from LocaleHelper = $language")
+                if (lastEmittedS2571Language != language) {
+                    lastEmittedS2571Language = language
+                    Timber.d("S3004: deduplicated settings probe emit language=$language")
+                    Timber.d("S2571: settings emit, language derived from LocaleHelper = $language")
+                }
                 val colorTheme = ColorThemePrefs.normalizeValue(preferences[KEY_COLOR_THEME])
 
                 // Cache size for Glide (GlideAppModule reads from SharedPreferences during init)
@@ -331,7 +339,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 val slideshow = SlideshowSettingsStore.read(preferences)
                 val link = LinkSettingsStore.read(preferences)
                 val mediaSize = MediaSizeFilterSettingsStore.read(preferences)
-                Timber.d("S2603: snapshot from store videoSizeMin=${mediaSize.videoSizeMin}")
+                if (lastEmittedS2603VideoSizeMin != mediaSize.videoSizeMin) {
+                    lastEmittedS2603VideoSizeMin = mediaSize.videoSizeMin
+                    Timber.d("S2603: snapshot from store videoSizeMin=${mediaSize.videoSizeMin}")
+                }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
                 val broadcast = BroadcastSettingsStore.read(preferences)

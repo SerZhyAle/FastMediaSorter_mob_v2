@@ -389,6 +389,7 @@ data class BackupSettings(
         val stopwatchMusicUri: String? = null,
         val stopwatchVolumeKeysControl: Boolean = true,
         val enableNetworkMonitor: Boolean = false,
+        val enableTourist: Boolean = false,
         val recordGnssTrack: Boolean = false,
         val enableSystemInfo: Boolean = false,
         val enableWearCompanion: Boolean = false,

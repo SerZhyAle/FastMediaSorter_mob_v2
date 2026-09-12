@@ -25,6 +25,7 @@ import com.sza.fastmediasorter.domain.usecase.BuildPermissionRowsUseCase
 import com.sza.fastmediasorter.domain.usecase.CheckPermissionStatusUseCase
 import com.sza.fastmediasorter.domain.usecase.PermissionAction
 import com.sza.fastmediasorter.domain.usecase.ResolvePermissionActionUseCase
+import com.sza.fastmediasorter.ui.common.OverlayFocusTrap
 import com.sza.fastmediasorter.ui.common.permissions.PermissionDenialHandler
 import dagger.hilt.android.AndroidEntryPoint
 import timber.log.Timber
@@ -51,6 +52,8 @@ class PermissionsManagementFragment : Fragment() {
     @Inject lateinit var grantIntentFactory: PermissionGrantIntentFactory
 
     private lateinit var adapter: PermissionRowAdapter
+
+    private var hiddenSiblings: List<View> = emptyList()
 
     // True while a "Grant all" run is walking the user through every denied permission. A run is:
     // 1) one requestMultiplePermissions() dialog for the regular permissions, then
@@ -95,6 +98,12 @@ class PermissionsManagementFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        // S2899: The fragment replaces android.R.id.content but the activity's original contentView
+        // stays as a non-fragment sibling and remains focusable, so D-pad focus escapes the overlay.
+        // Hide the siblings so directional focus search stays inside this fragment.
+        hiddenSiblings = OverlayFocusTrap.hideSiblings(view)
+        Timber.d("S2899: PermissionsManagement focus trap active (${hiddenSiblings.size} sibling(s) hidden)")
 
         // Survive config change / process death while a system permission screen is open, so the
         // "Grant all" run resumes from where it left off when specialSettingsLauncher fires.
@@ -164,6 +173,12 @@ class PermissionsManagementFragment : Fragment() {
         }
     }
 
+    override fun onDestroyView() {
+        OverlayFocusTrap.restore(hiddenSiblings)
+        hiddenSiblings = emptyList()
+        super.onDestroyView()
+    }
+
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putBoolean(STATE_GRANT_ALL_IN_PROGRESS, grantAllInProgress)
@@ -190,6 +205,7 @@ class PermissionsManagementFragment : Fragment() {
             else -> toolbar
         }
         target?.requestFocus()
+        Timber.d("S2899: PermissionsManagement initial focus requested on ${target?.javaClass?.simpleName}")
     }
 
     private fun refreshAdapter() = adapter.refresh(buildRows(registry.getEntries(), requireContext()))
@@ -225,7 +241,9 @@ class PermissionsManagementFragment : Fragment() {
             shownSpecialInRun += entry.manifestName
             launchSpecialGrantSettings(entry)
         } else {
-            Timber.d("PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)")
+            Timber.d(
+                "PermissionsManagement: grant-all run finished (shown ${shownSpecialInRun.size} special permissions)"
+            )
             grantAllInProgress = false
             shownSpecialInRun.clear()
         }
@@ -243,8 +261,10 @@ class PermissionsManagementFragment : Fragment() {
     }
 
     private fun openAppSettings() {
-        startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-            data = Uri.fromParts("package", requireContext().packageName, null)
-        })
+        startActivity(
+            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", requireContext().packageName, null)
+            }
+        )
     }
 }

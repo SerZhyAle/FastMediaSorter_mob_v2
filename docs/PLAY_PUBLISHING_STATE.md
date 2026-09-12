@@ -27,7 +27,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-10 |
+| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-11 |
 
 Reader exit code: 0.
 
@@ -48,13 +48,13 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-10 |
-| `beta` | - | - | no release | 2026-09-10 |
-| `alpha` | - | - | no release | 2026-09-10 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-10 |
-| `wear:beta` | - | - | no release | 2026-09-10 |
-| `wear:internal` | - | - | no release | 2026-09-10 |
-| `wear:production` | `2.60.9021.951` | `260909148` | completed | 2026-09-10 |
+| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-11 |
+| `beta` | - | - | no release | 2026-09-11 |
+| `alpha` | - | - | no release | 2026-09-11 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-11 |
+| `wear:beta` | - | - | no release | 2026-09-11 |
+| `wear:internal` | - | - | no release | 2026-09-11 |
+| `wear:production` | `2.60.9021.951` | `26090503` | completed | 2026-09-11 |
 
 Reader exit code: 0.
 
@@ -234,6 +234,92 @@ unsent change and takes effect only when the owner sends that batch. So do not r
 `Policy status` straight after the commit and conclude the row is still there; the step ends at
 publication, not at the API call.
 
+**Attempted and it did NOT take, 2026-09-12 (S2994).** `clear-play-track-release.ps1 -Track
+internal -AllowNonDraft -Confirm` returned exit 0 and reported the one `completed` record removed,
+but Play refused the automatic review and the script fell back to `changesNotSentForReview`. **A
+held commit only queues a change; it does not alter the state later edits are built from, and here
+it did not even produce a row.** The owner's `Publishing overview` of 2026-09-12 carries one group,
+`Store listings`, and no `Internal testing` group at all, while `tracks().list()` still reports
+`260622232`. So this step is not merely unfinished - the API cannot finish it while a rejection
+stands. The June artifact is the last one below `targetSdk 36` and it remains on `internal`.
+
+Route left: remove the release from the `internal` track in the Console by hand, or accept that the
+carrier of `App must target Android 16` is an internal-testing artifact rather than a served one.
+The same held-commit behaviour was measured on `wear:production` the same day (step 2a).
+
+### Step 2a - Take the Wear artifact out of the pending batch
+
+**Executor:** owner (Play Console) plus one API call, done.
+**Proof:** `Publishing overview` lists no `Production (Wear OS)` row before the batch is submitted.
+
+Release 37 ships without the watch (owner ruling 2026-09-12, carrier S2996). Two things had to go.
+
+The owner discarded the rejected wear release `260909148` in the Console on 2026-09-12. That did
+**not** empty the track: `wear:production` rolled back to `26090503` - the artifact of the
+2026-09-08 rejection - and `Publishing overview` carried it as a pending `Start full rollout`. This
+is the rollback behaviour the plan assumed and is now measured: discarding a release restores the
+previous record rather than clearing the track.
+
+`clear-play-track-release.ps1 -Track wear:production -AllowNonDraft -Confirm` reported exit 0 and
+"1 release record(s) removed", again committed with `changesNotSentForReview` - **and it did not
+take.** A dry run hours later still printed `would clear 1 release record(s)` with the full
+`26090503` record, notes included, and the Console still showed the row. Each run added a change to
+the batch instead of removing one; the batch grew 21 -> 25.
+
+**What actually removed it: `Save for later` on the group header, in the Console** (owner,
+2026-09-12). That control holds a whole pending group out of the submission, it is the only thing
+that removes one, and the batch then read `24 changes` with `1 change saved for later`. Every
+earlier note in this repository calling it a column label is wrong - it is a live button, and it is
+the answer whenever a pending group must not reach review.
+
+### Step 2b - Take the watch out of the store listing
+
+**Executor:** one API call for the text, done; the images need an owner decision first.
+**Proof:** the live listing carries no Wear OS bullet, and `wearScreenshots` are gone from it.
+
+Carrier S2996. The listing is the contract a reviewer reads - two of the three rejections quote it
+verbatim ("functionality not working **as described**") - so a release that ships no watch must not
+promise one.
+
+**Text, done 2026-09-12.** The `Wear OS` bullet was removed from `full_description.txt` in all
+thirteen locales (one line each, the file's only occurrence of the string; sources backed up under
+`temp/S2996/`). `assert-play-listing-locales.ps1` passes with 0 violations over 13 declared locales,
+the longest description landing at 3721 of the 4000 characters Play allows.
+`publish-play-listing.ps1 -Mode validate` cannot run at all under enforcement - Play refuses the
+automatic review and `validate()` has no way to hold changes, which the script reports and which is
+not a finding about the listing. `-Mode commit` then returned `SUCCESS: edit committed, but HELD -
+not sent for review`, so the new text waits in the same unsent batch as the two track clears.
+
+**Images stay, and that is the right answer, not a defeat.**
+`clear-play-listing-images.ps1 -ImageType wearScreenshots -Confirm` is refused at commit time:
+
+```
+HTTP 403 ... "Cannot opt-in to Android Wear without screenshots."
+```
+
+While the app is opted in to the Wear OS form factor, the listing must carry at least one watch
+screenshot, so the images cannot be deleted without first opting out under `Advanced settings ->
+Form factors -> Wear OS -> Manage`. Play ties the form factor to the SCREENSHOTS, not to the
+artifact: clearing `wear:production` was accepted on the same day, deleting four images was not.
+
+**The opt-out is not required for release 37, and the precedent is our own.** The phone-only
+submission of 2026-09-02 passed review and is what `production` serves today, and it went out with
+the Wear OS form factor opted in and all four wear screenshots on the listing - they were staged
+2026-08-24 (S1707) and refreshed 2026-09-05 by the wear release flow, so they were live throughout.
+What has been rejected three times is the WATCH submission, never the phone one. Removing the
+screenshots was therefore always the optional half of this step; the text was the half that
+carries the "as described" argument, and the text is done. Owner ruling 2026-09-12: leave the form
+factor alone. The opt-out question returns with the watch in release 38 (S2994 section 5.4), where
+it belongs.
+
+What does matter for the batch is the Wear PRODUCTION ROW, not the pictures - an artifact in the
+batch is what dragged the phone release down in August (block 4, step 1).
+
+Two operational facts from the same run, both worth keeping. **`publish-play-listing.ps1` re-uploads
+every non-empty image folder**, `wearScreenshots` included - the en-US pass uploaded 22 images - so
+a clear run before a publish is undone by that publish; the clear must always come after. And a
+`503` mid-run leaves nothing behind: the edit is never committed, so the retry is safe.
+
 ### Step 3 - Submit the phone release from current code
 
 **Executor:** owner (Play Console).
@@ -271,6 +357,30 @@ were closed first, and release package 36 was closed on the artifact that reache
 instruction, `PLAN/RELEASE_QUEUE_DONE.md`). The review verdict is not in yet, so this submission is
 recorded here and nowhere else - a rejection of it lands as fresh tickets in package 38, never as a
 third reopening of 36.
+
+**Third submission rejected, 2026-09-11 - `260909148` / `2.60.9021.951` (S2994).**
+Email received 2026-09-11 12:17 -0700, Routing ID `ZLFS`, App Status: Rejected.
+Specific issues found:
+1. "Your app does not provide text without cut off in default font size as shown/described on the store listing."
+2. "texts are cut off when a large font size is selected in your app."
+
+**Wear Quality Guidelines mapping & review fleet findings (S2994):**
+- **WO-V1 (User configured font size):** App must conform to font size set by user in system settings without text/control clipping or overlapping.
+- **WO-V16 (Watch shapes):** Content must fit physical display area without text/control clipping.
+- **WO-V14 (Font size):** Min font size 12sp (essential) / 10sp (non-essential).
+- **WO-G2 (Play listing description):** List main features; mention tile/complication if surface included.
+- **WO-G5 (Play listing screenshots):** Accurate Wear OS screenshots, 1:1 aspect ratio, no transparent mask/device frame.
+- **WO-P5 (Companion app):** Non-standalone app must connect smoothly with companion.
+
+**Precedents & Geometry Rules (S2994):**
+- **Geometry over text metrics (spearo-go precedent):** Page scrolling (`ScalingLazyColumn`) does not substitute item layout geometry. Fix padding via viewport-relative insets (e.g. top 10%, bottom 12%, side 8%) rather than fixed dp padding to avoid pushing top/bottom lines under watch edges or pager dots.
+- **Non-defects confirmed:** Ellipsis (`TextOverflow.Ellipsis`) is Google-recommended overflow behaviour; typography already uses `MaterialTheme.typography` tokens; no `fontScale` clamp exists.
+- **Testing requirements:** Verification on real Galaxy Watch 7 (`SM-L310`) and shape profiles `small-round` (192dp) / `large-round` (227dp) using `wear-ink-clip.ps1` on every frame under all font sizes (1.0..1.24 & adb scale 1.5).
+
+**Strategy for Release 36 / 37 / 38 (Owner ruling 2026-09-12):**
+1. Release 36 Wear artifact failed (`260909148`). Phone artifact `2.60.9021.951` succeeded and is live.
+2. Release 37 proceeds as **phone-only** (no Wear OS artifact submitted).
+3. Release 38 will deliver the full Wear OS fix package after physical Galaxy Watch 7 glass testing (S2757), store listing bullet adjustment (S2996), `BLOOD_PRESSURE` removal from `standard` (S2995), and re-shooting `wearScreenshots`.
 
 **What was traded to send it, named rather than buried.** The precondition "no `BlockNeedUserTest`
 left in the package" was waived by the owner on 2026-09-09; 25 of the 46 rows the package shipped went

@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">अनुमानित शेष समय</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">फ़ाइलें कॉपी की जा रही हैं..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">बंद करें</string>
     <string name="dialog_integration_test_btnCopyLog_text">लॉग कॉपी करें</string>
@@ -3423,4 +3422,7 @@
     <string name="camera_session_consent_notification_title">आपकी घड़ी यह कैमरा देखना चाहती है</string>
     <string name="camera_session_consent_notification_text">घड़ी को इस फ़ोन का कैमरा और माइक्रोफ़ोन देखने दें.</string>
     <string name="camera_session_consent_allow">अनुमति दें</string>
+    <string name="tourist_tile_weather">मौसम</string>
+    <string name="tourist_tile_dew_point">ओस बिंदु</string>
+    <string name="tourist_action_reset_tile">रीसेट</string>
 </resources>

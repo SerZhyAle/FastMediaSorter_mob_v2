@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">আনুমানিক অবশিষ্ট সময়</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">ফাইল কপি করা হচ্ছে..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">বন্ধ করুন</string>
     <string name="dialog_integration_test_btnCopyLog_text">লগ কপি করুন</string>
@@ -3425,4 +3424,7 @@
     <string name="camera_session_consent_notification_title">আপনার ঘড়ি এই ক্যামেরাটি দেখতে চায়</string>
     <string name="camera_session_consent_notification_text">ঘড়িকে এই ফোনের ক্যামেরা ও মাইক্রোফোন দেখতে দিন.</string>
     <string name="camera_session_consent_allow">অনুমতি দিন</string>
+    <string name="tourist_tile_weather">আবহাওয়া</string>
+    <string name="tourist_tile_dew_point">শিশিরাঙ্ক</string>
+    <string name="tourist_action_reset_tile">রিসেট</string>
 </resources>

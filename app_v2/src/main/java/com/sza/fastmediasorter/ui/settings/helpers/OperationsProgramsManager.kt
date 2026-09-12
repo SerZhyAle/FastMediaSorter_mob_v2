@@ -55,6 +55,10 @@ class OperationsProgramsManager(
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateSettings(viewModel.settings.value.copy(enableSystemInfo = isChecked))
         }
+        binding.rowEnableTourist.setOnCheckedChangeListener { isChecked ->
+            if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
+            viewModel.updateSettings(viewModel.settings.value.copy(enableTourist = isChecked))
+        }
         binding.rowEmbeddedGame.setOnCheckedChangeListener { isChecked ->
             if (isUpdatingFromSettings()) return@setOnCheckedChangeListener
             viewModel.updateEmbeddedGameEnabled(isChecked)
@@ -105,6 +109,9 @@ class OperationsProgramsManager(
         // flavor, so the row is never absent from a build.
         if (binding.rowEnableSystemInfo.isChecked != settings.enableSystemInfo) {
             binding.rowEnableSystemInfo.setCheckedSilently(settings.enableSystemInfo)
+        }
+        if (binding.rowEnableTourist.isChecked != settings.enableTourist) {
+            binding.rowEnableTourist.setCheckedSilently(settings.enableTourist)
         }
         if (binding.rowEmbeddedGame.isChecked != settings.embeddedGameEnabled) {
             binding.rowEmbeddedGame.setCheckedSilently(settings.embeddedGameEnabled)

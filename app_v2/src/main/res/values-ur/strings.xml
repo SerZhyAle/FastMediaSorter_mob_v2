@@ -1059,7 +1059,6 @@
     <string name="transfer_eta_desc">تخمینی وقت باقی ہے۔</string>
     <string name="dialog_file_operation_progress_tvProgressTitle_text">فائلیں کاپی ہو رہی ہیں..</string>
     <string name="dialog_folder_browser_tvCurrentPath_text">/storage/emulated/0</string>
-    <string name="dialog_folder_selection_etManualPath_text">/storage/emulated/0/</string>
     <string name="dialog_image_edit_seekSaturation_text">2x</string>
     <string name="dialog_integration_test_btnClose_text">بند کریں</string>
     <string name="dialog_integration_test_btnCopyLog_text">لاگ کاپی کریں</string>
@@ -3427,4 +3426,7 @@
     <string name="camera_session_consent_notification_title">آپ کی گھڑی یہ کیمرہ دیکھنا چاہتی ہے</string>
     <string name="camera_session_consent_notification_text">گھڑی کو اس فون کا کیمرہ اور مائیکروفون دیکھنے دیں.</string>
     <string name="camera_session_consent_allow">اجازت دیں</string>
+    <string name="tourist_tile_weather">موسم</string>
+    <string name="tourist_tile_dew_point">شبنم نقطہ</string>
+    <string name="tourist_action_reset_tile">ریسیٹ</string>
 </resources>

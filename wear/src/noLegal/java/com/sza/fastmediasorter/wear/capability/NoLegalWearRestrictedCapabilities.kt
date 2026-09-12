@@ -29,4 +29,9 @@ class NoLegalWearRestrictedCapabilities @Inject constructor() : WearRestrictedCa
      * review would refuse.
      */
     override val locksSystemShade: Boolean = true
+
+    /**
+     * S2995: health features (Blood Pressure log, Motion Monitor) are offered in the sideload build.
+     */
+    override val offersHealthFeatures: Boolean = true
 }

@@ -47,4 +47,11 @@ interface WearRestrictedCapabilities {
      * application overlay may not draw over the status bar in any case.
      */
     val locksSystemShade: Boolean
+
+    /**
+     * S2995: Whether this build offers health and fitness programs (Blood Pressure log, Motion Monitor).
+     * Play Console declarations prohibit health features in store builds unless declared in Play Console.
+     * Withheld in `standard` flavor (store build), offered in `noLegal`.
+     */
+    val offersHealthFeatures: Boolean
 }

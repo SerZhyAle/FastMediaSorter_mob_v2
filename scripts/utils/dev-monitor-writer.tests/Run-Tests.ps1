@@ -306,7 +306,14 @@ try {
 
     Write-Host 'Read-only outside -OutDir'
     $tempAfter = Get-TempTopLevel
-    $new = @($tempAfter | Where-Object { $tempBefore -notcontains $_ -and $_ -ne 'S2406' })
+    # CLAUDE.md Rule 10 names the per-domain coordination files that live at temp/ root.
+    # A sibling session may create or remove any of them between the two snapshots, and
+    # they are not artifacts the writer produces, so exclude them from the diff.
+    $new = @($tempAfter | Where-Object {
+        $tempBefore -notcontains $_ -and
+        $_ -ne 'S2406' -and
+        $_ -notmatch '^(BUILD\.(PHONE|WEAR)|CODE\.(PHONE|WEAR|SCRIPTS))\.LOCK(\.QUEUE)?$'
+    })
     Assert-That 'nothing new at the top level of temp/' ($new.Count -eq 0) ($new -join ',')
 }
 finally {

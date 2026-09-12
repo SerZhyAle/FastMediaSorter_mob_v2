@@ -29,18 +29,18 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:orientation="vertical"
-            android:paddingStart="12dp"
-            android:paddingEnd="6dp"
-            android:paddingBottom="8dp">
+            android:paddingStart="@dimen/padding_normal"
+            android:paddingEnd="@dimen/padding_small"
+            android:paddingBottom="@dimen/margin_normal">
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHeroTile"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp"
-                app:strokeWidth="1.5dp"
+                app:cardCornerRadius="@dimen/tourist_card_corner_radius"
+                app:cardElevation="@dimen/tourist_card_elevation"
+                app:strokeWidth="@dimen/tourist_card_stroke_width"
                 app:strokeColor="?attr/colorPrimary">
 
                 <LinearLayout
@@ -48,7 +48,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="@dimen/padding_normal">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -58,8 +58,8 @@
 
                         <ImageView
                             android:id="@+id/ivHeroIcon"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
+                            android:layout_width="@dimen/tourist_hero_icon_size_land"
+                            android:layout_height="@dimen/tourist_hero_icon_size_land"
                             android:contentDescription="@null"
                             app:tint="?attr/colorPrimary"
                             tools:src="@drawable/ic_speed" />
@@ -68,11 +68,22 @@
                             android:id="@+id/tvHeroTitle"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
+                            android:layout_marginStart="@dimen/margin_normal"
                             android:layout_weight="1"
                             android:textAppearance="?attr/textAppearanceTitleMedium"
                             android:textStyle="bold"
                             tools:text="Speed" />
+
+                        <ImageButton
+                            android:id="@+id/btnHeroReset"
+                            android:layout_width="@dimen/control_button_size_compact"
+                            android:layout_height="@dimen/control_button_size_compact"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/tourist_action_reset_tile"
+                            android:src="@drawable/ic_refresh"
+                            android:visibility="gone"
+                            app:tint="?attr/colorPrimary"
+                            tools:visibility="visible" />
                     </LinearLayout>
 
                     <FrameLayout
@@ -91,7 +102,7 @@
                                 android:id="@+id/tvHeroPrimaryValue"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:textSize="64sp"
+                                android:textSize="@dimen/tourist_primary_text_size_land"
                                 android:textStyle="bold"
                                 android:textColor="?attr/colorOnSurface"
                                 tools:text="0.0" />
@@ -100,18 +111,46 @@
                                 android:id="@+id/tvHeroPrimaryUnit"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="8dp"
-                                android:layout_marginBottom="12dp"
+                                android:layout_marginStart="@dimen/margin_normal"
+                                android:layout_marginBottom="@dimen/margin_medium"
                                 android:layout_gravity="bottom"
                                 android:textAppearance="?attr/textAppearanceTitleMedium"
                                 android:textColor="?attr/colorOnSurfaceVariant"
                                 tools:text="km/h" />
                         </LinearLayout>
 
+                        <LinearLayout
+                            android:id="@+id/layoutHeroCoords"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                            tools:visibility="gone">
+
+                            <TextView
+                                android:id="@+id/tvHeroLat"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="@dimen/tourist_coords_text_size_land"
+                                android:textStyle="bold"
+                                tools:text="Lat: 55.7558°" />
+
+                            <TextView
+                                android:id="@+id/tvHeroLon"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/colorOnSurface"
+                                android:textSize="@dimen/tourist_coords_text_size_land"
+                                android:textStyle="bold"
+                                tools:text="Lon: 37.6173°" />
+                        </LinearLayout>
+
                         <ImageView
                             android:id="@+id/ivHeroCompassRose"
-                            android:layout_width="140dp"
-                            android:layout_height="140dp"
+                            android:layout_width="@dimen/tourist_compass_rose_size_land"
+                            android:layout_height="@dimen/tourist_compass_rose_size_land"
                             android:layout_gravity="center"
                             android:contentDescription="@null"
                             android:visibility="gone"
@@ -136,14 +175,14 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="horizontal"
-                android:paddingTop="6dp">
+                android:paddingTop="@dimen/padding_small">
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnOpenMap"
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginEnd="@dimen/margin_small"
                     android:layout_weight="1"
                     app:icon="@drawable/ic_map"
                     android:text="@string/tourist_action_open_map" />
@@ -153,8 +192,8 @@
                     style="@style/Widget.Material3.Button.TonalButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
+                    android:layout_marginStart="@dimen/margin_small"
+                    android:layout_marginEnd="@dimen/margin_small"
                     android:layout_weight="1"
                     app:icon="@drawable/ic_share"
                     android:text="@string/tourist_action_share_location" />
@@ -164,7 +203,7 @@
                     style="@style/Widget.Material3.Button.OutlinedButton"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="@dimen/margin_small"
                     android:layout_weight="1"
                     app:icon="@drawable/ic_refresh"
                     android:text="@string/tourist_action_reset_trip" />
@@ -178,8 +217,8 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:clipToPadding="false"
-            android:paddingStart="6dp"
-            android:paddingEnd="12dp"
-            android:paddingBottom="8dp" />
+            android:paddingStart="@dimen/padding_small"
+            android:paddingEnd="@dimen/padding_normal"
+            android:paddingBottom="@dimen/margin_normal" />
     </LinearLayout>
 </LinearLayout>

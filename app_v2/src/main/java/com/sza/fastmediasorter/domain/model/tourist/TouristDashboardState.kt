@@ -23,4 +23,8 @@ data class TouristDashboardState(
     val isDaylight: Boolean = true,
     val hasLocationPermission: Boolean = true,
     val hasActivityRecognitionPermission: Boolean = true,
+    val temperatureCelsius: Float? = null,
+    val humidityPercent: Float? = null,
+    val dewPointCelsius: Float? = null,
+    val weatherCondition: String? = null,
 )

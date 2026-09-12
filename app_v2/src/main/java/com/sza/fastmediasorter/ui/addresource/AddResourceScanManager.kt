@@ -267,12 +267,31 @@ internal class AddResourceScanManager(
         }
     }
 
+    /**
+     * S3003: strips a doubled /storage/emulated prefix from the manual-path input. When the
+     * field carried a persistent default text the user's absolute path could be glued after
+     * it, producing e.g. /storage/emulated//storage/emulated/0/Download/...; this drops the
+     * first occurrence so the path resolves.
+     */
+    private fun normalizeStoragePrefix(path: String): String {
+        val storagePrefix = "/storage/emulated/"
+        if (path.startsWith(storagePrefix) && path.drop(storagePrefix.length).startsWith("/storage/")) {
+            return path.drop(storagePrefix.length)
+        }
+        return path
+    }
+
     fun selectFolderByPath(path: String, dialog: Dialog) {
         if (ChromeOsCompat.needsSafFolderPicker(activity)) {
             Timber.d("AddResourceScanManager: redirecting to SAF picker on Chrome OS")
             folderPickerLauncher.launch(null)
             return
         }
+        // S3003: strip a doubled /storage/emulated prefix that results from the user
+        // typing an absolute path on top of the pre-filled default text that used to
+        // sit in the manual-path field.
+        val path = normalizeStoragePrefix(path)
+        Timber.d("S3003: selectFolderByPath path=$path")
         Timber.w("FOLDER_PICKER: Attempting to select path: $path")
         if (path.isBlank()) {
             Toast.makeText(activity, R.string.folder_path_hint, Toast.LENGTH_SHORT).show()

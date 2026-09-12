@@ -548,4 +548,15 @@
     <!-- S2847: vivid orange ring around mirror control buttons, visible on both the white glow
          field and the black root background. Fixed colour - does not flip with backlight state. -->
     <color name="mirror_control_border_color">#FF6D00</color>
+    <!-- Tourist dashboard tile permanent background tints (light theme) -->
+    <color name="tourist_tile_bg_speed">#FFFDE7</color>
+    <color name="tourist_tile_bg_altitude">#E0F7FA</color>
+    <color name="tourist_tile_bg_compass">#E8F5E9</color>
+    <color name="tourist_tile_bg_coordinates">#FFF3E0</color>
+    <color name="tourist_tile_bg_satellites">#EDE7F6</color>
+    <color name="tourist_tile_bg_steps">#F1F8E9</color>
+    <color name="tourist_tile_bg_trip_distance">#FCE4EC</color>
+    <color name="tourist_tile_bg_sun_time">#FFF8E1</color>
+    <color name="tourist_tile_bg_weather">#E1F5FE</color>
+    <color name="tourist_tile_bg_dew_point">#E0F2F1</color>
 </resources>

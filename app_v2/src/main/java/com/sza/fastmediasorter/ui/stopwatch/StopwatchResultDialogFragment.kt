@@ -58,10 +58,6 @@ class StopwatchResultDialogFragment : DialogFragment() {
         _binding = DialogStopwatchResultBinding.inflate(layoutInflater)
         frozenState = viewModel.state.value
         frozenNowMillis = viewModel.nowMillis()
-        val measuredAtStamp = frozenState.visibleParticipants
-            .mapNotNull { it.startedAtEpochMillis }
-            .minOrNull()
-        Timber.d("S2792: result dialog opened, measuredAt=$measuredAtStamp")
 
         val dialog = MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.stopwatch_result_title)
@@ -90,23 +86,27 @@ class StopwatchResultDialogFragment : DialogFragment() {
         binding.textStopwatchResultPreview.text = renderResult()
     }
 
-    private fun renderResult(): String = StopwatchResultRenderer.render(
-        state = frozenState,
-        nowMillis = frozenNowMillis,
-        description = binding.inputStopwatchResultDescription.text?.toString().orEmpty(),
-        note = binding.inputStopwatchResultNote.text?.toString().orEmpty(),
-        labels = StopwatchResultLabels(
-            participant = { index -> getString(R.string.stopwatch_region_label, index + 1) },
-            laps = getString(R.string.stopwatch_result_laps),
-            // S2792: the dialog owns the formatting, the renderer owns the line - this seam is what
-            // keeps the renderer Context-free while the stamp still reads in the user's calendar.
-            // S2795: the field order and the clock length come from the app's measurement system, not
-            // from the locale, so a saved result matches the times shown everywhere else.
-            measuredAt = { epochMillis ->
-                quantityFormatter.format(Quantity.DateTime(epochMillis), unitSystemProvider.value)
-            },
-        ),
-    )
+    private fun renderResult(): String {
+        Timber.d("S2792: renderResult")
+        return StopwatchResultRenderer.render(
+            state = frozenState,
+            nowMillis = frozenNowMillis,
+            description = binding.inputStopwatchResultDescription.text?.toString().orEmpty(),
+            note = binding.inputStopwatchResultNote.text?.toString().orEmpty(),
+            labels = StopwatchResultLabels(
+                participant = { index -> getString(R.string.stopwatch_region_label, index + 1) },
+                laps = getString(R.string.stopwatch_result_laps),
+                // S2792: the dialog owns the formatting, the renderer owns the line - this seam is what
+                // keeps the renderer Context-free while the stamp still reads in the user's calendar.
+                // S2795: the field order and the clock length come from the app's measurement system, not
+                // from the locale, so a saved result matches the times shown everywhere else.
+                measuredAt = { epochMillis ->
+                    val stamp = quantityFormatter.format(Quantity.DateTime(epochMillis), unitSystemProvider.value)
+                    getString(R.string.stopwatch_result_measured_at, stamp)
+                },
+            ),
+        )
+    }
 
     private fun saveToFile(dialog: Dialog) {
         val content = renderResult()

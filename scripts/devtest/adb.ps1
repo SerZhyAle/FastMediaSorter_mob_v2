@@ -16,8 +16,11 @@
     devices              list online devices with model + Android version (no selection needed)
     props                selected device: model, Android release, SDK, density, wm size
     current              focused activity / package on the selected device
-    launch               start the app (debug build: explicit MainActivity, bypasses the
-                         LeakCanary launcher trap)
+    launch               start the app (debug build: explicit component, bypassing the LeakCanary
+                         launcher trap). Resolves the watch's own activity automatically when the
+                         selected device reports watch characteristics and -Module was not given;
+                         an EXPLICIT -Module that conflicts with the device is refused, mirroring
+                         install's guard (S2992)
     stop                 force-stop the app
     logcat-clear         empty the device logcat buffer (alias: log-clear). Touches no app state
     wipe-data            DESTRUCTIVE: pm clear (app data, runtime grants and onboarding gone).
@@ -175,12 +178,20 @@
   phone-only flavor is refused by name. `install` also refuses when -Module
   disagrees with the selected device's `ro.build.characteristics` (watch vs not) - both modules
   share one applicationId (S1681), so the wrong -Module would otherwise silently replace whichever
-  app is already on that device and still report success (S2043).
+  app is already on that device and still report success (S2043). `launch` carries the same
+  conflict guard for an EXPLICIT -Module (S2992), and - since the common case is one device and no
+  -Module at all - falls back to the SELECTED device's own characteristics rather than the
+  'app_v2' default, so a lone watch launches its own activity with no -Module needed.
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 install -Module wear -DeviceId 192.168.1.166:46551
   pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -Module wear -DeviceId 192.168.1.166:46551
   Install the watch release build onto a paired watch and start it by its own component.
+
+.EXAMPLE
+  pwsh -NoProfile -File scripts/devtest/adb.ps1 launch -DeviceId 192.168.1.166:46551
+  Launch a paired watch by its own activity with no -Module needed - the device's own
+  characteristics decide; only a NAMED -Module that conflicts with the device is refused (S2992).
 
 .EXAMPLE
   pwsh -NoProfile -File scripts/devtest/adb.ps1 wipe-data -Yes
@@ -492,8 +503,28 @@ function Resolve-Package {
     Fail 4 "neither '$primary' nor '$fallback' is installed on $Id (build/install first)"
 }
 
+# Resolve which activity component `launch` should start. An EXPLICIT -Module is honoured as
+# stated and refused on a conflict with the device - mirroring `install`'s guard (S1681/S2043),
+# because a caller who named the wrong module needs to be told, not routed around. The common case
+# is one device and no -Module at all though, and Select-Device's own module disambiguation (above)
+# never runs for it - that branch exists only to pick among SEVERAL online devices - so an unnamed
+# -Module used to trust the 'app_v2' default unconditionally and send `am start` at the phone's
+# MainActivity on a watch (S2992): three /spec-sweep agents hit exactly that on 2026-09-11. An
+# unnamed -Module now defers to what the selected device actually reports instead.
 function Resolve-Activity {
-    if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+    param([string]$Id)
+    $isWatchDevice = Test-WatchDevice $Id
+    if ($script:ModuleWasNamed) {
+        if ($isWatchDevice -and $Module -ne 'wear') {
+            Fail 1 "device $Id reports watch characteristics (ro.build.characteristics) but -Module is '$Module' - the phone's MainActivity does not exist in the wear build, since the watch declares its own activity under its own code namespace (S1984) while both modules share one applicationId (S1681). Pass -Module wear, or point -DeviceId at a phone."
+        }
+        if (-not $isWatchDevice -and $Module -eq 'wear') {
+            Fail 1 "device $Id does not report watch characteristics but -Module wear was requested - the wear activity does not exist in the phone build. Point -DeviceId at the paired watch, or drop -Module wear."
+        }
+        if ($Module -eq 'wear') { return $WEAR_MAIN_ACTIVITY }
+        return $MAIN_ACTIVITY
+    }
+    if ($isWatchDevice) { return $WEAR_MAIN_ACTIVITY }
     return $MAIN_ACTIVITY
 }
 
@@ -607,7 +638,7 @@ switch ($Verb.ToLowerInvariant()) {
         Write-Host "  devices    list online devices (model + Android version)" -ForegroundColor White
         Write-Host "  props      selected device props (model, release, sdk, density, size)" -ForegroundColor White
         Write-Host "  current    focused activity / package" -ForegroundColor White
-        Write-Host "  launch     start app (debug: explicit MainActivity)" -ForegroundColor White
+        Write-Host "  launch     start app (debug: explicit component; auto-detects a watch device)" -ForegroundColor White
         Write-Host "  stop       force-stop app" -ForegroundColor White
         Write-Host "  logcat-clear  empty the logcat buffer (alias log-clear) - no app state touched" -ForegroundColor White
         Write-Host "  wipe-data  DESTRUCTIVE pm clear - needs -Yes (data, grants, onboarding gone)" -ForegroundColor Yellow
@@ -692,7 +723,7 @@ switch ($Verb.ToLowerInvariant()) {
         $pkg = Resolve-Package $id
         $script:result.device = $id; $script:result.package = $pkg
         # Explicit component avoids the debug LeakCanary launcher pre-empting the app launcher.
-        $activity = Resolve-Activity
+        $activity = Resolve-Activity $id
         Invoke-Adb $id @('shell', 'am', 'start', '-n', "$pkg/$activity") | Out-Null
         if ($Json) { Emit-Ok @{ id = $id; package = $pkg; component = "$pkg/$activity" } }
         Write-Host "LAUNCHED $pkg/$activity on $id" -ForegroundColor Green

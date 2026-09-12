@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.ui.tourist
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
 import com.sza.fastmediasorter.domain.usecase.tourist.ObserveTouristDashboardUseCase
@@ -16,7 +17,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * S2922: ViewModel for the Tourist dashboard, managing live sensor telemetry and the hero focus tile.
+ * S2922/S2995: ViewModel for the Tourist dashboard, managing live sensor telemetry and the hero focus tile.
  */
 @HiltViewModel
 class TouristInfoViewModel @Inject constructor(
@@ -24,9 +25,13 @@ class TouristInfoViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    private val initialFocus: TouristTileType = savedStateHandle.get<String>(KEY_FOCUSED_TILE)
-        ?.let { runCatching { TouristTileType.valueOf(it) }.getOrNull() }
-        ?: TouristTileType.SPEED
+    private val initialFocus: TouristTileType = (
+        savedStateHandle.get<String>(KEY_FOCUSED_TILE)
+            ?.let { runCatching { TouristTileType.valueOf(it) }.getOrNull() }
+            ?: TouristTileType.SPEED
+        ).let { focus ->
+            if (focus == TouristTileType.STEPS && !BuildConfig.IS_NO_LEGAL_FLAVOR) TouristTileType.SPEED else focus
+        }
 
     private val _state = MutableStateFlow(TouristDashboardState(focusedTile = initialFocus))
     val state: StateFlow<TouristDashboardState> = _state.asStateFlow()
@@ -42,13 +47,24 @@ class TouristInfoViewModel @Inject constructor(
     }
 
     fun selectTile(tileType: TouristTileType) {
+        if (tileType == TouristTileType.STEPS && !BuildConfig.IS_NO_LEGAL_FLAVOR) return
         savedStateHandle[KEY_FOCUSED_TILE] = tileType.name
         _state.update { it.copy(focusedTile = tileType) }
     }
 
     fun resetTrip() {
         observeTouristDashboardUseCase.resetTripDistance()
-        _state.update { it.copy(tripDistanceMeters = 0.0, maxSpeedKmh = 0f) }
+        _state.update { it.copy(tripDistanceMeters = 0.0) }
+    }
+
+    fun resetSpeedAndTrip() {
+        observeTouristDashboardUseCase.resetMaxSpeedAndTrip()
+        _state.update { it.copy(maxSpeedKmh = 0f, tripDistanceMeters = 0.0) }
+    }
+
+    fun resetSteps() {
+        observeTouristDashboardUseCase.resetSteps()
+        _state.update { it.copy(stepsCount = 0L) }
     }
 
     companion object {

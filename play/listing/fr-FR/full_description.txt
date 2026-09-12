@@ -34,7 +34,6 @@ Pour chaque écran et chaque commande :
 • Navigation complète au clavier, à la télécommande TV / D-pad et à la manette.
 • Widgets d'accueil - ouvrir une ressource, reprendre la lecture, musique aléatoire, photos.
 • Tuile de Réglages rapides pour l'audio en arrière-plan. Recherche dans tous les réglages.
-• Wear OS - montre : photos, vidéo, musique, textes, radio et TV par internet, favoris, envoi d'un fichier au téléphone, parcours de ses dossiers, cinq tuiles, trois complications, calculatrice, moniteur réseau, dictaphone, lampe, capteur de mouvement, système, mini-jeu. Partages réseau : depuis le téléphone.
 
 Libre, ouvert et privé - le code source paraît sous licence Apache License 2.0, et la navigation locale, SMB, FTP et SFTP, ainsi que les visionneuses image, vidéo, audio, PDF et EPUB, fonctionnent hors ligne, sans aucun compte.
 

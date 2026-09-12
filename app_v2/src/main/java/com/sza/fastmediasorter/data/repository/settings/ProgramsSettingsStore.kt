@@ -21,6 +21,9 @@ object ProgramsSettingsStore {
     private val KEY_ENABLE_NETWORK_MONITOR = booleanPreferencesKey("enable_network_monitor")
     private val KEY_ENABLE_SYSTEM_INFO = booleanPreferencesKey("enable_system_info")
 
+    // S2997: the Tourist dashboard toggle persists with the programs group.
+    private val KEY_ENABLE_TOURIST = booleanPreferencesKey("enable_tourist")
+
     // S2050: this field stays in AppSettings/DataStore rather than the watch-mirror store because it
     // is read as a reactive phone-behaviour toggle by code outside the companion sheet (e.g. the
     // programs panel, share targets). See WearSettingsMirrorStore's KDoc for the symmetric case - a
@@ -50,6 +53,7 @@ object ProgramsSettingsStore {
         val enableStopwatch: Boolean,
         val enableNetworkMonitor: Boolean,
         val enableSystemInfo: Boolean,
+        val enableTourist: Boolean,
         val enableWearCompanion: Boolean,
         val suppressWearMediaTakeover: Boolean,
         val recordGnssTrack: Boolean,
@@ -66,11 +70,13 @@ object ProgramsSettingsStore {
         val enableFavorites: Boolean,
     )
 
+    @Suppress("CyclomaticComplexMethod") // S2997: one Elvis per field; complexity tracks field count
     fun read(preferences: Preferences): Values = Values(
         enableCalculator = preferences[KEY_ENABLE_CALCULATOR] ?: false,
         enableStopwatch = preferences[KEY_ENABLE_STOPWATCH] ?: false,
         enableNetworkMonitor = preferences[KEY_ENABLE_NETWORK_MONITOR] ?: false,
         enableSystemInfo = preferences[KEY_ENABLE_SYSTEM_INFO] ?: false,
+        enableTourist = preferences[KEY_ENABLE_TOURIST] ?: false,
         enableWearCompanion = preferences[KEY_ENABLE_WEAR_COMPANION] ?: false,
         suppressWearMediaTakeover = preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] ?: false,
         // S1433: recording a satellite track is a separate choice from opening the Monitor.
@@ -102,6 +108,7 @@ object ProgramsSettingsStore {
         enableStopwatch = values.enableStopwatch,
         enableNetworkMonitor = values.enableNetworkMonitor,
         enableSystemInfo = values.enableSystemInfo,
+        enableTourist = values.enableTourist,
         enableWearCompanion = values.enableWearCompanion,
         suppressWearMediaTakeover = values.suppressWearMediaTakeover,
         recordGnssTrack = values.recordGnssTrack,
@@ -123,6 +130,7 @@ object ProgramsSettingsStore {
         preferences[KEY_ENABLE_STOPWATCH] = settings.enableStopwatch
         preferences[KEY_ENABLE_NETWORK_MONITOR] = settings.enableNetworkMonitor
         preferences[KEY_ENABLE_SYSTEM_INFO] = settings.enableSystemInfo
+        preferences[KEY_ENABLE_TOURIST] = settings.enableTourist
         preferences[KEY_ENABLE_WEAR_COMPANION] = settings.enableWearCompanion
         preferences[KEY_SUPPRESS_WEAR_MEDIA_TAKEOVER] = settings.suppressWearMediaTakeover
         preferences[KEY_RECORD_GNSS_TRACK] = settings.recordGnssTrack

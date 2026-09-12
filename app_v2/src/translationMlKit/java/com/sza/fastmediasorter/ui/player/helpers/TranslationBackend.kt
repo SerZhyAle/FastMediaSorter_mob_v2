@@ -2,8 +2,8 @@ package com.sza.fastmediasorter.ui.player.helpers
 
 import android.content.Context
 import com.google.mlkit.common.model.DownloadConditions
-import com.google.mlkit.common.sdkinternal.MlKitContext
 import com.google.mlkit.common.model.RemoteModelManager
+import com.google.mlkit.common.sdkinternal.MlKitContext
 import com.google.mlkit.nl.languageid.LanguageIdentification
 import com.google.mlkit.nl.languageid.LanguageIdentificationOptions
 import com.google.mlkit.nl.translate.TranslateLanguage
@@ -12,15 +12,17 @@ import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
-import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryIncompatibleException
 import com.sza.fastmediasorter.data.delivery.DeliveredNativeLibraryLoader
+import com.sza.fastmediasorter.domain.delivery.DeliverableCapabilityRepository
+import com.sza.fastmediasorter.domain.delivery.DeliverableSet
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
-import kotlin.coroutines.resume
+import com.sza.fastmediasorter.domain.translation.TranslationLanguageCodeMapper
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.tasks.await
 import timber.log.Timber
+import java.util.Locale
+import kotlin.coroutines.resume
 
 /**
  * ML Kit translation + language-identification backend split out of [TranslationManager]
@@ -96,8 +98,20 @@ class TranslationBackend(
                 Timber.d("Language detection failed, using English as fallback")
                 TranslateLanguage.ENGLISH
             } else {
-                Timber.d("Detected language: $detectedLang")
-                detectedLang
+                // ML Kit Language Identification may return BCP-47 tags with script subtags
+                // (e.g. "ru-Latn", "hi-Latn") that ML Kit Translate rejects - its model names
+                // expect bare [a-z]{2,3} codes. Strip the subtag and validate against the
+                // supported set so a romanized tag degrades to its base language instead
+                // of crashing inside model loading.
+                val baseCode = detectedLang.substringBefore('-').lowercase(Locale.ROOT)
+                Timber.d("S3002: detectLanguage raw=$detectedLang base=$baseCode")
+                if (baseCode in TranslationLanguageCodeMapper.supportedCodes) {
+                    Timber.d("Detected language: $detectedLang -> $baseCode")
+                    baseCode
+                } else {
+                    Timber.d("Detected language $detectedLang unsupported by Translate, using English fallback")
+                    TranslateLanguage.ENGLISH
+                }
             }
         } catch (e: Exception) {
             Timber.e(e, "Error detecting language")
@@ -176,6 +190,7 @@ class TranslationBackend(
             }
         } catch (e: Exception) {
             Timber.e(e, "Translation error")
+            Timber.d("S3002: showError after translateDirect failure")
             callback.showError(context.getString(R.string.translation_error))
             return null
         }
@@ -234,7 +249,7 @@ class TranslationBackend(
 
             return translator?.translate(text)?.await()
         } catch (e: Exception) {
-            Timber.e(e, "Direct translation error: $sourceLang→$targetLang (Fix with AI)")
+            Timber.e(e, "Direct translation error: $sourceLang→$targetLang")
 
             // Check if model is corrupted - delete and redownload automatically
             if (e.message?.contains("model files not found", ignoreCase = true) == true ||
@@ -264,7 +279,7 @@ class TranslationBackend(
                 }
             }
 
-            return null
+            throw e
         }
     }
 

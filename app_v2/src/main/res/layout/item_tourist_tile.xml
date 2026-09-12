@@ -6,19 +6,19 @@
     android:id="@+id/cardTileRoot"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="4dp"
+    android:layout_margin="@dimen/margin_small"
     android:clickable="true"
     android:focusable="true"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
-    app:strokeWidth="1dp"
+    app:cardCornerRadius="@dimen/tourist_secondary_card_corner_radius"
+    app:cardElevation="@dimen/tourist_secondary_card_elevation"
+    app:strokeWidth="@dimen/tourist_secondary_card_stroke_width"
     app:strokeColor="?attr/colorOutline">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="10dp">
+        android:padding="@dimen/tourist_tile_padding">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -28,8 +28,8 @@
 
             <ImageView
                 android:id="@+id/ivTileIcon"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
+                android:layout_width="@dimen/tourist_tile_icon_size"
+                android:layout_height="@dimen/tourist_tile_icon_size"
                 android:contentDescription="@null"
                 app:tint="?attr/colorPrimary"
                 tools:src="@drawable/ic_speed" />
@@ -38,7 +38,7 @@
                 android:id="@+id/tvTileLabel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="@dimen/margin_normal"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -50,7 +50,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="@dimen/padding_small"
             android:gravity="bottom"
             android:orientation="horizontal">
 
@@ -66,8 +66,8 @@
                 android:id="@+id/tvTileUnit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:layout_marginBottom="2dp"
+                android:layout_marginStart="@dimen/margin_small"
+                android:layout_marginBottom="@dimen/margin_tiny"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="?attr/colorOnSurfaceVariant"
                 tools:text="km/h" />

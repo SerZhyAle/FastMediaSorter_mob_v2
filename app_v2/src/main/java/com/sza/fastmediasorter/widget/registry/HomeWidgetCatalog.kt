@@ -210,7 +210,7 @@ class HomeWidgetCatalog @Inject constructor(
             gadgetSpanW = 2,
             gadgetSpanH = 1,
             labelRes = R.string.watch_listen_widget_label,
-            iconRes = R.drawable.ic_watch,
+            iconRes = R.drawable.ic_watch_listen,
             descriptionRes = R.string.watch_listen_widget_description,
             settingGate = { it.enableWearCompanion },
         ),
