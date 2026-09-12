@@ -27,7 +27,7 @@ What an anonymous visitor actually receives. Produced by
 
 | Served version | Store `Updated on` | Detected by | Measured (UTC) |
 |----------------|--------------------|-------------|----------------|
-| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-11 |
+| `2.60.9021.951` | Sep 2, 2026 | data-callback key 141 | 2026-09-12 |
 
 Reader exit code: 0.
 
@@ -48,19 +48,27 @@ keeps reporting `completed`, so review state is invisible from here and from the
 
 | Track | versionName | versionCode | Status | Measured (UTC) |
 |-------|-------------|-------------|--------|----------------|
-| `production` | `2.60.9021.951` | `260902195` | completed | 2026-09-11 |
-| `beta` | - | - | no release | 2026-09-11 |
-| `alpha` | - | - | no release | 2026-09-11 |
-| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-11 |
-| `wear:beta` | - | - | no release | 2026-09-11 |
-| `wear:internal` | - | - | no release | 2026-09-11 |
-| `wear:production` | `2.60.9021.951` | `26090503` | completed | 2026-09-11 |
+| `production` | `2.60.9121.346` | `260912134` | completed | 2026-09-12 |
+| `beta` | - | - | no release | 2026-09-12 |
+| `alpha` | - | - | no release | 2026-09-12 |
+| `internal` | `2.60.6222.324` | `260622232` | completed | 2026-09-12 |
+| `wear:beta` | - | - | no release | 2026-09-12 |
+| `wear:internal` | - | - | no release | 2026-09-12 |
+| `wear:production` | `2.60.9021.951` | `26090503` | completed | 2026-09-12 |
 
 Reader exit code: 0.
 
 <!-- s2272:measured:tracks:end -->
 
-**Drift since the previous measurement, 2026-09-09** - kept here, outside the marked region, because
+**Drift 2026-09-11 -> 2026-09-12: the phone release v2.60.9121.346 went up.** `production` moved from
+`260902195` to `260912134` / `2.60.9121.346`, uploaded and committed by
+`scripts/release/publish-play-release.ps1` on 2026-09-12 and **held**: Play refuses automatic review
+for this app, so the uploader committed with changes held and the owner sent them for review from the
+Console the same day. Block 1 still serves `2.60.9021.951` - that is the expected shape while a
+release is in review, not a disagreement of the kind recorded through 2026-08-31. `wear:production`
+and `internal` did not move.
+
+**Drift 2026-09-09 -> 2026-09-10** - kept here, outside the marked region, because
 the refresher overwrites what is inside it. Measured 2026-09-10 (S2294): **no row moved.** Every
 versionCode, versionName and status is identical to the 2026-09-09 measurement; only the measurement
 dates advanced. Two consequences worth stating rather than re-deriving:
