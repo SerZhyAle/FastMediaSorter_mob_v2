@@ -140,6 +140,14 @@ if ($CompressArchivesOlderThanDays -gt 0) {
                 # The directory only goes once the zip exists and is readable. A compression that
                 # half-succeeded must never be the reason an artifact is gone.
                 $null = [System.IO.Compression.ZipFile]::OpenRead($zipPath).Dispose()
+                # Git marks every file under .git/objects/pack read-only, and archive-temp moves whole
+                # directories - so a stamp that swallowed a checkout carries files Directory::Delete
+                # refuses. Measured 2026-09-12: the 20260902 stamp deleted all but 3.2 MB and then threw
+                # "Access to the path 'pack-0b96c38c...idx' is denied", which left the stage FAILED with
+                # the zip already written and the directory half gone - the one state this stage's own
+                # comment above promises never to produce. Clear the flag first, then delete.
+                Get-ChildItem -LiteralPath $stamp.FullName -Recurse -Force -File |
+                    Where-Object { $_.IsReadOnly } | ForEach-Object { $_.IsReadOnly = $false }
                 [System.IO.Directory]::Delete($stamp.FullName, $true)
                 $after = (Get-Item -LiteralPath $zipPath).Length
                 Write-Host ("  {0}: {1:N1} MB -> {2:N1} MB" -f $stamp.Name, ($before / 1MB), ($after / 1MB)) -ForegroundColor Green
