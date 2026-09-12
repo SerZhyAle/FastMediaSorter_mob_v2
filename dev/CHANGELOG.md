@@ -32727,3 +32727,4 @@ Format: | datetime | file | target | description |
 | 2026-09-12 13:34:30 | `PLAN/S3026_bugfix-wear-phone-camera-notifications-off.md` | `spec` | Scaffold compact bugfix spec skeleton S3026 [branch: DEBUG-v037] |
 | 2026-09-12 13:35:02 | `wear/src/main/java/com/sza/fastmediasorter/wear/ui/apps/motionmonitor/MotionMonitorScreen.kt` | `S3014` | Implement Wear OS Activity & Motion analytics, history Room database, trend chart with goal baselines, step baseline reset and geo map intent [branch: DEBUG-v037] |
 | 2026-09-12 13:45:46 | `scripts/quality/assert-release-scope-gates.ps1` | `release-scope gate batch` | assert-release-scope-gates: refuse an unknown -OnlyGroups value instead of silently certifying a scope nobody judged [branch: DEBUG-v037] |
+| 2026-09-12 13:53:26 | `docs/WHATS_NEW.md` | `WHATS_NEW` | Release notes and showcase update for v2.60.9121.346 - plateau merge from DEBUG-v037 [branch: DEBUG-v037] |

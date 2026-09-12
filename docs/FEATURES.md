@@ -5,7 +5,7 @@ permalink: /docs/FEATURES.html
 ---
 # FastMediaSorter v2 - Complete Feature List
 
-*Last updated: 2026-09-08*
+*Last updated: 2026-09-12*
 
 This document is the curated showcase of standout user-facing features. The complete developer inventory of every implemented capability lives in `docs/ALL_FEATURES.jsonl`.
 
@@ -41,6 +41,9 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Built-in stopwatch** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Time several participants on one screen, and keep the stopwatch on the home screen as a widget.
 - **Mirror** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The front camera as a plain mirror, one tap from the programs menu.
 - **Water flashlight** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A screen light wet hands cannot switch off by accident, on the phone and on the watch.
+- **Camera flashlight from the notification shade** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One tile turns the camera light on and off without opening anything.
+- **Live broadcast over Wi-Fi** `[Standard / Legacy / noLegal]`: The phone microphone becomes a station anyone on the same network can listen to, with its own settings section.
+- **Listen to the paired watch** `[Standard / noLegal]`: Live audio from the watch arrives on the phone, and can be recorded there.
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.
 - **Open a file from another app and keep browsing nearby files** `[Standard / VR]`: When another app hands off one file, continue with next, previous, random, or slideshow inside the same folder instead of getting stuck on a single item.
@@ -89,6 +92,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Live streams on Wear OS** `[Wear OS]`: The watch app now plays live radio and video streams straight from its own channel list, over the watch's own network, with no phone nearby.
 
 - **Stream widget on the home screen** `[Standard / Legacy / VR / noLegal]`: Start a channel straight from the home screen without opening the app first.
+- **Curated stream collections** `[Standard / Legacy / VR / noLegal]`: Ready-made sets of channels open as a collection instead of one long catalog to scroll.
+- **A picture for radio** `[Standard / Legacy / VR / noLegal]`: An audio stream plays behind a music visualizer rather than a blank screen.
 ## 8. Replace setup migration and utility clutter
 - **Unified settings backup and restore** `[Standard / VR]`: Back up sources, favorites, schedules, passwords, and sign-ins to a local file or Google Drive, then restore the whole setup after reinstalling or moving devices.
 - **App panel for apps, tools, and internal actions** `[Standard]`: Build a quick-launch panel that mixes Android apps, system shortcuts, captures, OCR tools, streams, and chosen resources in one place.
@@ -103,6 +108,8 @@ This document is the curated showcase of standout user-facing features. The comp
 - **System information as a program** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The full device report sits in the programs menu instead of behind Settings, and the watch has its own screen for it.
 - **Automatic power saving** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The app steps down its own activity on phone and watch, and says when a battery threshold cannot work.
 - **Backup carries 124 more settings** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A restore brings back the screenshot gestures and launcher readouts a backup used to drop.
+- **One unit system across the app** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: Metric or imperial decides every distance, speed and temperature the app shows, and survives a backup.
+- **Fully open-source edition** `[FOSS]`: A build with no proprietary components, for the F-Droid catalogue.
 ## 9. Replace your home-screen launcher
 - **Use the app as your home screen** `[Standard / noLegal]`: Launcher mode turns FastMediaSorter into the device home screen, with resizable gadgets, a working clock, and a labeled scrollable app grid.
 - **Make the desktop yours** `[Standard / noLegal]`: Choose the branded waves-and-particles animation, a flat empty surface, or a picture of your own including an animated GIF, cropped to fill the screen.
@@ -122,3 +129,4 @@ This document is the curated showcase of standout user-facing features. The comp
 - **See the wallpaper through your gadgets** `[Standard / noLegal]`: Desktop cells draw anywhere from fully transparent to an opaque card, and edit mode always shows the full card so a cell stays easy to grab.
 - **The desktop locks itself** `[Standard / noLegal]`: Lock from the desktop itself, or let an idle screen-off do it.
 - **Automatic package shortcuts** `[Standard / noLegal]`: Newly installed apps seed their own desktop cells instead of being placed by hand.
+- **The desktop can start the app** `[Standard / noLegal]`: Open on the desktop instead of the main window, with its own list of screens and its own settings section.
