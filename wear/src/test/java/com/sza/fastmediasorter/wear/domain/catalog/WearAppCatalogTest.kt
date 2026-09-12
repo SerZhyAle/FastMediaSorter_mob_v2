@@ -35,7 +35,8 @@ class WearAppCatalogTest {
                 WearAppId.BODY_SENSOR,
                 WearAppId.BLOOD_PRESSURE,
                 WearAppId.BROADCAST,
-                WearAppId.STOPWATCH
+                WearAppId.STOPWATCH,
+                WearAppId.TOURIST
             ),
             ids
         )

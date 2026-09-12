@@ -178,7 +178,13 @@ fun NetworkSourcesScreen(
             negativeButton = {
                 Chip(
                     onClick = { pendingDeleteSource = null },
-                    label = { Text(stringResource(R.string.cancel)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.cancel),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     colors = ChipDefaults.secondaryChipColors()
                 )
             },
@@ -188,7 +194,13 @@ fun NetworkSourcesScreen(
                         viewModel.deleteSource(source.id)
                         pendingDeleteSource = null
                     },
-                    label = { Text(stringResource(R.string.delete)) },
+                    label = {
+                        Text(
+                            text = stringResource(R.string.delete),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     colors = ChipDefaults.primaryChipColors()
                 )
             }
@@ -238,7 +250,13 @@ private fun SourceActionsDialog(
         item {
             Chip(
                 onClick = onTest,
-                label = { Text(stringResource(R.string.test_connection)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.test_connection),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.primaryChipColors()
             )
@@ -246,7 +264,13 @@ private fun SourceActionsDialog(
         item {
             Chip(
                 onClick = onDelete,
-                label = { Text(stringResource(R.string.delete)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ChipDefaults.secondaryChipColors()
             )
@@ -308,7 +332,13 @@ private fun ConnectionTestDialog(
                 item {
                     Chip(
                         onClick = onDismiss,
-                        label = { Text(stringResource(android.R.string.ok)) },
+                        label = {
+                            Text(
+                                text = stringResource(android.R.string.ok),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ChipDefaults.primaryChipColors()
                     )
@@ -399,7 +429,11 @@ private fun SourcesListContent(
                     Chip(
                         onClick = actions.onAddClick,
                         label = {
-                            Text(text = stringResource(R.string.add_network_source))
+                            Text(
+                                text = stringResource(R.string.add_network_source),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ChipDefaults.secondaryChipColors()
@@ -468,7 +502,11 @@ private fun SyncFromPhoneChip(
             if (syncState is SyncState.Pending) {
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             } else {
-                Text(text = stringResource(R.string.wear_sync_from_phone))
+                Text(
+                    text = stringResource(R.string.wear_sync_from_phone),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         modifier = Modifier.fillMaxWidth(),
@@ -488,7 +526,11 @@ private fun ExportToPhoneChip(
             if (exportState is ExportState.Exporting) {
                 CircularProgressIndicator(modifier = Modifier.size(16.dp), strokeWidth = 2.dp)
             } else {
-                Text(text = stringResource(R.string.wear_export_to_phone))
+                Text(
+                    text = stringResource(R.string.wear_export_to_phone),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         modifier = Modifier.fillMaxWidth(),

@@ -1,10 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.player.document
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -13,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -23,7 +19,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -34,6 +29,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
 import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.material.ButtonDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.PositionIndicator
@@ -41,8 +37,10 @@ import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.documents.DocumentFontSize
 import com.sza.fastmediasorter.wear.domain.documents.WearDocumentFailure
+import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_ANCHOR
 import com.sza.fastmediasorter.wear.ui.common.WEAR_LIST_NO_ANCHOR
+import com.sza.fastmediasorter.wear.ui.common.WearCellShape
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearListPosition
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
@@ -56,8 +54,6 @@ import kotlinx.coroutines.flow.first
 
 /** The module's interactive minimum, which strategic §3.2 requires of the font-size targets. */
 private val FONT_TARGET_SIZE = GridColumnFit.DEFAULT_MIN_TARGET_DP.dp
-
-private val FONT_TARGET_BORDER = 2.dp
 private val PROGRESS_SIZE = 32.dp
 private val VERTICAL_GAP = 8.dp
 private const val TITLE_MAX_LINES = 2
@@ -251,7 +247,7 @@ private fun TruncationNotice() {
 private fun FontSizeRow(selected: DocumentFontSize, onSelected: (DocumentFontSize) -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.Center
+        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
     ) {
         DocumentFontSize.entries.forEach { size ->
             FontSizeTarget(
@@ -264,8 +260,7 @@ private fun FontSizeRow(selected: DocumentFontSize, onSelected: (DocumentFontSiz
 }
 
 /**
- * The chosen size is ringed, not tinted: strategic §3.2 requires every state distinction to survive
- * without colour, and the glyph inside already differs only in size.
+ * S2522 / S3021: Rectangular tile button for font size selection.
  */
 @Composable
 private fun FontSizeTarget(size: DocumentFontSize, selected: Boolean, onClick: () -> Unit) {
@@ -275,21 +270,19 @@ private fun FontSizeTarget(size: DocumentFontSize, selected: Boolean, onClick: (
     } else {
         label
     }
-    val outline = if (selected) {
-        Modifier.border(FONT_TARGET_BORDER, MaterialTheme.colors.onSurface, CircleShape)
-    } else {
-        Modifier
-    }
     val glyphStyle = MaterialTheme.typography.title3
 
-    Box(
+    RectangularButton(
+        onClick = onClick,
         modifier = Modifier
             .size(FONT_TARGET_SIZE)
-            .clip(CircleShape)
-            .then(outline)
-            .clickable(onClick = onClick)
             .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center
+        shape = WearCellShape,
+        colors = if (selected) {
+            ButtonDefaults.primaryButtonColors()
+        } else {
+            ButtonDefaults.secondaryButtonColors()
+        }
     ) {
         Text(
             text = FONT_SAMPLE_GLYPH,

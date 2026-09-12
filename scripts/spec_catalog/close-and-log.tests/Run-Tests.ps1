@@ -22,7 +22,12 @@
 #     Neither file is ever snapshotted and copied back whole (S1521): both are appended by
 #     every parallel session (S1437), so a whole-file restore silently reverts a sibling's
 #     row. Cleanup keys off the probe markers rather than this run's own writes, so a run
-#     also clears residue left by a predecessor killed before its finally block.
+#     also clears residue left by a predecessor killed before its finally block - but only
+#     residue OLDER than $staleProbeAfter, because the marker does not distinguish a dead
+#     predecessor from a live second instance, and deleting a live one's rows is what S3022
+#     reproduced as the captured 'B2 delta=0'. Every rewrite of the changelog here is held
+#     under the canon writer's mutex (scripts/utils/devlog-mutex.ps1), which is the only
+#     thing serialising that file against the closures of every other session.
 #   * The subject ticket's `updated` timestamp moves, because the happy-path cases run a real
 #     status write. Every case passes -Status <the ticket's CURRENT status> -StatusOnly, so no
 #     lifecycle transition ever happens and the suite is idempotent across repeated runs.
@@ -34,6 +39,7 @@
 # Exit codes:
 #   0   all cases pass.
 #   1   at least one case failed.
+#   2   could not verify - another instance held the suite lock past its timeout (S3022).
 
 [CmdletBinding()]
 param(
@@ -55,6 +61,17 @@ $selectPs1 = Join-Path $repoRoot 'scripts/spec_catalog/select.ps1'
 $changelog = Join-Path $repoRoot 'dev/CHANGELOG.md'
 $features = Join-Path $repoRoot 'docs/ALL_FEATURES.jsonl'
 
+# S3022: every whole-file rewrite of the changelog below runs under the canon writer's own mutex.
+# Without it the exclusive WriteAllLines collides with a live closure's Add-Content and kills its
+# dev-log step, and the read-filter-write around it drops that closure's row with no error anywhere.
+. (Join-Path $repoRoot 'scripts/utils/devlog-mutex.ps1')
+
+# S3022: how old a foreign probe row must be before the residue sweep may drop it. One run measures
+# 35.6 s alone and 49.1 s against a concurrent writer, so ten minutes is an order of magnitude above
+# any live instance while still clearing what a killed predecessor left behind hours ago.
+$staleProbeAfter = [TimeSpan]::FromMinutes(10)
+$rowTimestampPattern = '^\|\s*(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})\s*\|'
+
 $script:pass = 0
 $script:fail = 0
 
@@ -73,9 +90,49 @@ function Get-SpecField([string]$field) {
     return $json.$field
 }
 
-function Get-LineCount([string]$path) {
-    if (Test-Path $path) { return @(Get-Content -LiteralPath $path).Count }
+# S3022: the ids of every inventory record belonging to the subject ticket. J3 used to count the
+# WHOLE file, which is the same arithmetic B2 was wrongly accused of and the same file shape: every
+# parallel session appends to docs/ALL_FEATURES.jsonl, and a second live instance of this suite
+# writing its own case D or I record read as "inventory grew" (measured 2026-09-12, two instances,
+# the second failing on nothing of its own). Filtering by the subject id drops every stranger's
+# record, and filtering out the known probe ids drops a sibling INSTANCE's, leaving only a record
+# this call could have invented.
+function Get-SubjectRecordIds {
+    if (-not (Test-Path $features)) { return @() }
+    $needle = '"spec":"' + $SubjectId + '"'
+    $ids = @()
+    foreach ($line in [System.IO.File]::ReadAllLines($features)) {
+        if ($line.Contains($needle) -and $line -match '"id":"([^"]+)"') { $ids += $Matches[1] }
+    }
+    return $ids
+}
+
+function Get-ProbeLineCount([string]$path) {
+    if (Test-Path $path) { return @(Get-Content -LiteralPath $path | Where-Object { $_ -match $probeRowPattern }).Count }
     return 0
+}
+
+# S3022: this suite is not safe to run twice at once, and no scoping can make it so. The five
+# rejected-call cases (A3, E3, F3, G3, H3) prove "nothing was mutated" by reading the subject
+# ticket's `updated` stamp before and after, while the happy-path cases of a SECOND instance write
+# that same ticket for real - measured 2026-09-12, an instance failing E3 on a write its own
+# rejected call never made. The subject is one catalog record shared by both runs, so the fix is to
+# not overlap rather than to weaken the assertion. Per checkout, like the changelog mutex, and it
+# dies with its holder so a killed run cannot wedge the next one.
+$suiteMutexHash = [System.BitConverter]::ToString(
+    [System.Security.Cryptography.MD5]::HashData([System.Text.Encoding]::UTF8.GetBytes($repoRoot.ToLowerInvariant()))
+).Replace('-', '')
+$suiteMutex = New-Object System.Threading.Mutex($false, "Global\FMS-CloseAndLogTests-$suiteMutexHash")
+$suiteMutexHeld = $false
+try { $suiteMutexHeld = $suiteMutex.WaitOne([TimeSpan]::FromMinutes(10)) }
+catch [System.Threading.AbandonedMutexException] { $suiteMutexHeld = $true }
+if (-not $suiteMutexHeld) {
+    # Ten minutes is more than a dozen runs (35.6 s alone, 49.1 s contended), so a timeout means
+    # something is wedged rather than busy. That is an environment this suite cannot judge in, not
+    # a failure of the facade it tests.
+    Write-Host "close-and-log tests: COULD NOT VERIFY - another instance held the suite lock for 10 minutes" -ForegroundColor Yellow
+    $suiteMutex.Dispose()
+    exit 2
 }
 
 # Echo the ticket's own status back at it: a write that cannot transition anything.
@@ -85,8 +142,36 @@ Write-Host "subject: $SubjectId (status '$subjectStatus', echoed back via -Statu
 
 # Everything this run can write carries one of two markers, and cleanup keys off exactly
 # those: dev-log rows by $probeTarget in their target column, inventory records by id.
-$probeTarget = 's1063-tests'
+$runId = [Guid]::NewGuid().ToString().Substring(0,8)
+$probeTarget = "s1063-tests-$runId"
 $probeRowPattern = '\|\s*`' + [regex]::Escape($probeTarget) + '`\s*\|'
+$anyProbeRowPattern = '\|\s*`s1063-tests.*`\s*\|'
+
+# S3022: the sweep that clears a killed predecessor's residue used to drop every row matching
+# 's1063-tests.*' - the '.*' spans the run id, so it matched a LIVE second instance's rows too, and
+# deleting those between their append and their read-back is what produced the captured
+# 'B2 delta=0'. Age is what separates the two: a predecessor's residue is old, a live instance's
+# rows are seconds old. A row whose timestamp will not parse is kept rather than guessed at - it
+# cannot reach any assertion here, since every one of them counts THIS run's marker only.
+function Test-StaleProbeRow([string]$row) {
+    if ($row -notmatch $anyProbeRowPattern) { return $false }
+    if ($row -notmatch $rowTimestampPattern) { return $false }
+    $stamp = [datetime]::MinValue
+    if (-not [datetime]::TryParseExact($Matches[1], 'yyyy-MM-dd HH:mm:ss', $null, 'None', [ref]$stamp)) { return $false }
+    return ((Get-Date) - $stamp) -gt $staleProbeAfter
+}
+
+if (Test-Path $changelog) {
+    Enter-DevLogWriteLock -RepoRoot $repoRoot
+    try {
+        $rows = [System.IO.File]::ReadAllLines($changelog)
+        $keptRows = @($rows | Where-Object { -not (Test-StaleProbeRow $_) })
+        if ($rows.Count -ne $keptRows.Count) {
+            [System.IO.File]::WriteAllLines($changelog, $keptRows, (New-Object System.Text.UTF8Encoding($false)))
+        }
+    }
+    finally { Exit-DevLogWriteLock }
+}
 
 # The ids the happy-path cases produce. B and I let close-and-log.ps1 derive one from
 # -FeatArea + -FeatName; D states one outright. A change to that derivation fails I2 before
@@ -98,7 +183,7 @@ $probeFeatureIds = @(
 )
 
 function New-DevLogJson([string]$file, [string]$desc) {
-    return ([ordered]@{ file = $file; target = $probeTarget; desc = $desc } | ConvertTo-Json -Compress)
+    return ([ordered]@{ file = $file; target = $probeTarget; desc = "$desc ($runId)" } | ConvertTo-Json -Compress)
 }
 
 function Test-ProbeRecord([string]$recordId) {
@@ -124,35 +209,35 @@ try {
     # --- A: the regression itself. Multi-element array via -File must die at bind time. ---
     Write-Host "A: multi-element -DevLogs through -File is rejected at bind time" -ForegroundColor Yellow
     $updBefore = Get-SpecField 'updated'
-    $clBefore = Get-LineCount $changelog
+    $clBefore = Get-ProbeLineCount $changelog
     $outA = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -DevLogs $j1 $j2 -FuncOp ADD -FuncDesc "sandbox capability" 2>&1 | Out-String
     $exitA = $LASTEXITCODE
     Assert-That "A1 non-zero exit" ($exitA -ne 0) "exit=$exitA"
     Assert-That "A2 error names the stray positional arg" ($outA -match 'positional parameter cannot be found') "out=$($outA.Trim())"
     Assert-That "A3 status not mutated" ((Get-SpecField 'updated') -eq $updBefore) "updated moved from $updBefore"
-    Assert-That "A4 no dev-log written" ((Get-LineCount $changelog) -eq $clBefore) "changelog grew"
+    Assert-That "A4 no dev-log written" ((Get-ProbeLineCount $changelog) -eq $clBefore) "changelog grew"
 
     # --- B: the documented transport form applies every step. ---
     Write-Host "B: single JSON-array string -DevLogs + -FuncOp applies fully" -ForegroundColor Yellow
-    $clBefore = Get-LineCount $changelog
+    $clBefore = Get-ProbeLineCount $changelog
     $outB = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -DevLogs "[$j1,$j2]" -FuncOp ADD -FuncDesc "sandbox capability two" `
         -FeatArea "Spec Tooling" -FeatName "Sandbox capability two" -FeatFlavors "standard" 2>&1 | Out-String
     $exitB = $LASTEXITCODE
     Assert-That "B1 exit 0" ($exitB -eq 0) "exit=$exitB out=$($outB.Trim())"
-    Assert-That "B2 both dev-logs written" ((Get-LineCount $changelog) -eq ($clBefore + 2)) "delta=$((Get-LineCount $changelog) - $clBefore)"
+    Assert-That "B2 both dev-logs written" ((Get-ProbeLineCount $changelog) -eq ($clBefore + 2)) "delta=$((Get-ProbeLineCount $changelog) - $clBefore)"
     $recB = @(Get-Content -LiteralPath $features | Where-Object { $_ -match "`"spec`":`"$SubjectId`"" })
     Assert-That "B3 capability recorded" ($recB.Count -ge 1) "records=$($recB.Count)"
 
     # --- C: single-element -DevLogs (the shape that always survived -File). ---
     Write-Host "C: single -DevLogs entry still works" -ForegroundColor Yellow
-    $clBefore = Get-LineCount $changelog
+    $clBefore = Get-ProbeLineCount $changelog
     $outC = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -DevLogs $j3 2>&1 | Out-String
     $exitC = $LASTEXITCODE
     Assert-That "C1 exit 0" ($exitC -eq 0) "exit=$exitC out=$($outC.Trim())"
-    Assert-That "C2 one dev-log written" ((Get-LineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-LineCount $changelog) - $clBefore)"
+    Assert-That "C2 one dev-log written" ((Get-ProbeLineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-ProbeLineCount $changelog) - $clBefore)"
 
     # --- D: an explicit well-formed -FeatId still overrides the derived id. ---
     Write-Host "D: valid kebab -FeatId is honoured" -ForegroundColor Yellow
@@ -169,14 +254,14 @@ try {
     # a bare code check could pass while the -FeatId rule itself is broken.
     Write-Host "E: malformed -FeatId rejected before any mutation" -ForegroundColor Yellow
     $updBefore = Get-SpecField 'updated'
-    $clBefore = Get-LineCount $changelog
+    $clBefore = Get-ProbeLineCount $changelog
     $outE = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -DevLogs $j1 -FuncOp ADD -FuncDesc "sandbox bad id" -FeatId $j2 2>&1 | Out-String
     $exitE = $LASTEXITCODE
     Assert-That "E1 exit 2 (bad arguments)" ($exitE -eq 2) "exit=$exitE out=$($outE.Trim())"
     Assert-That "E2 rejected for the -FeatId shape, not another rule" ($outE -match 'Invalid -FeatId') "out=$($outE.Trim())"
     Assert-That "E3 status not mutated" ((Get-SpecField 'updated') -eq $updBefore) "updated moved from $updBefore"
-    Assert-That "E4 no dev-log written" ((Get-LineCount $changelog) -eq $clBefore) "changelog grew"
+    Assert-That "E4 no dev-log written" ((Get-ProbeLineCount $changelog) -eq $clBefore) "changelog grew"
 
     # --- F: -FuncOp and -FuncDesc must arrive together or not at all. ---
     Write-Host "F: -FuncOp without -FuncDesc rejected" -ForegroundColor Yellow
@@ -208,14 +293,14 @@ try {
     foreach ($case in $featCases) {
         Write-Host "H: -FuncOp without $($case.Label) rejected before any mutation" -ForegroundColor Yellow
         $updBefore = Get-SpecField 'updated'
-        $clBefore = Get-LineCount $changelog
+        $clBefore = Get-ProbeLineCount $changelog
         $outH = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
             -FuncOp ADD -FuncDesc "sandbox missing $($case.Label)" @($case.Args) 2>&1 | Out-String
         $exitH = $LASTEXITCODE
         Assert-That "H1 $($case.Label): exit 2" ($exitH -eq 2) "exit=$exitH out=$($outH.Trim())"
         Assert-That "H2 $($case.Label): message names the missing field" ($outH -match [regex]::Escape($case.Label)) "out=$($outH.Trim())"
         Assert-That "H3 $($case.Label): status not mutated" ((Get-SpecField 'updated') -eq $updBefore) "updated moved"
-        Assert-That "H4 $($case.Label): no dev-log written" ((Get-LineCount $changelog) -eq $clBefore) "changelog grew"
+        Assert-That "H4 $($case.Label): no dev-log written" ((Get-ProbeLineCount $changelog) -eq $clBefore) "changelog grew"
     }
 
     # --- I (S1072): a full call records exactly what it was told - no derivation anywhere. ---
@@ -238,14 +323,18 @@ try {
 
     # --- J (S1072): the escape hatch still works - a change that ships no capability needs no facts. ---
     Write-Host "J: -SkipFuncLog still closes without any -Feat* field" -ForegroundColor Yellow
-    $clBefore = Get-LineCount $changelog
-    $featBefore = Get-LineCount $features
+    $clBefore = Get-ProbeLineCount $changelog
+    $strayBefore = @(Get-SubjectRecordIds | Where-Object { $_ -notin $probeFeatureIds })
     $outJ = & $pwshExe -NoProfile -File $facade -Id $SubjectId -Status $subjectStatus -StatusOnly -SkipCatalogSync `
         -SkipFuncLog -DevLogs $j4 -FuncOp ADD -FuncDesc "sandbox skipped" 2>&1 | Out-String
     $exitJ = $LASTEXITCODE
     Assert-That "J1 exit 0" ($exitJ -eq 0) "exit=$exitJ out=$($outJ.Trim())"
-    Assert-That "J2 dev-log still written" ((Get-LineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-LineCount $changelog) - $clBefore)"
-    Assert-That "J3 no capability recorded" ((Get-LineCount $features) -eq $featBefore) "inventory grew"
+    Assert-That "J2 dev-log still written" ((Get-ProbeLineCount $changelog) -eq ($clBefore + 1)) "delta=$((Get-ProbeLineCount $changelog) - $clBefore)"
+    # The record this call would have invented carries the subject's spec id and an id no probe
+    # owns - 'general.<cut of the description>' in the shape S1072 removed.
+    $strayAfter = @(Get-SubjectRecordIds | Where-Object { $_ -notin $probeFeatureIds })
+    $strayNew = @($strayAfter | Where-Object { $_ -notin $strayBefore })
+    Assert-That "J3 no capability recorded" ($strayNew.Count -eq 0) "invented record(s): $($strayNew -join ', ')"
 }
 finally {
     # Per record, never the whole file (S1521): both files are appended by every parallel
@@ -254,12 +343,19 @@ finally {
     # instead of one run long, and the file is only rewritten when there is a row to drop.
     $rowsRemoved = 0
     if (Test-Path $changelog) {
-        $rows = [System.IO.File]::ReadAllLines($changelog)
-        $keptRows = @($rows | Where-Object { $_ -notmatch $probeRowPattern })
-        $rowsRemoved = $rows.Count - $keptRows.Count
-        if ($rowsRemoved -gt 0) {
-            [System.IO.File]::WriteAllLines($changelog, $keptRows, (New-Object System.Text.UTF8Encoding($false)))
+        # S3022: the lock spans the read AND the write. Holding it for the write alone leaves the
+        # same lost update with a smaller window - a row a sibling appends after this snapshot is
+        # taken is gone the moment the snapshot is written back.
+        Enter-DevLogWriteLock -RepoRoot $repoRoot
+        try {
+            $rows = [System.IO.File]::ReadAllLines($changelog)
+            $keptRows = @($rows | Where-Object { $_ -notmatch $probeRowPattern })
+            $rowsRemoved = $rows.Count - $keptRows.Count
+            if ($rowsRemoved -gt 0) {
+                [System.IO.File]::WriteAllLines($changelog, $keptRows, (New-Object System.Text.UTF8Encoding($false)))
+            }
         }
+        finally { Exit-DevLogWriteLock }
     }
 
     $removePs1 = Join-Path $repoRoot 'scripts/all_features/remove.ps1'
@@ -288,6 +384,11 @@ finally {
 
     $recordsGone = $recordsBefore.Count - $recordsLeft.Count
     Write-Host "probes removed per record: $rowsRemoved dev-log row(s), $recordsGone inventory record(s)" -ForegroundColor DarkGray
+
+    # Released only after cleanup: a waiting instance must not start its own prologue while this
+    # run's probe rows and inventory records are still in the files it is about to read.
+    if ($suiteMutexHeld) { try { $suiteMutex.ReleaseMutex() } catch { } }
+    $suiteMutex.Dispose()
 }
 
 Write-Host ""

@@ -63,16 +63,16 @@ fun ScreenSettingsScreen(
             )
         }
     }
-    // S2522: the same shape as the background group above - mutually exclusive options, each named in
-    // words rather than shown only as a swatch, so the choice reaches a screen reader too.
+    // S2522 / S3023: color scheme options laid out in 2 columns.
     val colorSchemeLabel = stringResource(R.string.wear_setting_color_scheme)
     val colorSchemeItems = WearColorScheme.entries.map { scheme ->
-        WearSettingsItem(fullWidth = true) { _ ->
+        WearSettingsItem { narrow ->
             ColorSchemeRow(
                 scheme = scheme,
                 groupLabel = colorSchemeLabel,
                 selected = uiState.colorScheme == scheme,
-                onSelect = { viewModel.setColorScheme(scheme) }
+                onSelect = { viewModel.setColorScheme(scheme) },
+                narrow = narrow
             )
         }
     }
@@ -87,6 +87,7 @@ fun ScreenSettingsScreen(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             val columns = GridColumnFit.columnsFor(WearViewMode.GRID_3, maxWidth.value.toInt())
+            val colorSchemeColumns = GridColumnFit.columnsFor(WearViewMode.GRID_2, maxWidth.value.toInt())
             WearListColumn(
                 modifier = Modifier.fillMaxSize(),
                 state = listState
@@ -101,6 +102,7 @@ fun ScreenSettingsScreen(
                         textAlign = TextAlign.Center
                     )
                 }
+                items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = displayModeLabel) }
                 items(packSettingsRows(displayModeItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = fileListLabel) }
@@ -108,12 +110,11 @@ fun ScreenSettingsScreen(
                 item { GroupCaption(text = backgroundLabel) }
                 items(packSettingsRows(backgroundItems, columns)) { row -> WearSettingsRow(row) }
                 item { GroupCaption(text = colorSchemeLabel) }
-                items(packSettingsRows(colorSchemeItems, columns)) { row -> WearSettingsRow(row) }
+                items(packSettingsRows(colorSchemeItems, colorSchemeColumns)) { row -> WearSettingsRow(row) }
                 if (geometryItems.isNotEmpty()) {
                     item { GroupCaption(text = geometryLabel) }
                     items(packSettingsRows(geometryItems, columns)) { row -> WearSettingsRow(row) }
                 }
-                items(packSettingsRows(keepAwakeItems, columns)) { row -> WearSettingsRow(row) }
             }
         }
     }
@@ -252,7 +253,8 @@ private fun ColorSchemeRow(
     scheme: WearColorScheme,
     groupLabel: String,
     selected: Boolean,
-    onSelect: () -> Unit
+    onSelect: () -> Unit,
+    narrow: Boolean = false
 ) {
     val label = stringResource(colorSchemeLabelResFor(scheme))
     WearSettingsToggleCell(
@@ -260,7 +262,8 @@ private fun ColorSchemeRow(
         checked = selected,
         onToggle = { if (!selected) onSelect() },
         radio = true,
-        accessibilityLabel = "$groupLabel: $label"
+        accessibilityLabel = "$groupLabel: $label",
+        narrow = narrow
     )
 }
 

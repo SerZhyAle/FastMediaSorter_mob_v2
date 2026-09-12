@@ -52,7 +52,9 @@ import androidx.wear.compose.material.dialog.Confirmation
 import androidx.wear.compose.material.dialog.Dialog
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.calculator.WearCalculatorEngine
+import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
+import com.sza.fastmediasorter.wear.ui.common.LocalWearGeometryMode
 import com.sza.fastmediasorter.wear.ui.common.RectangularButton
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordance
 import com.sza.fastmediasorter.wear.ui.common.WearBackAffordanceRole
@@ -65,6 +67,7 @@ import com.sza.fastmediasorter.wear.ui.common.wearMaxSquareSide
 import com.sza.fastmediasorter.wear.ui.common.wearRingInset
 import com.sza.fastmediasorter.wear.ui.common.wearScrollViewportInset
 import com.sza.fastmediasorter.wear.util.GridColumnFit
+import timber.log.Timber
 
 // S2007, owner ruling 2026-08-26: half the interactive minimum, deliberately. S1965 had raised this
 // to 48.dp because the KDoc and docs/WEAR_OS_STATUS.md both said 48 and the constant alone stood out
@@ -204,11 +207,12 @@ private fun calculatorShape(): CalculatorShape {
     // S2773: the mode-aware form of the bound S2770 introduced. In the store view it is still
     // `wearRingInset()`; in the original view it is zero, which returns the full-height viewport whose
     // outer keys the glass cuts.
+    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
     val viewportBottom = wearScrollViewportInset()
     val sideInset = wearChordInset(viewportBottom)
     val shape = CalculatorShape(
         valueRowWidth = wearMaxSquareSide(),
-        valueRowTop = wearRingInset(),
+        valueRowTop = if (isOriginal) 0.dp else wearRingInset(),
         keypadPadding = PaddingValues(
             start = sideInset,
             top = KEY_GAP,
@@ -234,6 +238,7 @@ private fun ColumnScope.CalculatorKeypad(
     onLongKey: (CalculatorKey) -> Unit,
     onLeave: () -> Unit
 ) {
+    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -242,7 +247,7 @@ private fun ColumnScope.CalculatorKeypad(
             // of the content. A row scrolled to the bottom of a full-height viewport stands where the
             // chord is shortest, which no content padding can undo.
             .padding(bottom = shape.keypadViewportBottom)
-            .verticalScroll(scrollState)
+            .verticalScroll(scrollState, enabled = !isOriginal)
             .padding(shape.keypadPadding),
         verticalArrangement = Arrangement.spacedBy(KEY_GAP)
     ) {
@@ -291,6 +296,7 @@ fun CalculatorScreen(
     viewModel: CalculatorViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    Timber.d("S3020: wear calculator 480 layout initialized")
     val keypadScrollState = rememberScrollState()
     val clipboard = LocalClipboardManager.current
     var menuOpen by remember { mutableStateOf(false) }
@@ -451,6 +457,8 @@ private fun CalculatorDisplay(
     onOperation: (String) -> Unit,
     onCopy: (String) -> Unit
 ) {
+    val isOriginal = LocalWearGeometryMode.current == WearGeometryMode.ORIGINAL
+    val bottomGap = if (isOriginal) 2.dp else VALUE_ROW_BOTTOM_GAP
     val text = if (uiState.isError) stringResource(R.string.wear_calc_error) else uiState.display
     val copyableValue = uiState.copyableValue
     // The spoken description names the tap only where the tap does something, so the error state is
@@ -476,7 +484,7 @@ private fun CalculatorDisplay(
         // 28.8 dp came to be reported starting at 21.5 dp.
         modifier = Modifier
             .width(shape.valueRowWidth)
-            .padding(top = shape.valueRowTop, bottom = VALUE_ROW_BOTTOM_GAP)
+            .padding(top = shape.valueRowTop, bottom = bottomGap)
             .heightIn(min = TOUCH_TARGET),
         horizontalArrangement = Arrangement.spacedBy(KEY_GAP),
         verticalAlignment = Alignment.CenterVertically
@@ -548,7 +556,10 @@ private fun ClearKeyRow(
         val clearWidth = columnWidth * CLEAR_COLUMN_SPAN + KEY_GAP * (CLEAR_COLUMN_SPAN - 1)
         Column(modifier = Modifier.fillMaxWidth()) {
             Spacer(modifier = Modifier.height(KEY_HEIGHT * CLEAR_ROW_GAP_FRACTION))
-            Row(horizontalArrangement = Arrangement.spacedBy(KEY_GAP)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(KEY_GAP, Alignment.CenterHorizontally)
+            ) {
                 ClearKey(
                     modifier = Modifier.width(clearWidth),
                     onClick = { onKey(CalculatorKey.Clear) }

@@ -17,6 +17,7 @@ data class TouristDashboardState(
     val satellitesTotal: Int? = null,
     val satellitesUsed: Int? = null,
     val stepsCount: Long = 0L,
+    val stepsAvailable: Boolean = false,
     val tripDistanceMeters: Double = 0.0,
     val sunriseMillis: Long? = null,
     val sunsetMillis: Long? = null,

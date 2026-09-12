@@ -15,17 +15,19 @@ data class MotionStreamRow(
     val values: List<Float>,
     val eventCount: Int,
     val hertz: Double,
-    val ageMillis: Long?
+    val ageMillis: Long?,
+    val displayedSteps: Long? = null
 )
 
 /**
- * The two groups the screen shows, kept apart because they answer to different permissions - the motion
- * group needs none at all, the activity group needs ACTIVITY_RECOGNITION and only exists in an edition
- * whose manifest declares it (S2458 ADR-2).
+ * S2458/S3014: The two groups the screen shows, with Activity placed first per S3014 owner input.
  */
 data class MotionMonitorUiState(
+    val activity: List<MotionStreamRow> = emptyList(),
     val motion: List<MotionStreamRow> = emptyList(),
-    val activity: List<MotionStreamRow> = emptyList()
+    val displayedSteps: Long = 0L,
+    val hasStepData: Boolean = false,
+    val snapshotSaved: Boolean = false
 ) {
 
     /**

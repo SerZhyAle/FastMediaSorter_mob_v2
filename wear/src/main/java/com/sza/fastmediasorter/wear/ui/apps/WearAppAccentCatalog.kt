@@ -51,5 +51,7 @@ object WearAppAccentCatalog {
         // the calculator there; here the calculator already holds orange and a repeat is two adjacent
         // rows looking alike, so this is the one accent whose value the two devices cannot share.
         WearAppId.STOPWATCH -> R.color.color_program_accent_brown
+        // S3007: emerald green, distinct from game green and other program accents.
+        WearAppId.TOURIST -> R.color.color_program_accent_emerald
     }
 }

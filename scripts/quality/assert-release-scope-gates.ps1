@@ -66,6 +66,13 @@
     Opt-in finding reuse (S2409): when an alive finding for gates:release-scope written by this session
     exists, answer PASS immediately without re-running children.
 
+.PARAMETER OnlyGroups
+    S3010. Restrict the run to the gates that read at least one of the named fingerprint input
+    groups, so a sweep's second pass re-runs only what the tree actually moved under. A gate absent
+    from the mapping below is ALWAYS selected: the safe default is to re-measure, never to assume
+    unchanged, because a gate wrongly skipped certifies a release scope nobody judged. This does not
+    scope any gate's own subject - each one still measures the whole tree when it runs (Rule 33).
+
 .PARAMETER Help
     Show help documentation and usage.
 
@@ -77,12 +84,19 @@
       0  every gate passed (or reused this session's own green run under -ReuseFinding).
       1  at least one gate found a defect. The release does not ship until it is fixed.
       2  cannot verify - a gate script is missing from scripts/quality/.
+      Under -OnlyGroups the codes are unchanged; a gate that did not run is neither PASS nor FAIL and
+      is reported as SKIPPED.
 #>
 [CmdletBinding()]
 param(
     [switch]$Json,
     [switch]$Help,
-    [switch]$ReuseFinding
+    [switch]$ReuseFinding,
+
+    # S3010. Run only the gates that read at least one of these input groups, as named by
+    # scripts/quality/release-scope-fingerprint.ps1. Omitted - the default and the only shape any
+    # existing call site uses - runs every gate exactly as before.
+    [string[]]$OnlyGroups = @()
 )
 
 Set-StrictMode -Version Latest
@@ -258,9 +272,67 @@ $gates = [ordered]@{
     'assert-document-registry-coverage.ps1' = @('-Quiet')
 }
 
+# S3010. Which fingerprint input groups each gate reads, for -OnlyGroups. Deliberately PARTIAL: a
+# gate missing from this map is always selected, so the mapping can grow one confident entry at a
+# time and an unmapped gate can never be skipped by accident. The groups are named by
+# scripts/quality/release-scope-fingerprint.ps1 and nowhere else.
+$gateInputGroups = @{
+    'assert-play-listing-locales.ps1'             = @('play-listing', 'phone-src')
+    'assert-play-listing-graphics.ps1'            = @('play-listing')
+    'assert-play-listing-screenshot-geometry.ps1' = @('play-listing')
+    'assert-unreferenced-strings.ps1'             = @('phone-src', 'wear-src')
+    'assert-splash-brand-sync.ps1'                = @('phone-src')
+    'assert-icon-inventory-sync.ps1'              = @('docs', 'phone-src')
+    'assert-doc-icons-sync.ps1'                   = @('docs')
+    'assert-archive-artefacts.ps1'                = @('specs-archive')
+    'assert-source-gates.ps1'                     = @('phone-src', 'wear-src')
+    'assert-document-registry-coverage.ps1'       = @('docs', 'scripts')
+    'run-script-suites.ps1'                       = @('scripts')
+    'assert-suite-tracked.ps1'                    = @('scripts')
+    'assert-dotsource-tracked.ps1'                = @('scripts')
+}
+
+# S3010 follow-up: a value that names no group selects nothing but the unmapped gates, and the batch
+# still prints "PASS (release scope clean)" - a release scope nobody judged, which is the exact
+# failure the parameter's own documentation calls out. Measured 2026-09-12 on the r37 sweep:
+# `-OnlyGroups wear-src,docs,scripts` reached this script as ONE string, because `pwsh -File` does
+# not split a comma list into an array, and 13 of 16 gates were skipped in silence - including all
+# three that were failing at the time. Refuse instead, and name both the bad value and the real set.
+if ($OnlyGroups.Count -gt 0) {
+    $groupsFile = Join-Path $PSScriptRoot 'release-scope-fingerprint.groups.json'
+    if (Test-Path -LiteralPath $groupsFile) {
+        $knownGroups = @((Get-Content -LiteralPath $groupsFile -Raw -Encoding UTF8 |
+                ConvertFrom-Json).groups.PSObject.Properties.Name)
+        $unknownGroups = @($OnlyGroups | Where-Object { $knownGroups -notcontains $_ })
+        if ($unknownGroups.Count -gt 0) {
+            Write-Host ("assert-release-scope-gates: -OnlyGroups names {0} group(s) that do not exist: {1}" -f
+                $unknownGroups.Count, ($unknownGroups -join ', ')) -ForegroundColor Red
+            Write-Host ("  known groups: {0}" -f ($knownGroups -join ', ')) -ForegroundColor Red
+            Write-Host "  A comma list passed through 'pwsh -File' arrives as one string - use a wrapper .ps1 that calls this script with -OnlyGroups @('a','b'), or pass -Command." -ForegroundColor Red
+            exit 2
+        }
+    }
+}
+
+function Test-GateSelected {
+    param([string]$GateName)
+    if ($OnlyGroups.Count -eq 0) { return $true }
+    if (-not $gateInputGroups.ContainsKey($GateName)) { return $true }
+    foreach ($group in $gateInputGroups[$GateName]) {
+        if ($OnlyGroups -contains $group) { return $true }
+    }
+    return $false
+}
+
 $results = [System.Collections.Generic.List[object]]::new()
 $missing = 0
+$skipped = 0
 foreach ($entry in $gates.GetEnumerator()) {
+    if (-not (Test-GateSelected -GateName $entry.Key)) {
+        $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'SKIPPED'; Ms = 0 })
+        $skipped++
+        continue
+    }
     $path = Join-Path $PSScriptRoot $entry.Key
     if (-not (Test-Path $path)) {
         $results.Add([pscustomobject]@{ Gate = $entry.Key; Status = 'MISSING'; Ms = 0 })
@@ -290,7 +362,7 @@ foreach ($entry in $gates.GetEnumerator()) {
 
 if ($Json) {
     [ordered]@{
-        status = if ($missing -gt 0) { 'cannot-verify' } elseif (@($results | Where-Object { $_.Status -ne 'PASS' }).Count -gt 0) { 'fail' } else { 'pass' }
+        status = if ($missing -gt 0) { 'cannot-verify' } elseif (@($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' }).Count -gt 0) { 'fail' } else { 'pass' }
         gates  = $results
     } | ConvertTo-Json -Depth 4
 }
@@ -298,8 +370,11 @@ else {
     Write-Host ''
     Write-Host 'assert-release-scope-gates summary:' -ForegroundColor Cyan
     foreach ($r in $results) {
-        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } default { 'Yellow' } }
+        $color = switch ($r.Status) { 'PASS' { 'Green' } 'FAIL' { 'Red' } 'SKIPPED' { 'DarkGray' } default { 'Yellow' } }
         Write-Host ("  {0,-40} {1} ({2} ms)" -f $r.Gate, $r.Status, $r.Ms) -ForegroundColor $color
+    }
+    if ($skipped -gt 0) {
+        Write-Host ("  {0} gate(s) skipped - none of their input groups moved (-OnlyGroups {1})" -f $skipped, ($OnlyGroups -join ', ')) -ForegroundColor DarkGray
     }
 }
 
@@ -351,10 +426,10 @@ if ($missing -gt 0) {
     exit 2
 }
 
-$failed = @($results | Where-Object { $_.Status -ne 'PASS' }).Count
+$failed = @($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' }).Count
 if ($failed -gt 0) {
     Write-GateBatchTelemetryRecord -Runner 'assert-release-scope-gates' -ExitCode 1 -ElapsedMs $batchMs
-    $names = (@($results | Where-Object { $_.Status -ne 'PASS' } | ForEach-Object { $_.Gate }) -join ', ')
+    $names = (@($results | Where-Object { $_.Status -ne 'PASS' -and $_.Status -ne 'SKIPPED' } | ForEach-Object { $_.Gate }) -join ', ')
     Write-Host @'
   Why these gates run HERE and not in every closure (S2517 moved this off the always-loaded rules
   page): a gate is placed by its subject, and the subject of each of these is the tree as a whole,

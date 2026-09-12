@@ -450,10 +450,16 @@ internal fun OperationRunDialog(
 /** The file, then what happened to it - and the name it actually landed under when that differs. */
 @Composable
 private fun OperationResultRow(result: WearFileOperationResult) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Timber.d("S3016: OperationResultRow composed")
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = result.fileName,
             style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth(),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
@@ -467,12 +473,16 @@ private fun OperationResultRow(result: WearFileOperationResult) {
         Text(
             text = outcomeText,
             style = MaterialTheme.typography.caption2,
-            color = MaterialTheme.colors.onSurfaceVariant
+            color = MaterialTheme.colors.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
         result.finalName?.let { finalName ->
             Text(
                 text = stringResource(R.string.wear_file_op_renamed_to, finalName),
                 style = MaterialTheme.typography.caption2,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth(),
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )

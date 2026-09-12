@@ -111,36 +111,66 @@ foreach ($module in $Modules) {
     Write-Host "migrate-locale-fingerprints-module: $module declares $units translatable unit(s)."
 }
 
-$fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
-$migrated = @{}
-$renamed = 0
-$orphaned = 0
-$ambiguousKept = 0
-$dropped = [System.Collections.Generic.List[string]]::new()
+function ConvertTo-ModuleQualifiedRegistry {
+    <#
+    .SYNOPSIS
+        Rewrites every identity of a loaded registry into the module-qualified v2 form.
+    .DESCRIPTION
+        S3008: a function rather than inline code because the migration derives this map twice - once
+        to report the plan, and once inside Edit-LocaleSourceFingerprints against the store as it
+        stands under the lock. Writing the reported map instead would rewrite the whole document from
+        a snapshot loaded before the lock, discarding every identity another writer added in between.
+    #>
+    param(
+        [Parameter(Mandatory = $true)][hashtable]$Fingerprints,
+        [Parameter(Mandatory = $true)][hashtable]$Ownership
+    )
 
-foreach ($locale in ($fingerprints.Keys | Sort-Object)) {
-    $migrated[$locale] = @{}
-    foreach ($unit in $fingerprints[$locale].Keys) {
-        $hash = $fingerprints[$locale][$unit]
-        if (-not $ownership.ContainsKey($unit)) { $orphaned++; continue }
+    $migrated = @{}
+    $renamed = 0
+    $orphaned = 0
+    $ambiguousKept = 0
+    $dropped = [System.Collections.Generic.List[string]]::new()
 
-        $owners = @($ownership[$unit].Keys)
-        if ($owners.Count -eq 1) {
-            $migrated[$locale]["$($owners[0])|$unit"] = $hash
-            $renamed++
-            continue
-        }
+    foreach ($locale in ($Fingerprints.Keys | Sort-Object)) {
+        $migrated[$locale] = @{}
+        foreach ($unit in $Fingerprints[$locale].Keys) {
+            $hash = $Fingerprints[$locale][$unit]
+            if (-not $Ownership.ContainsKey($unit)) { $orphaned++; continue }
 
-        foreach ($owner in $owners) {
-            if ($ownership[$unit][$owner] -eq $hash) {
-                $migrated[$locale]["$owner|$unit"] = $hash
-                $ambiguousKept++
-            } else {
-                $dropped.Add("$owner|$unit")
+            $owners = @($Ownership[$unit].Keys)
+            if ($owners.Count -eq 1) {
+                $migrated[$locale]["$($owners[0])|$unit"] = $hash
+                $renamed++
+                continue
+            }
+
+            foreach ($owner in $owners) {
+                if ($Ownership[$unit][$owner] -eq $hash) {
+                    $migrated[$locale]["$owner|$unit"] = $hash
+                    $ambiguousKept++
+                } else {
+                    $dropped.Add("$owner|$unit")
+                }
             }
         }
     }
+
+    return @{
+        Migrated      = $migrated
+        Renamed       = $renamed
+        Orphaned      = $orphaned
+        AmbiguousKept = $ambiguousKept
+        Dropped       = $dropped
+    }
 }
+
+$fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+$classification = ConvertTo-ModuleQualifiedRegistry -Fingerprints $fingerprints -Ownership $ownership
+$renamed = $classification.Renamed
+$orphaned = $classification.Orphaned
+$ambiguousKept = $classification.AmbiguousKept
+$dropped = $classification.Dropped
 
 $droppedIdentities = @($dropped | Sort-Object -Unique)
 
@@ -199,7 +229,22 @@ $codeScope = $null
 try {
     $codeScope = Enter-CodeLockOrExit -Path @($FingerprintsPath, $BaselinePath) `
         -Reason 'migrate-locale-fingerprints-module.ps1 (registry + baseline)'
-    Save-LocaleSourceFingerprints -Fingerprints $migrated -Path $FingerprintsPath
+    # S3008: the written map is derived from the store as it stands INSIDE the lock. The domain lock
+    # above orders agent sessions; it does not order seed-locale-tranche.ps1 or set-android-string.ps1,
+    # which take no domain lock at all, so the registry's own mutex is what makes this a safe rewrite.
+    $script:writtenPlan = $null
+    Edit-LocaleSourceFingerprints -Path $FingerprintsPath -Mutate {
+        param($store)
+        $script:writtenPlan = ConvertTo-ModuleQualifiedRegistry -Fingerprints $store -Ownership $ownership
+        foreach ($locale in @($store.Keys)) { [void]$store.Remove($locale) }
+        foreach ($locale in $script:writtenPlan.Migrated.Keys) { $store[$locale] = $script:writtenPlan.Migrated[$locale] }
+    } | Out-Null
+    if ($script:writtenPlan.Renamed -ne $renamed -or $script:writtenPlan.Orphaned -ne $orphaned -or
+        $script:writtenPlan.AmbiguousKept -ne $ambiguousKept) {
+        Write-Host ("migrate-locale-fingerprints-module: the registry changed while this run was " +
+            "classifying it - written counts are renamed $($script:writtenPlan.Renamed), kept " +
+            "$($script:writtenPlan.AmbiguousKept), orphaned $($script:writtenPlan.Orphaned).") -ForegroundColor Yellow
+    }
     if (Test-Path -LiteralPath $BaselinePath) {
         $utf8NoBom = [System.Text.UTF8Encoding]::new($false)
         [System.IO.File]::WriteAllText($BaselinePath, (($baselineLines -join "`n") + "`n"), $utf8NoBom)

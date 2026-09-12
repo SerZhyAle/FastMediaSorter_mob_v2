@@ -39,5 +39,7 @@ object WearAppIconCatalog {
         WearAppId.BROADCAST -> R.drawable.ic_share
         // S2825: the phone's own stopwatch glyph, copied name-for-name rather than redrawn.
         WearAppId.STOPWATCH -> R.drawable.ic_stopwatch
+        // S3007: the phone's own tourist glyph, copied name-for-name.
+        WearAppId.TOURIST -> R.drawable.ic_tourist
     }
 }

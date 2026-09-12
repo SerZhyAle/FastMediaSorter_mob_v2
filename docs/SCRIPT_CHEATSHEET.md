@@ -3230,6 +3230,7 @@ scripts/quality/assert-release-scope-gates.ps1
     -Json                 [SwitchParameter]
     -Help                 [SwitchParameter]
     -ReuseFinding         [SwitchParameter]
+    -OnlyGroups           [String[]] = @()
   Exit: 0 every gate passed (or reused this session's own green run under -ReuseFinding).; 1 at least one gate found a defect. The release does not ship until it is fixed.; 2 cannot verify - a gate script is missing from scripts/quality/.
 ```
 
@@ -3882,6 +3883,18 @@ scripts/quality/reindex-settings.ps1
   Exit: 0 - already fresh: nothing regenerated, verify gate green. Shippable.; 2 - drift regenerated: manifest/reference changed and are now fresh, but the
 ```
 
+### release-scope-fingerprint.ps1
+Record and compare a fingerprint of the tree the release-scope gates judge (S3010).
+
+```
+scripts/quality/release-scope-fingerprint.ps1
+  Record and compare a fingerprint of the tree the release-scope gates judge (S3010).
+  Params:
+    -Verb  (req)  [String]  {Record|Compare}
+    -Json         [SwitchParameter]
+  Exit: 0 Record wrote the fingerprint, or Compare found nothing moved.; 2 Compare found no recorded fingerprint, or it could not be read.; 3 Compare found at least one group moved - the names are on stdout.
+```
+
 ### remove-ticket-probes.ps1
 Remove exact temporary Timber probes for supplied archived ticket ids.
 
@@ -3981,6 +3994,16 @@ scripts/quality.tests/gate-pool.Tests.ps1
   S2326: tests for scripts/quality/lib/gate-pool.ps1 - the closure's read-only gate pool.
   (no param block)
   Exit: 0 every test passed.; 1 at least one test failed.
+```
+
+### locale-fingerprints-concurrency.Tests.ps1
+S3008: tests that two processes writing the fingerprint registry at once both keep their entries.
+
+```
+scripts/quality.tests/locale-fingerprints-concurrency.Tests.ps1
+  S3008: tests that two processes writing the fingerprint registry at once both keep their entries.
+  (no param block)
+  Exit: 0 every assertion passed.; 1 at least one assertion failed.
 ```
 
 ### locale-fingerprints.Tests.ps1
@@ -4685,6 +4708,18 @@ scripts/quality/prune-detekt-baseline.tests/Run-Tests.ps1
   Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
+## scripts\quality\release-scope-fingerprint.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/release-scope-fingerprint.ps1 (S3010).
+
+```
+scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/release-scope-fingerprint.ps1 (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\remove-ticket-probes.tests
 
 ### Run-Tests.ps1
@@ -5298,7 +5333,7 @@ scripts/spec_catalog/check-probe-absent.ps1
 scripts/spec_catalog/check-probe-present.ps1
   Params:
     -Id  (req)  [String]
-  Exit: 1 = neither - the transition must not proceed.; 2 = bad invocation (malformed id, or an id no record carries), or catalog /
+  Exit: 1 = no probe, or a probe that shares its line with code - the transition must not
 ```
 
 ### close-and-log.ps1
@@ -5452,7 +5487,7 @@ scripts/spec_catalog/plan-tick.ps1
     -Log               [String] = ''
     -Json              [SwitchParameter]
     -Reconcile         [SwitchParameter]
-  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or the plan folder or phase file does not exist.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
+  Exit: 0 - every listed step was rewritten.; 1 - a listed step was not found, or a file could not be written.; 2 - usage error, or neither layout holds the requested phase.; 3 - INDEX.md and the phase file disagreed before the write; nothing was written at all.; 4 - a -Checkbox fragment matched no bullet, or matched more than one.
 ```
 
 ### preview.ps1
@@ -5823,7 +5858,7 @@ scripts/spec_catalog/close-and-log.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1063) - regression suite for scripts/spec_catalog/close-and-log.ps1.
   Params:
     -SubjectId         [String] = 'S1063'
-  Exit: 0 all cases pass.; 1 at least one case failed.
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - another instance held the suite lock past its timeout (S3022).
 ```
 
 ## scripts\spec_catalog\drift-check.tests
@@ -5860,7 +5895,7 @@ Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalo
 scripts/spec_catalog/preview.tests/Run-Tests.ps1
   Run-Tests.ps1 (S1073, extended S1482) - regression suite for scripts/spec_catalog/preview.ps1's
   (no param block)
-  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify: the resolved SZA harness predates S2834 and does not define
+  Exit: 0 all cases pass (or non-S2834 cases pass when harness is current).; 1 at least one case failed.; 2 could not verify: the resolved SZA harness predates S2834 and does not define
 ```
 
 ## scripts\spec_catalog\release-queue.tests
@@ -6434,6 +6469,15 @@ scripts/utils/dev-monitor-writer.ps1
   Exit: 0 done - started, already running, once written, stopped (or nothing to stop), status shown.; 1 could not start: the launcher failed, the first snapshot never appeared, or -Loop found
 ```
 
+### devlog-mutex.ps1
+S3022: takes the canon dev-log writer's mutex so a repo-side WHOLE-FILE rewrite of dev/CHANGELOG.md is serialised against the appends every other session is making.
+
+```
+scripts/utils/devlog-mutex.ps1
+  S3022: takes the canon dev-log writer's mutex so a repo-side WHOLE-FILE rewrite of dev/CHANGELOG.md is serialised against the appends every other session is making.
+  (no param block)
+```
+
 ### enter-code-lock.ps1
 Acquire the code domains a changed file set belongs to, before a source/XML/build-file edit.
 
@@ -6897,6 +6941,21 @@ scripts/utils/recover-kapt-stall.ps1
     -SkipRetry         [SwitchParameter]
 ```
 
+### release-freeze.ps1
+Take, report and release the release-sweep tree freeze (S3010).
+
+```
+scripts/utils/release-freeze.ps1
+  Take, report and release the release-sweep tree freeze (S3010).
+  Params:
+    -Verb    (req)  [String]  {Take|Status|Release}
+    -Reason         [String] = ''
+    -Hours          [Int32] = 4  {range 1..24}
+    -Json           [SwitchParameter]
+    -Force          [SwitchParameter]
+  Exit: 0 the verb succeeded - freeze taken, released, or reported (held or not).; 2 the marker exists but could not be read or written.; 4 refused - a live foreign session holds the freeze.
+```
+
 ### rename-doc-locale-suffix.ps1
 Rename localized documentation files to the single lowercase hyphen locale suffix (S1211).
 
@@ -6952,7 +7011,7 @@ scripts/utils/run-spec-queue.ps1
     -Ids                       [String] = ''
     -MaxTickets                [Int32] = 0
     -TimeoutMinutes            [Int32] = 90
-    -ModelPolicy               [String] = 'tiered'  {tiered|fixed|default}
+    -ModelPolicy               [String] = 'tiered'  {tiered|shape|fixed|default}
     -Model                     [String] = 'opus'
     -StrongModel               [String] = 'opus'
     -CheapModel                [String] = 'sonnet'
@@ -7258,7 +7317,7 @@ S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
 scripts/utils/code-lock-scope.tests/Run-Tests.ps1
   S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
   (no param block)
-  Exit: 0 - every case passed.; 1 - a case failed.; 2 - could not verify: a code domain was already held by another live session, so the
+  Exit: 0 - every runnable case passed. When a code domain is held (by this session or a
 ```
 
 ## scripts\utils\dev-monitor-snapshot.tests
@@ -7283,6 +7342,18 @@ scripts/utils/dev-monitor-writer.tests/Run-Tests.ps1
   Contract suite for scripts/utils/dev-monitor-writer.ps1 and scripts/utils/dev-monitor-html.ps1 (S2406): the page shell, the data script and the detached writer's lifecycle.
   (no param block)
   Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
+```
+
+## scripts\utils\devlog-mutex.tests
+
+### Run-Tests.ps1
+S3022 - contract suite for scripts/utils/devlog-mutex.ps1.
+
+```
+scripts/utils/devlog-mutex.tests/Run-Tests.ps1
+  S3022 - contract suite for scripts/utils/devlog-mutex.ps1.
+  (no param block)
+  Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the canon harness is not installed, so case A has nothing to compare
 ```
 
 ## scripts\utils\format-kotlin-imports.tests
@@ -7397,6 +7468,18 @@ Fixture for the reaper contract suite: a repository script that is idle itself b
 scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
   Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
   (no param block)
+```
+
+## scripts\utils\release-freeze.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+
+```
+scripts/utils/release-freeze.tests/Run-Tests.ps1
+  Contract tests for scripts/utils/release-freeze.ps1 - the release-sweep tree freeze (S3010).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\utils\run-spec-queue.tests

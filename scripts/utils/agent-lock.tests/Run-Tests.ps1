@@ -151,6 +151,15 @@ try {
         return $path
     }
 
+    $profilePath = Join-Path $Sandbox '.sza-profile.json'
+    $profileText = Get-Content -LiteralPath $profilePath -Raw
+    $profileObj = $profileText | ConvertFrom-Json
+    if ($profileObj.locks -and $profileObj.locks.buildEngine) {
+        $profileObj.locks.buildEngine.busyMatch = 's2582-nonexistent-idle-target'
+        Set-Content -LiteralPath $profilePath -Value ($profileObj | ConvertTo-Json -Depth 12) -Encoding utf8NoBOM
+        $script:SzaProfileCache = $null
+    }
+
     # 1. Held past the threshold, a foreign waiter, an idle tree, an idle engine -> the verdict.
     Write-LockFixture -AgeMinutes 40
     $ticketPath = Write-TicketFixture -Owner 's2582-waiter'

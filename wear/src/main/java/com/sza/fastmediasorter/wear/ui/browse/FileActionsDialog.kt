@@ -3,6 +3,7 @@ package com.sza.fastmediasorter.wear.ui.browse
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.SelectAll
@@ -158,14 +159,26 @@ internal fun FileDeleteConfirmDialog(
         negativeButton = {
             Chip(
                 onClick = onDismiss,
-                label = { Text(text = stringResource(R.string.cancel)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors()
             )
         },
         positiveButton = {
             Chip(
                 onClick = onConfirm,
-                label = { Text(text = stringResource(R.string.delete)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.primaryChipColors()
             )
         }

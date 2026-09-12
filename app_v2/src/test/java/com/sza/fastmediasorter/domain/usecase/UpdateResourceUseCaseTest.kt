@@ -46,14 +46,12 @@ class UpdateResourceUseCaseTest {
         coEvery { repo.updateResource(any()) } throws CancellationException("scope cancelled")
         val useCase = UpdateResourceUseCase(repo)
 
-        var propagated = false
-        try {
-            useCase(createMediaResource(id = 1L))
-        } catch (e: CancellationException) {
-            propagated = true
-        }
+        val outcome = runCatching { useCase(createMediaResource(id = 1L)) }
 
-        assertTrue("CancellationException must be rethrown, not wrapped in Result.failure", propagated)
+        assertTrue(
+            "CancellationException must be rethrown, not wrapped in Result.failure",
+            outcome.exceptionOrNull() is CancellationException
+        )
     }
 
     @Test
@@ -63,14 +61,12 @@ class UpdateResourceUseCaseTest {
         coEvery { repo.updateLastScrollPosition(any(), any()) } throws CancellationException("scope cancelled")
         val useCase = UpdateResourceUseCase(repo)
 
-        var propagated = false
-        try {
-            useCase.saveScrollPosition(1L, 17)
-        } catch (e: CancellationException) {
-            propagated = true
-        }
+        val outcome = runCatching { useCase.saveScrollPosition(1L, 17) }
 
-        assertTrue("CancellationException must be rethrown, not wrapped in Result.failure", propagated)
+        assertTrue(
+            "CancellationException must be rethrown, not wrapped in Result.failure",
+            outcome.exceptionOrNull() is CancellationException
+        )
     }
 
     // S1001: targeted writes must not clobber statistics columns of the same row.

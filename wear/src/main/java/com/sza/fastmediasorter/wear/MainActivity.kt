@@ -18,6 +18,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -84,10 +85,12 @@ import com.sza.fastmediasorter.wear.ui.apps.calculator.CalculatorScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameRulesScreen
 import com.sza.fastmediasorter.wear.ui.apps.game.GameScreen
 import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.MotionMonitorScreen
+import com.sza.fastmediasorter.wear.ui.apps.motionmonitor.history.MotionHistoryScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorDetailScreen
 import com.sza.fastmediasorter.wear.ui.apps.netmonitor.NetworkMonitorScreen
 import com.sza.fastmediasorter.wear.ui.apps.stopwatch.WearStopwatchScreen
 import com.sza.fastmediasorter.wear.ui.apps.systeminfo.SystemInfoScreen
+import com.sza.fastmediasorter.wear.ui.apps.tourist.TouristScreen
 import com.sza.fastmediasorter.wear.ui.apps.waterflashlight.WaterFlashlightScreen
 import com.sza.fastmediasorter.wear.ui.brand.BrandFrameScreen
 import com.sza.fastmediasorter.wear.ui.broadcast.WearBroadcastQrScreen
@@ -639,27 +642,32 @@ fun MainNavigation(
                 settingsRoutes(navController = navController)
             }
 
-            // S2472: the universal back affordance, drawn above the host so every navigation route
-            // carries it without any screen wiring it itself (strategic ADR-1). Home and the players
-            // own different roles for the same control, and the interactive mini-programs are ruled out
-            // by the owner, so the decision lives in one named predicate rather than in twenty screens.
-            if (showsNavBackAffordance(currentRoute)) {
-                val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-                WearBackAffordance(
-                    role = WearBackAffordanceRole.Back,
-                    onClick = {
-                        if (backDispatcher != null) {
-                            backDispatcher.onBackPressed()
-                        } else {
-                            navController.popBackStack()
-                        }
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterStart)
-                        .padding(start = wearBackAffordanceInset())
-                )
-            }
+            // S2472: the universal back affordance, drawn above the host.
+            WearNavBackAffordanceHost(currentRoute = currentRoute, navController = navController)
         }
+    }
+}
+
+@Composable
+private fun BoxScope.WearNavBackAffordanceHost(
+    currentRoute: String?,
+    navController: NavHostController
+) {
+    if (showsNavBackAffordance(currentRoute)) {
+        val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+        WearBackAffordance(
+            role = WearBackAffordanceRole.Back,
+            onClick = {
+                if (backDispatcher != null) {
+                    backDispatcher.onBackPressed()
+                } else {
+                    navController.popBackStack()
+                }
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .padding(start = wearBackAffordanceInset())
+        )
     }
 }
 
@@ -984,6 +992,11 @@ private fun NavGraphBuilder.miniAppRoutes(
         SystemInfoScreen()
     }
 
+    // S3007: Tourist telemetry and navigation dashboard
+    composable(WearRoutes.TOURIST) {
+        TouristScreen()
+    }
+
     healthAndHardwareAppRoutes(navController, capabilities)
 }
 
@@ -998,7 +1011,13 @@ private fun NavGraphBuilder.healthAndHardwareAppRoutes(
         // S2458: a live session rather than a report, so the destination owns nothing - leaving the
         // composition is what unregisters the sensors, through the repository's own awaitClose.
         composable(WearRoutes.MOTION_MONITOR) {
-            MotionMonitorScreen()
+            MotionMonitorScreen(
+                onHistoryClick = { navController.navigate(WearRoutes.MOTION_HISTORY) }
+            )
+        }
+
+        composable(WearRoutes.MOTION_HISTORY) {
+            MotionHistoryScreen()
         }
 
         // S2809: registered in noLegal flavor when offersHealthFeatures is true.

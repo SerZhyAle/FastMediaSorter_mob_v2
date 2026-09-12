@@ -587,6 +587,7 @@ private fun RefreshFooterChip(
                     modifier = Modifier.size(CELL_ICON_SIZE)
                 )
             },
+            modifier = Modifier.fillMaxWidth(),
             colors = ChipDefaults.secondaryChipColors()
         )
     }
@@ -714,7 +715,9 @@ private fun StreamSearchDialog(
                     Text(
                         text = stringResource(R.string.wear_streams_search),
                         style = MaterialTheme.typography.title3,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -801,7 +804,9 @@ private fun StreamFilterDialog(
                     Text(
                         text = stringResource(R.string.wear_streams_filter),
                         style = MaterialTheme.typography.title3,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         textAlign = TextAlign.Center
                     )
                 }
@@ -847,7 +852,9 @@ private fun ScalingLazyListScope.streamTopicFilterChoices(
         Text(
             text = stringResource(R.string.wear_streams_filter_topic_header),
             style = MaterialTheme.typography.caption1,
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp),
             textAlign = TextAlign.Center
         )
     }
@@ -892,7 +899,9 @@ private fun ScalingLazyListScope.streamLanguageFilterChoices(
         Text(
             text = stringResource(R.string.wear_streams_filter_language_header),
             style = MaterialTheme.typography.caption1,
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp),
             textAlign = TextAlign.Center
         )
     }
@@ -928,7 +937,9 @@ private fun ScalingLazyListScope.streamCollectionFilterChoices(
         Text(
             text = stringResource(R.string.wear_streams_filter_collections_header),
             style = MaterialTheme.typography.caption1,
-            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp, bottom = 4.dp),
             textAlign = TextAlign.Center
         )
     }
@@ -980,7 +991,9 @@ private fun StreamSortDialog(
                     Text(
                         text = stringResource(R.string.wear_streams_sort),
                         style = MaterialTheme.typography.title3,
-                        modifier = Modifier.padding(bottom = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 8.dp),
                         textAlign = TextAlign.Center
                     )
                 }

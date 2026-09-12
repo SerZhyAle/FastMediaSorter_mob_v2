@@ -41,6 +41,7 @@ internal object WearLaunchRoutes {
         // pinned from the Programs grid land on the same control screen.
         WearDestinationId.BROADCAST -> WearRoutes.BROADCAST
         WearDestinationId.STOPWATCH -> WearRoutes.STOPWATCH
+        WearDestinationId.TOURIST -> WearRoutes.TOURIST
         // S2551: the mirror entrance of the row above, and a separate address for the same reason -
         // one of them opens this watch's microphone, the other the phone's camera.
         WearDestinationId.PHONE_CAMERA -> WearRoutes.PHONE_CAMERA

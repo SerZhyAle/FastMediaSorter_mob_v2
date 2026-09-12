@@ -29,6 +29,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
@@ -57,10 +58,18 @@ fun WearActionButton(
     action: WearAction,
     modifier: Modifier = Modifier
 ) {
+    val textAlign = if (action.icon == null) TextAlign.Center else TextAlign.Start
+    val textModifier = if (action.icon == null) Modifier.fillMaxWidth() else Modifier
     Chip(
         onClick = action.onClick,
         enabled = action.enabled,
-        label = { Text(action.label) },
+        label = {
+            Text(
+                text = action.label,
+                textAlign = textAlign,
+                modifier = textModifier
+            )
+        },
         icon = action.icon?.let { iconLambda -> { iconLambda() } },
         modifier = modifier.semantics { contentDescription = action.label },
         colors = if (action.primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()

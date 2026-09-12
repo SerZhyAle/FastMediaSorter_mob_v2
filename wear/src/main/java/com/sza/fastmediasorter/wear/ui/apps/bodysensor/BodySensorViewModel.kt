@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorReading
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReason
 import com.sza.fastmediasorter.wear.domain.bodysensor.WearBodySensorDataSource
+import com.sza.fastmediasorter.wear.domain.model.HeartRateHistoryEntry
+import com.sza.fastmediasorter.wear.domain.model.HeartRateZone
 import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -16,11 +18,10 @@ import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Holds one foreground heart-rate session for exactly as long as the screen is open.
+ * S3013: Holds one foreground heart-rate session for exactly as long as the screen is open.
  *
  * Every collection runs in `viewModelScope`, so leaving the diagnostic cancels it and the cold flow's
- * own teardown unregisters the sensor - S2457 §11 criterion 2 with no stop() for a caller to forget.
- * There is deliberately no method here that outlives the ViewModel.
+ * own teardown unregisters the sensor. Exposes live physiological heart rate zones and last reading history.
  */
 @HiltViewModel
 class BodySensorViewModel @Inject constructor(
@@ -33,8 +34,15 @@ class BodySensorViewModel @Inject constructor(
 
     private var measurement: Job? = null
     private var lastHeartRate: BodySensorReading.HeartRate? = null
+    private var cachedLastReading: HeartRateHistoryEntry? = null
 
     init {
+        viewModelScope.launch {
+            historyRepository.observeAll().collect { entries ->
+                cachedLastReading = entries.firstOrNull()
+                _state.value = _state.value.copy(lastReading = cachedLastReading)
+            }
+        }
         refreshAvailability()
     }
 
@@ -64,7 +72,7 @@ class BodySensorViewModel @Inject constructor(
     }
 
     /**
-     * S2808: saves the last heart-rate reading of the session that just ended, if one was received.
+     * S3013: saves the last heart-rate reading of the session that just ended, if one was received.
      * Called from [invokeOnCompletion] on the measurement job, which fires on both cancellation
      * (leaving the screen, starting a new measurement) and normal completion - so one history entry
      * is written per session, carrying the last BPM the sensor delivered.
@@ -73,16 +81,24 @@ class BodySensorViewModel @Inject constructor(
         val reading = lastHeartRate
         if (reading != null) {
             lastHeartRate = null
-            Timber.d("S2808: saving heart rate ${reading.beatsPerMinute} bpm to history")
+            Timber.d("S3013: saving heart rate ${reading.beatsPerMinute} bpm to history")
             viewModelScope.launch { historyRepository.save(reading.beatsPerMinute) }
         }
     }
 
     private fun publish(reading: BodySensorReading) {
-        if (reading is BodySensorReading.HeartRate) {
+        val zone = if (reading is BodySensorReading.HeartRate) {
             lastHeartRate = reading
+            HeartRateZone.classify(reading.beatsPerMinute)
+        } else {
+            null
         }
-        _state.value = BodySensorUiState(reading = reading, canMeasure = isRetryable(reading))
+        _state.value = _state.value.copy(
+            reading = reading,
+            currentZone = zone,
+            lastReading = cachedLastReading,
+            canMeasure = isRetryable(reading)
+        )
     }
 
     /**

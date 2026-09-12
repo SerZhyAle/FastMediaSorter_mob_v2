@@ -450,14 +450,23 @@ foreach ($scopedGate in @('focus-highlight-gate', 'neuroslop-gate', 'rtl-layout-
 # caller believed suppressed every write. The failure is silent by construction: the facade prints a
 # clean PASS and its only trace is the journal row, which is why the assertion has to live here.
 $changelogPath = Join-Path $repoRoot 'dev/CHANGELOG.md'
-$changelogBefore = if (Test-Path -LiteralPath $changelogPath) {
-    (Get-Item -LiteralPath $changelogPath).Length
+# S3022: the refusal used to be judged by the file's byte LENGTH before and after, which measures
+# every session's closures as well as this one - a sibling appending a row in that window failed
+# this suite over a refusal that worked perfectly. The subject is what THIS call would have
+# written, so the assertion asks for that row by its own target and reads nothing else.
+$refusedTarget = "post-change-tests-s3022-$([Guid]::NewGuid().ToString().Substring(0, 8))"
+function Test-RefusedRowPresent {
+    if (-not (Test-Path -LiteralPath $changelogPath)) { return $false }
+    $needle = '`' + $refusedTarget + '`'
+    foreach ($line in [System.IO.File]::ReadAllLines($changelogPath)) {
+        if ($line.Contains($needle)) { return $true }
+    }
+    return $false
 }
-else { -1 }
 
 $refusedUnknown = & pwsh -NoProfile -File $facadePath `
     -File 'scripts/post-change.ps1' `
-    -Target 'post-change-tests' `
+    -Target $refusedTarget `
     -Description 'reject an undeclared switch' `
     -ChangeType Script -DryRun 2>&1 | Out-String
 if ($LASTEXITCODE -ne 2) {
@@ -467,12 +476,8 @@ if ($refusedUnknown -notmatch 'unrecognized argument' -or $refusedUnknown -notma
     throw 'post-change refused an undeclared switch without naming it.'
 }
 
-$changelogAfter = if (Test-Path -LiteralPath $changelogPath) {
-    (Get-Item -LiteralPath $changelogPath).Length
-}
-else { -1 }
-if ($changelogAfter -ne $changelogBefore) {
-    throw 'A refused post-change run wrote to dev/CHANGELOG.md.'
+if (Test-RefusedRowPresent) {
+    throw "A refused post-change run wrote its row to dev/CHANGELOG.md (target '$refusedTarget')."
 }
 
 Write-Output "post-change tests: PASS ($($labels.Count) routed labels with hints)"

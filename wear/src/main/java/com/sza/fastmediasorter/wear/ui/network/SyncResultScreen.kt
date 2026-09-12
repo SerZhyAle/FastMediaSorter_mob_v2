@@ -11,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
@@ -54,55 +55,75 @@ fun SyncResultScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             centered = true
         ) {
-            item {
-                Text(
-                    text = "✓",
-                    style = MaterialTheme.typography.display3,
-                    color = MaterialTheme.colors.primary,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(R.string.wear_sync_complete),
-                    style = MaterialTheme.typography.title3,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            item {
-                Text(
-                    text = stringResource(R.string.wear_sync_stats, added, updated),
-                    style = MaterialTheme.typography.body2,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            item {
-                Chip(
-                    onClick = {
-                        navController.navigate(WearRoutes.NETWORK_SOURCES) {
-                            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
-                        }
-                    },
-                    label = { Text(stringResource(R.string.wear_sync_browse_now)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.primaryChipColors()
-                )
-            }
-            item {
-                Chip(
-                    onClick = {
-                        navController.navigate(WearRoutes.NETWORK_SOURCES) {
-                            popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
-                        }
-                    },
-                    label = { Text(stringResource(R.string.done)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ChipDefaults.secondaryChipColors()
-                )
-            }
+            syncResultItems(navController, added, updated)
         }
+    }
+}
+
+private fun ScalingLazyListScope.syncResultItems(
+    navController: NavController,
+    added: Int,
+    updated: Int
+) {
+    item {
+        Text(
+            text = "✓",
+            style = MaterialTheme.typography.display3,
+            color = MaterialTheme.colors.primary,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+    item {
+        Text(
+            text = stringResource(R.string.wear_sync_complete),
+            style = MaterialTheme.typography.title3,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+    item {
+        Text(
+            text = stringResource(R.string.wear_sync_stats, added, updated),
+            style = MaterialTheme.typography.body2,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+    item {
+        Chip(
+            onClick = {
+                navController.navigate(WearRoutes.NETWORK_SOURCES) {
+                    popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
+                }
+            },
+            label = {
+                Text(
+                    text = stringResource(R.string.wear_sync_browse_now),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ChipDefaults.primaryChipColors()
+        )
+    }
+    item {
+        Chip(
+            onClick = {
+                navController.navigate(WearRoutes.NETWORK_SOURCES) {
+                    popUpTo(WearRoutes.syncResult(added, updated)) { inclusive = true }
+                }
+            },
+            label = {
+                Text(
+                    text = stringResource(R.string.done),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ChipDefaults.secondaryChipColors()
+        )
     }
 }

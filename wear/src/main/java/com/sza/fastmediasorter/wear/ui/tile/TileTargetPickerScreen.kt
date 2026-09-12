@@ -91,8 +91,20 @@ private fun PickerListContent(
                     is PickerRow.ResourceRow -> {
                         Chip(
                             onClick = { onSelectResource(row.source) },
-                            label = { Text(row.source.name) },
-                            secondaryLabel = { Text(row.source.server) },
+                            label = {
+                                Text(
+                                    text = row.source.name,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
+                            secondaryLabel = {
+                                Text(
+                                    text = row.source.server,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ChipDefaults.primaryChipColors()
                         )
@@ -100,8 +112,20 @@ private fun PickerListContent(
                     is PickerRow.StreamRow -> {
                         Chip(
                             onClick = { onSelectStream(row.channel) },
-                            label = { Text(row.channel.name) },
-                            secondaryLabel = { Text(row.channel.url) },
+                            label = {
+                                Text(
+                                    text = row.channel.name,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
+                            secondaryLabel = {
+                                Text(
+                                    text = row.channel.url,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ChipDefaults.primaryChipColors()
                         )

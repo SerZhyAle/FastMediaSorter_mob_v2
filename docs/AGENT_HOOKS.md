@@ -25,6 +25,7 @@ The canon ships some of these guards in its own `hooks/` folder. Until the *inst
 | `warn-context-size.ps1` | UserPromptSubmit / `*` | warns | global | - | `.claude/hooks/global-hook-tests/Run-WarnContextSize-Tests.ps1` |
 | `guard-catalog-before-kt-search.ps1` | PreToolUse / Grep, Glob | refuses | project | - | `.claude/hooks/tests/run-guard-catalog-cases.ps1` |
 | `guard-mcp-one-way-tools.ps1` | PreToolUse / one-way MCP device tools | refuses | project | 35 | `.claude/hooks/tests/Run-GuardMcpOneWayTools-Tests.ps1` |
+| `guard-release-freeze.ps1` | PreToolUse / Bash, PowerShell | refuses | project | 23 | `.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1` |
 | `observe-empty-grep.ps1` | PostToolUse / Grep | observes | project | - | `.claude/hooks/tests/Run-ObserveEmptyGrep-Tests.ps1` |
 | `nudge-small-task-tier.ps1` | UserPromptSubmit | nudges | project | - | - |
 | `sweep-agent-lock-queues.ps1` | UserPromptSubmit | observes | project | 23 | - |

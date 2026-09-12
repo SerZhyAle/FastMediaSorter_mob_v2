@@ -125,8 +125,16 @@ private fun ScalingLazyListScope.settingsItems(
         items(destinations) { (route, label) ->
             Chip(
                 onClick = { onClick(route) },
-                label = { Text(label) },
-                modifier = Modifier.testTag(WearTestTags.settingsRow(route))
+                label = {
+                    Text(
+                        text = label,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag(WearTestTags.settingsRow(route))
             )
         }
         return
@@ -214,7 +222,14 @@ private fun SyncSettingsCell(
         Chip(
             onClick = onSync,
             enabled = !syncing,
-            label = { Text(stringResource(R.string.wear_settings_sync_button)) }
+            label = {
+                Text(
+                    text = stringResource(R.string.wear_settings_sync_button),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            modifier = Modifier.fillMaxWidth()
         )
         Text(
             text = caption,

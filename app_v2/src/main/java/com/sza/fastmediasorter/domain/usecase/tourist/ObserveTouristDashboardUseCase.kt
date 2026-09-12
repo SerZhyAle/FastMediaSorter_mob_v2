@@ -5,13 +5,14 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.ContextCompat
-import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.data.networkmonitor.GnssStatusDataSource
 import com.sza.fastmediasorter.data.sensors.MotionReadingSource
 import com.sza.fastmediasorter.data.sensors.OrientationReadingSource
 import com.sza.fastmediasorter.data.sensors.StepCountReadingSource
+import com.sza.fastmediasorter.domain.model.sensors.SensorCapability
 import com.sza.fastmediasorter.domain.model.tourist.TouristDashboardState
 import com.sza.fastmediasorter.domain.model.tourist.TouristTileType
+import com.sza.fastmediasorter.domain.repository.SensorAvailabilityRepository
 import com.sza.fastmediasorter.domain.util.SolarCalculator
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
@@ -28,7 +29,7 @@ import javax.inject.Singleton
 import kotlin.math.ln
 
 /**
- * S2922/S3000: combines sensor and GNSS feeds into a unified real-time [TouristDashboardState].
+ * S2922/S3000/S3011: combines sensor and GNSS feeds into a unified real-time [TouristDashboardState].
  */
 @Singleton
 class ObserveTouristDashboardUseCase @Inject constructor(
@@ -37,6 +38,7 @@ class ObserveTouristDashboardUseCase @Inject constructor(
     private val orientationReadingSource: OrientationReadingSource,
     private val stepCountReadingSource: StepCountReadingSource,
     private val gnssStatusDataSource: GnssStatusDataSource,
+    private val sensorAvailabilityRepository: SensorAvailabilityRepository,
 ) {
 
     private val accumulatedTripMeters = MutableStateFlow(0.0)
@@ -78,12 +80,13 @@ class ObserveTouristDashboardUseCase @Inject constructor(
             true
         }
 
-        val currentState = MutableStateFlow(
-            TouristDashboardState(
-                focusedTile = initialFocus,
-                hasLocationPermission = hasLoc,
-                hasActivityRecognitionPermission = hasAct,
-            ),
+        val isStepsAvail = sensorAvailabilityRepository.isAvailable(SensorCapability.STEP_COUNTER)
+
+        val currentState = createInitialDashboardState(
+            initialFocus = initialFocus,
+            hasLoc = hasLoc,
+            hasAct = hasAct,
+            stepsAvailable = isStepsAvail,
         )
 
         launch {
@@ -102,9 +105,23 @@ class ObserveTouristDashboardUseCase @Inject constructor(
 
         observeMotionTelemetry(currentState)
         observeCompassTelemetry(currentState)
-        observeStepTelemetry(currentState)
+        observeStepTelemetry(currentState, isStepsAvail)
         observeGnssTelemetry(currentState)
     }
+
+    private fun createInitialDashboardState(
+        initialFocus: TouristTileType,
+        hasLoc: Boolean,
+        hasAct: Boolean,
+        stepsAvailable: Boolean,
+    ): MutableStateFlow<TouristDashboardState> = MutableStateFlow(
+        TouristDashboardState(
+            focusedTile = initialFocus,
+            hasLocationPermission = hasLoc,
+            hasActivityRecognitionPermission = hasAct,
+            stepsAvailable = stepsAvailable,
+        ),
+    )
 
     private fun CoroutineScope.observeMotionTelemetry(currentState: MutableStateFlow<TouristDashboardState>) {
         launch {
@@ -140,8 +157,11 @@ class ObserveTouristDashboardUseCase @Inject constructor(
         }
     }
 
-    private fun CoroutineScope.observeStepTelemetry(currentState: MutableStateFlow<TouristDashboardState>) {
-        if (!BuildConfig.IS_NO_LEGAL_FLAVOR) return
+    private fun CoroutineScope.observeStepTelemetry(
+        currentState: MutableStateFlow<TouristDashboardState>,
+        stepsAvailable: Boolean,
+    ) {
+        if (!stepsAvailable) return
         launch {
             stepCountReadingSource.readings().collectLatest { stepReading ->
                 if (baseStepCount == null) {

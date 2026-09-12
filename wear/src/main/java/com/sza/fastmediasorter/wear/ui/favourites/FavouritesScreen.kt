@@ -366,7 +366,13 @@ private fun FavouriteChip(
         )
         Chip(
             onClick = { onUnmark(record) },
-            label = { Text(text = stringResource(R.string.wear_favourites_unmark)) },
+            label = {
+                Text(
+                    text = stringResource(R.string.wear_favourites_unmark),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
             modifier = Modifier.fillMaxWidth()
         )
     }

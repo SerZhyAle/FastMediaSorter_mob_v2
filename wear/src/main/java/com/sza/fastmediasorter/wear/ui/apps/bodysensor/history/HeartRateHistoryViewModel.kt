@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.wear.ui.apps.bodysensor.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.HeartRateAnalytics
 import com.sza.fastmediasorter.wear.domain.repository.HeartRateHistoryRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,7 +13,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * S2808: collects heart-rate measurement history from the repository and exposes it as UI state.
+ * S2808/S3013: collects heart-rate measurement history from the repository and exposes it as UI state.
  *
  * The collection runs in `viewModelScope`, so leaving the screen cancels it - no leaked
  * subscription. [clearHistory] deletes all entries in one call.
@@ -23,7 +24,13 @@ class HeartRateHistoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     val state: StateFlow<HeartRateHistoryUiState> = repository.observeAll()
-        .map { entries -> HeartRateHistoryUiState(entries = entries, isEmpty = entries.isEmpty()) }
+        .map { entries ->
+            HeartRateHistoryUiState(
+                entries = entries,
+                isEmpty = entries.isEmpty(),
+                summary = HeartRateAnalytics.computeSummary(entries)
+            )
+        }
         .stateIn(
             viewModelScope,
             SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),

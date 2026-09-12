@@ -4,23 +4,22 @@ import android.view.View
 import android.widget.ImageButton
 import androidx.media3.ui.PlayerView
 import com.sza.fastmediasorter.R
-import com.sza.fastmediasorter.core.debug.MemoryEnduranceTracker
 import com.sza.fastmediasorter.databinding.ActivityPlayerUnifiedBinding
 import com.sza.fastmediasorter.domain.model.PlaybackOrderMode
 import com.sza.fastmediasorter.ui.player.VideoPlayerManager
-import timber.log.Timber
 import com.sza.fastmediasorter.utils.UserActionLogger
+import timber.log.Timber
 
 /**
  * Manages ExoPlayer custom controls setup and state for PlayerActivity.
- * 
+ *
  * Responsibilities:
  * - Setup custom navigation buttons (previous/next file)
  * - Setup playback-order button with icon updates
  * - Setup unified playback control button
  * - Setup rewind/forward buttons for audiobook mode
  * - Update the playback-order button from PlayerState
- * 
+ *
  * Custom controls in ExoPlayer controller overlay:
  * - exo_prev_file: Navigate to previous file
  * - exo_next_file: Navigate to next file
@@ -34,7 +33,7 @@ class ExoPlayerControlsManager(
     private val videoPlayerManager: VideoPlayerManager,
     private val callback: ExoPlayerControlsCallback
 ) {
-    
+
     interface ExoPlayerControlsCallback {
         fun onPreviousFile()
         fun onNextFile()
@@ -43,15 +42,18 @@ class ExoPlayerControlsManager(
         fun showPlaybackControlDialog()
         fun onSeekForward(seconds: Int)
         fun onSeekBackward(seconds: Int)
+
         // S0641: true while a live video stream plays - drives the trimmed on-player control set.
         fun isLiveVideoStream(): Boolean
+
         // S1114: launch VR-immersive for the current video from the transport controls row.
         fun onVrLaunchClicked()
+
         // S1114: true when VR entry is available now (XR device + 3D/VR master toggle + video).
         fun isVrEntryAvailable(): Boolean
         fun onControllerVisibilityChanged(visibility: Int) {}
     }
-    
+
     /**
      * Setup all custom ExoPlayer navigation buttons and controls.
      * Called once during PlayerActivity initialization.
@@ -71,7 +73,6 @@ class ExoPlayerControlsManager(
             callback.onNextFile()
         }
 
-        // Setup playback-order button
         binding.playerView.findViewById<ImageButton>(R.id.exo_repeat)?.setOnClickListener {
             UserActionLogger.logButtonClick("PlaybackOrder", "ExoPlayerControlsManager")
             callback.onPlaybackOrderClicked()
@@ -89,11 +90,10 @@ class ExoPlayerControlsManager(
             callback.onVrLaunchClicked()
         }
 
-        // Setup audiobook rewind/forward buttons
         val btnRewind = binding.playerView.findViewById<ImageButton>(R.id.btnRewind10)
         val btnForward = binding.playerView.findViewById<ImageButton>(R.id.btnForward30)
-        Timber.d("ExoPlayerControlsManager: btnRewind10 = ${btnRewind}, btnForward30 = ${btnForward}")
-        
+        Timber.d("ExoPlayerControlsManager: btnRewind10 = $btnRewind, btnForward30 = $btnForward")
+
         btnRewind?.setOnClickListener {
             UserActionLogger.logButtonClick("Rewind10", "ExoPlayerControlsManager")
             callback.onSeekBackward(10)
@@ -103,7 +103,7 @@ class ExoPlayerControlsManager(
             UserActionLogger.logButtonClick("Forward10", "ExoPlayerControlsManager")
             callback.onSeekForward(10)
         }
-        
+
         // Initial playback-order button state
         updatePlaybackOrderButtonState()
 
@@ -156,7 +156,7 @@ class ExoPlayerControlsManager(
         pv.findViewById<View>(R.id.btnRewind10)?.visibility = hiddenForStream
         pv.findViewById<View>(R.id.btnForward30)?.visibility = hiddenForStream
     }
-    
+
     /**
      * Update the bottom-bar playback-order button from the shared playback-order state.
      */

@@ -12,10 +12,9 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.util.Locale
-import com.sza.fastmediasorter.BuildConfig
 
 /**
- * S2922/S3000/S2995: renders the grid of secondary telemetry tiles.
+ * S2922/S3000/S2995/S3011: renders the grid of secondary telemetry tiles.
  */
 class TouristSecondaryTilesAdapter(
     private val onTileClicked: (TouristTileType) -> Unit,
@@ -28,7 +27,7 @@ class TouristSecondaryTilesAdapter(
         this.state = newState
         visibleTiles.clear()
         TouristTileType.entries.forEach { tile ->
-            if (tile == TouristTileType.STEPS && !BuildConfig.IS_NO_LEGAL_FLAVOR) {
+            if (tile == TouristTileType.STEPS && !newState.stepsAvailable) {
                 return@forEach
             }
             if (tile != newState.focusedTile) {

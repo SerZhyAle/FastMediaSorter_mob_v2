@@ -1,6 +1,7 @@
 package com.sza.fastmediasorter.wear.ui.common
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.text.style.Hyphens
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material.Icon
@@ -40,11 +40,7 @@ fun WearSettingsToggleCell(
     accessibilityLabel: String = label,
     narrow: Boolean = false
 ) {
-    val labelStyle = if (narrow) {
-        MaterialTheme.typography.caption2.copy(hyphens = Hyphens.None)
-    } else {
-        MaterialTheme.typography.caption2
-    }
+    val labelStyle = MaterialTheme.typography.caption2
     Timber.d("S2986: toggle cell %s, narrow=%b", label, narrow)
     val icon = if (radio) {
         ToggleChipDefaults.radioIcon(checked)
@@ -71,7 +67,8 @@ fun WearSettingsToggleCell(
                 contentDescription = accessibilityLabel
                 selected = checked
             },
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterHorizontally)
     ) {
         Icon(
             imageVector = icon,
@@ -82,8 +79,8 @@ fun WearSettingsToggleCell(
         Text(
             text = label,
             style = labelStyle,
-            maxLines = if (narrow) 1 else Int.MAX_VALUE,
-            overflow = if (narrow) TextOverflow.Ellipsis else TextOverflow.Clip
+            maxLines = if (narrow) 2 else Int.MAX_VALUE,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }

@@ -71,6 +71,9 @@ object WearRoutes {
     /** S2458: live motion and activity readings. Carries its `canonicalKey` like the programs above. */
     const val MOTION_MONITOR = "motion_monitor"
 
+    /** S3014: the physical activity measurement history and analytics screen. */
+    const val MOTION_HISTORY = "motion_history"
+
     /** S2457: the foreground heart-rate diagnostic. Carries its `canonicalKey` like the programs above. */
     const val BODY_SENSOR = "body_sensor"
 
@@ -118,6 +121,11 @@ object WearRoutes {
      * gate - it needs no permission and no hardware the phone half does not already assume.
      */
     const val STOPWATCH = "stopwatch"
+
+    /**
+     * S3007: the watch Tourist telemetry and navigation dashboard.
+     */
+    const val TOURIST = "tourist_info"
 
     const val ARG_MEDIA_TYPE = "mediaType"
     const val ARG_SOURCE_ID = "sourceId"

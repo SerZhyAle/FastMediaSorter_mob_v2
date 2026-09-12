@@ -43,6 +43,7 @@ internal fun tileShortcutIconFor(destination: WearDestinationId): Int = when (de
     WearDestinationId.BODY_SENSOR -> WearAppIconCatalog.iconFor(WearAppId.BODY_SENSOR)
     WearDestinationId.BLOOD_PRESSURE -> WearAppIconCatalog.iconFor(WearAppId.BLOOD_PRESSURE)
     WearDestinationId.STOPWATCH -> WearAppIconCatalog.iconFor(WearAppId.STOPWATCH)
+    WearDestinationId.TOURIST -> WearAppIconCatalog.iconFor(WearAppId.TOURIST)
     // S2511: no catalog answers for the overflow cell - it stands for no entity, it is the way out of the
     // grid into the screen that lists the rest, which is what the "open elsewhere" glyph says.
     WearDestinationId.HOME -> R.drawable.ic_open_in_new

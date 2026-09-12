@@ -1,7 +1,12 @@
 package com.sza.fastmediasorter.wear.ui.apps.motionmonitor
 
 import android.Manifest
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -10,9 +15,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -34,6 +42,7 @@ import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import timber.log.Timber
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val GROUP_TOP_PADDING = 10.dp
@@ -50,11 +59,20 @@ private val CAPTION_TOP_PADDING = 2.dp
 @Composable
 fun MotionMonitorScreen(
     viewModel: MotionMonitorViewModel = hiltViewModel(),
-    listState: ScalingLazyListState = rememberWearListState()
+    listState: ScalingLazyListState = rememberWearListState(),
+    onHistoryClick: (() -> Unit)? = null
 ) {
+    Timber.d("S3014: motion monitor screen opened")
+    val context = LocalContext.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val requestable = remember { requestableActivityPermissions() }
     val permissionsState = rememberMultiplePermissionsState(permissions = requestable)
+
+    LaunchedEffect(state.snapshotSaved) {
+        if (state.snapshotSaved) {
+            Toast.makeText(context, R.string.motion_action_snapshot_saved, Toast.LENGTH_SHORT).show()
+        }
+    }
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -68,11 +86,41 @@ fun MotionMonitorScreen(
         ) {
             item { ScreenTitle() }
 
+            item { GroupTitle(R.string.wear_motion_monitor_group_activity) }
+            items(state.activity) { row -> StreamRow(row) }
+
             item { GroupTitle(R.string.wear_motion_monitor_group_motion) }
             items(state.motion) { row -> StreamRow(row) }
 
-            item { GroupTitle(R.string.wear_motion_monitor_group_activity) }
-            items(state.activity) { row -> StreamRow(row) }
+            item {
+                ActionChip(
+                    labelRes = R.string.motion_action_reset_steps,
+                    onClick = { viewModel.resetSteps() }
+                )
+            }
+
+            item {
+                ActionChip(
+                    labelRes = R.string.motion_action_save_snapshot,
+                    onClick = { viewModel.saveCurrentSnapshot() }
+                )
+            }
+
+            item {
+                ActionChip(
+                    labelRes = R.string.motion_action_open_map,
+                    onClick = { openMap(context) }
+                )
+            }
+
+            if (onHistoryClick != null) {
+                item {
+                    ActionChip(
+                        labelRes = R.string.motion_btn_history_analytics,
+                        onClick = onHistoryClick
+                    )
+                }
+            }
 
             if (state.canRequestPermission && requestable.isNotEmpty()) {
                 item {
@@ -80,6 +128,16 @@ fun MotionMonitorScreen(
                 }
             }
         }
+    }
+}
+
+private fun openMap(context: Context) {
+    val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q="))
+    try {
+        context.startActivity(mapIntent)
+    } catch (e: ActivityNotFoundException) {
+        Timber.w(e, "No map application available to handle geo intent")
+        Toast.makeText(context, R.string.motion_action_map_not_found, Toast.LENGTH_SHORT).show()
     }
 }
 
@@ -122,7 +180,10 @@ private fun GroupTitle(@StringRes titleRes: Int) {
 
 @Composable
 private fun StreamRow(row: MotionStreamRow) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         WearInformationRow(labelRes = labelOf(row.id), value = readingOf(row))
         if (row.availability == WearSensorAvailability.Available) {
             DeliveryCaption(row)
@@ -171,6 +232,19 @@ private fun GrantChip(onClick: () -> Unit) {
 }
 
 @Composable
+private fun ActionChip(
+    @StringRes labelRes: Int,
+    onClick: () -> Unit
+) {
+    CompactChip(
+        onClick = onClick,
+        label = { Text(stringResource(labelRes)) },
+        modifier = Modifier.fillMaxWidth(),
+        colors = ChipDefaults.secondaryChipColors()
+    )
+}
+
+@Composable
 private fun readingOf(row: MotionStreamRow): String = when (row.availability) {
     WearSensorAvailability.NoHardware -> stringResource(R.string.wear_motion_monitor_no_hardware)
     WearSensorAvailability.PermissionDenied -> stringResource(R.string.wear_motion_monitor_permission_denied)
@@ -181,7 +255,7 @@ private fun readingOf(row: MotionStreamRow): String = when (row.availability) {
 private fun availableReadingOf(row: MotionStreamRow): String = when (row.id) {
     // The detector fires once per step and its value is a constant 1, so the count IS the reading.
     WearSensorStreamId.STEP_DETECTOR -> row.eventCount.toString()
-    WearSensorStreamId.STEP_COUNTER -> formatStepCount(row.values)
+    WearSensorStreamId.STEP_COUNTER -> row.displayedSteps?.toString() ?: formatStepCount(row.values)
     else -> formatAxes(row.values)
 }
 

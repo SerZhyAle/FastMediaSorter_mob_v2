@@ -2,56 +2,110 @@ package com.sza.fastmediasorter.wear.ui.apps.motionmonitor
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sza.fastmediasorter.wear.domain.model.MotionHistoryEntry
+import com.sza.fastmediasorter.wear.domain.motion.WearSensorAvailability
 import com.sza.fastmediasorter.wear.domain.motion.WearSensorStreamId
 import com.sza.fastmediasorter.wear.domain.motion.WearSensorStreamState
 import com.sza.fastmediasorter.wear.domain.motion.deliveryAgeMillis
+import com.sza.fastmediasorter.wear.domain.repository.MotionHistoryRepository
 import com.sza.fastmediasorter.wear.domain.repository.WearMotionDiagnosticsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import timber.log.Timber
 import javax.inject.Inject
 
 /**
- * Publishes the watch's motion and activity readings for as long as the screen observes them and no
- * longer.
+ * S2458/S3014: Publishes the watch's activity and motion readings for as long as the screen observes them.
  *
- * `WhileSubscribed` with no grace period is the whole cost policy, the same one the Network Monitor
- * uses: the repository's flow is cold, so the moment the last collector goes away every registered
- * `SensorEventListener` is unregistered. A grace period here would keep the sensors running past the
- * screen for no benefit a diagnostic session can name.
+ * Tracks step baseline offsets for the reset action, allows saving snapshot history entries,
+ * and prioritizes activity metrics.
  */
 @HiltViewModel
 class MotionMonitorViewModel @Inject constructor(
-    repository: WearMotionDiagnosticsRepository
+    repository: WearMotionDiagnosticsRepository,
+    private val historyRepository: MotionHistoryRepository
 ) : ViewModel() {
 
-    val uiState: StateFlow<MotionMonitorUiState> = repository.streams()
-        .map(::toUiState)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = MotionMonitorUiState()
-        )
+    private val stepBaseline = MutableStateFlow<Long?>(null)
+    private val snapshotSaved = MutableStateFlow(false)
+    private var lastKnownRawSteps: Long = 0L
 
-    private fun toUiState(streams: List<WearSensorStreamState>): MotionMonitorUiState {
-        // Read once per emission rather than per row, so every age on one screen refers to one instant.
+    val uiState: StateFlow<MotionMonitorUiState> = combine(
+        repository.streams(),
+        stepBaseline,
+        snapshotSaved
+    ) { streams, baseline, saved ->
+        toUiState(streams, baseline, saved)
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(),
+        initialValue = MotionMonitorUiState()
+    )
+
+    fun resetSteps() {
+        stepBaseline.value = lastKnownRawSteps
+        Timber.d("S3014: steps reset to baseline $lastKnownRawSteps")
+    }
+
+    fun saveCurrentSnapshot() {
+        val currentBaseline = stepBaseline.value ?: 0L
+        val displayed = (lastKnownRawSteps - currentBaseline).coerceAtLeast(0L)
+        viewModelScope.launch {
+            historyRepository.insert(
+                MotionHistoryEntry(
+                    timestampMillis = System.currentTimeMillis(),
+                    steps = displayed
+                )
+            )
+            snapshotSaved.value = true
+            Timber.d("S3014: saved motion history snapshot with $displayed steps")
+        }
+    }
+
+    private fun toUiState(
+        streams: List<WearSensorStreamState>,
+        baseline: Long?,
+        saved: Boolean
+    ): MotionMonitorUiState {
         val nowMillis = System.currentTimeMillis()
-        val rows = streams.map { stream -> toRow(stream, nowMillis) }
+        val stepStream = streams.firstOrNull { it.id == WearSensorStreamId.STEP_COUNTER }
+        val rawSteps = stepStream?.values?.firstOrNull()?.toLong() ?: 0L
+        lastKnownRawSteps = rawSteps
+
+        val effectiveBaseline = baseline ?: 0L
+        val displayed = (rawSteps - effectiveBaseline).coerceAtLeast(0L)
+        val hasStep = stepStream?.availability == WearSensorAvailability.Available
+
+        val rows = streams.map { stream ->
+            toRow(stream, nowMillis, displayed)
+        }
+
         return MotionMonitorUiState(
+            activity = rows.filter { it.id in ACTIVITY_STREAMS },
             motion = rows.filterNot { it.id in ACTIVITY_STREAMS },
-            activity = rows.filter { it.id in ACTIVITY_STREAMS }
+            displayedSteps = displayed,
+            hasStepData = hasStep,
+            snapshotSaved = saved
         )
     }
 
-    private fun toRow(stream: WearSensorStreamState, nowMillis: Long): MotionStreamRow = MotionStreamRow(
+    private fun toRow(
+        stream: WearSensorStreamState,
+        nowMillis: Long,
+        displayedSteps: Long
+    ): MotionStreamRow = MotionStreamRow(
         id = stream.id,
         availability = stream.availability,
         values = stream.values,
         eventCount = stream.delivery.eventCount,
         hertz = stream.delivery.hertz,
-        ageMillis = deliveryAgeMillis(stream.delivery, nowMillis)
+        ageMillis = deliveryAgeMillis(stream.delivery, nowMillis),
+        displayedSteps = if (stream.id == WearSensorStreamId.STEP_COUNTER) displayedSteps else null
     )
 
     private companion object {

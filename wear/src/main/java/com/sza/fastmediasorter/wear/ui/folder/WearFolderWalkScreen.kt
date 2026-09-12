@@ -156,7 +156,13 @@ private fun FolderWalkList(
                 item {
                     Chip(
                         onClick = onLoadMore,
-                        label = { Text(text = stringResource(R.string.wear_folder_load_more)) },
+                        label = {
+                            Text(
+                                text = stringResource(R.string.wear_folder_load_more),
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ChipDefaults.secondaryChipColors()
                     )

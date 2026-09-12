@@ -14,7 +14,6 @@ import com.sza.fastmediasorter.ui.tourist.helpers.TouristSecondaryTilesAdapter
 import com.sza.fastmediasorter.utils.applySystemBarInsetPadding
 import com.sza.fastmediasorter.utils.collectOnLifecycle
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 
 /**
  * S2922: Tourist dashboard subprogram displaying live telemetry and navigational tiles.
@@ -32,7 +31,7 @@ class TouristInfoActivity : BaseActivity<ActivityTouristInfoBinding>() {
         ActivityTouristInfoBinding.inflate(layoutInflater)
 
     override fun setupViews() {
-        Timber.d("S2922: Tourist dashboard initialized with remedial fixes")
+        timber.log.Timber.d("S2922: TouristInfoActivity setupViews")
         binding.touristRoot.applySystemBarInsetPadding()
         binding.toolbar.setNavigationOnClickListener { finish() }
 

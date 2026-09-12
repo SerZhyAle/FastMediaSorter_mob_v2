@@ -23,14 +23,12 @@ class BrowseMetadataManagerTest {
         coEvery { updateResourceUseCase(any()) } throws CancellationException("scope cancelled")
         val manager = BrowseMetadataManager(updateResourceUseCase, StandardTestDispatcher(testScheduler))
 
-        var propagated = false
-        try {
-            manager.updateMetadata(createMediaResource(id = 1L), actualFileCount = 3)
-        } catch (e: CancellationException) {
-            propagated = true
-        }
+        val outcome = runCatching { manager.updateMetadata(createMediaResource(id = 1L), actualFileCount = 3) }
 
-        assertTrue("CancellationException must be rethrown, not answered with null", propagated)
+        assertTrue(
+            "CancellationException must be rethrown, not answered with null",
+            outcome.exceptionOrNull() is CancellationException
+        )
     }
 
     @Test

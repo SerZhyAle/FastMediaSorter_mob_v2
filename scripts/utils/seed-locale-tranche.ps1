@@ -127,6 +127,9 @@
       3 - written, but at least one supplied translation was rejected (key absent from the filtered
           source, or placeholder mismatch). The file is valid; the rejected keys are named so the
           caller fixes the map now instead of discovering the gap in a later tranche.
+      4 - the locale file was written but a fingerprint did not survive the save, so provenance is
+          incomplete and the freshness gate will report translated keys as untranslated (S3008). The
+          offending identity is named; re-run this tranche.
 #>
 [CmdletBinding()]
 param(
@@ -187,8 +190,8 @@ function ConvertTo-XmlText([AllowEmptyString()][string]$Text) {
     # The optional leading backslash is what makes this idempotent: a value that already arrived
     # escaped matches too and collapses to the same single-backslash form, instead of growing a
     # second slash that AAPT2 either refuses (apostrophe) or ships literally (quote).
-    $escaped = [regex]::Replace($escaped, '\\\\?&apos;', "\'")
-    return [regex]::Replace($escaped, '\\\\?&quot;', '\"')
+    $escaped = [regex]::Replace($escaped, '\\?&apos;', "\'")
+    return [regex]::Replace($escaped, '\\?&quot;', '\"')
 }
 
 function Get-FormatSignature([AllowEmptyString()][string]$Text) {
@@ -406,14 +409,37 @@ if ($DryRun) {
         # The hash is taken from the same normalized plain text locale-bulk-export.ps1 records as
         # `en`, through the shared normalizer - hashing the raw element body instead would stamp
         # every unit with a value the freshness check reads as stale on its very next run.
-        $fingerprints = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+        # S3008: what to stamp is computed before the transaction opens, so the locked window holds
+        # only the read, the assignment and the save - and so the verification below has the expected
+        # hashes without recomputing them.
+        $expectedStamps = @{}
         foreach ($unit in $stamped) {
             $unitId = Get-LocaleUnitId -Module $Module -Set $SourceSet -File $SourceFile -Key $unit.Key -Slot $unit.Slot
-            $hash = Get-EnglishStringFingerprint -Text (ConvertFrom-ResourceBody $unit.En)
-            Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $hash
+            $expectedStamps[$unitId] = Get-EnglishStringFingerprint -Text (ConvertFrom-ResourceBody $unit.En)
         }
-        Save-LocaleSourceFingerprints -Fingerprints $fingerprints -Path $FingerprintsPath
+        Edit-LocaleSourceFingerprints -Path $FingerprintsPath -Mutate {
+            param($fingerprints)
+            foreach ($unitId in $expectedStamps.Keys) {
+                Update-LocaleSourceFingerprint -Fingerprints $fingerprints -Locale $Locale -Identity $unitId -Hash $expectedStamps[$unitId]
+            }
+        } | Out-Null
         Write-Host "seed-locale-tranche: stamped $($stamped.Count) fingerprint(s) for $Locale"
+
+        # S3008: the transaction closes the loss mechanism this ticket found; re-reading the store
+        # makes any future one loud where it happens. The r37 round reported `accepted 146` per locale
+        # and left the pre-release gate red, so the cost of a silent loss is a whole import round
+        # re-run to discover it - one read of a file already in the page cache is cheaper.
+        $verifyStore = Get-LocaleSourceFingerprints -Path $FingerprintsPath
+        $verifyLocale = if ($verifyStore.ContainsKey($Locale)) { $verifyStore[$Locale] } else { @{} }
+        foreach ($unitId in $expectedStamps.Keys) {
+            $storedHash = if ($verifyLocale.ContainsKey($unitId)) { $verifyLocale[$unitId] } else { '<absent>' }
+            if ($storedHash -ne $expectedStamps[$unitId]) {
+                Write-Error ("seed-locale-tranche: stamp for '$unitId' ($Locale) did not survive the save - " +
+                    "expected $($expectedStamps[$unitId]), stored $storedHash. Another writer of " +
+                    "$FingerprintsPath discarded it.") -ErrorAction Continue
+                exit 4
+            }
+        }
     }
 }
 

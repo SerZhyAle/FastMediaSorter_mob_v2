@@ -76,6 +76,11 @@ object WearAppCatalog {
         WearApp(
             id = WearAppId.STOPWATCH,
             labelRes = R.string.wear_app_stopwatch
+        ),
+        // S3007: listed in both flavors - Tourist telemetry and navigation dashboard
+        WearApp(
+            id = WearAppId.TOURIST,
+            labelRes = R.string.wear_tourist_app
         )
     ).filter { it.isAvailable }
 }

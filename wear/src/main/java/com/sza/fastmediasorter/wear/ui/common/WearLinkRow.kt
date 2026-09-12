@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
@@ -12,6 +13,7 @@ import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
+import timber.log.Timber
 
 /**
  * S2496: a row that reads as a link rather than as a button.
@@ -28,16 +30,22 @@ fun WearLinkRow(
     modifier: Modifier = Modifier,
     message: String? = null
 ) {
+    Timber.d("S3016: WearLinkRow composed")
     // A Column, not two siblings: one ScalingLazyColumn item is a single slot, so a bare Chip and
     // Text would stack on top of each other - the same trap already documented in SendLogsRow.
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Chip(
             onClick = onClick,
             label = {
                 Text(
                     text = label,
                     color = MaterialTheme.colors.primary,
-                    textDecoration = TextDecoration.Underline
+                    textDecoration = TextDecoration.Underline,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
             },
             colors = ChipDefaults.childChipColors(),

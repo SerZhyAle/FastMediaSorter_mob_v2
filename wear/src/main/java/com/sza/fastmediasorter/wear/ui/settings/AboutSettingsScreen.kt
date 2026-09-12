@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -141,13 +142,22 @@ private fun SendLogsRow(
 
     // A Column, not two siblings: one ScalingLazyColumn item is a single slot, so a bare Chip and
     // Text stack on top of each other - the message rendered over the row until this was added.
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Chip(
             // A second press while sending would queue an identical report; the view model refuses
             // it too, so the guard survives even if this one is ever lost in a redesign.
             onClick = { if (!sending) onSend() },
             enabled = !sending,
-            label = { Text(text = label) },
+            label = {
+                Text(
+                    text = label,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
             colors = ChipDefaults.secondaryChipColors(),
             modifier = Modifier
                 .fillMaxWidth()

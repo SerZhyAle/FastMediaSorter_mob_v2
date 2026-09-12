@@ -36,3 +36,15 @@ share_target_desc_package_app  # held by S2390 until its device verdict - delete
 # owner still has to confirm on a device - the ticket's status note names "removal of redundant
 # subtitles" as an acceptance item - so until it passes, this string is the rollback of a pending
 # decision rather than dead weight.
+
+# S2922 (tourist-info-tiles, open in package 37): four captions the remedial pass authored but never
+# wired. tourist_daylight_active / tourist_daylight_night are the Day/Night badge, which no layout
+# carries a slot for yet - that placement is the Rule 10 decision the ticket names as blocking.
+# tourist_status_permission_required is the caption for the two permission flags
+# ObserveTouristDashboardUseCase still never writes. tourist_info_panel_desc is the panel's own
+# description. Deleting them would throw away the authored text and its ten translations; they leave
+# this file when S2922 wires them or the owner rules the surfaces away.
+tourist_daylight_active  # held by S2922 - Day/Night badge has no layout slot until the Rule 10 placement is decided
+tourist_daylight_night  # held by S2922 - see tourist_daylight_active
+tourist_status_permission_required  # held by S2922 - the permission flags it captions are never written yet
+tourist_info_panel_desc  # held by S2922 - panel description, unwired until the panel's remedial phase lands

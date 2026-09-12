@@ -727,6 +727,79 @@ Five domains exist and `scripts/utils/agent-lock-domains.ps1` is their only home
 
 The lock window text above superseded "release it right after", which had been the whole of the rule until 2026-09-03 and did not say after *what*.
 
+### Release freeze - admission control for a sweep, not a sixth lock (S3010)
+
+Rule 23 orders concurrent work at the granularity a **change** needs: five domains, each held for one
+edit, released at the last file written. A release sweep needs the opposite promise - not "no one else
+is editing this file right now" but "no one is ADDING anything to this tree until I have a verdict" -
+because every gate at `/spec-prerelease` steps 0.4 to 0.9 measures the whole tree rather than a change
+(Rule 33). The two are not the same lock taken for longer: a domain held for a whole sweep would block
+every sibling from all work, which is unacceptable and also unenforceable, since the sweep itself takes
+those domains to fix what it finds.
+
+**What it cost before there was one.** Over the r37 sweep on 2026-09-12, between its first changelog
+row (`prerelease-37`, 05:02:09) and its last (`S2687 prerelease r37`, 06:47:37): 33 rows landed and
+exactly 2 were the sweep's own. The `app_v2` lexeme corpus read 135 strings, then 146, then 145 across
+one sitting; the `wear` corpus was translated at 59 strings and held 18 entirely different ones by the
+time that round was imported. The costliest single interference was `S3007`, a Wear Tourist
+mini-program scaffolded at 05:58:08 and implemented at 06:17:15 - a ticket **opened** after the sweep
+had already cleared the wear gate it invalidated. That is what sized the refusal: stopping work being
+opened buys most of the convergence for the narrowest possible refusal.
+
+**The queue runner was not the problem, and standing it down is not the fix.** `temp/STOP-SPEC-QUEUE`
+carried `stop requested 2026-09-11T23:39:33` and the newest record across
+`temp/spec-queue/runs-{a,b,c}.jsonl` finished 2026-09-11T23:49:21 - the runner had been down for five
+hours before the sweep began and contributed zero of the 31 sibling rows. Every interfering write came
+from an interactive session. `release-freeze.ps1 -Verb Take` still stops the runner, and `Release`
+restores it only when the freeze was what stopped it, so a stop the owner requested for their own
+reasons survives; but that is insurance against a hole that was simply not open during r37, never the
+mechanism.
+
+**Mechanism.** `scripts/utils/release-freeze.ps1` owns a marker at `temp/RELEASE-FREEZE.json` and
+answers one question - is a freeze held, and by whom. `.claude/hooks/guard-release-freeze.ps1` is the
+only thing that refuses: a `PreToolUse` hook on `Bash` and `PowerShell` that blocks a call claiming a
+ticket - `ticket-lease.ps1 -Verb Claim`, `spec-preamble.ps1`, `spec-next-preflight.ps1` - while a live
+foreign session holds the freeze. It never refuses the holder, a ticket already in flight, work under
+`PLAN/` or `temp/`, reading, analysis, or any command at all while no marker exists; and it fails open
+on a malformed payload, an unreadable marker or a missing script, because the cost of a wrong allow is
+one uncoordinated ticket while the cost of a wrong refusal is every command the machine runs. The hot
+path is one `Test-Path`: the child process that reads the marker is spawned only while a freeze
+actually exists.
+
+**Why a hook and not a domain.** Every ticket-opening script under `scripts/spec_catalog/` is a
+generated canon forwarder - `spec-preamble.ps1`, `spec-next-preflight.ps1`, `ticket-lease.ps1` and
+`release-queue.ps1` are the same 132-line file - so none of them may carry the check, while `.claude/`
+is this repository's own (Rule 8). Adding a sixth domain would also have put the change on both sides
+of the canon boundary and under S2998's lock contract suites, for semantics that are not a domain's.
+
+**Three ends, any one sufficient**, so it cannot outlive its sweep: an explicit `Release`; the owner
+session no longer being live, judged by `Get-AgentTicketLiveness` - the same function that decides
+every lock and lease, at the `SpecTicket` timings; and an absolute expiry stamped into the marker at
+Take, default four hours and refused above the `SpecTicket` ceiling. A reader that finds a dead or
+expired marker reports it as absent and deletes it in the same call, so an abandoned freeze costs the
+next session one line of output instead of a standoff (S2761 records that failure mode for the code
+lock). Liveness is deliberately **not** a pid test: the process running Take exits the moment Take
+returns - the same reason `lock-status.ps1` prints "acquiring process - exits at acquire, not the
+holder" - and `Test-AgentIdentityProcessAlive` answers false for a session-guid owner by design, which
+is what a Claude session has, so either shortcut would report every live freeze as dead.
+
+**Convergence honesty, which needs no co-operation at all.**
+`scripts/quality/release-scope-fingerprint.ps1` records what the judged tree looked like when the
+gates cleared, in named input groups, and says which moved before the verdict. Step 4 re-runs **only**
+the gates reading a moved group - `assert-release-scope-gates.ps1 -OnlyGroups <names>` - at most once,
+and if the tree moves again the verdict is not PASS and the report says the sweep could not converge,
+naming the groups and the interfering rows. Each gate still measures the whole tree when it runs; the
+groups decide only whether to run it, never what it looks at, so Rule 33's placement is untouched. A
+gate absent from the mapping is always re-run - the safe default is to re-measure, never to assume
+unchanged. The hash covers path, length and mtime and never file contents: measured 2026-09-12, all
+six groups together cost 1163 ms, and content hashing would put the check in the same cost class as
+the gates it exists to save. Expect `specs-archive` to move on most sweeps - `PLAN/` is lock-exempt and
+every sibling archives into it - which re-runs `assert-archive-artefacts` alone.
+
+Contract suites: `scripts/utils/release-freeze.tests/Run-Tests.ps1`,
+`scripts/quality/release-scope-fingerprint.tests/Run-Tests.ps1`,
+`.claude/hooks/tests/Run-GuardReleaseFreeze-Tests.ps1`.
+
 ### Shared-state mutation audit (S0703)
 
 On-demand quality tool, not a build gate. Finds places where one shared object is mutated from several layers (the "last-write-wins" / redundant / unsafe class).
@@ -1460,6 +1533,7 @@ Five facts a reader cannot derive from the commands:
 - **A missing translation is an absent key, never an English copy (ADR-6, S1190).** Android falls back to English on its own, so a partial locale is a shippable state. This is why the producer asks each locale's resource file which keys it carries, rather than comparing values.
 - **Provenance is tracked per module, and the gate runs once per module (S1858).** `scripts/quality/locale-source-fingerprints.json` addresses a unit as `module|set|file|key[|slot]`. It has to: `app_v2` and `wear` each ship `src/main/res/values/strings.xml` and share 14 key names, 6 of them with different English text, so an unqualified identity gave the two modules one slot with room for one hash. Whichever module imported last won it, and the gate then measured the other module's text against the wrong hash and called six translated keys untranslated - unfixable by re-importing, because re-importing only moved the red to the other module. A registry written before that split declares no schema version, reads as v1 and is refused with exit 2 until `scripts/quality/migrate-locale-fingerprints-module.ps1` rewrites it; a v1 store read as v2 would reproduce the same false report with nothing left to explain it.
 - **Provenance is written by whoever writes the text, so a direct seed is self-sufficient (S2327).** `scripts/utils/seed-locale-tranche.ps1` stamps the registry for every unit it translated from the supplied map, and `locale-bulk-import.ps1` no longer does it after the fact. A run that writes a locale file and no fingerprint produces a key the producer still reports as untranslated, however complete the file is - measured on S2320, where adding 20 registry entries by hand removed the key from the report without touching one byte of locale text. The importer could not get this right from where it stood: the accept-or-reject decision is per key and it saw one exit code per source file, so it stamped keys the seeder had rejected - and under `-Merge` a rejected replacement leaves the previously shipped translation in place, which turned the stamp into fresh provenance for stale text. Nothing is stamped for a `-Merge` passthrough, a rejected key or a `-DryRun`: none of them produced new text.
+- **Every write to the registry goes through `Edit-LocaleSourceFingerprints`, and the lock covers the read (S3008).** The store is one JSON document and every writer rewrites it whole, so a writer that loaded the file before another writer's save and saved after it discards every identity the other added. Nothing reports it: both processes exit 0 and each prints its own stamp count. Measured on the r37 import round - a ten-locale import of 146 lexemes reported `accepted 146 | rejected 0`, wrote every value correctly, and 145 of the 146 stamps for `de` were gone when the gate re-ran a moment later; the single survivor was the one key stamped from a different source file by a separate process. Locking the save alone would not have helped, because the stale snapshot forms at the read - which is why the transaction in `scripts/quality/lib/locale-fingerprints.ps1` opens a mutex keyed on the store path, reads inside it, hands the caller that fresh map to mutate, saves and releases. A seventh writer added later inherits the ordering by calling it; a writer that calls `Get-` and `Save-` in a pair does not, and there is no longer a reason to. `Code.Scripts` was the wrong instrument for this and was rejected: Rule 23's domain governs edits to script files, not runtime use of a data file, and `set-android-string.ps1` runs many times per ticket from sessions already holding `Code.Phone`. Contract suite: `scripts/quality.tests/locale-fingerprints-concurrency.Tests.ps1`, which spawns two overlapping writers and fails against a lock-free library.
 - **`scripts/quality/locale-untranslated-baseline.txt` holds identities, not a count.** It froze the keys already untranslated on 2026-08-14 - all of them `S1626`'s placeholder-misread phrasings - so a pre-existing gap cannot be reported as new. A count would let a new key slip in behind an old one cleared in the same release. Its entries are module-qualified for the same reason the registry's are. Entries leave the file as `S1626` clears them, and the producer reports a cleared entry as stale; do not expect that soon, since `S1626` is `BlockExternal` - the rule that looked obvious (placeholder at a string edge) was measured over all 307 placeholder-bearing strings and does not discriminate, so the set clears through a probe in a future bulk round rather than through an edit anyone can make today.
 
 ### Play listing locales - S2340

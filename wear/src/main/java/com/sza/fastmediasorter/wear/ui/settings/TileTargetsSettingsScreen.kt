@@ -83,8 +83,21 @@ fun TileTargetsSettingsScreen(
                     onClick = {
                         navController.navigate(WearRoutes.tileTargetPicker(row.kind.name))
                     },
-                    label = { Text(stringResource(row.labelRes)) },
-                    secondaryLabel = { Text(captionText(row.caption)) }
+                    label = {
+                        Text(
+                            text = stringResource(row.labelRes),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    secondaryLabel = {
+                        Text(
+                            text = captionText(row.caption),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }

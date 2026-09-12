@@ -279,14 +279,26 @@ private fun DeleteNoteDialog(
         negativeButton = {
             Chip(
                 onClick = onCancel,
-                label = { Text(stringResource(R.string.cancel)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.cancel),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.secondaryChipColors()
             )
         },
         positiveButton = {
             Chip(
                 onClick = onConfirm,
-                label = { Text(stringResource(R.string.delete)) },
+                label = {
+                    Text(
+                        text = stringResource(R.string.delete),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
                 colors = ChipDefaults.primaryChipColors()
             )
         }
@@ -349,7 +361,13 @@ private fun DialogChip(
 ) {
     Chip(
         onClick = onClick,
-        label = { Text(text = stringResource(labelRes)) },
+        label = {
+            Text(
+                text = stringResource(labelRes),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
         modifier = Modifier.fillMaxWidth(),
         colors = if (primary) ChipDefaults.primaryChipColors() else ChipDefaults.secondaryChipColors()
     )

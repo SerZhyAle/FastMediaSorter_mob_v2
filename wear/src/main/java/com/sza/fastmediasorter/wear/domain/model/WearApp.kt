@@ -75,7 +75,12 @@ enum class WearAppId(val canonicalKey: String) {
      * is addressed by that key in launcher cells and panel layouts, so the watch spells it identically
      * rather than inventing a second name for one program.
      */
-    STOPWATCH("stopwatch")
+    STOPWATCH("stopwatch"),
+
+    /**
+     * S3007: the watch's Tourist telemetry and navigation dashboard, sharing the phone's `tourist_info` route key.
+     */
+    TOURIST("tourist_info")
 }
 
 /**

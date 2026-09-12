@@ -38,6 +38,9 @@ enum class WearDestinationId {
     /** S2825: the watch stopwatch, addressable as a shortcut like every program above. */
     STOPWATCH,
 
+    /** S3007: the watch Tourist dashboard, addressable as a shortcut. */
+    TOURIST,
+
     /** S2551: the paired phone's camera, watched here. Addressable as a shortcut like the rest. */
     PHONE_CAMERA,
 
@@ -71,6 +74,7 @@ fun destinationFor(id: WearAppId): WearDestinationId = when (id) {
     WearAppId.BLOOD_PRESSURE -> WearDestinationId.BLOOD_PRESSURE
     WearAppId.BROADCAST -> WearDestinationId.BROADCAST
     WearAppId.STOPWATCH -> WearDestinationId.STOPWATCH
+    WearAppId.TOURIST -> WearDestinationId.TOURIST
 }
 
 /**

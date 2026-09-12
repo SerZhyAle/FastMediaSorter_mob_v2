@@ -210,11 +210,16 @@ private fun StateChip(
             // S2755: the library Chip pins its own height, so a label the system font scale pushed
             // onto a second line was drawn cut through the glyphs. Geometry cannot grow here, so the
             // label is fitted into the one line the chip can draw (strategic ADR-1).
-            WearFitText(text = label, style = MaterialTheme.typography.button)
+            WearFitText(
+                text = label,
+                style = MaterialTheme.typography.button,
+                modifier = Modifier.fillMaxWidth()
+            )
         },
         colors = colors,
         enabled = enabled,
         modifier = Modifier
+            .fillMaxWidth()
             .padding(top = ACTION_SPACING)
             .semantics { contentDescription = label }
     )

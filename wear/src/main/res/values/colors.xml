@@ -72,4 +72,6 @@
          accent test forbids a repeat - so this is the one tone whose value the two devices disagree on
          by necessity rather than by choice. Brown, desaturated like its neighbours. -->
     <color name="color_program_accent_brown">#FF8C6F5A</color>
+    <!-- S3007: the twelfth name, for Tourist dashboard. Emerald/lime green, distinct from game green. -->
+    <color name="color_program_accent_emerald">#FF4E8D62</color>
 </resources>

@@ -95,7 +95,8 @@
     { "field": "launcher", "reason": "container, not a setting - S2300 nested the launcher group to get AppSettings back under the JVM descriptor ceiling, and every member is still surfaced individually through a read-through property that carries its own decision here or in the CSV. A profile presets members, never the group object" },
     { "field": "mirrorZoomRatio", "reason": "the zoom the mirror reopens at is the user's own in-screen choice, remembered from last time rather than a device-class default; the mirror's presettable half is mirrorEnabled, which does have a matrix row (S1924)" },
     { "field": "mirrorHorizontallyFlipped", "reason": "whether the mirror image is flipped is a personal preference toggled inside the screen, not something a device class implies (S1924)" },
-    { "field": "mirrorBacklightOn", "reason": "the glow field is switched off and on inside the mirror itself and remembered; no device class wants a different starting answer (S1924)" }
+    { "field": "mirrorBacklightOn", "reason": "the glow field is switched off and on inside the mirror itself and remembered; no device class wants a different starting answer (S1924)" },
+    { "field": "broadcastSourceDeviceId", "reason": "identifier of the audio input this install enumerated - a profile names a class of devices, so an id valid on one member names a different input or none at all on the rest; its siblings broadcastPort, broadcastBitRateBps and broadcastSampleRateHz are non-presettable for the same reason (S2687)" }
   ],
 
   "reviewed": [
@@ -172,6 +173,15 @@
     { "field": "stopwatchVolumeKeysControl", "reason": "reviewed for release 37 - see stopwatchParticipantCount: behaviour of a sub-program that is off by default (S2574)" },
     { "field": "waterFlashlightEnabled", "reason": "reviewed for release 37 - S2516 ships the water flashlight off until asked for, and no device class implies it; the applier branch already exists, so a profile value added later takes effect without a code change (S2574)" },
     { "field": "browseSwipeRightAction", "reason": "reviewed for release 37 - the SEND_TO default is non-destructive and useful on every device class, unlike the left slot whose DELETE default the photo frame overrides (S2574)" },
-    { "field": "playerPanelAutoHideSeconds", "reason": "reviewed for release 37 - ten seconds suits every device class; a different timeout is a matter of taste rather than a property of the class the profile names (S2574)" }
+    { "field": "playerPanelAutoHideSeconds", "reason": "reviewed for release 37 - ten seconds suits every device class; a different timeout is a matter of taste rather than a property of the class the profile names (S2574)" },
+    { "field": "unitSystem", "reason": "reviewed for release 37 - metric or imperial follows the person and the place he lives in, not the class of device he holds; the METRIC default already matches the locale fan-out (S2687)" },
+    { "field": "flashlightShortcutNotificationEnabled", "reason": "reviewed for release 37 - the shade entry is offered only where a camera flash exists, and that test is made at runtime rather than by a profile; whether to keep it is the user's call (S2687)" },
+    { "field": "enableTourist", "reason": "reviewed for release 37 - the dashboard degrades tile by tile on a device missing a sensor, so no class needs it switched off up front (S2687)" },
+    { "field": "suppressWearMediaTakeover", "reason": "reviewed for release 37 - the setting answers whether a paired watch shows the phone player, which is a property of the pairing rather than of the phone class the profile names (S2687)" },
+    { "field": "streamsVisualizeAsMusic", "reason": "reviewed for release 37 - whether a radio station opens the full-screen visualizer or the mini-control is a matter of taste; both surfaces work on every class (S2687)" },
+    { "field": "launcherShowScreenNumber", "reason": "reviewed for release 37 - the page number is drawn over any wallpaper and costs nothing on a small screen, so no class wants a different starting answer (S2687)" },
+    { "field": "launcherWallpaperIntensity", "reason": "reviewed for release 37 - the wave and particle tuning is presettable in principle and a weak class may yet want it lowered, but the shipped default is already the calm end of the range (S2687)" },
+    { "field": "launcherWallpaperAnimationSpeed", "reason": "reviewed for release 37 - see launcherWallpaperIntensity: one of three animation-tuning fields decided as one family (S2687)" },
+    { "field": "launcherWallpaperParticleDensity", "reason": "reviewed for release 37 - see launcherWallpaperIntensity: one of three animation-tuning fields decided as one family (S2687)" }
   ]
 }

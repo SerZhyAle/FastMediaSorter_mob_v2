@@ -1,14 +1,17 @@
 package com.sza.fastmediasorter.wear.ui.apps.systeminfo
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.runtime.Composable
@@ -16,7 +19,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,7 +30,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
-import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.CircularProgressIndicator
 import androidx.wear.compose.material.CompactChip
@@ -38,6 +43,7 @@ import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoField
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoSection
 import com.sza.fastmediasorter.wear.domain.model.WearSystemInfoValue
 import com.sza.fastmediasorter.wear.ui.common.LocalWearSectionExpansion
+import com.sza.fastmediasorter.wear.ui.common.LocalWearTileEven
 import com.sza.fastmediasorter.wear.ui.common.WearInformationRow
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearReportDivider
@@ -58,6 +64,8 @@ import timber.log.Timber
  */
 private const val SYSTEM_INFO_SCREEN_KEY = "apps/systeminfo"
 private const val SYSTEM_INFO_FIELDS_KEY = "apps/systeminfo/fields"
+
+private const val TWO_COLUMN_MIN_SCREEN_WIDTH_DP = 225
 
 private val TITLE_BOTTOM_PADDING = 8.dp
 private val SECTION_TOP_PADDING = 14.dp
@@ -83,10 +91,13 @@ fun SystemInfoScreen(
     // place would collapse a group the user had opened. A local store stands in where no memory is
     // provided - previews and unit tests - so the screen still works, it just forgets on exit.
     val expansion = LocalWearSectionExpansion.current ?: remember { WearSectionExpansionStore() }
+    val configuration = LocalConfiguration.current
+    val columns = if (configuration.screenWidthDp >= TWO_COLUMN_MIN_SCREEN_WIDTH_DP) 2 else 1
+    Timber.d("S3018: system info screen composed with %d columns", columns)
     // Built here, in the screen's own recompose scope, rather than inside the list content lambda: the
     // expansion reads must invalidate something that rebuilds the whole item list, and a lazy list's
     // content lambda is not that scope.
-    val rows = packSettingsRows(reportItems(uiState.sections, expansion), 1)
+    val rows = packSettingsRows(reportItems(uiState.sections, expansion), columns)
     Timber.d("S2806: system information built %d rows from %d sections", rows.size, uiState.sections.size)
 
     WearScreenScaffold(
@@ -132,8 +143,8 @@ fun SystemInfoScreen(
                     RefreshChip(enabled = !uiState.refreshing, onClick = viewModel::refresh)
                 }
             }
-            items(rows) { row ->
-                WearSettingsRow(row)
+            itemsIndexed(rows) { rowIndex, row ->
+                WearSettingsRow(row = row, rowIndex = rowIndex)
             }
         }
     }
@@ -203,15 +214,16 @@ private fun reportItems(
         section.fields.forEach { field ->
             val enumerated = field.value as? WearSystemInfoValue.Enumerated
             if (enumerated == null) {
-                add(WearSettingsItem(fullWidth = true) { SystemInfoRow(field) })
+                add(WearSettingsItem(fullWidth = false) { narrow -> SystemInfoRow(field = field, narrow = narrow) })
             } else {
                 add(
-                    WearSettingsItem(fullWidth = true) {
+                    WearSettingsItem(fullWidth = true) { narrow ->
                         EnumeratedRow(
                             field = field,
                             entries = enumerated.entries,
                             open = expansion.isExpanded(SYSTEM_INFO_FIELDS_KEY, field.labelRes),
-                            onToggle = { expansion.toggle(SYSTEM_INFO_FIELDS_KEY, field.labelRes) }
+                            onToggle = { expansion.toggle(SYSTEM_INFO_FIELDS_KEY, field.labelRes) },
+                            narrow = narrow
                         )
                     }
                 )
@@ -231,7 +243,8 @@ private fun EnumeratedRow(
     field: WearSystemInfoField,
     entries: List<String>,
     open: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
+    narrow: Boolean = false
 ) {
     val hint = stringResource(
         if (open) R.string.system_info_collapse_hint else R.string.system_info_expand_hint
@@ -242,7 +255,8 @@ private fun EnumeratedRow(
             value = entries.size.toString(),
             onClick = onToggle,
             accessibilitySuffix = hint,
-            accentColor = accentColor(field)
+            accentColor = accentColor(field),
+            narrow = narrow
         )
         if (open) {
             entries.forEach { entry ->
@@ -294,7 +308,7 @@ private fun SectionTitle(titleRes: Int, hiddenCount: Int?, open: Boolean, onTogg
     )
     Text(
         text = if (hiddenCount == null) title else "$title ($hiddenCount)",
-        style = MaterialTheme.typography.caption1,
+        style = MaterialTheme.typography.title3,
         color = MaterialTheme.colors.primary,
         modifier = Modifier
             .fillMaxWidth()
@@ -319,9 +333,25 @@ private fun accentColor(field: WearSystemInfoField): Color? =
     if (field.accentHint) MaterialTheme.colors.error else null
 
 @Composable
-private fun SystemInfoRow(field: WearSystemInfoField) =
-    WearInformationRow(
-        labelRes = field.labelRes,
-        value = valueOf(field),
-        accentColor = accentColor(field)
-    )
+private fun SystemInfoRow(field: WearSystemInfoField, narrow: Boolean = false) {
+    val isEven = LocalWearTileEven.current ?: true
+    val backgroundColor = if (isEven) {
+        MaterialTheme.colors.surface
+    } else {
+        MaterialTheme.colors.onSurface.copy(alpha = 0.08f)
+    }
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(backgroundColor)
+            .padding(horizontal = 6.dp, vertical = 4.dp)
+    ) {
+        WearInformationRow(
+            labelRes = field.labelRes,
+            value = valueOf(field),
+            accentColor = accentColor(field),
+            narrow = narrow
+        )
+    }
+}

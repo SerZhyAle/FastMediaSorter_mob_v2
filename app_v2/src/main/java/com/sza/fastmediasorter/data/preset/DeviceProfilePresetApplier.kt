@@ -18,6 +18,7 @@ import com.sza.fastmediasorter.domain.model.StreamMediaTypeFilter
 import com.sza.fastmediasorter.domain.model.StreamTrackLanguage
 import com.sza.fastmediasorter.domain.model.StreamingCacheCleanupMode
 import com.sza.fastmediasorter.domain.model.StreamsCatalogRefreshPolicy
+import com.sza.fastmediasorter.domain.model.UnitSystem
 import dagger.hilt.android.qualifiers.ApplicationContext
 import timber.log.Timber
 import javax.inject.Inject
@@ -48,6 +49,9 @@ class DeviceProfilePresetApplier @Inject constructor(
             "resourceGridCellSize" ->
                 runCatching { ResourceGridCellSize.valueOf(raw.trim()) }.getOrNull()
                     ?.let { settings.copy(resourceGridCellSize = it) } ?: skip(field, raw, settings)
+            "unitSystem" ->
+                runCatching { UnitSystem.valueOf(raw.trim()) }.getOrNull()
+                    ?.let { settings.copy(unitSystem = it) } ?: skip(field, raw, settings)
             "resourceOpsInOverflowMenu" -> settings.copy(resourceOpsInOverflowMenu = raw.toBool())
             "preventSleep" -> settings.copy(preventSleep = raw.toBool())
             "keepScreenOnPlayer" -> settings.copy(keepScreenOnPlayer = raw.toBool())
@@ -55,6 +59,11 @@ class DeviceProfilePresetApplier @Inject constructor(
             "enableCalculator" -> settings.copy(enableCalculator = raw.toBool())
             "enableStopwatch" -> settings.copy(enableStopwatch = raw.toBool())
             "enableTourist" -> settings.copy(enableTourist = raw.toBool())
+            "flashlightShortcutNotificationEnabled" ->
+                settings.copy(flashlightShortcutNotificationEnabled = raw.toBool())
+            "suppressWearMediaTakeover" -> settings.copy(suppressWearMediaTakeover = raw.toBool())
+            "streamsVisualizeAsMusic" -> settings.copy(streamsVisualizeAsMusic = raw.toBool())
+            "launcherShowScreenNumber" -> settings.withLauncher { copy(showScreenNumber = raw.toBool()) }
             "stopwatchMusicEnabled" -> settings.copy(stopwatchMusicEnabled = raw.toBool())
             "stopwatchVolumeKeysControl" -> settings.copy(stopwatchVolumeKeysControl = raw.toBool())
             "embeddedGameEnabled" -> settings.copy(embeddedGameEnabled = raw.toBool())
@@ -425,6 +434,21 @@ class DeviceProfilePresetApplier @Inject constructor(
                     0.0f,
                     1.0f
                 )?.let { s.withLauncher { copy(widgetBackdropAlpha = it) } }
+            }
+            "launcherWallpaperIntensity" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperIntensity(it) }
+                    ?.let { s.withLauncher { copy(wallpaperIntensity = it) } }
+            }
+            "launcherWallpaperAnimationSpeed" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperAnimationSpeed(it) }
+                    ?.let { s.withLauncher { copy(wallpaperAnimationSpeed = it) } }
+            }
+            "launcherWallpaperParticleDensity" -> applyLauncherField(field, raw, settings) { s ->
+                raw.trim().toFloatOrNull()
+                    ?.let { AppSettings.coerceLauncherWallpaperParticleDensity(it) }
+                    ?.let { s.withLauncher { copy(wallpaperParticleDensity = it) } }
             }
 
             // ── String set fields (delimiter: comma, semicolon or pipe) ───

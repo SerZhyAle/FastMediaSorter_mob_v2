@@ -1,15 +1,22 @@
 package com.sza.fastmediasorter.wear.ui.apps.bodysensor
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -27,22 +34,21 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorReading
 import com.sza.fastmediasorter.wear.domain.bodysensor.BodySensorUnavailableReason
 import com.sza.fastmediasorter.wear.domain.bodysensor.heartRatePermission
+import com.sza.fastmediasorter.wear.domain.model.HeartRateHistoryEntry
+import com.sza.fastmediasorter.wear.domain.model.HeartRateZone
 import com.sza.fastmediasorter.wear.ui.common.WearListColumn
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.rememberWearListState
+import timber.log.Timber
 
-private val TITLE_BOTTOM_PADDING = 8.dp
-private val VALUE_VERTICAL_PADDING = 6.dp
+private val TITLE_BOTTOM_PADDING = 6.dp
+private val VALUE_VERTICAL_PADDING = 4.dp
+private val CARD_CORNER_RADIUS = 8.dp
+private const val ZONE_BADGE_ALPHA = 0.2f
 
 /**
- * One foreground heart-rate reading, or the sentence that says why there cannot be one.
- *
- * The permission is asked for on the action and never on entry (S2457 §5). Opening a diagnostic is not
- * consent to be measured, and a screen that throws a health-permission dialog at whoever merely looked
- * at it teaches the user to decline before reading.
- *
- * Nothing here decides whether a refusal is worth retrying - [BodySensorUiState.canMeasure] carries that
- * answer, so this file holds no second `when` over the reasons that could drift from the first.
+ * S3013: Foreground heart-rate reading screen with physiological zone classification
+ * and historical reading status.
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -55,10 +61,10 @@ fun BodySensorScreen(
     val requested = remember { listOf(heartRatePermission()) }
     val permissionsState = rememberMultiplePermissionsState(
         permissions = requested,
-        // The availability that decided this screen was read before the user answered the dialog, so it
-        // is read again the moment the dialog closes - either way, since a denial is also a new answer.
         onPermissionsResult = { viewModel.refreshAvailability() }
     )
+
+    Timber.d("S3013: heart rate screen opened")
 
     WearScreenScaffold(
         contentPadding = PaddingValues(0.dp),
@@ -71,7 +77,18 @@ fun BodySensorScreen(
             centered = true
         ) {
             item { ScreenTitle() }
+
+            val lastReading = state.lastReading
+            if (state.reading is BodySensorReading.Idle && lastReading != null) {
+                item { LastReadingCard(lastReading) }
+            }
+
             item { ReadingValue(state.reading) }
+
+            state.currentZone?.let { zone ->
+                item { ZoneBadge(zone = zone) }
+            }
+
             if (state.canMeasure) {
                 item { MeasureChip(onClick = { measureOrAsk(permissionsState, viewModel) }) }
             }
@@ -82,10 +99,6 @@ fun BodySensorScreen(
     }
 }
 
-/**
- * The action does one of two things and the user pressed one button for both: with the permission in
- * hand it measures, without it it asks. Asking first is what makes the dialog a consequence of the tap.
- */
 @OptIn(ExperimentalPermissionsApi::class)
 private fun measureOrAsk(
     permissionsState: MultiplePermissionsState,
@@ -110,10 +123,51 @@ private fun ScreenTitle() {
     )
 }
 
-/**
- * Idle draws nothing at all: before the first measurement there is no reading to show and no refusal to
- * explain, and a placeholder there would be the screen inventing a state the domain does not have.
- */
+@Composable
+private fun LastReadingCard(last: HeartRateHistoryEntry) {
+    val zone = HeartRateZone.classify(last.bpm)
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = VALUE_VERTICAL_PADDING)
+            .clip(RoundedCornerShape(CARD_CORNER_RADIUS))
+            .background(MaterialTheme.colors.surface)
+            .padding(8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "${stringResource(R.string.body_sensor_bpm, last.bpm)}",
+            style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colors.onSurface
+        )
+        Text(
+            text = stringResource(zone.labelRes),
+            style = MaterialTheme.typography.caption2.copy(fontWeight = FontWeight.SemiBold),
+            color = zone.color,
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
+}
+
+@Composable
+private fun ZoneBadge(zone: HeartRateZone) {
+    Box(
+        modifier = Modifier
+            .padding(vertical = 2.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(zone.color.copy(alpha = ZONE_BADGE_ALPHA))
+            .padding(horizontal = 12.dp, vertical = 3.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(zone.labelRes),
+            style = MaterialTheme.typography.caption1.copy(fontWeight = FontWeight.Bold),
+            color = zone.color,
+            textAlign = TextAlign.Center
+        )
+    }
+}
+
 @Composable
 private fun ReadingValue(reading: BodySensorReading) {
     val text = readingText(reading)
@@ -134,7 +188,7 @@ private fun MeasureChip(onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
         label = { Text(stringResource(R.string.body_sensor_measure)) },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         colors = ChipDefaults.primaryChipColors()
     )
 }
@@ -143,8 +197,8 @@ private fun MeasureChip(onClick: () -> Unit) {
 private fun HistoryChip(onClick: () -> Unit) {
     CompactChip(
         onClick = onClick,
-        label = { Text(stringResource(R.string.body_sensor_history)) },
-        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.heart_rate_btn_history_analytics)) },
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
         colors = ChipDefaults.secondaryChipColors()
     )
 }
@@ -157,10 +211,6 @@ private fun readingText(reading: BodySensorReading): String? = when (reading) {
     is BodySensorReading.Unavailable -> stringResource(reasonTextOf(reading.reason))
 }
 
-/**
- * Exhaustive with no else branch: S2457 §11 criterion 1 is satisfied by these being seven separate
- * sentences, so an eighth reason must fail compilation here rather than inherit one of them.
- */
 @StringRes
 private fun reasonTextOf(reason: BodySensorUnavailableReason): Int = when (reason) {
     BodySensorUnavailableReason.NOT_OFFERED_IN_THIS_BUILD -> R.string.body_sensor_reason_not_offered_in_this_build

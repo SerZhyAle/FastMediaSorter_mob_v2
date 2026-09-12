@@ -77,7 +77,9 @@ internal fun ReceiverListDialog(
                         text = stringResource(R.string.wear_send_to_title),
                         style = MaterialTheme.typography.title3,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(bottom = TITLE_GAP)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = TITLE_GAP)
                     )
                 }
 
