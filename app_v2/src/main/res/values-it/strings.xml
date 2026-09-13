@@ -3450,10 +3450,6 @@
     <string name="broadcast_failed_capture">Trasmissione dal vivo interrotta: l\'acquisizione audio è stata interrotta</string>
     <string name="broadcast_permission_microphone_required">La trasmissione dal vivo richiede l\'accesso al microfono per trasmettere l\'audio</string>
     <string name="broadcast_permission_notifications_required">La trasmissione dal vivo richiede l\'accesso alle notifiche per continuare a funzionare</string>
-    <string name="launcher_start_window_title">Apri il desktop all\'avvio dell\'app</string>
-    <string name="launcher_start_window_desc">L\'app si apre direttamente sul desktop invece che sull\'elenco dei file. Questo non modifica la schermata Home del dispositivo - lo fa l\'impostazione sopra.</string>
-    <string name="launcher_start_window_help_title">Desktop come finestra iniziale</string>
-    <string name="launcher_start_window_help_message">Due cose distinte. Questa impostazione decide cosa vedi quando apri l\'app dalla sua icona: il desktop con i tuoi collegamenti e gadget, oppure il solito elenco dei file. L\'impostazione sopra decide cosa apre il pulsante Home del dispositivo, e per questo bisogna chiederlo ad Android. Disattivala e l\'app tornerà ad aprirsi sull\'elenco dei file.</string>
     <string name="settings_suppress_wear_media_takeover">Disattiva il controllo multimediale sull\'orologio</string>
     <string name="settings_suppress_wear_media_takeover_summary">Impedisce al sistema Wear OS di mostrare il player del telefono come schermata di controllo multimediale sull\'orologio</string>
     <string name="broadcast_import_refreshed">Trasmissione aggiornata con il nuovo indirizzo</string>

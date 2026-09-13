@@ -60,9 +60,12 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $planRoot = Join-Path $repoRoot 'PLAN'
 $baselineFile = Join-Path $PSScriptRoot 'tactical-step-form-baseline.txt'
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
 if (-not (Test-Path -LiteralPath $planRoot)) {
-    Write-Error "PLAN/ not found at $planRoot" -ErrorAction Continue
-    exit 2
+    # S3075: PLAN/ is gitignored, so its absence is a property of the checkout, not a finding.
+    Exit-InputAbsent -Gate 'assert-tactical-step-form' -Path 'PLAN/' `
+        -Reason 'gitignored - present only on a workstation checkout'
 }
 
 # A step's Why is satisfied by one sentence of prose, or by the literal

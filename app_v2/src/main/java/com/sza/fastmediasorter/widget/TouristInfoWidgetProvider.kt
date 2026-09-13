@@ -22,7 +22,6 @@ class TouristInfoWidgetProvider : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetIds: IntArray,
     ) {
-        Timber.d("S3033: TouristInfoWidgetProvider.onUpdate count=%d", appWidgetIds.size)
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }

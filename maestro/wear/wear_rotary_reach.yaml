@@ -10,12 +10,14 @@ appId: com.sza.fastmediasorter.debug
     element:
       id: "wear_settings_entry"
     direction: DOWN
+    visibilityPercentage: 60
 - tapOn:
     id: "wear_settings_entry"
 - scrollUntilVisible:
     element:
       id: "wear_settings_row_settings_about"
     direction: DOWN
+    visibilityPercentage: 60
 - tapOn:
     id: "wear_settings_row_settings_about"
 - assertVisible:

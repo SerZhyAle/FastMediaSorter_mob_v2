@@ -1,6 +1,5 @@
 package com.sza.fastmediasorter.ui.dialog
 
-import android.content.res.ColorStateList
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
@@ -20,6 +19,7 @@ import com.sza.fastmediasorter.databinding.DialogSearchableOptionPickerBinding
 import com.sza.fastmediasorter.databinding.ItemSearchableOptionBinding
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.LeadingVisual
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
+import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 import com.sza.fastmediasorter.ui.player.helpers.LanguageFlagFormatter
 import java.util.Locale
 
@@ -120,7 +120,17 @@ object SearchableOptionPickerController {
      * and their scroll position. A single-column picker has no grid to re-flow and is left alone.
      */
     fun reflowColumns(binding: DialogSearchableOptionPickerBinding, columns: Int) {
-        (binding.recyclerOptions.layoutManager as? GridLayoutManager)?.spanCount = columns
+        val recyclerOptions = binding.recyclerOptions
+        val currentManager = recyclerOptions.layoutManager
+        if (columns > 1) {
+            (currentManager as? GridLayoutManager)?.let { gridManager ->
+                gridManager.spanCount = columns
+            } ?: run {
+                recyclerOptions.layoutManager = GridLayoutManager(recyclerOptions.context, columns)
+            }
+        } else if (currentManager is GridLayoutManager) {
+            recyclerOptions.layoutManager = LinearLayoutManager(recyclerOptions.context)
+        }
     }
 
     /** Bring the selected option into view (upper third) on open; no-op when nothing is selected. */
@@ -237,14 +247,18 @@ object SearchableOptionPickerController {
                     // S2062: the row is recycled, so a tint applied for a previous white glyph must be
                     // cleared here - left set, it would repaint the next row's app icon/thumbnail/brand
                     // logo one flat colour.
+                    // S3080: it clears through a colour filter, because clearing the view's tint list also
+                    // erased the `android:tint` a glyph declares - which is why the one black-filled glyph
+                    // of the route catalog, `ic_camera_ocr_translate`, rendered black in this dialog.
                     val applyTint = leading is LeadingVisual.IconRes && leading.tintIcon
-                    icon.imageTintList = if (applyTint) {
-                        ColorStateList.valueOf(
+                    RecyclableIconTint.apply(
+                        icon,
+                        if (applyTint) {
                             MaterialColors.getColor(icon, com.google.android.material.R.attr.colorOnSurfaceVariant)
-                        )
-                    } else {
-                        null
-                    }
+                        } else {
+                            null
+                        },
+                    )
                     when (leading) {
                         is LeadingVisual.IconDrawable -> {
                             // Cancel any pending async load from a recycled thumbnail row first.

@@ -406,7 +406,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // system launcher when the app was not the home role holder, which is the opposite of what the
         // app icon should do. S2858 suppressed it when the app held HOME; S3035 suppresses the other
         // half. Together the redirect never fires, so the app icon always opens the resource manager.
-        Timber.d("S3035: cold start reached MainActivity, no launcher redirect")
         if (returningToSettings) return
 
         // S2556: the startup brand frame, placed here for the same reason as the notices below -

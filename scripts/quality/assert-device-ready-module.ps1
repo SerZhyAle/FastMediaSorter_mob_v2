@@ -72,6 +72,10 @@ if (-not (Test-Path -LiteralPath (Join-Path $repoRoot $probeRelative))) {
 }
 
 # Roots the machine or the model executes. Everything else describes.
+# S3075: every listing below passes -Force. On Unix a leading-dot name is a hidden item, so
+# Get-Item refuses a file Test-Path has just confirmed and Get-ChildItem walks past the whole of
+# .claude/ - which is how run 34694019558 reported the TRACKED .sza-profile.json as "Could not find
+# item" one line after testing it. Windows has no such rule, so this was invisible until CI ran.
 $scanRoots = @('scripts', '.claude')
 $scanRootFiles = @('.sza-profile.json')
 $judgedExtensions = @('.ps1', '.psm1', '.json', '.md')
@@ -126,19 +130,19 @@ if ($ChangedFiles) {
         })
     foreach ($rel in $wanted) {
         $full = Join-Path $repoRoot $rel
-        if (Test-Path -LiteralPath $full -PathType Leaf) { $candidates += (Get-Item -LiteralPath $full) }
+        if (Test-Path -LiteralPath $full -PathType Leaf) { $candidates += (Get-Item -LiteralPath $full -Force) }
     }
 }
 else {
     foreach ($root in $scanRoots) {
         $full = Join-Path $repoRoot $root
         if (-not (Test-Path -LiteralPath $full)) { continue }
-        $candidates += @(Get-ChildItem -LiteralPath $full -Recurse -File -ErrorAction SilentlyContinue |
+        $candidates += @(Get-ChildItem -LiteralPath $full -Recurse -File -Force -ErrorAction SilentlyContinue |
                 Where-Object { $_.FullName -notmatch '[\\/](node_modules|build|\.gradle|\.kotlin)[\\/]' })
     }
     foreach ($rel in $scanRootFiles) {
         $full = Join-Path $repoRoot $rel
-        if (Test-Path -LiteralPath $full -PathType Leaf) { $candidates += (Get-Item -LiteralPath $full) }
+        if (Test-Path -LiteralPath $full -PathType Leaf) { $candidates += (Get-Item -LiteralPath $full -Force) }
     }
 }
 

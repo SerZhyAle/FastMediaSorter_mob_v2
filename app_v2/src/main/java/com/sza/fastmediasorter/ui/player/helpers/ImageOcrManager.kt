@@ -69,9 +69,9 @@ class ImageOcrManager(
         }
         
         // Get bitmap from current image view (including GIF first frame)
-        val bitmap = extractBitmapFromImageView()
+        val displayBitmap = extractBitmapFromImageView()
 
-        if (bitmap == null) {
+        if (displayBitmap == null) {
             callback.showError(callback.getString(R.string.ocr_extract_image_failed))
             return
         }
@@ -85,6 +85,7 @@ class ImageOcrManager(
         // Perform OCR in background
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                val bitmap = OcrInputBitmapLoader.load(binding.root.context, currentFile, displayBitmap)
                 val settings = settingsRepository.getSettings().first()
                 val sourceLang = TranslationManager.languageCodeToMLKit(settings.translationSourceLanguage)
 

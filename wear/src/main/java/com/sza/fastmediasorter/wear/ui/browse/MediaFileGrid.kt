@@ -10,13 +10,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListScope
-import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.foundation.lazy.itemsIndexed
 import androidx.wear.compose.material.Icon
 import androidx.wear.compose.material.MaterialTheme
 import com.sza.fastmediasorter.wear.R
@@ -32,9 +33,11 @@ import com.sza.fastmediasorter.wear.ui.common.CenteredGridRow
 import com.sza.fastmediasorter.wear.ui.common.ContentTypeCatalog
 import com.sza.fastmediasorter.wear.ui.common.SingleColumnTileCell
 import com.sza.fastmediasorter.wear.ui.common.ThumbnailCell
+import com.sza.fastmediasorter.wear.ui.testing.WearTestTags
 import com.sza.fastmediasorter.wear.util.GridColumnFit
 import com.sza.fastmediasorter.wear.util.fileSizeParts
 import com.sza.fastmediasorter.wear.util.formatWearDuration
+import timber.log.Timber
 
 private const val SINGLE_COLUMN = 1
 private const val GRID_CAPTION_LINES = 2
@@ -68,8 +71,9 @@ internal fun ScalingLazyListScope.mediaFileItems(
     selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
+    Timber.d("S3078: file cells tagged, count=${files.size} columns=$columns")
     if (columns == SINGLE_COLUMN) {
-        items(files, key = { it.id }) { file ->
+        itemsIndexed(files, key = { _, file -> file.id }) { index, file ->
             LaunchedEffect(file.id) { actions.onThumbnailNeeded(file) }
             MediaFileChip(
                 file = file,
@@ -77,14 +81,18 @@ internal fun ScalingLazyListScope.mediaFileItems(
                 mediaType = mediaType,
                 selected = file.id in selectedIds,
                 onClick = { actions.onFileClick(file) },
-                onLongClick = { actions.onFileLongClick(file) }
+                onLongClick = { actions.onFileLongClick(file) },
+                modifier = Modifier.testTag(WearTestTags.mediaFileAt(index))
             )
         }
     } else {
-        items(files.chunked(columns)) { rowFiles ->
+        itemsIndexed(files.chunked(columns)) { rowIndex, rowFiles ->
             MediaFileRow(
                 files = rowFiles,
                 columns = columns,
+                // S3078: the test tag addresses a file by its place in the FLAT list, so the row
+                // offset is what turns this row's local column back into that address.
+                firstFileIndex = rowIndex * columns,
                 thumbnails = thumbnails,
                 mediaType = mediaType,
                 selectedIds = selectedIds,
@@ -99,13 +107,14 @@ internal fun ScalingLazyListScope.mediaFileItems(
 private fun MediaFileRow(
     files: List<WearMediaFile>,
     columns: Int,
+    firstFileIndex: Int,
     thumbnails: Map<Long, WearThumbnail>,
     mediaType: MediaType,
     selectedIds: Set<Long>,
     actions: MediaFileActions
 ) {
     CenteredGridRow(columns = columns, itemCount = files.size, gap = GRID_GAP) {
-        files.forEach { file ->
+        files.forEachIndexed { column, file ->
             // Asking here rather than up front keeps the read tied to a cell that is on screen.
             LaunchedEffect(file.id) { actions.onThumbnailNeeded(file) }
             val selected = file.id in selectedIds
@@ -114,7 +123,8 @@ private fun MediaFileRow(
                     thumbnail = thumbnails[file.id] ?: WearThumbnail.Loading,
                     caption = file.displayName,
                     onClick = { actions.onFileClick(file) },
-                    modifier = selectionFrame(selected),
+                    modifier = selectionFrame(selected)
+                        .testTag(WearTestTags.mediaFileAt(firstFileIndex + column)),
                     onLongClick = { actions.onFileLongClick(file) },
                     // A file with a thumbnail keeps the two-line caption under its own picture; one
                     // without shows the mime-type glyph shared by every file of that type, and there
@@ -152,7 +162,8 @@ private fun MediaFileChip(
     mediaType: MediaType,
     selected: Boolean,
     onClick: () -> Unit,
-    onLongClick: () -> Unit
+    onLongClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val secondaryText = when {
         file.mimeType?.startsWith(IMAGE_PREFIX) == true -> formatFileSize(file.size)
@@ -166,6 +177,7 @@ private fun MediaFileChip(
         thumbnail = thumbnails[file.id] ?: WearThumbnail.Loading,
         caption = file.displayName,
         onClick = onClick,
+        modifier = modifier,
         onLongClick = onLongClick,
         secondaryText = secondaryText.takeIf { !it.isNullOrEmpty() },
         selected = selected,

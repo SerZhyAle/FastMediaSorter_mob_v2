@@ -39,6 +39,9 @@ class MapGadget @Inject constructor(
     override val minSpanH: Int = 1
     override val labelRes: Int = R.string.launcher_gadget_map
     override val iconRes: Int = R.drawable.ic_map
+
+    // S3080: ic_map fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     /**

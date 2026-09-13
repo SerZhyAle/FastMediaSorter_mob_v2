@@ -91,6 +91,8 @@
                       table that accepts the parameter (see $changedFilesAware below).
                       Omit it - as a release or CI run does - and every gate keeps its
                       strict project-wide judgement.
+      -FailOnSkipped  Count a gate that could not verify (child exit 3) as a failure. For a caller
+                      that requires full coverage rather than "everything runnable here was green".
       -Sequential     Run the children one at a time, as before S2451.
       -ThrottleLimit  Concurrent children; 0 (default) derives it from the core count.
 
@@ -118,9 +120,20 @@
 
     Exit codes:
       0  every gate passed; or, with -ChangedFiles, every gate that judged the changed set
-         passed and only project-wide gates were red.
+         passed and only project-wide gates were red. A gate that exited 3 - it could not verify,
+         see below - does not affect this code unless -FailOnSkipped was passed.
       1  at least one gate failed or is MISSING; with -ChangedFiles, at least one gate that
-         judged the changed set failed or is MISSING.
+         judged the changed set failed or is MISSING; or -FailOnSkipped and a gate was skipped.
+
+    Skipped gates (S3075):
+      A child exit code of 3 means "this run judged nothing", not "this run found nothing wrong" -
+      lib/absent-input.ps1 uses it when a gitignored root (PLAN/, .claude/) is not in the checkout,
+      lib/fixed-input-scope.ps1 when a fixed-input gate was handed a set that charges it nothing.
+      Such a gate is reported as SKIP in its own NOT RUN block and is left out of both scope blocks.
+      Folding it into FAIL is what made the GitHub "Static Gates" job state one published fact -
+      that PLAN/ and .claude/ are not published - as nine separate findings, in a summary that was
+      red on every run and therefore read on none. -FailOnSkipped restores the strict count for a
+      caller that requires full coverage.
 
 .EXAMPLE
     pwsh -NoProfile -File scripts/quality/assert-fast-gates.ps1
@@ -134,6 +147,7 @@ param(
     [string]$Module,
     [string[]]$ChangedFiles,
     [switch]$Sequential,
+    [switch]$FailOnSkipped,
     [ValidateRange(0, 64)]
     [int]$ThrottleLimit = 0
 )
@@ -160,6 +174,9 @@ $gates = [ordered]@{
     'assert-ticket-acceptance-probes.ps1'       = @('-Quiet')
     'assert-acceptance-preconditions.ps1'       = @('-Quiet')
     'assert-spec-catalog-valid.ps1'             = @('-Quiet')
+    # S3084: the CI cost map in docs/BUILD_VS_RELEASE.md against the `on:` blocks and `jobs:` keys of
+    # .github/workflows/*.yml. Three files and one table, read as text - no gradle daemon.
+    'assert-ci-cost-map.ps1'                    = @('-Quiet')
     # S1338: one entry, twelve lexical rules, ONE walk of the tree. It replaces the five
     # separate entries that each spawned a pwsh process and each re-walked app_v2/src -
     # neuroslop (nine rules), flavor-flags, public-mutable-flow and deprecated-pm-flags.
@@ -553,10 +570,13 @@ $runOne = {
     $captured = & $pwshExe -NoProfile -File $item.Path -Gate @($item.GateArgs) 2>&1 | Out-String
     $code = [int]$LASTEXITCODE
     $sw.Stop()
+    # S3075: 3 is "this run judged nothing" - lib/absent-input.ps1 when a gitignored root is not in
+    # the checkout, lib/fixed-input-scope.ps1 when the changed set charges the gate nothing. Folding
+    # it into FAIL stated one published fact (PLAN/ and .claude/ are not published) as nine findings.
     [pscustomobject]@{
         Index    = $item.Index
         Gate     = $item.Gate
-        Status   = ($code -eq 0) ? 'PASS' : 'FAIL'
+        Status   = switch ($code) { 0 { 'PASS' } 3 { 'SKIP' } default { 'FAIL' } }
         ExitCode = $code
         Ms       = [int]$sw.Elapsed.TotalMilliseconds
         Output   = $captured
@@ -670,8 +690,16 @@ function Write-GateBlock {
         $named = if ($r.Scope -eq 'set-named') { ' - names a file in your set' } else { '' }
         Write-Host ("  {0,-40} {1} ({2} ms){3}" -f $r.Gate, $r.Status, $r.Ms, $named) -ForegroundColor $color
     }
-    return @($Rows | Where-Object { $_.Status -ne 'PASS' })
+    # S3075: SKIP is not a failure and not a pass - the gate did not run, so it is reported in its
+    # own block below and never contributes to a block's failure list.
+    return @($Rows | Where-Object { $_.Status -notin @('PASS', 'SKIP') })
 }
+
+# S3075: the skipped gates leave the two scope blocks entirely. Keeping them in place would make
+# every reader check the status column of a line that has nothing to say about the tree, and the
+# whole reason the split exists is that a summary nobody reads closely catches nothing.
+$skippedRows = @($results | Where-Object { $_.Status -eq 'SKIP' })
+$results = [System.Collections.Generic.List[object]]@($results | Where-Object { $_.Status -ne 'SKIP' })
 
 Write-Host ''
 if ($split) {
@@ -686,6 +714,14 @@ else {
     $allFailures = @(Write-GateBlock -Title 'assert-fast-gates summary:' -Rows @($results))
     $treeFailures = @()
     $failed = $allFailures.Count
+}
+
+if ($skippedRows.Count -gt 0) {
+    Write-Host ''
+    [void](Write-GateBlock -Title 'assert-fast-gates summary - NOT RUN (input absent):' -Rows $skippedRows)
+    Write-Host '  Each line above printed the path it is missing. A gitignored root - PLAN/, .claude/ -' -ForegroundColor Yellow
+    Write-Host '  is absent by design on a fresh clone, a release worktree and a CI runner; -FailOnSkipped' -ForegroundColor Yellow
+    Write-Host '  makes these fatal for a caller that requires full coverage.' -ForegroundColor Yellow
 }
 
 $batchStopwatch.Stop()
@@ -704,6 +740,12 @@ if ($treeFailures.Count -gt 0) {
     Write-Host '  in assert-release-scope-gates.ps1 and in any run given no -ChangedFiles.' -ForegroundColor Yellow
 }
 
+if ($FailOnSkipped -and $skippedRows.Count -gt 0) {
+    $failed += $skippedRows.Count
+    Write-Host ("assert-fast-gates: -FailOnSkipped - {0} gate(s) could not be verified: {1}." -f
+        $skippedRows.Count, (($skippedRows | ForEach-Object { $_.Gate }) -join ', ')) -ForegroundColor Red
+}
+
 if ($failed -gt 0) {
     Write-GateBatchTelemetryRecord @batchArgs -ExitCode 1
     Write-Host "assert-fast-gates: FAIL ($failed gate(s))." -ForegroundColor Red
@@ -711,5 +753,6 @@ if ($failed -gt 0) {
 }
 Write-GateBatchTelemetryRecord @batchArgs -ExitCode 0
 $verdict = if ($split) { 'PASS (every gate judging your set is green).' } else { 'PASS (all fast gates green).' }
+if ($skippedRows.Count -gt 0) { $verdict += " $($skippedRows.Count) gate(s) NOT RUN - see the block above." }
 Write-Host "assert-fast-gates: $verdict" -ForegroundColor Green
 exit 0

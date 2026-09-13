@@ -18,6 +18,7 @@ scripts/devtest/maestro/README.md # says the runner's exit codes mirror the prob
 .claude/reference/spec-dev.md # states what the verify-smoke branch does with a `ready: false` payload; the invocation is in .claude/commands/spec-dev.md
 scripts/devtest/adb.ps1 # header cites the probe for adb auto-discovery and exit-code parity; its own -Module is an install-time guard, unrelated
 scripts/utils/gradle-modules.tests/Run-Tests.ps1 # the DeviceModule cases name the probe to say whose vocabulary the field is in
+scripts/devtest/lib/device-store-paths.ps1 # S3036 resolver: names the probe among the readers of the temp\DEVICE.* store whose paths it hands out, and as the caller that encoded them inline before it existed
 
 # --- test infrastructure: exercises the probe as a subject, never to pick a device ---
 scripts/devtest/device-ready.tests/stub/adb-stub.ps1 # the stub adb the probe's own suite puts on PATH

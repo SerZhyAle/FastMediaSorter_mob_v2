@@ -60,6 +60,15 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $planRoot = Join-Path $repoRoot 'PLAN'
 $baselinePath = Join-Path $PSScriptRoot 'acceptance-precondition-baseline.txt'
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: this gate reads acceptance sections out of PLAN/Sxxxx_*.md, and PLAN/ is gitignored - so a
+# fresh clone, a release worktree and a CI runner carry no subject at all.
+if (-not (Test-Path -LiteralPath $planRoot)) {
+    Exit-InputAbsent -Gate 'assert-acceptance-preconditions' -Path 'PLAN/' `
+        -Reason 'gitignored - present only on a workstation checkout'
+}
+
 # S1914 section 6.2. A criterion only interests this gate when it claims survival.
 # Stems, not full forms: the corpus inflects these freely, and matching "сохраняется" while missing
 # "сохраняет" is how the first run of this gate reported zero violations across 308 specs.

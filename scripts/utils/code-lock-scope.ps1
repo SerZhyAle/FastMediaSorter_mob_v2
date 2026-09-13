@@ -220,7 +220,8 @@ function Resolve-CodeLockAcquisition {
     if (-not $result.Acquired) {
         # Deliberately NOT removing the tickets: a refusal that drops its place turns waiting into
         # starvation, and the rerun after the background wait adopts the same place.
-        $handoff = Save-AgentLockTicketHandoff -Tickets $tickets -Reason $Reason
+        # S2697: the handoff carries the resolved path set so queue waits can be grouped by subtree.
+        $handoff = Save-AgentLockTicketHandoff -Tickets $tickets -Reason $Reason -Paths $relative
         $blocking = if ($result.Domain) { $result.Domain } else { $acquire[0] }
         return [pscustomobject]@{ Outcome = 'busy'; Acquired = @(); Blocking = $blocking; Handoff = $handoff }
     }

@@ -144,9 +144,15 @@ foreach ($file in (Get-ChildItem -LiteralPath (Join-Path $repoRoot 'scripts') -R
     # is not a writer of a Code.* path either.
     if ($rel -match '\.tests/' -or $rel -eq $helperRel) { continue }
 
-    $text = Get-Content -LiteralPath $file.FullName -Raw
-    if ($text -notmatch $writeCmdlet) { continue }
-    if ($text -notmatch $codePrefix) { continue }
+    # S3083: the write and the Code.* literal must share a line. Matching them anywhere in the file
+    # counted a script that writes only temp/ output but dot-sources a scripts/ helper, and the
+    # ratchet then went red on whichever such script was touched next.
+    $lines = Get-Content -LiteralPath $file.FullName
+    $hit = $false
+    foreach ($line in $lines) {
+        if ($line -match $writeCmdlet -and $line -match $codePrefix) { $hit = $true; break }
+    }
+    if (-not $hit) { continue }
     $unregistered.Add($rel)
 }
 

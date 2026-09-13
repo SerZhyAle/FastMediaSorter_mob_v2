@@ -239,6 +239,17 @@ function Compare-Half([string]$Label, $Registered, $Inventory) {
 
 # --- read the inventory -------------------------------------------------------
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: .claude/ is gitignored whole, so the project half of this gate has no subject on a fresh
+# clone, a release worktree or a CI runner. Asked before the inventory is parsed: the project
+# settings file is what the gate compares the inventory AGAINST, so without it there is nothing to
+# verify either way, and the exit-2 branch below would say "broken" about a published absence.
+if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-hook-inventory' -Path '.claude/' `
+        -Reason 'gitignored - present only on a workstation checkout'
+}
+
 if (-not (Test-Path -LiteralPath $InventoryPath)) {
     Write-Error "hook-inventory: docs/AGENT_HOOKS.md not found - cannot verify" -ErrorAction Continue
     exit 2

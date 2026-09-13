@@ -3450,10 +3450,6 @@
     <string name="broadcast_failed_capture">لائیو براڈکاسٹ رک گیا: آڈیو کیپچر میں رکاوٹ آئی</string>
     <string name="broadcast_permission_microphone_required">آڈیو اسٹریم کرنے کے لیے لائیو براڈکاسٹ کو مائیکروفون تک رسائی چاہیے</string>
     <string name="broadcast_permission_notifications_required">اسٹریم جاری رکھنے کے لیے لائیو براڈکاسٹ کو نوٹیفیکیشن تک رسائی چاہیے</string>
-    <string name="launcher_start_window_title">ایپ شروع ہونے پر ڈیسک ٹاپ کھولیں</string>
-    <string name="launcher_start_window_desc">ایپ خود فائل لسٹ کی بجائے آپ کے ڈیسک ٹاپ پر کھلتی ہے۔ اس سے آپ کی ڈیوائس کی ہوم اسکرین تبدیل نہیں ہوتی - یہ کام اوپر والی سیٹنگ کرتی ہے۔</string>
-    <string name="launcher_start_window_help_title">ابتدائی ونڈو کے طور پر ڈیسک ٹاپ</string>
-    <string name="launcher_start_window_help_message">یہ دو الگ چیزیں ہیں۔ یہ سیٹنگ طے کرتی ہے کہ آئیکن سے ایپ کھولنے پر آپ کو کیا نظر آئے گا: آپ کے شارٹ کٹس اور گیجٹس والا ڈیسک ٹاپ، یا معمول کی فائل لسٹ۔ اوپر والی سیٹنگ طے کرتی ہے کہ ڈیوائس کا ہوم بٹن کیا کھولتا ہے، اور اس کے لیے Android سے اجازت مانگنی پڑتی ہے۔ اسے بند کریں تو ایپ دوبارہ فائل لسٹ پر کھلے گی۔</string>
     <string name="settings_suppress_wear_media_takeover">واچ پر میڈیا کنٹرول بند رکھیں</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS سسٹم کو واچ پر فون پلیئر کو میڈیا کنٹرول اسکرین کے طور پر دکھانے سے روکیں</string>
     <string name="broadcast_import_refreshed">براڈکاسٹ نئے پتے کے ساتھ اپ ڈیٹ ہو گیا</string>

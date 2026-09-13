@@ -1,12 +1,10 @@
 package com.sza.fastmediasorter.ui.settings.helpers
 
 import android.content.Intent
-import android.view.View
 import androidx.activity.result.ActivityResultLauncher
 import androidx.fragment.app.Fragment
 import com.google.android.material.button.MaterialButton
 import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
-import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.databinding.FragmentSettingsGeneralBinding
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.testing.MainDispatcherRule
@@ -33,12 +31,10 @@ class GeneralSettingsLauncherHelperTest {
 
     private val binding = mockk<FragmentSettingsGeneralBinding>(relaxed = true)
     private val rowLauncherModeEnabled = mockk<SettingsToggleRow>(relaxed = true)
-    private val rowLauncherStartWindow = mockk<SettingsToggleRow>(relaxed = true)
     private val rowLauncherSettings = mockk<MaterialButton>(relaxed = true)
     private val fragment = mockk<Fragment>(relaxed = true)
     private val launcherModeContract = mockk<LauncherModeContract>()
     private val launcherRoleManager = mockk<LauncherRoleManager>(relaxed = true)
-    private val launcherStartWindowManager = mockk<LauncherStartWindowManager>(relaxed = true)
     private val launcherRoleLauncher = mockk<ActivityResultLauncher<Intent>>(relaxed = true)
 
     private lateinit var helper: GeneralSettingsLauncherHelper
@@ -46,7 +42,6 @@ class GeneralSettingsLauncherHelperTest {
     @Before
     fun setUp() {
         setBindingField("rowLauncherModeEnabled", rowLauncherModeEnabled)
-        setBindingField("rowLauncherStartWindow", rowLauncherStartWindow)
         setBindingField("rowLauncherSettings", rowLauncherSettings)
         every { launcherModeContract.isAvailableInBuild } returns true
 
@@ -55,7 +50,6 @@ class GeneralSettingsLauncherHelperTest {
             fragment = fragment,
             launcherModeContract = launcherModeContract,
             launcherRoleManager = launcherRoleManager,
-            launcherStartWindowManager = launcherStartWindowManager,
             launcherRoleLauncher = launcherRoleLauncher,
             scopeProvider = { CoroutineScope(dispatcherRule.testDispatcher) },
             ioDispatcher = dispatcherRule.testDispatcher,
@@ -135,25 +129,5 @@ class GeneralSettingsLauncherHelperTest {
         verify(exactly = 0) { launcherRoleManager.disableModeForBackgroundRefresh() }
         verify { rowLauncherModeEnabled.setCheckedSilently(false) }
         verify { rowLauncherSettings.isEnabled = false }
-    }
-
-    @Test
-    fun `refreshState hides start window row when home role is held`() = runTest(dispatcherRule.testDispatcher) {
-        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, true, true)
-
-        helper.refreshState()
-        advanceUntilIdle()
-
-        verify { rowLauncherStartWindow.visibility = View.GONE }
-    }
-
-    @Test
-    fun `refreshState shows start window row when home role is not held`() = runTest(dispatcherRule.testDispatcher) {
-        every { launcherRoleManager.readState() } returns LauncherRoleManager.LauncherModeState(false, false, false)
-
-        helper.refreshState()
-        advanceUntilIdle()
-
-        verify { rowLauncherStartWindow.visibility = View.VISIBLE }
     }
 }

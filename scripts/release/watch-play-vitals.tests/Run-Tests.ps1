@@ -266,6 +266,19 @@ Assert-That 'V11 memory on in kB compares P90 with PlayMemory; bitmap foreground
      (Get-FindingColor $v 'play-vitals:bitmapMemoryUsageP90:ram-8192:foreground') -eq 'not-judged') `
     "keys=$(@($v.Findings | ForEach-Object { $_.Key + '=' + $_.Color }) -join '; ')"
 
+# The first live answer (2026-09-13) carried every breakdown as an empty array - too few users for
+# Google to report rates or memory - and the verdict threw on it instead of saying so.
+$s = New-CaseSnapshot
+foreach ($set in $s.sets.PSObject.Properties) {
+    foreach ($breakdown in @($set.Value.PSObject.Properties | Where-Object { $_.Value -is [array] })) { $breakdown.Value = @() }
+}
+$threwEmpty = $null
+$v = $null
+try { $v = Invoke-Verdict $s } catch { $threwEmpty = $_.Exception.Message }
+Assert-That 'V12 a snapshot whose every breakdown is empty is insufficient-data, not a throw' `
+    ($null -eq $threwEmpty -and $v.Verdict -eq 'insufficient-data' -and (Get-FindingColor $v $crashKey) -eq 'insufficient-data' -and
+     (Get-FindingColor $v 'play-vitals:bitmapMemoryUsageP90:memory') -eq 'unit-unconfirmed') "threw=$threwEmpty verdict=$($v.Verdict)"
+
 Write-Host 'watch-play-vitals.tests - records'
 
 # The orchestrator runs against COPIES of the two documents (-DocRoot), never the real ones.

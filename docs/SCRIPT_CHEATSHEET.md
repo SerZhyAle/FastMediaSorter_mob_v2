@@ -2395,6 +2395,20 @@ scripts/quality/assert-bridge-scenario-coverage.ps1
   Exit: 0 divergences are at or below the baseline (or -Gate was not passed).; 1 divergences exceed the baseline, or -UpdateBaseline was asked to raise it.; 2 could not verify: a catalog or the registry is missing or unreadable. Never conflated
 ```
 
+### assert-ci-cost-map.ps1
+S3084 - CI cost map vs .github/workflows parity gate.
+
+```
+scripts/quality/assert-ci-cost-map.ps1
+  S3084 - CI cost map vs .github/workflows parity gate.
+  Params:
+    -Gate                 [SwitchParameter]
+    -Quiet                [SwitchParameter]
+    -ChangedFiles         [String[]]
+    -RepoRoot             [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 no findings (or findings reported without -Gate); 1 -Gate and at least one finding; 2 could not verify: the workflow directory or docs/BUILD_VS_RELEASE.md is missing or
+```
+
 ### assert-code-domain-writers.ps1
 S2635: every script that writes a Code.* path takes that domain, and no new writer slips in.
 
@@ -2638,6 +2652,7 @@ scripts/quality/assert-fast-gates.ps1
     -Module                [String]  {app_v2|wear}
     -ChangedFiles          [String[]]
     -Sequential            [SwitchParameter]
+    -FailOnSkipped         [SwitchParameter]
     -ThrottleLimit         [Int32] = 0  {range 0..64}
   Exit: 0 every gate passed; or, with -ChangedFiles, every gate that judged the changed set
 ```
@@ -3077,6 +3092,18 @@ scripts/quality/assert-no-orphan-merged-resources.ps1
     -Fix            [SwitchParameter]
     -Quiet          [SwitchParameter]
   Exit: 0 - no orphaned artifact, or nothing has been built yet.; 1 - at least one artifact has no source; the output names every one.; 2 - cannot verify: the module directory does not exist.
+```
+
+### assert-no-release-probes.ps1
+S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+
+```
+scripts/quality/assert-no-release-probes.ps1
+  S3043 - refuse a release build while any Timber.d("Sxxxx: probe stands in a module's src/main.
+  Params:
+    -Module  (req)  [String]  {app_v2|wear}
+    -Quiet          [SwitchParameter]
+  Exit: 0 - no probes found in the module's src/main.; 1 - one or more probes found; the release must not proceed.; 2 - cannot verify: the module directory is absent, or the shared harness library is unavailable.
 ```
 
 ### assert-no-ticket-logs.ps1
@@ -3896,6 +3923,18 @@ scripts/quality/measure-hotspots.ps1
     -Top           [Int32] = 15
 ```
 
+### measure-project-statistics.ps1
+Measures reproducible project statistics and records a dated history snapshot.
+
+```
+scripts/quality/measure-project-statistics.ps1
+  Measures reproducible project statistics and records a dated history snapshot.
+  Params:
+    -NoRecord         [SwitchParameter]
+    -RepoRoot         [String] = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+  Exit: 0 - measurement completed; history and report were written unless -NoRecord was used; 1 - measurement could not be completed
+```
+
 ### migrate-locale-fingerprints-module.ps1
 S1858: migrates the locale fingerprint registry and baseline to module-qualified identities.
 
@@ -4500,6 +4539,15 @@ scripts/quality/doc-icon-gate-routing.tests/Run-Tests.ps1
 ```
 
 ## scripts\quality\lib
+
+### absent-input.ps1
+S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+
+```
+scripts/quality/lib/absent-input.ps1
+  S3075: one way for a gate to say "cannot verify - my input is not in this checkout".
+  (no param block)
+```
 
 ### android-string-format.ps1
 
@@ -6588,7 +6636,8 @@ Release every code domain this session holds. Safe no-op if unheld or held by an
 ```
 scripts/utils/exit-code-lock.ps1
   Release every code domain this session holds. Safe no-op if unheld or held by another session.
-  (no param block)
+  Params:
+    -Name         [String] = 'Code'
 ```
 
 ### extract-device-logs.ps1
@@ -7425,7 +7474,7 @@ S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
 scripts/utils/code-lock-scope.tests/Run-Tests.ps1
   S2615 - contract tests for scripts/utils/code-lock-scope.ps1.
   (no param block)
-  Exit: 0 - every runnable case passed. When a code domain is held (by this session or a
+  Exit: 0 - every runnable case passed. When Code.Fixture is held (by this session or a sibling), the
 ```
 
 ## scripts\utils\dev-monitor-snapshot.tests

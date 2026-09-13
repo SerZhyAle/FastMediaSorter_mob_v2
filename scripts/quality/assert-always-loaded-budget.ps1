@@ -119,6 +119,16 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = if ($RepoRoot) { (Resolve-Path -LiteralPath $RepoRoot).Path } else { Split-Path -Parent (Split-Path -Parent $PSScriptRoot) }
 . (Join-Path $PSScriptRoot '../utils/code-lock-scope.ps1')
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: the agent definition and the path-scoped rules this gate weighs live under .claude/, which
+# is gitignored whole, so on a fresh clone or a CI runner it can measure only part of its subject -
+# and a budget measured over part of its subject passes for the wrong reason.
+if (-not (Test-Path -LiteralPath (Join-Path $repoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-always-loaded-budget' -Path '.claude/' `
+        -Reason 'gitignored - the agent definition and rule files it weighs are not published'
+}
+
 if (-not $BaselineFile) { $BaselineFile = Join-Path $PSScriptRoot 'always-loaded-budget-baseline.txt' }
 
 if (-not (Test-Path -LiteralPath $BaselineFile -PathType Leaf)) {

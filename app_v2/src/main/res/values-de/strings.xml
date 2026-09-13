@@ -3449,10 +3449,6 @@
     <string name="broadcast_failed_capture">Live-Übertragung gestoppt: Audioaufnahme wurde unterbrochen</string>
     <string name="broadcast_permission_microphone_required">Live-Übertragung benötigt Mikrofonzugriff, um Audio zu streamen</string>
     <string name="broadcast_permission_notifications_required">Live-Übertragung benötigt Benachrichtigungszugriff, damit der Stream weiterläuft</string>
-    <string name="launcher_start_window_title">Desktop beim App-Start öffnen</string>
-    <string name="launcher_start_window_desc">Die App selbst öffnet sich auf deinem Desktop statt in der Dateiliste. Das ändert nicht den Startbildschirm deines Geräts - das übernimmt die Einstellung oben.</string>
-    <string name="launcher_start_window_help_title">Desktop als Startfenster</string>
-    <string name="launcher_start_window_help_message">Zwei getrennte Dinge. Diese Einstellung legt fest, was du siehst, wenn du die App über ihr Symbol öffnest: den Desktop mit deinen Verknüpfungen und Widgets oder die gewohnte Dateiliste. Die Einstellung oben legt fest, was die Home-Taste des Geräts öffnet, und dafür muss Android gefragt werden. Schaltest du das aus, öffnet sich die App wieder in der Dateiliste.</string>
     <string name="settings_suppress_wear_media_takeover">Medien-Steuerung auf der Uhr unterdrücken</string>
     <string name="settings_suppress_wear_media_takeover_summary">Verhindert, dass Wear OS den Player des Telefons als Medien-Steuerungsbildschirm auf der Uhr anzeigt</string>
     <string name="broadcast_import_refreshed">Übertragung mit neuer Adresse aktualisiert</string>

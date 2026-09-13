@@ -1007,6 +1007,24 @@ android {
                     kotlin.directories.add("src/testCloudSdk/java")
                 }
             }
+        // S3077: src/castEnabled is mounted by these five flavors; vr and foss mount src/castDisabled.
+        // LocalCastProxyServerTest sat in the shared src/test set and broke unit-test COMPILATION on
+        // those two, which stops every test there - the S1450 shape, recurring because the test set
+        // did not exist yet (the S1498 half of RULE 7). Keep this list identical to the castEnabled
+        // mounts below; the gate's mirror rule fails on any drift.
+        listOf("testStandard", "testNoLegal", "testLegacy", "testPhotos", "testLite")
+            .forEach { unitTestSet ->
+                getByName(unitTestSet) {
+                    kotlin.directories.add("src/testCastEnabled/java")
+                }
+            }
+        // S3077: src/broadcastSource is mounted by three flavors only - the other four mount
+        // src/broadcastSourceDisabled. Same incident, same rule: mirror the main mount list exactly.
+        listOf("testStandard", "testNoLegal", "testLegacy").forEach { unitTestSet ->
+            getByName(unitTestSet) {
+                kotlin.directories.add("src/testBroadcastSource/java")
+            }
+        }
         // S1433: RadioControlContractImpl lives in src/networkMonitor, which only standard and noLegal
         // mount, so its test cannot live in the shared src/test set - that set compiles for every flavor
         // and the reference would break unit-test compilation on the other four, which is the S1450 shape
@@ -2129,9 +2147,17 @@ dependencies {
     // Paging 3
     implementation(libs.androidx.paging.runtime.ktx)
     
-    // AppFunctions - Android 16+ Assistant Actions (S2920)
-    implementation(libs.androidx.appfunctions)
-    ksp(libs.androidx.appfunctions.compiler)
+    // AppFunctions requires minSdk 24, so API-23 FOSS and Legacy variants must not resolve it.
+    "standardImplementation"(libs.androidx.appfunctions)
+    "noLegalImplementation"(libs.androidx.appfunctions)
+    "liteImplementation"(libs.androidx.appfunctions)
+    "photosImplementation"(libs.androidx.appfunctions)
+    "vrImplementation"(libs.androidx.appfunctions)
+    "kspStandard"(libs.androidx.appfunctions.compiler)
+    "kspNoLegal"(libs.androidx.appfunctions.compiler)
+    "kspLite"(libs.androidx.appfunctions.compiler)
+    "kspPhotos"(libs.androidx.appfunctions.compiler)
+    "kspVr"(libs.androidx.appfunctions.compiler)
     
     // DataStore - 1.1.x or newer is required: 1.0.0 persists via File.renameTo, which cannot
     // replace an existing file on Windows, so every write after the first one fails (S1449).

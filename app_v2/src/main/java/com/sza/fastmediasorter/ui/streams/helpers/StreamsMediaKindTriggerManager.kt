@@ -6,7 +6,6 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
-import timber.log.Timber
 
 /**
  * S1473/S3061: the inline video/audio/own category trigger beside the streams search field.
@@ -29,7 +28,6 @@ class StreamsMediaKindTriggerManager(
     private var rendered: MediaKindFilter = MediaKindFilter.ALL
 
     fun bind() {
-        Timber.d("S3061: video/audio/own category trigger bound")
         videoButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.VIDEO)) }
         audioButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.AUDIO)) }
         ownButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.OWN)) }

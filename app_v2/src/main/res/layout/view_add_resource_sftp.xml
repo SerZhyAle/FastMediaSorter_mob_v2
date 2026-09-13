@@ -5,7 +5,7 @@
 
         <!-- S0991/S0992: companion import entry points relocated to the SFTP-form header, sharing labels with the type-screen entries. -->
         <!-- baselineAligned=false + match_parent heights: keep both pills equal-height when one label wraps (landscape column). -->
-         android:gravity="center" android:gravity="center"<LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
+        <LinearLayout android:gravity="center" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:baselineAligned="false" android:layout_marginBottom="@dimen/resource_card_margin_bottom">
 
             <!-- S0421: one-action import of a Windows-companion .fmscfg config -->
             <com.google.android.material.button.MaterialButton android:id="@+id/btnSftpImportCompanion" style="@style/Widget.FastMediaSorter.Button.Filled" android:layout_width="wrap_content" android:layout_height="match_parent" android:layout_marginEnd="@dimen/margin_small" android:text="@string/resource_import_from_file" app:icon="@drawable/ic_import" />

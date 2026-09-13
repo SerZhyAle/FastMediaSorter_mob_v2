@@ -51,7 +51,8 @@
       { "name": "Build.Wear", "type": "Build", "rank": 2 },
       { "name": "Code.Phone", "type": "Code", "rank": 3 },
       { "name": "Code.Wear", "type": "Code", "rank": 4 },
-      { "name": "Code.Scripts", "type": "Code", "rank": 5 }
+      { "name": "Code.Scripts", "type": "Code", "rank": 5 },
+      { "name": "Code.Fixture", "type": "Code", "rank": 6 }
     ],
     "pathRules": [
       { "pattern": "^config/detekt/baseline-app_v2", "domain": "Code.Phone" },
@@ -62,6 +63,7 @@
       { "pattern": "^app_v2/", "domain": "Code.Phone" },
       { "pattern": "^wear/", "domain": "Code.Wear" },
       { "pattern": "^PLAN/", "domain": null },
+      { "pattern": "^temp/lock-fixture/", "domain": "Code.Fixture" },
       { "pattern": "^temp/", "domain": null },
       { "pattern": "^(scripts|dev|docs|\\.claude|\\.github)/", "domain": "Code.Scripts" },
       { "pattern": "^(CLAUDE|AGENTS|README)\\.md$", "domain": "Code.Scripts" },
@@ -115,11 +117,11 @@
     "alwaysStrongStatuses": ["BlockQuestions"],
     "strongTierMin": 4,
     "shapeCheapTierMax": 2,
-    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Putting instance c on the shape rule is \"modelPolicy\": \"shape\" here, and it waits on BOTH of S2696's preconditions - the canon plugin carrying -ModelPolicy shape deployed (the deployed runner rejects the value until then, and the watchdog would start an instance that cannot run), and the owner's answer to the week-measurement question in PLAN/S2696. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else.",
+    "instancesComment": "S2698. One record per -Instance name, each field optional and falling back to the shared value beside it: 'command' is what the child is launched as, 'argsTemplate' is its whole argument vector with the {prompt}, {permissionMode} and {model} substitutions, 'modelPolicy' is the S2696 rule the watchdog starts it with. Declared with no overrides on purpose: the map states which instances exist, and every one of them launches exactly what it launched before. Instance c runs the shape rule since 2026-09-13 (S2702): a one-week measurement against a and b, which stay on tiered as the control group; both the watchdog and a.ps1 r1-r3 read this field. Putting an instance on a second agent is \"command\" plus \"argsTemplate\" here, and nowhere else.",
     "instances": {
       "a": {},
       "b": {},
-      "c": {}
+      "c": { "modelPolicy": "shape" }
     },
     "idleRunThreshold": 2,
     "idleOutcomes": ["ok", "timeout"]

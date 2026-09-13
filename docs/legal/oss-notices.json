@@ -104,15 +104,13 @@
       "sourceUrl": "https://android.googlesource.com/platform/frameworks/support/",
       "oss": true,
       "shippedIn": [
-        "foss",
-        "legacy",
         "lite",
         "noLegal",
         "photos",
         "standard",
         "vr"
       ],
-      "allFlavors": true,
+      "allFlavors": false,
       "transitive": false,
       "via": null,
       "bundled": false,
@@ -1099,8 +1097,7 @@
     {
       "coordinate": "androidx.media3:media3-inspector",
       "modules": [
-        "app_v2",
-        "wear"
+        "app_v2"
       ],
       "name": "AndroidX Media3 Inspector",
       "spdx": "Apache-2.0",

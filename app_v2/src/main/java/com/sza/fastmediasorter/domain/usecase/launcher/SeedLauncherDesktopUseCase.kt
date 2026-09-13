@@ -268,7 +268,6 @@ class SeedLauncherDesktopUseCase @Inject constructor(
         val seededCells = desktop.observeCells(orientation).first()
         val sections = LauncherSectionMembership.sectionsInOrder(seededCells)
         if (sections.isEmpty()) return
-        Timber.d("S3031: resorting %d sections after seed for %s", sections.size, orientation)
         sections.forEach { header ->
             desktop.resortSection(orientation, header.id, columns)
         }

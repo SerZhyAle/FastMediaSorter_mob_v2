@@ -664,6 +664,10 @@ $runsDocPinsSync = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling'
 # S1075: same trigger as doc-pins-sync - drift enters via a Gradle bump (Config) or a
 # hand edit to dev/TECH_REQUIREMENTS.md (Doc). Checks the doc pins the generator does not own.
 $runsDocPinDrift = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling')
+# S3084: the CI cost map goes stale from either side - a workflow file gains a trigger or a job, or
+# the doc row is edited. The ChangeType categories cover the doc half; the path test adds the half
+# that broke all three recorded times, a .github/workflows/ edit landing under any ChangeType.
+$runsCiCostMap = $resolvedChangeType -in @('Config', 'Doc', 'Mixed', 'Tooling') -or (Test-AnyChangedFile '^\.github/workflows/.*\.ya?ml$')
 # S1979: a live document naming a .ps1 that does not exist hands its reader a command that cannot
 # run - thirteen such lines survived in three registered documents until a hand sweep found them.
 # Keyed on the changed set, not on ChangeType: the corpus is docs/, dev/, .claude/ and the four
@@ -982,6 +986,8 @@ $argvAcceptanceProbe = @('-NoProfile', '-File', (Join-Path $root "scripts/qualit
 $argvDocPinsSync = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/generate-toolchain-pins.ps1"), '-Check')
 $argvDocPinDrift = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-pin-drift.ps1"), '-Gate', '-Quiet')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocPinDrift += @('-ChangedFiles', ($changedFiles -join ',')) }
+$argvCiCostMap = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-ci-cost-map.ps1"), '-Gate', '-Quiet')
+if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvCiCostMap += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocScriptRefs = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-script-references.ps1"), '-Docs', '-Quiet')
 if ($ScopeToFile -and $changedFiles.Count -gt 0) { $argvDocScriptRefs += @('-ChangedFiles', ($changedFiles -join ',')) }
 $argvDocHouseStyle = @('-NoProfile', '-File', (Join-Path $root "scripts/quality/assert-doc-house-style.ps1"))
@@ -1154,6 +1160,16 @@ if ($runsDocPinDrift) {
 }
 else {
     Skip-Step "doc-pin-drift" "not applicable for ChangeType $resolvedChangeType"
+}
+
+if ($runsCiCostMap) {
+    # S3084: a fixed-input gate in the S2824 sense - three workflow files and one doc table, one rule
+    # between them. The promise it replaces was prose in the doc's own Maintenance section, and it was
+    # broken three times silently, because the ticket that edits a workflow never reads that section.
+    Invoke-FixedInputGate "ci-cost-map" $argvCiCostMap 'assert-ci-cost-map.ps1'
+}
+else {
+    Skip-Step "ci-cost-map" "not applicable for ChangeType $resolvedChangeType and no workflow file in the changed set"
 }
 
 if ($runsDocScriptReferences) {

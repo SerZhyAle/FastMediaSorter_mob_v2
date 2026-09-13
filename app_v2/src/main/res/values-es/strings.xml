@@ -3449,10 +3449,6 @@
     <string name="broadcast_failed_capture">La transmisión en vivo se detuvo: se interrumpió la captura de audio</string>
     <string name="broadcast_permission_microphone_required">La transmisión en vivo necesita acceso al micrófono para transmitir audio</string>
     <string name="broadcast_permission_notifications_required">La transmisión en vivo necesita acceso a las notificaciones para seguir funcionando</string>
-    <string name="launcher_start_window_title">Abrir el escritorio al iniciar la app</string>
-    <string name="launcher_start_window_desc">La propia app se abre en tu escritorio en lugar de la lista de archivos. Esto no cambia la pantalla de inicio del dispositivo - eso lo hace el ajuste de arriba.</string>
-    <string name="launcher_start_window_help_title">Escritorio como ventana de inicio</string>
-    <string name="launcher_start_window_help_message">Son dos cosas distintas. Este ajuste decide qué ves al abrir la app desde su icono: el escritorio con tus accesos directos y widgets, o la lista de archivos habitual. El ajuste de arriba decide qué abre el botón de inicio del dispositivo, y para eso hay que pedírselo a Android. Desactiva esto y la app volverá a abrirse en la lista de archivos.</string>
     <string name="settings_suppress_wear_media_takeover">Ocultar el control multimedia en el reloj</string>
     <string name="settings_suppress_wear_media_takeover_summary">Evita que el sistema Wear OS muestre el reproductor del teléfono como pantalla de control multimedia en el reloj</string>
     <string name="broadcast_import_refreshed">Transmisión actualizada con su nueva dirección</string>

@@ -62,7 +62,6 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         binding.rowPort.setOnCommitListener { value ->
             val port = value.toString().trim().toIntOrNull()
             if (port != null && port in PORT_MIN..PORT_MAX) {
-                Timber.d("S3034: broadcast port changed to %d", port)
                 viewModel.updateSettings(viewModel.settings.value.copy(broadcastPort = port))
             } else {
                 binding.rowPort.text = viewModel.settings.value.broadcastPort.toString()
@@ -90,7 +89,6 @@ class BroadcastSettingsFragment : BaseSettingsFragment() {
         }
 
         bindSwitch(binding.rowEnableBroadcasting) { isChecked ->
-            Timber.d("S3032: broadcasting enable toggle changed to %b", isChecked)
             viewModel.updateSettings(viewModel.settings.value.copy(enableBroadcasting = isChecked))
             updateBroadcastOptionsVisibility(isChecked)
         }

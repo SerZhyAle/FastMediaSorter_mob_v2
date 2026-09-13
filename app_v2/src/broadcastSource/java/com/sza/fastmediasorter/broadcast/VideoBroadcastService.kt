@@ -60,7 +60,6 @@ class VideoBroadcastService : Service(), ConnectChecker {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         when (intent?.action) {
             ACTION_STOP -> {
-                Timber.d("S3038: video stop action received")
                 stopBroadcast()
                 stopSelf()
                 return START_NOT_STICKY
@@ -283,7 +282,6 @@ class VideoBroadcastService : Service(), ConnectChecker {
             }
             BroadcastLensOption.physicalIdOf(lensId)?.let { openPhysicalLens(camera, it) }
             _state.value = liveState.copy(activeLensId = lensId)
-            Timber.d("S3038: lens switched on air")
         } catch (e: CameraOpenException) {
             Timber.w(
                 e,
@@ -314,7 +312,6 @@ class VideoBroadcastService : Service(), ConnectChecker {
     private fun toggleCameraInternal() {
         val liveState = _state.value as? BroadcastState.Live ?: return
         val cameraOn = !liveState.cameraEnabled
-        Timber.d("S3038: camera toggle via video mute")
         previewProvider.setVideoMuted(!cameraOn)
         _state.value = liveState.copy(cameraEnabled = cameraOn)
     }

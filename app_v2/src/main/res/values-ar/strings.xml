@@ -3447,10 +3447,6 @@
     <string name="broadcast_failed_capture">توقّف البث المباشر: انقطع التقاط الصوت</string>
     <string name="broadcast_permission_microphone_required">يحتاج البث المباشر إلى إذن الميكروفون لبث الصوت</string>
     <string name="broadcast_permission_notifications_required">يحتاج البث المباشر إلى إذن الإشعارات لإبقاء البث يعمل</string>
-    <string name="launcher_start_window_title">فتح سطح المكتب عند بدء التطبيق</string>
-    <string name="launcher_start_window_desc">يفتح التطبيق نفسه على سطح مكتبك بدلًا من قائمة الملفات. هذا لا يغيّر الشاشة الرئيسية لجهازك - الإعداد أعلاه هو من يفعل ذلك.</string>
-    <string name="launcher_start_window_help_title">سطح المكتب كنافذة البدء</string>
-    <string name="launcher_start_window_help_message">أمران منفصلان. يحدد هذا الإعداد ما تراه عند فتح التطبيق من أيقونته: سطح المكتب باختصاراتك وأدواته، أو قائمة الملفات المعتادة. الإعداد أعلاه يحدد ما يفتحه زر الشاشة الرئيسية للجهاز، ويجب طلب ذلك من Android. أوقف هذا ليعود التطبيق لفتح قائمة الملفات مجددًا.</string>
     <string name="settings_suppress_wear_media_takeover">إخفاء عناصر تحكم الوسائط على الساعة</string>
     <string name="settings_suppress_wear_media_takeover_summary">منع نظام Wear OS من عرض مشغّل الهاتف كشاشة تحكم بالوسائط على الساعة</string>
     <string name="broadcast_import_refreshed">تحديث البث بعنوانه الجديد</string>

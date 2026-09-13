@@ -162,8 +162,28 @@ the only writer of this block and the only script that reads that API.
 
 <!-- s2272:measured:vitals:begin -->
 
-No measurement yet - the Reporting API was not enabled on the service account's Cloud project when
-this block was created (2026-09-11). The reader names the activation URL.
+**Verdict:** `insufficient-data` - measured 2026-09-13 (UTC), window 2026-08-15..2026-09-11 America/Los_Angeles, source api. Rates as the API returns them, read as fraction (S2917 research 6).
+
+| Finding | Scope | Value | Band | Colour | Distinct users |
+|---------|-------|-------|------|--------|----------------|
+| `userPerceivedCrashRate28dUserWeighted` | all devices | - | 0.0109 | insufficient-data | - |
+| `userPerceivedAnrRate28dUserWeighted` | all devices | - | 0.0047 | insufficient-data | - |
+| `anonRssAndSwapMemoryUsageP90` | 0 RAM bucket x app state row(s) | - | PlayMemory (not compared) | unit-unconfirmed | - |
+| `bitmapMemoryUsageP90` | 0 RAM bucket x app state row(s) | - | PlayMemory (not compared) | unit-unconfirmed | - |
+
+Google anomalies in the window: none.
+
+Top error issues by distinct users (10):
+- `CRASH` com.sza.fastmediasorter.ui.browse.managers.KeyboardNavigationManager.movePosition at `java.lang.IllegalArgumentException` - 4 users, 24 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/79e19874f6c07ec33547e74447d4ad6d/details)
+- `CRASH` com.sza.fastmediasorter.data.repository.wear.SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> at `java.lang.RuntimeException` - 3 users, 12 reports, last versionCode 260902195 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/daf4cfa06fbe2ac60ec520ebecc05e00/details)
+- `CRASH` com.sza.fastmediasorter.ui.browse.managers.BrowseShutdownCoordinator.buildNetworkResourceKey at `java.net.URISyntaxException` - 2 users, 2 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/6b3f881bedc99196c06248781b22b350/details)
+- `CRASH` com.sza.fastmediasorter.ui.icon.ResourceIconRegistry.randomIdFor at `java.util.NoSuchElementException` - 2 users, 2 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a6da2615cb54d58b9e0b918422451575/details)
+- `APPLICATION_NOT_RESPONDING` android.view.View.isImportantForAutofill at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/2ddded2b2b021809a3bf8f73ce35bbd2/details)
+- `APPLICATION_NOT_RESPONDING` android.content.ContextWrapper.getSystemServiceName at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/381d940961edf26db2d1da7fc3a5bd54/details)
+- `APPLICATION_NOT_RESPONDING` android.view.View.collectPreferKeepClearRects at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/730c8efb2083eaf072dfcd1061fc3344/details)
+- `CRASH` com.sza.fastmediasorter.core.ui.BaseActivity.getBinding at `java.lang.IllegalStateException` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/8210bf01b4d65c648a82dbf47e0df6ef/details)
+- `APPLICATION_NOT_RESPONDING` androidx.recyclerview.widget.AdapterHelper.findPositionOffset at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/92124ceaf03478d223c737437290a8f1/details)
+- `APPLICATION_NOT_RESPONDING` com.sza.fastmediasorter.core.ui.BaseActivity.dispatchGenericMotionEvent at `Input dispatching timed out` - 1 users, 1 reports, last versionCode 260815194 - [console](https://play.google.com/console/developers/8446656778368889827/app/4976011497161631822/vitals/crashes/a183da1e9db2dd5f6e1661508e40d272/details)
 
 <!-- s2272:measured:vitals:end -->
 

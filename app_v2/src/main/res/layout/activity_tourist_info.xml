@@ -167,7 +167,7 @@
         android:paddingBottom="@dimen/margin_normal" />
 
     <!-- Action Bar -->
-     android:gravity="center" android:gravity="center" android:gravity="center"<LinearLayout
+    <LinearLayout
         android:id="@+id/layoutActionButtons"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

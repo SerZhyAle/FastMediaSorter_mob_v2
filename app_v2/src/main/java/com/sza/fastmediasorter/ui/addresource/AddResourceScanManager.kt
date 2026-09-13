@@ -24,7 +24,10 @@ import com.sza.fastmediasorter.ui.common.permissions.permissionRationaleShort
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionHeader
 import com.sza.fastmediasorter.ui.common.widget.CollapsibleSectionsManager
 import com.sza.fastmediasorter.util.showBoundToHost
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 internal class AddResourceScanManager(
@@ -173,7 +176,9 @@ internal class AddResourceScanManager(
             }
         }
 
-        dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnBrowseWithSAF)?.setOnClickListener {
+        dialogView.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.btnBrowseWithSAF
+        )?.setOnClickListener {
             Timber.i("Using SAF picker")
             dialog.dismiss()
             folderPickerLauncher.launch(null)
@@ -316,7 +321,11 @@ internal class AddResourceScanManager(
             !dir.exists() && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
-                Toast.makeText(activity, activity.getString(R.string.android_media_folder_added_warning), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.android_media_folder_added_warning),
+                    Toast.LENGTH_LONG
+                ).show()
                 dialog.dismiss()
             }
             !dir.isDirectory -> {
@@ -328,13 +337,21 @@ internal class AddResourceScanManager(
             !dir.canRead() && isAndroidMedia && hasAllFilesAccess -> {
                 Timber.w("FOLDER_PICKER: Adding non-readable Android/media path with permission: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
-                Toast.makeText(activity, activity.getString(R.string.android_media_folder_added_warning), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.android_media_folder_added_warning),
+                    Toast.LENGTH_LONG
+                ).show()
                 dialog.dismiss()
             }
             else -> {
                 Timber.i("FOLDER_PICKER: Path valid, selecting: $path")
                 handleSelectedFolderUri(Uri.fromFile(dir), path)
-                Toast.makeText(activity, activity.getString(R.string.folder_selected_successfully, dir.name), Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    activity,
+                    activity.getString(R.string.folder_selected_successfully, dir.name),
+                    Toast.LENGTH_SHORT
+                ).show()
                 dialog.dismiss()
             }
         }
@@ -351,7 +368,9 @@ internal class AddResourceScanManager(
 
         val tvCurrentPath = dialogView.findViewById<android.widget.TextView>(R.id.tvCurrentPath)
         val rvFolders = dialogView.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvFolders)
-        val btnSelectCurrent = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnSelectCurrent)
+        val btnSelectCurrent = dialogView.findViewById<com.google.android.material.button.MaterialButton>(
+            R.id.btnSelectCurrent
+        )
         val btnCancel = dialogView.findViewById<com.google.android.material.button.MaterialButton>(R.id.btnCancel)
 
         var currentPath = startPath
@@ -359,7 +378,10 @@ internal class AddResourceScanManager(
 
         val folders = mutableListOf<String>()
         val adapter = object : androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
-            override fun onCreateViewHolder(parent: android.view.ViewGroup, viewType: Int): androidx.recyclerview.widget.RecyclerView.ViewHolder {
+            override fun onCreateViewHolder(
+                parent: android.view.ViewGroup,
+                viewType: Int
+            ): androidx.recyclerview.widget.RecyclerView.ViewHolder {
                 val view = activity.layoutInflater.inflate(R.layout.item_folder, parent, false)
                 return object : androidx.recyclerview.widget.RecyclerView.ViewHolder(view) {}
             }
@@ -394,20 +416,47 @@ internal class AddResourceScanManager(
         dialog.showBoundToHost(activity)
     }
 
-    private fun loadFolders(path: String, folders: MutableList<String>, adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>) {
-        folders.clear()
-        try {
-            val dir = java.io.File(path)
-            if (path != "/storage/emulated/0" && dir.parent != null) folders.add("..")
-            val subDirs = dir.listFiles { file -> file.isDirectory && !file.name.startsWith(".") }
-                ?.sortedBy { it.name } ?: emptyList()
-            folders.addAll(subDirs.map { it.name })
+    /**
+     * S3072: the enumeration runs on IO, never on the thread that dispatched the tap.
+     *
+     * This is called straight out of a row's `onClick`, so running `listFiles`/`sortedBy` inline made
+     * the input thread wait for the filesystem before the handler returned - a large directory or slow
+     * storage (SD, USB OTG, FUSE) is then exactly the "Input dispatching timed out" ANR that Play
+     * vitals reported. The list contents, their order and the `/storage/emulated/0` boundary are
+     * unchanged; only the waiting moved.
+     */
+    private fun loadFolders(
+        path: String,
+        folders: MutableList<String>,
+        adapter: androidx.recyclerview.widget.RecyclerView.Adapter<*>
+    ) {
+        activity.lifecycleScope.launch {
+            val names = try {
+                withContext(Dispatchers.IO) { enumerateFolderNames(path) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to load folders from $path")
+                Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
+                return@launch
+            }
+            folders.clear()
+            folders.addAll(names)
             adapter.notifyDataSetChanged()
             Timber.d("Loaded ${folders.size} folders from $path")
-        } catch (e: Exception) {
-            Timber.e(e, "Failed to load folders from $path")
-            Toast.makeText(activity, activity.getString(R.string.cannot_read_folder), Toast.LENGTH_SHORT).show()
         }
+    }
+
+    /** The `..` entry plus the visible subdirectory names of [path], in display order. */
+    private fun enumerateFolderNames(path: String): List<String> {
+        val dir = java.io.File(path)
+        val parentEntry = when {
+            path != "/storage/emulated/0" && dir.parent != null -> listOf("..")
+            else -> emptyList()
+        }
+        val subDirs = dir.listFiles { file -> file.isDirectory && !file.name.startsWith(".") }
+            ?.sortedBy { it.name } ?: emptyList()
+        return parentEntry + subDirs.map { it.name }
     }
 
     // ========== Permission Dialog ==========

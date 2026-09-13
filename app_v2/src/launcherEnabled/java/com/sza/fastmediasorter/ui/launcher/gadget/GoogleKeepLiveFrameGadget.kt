@@ -24,6 +24,9 @@ class GoogleKeepLiveFrameGadget @Inject constructor() : LauncherGadget {
     override val minSpanH: Int = SPAN_MIN
     override val labelRes: Int = R.string.launcher_gadget_google_keep_live
     override val iconRes: Int = R.drawable.ic_create_text_file
+
+    // S3080: ic_create_text_file fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     override fun createView(container: FrameLayout, host: LauncherGadgetHost, param: String?): View =

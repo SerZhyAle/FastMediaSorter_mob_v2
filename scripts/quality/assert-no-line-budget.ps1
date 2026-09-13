@@ -65,9 +65,12 @@ $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $planRoot = Join-Path $repoRoot 'PLAN'
 $templateRoot = Join-Path $repoRoot '.claude/templates'
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
 if (-not (Test-Path -LiteralPath $planRoot)) {
-    Write-Error "PLAN/ not found at $planRoot" -ErrorAction Continue
-    exit 2
+    # S3075: PLAN/ is gitignored, so its absence is a property of the checkout, not a finding.
+    Exit-InputAbsent -Gate 'assert-no-line-budget' -Path 'PLAN/' `
+        -Reason 'gitignored - present only on a workstation checkout'
 }
 
 # Every spelling of "how many lines will this cost" seen or plausible in a Files Touched

@@ -235,6 +235,107 @@ $r | ConvertTo-Json -Compress
 exit 0
 '@
 
+# S2697 case 12's child process. A profile-declared domain the harness has no hardcoded row for must
+# work through every entry point, and the handoff must carry the changed set. It runs against a
+# throwaway project root whose profile adds Code.Fixture, for case 10's reasons: the domain table is
+# read from the profile once per process, and the entry points are real processes taking real locks.
+$s2697ProbeBody = @'
+#requires -Version 7.0
+param(
+    [Parameter(Mandatory)][string]$LocksDir,
+    [Parameter(Mandatory)][string]$Sandbox
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$env:SZA_PROJECT_ROOT = $Sandbox
+$env:SZA_PROFILE_PATH = (Join-Path $Sandbox '.sza-profile.json')
+$env:FMS_AGENT_CHAT_ROOT = (Join-Path $Sandbox 'chat')
+$env:FMS_AGENT_ID = 's2697-self'
+. (Join-Path $LocksDir 'agent-lock.ps1')
+
+$r = [ordered]@{}
+$logDir = Join-Path $Sandbox 'logs'
+New-Item -ItemType Directory -Path $logDir -Force | Out-Null
+$step = 0
+function Invoke-Entry {
+    param([Parameter(Mandatory)][string]$Script, [Parameter(Mandatory)][string]$AgentId, [string[]]$Arguments = @())
+    $script:step++
+    $prior = $env:FMS_AGENT_ID
+    $env:FMS_AGENT_ID = $AgentId
+    try { & pwsh -NoProfile -File (Join-Path $LocksDir $Script) @Arguments *> (Join-Path $logDir ('{0:00}-{1}.log' -f $script:step, $Script)) }
+    finally { $env:FMS_AGENT_ID = $prior }
+    return $LASTEXITCODE
+}
+$locks = Get-SzaPath 'locksDir'
+$fixtureLock = Join-Path $locks 'CODE.FIXTURE.LOCK'
+$scriptsLock = Join-Path $locks 'CODE.SCRIPTS.LOCK'
+$scriptsQueue = Join-Path $locks 'CODE.SCRIPTS.QUEUE'
+function Test-ScriptsUntouched { -not (Test-Path -LiteralPath $scriptsLock) -and -not (Test-Path -LiteralPath $scriptsQueue) }
+
+$r.bareCode = (@(Resolve-AgentLockDomains -Name 'Code') -join ',')
+$fixtureTimings = Get-AgentLockTimings -Name 'Code.Fixture'
+$codeTimings = Get-AgentLockTimings -Name 'Code'
+$r.inheritsCodeTimings = (($fixtureTimings | ConvertTo-Json -Compress) -eq ($codeTimings | ConvertTo-Json -Compress))
+$r.existingTimingsKept = ((Get-AgentLockTimings -Name 'Code.Scripts').LockStaleMinutes -eq 10 -and
+    (Get-AgentLockTimings -Name 'Build.Phone').StallMinutes -eq 25 -and (Get-AgentLockTimings -Name 'SpecTicket').TicketCeilingMinutes -eq 480)
+$timingsError = ''
+try { [void](Get-AgentLockTimings -Name 'Code.Nope') } catch { $timingsError = $_.Exception.Message }
+$resolveError = ''
+try { [void](Resolve-AgentLockDomains -Name 'Code.Nope') } catch { $resolveError = $_.Exception.Message }
+$r.unknownTimingsThrowsProfileList = ($timingsError -match "Unknown coordination resource name 'Code\.Nope'" -and
+    $timingsError -match 'Code\.Fixture' -and $timingsError -match 'SpecTicket' -and $timingsError -match 'Device')
+$r.unknownResolveThrowsProfileList = ($resolveError -match "Unknown coordination resource name 'Code\.Nope'" -and $resolveError -match 'Code\.Fixture')
+$r.unknownStatusExit = (Invoke-Entry 'lock-status.ps1' 's2697-self' @('-Name', 'Code.Nope'))
+$r.unknownExitCodeLockExit = (Invoke-Entry 'exit-code-lock.ps1' 's2697-self' @('-Name', 'Code.Nope'))
+
+$r.enterExit = (Invoke-Entry 'enter-code-lock.ps1' 's2697-self' @('-Reason', 'S2697 probe', '-Files', 'temp/lock-fixture/probe.txt'))
+$r.enterTookFixtureOnly = ((Test-Path -LiteralPath $fixtureLock) -and (Test-ScriptsUntouched))
+$r.statusExit = (Invoke-Entry 'lock-status.ps1' 's2697-self' @('-Name', 'Code.Fixture', '-Queue', '-Json'))
+$statusText = Get-Content -LiteralPath (Join-Path $logDir ('{0:00}-lock-status.ps1.log' -f $step)) -Raw
+$r.statusSaysHeld = ($statusText -match '"status"\s*:\s*"held"')
+
+# Contention: a stranger asks for the same domain with a messy form of the same set.
+$handoffDir = Get-SzaPath 'lockHandoffDir'
+$r.contendedExit = (Invoke-Entry 'enter-code-lock.ps1' 's2697-foreign' @('-Reason', 'S2697 contender',
+    '-Files', 'temp\lock-fixture\probe.txt,./temp/lock-fixture/b.txt,temp/lock-fixture/probe.txt'))
+$handoff = @(Get-ChildItem -LiteralPath $handoffDir -Filter 'HANDOFF-CODE.FIXTURE-*.json' -ErrorAction SilentlyContinue |
+    Sort-Object LastWriteTime -Descending)[0]
+$h = if ($handoff) { Get-Content -LiteralPath $handoff.FullName -Raw | ConvertFrom-Json } else { $null }
+$r.handoffSchema = if ($h) { $h.schema } else { $null }
+$r.handoffPaths = if ($h -and $h.PSObject.Properties['paths']) { (@($h.paths) -join '|') } else { '<absent>' }
+$queued = @(Get-AgentLockQueue -Name 'Code.Fixture' | Where-Object { [string]$_.sessionId -eq 's2697-foreign' })
+$foreignSeq = if ($queued.Count -gt 0) { [int]$queued[0].seq } else { -1 }
+$r.contendedScriptsUntouched = (Test-ScriptsUntouched)
+
+# A declared domain with no paths writes an empty array, not an absent field.
+[string]$emptyPath = Save-AgentLockTicketHandoff -Tickets @{ 'Code.Fixture' = $queued[0] } -Reason 'S2697 empty'
+$r.emptyPathsIsArray = ((Get-Content -LiteralPath $emptyPath -Raw) -match '"paths":\[\]')
+
+$r.releaseExit = (Invoke-Entry 'exit-code-lock.ps1' 's2697-self' @('-Name', 'Code.Fixture'))
+$r.released = (-not (Test-Path -LiteralPath $fixtureLock))
+
+# The waiter adopts both shapes: the schema-2 file just written, and a schema-1 file with no paths.
+$waitArgs = @('-Name', 'Code.Fixture', '-Reason', 'S2697 waiter', '-WaitTimeoutSeconds', '30', '-PollSeconds', '1', '-Handoff')
+$marker = Join-Path $locks 'CODE.FIXTURE.TURN-s2697-waiter.json'
+$r.waitSchema2Exit = if ($handoff) { Invoke-Entry 'wait-for-lock-turn.ps1' 's2697-waiter' ($waitArgs + $handoff.FullName) } else { -1 }
+$r.waitSchema2Adopted = ((Test-Path -LiteralPath $marker) -and [int](Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json).seq -eq $foreignSeq)
+Remove-Item -LiteralPath $marker -Force -ErrorAction SilentlyContinue
+$legacy = Join-Path $handoffDir 'HANDOFF-CODE.FIXTURE-legacy-schema1.json'
+([ordered]@{ schema = 1; reason = 'S2697 legacy'; sessionId = 's2697-foreign'
+    createdAt = [DateTimeOffset]::UtcNow.ToUnixTimeMilliseconds(); tickets = [ordered]@{ 'Code.Fixture' = $foreignSeq } } |
+    ConvertTo-Json -Compress) | Set-Content -LiteralPath $legacy -Encoding utf8NoBOM
+$r.waitSchema1Exit = (Invoke-Entry 'wait-for-lock-turn.ps1' 's2697-waiter' ($waitArgs + $legacy))
+$r.waitSchema1Adopted = ((Test-Path -LiteralPath $marker) -and [int](Get-Content -LiteralPath $marker -Raw | ConvertFrom-Json).seq -eq $foreignSeq)
+$r.noSecondTicket = (@(Get-AgentLockQueue -Name 'Code.Fixture').Count -eq 1)
+
+$r.withdrawExit = (Invoke-Entry 'withdraw-lock-ticket.ps1' 's2697-foreign' @('-Name', 'Code.Fixture'))
+$r.withdrawn = (@(Get-AgentLockQueue -Name 'Code.Fixture').Count -eq 0)
+$r.scriptsNeverTouched = (Test-ScriptsUntouched)
+$r | ConvertTo-Json -Compress
+exit 0
+'@
+
 function Assert-Case {
     param([Parameter(Mandatory)][string]$Name, [Parameter(Mandatory)][bool]$Ok, [string]$Detail)
     if ($Ok) { Write-Output "  PASS $Name" }
@@ -882,11 +983,85 @@ $guardSource = Get-Content -LiteralPath $agentLockSourcePath -Raw
         }
     }
 
+    # 12. S2697 - a profile-declared domain works end to end, and the handoff carries the changed set.
+    #     Every entry point is driven as a real process in a throwaway project root whose profile
+    #     adds Code.Fixture (type Code, rank 6) with the rule ^temp/lock-fixture/ ahead of the rest.
+    $s2697Skipped = 0
+    if (-not (Get-Command ConvertTo-AgentLockHandoffPaths -ErrorAction SilentlyContinue)) {
+        Write-Output "  SKIP S2697 profile-declared domain (9 cases) - the resolved harness predates the fix: $agentLockSourcePath"
+        $s2697Skipped = 9
+    }
+    else {
+        $s2697Sandbox = Join-Path $repoRoot 'temp/S2697/agent-lock-tests-sandbox'
+        $s2697Probe = Join-Path $s2697Sandbox 'probe.ps1'
+        $s2697Out = Join-Path $repoRoot 'temp/S2697-domain-stdout.log'
+        $s2697Err = Join-Path $repoRoot 'temp/S2697-domain-stderr.log'
+        $s2697Passed = $false
+        try {
+            Remove-Item -LiteralPath $s2697Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+            New-Item -ItemType Directory -Path $s2697Sandbox -Force | Out-Null
+            $fixtureProfile = Get-Content -LiteralPath (Join-Path $repoRoot '.sza-profile.json') -Raw | ConvertFrom-Json
+            $fixtureProfile.locks.domains = @($fixtureProfile.locks.domains) + [pscustomobject]@{ name = 'Code.Fixture'; type = 'Code'; rank = 6 }
+            $fixtureProfile.locks.pathRules = @([pscustomobject]@{ pattern = '^temp/lock-fixture/'; domain = 'Code.Fixture' }) + @($fixtureProfile.locks.pathRules)
+            $fixtureProfile | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath (Join-Path $s2697Sandbox '.sza-profile.json') -Encoding utf8NoBOM
+            Set-Content -LiteralPath $s2697Probe -Value $s2697ProbeBody -Encoding utf8NoBOM
+
+            $proc = Start-Process -FilePath 'pwsh' `
+                -ArgumentList @('-NoProfile', '-File', $s2697Probe, '-LocksDir', (Split-Path -Parent $agentLockSourcePath), '-Sandbox', $s2697Sandbox) `
+                -NoNewWindow -Wait -PassThru -RedirectStandardOutput $s2697Out -RedirectStandardError $s2697Err
+            $v = $null
+            if ($proc.ExitCode -eq 0) {
+                try { $v = (Get-Content -LiteralPath $s2697Out -Raw).Trim() | ConvertFrom-Json }
+                catch { $v = $null }
+            }
+            $probeNote = "probe exited $($proc.ExitCode), verdict '$($v | ConvertTo-Json -Compress)'"
+
+            Assert-Case -Name 'S2697: a bare Code expands to include Code.Fixture in rank order' `
+                -Ok ($null -ne $v -and $v.bareCode -eq 'Code.Phone,Code.Wear,Code.Scripts,Code.Fixture') -Detail $probeNote
+
+            Assert-Case -Name 'S2697: an undeclared-in-the-map domain inherits its type timings; existing ones are unchanged' `
+                -Ok ($null -ne $v -and $v.inheritsCodeTimings -and $v.existingTimingsKept) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: an unknown name still throws, quoting the profile table (and the lease names for timings)' `
+                -Ok ($null -ne $v -and $v.unknownTimingsThrowsProfileList -and $v.unknownResolveThrowsProfileList -and
+                     $v.unknownStatusExit -eq 2 -and $v.unknownExitCodeLockExit -eq 2) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: enter-code-lock on a fixture path acquires Code.Fixture only' `
+                -Ok ($null -ne $v -and $v.enterExit -eq 0 -and $v.enterTookFixtureOnly) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: lock-status -Name Code.Fixture -Queue recognises the held domain' `
+                -Ok ($null -ne $v -and $v.statusExit -eq 0 -and $v.statusSaysHeld) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: an exit-4 handoff is schema 2 and carries the normalised, deduplicated, sorted paths' `
+                -Ok ($null -ne $v -and $v.contendedExit -eq 4 -and $v.handoffSchema -eq 2 -and
+                     $v.handoffPaths -eq 'temp/lock-fixture/b.txt|temp/lock-fixture/probe.txt' -and $v.emptyPathsIsArray) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: exit-code-lock -Name Code.Fixture releases it' `
+                -Ok ($null -ne $v -and $v.releaseExit -eq 0 -and $v.released) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: wait-for-lock-turn adopts a schema-2 handoff and a pre-existing schema-1 file without paths' `
+                -Ok ($null -ne $v -and $v.waitSchema2Exit -eq 0 -and $v.waitSchema2Adopted -and
+                     $v.waitSchema1Exit -eq 0 -and $v.waitSchema1Adopted -and $v.noSecondTicket) -Detail $probeNote
+
+            Assert-Case -Name 'S2697: withdraw accepts the domain, and Code.Scripts is never touched' `
+                -Ok ($null -ne $v -and $v.withdrawExit -eq 0 -and $v.withdrawn -and $v.contendedScriptsUntouched -and $v.scriptsNeverTouched) -Detail $probeNote
+            $s2697Passed = ($null -ne $v)
+        }
+        finally {
+            # Kept on failure: the per-step logs under logs/ are the only record of which entry point refused.
+            if ($s2697Passed -and $failures -eq 0) {
+                Remove-Item -LiteralPath $s2697Sandbox -Recurse -Force -ErrorAction SilentlyContinue
+                Remove-Item -LiteralPath $s2697Out -Force -ErrorAction SilentlyContinue
+                Remove-Item -LiteralPath $s2697Err -Force -ErrorAction SilentlyContinue
+            }
+        }
+    }
+
     if ($failures -gt 0) {
         Write-Output "agent-lock tests: FAIL ($failures case(s))"
         exit 1
     }
-    $totalSkipped = $s2577Skipped + $s2582Skipped
+    $totalSkipped = $s2577Skipped + $s2582Skipped + $s2697Skipped
     $skipNote = if ($totalSkipped -gt 0) { ", $totalSkipped skipped" } else { '' }
     Write-Output "agent-lock tests: PASS (JAVA_HOME snapshot repair, both directions$skipNote)"
     exit 0

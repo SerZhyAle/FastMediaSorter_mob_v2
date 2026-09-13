@@ -33,8 +33,11 @@ import com.sza.fastmediasorter.util.ExtensionThumbnailGenerator
 import com.sza.fastmediasorter.utils.GlideCacheStats
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 import java.io.File
 
@@ -68,12 +71,25 @@ class AdapterThumbnailLoader(
     // cancel the stale decode before it paints a previous channel's logo (the adapter binds on main).
     private val faviconJobs = HashMap<ImageView, Job>()
 
+    // S3072: main-thread-only map of the in-flight first decode-budget header read per target ImageView,
+    // cancelled on rebind/recycle together with the favicon decode.
+    private val decodeBudgetJobs = HashMap<ImageView, Job>()
+    private val decodeBudgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private val decodeFormatResolver by lazy {
         com.sza.fastmediasorter.FastMediaSorterApp.appContext.memoryPressureDecodeFormatResolver()
     }
 
     companion object {
         const val CACHED_THUMBNAIL_SIZE = 300
+
+        /**
+         * S3072: the header read behind this verdict used to run on the main thread during row binding,
+         * and those reads accumulate inside one RecyclerView traversal, which is the pass Play's ANR
+         * reports were sampled in. Companion-scoped rather than per-instance because a path measured by
+         * one adapter is the same path for the next one.
+         */
+        private val decodeBudgetVerdicts = DecodeBudgetVerdictCache()
         private const val VIDEO_PRIORITY_THUMBNAIL_SUSPEND_MESSAGE = "Video player priority - thumbnail loading suspended"
 
         // PDF thumbnail size limits for network resources when "Large PDF Thumbnails" is ENABLED (bytes)
@@ -264,9 +280,15 @@ class AdapterThumbnailLoader(
 
     // ─── Stream favicon (S0783) ───────────────────────────────────────────────
 
-    /** S0783: cancel the in-flight favicon decode (if any) targeting [imageView]. */
+    /**
+     * S0783: cancel the in-flight favicon decode (if any) targeting [imageView].
+     *
+     * S3072: also cancels a pending decode-budget header read, because this is the one per-view hook the
+     * adapter already calls on both rebind (top of [load]) and recycle.
+     */
     fun cancelFavicon(imageView: ImageView) {
         faviconJobs.remove(imageView)?.cancel()
+        decodeBudgetJobs.remove(imageView)?.cancel()
     }
 
     /**
@@ -739,7 +761,35 @@ class AdapterThumbnailLoader(
         generatedPlaceholder: BitmapDrawable,
         isScrolling: Boolean,
     ) {
-        if (skipLocalImageThumbnail(file)) {
+        if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
+            Timber.v("Skipping local image thumbnail for ${file.name} (cached as failed)")
+            showGeneratedPlaceholder(imageView, file)
+            return
+        }
+        when (val overBudget = cachedDecodeBudgetVerdict(file)) {
+            null -> resolveDecodeBudgetOffMain(imageView, file, context, generatedPlaceholder, isScrolling)
+            else -> startLocalImageRequest(imageView, file, context, generatedPlaceholder, isScrolling, overBudget)
+        }
+    }
+
+    /**
+     * S1968: the negative cache and the decode budget decide whether Glide is asked at all.
+     *
+     * The failed-file cache is the one the network arms already consult, which this arm never did, so the
+     * same doomed request was reissued on every rebind (254 identical allocation failures in one sweep).
+     * An over-budget verdict is remembered there too, so it is not asked again this session.
+     */
+    private fun startLocalImageRequest(
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        generatedPlaceholder: BitmapDrawable,
+        isScrolling: Boolean,
+        overBudget: Boolean,
+    ) {
+        if (overBudget) {
+            Timber.w("Thumbnail target over the decode budget for %s - placeholder, not retried", file.name)
+            NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
             showGeneratedPlaceholder(imageView, file)
             return
         }
@@ -787,47 +837,54 @@ class AdapterThumbnailLoader(
     }
 
     /**
-     * S1968: whether the local image arm should show a placeholder instead of asking Glide.
-     *
-     * Two reasons folded into one predicate. Either the file is already known to have failed - the
-     * negative cache the network arms three branches up already consult, which this arm never did,
-     * so the same doomed request was reissued on every rebind (254 identical allocation failures in
-     * one sweep) - or its declared size makes the centerCrop target unallocatable, checked before
-     * the request is issued and remembered so it is not asked again this session.
+     * The decode-budget verdict the bind thread may use without touching the disk: false for a path the
+     * budget has no opinion on, the remembered verdict, or null when the header has not been read yet.
      */
-    private fun skipLocalImageThumbnail(file: MediaFile): Boolean {
-        if (NetworkFileDataFetcher.isThumbnailFailed(file.path)) {
-            Timber.v("Skipping local image thumbnail for ${file.name} (cached as failed)")
-            return true
+    private fun cachedDecodeBudgetVerdict(file: MediaFile): Boolean? =
+        if (DecodeBudgetVerdictCache.isMeasurable(file.path)) decodeBudgetVerdicts.cached(file.path) else false
+
+    /**
+     * S3072: the first header read for a path, moved off the bind thread.
+     *
+     * The previous occupant's request is cleared and the placeholder painted first, so a recycled row does
+     * not keep its old picture while the header is read. A rebind or recycle cancels the job through
+     * [cancelFavicon] on the main thread, and the result is applied on the main thread too, so a cancelled
+     * job never reaches [startLocalImageRequest]: `withContext` refuses to run its block once cancelled.
+     */
+    private fun resolveDecodeBudgetOffMain(
+        imageView: ImageView,
+        file: MediaFile,
+        context: Context,
+        generatedPlaceholder: BitmapDrawable,
+        isScrolling: Boolean,
+    ) {
+        Glide.with(context).clear(imageView)
+        showGeneratedPlaceholder(imageView, file)
+        decodeBudgetJobs[imageView] = decodeBudgetScope.launch {
+            val verdict = decodeBudgetVerdicts.resolve(file.path, ::measureDecodeBudget)
+            withContext(Dispatchers.Main) {
+                // Not cancelled, so no newer bind replaced this entry: it is still ours to drop.
+                decodeBudgetJobs.remove(imageView)
+                if (context is android.app.Activity && context.isDestroyed) return@withContext
+                startLocalImageRequest(imageView, file, context, generatedPlaceholder, isScrolling, verdict)
+            }
         }
-        val overBudget = exceedsDecodeBudget(file)
-        if (overBudget) {
-            Timber.w("Thumbnail target over the decode budget for %s - placeholder, not retried", file.name)
-            NetworkFileDataFetcher.markThumbnailAsFailed(file.path)
-        }
-        return overBudget
     }
 
     /**
-     * True when this file's declared size would make the browse thumbnail unallocatable.
-     *
-     * Only the header is read (`inJustDecodeBounds`), so nothing is allocated to find out. A file we
-     * cannot measure - unreadable, or a header that reports nothing - returns false: the budget has no
-     * opinion there, and the ordinary decode path is still allowed to try and fail normally.
+     * True when this file's declared size would make the browse thumbnail unallocatable; null when it
+     * cannot be measured. Only the header is read (`inJustDecodeBounds`), so nothing is allocated to find
+     * out. Blocking disk read - call only off the main thread.
      */
-    private fun exceedsDecodeBudget(file: MediaFile): Boolean {
-        val path = file.path
-        if (path.isBlank() || path.contains("://")) return false
-        return runCatching {
-            val options = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
-            android.graphics.BitmapFactory.decodeFile(path, options)
-            ThumbnailDecodeBudget.exceedsBudget(
-                sourceWidth = options.outWidth,
-                sourceHeight = options.outHeight,
-                target = CACHED_THUMBNAIL_SIZE,
-            )
-        }.getOrDefault(false)
-    }
+    private fun measureDecodeBudget(path: String): Boolean? = runCatching {
+        val options = android.graphics.BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        android.graphics.BitmapFactory.decodeFile(path, options)
+        ThumbnailDecodeBudget.exceedsBudget(
+            sourceWidth = options.outWidth,
+            sourceHeight = options.outHeight,
+            target = CACHED_THUMBNAIL_SIZE,
+        )
+    }.getOrNull()
 
     private fun loadVideo(
         imageView: ImageView,

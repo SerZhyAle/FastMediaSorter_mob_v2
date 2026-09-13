@@ -3446,10 +3446,6 @@
     <string name="broadcast_failed_capture">लाइव ब्रॉडकास्ट बंद हो गया: ऑडियो कैप्चर बाधित हुआ</string>
     <string name="broadcast_permission_microphone_required">ऑडियो स्ट्रीम करने के लिए लाइव ब्रॉडकास्ट को माइक्रोफ़ोन एक्सेस चाहिए</string>
     <string name="broadcast_permission_notifications_required">स्ट्रीम चालू रखने के लिए लाइव ब्रॉडकास्ट को नोटिफिकेशन एक्सेस चाहिए</string>
-    <string name="launcher_start_window_title">ऐप शुरू होने पर डेस्कटॉप खोलें</string>
-    <string name="launcher_start_window_desc">ऐप खुद फ़ाइल सूची की जगह आपके डेस्कटॉप पर खुलता है. इससे आपकी डिवाइस की होम स्क्रीन नहीं बदलती - यह काम ऊपर की सेटिंग करती है.</string>
-    <string name="launcher_start_window_help_title">शुरुआती विंडो के रूप में डेस्कटॉप</string>
-    <string name="launcher_start_window_help_message">दो अलग-अलग चीज़ें हैं. यह सेटिंग तय करती है कि ऐप को उसके आइकन से खोलने पर आपको क्या दिखे: आपके शॉर्टकट और गैजेट वाला डेस्कटॉप, या सामान्य फ़ाइल सूची. ऊपर की सेटिंग तय करती है कि डिवाइस का होम बटन क्या खोलता है, और इसके लिए Android से अनुमति लेनी पड़ती है. इसे बंद करें तो ऐप फिर से फ़ाइल सूची पर खुलेगा.</string>
     <string name="settings_suppress_wear_media_takeover">वॉच पर मीडिया कंट्रोल न दिखाएं</string>
     <string name="settings_suppress_wear_media_takeover_summary">Wear OS सिस्टम को फोन प्लेयर को वॉच पर मीडिया-कंट्रोल स्क्रीन के रूप में दिखाने से रोकें</string>
     <string name="broadcast_import_refreshed">ब्रॉडकास्ट को नए पते के साथ अपडेट किया गया</string>

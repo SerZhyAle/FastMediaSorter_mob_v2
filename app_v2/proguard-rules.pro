@@ -144,10 +144,19 @@
 # superclass and Gson throws `RuntimeException: Missing type parameter.` in the class initializer.
 # Caught by the macrobenchmark harness on the minified standardBenchmark variant, where
 # WearResourceStampStore.<clinit> crashed MainActivity at launch; the same rules build the shipped
-# release APK, so this was a release crash waiting for the first caller. Gson ships these rules
-# itself from 2.10 - keep them here until the dependency moves.
--keep,allowobfuscation,allowshrinking class com.google.gson.reflect.TypeToken
--keep,allowobfuscation,allowshrinking class * extends com.google.gson.reflect.TypeToken
+# release APK, so this was a release crash waiting for the first caller.
+#
+# S3068: the rules S0722 added carried `allowobfuscation,allowshrinking`, and that qualifier is what
+# kept the defect alive - `allowshrinking` takes the class out of R8's kept set, and `-keepattributes
+# Signature` reaches kept classes only, so the attribute was stripped exactly as before. It reached
+# production: SharedPreferencesWearSettingsMirrorStore$Companion$STAMP_MAP_TYPE$1.<init> crashed for
+# real users on versionCode 260902195. These two lines are now the form Gson publishes itself and the
+# form wear/proguard-rules.pro already carried, which is why the watch module never saw the crash.
+# This module's own code no longer depends on them - every TypeToken here is built by
+# TypeToken.getParameterized(..) - but an anonymous token inside a dependency is reached by nothing
+# else. Gson ships these rules from 2.10 - keep them here until the dependency moves.
+-keep class com.google.gson.reflect.TypeToken { *; }
+-keep class * extends com.google.gson.reflect.TypeToken
 
 # Keep all Kotlin data class component functions and field names
 # This prevents obfuscation of constructor parameter names used by Gson
@@ -636,5 +645,12 @@
 # opposite screens. Reached only once the gate could resolve `gson.toJson(ack)`, which it could not while
 # its identifier walk read `val ack = if (..)` as a constructor call.
 -keepclassmembernames enum com.sza.fastmediasorter.domain.model.WearCastOutcome {
+    <fields>;
+}
+# S3076: the focused tourist tile survives process death by name - TouristInfoViewModel writes
+# `tileType.name` into SavedStateHandle under "tourist_focused_tile" and restores it with
+# `TouristTileType.valueOf`, degrading to SPEED when the name does not resolve. A rename would
+# silently return every user to the speed tile instead of the one they left open.
+-keepclassmembernames enum com.sza.fastmediasorter.domain.model.tourist.TouristTileType {
     <fields>;
 }

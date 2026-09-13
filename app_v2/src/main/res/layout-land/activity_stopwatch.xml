@@ -108,7 +108,8 @@
                     android:valueTo="15" />
             </LinearLayout>
 
-             android:gravity="center" android:gravity="center" android:gravity="center"<LinearLayout
+            <LinearLayout
+                android:gravity="center"
                 android:id="@+id/stopwatchActionBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

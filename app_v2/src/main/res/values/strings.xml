@@ -3943,10 +3943,6 @@
     <string name="broadcast_failed_capture">Live Broadcast stopped: audio capture was interrupted</string>
     <string name="broadcast_permission_microphone_required">Live Broadcast needs microphone access to stream audio</string>
     <string name="broadcast_permission_notifications_required">Live Broadcast needs notification access to keep the stream running</string>
-    <string name="launcher_start_window_title">Open the desktop when the app starts</string>
-    <string name="launcher_start_window_desc">The app itself opens on your desktop instead of the file list. This does not change your device home screen - the setting above does that.</string>
-    <string name="launcher_start_window_help_title">Desktop as the start window</string>
-    <string name="launcher_start_window_help_message">Two separate things. This setting decides what you see when you open the app from its icon: the desktop with your shortcuts and gadgets, or the usual file list. The setting above decides what the device Home button opens, and Android has to be asked for that. Turn this off and the app opens on the file list again.</string>
     <string name="settings_suppress_wear_media_takeover">Suppress media control on watch</string>
     <string name="settings_suppress_wear_media_takeover_summary">Stop the Wear OS system from showing the phone player as a media-control screen on the watch</string>
     <string name="broadcast_import_refreshed">Broadcast updated with its new address</string>

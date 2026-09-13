@@ -295,11 +295,83 @@ function Normalize([string] $Text) {
     return ($Text -replace "`r`n", "`n").TrimEnd("`n")
 }
 
+# S3075: the JSON half is compared as DATA, not as the text ConvertTo-Json happened to produce.
+# Serializer output is a property of the runtime - indentation, escaping and number formatting have
+# all moved between PowerShell releases - so a text comparison answers "stale" whenever the artifact
+# was written by a different pwsh than the one checking it, which is every CI run. Measured on run
+# 34694019558: assert-flavor-matrix-docs refused to gate any document over a snapshot built from
+# the identical app_v2/build.gradle.kts. The Markdown half keeps its text comparison: it carries no
+# serializer, so its text IS its data.
+function Compare-JsonData {
+    # Emits one string per difference to the pipeline - never a collection object. A recursive
+    # function returning a List has it unrolled by the caller's pipeline anyway, so collecting into
+    # one is a way to lose an empty result to $null rather than a way to keep the shape.
+    param($Expected, $Actual, [string]$Path = '')
+
+    $here = if ($Path) { $Path } else { '(root)' }
+
+    if ($null -eq $Expected -or $null -eq $Actual) {
+        if ($Expected -ne $Actual) { "$here : expected '$Expected' | actual '$Actual'" }
+        return
+    }
+
+    if ($Expected -is [System.Management.Automation.PSCustomObject] -or $Expected -is [hashtable]) {
+        $expectedKeys = @(if ($Expected -is [hashtable]) { $Expected.Keys } else { $Expected.PSObject.Properties.Name })
+        $actualKeys = @(
+            if ($Actual -is [hashtable]) { $Actual.Keys }
+            elseif ($Actual -is [System.Management.Automation.PSCustomObject]) { $Actual.PSObject.Properties.Name })
+        foreach ($key in (@($expectedKeys) + @($actualKeys) | Sort-Object -Unique)) {
+            $childPath = if ($Path) { "$Path.$key" } else { $key }
+            if ($key -notin $actualKeys) { "$childPath : missing from the built object"; continue }
+            if ($key -notin $expectedKeys) { "$childPath : present only in the built object"; continue }
+            Compare-JsonData -Expected $Expected.$key -Actual $Actual.$key -Path $childPath
+        }
+        return
+    }
+
+    if ($Expected -is [System.Collections.IEnumerable] -and $Expected -isnot [string]) {
+        $e = @($Expected); $a = @($Actual)
+        if ($e.Count -ne $a.Count) {
+            "$here : expected $($e.Count) item(s) | actual $($a.Count)"
+            return
+        }
+        for ($i = 0; $i -lt $e.Count; $i++) {
+            Compare-JsonData -Expected $e[$i] -Actual $a[$i] -Path "$here[$i]"
+        }
+        return
+    }
+
+    if ("$Expected" -ne "$Actual") { "$here : expected '$Expected' | actual '$Actual'" }
+}
+
 if ($Check) {
     $drift = @()
-    if ((Normalize (Read-IfExists $Json))     -ne (Normalize $jsonText)) { $drift += $Json }
+    $jsonDifferences = @()
+    $onDisk = Read-IfExists $Json
+    if ($null -eq $onDisk) {
+        $drift += $Json
+        $jsonDifferences = @('(file) : the snapshot is not on disk')
+    }
+    else {
+        try {
+            $jsonDifferences = @(Compare-JsonData -Expected ($onDisk | ConvertFrom-Json) -Actual ($jsonText | ConvertFrom-Json))
+        }
+        catch {
+            # Unparsable is stale by definition, and naming the parse error beats reporting a diff.
+            $jsonDifferences = @("(file) : the snapshot does not parse - $($_.Exception.Message)")
+        }
+        if ($jsonDifferences.Count -gt 0) { $drift += $Json }
+    }
     if ((Normalize (Read-IfExists $Markdown)) -ne (Normalize $mdText))   { $drift += $Markdown }
     if ($drift.Count -gt 0) {
+        # Naming the differing keys is what makes a CI failure diagnosable: the previous message
+        # said only "stale", which on a runner is indistinguishable from a serializer difference.
+        foreach ($difference in ($jsonDifferences | Select-Object -First 10)) {
+            Write-Host "  $difference" -ForegroundColor Yellow
+        }
+        if ($jsonDifferences.Count -gt 10) {
+            Write-Host "  .. and $($jsonDifferences.Count - 10) more difference(s)." -ForegroundColor Yellow
+        }
         Write-Error "generate-flavor-matrix: stale artifact(s): $($drift -join ', '). Regenerate without -Check." -ErrorAction Continue
         exit 1
     }

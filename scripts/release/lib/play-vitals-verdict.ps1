@@ -161,8 +161,8 @@ function Get-PlayVitalsVerdict {
             }
         }
 
-        $byModel = @(Get-VitalsProp $set 'byDeviceModel') | Where-Object { $null -ne $_ } |
-            Group-Object -Property { [string] (Get-VitalsProp (Get-VitalsProp $_ 'dims') 'deviceModel') }
+        $byModel = @(@(Get-VitalsProp $set 'byDeviceModel') | Where-Object { $null -ne $_ } |
+            Group-Object -Property { [string] (Get-VitalsProp (Get-VitalsProp $_ 'dims') 'deviceModel') })
         foreach ($group in $byModel) {
             $modelRow = Get-VitalsFreshestRow -Rows $group.Group
             $modelUsers = Get-VitalsMetric $modelRow 'distinctUsers'
@@ -202,7 +202,9 @@ function Get-PlayVitalsVerdict {
     }
     foreach ($mem in @(@('anonMemory', 'anonRssAndSwapMemoryUsageP90'), @('bitmapMemory', 'bitmapMemoryUsageP90'))) {
         $setKey, $metric = $mem
-        $rows = @(Get-VitalsProp (Get-VitalsProp $sets $setKey) 'byRamBucketAppState') | Where-Object { $null -ne $_ }
+        # A set with no rows (too few users) must stay an array: under StrictMode a pipeline that emits
+        # nothing yields $null, and $null.Count throws - the live API answered exactly that on 2026-09-13.
+        $rows = @(@(Get-VitalsProp (Get-VitalsProp $sets $setKey) 'byRamBucketAppState') | Where-Object { $null -ne $_ })
         if (-not $memoryEnabled) {
             $values = @($rows | ForEach-Object { Get-VitalsMetric $_ $metric } | Where-Object { $null -ne $_ })
             $max = if ($values.Count -gt 0) { ($values | Measure-Object -Maximum).Maximum } else { $null }

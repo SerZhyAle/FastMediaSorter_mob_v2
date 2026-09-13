@@ -1,7 +1,7 @@
 #requires -Version 7.0
 <#
 .SYNOPSIS
-    Forwarder to the canon-shipped harness script spec_catalog\check-owner-inputs.ps1 (S2402).
+    Forwarder to the canon-shipped harness script spec_catalog/check-owner-inputs.ps1 (S2402).
 
 .DESCRIPTION
     GENERATED - do not edit. The mechanism lives in the SZA canon plugin (tools/harness) and this
@@ -9,7 +9,7 @@
     knows. Regenerate with scripts/utils/install-sza-forwarders.ps1. What this project configures lives in
     .sza-profile.json at the repository root, never in a script body.
 
-Exit codes: whatever spec_catalog\check-owner-inputs.ps1 returns, plus 2 when the harness cannot be located.
+Exit codes: whatever spec_catalog/check-owner-inputs.ps1 returns, plus 2 when the harness cannot be located.
 #>
 # S2441: every name below carries a $szaFwd prefix because HALF of this set is dot-sourced, and a
 # dot-sourced file assigns into its CALLER's scope. PowerShell names are case-insensitive, so the
@@ -21,10 +21,20 @@ Exit codes: whatever spec_catalog\check-owner-inputs.ps1 returns, plus 2 when th
 # instead of appending, leaving one unusable path and a forwarder that cannot find the harness at
 # all. Ten scripts under scripts/ declare a parameter that collided. Contract suite:
 # scripts/utils/install-sza-forwarders.tests/.
+#
+# S3075: the home directory is read through both names and the path segments carry forward slashes.
+# $env:USERPROFILE exists only on Windows, so on a Linux runner Join-Path was handed $null and threw
+# under ErrorActionPreference = 'Stop' - the forwarder died on line 3 instead of reaching its own
+# refusal, and nine gates of the Static Gates job reported "Cannot bind argument to parameter 'Path'"
+# rather than "the harness is not installed". A backslash inside a path literal is the same defect
+# one level down: on Unix it is an ordinary filename character, so the probe could never match.
+# Windows accepts a forward slash everywhere, Unix does not accept a backslash anywhere - so the
+# portable separator is the only one written here.
 $szaFwdCandidates = @()
 if ($env:SZA_HARNESS_ROOT) { $szaFwdCandidates += $env:SZA_HARNESS_ROOT }
-$szaFwdCache = Join-Path $env:USERPROFILE '.claude\plugins\cache\sza-unified-rules\sza'
-if (Test-Path -LiteralPath $szaFwdCache) {
+$szaFwdHome = if ($env:USERPROFILE) { $env:USERPROFILE } elseif ($env:HOME) { $env:HOME } else { $null }
+$szaFwdCache = if ($szaFwdHome) { Join-Path $szaFwdHome '.claude/plugins/cache/sza-unified-rules/sza' } else { $null }
+if ($szaFwdCache -and (Test-Path -LiteralPath $szaFwdCache)) {
     # Ordered as VERSIONS, not as strings: the plugin version is date-derived (2026.903.1), so a
     # string sort puts October's 2026.1001.1 below September's 2026.903.1 and the forwarder would
     # keep calling the older copy after an update. A directory that does not parse sorts last
@@ -37,11 +47,11 @@ if (Test-Path -LiteralPath $szaFwdCache) {
         } | Sort-Object @{ Expression = { $null -ne $_.Version }; Descending = $true },
                         @{ Expression = { $_.Version }; Descending = $true },
                         @{ Expression = { $_.Path }; Descending = $true })
-    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools\harness' })
+    $szaFwdCandidates += @($szaFwdVersions | ForEach-Object { Join-Path $_.Path 'tools/harness' })
 }
 $szaFwdTarget = $null
 foreach ($szaFwdDir in $szaFwdCandidates) {
-    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog\check-owner-inputs.ps1'
+    $szaFwdProbe = Join-Path $szaFwdDir 'spec_catalog/check-owner-inputs.ps1'
     if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe; break }
 }
 
@@ -58,7 +68,7 @@ foreach ($szaFwdDir in $szaFwdCandidates) {
 if (-not $szaFwdTarget) {
     $szaFwdCheckout = $env:SZA_CANON_ROOT
     if (-not $szaFwdCheckout) {
-        $szaFwdResolver = Join-Path $PSScriptRoot '..\..\scripts\utils\project-paths.ps1'
+        $szaFwdResolver = Join-Path $PSScriptRoot '../../scripts/utils/project-paths.ps1'
         if (Test-Path -LiteralPath $szaFwdResolver) {
             # A resolver that is absent or throws must not stop the forwarder from printing its own
             # refusal, which is the only message that names all three candidates and the fix.
@@ -69,8 +79,8 @@ if (-not $szaFwdTarget) {
         }
     }
     if ($szaFwdCheckout) {
-        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools\harness')
-        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog\check-owner-inputs.ps1'
+        $szaFwdCandidates += (Join-Path $szaFwdCheckout 'tools/harness')
+        $szaFwdProbe = Join-Path $szaFwdCandidates[-1] 'spec_catalog/check-owner-inputs.ps1'
         if (Test-Path -LiteralPath $szaFwdProbe) { $szaFwdTarget = $szaFwdProbe }
     }
 }
@@ -78,11 +88,11 @@ if (-not $szaFwdTarget) {
     Write-Host "check-owner-inputs.ps1: the SZA harness is not installed - looked in:" -ForegroundColor Red
     foreach ($szaFwdDir in $szaFwdCandidates) { Write-Host "    $szaFwdDir" -ForegroundColor Gray }
     Write-Host "  Install or update it:  claude plugin update sza@sza-unified-rules" -ForegroundColor Yellow
-    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>\tools\harness'" -ForegroundColor Yellow
+    Write-Host "  Or point at a checkout: `$env:SZA_HARNESS_ROOT = '<repo>/tools/harness'" -ForegroundColor Yellow
     exit 2
 }
 
-$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+$env:SZA_PROJECT_ROOT = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 
 # Half of this set is dot-sourced as a library and half is invoked as a CLI, and the two cannot be
 # forwarded the same way: `& $szaFwdTarget` would run a library in its own scope and define nothing

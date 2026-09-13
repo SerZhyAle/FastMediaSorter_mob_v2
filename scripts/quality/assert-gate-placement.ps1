@@ -102,6 +102,23 @@ if (-not $RepoRoot) { $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot '../..'
 $fixedInputLib = Join-Path $PSScriptRoot 'lib/fixed-input-scope.ps1'
 if (Test-Path -LiteralPath $fixedInputLib) { . $fixedInputLib }
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: two of the runners this gate reads wiring from are command files under .claude/, which is
+# gitignored whole (see the 'prerelease-content' row of lib/gate-placement-registry.ps1). Without
+# them a gate wired into /spec-prerelease reads as hand-run, so the finding describes the checkout
+# rather than the registry - run 34694019558 reported exactly that for assert-deobfuscation-retained.
+#
+# Only when the root was NOT named by the caller. A caller passing -RepoRoot has built the tree it
+# is pointing at - the contract suite constructs a fixture with exactly the runners its case needs -
+# so the absence of a gitignored root there is that caller's own arrangement, not this repository's
+# publishing rule. Skipping it anyway made all eleven fixture cases answer "cannot verify".
+if (-not $PSBoundParameters.ContainsKey('RepoRoot') -and
+    -not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-gate-placement' -Path '.claude/' `
+        -Reason 'gitignored, and it carries two of the runners whose wiring this gate reads'
+}
+
 $registryPath = if ($Registry) { $Registry } else { Get-GatePlacementRegistryPath -RepoRoot $RepoRoot }
 
 try {

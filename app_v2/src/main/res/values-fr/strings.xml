@@ -3450,10 +3450,6 @@
     <string name="broadcast_failed_capture">Diffusion en direct arrêtée : la capture audio a été interrompue</string>
     <string name="broadcast_permission_microphone_required">La diffusion en direct a besoin d\'accéder au microphone pour diffuser l\'audio</string>
     <string name="broadcast_permission_notifications_required">La diffusion en direct a besoin d\'accéder aux notifications pour rester active</string>
-    <string name="launcher_start_window_title">Ouvrir le bureau au démarrage de l\'application</string>
-    <string name="launcher_start_window_desc">L\'application s\'ouvre elle-même sur votre bureau au lieu de la liste de fichiers. Cela ne change pas l\'écran d\'accueil de votre appareil - c\'est le paramètre ci-dessus qui s\'en charge.</string>
-    <string name="launcher_start_window_help_title">Bureau comme fenêtre de démarrage</string>
-    <string name="launcher_start_window_help_message">Deux choses distinctes. Ce paramètre décide de ce que vous voyez en ouvrant l\'application depuis son icône : le bureau avec vos raccourcis et gadgets, ou la liste de fichiers habituelle. Le paramètre ci-dessus décide de ce qu\'ouvre le bouton d\'accueil de l\'appareil, ce qui nécessite l\'autorisation d\'Android. Désactivez ceci et l\'application rouvre la liste de fichiers.</string>
     <string name="settings_suppress_wear_media_takeover">Masquer le contrôle média sur la montre</string>
     <string name="settings_suppress_wear_media_takeover_summary">Empêche le système Wear OS d\'afficher le lecteur du téléphone comme écran de contrôle média sur la montre</string>
     <string name="broadcast_import_refreshed">Diffusion mise à jour avec sa nouvelle adresse</string>

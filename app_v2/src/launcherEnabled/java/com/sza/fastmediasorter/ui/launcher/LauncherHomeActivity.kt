@@ -102,12 +102,6 @@ import javax.inject.Inject
 @AndroidEntryPoint
 open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
 
-    /**
-     * S2811: false in the start-window entry, which is an ordinary app screen and must leave to the app
-     * rather than stay put or hand the home role back.
-     */
-    protected open val isHomeSurface: Boolean get() = true
-
     private val viewModel: LauncherHomeViewModel by viewModels()
 
     private val modalSurfaces by lazy { LauncherModalSurfaceManager(supportFragmentManager) }
@@ -444,6 +438,14 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         onBackPressedDispatcher.addCallback(this) { handleBackPressed() }
         cellBinder.gadgetBinder = gadgetRenderManager::bindGadget
         cellBinder.gadgetRebinder = gadgetRenderManager::rebindGadget
+        // A restored edit mode binds gadget resize handles during this first render.
+        resizeManager = LauncherResizeManager(
+            container = binding.launcherDesktop,
+            viewport = binding.launcherGridScroll,
+            gadgetRegistry = gadgetRegistry,
+            viewModel = viewModel,
+        )
+        Timber.d("S3087: resize manager ready before first desktop render")
         geometryManager.applyGridGeometry()
         geometryManager.seedDesktopIfNeeded()
 
@@ -500,12 +502,6 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
         // manager would otherwise sit paused until the next foreground edge.
         wallpaperManager.onStart()
         attachInstantPhotoCapture()
-        resizeManager = LauncherResizeManager(
-            container = binding.launcherDesktop,
-            viewport = binding.launcherGridScroll,
-            gadgetRegistry = gadgetRegistry,
-            viewModel = viewModel,
-        )
         attachDesktopSwipeActions()
         geometryManager.syncOrientation()
         addFlowManager.registerAddFlowListeners()
@@ -850,34 +846,18 @@ open class LauncherHomeActivity : BaseActivity<ActivityLauncherHomeBinding>() {
     }
 
     /**
-     * S2388: Back dismisses the active black screen overlay rather than no-oping.
-     * S2811: on the start-window surface Back closes the screen; a home screen has nowhere to go back to,
-     * so it must not finish and expose whatever sits behind it.
+     * S2388: Back dismisses the active black screen overlay rather than no-oping. Otherwise it stays put:
+     * a home screen has nowhere to go back to, so it must not finish and expose whatever sits behind it.
      */
     private fun handleBackPressed() {
+        Timber.d("S3090: launcher desktop Back - home surface only, never finishes")
         if (blackScreenOverlayManager.isVisible) {
             blackScreenOverlayManager.hide()
-        } else if (!isHomeSurface) {
-            leaveDesktop()
         }
-    }
-
-    /**
-     * S2811: how a non-home desktop is left. The base surface is the device home screen, which has
-     * nowhere to go, so this is only ever reached by the start window - it overrides this to land in the
-     * app rather than on whatever sits behind an emptied task.
-     */
-    protected open fun leaveDesktop() {
-        finish()
     }
 
     private fun confirmExitLauncherMode() {
-        // S2811: the start window never held the home role, so leaving it is just closing a screen -
-        // showing the role-handback dialog there would offer to undo something the user never did.
-        if (!isHomeSurface) {
-            leaveDesktop()
-            return
-        }
+        Timber.d("S3090: launcher exit requested - role handback dialog always shown")
         // Buttons are theme-styled (S0538 confirm/cancel pair via materialAlertDialogTheme), matching
         // the Start menu's own exit dialog rather than restyling per call.
         MaterialAlertDialogBuilder(this)

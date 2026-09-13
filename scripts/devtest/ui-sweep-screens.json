@@ -225,10 +225,9 @@
       "backAfter": 0,
       "note": "The tab's own container has no unique static string of its own; the marker is taken from the first sub-page, which the container attaches on expand.",
       "expand": [
-        { "resourceId": "headerBroadcast", "expect": "Broadcast", "expectRes": "settings_broadcast_section", "note": "Its body is built at runtime, so the token is the header's own title - presence, not expansion. The live broadcast screen itself is excluded; see `excluded`." },
         { "resourceId": "headerVr", "expect": "3D-VR playback and controls", "expectRes": "vr_settings_block_title", "stateDependent": true, "note": "Drawn only in the vr flavor; the sweep runs standard, so this node is expected to be `skipped` and that is not a defect." }
       ],
-      "expandNote": "The other six headers in this container - Images, Video, Audio, Documents, Other, Streams - are not expand nodes: each attaches its own child fragment and is walked as a screen record of its own above."
+      "expandNote": "The other seven headers in this container - Images, Video, Audio, Documents, Other, Streams, Broadcast - are not expand nodes: each attaches its own child fragment and is walked as a screen record of its own above. S3078 moved Broadcast out of this list: S2817 gave it fragment_settings_broadcast with seven declared settings rows, so the header is no longer the only static token it has."
     },
     {
       "id": "settings-audio",
@@ -276,6 +275,16 @@
       "expectRes": "settings_streams_toggle",
       "backAfter": 0,
       "note": "The section header's own string is settings_streams_section, so the toggle inside it is the marker rather than the header that is visible before opening."
+    },
+    {
+      "id": "settings-broadcast",
+      "name": "Settings - Media - Broadcast",
+      "resourceId": "headerBroadcast",
+      "from": "settings-media",
+      "expect": "Enable live broadcasting",
+      "expectRes": "settings_broadcast_enable_title",
+      "backAfter": 0,
+      "note": "The section header's own string is settings_broadcast_section, so the toggle inside it is the marker rather than the header that is visible before opening. Drawn by the three flavors that mount src/broadcastSource, which includes the standard flavor the sweep runs."
     },
     {
       "id": "settings-other",
@@ -699,6 +708,7 @@
     "video": "settings-video",
     "documents": "settings-documents",
     "streams": "settings-streams",
+    "broadcast": "settings-broadcast",
     "other": "settings-other",
     "playback": "settings-playback",
     "destinations": "settings-operations",

@@ -2,7 +2,6 @@ package com.sza.fastmediasorter.data.permissions
 
 import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
 import com.sza.fastmediasorter.BuildConfig
 import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.networkmonitor.NetworkMonitorContract
@@ -22,8 +21,6 @@ internal class FakeLauncherModeContract(
     override fun homeComponent(context: Context): ComponentName? = null
 
     override fun openAllApps(context: Context): Boolean = false
-
-    override fun startWindowIntent(context: Context): Intent? = null
 }
 
 internal class FakeNetworkMonitorContract(

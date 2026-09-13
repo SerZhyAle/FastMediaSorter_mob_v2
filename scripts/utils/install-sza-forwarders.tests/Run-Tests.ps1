@@ -265,6 +265,50 @@ finally {
     Remove-Item -LiteralPath $sandbox4 -Recurse -Force -ErrorAction SilentlyContinue
 }
 
+# --- Case 5: no home variable at all - the shape a Linux CI runner has --------------------------
+# S3075: $env:USERPROFILE is a Windows name, so on a GitHub runner the plugin-cache candidate was
+# built from $null and Join-Path threw under the template's own ErrorActionPreference = 'Stop'. The
+# forwarder therefore died three lines in, and nine gates of the Static Gates job reported a binding
+# error instead of the refusal that names the three candidates and the fix. What this case pins is
+# the REFUSAL, not the resolution: with no harness anywhere the only correct answer is exit 2 with
+# that message, and any crash on the way to it is the defect.
+Write-Host 'case 5: a runtime with no home variable refuses instead of crashing'
+$sandbox5 = Join-Path $repoRoot ('temp\scratch\sza-fwd-' + [guid]::NewGuid().ToString('N').Substring(0, 8))
+New-Item -ItemType Directory -Force -Path $sandbox5 | Out-Null
+try {
+    $forwarder5 = $template.
+        Replace('{HARNESS}', 'probe-lib.ps1').
+        Replace('{LEAF}', 'probe-nohome-fwd.ps1').
+        Replace('{UP}', '.')
+    $forwarder5Path = Join-Path $sandbox5 'probe-nohome-fwd.ps1'
+    [System.IO.File]::WriteAllText($forwarder5Path, $forwarder5, [System.Text.UTF8Encoding]::new($false))
+
+    $psi5 = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi5.FileName = (Get-Process -Id $PID).Path
+    $psi5.Arguments = "-NoProfile -File `"$forwarder5Path`""
+    $psi5.WorkingDirectory = $sandbox5
+    $psi5.UseShellExecute = $false
+    $psi5.CreateNoWindow = $true
+    $psi5.RedirectStandardOutput = $true
+    $psi5.RedirectStandardError = $true
+    # Every route to a harness removed, including both spellings of the home directory.
+    $psi5.EnvironmentVariables['SZA_HARNESS_ROOT'] = ''
+    $psi5.EnvironmentVariables['SZA_CANON_ROOT'] = ''
+    $psi5.EnvironmentVariables['USERPROFILE'] = ''
+    $psi5.EnvironmentVariables['HOME'] = ''
+    $child5 = [System.Diagnostics.Process]::Start($psi5)
+    $null = $child5.WaitForExit(20000)
+    $said5 = ($child5.StandardError.ReadToEnd() + $child5.StandardOutput.ReadToEnd())
+    Assert-Equal 'a homeless runtime exits 2, the documented refusal' '2' "$($child5.ExitCode)"
+    Assert-Equal 'the refusal is printed, not a binding error' 'refused' `
+        $(if ($said5 -match 'the SZA harness is not installed') { 'refused' } else { 'not refused' })
+    Assert-Equal 'no null-path crash on the way out' 'clean' `
+        $(if ($said5 -match "parameter 'Path'") { 'crashed' } else { 'clean' })
+}
+finally {
+    Remove-Item -LiteralPath $sandbox5 -Recurse -Force -ErrorAction SilentlyContinue
+}
+
 if ($failures.Count -gt 0) {
     Write-Host "install-sza-forwarders.tests: FAIL ($($failures.Count) assertion(s))" -ForegroundColor Red
     exit 1

@@ -39,7 +39,8 @@
         tools:text="@string/network_monitor_history_export_failed"
         tools:visibility="visible" />
 
-     android:gravity="center" android:gravity="center"<LinearLayout
+    <LinearLayout
+        android:gravity="center"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:baselineAligned="false"

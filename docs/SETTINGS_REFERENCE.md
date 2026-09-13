@@ -76,7 +76,6 @@ _Generated from the app. Do not edit by hand._
 | Language/Язык/Мова | Opens a searchable list of the interface languages. On a Play install the chosen language is downloaded first; if it cannot be fetched, the app keeps the language it is using. |
 | Make this app the home screen | Makes the app the device home screen, so the Home button opens your own desktop. |
 | System launcher settings | Opens the system launcher settings dialog for shaping the home-screen desktop, taskbar and grid density. |
-| Open the desktop when the app starts | Opens the app on the launcher desktop instead of the file list when it is started from its icon; the device home screen is not affected. |
 | Statistics | Opens the usage statistics screen. |
 | Power saving mode | Chooses when power saving mode is activated: off, on, or automatically when battery drops below 30%. |
 | Resource grid cell size | Sets how large the resource cells are in the main window grid: small fits more resources per row, large makes each one bigger. |

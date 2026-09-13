@@ -26,8 +26,8 @@ import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerDialog.Option
 import com.sza.fastmediasorter.ui.dialog.SearchableOptionPickerWindow
 import com.sza.fastmediasorter.ui.launcher.gadget.LauncherGadgetRegistry
 import dagger.hilt.android.AndroidEntryPoint
-import timber.log.Timber
 import javax.inject.Inject
+import timber.log.Timber
 
 /**
  * S0404: the first step of "put something on the desktop". Level one lists the kinds of thing a cell can
@@ -111,18 +111,14 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
      * in ru), so the gadget grid needs a wider minimum cell than the 160dp default from S1095. With 200dp
      * the 560dp-capped dialog stays at 2 columns instead of jumping to 3, keeping every label visible.
      */
-    private fun currentColumnCount(): Int {
-        val columns = when {
-            gadgetMode -> SearchableOptionPickerWindow.columnsFor(
-                resources.displayMetrics,
-                minCellDp = MIN_GADGET_CELL_DP,
-            )
-            actionMode -> SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
-            else -> 1
-        }
-        if (gadgetMode) {
-        }
-        return columns
+    private fun currentColumnCount(): Int = when {
+        gadgetMode -> SearchableOptionPickerWindow.columnsFor(
+            resources.displayMetrics,
+            minCellDp = MIN_GADGET_CELL_DP,
+        )
+        actionMode -> SearchableOptionPickerWindow.columnsFor(resources.displayMetrics)
+        !sectionMode && resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE -> 2
+        else -> 1
     }
 
     /**
@@ -134,6 +130,7 @@ class LauncherCellContentPickerDialogFragment : DialogFragment() {
         super.onConfigurationChanged(newConfig)
         if (_binding == null) return
         SearchableOptionPickerWindow.apply(dialog, binding)
+        Timber.d("S3089: reflow launcher category picker columns=%d", currentColumnCount())
         SearchableOptionPickerController.reflowColumns(binding, currentColumnCount())
     }
 

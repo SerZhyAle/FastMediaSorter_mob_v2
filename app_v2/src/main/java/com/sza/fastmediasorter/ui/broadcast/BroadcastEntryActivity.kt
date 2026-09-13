@@ -27,7 +27,6 @@ class BroadcastEntryActivity : AppCompatActivity() {
         const val ACTION_OPEN_BROADCAST_ENTRY = "com.sza.fastmediasorter.action.OPEN_BROADCAST_ENTRY"
 
         fun launch(context: Context) {
-            Timber.d("S3060: routing broadcast entry to unified broadcast control activity")
             BroadcastControlActivity.launch(context)
         }
     }

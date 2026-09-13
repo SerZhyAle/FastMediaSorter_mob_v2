@@ -428,6 +428,28 @@ $scriptEntry = $scripts[$Command]
 $scriptPath = Join-Path $ProjectRoot $scriptEntry.Path
 $scriptArgs = $scriptEntry.Args
 
+# S2702: the runner takes its model policy only as -ModelPolicy, and agent-watchdog.ps1 was the one
+# caller reading runner.instances.<x>.modelPolicy - so `r3` started by hand ran 'tiered' while the
+# profile said 'shape', silently mixing the two rules in the journal being measured. An explicit
+# -ModelPolicy in the extra arguments wins; passing it twice would fail the parameter binding.
+if ($scriptArgs -is [hashtable] -and $scriptArgs.ContainsKey('Instance') -and
+    ($scriptEntry.Path -eq 'scripts\utils\run-spec-queue.ps1') -and
+    -not (@($Rest) -match '^-ModelPolicy$')) {
+    $profilePath = Join-Path $ProjectRoot '.sza-profile.json'
+    try {
+        $record = (Get-Content -LiteralPath $profilePath -Raw | ConvertFrom-Json).runner.instances.($scriptArgs.Instance)
+        $policy = if ($null -ne $record) { [string]$record.modelPolicy } else { '' }
+    }
+    catch {
+        Write-Host "Warning: .sza-profile.json unreadable, instance $($scriptArgs.Instance) keeps the runner default policy." -ForegroundColor Yellow
+        $policy = ''
+    }
+    if (-not [string]::IsNullOrWhiteSpace($policy)) {
+        $scriptArgs = $scriptArgs.Clone()
+        $scriptArgs['ModelPolicy'] = $policy
+    }
+}
+
 # Verify script exists
 if (-not (Test-Path $scriptPath)) {
     Write-Host "❌ Script not found: $scriptPath" -ForegroundColor Red

@@ -13,7 +13,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat
 import androidx.core.view.isVisible
-import androidx.core.widget.ImageViewCompat
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
@@ -24,7 +23,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellUi
 import com.sza.fastmediasorter.domain.model.launcher.LauncherContactAction
 import com.sza.fastmediasorter.domain.model.launcher.LauncherResourceMode
-import timber.log.Timber
+import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 import kotlin.math.roundToInt
 
 /**
@@ -483,9 +482,11 @@ class LauncherCellViewBinder(
         // roots, so a pooled root that carried a sub-program's tone last render would keep it under whatever
         // app icon, contact photo or stream favicon lands in it next - a colour on something that is not a
         // sub-program at all. Clearing is the half that makes the tint safe, not an optimisation.
-        ImageViewCompat.setImageTintList(
+        // S3080: it clears through a colour filter, because clearing the view's tint list also erased the
+        // `android:tint` every `ico_*` resource glyph declares, leaving the whole Resources section black.
+        RecyclableIconTint.apply(
             binding.cellIcon,
-            visual?.accentRes?.let { ColorStateList.valueOf(ContextCompat.getColor(binding.root.context, it)) },
+            visual?.accentRes?.let { ContextCompat.getColor(binding.root.context, it) },
         )
         bindMonogram(binding, visual?.monogramSeed)
         bindModeBadge(binding, item)

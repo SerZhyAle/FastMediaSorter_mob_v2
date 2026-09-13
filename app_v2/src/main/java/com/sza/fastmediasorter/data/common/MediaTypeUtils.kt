@@ -94,9 +94,6 @@ object MediaTypeUtils {
             BinaryFileTypeDetector.isBinaryExtension(extension) -> BinaryFileTypeDetector.detectType(extension)
             else -> null
         }
-        if (type == MediaType.AUDIO && (extension == "wav" || extension == "wave")) {
-            timber.log.Timber.d("S3047: getMediaType wav audio extension resolved for fileName=%s", fileName)
-        }
         return type
     }
 

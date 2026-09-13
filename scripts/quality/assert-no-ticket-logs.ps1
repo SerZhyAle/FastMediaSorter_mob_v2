@@ -60,9 +60,13 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Join-Path $repoRoot 'PLAN/spec-catalog.jsonl'
 
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
 if (-not (Test-Path $catalog)) {
-    Write-Error "spec-catalog.jsonl not found at $catalog" -ErrorAction Continue
-    exit 2
+    # S3075: PLAN/ is gitignored, so a fresh clone, a release worktree and a CI runner all lack the
+    # journal legitimately. That is "cannot verify", never "violation" - see lib/absent-input.ps1.
+    Exit-InputAbsent -Gate 'assert-no-ticket-logs' -Path 'PLAN/spec-catalog.jsonl' `
+        -Reason 'PLAN/ is gitignored - present only on a workstation checkout'
 }
 
 # Build the set of tickets currently in BlockNeedUserTest (allowed-probe owners).

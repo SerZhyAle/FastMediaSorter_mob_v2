@@ -181,7 +181,6 @@ class RecognitionBackend(
             // same verdict - one function, two readers - and stays silent while its channel is off.
             discardRecorder.beginRun()
             logLineGaps(ocrBlocks)
-            Timber.d("S3039: splitting %d recogniser lines at word gaps before OcrBlockFilter", ocrBlocks.size)
             // S3039: cut before the filter so every piece is judged on its own - a junk glyph cut off a real line
             // fails the filter instead of stretching that line's plate across the artwork.
             val filteredBlocks = OcrLineSplitter.split(ocrBlocks).filter { block ->

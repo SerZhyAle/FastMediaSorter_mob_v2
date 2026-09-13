@@ -3885,10 +3885,6 @@
     <string name="broadcast_failed_capture">Вещание прервано: захват звука остановлен</string>
     <string name="broadcast_permission_microphone_required">Для вещания нужен доступ к микрофону</string>
     <string name="broadcast_permission_notifications_required">Для вещания нужен доступ к уведомлениям, иначе поток не сможет работать в фоне</string>
-    <string name="launcher_start_window_title">Открывать рабочий стол при запуске приложения</string>
-    <string name="launcher_start_window_desc">Приложение само открывается на рабочем столе вместо списка файлов. Домашний экран устройства это не меняет - за него отвечает настройка выше.</string>
-    <string name="launcher_start_window_help_title">Рабочий стол как начальное окно</string>
-    <string name="launcher_start_window_help_message">Это две разные вещи. Эта настройка решает, что вы видите, открывая приложение с иконки: рабочий стол с ярлыками и гаджетами или обычный список файлов. Настройка выше решает, что открывает кнопка «Домой» на устройстве, и для неё нужно разрешение Android. Выключите эту - приложение снова открывается со списка файлов.</string>
     <string name="settings_suppress_wear_media_takeover">Подавлять медиа-управление на часах</string>
     <string name="settings_suppress_wear_media_takeover_summary">Не показывать системный экран управления плеером телефона на часах Wear OS</string>
     <string name="broadcast_import_refreshed">Трансляция обновлена: новый адрес</string>

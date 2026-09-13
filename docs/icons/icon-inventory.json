@@ -1425,14 +1425,6 @@
   },
   {
     "surface": "settings-row",
-    "key": "rowLauncherStartWindow",
-    "feature": "launcher_start_window_title",
-    "drawable": "ic_launcher_mode",
-    "assetFormat": "vector",
-    "public": true
-  },
-  {
-    "surface": "settings-row",
     "key": "rowMicRecordingEnabled",
     "feature": "settings_mic_recording_enable_title",
     "drawable": "ic_microphone",

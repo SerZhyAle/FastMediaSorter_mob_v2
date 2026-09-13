@@ -1,7 +1,6 @@
 package com.sza.fastmediasorter.ui.launcher.gadget
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.widget.FrameLayout
@@ -12,6 +11,7 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.databinding.GadgetHomeWidgetBinding
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
+import com.sza.fastmediasorter.ui.icon.RecyclableIconTint
 import com.sza.fastmediasorter.widget.registry.HomeWidgetAccent
 
 /**
@@ -77,16 +77,19 @@ private class HomeWidgetGadgetView(
         // S2889: the sub-program's own tone wins where it has one. The theme role stays the fallback so a
         // gadget that is not a sub-program - and a sub-program whose glyph carries state instead of
         // identity - keeps the appearance it has today.
-        binding.gadgetHomeWidgetIcon.imageTintList = when {
-            accentRes != null -> ColorStateList.valueOf(ContextCompat.getColor(context, accentRes))
-            iconTintable -> ColorStateList.valueOf(
-                MaterialColors.getColor(
+        // S3080: applied as a colour filter, because clearing the view's tint list also erases the
+        // `android:tint` the glyph declares for itself, leaving an untintable gadget icon black.
+        RecyclableIconTint.apply(
+            binding.gadgetHomeWidgetIcon,
+            when {
+                accentRes != null -> ContextCompat.getColor(context, accentRes)
+                iconTintable -> MaterialColors.getColor(
                     binding.gadgetHomeWidgetIcon,
                     com.google.android.material.R.attr.colorOnSurface,
                 )
-            )
-            else -> null
-        }
+                else -> null
+            },
+        )
         binding.gadgetHomeWidgetLabel.setText(labelRes)
         // The label is the only thing naming this cell, so the whole cell announces it rather than
         // leaving a talkback user with an unlabelled tap target (Rule 16).

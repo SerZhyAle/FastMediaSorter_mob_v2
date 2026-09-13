@@ -1,4 +1,4 @@
-package com.sza.fastmediasorter.data.network.glide
+package com.sza.fastmediasorter.core.network
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

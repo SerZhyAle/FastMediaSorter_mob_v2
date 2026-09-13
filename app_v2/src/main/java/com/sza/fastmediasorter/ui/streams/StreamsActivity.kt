@@ -1111,7 +1111,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         val uri = intent?.data ?: return
         if (uri.scheme == BROADCAST_LINK_SCHEME && uri.host == BROADCAST_LINK_HOST) {
             uri.getQueryParameter(BROADCAST_LINK_PAYLOAD)?.let { payload ->
-                Timber.d("S3053: broadcast descriptor imported from shared link")
                 viewModel.onImportBroadcastDescriptor(payload)
             }
             return
@@ -1119,7 +1118,6 @@ class StreamsActivity : BaseActivity<ActivityStreamsBinding>() {
         if (intent.action == Intent.ACTION_VIEW || intent.action == Intent.ACTION_SEND) {
             val payload = broadcastImportManager.readDescriptorFile(uri)
             if (payload != null) {
-                Timber.d("S3052: broadcast descriptor imported from file intent URI")
                 viewModel.onImportBroadcastDescriptor(payload)
             }
         }

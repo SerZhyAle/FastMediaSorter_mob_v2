@@ -3449,10 +3449,6 @@
     <string name="broadcast_failed_capture">Transmissão em Direto interrompida: a captura de áudio foi interrompida</string>
     <string name="broadcast_permission_microphone_required">A Transmissão em Direto precisa de acesso ao microfone para transmitir áudio</string>
     <string name="broadcast_permission_notifications_required">A Transmissão em Direto precisa de acesso às notificações para manter a transmissão ativa</string>
-    <string name="launcher_start_window_title">Abrir o ambiente de trabalho ao iniciar a app</string>
-    <string name="launcher_start_window_desc">A própria app abre no seu ambiente de trabalho em vez da lista de ficheiros. Isto não altera o ecrã principal do dispositivo - essa é a função da definição acima.</string>
-    <string name="launcher_start_window_help_title">Ambiente de trabalho como janela inicial</string>
-    <string name="launcher_start_window_help_message">São duas coisas distintas. Esta definição decide o que vê ao abrir a app pelo ícone: o ambiente de trabalho com os seus atalhos e widgets, ou a lista de ficheiros habitual. A definição acima decide o que o botão Home do dispositivo abre, e isso tem de ser pedido ao Android. Desative isto e a app volta a abrir na lista de ficheiros.</string>
     <string name="settings_suppress_wear_media_takeover">Suprimir o controlo de multimédia no relógio</string>
     <string name="settings_suppress_wear_media_takeover_summary">Impede o sistema Wear OS de mostrar o leitor do telemóvel como ecrã de controlo de multimédia no relógio</string>
     <string name="broadcast_import_refreshed">Transmissão atualizada com o novo endereço</string>

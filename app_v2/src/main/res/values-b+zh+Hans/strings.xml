@@ -3445,10 +3445,6 @@
     <string name="broadcast_failed_capture">直播已停止: 音频采集被中断</string>
     <string name="broadcast_permission_microphone_required">直播需要麦克风权限才能推流音频</string>
     <string name="broadcast_permission_notifications_required">直播需要通知权限才能保持推流运行</string>
-    <string name="launcher_start_window_title">应用启动时打开桌面</string>
-    <string name="launcher_start_window_desc">应用本身会打开桌面，而不是文件列表。这不会改变设备主屏幕 - 改变主屏幕由上面的设置控制。</string>
-    <string name="launcher_start_window_help_title">以桌面作为起始界面</string>
-    <string name="launcher_start_window_help_message">这是两件不同的事。此设置决定从图标打开应用时看到的内容：带快捷方式和小组件的桌面，还是常规的文件列表。上面的设置决定设备 Home 键打开的内容，这需要向 Android 申请。关闭此项后，应用会重新打开文件列表。</string>
     <string name="settings_suppress_wear_media_takeover">在手表上隐藏媒体控制</string>
     <string name="settings_suppress_wear_media_takeover_summary">阻止 Wear OS 系统在手表上将手机播放器显示为媒体控制界面</string>
     <string name="broadcast_import_refreshed">直播地址已更新</string>

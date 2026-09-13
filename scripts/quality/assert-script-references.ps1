@@ -141,6 +141,16 @@ $ErrorActionPreference = 'Stop'
 
 . (Join-Path $PSScriptRoot 'lib/script-reference-resolution.ps1')
 . (Join-Path $PSScriptRoot 'lib/nested-worktrees.ps1')
+. (Join-Path $PSScriptRoot 'lib/absent-input.ps1')
+
+# S3075: .claude/ is one of this gate's LIVE roots, and it is gitignored whole. Without it a script
+# wired from a command file reads as wired from nothing, so the gate does not merely lose coverage -
+# it INVERTS, reporting live scripts as dead weight. Run 34694019558 did exactly that for four of
+# them. There is no partial answer available here, so the gate declines rather than guesses.
+if (-not (Test-Path -LiteralPath (Join-Path $RepoRoot '.claude'))) {
+    Exit-InputAbsent -Gate 'assert-script-references' -Path '.claude/' `
+        -Reason 'gitignored, and a LIVE reference root - without it a wired script reads as dead'
+}
 $nestedWorktrees = Get-NestedWorktreeRelativePath -RepoRoot $RepoRoot
 
 $scriptRoots = @('scripts', 'dev/CATALOG/scripts', 'dev/ACTIVITY_CATALOG/scripts')

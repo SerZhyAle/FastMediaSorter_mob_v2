@@ -1239,11 +1239,6 @@
     "ru": "Общий выключатель блока трея лаунчера; переключатели ниже решают, какие индикаторы в него входят.",
     "uk": "Загальний вимикач блока трея лаунчера; перемикачі нижче вирішують, які індикатори до нього входять."
   },
-  "rowLauncherStartWindow": {
-    "en": "Opens the app on the launcher desktop instead of the file list when it is started from its icon; the device home screen is not affected.",
-    "ru": "Открывает приложение на рабочем столе лаунчера вместо списка файлов при запуске с иконки; домашний экран устройства не затрагивается.",
-    "uk": "Відкриває застосунок на робочому столі лаунчера замість списку файлів під час запуску з іконки; домашній екран пристрою не змінюється."
-  },
   "rowLauncherTaskbarPlacement": {
     "en": "Puts the taskbar with the Start button along the bottom or the top edge of the desktop.",
     "ru": "Размещает панель задач с кнопкой «Пуск» у нижнего или у верхнего края рабочего стола.",

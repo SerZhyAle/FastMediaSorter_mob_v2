@@ -3870,10 +3870,6 @@
     <string name="broadcast_failed_capture">Трансляцію перервано: захоплення звуку зупинено</string>
     <string name="broadcast_permission_microphone_required">Для трансляції потрібен доступ до мікрофона</string>
     <string name="broadcast_permission_notifications_required">Для трансляції потрібен доступ до сповіщень, інакше потік не працюватиме у фоні</string>
-    <string name="launcher_start_window_title">Відкривати робочий стіл під час запуску застосунку</string>
-    <string name="launcher_start_window_desc">Застосунок сам відкривається на робочому столі замість списку файлів. Домашній екран пристрою це не змінює - за нього відповідає налаштування вище.</string>
-    <string name="launcher_start_window_help_title">Робочий стіл як початкове вікно</string>
-    <string name="launcher_start_window_help_message">Це дві різні речі. Це налаштування вирішує, що ви бачите, відкриваючи застосунок з іконки: робочий стіл з ярликами та гаджетами чи звичайний список файлів. Налаштування вище вирішує, що відкриває кнопка «Додому» на пристрої, і для неї потрібен дозвіл Android. Вимкніть це - застосунок знову відкривається зі списку файлів.</string>
     <string name="settings_suppress_wear_media_takeover">Пригнічувати медіа-керування на годиннику</string>
     <string name="settings_suppress_wear_media_takeover_summary">Не показувати системний екран керування плеєром телефона на годиннику Wear OS</string>
     <string name="broadcast_import_refreshed">Трансляцію оновлено: нова адреса</string>

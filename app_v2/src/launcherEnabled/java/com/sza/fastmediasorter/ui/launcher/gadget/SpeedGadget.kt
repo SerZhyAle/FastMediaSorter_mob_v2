@@ -21,7 +21,6 @@ import com.sza.fastmediasorter.domain.usecase.sensors.ObserveMotionUseCase
 import dagger.Lazy
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.combine
-import timber.log.Timber
 import javax.inject.Inject
 
 /**
@@ -43,6 +42,9 @@ class SpeedGadget @Inject constructor(
     override val minSpanH: Int = 1
     override val labelRes: Int = R.string.launcher_gadget_speed
     override val iconRes: Int = R.drawable.ic_speed
+
+    // S3080: ic_speed fills white and is invisible on the picker's light surface without a tint.
+    override val iconTintable: Boolean = true
     override val requiresResourceParam: Boolean = false
 
     override fun isAvailable(): Boolean = availability.isAvailable(SensorCapability.LOCATION)

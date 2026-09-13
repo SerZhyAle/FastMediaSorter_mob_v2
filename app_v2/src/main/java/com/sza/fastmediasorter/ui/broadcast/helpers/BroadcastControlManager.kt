@@ -55,8 +55,6 @@ class BroadcastControlManager @Inject constructor(
         activity: AppCompatActivity,
         binding: ActivityBroadcastControlBinding
     ) {
-        Timber.d("S3060: unified broadcast control setup completed")
-        Timber.d("S3064: broadcast control buttons use wrap-content width")
         setupPreStreamControls(activity, binding)
         setupLiveControls(activity, binding)
         setupSharePanel(activity, binding)
@@ -179,7 +177,6 @@ class BroadcastControlManager @Inject constructor(
 
         wearSendInProgress = true
         renderSendToWatch(binding, liveState)
-        Timber.d("S3063: live broadcast handoff requested")
         activity.lifecycleScope.launch {
             try {
                 val descriptor = liveState.descriptor
