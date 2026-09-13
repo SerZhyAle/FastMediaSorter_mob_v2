@@ -23,6 +23,8 @@ class BroadcastSessionConfigTest {
         assertEquals(1, config.channelCount)
         // S2814: DEFAULT has no device identity; readSessionConfig fills it from settings.
         assertEquals(null, config.sourceDeviceId)
+        // S3049: default digital microphone gain is 100%.
+        assertEquals(100, config.micGainPercent)
     }
 
     @Test

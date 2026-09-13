@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,11 +21,10 @@ import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.data.wear.WatchSyncEvents
-import com.sza.fastmediasorter.wear.domain.model.ImportResult
 import com.sza.fastmediasorter.wear.ui.common.WearScreenScaffold
 import com.sza.fastmediasorter.wear.ui.common.wearScreenInsets
 import com.sza.fastmediasorter.wear.ui.navigation.WearRoutes
-import kotlinx.coroutines.flow.merge
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.SyncState
 
 /**
  * Full-screen sync transfer animation shown while the watch receives data from the phone.
@@ -36,8 +36,22 @@ import kotlinx.coroutines.flow.merge
 @Composable
 fun SyncTransferScreen(
     navController: NavController,
-    phoneName: String = ""
+    phoneName: String = "",
+    syncState: SyncState = SyncState.Pending,
+    onDispose: () -> Unit = {}
 ) {
+    DisposableEffect(Unit) {
+        onDispose {
+            onDispose()
+        }
+    }
+
+    LaunchedEffect(syncState) {
+        if (syncState is SyncState.Error) {
+            navController.popBackStack()
+        }
+    }
+
     LaunchedEffect(Unit) {
         WatchSyncEvents.importResultFlow.collect { result ->
             navController.navigate(WearRoutes.syncResult(result.added, result.updated)) {
@@ -61,10 +75,11 @@ fun SyncTransferScreen(
             ) {
                 Spacer(Modifier.height(96.dp))
                 Text(
-                    text = if (phoneName.isNotBlank())
+                    text = if (phoneName.isNotBlank()) {
                         stringResource(R.string.wear_sync_receiving_from, phoneName)
-                    else
-                        stringResource(R.string.wear_sync_receiving),
+                    } else {
+                        stringResource(R.string.wear_sync_receiving)
+                    },
                     style = MaterialTheme.typography.body2,
                     textAlign = TextAlign.Center
                 )

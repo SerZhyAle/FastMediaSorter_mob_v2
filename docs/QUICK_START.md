@@ -209,6 +209,7 @@ Tap **"+"** → **Cloud Storage**
 
 - Open **Streams** from the main window dropdown (or **Settings > Media > Streams** when it first appears).
 - Tap **⋮** at the end of the toolbar: **Add stream** for a radio URL (http/https mp3/aac, HLS .m3u8, RTSP), or **Import from URL** for a `.m3u` playlist.
+- The **Video**, **Audio** and **Own** buttons beside the search field split the list: Video and Audio show catalog and imported channels of that type, Own shows every channel you added by URL. Tap the lit button again to show all channels.
 - Download the curated FastMediaSorter station catalog from the **Extensions** screen for a searchable, filterable library with topic and language chips.
 - Radio plays inline via the sticky bottom bar - the station list stays visible. Video/RTSP streams open in the fullscreen player; Back returns to the list.
 - **Available in Standard, Legacy, noLegal and VR. The Streams screen is absent from Lite and Photos - no protocol works there, because there is no entry point.**

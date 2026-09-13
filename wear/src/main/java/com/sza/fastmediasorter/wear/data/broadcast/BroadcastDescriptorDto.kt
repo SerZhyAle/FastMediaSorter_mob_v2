@@ -26,8 +26,30 @@ data class BroadcastDescriptorDto(
      * address belong to the session - so without it a phone cannot tell a returning watch from a new
      * one and files a second, duplicate entry beside the one the owner already uses.
      */
-    @SerializedName("sourceId") val sourceId: String? = null
+    @SerializedName("sourceId") val sourceId: String? = null,
+    /** S3051: list of available stream endpoints (HTTP, RTSP, P2P, etc.) */
+    @SerializedName("endpoints") val endpoints: List<BroadcastEndpointDto>? = null,
+    /** S3051: explicit marker indicating this stream is live */
+    @SerializedName("isLive") val isLive: Boolean? = null,
+    /** S3051: recommended consumer target latency in milliseconds */
+    @SerializedName("targetLatencyMs") val targetLatencyMs: Long? = null
 ) {
+    /**
+     * Returns explicit [endpoints] if present and non-empty, or synthesizes a single legacy endpoint
+     * from root fields.
+     */
+    fun getEffectiveEndpoints(): List<BroadcastEndpointDto> {
+        if (!endpoints.isNullOrEmpty()) return endpoints
+        return listOf(
+            BroadcastEndpointDto(
+                url = url,
+                transport = if (url.startsWith("rtsp://", ignoreCase = true)) "RTSP" else "HTTP",
+                mode = mode,
+                isLive = isLive,
+                targetLatencyMs = targetLatencyMs
+            )
+        )
+    }
 
     companion object {
 

@@ -58,6 +58,29 @@ class StreamsProjectionTest {
         assertEquals(listOf("Beta Radio", "Gamma TV", "Alpha FM"), result.map { it.name })
     }
 
+    @Test
+    fun `own keeps every phone channel and nothing else`() {
+        val result = projectKind(StreamFilterKind.OWN)
+
+        assertEquals(listOf("Mine Radio", "Mine TV"), result.map { it.name })
+    }
+
+    @Test
+    fun `video and audio leave out phone channels`() {
+        // S3062: a transferred channel appearing under a kind as well as under Own would make the three
+        // categories overlap instead of split the list.
+        assertEquals(listOf("Gamma TV"), projectKind(StreamFilterKind.VIDEO_ONLY).map { it.name })
+        assertEquals(listOf("Alpha FM", "Beta Radio"), projectKind(StreamFilterKind.AUDIO_ONLY).map { it.name })
+    }
+
+    private fun projectKind(kind: StreamFilterKind): List<WearStreamChannel> = computeDisplayChannels(
+        ProjectionInputs(
+            channels = CATALOG + OWN_CHANNELS,
+            filterKind = kind,
+            sortOrder = StreamSortOrder.NAME_ASC
+        )
+    )
+
     private fun project(
         sortOrder: StreamSortOrder,
         usage: Map<String, WearStreamUsage>,
@@ -88,11 +111,17 @@ class StreamsProjectionTest {
             channel(id = "3", name = "Beta Radio", url = BETA, kind = "AUDIO")
         )
 
-        fun channel(id: String, name: String, url: String, kind: String) = WearStreamChannel(
+        val OWN_CHANNELS = listOf(
+            channel(id = "4", name = "Mine TV", url = "https://example.invalid/mine-tv", kind = "VIDEO", own = true),
+            channel(id = "5", name = "Mine Radio", url = "https://example.invalid/mine-fm", kind = "AUDIO", own = true)
+        )
+
+        fun channel(id: String, name: String, url: String, kind: String, own: Boolean = false) = WearStreamChannel(
             id = id,
             name = name,
             url = url,
-            mediaKind = kind
+            mediaKind = kind,
+            origin = if (own) WearStreamChannel.ORIGIN_PHONE else null
         )
     }
 }

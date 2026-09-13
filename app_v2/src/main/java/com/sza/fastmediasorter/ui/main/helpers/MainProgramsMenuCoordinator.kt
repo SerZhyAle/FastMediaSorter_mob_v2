@@ -408,6 +408,11 @@ class MainProgramsMenuCoordinator(
                 R.string.tourist_info_title,
                 R.drawable.ic_tourist,
             ),
+            InternalRouteCatalog.KEY_BROADCAST to MenuPresentation(
+                MainBroadcastMenuManager.MENU_ITEM_BROADCAST,
+                R.string.broadcast_menu_label,
+                R.drawable.ic_display,
+            ),
         )
 
         /** The route keys the menu can draw - read by SubProgramCatalogCompletenessTest. */

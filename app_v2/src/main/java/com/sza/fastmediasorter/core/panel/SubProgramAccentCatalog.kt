@@ -91,6 +91,7 @@ object SubProgramAccentCatalog {
         // Anything that reaches another machine.
         InternalRouteCatalog.KEY_NETWORK_MONITOR to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_STREAMS to R.color.color_program_accent_teal,
+        InternalRouteCatalog.KEY_BROADCAST to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_LINK_DOWNLOAD to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_WEAR_COMPANION to R.color.color_program_accent_teal,
         InternalRouteCatalog.KEY_WATCH_LISTEN to R.color.color_program_accent_teal,

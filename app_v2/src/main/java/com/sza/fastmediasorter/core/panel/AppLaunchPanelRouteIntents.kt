@@ -129,6 +129,16 @@ object AppLaunchPanelRouteIntents {
             .putExtra(EXTRA_OPEN_FAVORITES, true)
             .withPanelFlags()
 
+    fun broadcast(context: Context): Intent =
+        Intent(context, com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity::class.java)
+            .setAction(com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity.ACTION_OPEN_BROADCAST_ENTRY)
+            .withPanelFlags()
+
+    fun broadcastSettings(context: Context): Intent =
+        Intent(context, SettingsActivity::class.java)
+            .putExtra(SettingsActivity.EXTRA_INITIAL_TAB, SettingsActivity.TAB_OPERATIONS)
+            .withPanelFlags()
+
     fun resource(context: Context, resourceId: Long): Intent =
         BrowseActivity.createIntent(context, resourceId).withPanelFlags()
 

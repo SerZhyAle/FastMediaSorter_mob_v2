@@ -715,7 +715,8 @@ class PhoneWearListenerService : WearableListenerService() {
     private fun handleSyncRequest() {
         Timber.i("Watch requested sync - sending resources")
         applicationScope.launch {
-            sendResourcesToWatchUseCase().onFailure { e ->
+            // S3046: force dispatch so an empty selection still sends a payload and watch doesn't timeout.
+            sendResourcesToWatchUseCase(forceDispatch = true).onFailure { e ->
                 Timber.e(e, "Failed to send resources on watch request")
             }
         }

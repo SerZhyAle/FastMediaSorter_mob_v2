@@ -1,21 +1,39 @@
 package com.sza.fastmediasorter.wear.ui.common
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.os.BatteryManager
 import androidx.compose.foundation.ScrollState
+import timber.log.Timber
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.wear.compose.foundation.lazy.ScalingLazyListState
@@ -26,8 +44,30 @@ import androidx.wear.compose.material.TimeText
 import androidx.wear.compose.material.TimeTextDefaults
 import androidx.wear.compose.material.scrollAway
 import com.sza.fastmediasorter.wear.domain.model.WearGeometryMode
-import timber.log.Timber
 import kotlin.math.sqrt
+
+/** High battery threshold percentage (above 50% is green). */
+private const val BATTERY_HIGH_THRESHOLD = 50
+
+/** Low battery threshold percentage (20% or below is red). */
+private const val BATTERY_LOW_THRESHOLD = 20
+
+/** Full battery scale percentage. */
+private const val BATTERY_FULL_PERCENT = 100
+
+private const val BATTERY_COLOR_HIGH_HEX = 0xFF4CAF50L
+private const val BATTERY_COLOR_MEDIUM_HEX = 0xFFFFC107L
+private const val BATTERY_COLOR_LOW_HEX = 0xFFF44336L
+private const val BATTERY_TRACK_COLOR_HEX = 0x66000000L
+
+private val BATTERY_COLOR_HIGH = Color(BATTERY_COLOR_HIGH_HEX)
+private val BATTERY_COLOR_MEDIUM = Color(BATTERY_COLOR_MEDIUM_HEX)
+private val BATTERY_COLOR_LOW = Color(BATTERY_COLOR_LOW_HEX)
+private val BATTERY_TRACK_COLOR = Color(BATTERY_TRACK_COLOR_HEX)
+
+private val BATTERY_BAR_WIDTH_DP = 36.dp
+private val BATTERY_BAR_HEIGHT_DP = 2.5.dp
+private val BATTERY_BAR_CORNER_RADIUS_DP = 1.25.dp
 
 /**
  * Share of the shorter screen edge kept clear of controls on a round display. A chord near the top
@@ -136,6 +176,7 @@ fun WearScreenScaffold(
         pageIndicator = pageIndicator,
         timeText = if (showTimeText) {
             {
+                Timber.d("S3045: WearScreenScaffold top bar rendered with clock and battery level")
                 // S2522: the colour is passed explicitly because the clock does not follow the palette
                 // on its own - the library Scaffold does not wrap this slot in a content colour, so
                 // TimeText resolves to the hardcoded white below LocalContentColor. The theme now
@@ -153,10 +194,17 @@ fun WearScreenScaffold(
                         blurRadius = 6f
                     )
                 )
-                TimeText(
-                    timeTextStyle = textStyle,
+                val batteryLevel = rememberBatteryLevel()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = if (scrollState == null) Modifier else Modifier.scrollAway(scrollState)
-                )
+                ) {
+                    TimeText(
+                        timeTextStyle = textStyle
+                    )
+                    Spacer(modifier = Modifier.height(1.dp))
+                    WearBatteryBar(batteryLevel = batteryLevel)
+                }
             }
         } else {
             null
@@ -453,3 +501,72 @@ private fun wearScreenRadius(): Float {
  */
 private fun sagitta(radius: Float, halfChord: Float): Float =
     radius - sqrt((radius * radius - halfChord * halfChord).coerceAtLeast(0f))
+
+/**
+ * Monitors the current watch battery percentage via system broadcast.
+ */
+@Composable
+private fun rememberBatteryLevel(): Int {
+    val context = LocalContext.current
+    var batteryLevel by remember { mutableIntStateOf(BATTERY_FULL_PERCENT) }
+    DisposableEffect(context) {
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context?, intent: Intent?) {
+                val level = intent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = intent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+                if (level >= 0 && scale > 0) {
+                    batteryLevel = (level * BATTERY_FULL_PERCENT) / scale
+                }
+            }
+        }
+        val filter = IntentFilter(Intent.ACTION_BATTERY_CHANGED)
+        val initialIntent = context.registerReceiver(receiver, filter)
+        val initialLevel = initialIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val initialScale = initialIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, -1) ?: -1
+        if (initialLevel >= 0 && initialScale > 0) {
+            batteryLevel = (initialLevel * BATTERY_FULL_PERCENT) / initialScale
+        }
+        onDispose {
+            try {
+                context.unregisterReceiver(receiver)
+            } catch (_: IllegalArgumentException) {
+                // Ignore if not registered
+            }
+        }
+    }
+    return batteryLevel
+}
+
+/**
+ * Small battery charge indicator bar drawn directly below the time text.
+ * Width matches clock digits (~36.dp), color reflects battery level (Green/Yellow/Red).
+ */
+@Composable
+private fun WearBatteryBar(
+    batteryLevel: Int,
+    modifier: Modifier = Modifier
+) {
+    val barColor = when {
+        batteryLevel > BATTERY_HIGH_THRESHOLD -> BATTERY_COLOR_HIGH
+        batteryLevel > BATTERY_LOW_THRESHOLD -> BATTERY_COLOR_MEDIUM
+        else -> BATTERY_COLOR_LOW
+    }
+    val clampedLevel = batteryLevel.coerceIn(0, BATTERY_FULL_PERCENT)
+    val fillWidth = BATTERY_BAR_WIDTH_DP * (clampedLevel.toFloat() / BATTERY_FULL_PERCENT)
+
+    Box(
+        modifier = modifier
+            .width(BATTERY_BAR_WIDTH_DP)
+            .height(BATTERY_BAR_HEIGHT_DP)
+            .clip(RoundedCornerShape(BATTERY_BAR_CORNER_RADIUS_DP))
+            .background(BATTERY_TRACK_COLOR)
+    ) {
+        Box(
+            modifier = Modifier
+                .width(fillWidth)
+                .height(BATTERY_BAR_HEIGHT_DP)
+                .clip(RoundedCornerShape(BATTERY_BAR_CORNER_RADIUS_DP))
+                .background(barColor)
+        )
+    }
+}

@@ -109,6 +109,8 @@
         <attr name="sir_inline" format="boolean" />
         <!-- Preset values offered next to the still-editable field. Unset = no picker, plain input row (S2786). -->
         <attr name="sir_entries" format="reference" />
+        <!-- Maximum length in characters allowed for the input field. Default 0 = uncapped. -->
+        <attr name="sir_maxLength" format="integer" />
     </declare-styleable>
 
     <!-- Consumed by FormFieldPairLayout.kt. All public attrs use the ffp_ prefix. -->

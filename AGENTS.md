@@ -16,7 +16,7 @@
 ## 3. Core Rules
 - Stack: Android, Kotlin 2.2.10, Java 17, Hilt, Room, Media3, Timber. The authoritative pins are the generated block in `CLAUDE.md` section 8 - do not restate a version here that the generator owns.
 - Directories: `app_v2/`, `wear/`, `dev/`, `docs/`, `scripts/`, `temp/` (scratch/logs). Read-only zones, no exceptions (CLAUDE.md Rule 4): `V1/`, `v2_6/`, `spec_v2/`, `dev/archive/`.
-- Temp layout (CLAUDE.md Rule 1): ticket-bound scratch/artifacts -> `temp/Sxxxx/`; no active ticket -> `temp/scratch/`. Fixed infrastructure stays at `temp/` root, never nested: the per-domain lock files with their `.QUEUE` directory and `.TURN-<sessionId>.json` marker (S2109), `temp/spec-all-queue.lock`, `temp/spec-next-skip-cache.json`, the raw logcat sinks and the stream-catalog files. Inventory: `CLAUDE.md` Rule 1.
+- Temp layout (CLAUDE.md Rule 1): ticket-bound scratch/artifacts -> `temp/Sxxxx/`; no active ticket -> `temp/scratch/`. Fixed infrastructure stays at `temp/` root, never nested - and the names are declared in `scripts/utils/temp-root-inventory.ps1`, never in a rules file, this one included (S3030); a new fixed name needs a row there. Ask the root: `pwsh -NoProfile -File scripts/quality/assert-temp-root-inventory.ps1`. Mechanism: `docs/DEV_OPS.md`.
 - File size ceiling 2000 LOC (CLAUDE.md Rule 2): extract logic to `helpers/*Manager.kt` rather than growing a file past it.
 - No Activity logic (CLAUDE.md Rule 3): delegate to `helpers/*Manager.kt`.
 - No self-cost estimates (CLAUDE.md section 1): never write how long a change will take, how much effort it is, or how many lines it will add - in a spec, a phase file, a plan or a reply. A size read off a real file is a measurement, not an estimate, and stays.

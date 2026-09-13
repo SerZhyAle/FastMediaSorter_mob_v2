@@ -6,13 +6,14 @@ import androidx.core.content.ContextCompat
 import com.google.android.material.color.MaterialColors
 import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
+import timber.log.Timber
 
 /**
- * S1473: the inline audio/video facet trigger that sits right of the streams search field.
+ * S1473/S3061: the inline video/audio/own category trigger beside the streams search field.
  *
- * Three states on two icons, per the owner's ruling: the lit icon is the active facet, both
- * neutral means no filter, and tapping the lit icon clears it. The pair holds no state of its own -
- * it renders whatever the shared filter state says, so it can never disagree with the filter dialog.
+ * The lit icon is the active category, all neutral means no filter, and tapping the lit icon clears
+ * it. The group holds no state of its own; it renders the shared filter state so it cannot disagree
+ * with the filter dialog.
  *
  * The active tint is a fixed colour rather than a theme attribute because the app ships a red colour
  * theme; the neutral tint follows the row's existing orientation repaint, since the row moves onto
@@ -21,14 +22,17 @@ import com.sza.fastmediasorter.ui.streams.StreamsViewModel.MediaKindFilter
 class StreamsMediaKindTriggerManager(
     private val videoButton: ImageButton,
     private val audioButton: ImageButton,
+    private val ownButton: ImageButton,
     private val onKindSelected: (MediaKindFilter) -> Unit,
 ) {
     private var landscape: Boolean = false
     private var rendered: MediaKindFilter = MediaKindFilter.ALL
 
     fun bind() {
+        Timber.d("S3061: video/audio/own category trigger bound")
         videoButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.VIDEO)) }
         audioButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.AUDIO)) }
+        ownButton.setOnClickListener { onKindSelected(toggled(MediaKindFilter.OWN)) }
     }
 
     fun render(mediaKind: MediaKindFilter, isLandscape: Boolean = landscape) {
@@ -36,6 +40,7 @@ class StreamsMediaKindTriggerManager(
         rendered = mediaKind
         paint(videoButton, mediaKind == MediaKindFilter.VIDEO, R.string.streams_media_filter_video)
         paint(audioButton, mediaKind == MediaKindFilter.AUDIO, R.string.streams_media_filter_audio)
+        paint(ownButton, mediaKind == MediaKindFilter.OWN, R.string.streams_media_filter_own)
     }
 
     private fun toggled(tapped: MediaKindFilter): MediaKindFilter =

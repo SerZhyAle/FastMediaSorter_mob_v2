@@ -160,28 +160,6 @@
       "backAfter": 1
     },
     {
-      "id": "apps-water-flashlight",
-      "name": "Water flashlight",
-      "label": "Water flashlight",
-      "expect": "Locked",
-      "screen": "WaterFlashlightScreen",
-      "expectRes": "wear_water_flashlight_locked_hint",
-      "backAfter": 1,
-      "note": "S2516: the lock hint is the only static string the screen renders - the line above it is the clock, which is measured time and matches no fixed token. Nothing gates this screen: no permission, no sensor, no flavor flag.",
-      "note2": "S2621: the screen consumes every touch on PointerEventPass.Initial so the wet-glass swipe cannot dismiss it, and MainActivity hides the visual back arrow on this route - but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent accepts any KeyUp and calls onLeave(), so the walk's own exit works. Derived from the module without a device and unconfirmed until the next /spec-prerelease-wear run."
-    },
-    {
-      "id": "apps-motion-monitor",
-      "name": "Motion Monitor",
-      "label": "Motion Monitor",
-      "expect": "Activity",
-      "screen": "MotionMonitorScreen",
-      "expectRes": "wear_motion_monitor_group_activity",
-      "backAfter": 1,
-      "note": "S2458: the screen title is drawn from wear_motion_monitor_app, the SAME resource as the Apps chip that opens it, so the title cannot be the marker; the second group header is. 'Motion' would not do either - it is a substring of the parent label 'Motion Monitor'. The header is an unconditional item in the list, so it renders on a watch with no step sensor and without ACTIVITY_RECOGNITION; only the reading text beneath it changes with those.",
-      "note2": "S2621: derived from the module without a device and unconfirmed until the next /spec-prerelease-wear run."
-    },
-    {
       "id": "apps-voice-recorder",
       "name": "Apps - Voice recorder",
       "label": "Voice recorder",
@@ -208,18 +186,9 @@
       "expect": "Refresh",
       "screen": "SystemInfoScreen",
       "expectRes": "system_info_refresh",
-      "backAfter": 2,
-      "note": "S2008 moved this screen out of Settings and into the Apps list, so it is reached from there. The marker is the refresh chip, which replaces the loading line as soon as the first read completes and is absent from the Apps list itself. Two levels back: out of the report and out of the Apps section, so the next entry starts from Home."
-    },
-    {
-      "id": "apps-blood-pressure",
-      "name": "Apps - Blood Pressure",
-      "label": "Blood Pressure",
-      "expect": "Systolic",
-      "screen": "BloodPressureScreen",
-      "expectRes": "blood_pressure_systolic",
       "backAfter": 1,
-      "note": "S2809: the marker is the systolic field label, unconditional on the input form and absent from the Apps list. The screen needs no permission, no Health Services and no seeded content - it is a data entry form that renders its fields the moment it opens. Available in both flavors: WearAppCatalog lists it without an isAvailable guard."
+      "note": "S2008 moved this screen out of Settings and into the Apps list, so it is reached from there. The marker is the refresh chip, which replaces the loading line as soon as the first read completes and is absent from the Apps list itself.",
+      "note2": "One level back, into the Apps list, because the next entry is a row of that list. It was two - out of the report and out of Apps - which suited a successor starting from Home; measured on the Galaxy Watch 7 at 227 dp 2026-09-12, the stopwatch entry after it then hunted its row on Home and scored unreachable. An entry's backAfter describes where it leaves the app, so it moves whenever the entry after it does."
     },
     {
       "id": "apps-stopwatch",
@@ -230,7 +199,20 @@
       "expectRes": "wear_stopwatch_menu",
       "backAfter": 1,
       "note": "S2825: the marker is the menu control label at the bottom of the measurement surface, the only static text on a screen whose regions show dynamic time. The Start/Stop/Lap/Reset labels are state-dependent and drawn inside WearStopwatchRegions; Menu is always present and absent from the Apps list label Stopwatch. Available in both flavors without a capability guard.",
-      "note2": "S2846: MainActivity hides the visual back arrow on the stopwatch route (line 668), but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent in the scaffold accepts any KeyUp and calls onLeave(), so the walk's own exit works. Same mechanism as WaterFlashlightScreen."
+      "note2": "S2846: MainActivity hides the visual back arrow on the stopwatch route (line 668), but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent in the scaffold accepts any KeyUp and calls onLeave(), so the walk's own exit works. Same mechanism as WaterFlashlightScreen.",
+      "note3": "Unmeasured, and the one risk left in this block: WaterFlashlightScreen shares this exit mechanism and was measured leaving TWO levels on one key (see its note3). If the stopwatch does the same, it lands on Home and the flashlight entry after it scores unreachable - read the tree before changing either number."
+    },
+    {
+      "id": "apps-water-flashlight",
+      "name": "Water flashlight",
+      "label": "Water flashlight",
+      "expect": "Locked",
+      "screen": "WaterFlashlightScreen",
+      "expectRes": "wear_water_flashlight_locked_hint",
+      "backAfter": 1,
+      "note": "S2516: the lock hint is the only static string the screen renders - the line above it is the clock, which is measured time and matches no fixed token. Nothing gates this screen: no permission, no sensor, no flavor flag.",
+      "note2": "S2621: the screen consumes every touch on PointerEventPass.Initial so the wet-glass swipe cannot dismiss it, and MainActivity hides the visual back arrow on this route - but backAfter dispatches a hardware key event through adb, and onPreviewKeyEvent accepts any KeyUp and calls onLeave(), so the walk's own exit works.",
+      "note3": "Last row of the Apps block on purpose. Measured on the Galaxy Watch 7 at 227 dp 2026-09-12: one backAfter key left the locked screen AND the Apps list, landing on Home - the key reaches onLeave() and the activity's back dispatcher both. Placed fourth, as it was, that stranded the voice recorder and voice notes entries after it on Home, both scored unreachable. Here the overshoot is the exit the next entry wants: settings starts from Home."
     },
     {
       "id": "settings",
@@ -305,6 +287,28 @@
       "reason": "absent-from-this-flavor",
       "note": "WO-P6 refuses credential entry on a watch, so S2486 gated the way in: NetworkSourcesScreen renders the Add Source chip only when WearRestrictedCapabilities.offersCredentialEntry is true, which the standard store build answers false. This sweep judges that build, so the screen has no route into it and a walk entry could only ever fail.",
       "note2": "S2555: measured on emulator-5554 2026-09-05 - the Resources screen carried only the empty hint, Sync from Phone and Back."
+    },
+    {
+      "screen": "MotionMonitorScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S2995 withheld every health surface from the store build: WearAppCatalog gates MOTION_MONITOR on WearRestrictedCapabilities.offersHealthFeatures, which the standard flavor answers false, and MainActivity registers the route and ResolveWearLaunchAddressUseCase resolves its address under the same guard. This sweep judges that build, so the Apps list carries no chip for it and a walk entry could only ever report unreachable.",
+      "note2": "Measured on the Galaxy Watch 7 at 227 dp, 2026-09-12: the entry that still stood here returned 'unreachable (control not found)', which the verdict scores as a content failure rather than as the gating working."
+    },
+    {
+      "screen": "TouristScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S3042 gated WearAppId.TOURIST on WearRestrictedCapabilities.offersHealthFeatures, joining MOTION_MONITOR and BLOOD_PRESSURE: the hero card draws a step count, trip distance and an athlete mode, which a Play reviewer judges as fitness against our own 'no health features' declaration. The standard flavor answers false, so the Apps list carries no chip for it.",
+      "note2": "This screen spent one day in screens[] - added 2026-09-12 on finding it had shipped in the store flavor with no walk entry at all, and moved here hours later when the same finding was ruled on. Both halves are the same discovery: nothing had ever opened it."
+    },
+    {
+      "screen": "MotionHistoryScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S2995, same gate as MotionMonitorScreen above: this screen is reached only from it, so withholding the parent from the store build withholds this one with it. Classified here rather than under needs-seeded-content because the flavor decides it first - a seeded history would still have no route into the standard build."
+    },
+    {
+      "screen": "BloodPressureScreen",
+      "reason": "absent-from-this-flavor",
+      "note": "S2995, same gate as MotionMonitorScreen above. Its previous entry carried the note 'Available in both flavors: WearAppCatalog lists it without an isAvailable guard', which S2995 made false by adding that guard - the list is what a walk trusts, so a stale availability claim spends a whole sweep before anyone reads it."
     },
     {
       "screen": "AudioPlayerScreen",

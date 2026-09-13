@@ -342,7 +342,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 }
                 val remoteSource = RemoteSourceSettingsStore.read(preferences)
                 val streams = StreamsSettingsStore.read(preferences)
-                val broadcast = BroadcastSettingsStore.read(preferences)
+                val broadcast = BroadcastSettingsStore.read(preferences, context)
                 val programs = ProgramsSettingsStore.read(preferences)
                 val stopwatch = StopwatchSettingsStore.read(preferences)
                 val launcher = LauncherSettingsStore.read(preferences)
@@ -436,6 +436,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     streamsVisualizeAsMusic = streams.streamsVisualizeAsMusic,
                     streamsDefaultAudioLanguage = streams.streamsDefaultAudioLanguage,
                     streamsDefaultSubtitleLanguage = streams.streamsDefaultSubtitleLanguage,
+                    enableBroadcasting = broadcast.enableBroadcasting,
                     broadcastStreamTitle = broadcast.streamTitle,
                     broadcastBitRateBps = broadcast.bitRateBps,
                     broadcastPort = broadcast.port,

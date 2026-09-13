@@ -37,15 +37,41 @@ class ListBroadcastCameraLensesUseCase @Inject constructor(
     private val enumeration = CameraLensEnumerationManager()
 
     suspend operator fun invoke(): BroadcastCameraLenses = withContext(Dispatchers.IO) {
-        val provider = runCatching { ProcessCameraProvider.getInstance(context).get() }
+        val provider = cameraProvider()
+        if (provider == null) BroadcastCameraLenses.EMPTY else toWire(enumeration.expand(provider))
+    }
+
+    /**
+     * S3038: the lenses the phone's own broadcast screens offer. Filtered through
+     * [CameraLensEnumerationManager.select] so two sub-lenses with the same magnification do not appear as
+     * two identical choices; the watch keeps the unfiltered set above.
+     */
+    suspend fun listOptions(): BroadcastLensChoice = withContext(Dispatchers.IO) {
+        val entries = cameraProvider()?.let { enumeration.select(enumeration.expand(it)) }.orEmpty()
+        if (entries.isEmpty()) {
+            BroadcastLensChoice.EMPTY
+        } else {
+            BroadcastLensChoice(
+                options = entries.map { entry ->
+                    BroadcastLensOption(
+                        id = entry.id,
+                        facing = facingOf(entry.lensFacing),
+                        zoomMultiplier = entry.equivalentMultiplier,
+                    )
+                },
+                initialLensId = entries[enumeration.initialLensIndex(entries)].id,
+            )
+        }
+    }
+
+    private fun cameraProvider(): ProcessCameraProvider? =
+        runCatching { ProcessCameraProvider.getInstance(context).get() }
             .getOrElse { error ->
                 // A phone whose camera stack refuses to initialise still owes the watch an answer, so
                 // the empty set travels and the watch says "no lenses" rather than waiting.
                 Timber.w(error, "Broadcast lens list: the camera provider never arrived")
                 null
             }
-        if (provider == null) BroadcastCameraLenses.EMPTY else toWire(enumeration.expand(provider))
-    }
 
     /**
      * [CameraLensEntry.id] crosses unchanged: it is already this project's stable name for a lens, and

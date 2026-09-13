@@ -1,17 +1,13 @@
 package com.sza.fastmediasorter.broadcast
 
 import android.content.Context
-import android.net.ConnectivityManager
-import android.net.LinkAddress
-import android.net.wifi.WifiManager
-import android.os.Build
-import androidx.annotation.RequiresApi
+import com.sza.fastmediasorter.core.network.LanAddressResolver
 import fi.iki.elonen.NanoHTTPD
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 import java.io.InputStream
 import java.io.PipedInputStream
 import java.io.PipedOutputStream
-import java.net.Inet4Address
 import java.util.concurrent.CopyOnWriteArrayList
 
 /**
@@ -21,11 +17,11 @@ import java.util.concurrent.CopyOnWriteArrayList
 class BroadcastHttpServer(
     private val context: Context,
     private val config: BroadcastSessionConfig,
+    private val lanAddressProvider: () -> String? = { LanAddressResolver(context).resolve() },
 ) {
 
     companion object {
         const val ENDPOINT = "/live-audio.aac"
-        private const val DEFAULT_LAN_IP = "127.0.0.1"
         private const val BUFFER_SIZE_BYTES = 65536
     }
 
@@ -34,7 +30,12 @@ class BroadcastHttpServer(
 
     private val outputStreams = CopyOnWriteArrayList<PipedOutputStream>()
 
-    fun getBroadcastUrl(): String = "http://${getLanIp()}:$activePort$ENDPOINT"
+    private val _listenerCount = kotlinx.coroutines.flow.MutableStateFlow(0)
+    val listenerCount: kotlinx.coroutines.flow.StateFlow<Int> = _listenerCount.asStateFlow()
+
+    fun getBroadcastUrl(): String? = lanAddressProvider()?.let { address ->
+        "http://$address:$activePort$ENDPOINT"
+    }
 
     /**
      * Binds the single configured port. Returns the port on success or -1 when the port is occupied,
@@ -63,7 +64,9 @@ class BroadcastHttpServer(
                 pos.flush()
             } catch (e: Exception) {
                 Timber.d(e, "BroadcastHttpServer: client disconnected")
-                outputStreams.remove(pos)
+                if (outputStreams.remove(pos)) {
+                    _listenerCount.value = outputStreams.size
+                }
                 try {
                     pos.close()
                 } catch (_: Exception) {}
@@ -79,6 +82,7 @@ class BroadcastHttpServer(
             } catch (_: Exception) {}
         }
         outputStreams.clear()
+        _listenerCount.value = 0
         server?.stop()
         server = null
         Timber.d("BroadcastHttpServer: stopped")
@@ -90,51 +94,8 @@ class BroadcastHttpServer(
         val pos = PipedOutputStream()
         val pis = PipedInputStream(pos, BUFFER_SIZE_BYTES)
         outputStreams.add(pos)
+        _listenerCount.value = outputStreams.size
         return pis
-    }
-
-    private fun getLanIp(): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            getLanIpApi31()
-        } else {
-            getLanIpLegacy()
-        }
-    }
-
-    @Suppress("DEPRECATION", "TooGenericExceptionCaught")
-    private fun getLanIpLegacy(): String {
-        return try {
-            val wm = context.applicationContext
-                .getSystemService(Context.WIFI_SERVICE) as WifiManager
-            val ip = wm.connectionInfo?.ipAddress ?: 0
-            if (ip == 0) return DEFAULT_LAN_IP
-            val octet1 = ip and 0xff
-            val octet2 = (ip shr 8) and 0xff
-            val octet3 = (ip shr 16) and 0xff
-            val octet4 = (ip shr 24) and 0xff
-            "$octet1.$octet2.$octet3.$octet4"
-        } catch (e: Exception) {
-            Timber.w("BroadcastHttpServer: getLanIpLegacy failed - ${e.message}")
-            DEFAULT_LAN_IP
-        }
-    }
-
-    @RequiresApi(Build.VERSION_CODES.S)
-    @Suppress("TooGenericExceptionCaught", "ReturnCount")
-    private fun getLanIpApi31(): String {
-        return try {
-            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val network = cm.activeNetwork ?: return DEFAULT_LAN_IP
-            val props = cm.getLinkProperties(network) ?: return DEFAULT_LAN_IP
-            props.linkAddresses
-                .firstOrNull { la: LinkAddress ->
-                    la.address is Inet4Address && !la.address.isLoopbackAddress
-                }
-                ?.address?.hostAddress ?: DEFAULT_LAN_IP
-        } catch (e: Exception) {
-            Timber.w("BroadcastHttpServer: getLanIpApi31 failed - ${e.message}")
-            DEFAULT_LAN_IP
-        }
     }
 
     private inner class InternalServer(port: Int) : NanoHTTPD("0.0.0.0", port) {

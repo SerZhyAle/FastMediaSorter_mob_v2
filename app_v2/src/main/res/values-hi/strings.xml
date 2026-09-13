@@ -3560,4 +3560,8 @@
     <string name="tourist_accuracy_unreliable">कंपास कैलिब्रेट करें</string>
     <string name="tourist_detail_satellites">उपग्रह: फिक्स में %1$d उपयोग हुए (%2$d दिख रहे हैं)</string>
     <string name="tourist_detail_sun_time">सूर्योदय: %1$s • सूर्यास्त: %2$s</string>
+    <string name="settings_broadcast_enable_title">लाइव प्रसारण सक्षम करें</string>
+    <string name="settings_broadcast_enable_subtitle">लाइव ऑडियो स्ट्रीम प्रसारण की अनुमति दें और शॉर्टकट दिखाएं</string>
+    <string name="widget_tourist_label">पर्यटक</string>
+    <string name="widget_tourist_description">नेविगेशन और रीयल-टाइम टेलीमेट्री डैशबोर्ड</string>
 </resources>

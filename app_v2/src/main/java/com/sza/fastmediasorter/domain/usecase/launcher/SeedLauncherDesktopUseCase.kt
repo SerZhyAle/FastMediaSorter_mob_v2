@@ -15,6 +15,7 @@ import com.sza.fastmediasorter.domain.model.launcher.LauncherCell
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellCommand
 import com.sza.fastmediasorter.domain.model.launcher.LauncherCellKind
 import com.sza.fastmediasorter.domain.model.launcher.LauncherOrientation
+import com.sza.fastmediasorter.domain.model.launcher.LauncherSectionMembership
 import com.sza.fastmediasorter.domain.repository.DeviceProfileRepository
 import com.sza.fastmediasorter.domain.repository.LauncherDesktopRepository
 import com.sza.fastmediasorter.domain.repository.ResourceRepository
@@ -254,6 +255,22 @@ class SeedLauncherDesktopUseCase @Inject constructor(
         // narrower than the desktop the seed had just built.
         if (desktop.seedIfEmpty(orientation, cells)) {
             desktop.updateColumns(orientation, columns)
+            resortAllSections(orientation, columns)
+        }
+    }
+
+    /**
+     * S3031: repacks every section the seed just placed, so a reset that changed the density leaves no
+     * loosely packed sections. The starter-set placement is a first pass; this is the dense repack that
+     * closes the gaps the first pass may leave on a grid whose width differs from the previous one.
+     */
+    private suspend fun resortAllSections(orientation: LauncherOrientation, columns: Int) {
+        val seededCells = desktop.observeCells(orientation).first()
+        val sections = LauncherSectionMembership.sectionsInOrder(seededCells)
+        if (sections.isEmpty()) return
+        Timber.d("S3031: resorting %d sections after seed for %s", sections.size, orientation)
+        sections.forEach { header ->
+            desktop.resortSection(orientation, header.id, columns)
         }
     }
 }

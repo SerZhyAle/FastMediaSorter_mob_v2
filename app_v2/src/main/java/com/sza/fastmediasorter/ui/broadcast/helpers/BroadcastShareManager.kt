@@ -13,4 +13,7 @@ class BroadcastShareManager @Inject constructor(
     fun generateJsonPayload(url: String, title: String?, mode: String): String {
         return encodeUseCase.serializeJson(url, title, mode)
     }
+
+    fun generateShareLink(url: String, title: String?, mode: String): String =
+        BroadcastShareLinkFactory.create(generateQrPayload(url, title, mode))
 }

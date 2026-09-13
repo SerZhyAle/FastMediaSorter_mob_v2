@@ -173,6 +173,7 @@ class StreamsFilterDialogManager(
     ): Int = when (mediaKind) {
         StreamsViewModel.MediaKindFilter.AUDIO -> binding.btnMediaAudio.id
         StreamsViewModel.MediaKindFilter.VIDEO -> binding.btnMediaVideo.id
+        StreamsViewModel.MediaKindFilter.OWN -> binding.btnMediaOwn.id
         StreamsViewModel.MediaKindFilter.ALL -> binding.btnMediaAll.id
     }
 
@@ -182,6 +183,7 @@ class StreamsFilterDialogManager(
     ): StreamsViewModel.MediaKindFilter = when (checkedId) {
         binding.btnMediaAudio.id -> StreamsViewModel.MediaKindFilter.AUDIO
         binding.btnMediaVideo.id -> StreamsViewModel.MediaKindFilter.VIDEO
+        binding.btnMediaOwn.id -> StreamsViewModel.MediaKindFilter.OWN
         else -> StreamsViewModel.MediaKindFilter.ALL
     }
 

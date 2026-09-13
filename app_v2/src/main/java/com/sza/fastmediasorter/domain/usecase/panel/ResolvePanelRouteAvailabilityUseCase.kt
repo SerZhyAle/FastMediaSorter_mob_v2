@@ -152,6 +152,11 @@ class ResolvePanelRouteAvailabilityUseCase @Inject constructor(
                 )
             InternalRouteCatalog.KEY_LINK_DOWNLOAD ->
                 Availability(availableInBuild = true, enabledAtRuntime = settings.linkAutoDownloadEnabled)
+            InternalRouteCatalog.KEY_BROADCAST ->
+                Availability(
+                    availableInBuild = capability.isStreamsAvailable(),
+                    enabledAtRuntime = settings.enableBroadcasting,
+                )
             // S1924: compiled into every flavor - the camera is gated by a setting, never by a flavor
             // flag, so there is no capability to read here. The three runtime conditions are factored
             // out to keep this chain under detekt's cyclomatic ceiling, which S1883 already reached.

@@ -58,7 +58,7 @@ class SendResourcesToWatchUseCase @Inject constructor(
     private val wearDeliveredResourceStore: WearDeliveredResourceStore
 ) {
     private val gson = Gson()
-    suspend operator fun invoke(): Result<SendResult> = runCatching {
+    suspend operator fun invoke(forceDispatch: Boolean = false): Result<SendResult> = runCatching {
         val nodes = wearableRepository.getConnectedNodes()
         if (nodes.isEmpty()) error("No watch connected")
 
@@ -86,7 +86,8 @@ class SendResourcesToWatchUseCase @Inject constructor(
         // the bytes, so a phone that once deleted a resource does not re-send its tombstone on every
         // subsequent push - without that, this branch is unreachable whenever the tombstone store is
         // non-empty, which is always once a deletion has been recorded.
-        if (collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
+        // S3046: forceDispatch allows explicit watch sync requests to answer even when empty.
+        if (!forceDispatch && collected.payloads.isEmpty() && deselectedIds.isEmpty() && tombstones.orEmpty().isEmpty()) {
             return@runCatching SendResult(
                 sent = 0,
                 skipped = collected.skipped,

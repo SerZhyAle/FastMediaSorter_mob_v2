@@ -19,6 +19,7 @@ import com.sza.fastmediasorter.broadcast.BroadcastMode
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastState
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
+import com.sza.fastmediasorter.ui.broadcast.BroadcastControlActivity
 import com.sza.fastmediasorter.ui.broadcast.BroadcastShareActivity
 import com.sza.fastmediasorter.util.RecordingElapsedTimer
 import com.sza.fastmediasorter.utils.collectOnLifecycle
@@ -30,10 +31,13 @@ class MainBroadcastManager(
     private val settingsRepository: SettingsRepository,
     private val requestRecordAudioPermission: () -> Unit,
     private val requestPostNotificationsPermission: () -> Unit,
+    private val requestCameraPermission: () -> Unit = {},
 ) {
 
     private val indicator = RecordingIndicatorOverlayManager(activity)
     private var liveStartedAtElapsedRealtimeMs: Long? = null
+    private var pendingMode: BroadcastMode = BroadcastMode.AUDIO_ONLY
+    private var pendingLensId: String? = null
 
     // The session lives in the service and outlives this screen, so the indicator counts from the
     // session's own start moment. A screen-local accumulator restarted at zero on every return to
@@ -56,12 +60,7 @@ class MainBroadcastManager(
                 is BroadcastState.Live -> {
                     showIndicator(state)
                     if (autoOpenShare) {
-                        BroadcastShareActivity.launchIfNew(
-                            activity,
-                            state.descriptor.url,
-                            state.descriptor.title,
-                            state.descriptor.mode
-                        )
+                        BroadcastControlActivity.launch(activity)
                     }
                 }
                 is BroadcastState.Failed -> {
@@ -92,12 +91,7 @@ class MainBroadcastManager(
             onPauseResume = null,
             onStop = { stopBroadcast() },
             onTapRoot = {
-                BroadcastShareActivity.launch(
-                    activity,
-                    state.descriptor.url,
-                    state.descriptor.title,
-                    state.descriptor.mode
-                )
+                BroadcastControlActivity.launch(activity)
             }
         )
     }
@@ -123,14 +117,14 @@ class MainBroadcastManager(
      */
     fun onPermissionResult(permission: String, granted: Boolean) {
         if (granted) {
-            startBroadcast()
+            startBroadcast(pendingMode, pendingLensId)
             return
         }
         Timber.w("Broadcast permission denied: %s", permission)
-        val messageRes = if (permission == Manifest.permission.RECORD_AUDIO) {
-            R.string.broadcast_permission_microphone_required
-        } else {
-            R.string.broadcast_permission_notifications_required
+        val messageRes = when (permission) {
+            Manifest.permission.RECORD_AUDIO -> R.string.broadcast_permission_microphone_required
+            Manifest.permission.CAMERA -> R.string.broadcast_permission_camera_required
+            else -> R.string.broadcast_permission_notifications_required
         }
         val permanentlyDenied = !ActivityCompat.shouldShowRequestPermissionRationale(activity, permission)
         showMessage(activity.getString(messageRes), openSettingsAction = permanentlyDenied)
@@ -172,13 +166,23 @@ class MainBroadcastManager(
     }
 
     @Suppress("ReturnCount")
-    fun startBroadcast() {
+    fun startBroadcast(mode: BroadcastMode = BroadcastMode.AUDIO_ONLY, lensId: String? = null) {
         if (!controller.isAvailable) return
+        pendingMode = mode
+        pendingLensId = lensId
 
-        if (ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
+        if (mode != BroadcastMode.VIDEO_ONLY &&
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.RECORD_AUDIO)
             != PackageManager.PERMISSION_GRANTED
         ) {
             requestRecordAudioPermission()
+            return
+        }
+
+        if (mode != BroadcastMode.AUDIO_ONLY && ContextCompat.checkSelfPermission(activity, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestCameraPermission()
             return
         }
 
@@ -190,7 +194,7 @@ class MainBroadcastManager(
             return
         }
 
-        controller.start(BroadcastMode.AUDIO_ONLY)
+        controller.start(mode, lensId)
     }
 
     fun stopBroadcast() {

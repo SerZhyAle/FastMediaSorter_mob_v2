@@ -3562,4 +3562,8 @@
     <string name="tourist_accuracy_unreliable">কম্পাস ক্যালিব্রেট করুন</string>
     <string name="tourist_detail_satellites">স্যাটেলাইট: ফিক্সে %1$d ব্যবহৃত (দৃশ্যে %2$d)</string>
     <string name="tourist_detail_sun_time">সূর্যোদয়: %1$s • সূর্যাস্ত: %2$s</string>
+    <string name="settings_broadcast_enable_title">লাইভ সম্প্রচার সক্ষম করুন</string>
+    <string name="settings_broadcast_enable_subtitle">লাইভ অডিও স্ট্রিম সম্প্রচারের অনুমতি দিন এবং শর্টকাট দেখান</string>
+    <string name="widget_tourist_label">পর্যটক</string>
+    <string name="widget_tourist_description">নেভিগেশন ও রিয়েল-টাইম টেলিমেট্রি ড্যাশবোর্ড</string>
 </resources>

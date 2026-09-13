@@ -7,6 +7,7 @@ import com.sza.fastmediasorter.R
 import com.sza.fastmediasorter.core.panel.SubProgramCatalog
 import com.sza.fastmediasorter.domain.repository.SettingsRepository
 import com.sza.fastmediasorter.widget.AudioNowPlayingWidgetProvider
+import com.sza.fastmediasorter.widget.BroadcastEntryWidgetProvider
 import com.sza.fastmediasorter.widget.CalculatorWidgetProvider
 import com.sza.fastmediasorter.widget.CameraLaunchWidgetProvider
 import com.sza.fastmediasorter.widget.CameraOcrTranslateWidgetProvider
@@ -23,6 +24,7 @@ import com.sza.fastmediasorter.widget.RandomPhotoFrameWidgetProvider
 import com.sza.fastmediasorter.widget.ScheduledTasksWidgetProvider
 import com.sza.fastmediasorter.widget.StopwatchWidgetProvider
 import com.sza.fastmediasorter.widget.StreamLaunchWidgetProvider
+import com.sza.fastmediasorter.widget.TouristInfoWidgetProvider
 import com.sza.fastmediasorter.widget.WatchListenWidgetProvider
 import com.sza.fastmediasorter.widget.WaterFlashlightWidgetProvider
 import com.sza.fastmediasorter.widget.networkmonitor.NetworkMonitorWidgetProvider
@@ -267,6 +269,26 @@ class HomeWidgetCatalog @Inject constructor(
             labelRes = R.string.widget_stream_launch_label,
             iconRes = R.drawable.ic_cast,
             descriptionRes = R.string.widget_stream_launch_description,
+        ),
+        HomeWidgetEntry(
+            providerClass = BroadcastEntryWidgetProvider::class.java,
+            gadgetKey = "broadcast_entry",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_broadcast_label,
+            iconRes = R.drawable.ic_cast,
+            descriptionRes = R.string.widget_broadcast_label,
+            settingGate = { it.enableBroadcasting },
+        ),
+        HomeWidgetEntry(
+            providerClass = TouristInfoWidgetProvider::class.java,
+            gadgetKey = "tourist_info",
+            gadgetSpanW = 1,
+            gadgetSpanH = 1,
+            labelRes = R.string.widget_tourist_label,
+            iconRes = R.drawable.ic_compass,
+            descriptionRes = R.string.widget_tourist_description,
+            settingGate = { it.enableTourist },
         ),
     ) + listOfNotNull(
         runCatching {

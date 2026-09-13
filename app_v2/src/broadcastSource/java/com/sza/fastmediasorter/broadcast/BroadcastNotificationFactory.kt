@@ -15,15 +15,18 @@ object BroadcastNotificationFactory {
 
     const val CHANNEL_ID = "broadcast_channel"
 
-    fun createNotification(context: Context): Notification {
+    /** [stopIntent] must address the service that owns the notification, or its stop action stops nothing. */
+    fun createNotification(
+        context: Context,
+        stopIntent: Intent = Intent(context, BroadcastCaptureService::class.java).apply {
+            action = BroadcastCaptureService.ACTION_STOP
+        },
+    ): Notification {
         ensureChannelCreated(context)
 
-        val stopIntent = Intent(context, BroadcastCaptureService::class.java).apply {
-            action = BroadcastCaptureService.ACTION_STOP
-        }
         val stopPendingIntent = PendingIntent.getService(
             context,
-            0,
+            stopIntent.component?.className.hashCode(),
             stopIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

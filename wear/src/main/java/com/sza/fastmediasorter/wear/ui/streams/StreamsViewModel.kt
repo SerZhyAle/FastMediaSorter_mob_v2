@@ -268,6 +268,7 @@ class StreamsViewModel @Inject constructor(
     // not - strategic Non-goals keep this to filter and sort, and a restored query would empty the
     // list on a word the wearer cannot see.
     fun setFilterKind(kind: StreamFilterKind) {
+        Timber.d("S3062: stream filter kind set to $kind")
         _uiState.update { it.copy(filterKind = kind, showFilterDialog = false) }
         projectionInputs.update { it.copy(filterKind = kind) }
         viewModelScope.launch { preferencesRepository.setStreamsFilterKindName(kind.name) }
@@ -559,6 +560,9 @@ private fun List<WearStreamChannel>.sortedByUsage(
         .thenBy { it.name }
 ).map { it.channel }
 
+/** S3062: the only way a channel is added by hand on the watch is a transfer from the phone. */
+private fun WearStreamChannel.isOwnChannel(): Boolean = origin == WearStreamChannel.ORIGIN_PHONE
+
 /** Pin ranks, ascending: the lower the rank the earlier the channel sits in the finished list. */
 private const val WATCH_PIN_RANK = 0
 private const val PHONE_PIN_RANK = 1
@@ -582,8 +586,9 @@ internal fun computeDisplayChannels(inputs: ProjectionInputs): List<WearStreamCh
 
     result = when (inputs.filterKind) {
         StreamFilterKind.ALL -> result
-        StreamFilterKind.AUDIO_ONLY -> result.filter { !it.isVideoKind() }
-        StreamFilterKind.VIDEO_ONLY -> result.filter { it.isVideoKind() }
+        StreamFilterKind.AUDIO_ONLY -> result.filter { !it.isOwnChannel() && !it.isVideoKind() }
+        StreamFilterKind.VIDEO_ONLY -> result.filter { !it.isOwnChannel() && it.isVideoKind() }
+        StreamFilterKind.OWN -> result.filter { it.isOwnChannel() }
     }
 
     if (!selectedTopic.isNullOrBlank()) {

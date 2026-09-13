@@ -42,7 +42,7 @@ This document is the curated showcase of standout user-facing features. The comp
 - **Mirror** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: The front camera as a plain mirror, one tap from the programs menu.
 - **Water flashlight** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: A screen light wet hands cannot switch off by accident, on the phone and on the watch.
 - **Camera flashlight from the notification shade** `[Standard / Lite / Photos / Legacy / VR / noLegal]`: One tile turns the camera light on and off without opening anything.
-- **Live broadcast over Wi-Fi** `[Standard / Legacy / noLegal]`: The phone microphone becomes a station anyone on the same network can listen to, with its own settings section.
+- **Live broadcast over Wi-Fi** `[Standard / Legacy / noLegal]`: Unified live broadcast screen combining camera preview, mode selection (Audio / Camera+Audio / Camera Only), physical camera lens selection (Wide, Telephoto, Ultra-Wide), microphone/camera toggles, screen-off mode, live listener count, and integrated QR code / stream link sharing.
 - **Listen to the paired watch** `[Standard / noLegal]`: Live audio from the watch arrives on the phone, and can be recorded there.
 ## 4. Replace a basic file viewer with a sorting workstation
 - **Instant sorting panel** `[Standard / VR]`: Keep up to 30 favorite destination folders in the player and sort the current file in one tap, with optional auto-advance to the next item.

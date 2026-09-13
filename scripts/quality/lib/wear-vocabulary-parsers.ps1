@@ -142,7 +142,7 @@ function Get-KotlinConstMap {
     param([string]$Source, [string]$Prefix)
 
     $map = [ordered]@{}
-    foreach ($m in [regex]::Matches($Source, "const\s+val\s+(?<n>$([regex]::Escape($Prefix))\w+)\s*=\s*""(?<v>[^""]+)""")) {
+    foreach ($m in [regex]::Matches($Source, "const\s+val\s+(?<n>$([regex]::Escape($Prefix))\w*)\s*=\s*""(?<v>[^""]+)""")) {
         $map[$m.Groups['n'].Value] = $m.Groups['v'].Value
     }
     return $map
@@ -186,4 +186,24 @@ function Get-KotlinCompanionConstMap {
     if (-not $companion.Success) { return [ordered]@{} }
 
     return Get-KotlinConstMap -Source $companion.Groups['body'].Value -Prefix $Prefix
+}
+
+# Unique @SerializedName values declared in a named data class, sorted alphabetically.
+#
+# S3056: used to compare data transfer object wire schema parity between app_v2 and wear modules.
+function Get-KotlinClassSerializedName {
+    param([string]$Source, [string]$ClassName)
+
+    $decl = [regex]::Match($Source, "(?:data\s+)?class\s+$([regex]::Escape($ClassName))\b")
+    if (-not $decl.Success) { return @() }
+
+    $rest = $Source.Substring($decl.Index)
+    $next = [regex]::Match($rest.Substring(1), '(?m)^(?:data\s+)?(?:class|enum\s+class|object|interface)\s')
+    if ($next.Success) { $rest = $rest.Substring(0, $next.Index + 1) }
+
+    $names = @()
+    foreach ($m in [regex]::Matches($rest, '@SerializedName\s*\(\s*"(?<wire>[^"]+)"\s*\)')) {
+        $names += $m.Groups['wire'].Value
+    }
+    return @($names | Sort-Object -Unique)
 }

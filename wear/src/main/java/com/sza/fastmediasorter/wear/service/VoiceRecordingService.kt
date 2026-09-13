@@ -21,6 +21,7 @@ import com.sza.fastmediasorter.wear.R
 import com.sza.fastmediasorter.wear.core.notification.NotificationIcons
 import com.sza.fastmediasorter.wear.core.notification.WearNotificationIds
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorDto
+import com.sza.fastmediasorter.wear.data.broadcast.BroadcastEndpointDto
 import com.sza.fastmediasorter.wear.data.broadcast.BroadcastDescriptorSerializer
 import com.sza.fastmediasorter.wear.data.broadcast.WearBroadcastIdentityStore
 import com.sza.fastmediasorter.wear.data.wear.ListenAckSender
@@ -366,11 +367,23 @@ class VoiceRecordingService : Service() {
         sourceId: String,
         watchName: String
     ): WearBroadcastSessionState.Live {
+        val endpointDto = BroadcastEndpointDto(
+            url = endpoint.url,
+            transport = "HTTP",
+            mode = BroadcastDescriptorDto.MODE_AUDIO_ONLY,
+            audioCodec = "aac",
+            isLive = true,
+            targetLatencyMs = 200L
+        )
         val descriptor = BroadcastDescriptorDto(
             url = endpoint.url,
             title = watchName,
-            sourceId = sourceId
+            sourceId = sourceId,
+            endpoints = listOf(endpointDto),
+            isLive = true,
+            targetLatencyMs = 200L
         )
+        Timber.d("S3051: watch descriptor published with endpoints=%s isLive=%s", descriptor.endpoints, descriptor.isLive)
         return WearBroadcastSessionState.Live(
             endpoint = endpoint,
             descriptorJson = descriptorSerializer.serialize(descriptor),

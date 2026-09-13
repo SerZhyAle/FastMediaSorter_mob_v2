@@ -812,22 +812,28 @@ private fun StreamFilterDialog(
 
                 item {
                     WearSegmentedToggleRow(
+                        // S3062: ALL is not a cell - no lit cell means the whole list, and tapping the lit
+                        // cell again returns to it, because a fourth cell does not fit the round dialog.
                         options = listOf(
-                            StreamFilterKind.ALL,
+                            StreamFilterKind.VIDEO_ONLY,
                             StreamFilterKind.AUDIO_ONLY,
-                            StreamFilterKind.VIDEO_ONLY
+                            StreamFilterKind.OWN
                         ),
                         selected = state.selectedFilter,
                         labelOf = { filter ->
                             when (filter) {
-                                StreamFilterKind.ALL -> stringResource(R.string.wear_streams_filter_kind_all)
-                                StreamFilterKind.AUDIO_ONLY ->
-                                    stringResource(R.string.wear_streams_filter_kind_audio)
                                 StreamFilterKind.VIDEO_ONLY ->
                                     stringResource(R.string.wear_streams_filter_kind_video)
+                                StreamFilterKind.AUDIO_ONLY ->
+                                    stringResource(R.string.wear_streams_filter_kind_audio)
+                                StreamFilterKind.OWN, StreamFilterKind.ALL ->
+                                    stringResource(R.string.wear_streams_filter_kind_own)
                             }
                         },
-                        onSelected = { actions.onFilterSelected(it) }
+                        onSelected = { tapped ->
+                            val next = if (tapped == state.selectedFilter) StreamFilterKind.ALL else tapped
+                            actions.onFilterSelected(next)
+                        }
                     )
                 }
 

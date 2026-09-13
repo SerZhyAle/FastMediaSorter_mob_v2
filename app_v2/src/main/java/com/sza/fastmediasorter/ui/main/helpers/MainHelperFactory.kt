@@ -75,12 +75,14 @@ class MainHelperFactory @Inject constructor(
         controller: BroadcastSourceController,
         requestRecordAudioPermission: () -> Unit,
         requestPostNotificationsPermission: () -> Unit,
+        requestCameraPermission: () -> Unit = {},
     ): MainBroadcastManager = MainBroadcastManager(
         activity = activity,
         controller = controller,
         settingsRepository = settingsRepository,
         requestRecordAudioPermission = requestRecordAudioPermission,
         requestPostNotificationsPermission = requestPostNotificationsPermission,
+        requestCameraPermission = requestCameraPermission,
     )
 
     fun createResumePlaybackHelper(

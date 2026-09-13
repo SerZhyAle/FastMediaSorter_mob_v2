@@ -16,7 +16,10 @@ class NoOpBroadcastSourceController @Inject constructor() : BroadcastSourceContr
     private val _state = MutableStateFlow<BroadcastState>(BroadcastState.Idle)
     override val state: StateFlow<BroadcastState> = _state.asStateFlow()
 
-    override fun start(mode: BroadcastMode) {
+    private val _listenerCount = MutableStateFlow(0)
+    override val listenerCount: StateFlow<Int> = _listenerCount.asStateFlow()
+
+    override fun start(mode: BroadcastMode, lensId: String?) {
         // No-op
     }
 
@@ -25,6 +28,18 @@ class NoOpBroadcastSourceController @Inject constructor() : BroadcastSourceContr
     }
 
     override fun acknowledgeFailure() {
+        // No-op
+    }
+
+    override fun toggleCamera() {
+        // No-op
+    }
+
+    override fun toggleMicrophone() {
+        // No-op
+    }
+
+    override fun selectLens(lensId: String) {
         // No-op
     }
 }

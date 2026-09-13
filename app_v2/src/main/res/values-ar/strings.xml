@@ -3561,4 +3561,8 @@
     <string name="tourist_accuracy_unreliable">معايرة البوصلة</string>
     <string name="tourist_detail_satellites">الأقمار الصناعية: %1$d مستخدَم في التحديد (%2$d ضمن النطاق)</string>
     <string name="tourist_detail_sun_time">الشروق: %1$s • الغروب: %2$s</string>
+    <string name="settings_broadcast_enable_title">تفعيل البث المباشر</string>
+    <string name="settings_broadcast_enable_subtitle">السماح ببث الصوت المباشر وإظهار الاختصارات</string>
+    <string name="widget_tourist_label">سائح</string>
+    <string name="widget_tourist_description">لوحة تحكم للملاحة والقياس عن بعد في الوقت الفعلي</string>
 </resources>

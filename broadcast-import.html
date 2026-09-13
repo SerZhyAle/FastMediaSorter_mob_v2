@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Open broadcast in Fast Media Sorter</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="hero">
+        <h1>Open live broadcast</h1>
+        <p>This broadcast needs Fast Media Sorter on Android.</p>
+        <a class="btn btn-primary" id="open-app" href="https://play.google.com/store/apps/details?id=com.sza.fastmediasorter">Open Fast Media Sorter</a>
+        <p id="status">If the app is installed, opening it now..</p>
+    </main>
+    <script>
+        (function () {
+            var payload = new URLSearchParams(location.hash.slice(1)).get('payload');
+            if (!payload) {
+                document.getElementById('status').textContent = 'This broadcast link is incomplete.';
+                return;
+            }
+            var appLink = 'fmsbcast://import?payload=' + encodeURIComponent(payload);
+            var openApp = document.getElementById('open-app');
+            openApp.href = appLink;
+            location.replace(appLink);
+        }());
+    </script>
+</body>
+</html>

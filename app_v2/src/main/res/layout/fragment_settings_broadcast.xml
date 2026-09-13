@@ -8,6 +8,16 @@
     android:paddingHorizontal="@dimen/margin_small"
     android:paddingVertical="@dimen/margin_small">
 
+    <com.sza.fastmediasorter.ui.common.widget.SettingsToggleRow
+        android:id="@+id/rowEnableBroadcasting"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/margin_tiny"
+        android:focusable="true"
+        android:clickable="true"
+        app:str_title="@string/settings_broadcast_enable_title"
+        app:str_subtitle="@string/settings_broadcast_enable_subtitle" />
+
     <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
         android:id="@+id/rowStreamTitle"
         android:layout_width="match_parent"
@@ -35,7 +45,7 @@
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsInputRow
             android:id="@+id/rowPort"
-            android:layout_width="@dimen/settings_input_numeric_max_width"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/margin_tiny"
             android:layout_marginBottom="@dimen/margin_tiny"
@@ -43,6 +53,8 @@
             android:clickable="true"
             app:sir_title="@string/settings_broadcast_port"
             app:sir_inputType="2"
+            app:sir_inline="true"
+            app:sir_maxLength="5"
             app:sir_fieldMaxWidth="@dimen/settings_input_numeric_max_width" />
 
         <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
@@ -55,6 +67,17 @@
             android:clickable="true"
             app:sdr_valueAsText="true"
             app:sdr_title="@string/settings_broadcast_audio_format" />
+
+        <com.sza.fastmediasorter.ui.common.widget.SettingsDropdownRow
+            android:id="@+id/rowMicGain"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_tiny"
+            android:layout_marginBottom="@dimen/margin_tiny"
+            android:focusable="true"
+            android:clickable="true"
+            app:sdr_valueAsText="true"
+            app:sdr_title="@string/settings_broadcast_mic_gain" />
 
     </com.sza.fastmediasorter.ui.common.widget.SettingsValueRowGroup>
 

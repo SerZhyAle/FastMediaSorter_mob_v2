@@ -128,6 +128,18 @@ object ScreenshotGestureActionCatalog {
             R.string.gesture_action_explain_start_screen_recording,
             R.drawable.ic_gesture_action_screen_record,
         )
+        ScreenshotGestureAction.START_BROADCAST -> GestureActionMeta(
+            GestureActionGroup.UTILITY,
+            R.string.broadcast_menu_label,
+            R.string.broadcast_menu_label,
+            R.drawable.ic_cast,
+        )
+        ScreenshotGestureAction.OPEN_TOURIST_INFO -> GestureActionMeta(
+            GestureActionGroup.UTILITY,
+            R.string.tourist_info_title,
+            R.string.tourist_info_panel_desc,
+            R.drawable.ic_compass,
+        )
         ScreenshotGestureAction.OPEN_NOTIFICATION_SHADE -> GestureActionMeta(
             GestureActionGroup.SYSTEM,
             R.string.screenshot_gesture_action_notification_shade,

@@ -1017,6 +1017,33 @@ scripts/builders/gradle-worker-reaper.tests/Run-Tests.ps1
   (no param block)
 ```
 
+## scripts\ci
+
+### ensure-prebuilt-libs.ps1
+Assert the prebuilt native AARs a release build needs are present, and fetch what is missing.
+
+```
+scripts/ci/ensure-prebuilt-libs.ps1
+  Assert the prebuilt native AARs a release build needs are present, and fetch what is missing.
+  Params:
+    -RepoRoot             [String]
+    -ManifestPath         [String]
+    -NoFetch              [SwitchParameter]
+  Exit: 0 - every AAR in the manifest is present and non-empty (fetched now, or already there).; 1 - an AAR is missing and could not be fetched (no CLI, or the download failed or was empty).; 2 - the manifest is absent, empty, or could not be read.
+```
+
+## scripts\ci\ensure-prebuilt-libs.tests
+
+### Run-Tests.ps1
+Contract suite for scripts/ci/ensure-prebuilt-libs.ps1 (S3029).
+
+```
+scripts/ci/ensure-prebuilt-libs.tests/Run-Tests.ps1
+  Contract suite for scripts/ci/ensure-prebuilt-libs.ps1 (S3029).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
+```
+
 ## scripts\devtest
 
 ### adb.ps1
@@ -1552,6 +1579,15 @@ scripts/devtest/lib/device-form-factor.ps1
   (no param block)
 ```
 
+### device-store-paths.ps1
+Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+
+```
+scripts/devtest/lib/device-store-paths.ps1
+  Declares WHERE the two device stores live and HOW a serial becomes a file name (S3036).
+  (no param block)
+```
+
 ### find-adb.ps1
 Shared adb-path auto-discovery, extracted from adb.ps1 (S1341) so every caller (adb.ps1, spec-prerelease.md, any future device script) uses one discovery order instead of each hand-rolling its own hardcoded fallback.
 
@@ -1613,6 +1649,18 @@ S2779 - the watch walk's standing position, and the decision to recover it.
 scripts/devtest/lib/wear-walk-position.ps1
   S2779 - the watch walk's standing position, and the decision to recover it.
   (no param block)
+```
+
+## scripts\devtest\lib\device-store-paths.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+
+```
+scripts/devtest/lib/device-store-paths.tests/Run-Tests.ps1
+  Contract tests for scripts/devtest/lib/device-store-paths.ps1 (S3036).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
 ```
 
 ## scripts\devtest\prerelease-log-audit.tests
@@ -3517,6 +3565,18 @@ scripts/quality/assert-tactical-step-form.ps1
   Exit: 0 - clean (count <= baseline), or audit mode (no -Gate), or baseline updated.; 1 - substantive failure: more Why-less steps than the baseline allows.; 2 - the gate itself cannot run (PLAN/ or the baseline file is missing/unreadable).; 4 - Code.Scripts is held by another session, so no baseline was written. The queue place is
 ```
 
+### assert-temp-root-inventory.ps1
+Holds the top level of temp/ to the inventory that declares it (S3030).
+
+```
+scripts/quality/assert-temp-root-inventory.ps1
+  Holds the top level of temp/ to the inventory that declares it (S3030).
+  Params:
+    -Root          [String]
+    -Quiet         [SwitchParameter]
+  Exit: 0 - every top-level entry is accounted for.; 1 - at least one unaccounted entry.; 2 - cannot verify: the root or the inventory library is missing.
+```
+
 ### assert-test-suite-complete.ps1
 Fails when a unit-test run covered fewer test classes than the source set contains.
 
@@ -4338,6 +4398,18 @@ scripts/quality/assert-swallowed-cancellation.tests/Run-Tests.ps1
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 could not verify - the baseline file is missing.
 ```
 
+## scripts\quality\assert-temp-root-inventory.tests
+
+### Run-Tests.ps1
+Contract tests for scripts/quality/assert-temp-root-inventory.ps1 (S3030).
+
+```
+scripts/quality/assert-temp-root-inventory.tests/Run-Tests.ps1
+  Contract tests for scripts/quality/assert-temp-root-inventory.ps1 (S3030).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.
+```
+
 ## scripts\quality\assert-ticket-acceptance-probes.tests
 
 ### Run-Tests.ps1
@@ -4868,6 +4940,7 @@ scripts/release/gen_fastlane_changelog.ps1
     -VersionName          [String]
     -WhatsNewRoot         [String]
     -FastlaneRoot         [String]
+    -Overwrite            [SwitchParameter]
   Exit: 0 - at least one locale produced a changelog file.; 1 - a locale's "Current release" block is missing or empty, or no changelog was produced
 ```
 
@@ -5090,6 +5163,18 @@ scripts/release/compose-play-screenshots.tests/Run-Tests.ps1
   Run-Tests.ps1 (S2573) - regression suite for the caption geometry of the Play screenshot composer.
   (no param block)
   Exit: 0 all cases pass.; 1 at least one case failed.; 2 the suite could not run (the subject is missing, the project virtual environment is absent,
+```
+
+## scripts\release\gen-fastlane-changelog.tests
+
+### Run-Tests.ps1
+Contract suite for the overwrite rule in scripts/release/gen_fastlane_changelog.ps1 (S3027).
+
+```
+scripts/release/gen-fastlane-changelog.tests/Run-Tests.ps1
+  Contract suite for the overwrite rule in scripts/release/gen_fastlane_changelog.ps1 (S3027).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
 ```
 
 ## scripts\release\lib
@@ -6253,6 +6338,9 @@ scripts/utils/archive-temp.ps1
     -IncludeScratch         [SwitchParameter]
     -DryRun                 [SwitchParameter]
     -Stamp                  [String]
+    -RepoRoot               [String]
+    -TempDir                [String]
+    -SelectCli              [String]
   Exit: 0 - completed (or dry run completed); 1 - a move failed; 2 - could not verify: repo root or spec catalog CLI not found
 ```
 
@@ -7220,6 +7308,15 @@ scripts/utils/start-detached.ps1
   Exit: 0 started (prints pid, log and marker paths) - or, with -Status, the marker was read.; 1 bad arguments: no command, or -Status given a log path that does not exist.; 2 the command could not be resolved (a .ps1 that does not exist, or a name not on PATH).
 ```
 
+### temp-root-inventory.ps1
+Declares what may exist at the TOP LEVEL of temp/ - the single copy of that list (S3030).
+
+```
+scripts/utils/temp-root-inventory.ps1
+  Declares what may exist at the TOP LEVEL of temp/ - the single copy of that list (S3030).
+  (no param block)
+```
+
 ### test-agent-lock-queue.ps1
 Scenario check for the agent-lock queue: fairness, ticket retirement, liveness, compatibility.
 
@@ -7306,6 +7403,17 @@ scripts/utils/agent-watchdog.tests/Run-Tests.ps1
   Contract tests for scripts/utils/agent-watchdog.ps1.
   (no param block)
   Exit: 2 - out-of-range arguments are refused rather than silently clamped. An interval of one second
+```
+
+## scripts\utils\archive-temp.tests
+
+### Run-Tests.ps1
+Test suite for scripts/utils/archive-temp.ps1 (S3037).
+
+```
+scripts/utils/archive-temp.tests/Run-Tests.ps1
+  Test suite for scripts/utils/archive-temp.ps1 (S3037).
+  (no param block)
 ```
 
 ## scripts\utils\code-lock-scope.tests
@@ -7468,6 +7576,18 @@ Fixture for the reaper contract suite: a repository script that is idle itself b
 scripts/utils/reap-abandoned-script-processes.tests/fixtures/supervise.ps1
   Fixture for the reaper contract suite: a repository script that is idle itself but supervises a
   (no param block)
+```
+
+## scripts\utils\release-artifact-version.tests
+
+### Run-Tests.ps1
+Contract suite for Get-ReleaseMetadataCandidate / Get-ReleaseArtifactVersion in scripts/utils/build-version-stamp.ps1 (S3029).
+
+```
+scripts/utils/release-artifact-version.tests/Run-Tests.ps1
+  Contract suite for Get-ReleaseMetadataCandidate / Get-ReleaseArtifactVersion in scripts/utils/build-version-stamp.ps1 (S3029).
+  (no param block)
+  Exit: 0 - every case passed.; 1 - at least one case failed.; 2 - the fixture could not be prepared.
 ```
 
 ## scripts\utils\release-freeze.tests

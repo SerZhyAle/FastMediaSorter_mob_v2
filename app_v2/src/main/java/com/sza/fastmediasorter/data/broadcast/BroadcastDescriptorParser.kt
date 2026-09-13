@@ -53,8 +53,10 @@ class BroadcastDescriptorParser @Inject constructor() {
         return when {
             dto == null -> ParseOutcome.Malformed
             dto.schemaVersion > SUPPORTED_SCHEMA_VERSION -> ParseOutcome.UnsupportedVersion
-            dto.schemaVersion >= 1 && dto.url.isNotBlank() && dto.mode.isNotBlank() ->
+            dto.schemaVersion >= 1 && dto.url.isNotBlank() && dto.mode.isNotBlank() -> {
                 ParseOutcome.Valid(dto)
+            }
+
             else -> ParseOutcome.Malformed
         }
     }

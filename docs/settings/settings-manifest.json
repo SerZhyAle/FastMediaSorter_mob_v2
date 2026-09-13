@@ -111,6 +111,26 @@
       "titleUk": "Бітрейт"
     },
     {
+      "key": "rowEnableBroadcasting",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "TOGGLE_ROW",
+      "titleEn": "Enable live broadcasting",
+      "titleRu": "Включить вещание",
+      "titleUk": "Увімкнути мовлення"
+    },
+    {
+      "key": "rowMicGain",
+      "sectionId": "broadcast",
+      "destination": "MEDIA",
+      "layout": "fragment_settings_broadcast",
+      "kind": "DROPDOWN_ROW",
+      "titleEn": "Microphone gain",
+      "titleRu": "Усиление микрофона",
+      "titleUk": "Посилення мікрофона"
+    },
+    {
       "key": "rowPort",
       "sectionId": "broadcast",
       "destination": "MEDIA",

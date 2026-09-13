@@ -3559,4 +3559,8 @@
     <string name="tourist_accuracy_unreliable">校准指南针</string>
     <string name="tourist_detail_satellites">卫星: 定位中使用 %1$d 颗 (可见 %2$d 颗)</string>
     <string name="tourist_detail_sun_time">日出: %1$s • 日落: %2$s</string>
+    <string name="settings_broadcast_enable_title">启用实时广播</string>
+    <string name="settings_broadcast_enable_subtitle">允许实时音频流广播并显示快捷方式</string>
+    <string name="widget_tourist_label">游客</string>
+    <string name="widget_tourist_description">导航与实时遥测仪表盘</string>
 </resources>

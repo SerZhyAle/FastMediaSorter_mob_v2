@@ -117,6 +117,68 @@ function Get-ArtifactVersion {
     }
 }
 
+function Get-ReleaseMetadataCandidate {
+    <#
+    .SYNOPSIS
+        The directories a completed app_v2 release may have written output-metadata.json into, in
+        the order they should be tried.
+    .DESCRIPTION
+        There is more than one because AGP moves the bundle listing file between versions: on 9.2.1
+        it is under intermediates rather than beside the bundle, which made -ReuseVersion report
+        "run a.ps1 r first" about a release whose AAB was in the directory the message named
+        (S3029). The list is ordered, not versioned - a lookup keyed to an AGP version breaks again
+        at the next move, while trying the known places in turn survives both layouts.
+
+        Last is the APK output directory. It is a different artifact, but AGP stamps every artifact
+        of one build with the same versionCode and versionName, and publish-github-release.ps1
+        already reads that file - so it is a true answer when the two bundle locations are empty.
+    .PARAMETER ProjectRoot
+        Repository root holding app_v2/build.
+    .OUTPUTS
+        String[] - absolute directory paths, most authoritative first.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)] [string] $ProjectRoot
+    )
+
+    @(
+        (Join-Path $ProjectRoot 'app_v2\build\outputs\bundle\standardRelease'),
+        (Join-Path $ProjectRoot 'app_v2\build\intermediates\bundle_ide_model\standardRelease\produceStandardReleaseBundleIdeListingFile'),
+        (Join-Path $ProjectRoot 'app_v2\build\outputs\apk\standard\release')
+    )
+}
+
+function Get-ReleaseArtifactVersion {
+    <#
+    .SYNOPSIS
+        Read back the version a completed app_v2 release build packaged, from whichever known
+        location this AGP wrote its metadata into.
+    .DESCRIPTION
+        Get-ArtifactVersion with one directory answers "no metadata here", which a caller that knows
+        only one directory turns into "no build happened" - the S3029 failure. This asks each
+        candidate in turn and returns the first that answers.
+
+        $null still means "no metadata in any known location", which is a different answer from "the
+        version is wrong"; the caller reports the candidates, which Get-ReleaseMetadataCandidate
+        hands it from the same list this function searched.
+    .PARAMETER ProjectRoot
+        Repository root holding app_v2/build.
+    .OUTPUTS
+        The Get-ArtifactVersion object (VersionName, VersionCode, MetadataPath), or $null.
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory, Position = 0)] [string] $ProjectRoot
+    )
+
+    foreach ($dir in (Get-ReleaseMetadataCandidate -ProjectRoot $ProjectRoot)) {
+        $found = Get-ArtifactVersion -Dir $dir
+        if ($found) { return $found }
+    }
+    return $null
+}
+
 function ConvertFrom-BuildVersionName {
     <#
     .SYNOPSIS

@@ -14,7 +14,8 @@ object MediaTypeUtils {
     )
     val AUDIO_EXTENSIONS = setOf(
         "mp3", "m4a", "flac", "aac", "ogg", "wma", "opus",
-        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka", "oga", "caf", "alac", "mia", "mid", "midi"
+        "amr", "awb", "ac3", "ec3", "ac4", "adts", "thd", "mka",
+        "oga", "caf", "alac", "mia", "mid", "midi", "wav", "wave"
     )
     val TEXT_EXTENSIONS = setOf(
         // Plain text and documentation
@@ -80,7 +81,7 @@ object MediaTypeUtils {
 
     fun getMediaType(fileName: String): MediaType? {
         val extension = fileName.substringAfterLast('.', "").lowercase(Locale.ROOT)
-        return when {
+        val type = when {
             IMAGE_EXTENSIONS.contains(extension) -> MediaType.IMAGE
             GIF_EXTENSIONS.contains(extension) -> MediaType.GIF
             VIDEO_EXTENSIONS.contains(extension) -> MediaType.VIDEO
@@ -93,8 +94,12 @@ object MediaTypeUtils {
             BinaryFileTypeDetector.isBinaryExtension(extension) -> BinaryFileTypeDetector.detectType(extension)
             else -> null
         }
+        if (type == MediaType.AUDIO && (extension == "wav" || extension == "wave")) {
+            timber.log.Timber.d("S3047: getMediaType wav audio extension resolved for fileName=%s", fileName)
+        }
+        return type
     }
-    
+
     /**
      * Get media type for All Files mode (includes binary files)
      * @param fileName File name to check
@@ -104,7 +109,7 @@ object MediaTypeUtils {
     fun getMediaTypeForAllFiles(fileName: String, isAllFilesMode: Boolean): MediaType? {
         val type = getMediaType(fileName)
         if (type != null) return type
-        
+
         // In All Files mode, treat unknown files as TEXT fallback
         return if (isAllFilesMode) MediaType.TEXT else null
     }
@@ -155,7 +160,7 @@ object MediaTypeUtils {
             MediaType.EPUB -> true // No size filtering for now
             MediaType.OFFICE_DOCUMENT -> true // External viewer route, no size filtering
             // Task 6: Binary files - no size filtering
-            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK, 
+            MediaType.BINARY_ARCHIVE, MediaType.BINARY_DISK,
             MediaType.BINARY_EXECUTABLE, MediaType.BINARY_OTHER -> true
         }
     }

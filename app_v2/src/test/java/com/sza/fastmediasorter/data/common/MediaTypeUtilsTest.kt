@@ -27,6 +27,12 @@ class MediaTypeUtilsTest {
     }
 
     @Test
+    fun `getMediaType returns AUDIO for wav and wave extensions`() {
+        assertEquals(MediaType.AUDIO, MediaTypeUtils.getMediaType("S2925_tone.wav"))
+        assertEquals(MediaType.AUDIO, MediaTypeUtils.getMediaType("sound.wave"))
+    }
+
+    @Test
     fun `getMediaType is case-insensitive`() {
         assertEquals(MediaType.AUDIO, MediaTypeUtils.getMediaType("track.FLAC"))
         assertEquals(MediaType.VIDEO, MediaTypeUtils.getMediaType("clip.MKV"))

@@ -171,7 +171,20 @@ $vocabularies = @(
 
     @{ Name = 'WearSettingsFieldIssue'; Kind = 'LocalOnly'; Type = 'WearSettingsFieldIssue'
        PhoneFile = 'domain/model/WearSettingsDecodeResult.kt'; WatchFile = 'domain/model/WearSettingsDecodeResult.kt'
-       Reason = 'Decode diagnostics: a side produces it while parsing a payload that ARRIVED and consumes it locally - the watch-side SettingsPushResponder filters on WRONG_TYPE to decide what to log. It is never placed into an outgoing payload in either direction, so the two copies describe each side reading, not the two sides agreeing.' }
+       Reason = 'Decode diagnostics: a side produces it while parsing a payload that ARRIVED and consumes it locally - the watch-side SettingsPushResponder filters on WRONG_TYPE to decide what to log. It is never placed into an outgoing payload in either direction, so the two copies describe each side reading, not the two sides agreeing.' },
+
+    # S3056: broadcast descriptor barcode prefix and schema DTO field parity
+    @{ Name = 'BroadcastDescriptor COMPRESSED_PREFIX'; Kind = 'Mirrored'; Compare = 'constMap'
+       PhoneFile = 'data/broadcast/BroadcastDescriptorParser.kt'; WatchFile = 'data/broadcast/BroadcastDescriptorSerializer.kt'
+       Prefix = 'COMPRESSED_PREFIX' },
+
+    @{ Name = 'BroadcastDescriptorDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
+       PhoneFile = 'data/broadcast/BroadcastDescriptorDto.kt'; WatchFile = 'data/broadcast/BroadcastDescriptorDto.kt'
+       Class = 'BroadcastDescriptorDto' },
+
+    @{ Name = 'BroadcastEndpointDto @SerializedName fields'; Kind = 'Mirrored'; Compare = 'classSerializedNames'
+       PhoneFile = 'data/broadcast/BroadcastEndpointDto.kt'; WatchFile = 'data/broadcast/BroadcastEndpointDto.kt'
+       Class = 'BroadcastEndpointDto' }
 )
 
 function Read-SideOrNull {
@@ -252,10 +265,14 @@ foreach ($v in $vocabularies) {
             Get-KotlinWhenBranchLiteral -Source $watch -FunctionName $v.WatchFunction | ForEach-Object { $watchMap[$_] = $_ }
         }
         'serializedVsPlain' {
-            # The phone pins its wire names with @SerializedName and the watch resolves the raw name
+            # The phone pins its wire names with @SerializedName and the watch relies on the member name
             # against its member list, so this is the only pairing that reflects what travels.
             Get-KotlinEnumSerializedName -Source $phone -TypeName $v.Type | ForEach-Object { $phoneMap[$_] = $_ }
             Get-KotlinEnumMember        -Source $watch -TypeName $v.Type | ForEach-Object { $watchMap[$_] = $_ }
+        }
+        'classSerializedNames' {
+            Get-KotlinClassSerializedName -Source $phone -ClassName $v.Class | ForEach-Object { $phoneMap[$_] = $_ }
+            Get-KotlinClassSerializedName -Source $watch -ClassName $v.Class | ForEach-Object { $watchMap[$_] = $_ }
         }
     }
 

@@ -1069,6 +1069,11 @@
     "ru": "Выбирает приложение или веб-адрес, который открывается свайпом вверх в зоне жеста у правого края (верхняя полоса), и сбрасывает эту цель. Строка видна, только пока действию направления нужна цель - запуск приложения или открытие адреса; если цель не выбрана, жест открывает FastMediaSorter.",
     "uk": "Вибирає застосунок або веб-адресу, що відкривається свайпом вгору у зоні жесту біля правого краю (верхня смуга), і скидає цю ціль. Рядок видно, лише поки дії напрямку потрібна ціль - запуск застосунку або відкриття адреси; якщо ціль не вибрано, жест відкриває FastMediaSorter."
   },
+  "rowEnableBroadcasting": {
+    "en": "Enables audio and camera live broadcasting over HTTP/RTSP server from this device.",
+    "ru": "Включает прямую трансляцию аудио и камеры по HTTP/RTSP с этого устройства.",
+    "uk": "Увімкне пряму трансляцію аудіо та камери через HTTP/RTSP з цього пристрою."
+  },
   "rowGoToNextAfterCopy": {
     "en": "Automatically advances to the next file in the list after a copy operation completes.",
     "ru": "Автоматически переходит к следующему файлу в списке после завершения копирования.",
@@ -1323,6 +1328,11 @@
     "en": "Enables the built-in microphone recording feature.",
     "ru": "Включает встроенную функцию записи звука с микрофона.",
     "uk": "Вмикає вбудовану функцію запису звуку з мікрофона."
+  },
+  "rowMicGain": {
+    "en": "Sets the digital PCM gain percentage (50% to 400%) for phone microphone broadcast audio.",
+    "ru": "Задаёт процент цифрового PCM-усиления микрофона (от 50% до 400%) для трансляции с телефона.",
+    "uk": "Задає відсоток цифрового PCM-посилення мікрофона (від 50% до 400%) для трансляції з телефона."
   },
   "rowMirror": {
     "en": "Adds the mirror to the programs list: the front camera inside a bright field that lights the face.",

@@ -155,6 +155,14 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             launchScreenRecording(context)
             true
         }
+        ScreenshotGestureAction.START_BROADCAST -> {
+            launchBroadcast(context)
+            true
+        }
+        ScreenshotGestureAction.OPEN_TOURIST_INFO -> {
+            launchTouristInfo(context)
+            true
+        }
         // S1038: device-control + media actions run before (and instead of) any capture. Each handler
         // owns its action set and returns true, so the gesture skips consent/capture entirely.
         ScreenshotGestureAction.TOGGLE_FLASHLIGHT,
@@ -332,6 +340,21 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch screen recording") }
     }
 
+    private fun launchBroadcast(context: Context) {
+        val intent = Intent(context, com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity::class.java)
+            .setAction(com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity.ACTION_OPEN_BROADCAST_ENTRY)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch broadcast") }
+    }
+
+    private fun launchTouristInfo(context: Context) {
+        val intent = com.sza.fastmediasorter.ui.tourist.TouristInfoActivity.createIntent(context)
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        runCatching { context.startActivity(intent) }
+            .onFailure { Timber.w(it, "ScreenshotGestureActionDispatcher: failed to launch Tourist Info") }
+    }
+
     private fun launchPanel(context: Context) {
         // The dispatcher runs in a Service with no task of its own, so the transparent panel host needs
         // FLAG_ACTIVITY_NEW_TASK. AppLaunchPanelActivity is singleTask + excludeFromRecents, so it floats
@@ -358,6 +381,8 @@ class ScreenshotGestureActionDispatcher @Inject constructor(
             ScreenshotGestureAction.START_VIDEO_RECORDING,
             ScreenshotGestureAction.START_AUDIO_RECORDING,
             ScreenshotGestureAction.START_SCREEN_RECORDING,
+            ScreenshotGestureAction.START_BROADCAST,
+            ScreenshotGestureAction.OPEN_TOURIST_INFO,
             // S1038: device-control + media actions are pre-capture (handled in handlePreCaptureAction),
             // so they never reach runPostSave; listed here only to keep the when total.
             ScreenshotGestureAction.TOGGLE_FLASHLIGHT,

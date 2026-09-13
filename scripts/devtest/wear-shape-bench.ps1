@@ -207,10 +207,22 @@ $script:result.data = [ordered]@{ device = $DeviceId }
 
 $sizeLine = (& $adb -s $DeviceId shell wm size 2>&1) -join ' '
 $densityLine = (& $adb -s $DeviceId shell wm density 2>&1) -join ' '
-if ($sizeLine -notmatch '(\d+)x(\d+)') { Fail 2 "could not read screen size from $DeviceId ($sizeLine)" }
+
+# `wm size` / `wm density` print the physical value first and an 'Override ..' line after it when one
+# is set. The override is what every view is laid out against, so it is the shape this script must
+# judge: a physical watch put into a reviewer's geometry is exactly how WO-V16 gets measured on real
+# hardware, and reading the physical line instead reported a mismatch against a screen nobody was
+# rendering to.
+$sizeOverridden = $sizeLine -match 'Override size:\s*(\d+)x(\d+)'
+if (-not $sizeOverridden -and $sizeLine -notmatch '(\d+)x(\d+)') {
+    Fail 2 "could not read screen size from $DeviceId ($sizeLine)"
+}
 $actualWidth = [int]$Matches[1]
 $actualHeight = [int]$Matches[2]
-if ($densityLine -notmatch '(\d+)') { Fail 2 "could not read density from $DeviceId ($densityLine)" }
+$densityOverridden = $densityLine -match 'Override density:\s*(\d+)'
+if (-not $densityOverridden -and $densityLine -notmatch '(\d+)') {
+    Fail 2 "could not read density from $DeviceId ($densityLine)"
+}
 $actualDensity = [int]$Matches[1]
 
 $displays = (& $adb -s $DeviceId shell dumpsys window displays 2>&1) -join "`n"
@@ -222,6 +234,7 @@ $actualDp = [math]::Round($actualWidth / $actualDensity * 160, 1)
 $script:result.data.actual = [ordered]@{
     widthPx = $actualWidth; heightPx = $actualHeight; densityDpi = $actualDensity
     dp = $actualDp; round = $actualRound; cornerRadiusPx = $actualRadius
+    sizeOverridden = [bool]$sizeOverridden; densityOverridden = [bool]$densityOverridden
 }
 $script:result.data.expected = [ordered]@{
     widthPx = [int]$target.widthPx; heightPx = [int]$target.heightPx; densityDpi = [int]$target.densityDpi
@@ -236,8 +249,12 @@ if ($actualRound -ne [bool]$target.round) { $mismatches.Add("round=$actualRound,
 $script:result.data.mismatches = $mismatches.ToArray()
 
 if (-not $Json) {
-    Write-Host ("DEVICE {0} - {1}x{2} px at {3} dpi = {4} dp{5}" -f `
-        $DeviceId, $actualWidth, $actualHeight, $actualDensity, $actualDp, $(if ($actualRound) { ' round' } else { ' not round' })) -ForegroundColor Gray
+    $overrideNote = if ($sizeOverridden -and $densityOverridden) { ' [size and density overridden]' }
+        elseif ($sizeOverridden) { ' [size overridden]' }
+        elseif ($densityOverridden) { ' [density overridden]' }
+        else { '' }
+    Write-Host ("DEVICE {0} - {1}x{2} px at {3} dpi = {4} dp{5}{6}" -f `
+        $DeviceId, $actualWidth, $actualHeight, $actualDensity, $actualDp, $(if ($actualRound) { ' round' } else { ' not round' }), $overrideNote) -ForegroundColor Gray
     Write-Host ("PROFILE {0} - {1}x{2} px at {3} dpi = {4} dp, content box {5} dp" -f `
         $target.id, $target.widthPx, $target.heightPx, $target.densityDpi, $target.dp, $target.contentBoxDp) -ForegroundColor Gray
 }

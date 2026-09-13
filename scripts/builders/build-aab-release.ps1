@@ -39,6 +39,15 @@ $gradlew = "$projectRoot\gradlew.bat"
 # release worktree) would silently build the wrong project. The previous
 # "sibling fallback" search was a band-aid that hid exactly this bug - after
 # the Push-Location below, outputs are guaranteed to be under $projectRoot.
+# S3029: app_v2/libs/ is gitignored, so a release worktree carries no prebuilt native AAR until
+# something fetches one. Gradle's verifyPrebuiltNativeAars does catch it, but only after the build
+# has configured, where it reads as a broken build - the v2.60.9121.346 release lost a detour to
+# exactly that. Asserted here, before the lock and before gradle, so the refusal names the cause.
+& "$PSScriptRoot\..\ci\ensure-prebuilt-libs.ps1" -RepoRoot $projectRoot
+if ($LASTEXITCODE -ne 0) {
+    throw "Prebuilt native AARs are not ready (ensure-prebuilt-libs.ps1 exit $LASTEXITCODE) - see its output above."
+}
+
 . "$PSScriptRoot\..\utils\agent-lock.ps1"
 . "$PSScriptRoot\..\utils\project-paths.ps1"
 Enter-BuildLockOrExit -Reason "build-aab-release.ps1" -Domain Build.Phone

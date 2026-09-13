@@ -1,5 +1,7 @@
 package com.sza.fastmediasorter.broadcast.di
 
+import com.sza.fastmediasorter.broadcast.BroadcastPreviewBinder
+import com.sza.fastmediasorter.broadcast.BroadcastPreviewProvider
 import com.sza.fastmediasorter.broadcast.BroadcastSourceController
 import com.sza.fastmediasorter.broadcast.BroadcastSourceControllerImpl
 import dagger.Binds
@@ -17,4 +19,10 @@ abstract class BroadcastSourceModule {
     abstract fun bindBroadcastSourceController(
         impl: BroadcastSourceControllerImpl
     ): BroadcastSourceController
+
+    @Binds
+    @Singleton
+    abstract fun bindBroadcastPreviewBinder(
+        impl: BroadcastPreviewProvider
+    ): BroadcastPreviewBinder
 }

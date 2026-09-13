@@ -30,7 +30,7 @@
 - Packages: `ui/` (no business logic), `domain/`, `data/`, `di/`, `core/`, `util/`, `utils/`, `worker/`, `widget/`.
 
 ## 5. Strict Constraints
-1. No root writes (CLAUDE.md Rule 1); use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root (`BUILD.LOCK`, `CODE.LOCK`, `spec-all-queue.lock`, `done/`, `spec-next-skip-cache.json`, `current.log` + `fastmediasorter_*.log`, stream-catalog files).
+1. No root writes (CLAUDE.md Rule 1); use `temp/`, organized by ticket: ticket-bound work -> `temp/Sxxxx/`, no active ticket -> `temp/scratch/`. Fixed infra stays at `temp/` root, and the names are declared in `scripts/utils/temp-root-inventory.ps1` - never in a rules file (S3030). Ask the root: `pwsh -NoProfile -File scripts/quality/assert-temp-root-inventory.ps1`.
 2. File size limit 2000 LOC (CLAUDE.md Rule 2). Extract logic to `helpers/*Manager.kt`.
 3. No Activity logic (CLAUDE.md Rule 3). Delegate to Manager/Helper classes.
 4. Timber only (no `Log.d()`). No `Sxxxx` ticket in permanent logs.

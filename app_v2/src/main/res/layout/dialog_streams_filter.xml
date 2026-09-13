@@ -34,6 +34,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/streams_filter_media_video" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnMediaOwn"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/streams_filter_media_own" />
     </com.google.android.material.button.MaterialButtonToggleGroup>
 
     <!-- Category + language as two tappable columns; the chevron and accent-coloured value

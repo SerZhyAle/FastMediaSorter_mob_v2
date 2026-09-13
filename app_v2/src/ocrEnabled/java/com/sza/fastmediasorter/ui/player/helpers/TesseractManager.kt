@@ -75,10 +75,8 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                     if (bestSuccess) {
                         isInitialized = true
                         currentLanguage = language
-                        // S1715 pillar 1: read the mode we have been recognising in before anything sets it.
-                        // The native default is not statically readable from the 4.8.0 artefact, so this is
-                        // the only way to learn it. Two init paths exist and neither is guaranteed to match.
                         Timber.d("Tesseract initialized successfully using high-quality model for $language")
+                        logPageSegMode("best")
                         return@withContext true
                     } else {
                         Timber.w("Tesseract initialization failed with high-quality model for $language, cleaning up and falling back")
@@ -118,8 +116,8 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                 if (success) {
                     isInitialized = true
                     currentLanguage = language
-                    // S1715 pillar 1: same reading on the fallback path - see the note above.
                     Timber.d("Tesseract initialized successfully with standard fast model for $language")
+                    logPageSegMode("fast")
                 } else {
                     Timber.e("Tesseract initialization failed for $language")
                     initializationFailed = true
@@ -131,6 +129,40 @@ class TesseractManager(private val context: Context) : OfflineOcrEngine {
                 false
             }
         }
+    }
+
+    /**
+     * Record which page segmentation mode this build actually recognises in, on the [modelPath] init path
+     * that just succeeded.
+     *
+     * Nothing in this project ever calls `setPageSegMode`, so the mode is whatever the native default is -
+     * and that default is not readable from the 4.8.0 artefact statically, only from a live instance. It
+     * matters because every threshold the OCR overlay accuracy exchange offers was bracketed at PSM 3
+     * (`PSM_AUTO`), and a constant measured under one layout analysis does not transfer to another. The two
+     * init paths are logged separately because neither is guaranteed to leave the engine in the same state.
+     */
+    private fun logPageSegMode(modelPath: String) {
+        val mode = tessApi?.pageSegMode ?: return
+        Timber.i("Tesseract page segmentation mode on the %s path: %d (%s)", modelPath, mode, pageSegModeName(mode))
+    }
+
+    /** Name of [mode] as the engine's own enum spells it, or `unknown` for a value the artefact does not name. */
+    private fun pageSegModeName(mode: Int): String = when (mode) {
+        TessBaseAPI.PageSegMode.PSM_OSD_ONLY -> "PSM_OSD_ONLY"
+        TessBaseAPI.PageSegMode.PSM_AUTO_OSD -> "PSM_AUTO_OSD"
+        TessBaseAPI.PageSegMode.PSM_AUTO_ONLY -> "PSM_AUTO_ONLY"
+        TessBaseAPI.PageSegMode.PSM_AUTO -> "PSM_AUTO"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_COLUMN -> "PSM_SINGLE_COLUMN"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK_VERT_TEXT -> "PSM_SINGLE_BLOCK_VERT_TEXT"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_BLOCK -> "PSM_SINGLE_BLOCK"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_LINE -> "PSM_SINGLE_LINE"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_WORD -> "PSM_SINGLE_WORD"
+        TessBaseAPI.PageSegMode.PSM_CIRCLE_WORD -> "PSM_CIRCLE_WORD"
+        TessBaseAPI.PageSegMode.PSM_SINGLE_CHAR -> "PSM_SINGLE_CHAR"
+        TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT -> "PSM_SPARSE_TEXT"
+        TessBaseAPI.PageSegMode.PSM_SPARSE_TEXT_OSD -> "PSM_SPARSE_TEXT_OSD"
+        TessBaseAPI.PageSegMode.PSM_RAW_LINE -> "PSM_RAW_LINE"
+        else -> "unknown"
     }
 
     /**

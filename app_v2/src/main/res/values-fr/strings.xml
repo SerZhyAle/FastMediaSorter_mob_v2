@@ -3564,4 +3564,8 @@
     <string name="tourist_accuracy_unreliable">Calibrer la boussole</string>
     <string name="tourist_detail_satellites">Satellites : %1$d utilisés pour la position (%2$d visibles)</string>
     <string name="tourist_detail_sun_time">Lever : %1$s • Coucher : %2$s</string>
+    <string name="settings_broadcast_enable_title">Activer la diffusion en direct</string>
+    <string name="settings_broadcast_enable_subtitle">Autoriser la diffusion audio en direct et afficher les raccourcis</string>
+    <string name="widget_tourist_label">Touriste</string>
+    <string name="widget_tourist_description">Tableau de bord de navigation et télémétrie en temps réel</string>
 </resources>

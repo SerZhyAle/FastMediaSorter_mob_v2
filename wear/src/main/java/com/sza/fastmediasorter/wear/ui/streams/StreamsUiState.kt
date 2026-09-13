@@ -4,10 +4,15 @@ import com.sza.fastmediasorter.wear.domain.model.WearStreamChannel
 import com.sza.fastmediasorter.wear.domain.model.WearStreamCollection
 import com.sza.fastmediasorter.wear.domain.model.WearViewMode
 
+/**
+ * S3062: [OWN] holds the channels transferred from the phone, and the two kind values exclude them, so
+ * the three offered categories partition the list. The names are persisted, so existing ones stay put.
+ */
 enum class StreamFilterKind {
     ALL,
     AUDIO_ONLY,
-    VIDEO_ONLY
+    VIDEO_ONLY,
+    OWN
 }
 
 /**

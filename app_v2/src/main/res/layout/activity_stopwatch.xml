@@ -110,7 +110,7 @@
                     android:valueTo="15" />
             </LinearLayout>
 
-            <LinearLayout
+             android:gravity="center" android:gravity="center" android:gravity="center"<LinearLayout
                 android:id="@+id/stopwatchActionBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -121,10 +121,9 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStopwatchStartAll"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_tiny"
-                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
                     android:minHeight="@dimen/touch_target_min_height"
@@ -133,11 +132,10 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStopwatchResetAll"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_tiny"
                     android:layout_marginStart="@dimen/margin_tiny"
-                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
                     android:minHeight="@dimen/touch_target_min_height"
@@ -146,10 +144,9 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnStopwatchResult"
                     style="@style/Widget.Material3.Button.OutlinedButton"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="@dimen/margin_tiny"
-                    android:layout_weight="1"
                     android:clickable="true"
                     android:focusable="true"
                     android:minHeight="@dimen/touch_target_min_height"

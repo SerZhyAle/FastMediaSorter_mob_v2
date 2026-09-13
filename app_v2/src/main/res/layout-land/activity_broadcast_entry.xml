@@ -2,6 +2,7 @@
 <!-- S2818: landscape variant of the broadcast entry confirmation - same ids as res/layout,
      text block moved beside the action column (CLAUDE.md Rule 11 parity). -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/broadcast_entry_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -39,6 +40,68 @@
             android:text="@string/broadcast_entry_live"
             android:textAppearance="?attr/textAppearanceTitleMedium"
             android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/broadcast_entry_mode_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:text="@string/broadcast_entry_mode_label"
+            android:textAppearance="?attr/textAppearanceTitleSmall" />
+
+        <RadioGroup
+            android:id="@+id/broadcast_entry_mode_radio_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:orientation="vertical">
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/broadcast_entry_mode_audio_only"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:focusable="true"
+                android:clickable="true"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:text="@string/broadcast_entry_mode_audio_only" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/broadcast_entry_mode_video_audio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:text="@string/broadcast_entry_mode_video_audio" />
+
+            <com.google.android.material.radiobutton.MaterialRadioButton
+                android:id="@+id/broadcast_entry_mode_video_only"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                android:minHeight="@dimen/touch_target_min_height"
+                android:text="@string/broadcast_entry_mode_video_only" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/broadcast_entry_lens_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_normal"
+            android:text="@string/broadcast_entry_lens_label"
+            android:textAppearance="?attr/textAppearanceTitleSmall"
+            android:visibility="gone" />
+
+        <com.google.android.material.chip.ChipGroup
+            android:id="@+id/broadcast_entry_lens_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/margin_small"
+            android:visibility="gone"
+            app:selectionRequired="true"
+            app:singleSelection="true" />
     </LinearLayout>
 
     <LinearLayout

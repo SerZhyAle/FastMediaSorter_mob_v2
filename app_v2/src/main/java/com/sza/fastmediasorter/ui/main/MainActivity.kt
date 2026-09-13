@@ -22,12 +22,11 @@ import com.sza.fastmediasorter.core.capability.CapabilityAvailability
 import com.sza.fastmediasorter.core.capability.MediaCapabilities
 import com.sza.fastmediasorter.core.input.GamepadInputManager
 import com.sza.fastmediasorter.core.input.KeyBindingManager
-import com.sza.fastmediasorter.core.launcher.LauncherRoleManager
-import com.sza.fastmediasorter.core.launcher.LauncherStartWindowManager
 import com.sza.fastmediasorter.core.memory.MemoryCheckpoint
 import com.sza.fastmediasorter.core.memory.MemoryProbe
 import com.sza.fastmediasorter.core.network.NetworkContextAnalyzer
 import com.sza.fastmediasorter.core.orientation.isWideLayout
+import com.sza.fastmediasorter.core.panel.InternalRouteCatalog
 import com.sza.fastmediasorter.core.screencapture.ScreenRecordingStateController
 import com.sza.fastmediasorter.core.screencapture.ScreenVideoRecordingController
 import com.sza.fastmediasorter.core.ui.BaseActivity
@@ -41,7 +40,6 @@ import com.sza.fastmediasorter.data.repository.streams.FaviconAtlasStore
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationClassifier
 import com.sza.fastmediasorter.data.transfer.local.LocalDestinationWriter
 import com.sza.fastmediasorter.databinding.ActivityMainBinding
-import com.sza.fastmediasorter.domain.launcher.LauncherModeContract
 import com.sza.fastmediasorter.domain.model.AppSettings
 import com.sza.fastmediasorter.domain.model.GamepadAction
 import com.sza.fastmediasorter.domain.model.MediaType
@@ -64,6 +62,7 @@ import com.sza.fastmediasorter.ui.main.helpers.MainChromeOsBannerManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCollapsedChipsPlacementManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandBarTooltipManager
 import com.sza.fastmediasorter.ui.main.helpers.MainCommandOverflowMenuManager
+import com.sza.fastmediasorter.ui.main.helpers.MainDropdownMenuPopupManager
 import com.sza.fastmediasorter.ui.main.helpers.MainExitButtonManager
 import com.sza.fastmediasorter.ui.main.helpers.MainHelperFactory
 import com.sza.fastmediasorter.ui.main.helpers.MainLayoutChromeManager
@@ -80,7 +79,6 @@ import com.sza.fastmediasorter.ui.main.helpers.MainResumePlaybackHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingManager
 import com.sza.fastmediasorter.ui.main.helpers.MainScreenRecordingMenuManager
 import com.sza.fastmediasorter.ui.main.helpers.MainSftpShareManager
-import com.sza.fastmediasorter.ui.main.helpers.MainStartWindowRedirectManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStoragePermissionsHelper
 import com.sza.fastmediasorter.ui.main.helpers.MainStorageVolumeWatchManager
 import com.sza.fastmediasorter.ui.main.helpers.MainStreamsMenuManager
@@ -140,6 +138,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
     private lateinit var linkDownloadManager: MainLinkDownloadManager
     private lateinit var exitButtonManager: MainExitButtonManager
     private lateinit var programsMenuCoordinator: MainProgramsMenuCoordinator
+    private val dropdownMenuPopupManager = MainDropdownMenuPopupManager()
 
     // S2673: route-availability probe for the programs menu, built by the helper factory so this
     // Activity declares no domain dependency of its own (CLAUDE.md Rule 3).
@@ -262,15 +261,6 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
 
     @Inject
     lateinit var networkMonitorContract: NetworkMonitorContract
-
-    @Inject
-    lateinit var launcherModeContract: LauncherModeContract
-
-    @Inject
-    lateinit var launcherStartWindowManager: LauncherStartWindowManager
-
-    @Inject
-    lateinit var launcherRoleManager: LauncherRoleManager
 
     // S0963 (Pillar 2): XR-gated launcher for the resource "Open in VR Cinema" entry (No-Op on non-VR).
     @Inject
@@ -412,23 +402,12 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             finish()
         }
 
-        // S2811: the one place that answers "which window does a cold start open". It is evaluated after
-        // every redirect above, so onboarding and the system returns keep their destinations, and before
-        // the brand frame below, which a finishing instance must not schedule. The settings return shares
-        // this exit rather than owning one of its own - onCreate's return budget is spent (detekt
-        // ReturnCount), and annotating the function would unbaseline two findings by changing its
-        // detekt signature.
-        val startWindowRedirect = MainStartWindowRedirectManager(
-            contract = launcherModeContract,
-            startWindowManager = launcherStartWindowManager,
-            isResumingAudio = {
-                AudioPlaybackService.isRunning && AudioPlaybackService.currentResourceId > 0L
-            },
-            isHomeRoleHeld = { launcherRoleManager.isHomeRoleHeld() },
-        )
-        val redirected = returningToSettings ||
-            startWindowRedirect.redirectIfRequested(this, intent, savedInstanceState, returnToSettingsRequested)
-        if (redirected) return
+        // S3035: the start-window redirect (S2811) is removed - it opened a second launcher over the
+        // system launcher when the app was not the home role holder, which is the opposite of what the
+        // app icon should do. S2858 suppressed it when the app held HOME; S3035 suppresses the other
+        // half. Together the redirect never fires, so the app icon always opens the resource manager.
+        Timber.d("S3035: cold start reached MainActivity, no launcher redirect")
+        if (returningToSettings) return
 
         // S2556: the startup brand frame, placed here for the same reason as the notices below -
         // after every early-return redirect, so the welcome path and the settings return never carry
@@ -864,7 +843,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         // S0962 (VR Cinema, Pillar 1): visible only on an XR device with the VR-3D master toggle on; the
         // launch manager mirrors that runtime state (same gate as the file/resource context-menu items).
         vrCinema = resourceVrCinemaLaunchManager.isAvailable,
-        broadcast = broadcastSourceController.isAvailable,
+        broadcast = broadcastSourceController.isAvailable && subProgramAvailability(InternalRouteCatalog.KEY_BROADCAST),
         isSubProgramAvailable = subProgramAvailability,
     )
 
@@ -879,9 +858,13 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
             return
         }
 
-        popup.setForceShowIcon(true)
-        popup.setOnMenuItemClickListener { item -> handleMainWindowMenuItem(item.itemId) }
-        popup.show()
+        val items = (0 until popup.menu.size()).map { popup.menu.getItem(it) }
+        dropdownMenuPopupManager.show(
+            activity = this,
+            anchor = binding.btnMainDropdownMenu,
+            items = items,
+            onItemClicked = { itemId -> handleMainWindowMenuItem(itemId) }
+        )
     }
 
     /** S0755: shared click routing for both the dropdown popup and the programs panel buttons. */
@@ -967,7 +950,7 @@ class MainActivity : BaseActivity<ActivityMainBinding>() {
         )
         broadcastManager.bind(this)
         broadcastMenuManager = MainBroadcastMenuManager(
-            onBroadcast = { broadcastManager.startBroadcast() },
+            onBroadcast = { com.sza.fastmediasorter.ui.broadcast.BroadcastEntryActivity.launch(this) },
         )
         // S0831/S0770: per-item panel actions (new-window launch + Remove/Disable confirms). Constructed
         // before the coordinator/menu-actions below, which delegate to it.

@@ -61,13 +61,14 @@ class CastMediaManagerImpl(
 ) : CastController {
 
     companion object {
-        private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024   // 50 MB
+        private const val MAX_VIDEO_CAST_BYTES = 50L * 1024 * 1024 // 50 MB
         private const val DIALOG_TAG = "CastChooserDialog"
     }
 
     // ── State ────────────────────────────────────────────────────────────────
 
     override val isCasting: Boolean get() = _isCasting
+
     @Volatile private var _isCasting = false
 
     override val castAvailableState = MutableStateFlow(false)
@@ -308,31 +309,7 @@ class CastMediaManagerImpl(
             CastStreamDecision.NotAStream -> Unit // fall through to local/network/cloud handling
         }
 
-        val isLocalFile = !file.path.startsWith("smb://") &&
-            !file.path.startsWith("sftp://") &&
-            !file.path.startsWith("ftp://") &&
-            !file.path.startsWith("cloud://")
-        val localFile: File? = when {
-            isLocalFile -> {
-                // Local file: serve directly
-                File(file.path)
-            }
-            file.type == MediaType.VIDEO && file.size > MAX_VIDEO_CAST_BYTES -> {
-                // Too large: notify and bail
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.cast_video_too_large, Toast.LENGTH_LONG).show()
-                }
-                return
-            }
-            else -> {
-                // Network/Cloud: download to temp cache
-                withContext(Dispatchers.Main) {
-                    Toast.makeText(context, R.string.cast_preparing, Toast.LENGTH_SHORT).show()
-                }
-                downloadToTemp(file)
-            }
-        }
-
+        val localFile = resolveLocalFile(file)
         if (localFile == null || !localFile.exists()) {
             Timber.w("CastMediaManager: could not resolve local file for ${file.name}")
             withContext(Dispatchers.Main) {
@@ -341,6 +318,58 @@ class CastMediaManagerImpl(
             return
         }
 
+        val (cropResult, castFile) = applyStereoCrop(localFile, file, stereoCrop)
+
+        proxyServer.serveFile(castFile)
+        val castUrl = proxyServer.castUrl()
+        Timber.d("S3059: castUrl resolved %s", castUrl)
+        if (castUrl == null) {
+            Timber.w("CastMediaManager: LAN IP address unavailable; cannot cast via proxy")
+            withContext(Dispatchers.Main) {
+                Toast.makeText(context, R.string.cast_error_file, Toast.LENGTH_SHORT).show()
+            }
+            return
+        }
+        val mimeType = LocalCastProxyServer.mimeType(castFile)
+        // S1558: Cast reproduces the panel's single-eye crop by exporting a cached half-frame with
+        // Media3 Transformer. Long clips keep the original, and live streams bypass this proxy path.
+        Timber.d(
+            "CastMediaManager: casting ${file.name} via $castUrl stereoCrop=$stereoCrop " +
+                "cropped=${cropResult is CastStereoCropResult.Cropped} served=${castFile.name}",
+        )
+
+        withContext(Dispatchers.Main) {
+            loadMediaOnReceiver(file, castUrl, mimeType)
+        }
+    }
+
+    private suspend fun resolveLocalFile(file: MediaFile): File? {
+        val isLocalFile = !file.path.startsWith("smb://") &&
+            !file.path.startsWith("sftp://") &&
+            !file.path.startsWith("ftp://") &&
+            !file.path.startsWith("cloud://")
+        return when {
+            isLocalFile -> File(file.path)
+            file.type == MediaType.VIDEO && file.size > MAX_VIDEO_CAST_BYTES -> {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.cast_video_too_large, Toast.LENGTH_LONG).show()
+                }
+                null
+            }
+            else -> {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(context, R.string.cast_preparing, Toast.LENGTH_SHORT).show()
+                }
+                downloadToTemp(file)
+            }
+        }
+    }
+
+    private suspend fun applyStereoCrop(
+        localFile: File,
+        file: MediaFile,
+        stereoCrop: CastStereoCrop?
+    ): Pair<CastStereoCropResult, File> {
         val cropResult = if (stereoCrop != null && file.type == MediaType.VIDEO) {
             discardCroppedFile()
             withContext(Dispatchers.Main) {
@@ -361,20 +390,7 @@ class CastMediaManagerImpl(
             CastStereoCropResult.SkippedLong,
             CastStereoCropResult.Failed -> localFile
         }
-
-        proxyServer.serveFile(castFile)
-        val castUrl = proxyServer.castUrl()
-        val mimeType = LocalCastProxyServer.mimeType(castFile)
-        // S1558: Cast reproduces the panel's single-eye crop by exporting a cached half-frame with
-        // Media3 Transformer. Long clips keep the original, and live streams bypass this proxy path.
-        Timber.d(
-            "CastMediaManager: casting ${file.name} via $castUrl stereoCrop=$stereoCrop " +
-                "cropped=${cropResult is CastStereoCropResult.Cropped} served=${castFile.name}",
-        )
-
-        withContext(Dispatchers.Main) {
-            loadMediaOnReceiver(file, castUrl, mimeType)
-        }
+        return cropResult to castFile
     }
 
     /**

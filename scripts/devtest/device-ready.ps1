@@ -133,6 +133,7 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
 
 . "$PSScriptRoot/lib/device-form-factor.ps1"
+. "$PSScriptRoot/lib/device-store-paths.ps1"
 
 # ---------- helpers ----------
 
@@ -242,7 +243,10 @@ function Add-RegistryMark {
     # the store directory is never created here, because the probe must not leave artifacts
     # behind any more than the monitor writer does.
     param([Parameter(Mandatory)][string]$Serial)
-    $recordPath = Join-Path $PSScriptRoot ("..\..\temp\DEVICE.REGISTRY\" + ($Serial -replace ':', '_') + ".json")
+    # The store's address and the serial encoding both come from the declaration (S3036) - this
+    # site used to spell out the path AND the encoding, which made it the third copy of each.
+    $repoRoot = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
+    $recordPath = Get-DeviceStoreRecordPath -RepoRoot $repoRoot -Store Registry -Serial $Serial
     $script:result.registry = 'absent'
     if (-not (Test-Path -LiteralPath $recordPath)) { return }
     try {

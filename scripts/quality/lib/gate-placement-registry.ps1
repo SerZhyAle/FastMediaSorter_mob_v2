@@ -98,7 +98,7 @@ function Get-GatePlacementMembership {
         @{
             'per-ticket'         = @('scripts/post-change.ps1')
             'release-scope'      = @('scripts/quality/assert-release-scope-gates.ps1')
-            'prerelease-content' = @('scripts/quality/assert-prerelease-content-gates.ps1', '.claude/commands/spec-prerelease.md')
+            'prerelease-content' = @('scripts/quality/assert-prerelease-content-gates.ps1', '.claude/commands/spec-prerelease.md', '.claude/commands/spec-prerelease-wear.md')
             'fast-batch'         = @('scripts/quality/assert-fast-gates.ps1')
             'build'              = @('scripts/release/standard-release-gate.ps1')
         }

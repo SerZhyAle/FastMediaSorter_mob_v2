@@ -25,6 +25,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.testTagsAsResourceId
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -124,6 +126,7 @@ import com.sza.fastmediasorter.wear.ui.network.NetworkSourceMediaTypeScreen
 import com.sza.fastmediasorter.wear.ui.network.NetworkSourcesScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncResultScreen
 import com.sza.fastmediasorter.wear.ui.network.SyncTransferScreen
+import com.sza.fastmediasorter.wear.ui.network.viewmodel.NetworkSourcesViewModel
 import com.sza.fastmediasorter.wear.ui.permission.PermissionsScreen
 import com.sza.fastmediasorter.wear.ui.phone.PhoneResourceScreen
 import com.sza.fastmediasorter.wear.ui.phonecamera.PhoneCameraScreen
@@ -588,7 +591,6 @@ fun MainNavigation(
         initialValue = WearGeometryMode.STORE
     )
 
-
     CompositionLocalProvider(
         LocalWearWallpaperState provides WearWallpaperState(
             background = background,
@@ -696,8 +698,26 @@ private fun NavGraphBuilder.syncRoutes(navController: NavHostController) {
     composable(WearRoutes.ADD_SMB_ALIAS) {
         AddNetworkSourceScreen(navController = navController)
     }
-    composable(WearRoutes.SYNC_TRANSFER) {
-        SyncTransferScreen(navController = navController)
+    composable(WearRoutes.SYNC_TRANSFER) { backStackEntry ->
+        val parentEntry = remember(backStackEntry) {
+            try {
+                navController.getBackStackEntry(WearRoutes.NETWORK_SOURCES)
+            } catch (e: IllegalArgumentException) {
+                Timber.w(e, "NETWORK_SOURCES route not found on backstack for SYNC_TRANSFER")
+                null
+            }
+        }
+        val viewModel: NetworkSourcesViewModel = if (parentEntry != null) {
+            hiltViewModel(parentEntry)
+        } else {
+            hiltViewModel()
+        }
+        val syncState by viewModel.syncState.collectAsState()
+        SyncTransferScreen(
+            navController = navController,
+            syncState = syncState,
+            onDispose = { viewModel.resetSyncState() }
+        )
     }
     composable(
         route = WearRoutes.SYNC_RESULT_PATTERN,

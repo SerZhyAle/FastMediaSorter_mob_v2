@@ -8,7 +8,7 @@
   elements by id/text natively, so a flow runs at native speed and costs ~0 LLM tokens.
 
   The full Maestro output (per-step trace, failures, timing) is written to a log file
-  under temp/ - it is NOT echoed to stdout, to keep it out of the LLM context. stdout
+  under temp/scratch/maestro - it is NOT echoed to stdout, to keep it out of the LLM context. stdout
   carries only the one-line verdict (or, with -Json, a single machine object).
 
   Targeting parity with device-ready.ps1: same binary-discovery pattern, same -Json
@@ -125,9 +125,11 @@ Write-Line "OK maestro: $maestro" 'Green'
 
 # ---------- step 3: run ----------
 
-# Log lands under temp/ (repo convention: no artifacts at root). Off-context by design.
+# Log lands under temp/scratch/maestro. Off-context by design. Rule 10 lists what may live at
+# temp/ ROOT and a per-flow trace is not on it, so a suite asserting over that directory used to
+# fail on this runner's logs (S3025).
 $repoRoot = (Resolve-Path -Path (Join-Path $PSScriptRoot '..\..')).Path
-$tempDir  = Join-Path $repoRoot 'temp'
+$tempDir  = Join-Path $repoRoot 'temp/scratch/maestro'
 if (-not (Test-Path -Path $tempDir -PathType Container)) {
     New-Item -ItemType Directory -Path $tempDir -Force | Out-Null
 }

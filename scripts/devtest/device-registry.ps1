@@ -17,9 +17,10 @@
     from a live device. A record is an advisory fact, never a permission:
     `docs/DEVICE_FLEET.md` stays the only authority for what a device permits.
 
-    Store: one file per device under `temp/DEVICE.REGISTRY/<serial>.json` - the lease store's
-    discipline (validated serial, ':' encoded for tcpip names, UTF-8 no-BOM JSON, write-then-rename
-    updates) with the opposite lifecycle: nothing sweeps it. Read-only verbs never create the
+    Store: one file per device in the registry store that lib\device-store-paths.ps1 declares
+    (S3036), named after the serial - the lease store's
+    discipline (validated serial, ':' encoded for tcpip names by that same declaration, UTF-8
+    no-BOM JSON, write-then-rename updates) with the opposite lifecycle: nothing sweeps it. Read-only verbs never create the
     store directory; only Record, Refresh and Forget's target write touch it. This matters because
     the monitor page writer reads both stores and must not leave artifacts behind (S2406).
 
@@ -93,10 +94,11 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\utils\agent-lock.ps1')
 . (Join-Path $PSScriptRoot '..\utils\agent-identity.ps1')
 . (Join-Path $PSScriptRoot 'lib\find-adb.ps1')
+. (Join-Path $PSScriptRoot 'lib\device-store-paths.ps1')
 
 $root = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$registryDir = Join-Path $root 'temp\DEVICE.REGISTRY'
-$leaseDir = Join-Path $root 'temp\DEVICE.LEASES'
+$registryDir = Get-DeviceStoreDir -RepoRoot $root -Store Registry
+$leaseDir = Get-DeviceStoreDir -RepoRoot $root -Store Lease
 
 # Same serial grammar and file-name encoding as the lease store (S1926): one key, one shape, so a
 # serial found in either store is spelled identically in both.
@@ -112,9 +114,10 @@ function Test-SerialShape {
 }
 
 function ConvertTo-RecordFileName {
-    # ':' is legal in an adb serial (192.168.1.5:5555) and illegal in a Windows path segment.
+    # Delegates to the store declaration (S3036), which is also what the lease store calls - one
+    # serial, one spelling on disk, whichever store it is found in.
     param([Parameter(Mandatory)][string]$Serial)
-    return ($Serial -replace ':', '_')
+    return (ConvertTo-DeviceSerialFileName -Serial $Serial)
 }
 
 function Get-RecordPath {

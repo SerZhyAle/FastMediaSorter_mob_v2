@@ -3564,4 +3564,8 @@
     <string name="tourist_accuracy_unreliable">کمپاس کیلیبریٹ کریں</string>
     <string name="tourist_detail_satellites">سیٹلائٹس: فکس میں %1$d استعمال ہوئے (%2$d نظر میں)</string>
     <string name="tourist_detail_sun_time">طلوع آفتاب: %1$s • غروب آفتاب: %2$s</string>
+    <string name="settings_broadcast_enable_title">لائیو براڈکاسٹنگ فعال کریں</string>
+    <string name="settings_broadcast_enable_subtitle">لائیو آڈیو اسٹریم براڈکاسٹنگ کی اجازت دیں اور شارٹ کٹس دکھائیں</string>
+    <string name="widget_tourist_label">سیاح</string>
+    <string name="widget_tourist_description">نیویگیشن اور ریئل ٹائم ٹیلی میٹری ڈیش بورڈ</string>
 </resources>

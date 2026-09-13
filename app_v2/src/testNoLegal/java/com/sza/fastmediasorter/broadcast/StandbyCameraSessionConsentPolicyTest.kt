@@ -19,8 +19,12 @@ class StandbyCameraSessionConsentPolicyTest {
         override val isAvailable: Boolean = true
         private val mutableState = MutableStateFlow(initial)
         override val state: StateFlow<BroadcastState> = mutableState
-        override fun start(mode: BroadcastMode) = Unit
+        override val listenerCount: StateFlow<Int> = MutableStateFlow(0)
+        override fun start(mode: BroadcastMode, lensId: String?) = Unit
         override fun stop() = Unit
+        override fun toggleCamera() = Unit
+        override fun toggleMicrophone() = Unit
+        override fun selectLens(lensId: String) = Unit
         override fun acknowledgeFailure() = Unit
     }
 
@@ -48,7 +52,10 @@ class StandbyCameraSessionConsentPolicyTest {
 
     @Test
     fun `a live session grants without starting anything`() = runTest {
-        val policy = StandbyCameraSessionConsentPolicy(FakeController(BroadcastState.Live(descriptor(), startedAtElapsedRealtimeMs = 0L)))
+        val policy =
+            StandbyCameraSessionConsentPolicy(
+                FakeController(BroadcastState.Live(descriptor(), startedAtElapsedRealtimeMs = 0L))
+            )
 
         assertEquals(CameraConsentOutcome.Granted, policy.requestConsent("req-1"))
     }

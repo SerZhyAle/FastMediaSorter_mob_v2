@@ -2,6 +2,7 @@ package com.sza.fastmediasorter.ui.common.widget
 
 import android.content.Context
 import android.text.Editable
+import android.text.InputFilter
 import android.text.InputType
 import android.text.TextWatcher
 import android.util.AttributeSet
@@ -285,6 +286,17 @@ class SettingsInputRow @JvmOverloads constructor(
         }
     }
 
+    /**
+     * Sets the maximum character length for the input field.
+     */
+    fun setMaxLength(maxLength: Int) {
+        if (maxLength > 0) {
+            editText.filters = arrayOf(InputFilter.LengthFilter(maxLength))
+        } else {
+            editText.filters = emptyArray()
+        }
+    }
+
     private fun applyAttributes(attrs: AttributeSet?, defStyleAttr: Int) {
         if (attrs == null) return
         context.obtainStyledAttributes(attrs, R.styleable.SettingsInputRow, defStyleAttr, 0).use { typedArray ->
@@ -308,6 +320,8 @@ class SettingsInputRow @JvmOverloads constructor(
             }
             val entriesRes = typedArray.getResourceId(R.styleable.SettingsInputRow_sir_entries, 0)
             if (entriesRes != 0) setEntries(resources.getTextArray(entriesRes).toList())
+            val maxLength = typedArray.getInt(R.styleable.SettingsInputRow_sir_maxLength, 0)
+            if (maxLength > 0) setMaxLength(maxLength)
             if (typedArray.getBoolean(R.styleable.SettingsInputRow_sir_inline, false)) applyInlineLayout()
         }
     }

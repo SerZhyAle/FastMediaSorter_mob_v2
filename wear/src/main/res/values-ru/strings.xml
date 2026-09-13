@@ -715,7 +715,7 @@
     <string name="wear_phone_camera_failed_not_on_wifi">Включите Wi-Fi на часах</string>
     <string name="wear_phone_camera_failed_no_network">У часов нет сети</string>
     <string name="wear_phone_camera_failed_narrow_link">Этот Wi-Fi слишком медленный для видео</string>
-    <string name="wear_phone_camera_failed_not_asked">На телефоне выключены уведомления</string>
+    <string name="wear_phone_camera_failed_not_asked">Включите уведомления на телефоне</string>
     <string name="wear_phone_camera_failed_declined">Запрос отклонён на телефоне</string>
     <string name="wear_phone_camera_failed_expired">На телефоне никто не ответил</string>
     <string name="wear_phone_camera_failed_capture">Телефон не смог открыть камеру</string>
@@ -729,7 +729,6 @@
     <string name="system_info_copied">Скопировано</string>
     <string name="wear_game_caught_by_kryvavitsa">Поймала Крывавица</string>
     <string name="wear_game_caught_by_shadow">Поймала Тень</string>
-    <string name="wear_streams_filter_kind_all">Всё</string>
     <string name="wear_streams_filter_kind_audio">Аудио</string>
     <string name="wear_streams_filter_kind_video">Видео</string>
     <string name="wear_streams_empty_filtered">Фильтр не оставил ни одного потока. Снимите его, чтобы увидеть весь каталог.</string>
@@ -847,4 +846,5 @@
     <string name="wear_tourist_unlock_screen">Разблокировать</string>
     <string name="wear_tourist_hold_to_unlock">Удерживайте для разблокировки</string>
     <string name="wear_tourist_screen_locked">Экран закреплён</string>
+    <string name="wear_streams_filter_kind_own">Свои</string>
 </resources>

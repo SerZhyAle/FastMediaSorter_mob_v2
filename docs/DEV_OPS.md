@@ -436,7 +436,7 @@ pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Release -Id emulato
 pwsh -NoProfile -File scripts/devtest/device-lease.ps1 -Verb Status
 ```
 
-Exit codes match the ticket lease exactly, because it is the ticket lease's shape rather than the build lock's: **0** done, **1** error, **3** claim lost (a live sibling got there first - take a different device, this is not a fault), **4** release refused (a live foreign session owns it). One file per lease under `temp/DEVICE.LEASES/<serial>.json`, and the claim is an atomic file creation, so two sessions racing for one device cannot both win.
+Exit codes match the ticket lease exactly, because it is the ticket lease's shape rather than the build lock's: **0** done, **1** error, **3** claim lost (a live sibling got there first - take a different device, this is not a fault), **4** release refused (a live foreign session owns it). One file per lease under `temp/DEVICE.LEASES/<serial>.json`, and the claim is an atomic file creation, so two sessions racing for one device cannot both win. Both store paths and the `:` -> `_` serial encoding are declared once, in `scripts/devtest/lib/device-store-paths.ps1` (S3036), and read from there by every production caller - the two CLIs, the readiness probe `device-ready.ps1` and the monitor writer. Renaming either directory is therefore one edit in that file, and it reaches the archiver's protected set through `scripts/utils/temp-root-inventory.ps1`, which derives both names rather than listing them; `scripts/devtest/lib/device-store-paths.tests/` case E7 fails if a rename reaches the declaration but not that protection. The path is NOT a `.sza-profile.json` key, and that is a decision rather than an omission: the canon-shipped harness reads no device path at all, and `Get-SzaProfileValue` throws on an unknown key by design (S2705), so a project-only key would be unreadable until the canon declared one it never reads.
 
 **There is deliberately no queue.** A build finishes on its own in minutes, so waiting for `BUILD.LOCK` terminates; a sibling's device scenario can run arbitrarily long, so waiting for a device does not. A taken device is a reason to defer the device stage, not to block on it.
 
@@ -547,7 +547,7 @@ pwsh -NoProfile -File scripts/spec_catalog/release-queue.ps1 -List -Release 32 -
 
 #### Device registry - S2855
 
-Where the device lease answers "who is driving this device right now" and is swept when that session goes quiet, the device registry answers what no layer could before: **what was last installed on each test device, when, and by whom** - durable, machine-local, never swept. One file per device under `temp/DEVICE.REGISTRY/<serial>.json`: the lease store's serial discipline with the opposite lifecycle. Releasing or sweeping a lease never touches a mark, and a mark never creates or extends a lease.
+Where the device lease answers "who is driving this device right now" and is swept when that session goes quiet, the device registry answers what no layer could before: **what was last installed on each test device, when, and by whom** - durable, machine-local, never swept. One file per device under `temp/DEVICE.REGISTRY/<serial>.json` - path and serial encoding from the same declaration as the lease store, `scripts/devtest/lib/device-store-paths.ps1`: the lease store's serial discipline with the opposite lifecycle. Releasing or sweeping a lease never touches a mark, and a mark never creates or extends a lease.
 
 ```powershell
 # The park: role, who is driving what, and the last install mark
@@ -660,7 +660,7 @@ pwsh -NoProfile -File ./a.ps1 rm -Json        # the snapshot object, for any oth
 pwsh -NoProfile -File scripts/utils/dev-monitor-writer.ps1 -Once -OutDir temp/scratch/monitor   # one shell + one snapshot, no loop
 ```
 
-The writer runs through `start-detached.ps1 -OutDir temp/monitor` (S2400), so it outlives the shell and the session that started it; `writer.pid` refuses a second instance (a second `rmw` prints the running pid and opens the page again); `-Stop` creates the `STOP` flag the loop reads between ticks. It takes no lock and posts nothing to the chat - it is a viewer, not an agent - and writes nothing outside its directory. Exit codes of the writer: **0** done, **1** could not start (launcher failed, no first snapshot within 15 s, another writer alive), **2** `temp/` missing. Contract suites: `scripts/utils/dev-monitor-snapshot.tests/` (snapshot fields, read-only proof, terminal `-Json` parity) and `scripts/utils/dev-monitor-writer.tests/` (shell self-containment and no-animation, start / second start / ticks / stop lifecycle, nothing new at the top level of `temp/`).
+The writer runs through `start-detached.ps1 -OutDir temp/monitor` (S2400), so it outlives the shell and the session that started it; `writer.pid` refuses a second instance (a second `rmw` prints the running pid and opens the page again); `-Stop` creates the `STOP` flag the loop reads between ticks. It takes no lock and posts nothing to the chat - it is a viewer, not an agent - and writes nothing outside its directory. Exit codes of the writer: **0** done, **1** could not start (launcher failed, no first snapshot within 15 s, another writer alive), **2** `temp/` missing. Contract suites: `scripts/utils/dev-monitor-snapshot.tests/` (snapshot fields, read-only proof, terminal `-Json` parity) and `scripts/utils/dev-monitor-writer.tests/` (shell self-containment and no-animation, start / second start / ticks / stop lifecycle, no writer artifact at the top level of `temp/` - the case names the writer's own artifacts rather than diffing that shared directory, S3025).
 
 #### The foreground refusal - why a short check queues and exits instead of blocking (S2612)
 
@@ -726,6 +726,66 @@ The rule itself is `CLAUDE.md` Rule 23; this is the text it used to carry inline
 Five domains exist and `scripts/utils/agent-lock-domains.ps1` is their only home: `Build.Phone` and `Build.Wear` for gradle, `Code.Phone`, `Code.Wear` and `Code.Scripts` for edits - so a watch edit and a phone edit proceed at once, and so does a scripts edit beside either. Pass the changed set and let it map: `enter-code-lock.ps1 -Files "<paths>" -Reason "<ticket/skill>"`; a gradle entry point derives its domain from the module it already builds, and every script invoking `gradlew`/`gradlew.bat` acquires via `Enter-BuildLockOrExit -Domain <..>` and releases the same set after success or failure. `enter-code-lock.ps1` exits **4** meaning "queued, not yet your turn - do not edit sources yet". **The waiting contract, which no script can enforce for you:** when queued, run `pwsh -NoProfile -File scripts/utils/wait-for-lock-turn.ps1 -Name <domain> -Reason "<why>"` as a **background** task - its exit is the "your turn" signal, a multi-domain wait is granted only when you are head in *every* domain of your set - and keep working on what needs no lock: reading, research, specs, catalog, log analysis. The exit-4 message prints both follow-up commands with `-Handoff <path>` (S2403): pass that path - in a runtime with no session id the waiter and the post-grant re-run are strangers to the first ticket, and without the handoff each takes a second ticket for the same intent and the waiter waits out the reservation window behind its own dead first ticket. **The test is not "is it source" but "is this path already serialised by something finer" (S2338)** - the domain lock exists to order what nothing else orders, so a path another mechanism already makes exclusive does not need it, and a path nothing else covers does. By that test: sources, resources, build files, repository scripts, `.claude/`, `.github/`, documentation under `docs/` and notes under `dev/` need the lock, because they are hand-edited with nothing finer over them - and so do the content trees `play/`, `fastlane/`, `store_assets/`, `delivery/` and `maestro/` plus the root site pages, documents and icons, which since S2342 take `Code.Scripts` instead of falling through to the full set: none of them compiles, links or packs into an APK, so serialising phone and watch work against a store-listing edit protected nothing, and measured 2026-09-02 that was 8 of the 11 recent full-set acquisitions. Fail-closed keeps the rest: `corex/` and the modules `benchmark/` and `watchface/` still take every code domain, the last two because giving a module a code domain without a `Build.*` domain is a boundary decision this did not make. `PLAN/` does **not**, and is one of the table's two exemptions: a spec file and its phase folder belong to exactly one ticket, held exclusively by `ticket-lease.ps1`, and the journals plus both release files are written only through the catalog mutators, which all hold the catalog's own mutex. A PLAN-only changed set therefore resolves to no domain at all and `enter-code-lock.ps1` exits 0 with nothing to release - measured 2026-09-02, that is 55% of recent closures, each of which used to take a domain that protected nothing. **`temp/` is the second exemption (S2710), and it is exempt for the opposite reason:** nothing there is serialised by anything finer because there is nothing there to serialise - by Rule 1 it holds artifacts, backups, logs, per-ticket scratch and throwaway sandboxes, none of which compiles, links or packs into an APK, and no two sessions hand-edit one file there as shared text. Until that rule existed no pattern named `temp/` at all, so a path under it matched no anchored prefix and took the fail-closed answer, EVERY code domain, to write a file its own run then deletes: measured 2026-09-07, `assert-always-loaded-budget`'s contract suite failed its ratchet case with exit 4 while `Code.Scripts` itself was free and only its queue was held by a foreign session - a suite whose verdict depended on a sibling's queue rather than on the gate it tests. The coordination files at the `temp/` root are unaffected: the lock mechanism writes them with its own primitives, never through `Enter-CodeLockOrExit`. **The window is the edit and nothing else (S2419):** it opens immediately before the first edit of a step and closes the moment that step's last file is written, released by your own `exit-code-lock.ps1` rather than by whatever runs next. Everything after that edge runs unlocked - the verification predicates, `plan-tick.ps1` (a `PLAN/` write takes no domain anyway), the phase's `Project compiles` build, which `Build.*` already serialises on its own, the unit suite, the `post-change.ps1` gate batch, the dev log, the catalog. "Release it right after" was the whole of this rule until 2026-09-03 and did not say after *what*, so three texts each answered differently and all three answered "after the closure": `/spec-dev` step 6a and its reference both promised `post-change.ps1` would release at step 10, and this script's own help repeated it. Measured over `temp/AGENT-CHAT` for 2026-09-02 21:30 .. 2026-09-03 01:20 - 112 lock events, 51 closed acquire/release pairs - that cost a 95 s median hold on `Code.Scripts` with a 703 s maximum, of which the closure's own gate batch was 19.0-48.8 s; all 51 queue waits in the window were on that one domain and it reached ten deep. `post-change.ps1` still releases, since S2419 before its gates instead of after them, but only as the backstop for a run that ended early. Withdraw a dropped intent with `pwsh -NoProfile -File scripts/utils/withdraw-lock-ticket.ps1 -Name <domain>`, or `.\a.ps1 uqb` / `uqc`; only the granted-but-unclaimed head self-heals (S2194). Inspect the order with `lock-status.ps1 -Name <domain> -Queue`, which prints one section per domain when given a bare `Build` or `Code`. A pre-split `temp/BUILD.LOCK` or `temp/CODE.LOCK` still holds **every** domain of its type until its owner releases it. Ticket ownership, eviction, the head-of-queue reservation, the outcome marker (never trust a background task's exit code) and re-entrancy: `docs/DEV_OPS.md` "Concurrent-agent locks".
 
 The lock window text above superseded "release it right after", which had been the whole of the rule until 2026-09-03 and did not say after *what*.
+
+### The temp/ root inventory (S3030)
+
+`temp/` root holds three kinds of content, and `scripts/utils/archive-temp.ps1` has always said so in
+its own synopsis: **fixed infrastructure** that must never move, **per-ticket scratch** (`temp/Sxxxx/`,
+kept while the ticket is live and judged by its catalog status, never by its name), and **loose
+per-run artifacts** that are legal only while a retention window covers them. CLAUDE.md Rule 10 used
+to describe the first kind and enumerate it inline, which is why the sentence "the root holds only
+what Rule 10 lists" could not be checked: two of the three legitimate classes were outside the
+sentence, so a literal reading condemned 2459 of 2470 entries and a charitable one condemned nothing.
+
+**One declaration, two consumers.** `scripts/utils/temp-root-inventory.ps1` is the only place the
+allowed set is written. It derives what has an authority - the `*.LOCK`, `*.QUEUE` and `*.TURN-*`
+names from `agent-lock-domains.ps1`, the harness's own directories from `.sza-profile.json`, the two
+device stores from `scripts/devtest/lib/device-store-paths.ps1` (S3036, which created the authority
+those two rows were hand-listed for want of) - and enumerates by hand only the names nothing else
+declares, each carrying the writer that creates it.
+`archive-temp.ps1` reads it to decide what a sweep may never move; `scripts/quality/assert-temp-root-inventory.ps1`
+reads it to decide what the root may hold. Adding a fixed name at the root is one row plus its
+reason, and the gate is what tells its author the row is missing - which is how
+`temp/catalog-touch.marker` was found on 2026-09-12 and declared in S3036: written by
+`dev/CATALOG/scripts/query.ps1`, read by the Rule 29 hook `guard-catalog-before-kt-search.ps1` and
+removed at every session start, it exists only between a catalog query and the next session, so the
+one-shot census that produced the first inventory could not see it. An intermittent name is the
+shape a census misses and a standing gate catches.
+
+**The two consumers read one member differently, on purpose.** `FixedFilePatterns` is a live sink the
+log tooling appends to, so a sweep must not move it. `RetainedFilePatterns` is legal *because* the
+sweep carries it away: protecting it would stop the retention that was the only reason to allow it,
+and the per-run transcripts would then accumulate without bound.
+
+**Ask the root, do not read a list:**
+
+```powershell
+pwsh -NoProfile -File scripts/quality/assert-temp-root-inventory.ps1
+```
+
+Exit 0 means every top-level entry is a declared name, a declared pattern, or a ticket directory.
+Exit 1 names each entry declared nowhere and the class it failed. The gate is **release scope** (Rule
+33): the directory is shared by every concurrent session, so a per-closure run would fail whoever ran
+it over a neighbour's lock file - which is how S2998's blacklist and then S3025's suite assertion
+were each broken by a process that was not under test.
+
+Two facts worth knowing before touching that root:
+
+- **The per-run check and build transcripts are legal, and they are the bulk of it.** Measured
+  2026-09-12 the root held 2470 entries, of which 2194 `check_fast_*.log` and 169 `build_debug_*.log`.
+  That is not a backlog - it is the seven-day retention window's equilibrium at the repository's
+  check rate, and the archiver's dry run on the same tree planned to move 87 of them.
+- **That corpus is load-bearing, so do not "clean it up".** `scripts/utils/measure-build-lock-wait.ps1`
+  reads it from the root by glob (and so do `scripts/metrics/measure-unit-fork-parallelism.ps1` and
+  `scripts/builders/get-last-build-failure.ps1`), `dev/REFUTED_APPROACHES.md` instructs a future
+  session to re-run the first of those before re-proposing a refuted build-lock change, and S2606
+  reconstructed 1281 runs from it. Relocating the logs is a ticket with three readers to move in
+  lock-step, not a tidy-up - and it is a declared non-goal of S3030.
+
+**A ticket-shaped FILE is not scratch.** `temp/S3030/` is legal; `temp/S3030_notes.txt` never was.
+The retired flat `temp/Sxxxx_*` scheme left exactly the second shape behind, and the gate's ticket
+class matches directories only so those files surface instead of hiding behind the rule that protects
+the directories.
 
 ### Release freeze - admission control for a sweep, not a sixth lock (S3010)
 

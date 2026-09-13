@@ -157,6 +157,7 @@ class ApplyEnableAllSettingsUseCase @Inject constructor(
             // the master switch joins: flip and backlight are modes the membership rule keeps out.
             InternalRouteCatalog.KEY_MIRROR to { s: AppSettings -> s.copy(mirrorEnabled = true) },
             InternalRouteCatalog.KEY_START_VIDEO_RECORDING to { s: AppSettings -> s.copy(disableVideoCapture = false) },
+            InternalRouteCatalog.KEY_BROADCAST to { s: AppSettings -> s.copy(enableBroadcasting = true) },
             InternalRouteCatalog.KEY_SCHEDULED_TASKS to { s: AppSettings ->
                 s.copy(enableScheduledOperations = true)
             },
